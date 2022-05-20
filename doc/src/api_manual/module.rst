@@ -500,6 +500,18 @@ Oracledb Methods
     The ``user``, ``password`` and ``dsn`` parameters are the same as for
     :meth:`oracledb.connect()`.
 
+    The ``pool_class`` parameter is expected to be a :ref:`ConnectionPool Object
+    <connpool>` or a subclass of ConnectionPool.
+
+    The ``params`` parameter is expected to be of type :ref:`PoolParams
+    <poolparam>` and contains parameters that are used to create the pool.  If
+    this parameter is not specified, the additional keyword arguments will be
+    used to create an instance of PoolParams. If both the params parameter and
+    the additional keyword parameters are specified, then an exception is
+    raised. Note that if a ``dsn`` parameter is also specified, then the
+    ``params`` parameter will be modified to contain the connection parameters
+    found within ``dsn``.
+
     The ``min``, ``max`` and ``increment`` parameters control pool growth
     behavior. A fixed pool size where ``min`` equals ``max`` is
     :ref:`recommended <connpoolsize>` to help prevent connection storms and to
@@ -560,18 +572,6 @@ Oracledb Methods
     returned by :meth:`~ConnectionPool.acquire()`. If ``ping_interval`` is a
     negative value, then the ping functionality will be disabled. The default
     value is 60 seconds.
-
-    The ``pool_class`` parameter is expected to be a :ref:`ConnectionPool Object
-    <connpool>` or a subclass of ConnectionPool.
-
-    The ``params`` parameter is expected to be of type :ref:`PoolParams
-    <poolparam>` and contains parameters that are used to create the pool.  If
-    this parameter is not specified, the additional keyword arguments will be
-    used to create an instance of PoolParams. If both the params parameter and
-    the additional keyword parameters are specified, then an exception is
-    raised. Note that if a ``dsn`` parameter is also specified, then the
-    ``params`` parameter will be modified to contain the connection parameters
-    found within ``dsn``.
 
     The ``proxy_user`` parameter is expected to be a string which indicates the
     name of the proxy user to connect to. If this value is not specified, it
