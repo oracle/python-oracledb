@@ -1,0 +1,8 @@
+__pycache__/
+.eggs/
+.tox/
+*.egg-info/
+build/
+dist/
+doc/build
+src/oracledb/*.c

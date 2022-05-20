@@ -1,0 +1,3 @@
+[submodule "src/oracledb/impl/thick/odpi"]
+	path = src/oracledb/impl/thick/odpi
+	url = ../odpi.git

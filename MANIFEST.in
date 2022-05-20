@@ -1,0 +1,12 @@
+include MANIFEST.in
+include pyproject.toml
+include tox.ini
+include *.txt
+recursive-include src/oracledb *.pxd
+recursive-include src/oracledb *.pxi
+recursive-include src/oracledb *.pyx
+recursive-include src/oracledb/impl/thick/odpi *.c
+recursive-include src/oracledb/impl/thick/odpi *.h
+prune src/oracledb/impl/thick/odpi/test
+prune src/oracledb/impl/thick/odpi/samples
+recursive-include tests *.py

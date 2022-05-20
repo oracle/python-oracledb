@@ -1,0 +1,103 @@
+#------------------------------------------------------------------------------
+# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+#
+# This software is dual-licensed to you under the Universal Permissive License
+# (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
+# 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose
+# either license.
+#
+# If you elect to accept the software under the Apache License, Version 2.0,
+# the following applies:
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# connect_params.py
+#
+# Contains the ConnectParams class used for managing the parameters required to
+# establish a connection to the database.
+#
+#{{ generated_notice }}
+#------------------------------------------------------------------------------
+
+from typing import Type, Union
+
+import oracledb
+
+from . import base_impl, constants, errors, utils
+
+class ConnectParams:
+    """
+    Contains all parameters used for establishing a connection to the
+    database.
+    """
+    __module__ = oracledb.__name__
+    __slots__ = ["_impl"]
+    _impl_class = base_impl.ConnectParamsImpl
+
+#{{ __init__ }}
+
+#{{ __repr__ }}
+
+    def _address_attr(f):
+        """
+        Helper function used to get address level attributes.
+        """
+        def wrapped_func(self):
+            output = []
+            for description in self._impl.description_list.descriptions:
+                for address_list in description.address_lists:
+                    for address in address_list.addresses:
+                        output.append(getattr(address, f.__name__))
+            return output if len(output) > 1 else output[0]
+        return wrapped_func
+
+    def _description_attr(f):
+        """
+        Helper function used to get description level attributes.
+        """
+        def wrapped_func(self):
+            output = []
+            for description in self._impl.description_list.descriptions:
+                output.append(getattr(description, f.__name__))
+            return output if len(output) > 1 else output[0]
+        return wrapped_func
+
+#{{ properties }}
+
+    def copy(self) -> Type["ConnectParams"]:
+        """
+        Creates a copy of the parameters and returns it.
+        """
+        params = ConnectParams.__new__(ConnectParams)
+        params._impl = self._impl.copy()
+        return params
+
+    def get_connect_string(self) -> str:
+        """
+        Returns a connect string generated from the parameters.
+        """
+        return self._impl.get_connect_string()
+
+    def parse_connect_string(self, connect_string: str) -> None:
+        """
+        Parses the connect string into its components and stores the
+        parameters.  The connect string could be an Easy Connect string,
+        name-value pairs or a simple alias which is looked up in tnsnames.ora.
+        Any parameters found in the connect string override any currently
+        stored values.
+        """
+        self._impl.parse_connect_string(connect_string)
+
+#{{ set }}
