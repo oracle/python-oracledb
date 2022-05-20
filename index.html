@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html itemscope="itemscope" itemtype="http://schema.org/WebPage" lang="en">
+
+<!--
+
+Copyright (c) 2022, Oracle and/or its affiliates.
+
+This software is dual-licensed to you under the Universal Permissive License
+(UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
+2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose
+either license.
+
+If you elect to accept the software under the Apache License, Version 2.0,
+the following applies:
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>python-oracledb - Python Driver for Oracle Database</title>
+  <link rel="stylesheet" href="base.css" type="text/css" />
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+</head>
+
+<body>
+  <div class="oracleHeader">
+    <div class="container">
+      <a class="oracleLogo" href="https://www.oracle.com/">Oracle</a>
+    </div>
+  </div>
+  <header class="header" role="banner">
+    <div class="container">
+      <div class="headerLogoContainer">
+        <img class="headerLogo" alt="python-oracledb logo" src="logo.png" />
+      </div>
+      <div class="headerContent">
+        <h1 class="headerTitle">Python python-oracledb version 1.0</h1>
+        <nav class="headerNav" role="navigation">
+          <ul>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html" >Installation</a></li>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/index.html">Documentation</a></li>
+            <li><a href="https://python-oracledb.readthedocs.io/en/latest/release_notes.html#releasenotes">Release Notes</a></li>
+            <li><a href="https://github.com/oracle/python-oracledb">Source code</a></li>
+            <li><a href="https://github.com/oracle/python-oracledb/discussions">Help</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+
+  </header>
+
+  <main class="mainContent" role="main">
+    <div class="container">
+
+      <div id="about">
+      <h2>The python-oracledb driver for Oracle Database</h2>
+
+          <p>
+
+          The <strong>python-oracledb</strong> driver is a <a
+          href="https://www.python.org/" >Python programming language</a>
+          extension module allowing Python programs to connect to <a
+          href="https://www.oracle.com/database/" >Oracle Database</a>.
+          Python-oracledb is the new name for Oracle's popular cx_Oracle
+          driver.
+
+          </p>
+
+          <p>
+          <img src="./python-oracledb-arch.png">
+          </p>
+
+          <p>
+
+          The module conforms to the <a
+          href="https://peps.python.org/pep-0249/" >Python Database API 2.0
+          specification</a> with a considerable number of additions and a
+          couple of minor exclusions, see the <a href="#features" >feature
+          list</a>.
+
+          </p>
+
+      </div> <!-- /about -->
+
+      <div id="quickstart">
+      <h2>Getting Started</h2>
+
+          <ul>
+
+	    <li>
+
+	      <p><a
+            href="https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html#quickstart"
+            >Quick Start: Developing Python Applications for Oracle
+	      Database</a></p>
+
+	    </li>
+
+	    <li>
+
+	      <p><a href="
+	      https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html">Python
+	      and Oracle Database Tutorial: The New Wave of Scripting</a></p>
+
+	    </li>
+
+            <li><p><a
+            href="https://github.com/oracle/python-python-oracledb/tree/main/samples"
+            >Samples</a></p></li>
+
+          </ul>
+
+      </div> <!-- /quickstart -->
+
+      <div id="installation">
+      <h2>Installation</h2>
+
+      <p>See <a
+      href="https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html"
+      >python-oracledb Installation</a> for detailed instructions.</p>
+
+      </div> <!-- /installation -->
+
+      <div id="dependencies">
+
+      <h2>Dependencies</h2>
+
+          <ul>
+
+	    <li>
+
+	      <p><strong>Python versions 3.6 through 3.10</strong>.</p>
+
+	      <p> Pre-built packages on <a
+	      href="https://pypi.org/project/oracledb" >PyPI</a> vary with
+	      Python version support on each operating system.</p>
+
+	    </li>
+
+	    <li>
+
+	      <p><strong>Oracle Client libraries are optional</strong>.</p>
+
+              <p><strong>Thin mode</strong>: By default, python-oracledb is a
+              'Thin' driver which connects directly to Oracle Database.  This
+              mode does not need Oracle Client libraries.</p>
+
+              <p><strong>Thick mode</strong>: Some advanced Oracle Database
+              functionality is currently only available via Oracle Client
+              libraries.  You can install these libraries using the free <a
+              href="https://www.oracle.com/database/technologies/instant-client.html"
+              >Oracle Instant Client</a> packages. Python-oracledb works with
+              Oracle Client libraries 11.2 through 21c.  See <a
+              href="https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enablingthick"
+              >Enabling python-oracledb Thick mode</a>.</p>
+
+            </li>
+
+            <li>
+
+              <p><strong>Oracle Database</strong></p>
+
+              <p><strong>Thin mode</strong>: Connects to Oracle Database 12c,
+              18c, 19c and 21c.</p>
+
+              <p><strong>Thick mode</strong>: Connects to Oracle Database 11.2,
+              12c, 18c, and 21c, depending on the Oracle Client library
+              version.  Oracle Database's standard client-server version
+              interoperability allows connection to both older and newer
+              databases. For example, when python-oracledb uses Oracle Client
+              19c libraries, it can connect to Oracle Database 11.2 or later.
+              </p>
+
+            </li>
+
+          </ul>
+
+      </div> <!-- /dependencies -->
+
+      <div id="documentation">
+      <h2>Documentation</h2>
+
+      <p>See the <a href="https://python-oracledb.readthedocs.io/en/latest/index.html"
+      >python-oracledb Documentation</a> and <a
+      href="https://python-oracledb.readthedocs.io/en/latest/release_notes.html#releasenotes"
+      >Release Notes</a>.</p>
+
+      <p>You can use assistive technology products, such as screen readers,
+      while you work with the documentation. You can also use the keyboard
+      instead of the mouse.</p>
+
+      </div> <!-- /documentation -->
+
+      <div id="help">
+      <h2>Help</h2>
+
+      <p>Questions can be asked on <a
+      href="https://github.com/oracle/python-oracledb/discussions" >GitHub
+      Discussions</a>. Identified issues can be raised as <a
+      href="https://github.com/oracle/python-oracledb/issues" >GitHub
+      Issues</a>.</p>
+
+      </div> <!-- /help -->
+
+      <div id="tests">
+      <h2>Tests</h2>
+
+      <p>See the <a href="https://github.com/oracle/python-oracledb/tree/main/test" >test suite</a>.</p>
+
+      </div> <!-- /tests -->
+
+      <div id="contribuing">
+      <h2>Contributing</h2>
+
+      <p>See <a href="https://github.com/oracle/python-oracledb/blob/main/CONTRIBUTING.md" >CONTRIBUTING</a>.</p>
+
+      </div> <!-- /contributing -->
+
+      <div id="features">
+
+      <h2>Features</h2>
+
+      <ul>
+
+      <li><p>Easily installed from <a href="https://pypi.org/project/oracledb"
+      >PyPI</a>.  No additional install is required - you just need an
+      available Oracle Database.</p></li>
+
+      <li><p>Support for Python 3.6 and higher.</p></li>
+
+      <li><p>Optional use of Oracle Client 11.2, 12, 18, 19 or 21 libraries for
+      advanced Oracle Database functionality.  Oracle's standard cross-version
+      interoperability, allows easy upgrades and connectivity to different
+      Oracle Database versions.</p></li>
+
+      <li><p>Connects to Oracle Database 11.2, 12, 18, 19 or 21 on-premises or
+      in the Cloud.</p></li>
+
+      <li><p>SQL and PL/SQL Execution with significant optimizations including
+      compressed fetch, pre-fetching, client and server result set caching, and
+      statement caching with auto-tuning.</p></li>
+
+      <li><p>Full use of Oracle Network Service infrastructure, including
+      encrypted network traffic and security features.</p></li>
+
+      <li><p>Extensive Oracle data type support, including large object
+      support (CLOB and BLOB).</p></li>
+
+      <li><p>Direct binding to SQL objects.  One great use case is binding
+      Python objects to Oracle Spatial SDO objects.</p></li>
+
+      <li><p>JSON datatype support.</p></li>
+
+      <li><p>SODA (Simple Oracle Document Access).</p></li>
+
+      <li><p>Array operations for efficient INSERT, UPDATE and MERGE
+      execution.</p></li>
+
+      <li><p>Array row counts and batch error handling for array operations.</p></li>
+
+      <li><p>Fetching of large result sets with easy tuning.</p></li>
+
+      <li><p>REF CURSOR support.</p></li>
+
+      <li><p>Support for scrollable cursors. Go back and forth through your
+      query results.</p></li>
+
+      <li><p>Fetch PL/SQL Implicit Results. Easily return query results from
+      PL/SQL.</p></li>
+
+      <li><p>Row Prefetching.  Efficient use of the network.</p></li>
+
+      <li><p>Client Result Caching.  Improve performance of frequently
+      executed look-up statements.</p></li>
+
+      <li><p>Support for Advanced Queuing. Use database notifications to
+      build micro-service applications.</p></li>
+
+      <li><p>Continuous Query Notification (CQN).  Get notified when data
+      changes.</p></li>
+
+      <li><p>Support for Edition Based Redefinition.  Easily switch
+      applications to use updated PL/SQL logic.</p></li>
+
+      <li><p>Support for setting application context during the creation of
+      a connection, making application metadata more accessible to the
+      database, including in LOGON triggers.</p></li>
+
+      <li><p>End-to-end monitoring and tracing.</p></li>
+
+      <li><p>Transaction Management.</p></li>
+
+      <li><p>Session Pooling, with tagging and session state fix-up callback.</p></li>
+
+      <li><p>Database Resident Connection Pooling (DRCP).</p></li>
+
+      <li><p>Privileged Connections.</p></li>
+
+      <li><p>External Authentication.</p></li>
+
+      <li><p>Database startup and shutdown.</p></li>
+
+      <li><p>Sharded Database connectivity.</p></li>
+
+      <li><p>Oracle Database High Availability Features, such as FAN
+      notifications, Application Continuity, and Transaction Guard support.</p></li>
+
+      </ul>
+
+      <p>Some features above are only available in Thick mode.</p>	  
+
+      <p>Python DB API specification exclusions:</p>
+      <ul>
+
+        <li><p>The TIME data type is not supported by Oracle Database and is
+        therefore not implemented.</p></li>
+
+        <li><p>The method <code>cursor.nextset()</code> is not implemented
+        because the specification assumes an implementation of cursors that
+        does not fit well with Oracle Database's implementation of cursors and
+        implicit results. See the method <a
+        href="https://python-oracledb.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.getimplicitresults">Cursor.getimplicitresults()</a>
+        for the Oracle replacement.</p>
+
+        </li>
+
+      </ul>
+
+      </div> <!-- /features -->
+
+      <div id="license">
+      <h2>License</h2>
+
+      <p>Python-oracledb license information is in <a
+      href="https://github.com/oracle/python-oracledb/blob/main/LICENSE.txt"
+      >LICENSE</a>, <a
+      href="https://github.com/oracle/python-oracledb/blob/main/THIRD_PARTY_LICENSES.txt"
+      >THIRD_PARTY_LICENSES</a> and <a
+      href="https://github.com/oracle/python-oracledb/blob/main/NOTICE.txt"
+      >NOTICE</a>.</p>
+
+      </div> <!-- /license -->
+
+    </div>
+  </main>
+</body>
+
+</html>
