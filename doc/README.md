@@ -1,6 +1,6 @@
-Sphinx 4.2 is used to generate the HTML for the python-oracledb documentation. 
+Sphinx 4.2 is used to generate the HTML for the python-oracledb documentation.
 
-The generated python-oracledb documentation is at http://cx-oracle.readthedocs.io/
+The generated python-oracledb documentation is at https://python-oracledb.readthedocs.io/
 
 This directory contains the documentation source.  It is written using reST
 (re-Structured Text) format source files which are processed using Sphinx and
