@@ -1857,7 +1857,7 @@ cdef class LobOpMessage(Message):
         ThinLobImpl dest_lob_impl
         uint64_t source_offset
         uint64_t dest_offset
-        uint64_t amount
+        int64_t amount
         bint send_amount
         bint bool_flag
         object data
@@ -1903,7 +1903,7 @@ cdef class LobOpMessage(Message):
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             buf.skip_ub2()                  # skip character set
         if self.send_amount:
-            buf.read_ub8(&self.amount)
+            buf.read_sb8(&self.amount)
         if self.operation == TNS_LOB_OP_CREATE_TEMP \
                 or self.operation == TNS_LOB_OP_IS_OPEN:
             buf.read_ub2(&temp16)           # flag
@@ -1930,19 +1930,15 @@ cdef class LobOpMessage(Message):
             buf.write_uint8(1)              # pointer (character set)
         else:
             buf.write_uint8(0)              # pointer (character set)
-        buf.write_uint8(0)                  # pointer (amount)
+        buf.write_uint8(0)                  # pointer (short amount)
         if self.operation == TNS_LOB_OP_CREATE_TEMP \
                 or self.operation == TNS_LOB_OP_IS_OPEN:
             buf.write_uint8(1)              # pointer (NULL LOB)
         else:
             buf.write_uint8(0)              # pointer (NULL LOB)
         buf.write_ub4(self.operation)
-        if self.operation == TNS_LOB_OP_CREATE_TEMP:
-            buf.write_uint8(1)              # pointer (SCN array)
-            buf.write_ub4(1)                # SCN array length
-        else:
-            buf.write_uint8(0)              # pointer (SCN array)
-            buf.write_ub4(0)                # SCN array length
+        buf.write_uint8(0)                  # pointer (SCN array)
+        buf.write_uint8(0)                  # SCN array length
         buf.write_ub8(self.source_offset)
         buf.write_ub8(self.dest_offset)
         if self.send_amount:
@@ -1960,13 +1956,11 @@ cdef class LobOpMessage(Message):
                 buf.write_ub4(TNS_CHARSET_UTF16)
             else:
                 buf.write_ub4(TNS_CHARSET_UTF8)
-        if self.send_amount:
-            buf.write_ub8(self.amount)
         if self.data is not None:
             buf.write_uint8(TNS_MSG_TYPE_LOB_DATA)
             buf.write_bytes_chunked(self.data)
-        if self.operation == TNS_LOB_OP_CREATE_TEMP:
-            buf.write_ub4(0)                # SCN array element
+        if self.send_amount:
+            buf.write_ub8(self.amount)      # LOB amount
 
 
 @cython.final

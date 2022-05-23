@@ -899,6 +899,23 @@ cdef class ReadBuffer:
             if is_negative:
                 value[0] = -value[0]
 
+    cdef int read_sb8(self, int64_t *value) except -1:
+        """
+        Reads a signed 64-bit integer from the buffer.
+        """
+        cdef:
+            const char_type *ptr
+            bint is_negative
+            uint8_t length
+        self._get_int_length_and_sign(&length, &is_negative, 8)
+        if length == 0:
+            value[0] = 0
+        else:
+            ptr = self._get_raw(length)
+            value[0] = self._unpack_int(ptr, length)
+            if is_negative:
+                value[0] = -value[0]
+
     cdef object read_str(self, int csfrm):
         """
         Reads a string from the buffer.

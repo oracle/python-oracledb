@@ -122,6 +122,8 @@ cdef class ThinLobImpl(BaseLobImpl):
         message = self._conn_impl._create_message(LobOpMessage)
         message.operation = TNS_LOB_OP_OPEN
         message.source_lob_impl = self
+        message.amount = TNS_LOB_OPEN_READ_WRITE
+        message.send_amount = True
         self._conn_impl._protocol._process_single_message(message)
 
     def read(self, uint64_t offset, uint64_t amount):
