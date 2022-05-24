@@ -1,8 +1,8 @@
 # python-oracledb 1.0
 
 python-oracledb is a [Python programming language][python] extension module
-allowing Python programs to connect to [Oracle Database][oracledb].  It
-supersedes the cx_Oracle module.
+allowing Python programs to connect to [Oracle Database][oracledb].  It is the
+renamed, new major release of the popular cx_Oracle driver.
 
 The module conforms to the [Python Database API 2.0 specification][pep249] with
 a considerable number of additions and a couple of minor exclusions, see the
@@ -17,6 +17,11 @@ See [python-oracledb Installation][installation].
 ## Dependencies and Interoperability
 
 - Python versions 3.6 through 3.10.
+
+  Prebuilt packages are available on Windows for Python 3.7 or later, on macOS
+  for Python 3.8 or later, and on Linux for Python 3.6 or later.
+
+  Source code is also available.
 
 - Oracle Client libraries are *optional*.
 
@@ -47,7 +52,7 @@ Notes][relnotes].
 ## Samples
 
 Examples can be found in the [/samples][samples] directory and the
-[tutorial][tutorial].
+[Python and Oracle Database Tutorial][tutorial].
 
 ## Help
 
@@ -57,7 +62,7 @@ Problem reports can be raised in [GitHub Issues][ghissues].
 
 ## Tests
 
-See [/test][tests]
+See [/tests][tests]
 
 ## Contributing
 
@@ -76,10 +81,10 @@ See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and [NOTICE][notice].
 [license]: https://github.com/oracle/python-oracledb/blob/main/LICENSE.txt
 [tplicense]: https://github.com/oracle/python-oracledb/blob/main/THIRD_PARTY_LICENSES.txt
 [notice]: https://github.com/oracle/python-oracledb/blob/main/NOTICE.txt
-[tutorial]: https://github.com/oracle/python-oracledb/tree/main/samples/tutorial
+[tutorial]: https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html
 [ghdiscussions]: https://github.com/oracle/python-oracledb/discussions
 [ghissues]: https://github.com/oracle/python-oracledb/issues
-[tests]: https://github.com/oracle/python-oracledb/tree/main/test
+[tests]: https://github.com/oracle/python-oracledb/tree/main/tests
 [samples]: https://github.com/oracle/python-oracledb/tree/main/samples
 [installation]: https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
 [features]: https://oracle.github.io/python-oracledb/#features
