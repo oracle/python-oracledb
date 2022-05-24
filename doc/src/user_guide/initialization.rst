@@ -21,16 +21,8 @@ default Thin mode to the Thick mode requires the addition of a call to
 :func:`oracledb.init_oracle_client()` and an application restart.  Other small
 changes may also be required.
 
-The Thick mode is enabled by:
-
-- Calling :func:`~oracledb.init_oracle_client()` in the application as shown in
-  sections below.
-
-- If you are changing from the default Thin mode, then refer to :ref:`featuresummary`
-  and :ref:`driverdiff` for other changes that may be needed.
-
-- If you are upgrading a cx_Oracle application to python-oracledb, then refer
-  to :ref:`upgrading83` for other changes that may be needed.
+The Thick mode is enabled by calling :func:`~oracledb.init_oracle_client()` in
+the application as shown in sections below.
 
 .. note::
 
@@ -43,6 +35,13 @@ The Thick mode is enabled by:
 
     Once the Thick mode is enabled, all connections will be in Thick mode and you
     cannot go back to Thin mode.
+
+If you are changing from the default Thin mode, then refer to
+:ref:`featuresummary` and :ref:`driverdiff` for other changes that may be
+needed.
+
+If you are upgrading a cx_Oracle application to python-oracledb, then refer to
+:ref:`upgrading83` for other changes that may be needed.
 
 You can validate the python-oracledb mode by querying the ``CLIENT_DRIVER``
 column of ``V$SESSION_CONNECT_INFO`` and verifying if the value of the column
@@ -223,12 +222,15 @@ Linux, you might use::
 Using oracledb.init_oracle_client() to set the Oracle Client directory
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Applications must call the function :meth:`oracledb.init_oracle_client()` to
-specify the directory containing Oracle Instant Client libraries.  The Oracle
-Client Libraries are loaded when ``init_oracle_client()`` is called.  For
-example, if the Oracle Instant Client Libraries are in
+Oracle Client Libraries are loaded when :meth:`oracledb.init_oracle_client()`
+is called.  In some environments, applications can use the ``lib_dir``
+parameter to specify the directory containing the Oracle Client libraries.
+Otherwise, the system library search path should contain the relevant library
+directory before Python is invoked.
+
+For example, if the Oracle Instant Client Libraries are in
 ``C:\oracle\instantclient_19_9`` on Windows or
-``$HOME/Downloads/instantclient_19_8`` on macOS, then you can use:
+``$HOME/Downloads/instantclient_19_8`` on macOS (Intel x86), then you can use:
 
 .. code-block:: python
 
@@ -237,7 +239,7 @@ example, if the Oracle Instant Client Libraries are in
     import platform
 
     d = None  # default suitable for Linux
-    if platform.system() == "Darwin":
+    if platform.system() == "Darwin" and platform.machine() == "x86_64":
         d = os.environ.get("HOME")+"/Downloads/instantclient_19_8")
     elif platform.system() == "Windows":
         d = r"C:\oracle\instantclient_19_14"
@@ -409,7 +411,7 @@ The `oraaccess.xml` file has other uses including:
 
 - Changing the value of Fast Application Notification :ref:`FAN <fan>` events which affects notifications and Runtime Load Balancing (RLB).
 - Configuring `Client Result Caching <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D2FA7B29-301B-4AB8-8294-2B1B015899F9>`__ parameters
-- Turning on `Client Statement Cache Auto-tuning <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&d=GUID-6E21AA56-5BBE-422A-802C-197CAC8AAEA4>`__
+- Turning on `Client Statement Cache Auto-tuning <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-75169FE4-DE2C-431F-BBA7-3691C7C33360>`__
 
 Refer to the documentation on `oraaccess.xml
 <https://www.oracle.com/pls/topic/lookup?

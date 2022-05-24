@@ -15,20 +15,20 @@ information, see :ref:`upgrading83`.
 
 Python-oracledb is typically installed from Python's package repository
 `PyPI <https://pypi.org/project/oracledb/>`__ using `pip
-<https://pip.pypa.io/en/latest/installing/>`__. See :ref:`installation` for
+<https://pip.pypa.io/en/latest/installation/>`__. See :ref:`installation` for
 more information.
 
 Architecture
 ============
 
-The python-oracledb driver can run in either the Thin mode or Thick mode,
-which is determined by an application setting.
+Python-oracledb is a 'Thin' driver with an optional 'Thick' mode enabled by an
+application setting.
 
 python-oracledb Thin Mode Architecture
 --------------------------------------
 
-By default, python-oracledb runs in a 'Thin' mode which connects directly to
-Oracle Database 12.1 or later.  This mode does not need Oracle Client libraries.
+By default, python-oracledb allows connecting directly to Oracle Database 12.1
+or later.  This Thin mode does not need Oracle Client libraries.
 
 .. _thinarchfig:
 .. figure:: /images/python-oracledb-thin-arch.png
@@ -48,9 +48,9 @@ The Oracle Net behavior can optionally be configured by using a
 python-oracledb Thick Mode Architecture
 ---------------------------------------
 
-Python-oracledb is said to be in 'Thick' mode when Oracle Client libraries are
-used.  An application script runtime option enables this mode by loading the
-libraries, see :ref:`enablingthick`.  This gives you some :ref:`additional
+Python-oracledb is said to be in 'Thick' mode when it links with Oracle Client
+libraries.  An application script runtime option enables this mode by loading
+the libraries, see :ref:`enablingthick`.  This gives you some :ref:`additional
 functionality <featuresummary>`. Depending on the version of the Oracle Client
 libraries, this mode of python-oracledb can connect to Oracle Database 9.2 or
 later.
@@ -99,7 +99,7 @@ The python-oracledb feature highlights are:
 
     *   Easy installation from PyPI
     *   Support for multiple Oracle Database versions
-    *   Works with common frameworks and ORMs
+    *   Supports the `Python Database API v2.0 Specification <https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of additions and a couple of exclusions.    *   Works with common frameworks and ORMs
     *   Execution of SQL and PL/SQL statements
     *   Extensive Oracle data type support, including JSON, large objects (``CLOB`` and
         ``BLOB``) and binding of SQL objects
@@ -123,5 +123,5 @@ Runnable examples are in the `GitHub samples directory
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__.
 A tutorial `Python and Oracle Database Tutorial: The New Wave of Scripting
 <https://oracle.github.io/python-oracledb
-/samples/tutorial/Python-and-Oracle-Database-Scripting-for-the-Future.html>`__
+/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html>`__
 is also available.

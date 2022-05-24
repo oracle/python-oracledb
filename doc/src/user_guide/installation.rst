@@ -86,7 +86,7 @@ quickly.
 4. In your integrated development environment (IDE) or terminal window, set
    the three environment variables used by the test program.
 
-  Simple :ref:`connection <connhandling>` to the database requires an Oracle
+  A simple :ref:`connection <connhandling>` to the database requires an Oracle
   Database `user name and password
   <https://www.youtube.com/watch?v=WDJacg0NuLo>`_ and a database
   :ref:`connection string <connstr>`. Set the environment variables to your
@@ -414,7 +414,7 @@ Installing python-oracledb on Windows
 Install python-oracledb
 ------------------------
 
-Use Python's `Pip <https://pip.readthedocs.io/en/latest/installing/>`__ package
+Use Python's `pip <https://pip.pypa.io/en/latest/installation/>`__ package
 to install python-oracledb from Python's package repository `PyPI
 <https://pypi.org/project/oracledb/>`__::
 
@@ -587,7 +587,7 @@ architectures.
 Install python-oracledb
 -----------------------
 
-Use Python's `Pip <https://pip.readthedocs.io/en/latest/installing/>`__ package
+Use Python's `pip <https://pip.pypa.io/en/latest/installation/>`__ package
 to install python-oracledb from Python's package repository `PyPI
 <https://pypi.org/project/oracledb/>`__:
 
