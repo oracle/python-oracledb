@@ -1,0 +1,12 @@
+# required
+version: 2
+
+# Build documentation in the doc/src directory with Sphinx
+sphinx:
+   configuration: doc/src/conf.py
+
+# declare Python requirements required to build docs
+python:
+  version: 3.10
+   install:
+   - requirements: doc/requirements.txt
