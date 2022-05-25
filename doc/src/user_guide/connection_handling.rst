@@ -395,7 +395,7 @@ This prints::
 JDBC and Oracle SQL Developer Connection Strings
 ------------------------------------------------
 
-The python-oracledb connection string syntax is different to Java JDBC and the
+The python-oracledb connection string syntax is different from Java JDBC and the
 common Oracle SQL Developer syntax.  If these JDBC connection strings reference
 a service name like::
 
@@ -537,7 +537,7 @@ Python-oracledb's connection pooling lets applications create and maintain a
 pool of open connections to the database.  Connection pooling is available in
 both Thin and :ref:`Thick <enablingthick>` modes.  Connection pooling is
 important for performance when applications frequently connect and disconnect
-from the database.  The high available features of pools also make small pools
+from the database.  The high availability features of pools also make small pools
 useful for applications that want a few connections available for infrequent
 use and requires them to be immediately usable when acquired.
 
@@ -865,7 +865,7 @@ The example below demonstrates connection tagging:
     connection2 = pool.acquire(tag="NLS_DATE_FORMAT=FULL")
 
 See `session_callback.py
-<https://github.com/oracle/oracledb/tree/main/
+<https://github.com/oracle/python-oracledb/tree/main/
 samples/session_callback.py>`__ for an example.
 
 PL/SQL Callback
@@ -1535,7 +1535,7 @@ or:
 .. code-block:: python
 
     pool = oracledb.create_pool(externalauth=True, homogeneous=False,
-                                 dsn="mynetalias")
+                                dsn="mynetalias")
     pool.acquire()
 
 The ``dsn`` must match the one used in the wallet.
@@ -1585,7 +1585,7 @@ Pooled connection example:
 
     # External Authentication with proxy
     pool = oracledb.create_pool(externalauth=True, homogeneous=False,
-                                 dsn="mynetalias")
+                                dsn="mynetalias")
     pool.acquire(user="[mysessionuser]")
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
@@ -1595,7 +1595,7 @@ The following usage is not supported:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="[mysessionuser]", externalauth=True,
-                                 homogeneous=False, dsn="mynetalias")
+                                homogeneous=False, dsn="mynetalias")
     pool.acquire()
 
 
@@ -1654,8 +1654,8 @@ The example below shows how to connect to Oracle Database as SYSDBA:
 .. code-block:: python
 
     connection = oracledb.connect(user="sys", password=syspwd,
-                                   dsn="dbhost.example.com/orclpdb",
-                                   mode=oracledb.AUTH_MODE_SYSDBA)
+                                  dsn="dbhost.example.com/orclpdb",
+                                  mode=oracledb.AUTH_MODE_SYSDBA)
 
     with connection.cursor() as cursor:
         cursor.execute("GRANT SYSOPER TO hr")
@@ -1764,8 +1764,8 @@ of the function :meth:`oracledb.connect()` constructor:
     newpwd = getpass.getpass(f"New Password for {username}: ")
 
     connection = oracledb.connect(user=username, password=oldpwd,
-                                   dsn="dbhost.example.com/orclpdb",
-                                   newpassword=newpwd)
+                                  dsn="dbhost.example.com/orclpdb",
+                                  newpassword=newpwd)
 
 .. _autonomousdb:
 
@@ -2032,7 +2032,7 @@ You can add other Easy Connect parameters to the connection string, for example:
 
     dsn = dsn + "&https_proxy=myproxy.example.com&https_proxy_port=80"
 
-With python-oracledb Thin mode, the wallet password needs to passed as a
+With python-oracledb Thin mode, the wallet password needs to be passed as a
 connection parameter.
 
 .. _createpem:
