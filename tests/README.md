@@ -34,6 +34,6 @@ This directory contains the test suite for python-oracledb.
 
         python drop_schema.py
 
-[1]: https://github.com/oracle/python-oracledb/blob/main/test/create_schema.py
-[2]: https://github.com/oracle/python-oracledb/blob/main/test/test_env.py
-[3]: https://github.com/oracle/python-oracledb/blob/main/test/drop_schema.py
+[1]: https://github.com/oracle/python-oracledb/blob/main/tests/create_schema.py
+[2]: https://github.com/oracle/python-oracledb/blob/main/tests/test_env.py
+[3]: https://github.com/oracle/python-oracledb/blob/main/tests/drop_schema.py
