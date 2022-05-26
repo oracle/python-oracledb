@@ -29,8 +29,8 @@ comprehensive functionality supporting the Python Database API v2.0
 Specification.
 
 cx_Oracle always runs in a Thick mode using Oracle Client libraries.  The
-features in python-oracle Thick mode and cx_Oracle 8.3 are the same, subject to
-the :ref:`new features <releasenotes>`, some :ref:`deprecations
+features in python-oracledb Thick mode and cx_Oracle 8.3 are the same, subject
+to the :ref:`new features <releasenotes>`, some :ref:`deprecations
 <deprecations>`, and to other changes noted in this section.
 
 Oracle Client Library Loading Differences from cx_Oracle

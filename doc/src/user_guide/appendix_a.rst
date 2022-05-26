@@ -381,7 +381,7 @@ python-oracledb driver.  See `Oracle Database Types
 oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265
 BA5968483>`__ and `PL/SQL Types <https://docs.oracle.com/en/database/oracle
 /oracle-database/21/lnpls/plsql-data-types.html#GUID-391C58FD-16AF-486C-AF28-
-173E309CDBA5>`__.  The python-oracle constant shown is the common one.  In some
+173E309CDBA5>`__.  The python-oracledb constant shown is the common one.  In some
 python-oracledb APIs you may use other types, for example when binding numeric
 values.
 

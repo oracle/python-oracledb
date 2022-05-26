@@ -182,7 +182,7 @@ Install python-oracledb
 
 The generic way to install python-oracledb on Linux is to use Python's `pip
 <https://pip.pypa.io/en/latest/>`__ package to install from Python's package
-repository `PyPI <https://pypi.org/project/python-oracledb/>`__:
+repository `PyPI <https://pypi.org/project/oracledb/>`__:
 
 .. code-block:: shell
 
@@ -715,7 +715,8 @@ code:
 
 - Cython Package: Cython is a standard Python package from PyPI.
 
-- The Python cryptography package.  This will need to be installed manually before building python-oracle. For example install with ``pip``.
+- The Python cryptography package.  This will need to be installed manually
+  before building python-oracledb. For example install with ``pip``.
 
 - C Compiler: A C99 compiler is needed.
 
