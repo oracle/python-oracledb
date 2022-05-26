@@ -993,6 +993,7 @@ def _connection_factory(f):
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.INVALID_CONN_CLASS)
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
+    wrapped.__qualname__ = f.__qualname__
     return wrapped
 
 

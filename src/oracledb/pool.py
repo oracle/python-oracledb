@@ -527,6 +527,7 @@ def _pool_factory(f):
         if not issubclass(pool_class, ConnectionPool):
             errors._raise_err(errors.INVALID_POOL_CLASS)
         return pool_class(dsn, params=params, **kwargs)
+    wrapped.__qualname__ = f.__qualname__
     return wrapped
 
 

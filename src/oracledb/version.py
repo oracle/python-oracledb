@@ -29,4 +29,4 @@
 # found. The setup.cfg configuration file references this file directly.
 #------------------------------------------------------------------------------
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"

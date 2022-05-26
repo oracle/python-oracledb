@@ -8,8 +8,15 @@ python-oracledb Release Notes
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
 
-oracledb 1.0 (May 2022)
------------------------
+oracledb 1.0.1 (TBD)
+--------------------
+
+#)  Ensured the name of wrapped functions are the same as the function being
+    wrapped in order to improve error messages that reference them.
+
+
+oracledb 1.0.0 (May 2022)
+-------------------------
 
 #)  Renamed cx_Oracle to python-oracledb.  See :ref:`upgradecomparison`.
 #)  Python-oracledb is a 'Thin' driver by default that connects directly

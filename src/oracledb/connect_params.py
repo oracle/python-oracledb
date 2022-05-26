@@ -261,25 +261,27 @@ class ConnectParams:
         """
         Helper function used to get address level attributes.
         """
-        def wrapped_func(self):
+        def wrapped(self):
             output = []
             for description in self._impl.description_list.descriptions:
                 for address_list in description.address_lists:
                     for address in address_list.addresses:
                         output.append(getattr(address, f.__name__))
             return output if len(output) > 1 else output[0]
-        return wrapped_func
+        wrapped.__qualname__ = f.__qualname__
+        return wrapped
 
     def _description_attr(f):
         """
         Helper function used to get description level attributes.
         """
-        def wrapped_func(self):
+        def wrapped(self):
             output = []
             for description in self._impl.description_list.descriptions:
                 output.append(getattr(description, f.__name__))
             return output if len(output) > 1 else output[0]
-        return wrapped_func
+        wrapped.__qualname__ = f.__qualname__
+        return wrapped
 
     @property
     def appcontext(self) -> list:
