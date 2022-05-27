@@ -483,5 +483,22 @@ class TestCase(test_env.BaseTestCase):
                              f"(SECURITY=(SSL_SERVER_DN_MATCH=True)))"
             self.assertEqual(params.get_connect_string(), connect_string)
 
+    def test_4532_multiple_alias_entry_tnsnames(self):
+        "4532 - test tnsnames.ora with multiple aliases on one line"
+        connect_string = \
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host32)(PORT=1132))" \
+            "(CONNECT_DATA=(SERVICE_NAME=my_service_name32)))"
+        aliases = f"tns_alias32a,tns_alias32b = {connect_string}"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                print(aliases, file=f)
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            for name in ("tns_alias32a", "tns_alias32b"):
+                params.parse_connect_string(name)
+                self.assertEqual(params.host, "my_host32")
+                self.assertEqual(params.port, 1132)
+                self.assertEqual(params.service_name, "my_service_name32")
+
 if __name__ == "__main__":
     test_env.run_test_cases()

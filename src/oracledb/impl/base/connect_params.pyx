@@ -729,7 +729,7 @@ cdef class TnsnamesFile:
         the file.
         """
         with open(self.file_name) as f:
-            entry_name = None
+            entry_names = None
             for line in f:
                 line = line.strip()
                 pos = line.find("#")
@@ -737,11 +737,11 @@ cdef class TnsnamesFile:
                     line = line[:pos]
                 if not line:
                     continue
-                if entry_name is None:
+                if entry_names is None:
                     pos = line.find("=")
                     if pos < 0:
                         continue
-                    entry_name = line[:pos].strip().upper()
+                    entry_names = [s.strip() for s in line[:pos].split(",")]
                     entry_lines = []
                     num_parens = 0
                     line = line[pos+1:].strip()
@@ -749,5 +749,7 @@ cdef class TnsnamesFile:
                     num_parens += line.count("(") - line.count(")")
                     entry_lines.append(line)
                 if entry_lines and num_parens <= 0:
-                    self.entries[entry_name.upper()] = "".join(entry_lines)
-                    entry_name = None
+                    descriptor = "".join(entry_lines)
+                    for name in entry_names:
+                        self.entries[name.upper()] = descriptor
+                    entry_names = None

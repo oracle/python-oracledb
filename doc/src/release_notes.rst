@@ -11,6 +11,8 @@ For deprecations, see :ref:`Deprecations <deprecations>`.
 oracledb 1.0.1 (TBD)
 --------------------
 
+#)  Added support for multiple aliases in one entry in tnsnames.ora
+    (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
 #)  Ensured the name of wrapped functions are the same as the function being
     wrapped in order to improve error messages that reference them.
 
