@@ -38,8 +38,8 @@ Also run Python and show the output of:
 
 And:
 
-    import python-oracledb
-    print("python-oracledb.version:", python-oracledb.version)
+    import oracledb
+    print("oracledb.__version__:", oracledb.__version__)
 
 -->
 
