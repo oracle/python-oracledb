@@ -179,7 +179,7 @@ modes.</p>
       later.</p>
 
       <p>Install <a
-      href="https://pypi.org/project/python-oracledb/">python-oracledb</a> with
+      href="https://pypi.org/project/oracledb/">python-oracledb</a> with
       a command like <code>pip install oracledb --upgrade</code></p>
 
       <p>Ensure you can access an Oracle Database.</p>
@@ -293,11 +293,11 @@ accept pw char prompt 'Enter database password for &amp;user: ' hide
 
           <p>The tutorial instructions may need adjusting, depending on how you have set up your environment.</p>
      </li>
-     
+
         <li><h4> Runtime Naming</h4>
 
-	  <p>At runtime, the module name of the python-oracledb package is <code>oracledb</code>:</p>
-	  
+          <p>At runtime, the module name of the python-oracledb package is <code>oracledb</code>:</p>
+
         <pre>import oracledb</pre></li>
 
          <li><h4>Python-oracledb defaults</h4>
@@ -1186,7 +1186,7 @@ print(res)
 
 <h2><a name="plsql">5. PL/SQL</a></h2>
 
-<p>PL/SQL is Oracle's procedural language extension to SQL. PL/SQL procedures and functions are stored and run in the database. Using PL/SQL lets all database applications reuse logic, no matter how the application accesses the database. Many data-related operations can  be performed in PL/SQL faster than extracting the data into a  program (for example, Python) and then processing it.<em>Documentation link for further reading: <a
+<p>PL/SQL is Oracle's procedural language extension to SQL. PL/SQL procedures and functions are stored and run in the database. Using PL/SQL lets all database applications reuse logic, no matter how the application accesses the database. Many data-related operations can  be performed in PL/SQL faster than extracting the data into a  program (for example, Python) and then processing it. <em>Documentation link for further reading: <a
   href="https://python-oracledb.readthedocs.io/en/latest/user_guide/plsql_execution.html">PL/SQL Execution</a></em>.</p>
 
   <ul>
@@ -1686,8 +1686,8 @@ for row in rows:
   creation.  This can be used to alter or log connection and execution
   parameters, and to extend python-oracledb functionality. <em>Documentation link for
 further reading: <a
-  href="https://python-oracledb.readthedocs.io/en/latest/user_guide/tracing_sql.html"
-  >Tracing SQL and PL/SQL Statements</a></em>.</p>
+  href="https://python-oracledb.readthedocs.io/en/latest/user_guide/tracing.html#application-tracing"
+  >Application Tracing</a></em>.</p>
 
   <ul>
     <li><h4>9.1 Subclassing connections</h4>
@@ -1834,7 +1834,7 @@ oracledb.init_oracle_client(lib_dir=instant_client_dir)</pre>
 
             <p>In all other cases (including Linux with Oracle Instant Client), make sure that <code>instant_client_dir</code> is set to <code>None</code>.  In these cases you must make sure that the Oracle libraries from Instant Client or your ORACLE_HOME are in your system library search path before you start Python. On Linux, the path can be configured with <em>ldconfig</em> or with the <em>LD_LIBRARY_PATH</em> environment variable.</p>
            </li>
-	 </ul>
+         </ul>
 </li>
 <li><h4 id="thickconfig">10.2 Review the configuration files for thick mode</h4>
 
@@ -2721,7 +2721,7 @@ import sys</pre>
 <ul>
   <li><a href="https://docs.python.org/3/" >Python Documentation</a></li>
   <li><a href="http://python-oracledb.readthedocs.io/en/latest/index.html" >Python python-oracledb Documentation</a></li>
-    <li><a href="https://github.com/oracle/python-oracledb" >Python-oracledb Source Code Repository</a></li>
+    <li><a href="https://github.com/oracle/python-oracledb/tree/main/samples" >Python-oracledb Source Code Repository Samples</a></li>
 </ul>
 
 <div class="footer"></div>
