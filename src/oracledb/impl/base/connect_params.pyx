@@ -409,7 +409,8 @@ cdef class ConnectParamsImpl:
         will be a connect string built up from the components supplied when the
         object was built.
         """
-        return self.description_list.build_connect_string()
+        if self._default_address.host is not None:
+            return self.description_list.build_connect_string()
 
     def get_full_user(self):
         """
