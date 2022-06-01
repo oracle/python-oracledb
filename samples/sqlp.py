@@ -37,7 +37,7 @@
 #   - It always reads from the keyboard and doesn't directly read SQL files
 #   - It doesn't execute SQL*Plus-specific commands like SET or DESC
 #   - It doesn't support "&" substitution or bind variables
-#   - It doesn't display all data types, e.g. Oracle types aren't supported
+#   - It doesn't display all data types, e.g. object types aren't supported
 #   - It doesn't do smart sizing or wrapping of query columns
 #   - Statements like "CREATE OR REPLACE" must have all keywords on the same
 #     (first) line
