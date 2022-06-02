@@ -11,7 +11,7 @@ assignees: ''
 
 Thank you for using python-oracledb.
 
-Review existing enhancement requests: https://github.com/oracle/python-python-oracledb/labels/enhancement
+Review existing enhancement requests: https://github.com/oracle/python-oracledb/labels/enhancement
 
 Please answer these questions so we can help you.
 

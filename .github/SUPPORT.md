@@ -26,7 +26,4 @@ is [here](http://python-oracledb.readthedocs.io/en/latest/)
 
 ## Got a python-oracledb question?
 
-Ask at [GitHub](https://github.com/oracle/python-python-oracledb/issues)
-
-When opening a new issue, fill in the template that will be shown.
-Include enough information for people to understand your problem.
+Start a [Discussion](https://github.com/oracle/python-oracledb/discussions) on GitHub.

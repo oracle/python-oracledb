@@ -54,7 +54,15 @@ Use a gist for long screen output and logs: see https://gist.github.com/
 
 -->
 
-4. Include a runnable Python script that shows the problem.
+4. Does your application call init_oracle_client()?
+
+<!--
+
+This tells us whether you are using the python-oracledb Thin or Thick mode.
+
+-->
+
+5. Include a runnable Python script that shows the problem.
 
 <!--
 
@@ -63,7 +71,7 @@ Include all SQL needed to create the database schema.
 Format code by using three backticks on a line before and after code snippets, for example:
 
 ```
-import python-oracledb
+import oracledb
 ```
 
 -->
