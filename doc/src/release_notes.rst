@@ -16,6 +16,16 @@ oracledb 1.0.1 (TBD)
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
 #)  Ensured the name of wrapped functions are the same as the function being
     wrapped in order to improve error messages that reference them.
+#)  Added exception class (oracledb.ConnectionError) as a subclass of
+    oracledb.DatabaseError in order to aid the handling of connection errors
+    during creation or use (where the connection is no longer usable or could
+    not be established).
+#)  Thin: fixed retry count handling to work in cases where the listener is
+    running but the service is down
+    (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
+#)  Thin: if an OS error occurs during the creation of a connection to the
+    database, the error is wrapped by DPY-6005 as an instance of
+    oracledb.ConnectionError.
 
 
 oracledb 1.0.0 (May 2022)

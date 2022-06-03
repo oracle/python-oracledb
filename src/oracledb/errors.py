@@ -68,7 +68,7 @@ class _Error:
                     args = re.search(pattern, message).groupdict()
                 else:
                     driver_error_num = driver_error_info
-                if driver_error_num == ERR_CONNECTION_CLOSED:
+                if driver_error_num in ERR_CONNECTION_ERROR_SET:
                     self.is_session_dead = True
                 driver_error = _get_error_text(driver_error_num, **args)
                 self.message = f"{driver_error}\n{self.message}"
@@ -99,7 +99,10 @@ def _raise_err(error_num: int, context_error_message: str=None,
     message = _get_error_text(error_num, **args)
     if context_error_message is not None:
         message = f"{message}\n{context_error_message}"
-    exc_type = ERR_EXCEPTION_TYPES[error_num // 1000]
+    if error_num in ERR_CONNECTION_ERROR_SET:
+        exc_type = exceptions.ConnectionError
+    else:
+        exc_type = ERR_EXCEPTION_TYPES[error_num // 1000]
     raise exc_type(_Error(message)) from cause
 
 
@@ -205,6 +208,7 @@ ERR_BUFFER_LENGTH_INSUFFICIENT = 5001
 ERR_INTEGER_TOO_LARGE = 5002
 ERR_UNEXPECTED_NEGATIVE_INTEGER = 5003
 ERR_UNEXPECTED_DATA = 5004
+ERR_UNEXPECTED_REFUSE = 5005
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -212,6 +216,7 @@ ERR_INVALID_SERVICE_NAME = 6001
 ERR_INVALID_SERVER_CERT_DN = 6002
 ERR_INVALID_SID = 6003
 ERR_PROXY_FAILURE = 6004
+ERR_CONNECTION_FAILED = 6005
 
 # Oracle error number cross reference
 ERR_ORACLE_ERROR_XREF = {
@@ -233,6 +238,15 @@ ERR_DPI_ERROR_XREF = {
     1067: (ERR_CALL_TIMEOUT_EXCEEDED, "call timeout of (?P<timeout>\d+) ms"),
     1080: ERR_CONNECTION_CLOSED,
 }
+
+# dead connection errors
+ERR_CONNECTION_ERROR_SET = set([
+    ERR_CONNECTION_CLOSED,
+    ERR_CONNECTION_FAILED,
+    ERR_INVALID_SERVICE_NAME,
+    ERR_INVALID_SID,
+    ERR_LISTENER_REFUSED_CONNECTION
+])
 
 # error message exception types (multiples of 1000)
 ERR_EXCEPTION_TYPES = {
@@ -264,6 +278,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_COLUMN_TRUNCATED:
             'column truncated to {col_value_len} {unit}. '
             'Untruncated was {actual_len}',
+    ERR_CONNECTION_FAILED:
+            'cannot connect to database. Connection failed with "{exception}"',
     ERR_CONTENT_INVALID_AFTER_NUMBER:
             'invalid number (content after number)',
     ERR_CURSOR_NOT_OPEN:
@@ -417,6 +433,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNEXPECTED_NEGATIVE_INTEGER:
             'internal error: read a negative integer when expecting a '
             'positive integer',
+    ERR_UNEXPECTED_REFUSE:
+            'the listener refused the connection but an unexpected error '
+            'format was returned',
     ERR_UNSUPPORTED_INBAND_NOTIFICATION:
             'unsupported in-band notification with error number {err_num}',
     ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR:

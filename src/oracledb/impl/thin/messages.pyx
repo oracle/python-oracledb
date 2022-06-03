@@ -1538,6 +1538,8 @@ cdef class ConnectMessage(Message):
                 if end_pos > 0:
                     error_code = response[pos + 5:end_pos]
                     error_code_int = int(error_code)
+            if error_code_int == 0:
+                errors._raise_err(errors.ERR_UNEXPECTED_REFUSE)
             if error_code_int == TNS_ERR_INVALID_SERVICE_NAME:
                 errors._raise_err(errors.ERR_INVALID_SERVICE_NAME,
                                   service_name=self.description.service_name,
