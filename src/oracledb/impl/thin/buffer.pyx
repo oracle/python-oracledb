@@ -626,9 +626,11 @@ cdef class ReadBuffer:
         representing that value.
         """
         cdef:
-            const char_type *ptr
+            int8_t tz_hour = 0, tz_minute = 0
             uint32_t fsecond = 0
+            const char_type *ptr
             uint8_t num_bytes
+            int32_t seconds
             uint16_t year
         self.read_ub1(&num_bytes)
         if _is_null_length(num_bytes):
@@ -637,8 +639,15 @@ cdef class ReadBuffer:
         year = (<uint8_t> ptr[0] - 100) * 100 + <uint8_t> ptr[1] - 100
         if num_bytes >= 11:
             fsecond = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) // 1000
-        return cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
-                                       ptr[5] - 1, ptr[6] - 1, fsecond, None)
+        value = cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
+                                        ptr[5] - 1, ptr[6] - 1, fsecond, None)
+        if num_bytes > 11 and ptr[11] != 0 and ptr[12] != 0:
+            tz_hour = ptr[11] - TZ_HOUR_OFFSET
+            tz_minute = ptr[12] - TZ_MINUTE_OFFSET
+            if tz_hour != 0 or tz_minute != 0:
+                seconds = tz_hour * 3600 + tz_minute * 60
+                value += cydatetime.timedelta_new(0, seconds, 0)
+        return value
 
     cdef object read_interval_ds(self):
         """

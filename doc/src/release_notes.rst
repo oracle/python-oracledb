@@ -14,6 +14,8 @@ oracledb 1.0.1 (TBD)
 #)  Thick: restored support for bequeath connections.
 #)  Thin: added support for multiple aliases in one entry in tnsnames.ora
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
+#)  Thin: return the same value for timestamp with time zone columns as thick
+    (`issue 7 <https://github.com/oracle/python-oracledb/issues/7>`__).
 #)  Ensured the name of wrapped functions are the same as the function being
     wrapped in order to improve error messages that reference them.
 #)  Added exception class (oracledb.ConnectionError) as a subclass of
