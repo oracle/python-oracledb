@@ -119,7 +119,9 @@ cdef class ThinConnImpl(BaseConnImpl):
                         idx2 = k
                     address = address_list.addresses[idx2]
                     if final_desc:
-                        raise_exc = i == num_attempts - 1
+                        raise_exc = i == num_attempts - 1 \
+                                and j == num_lists - 1 \
+                                and k == num_addresses - 1
                     redirect_params = self._connect_with_address(address,
                                                                  description,
                                                                  params,
