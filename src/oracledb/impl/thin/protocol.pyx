@@ -316,7 +316,6 @@ cdef class Protocol:
         buf.receive_packet(&message.packet_type)
         if message.packet_type == TNS_PACKET_TYPE_MARKER:
             self._reset(message)
-            message.error_occurred = True
         elif message.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
             buf.skip_raw_bytes(3)

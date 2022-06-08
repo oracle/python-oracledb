@@ -156,6 +156,7 @@ cdef class Message:
         buf.read_ub4(&info.num)             # error number (extended)
         buf.read_ub8(&info.rowcount)        # row number (extended)
         if info.num != 0:
+            self.error_occurred = True
             info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
         info.is_warning = False
 
@@ -717,6 +718,7 @@ cdef class MessageWithData(Message):
         if self.error_info.num == TNS_ERR_NO_DATA_FOUND:
             self.error_info.num = 0
             cursor_impl._more_rows_to_fetch = False
+            self.error_occurred = False
         elif self.error_info.num == TNS_ERR_VAR_NOT_IN_SELECT_LIST:
             conn_impl._add_cursor_to_close(cursor_impl._statement)
             cursor_impl._statement._cursor_id = 0

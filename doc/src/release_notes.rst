@@ -25,11 +25,12 @@ oracledb 1.0.1 (TBD)
 #)  Thin: fixed retry count handling to work in cases where the listener is
     running but the service is down
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
-#)  Thin: if an OS error occurs during the creation of a connection to the
+#)  Thin: if an error occurs during the creation of a connection to the
     database, the error is wrapped by DPY-6005 as an instance of
     oracledb.ConnectionError.
 #)  Fixed issue where unconstrained numbers containing integer values would be
     fetched as floats when oracledb.defaults.fetch_lobs was set to `False`.
+#)  Thin: ensure that errors that occur during fetch are detected consistently.
 
 
 oracledb 1.0.0 (May 2022)
