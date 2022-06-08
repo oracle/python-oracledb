@@ -407,14 +407,14 @@ class TestCase(test_env.BaseTestCase):
                     c2 sys_refcursor;
                 begin
                     open c1 for
-                        select NumberCol
+                        select NullableCol
                         from TestNumbers
                         where IntCol between 3 and 5;
 
                     dbms_sql.return_result(c1);
 
                     open c2 for
-                        select NumberCol
+                        select NullableCol
                         from TestNumbers
                         where IntCol between 7 and 10;
 
@@ -422,8 +422,10 @@ class TestCase(test_env.BaseTestCase):
                 end;""")
         results = self.cursor.getimplicitresults()
         self.assertEqual(len(results), 2)
-        self.assertEqual([n for n, in results[0]], [3.75, 5, 6.25])
-        self.assertEqual([n for n, in results[1]], [8.75, 10, 11.25, 12.5])
+        self.assertEqual([n for n, in results[0]],
+                         [2924207, None, 59797108943])
+        self.assertEqual([n for n, in results[1]],
+                         [1222791080775407, None, 25004854810776297743, None])
 
     def test_3221_implicit_results_no_statement(self):
         "3221 - test getimplicitresults() without executing a statement"

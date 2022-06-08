@@ -343,6 +343,7 @@ cdef class MessageWithData(Message):
         cursor_impl._fetch_array_size = cursor.arraysize + cursor.prefetchrows
         cursor_impl._more_rows_to_fetch = True
         cursor_impl._statement._is_query = True
+        cursor_impl._statement._requires_full_execute = True
         self._process_describe_info(buf, cursor, cursor_impl)
         return cursor
 
@@ -581,7 +582,6 @@ cdef class MessageWithData(Message):
                                                                  column_value)
                 cursor_impl = column_value._impl
                 buf.read_ub2(&cursor_impl._statement._cursor_id)
-                cursor_impl._statement._requires_full_execute = True
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
             column_value = buf.read_bool()
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
