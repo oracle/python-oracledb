@@ -28,6 +28,8 @@ oracledb 1.0.1 (TBD)
 #)  Thin: if an OS error occurs during the creation of a connection to the
     database, the error is wrapped by DPY-6005 as an instance of
     oracledb.ConnectionError.
+#)  Fixed issue where unconstrained numbers containing integer values would be
+    fetched as floats when oracledb.defaults.fetch_lobs was set to `False`.
 
 
 oracledb 1.0.0 (May 2022)

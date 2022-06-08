@@ -140,6 +140,7 @@ cdef class BaseCursorImpl:
         """
         cdef:
             BaseVarImpl var_impl
+            uint32_t db_type_num
             object var
 
         # if an output type handler is specified, call it; the output type
@@ -172,19 +173,20 @@ cdef class BaseCursorImpl:
 
         # adjust the variable based on the defaults specified by the user, if
         # applicable
-        if defaults.fetch_decimals and var_impl.dbtype is DB_TYPE_NUMBER:
-            var_impl._preferred_num_type = NUM_TYPE_DECIMAL
-        elif not defaults.fetch_lobs:
-            if var_impl.dbtype is DB_TYPE_BLOB:
-                var_impl.dbtype = DB_TYPE_LONG_RAW
-            elif var_impl.dbtype is DB_TYPE_CLOB:
-                var_impl.dbtype = DB_TYPE_LONG
-            elif var_impl.dbtype is DB_TYPE_NCLOB:
-                var_impl.dbtype = DB_TYPE_LONG_NVARCHAR
-        elif var_impl.dbtype is DB_TYPE_NUMBER:
-            if var_impl.scale == 0 \
+        db_type_num = var_impl.dbtype.num
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            if defaults.fetch_decimals:
+                var_impl._preferred_num_type = NUM_TYPE_DECIMAL
+            elif var_impl.scale == 0 \
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
+        elif not defaults.fetch_lobs:
+            if db_type_num == DB_TYPE_NUM_BLOB:
+                var_impl.dbtype = DB_TYPE_LONG_RAW
+            elif db_type_num == DB_TYPE_NUM_CLOB:
+                var_impl.dbtype = DB_TYPE_LONG
+            elif db_type_num == DB_TYPE_NUM_NCLOB:
+                var_impl.dbtype = DB_TYPE_LONG_NVARCHAR
 
         # finalize variable and store in arrays
         var_impl._finalize_init()

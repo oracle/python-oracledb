@@ -464,5 +464,16 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, [simple_var])
         self.assertEqual(simple_var.getvalue(), -2**31 - 1)
 
+    def test_2237_fetch_number_with_lobs_default_false(self):
+        "2237 - fetch a number with oracledb.defaults.fetch_lobs = False"
+        orig_fetch_lobs = oracledb.defaults.fetch_lobs
+        oracledb.defaults.fetch_lobs = False
+        try:
+            self.cursor.execute("select 1 from dual")
+            result, = self.cursor.fetchone()
+            self.assertEqual(type(result), int)
+        finally:
+            oracledb.defaults.fetch_lobs = orig_fetch_lobs
+
 if __name__ == "__main__":
     test_env.run_test_cases()
