@@ -26,9 +26,8 @@
 # aq_notification.py
 #
 # Demonstrates using advanced queuing notification. Once this script is
-# running, use another session to enqueue a few messages to the
-# "DEMO_BOOK_QUEUE" queue. This is most easily accomplished by running the
-# object_aq.py sample.
+# running, run object_aq.py in another terminal to to enqueue a few messages to
+# the "DEMO_BOOK_QUEUE" queue.
 #------------------------------------------------------------------------------
 
 import time
@@ -51,8 +50,11 @@ def process_messages(message):
     print("Queue name:", message.queue_name)
     print("Consumer name:", message.consumer_name)
 
-connection = oracledb.connect(sample_env.get_main_connect_string(),
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string(),
                               events=True)
+
 sub = connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,
                            name="DEMO_BOOK_QUEUE", callback=process_messages,
                            timeout=300)

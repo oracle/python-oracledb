@@ -49,41 +49,45 @@ PAYLOAD_DATA = [
 ]
 
 # connect to database
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# create queue
+# create a queue
 queue = connection.queue(QUEUE_NAME)
 queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
 queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
 
 # enqueue a few messages
-print("Enqueuing messages...")
-for data in PAYLOAD_DATA:
-    print(data)
-    queue.enqone(connection.msgproperties(payload=data))
-connection.commit()
-print()
+with connection.cursor() as cursor:
+    print("Enqueuing messages...")
+    for data in PAYLOAD_DATA:
+        print(data)
+        queue.enqone(connection.msgproperties(payload=data))
+    connection.commit()
+    print()
 
 # dequeue the messages for consumer A
-print("Dequeuing the messages for consumer A...")
-queue.deqoptions.consumername = "SUBSCRIBER_A"
-while True:
-    props = queue.deqone()
-    if not props:
-        break
-    print(props.payload.decode())
-connection.commit()
-print()
+with connection.cursor() as cursor:
+    print("Dequeuing the messages for consumer A...")
+    queue.deqoptions.consumername = "SUBSCRIBER_A"
+    while True:
+        props = queue.deqone()
+        if not props:
+            break
+        print(props.payload.decode())
+    connection.commit()
+    print()
 
 # dequeue the message for consumer B
-print("Dequeuing the messages for consumer B...")
-queue.deqoptions.consumername = "SUBSCRIBER_B"
-while True:
-    props = queue.deqone()
-    if not props:
-        break
-    print(props.payload.decode())
-connection.commit()
+with connection.cursor() as cursor:
+    print("Dequeuing the messages for consumer B...")
+    queue.deqoptions.consumername = "SUBSCRIBER_B"
+    while True:
+        props = queue.deqone()
+        if not props:
+            break
+        print(props.payload.decode())
+    connection.commit()
 
 print("\nDone.")

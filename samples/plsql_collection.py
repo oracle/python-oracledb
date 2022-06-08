@@ -37,31 +37,34 @@ import sample_env
 # this script is currently only supported in python-oracledb thick mode
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# create new empty object of the correct type
-# note the use of a PL/SQL type defined in a package
+# create a new empty object of the correct type.
+# note the use of a PL/SQL type that is defined in a package
 type_obj = connection.gettype("PKG_DEMO.UDT_STRINGLIST")
 obj = type_obj.newobject()
 
 # call the stored procedure which will populate the object
-cursor = connection.cursor()
-cursor.callproc("pkg_Demo.DemoCollectionOut", (obj,))
+with connection.cursor() as cursor:
 
-# show the indexes that are used by the collection
-print("Indexes and values of collection:")
-ix = obj.first()
-while ix is not None:
-    print(ix, "->", obj.getelement(ix))
-    ix = obj.next(ix)
-print()
+    cursor.callproc("pkg_Demo.DemoCollectionOut", (obj,))
 
-# show the values as a simple list
-print("Values of collection as list:")
-print(obj.aslist())
-print()
+    # show the indexes that are used by the collection
+    print("Indexes and values of collection:")
+    ix = obj.first()
+    while ix is not None:
+        print(ix, "->", obj.getelement(ix))
+        ix = obj.next(ix)
+    print()
 
-# show the values as a simple dictionary
-print("Values of collection as dictionary:")
-print(obj.asdict())
-print()
+    # show the values as a simple list
+    print("Values of collection as list:")
+    print(obj.aslist())
+    print()
+
+    # show the values as a simple dictionary
+    print("Values of collection as dictionary:")
+    print(obj.asdict())
+    print()

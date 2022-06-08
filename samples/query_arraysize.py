@@ -25,9 +25,14 @@
 #------------------------------------------------------------------------------
 # query_arraysize.py
 #
-# Demonstrates how to alter the array size and prefetch rows value on a cursor
-# in order to reduce the number of network round trips and overhead required to
-# fetch all of the rows from a large table.
+# Demonstrates how to alter the array size and prefetch rows values in order to
+# tune the performance of fetching data from the database.  Increasing these
+# values can reduce the number of network round trips and overhead required to
+# fetch all of the rows from a large table. The value affect internal buffers
+# and do not affect how, or when, rows are returned to your application.
+#
+# The best values need to be determined by tuning in your production
+# environment.
 #------------------------------------------------------------------------------
 
 import time
@@ -39,16 +44,40 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-start = time.time()
+# Global values can be set to override the defaults used when a cursor is
+# created
+oracledb.defaults.prefetchrows = 200  # default is 2
+oracledb.defaults.arraysize = 200     # default is 100
 
-cursor = connection.cursor()
-cursor.prefetchrows = 1000
-cursor.arraysize = 1000
-cursor.execute('select * from bigtab')
-res = cursor.fetchall()
-# print(res)  # uncomment to display the query results
+with connection.cursor() as cursor:
 
-elapsed = (time.time() - start)
-print("Retrieved", len(res), "rows in", elapsed, "seconds")
+    # Example 1
+
+    start = time.time()
+
+    cursor.execute('select * from bigtab')
+    res = cursor.fetchall()
+
+    elapsed = (time.time() - start)
+    print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
+    print("Retrieved", len(res), "rows in", elapsed, "seconds")
+
+    # Example 2
+
+    start = time.time()
+
+    # values can be set per-cursor
+    cursor.prefetchrows = 1000
+    cursor.arraysize = 1000
+
+    cursor.execute('select * from bigtab')
+    res = cursor.fetchall()
+    # print(res)  # uncomment to display the query results
+
+    elapsed = (time.time() - start)
+    print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
+    print("Retrieved", len(res), "rows in", elapsed, "seconds")

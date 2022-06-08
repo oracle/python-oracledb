@@ -27,45 +27,60 @@
 # applications should consider using External Authentication to avoid hard
 # coded credentials.
 #
-# You can set values in environment variables to bypass the sample requesting
-# the information it requires.
+# The samples will prompt for credentials and schema information unless the
+# following environment variables are set:
 #
-#   PYO_SAMPLES_MAIN_USER: user used for most samples
-#   PYO_SAMPLES_MAIN_PASSWORD: password of user used for most samples
-#   PYO_SAMPLES_EDITION_USER: user for editioning
-#   PYO_SAMPLES_EDITION_PASSWORD: password of user for editioning
-#   PYO_SAMPLES_EDITION_NAME: name of edition for editioning
-#   PYO_SAMPLES_CONNECT_STRING: connect string
-#   PYO_SAMPLES_DRCP_CONNECT_STRING: DRCP connect string
-#   PYO_SAMPLES_ADMIN_USER: admin user for setting up samples
-#   PYO_SAMPLES_ADMIN_PASSWORD: admin password for setting up samples
-#   PYO_SAMPLES_DRIVER_MODE: python-oracledb mode (thick or thin) to use
 #   PYO_SAMPLES_ORACLE_CLIENT_PATH: Oracle Client or Instant Client library dir
+#   PYO_SAMPLES_ADMIN_USER: privileged administrative user for setting up samples
+#   PYO_SAMPLES_ADMIN_PASSWORD: password of PYO_SAMPLES_ADMIN_USER
+#   PYO_SAMPLES_CONNECT_STRING: database connection string
+#   PYO_SAMPLES_DRCP_CONNECT_STRING: database connecttion string for DRCP
+#   PYO_SAMPLES_MAIN_USER: user to be created. Used for most samples
+#   PYO_SAMPLES_MAIN_PASSWORD: password for PYO_SAMPLES_MAIN_USER
+#   PYO_SAMPLES_EDITION_USER: user to be created for editiong samples
+#   PYO_SAMPLES_EDITION_PASSWORD: password of PYO_SAMPLES_EDITION_USER
+#   PYO_SAMPLES_EDITION_NAME: name of edition for editioning samples
+#   PYO_SAMPLES_DRIVER_MODE: python-oracledb mode (Thick or thin) to use
 #
-# On Windows set PYO_SAMPLES_ORACLE_CLIENT_PATH if Oracle libraries are not in
-# PATH.  On macOS set the variable to the Instant Client directory.  On Linux
-# do not set the variable; instead set LD_LIBRARY_PATH or configure ldconfig
-# before running Python.
+# - On Windows set PYO_SAMPLES_ORACLE_CLIENT_PATH if Oracle libraries are not
+#   in PATH.  On macOS set the variable to the Instant Client directory.  On
+#   Linux do not set the variable; instead set LD_LIBRARY_PATH or configure
+#   ldconfig before running Python.
 #
-# PYO_SAMPLES_CONNECT_STRING can be set to an Easy Connect string, or a
-# Net Service Name from a tnsnames.ora file or external naming service,
-# or it can be the name of a local Oracle database instance.
+# - PYO_SAMPLES_ADMIN_USER should be the administrative user ADMIN for cloud
+#   databases and SYSTEM for on premises databases.
 #
-# If using Instant Client, then an Easy Connect string is generally
-# appropriate. The syntax is:
+# - PYO_SAMPLES_CONNECT_STRING is the connection string for your database. It
+#   can be set to an Easy Connect string or to a Net Service Name from a
+#   tnsnames.ora file or external naming service.
 #
-#   [//]host_name[:port][/service_name][:server_type][/instance_name]
+#   The Easy Connect string is generally easiest. The basic syntax is:
 #
-# Commonly just the host_name and service_name are needed
-# e.g. "localhost/orclpdb1" or "localhost/XEPDB1"
+#     host_name[:port][/service_name][:server_type]
 #
-# If using a tnsnames.ora file, the file can be in a default
-# location such as $ORACLE_HOME/network/admin/tnsnames.ora or
-# /etc/tnsnames.ora.  Alternatively set the TNS_ADMIN environment
-# variable and put the file in $TNS_ADMIN/tnsnames.ora.
+#   Commonly just the host_name and service_name are needed
+#   e.g. "localhost/orclpdb" or "localhost/XEPDB1".
 #
-# The administrative user for cloud databases is ADMIN and the administrative
-# user for on premises databases is SYSTEM.
+#   If PYO_SAMPLES_CONNECT_STRING is an aliases from tnsnames.ora file, then
+#   set the TNS_ADMIN environment variable and put the file in
+#   $TNS_ADMIN/tnsnames.ora.  Alternatively for python-oracledb Thick mode, the
+#   file will be automatically used if it is in a location such as
+#   instantclient_XX_Y/network/admin/tnsnames.ora,
+#   $ORACLE_HOME/network/admin/tnsnames.ora or /etc/tnsnames.ora.
+#
+# - PYO_SAMPLES_DRCP_CONNECT_STRING should be a connect string requesting a
+#   pooled server, for example "localhost/orclpdb:pooled".
+#
+# - PYO_SAMPLES_MAIN_USER and PYO_SAMPLES_EDITION_USER are names of users that
+#   will be created and used for running samples.  Choose names that do not
+#   exist because the schemas will be dropped and then recreated.
+#
+# - PYO_SAMPLES_EDITION_NAME can be set to a new name to be used for Edition
+#   Based Redefinition examples.
+#
+# - PYO_SAMPLES_DRIVER_MODE should be "thin" or "thick".  It is used by samples
+#   that can run in both python-oracledb modes.
+#
 #------------------------------------------------------------------------------
 
 import getpass
@@ -88,8 +103,7 @@ def get_value(name, label, default_value=None, password=False):
     value = PARAMETERS.get(name)
     if value is not None:
         return value
-    env_name = "PYO_SAMPLES_" + name
-    value = os.environ.get(env_name)
+    value = os.environ.get(name)
     if value is None:
         if default_value is not None:
             label += " [%s]" % default_value
@@ -104,54 +118,55 @@ def get_value(name, label, default_value=None, password=False):
     return value
 
 def get_main_user():
-    return get_value("MAIN_USER", "Main User Name", DEFAULT_MAIN_USER)
+    return get_value("PYO_SAMPLES_MAIN_USER", "Main User Name",
+                     DEFAULT_MAIN_USER)
 
 def get_main_password():
-    return get_value("MAIN_PASSWORD", "Password for %s" % get_main_user(),
-                     password=True)
+    return get_value("PYO_SAMPLES_MAIN_PASSWORD",
+                     f"Password for {get_main_user()}", password=True)
 
 def get_edition_user():
-    return get_value("EDITION_USER", "Edition User Name", DEFAULT_EDITION_USER)
+    return get_value("PYO_SAMPLES_EDITION_USER", "Edition User Name",
+                     DEFAULT_EDITION_USER)
 
 def get_edition_password():
-    return get_value("EDITION_PASSWORD",
-                     "Password for %s" % get_edition_user(), password=True)
+    return get_value("PYO_SAMPLES_EDITION_PASSWORD",
+                     f"Password for {get_edition_user()}", password=True)
 
 def get_edition_name():
-    return get_value("EDITION_NAME", "Edition Name", DEFAULT_EDITION_NAME)
+    return get_value("PYO_SAMPLES_EDITION_NAME", "Edition Name",
+                     DEFAULT_EDITION_NAME)
 
 def get_connect_string():
-    return get_value("CONNECT_STRING", "Connect String",
+    return get_value("PYO_SAMPLES_CONNECT_STRING", "Connect String",
                      DEFAULT_CONNECT_STRING)
 
-def get_main_connect_string(password=None):
-    if password is None:
-        password = get_main_password()
-    return "%s/%s@%s" % (get_main_user(), password, get_connect_string())
+def get_drcp_connect_string():
+    return get_value("PYO_SAMPLES_DRCP_CONNECT_STRING", "DRCP Connect String",
+                     DEFAULT_DRCP_CONNECT_STRING)
 
 def get_driver_mode():
-    return get_value("DRIVER_MODE", "Driver mode (thin|thick)", "thin")
+    return get_value("PYO_SAMPLES_DRIVER_MODE", "Driver mode (thin|thick)",
+                     "thin")
 
 def get_is_thin():
     return get_driver_mode() == "thin"
-
-def get_drcp_connect_string():
-    connect_string = get_value("DRCP_CONNECT_STRING", "DRCP Connect String",
-                               DEFAULT_DRCP_CONNECT_STRING)
-    return "%s/%s@%s" % (get_main_user(), get_main_password(), connect_string)
 
 def get_edition_connect_string():
     return "%s/%s@%s" % \
             (get_edition_user(), get_edition_password(), get_connect_string())
 
 def get_admin_connect_string():
-    admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
-    admin_password = get_value("ADMIN_PASSWORD", f"Password for {admin_user}", password=True)
+    admin_user = get_value("PYO_SAMPLES_ADMIN_USER", "Administrative user",
+                           "admin")
+    admin_password = get_value("PYO_SAMPLES_ADMIN_PASSWORD",
+                               f"Password for {admin_user}", password=True)
     return "%s/%s@%s" % (admin_user, admin_password, get_connect_string())
 
 def get_oracle_client():
     if sys.platform in ("darwin", "win32"):
-        return get_value("ORACLE_CLIENT_PATH", "Oracle Instant Client Path")
+        return get_value("PYO_SAMPLES_ORACLE_CLIENT_PATH",
+                         "Oracle Instant Client Path")
 
 def run_sql_script(conn, script_name, **kwargs):
     statement_parts = []

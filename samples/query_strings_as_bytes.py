@@ -44,28 +44,30 @@ def return_strings_as_bytes(cursor, name, default_type, size, precision,
     if default_type == oracledb.DB_TYPE_VARCHAR:
         return cursor.var(str, arraysize=cursor.arraysize, bypass_decode=True)
 
-with oracledb.connect(sample_env.get_main_connect_string()) as conn:
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-    # truncate table and populate with our data of choice
-    with conn.cursor() as cursor:
-        cursor.execute("truncate table TestTempTable")
-        cursor.execute("insert into TestTempTable values (1, :val)",
-                       val=STRING_VAL)
-        conn.commit()
+# truncate table and populate with our data of choice
+with connection.cursor() as cursor:
+    cursor.execute("truncate table TestTempTable")
+    cursor.execute("insert into TestTempTable values (1, :val)",
+                   val=STRING_VAL)
+    connection.commit()
 
-    # fetch the data normally and show that it is returned as a string
-    with conn.cursor() as cursor:
-        cursor.execute("select IntCol, StringCol from TestTempTable")
-        print("Data fetched using normal technique:")
-        for row in cursor:
-            print(row)
-        print()
+# fetch the data normally and show that it is returned as a string
+with connection.cursor() as cursor:
+    cursor.execute("select IntCol, StringCol from TestTempTable")
+    print("Data fetched using normal technique:")
+    for row in cursor:
+        print(row)
+    print()
 
-    # fetch the data, bypassing the decode and show that it is returned as
-    # bytes
-    with conn.cursor() as cursor:
-        cursor.outputtypehandler = return_strings_as_bytes
-        cursor.execute("select IntCol, StringCol from TestTempTable")
-        print("Data fetched using bypass decode technique:")
-        for row in cursor:
-            print(row)
+# fetch the data, bypassing the decode and show that it is returned as
+# bytes
+with connection.cursor() as cursor:
+    cursor.outputtypehandler = return_strings_as_bytes
+    cursor.execute("select IntCol, StringCol from TestTempTable")
+    print("Data fetched using bypass decode technique:")
+    for row in cursor:
+        print(row)

@@ -35,8 +35,11 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-cursor = connection.cursor()
-res = cursor.callfunc('myfunc', int, ('abc', 2))
-print(res)
+with connection.cursor() as cursor:
+    # The second parameter is the expected return type of the PL/SQL function
+    res = cursor.callfunc('myfunc', int, ('abc', 2))
+    print(res)

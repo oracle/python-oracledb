@@ -67,8 +67,11 @@ def callback(message):
                 print("-" * 60)
         print("=" * 60)
 
-connection = oracledb.connect(sample_env.get_main_connect_string(),
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string(),
                               events=True)
+
 sub = connection.subscribe(callback=callback, timeout=1800,
                            qos=oracledb.SUBSCR_QOS_ROWIDS)
 print("Subscription:", sub)

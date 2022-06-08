@@ -50,32 +50,38 @@ DATA = [
     (3, "A" * 250, datetime.datetime(2017, 4, 6))
 ]
 
-# truncate table so sample can be rerun
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
-print("Truncating table...")
-cursor.execute("truncate table TestUniversalRowids")
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# populate table with a few rows
-print("Populating table...")
-for row in DATA:
-    print("Inserting", row)
-    cursor.execute("insert into TestUniversalRowids values (:1, :2, :3)", row)
-connection.commit()
+with connection.cursor() as cursor:
 
-# fetch the rowids from the table
-rowids = [r for r, in cursor.execute("select rowid from TestUniversalRowids")]
+    # truncate table so sample can be rerun
+    print("Truncating table...")
+    cursor.execute("truncate table TestUniversalRowids")
 
-# fetch each of the rows given the rowid
-for rowid in rowids:
-    print("-" * 79)
-    print("Rowid:", rowid)
-    cursor.execute("""
-            select IntCol, StringCol, DateCol
-            from TestUniversalRowids
-            where rowid = :rid""",
-            rid = rowid)
-    int_col, string_col, dateCol = cursor.fetchone()
-    print("IntCol:", int_col)
-    print("StringCol:", string_col)
-    print("DateCol:", dateCol)
+    # populate table with a few rows
+    print("Populating table...")
+    for row in DATA:
+        print("Inserting", row)
+        cursor.execute("insert into TestUniversalRowids values (:1, :2, :3)",
+                       row)
+    connection.commit()
+
+    # fetch the rowids from the table
+    cursor.execute("select rowid from TestUniversalRowids")
+    rowids = [r for r, in cursor]
+
+    # fetch each of the rows given the rowid
+    for rowid in rowids:
+        print("-" * 79)
+        print("Rowid:", rowid)
+        cursor.execute("""
+                select IntCol, StringCol, DateCol
+                from TestUniversalRowids
+                where rowid = :rid""",
+                {"rid": rowid})
+        int_col, string_col, dateCol = cursor.fetchone()
+        print("IntCol:", int_col)
+        print("StringCol:", string_col)
+        print("DateCol:", dateCol)

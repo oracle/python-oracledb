@@ -57,15 +57,18 @@ class Cursor(oracledb.Cursor):
         return result
 
 
-# create new subclassed connection and cursor
-connection = Connection(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+# create a new subclassed connection and cursor
+connection = Connection(user=sample_env.get_main_user(),
+                        password=sample_env.get_main_password(),
+                        dsn=sample_env.get_connect_string())
 
-# the names are now available directly for each query executed
-for row in cursor.execute("select ParentId, Description from ParentTable"):
-    print(row.PARENTID, "->", row.DESCRIPTION)
-print()
+with connection.cursor() as cursor:
 
-for row in cursor.execute("select ChildId, Description from ChildTable"):
-    print(row.CHILDID, "->", row.DESCRIPTION)
-print()
+    # the names are now available directly for each query executed
+    for row in cursor.execute("select ParentId, Description from ParentTable"):
+        print(row.PARENTID, "->", row.DESCRIPTION)
+    print()
+
+    for row in cursor.execute("select ChildId, Description from ChildTable"):
+        print(row.CHILDID, "->", row.DESCRIPTION)
+    print()

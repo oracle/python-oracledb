@@ -52,10 +52,11 @@ BOOK_DATA = [
 ]
 
 # connect to database
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# create queue
+# create a queue
 books_type = connection.gettype(BOOK_TYPE_NAME)
 queue = connection.queue(QUEUE_NAME, payload_type=books_type)
 queue.deqoptions.wait = oracledb.DEQ_NO_WAIT

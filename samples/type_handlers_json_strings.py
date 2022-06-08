@@ -84,36 +84,39 @@ def output_type_handler(cursor, name, default_type, size, precision, scale):
         return cursor.var(default_type, arraysize=cursor.arraysize,
                           outconverter=Building.from_json)
 
-conn = oracledb.connect(sample_env.get_main_connect_string())
-cur = conn.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-buildings = [
-    Building(1, "The First Building", 5),
-    Building(2, "The Second Building", 87),
-    Building(3, "The Third Building", 12)
-]
+with connection.cursor() as cursor:
 
-# Insert building data (python object) as a JSON string
-cur.inputtypehandler = input_type_handler
-for building in buildings:
-    cur.execute("insert into BuildingsAsJsonStrings values (:1, :2)",
-                (building.building_id, building))
+    buildings = [
+        Building(1, "The First Building", 5),
+        Building(2, "The Second Building", 87),
+        Building(3, "The Third Building", 12)
+    ]
 
-# fetch the building data as a JSON string
-print("NO OUTPUT TYPE HANDLER:")
-for row in cur.execute("""
-        select * from BuildingsAsJsonStrings
-        order by BuildingId"""):
-    print(row)
-print()
+    # Insert building data (python object) as a JSON string
+    cursor.inputtypehandler = input_type_handler
+    for building in buildings:
+        cursor.execute("insert into BuildingsAsJsonStrings values (:1, :2)",
+                       (building.building_id, building))
 
-cur = conn.cursor()
+    # fetch the building data as a JSON string
+    print("NO OUTPUT TYPE HANDLER:")
+    for row in cursor.execute("""
+            select * from BuildingsAsJsonStrings
+            order by BuildingId"""):
+        print(row)
+    print()
 
-# fetch the building data as python objects
-cur.outputtypehandler = output_type_handler
-print("WITH OUTPUT TYPE HANDLER:")
-for row in cur.execute("""
-        select * from BuildingsAsJsonStrings
-        order by BuildingId"""):
-    print(row)
-print()
+with connection.cursor() as cursor:
+
+    # fetch the building data as python objects
+    cursor.outputtypehandler = output_type_handler
+    print("WITH OUTPUT TYPE HANDLER:")
+    for row in cursor.execute("""
+            select * from BuildingsAsJsonStrings
+            order by BuildingId"""):
+        print(row)
+    print()

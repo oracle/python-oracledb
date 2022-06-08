@@ -49,32 +49,41 @@ class Test:
         self.b = b
         self.c = c
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# change this to False if you want to create the table yourself using SQL*Plus
-# and then populate it with the data of your choice
-if True:
-    cursor.execute("""
-            select count(*)
-            from user_tables
-            where table_name = 'TESTINSTANCES'""")
-    count, = cursor.fetchone()
-    if count:
-        cursor.execute("drop table TestInstances")
-    cursor.execute("""
-            create table TestInstances (
-                a varchar2(60) not null,
-                b number(9) not null,
-                c date not null
-            )""")
-    cursor.execute("insert into TestInstances values ('First', 5, sysdate)")
-    cursor.execute("insert into TestInstances values ('Second', 25, sysdate)")
-    connection.commit()
+with connection.cursor() as cursor:
 
-# retrieve the data and display it
-cursor.execute("select * from TestInstances")
-cursor.rowfactory = Test
-print("Rows:")
-for row in cursor:
-    print("a = %s, b = %s, c = %s" % (row.a, row.b, row.c))
+    # create sample data
+    cursor.execute("""
+        begin
+          begin
+            execute immediate 'drop table TestInstances';
+          exception
+          when others then
+            if sqlcode <> -942 then
+              raise;
+            end if;
+          end;
+
+          execute immediate 'create table TestInstances (
+                                 a varchar2(60) not null,
+                                 b number(9) not null,
+                                 c date not null)';
+
+          execute immediate
+                 'insert into TestInstances values (''First'', 5, sysdate)';
+
+          execute immediate
+                 'insert into TestInstances values (''Second'', 25, sysdate)';
+
+          commit;
+        end;""")
+
+    # retrieve the data and display it
+    cursor.execute("select * from TestInstances")
+    cursor.rowfactory = Test
+    print("Rows:")
+    for row in cursor:
+        print("a = %s, b = %s, c = %s" % (row.a, row.b, row.c))

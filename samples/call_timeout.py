@@ -39,26 +39,30 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
+
 connection.call_timeout = 2000
 print("Call timeout set at", connection.call_timeout, "milliseconds...")
 
-cursor = connection.cursor()
-cursor.execute("select sysdate from dual")
-today, = cursor.fetchone()
-print("Fetch of current date before timeout:", today)
+with connection.cursor() as cursor:
 
-# dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
-sleep_proc_name = "dbms_session.sleep" \
-        if int(connection.version.split(".")[0]) >= 18 \
-        else "dbms_lock.sleep"
+    cursor.execute("select sysdate from dual")
+    today, = cursor.fetchone()
+    print("Fetch of current date before timeout:", today)
 
-print("Sleeping...should time out...")
-try:
-    cursor.callproc(sleep_proc_name, (3,))
-except oracledb.DatabaseError as e:
-    print("ERROR:", e)
+    # dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database 18c
+    sleep_proc_name = "dbms_session.sleep" \
+            if int(connection.version.split(".")[0]) >= 18 \
+            else "dbms_lock.sleep"
 
-cursor.execute("select sysdate from dual")
-today, = cursor.fetchone()
-print("Fetch of current date after timeout:", today)
+    print("Sleeping...should time out...")
+    try:
+        cursor.callproc(sleep_proc_name, (3,))
+    except oracledb.DatabaseError as e:
+        print("ERROR:", e)
+
+    cursor.execute("select sysdate from dual")
+    today, = cursor.fetchone()
+    print("Fetch of current date after timeout:", today)

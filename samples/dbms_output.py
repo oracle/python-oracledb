@@ -36,34 +36,37 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# enable DBMS_OUTPUT
-cursor.callproc("dbms_output.enable")
+with connection.cursor() as cursor:
 
-# execute some PL/SQL that generates output with DBMS_OUTPUT.PUT_LINE
-cursor.execute("""
-        begin
-            dbms_output.put_line('This is the oracledb manual');
-            dbms_output.put_line('');
-            dbms_output.put_line('Demonstrating use of DBMS_OUTPUT');
-        end;""")
+    # enable DBMS_OUTPUT
+    cursor.callproc("dbms_output.enable")
 
-# tune this size for your application
-chunk_size = 10
+    # execute some PL/SQL that generates output with DBMS_OUTPUT.PUT_LINE
+    cursor.execute("""
+            begin
+                dbms_output.put_line('This is some text');
+                dbms_output.put_line('');
+                dbms_output.put_line('Demonstrating use of DBMS_OUTPUT');
+            end;""")
 
-# create variables to hold the output
-lines_var = cursor.arrayvar(str, chunk_size)
-num_lines_var = cursor.var(int)
-num_lines_var.setvalue(0, chunk_size)
+    # tune this size for your application
+    chunk_size = 10
 
-# fetch the text that was added by PL/SQL
-while True:
-    cursor.callproc("dbms_output.get_lines", (lines_var, num_lines_var))
-    num_lines = num_lines_var.getvalue()
-    lines = lines_var.getvalue()[:num_lines]
-    for line in lines:
-        print(line or "")
-    if num_lines < chunk_size:
-        break
+    # create variables to hold the output
+    lines_var = cursor.arrayvar(str, chunk_size)
+    num_lines_var = cursor.var(int)
+    num_lines_var.setvalue(0, chunk_size)
+
+    # fetch the text that was added by PL/SQL
+    while True:
+        cursor.callproc("dbms_output.get_lines", (lines_var, num_lines_var))
+        num_lines = num_lines_var.getvalue()
+        lines = lines_var.getvalue()[:num_lines]
+        for line in lines:
+            print(line or "")
+        if num_lines < chunk_size:
+            break

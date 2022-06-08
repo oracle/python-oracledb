@@ -48,33 +48,39 @@ PAYLOAD_DATA = [
     "The fourth and final message"
 ]
 
-# connect to database
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# create queue
-queue = connection.queue(QUEUE_NAME)
-queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+# create a queue
+with connection.cursor() as cursor:
 
-# dequeue all existing messages to ensure the queue is empty, just so that
-# the results are consistent
-while queue.deqone():
-    pass
+    queue = connection.queue(QUEUE_NAME)
+    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+
+    # dequeue all existing messages to ensure the queue is empty, just so that
+    # the results are consistent
+    while queue.deqone():
+        pass
 
 # enqueue a few messages
 print("Enqueuing messages...")
-for data in PAYLOAD_DATA:
-    print(data)
-    queue.enqone(connection.msgproperties(payload=data))
-connection.commit()
+with connection.cursor() as cursor:
+
+    for data in PAYLOAD_DATA:
+        print(data)
+        queue.enqone(connection.msgproperties(payload=data))
+    connection.commit()
 
 # dequeue the messages
 print("\nDequeuing messages...")
-while True:
-    props = queue.deqone()
-    if not props:
-        break
-    print(props.payload.decode())
-connection.commit()
-print("\nDone.")
+with connection.cursor() as cursor:
+
+    while True:
+        props = queue.deqone()
+        if not props:
+            break
+        print(props.payload.decode())
+    connection.commit()
+    print("\nDone.")

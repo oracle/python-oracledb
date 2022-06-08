@@ -38,33 +38,36 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# show the number of rows for each parent ID as a means of verifying the
-# output from the delete statement
-for parent_id, count in cursor.execute("""
-        select ParentId, count(*)
-        from ChildTable
-        group by ParentId
-        order by ParentId"""):
-    print("Parent ID:", parent_id, "has", int(count), "rows.")
-print()
+with connection.cursor() as cursor:
 
-# delete the following parent IDs only
-parent_ids_to_delete = [20, 30, 50]
+    # show the number of rows for each parent ID as a means of verifying the
+    # output from the delete statement
+    for parent_id, count in cursor.execute("""
+            select ParentId, count(*)
+            from ChildTable
+            group by ParentId
+            order by ParentId"""):
+        print("Parent ID:", parent_id, "has", int(count), "rows.")
+    print()
 
-print("Deleting Parent IDs:", parent_ids_to_delete)
-print()
+    # delete the following parent IDs only
+    parent_ids_to_delete = [20, 30, 50]
 
-# enable array DML row counts for each iteration executed in executemany()
-cursor.executemany("""
-        delete from ChildTable
-        where ParentId = :1""",
-        [(i,) for i in parent_ids_to_delete],
-        arraydmlrowcounts = True)
+    print("Deleting Parent IDs:", parent_ids_to_delete)
+    print()
 
-# display the number of rows deleted for each parent ID
-row_counts = cursor.getarraydmlrowcounts()
-for parent_id, count in zip(parent_ids_to_delete, row_counts):
-    print("Parent ID:", parent_id, "deleted", count, "rows.")
+    # enable array DML row counts for each iteration executed in executemany()
+    cursor.executemany("""
+            delete from ChildTable
+            where ParentId = :1""",
+            [(i,) for i in parent_ids_to_delete],
+            arraydmlrowcounts = True)
+
+    # display the number of rows deleted for each parent ID
+    row_counts = cursor.getarraydmlrowcounts()
+    for parent_id, count in zip(parent_ids_to_delete, row_counts):
+        print("Parent ID:", parent_id, "deleted", count, "rows.")

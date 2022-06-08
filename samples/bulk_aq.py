@@ -57,40 +57,44 @@ PAYLOAD_DATA = [
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
 # connect to database
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# create queue
-queue = connection.queue(QUEUE_NAME)
-queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+# create a queue
+with connection.cursor() as cursor:
+    queue = connection.queue(QUEUE_NAME)
+    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
 
-# dequeue all existing messages to ensure the queue is empty, just so that
-# the results are consistent
-while queue.deqone():
-    pass
+    # dequeue all existing messages to ensure the queue is empty, just so that
+    # the results are consistent
+    while queue.deqone():
+        pass
 
 # enqueue a few messages
-print("Enqueuing messages...")
-batch_size = 6
-data_to_enqueue = PAYLOAD_DATA
-while data_to_enqueue:
-    batch_data = data_to_enqueue[:batch_size]
-    data_to_enqueue = data_to_enqueue[batch_size:]
-    messages = [connection.msgproperties(payload=d) for d in batch_data]
-    for data in batch_data:
-        print(data)
-    queue.enqmany(messages)
-connection.commit()
+with connection.cursor() as cursor:
+    print("Enqueuing messages...")
+    batch_size = 6
+    data_to_enqueue = PAYLOAD_DATA
+    while data_to_enqueue:
+        batch_data = data_to_enqueue[:batch_size]
+        data_to_enqueue = data_to_enqueue[batch_size:]
+        messages = [connection.msgproperties(payload=d) for d in batch_data]
+        for data in batch_data:
+            print(data)
+        queue.enqmany(messages)
+    connection.commit()
 
 # dequeue the messages
-print("\nDequeuing messages...")
-batch_size = 8
-while True:
-    messages = queue.deqmany(batch_size)
-    if not messages:
-        break
-    for props in messages:
-        print(props.payload.decode())
-connection.commit()
-print("\nDone.")
+with connection.cursor() as cursor:
+    print("\nDequeuing messages...")
+    batch_size = 8
+    while True:
+        messages = queue.deqmany(batch_size)
+        if not messages:
+            break
+        for props in messages:
+            print(props.payload.decode())
+    connection.commit()
+    print("\nDone.")

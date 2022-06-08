@@ -40,8 +40,11 @@ import sample_env
 # this script is currently only supported in python-oracledb thick mode
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
+
 # create and populate Oracle objects
-connection = oracledb.connect(sample_env.get_main_connect_string())
 type_obj = connection.gettype("MDSYS.SDO_GEOMETRY")
 element_info_type_obj = connection.gettype("MDSYS.SDO_ELEM_INFO_ARRAY")
 ordinate_type_obj = connection.gettype("MDSYS.SDO_ORDINATE_ARRAY")
@@ -53,25 +56,27 @@ obj.SDO_ORDINATES = ordinate_type_obj.newobject()
 obj.SDO_ORDINATES.extend([1, 1, 5, 7])
 print("Created object", obj)
 
-# create table, if necessary
-cursor = connection.cursor()
-cursor.execute("""
-        select count(*)
-        from user_tables
-        where table_name = 'TESTGEOMETRY'""")
-count, = cursor.fetchone()
-if count == 0:
-    print("Creating table...")
-    cursor.execute("""
-            create table TestGeometry (
-                IntCol number(9) not null,
-                Geometry MDSYS.SDO_GEOMETRY not null
-            )""")
+with connection.cursor() as cursor:
 
-# remove all existing rows and then add a new one
-print("Removing any existing rows...")
-cursor.execute("delete from TestGeometry")
-print("Adding row to table...")
-cursor.execute("insert into TestGeometry values (1, :obj)", obj=obj)
-connection.commit()
-print("Success!")
+    # create sample table
+    cursor.execute("""
+        begin
+          begin
+            execute immediate 'drop table TestGeometry';
+          exception
+          when others then
+            if sqlcode <> -942 then
+              raise;
+            end if;
+          end;
+
+          execute immediate 'create table TestGeometry (
+                                 IntCol number(9) not null,
+                                 Geometry MDSYS.SDO_GEOMETRY)';
+        end;""")
+
+
+    print("Adding row to table...")
+    cursor.execute("insert into TestGeometry values (1, :objbv)", objbv=obj)
+    connection.commit()
+    print("Success!")

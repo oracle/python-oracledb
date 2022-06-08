@@ -44,8 +44,11 @@ import sample_env
 # this script is currently only supported in python-oracledb thick mode
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-con = oracledb.connect(sample_env.get_main_connect_string())
-obj_type = con.gettype("UDT_BUILDING")
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
+
+obj_type = connection.gettype("UDT_BUILDING")
 
 class Building:
 
@@ -89,20 +92,26 @@ buildings = [
     Building(3, "The Third Building", 12, datetime.date(2005, 6, 19)),
 ]
 
-cur = con.cursor()
-cur.inputtypehandler = input_type_handler
-for building in buildings:
-    cur.execute("insert into BuildingsAsObjects values (:1, :2)",
-                (building.building_id, building))
+with connection.cursor() as cursor:
+    cursor.inputtypehandler = input_type_handler
+    for building in buildings:
+        cursor.execute("insert into BuildingsAsObjects values (:1, :2)",
+                       (building.building_id, building))
 
-print("NO OUTPUT TYPE HANDLER:")
-for row in cur.execute("select * from BuildingsAsObjects order by BuildingId"):
-    print(row)
-print()
+    print("NO OUTPUT TYPE HANDLER:")
+    for row in cursor.execute("""
+            select *
+            from BuildingsAsObjects
+            order by BuildingId"""):
+        print(row)
+    print()
 
-cur = con.cursor()
-cur.outputtypehandler = output_type_handler
-print("WITH OUTPUT TYPE HANDLER:")
-for row in cur.execute("select * from BuildingsAsObjects order by BuildingId"):
-    print(row)
-print()
+with connection.cursor() as cursor:
+    cursor.outputtypehandler = output_type_handler
+    print("WITH OUTPUT TYPE HANDLER:")
+    for row in cursor.execute("""
+            select *
+            from BuildingsAsObjects
+            order by BuildingId"""):
+        print(row)
+    print()

@@ -47,40 +47,43 @@ if not sample_env.get_is_thin():
 # indicate that LOBS should not be fetched
 oracledb.defaults.fetch_lobs = False
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# add some data to the tables
-print("Populating tables with data...")
-cursor.execute("truncate table TestClobs")
-cursor.execute("truncate table TestBlobs")
-long_string = ""
-for i in range(10):
-    char = chr(ord('A') + i)
-    long_string += char * 25000
-    cursor.execute("insert into TestClobs values (:1, :2)",
-                   (i + 1, "STRING " + long_string))
-    cursor.execute("insert into TestBlobs values (:1, :2)",
-                   (i + 1, long_string.encode("ascii")))
-connection.commit()
+with connection.cursor() as cursor:
 
-# fetch the data and show the results
-print("CLOBS returned as strings")
-cursor.execute("""
-        select
-            IntCol,
-            ClobCol
-        from TestClobs
-        order by IntCol""")
-for int_col, value in cursor:
-    print("Row:", int_col, "string of length", len(value))
-print()
-print("BLOBS returned as bytes")
-cursor.execute("""
-        select
-            IntCol,
-            BlobCol
-        from TestBlobs
-        order by IntCol""")
-for int_col, value in cursor:
-    print("Row:", int_col, "string of length", value and len(value) or 0)
+    # add some data to the tables
+    print("Populating tables with data...")
+    cursor.execute("truncate table TestClobs")
+    cursor.execute("truncate table TestBlobs")
+    long_string = ""
+    for i in range(10):
+        char = chr(ord('A') + i)
+        long_string += char * 25000
+        cursor.execute("insert into TestClobs values (:1, :2)",
+                       (i + 1, "STRING " + long_string))
+        cursor.execute("insert into TestBlobs values (:1, :2)",
+                       (i + 1, long_string.encode("ascii")))
+    connection.commit()
+
+    # fetch the data and show the results
+    print("CLOBS returned as strings")
+    cursor.execute("""
+            select
+                IntCol,
+                ClobCol
+            from TestClobs
+            order by IntCol""")
+    for int_col, value in cursor:
+        print("Row:", int_col, "string of length", len(value))
+    print()
+    print("BLOBS returned as bytes")
+    cursor.execute("""
+            select
+                IntCol,
+                BlobCol
+            from TestBlobs
+            order by IntCol""")
+    for int_col, value in cursor:
+        print("Row:", int_col, "string of length", value and len(value) or 0)

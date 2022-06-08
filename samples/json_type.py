@@ -48,10 +48,13 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-conn = oracledb.connect(sample_env.get_main_connect_string())
-if not conn.thin:
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
+
+if not connection.thin:
     client_version = oracledb.clientversion()[0]
-db_version = int(conn.version.split(".")[0])
+db_version = int(connection.version.split(".")[0])
 
 # Minimum database vesion is 21
 if db_version < 21:
@@ -68,29 +71,27 @@ def type_handler(cursor, name, default_type, size, precision, scale):
         return cursor.var(default_type, arraysize=cursor.arraysize,
                           outconverter=lambda v: json.loads(v.read()))
 
-cursor = conn.cursor()
-
 # Insert JSON data into a JSON column
-
-data = [
-    (1, dict(name="Rod", dept="Sales", location="Germany")),
-    (2, dict(name="George", dept="Marketing", location="Bangalore")),
-    (3, dict(name="Sam", dept="Sales", location="Mumbai")),
-    (4, dict(name="Jill", dept="Marketing", location="Germany"))
-]
-insert_sql = "insert into CustomersAsJson values (:1, :2)"
-if not conn.thin and client_version >= 21:
-    # Take advantage of direct binding
-    cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
-    cursor.executemany(insert_sql, data)
-else:
-    # Insert the data as a JSON string
-    cursor.executemany(insert_sql, [(i, json.dumps(j)) for i, j in data])
+with connection.cursor() as cursor:
+    data = [
+        (1, dict(name="Rod", dept="Sales", location="Germany")),
+        (2, dict(name="George", dept="Marketing", location="Bangalore")),
+        (3, dict(name="Sam", dept="Sales", location="Mumbai")),
+        (4, dict(name="Jill", dept="Marketing", location="Germany"))
+    ]
+    insert_sql = "insert into CustomersAsJson values (:1, :2)"
+    if not connection.thin and client_version >= 21:
+        # Take advantage of direct binding
+        cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        cursor.executemany(insert_sql, data)
+    else:
+        # Insert the data as a JSON string
+        cursor.executemany(insert_sql, [(i, json.dumps(j)) for i, j in data])
 
 # Select JSON data from a JSON column
+with connection.cursor() as cursor:
+    if connection.thin or client_version < 21:
+        cursor.outputtypehandler = type_handler
 
-if conn.thin or client_version <  21:
-    cursor.outputtypehandler = type_handler
-
-for row in cursor.execute("select * from CustomersAsJson"):
-    print(row)
+    for row in cursor.execute("select * from CustomersAsJson"):
+        print(row)

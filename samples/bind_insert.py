@@ -25,7 +25,7 @@
 #------------------------------------------------------------------------------
 # bind_insert.py
 #
-# Demonstrates how to insert a row into a table using bind variables.
+# Demonstrates how to insert rows into a table using bind variables.
 #------------------------------------------------------------------------------
 
 import oracledb
@@ -35,7 +35,9 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
 #------------------------------------------------------------------------------
 # "Bind by position"
@@ -51,13 +53,14 @@ rows = [
     (7, "Seventh")
 ]
 
-cursor = connection.cursor()
+with connection.cursor() as cursor:
 
-# predefine maximum string size to avoid data scans and memory reallocations;
-# the None value indicates that the default processing can take place
-cursor.setinputsizes(None, 20)
+    # predefine the maximum string size to avoid data scans and memory
+    # reallocations.  The value 'None' indicates that the default processing
+    # can take place
+    cursor.setinputsizes(None, 20)
 
-cursor.executemany("insert into mytab(id, data) values (:1, :2)", rows)
+    cursor.executemany("insert into mytab(id, data) values (:1, :2)", rows)
 
 #------------------------------------------------------------------------------
 # "Bind by name"
@@ -66,15 +69,17 @@ cursor.executemany("insert into mytab(id, data) values (:1, :2)", rows)
 rows = [
     {"d": "Eighth", "i": 8},
     {"d": "Ninth",  "i": 9},
-    {"d": "Tenth",  "i": 10}
+    {"d": "Tenth",  "i": 10},
+    {"i": 11}  # Insert a NULL value
 ]
 
-cursor = connection.cursor()
+with connection.cursor() as cursor:
 
-# Predefine maximum string size to avoid data scans and memory reallocations
-cursor.setinputsizes(d=20)
+    # Predefine maximum string size to avoid data scans and memory
+    # reallocations
+    cursor.setinputsizes(d=20)
 
-cursor.executemany("insert into mytab(id, data) values (:i, :d)", rows)
+    cursor.executemany("insert into mytab(id, data) values (:i, :d)", rows)
 
 #------------------------------------------------------------------------------
 # Inserting a single bind still needs tuples
@@ -85,15 +90,16 @@ rows = [
     ("Twelth",)
 ]
 
-cursor = connection.cursor()
-cursor.executemany("insert into mytab(id, data) values (11, :1)", rows)
+with connection.cursor() as cursor:
+    cursor.executemany("insert into mytab(id, data) values (12, :1)", rows)
+
+# Don't commit - this lets the demo be run multiple times
+# connection.commit()
 
 #------------------------------------------------------------------------------
 # Now query the results back
 #------------------------------------------------------------------------------
 
-# Don't commit - this lets the demo be run multiple times
-# connection.commit()
-
-for row in cursor.execute('select * from mytab'):
-    print(row)
+with connection.cursor() as cursor:
+    for row in cursor.execute("select * from mytab order by id"):
+        print(row)

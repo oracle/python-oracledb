@@ -42,31 +42,34 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-# use PL/SQL block to return two cursors
-cursor.execute("""
-        declare
-            c1 sys_refcursor;
-            c2 sys_refcursor;
-        begin
+with connection.cursor() as cursor:
 
-            open c1 for
-                select * from TestNumbers;
+    # A PL/SQL block that returns two cursors
+    cursor.execute("""
+            declare
+                c1 sys_refcursor;
+                c2 sys_refcursor;
+            begin
 
-            dbms_sql.return_result(c1);
+                open c1 for
+                    select * from TestNumbers;
 
-            open c2 for
-                select * from TestStrings;
+                dbms_sql.return_result(c1);
 
-            dbms_sql.return_result(c2);
+                open c2 for
+                    select * from TestStrings;
 
-        end;""")
+                dbms_sql.return_result(c2);
 
-# display results
-for ix, result_set in enumerate(cursor.getimplicitresults()):
-    print("Result Set #" + str(ix + 1))
-    for row in result_set:
-        print(row)
-    print()
+            end;""")
+
+    # display results
+    for ix, result_set in enumerate(cursor.getimplicitresults()):
+        print("Result Set #" + str(ix + 1))
+        for row in result_set:
+            print(row)
+        print()

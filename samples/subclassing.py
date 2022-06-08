@@ -37,16 +37,16 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-# sample subclassed connection which overrides the constructor (so no
+# sample subclassed Connection which overrides the constructor (so no
 # parameters are required) and the cursor() method (so that the subclassed
 # cursor is returned instead of the default cursor implementation)
 class Connection(oracledb.Connection):
 
     def __init__(self):
-        connect_string = sample_env.get_main_connect_string()
-        print("CONNECT to database")
-        super().__init__(connect_string)
-
+        print("CONNECT", sample_env.get_connect_string())
+        super().__init__(user=sample_env.get_main_user(),
+                         password=sample_env.get_main_password(),
+                         dsn=sample_env.get_connect_string())
     def cursor(self):
         return Cursor(self)
 
@@ -63,15 +63,16 @@ class Cursor(oracledb.Cursor):
         return super().execute(statement, args)
 
     def fetchone(self):
-        print("FETCH ONE")
+        print("FETCHONE")
         return super().fetchone()
 
 
-# create instances of the subclassed connection and cursor
+# create instances of the subclassed Connection and cursor
 connection = Connection()
-cursor = connection.cursor()
 
-# demonstrate that the subclassed connection and cursor are being used
-cursor.execute("select count(*) from ChildTable where ParentId = :1", (30,))
-count, = cursor.fetchone()
-print("COUNT:", int(count))
+with connection.cursor() as cursor:
+
+    # demonstrate that the subclassed connection and cursor are being used
+    cursor.execute("select count(*) from ChildTable where ParentId = :1", (30,))
+    count, = cursor.fetchone()
+    print("COUNT:", int(count))

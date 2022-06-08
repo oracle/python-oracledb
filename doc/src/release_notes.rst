@@ -32,6 +32,7 @@ oracledb 1.0.1 (TBD)
     fetched as floats when oracledb.defaults.fetch_lobs was set to `False`.
 #)  Thin: ensure that errors that occur during fetch are detected consistently.
 #)  Thin: fixed issue when fetching null values in implicit results.
+#)  Improved samples and documentation.
 
 
 oracledb 1.0.0 (May 2022)

@@ -41,7 +41,7 @@ import sample_env
 # this script is currently only supported in python-oracledb thick mode
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-# define constants used throughout the script; adjust as desired
+# client context attributes to be set
 APP_CTX_NAMESPACE = "CLIENTCONTEXT"
 APP_CTX_ENTRIES = [
     ( APP_CTX_NAMESPACE, "ATTR1", "VALUE1" ),
@@ -49,10 +49,15 @@ APP_CTX_ENTRIES = [
     ( APP_CTX_NAMESPACE, "ATTR3", "VALUE3" )
 ]
 
-connection = oracledb.connect(sample_env.get_main_connect_string(),
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string(),
                               appcontext=APP_CTX_ENTRIES)
-cursor = connection.cursor()
-for namespace, name, value in APP_CTX_ENTRIES:
-    cursor.execute("select sys_context(:1, :2) from dual", (namespace, name))
-    value, = cursor.fetchone()
-    print("Value of context key", name, "is", value)
+
+with connection.cursor() as cursor:
+
+    for namespace, name, value in APP_CTX_ENTRIES:
+        cursor.execute("select sys_context(:1, :2) from dual",
+                       (namespace, name))
+        value, = cursor.fetchone()
+        print("Value of context key", name, "is", value)

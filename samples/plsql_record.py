@@ -25,7 +25,7 @@
 #------------------------------------------------------------------------------
 # plsql_record.py
 #
-# Demonstrates how to bind (in and out) a PL/SQL record.
+# Demonstrates how to bind (IN and OUT) a PL/SQL record.
 #
 # This feature is only available in Oracle Database 12.1 and higher.
 #------------------------------------------------------------------------------
@@ -38,7 +38,9 @@ import sample_env
 # this script is currently only supported in python-oracledb thick mode
 oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
 # create new object of the correct type
 # note the use of a PL/SQL record defined in a package
@@ -57,13 +59,14 @@ print("DATEVALUE ->", obj.DATEVALUE)
 print("BOOLEANVALUE ->", obj.BOOLEANVALUE)
 print()
 
-# call the stored procedure which will modify the object
-cursor = connection.cursor()
-cursor.callproc("pkg_Demo.DemoRecordsInOut", (obj,))
+with connection.cursor() as cursor:
 
-# show the modified values
-print("NUMBERVALUE ->", obj.NUMBERVALUE)
-print("STRINGVALUE ->", obj.STRINGVALUE)
-print("DATEVALUE ->", obj.DATEVALUE)
-print("BOOLEANVALUE ->", obj.BOOLEANVALUE)
-print()
+    # call the stored procedure which will modify the object
+    cursor.callproc("pkg_Demo.DemoRecordsInOut", (obj,))
+
+    # show the modified values
+    print("NUMBERVALUE ->", obj.NUMBERVALUE)
+    print("STRINGVALUE ->", obj.STRINGVALUE)
+    print("DATEVALUE ->", obj.DATEVALUE)
+    print("BOOLEANVALUE ->", obj.BOOLEANVALUE)
+    print()

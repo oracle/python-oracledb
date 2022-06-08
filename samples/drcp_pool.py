@@ -23,15 +23,45 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
+# drcp_pool.py
+#
+# Demonstrates the use of Database Resident Connection Pooling (DRCP)
+# connection pooling using a Flask web application.  This sample is similar to
 # connection_pool.py
 #
-# Demonstrates the use of connection pooling using a Flask web application.
+# DRCP can be used with standalone connections from connect(), but it is often
+# used together with a python-oracledb connection pool created with
+# create_pool(), as shown here.
 #
-# Connection Pools can significantly reduce connection times for long running
-# applications that repeatedly open and close connections.  Connection pools
-# allow multiple, concurrent web requests to be efficiently handled.  Internal
-# features help protect against dead connections, and also aid use of Oracle
-# Database features such as FAN and Application Continuity.
+# DRCP provides a connection pool in the database server. The pool reduces the
+# cost of creating and tearing down database server processs.  This pool of
+# server processes can be shared across application processs, allowing for
+# resource sharing.
+#
+# There is no difference in how a connection is used once it has been
+# established.
+#
+# To use DRCP, the connection string should request the database use a pooled
+# server.  For example, "localhost/orclpdb:pool".  It is best practice for
+# connections to specify a connection class and server purity when creating
+# a pool
+#
+# For on premise databases, the DRCP pool can be started and stopped in the
+# database by issuing the following commands in SQL*Plus:
+#
+#   exec dbms_connection_pool.start_pool()
+#   exec dbms_connection_pool.stop_pool()
+#
+# For multitenant databases, DRCP management needs to be done the root ("CDB")
+# database unless the database initialization parameter ENABLE_PER_PDB_DRCP is
+# TRUE.
+#
+# Oracle Autonomous Databases already have DRCP enabled.
+#
+# Statistics on DRCP usage are recorded in various data dictionary views, for
+# example in V$CPOOL_CC_STATS.
+#
+# See the python-oracledb documentation for more information on DRCP.
 #
 # To run this sample, install Flask with:
 #   pip install --upgrade Flask
@@ -45,15 +75,32 @@
 # To insert new a user 'fred' you can call:
 #   http://127.0.0.1:8080/post/fred
 #
+# Multi-user load can be simulated with a testing tool such as 'ab':
+#
+#   ab -n 1000 -c 4 http://127.0.0.1:8080/user/1
+#
+# Then you can query the data dictionary:
+#
+#   select cclass_name, num_requests, num_hits,
+#          num_misses, num_waits, num_authentications
+#   from   v$cpool_cc_stats;
+#
+# Output will be like:
+#
+# CCLASS_NAME      NUM_REQUESTS NUM_HITS NUM_MISSES NUM_WAITS NUM_AUTHENTICATIONS
+# ---------------- ------------ -------- ---------- --------- -------------------
+# PYTHONDEMO.MYAPP         1001      997          4         0                   4
+#
 #------------------------------------------------------------------------------
 
-import os
-import oracledb
 from flask import Flask
+import os
+
+import oracledb
 import sample_env
 
 # Port to listen on
-port=int(os.environ.get('PORT', '8080'))
+port = int(os.environ.get('PORT', '8080'))
 
 # determine whether to use python-oracledb thin mode or thick mode
 if not sample_env.get_is_thin():
@@ -73,11 +120,11 @@ def start_pool():
 
     pool = oracledb.create_pool(user=sample_env.get_main_user(),
                                 password=sample_env.get_main_password(),
-                                dsn=sample_env.get_connect_string(),
-                                min=pool_min,
-                                max=pool_max,
-                                increment=pool_inc,
-                                session_callback=init_session)
+                                dsn=sample_env.get_drcp_connect_string(),
+                                min=pool_min, max=pool_max, increment=pool_inc,
+                                session_callback=init_session,
+                                cclass="MYAPP",
+                                purity=oracledb.ATTR_PURITY_SELF)
 
     return pool
 

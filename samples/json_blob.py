@@ -46,7 +46,10 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
+
 if not connection.thin:
     client_version = oracledb.clientversion()[0]
 db_version = int(connection.version.split(".")[0])
@@ -55,46 +58,46 @@ db_version = int(connection.version.split(".")[0])
 if db_version < 12:
     sys.exit("This example requires Oracle Database 12.1.0.2 or later")
 
-cursor = connection.cursor()
-
 # Insert JSON data
+with connection.cursor() as cursor:
 
-data = dict(name="Rod", dept="Sales", location="Germany")
-inssql = "insert into CustomersAsBlob values (:1, :2)"
+    data = dict(name="Rod", dept="Sales", location="Germany")
+    inssql = "insert into CustomersAsBlob values (:1, :2)"
 
-if not connection.thin and client_version >= 21 and db_version >= 21:
-    # Take advantage of direct binding
-    cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
-    cursor.execute(inssql, [1, data])
-else:
-    # Insert the data as a JSON string
-    cursor.execute(inssql, [1, json.dumps(data)])
+    if not connection.thin and client_version >= 21 and db_version >= 21:
+        # Take advantage of direct binding
+        cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        cursor.execute(inssql, [1, data])
+    else:
+        # Insert the data as a JSON string
+        cursor.execute(inssql, [1, json.dumps(data)])
 
 # Select JSON data
+with connection.cursor() as cursor:
 
-sql = "SELECT c.json_data FROM CustomersAsBlob c"
-for j, in cursor.execute(sql):
-    print(json.loads(j.read()))
+    sql = "SELECT c.json_data FROM CustomersAsBlob c"
+    for j, in cursor.execute(sql):
+        print(json.loads(j.read()))
 
-# Using JSON_VALUE to extract a value from a JSON column
+    # Using JSON_VALUE to extract a value from a JSON column
 
-sql = """SELECT JSON_VALUE(json_data, '$.location')
-         FROM CustomersAsBlob
-         OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
-for r in cursor.execute(sql):
-    print(r)
+    sql = """SELECT JSON_VALUE(json_data, '$.location')
+             FROM CustomersAsBlob
+             OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
+    for r in cursor.execute(sql):
+        print(r)
 
-# Using dot-notation to extract a value from a JSON  (BLOB storage) column
+    # Using dot-notation to extract a value from a JSON  (BLOB storage) column
 
-sql = """SELECT c.json_data.location
-         FROM CustomersAsBlob c
-         OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
-for j, in cursor.execute(sql):
-    print(j)
+    sql = """SELECT c.json_data.location
+             FROM CustomersAsBlob c
+             OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
+    for j, in cursor.execute(sql):
+        print(j)
 
-# Using JSON_OBJECT to extract relational data as JSON
+    # Using JSON_OBJECT to extract relational data as JSON
 
-sql = """SELECT JSON_OBJECT('key' IS d.dummy) dummy
-         FROM dual d"""
-for r in cursor.execute(sql):
-    print(r)
+    sql = """SELECT JSON_OBJECT('key' IS d.dummy) dummy
+             FROM dual d"""
+    for r in cursor.execute(sql):
+        print(r)

@@ -37,15 +37,18 @@ import decimal
 import oracledb
 import sample_env
 
+# indicate that numbers should be fetched as decimals
+oracledb.defaults.fetch_decimals = True
+
 # determine whether to use python-oracledb thin mode or thick mode
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-# indicate that numbers should be fetched as decimals
-oracledb.defaults.fetch_decimals = True
+connection = oracledb.connect(user=sample_env.get_main_user(),
+                              password=sample_env.get_main_password(),
+                              dsn=sample_env.get_connect_string())
 
-connection = oracledb.connect(sample_env.get_main_connect_string())
-cursor = connection.cursor()
-cursor.execute("select * from TestNumbers")
-for row in cursor:
-    print("Row:", row)
+with connection.cursor() as cursor:
+    cursor.execute("select * from TestNumbers")
+    for row in cursor:
+        print("Row:", row)
