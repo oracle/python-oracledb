@@ -588,14 +588,20 @@ class TestCase(test_env.BaseTestCase):
         self.connection.outputtypehandler = type_handler
         blob_data = b"An arbitrary set of blob data for test case 4348"
         self.cursor.execute("truncate table TestBLOBs")
-        self.cursor.execute("insert into TestBLOBs values (1, :data)",
-                            [blob_data])
-        self.cursor.execute("select * from TestBLOBs")
+        self.cursor.execute("""
+                insert into TestBLOBs
+                (IntCol, BlobCol)
+                values (1, :data)""",
+                [blob_data])
+        self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         self.assertEqual(self.cursor.fetchall(), [(1, blob_data)])
         self.cursor.execute("truncate table TestBLOBs")
-        self.cursor.execute("insert into TestBLOBs values (1, :data)",
-                            [blob_data])
-        self.cursor.execute("select * from TestBLOBs")
+        self.cursor.execute("""
+                insert into TestBLOBs
+                (IntCol, BlobCol)
+                values (1, :data)""",
+                [blob_data])
+        self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         self.assertEqual(self.cursor.fetchall(), [(1, blob_data)])
 
     def test_4349_test_sql_with_quoted_identifiers_and_strings(self):

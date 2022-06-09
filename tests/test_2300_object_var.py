@@ -262,12 +262,18 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestClobs")
         self.cursor.execute("truncate table TestNClobs")
         self.cursor.execute("truncate table TestBlobs")
-        self.cursor.execute("insert into TestClobs values " \
-                            "(1, 'A short CLOB')")
-        self.cursor.execute("insert into TestNClobs values " \
-                            "(1, 'A short NCLOB')")
-        self.cursor.execute("insert into TestBlobs values " \
-                            "(1, utl_raw.cast_to_raw('A short BLOB'))")
+        self.cursor.execute("""
+                insert into TestClobs
+                (IntCol, ClobCol)
+                values (1, 'A short CLOB')""")
+        self.cursor.execute("""
+                insert into TestNClobs
+                (IntCol, NClobCol)
+                values (1, 'A short NCLOB')""")
+        self.cursor.execute("""
+                insert into TestBlobs
+                (IntCol, BlobCol)
+                values (1, utl_raw.cast_to_raw('A short BLOB'))""")
         self.connection.commit()
         self.cursor.execute("select CLOBCol from TestClobs")
         clob, = self.cursor.fetchone()

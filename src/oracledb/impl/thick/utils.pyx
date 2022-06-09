@@ -275,7 +275,8 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
             or oracle_type == DPI_ORACLE_TYPE_NCHAR \
             or oracle_type == DPI_ORACLE_TYPE_VARCHAR \
             or oracle_type == DPI_ORACLE_TYPE_NVARCHAR \
-            or oracle_type == DPI_ORACLE_TYPE_LONG_VARCHAR:
+            or oracle_type == DPI_ORACLE_TYPE_LONG_VARCHAR \
+            or oracle_type == DPI_ORACLE_TYPE_LONG_NVARCHAR:
         as_bytes = &dbvalue.asBytes
         return as_bytes.ptr[:as_bytes.length].decode()
     elif oracle_type == DPI_ORACLE_TYPE_NUMBER:

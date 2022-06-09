@@ -47,43 +47,28 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(type(fetched_value), type(expected_out_value))
         self.assertEqual(fetched_value, expected_out_value)
 
-    def __test_type_handler_blob(self, output_type):
+    def __test_type_handler_lob(self, lob_type, output_type):
+        db_type = getattr(oracledb, lob_type)
         def type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == oracledb.DB_TYPE_BLOB:
+            if default_type == db_type:
                 return cursor.var(output_type, arraysize=cursor.arraysize)
         self.cursor.outputtypehandler = type_handler
-        in_value = b"Some binary data"
-        self.cursor.execute("truncate table TestBLOBs")
-        self.cursor.execute("insert into TestBLOBs values(1, :val)",
-                            val=in_value)
+        in_value = f"Some {lob_type} data"
+        if lob_type == "BLOB":
+            in_value = in_value.encode()
+        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"""
+                insert into Test{lob_type}s
+                (IntCol, {lob_type}Col)
+                values(1, :val)""",
+                val=in_value)
         self.connection.commit()
-        self.cursor.execute("select BlobCol, IntCol, BlobCol from TestBLOBs")
-        self.assertEqual(self.cursor.fetchone(), (in_value, 1, in_value))
-
-    def __test_type_handler_clob(self, output_type):
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == oracledb.DB_TYPE_CLOB:
-                return cursor.var(output_type, arraysize=cursor.arraysize)
-        self.cursor.outputtypehandler = type_handler
-        in_value = "Some clob data"
-        self.cursor.execute("truncate table TestCLOBs")
-        self.cursor.execute("insert into TestCLOBs values(1, :val)",
-                            val=in_value)
-        self.connection.commit()
-        self.cursor.execute("select ClobCol, IntCol, ClobCol from TestCLOBs")
-        self.assertEqual(self.cursor.fetchone(), (in_value, 1, in_value))
-
-    def __test_type_handler_nclob(self, output_type):
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == oracledb.DB_TYPE_NCLOB:
-                return cursor.var(output_type, arraysize=cursor.arraysize)
-        self.cursor.outputtypehandler = type_handler
-        in_value = "Some nclob data"
-        self.cursor.execute("truncate table TestNCLOBs")
-        self.cursor.execute("insert into TestNCLOBs values(1, :val)",
-                            val=in_value)
-        self.connection.commit()
-        self.cursor.execute("select NClobCol, IntCol, NClobCol from TestNCLOBs")
+        self.cursor.execute(f"""
+                select
+                    {lob_type}Col,
+                    IntCol,
+                    {lob_type}Col
+                from Test{lob_type}s""")
         self.assertEqual(self.cursor.fetchone(), (in_value, 1, in_value))
 
     def setUp(self):
@@ -424,23 +409,23 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3656_BLOB_TO_LONG_RAW(self):
         "3656 - output type handler conversion from permanent BLOBs to LONG_RAW"
-        self.__test_type_handler_blob(oracledb.DB_TYPE_LONG_RAW)
+        self.__test_type_handler_lob("BLOB", oracledb.DB_TYPE_LONG_RAW)
 
     def test_3657_BLOB_TO_RAW(self):
         "3657 - output type handler conversion from permanent BLOBs to RAW"
-        self.__test_type_handler_blob(oracledb.DB_TYPE_RAW)
+        self.__test_type_handler_lob("BLOB", oracledb.DB_TYPE_RAW)
 
     def test_3658_CLOB_TO_VARCHAR(self):
         "3658 - output type handler conversion from permanent CLOBs to VARCHAR"
-        self.__test_type_handler_clob(oracledb.DB_TYPE_VARCHAR)
+        self.__test_type_handler_lob("CLOB", oracledb.DB_TYPE_VARCHAR)
 
     def test_3659_CLOB_TO_CHAR(self):
         "3659 - output type handler conversion from permanent CLOBs to CHAR"
-        self.__test_type_handler_clob(oracledb.DB_TYPE_CHAR)
+        self.__test_type_handler_lob("CLOB", oracledb.DB_TYPE_CHAR)
 
     def test_3660_CLOB_TO_LONG(self):
         "3660 - output type handler conversion from permanent CLOBs to LONG"
-        self.__test_type_handler_clob(oracledb.DB_TYPE_LONG)
+        self.__test_type_handler_lob("CLOB", oracledb.DB_TYPE_LONG)
 
     def test_3661_NCLOB_TO_CHAR(self):
         "3661 - output type handler conversion from NCLOB to CHAR"
@@ -462,15 +447,15 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3664_NCLOB_TO_VARCHAR(self):
         "3664 - output type handler conversion from permanent NCLOBs to VARCHAR"
-        self.__test_type_handler_nclob(oracledb.DB_TYPE_VARCHAR)
+        self.__test_type_handler_lob("NCLOB", oracledb.DB_TYPE_VARCHAR)
 
     def test_3665_NCLOB_TO_CHAR(self):
         "3665 - output type handler conversion from permanent NCLOBs to CHAR"
-        self.__test_type_handler_nclob(oracledb.DB_TYPE_CHAR)
+        self.__test_type_handler_lob("NCLOB", oracledb.DB_TYPE_CHAR)
 
     def test_3666_NCLOB_TO_LONG(self):
         "3666 - output type handler conversion from permanent NCLOBs to LONG"
-        self.__test_type_handler_nclob(oracledb.DB_TYPE_LONG)
+        self.__test_type_handler_lob("NCLOB", oracledb.DB_TYPE_LONG)
 
     def test_3667_NVARCHAR_to_VARCHAR(self):
         "3667 - output type handler conversion from NVARCHAR to VARCHAR"

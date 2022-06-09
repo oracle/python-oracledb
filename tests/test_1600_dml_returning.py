@@ -373,6 +373,7 @@ class TestCase(test_env.BaseTestCase):
         lob_value = "A short CLOB - 1618"
         self.cursor.execute("""
                 insert into TestCLOBs
+                (IntCol, ClobCol)
                 values (1, :in_val)
                 returning CLOBCol into :out_val""",
                 in_val=lob_value,
@@ -387,6 +388,7 @@ class TestCase(test_env.BaseTestCase):
         lob_value = "A short CLOB - 1619"
         self.cursor.execute("""
                 insert into TestCLOBs
+                (IntCol, ClobCol)
                 values (1, :in_val)
                 returning CLOBCol into :out_val""",
                 in_val=lob_value,

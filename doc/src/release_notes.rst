@@ -12,6 +12,8 @@ oracledb 1.0.1 (TBD)
 --------------------
 
 #)  Thick: restored support for bequeath connections.
+#)  Thick: fixed issue fetching NCLOB with
+    `oracledb.defaults.fetch_lobs = False`.
 #)  Thin: added support for multiple aliases in one entry in tnsnames.ora
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
 #)  Thin: return the same value for timestamp with time zone columns as thick
