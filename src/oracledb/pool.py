@@ -54,14 +54,23 @@ class ConnectionPool:
         where connections are requested in rapid succession and used for a
         short period of time, for example in a web server.
 
-        The pool_params parameter is expected to be of type PoolParams and
-        containins pool configuration parameters. If not specified, a new
-        instance will be created using the additional keyword arguments.
+        The dsn parameter (data source name) can be a string in the format
+        user/password@connect_string or can simply be the connect string (in
+        which case authentication credentials such as the username and password
+        need to be specified separately). See the documentation on connection
+        strings for more information.
 
-        The conn_params parameter is expected to be of type ConnectParams and
-        contains connection parameters that will be used when creating
-        connections to the database. If not specified, a new instance will be
-        created using the additional keyword arguments.
+        The params parameter is expected to be of type PoolParams and contains
+        parameters that are used to create the pool. See the documentation on
+        PoolParams for more information. If this parameter is not specified, the
+        additional keyword parameters will be used to create an instance of
+        PoolParams. If both the params parameter and additional keyword
+        parameters are specified, the values in the keyword parameters have
+        precedence. Note that if a dsn is also supplied, then in the
+        python-oracledb Thin mode, the values of the parameters specified
+        (if any) within the dsn will override the values passed as additional
+        keyword parameters, which themselves override the values set in the
+        params parameter object.
         """
         self._impl = None
         if params is None:
@@ -608,8 +617,9 @@ def create_pool(dsn: str=None, *,
 
     The dsn parameter (data source name) can be a string in the format
     user/password@connect_string or can simply be the connect string (in
-    which case the user and password need to be specified separately). See the
-    documentation on connection strings for more information.
+    which case authentication credentials such as the username and password
+    need to be specified separately). See the documentation on connection
+    strings for more information.
 
     The pool_class parameter is expected to be ConnectionPool or a subclass of
     ConnectionPool.
@@ -619,8 +629,10 @@ def create_pool(dsn: str=None, *,
     PoolParams for more information. If this parameter is not specified, the
     additional keyword parameters will be used to create an instance of
     PoolParams. If both the params parameter and additional keyword parameters
-    are specified an exception is raised. Note that if a dsn is also supplied,
-    the params will be modified to contain the connection parameters found
-    within the dsn.
+    are specified, the values in the keyword parameters have precedence.
+    Note that if a dsn is also supplied, then in the python-oracledb Thin mode,
+    the values of the parameters specified (if any) within the dsn will override
+    the values passed as additional keyword parameters, which themselves
+    override the values set in the params parameter object.
     """
     pass
