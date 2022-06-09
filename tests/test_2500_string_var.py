@@ -390,7 +390,7 @@ class TestCase(test_env.BaseTestCase):
                 insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
                 values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
                 returning id into :arg6""",
-                [2, u'd5ff845a', u'94275767', u'bf161ff6', u'', u'', id_var])
+                [2, 'd5ff845a', '94275767', 'bf161ff6', '', '', id_var])
         cursor.execute("drop table issue_50 purge")
 
     def test_2529_set_rowid_to_string(self):
