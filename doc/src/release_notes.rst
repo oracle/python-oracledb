@@ -31,7 +31,8 @@ oracledb 1.0.1 (TBD)
     database, the error is wrapped by DPY-6005 as an instance of
     oracledb.ConnectionError.
 #)  Fixed issue where unconstrained numbers containing integer values would be
-    fetched as floats when oracledb.defaults.fetch_lobs was set to `False`.
+    fetched as floats when oracledb.defaults.fetch_lobs was set to `False`
+    (`issue 15 <https://github.com/oracle/python-oracledb/issues/15>`__).
 #)  Thin: ensure that errors that occur during fetch are detected consistently.
 #)  Thin: fixed issue when fetching null values in implicit results.
 #)  Thin: small optimization when sending column metadata.
