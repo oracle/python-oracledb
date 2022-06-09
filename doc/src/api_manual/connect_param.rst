@@ -185,7 +185,7 @@ ConnectParams Attributes
 
   This read-only attribute is a string that specifies the name of the proxy user to connect to.
   If this value is not specified, then it will be parsed out of the user if the user attribute
-  is in the form "user{proxy_user]".
+  is in the form "user[proxy_user]".
 
   This attribute is supported in the python-oracledb Thin and Thick modes.
 

@@ -462,9 +462,11 @@ Cursor Attributes
     how many rows are returned to the application. For
     :meth:`~Cursor.fetchmany()` it is the default number of rows to fetch.
 
+    The attribute is only used for tuning row and SODA document fetches from
+    the database.  It does not affect data inserts.
+
     Due to the performance benefits, the default ``Cursor.arraysize`` is 100
-    instead of the 1 that the DB API recommends.  This value means that 100 rows
-    are fetched by each internal call to the database.
+    instead of the 1 that the Python DB API recommends.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
@@ -555,6 +557,9 @@ Cursor Attributes
     value can reduce the number of round-trips to the database that are required
     to fetch rows but at the cost of additional memory. Setting this value to 0
     can be useful when the timing of fetches must be explicitly controlled.
+
+    The attribute is only used for tuning row fetches from the database.  It
+    does not affect data inserts.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 

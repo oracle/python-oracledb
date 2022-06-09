@@ -244,8 +244,8 @@ Loading CSV Files into Oracle Database
 
 The :meth:`Cursor.executemany()` method and Python's `csv module
 <https://docs.python.org/3/library/csv.html#module-csv>`__ can be used to
-efficiently load CSV (Comma Separated Values) files.  For example, consider the
-file ``data.csv``::
+efficiently insert CSV (Comma Separated Values) data.  For example, consider
+the file ``data.csv``::
 
     101,Abel
     154,Baker
@@ -267,31 +267,38 @@ prevent all data being inserted at once:
     import oracledb
     import csv
 
-    # Predefine the memory areas to match the table definition.
-    # This can improve performance by avoiding memory reallocations.
-    # Here, one parameter is passed for each of the columns.
-    # "None" is used for the ID column, since the size of NUMBER isn't
-    # variable.  The "25" matches the maximum expected data size for the
-    # NAME column
-    cursor.setinputsizes(None, 25)
+    # CSV file
+    FILE_NAME = 'data.csv'
 
     # Adjust the number of rows to be inserted in each iteration
     # to meet your memory and performance requirements
-    batch_size = 10000
+    BATCH_SIZE = 10000
 
-    with open('testsp.csv', 'r') as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        sql = "insert into test (id,name) values (:1, :2)"
-        data = []
-        for line in csv_reader:
-            data.append((line[0], line[1]))
-            if len(data) % batch_size == 0:
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb")
+
+    with connection.cursor() as cursor:
+
+        # Predefine the memory areas to match the table definition.
+        # This can improve performance by avoiding memory reallocations.
+        # Here, one parameter is passed for each of the columns.
+        # "None" is used for the ID column, since the size of NUMBER isn't
+        # variable.  The "25" matches the maximum expected data size for the
+        # NAME column
+        cursor.setinputsizes(None, 25)
+
+        with open(FILE_NAME, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            sql = "insert into test (id, name) values (:1, :2)"
+            data = []
+            for line in csv_reader:
+                data.append((line[0], line[1]))
+                if len(data) % BATCH_SIZE == 0:
+                    cursor.executemany(sql, data)
+                    data = []
+            if data:
                 cursor.executemany(sql, data)
-                data = []
-        if data:
-            cursor.executemany(sql, data)
-        con.commit()
-
+            connection.commit()
 
 Depending on data sizes and business requirements, database changes such as
 temporarily disabling redo logging on the table, or disabling indexes may also

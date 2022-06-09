@@ -1150,7 +1150,7 @@ connection pool.  For example:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
-                                min=2, max=5, increment=1
+                                min=2, max=5, increment=1,
                                 server_type="pooled")
 
 
@@ -1170,7 +1170,7 @@ class name you can call:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
-                                min=2, max=5, increment=1
+                                min=2, max=5, increment=1,
                                 cclass="MYAPP")
 
 The python-oracledb connection pool size does not need to match the DRCP pool
@@ -1183,7 +1183,7 @@ if desired:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
-                                min=2, max=5, increment=1
+                                min=2, max=5, increment=1,
                                 cclass="MYAPP")
 
     connection = mypool.acquire(cclass="OTHERAPP")
@@ -1211,7 +1211,7 @@ allocated each time ``acquire()`` is called:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
-                                min=2, max=5, increment=1
+                                min=2, max=5, increment=1,
                                 cclass="MYAPP", purity=oracledb.PURITY_NEW)
 
 **Setting the Connection Class and Purity in the Connection String**
@@ -1244,7 +1244,7 @@ other users:
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
-                                min=2, max=5, increment=1
+                                min=2, max=5, increment=1,
                                 cclass="MYAPP")
 
     # Do some database operations
@@ -1324,7 +1324,7 @@ level statistics for the pool per instance::
     SQL> SELECT cclass_name, num_requests, num_hits, num_misses
          FROM v$cpool_cc_stats;
 
-    CCLASS_NAME                      NUM_REQUESTS NUM_HITS   NUM_MISSES
+    CCLASS_NAME                      NUM_REQUESTS   NUM_HITS NUM_MISSES
     -------------------------------- ------------ ---------- ----------
     HR.MYCLASS                             100031      99993         38
 
@@ -1414,14 +1414,14 @@ Pooled connection examples:
 .. code-block:: python
 
     # Basic Authentication without a proxy
-    pool = oracledb.create_pool(user="myproxyuser", password="myproxyuser",
+    pool = oracledb.create_pool(user="myproxyuser", password="myproxyuserpw",
                                 dsn="dbhost.example.com/orclpdb")
     connection = pool.acquire()
     # PROXY_USER:   None
     # SESSION_USER: MYPROXYUSER
 
     # Basic Authentication with proxy
-    pool = oracledb.create_pool(user="myproxyuser[mysessionuser]", password="myproxyuser",
+    pool = oracledb.create_pool(user="myproxyuser[mysessionuser]", password="myproxyuserpw",
                                 dsn="dbhost.example.com/orclpdb",
                                 homogeneous=False)
 

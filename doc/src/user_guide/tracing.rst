@@ -31,25 +31,29 @@ There are multiple approaches for application tracing and monitoring:
 Oracle Database End-to-End Tracing
 ----------------------------------
 
-Oracle Database End-to-end application tracing simplifies diagnosing application
-code flow and performance problems in multi-tier or multi-user environments.
+Oracle Database end-to-end application tracing simplifies diagnosing
+application code flow and performance problems in multi-tier or multi-user
+environments.
 
 The connection attributes, :attr:`~Connection.client_identifier`,
 :attr:`~Connection.clientinfo`, :attr:`~Connection.dbop`,
 :attr:`~Connection.module` and :attr:`~Connection.action`, set the metadata for
-end-to-end tracing.  You can use data dictionary and ``V$`` views to monitor
-tracing or use other application tracing utilities.
+end-to-end tracing.  You can query data dictionary and dynamic performance
+views to monitor applications, or you can use tracing utilities.
 
-The attributes are sent to the database when the next :ref:`round-trip
-<roundtrips>` to the database occurs, for example when the next SQL statement is
-executed.
+After attributes are set, the values are sent to the database when the next
+:ref:`round-trip <roundtrips>` to the database occurs, for example when the
+next SQL statement is executed.
 
-The attribute values will remain set in connections released back to connection
-pools.  When the application re-acquires a connection from the pool, it should
-initialize the values to a desired state before using that connection.
+The attribute values will remain set in connections released back to a
+connection pool.  When the application re-acquires a connection from the pool,
+it should initialize the values to a desired state before using that
+connection.
 
 The example below shows setting the action, module, and client identifier
-attributes on the connection object:
+attributes on a connection object, and then querying a view to see the recorded
+values.  The example both sets and queries the values, but typically monitoring
+is done externally to the application.
 
 .. code-block:: python
 
@@ -171,20 +175,21 @@ samples/subclassing.py>`__ for an example.
 Debugging PL/SQL with the Java Debug Wire Protocol
 --------------------------------------------------
 
-The Java Debug Wire Protocol (JDWP) for debugging PL/SQL can be used.
+The Java Debug Wire Protocol (JDWP) for debugging PL/SQL can be used with
+python-oracledb.
 
-The python-oracledb applications that call PL/SQL can step through that PL/SQL code
-using JDWP in a debugger. This allows Python and PL/SQL code to be debugged in the
-same debugger environment. You can enable PL/SQL debugging in the python-oracledb
-modes as follows:
+Python-oracledb applications that call PL/SQL can step through that PL/SQL code
+using JDWP in a debugger. This allows Python and PL/SQL code to be debugged in
+the same debugger environment. You can enable PL/SQL debugging in the
+python-oracledb modes as follows:
 
 - If you are using python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment
   variable to `host=hostname;port=portnum` indicating where the PL/SQL debugger
-  is running.
+  is running.  Then run the application.
 
 - In the python-oracledb Thin mode, you can additionally set the connection
-  parameter ``debug_jdwp``. This variable defaults to the value of the
-  ``ORA_DEBUG_JDWP`` environment variable.
+  parameter ``debug_jdwp`` during connection.  This variable defaults to the
+  value of the ``ORA_DEBUG_JDWP`` environment variable.
 
 See `DBMS_DEBUG_JDWP <https://docs.oracle.com/en/database/oracle/oracle-database
 /19/arpls/DBMS_DEBUG_JDWP.html>`_ and `Debugging PL/SQL from ASP.NET and Visual
@@ -234,8 +239,12 @@ documentation on ``DPI_DEBUG_LEVEL``.
 Finding the Python-oracledb Mode
 ================================
 
-To see which driver mode is in use you can query the table
-``V$SESSION_CONNECT_INFO``, for example:
+The boolean attributes :attr:`Connection.thin` and :attr:`ConnectionPool.thin`
+can be used to show the current mode of a python-oracledb connection or pool,
+repsectively.
+
+The state can also be seen in the Oracle Database data dictionary table
+``V$SESSION_CONNECT_INFO``:
 
 .. code-block:: python
 
@@ -246,7 +255,7 @@ To see which driver mode is in use you can query the table
         for r, in cursor.execute(sql):
             print(r)
 
-The output will be::
+In the python-oracledb Thin mode, the output will be::
 
     python-oracledb thn : 1.0.0
 

@@ -58,14 +58,15 @@ Some general tuning tips are:
 Tuning Fetch Performance
 ========================
 
-To tune queries, you can adjust python-oracledb's internal buffer sizes to improve the
-speed of fetching rows across the network from the database, and to optimize
-memory usage.  Regardless of which python-oracledb method is used to get query
-results, internally all rows are fetched in batches from the database and
-buffered before being returned to the application.  The internal buffer sizes
-can have a significant performance impact.  The sizes do not affect how or
-when rows are returned to your application.  They do not affect the minimum or
-maximum number of rows returned by a query.
+To tune queries, you can adjust python-oracledb's internal buffer sizes to
+improve the speed of fetching rows across the network from the database, and to
+optimize memory usage.  Regardless of which :ref:`python-oracledb method
+<fetching>` is used to get query results, internally all rows are fetched in
+batches from the database and buffered before being returned to the
+application.  The internal buffer sizes can have a significant performance
+impact.  The buffer sizes do not affect how or when rows are returned to your
+application.  They do not affect the minimum or maximum number of rows returned
+by a query.
 
 For best performance, tune "array fetching" with :attr:`Cursor.arraysize` and
 "row prefetching" with :attr:`Cursor.prefetchrows` before calling
@@ -80,16 +81,17 @@ required.  Adjusting ``prefetchrows`` will also affect performance and memory
 usage.
 
 Row prefetching and array fetching are both internal buffering techniques to
-reduce :ref:`round-trips <roundtrips>` to the database. The difference is the
-code layer that is doing the buffering, and when the buffering occurs.  The
-Oracle Client libraries used by python-oracledb have separate "execute SQL statement"
-and "fetch data" calls.  Prefetching allows query results to be returned to the
-application when the successful statement execution acknowledgment is returned
-from the database.  This means that a subsequent internal "fetch data" operation
-does not always need to make a round-trip to the database because rows are
-already buffered in the Oracle Client libraries.  Reducing round-trips helps
-performance and scalability.  An overhead of prefetching is the need for an
-additional data copy from Oracle Client's prefetch buffers.
+reduce :ref:`round-trips <roundtrips>` to the database. The difference is when
+the buffering occurs.  Internally python-oracledb performs separate "execute
+SQL statement" and "fetch data" steps.  Prefetching allows query results to be
+returned to the application when the acknowledgment of successful statement
+execution is returned from the database.  This means that the subsequent
+internal "fetch data" operation does not always need to make a round-trip to
+the database because rows are already buffered in python-oracledb or in the
+Oracle Client libraries.  Reducing round-trips helps performance and
+scalability.  An overhead of prefetching when using the python-oracledb Thick
+mode is the need for additional data copies from Oracle Client's prefetch
+buffer.
 
 Choosing values for ``arraysize`` and ``prefetchrows``
 ------------------------------------------------------
@@ -97,13 +99,14 @@ Choosing values for ``arraysize`` and ``prefetchrows``
 The best :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` values can be
 found by experimenting with your application under the expected load of normal
 application use.  This is because the cost of the extra memory copy from the
-prefetch buffers when fetching a large quantity of rows or very "wide" rows may
-outweigh the cost of a round-trip for a single python-oracledb user on a fast network.
-However under production application load, the reduction of round-trips may help
-performance and overall system scalability. The documentation in
-:ref:`round-trips <roundtrips>` shows how to measure round-trips.
+prefetch buffer when fetching a large quantity of rows or very "wide" rows may
+outweigh the cost of a round-trip for a single python-oracledb user on a fast
+network.  However under production application load, the reduction of
+round-trips may help performance and overall system scalability. The
+documentation in :ref:`round-trips <roundtrips>` shows how to measure
+round-trips.
 
-Here are some suggestions for the starting point to begin your tuning:
+Here are some suggestions for tuning:
 
 * To tune queries that return an unknown number of rows, estimate the number of
   rows returned and start with an appropriate :attr:`Cursor.arraysize` value.
@@ -126,12 +129,11 @@ Here are some suggestions for the starting point to begin your tuning:
   default value of 2. Keep ``arraysize`` as big, or bigger than,
   ``prefetchrows``.
 
-* If you are fetching a fixed number of rows, start your tuning by setting
-  ``arraysize`` to the number of expected rows, and set ``prefetchrows`` to one
-  greater than this value.  (Adding one removes the need for a round-trip to check
-  for end-of-fetch).  For example, if you are querying 20 rows, perhaps to
-  :ref:`display a page <rowlimit>` of data, set ``prefetchrows`` to 21 and
-  ``arraysize`` to 20:
+* If you are fetching a fixed number of rows, set ``arraysize`` to the number
+  of expected rows, and set ``prefetchrows`` to one greater than this value.
+  Adding one removes the need for a round-trip to check for end-of-fetch.  For
+  example, if you are querying 20 rows, perhaps to :ref:`display a page
+  <rowlimit>` of data, then set ``prefetchrows`` to 21 and ``arraysize`` to 20:
 
   .. code-block:: python
 
@@ -161,9 +163,34 @@ Here are some suggestions for the starting point to begin your tuning:
       row = cur.fetchone()
       print(row)
 
-In python-oracledb, the ``arraysize`` and ``prefetchrows`` values are only examined
-when a statement is executed the first time.  To change the values, create a new
-cursor.  For example, to change ``arraysize`` for a repeated statement:
+Application Default Prefetchrows and Arraysize Values
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Application-wide defaults can be set using :attr:`defaults.prefetchrows` and
+:attr:`defaults.arraysize`, for example:
+
+.. code-block:: python
+
+    import oracledb
+
+    oracledb.defaults.prefetchrows = 1000
+    oracledb.defaults.arraysize    = 1000
+
+When using python-oracledb in the Thick mode, prefetching can also be tuned in
+an external :ref:`oraaccess.xml <optclientfiles>` file, which may be useful for
+tuning an application when modifying its code is not feasible.
+
+Setting the sizes with ``oracledb.defaults`` attributes or with
+``oraaccess.xml`` will affect the whole application, so it should not be the
+first tuning choice.
+
+Changing Prefetchrows and Arraysize for Re-executed Statements
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In python-oracledb, the ``arraysize`` and ``prefetchrows`` values are only
+examined when a statement is executed the first time.  To change the values for
+a re-executed statement, create a new cursor.  For example, to change
+``arraysize``:
 
 .. code-block:: python
 
@@ -176,12 +203,15 @@ cursor.  For example, to change ``arraysize`` for a repeated statement:
         elapsed = time.time() - start
         print("Time for", size, elapsed, "seconds")
 
-There are two cases that will benefit from setting :attr:`Cursor.prefetchrows`
-to 0:
+Avoiding Premature Prefetching
+++++++++++++++++++++++++++++++
+
+There are two cases that will benefit from setting ``prefetchrows`` to 0:
 
 * When passing REF CURSORS into PL/SQL packages.  Setting ``prefetchrows`` to 0
-  can stop rows being prematurely (and silently) fetched into python-oracledb's
-  internal buffers, making them unavailable to the PL/SQL code that receives the
+  can stop rows being prematurely (and silently) fetched into the
+  python-oracledb or Oracle Client (in python-oracledb Thick mode) internal
+  buffer, making those rows unavailable to the PL/SQL code that receives the
   REF CURSOR.
 
 * When querying a PL/SQL function that uses PIPE ROW to emit rows at
@@ -189,10 +219,8 @@ to 0:
   function before python-oracledb can return them to the application.  Setting
   ``prefetchrows`` to 0 helps give a consistent flow of data to the application.
 
-Prefetching can also be enabled in an external :ref:`oraaccess.xml
-<optclientfiles>` file, which may be useful for tuning an application when
-modifying its code is not feasible.  Setting the size in ``oraaccess.xml`` will
-affect the whole application, so it should not be the first tuning choice.
+Tuning Data Copies between Databases
+------------------------------------
 
 One place where increasing ``arraysize`` is particularly useful is in copying
 data from one database to another:
@@ -213,12 +241,17 @@ data from one database to another:
         target_cursor.executemany("insert into MyTable values (:1, :2)", rows)
         target_connection.commit()
 
-Tuning REF CURSORS
--------------------
+Note that it may be preferable to use database links between the databases and
+use an INSERT INTO SELECT statement so that data is not copied to, and from,
+Python.
 
-In python-oracledb, REF CURSORS can also be tuned by setting the values of ``arraysize``
-and ``prefetchrows``. The prefetchrows value must be set before calling the PL/SQL
-procedure as the REF CURSOR is executed on the server.
+Tuning Fetching from REF CURSORS
+--------------------------------
+
+In python-oracledb, REF CURSORS can also be tuned by setting the values of
+``arraysize`` and ``prefetchrows``. The ``prefetchrows`` value must be set
+before calling the PL/SQL procedure as the REF CURSOR is executed on the
+server.
 
 For example:
 
@@ -260,7 +293,7 @@ Some general tips for reducing round-trips are:
 * Use scalar types instead of Oracle Database object types.
 * Avoid overuse of :meth:`Connection.ping()`.
 * Avoid setting :attr:`ConnectionPool.ping_interval` to 0 or a small value.
-* When using SODA, use pooled connections and enable the :ref:`SODA metadata cache <sodametadatacache>`.
+* When using :ref:`SODA <sodausermanual>`, use pooled connections and enable the :ref:`SODA metadata cache <sodametadatacache>`.
 
 Finding the Number of Round-Trips
 ----------------------------------
@@ -338,8 +371,10 @@ created, for example when the pool grows.
 Tuning the Statement Cache
 --------------------------
 
-In general, set the statement cache to the size of the working set of statements being executed
-by the application. SODA internally makes SQL calls, so tuning the cache is also beneficial for SODA applications.
+In general, set the statement cache to the size of the working set of
+statements being executed by the application. :ref:`SODA <sodausermanual>`
+internally makes SQL calls, so tuning the cache is also beneficial for SODA
+applications.
 
 With Oracle Client Libraries 12c, or later, the statement cache size can be automatically tuned
 with the Oracle Client Configuration oraaccess.xml file.

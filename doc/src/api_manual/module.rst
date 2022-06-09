@@ -80,8 +80,8 @@ Oracledb Methods
 
     The ``dsn`` (data source name) parameter can be a string in the format
     ``user/password@connect_string`` or can simply be the connect string (in
-    which case the user and password need to be specified separately).  See
-    :ref:`connstr` for more information.
+    which case authentication credentials such as the username and password
+    need to be specified separately). See :ref:`connstr` for more information.
 
     The ``pool`` parameter is expected to be a pool object. The use of this
     parameter is the equivalent of calling :meth:`ConnectionPool.acquire()`.
@@ -91,8 +91,15 @@ Oracledb Methods
 
     The ``params`` parameter is expected to be of type :ref:`ConnectParams
     <connparam>` and contains connection parameters that will be used when
-    establishing the connection.  See :ref:`usingconnparams` for more
-    information.
+    establishing the connection. If this parameter is not specified, the
+    additional keyword parameters will be used to create an instance of
+    ConnectParams. If both the params parameter and additional keyword
+    parameters are specified, the values in the keyword parameters have
+    precedence. Note that if a ``dsn`` is also supplied, then in the
+    python-oracledb Thin mode, the values of the parameters specified (if any)
+    within the ``dsn`` will override the values passed as additional keyword
+    parameters, which themselves override the values set in the ``params``
+    parameter object.
 
     The ``user`` parameter is expected to be a string which indicates the name
     of the user to connect to. This value is used in both the python-oracledb
@@ -459,18 +466,22 @@ Oracledb Methods
     python-oracledb Thick mode.  It should be used with extreme caution.
 
 
-.. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, params=None, \
-    min=1, max=2, increment=1, connectiontype=oracledb.Connection, \
-    getmode=None, homogeneous=None, externalauth=None, timeout=0, wait_timeout=0, \
-    max_lifetime_session=0, session_callback=None, max_sessions_per_shard=0, \
-    soda_metadata_cache=False, ping_interval=60, user=None, proxy_user=None, password=None, \
-    newpassword=None, wallet_password=None, host=None, port=1521, protocol="tcp", \
-    https_proxy=None, https_proxy_port=None, service_name=None, sid=None, server_type=None, \
-    cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, retry_delay=0, \
-    tcp_connect_timeout=60, ssl_server_dn_match=True, ssl_server_cert_dn=None, \
-    wallet_location=None, events=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=None, \
-    stmtcachesize=None, edition=None, tag=None, matchanytag=None, config_dir=None, \
-    appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+.. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
+        params=None, min=1, max=2, increment=1, \
+        connectiontype=oracledb.Connection, getmode=None, homogeneous=None, \
+        externalauth=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
+        session_callback=None, max_sessions_per_shard=0, \
+        soda_metadata_cache=False, ping_interval=60, user=None, \
+        proxy_user=None, password=None, newpassword=None, \
+        wallet_password=None, host=None, port=1521, protocol="tcp", \
+        https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
+        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
+        expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60, \
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
+        wallet_location=None, events=False, mode=oracledb.AUTH_MODE_DEFAULT, \
+        disable_oob=None, stmtcachesize=None, edition=None, tag=None, \
+        matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
+        supershardingkey=[], debug_jdwp=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -500,17 +511,19 @@ Oracledb Methods
     The ``user``, ``password`` and ``dsn`` parameters are the same as for
     :meth:`oracledb.connect()`.
 
-    The ``pool_class`` parameter is expected to be a :ref:`ConnectionPool Object
-    <connpool>` or a subclass of ConnectionPool.
+    The ``pool_class`` parameter is expected to be a
+    :ref:`ConnectionPool Object <connpool>` or a subclass of ConnectionPool.
 
     The ``params`` parameter is expected to be of type :ref:`PoolParams
-    <poolparam>` and contains parameters that are used to create the pool.  If
-    this parameter is not specified, the additional keyword arguments will be
-    used to create an instance of PoolParams. If both the params parameter and
-    the additional keyword parameters are specified, then an exception is
-    raised. Note that if a ``dsn`` parameter is also specified, then the
-    ``params`` parameter will be modified to contain the connection parameters
-    found within ``dsn``.
+    <poolparam>` and contains parameters that are used to create the pool.
+    If this parameter is not specified, the additional keyword parameters will
+    be used to create an instance of PoolParams. If both the params parameter
+    and additional keyword parameters are specified, the values in the keyword
+    parameters have precedence. Note that if a ``dsn`` is also supplied, then
+    in the python-oracledb Thin mode, the values of the parameters specified
+    (if any) within the ``dsn`` will override the values passed as additional
+    keyword parameters, which themselves override the values set in the
+    ``params`` parameter object.
 
     The ``min``, ``max`` and ``increment`` parameters control pool growth
     behavior. A fixed pool size where ``min`` equals ``max`` is
@@ -539,9 +552,10 @@ Oracledb Methods
     The ``externalauth`` parameter is a boolean that determines whether to use
     external authentication. The default value is False.
 
-    The ``timeout`` parameter is the length of time (in seconds) that a connection may
-    remain idle in the pool before it is terminated. If the value of this parameter
-    is 0, then the connections are never terminated. The default value is 0.
+    The ``timeout`` parameter is the length of time (in seconds) that a
+    connection may remain idle in the pool before it is terminated. If the
+    value of this parameter is 0, then the connections are never terminated.
+    The default value is 0.
 
     The ``wait_timeout`` parameter is the length of time (in milliseconds) that
     a caller should wait when acquiring a connection from the pool with
@@ -578,10 +592,10 @@ Oracledb Methods
     will be parsed out of user if user is in the form "user[proxy_user]". This
     value is used in both the python-oracledb Thin and Thick modes.
 
-    The ``newpassword`` parameter is expected to be a string which indicates the new
-    password for the user. The new password will take effect immediately upon a
-    successful connection to the database. This value is used in both the
-    python-oracledb Thin and Thick modes.
+    The ``newpassword`` parameter is expected to be a string which indicates
+    the new password for the user. The new password will take effect
+    immediately upon a successful connection to the database. This value is
+    used in both the python-oracledb Thin and Thick modes.
 
     The ``wallet_password`` parameter is expected to be a string which
     indicates the password to use to decrypt the PEM-encoded wallet, if it is
@@ -589,91 +603,93 @@ Oracledb Methods
     ``wallet_password`` parameter is not needed for cwallet.sso files that are
     used in the python-oracledb Thick mode.
 
-    The ``host`` parameter is expected to be a string which specifies the name or IP
-    address of the machine hosting the listener, which handles the initial
-    connection to the database. This value is used in both the python-oracledb
-    Thin and Thick modes.
-
-    The ``port`` parameter is expected to be an integer which indicates the port number
-    on which the listener is listening. The default value is 1521. This value is used
-    in both the python-oracledb Thin and Thick modes.
-
-    The ``protocol`` parameter is expected to be one of the strings "tcp" or "tcps"
-    which indicates whether to use unencrypted network traffic or encrypted network
-    traffic (TLS). The default value is tcp. This value is used in both the
+    The ``host`` parameter is expected to be a string which specifies the name
+    or IP address of the machine hosting the listener, which handles the
+    initial connection to the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
-    The ``https_proxy`` parameter is expected to be a string which indicates the name or
-    IP address of a proxy host to use for tunneling secure connections. This value
-    is used in both the python-oracledb Thin and Thick modes.
+    The ``port`` parameter is expected to be an integer which indicates the
+    port number on which the listener is listening. The default value is 1521.
+    This value is used in both the python-oracledb Thin and Thick modes.
 
-    The ``https_proxy_port`` parameter is expected to be an integer which indicates
-    the port that is to be used to communicate with the proxy host. The default
-    value is 0. This value is used in both the python-oracledb Thin and Thick modes.
+    The ``protocol`` parameter is expected to be one of the strings "tcp" or
+    "tcps" which indicates whether to use unencrypted network traffic or
+    encrypted network traffic (TLS). The default value is tcp. This value is
+    used in both the python-oracledb Thin and Thick modes.
 
-    The ``service_name`` parameter is expected to be a string which indicates the service
-    name of the database. This value is used in both the python-oracledb Thin and Thick
+    The ``https_proxy`` parameter is expected to be a string which indicates
+    the name or IP address of a proxy host to use for tunneling secure
+    connections. This value is used in both the python-oracledb Thin and Thick
     modes.
 
-    The ``sid`` parameter is expected to be a string which indicates the SID of the
-    database. It is recommended to use ``service_name`` instead. This value is used
-    in both the python-oracledb Thin and Thick modes.
+    The ``https_proxy_port`` parameter is expected to be an integer which
+    indicates the port that is to be used to communicate with the proxy host.
+    The default value is 0. This value is used in both the python-oracledb Thin
+    and Thick modes.
 
-    The ``server_type`` parameter is expected to be a string that indicates the type of
-    server connection that should be established. If specified, it should be one of
-    `dedicated`, `shared`, or `pooled`. This value is used in both the
+    The ``service_name`` parameter is expected to be a string which indicates
+    the service name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
-    The ``cclass`` parameter is expected to be a string that identifies the connection
-    class to use for Database Resident Connection Pooling (DRCP). This value is used
-    in both the python-oracledb Thin and Thick modes.
+    The ``sid`` parameter is expected to be a string which indicates the SID of
+    the database. It is recommended to use ``service_name`` instead. This value
+    is used in both the python-oracledb Thin and Thick modes.
 
-    The ``purity`` parameter is expected to be one of the :ref:`oracledb.PURITY_*
-    <drcppurityconsts>` constants that identifies the purity to use for
-    DRCP. This value is used in both the python-oracledb Thin and Thick modes.
-    The purity will internally default to :data:`~oracledb.PURITY_SELF` for
-    pooled connections.
+    The ``server_type`` parameter is expected to be a string that indicates the
+    type of server connection that should be established. If specified, it
+    should be one of `dedicated`, `shared`, or `pooled`. This value is used in
+    both the python-oracledb Thin and Thick modes.
 
-    The ``expire_time`` parameter is expected to be an integer which indicates the
-    number of minutes between the sending of keepalive probes. If this
+    The ``cclass`` parameter is expected to be a string that identifies the
+    connection class to use for Database Resident Connection Pooling (DRCP).
+    This value is used in both the python-oracledb Thin and Thick modes.
+
+    The ``purity`` parameter is expected to be one of the
+    :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
+    purity to use for DRCP. This value is used in both the python-oracledb Thin
+    and Thick modes.  The purity will internally default to
+    :data:`~oracledb.PURITY_SELF` for pooled connections.
+
+    The ``expire_time`` parameter is expected to be an integer which indicates
+    the number of minutes between the sending of keepalive probes. If this
     parameter is set to a value greater than zero it enables keepalive. This
     value is used in both the python-oracledb Thin and Thick modes. The default
     value is 0.
 
-    The ``retry_count`` parameter is expected to be an integer that identifies the
-    number of times that a connection attempt should be retried before the
+    The ``retry_count`` parameter is expected to be an integer that identifies
+    the number of times that a connection attempt should be retried before the
     attempt is terminated. This value is used in both the python-oracledb Thin
     and Thick modes. The default value is 0.
 
-    The ``retry_delay`` parameter is expected to be an integer that identifies the
-    number of seconds to wait before making a new connection attempt. This
+    The ``retry_delay`` parameter is expected to be an integer that identifies
+    the number of seconds to wait before making a new connection attempt. This
     value is used in both the python-oracledb Thin and Thick modes. The default
     value is 0.
 
-    The ``tcp_connect_timeout`` parameter is expected to be a float that indicates
-    the maximum number of seconds to wait for establishing a connection to the
-    database host. This value is used in both the python-oracledb Thin and Thick
-    modes. The default value is 60.0.
+    The ``tcp_connect_timeout`` parameter is expected to be a float that
+    indicates the maximum number of seconds to wait for establishing a
+    connection to the database host. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 60.0.
 
-    The ``ssl_server_dn_match`` parameter is expected to be a boolean that indicates
-    whether the server certificate distinguished name (DN) should be matched in
-    addition to the regular certificate verification that is performed. Note that
-    if the ``ssl_server_cert_dn`` parameter is not provided, host name matching
-    is performed instead. This value is used in both the python-oracledb Thin and
-    Thick modes. The default value is True.
+    The ``ssl_server_dn_match`` parameter is expected to be a boolean that
+    indicates whether the server certificate distinguished name (DN) should be
+    matched in addition to the regular certificate verification that is
+    performed. Note that if the ``ssl_server_cert_dn`` parameter is not
+    provided, host name matching is performed instead. This value is used in
+    both the python-oracledb Thin and Thick modes. The default value is True.
 
-    The ``ssl_server_cert_dn`` parameter is expected to be a string that indicates
-    the distinguished name (DN) which should be matched with the server. This
-    value is ignored if the ``ssl_server_dn_match`` parameter is not set to the
-    value True. This value is used in both the python-oracledb Thin and Thick
-    modes.
+    The ``ssl_server_cert_dn`` parameter is expected to be a string that
+    indicates the distinguished name (DN) which should be matched with the
+    server. This value is ignored if the ``ssl_server_dn_match`` parameter is
+    not set to the value True. This value is used in both the python-oracledb
+    Thin and Thick modes.
 
-    The ``wallet_location`` parameter is expected to be a string that identifies
-    the directory where the wallet can be found. In python-oracledb Thin mode,
-    this must be the directory of the PEM-encoded wallet file, ewallet.pem.
-    In python-oracledb Thick mode, this must be the directory of the file,
-    cwallet.sso. This value is used in both the python-oracledb Thin and Thick
-    modes.
+    The ``wallet_location`` parameter is expected to be a string that
+    identifies the directory where the wallet can be found. In python-oracledb
+    Thin mode, this must be the directory of the PEM-encoded wallet file,
+    ewallet.pem.  In python-oracledb Thick mode, this must be the directory of
+    the file, cwallet.sso. This value is used in both the python-oracledb Thin
+    and Thick modes.
 
     The ``events`` parameter is expected to be a boolean that specifies whether
     the events mode should be enabled. This value is only used in the
@@ -691,9 +707,9 @@ Oracledb Methods
     in the python-oracledb Thin mode and has no effect on Windows which
     does not support this functionality. The default value is False.
 
-    The ``stmtcachesize`` parameter is expected to be an integer which specifies
-    the initial size of the statement cache. This value is used in both the
-    python-oracledb Thin and Thick modes. The default is the value of
+    The ``stmtcachesize`` parameter is expected to be an integer which
+    specifies the initial size of the statement cache. This value is used in
+    both the python-oracledb Thin and Thick modes. The default is the value of
     :attr:`defaults.stmtcachesize`.
 
     The ``edition`` parameter is expected to be a string that indicates the
@@ -701,14 +717,14 @@ Oracledb Methods
     simultaneously with the ``cclass`` parameter. This value is used in the
     python-oracledb Thick mode.
 
-    The ``tag`` parameter is expected to be a string that identifies the type of
-    connection that should be returned from a pool. This value is only used
+    The ``tag`` parameter is expected to be a string that identifies the type
+    of connection that should be returned from a pool. This value is only used
     in the python-oracledb Thick mode.
 
-    The ``matchanytag`` parameter is expected to be a boolean specifying whether
-    any tag can be used when acquiring a connection from the pool. This value
-    is only used in the python-oracledb Thick mode when acquiring a connection
-    from a pool. The default value is False.
+    The ``matchanytag`` parameter is expected to be a boolean specifying
+    whether any tag can be used when acquiring a connection from the pool. This
+    value is only used in the python-oracledb Thick mode when acquiring a
+    connection from a pool. The default value is False.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
     directory in which configuration files (tnsnames.ora) are found. This value
@@ -716,22 +732,25 @@ Oracledb Methods
     :attr:`defaults.config_dir`. For python-oracledb Thick mode, use
     the ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
 
-    The ``appcontext`` parameter is expected to be a list of 3-tuples that identifies
-    the application context used by the connection. This parameter should contain
-    namespace, name, and value and each entry in the tuple should be a string.
-    This value is only used inthe python-oracledb Thick mode.
+    The ``appcontext`` parameter is expected to be a list of 3-tuples that
+    identifies the application context used by the connection. This parameter
+    should contain namespace, name, and value and each entry in the tuple
+    should be a string.  This value is only used inthe python-oracledb Thick
+    mode.
 
-    The ``shardingkey`` parameter and ``supershardingkey`` parameters, if specified, are
-    expected to be a sequence of values which identifies the database shard to
-    connect to. The key values can be a list of strings, numbers, bytes, or dates.
-    This value is only used in the python-oracledb Thick mode.
+    The ``shardingkey`` parameter and ``supershardingkey`` parameters, if
+    specified, are expected to be a sequence of values which identifies the
+    database shard to connect to. The key values can be a list of strings,
+    numbers, bytes, or dates.  This value is only used in the python-oracledb
+    Thick mode.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
-    `host=<host>;port=<port>` that specifies the host and port of the PL/SQL debugger.
-    This allows using the Java Debug Wire Protocol (JDWP) to debug PL/SQL code invoked
-    by python-oracledb. This value is only used in the python-oracledb Thin mode.
-    For python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment variable
-    which has the same syntax. For more information, see :ref:`applntracing`.
+    `host=<host>;port=<port>` that specifies the host and port of the PL/SQL
+    debugger.  This allows using the Java Debug Wire Protocol (JDWP) to debug
+    PL/SQL code invoked by python-oracledb. This value is only used in the
+    python-oracledb Thin mode.  For python-oracledb Thick mode, set the
+    ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
+    information, see :ref:`applntracing`.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
@@ -740,8 +759,8 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode. It
     should be used with extreme caution.
 
-    In the python-oracledb Thick mode, connection pooling is handled by Oracle's
-    `Session pooling <https://www.oracle.com/pls/topic/lookup?
+    In the python-oracledb Thick mode, connection pooling is handled by
+    Oracle's `Session pooling <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ technology.
     This allows python-oracledb applications to support features like
     `Application Continuity <https://www.oracle.com/pls/topic/lookup?
@@ -791,9 +810,9 @@ Oracledb Methods
     If the ``config_dir`` parameter is not None or the empty string, the
     specified directory is used to find Oracle Client library configuration
     files. This is equivalent to setting the environment variable ``TNS_ADMIN``
-    and overrides any value already set in ``TNS_ADMIN``. If this parameter is not
-    set, the standard way of locating Oracle Client library configuration files
-    is used.
+    and overrides any value already set in ``TNS_ADMIN``. If this parameter is
+    not set, the standard way of locating Oracle Client library configuration
+    files is used.
 
     If the ``error_url`` parameter is not None or the empty string, the
     specified value is included in the message of the exception raised when the
@@ -849,168 +868,180 @@ Oracledb Methods
 
     All the parameters are optional.
 
-    The ``min`` parameter is the minimum number of connections that the pool should
-    contain. The default value is 1.
+    The ``min`` parameter is the minimum number of connections that the pool
+    should contain. The default value is 1.
 
-    The ``max`` parameter is the maximum number of connections that the pool should
-    contain. The default value is 2.
+    The ``max`` parameter is the maximum number of connections that the pool
+    should contain. The default value is 2.
 
-    The ``increment`` parameter is the number of connections that should be added
-    to the pool whenever a new connection needs to be created. The default value
-    is 1.
+    The ``increment`` parameter is the number of connections that should be
+    added to the pool whenever a new connection needs to be created. The
+    default value is 1.
 
-    The ``connectiontype`` parameter is the class of the connection that should be
-    returned during calls to :meth:`ConnectionPool.acquire()`. It must be a
+    The ``connectiontype`` parameter is the class of the connection that should
+    be returned during calls to :meth:`ConnectionPool.acquire()`. It must be a
     Connection or a subclass of Connection.
 
-    The ``getmode`` parameter determines the behavior of :meth:`ConnectionPool.acquire()`.
-    One of the constants :data:`oracledb.POOL_GETMODE_WAIT`,
-    :data:`oracledb.POOL_GETMODE_NOWAIT`, :data:`oracledb.POOL_GETMODE_FORCEGET`,
-    or :data:`oracledb.POOL_GETMODE_TIMEDWAIT`. The default value is
+    The ``getmode`` parameter determines the behavior of
+    :meth:`ConnectionPool.acquire()`.  One of the constants
+    :data:`oracledb.POOL_GETMODE_WAIT`, :data:`oracledb.POOL_GETMODE_NOWAIT`,
+    :data:`oracledb.POOL_GETMODE_FORCEGET`, or
+    :data:`oracledb.POOL_GETMODE_TIMEDWAIT`. The default value is
     :data:`oracledb.POOL_GETMODE_WAIT`.
 
-    The ``homogeneous`` parameter is a boolean that indicates whether the connections
-    are homogeneous (same user) or heterogeneous (multiple users). The default
-    value is True.
+    The ``homogeneous`` parameter is a boolean that indicates whether the
+    connections are homogeneous (same user) or heterogeneous (multiple users).
+    The default value is True.
 
-    The ``externalauth`` parameter is a boolean that determines whether to use external
-    authentication. The default value is False.
+    The ``externalauth`` parameter is a boolean that determines whether to use
+    external authentication. The default value is False.
 
-    The ``timeout`` parameter is the length of time (in seconds) that a connection may
-    remain idle in the pool before it is terminated. If the value of this parameter
-    is 0, then the connections are never terminated. The default value is 0.
+    The ``timeout`` parameter is the length of time (in seconds) that a
+    connection may remain idle in the pool before it is terminated. If the
+    value of this parameter is 0, then the connections are never terminated.
+    The default value is 0.
 
-    The ``wait_timeout`` parameter is the length of time (in milliseconds) that a caller
-    should wait when acquiring a connection from the pool with ``getmode`` set to
-    :data:`oracledb.POOL_GETMODE_TIMEDWAIT`. The default value is 0.
+    The ``wait_timeout`` parameter is the length of time (in milliseconds) that
+    a caller should wait when acquiring a connection from the pool with
+    ``getmode`` set to :data:`oracledb.POOL_GETMODE_TIMEDWAIT`. The default
+    value is 0.
 
-    The ``max_lifetime_session`` parameter is the length of time (in seconds) that
-    connections can remain in the pool. If the value of this parameter is 0, then
-    the connections may remain in the pool indefinitely. The default value is 0.
+    The ``max_lifetime_session`` parameter is the length of time (in seconds)
+    that connections can remain in the pool. If the value of this parameter is
+    0, then the connections may remain in the pool indefinitely. The default
+    value is 0.
 
-    The ``session_callback`` parameter is a callable that is invoked when a connection
-    is returned from the pool for the first time, or when the connection tag
-    differs from the one requested.
+    The ``session_callback`` parameter is a callable that is invoked when a
+    connection is returned from the pool for the first time, or when the
+    connection tag differs from the one requested.
 
-    The ``max_sessions_per_shard`` parameter is the maximum number of connections that
-    may be associated with a particular shard. The default value is 0.
+    The ``max_sessions_per_shard`` parameter is the maximum number of
+    connections that may be associated with a particular shard. The default
+    value is 0.
 
-    The ``soda_metadata_cache`` parameter is a boolean that indicates whether or not
-    the SODA metadata cache should be enabled. The default value is False.
+    The ``soda_metadata_cache`` parameter is a boolean that indicates whether
+    or not the SODA metadata cache should be enabled. The default value is
+    False.
 
-    The ``ping_interval`` parameter is the length of time (in seconds) after which an
-    unused connection in the pool will be a candidate for pinging when
-    :meth:`ConnectionPool.acquire()` is called. If the ping to the database indicates
-    the connection is not alive a replacement connection will be returned by
-    :meth:`ConnectionPool.acquire()`. If ping_interval is a negative value, then the
-    ping functionality will be disabled. The default value is 60 seconds.
+    The ``ping_interval`` parameter is the length of time (in seconds) after
+    which an unused connection in the pool will be a candidate for pinging when
+    :meth:`ConnectionPool.acquire()` is called. If the ping to the database
+    indicates the connection is not alive a replacement connection will be
+    returned by :meth:`ConnectionPool.acquire()`. If ping_interval is a
+    negative value, then the ping functionality will be disabled. The default
+    value is 60 seconds.
 
-    The ``user`` parameter is expected to be a string which indicates the name of the user to
-    connect to. This value is used in both the python-oracledb Thin and Thick modes.
-
-    The ``proxy_user`` parameter is expected to be a string which indicates the name of the
-    proxy user to connect to. If this value is not specified, it will be parsed out of
-    user if user is in the form "user[proxy_user]". This value is used in both the
-    python-oracledb Thin and Thick modes.
-
-    The ``password`` parameter expected to be a string which indicates the password for
-    the user. This value is used in both the python-oracledb Thin and Thick modes.
-
-    The ``newpassword`` parameter is expected to be a string which indicates the new
-    password for the user. The new password will take effect immediately upon a
-    successful connection to the database. This value is used in both the
-    python-oracledb Thin and Thick modes.
-
-    The ``wallet_password`` parameter is expected to be a string which indicates the
-    password to use to decrypt the PEM-encoded wallet, if it is encrypted. This
-    value is only used in python-oracledb Thin mode. The ``wallet_password`` parameter
-    is not needed for cwallet.sso files that are used in the python-oracledb Thick
-    mode.
-
-    The ``host`` parameter is expected to be a string which specifies the name or IP
-    address of the machine hosting the listener, which handles the initial
-    connection to the database. This value is used in both the python-oracledb
+    The ``user`` parameter is expected to be a string which indicates the name
+    of the user to connect to. This value is used in both the python-oracledb
     Thin and Thick modes.
 
-    The ``port`` parameter is expected to be an integer which indicates the port number
-    on which the listener is listening. The default value is 1521. This value is used
-    in both the python-oracledb Thin and Thick modes.
+    The ``proxy_user`` parameter is expected to be a string which indicates the
+    name of the proxy user to connect to. If this value is not specified, it
+    will be parsed out of user if user is in the form "user[proxy_user]". This
+    value is used in both the python-oracledb Thin and Thick modes.
 
-    The ``protocol`` parameter is expected to be one of the strings "tcp" or "tcps"
-    which indicates whether to use unencrypted network traffic or encrypted network
-    traffic (TLS). The default value is tcp. This value is used in both the
+    The ``password`` parameter expected to be a string which indicates the
+    password for the user. This value is used in both the python-oracledb Thin
+    and Thick modes.
+
+    The ``newpassword`` parameter is expected to be a string which indicates
+    the new password for the user. The new password will take effect
+    immediately upon a successful connection to the database. This value is
+    used in both the python-oracledb Thin and Thick modes.
+
+    The ``wallet_password`` parameter is expected to be a string which
+    indicates the password to use to decrypt the PEM-encoded wallet, if it is
+    encrypted. This value is only used in python-oracledb Thin mode. The
+    ``wallet_password`` parameter is not needed for cwallet.sso files that are
+    used in the python-oracledb Thick mode.
+
+    The ``host`` parameter is expected to be a string which specifies the name
+    or IP address of the machine hosting the listener, which handles the
+    initial connection to the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
-    The ``https_proxy`` parameter is expected to be a string which indicates the name or
-    IP address of a proxy host to use for tunneling secure connections. This value
-    is used in both the python-oracledb Thin and Thick modes.
+    The ``port`` parameter is expected to be an integer which indicates the
+    port number on which the listener is listening. The default value is 1521.
+    This value is used in both the python-oracledb Thin and Thick modes.
 
-    The ``https_proxy_port`` parameter is expected to be an integer which indicates
-    the port that is to be used to communicate with the proxy host. The default
-    value is 0. This value is used in both the python-oracledb Thin and Thick modes.
+    The ``protocol`` parameter is expected to be one of the strings "tcp" or
+    "tcps" which indicates whether to use unencrypted network traffic or
+    encrypted network traffic (TLS). The default value is tcp. This value is
+    used in both the python-oracledb Thin and Thick modes.
 
-    The ``service_name`` parameter is expected to be a string which indicates the service
-    name of the database. This value is used in both the python-oracledb Thin and Thick
+    The ``https_proxy`` parameter is expected to be a string which indicates
+    the name or IP address of a proxy host to use for tunneling secure
+    connections. This value is used in both the python-oracledb Thin and Thick
     modes.
 
-    The ``sid`` parameter is expected to be a string which indicates the SID of the
-    database. It is recommended to use ``service_name`` instead. This value is used
-    in both the python-oracledb Thin and Thick modes.
+    The ``https_proxy_port`` parameter is expected to be an integer which
+    indicates the port that is to be used to communicate with the proxy host.
+    The default value is 0. This value is used in both the python-oracledb Thin
+    and Thick modes.
 
-    The ``server_type`` parameter is expected to be a string that indicates the type of
-    server connection that should be established. If specified, it should be one of
-    `dedicated`, `shared`, or `pooled`. This value is used in both the
+    The ``service_name`` parameter is expected to be a string which indicates
+    the service name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
-    The ``cclass`` parameter is expected to be a string that identifies the connection
-    class to use for Database Resident Connection Pooling (DRCP). This value is used
-    in both the python-oracledb Thin and Thick modes.
+    The ``sid`` parameter is expected to be a string which indicates the SID of
+    the database. It is recommended to use ``service_name`` instead. This value
+    is used in both the python-oracledb Thin and Thick modes.
 
-    The ``purity`` parameter is expected to be one of the :ref:`oracledb.PURITY_*
-    <drcppurityconsts>` constants that identifies the purity to use for
-    DRCP. This value is used in both the python-oracledb Thin and Thick modes.
-    Internally pooled connections will default to a purity of
+    The ``server_type`` parameter is expected to be a string that indicates the
+    type of server connection that should be established. If specified, it
+    should be one of `dedicated`, `shared`, or `pooled`. This value is used in
+    both the python-oracledb Thin and Thick modes.
+
+    The ``cclass`` parameter is expected to be a string that identifies the
+    connection class to use for Database Resident Connection Pooling (DRCP).
+    This value is used in both the python-oracledb Thin and Thick modes.
+
+    The ``purity`` parameter is expected to be one of the
+    :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
+    purity to use for DRCP. This value is used in both the python-oracledb Thin
+    and Thick modes.  Internally pooled connections will default to a purity of
     :data:`~oracledb.PURITY_SELF`.
 
-    The ``expire_time`` parameter is expected to be an integer which indicates the
-    number of minutes between the sending of keepalive probes. If this parameter
-    is set to a value greater than zero it enables keepalive. This value is used
-    in both the python-oracledb Thin and Thick modes. The default value is 0.
-
-    The ``retry_count`` parameter is expected to be an integer that identifies the
-    number of times that a connection attempt should be retried before the
-    attempt is terminated. This value is used in both the python-oracledb Thin
-    and Thick modes. The default value is 0.
-
-    The ``retry_delay`` parameter is expected to be an integer that identifies the
-    number of seconds to wait before making a new connection attempt. This
+    The ``expire_time`` parameter is expected to be an integer which indicates
+    the number of minutes between the sending of keepalive probes. If this
+    parameter is set to a value greater than zero it enables keepalive. This
     value is used in both the python-oracledb Thin and Thick modes. The default
     value is 0.
 
-    The ``tcp_connect_timeout`` parameter is expected to be a float that indicates
-    the maximum number of seconds to wait for establishing a connection to the
-    database host. This value is used in both the python-oracledb Thin and Thick
-    modes. The default value is 60.0.
+    The ``retry_count`` parameter is expected to be an integer that identifies
+    the number of times that a connection attempt should be retried before the
+    attempt is terminated. This value is used in both the python-oracledb Thin
+    and Thick modes. The default value is 0.
 
-    The ``ssl_server_dn_match`` parameter is expected to be a boolean that indicates
-    whether the server certificate distinguished name (DN) should be matched in
-    addition to the regular certificate verification that is performed. Note that
-    if the ssl_server_cert_dn parameter is not provided, host name matching
-    is performed instead. This value is used in both the python-oracledb Thin and
-    Thick modes. The default value is True.
+    The ``retry_delay`` parameter is expected to be an integer that identifies
+    the number of seconds to wait before making a new connection attempt. This
+    value is used in both the python-oracledb Thin and Thick modes. The default
+    value is 0.
 
-    The ``ssl_server_cert_dn`` parameter is expected to be a string that indicates
-    the distinguished name (DN) which should be matched with the server. This
-    value is ignored if the ssl_server_dn_match parameter is not set to the
-    value True. This value is used in both the python-oracledb Thin and Thick
-    modes.
+    The ``tcp_connect_timeout`` parameter is expected to be a float that
+    indicates the maximum number of seconds to wait for establishing a
+    connection to the database host. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 60.0.
 
-    The ``wallet_location`` parameter is expected to be a string that identifies
-    the directory where the wallet can be found. In python-oracledb Thin mode,
-    this must be the directory of the PEM-encoded wallet file, ewallet.pem.
-    In python-oracledb Thick mode, this must be the directory of the file,
-    cwallet.sso. This value is used in both the python-oracledb Thin and Thick
-    modes.
+    The ``ssl_server_dn_match`` parameter is expected to be a boolean that
+    indicates whether the server certificate distinguished name (DN) should be
+    matched in addition to the regular certificate verification that is
+    performed. Note that if the ssl_server_cert_dn parameter is not provided,
+    host name matching is performed instead. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is True.
+
+    The ``ssl_server_cert_dn`` parameter is expected to be a string that
+    indicates the distinguished name (DN) which should be matched with the
+    server. This value is ignored if the ssl_server_dn_match parameter is not
+    set to the value True. This value is used in both the python-oracledb Thin
+    and Thick modes.
+
+    The ``wallet_location`` parameter is expected to be a string that
+    identifies the directory where the wallet can be found. In python-oracledb
+    Thin mode, this must be the directory of the PEM-encoded wallet file,
+    ewallet.pem.  In python-oracledb Thick mode, this must be the directory of
+    the file, cwallet.sso. This value is used in both the python-oracledb Thin
+    and Thick modes.
 
     The ``events`` parameter is expected to be a boolean that specifies whether
     the events mode should be enabled. This value is only used in the
@@ -1027,9 +1058,9 @@ Oracledb Methods
     in the python-oracledb Thin mode and has no effect on Windows which
     does not support this functionality. The default value is False.
 
-    The ``stmtcachesize`` parameter is expected to be an integer that identifies
-    the initial size of the statement cache. This value is used in both the
-    python-oracledb Thin and Thick modes. The default is the value of
+    The ``stmtcachesize`` parameter is expected to be an integer that
+    identifies the initial size of the statement cache. This value is used in
+    both the python-oracledb Thin and Thick modes. The default is the value of
     :attr:`defaults.stmtcachesize`.
 
     The ``edition`` parameter is expected to be a string that indicates the
@@ -1037,14 +1068,14 @@ Oracledb Methods
     simultaneously with the ``cclass`` parameter. This value is used in the
     python-oracledb Thick mode.
 
-    The ``tag`` parameter is expected to be a string that identifies the type of
-    connection that should be returned from a pool. This value is only used
+    The ``tag`` parameter is expected to be a string that identifies the type
+    of connection that should be returned from a pool. This value is only used
     in the python-oracledb Thick mode.
 
-    The ``matchanytag`` parameter is expected to be a boolean specifying whether
-    any tag can be used when acquiring a connection from the pool. This value
-    is only used in the python-oracledb Thick mode when acquiring a connection
-    from a pool. The default value is False.
+    The ``matchanytag`` parameter is expected to be a boolean specifying
+    whether any tag can be used when acquiring a connection from the pool. This
+    value is only used in the python-oracledb Thick mode when acquiring a
+    connection from a pool. The default value is False.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
     directory in which configuration files (tnsnames.ora) are found. This value
@@ -1052,25 +1083,27 @@ Oracledb Methods
     :attr:`defaults.config_dir`. For python-oracledb Thick mode, use the
     ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
 
-    The ``appcontext`` parameter is expected to be a list of 3-tuples that identifies
-    the application context used by the connection. This parameter should contain
-    namespace, name, and value and each entry in the tuple should be a string.
-    This value is only used inthe python-oracledb Thick mode.
+    The ``appcontext`` parameter is expected to be a list of 3-tuples that
+    identifies the application context used by the connection. This parameter
+    should contain namespace, name, and value and each entry in the tuple
+    should be a string.  This value is only used inthe python-oracledb Thick
+    mode.
 
-    The ``shardingkey`` parameter is expected to be a list of strings, numbers, bytes
-    or dates that identifies the database shard to connect to. This value is only
-    used in the python-oracledb Thick mode.
+    The ``shardingkey`` parameter is expected to be a list of strings, numbers,
+    bytes or dates that identifies the database shard to connect to. This value
+    is only used in the python-oracledb Thick mode.
 
-    The ``supershardingkey`` parameter is expected to be a list of strings, numbers,
-    bytes or dates that identifies the database shard to connect to. This value is
-    only used in the python-oracledb Thick mode.
+    The ``supershardingkey`` parameter is expected to be a list of strings,
+    numbers, bytes or dates that identifies the database shard to connect to.
+    This value is only used in the python-oracledb Thick mode.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
-    `host=<host>;port=<port>` that specifies the host and port of the PL/SQL debugger.
-    This allows using the Java Debug Wire Protocol (JDWP) to debug PL/SQL code invoked
-    by python-oracledb. This value is only used in the python-oracledb Thin mode.
-    For python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment variable
-    which has the same syntax. For more information, see :ref:`jdwp`.
+    `host=<host>;port=<port>` that specifies the host and port of the PL/SQL
+    debugger.  This allows using the Java Debug Wire Protocol (JDWP) to debug
+    PL/SQL code invoked by python-oracledb. This value is only used in the
+    python-oracledb Thin mode.  For python-oracledb Thick mode, set the
+    ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
+    information, see :ref:`jdwp`.
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
@@ -1088,9 +1121,9 @@ Oracledb Methods
 
 .. function:: TimeFromTicks(ticks)
 
-    Constructs an object holding a time value from the given ticks value (number
-    of seconds since the epoch; see the documentation of the standard Python
-    time module for details).
+    Constructs an object holding a time value from the given ticks value
+    (number of seconds since the epoch; see the documentation of the standard
+    Python time module for details).
 
     .. note::
 

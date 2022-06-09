@@ -23,7 +23,7 @@ Defaults Attributes
 .. attribute:: defaults.arraysize
 
     The default value for :attr:`Cursor.arraysize`. This is a query tuning
-    attribute, see :ref:`tuning`.
+    attribute, see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
     This attribute has an initial value of 100.
 
@@ -72,8 +72,8 @@ Defaults Attributes
 
 .. attribute:: defaults.prefetchrows
 
-    The default value for :attr:`Cursor.prefetchrow`. This is a query tuning
-    attribute, see :ref:`tuning`.
+    The default value for :attr:`Cursor.prefetchrows`. This is a query tuning
+    attribute, see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
     This attribute has an initial value of 2.
 

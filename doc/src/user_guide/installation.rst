@@ -106,7 +106,7 @@ quickly.
 
 You can learn more about python-oracledb from the `python-oracledb
 documentation <https://python-oracledb.readthedocs.io/en/latest/index.html>`__
-and `samples <https://github.com/oracle/python-oracledb/blob/main/samples>`__.
+and `samples <https://github.com/oracle/python-oracledb/tree/main/samples>`__.
 
 If you run into installation trouble, see `Troubleshooting`_.
 
@@ -188,22 +188,28 @@ repository `PyPI <https://pypi.org/project/oracledb/>`__:
 
     python -m pip install oracledb
 
-The ``--user`` option may be useful if you do not have permission to write to
-system directories:
-
-.. code-block:: shell
-
-    python -m pip install oracledb --user
-
-If you are behind a proxy, add a proxy server to the command, for example add
-``--proxy=http://proxy.example.com:80``
-
 This will download and install a pre-compiled binary from `PyPI
 <https://pypi.org/project/oracledb/>`__ if one is available for your
 architecture.  Otherwise, the source will be downloaded, compiled, and the
 resulting binary installed.  Compiling python-oracledb requires the
 ``Python.h`` header file.  If you are using the default ``python`` package,
 this file is in the ``python-devel`` package or equivalent.
+
+On Oracle Linux 8, to use the default Python 3.6 installation, install with:
+
+.. code-block:: shell
+
+    python3 -m pip install oracledb cryptography --user
+
+The ``--user`` option is useful when you do not have permission to write to
+system directories.
+
+Other versions of Python can be used on Oracle Linux, see `Python for Oracle
+Linux <https://yum.oracle.com/oracle-linux-python.html>`__.
+
+If you are behind a proxy, add a proxy server to the command, for example add
+``--proxy=http://proxy.example.com:80``
+
 
 Optionally Install Oracle Client
 --------------------------------
@@ -304,6 +310,9 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
    This is the default Oracle configuration directory for executables linked
    with this Instant Client.
 
+6. Call :meth:`oracledb.init_oracle_client()` in your application, if it is not
+   already used.
+
 Oracle Instant Client RPMs
 ++++++++++++++++++++++++++
 
@@ -375,6 +384,9 @@ To use python-oracledb with Oracle Instant Client RPMs:
    This is the default Oracle configuration directory for executables linked
    with this Instant Client.
 
+5. Call :meth:`oracledb.init_oracle_client()` in your application, if it is not
+   already used.
+
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++
 
@@ -404,6 +416,9 @@ architecture.
    Alternatively, Oracle configuration files can be put in another, accessible
    directory.  Then set the environment variable ``TNS_ADMIN`` to that
    directory name.
+
+3. Call :meth:`oracledb.init_oracle_client()` in your application, if it is not
+   already used.
 
 
 .. _wininstall:
@@ -516,6 +531,15 @@ Configure Oracle Instant Client
     environment variable.  The directory must occur in ``PATH`` before any
     other Oracle directories.  Restart any open command prompt windows.
 
+    Update your application to call ``init_oracle_client()``, which enables
+    python-oracledb Thick mode:
+
+    .. code-block:: python
+
+        import oracledb
+
+        oracledb.init_oracle_client()
+
   * Another way to set ``PATH`` is to use a batch file that sets it before
     Python is executed, for example::
 
@@ -524,6 +548,15 @@ Configure Oracle Instant Client
         python %*
 
     Invoke this batch file every time you want to run Python.
+
+    Update your application to call ``init_oracle_client()``, which enables
+    python-oracledb Thick mode:
+
+    .. code-block:: python
+
+        import oracledb
+
+        oracledb.init_oracle_client()
 
 2. If you use optional Oracle configuration files such as ``tnsnames.ora``,
    ``sqlnet.ora``, or ``oraaccess.xml`` with Instant Client, then put the files
@@ -748,15 +781,26 @@ can be installed with::
     python setup.py build
     python setup.py install
 
+If you do not have access to system directories, the ``--user`` option can be
+used to install into a local directory::
+
+    python setup.py install --user
+
+
 Install Using Source from PyPI
 ------------------------------
 
-The source package can be downloaded manually from
-`PyPI <https://pypi.org/project/oracledb/>`__ and extracted, after
-which the following commands should be run::
+The source package can be downloaded manually from `PyPI
+<https://pypi.org/project/oracledb/#files>`__ and extracted, after which the
+following commands should be run::
 
     python setup.py build
     python setup.py install
+
+If you do not have access to system directories, the ``--user`` option can be
+used to install into a local directory::
+
+    python setup.py install --user
 
 Troubleshooting
 ================

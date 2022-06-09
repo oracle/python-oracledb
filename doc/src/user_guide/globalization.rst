@@ -82,7 +82,8 @@ In python-oracledb Thick mode, Oracle NLS routines convert numbers and dates to
 strings in the locale specific format.  But in the python-oracledb Thin mode,
 output type handlers need to be used to perform similar conversions.  The
 examples below show a simple conversion and also how the Python locale module
-can be used.
+can be used.  Type handlers like those below can also be used in
+python-oracledb Thick mode.
 
 To convert numbers:
 
@@ -97,8 +98,6 @@ To convert numbers:
     # use this for programmatic setting of locale
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 
-    DSN = 'user/password@host/service_name'
-
     # simple naive conversion
     def type_handler1(cursor, name, default_type, size, precision, scale):
         if default_type == oracledb.DB_TYPE_NUMBER:
@@ -112,28 +111,30 @@ To convert numbers:
                     outconverter=lambda v: locale.format_string("%g", v))
 
 
-    conn = oracledb.connect(DSN)
-    cursor = conn.cursor()
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb")
 
-    print("no type handler...")
-    cursor.execute("select 2.5 from dual")
-    for row in cursor:
-        print(row)       # gives 2.5
-    print()
+    with connection.cursor() as cursor:
 
-    print("with naive type handler...")
-    conn.outputtypehandler = type_handler1
-    cursor.execute("select 2.5 from dual")
-    for row in cursor:
-        print(row)       # gives '2,5'
-    print()
+        print("no type handler...")
+        cursor.execute("select 2.5 from dual")
+        for row in cursor:
+            print(row)       # gives 2.5
+        print()
 
-    print("with locale type handler...")
-    conn.outputtypehandler = type_handler2
-    cursor.execute("select 2.5 from dual")
-    for row in cursor:
-        print(row)       # gives '2,5'
-    print()
+        print("with naive type handler...")
+        connection.outputtypehandler = type_handler1
+        cursor.execute("select 2.5 from dual")
+        for row in cursor:
+            print(row)       # gives '2,5'
+        print()
+
+        print("with locale type handler...")
+        connection.outputtypehandler = type_handler2
+        cursor.execute("select 2.5 from dual")
+        for row in cursor:
+            print(row)       # gives '2,5'
+        print()
 
 
 To convert dates:
@@ -150,8 +151,6 @@ To convert dates:
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
     locale_date_format = locale.nl_langinfo(locale.D_T_FMT)
 
-    DSN = 'user/password@host/service_name'
-
     # simple naive conversion
     def type_handler3(cursor, name, default_type, size, precision, scale):
         if default_type == oracledb.DB_TYPE_DATE:
@@ -165,28 +164,30 @@ To convert dates:
                     outconverter=lambda v: v.strftime(locale_date_format))
 
 
-    conn = oracledb.connect(DSN)
-    cursor = conn.cursor()
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb")
 
-    print("no type handler...")
-    cursor.execute("select sysdate from dual")
-    for row in cursor:
-        print(row)       # gives datetime.datetime(2021, 12, 15, 19, 49, 37)
-    print()
+    with connection.cursor() as cursor:
 
-    print("with naive type handler...")
-    conn.outputtypehandler = type_handler3
-    cursor.execute("select sysdate from dual")
-    for row in cursor:
-        print(row)       # gives '2021-12-15 19:49:37'
-    print()
+         print("no type handler...")
+         cursor.execute("select sysdate from dual")
+         for row in cursor:
+             print(row)       # gives datetime.datetime(2021, 12, 15, 19, 49, 37)
+         print()
 
-    print("with locale type handler...")
-    conn.outputtypehandler = type_handler4
-    cursor.execute("select sysdate from dual")
-    for row in cursor:
-        print(row)       # gives 'Mi 15 Dez 19:57:56 2021'
-    print()
+         print("with naive type handler...")
+         connection.outputtypehandler = type_handler3
+         cursor.execute("select sysdate from dual")
+         for row in cursor:
+             print(row)       # gives '2021-12-15 19:49:37'
+         print()
+
+         print("with locale type handler...")
+         connection.outputtypehandler = type_handler4
+         cursor.execute("select sysdate from dual")
+         for row in cursor:
+             print(row)       # gives 'Mi 15 Dez 19:57:56 2021'
+         print()
 
 
 .. _thicklocale:

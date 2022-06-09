@@ -16,13 +16,11 @@ supporting the Python Database API v2.0 Specification.
 Enabling python-oracledb Thick mode
 ===================================
 
-All connections in the application must use the same mode.  Changing from the
-default Thin mode to the Thick mode requires the addition of a call to
-:func:`oracledb.init_oracle_client()` and an application restart.  Other small
-changes may also be required.
-
-The Thick mode is enabled by calling :func:`~oracledb.init_oracle_client()` in
-the application as shown in sections below.
+Changing from the default Thin mode to the Thick mode requires the addition of
+a call to :func:`oracledb.init_oracle_client()` as shown in sections below.
+Other small code updates may also be required, see :ref:`driverdiff` .  If you are
+upgrading a cx_Oracle application to python-oracledb, then refer to
+:ref:`upgrading83` for changes that may be needed.
 
 .. note::
 
@@ -30,32 +28,25 @@ the application as shown in sections below.
     :func:`~oracledb.init_oracle_client()` in the application.  It must be
     called before any :ref:`standalone connection <standaloneconnection>` or
     :ref:`connection pool <connpooling>` is created.  If a connection or pool
-    is first created in the default Thin mode, then the Thick mode cannot be
-    enabled.
+    is first created, then the Thick mode cannot be enabled.
 
-    Once the Thick mode is enabled, all connections will be in Thick mode and you
-    cannot go back to Thin mode.
+    All connections in an application use the same mode.
 
-If you are changing from the default Thin mode, then refer to
-:ref:`featuresummary` and :ref:`driverdiff` for other changes that may be
-needed.
-
-If you are upgrading a cx_Oracle application to python-oracledb, then refer to
-:ref:`upgrading83` for other changes that may be needed.
-
-You can validate the python-oracledb mode by querying the ``CLIENT_DRIVER``
-column of ``V$SESSION_CONNECT_INFO`` and verifying if the value of the column
-begins with ``python-oracledb thk``. See :ref:`vsessconinfo`.
+    Once the Thick mode is enabled, you cannot go back to Thin mode.
 
 Enabling the python-oracledb Thick mode loads Oracle Client libraries which
-handle communication to the database.  The Oracle Database needs to be
-available, and Oracle Client libraries need to be installed separately.  See
-:ref:`installation`.
+handle communication to your database.  The Oracle Client libraries need to be
+installed separately.  See :ref:`installation`.
 
 .. figure:: /images/python-oracledb-thick-arch.png
    :alt: architecture of the python-oracledb driver in Thick mode
 
    Architecture of the python-oracledb driver in Thick mode
+
+You can validate the python-oracledb mode by querying the ``CLIENT_DRIVER``
+column of ``V$SESSION_CONNECT_INFO`` and verifying the value of the column
+begins with ``python-oracledb thk``. See :ref:`vsessconinfo`.
+
 
 .. _libinit:
 

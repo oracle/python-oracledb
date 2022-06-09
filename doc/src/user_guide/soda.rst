@@ -155,7 +155,10 @@ relying on its behavior of opening an existing collection like:
 .. code-block:: python
 
     mymetadata = { . . . }
-    collection = soda.createCollection("mycollection", mymetadata) # open existing or create new collection
+
+    # open an existing collection, or create a new collection
+    collection = soda.createCollection("mycollection", mymetadata)
+
     collection.insertOne(mycontent)
 
 you will find it more efficient to use logic similar to:

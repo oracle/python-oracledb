@@ -13,7 +13,7 @@ comprehensive functionality supporting the Python Database API v2.0
 Specification.
 
 This section details the differences between the python-oracledb Thin and Thick
-modes.
+modes.  Also see the summary feature comparison table in :ref:`featuresummary`.
 
 Connection Handling Differences between Thin and Thick Modes
 ============================================================
@@ -204,11 +204,11 @@ replace ``SessionPool``.  A new :func:`oracledb.create_pool()` method is now
 the recommended way to create a connection pool.  The use of the equivalent
 ``SessionPool()`` constructor is :ref:`deprecated <deprecations>`.
 
-The :func:`~oracledb.create_pool()` in the python-oracledb Thin mode differs
-from the python-oracledb Thick mode in the following ways:
+The :func:`~oracledb.create_pool()` method in the python-oracledb Thin mode
+differs from the python-oracledb Thick mode in the following ways:
 
 * Not all the parameters of the :func:`oracledb.create_pool()` method are applicable
-  to the python-oracledb modes.  Each mode ignores unrecognized parameters.
+  to both python-oracledb modes.  Each mode ignores unrecognized parameters.
   The parameters that are ignored in Thin mode include ``events``, ``tag``,
   ``matchanytag``, ``appcontext``, ``shardingkey``, ``supershardingkey``, and
   ``handle`` parameters.  The parameters that are ignored in the Thick mode include
@@ -241,7 +241,7 @@ from the python-oracledb Thick mode in the following ways:
   could check if :attr:`ConnectionPool.opened` has reached :attr:`ConnectionPool.min`
   and then continue with application start up.
 
-* In python-oracledb Thick mode, when you close a ConnectionPool class with the
+* In python-oracledb Thick mode, when you close a connection pool with the
   parameter ``force=True``, the underlying Oracle Client libraries wait for the
   current SQL executions to complete before closing the connections. All of the
   connections are then dropped from the pool and the pool is closed. Closing
