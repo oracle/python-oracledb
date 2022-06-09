@@ -897,7 +897,7 @@ cdef class MessageWithData(Message):
             ora_type_num = var_impl.dbtype._ora_type_num
             if ora_type_num == TNS_DATA_TYPE_ROWID:
                 ora_type_num = TNS_DATA_TYPE_UROWID
-            flag = TNS_BIND_USE_INDICATORS | TNS_BIND_USE_LENGTH
+            flag = TNS_BIND_USE_INDICATORS
             if var_impl.is_array:
                 flag |= TNS_BIND_ARRAY
             buf.write_uint8(ora_type_num)
@@ -918,9 +918,12 @@ cdef class MessageWithData(Message):
             buf.write_ub4(0)                # cont flag
             buf.write_ub4(0)                # OID
             buf.write_ub4(0)                # version
-            buf.write_ub4(TNS_CHARSET_UTF8)
+            if var_impl.dbtype._csfrm != 0:
+                buf.write_ub4(TNS_CHARSET_UTF8)
+            else:
+                buf.write_ub4(0)
             buf.write_uint8(var_impl.dbtype._csfrm)
-            buf.write_ub4(var_impl.size)
+            buf.write_ub4(0)                # max chars (not used)
             if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
                 buf.write_ub4(0)            # oaccolid
 
