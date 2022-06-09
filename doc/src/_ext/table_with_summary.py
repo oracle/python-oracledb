@@ -29,9 +29,11 @@
 # option on top of the regular "list-table" directive.
 #------------------------------------------------------------------------------
 
-import sphinx.writers.html5
+import sphinx
 from docutils.parsers.rst import directives
 from docutils.parsers.rst.directives import tables
+
+from packaging import version
 
 class ListTableWithSummary(tables.ListTable):
 
@@ -50,7 +52,10 @@ class ListTableWithSummary(tables.ListTable):
 class HTMLTranslator(sphinx.writers.html5.HTML5Translator):
 
     def visit_table(self, node):
-        self._table_row_index = 0
+        if version.parse(sphinx.__version__) > version.parse('4.2.0'):
+            self._table_row_indices = [0]
+        else:
+            self._table_row_index = 0
 
         atts = {}
         classes = [cls.strip(' \t\n') \
