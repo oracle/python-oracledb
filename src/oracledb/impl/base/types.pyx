@@ -119,10 +119,13 @@ DB_TYPE_INTERVAL_DS = DbType(DB_TYPE_NUM_INTERVAL_DS, "DB_TYPE_INTERVAL_DS",
 DB_TYPE_INTERVAL_YM = DbType(DB_TYPE_NUM_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
                              182)
 DB_TYPE_JSON = DbType(DB_TYPE_NUM_JSON, "DB_TYPE_JSON", 119)
-DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", 8, csfrm=1)
+DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", 8, csfrm=1,
+                      buffer_size_factor=2147483647)
 DB_TYPE_LONG_NVARCHAR = DbType(DB_TYPE_NUM_LONG_NVARCHAR,
-                               "DB_TYPE_LONG_NVARCHAR", 8, csfrm=2)
-DB_TYPE_LONG_RAW = DbType(DB_TYPE_NUM_LONG_RAW, "DB_TYPE_LONG_RAW", 24)
+                               "DB_TYPE_LONG_NVARCHAR", 8, csfrm=2,
+                               buffer_size_factor=2147483647)
+DB_TYPE_LONG_RAW = DbType(DB_TYPE_NUM_LONG_RAW, "DB_TYPE_LONG_RAW", 24,
+                          buffer_size_factor=2147483647)
 DB_TYPE_NCHAR = DbType(DB_TYPE_NUM_NCHAR, "DB_TYPE_NCHAR", 96, 2000, csfrm=2,
                        buffer_size_factor=4)
 DB_TYPE_NCLOB = DbType(DB_TYPE_NUM_NCLOB, "DB_TYPE_NCLOB", 112, csfrm=2,

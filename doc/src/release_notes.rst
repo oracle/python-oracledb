@@ -18,24 +18,27 @@ oracledb 1.0.1 (TBD)
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
 #)  Thin: return the same value for timestamp with time zone columns as thick
     (`issue 7 <https://github.com/oracle/python-oracledb/issues/7>`__).
-#)  Ensured the name of wrapped functions are the same as the function being
-    wrapped in order to improve error messages that reference them.
-#)  Added exception class (oracledb.ConnectionError) as a subclass of
-    oracledb.DatabaseError in order to aid the handling of connection errors
-    during creation or use (where the connection is no longer usable or could
-    not be established).
 #)  Thin: fixed retry count handling to work in cases where the listener is
     running but the service is down
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
 #)  Thin: if an error occurs during the creation of a connection to the
     database, the error is wrapped by DPY-6005 as an instance of
     oracledb.ConnectionError.
-#)  Fixed issue where unconstrained numbers containing integer values would be
-    fetched as floats when oracledb.defaults.fetch_lobs was set to `False`
-    (`issue 15 <https://github.com/oracle/python-oracledb/issues/15>`__).
+#)  Thin: fixed order in which bind data is sent to the server when LONG and
+    non-LONG column data is interspersed
+    (`issue 12 <https://github.com/oracle/python-oracledb/issues/12>`__).
 #)  Thin: ensure that errors that occur during fetch are detected consistently.
 #)  Thin: fixed issue when fetching null values in implicit results.
 #)  Thin: small optimization when sending column metadata.
+#)  Fixed issue where unconstrained numbers containing integer values would be
+    fetched as floats when oracledb.defaults.fetch_lobs was set to `False`
+    (`issue 15 <https://github.com/oracle/python-oracledb/issues/15>`__).
+#)  Ensured the name of wrapped functions are the same as the function being
+    wrapped in order to improve error messages that reference them.
+#)  Added exception class (oracledb.ConnectionError) as a subclass of
+    oracledb.DatabaseError in order to aid the handling of connection errors
+    during creation or use (where the connection is no longer usable or could
+    not be established).
 #)  Improved samples and documentation.
 
 

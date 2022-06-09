@@ -166,19 +166,31 @@ create table &main_user..TestDates (
 
 create table &main_user..TestCLOBs (
     IntCol                              number(9) not null,
-    CLOBCol                             clob not null
+    CLOBCol                             clob not null,
+    ExtraNumCol1                        number(9),
+    ExtraCLOBCol1                       clob,
+    ExtraNumCol2                        number(9),
+    ExtraCLOBCol2                       clob
 )
 /
 
 create table &main_user..TestNCLOBs (
     IntCol                              number(9) not null,
-    NCLOBCol                            nclob not null
+    NCLOBCol                            nclob not null,
+    ExtraNumCol1                        number(9),
+    ExtraNCLOBCol1                      nclob,
+    ExtraNumCol2                        number(9),
+    ExtraNCLOBCol2                      nclob
 )
 /
 
 create table &main_user..TestBLOBs (
     IntCol                              number(9) not null,
-    BLOBCol                             blob not null
+    BLOBCol                             blob not null,
+    ExtraNumCol1                        number(9),
+    ExtraBLOBCol1                       blob,
+    ExtraNumCol2                        number(9),
+    ExtraBLOBCol2                       blob
 )
 /
 

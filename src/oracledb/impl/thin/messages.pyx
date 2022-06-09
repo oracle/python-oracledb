@@ -906,8 +906,7 @@ cdef class MessageWithData(Message):
             # expects that and complains if any other value is sent!
             buf.write_uint8(0)
             buf.write_uint8(0)
-            if ora_type_num == TNS_DATA_TYPE_LONG \
-                    or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
+            if var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
                 buf.write_ub4(TNS_MAX_LONG_LENGTH)
             else:
                 buf.write_ub4(var_impl.buffer_size)
@@ -999,8 +998,13 @@ cdef class MessageWithData(Message):
 
     cdef int _write_bind_params_row(self, WriteBuffer buf, list params,
                                     uint32_t pos) except -1:
+        """
+        Write a row of bind parameters. Note that non-LONG values are written
+        first followed by any LONG values.
+        """
         cdef:
             uint32_t i, num_elements, offset = self.offset
+            bint found_long = False
             ThinVarImpl var_impl
             BindInfo bind_info
         for i, bind_info in enumerate(params):
@@ -1013,6 +1017,18 @@ cdef class MessageWithData(Message):
                 for value in var_impl._values[:num_elements]:
                     self._write_bind_params_column(buf, var_impl, value)
             else:
+                if var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
+                    found_long = True
+                    continue
+                self._write_bind_params_column(buf, var_impl,
+                                               var_impl._values[pos + offset])
+        if found_long:
+            for i, bind_info in enumerate(params):
+                if bind_info._is_return_bind:
+                    continue
+                var_impl = bind_info._bind_var_impl
+                if var_impl.buffer_size < TNS_MIN_LONG_LENGTH:
+                    continue
                 self._write_bind_params_column(buf, var_impl,
                                                var_impl._values[pos + offset])
 

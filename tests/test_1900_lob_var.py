@@ -78,6 +78,32 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         self.__validate_query(self.cursor, lob_type)
 
+    def __test_bind_ordering(self, lob_type):
+        main_col = "A" * 32768
+        extra_col_1 = "B" * 65536
+        extra_col_2 = "C" * 131072
+        if lob_type == "BLOB":
+            main_col = main_col.encode()
+            extra_col_1 = extra_col_1.encode()
+            extra_col_2 = extra_col_2.encode()
+        self.connection.stmtcachesize = 0
+        self.cursor.execute(f"truncate table Test{lob_type}s")
+        data = (1, main_col, 8, extra_col_1, 15, extra_col_2)
+        self.cursor.execute(f"""
+                insert into Test{lob_type}s (
+                    IntCol,
+                    {lob_type}Col,
+                    ExtraNumCol1,
+                    Extra{lob_type}Col1,
+                    ExtraNumCol2,
+                    Extra{lob_type}Col2
+                ) values (:1, :2, :3, :4, :5, :6)""",
+                data)
+        with test_env.FetchLobsContextManager(False):
+            self.cursor.execute(f"select * from Test{lob_type}s")
+            fetched_data = self.cursor.fetchone()
+            self.assertEqual(fetched_data, data)
+
     def __test_fetch_lobs_direct(self, lob_type):
         self.cursor.execute(f"truncate table Test{lob_type}s")
         data = []
@@ -449,6 +475,18 @@ class TestCase(test_env.BaseTestCase):
     def test_1929_fetch_nclob_as_str(self):
         "1929 - test fetching NCLOB as str"
         self.__test_fetch_lobs_direct("NCLOB")
+
+    def test_1930_bind_order_blob(self):
+        "1930 - test bind ordering with BLOB"
+        self.__test_bind_ordering("BLOB")
+
+    def test_1931_bind_order_clob(self):
+        "1931 - test bind ordering with CLOB"
+        self.__test_bind_ordering("CLOB")
+
+    def test_1932_bind_order_nclob(self):
+        "1932 - test bind ordering with NCLOB"
+        self.__test_bind_ordering("NCLOB")
 
 if __name__ == "__main__":
     test_env.run_test_cases()
