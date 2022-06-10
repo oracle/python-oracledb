@@ -25,10 +25,7 @@
 #------------------------------------------------------------------------------
 # exceptions.py
 #
-# Contains the exception classes mandated by the Python Database API and one
-# additional one (ConnectionError) for aiding in the handling of connection
-# failures when the connection is being created or used (and the connection is
-# no longer usable).
+# Contains the exception classes mandated by the Python Database API.
 #------------------------------------------------------------------------------
 
 class Warning(Exception):
@@ -40,10 +37,6 @@ class Error(Exception):
 
 
 class DatabaseError(Error):
-    pass
-
-
-class ConnectionError(DatabaseError):
     pass
 
 

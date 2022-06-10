@@ -230,7 +230,7 @@ cdef class ThinConnImpl(BaseConnImpl):
                                                                 address)
             if redirect_params is not None:
                 return redirect_params
-        except exceptions.ConnectionError:
+        except exceptions.DatabaseError:
             if raise_exception:
                 raise
             return
