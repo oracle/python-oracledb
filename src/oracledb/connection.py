@@ -30,6 +30,7 @@
 #------------------------------------------------------------------------------
 
 import collections
+import functools
 
 from . import __name__ as MODULE_NAME
 
@@ -987,7 +988,8 @@ def _connection_factory(f):
     class constructor does not check the validity of the supplied keyword
     parameters.
     """
-    def wrapped(dsn: str=None, *,
+    @functools.wraps(f)
+    def connect(dsn: str=None, *,
                 pool: Type["pool_module.ConnectionPool"]=None,
                 conn_class: Type[Connection]=Connection,
                 params: ConnectParams=None,
@@ -996,8 +998,7 @@ def _connection_factory(f):
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.INVALID_CONN_CLASS)
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
-    wrapped.__qualname__ = f.__qualname__
-    return wrapped
+    return connect
 
 
 @_connection_factory

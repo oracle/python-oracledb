@@ -29,6 +29,7 @@
 # for creating connection pools.
 #------------------------------------------------------------------------------
 
+import functools
 from typing import Callable, Type
 
 import oracledb
@@ -528,7 +529,8 @@ def _pool_factory(f):
     ConnectionPool class constructor does not check the validity of the
     supplied keyword parameters.
     """
-    def wrapped(dsn: str=None, *,
+    @functools.wraps(f)
+    def create_pool(dsn: str=None, *,
                 pool_class: Type[ConnectionPool]=ConnectionPool,
                 params: PoolParams=None,
                 **kwargs) -> ConnectionPool:
@@ -536,8 +538,7 @@ def _pool_factory(f):
         if not issubclass(pool_class, ConnectionPool):
             errors._raise_err(errors.INVALID_POOL_CLASS)
         return pool_class(dsn, params=params, **kwargs)
-    wrapped.__qualname__ = f.__qualname__
-    return wrapped
+    return create_pool
 
 
 @_pool_factory

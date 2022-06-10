@@ -31,6 +31,7 @@
 #{{ generated_notice }}
 #------------------------------------------------------------------------------
 
+import functools
 from typing import Type, Union
 
 import oracledb
@@ -54,25 +55,27 @@ class ConnectParams:
         """
         Helper function used to get address level attributes.
         """
-        def wrapped_func(self):
+        @functools.wraps(f)
+        def wrapped(self):
             output = []
             for description in self._impl.description_list.descriptions:
                 for address_list in description.address_lists:
                     for address in address_list.addresses:
                         output.append(getattr(address, f.__name__))
             return output if len(output) > 1 else output[0]
-        return wrapped_func
+        return wrapped
 
     def _description_attr(f):
         """
         Helper function used to get description level attributes.
         """
-        def wrapped_func(self):
+        @functools.wraps(f)
+        def wrapped(self):
             output = []
             for description in self._impl.description_list.descriptions:
                 output.append(getattr(description, f.__name__))
             return output if len(output) > 1 else output[0]
-        return wrapped_func
+        return wrapped
 
 #{{ properties }}
 
