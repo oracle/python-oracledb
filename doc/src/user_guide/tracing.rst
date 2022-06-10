@@ -241,9 +241,10 @@ Finding the Python-oracledb Mode
 
 The boolean attributes :attr:`Connection.thin` and :attr:`ConnectionPool.thin`
 can be used to show the current mode of a python-oracledb connection or pool,
-repsectively.
+respectively.  The python-oracledb version can be shown with
+:data:`oracledb.__version__`.
 
-The state can also be seen in the Oracle Database data dictionary table
+The information can also be seen in the Oracle Database data dictionary table
 ``V$SESSION_CONNECT_INFO``:
 
 .. code-block:: python
