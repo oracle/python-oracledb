@@ -199,7 +199,7 @@ If you use:
 
 then you will get the error::
 
-    TypeError: wrapped() takes from 0 to 1 positional arguments but 3 were given
+    TypeError: connect() takes from 0 to 1 positional arguments but 3 were given
 
 The :meth:`oracledb.connect()` method requires keyword parameters to be used
 
