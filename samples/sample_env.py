@@ -34,7 +34,7 @@
 #   PYO_SAMPLES_ADMIN_USER: privileged administrative user for setting up samples
 #   PYO_SAMPLES_ADMIN_PASSWORD: password of PYO_SAMPLES_ADMIN_USER
 #   PYO_SAMPLES_CONNECT_STRING: database connection string
-#   PYO_SAMPLES_DRCP_CONNECT_STRING: database connecttion string for DRCP
+#   PYO_SAMPLES_DRCP_CONNECT_STRING: database connection string for DRCP
 #   PYO_SAMPLES_MAIN_USER: user to be created. Used for most samples
 #   PYO_SAMPLES_MAIN_PASSWORD: password for PYO_SAMPLES_MAIN_USER
 #   PYO_SAMPLES_EDITION_USER: user to be created for editiong samples

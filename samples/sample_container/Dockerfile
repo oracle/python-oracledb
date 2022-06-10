@@ -49,16 +49,16 @@ USER root
 
 RUN microdnf module disable python36 && \
     microdnf module enable python39 && \
-    microdnf install python39 python39-pip python39-setuptools python39-wheel vim && \
+    microdnf install python39 python39-pip python39-setuptools python39-wheel vim vi && \
     microdnf clean all
 
 WORKDIR /samples/
 
 COPY setup.py setup.py
 
-RUN  curl -LO https://github.com/oracle/python-oracledb/archive/refs/tags/v1.0.0.zip && \
-     unzip v1.0.0.zip && mv python-oracledb-1.0.0/samples/* . && \
-     /bin/rm -rf python-oracledb-1.0.0 samples v1.0.0.zip && \
+RUN  curl -LO https://github.com/oracle/python-oracledb/archive/refs/heads/main.zip && \
+     unzip main.zip && mv python-oracledb-main/samples/* . && \
+     /bin/rm -rf python-oracledb-main samples main.zip && \
      cat create_schema.py >> /samples/setup.py && chown -R oracle.oinstall /samples/
 
 USER oracle
