@@ -42,15 +42,13 @@ cdef class Protocol:
         bint _txn_in_progress
         bint _break_in_progress
 
-    def __init__(self, sock):
+    def __init__(self):
         self._caps = Capabilities()
-        self.__set_socket(sock)
+        # mark protocol to indicate that connect is in progress; this prevents
+        # the normal break/reset mechanism from firing, which is unnecessary
+        # since the connection is going to be immediately closed anyway!
+        self._in_connect = True
         self._request_lock = threading.RLock()
-
-    cdef int __set_socket(self, sock):
-         self._socket = sock
-         self._read_buf = ReadBuffer(sock, TNS_SDU, self._caps)
-         self._write_buf = WriteBuffer(sock, TNS_SDU, self._caps)
 
     cdef int _break_external(self) except -1:
         """
@@ -133,11 +131,6 @@ cdef class Protocol:
             uint8_t packet_type
             str connect_string
 
-        # mark protocol to indicate that connect is in progress; this prevents
-        # the normal break/reset mechanism from firing, which is unnecessary
-        # since the connection is going to be immediately closed anyway!
-        self._in_connect = True
-
         # store whether OOB processing is possible or not
         self._caps.supports_oob = not params.disable_oob \
                 and sys.platform != "win32"
@@ -175,7 +168,7 @@ cdef class Protocol:
                     ssl_context.check_hostname = False
                     sock = socket.socket(fileno=self._socket.detach())
                     sock = ssl_context.wrap_socket(sock)
-                    self.__set_socket(sock)
+                    self._set_socket(sock)
 
     cdef int _connect_phase_two(self, ThinConnImpl conn_impl,
                                 Description description,
@@ -370,3 +363,8 @@ cdef class Protocol:
         buf.write_uint8(0)
         buf.write_uint8(marker_type)
         buf.end_request()
+
+    cdef int _set_socket(self, sock):
+         self._socket = sock
+         self._read_buf = ReadBuffer(sock, TNS_SDU, self._caps)
+         self._write_buf = WriteBuffer(sock, TNS_SDU, self._caps)

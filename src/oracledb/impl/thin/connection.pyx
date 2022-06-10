@@ -66,6 +66,10 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint32_t _call_timeout
         str _cclass
 
+    def __init__(self, str dsn, ConnectParamsImpl params):
+        BaseConnImpl.__init__(self, dsn, params)
+        self._protocol = Protocol()
+
     cdef int _add_cursor_to_close(self, Statement stmt) except -1:
         if self._num_cursors_to_close == TNS_MAX_CURSORS_TO_CLOSE:
             raise Exception("too many cursors to close!")
@@ -224,7 +228,7 @@ cdef class ThinConnImpl(BaseConnImpl):
             self._drcp_enabled = description.server_type == "pooled"
             if self._cclass is None:
                 self._cclass = description.cclass
-            self._protocol = Protocol(sock)
+            self._protocol._set_socket(sock)
             redirect_params = self._protocol._connect_phase_one(self, params,
                                                                 description,
                                                                 address)
