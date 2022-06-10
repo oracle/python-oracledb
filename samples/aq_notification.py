@@ -26,7 +26,7 @@
 # aq_notification.py
 #
 # Demonstrates using advanced queuing notification. Once this script is
-# running, run object_aq.py in another terminal to to enqueue a few messages to
+# running, run object_aq.py in another terminal to enqueue a few messages to
 # the "DEMO_BOOK_QUEUE" queue.
 #------------------------------------------------------------------------------
 

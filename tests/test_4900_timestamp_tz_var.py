@@ -23,7 +23,7 @@
 #------------------------------------------------------------------------------
 
 """
-4800 - Module for testing timestamp with time zone variables
+4900 - Module for testing timestamp with time zone variables
 """
 
 import datetime
