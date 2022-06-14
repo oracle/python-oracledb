@@ -7,8 +7,8 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 1.0.1 (TBD)
---------------------
+oracledb 1.0.1 (June 2022)
+--------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -33,7 +33,7 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Restored support for bequeath connections to a local database.
+#)  Fixed the ability to create bequeath connections to a local database.
 #)  Fixed issue fetching NCLOB columns with
     `oracledb.defaults.fetch_lobs = False`.
 
