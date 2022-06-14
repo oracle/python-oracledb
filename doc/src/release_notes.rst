@@ -47,6 +47,7 @@ Common Changes
     ``wrapped()``.
 #)  Improved samples, including adding a Dockerfile that starts a container
     with a running database and the samples.
+#)  A binary package has been added for Python 3.7 on macOS (Intel x86).
 #)  Improved documentation.
 
 

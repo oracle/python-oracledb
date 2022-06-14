@@ -36,7 +36,7 @@ quickly.
    available. The version of Python to be used depends on the operating system (OS):
 
   - On Windows, use Python 3.7 to 3.10
-  - On macOS, use Python 3.8 to 3.10
+  - On macOS, use Python 3.7 to 3.10
   - On Linux, use Python 3.6 to 3.10
 
   By default, python-oracledb connects directly to Oracle Database.  This lets
@@ -153,7 +153,7 @@ To use python-oracledb, you need:
 - Python 3.6, 3.7, 3.8, 3.9 or 3.10 depending on the operating system:
 
   - Windows: Use Python 3.7 to 3.10
-  - macOS: Use Python 3.8 to 3.10
+  - macOS: Use Python 3.7 to 3.10
   - Linux: Use Python 3.6 to 3.10
 
 - The Python cryptography package. This package is automatically installed as a
@@ -614,8 +614,9 @@ Python architecture.
 Installing python-oracledb on macOS
 ===================================
 
-Python-oracledb is available a Universal binary for Apple Intel and M1
-architectures.
+Python-oracledb is available as a Universal binary for Python 3.8, or later, on
+Apple Intel and M1 architectures.  A binary is also available for Python 3.7 on
+Apple Intel.
 
 Install python-oracledb
 -----------------------
@@ -628,16 +629,19 @@ to install python-oracledb from Python's package repository `PyPI
 
     python -m pip install oracledb
 
-
-To install into the system Python, you may need to use ``/usr/bin/python3``
-instead of ``python``.
-
 The ``--user`` option may be useful if you do not have permission to write to
 system directories:
 
 .. code-block:: shell
 
     python -m pip install oracledb --user
+
+To install into the system Python, you may need to use ``/usr/bin/python3``
+instead of ``python``:
+
+.. code-block:: shell
+
+    /usr/bin/python3 -m pip install oracledb --user
 
 If you are behind a proxy, add a proxy server to the command, for example add
 ``--proxy=http://proxy.example.com:80``
@@ -652,8 +656,8 @@ By default, python-oracledb runs in a Thin mode which connects directly to
 Oracle Database so no further installation steps are required.  However, to use
 additional features available in :ref:`Thick mode <featuresummary>` you need
 Oracle Client libraries installed.  Note that to use Thick mode on the M1
-architecture you will need to use Rosetta with Python x64 and the Instant
-Client (Intel x64) libraries.
+architecture you will need to use Rosetta with Python 64-bit Intel and the
+Instant Client (Intel x86) libraries.
 
 Manual Installation
 +++++++++++++++++++

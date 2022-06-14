@@ -19,7 +19,7 @@ See [python-oracledb Installation][installation].
 - Python versions 3.6 through 3.10.
 
   Prebuilt packages are available on Windows for Python 3.7 or later, on macOS
-  for Python 3.8 or later, and on Linux for Python 3.6 or later.
+  for Python 3.7 or later, and on Linux for Python 3.6 or later.
 
   Source code is also available.
 
