@@ -198,6 +198,8 @@ cdef class ThinConnImpl(BaseConnImpl):
             bint use_proxy = (address.https_proxy is not None)
             double timeout = description.tcp_connect_timeout
         if use_proxy:
+            if address.protocol != "tcps":
+                errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
             connect_info = (address.https_proxy, address.https_proxy_port)
         else:
             connect_info = (address.host, address.port)
