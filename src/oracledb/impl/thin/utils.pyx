@@ -41,8 +41,11 @@ class ConnectConstants:
         self.sanitized_program_name = self._sanitize(self.program_name)
         self.sanitized_machine_name = self._sanitize(self.machine_name)
         self.sanitized_user_name = self._sanitize(self.user_name)
-        version_tuple = tuple(int(s) for s in VERSION.split("."))
-        major_num, minor_num, patch_num = version_tuple
+        pattern = r"(?P<major_num>\d+)\.(?P<minor_num>\d+)\.(?P<patch_num>\d+)"
+        match_dict = re.match(pattern, VERSION)
+        major_num = int(match_dict["major_num"])
+        minor_num = int(match_dict["minor_num"])
+        patch_num = int(match_dict["patch_num"])
         self.full_version_num = \
                 major_num << 24 | minor_num << 20 | patch_num << 12
 

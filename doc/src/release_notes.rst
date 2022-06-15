@@ -7,6 +7,10 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+oracledb 1.1.0 (TBD)
+--------------------
+
+
 oracledb 1.0.1 (June 2022)
 --------------------------
 
