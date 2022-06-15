@@ -40,10 +40,19 @@ author = 'Oracle'
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
+# The values are acquired from the __version__ constant defined in the module
+# itself in order to avoid duplicate values (and therefore one being different
+# from the other)
+#
 # The short X.Y version.
-version = '1.0'
+global_vars = {}
+local_vars = {}
+version_file_name = os.path.join("..", "..", "src", "oracledb", "version.py")
+with open(version_file_name) as f:
+    exec(f.read(), global_vars, local_vars)
+version = ".".join(local_vars["__version__"].split(".")[:2])
 # The full version, including alpha/beta/rc tags.
-release = '1.0.1'
+release = local_vars["__version__"]
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
