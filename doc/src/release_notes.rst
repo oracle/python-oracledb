@@ -10,6 +10,11 @@ For deprecations, see :ref:`Deprecations <deprecations>`.
 oracledb 1.1.0 (TBD)
 --------------------
 
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed the ability to use external authentication with connection pools.
+
 
 oracledb 1.0.1 (June 2022)
 --------------------------

@@ -91,6 +91,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
         create_params.pingInterval = params.ping_interval
         common_params.stmtCacheSize = params.stmtcachesize
         common_params.sodaMetadataCache = params.soda_metadata_cache
+        create_params.externalAuth = params.externalauth
 
         # prepare user, password and DSN for use
         if self.username is not None:
