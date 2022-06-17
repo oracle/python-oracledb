@@ -20,6 +20,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added support for getting the message id of the AQ message which generated
+    a notification.
 #)  Fixed the ability to use external authentication with connection pools.
 
 

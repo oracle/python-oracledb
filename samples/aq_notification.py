@@ -49,6 +49,7 @@ def process_messages(message):
         return
     print("Queue name:", message.queue_name)
     print("Consumer name:", message.consumer_name)
+    print("Message id:", message.msgid)
 
 connection = oracledb.connect(user=sample_env.get_main_user(),
                               password=sample_env.get_main_password(),

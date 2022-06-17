@@ -168,6 +168,7 @@ class Message:
         self._tables = []
         self._txid = None
         self._type = 0
+        self._msgid = None
 
 
     @property
@@ -192,6 +193,13 @@ class Message:
         Returns the name of the database that generated the notification.
         """
         return self._db_name
+
+    @property
+    def msgid(self) -> bytes:
+        """
+        Returns the message id of the AQ message that generated the notification.
+        """
+        return self._msgid
 
     @property
     def queries(self) -> list:

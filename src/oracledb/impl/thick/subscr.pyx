@@ -99,6 +99,9 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
         if message.consumerName != NULL:
             py_message._consumer_name = \
                     message.consumerName[:message.consumerNameLength].decode()
+        if message.aqMsgId != NULL:
+            msgid = <const char*> message.aqMsgId
+            py_message._msgid = msgid[:message.aqMsgIdLength]
         if message.eventType == DPI_EVENT_OBJCHANGE:
             temp = py_message._tables
             for i in range(message.numTables):

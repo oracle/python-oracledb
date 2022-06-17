@@ -423,5 +423,29 @@ class TestCase(test_env.BaseTestCase):
         props1 = queue.deqone()
         self.assertTrue(props1 is None)
 
+    def test_2720_aq_notification(self):
+        "2720 - verify msgid of aq message which spawned notification "
+        self.__clear_books_queue()
+        condition = threading.Condition()
+        connection = test_env.get_connection(events=True)
+        def notification_callback(message):
+            self.cursor.execute("select msgid from book_queue_tab")
+            actual_msgid, = self.cursor.fetchone()
+            self.assertEqual(actual_msgid, message.msgid)
+            with condition:
+                condition.notify()
+        sub = connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+                                   name=self.book_queue_name,
+                                   callback=notification_callback, timeout=300)
+        books_type = connection.gettype(self.book_type_name)
+        queue = connection.queue(self.book_queue_name, books_type)
+        book = books_type.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
+        props = connection.msgproperties(payload=book)
+        queue.enqone(props)
+        connection.commit()
+        with condition:
+            condition.wait(5)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

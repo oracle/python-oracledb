@@ -126,6 +126,11 @@ Message Objects
     This read-only attribute returns the name of the database that generated
     the notification.
 
+.. attribute:: Message.msgid
+
+    This read-only attribute returns the message id of the AQ message which
+    generated the notification. It will only be populated if the subscription
+    was created with the namespace :data:`oracledb.SUBSCR_NAMESPACE_AQ`.
 
 .. attribute:: Message.queries
 

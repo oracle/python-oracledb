@@ -480,6 +480,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t queueNameLength
         const char *consumerName
         uint32_t consumerNameLength
+        const void *aqMsgId
+        uint32_t aqMsgIdLength
 
     ctypedef struct dpiSubscrMessageQuery:
         uint64_t id
