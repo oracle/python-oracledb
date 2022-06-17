@@ -30,7 +30,7 @@
 # using the Shapely library for geometry object support.
 #
 # See http://geopandas.org, https://pandas.pydata.org,
-# and https://github.com/Toblerity/Shapely.
+# and https://github.com/shapely/shapely.
 #
 # This example shows how to bring geometries from Oracle Spatial (SDO_GEOMETRY
 # data type) into GeoPandas and perform a simple spatial operation. While the
@@ -40,7 +40,7 @@
 # additional sources such as files and web services.
 #
 # This script requires GeoPandas and its dependencies (see
-# http://geopandas.org/install.html).
+# https://geopandas.org/en/stable/getting_started/install.html).
 #------------------------------------------------------------------------------
 
 from shapely.wkb import loads
