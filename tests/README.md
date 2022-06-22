@@ -34,6 +34,33 @@ This directory contains the test suite for python-oracledb.
 
         python drop_schema.py
 
+4.  Enable tests that require extra configuration
+
+    The following test(s) are automatically skipped if their required
+    environment variable(s) and setup is not available.
+
+    4.1  test_5000_externalauth.py
+
+         This test aims to test the usage of external authentication.
+
+         - Set the PYO_TEST_EXTERNAL_USER environment variable to the externally
+           identified user that will be connected using external authentication.
+
+         - Set up external authentication. See
+           [Connecting Using External Authentication][4] for creating an
+           Oracle Wallet or enabling OS authentication.
+
+         - Run the following SQL commands as a user with administrative
+           privileges (such as SYSTEM or ADMIN) to allow the external user to
+           connect to the database and behave as proxy for testing external
+           authentication with proxy:
+
+               grant create session to <External User>;
+
+               alter user <Schema Owner> grant connect through <External User>;
+
+
 [1]: https://github.com/oracle/python-oracledb/blob/main/tests/create_schema.py
 [2]: https://github.com/oracle/python-oracledb/blob/main/tests/test_env.py
 [3]: https://github.com/oracle/python-oracledb/blob/main/tests/drop_schema.py
+[4]: https://python-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#connecting-using-external-authentication

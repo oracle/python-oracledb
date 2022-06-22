@@ -74,6 +74,7 @@ class ConnectParams:
                  ssl_server_cert_dn: str=None,
                  wallet_location: str=None,
                  events: bool=False,
+                 externalauth: bool=False,
                  mode: int=oracledb.AUTH_MODE_DEFAULT,
                  disable_oob: bool=False,
                  stmtcachesize: int=oracledb.defaults.stmtcachesize,
@@ -175,6 +176,9 @@ class ConnectParams:
           query notification and high availability event notifications
           (default: False)
 
+        - externalauth: a boolean indicating whether to use external
+          authentication (default: False)
+
         - mode: authorization mode to use. For example
           oracledb.AUTH_MODE_SYSDBA (default: oracledb.AUTH_MODE_DEFAULT)
 
@@ -246,6 +250,7 @@ class ConnectParams:
                f", ssl_server_cert_dn={self.ssl_server_cert_dn!r}" + \
                f", wallet_location={self.wallet_location!r}" + \
                f", events={self.events!r}" + \
+               f", externalauth={self.externalauth!r}" + \
                f", mode={self.mode!r}" + \
                f", disable_oob={self.disable_oob!r}" + \
                f", stmtcachesize={self.stmtcachesize!r}" + \
@@ -355,6 +360,13 @@ class ConnectParams:
         it enables keepalive.
         """
         return self._impl.expire_time
+
+    @property
+    def externalauth(self) -> bool:
+        """
+        A boolean indicating whether to use external authentication.
+        """
+        return self._impl.externalauth
 
     @property
     @_address_attr
@@ -602,6 +614,7 @@ class ConnectParams:
             ssl_server_cert_dn: str=None,
             wallet_location: str=None,
             events: bool=None,
+            externalauth: bool=None,
             mode: int=None,
             disable_oob: bool=None,
             stmtcachesize: int=None,
@@ -696,6 +709,9 @@ class ConnectParams:
         - events: boolean specifying whether events mode should be enabled.
           This value is only used in thick mode and is needed for continuous
           query notification and high availability event notifications
+
+        - externalauth: a boolean indicating whether to use external
+          authentication
 
         - mode: authorization mode to use. For example
           oracledb.AUTH_MODE_SYSDBA

@@ -52,7 +52,6 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.connectiontype = pool_params.connectiontype
         self.getmode = pool_params.getmode
         self.homogeneous = pool_params.homogeneous
-        self.externalauth = pool_params.externalauth
         self.timeout = pool_params.timeout
         self.wait_timeout = pool_params.wait_timeout
         self.max_lifetime_session = pool_params.max_lifetime_session
@@ -82,7 +81,6 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.connectiontype = args.get("connectiontype")
         _set_uint_param(args, "getmode", &self.getmode)
         _set_bool_param(args, "homogeneous", &self.homogeneous)
-        _set_bool_param(args, "externalauth", &self.externalauth)
         _set_uint_param(args, "timeout", &self.timeout)
         _set_uint_param_with_deprecated_name(args, "wait_timeout",
                                              "waitTimeout", &self.wait_timeout)

@@ -23,6 +23,9 @@ Thick Mode Changes
 #)  Added support for getting the message id of the AQ message which generated
     a notification.
 #)  Fixed the ability to use external authentication with connection pools.
+#)  Added the ability to use `externalauth` as a connection parameter for
+    standalone connections in addition to creating pools. For standalone
+    connections, this parameter is optional.
 
 
 oracledb 1.0.1 (June 2022)

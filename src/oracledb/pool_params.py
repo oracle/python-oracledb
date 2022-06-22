@@ -57,7 +57,6 @@ class PoolParams(ConnectParams):
                  connectiontype: Type["oracledb.Connection"]=None,
                  getmode: int=oracledb.POOL_GETMODE_WAIT,
                  homogeneous: bool=True,
-                 externalauth: bool=False,
                  timeout: int=0,
                  wait_timeout: int=0,
                  max_lifetime_session: int=0,
@@ -88,6 +87,7 @@ class PoolParams(ConnectParams):
                  ssl_server_cert_dn: str=None,
                  wallet_location: str=None,
                  events: bool=False,
+                 externalauth: bool=False,
                  mode: int=oracledb.AUTH_MODE_DEFAULT,
                  disable_oob: bool=False,
                  stmtcachesize: int=oracledb.defaults.stmtcachesize,
@@ -128,9 +128,6 @@ class PoolParams(ConnectParams):
         - homogeneous: a boolean indicating whether the connections are
           homogeneous (same user) or heterogeneous (multiple users) (default:
           True)
-
-        - externalauth: a boolean indicating whether to use external
-          authentication (default: False)
 
         - timeout: length of time (in seconds) that a connection may remain
           idle in the pool before it is terminated. If it is 0 then connections
@@ -243,6 +240,9 @@ class PoolParams(ConnectParams):
           query notification and high availability event notifications
           (default: False)
 
+        - externalauth: a boolean indicating whether to use external
+          authentication (default: False)
+
         - mode: authorization mode to use. For example
           oracledb.AUTH_MODE_SYSDBA (default: oracledb.AUTH_MODE_DEFAULT)
 
@@ -300,7 +300,6 @@ class PoolParams(ConnectParams):
                f", connectiontype={self.connectiontype!r}" + \
                f", getmode={self.getmode!r}" + \
                f", homogeneous={self.homogeneous!r}" + \
-               f", externalauth={self.externalauth!r}" + \
                f", timeout={self.timeout!r}" + \
                f", wait_timeout={self.wait_timeout!r}" + \
                f", max_lifetime_session={self.max_lifetime_session!r}" + \
@@ -328,6 +327,7 @@ class PoolParams(ConnectParams):
                f", ssl_server_cert_dn={self.ssl_server_cert_dn!r}" + \
                f", wallet_location={self.wallet_location!r}" + \
                f", events={self.events!r}" + \
+               f", externalauth={self.externalauth!r}" + \
                f", mode={self.mode!r}" + \
                f", disable_oob={self.disable_oob!r}" + \
                f", stmtcachesize={self.stmtcachesize!r}" + \
@@ -347,13 +347,6 @@ class PoolParams(ConnectParams):
         pool.acquire(). It must be Connection or a subclass of Connection.
         """
         return self._impl.connectiontype
-
-    @property
-    def externalauth(self) -> bool:
-        """
-        A boolean indicating whether to use external authentication.
-        """
-        return self._impl.externalauth
 
     @property
     def getmode(self) -> int:
@@ -473,7 +466,6 @@ class PoolParams(ConnectParams):
             connectiontype: Type["oracledb.Connection"]=None,
             getmode: int=None,
             homogeneous: bool=None,
-            externalauth: bool=None,
             timeout: int=None,
             wait_timeout: int=None,
             max_lifetime_session: int=None,
@@ -504,6 +496,7 @@ class PoolParams(ConnectParams):
             ssl_server_cert_dn: str=None,
             wallet_location: str=None,
             events: bool=None,
+            externalauth: bool=None,
             mode: int=None,
             disable_oob: bool=None,
             stmtcachesize: int=None,
@@ -540,9 +533,6 @@ class PoolParams(ConnectParams):
 
         - homogeneous: a boolean indicating whether the connections are
           homogeneous (same user) or heterogeneous (multiple users)
-
-        - externalauth: a boolean indicating whether to use external
-          authentication
 
         - timeout: length of time (in seconds) that a connection may remain
           idle in the pool before it is terminated. If it is 0 then connections
@@ -648,6 +638,9 @@ class PoolParams(ConnectParams):
         - events: boolean specifying whether events mode should be enabled.
           This value is only used in thick mode and is needed for continuous
           query notification and high availability event notifications
+
+        - externalauth: a boolean indicating whether to use external
+          authentication
 
         - mode: authorization mode to use. For example
           oracledb.AUTH_MODE_SYSDBA

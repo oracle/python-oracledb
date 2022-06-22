@@ -40,6 +40,7 @@
 #   PYO_TEST_WALLET_LOCATION: location of wallet file (thin mode, mTLS)
 #   PYO_TEST_WALLET_PASSWORD: password for wallet file (thin mode, mTLS)
 #   PYO_TEST_DRIVER_MODE: python-oracledb mode (thick or thin) to use
+#   PYO_TEST_EXTERNAL_USER: user for testing external authentication
 #
 # PYO_TEST_CONNECT_STRING can be set to an Easy Connect string, or a
 # Net Service Name from a tnsnames.ora file or external naming service,
@@ -211,6 +212,10 @@ def get_wallet_location():
 def get_wallet_password():
     if get_is_thin():
         return get_value("WALLET_PASSWORD", "Wallet Password", password=True)
+
+def get_external_user():
+    if not get_is_thin():
+        return get_value("EXTERNAL_USER", "External User")
 
 def run_sql_script(conn, script_name, **kwargs):
     statement_parts = []

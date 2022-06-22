@@ -154,6 +154,7 @@ cdef class ConnectParamsImpl:
         self._default_description.set_from_description_args(args)
         self._default_description.set_from_security_args(args)
         self._default_address.set_from_args(args)
+        _set_bool_param(args, "externalauth", &self.externalauth)
 
     cdef int _copy(self, ConnectParamsImpl other_params) except -1:
         """
@@ -163,6 +164,7 @@ cdef class ConnectParamsImpl:
         self.user = other_params.user
         self.proxy_user = other_params.proxy_user
         self.events = other_params.events
+        self.externalauth = other_params.externalauth
         self.mode = other_params.mode
         self.edition = other_params.edition
         self.appcontext = other_params.appcontext

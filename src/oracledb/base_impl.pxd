@@ -157,6 +157,7 @@ cdef class ConnectParamsImpl:
         public str user
         public str proxy_user
         public bint events
+        public bint externalauth
         public uint32_t mode
         public str edition
         public list appcontext
@@ -201,7 +202,6 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         public type connectiontype
         public uint32_t getmode
         public bint homogeneous
-        public bint externalauth
         public uint32_t timeout
         public uint32_t wait_timeout
         public uint32_t max_lifetime_session

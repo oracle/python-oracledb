@@ -324,6 +324,8 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         if params.username_len == 0 and params.password_len == 0:
             conn_params.externalAuth = 1
+        else:
+            conn_params.externalAuth = user_params.externalauth
         if params.cclass is not None:
             conn_params.connectionClass = params.cclass_ptr
             conn_params.connectionClassLength = params.cclass_len

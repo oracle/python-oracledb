@@ -1035,6 +1035,7 @@ def connect(dsn: str=None, *,
 
             # other parameters
             events: bool=None,
+            externalauth: bool=None,
             mode: int=None,
             disable_oob: bool=None,
             stmtcachesize: int=None,
