@@ -540,6 +540,8 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
                 or ora_type_num == TNS_DATA_TYPE_LONG:
+            if csfrm == TNS_CS_NCHAR:
+                buf._caps._check_ncharset_id()
             column_value = buf.read_str(csfrm)
         elif ora_type_num == TNS_DATA_TYPE_RAW \
                 or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
@@ -944,9 +946,10 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
                 or ora_type_num == TNS_DATA_TYPE_LONG:
-            if var_impl.dbtype._csfrm == 1:
+            if var_impl.dbtype._csfrm == TNS_CS_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
+                buf._caps._check_ncharset_id()
                 temp_bytes = (<str> value).encode(TNS_ENCODING_UTF16)
             buf.write_bytes_chunked(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_RAW \
@@ -1976,6 +1979,7 @@ cdef class LobOpMessage(Message):
             buf.write_bytes(self.dest_lob_impl._locator)
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             if self.source_lob_impl.dbtype._csfrm == TNS_CS_NCHAR:
+                buf._caps._check_ncharset_id()
                 buf.write_ub4(TNS_CHARSET_UTF16)
             else:
                 buf.write_ub4(TNS_CHARSET_UTF8)
@@ -2068,9 +2072,10 @@ cdef class ProtocolMessage(Message):
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
         cdef:
-            uint16_t num_elem, fdo_length, charset_id, ncharset_id
+            uint16_t num_elem, fdo_length
             bytearray server_compile_caps
             bytearray server_runtime_caps
+            Capabilities caps = buf._caps
             const char_type *fdo
             ssize_t ix
             uint8_t c
@@ -2080,8 +2085,8 @@ cdef class ProtocolMessage(Message):
                 buf.read_ub1(&c)
                 if c == 0:
                     break
-            buf.read_uint16(&charset_id, BYTE_ORDER_LSB)
-            buf._caps.char_conversion = charset_id != TNS_CHARSET_UTF8
+            buf.read_uint16(&caps.charset_id, BYTE_ORDER_LSB)
+            buf._caps.char_conversion = caps.charset_id != TNS_CHARSET_UTF8
             buf.skip_ub1()                  # skip server flags
             buf.read_uint16(&num_elem, BYTE_ORDER_LSB)
             if num_elem > 0:                # skip elements
@@ -2089,10 +2094,7 @@ cdef class ProtocolMessage(Message):
             buf.read_uint16(&fdo_length)
             fdo = buf.read_raw_bytes(fdo_length)
             ix = 6 + fdo[5] + fdo[6]
-            ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
-            if ncharset_id != TNS_CHARSET_UTF16:
-                errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
-                                  charset_id=ncharset_id)
+            caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
             server_compile_caps = bytearray(buf.read_bytes())
             server_runtime_caps = bytearray(buf.read_bytes())
             if not server_compile_caps[TNS_CCAP_LOGON_TYPES] & TNS_CCAP_O7LOGON:
