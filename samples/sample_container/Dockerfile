@@ -49,7 +49,7 @@ USER root
 
 RUN microdnf module disable python36 && \
     microdnf module enable python39 && \
-    microdnf install python39 python39-pip python39-setuptools python39-wheel vim vi && \
+    microdnf install python39 python39-pip python39-setuptools python39-wheel vim vi httpd-tools && \
     microdnf clean all
 
 WORKDIR /samples/
@@ -63,7 +63,7 @@ RUN  curl -LO https://github.com/oracle/python-oracledb/archive/refs/heads/main.
 
 USER oracle
 
-RUN  python3 -m pip install oracledb --user
+RUN  python3 -m pip install oracledb Flask --user --no-warn-script-location
 
 ARG PYO_PASSWORD
 

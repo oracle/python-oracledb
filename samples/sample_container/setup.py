@@ -17,6 +17,8 @@ import oracledb
 import os
 import time
 
+oracledb.init_oracle_client()
+
 pw = os.environ.get("ORACLE_PASSWORD")
 os.environ["PYO_SAMPLES_ADMIN_PASSWORD"] = pw
 
@@ -40,14 +42,27 @@ else:
     print("Try again in a few minutes")
     exit()
 
-# Connect to the CDB to start DRCP because enable_per_pdb_drcp is FALSE by
-# default
-print("Starting DRCP pool")
-with oracledb.connect(user="sys",
-                      password=pw,
-                      dsn="localhost/XE",
-                      mode=oracledb.AUTH_MODE_SYSDBA) as connection:
-    with connection.cursor() as cursor:
-        cursor.callproc("dbms_connection_pool.start_pool")
+
+print("Enabling per-PDB DRCP")
+
+c = oracledb.connect(mode=oracledb.SYSDBA)
+cursor = c.cursor()
+cursor.execute("alter pluggable database all close")
+cursor.execute("alter system set enable_per_pdb_drcp=true scope=spfile sid='*'")
+
+c = oracledb.connect(mode=oracledb.SYSDBA | oracledb.PRELIM_AUTH)
+c.startup(force=True)
+
+c = oracledb.connect(mode=oracledb.SYSDBA)
+cursor = c.cursor()
+cursor.execute("alter database mount")
+cursor.execute("alter database open")
+
+c = oracledb.connect(user="sys",
+                     password=pw,
+                     dsn="localhost/xepdb1",
+                     mode=oracledb.SYSDBA)
+cursor = c.cursor()
+cursor.callproc("dbms_connection_pool.start_pool")
 
 # create_schema.py will be appended here by the Dockerfile

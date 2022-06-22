@@ -27,6 +27,10 @@ Thick Mode Changes
     standalone connections in addition to creating pools. For standalone
     connections, this parameter is optional.
 
+Common Changes
+++++++++++++++
+
+#)  Improved samples and documentation.
 
 oracledb 1.0.1 (June 2022)
 --------------------------
