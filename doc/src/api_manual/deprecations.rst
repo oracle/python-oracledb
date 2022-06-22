@@ -11,8 +11,7 @@ if applicable. The most recent deprecations are listed first.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 1.0
     :header-rows: 1
-    :widths: 25 75
-    :width: 100%
+    :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
     :name: _deprecations_1
 
@@ -110,8 +109,7 @@ python-oracledb are listed below:
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.2
     :header-rows: 1
-    :widths: 25 75
-    :width: 100%
+    :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated API name. The second column,
      Comments, includes information about when the API was deprecated and what API to use,
      if applicable.
@@ -209,8 +207,7 @@ python-oracledb are listed below:
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.0
     :header-rows: 1
-    :widths: 25 75
-    :width: 100%
+    :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
     :name: _deprecations_8_0
 
@@ -252,8 +249,7 @@ python-oracledb are listed below:
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 7.2
     :header-rows: 1
-    :widths: 25 75
-    :width: 100%
+    :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
     :name: _deprecations_7_2
 
@@ -271,8 +267,7 @@ python-oracledb are listed below:
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 6.4
     :header-rows: 1
-    :widths: 25 75
-    :width: 100%
+    :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
     :name: _deprecations_6_4
 

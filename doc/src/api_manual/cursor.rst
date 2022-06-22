@@ -385,8 +385,10 @@ Cursor Methods
     types:
 
     .. list-table-with-summary::
-        :summary: The first column is the Python Type. The second column is the corresponding Database Type.
         :header-rows: 1
+        :class: wy-table-responsive
+        :align: center
+        :summary: The first column is the Python Type. The second column is the corresponding Database Type.
 
         * - Python Type
           - Database Type

@@ -173,6 +173,7 @@ needed but there is no direct mapping from Python.
 
 .. list-table-with-summary::
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 1 1 1
     :summary: The first column is the Python Type or Value. The second column is the equivalent JSON Attribute Type or Value. The third column is the SQL Equivalent syntax.
     :align: left
@@ -263,6 +264,7 @@ attribute mapping occurs:
 
 .. list-table-with-summary::
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 1 1
     :align: left
     :summary: The first column is the Database JSON Attribute Type or Value. The second column is the corresponding Python Type or Value mapped.
