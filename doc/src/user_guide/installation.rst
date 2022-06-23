@@ -757,11 +757,6 @@ code:
 
 - C Compiler: A C99 compiler is needed.
 
-On macOS, use a Python Universal 2 binary, or set an explicit architecture to
-match your environment.  For example, execute ``export ARCHFLAGS="-arch
-x86_64"`` before building the source code on macOS Intel x86.  Without this,
-the build may succeed but the package will fail to import in Python.
-
 Install Using GitHub
 --------------------
 

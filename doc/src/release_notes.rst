@@ -34,6 +34,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
+    specified when building from source code on macOS (Intel x86) without
+    Universal Python binaries.
 #)  Improved samples and documentation.
 
 
