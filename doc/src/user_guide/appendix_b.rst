@@ -215,9 +215,6 @@ differs from the python-oracledb Thick mode in the following ways:
   ``handle`` parameters.  The parameters that are ignored in the Thick mode include
   ``wallet_password``, ``disable_oob``, ``config_dir``, and ``debug_jdwp`` parameters.
 
-* The ``getmode`` value :data:`~oracledb.POOL_GETMODE_TIMEDWAIT` is not
-  implemented in the python-oracledb Thin mode.
-
 * The python-oracledb Thin mode only suppports :ref:`homogeneous
   <connpooltypes>` pools.
 

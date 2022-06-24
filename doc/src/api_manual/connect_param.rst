@@ -37,10 +37,10 @@ ConnectParams Methods
     https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
     server_type=None, cclass=None, purity=None, expire_time=None, retry_count=None, \
     retry_delay=None, tcp_connect_timeout=None, ssl_server_dn_match=None, \
-    ssl_server_cert_dn=None, wallet_location=None, events=None, mode=None, \
-    disable_oob=None, stmtcachesize=None, edition=None, tag=None, matchanytag=None, \
-    config_dir=None, appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-    handle=None)
+    ssl_server_cert_dn=None, wallet_location=None, events=None, externalauth=None, \
+    mode=None, disable_oob=None, stmtcachesize=None, edition=None, tag=None, \
+    matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], supershardingkey=[], \
+    debug_jdwp=None, handle=None)
 
   Sets one or more of the parameters.
 
@@ -126,6 +126,18 @@ ConnectParams Attributes
   it enables keepalive.
 
   This attribute is supported in the python-oracledb Thin and Thick modes.
+
+.. attribute:: ConnectParams.externalauth
+
+  This read-only attribute is a boolean that specifies whether external
+  authentication should be used. The default value is False.
+
+  For standalone connections, external authentication occurs when the
+  ``user`` and ``password`` attributes are not used. If these attributes,
+  are not used, you can optionally set the ``externalauth`` attribute to
+  True, which may aid code auditing.
+
+  This attribute is only supported in the python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.host
 

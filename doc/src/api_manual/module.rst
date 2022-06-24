@@ -49,13 +49,14 @@ Oracledb Methods
 
 .. function:: connect(dsn=None, pool=None, conn_class=None, params=None, user=None, \
     proxy_user=None, password=None, newpassword=None, wallet_password=None, \
-    host=None, port=None, protocol=None, https_proxy=None, https_proxy_port=None, \
-    service_name=None, sid=None, server_type=None, cclass=None, purity=None, \
-    expire_time=None, retry_count=None, retry_delay=None, tcp_connect_timeout=None, \
-    ssl_server_dn_match=None, ssl_server_cert_dn=None, wallet_location=None, \
-    events=None, mode=None, disable_oob=None, stmtcachesize=None, edition=None, \
-    tag=None, matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
-    supershardingkey=[], debug_jdwp=None, handle=None)
+    host=None, port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
+    service_name=None, sid=None, server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
+    expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
+    ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, \
+    events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+    stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, matchanytag=False, \
+    config_dir=oracledb.defaults.config_dir, appcontext=[], shardingkey=[], supershardingkey=[], \
+    debug_jdwp=None, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -216,10 +217,18 @@ Oracledb Methods
     query notification and high availability event notifications. The default
     value is False.
 
+    The ``externalauth`` parameter is a boolean that specifies whether external
+    authentication should be used. This value is only used in the python-oracledb
+    Thick mode. The default value is False. For standalone connections,
+    external authentication occurs when the ``user`` and ``password`` attributes
+    are not used. If these attributes are not used, you can optionally set the
+    ``externalauth`` attribute to True, which may aid code auditing.
+
     If the ``mode`` parameter is specified, it must be one of the
     :ref:`connection authorization modes <connection-authorization-modes>`
     which are defined at the module level. This value is used in both the
-    python-oracledb Thin and Thick modes.The default value is 0.
+    python-oracledb Thin and Thick modes. The default value is
+    :data:`oracledb.AUTH_MODE_DEFAULT`.
 
     The ``disable_oob`` parameter is expected to be a boolean that indicates
     whether out-of-band breaks should be disabled. This value is only used
@@ -273,17 +282,17 @@ Oracledb Methods
     PowerBuilder) which has already made the connection. The connection thus
     created should *never* be used after the source handle has been closed or
     destroyed. This value is only used in the python-oracledb Thick mode.  It
-    should be used with extreme caution.
+    should be used with extreme caution. The default value is 0.
 
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
-    newpassword=None, wallet_password=None, host=None, port=None, protocol=None, \
-    https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
-    server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=None, \
-    retry_count=None, retry_delay=None, tcp_connect_timeout=None, ssl_server_dn_match=None, \
-    ssl_server_cert_dn=None, wallet_location=None, events=None, mode=None, \
-    disable_oob=None, stmtcachesize=None, edition=None, tag=None, matchanytag=None, \
-    config_dir=None, appcontext=None, shardingkey=None, supershardingkey=None, \
-    debug_jdwp=None, handle=None)
+    newpassword=None, wallet_password=None, host=None, port=1521, protocol="tcp", \
+    https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
+    server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+    retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+    ssl_server_cert_dn=None, wallet_location=None, events=False, externalauth=False, \
+    mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
+    edition=None, tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+    appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
 
     Contains all the parameters that can be used to establish a connection to the database.
 
@@ -407,9 +416,16 @@ Oracledb Methods
     query notification and high availability event notifications. The default
     value is False.
 
+    The ``externalauth`` parameter is a boolean that specifies whether external
+    authentication should be used. This value is only used in the python-oracledb
+    Thick mode. The default value is False. For standalone connections,
+    external authentication occurs when the ``user`` and ``password`` attributes
+    are not used. If these attributes are not used, you can optionally set the
+    ``externalauth`` attribute to True, which may aid code auditing.
+
     The ``mode`` parameter is expected to be an integer that identifies the
     authorization mode to use. This value is used in both the python-oracledb
-    Thin and Thick modes.The default value is 0.
+    Thin and Thick modes.The default value is :data:`oracledb.AUTH_MODE_DEFAULT`.
 
     The ``disable_oob`` parameter is expected to be a boolean that indicates
     whether out-of-band breaks should be disabled. This value is only used
@@ -463,25 +479,26 @@ Oracledb Methods
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
-    python-oracledb Thick mode.  It should be used with extreme caution.
+    python-oracledb Thick mode.  It should be used with extreme caution. The
+    default value is 0.
 
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
-        params=None, min=1, max=2, increment=1, \
-        connectiontype=oracledb.Connection, getmode=None, homogeneous=None, \
-        externalauth=None, timeout=0, wait_timeout=0, max_lifetime_session=0, \
-        session_callback=None, max_sessions_per_shard=0, \
-        soda_metadata_cache=False, ping_interval=60, user=None, \
-        proxy_user=None, password=None, newpassword=None, \
+        params=None, min=1, max=2, increment=1, connectiontype=oracledb.Connection, \
+        getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
+        wait_timeout=0, max_lifetime_session=0, session_callback=None, \
+        max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
+        user=None, proxy_user=None, password=None, newpassword=None, \
         wallet_password=None, host=None, port=1521, protocol="tcp", \
-        https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
+        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
         server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
-        expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60, \
+        expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
         ssl_server_dn_match=True, ssl_server_cert_dn=None, \
-        wallet_location=None, events=False, mode=oracledb.AUTH_MODE_DEFAULT, \
-        disable_oob=None, stmtcachesize=None, edition=None, tag=None, \
-        matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
-        supershardingkey=[], debug_jdwp=None, handle=0)
+        wallet_location=None, events=False, externalauth=False, \
+        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, \
+        matchanytag=False, config_dir=oracledb.defaults.config_dir, appcontext=[], \
+        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -508,7 +525,7 @@ Oracledb Methods
     ``params`` parameter object. Similar precedence rules also apply to other
     values.
 
-    The ``user``, ``password`` and ``dsn`` parameters are the same as for
+    The ``user``, ``password``, and ``dsn`` parameters are the same as for
     :meth:`oracledb.connect()`.
 
     The ``pool_class`` parameter is expected to be a
@@ -529,10 +546,12 @@ Oracledb Methods
     behavior. A fixed pool size where ``min`` equals ``max`` is
     :ref:`recommended <connpoolsize>` to help prevent connection storms and to
     help overall system stability. The ``min`` parameter is the number of
-    connections opened when the pool is created. The ``increment`` is the
-    number of connections that are opened whenever a connection request exceeds
-    the number of currently open connections. The ``max`` parameter is the
-    maximum number of connections that can be open in the connection pool.
+    connections opened when the pool is created. The default value of the
+    ``min`` parameter is 1. The ``increment`` parameter is the number of connections
+    that are opened whenever a connection request exceeds the number of currently
+    open connections. The default value of the ``increment`` parameter is 1.
+    The ``max`` parameter is the maximum number of connections that can be open
+    in the connection pool. The default value of the ``max`` parameter is 2.
 
     If the ``connectiontype`` parameter is specified, all calls to
     :meth:`ConnectionPool.acquire()` will create connection objects of that
@@ -548,9 +567,6 @@ Oracledb Methods
     The ``homogeneous`` parameter is a boolean that indicates whether the
     connections are homogeneous (same user) or heterogeneous (multiple
     users). The default value is True.
-
-    The ``externalauth`` parameter is a boolean that determines whether to use
-    external authentication. The default value is False.
 
     The ``timeout`` parameter is the length of time (in seconds) that a
     connection may remain idle in the pool before it is terminated. If the
@@ -697,10 +713,15 @@ Oracledb Methods
     query notification and high availability event notifications. The default
     value is False.
 
+    The ``externalauth`` parameter is a boolean that determines whether to use
+    external authentication. This value is only used in the python-oracledb Thick
+    mode. The default value is False.
+
     If the ``mode`` parameter is specified, it must be one of the
     :ref:`connection authorization modes <connection-authorization-modes>`
     which are defined at the module level. This value is used in both the
-    python-oracledb Thin and Thick modes.The default value is 0.
+    python-oracledb Thin and Thick modes.The default value is
+    :data:`oracledb.AUTH_MODE_DEFAULT`.
 
     The ``disable_oob`` parameter is expected to be a boolean that indicates
     whether out-of-band breaks should be disabled. This value is only used
@@ -757,7 +778,7 @@ Oracledb Methods
     PowerBuilder) which has already made the connection. The connection thus
     created should *never* be used after the source handle has been closed or
     destroyed. This value is only used in the python-oracledb Thick mode. It
-    should be used with extreme caution.
+    should be used with extreme caution. The deault value is 0.
 
     In the python-oracledb Thick mode, connection pooling is handled by
     Oracle's `Session pooling <https://www.oracle.com/pls/topic/lookup?
@@ -849,16 +870,16 @@ Oracledb Methods
         This method is an extension to the DB API definition.
 
 .. function:: PoolParams(min=1, max=2, increment=1, connectiontype=None, \
-    getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, externalauth=False, \
-    timeout=0, wait_timeout=0, max_lifetime_session=0, session_callback=None, \
+    getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
+    wait_timeout=0, max_lifetime_session=0, session_callback=None, \
     max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
     user=None, proxy_user=Nonde, password=None, newpassword=None, \
     wallet_password=None, host=None, port=1521, protocol="tcp", \
-    https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
+    https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
     server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
-    expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60, \
+    expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
     ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, \
-    events=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+    events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
     stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, \
     matchanytag=False, config_dir=oracledb.defaults.config_dir, appcontext=[], \
     shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
@@ -892,9 +913,6 @@ Oracledb Methods
     The ``homogeneous`` parameter is a boolean that indicates whether the
     connections are homogeneous (same user) or heterogeneous (multiple users).
     The default value is True.
-
-    The ``externalauth`` parameter is a boolean that determines whether to use
-    external authentication. The default value is False.
 
     The ``timeout`` parameter is the length of time (in seconds) that a
     connection may remain idle in the pool before it is terminated. If the
@@ -1043,6 +1061,10 @@ Oracledb Methods
     the file, cwallet.sso. This value is used in both the python-oracledb Thin
     and Thick modes.
 
+    The ``externalauth`` parameter is a boolean that determines whether to use
+    external authentication. This value is only used in the python-oracledb Thick
+    mode. The default value is False.
+
     The ``events`` parameter is expected to be a boolean that specifies whether
     the events mode should be enabled. This value is only used in the
     python-oracledb Thick mode. This parameter is needed for continuous
@@ -1051,7 +1073,7 @@ Oracledb Methods
 
     The ``mode`` parameter is expected to be an integer that identifies the
     authorization mode to use. This value is used in both the python-oracledb
-    Thin and Thick modes.The default value is 0.
+    Thin and Thick modes.The default value is :data:`oracledb.AUTH_MODE_DEFAULT`.
 
     The ``disable_oob`` parameter is expected to be a boolean that indicates
     whether out-of-band breaks should be disabled. This value is only used
@@ -1107,7 +1129,8 @@ Oracledb Methods
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
-    python-oracledb Thick mode. It should be used with extreme caution.
+    python-oracledb Thick mode. It should be used with extreme caution. The
+    default value is 0.
 
 .. function:: Time(hour, minute, second)
 
@@ -1752,8 +1775,6 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
     This constant is used to specify that the caller should wait for a period
     of time (defined by the ``wait_timeout`` parameter) for a session to become
     available before returning with an error.
-
-    This constant is not supported in the python-oracledb Thin mode.
 
     .. note::
 

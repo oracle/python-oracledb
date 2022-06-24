@@ -1528,7 +1528,7 @@ can connect using:
 
 .. code-block:: python
 
-    connection = oracledb.connect(dsn="mynetalias")
+    connection = oracledb.connect(externalauth=True, dsn="mynetalias")
 
 or:
 
@@ -1576,6 +1576,17 @@ Standalone connection example:
 
     # External Authentication with proxy
     connection = oracledb.connect(user="[mysessionuser]", dsn="mynetalias")
+    # PROXY_USER:   MYUSER
+    # SESSION_USER: MYSESSIONUSER
+
+You can also explicitly set the ``externalauth`` parameter to True in standalone
+connections as shown below. The ``externalauth`` parameter is optional.
+
+.. code-block:: python
+
+    # External Authentication with proxy when externalauth is set to True
+    connection = oracledb.connect(user="[mysessionuser]", dsn="mynetalias",
+                                  externalauth=True)
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
 

@@ -1,16 +1,18 @@
 Sphinx is used to generate the HTML for the python-oracledb documentation.
 
-The generated python-oracledb documentation is at https://python-oracledb.readthedocs.io/
+The generated python-oracledb documentation is at
+https://python-oracledb.readthedocs.io/
 
 This directory contains the documentation source.  It is written using reST
 (re-Structured Text). The source files are processed using Sphinx and can be
 turned into HTML, PDF or ePub documentation.
 
-If you wish to build documentation yourself, install Sphinx.  It is available
-on many Linux distributions as a pre-built package. You can also install it
-using the Python package manager "pip", for example::
+If you wish to build documentation yourself, install Sphinx and the Read the
+Docs theme.  Sphinx is available on many Linux distributions as a pre-built
+package. You can also install Sphinx and the Read the Docs theme using the
+Python package manager "pip", for example::
 
-    python -m pip install Sphinx
+    python -m pip install -r requirements.txt
 
 For more information on Sphinx, please visit this page:
 
