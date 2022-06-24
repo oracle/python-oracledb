@@ -28,7 +28,7 @@
 # Contains the PoolParams class used for managing the parameters required to
 # create a connection pool.
 #
-#{{ generated_notice }}
+# #{{ generated_notice }}
 #------------------------------------------------------------------------------
 
 from typing import Callable, Type, Union
@@ -47,11 +47,24 @@ class PoolParams(ConnectParams):
     __slots__ = ["_impl"]
     _impl_class = base_impl.PoolParamsImpl
 
-#{{ __init__ }}
+    @utils.params_initer
+    def __init__(self, *,
+                 #{{ args_with_defaults }}
+                ):
+        """
+        All parameters are optional. A brief description of each parameter
+        follows:
 
-#{{ __repr__ }}
+        #{{ args_help_with_defaults }}
+        """
+        pass
 
-#{{ properties }}
+    def __repr__(self):
+        return self.__class__.__qualname__ + "(" + \
+               #{{ params_repr_parts }} + \
+               ")"
+
+    #{{ params_properties }}
 
     def copy(self) -> Type["PoolParams"]:
         """
@@ -61,4 +74,14 @@ class PoolParams(ConnectParams):
         params._impl = self._impl.copy()
         return params
 
-#{{ set }}
+    @utils.params_setter
+    def set(self, *,
+            #{{ args_without_defaults }}
+           ):
+        """
+        All parameters are optional. A brief description of each parameter
+        follows:
+
+        #{{ args_help_without_defaults }}
+        """
+        pass

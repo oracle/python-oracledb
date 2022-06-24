@@ -28,12 +28,20 @@
 
 
 SOURCE_DIR = ../src/oracledb
+TEMPLATE_DIR = templates
 
-all: $(SOURCE_DIR)/connect_params.py $(SOURCE_DIR)/pool_params.py
+all: $(SOURCE_DIR)/connect_params.py $(SOURCE_DIR)/pool_params.py \
+		$(SOURCE_DIR)/connection.py $(SOURCE_DIR)/pool.py
 
-$(SOURCE_DIR)/connect_params.py: fields.cfg connect_params_template.py
+$(SOURCE_DIR)/connection.py: fields.cfg $(TEMPLATE_DIR)/connection.py
+	python build_from_template.py connection
+
+$(SOURCE_DIR)/connect_params.py: fields.cfg $(TEMPLATE_DIR)/connect_params.py
 	python build_from_template.py connect_params
 
-$(SOURCE_DIR)/pool_params.py: fields.cfg pool_params_template.py
+$(SOURCE_DIR)/pool.py: fields.cfg $(TEMPLATE_DIR)/pool.py
+	python build_from_template.py pool
+
+$(SOURCE_DIR)/pool_params.py: fields.cfg $(TEMPLATE_DIR)/pool_params.py
 	python build_from_template.py pool_params
 

@@ -28,9 +28,7 @@
 # Contains the Connection class and the factory method connect() used for
 # establishing connections to the database.
 #
-# *** NOTICE *** This file is generated from a template and should not be
-# modified directly. See build_from_template.py in the utils subdirectory for
-# more information.
+# #{{ generated_notice }}
 #------------------------------------------------------------------------------
 
 import collections
@@ -1012,45 +1010,7 @@ def connect(dsn: str=None, *,
             pool: Type["pool_module.ConnectionPool"]=None,
             conn_class: Type[Connection]=Connection,
             params: ConnectParams=None,
-            user: str=None,
-            proxy_user: str=None,
-            password: str=None,
-            newpassword: str=None,
-            wallet_password: str=None,
-            host: str=None,
-            port: int=1521,
-            protocol: str="tcp",
-            https_proxy: str=None,
-            https_proxy_port: int=0,
-            service_name: str=None,
-            sid: str=None,
-            server_type: str=None,
-            cclass: str=None,
-            purity: int=oracledb.PURITY_DEFAULT,
-            expire_time: int=0,
-            retry_count: int=0,
-            retry_delay: int=0,
-            tcp_connect_timeout: float=60.0,
-            ssl_server_dn_match: bool=True,
-            ssl_server_cert_dn: str=None,
-            wallet_location: str=None,
-            events: bool=False,
-            externalauth: bool=False,
-            mode: int=oracledb.AUTH_MODE_DEFAULT,
-            disable_oob: bool=False,
-            stmtcachesize: int=oracledb.defaults.stmtcachesize,
-            edition: str=None,
-            tag: str=None,
-            matchanytag: bool=False,
-            config_dir: str=oracledb.defaults.config_dir,
-            appcontext: list=None,
-            shardingkey: list=None,
-            supershardingkey: list=None,
-            debug_jdwp: str=None,
-            handle: int=0,
-            threaded: bool=True,
-            encoding: str=None,
-            nencoding: str=None
+            #{{ args_with_defaults }}
            ) -> Connection:
     """
     Factory function which creates a connection to the database and returns it.
@@ -1082,132 +1042,6 @@ def connect(dsn: str=None, *,
     The following parameters are all optional. A brief description of each
     parameter follows:
 
-    - user: the name of the user to connect to (default: None)
-
-    - proxy_user: the name of the proxy user to connect to. If this value is
-      not specified, it will be parsed out of user if user is in the form
-      "user[proxy_user]" (default: None)
-
-    - password: the password for the user (default: None)
-
-    - newpassword: the new password for the user. The new password will take
-      effect immediately upon a successful connection to the database (default:
-      None)
-
-    - wallet_password: the password to use to decrypt the wallet, if it is
-      encrypted. This value is only used in thin mode (default: None)
-
-    - host: the name or IP address of the machine hosting the database or the
-      database listener (default: None)
-
-    - port: the port number on which the database listener is listening
-      (default: 1521)
-
-    - protocol: one of the strings "tcp" or "tcps" indicating whether to use
-      unencrypted network traffic or encrypted network traffic (TLS) (default:
-      "tcp")
-
-    - https_proxy: the name or IP address of a proxy host to use for tunneling
-      secure connections (default: None)
-
-    - https_proxy_port: the port on which to communicate with the proxy host
-      (default: 0)
-
-    - service_name: the service name of the database (default: None)
-
-    - sid: the system identifier (SID) of the database. Note using a
-      service_name instead is recommended (default: None)
-
-    - server_type: the type of server connection that should be established. If
-      specified, it should be one of "dedicated", "shared" or "pooled"
-      (default: None)
-
-    - cclass: connection class to use for Database Resident Connection Pooling
-      (DRCP) (default: None)
-
-    - purity: purity to use for Database Resident Connection Pooling (DRCP)
-      (default: oracledb.PURITY_DEFAULT)
-
-    - expire_time: an integer indicating the number of minutes between the
-      sending of keepalive probes. If this parameter is set to a value greater
-      than zero it enables keepalive (default: 0)
-
-    - retry_count: the number of times that a connection attempt should be
-      retried before the attempt is terminated (default: 0)
-
-    - retry_delay: the number of seconds to wait before making a new connection
-      attempt (default: 0)
-
-    - tcp_connect_timeout: a float indicating the maximum number of seconds to
-      wait for establishing a connection to the database host (default: 60.0)
-
-    - ssl_server_dn_match: boolean indicating whether the server certificate
-      distinguished name (DN) should be matched in addition to the regular
-      certificate verification that is performed. Note that if the
-      ssl_server_cert_dn parameter is not privided, host name matching is
-      performed instead (default: True)
-
-    - ssl_server_cert_dn: the distinguished name (DN) which should be matched
-      with the server. This value is ignored if the ssl_server_dn_match
-      parameter is not set to the value True. If specified this value is used
-      for any verfication. Otherwise the hostname will be used. (default: None)
-
-    - wallet_location: the directory where the wallet can be found. In thin
-      mode this must be the directory containing the PEM-encoded wallet file
-      ewallet.pem. In thick mode this must be the directory containing the file
-      cwallet.sso (default: None)
-
-    - events: boolean specifying whether events mode should be enabled. This
-      value is only used in thick mode and is needed for continuous query
-      notification and high availability event notifications (default: False)
-
-    - externalauth: a boolean indicating whether to use external authentication
-      (default: False)
-
-    - mode: authorization mode to use. For example oracledb.AUTH_MODE_SYSDBA
-      (default: oracledb.AUTH_MODE_DEFAULT)
-
-    - disable_oob: boolean indicating whether out-of-band breaks should be
-      disabled. This value is only used in thin mode. It has no effect on
-      Windows which does not support this functionality (default: False)
-
-    - stmtcachesize: identifies the initial size of the statement cache
-      (default: oracledb.defaults.stmtcachesize)
-
-    - edition: edition to use for the connection. This parameter cannot be used
-      simultaneously with the cclass parameter (default: None)
-
-    - tag: identifies the type of connection that should be returned from a
-      pool. This value is only used in thick mode (default: None)
-
-    - matchanytag: boolean specifying whether any tag can be used when
-      acquiring a connection from the pool. This value is only used in thick
-      mode. (default: False)
-
-    - config_dir: directory in which the optional tnsnames.ora configuration
-      file is located. This value is only used in thin mode. For thick mode use
-      the config_dir parameter of init_oracle_client() (default:
-      oracledb.defaults.config_dir)
-
-    - appcontext: application context used by the connection. It should be a
-      list of 3-tuples (namespace, name, value) and each entry in the tuple
-      should be a string. This value is only used in thick mode (default: None)
-
-    - shardingkey: a list of strings, numbers, bytes or dates that identify the
-      database shard to connect to. This value is only used in thick mode
-      (default: None)
-
-    - supershardingkey: a list of strings, numbers, bytes or dates that
-      identify the database shard to connect to. This value is only used in
-      thick mode (default: None)
-
-    - debug_jdwp: a string with the format "host=<host>;port=<port>" that
-      specifies the host and port of the PL/SQL debugger. This value is only
-      used in thin mode. For thick mode set the ORA_DEBUG_JDWP environment
-      variable (default: None)
-
-    - handle: an integer representing a pointer to a valid service context
-      handle. This value is only used in thick mode. It should be used with
-      extreme caution (default: 0)
+    #{{ args_help_with_defaults }}
     """
     pass

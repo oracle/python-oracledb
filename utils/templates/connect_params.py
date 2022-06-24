@@ -28,7 +28,7 @@
 # Contains the ConnectParams class used for managing the parameters required to
 # establish a connection to the database.
 #
-#{{ generated_notice }}
+# #{{ generated_notice }}
 #------------------------------------------------------------------------------
 
 import functools
@@ -47,9 +47,22 @@ class ConnectParams:
     __slots__ = ["_impl"]
     _impl_class = base_impl.ConnectParamsImpl
 
-#{{ __init__ }}
+    @utils.params_initer
+    def __init__(self, *,
+                 #{{ args_with_defaults }}
+                ):
+        """
+        All parameters are optional. A brief description of each parameter
+        follows:
 
-#{{ __repr__ }}
+        #{{ args_help_with_defaults }}
+        """
+        pass
+
+    def __repr__(self):
+        return self.__class__.__qualname__ + "(" + \
+               #{{ params_repr_parts }} + \
+               ")"
 
     def _address_attr(f):
         """
@@ -77,7 +90,7 @@ class ConnectParams:
             return output if len(output) > 1 else output[0]
         return wrapped
 
-#{{ properties }}
+    #{{ params_properties }}
 
     def copy(self) -> Type["ConnectParams"]:
         """
@@ -103,4 +116,14 @@ class ConnectParams:
         """
         self._impl.parse_connect_string(connect_string)
 
-#{{ set }}
+    @utils.params_setter
+    def set(self, *,
+            #{{ args_without_defaults }}
+           ):
+        """
+        All parameters are optional. A brief description of each parameter
+        follows:
+
+        #{{ args_help_without_defaults }}
+        """
+        pass

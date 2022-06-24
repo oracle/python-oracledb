@@ -102,7 +102,12 @@ class PoolParams(ConnectParams):
                  handle: int=0,
                  threaded: bool=True,
                  encoding: str=None,
-                 nencoding: str=None):
+                 nencoding: str=None,
+                 waitTimeout: int=None,
+                 maxLifetimeSession: int=None,
+                 maxSessionsPerShard: int=None,
+                 sessionCallback: Callable=None
+                ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
@@ -293,52 +298,53 @@ class PoolParams(ConnectParams):
         pass
 
     def __repr__(self):
-        return self.__class__.__qualname__ + \
-               f"(min={self.min!r}" + \
-               f", max={self.max!r}" + \
-               f", increment={self.increment!r}" + \
-               f", connectiontype={self.connectiontype!r}" + \
-               f", getmode={self.getmode!r}" + \
-               f", homogeneous={self.homogeneous!r}" + \
-               f", timeout={self.timeout!r}" + \
-               f", wait_timeout={self.wait_timeout!r}" + \
-               f", max_lifetime_session={self.max_lifetime_session!r}" + \
-               f", session_callback={self.session_callback!r}" + \
-               f", max_sessions_per_shard={self.max_sessions_per_shard!r}" + \
-               f", soda_metadata_cache={self.soda_metadata_cache!r}" + \
-               f", ping_interval={self.ping_interval!r}" + \
-               f", user={self.user!r}" + \
-               f", proxy_user={self.proxy_user!r}" + \
-               f", host={self.host!r}" + \
-               f", port={self.port!r}" + \
-               f", protocol={self.protocol!r}" + \
-               f", https_proxy={self.https_proxy!r}" + \
-               f", https_proxy_port={self.https_proxy_port!r}" + \
-               f", service_name={self.service_name!r}" + \
-               f", sid={self.sid!r}" + \
-               f", server_type={self.server_type!r}" + \
-               f", cclass={self.cclass!r}" + \
-               f", purity={self.purity!r}" + \
-               f", expire_time={self.expire_time!r}" + \
-               f", retry_count={self.retry_count!r}" + \
-               f", retry_delay={self.retry_delay!r}" + \
-               f", tcp_connect_timeout={self.tcp_connect_timeout!r}" + \
-               f", ssl_server_dn_match={self.ssl_server_dn_match!r}" + \
-               f", ssl_server_cert_dn={self.ssl_server_cert_dn!r}" + \
-               f", wallet_location={self.wallet_location!r}" + \
-               f", events={self.events!r}" + \
-               f", externalauth={self.externalauth!r}" + \
-               f", mode={self.mode!r}" + \
-               f", disable_oob={self.disable_oob!r}" + \
-               f", stmtcachesize={self.stmtcachesize!r}" + \
-               f", edition={self.edition!r}" + \
-               f", tag={self.tag!r}" + \
-               f", matchanytag={self.matchanytag!r}" + \
-               f", config_dir={self.config_dir!r}" + \
-               f", appcontext={self.appcontext!r}" + \
-               f", shardingkey={self.shardingkey!r}" + \
-               f", supershardingkey={self.supershardingkey!r}" + \
-               f", debug_jdwp={self.debug_jdwp!r})"
+        return self.__class__.__qualname__ + "(" + \
+               f"min={self.min!r}, " + \
+               f"max={self.max!r}, " + \
+               f"increment={self.increment!r}, " + \
+               f"connectiontype={self.connectiontype!r}, " + \
+               f"getmode={self.getmode!r}, " + \
+               f"homogeneous={self.homogeneous!r}, " + \
+               f"timeout={self.timeout!r}, " + \
+               f"wait_timeout={self.wait_timeout!r}, " + \
+               f"max_lifetime_session={self.max_lifetime_session!r}, " + \
+               f"session_callback={self.session_callback!r}, " + \
+               f"max_sessions_per_shard={self.max_sessions_per_shard!r}, " + \
+               f"soda_metadata_cache={self.soda_metadata_cache!r}, " + \
+               f"ping_interval={self.ping_interval!r}, " + \
+               f"user={self.user!r}, " + \
+               f"proxy_user={self.proxy_user!r}, " + \
+               f"host={self.host!r}, " + \
+               f"port={self.port!r}, " + \
+               f"protocol={self.protocol!r}, " + \
+               f"https_proxy={self.https_proxy!r}, " + \
+               f"https_proxy_port={self.https_proxy_port!r}, " + \
+               f"service_name={self.service_name!r}, " + \
+               f"sid={self.sid!r}, " + \
+               f"server_type={self.server_type!r}, " + \
+               f"cclass={self.cclass!r}, " + \
+               f"purity={self.purity!r}, " + \
+               f"expire_time={self.expire_time!r}, " + \
+               f"retry_count={self.retry_count!r}, " + \
+               f"retry_delay={self.retry_delay!r}, " + \
+               f"tcp_connect_timeout={self.tcp_connect_timeout!r}, " + \
+               f"ssl_server_dn_match={self.ssl_server_dn_match!r}, " + \
+               f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, " + \
+               f"wallet_location={self.wallet_location!r}, " + \
+               f"events={self.events!r}, " + \
+               f"externalauth={self.externalauth!r}, " + \
+               f"mode={self.mode!r}, " + \
+               f"disable_oob={self.disable_oob!r}, " + \
+               f"stmtcachesize={self.stmtcachesize!r}, " + \
+               f"edition={self.edition!r}, " + \
+               f"tag={self.tag!r}, " + \
+               f"matchanytag={self.matchanytag!r}, " + \
+               f"config_dir={self.config_dir!r}, " + \
+               f"appcontext={self.appcontext!r}, " + \
+               f"shardingkey={self.shardingkey!r}, " + \
+               f"supershardingkey={self.supershardingkey!r}, " + \
+               f"debug_jdwp={self.debug_jdwp!r}" + \
+               ")"
 
     @property
     def connectiontype(self) -> Type["oracledb.Connection"]:
@@ -511,7 +517,12 @@ class PoolParams(ConnectParams):
             handle: int=None,
             threaded: bool=None,
             encoding: str=None,
-            nencoding: str=None):
+            nencoding: str=None,
+            waitTimeout: int=None,
+            maxLifetimeSession: int=None,
+            maxSessionsPerShard: int=None,
+            sessionCallback: Callable=None
+           ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
