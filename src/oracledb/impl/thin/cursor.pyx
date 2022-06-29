@@ -148,7 +148,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
                 for i in range(num_execs - 1):
                     message.offset = i + 1
                     self._conn_impl._protocol._process_single_message(message)
-            else:
+            elif num_execs > 1:
                 message.offset = 1
                 message.num_execs = num_execs - 1
                 self._conn_impl._protocol._process_single_message(message)
