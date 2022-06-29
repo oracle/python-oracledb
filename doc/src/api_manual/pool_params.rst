@@ -32,7 +32,10 @@ PoolParams Methods
   which is looked up in ``tnsnames.ora``. Parameters that are found in the connect string
   override any currently stored values.
 
-.. method:: PoolParams.set(user=None, proxy_user=None, password=None, \
+.. method:: PoolParams.set(min=None, max=None, increment=None, connectiontype=None, \
+    getmode=None, homogeneous=None, timeout=None, wait_timeout=None, \
+    max_lifetime_session=None, session_callback=None, max_sessions_per_shard=None, \
+    soda_metadata_cache=None, ping_interval=None, user=None, proxy_user=None, password=None, \
     newpassword=None, wallet_password=None, host=None, port=None, protocol=None, \
     https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
     server_type=None, cclass=None, purity=None, expire_time=None, retry_count=None, \

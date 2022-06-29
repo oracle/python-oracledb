@@ -4,47 +4,23 @@
 Character Sets and Globalization
 ********************************
 
+Character Sets
+==============
+
+Database Character Set
+----------------------
+
 Data fetched from and sent to Oracle Database will be mapped between the
-database character set and the "Oracle client" character set of the Oracle
-Client libraries used by python-oracledb. If data cannot be correctly mapped between
-client and server character sets, then it may be corrupted or queries may fail
-with :ref:`"codec can't decode byte" <codecerror>`.
+`database character set
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-EA913CC8-C5BA-4FB3-A1B8-882734AF4F43>`__
+and the "Oracle client" character set of the Oracle Client libraries used by
+python-oracledb. If data cannot be correctly mapped between client and server
+character sets, then it may be corrupted or queries may fail with :ref:`"codec
+can't decode byte" <codecerror>`.
 
-All database character sets are supported by the python-oracledb Thick mode.
-The database performs any required conversion for the python-oracledb Thin
-mode.
-
-For the `national character set
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4E12D991-C286-4F1A-AFC6-F35040A5DE4F>`__
-used for NCHAR, NVARCHAR2, and NCLOB data types:
-
-- AL16UTF16 is supported by both the python-oracledb Thin and Thick modes
-- UTF8 is not supported by the python-oracledb Thin mode
-
-Python-oracledb Thick mode uses Oracle's National Language Support (NLS) to
-assist in globalizing applications, see :ref:`thicklocale`.
-
-.. note::
-
-    All NLS environment variables are ignored by the python-oracledb Thin mode.
-    Also the ``ORA_SDTZ`` and ``ORA_TZFILE`` variables are ignored.  See
-    :ref:`thindatenumber`.
-
-For more information, see the `Database Globalization Support Guide
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=NLSPG>`__.
-
-Setting the Client Character Set
-================================
-
-In python-oracledb, the encoding used for all character data is "UTF-8".  The
-``encoding`` and ``nencoding`` parameters of the :meth:`oracledb.connect`
-and :meth:`oracledb.create_pool` methods are ignored.
+All database character sets are supported by the python-oracledb.
 
 .. _findingcharset:
-
-
-Finding the Oracle Database Character Set
-=========================================
 
 To find the database character set, execute the query:
 
@@ -54,8 +30,17 @@ To find the database character set, execute the query:
     FROM nls_database_parameters
     WHERE parameter = 'NLS_CHARACTERSET';
 
-To find the database 'national character set' used for NCHAR and related types,
-execute the query:
+Database National Character Set
+-------------------------------
+
+For the secondary `national character set
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4E12D991-C286-4F1A-AFC6-F35040A5DE4F>`__
+used for NCHAR, NVARCHAR2, and NCLOB data types:
+
+- AL16UTF16 is supported by both the python-oracledb Thin and Thick modes
+- UTF8 is not supported by the python-oracledb Thin mode
+
+To find the database's national character set, execute the query:
 
 .. code-block:: sql
 
@@ -63,27 +48,69 @@ execute the query:
      FROM nls_database_parameters
      WHERE parameter = 'NLS_NCHAR_CHARACTERSET';
 
-To find the current "client" character set used by python-oracledb, execute the
-query:
+Setting the Client Character Set
+--------------------------------
 
-.. code-block:: sql
+In python-oracledb, the encoding used for all character data is "UTF-8".  The
+``encoding`` and ``nencoding`` parameters of the :meth:`oracledb.connect`
+and :meth:`oracledb.create_pool` methods are deprecated and ignored.
 
-    SELECT DISTINCT client_charset AS client_charset
-    FROM v$session_connect_info
-    WHERE sid = SYS_CONTEXT('USERENV', 'SID');
 
+Setting the Client Locale
+=========================
+
+Thick Mode Oracle Database National Language Support (NLS)
+----------------------------------------------------------
+
+The python-oracledb Thick mode uses Oracle Database's National Language Support
+(NLS) functionality to assist in globalizing applications, for example to
+convert numbers and dates to strings in the locale specific format.
+
+You can use the ``NLS_LANG`` environment variable to set the language and
+territory used by the Oracle Client libraries.  For example, on Linux you could
+set::
+
+    export NLS_LANG=JAPANESE_JAPAN
+
+The language ("JAPANESE" in this example) specifies conventions such as the
+language used for Oracle Database messages, sorting, day names, and month
+names.  The territory ("JAPAN") specifies conventions such as the default date,
+monetary, and numeric formats. If the language is not specified, then the value
+defaults to AMERICAN.  If the territory is not specified, then the value is
+derived from the language value.  See `Choosing a Locale with the NLS_LANG
+Environment Variable
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__
+
+If the ``NLS_LANG`` environment variable is set in the application with
+``os.environ['NLS_LANG']``, it must be set before any connection pool is
+created, or before any standalone connections are created.
+
+Any client character set value in the ``NLS_LANG`` variable, for example
+``JAPANESE_JAPAN.JA16SJIS``, is ignored by python-oracledb.  See `Setting the
+Client Character Set`_.
+
+Other Oracle globalization variables, such as ``NLS_DATE_FORMAT`` can also be
+set to change the behavior of python-oracledb Thick, see `Setting NLS Parameters
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-6475CA50-6476-4559-AD87-35D431276B20>`__.
+
+For more information, see the `Database Globalization Support Guide
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=NLSPG>`__.
 
 .. _thindatenumber:
 
-Locale-aware Number and Date Conversions in python-oracledb Thin Mode
-=====================================================================
+Thin Mode Locale-aware Number and Date Conversions
+--------------------------------------------------
 
-In python-oracledb Thick mode, Oracle NLS routines convert numbers and dates to
-strings in the locale specific format.  But in the python-oracledb Thin mode,
-output type handlers need to be used to perform similar conversions.  The
-examples below show a simple conversion and also how the Python locale module
-can be used.  Type handlers like those below can also be used in
-python-oracledb Thick mode.
+.. note::
+
+    All NLS environment variables are ignored by the python-oracledb Thin mode.
+    Also the ``ORA_SDTZ`` and ``ORA_TZFILE`` variables are ignored.
+
+In the python-oracledb Thin mode, output type handlers need to be used to
+perform similar conversions.  The examples below show a simple conversion and
+also how the Python locale module can be used.  Type handlers like those below
+can also be used in python-oracledb Thick mode.
 
 To convert numbers:
 
@@ -188,33 +215,3 @@ To convert dates:
          for row in cursor:
              print(row)       # gives 'Mi 15 Dez 19:57:56 2021'
          print()
-
-
-.. _thicklocale:
-
-Setting the Oracle Client Locale in python-oracledb Thick Mode
-==============================================================
-
-You can use the ``NLS_LANG`` environment variable to set the language and
-territory used by the Oracle Client libraries.  For example, on Linux you could
-set::
-
-    export NLS_LANG=JAPANESE_JAPAN
-
-The language ("JAPANESE" in this example) specifies conventions such as the
-language used for Oracle Database messages, sorting, day names, and month
-names.  The territory ("JAPAN") specifies conventions such as the default date,
-monetary, and numeric formats. If the language is not specified, then the value
-defaults to AMERICAN.  If the territory is not specified, then the value is
-derived from the language value.  See `Choosing a Locale with the NLS_LANG
-Environment Variable
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__
-
-If the ``NLS_LANG`` environment variable is set in the application with
-``os.environ['NLS_LANG']``, it must be set before any connection pool is
-created, or before any standalone connections are created.
-
-Other Oracle globalization variables, such as ``NLS_DATE_FORMAT`` can also be
-set to change the behavior of python-oracledb Thick, see `Setting NLS Parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-6475CA50-6476-4559-AD87-35D431276B20>`__.
