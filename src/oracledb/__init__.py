@@ -45,6 +45,7 @@ from .dbobject import DbObject, DbObjectType
 from .var import Var
 from .constructors import *
 from .dsn import makedsn
+from .driver_mode import is_thin_mode
 
 from .base_impl import *
 from .thick_impl import clientversion, init_oracle_client

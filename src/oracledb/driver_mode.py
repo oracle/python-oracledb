@@ -68,3 +68,23 @@ def check_and_return_mode(requested_thin_mode=None):
     elif requested_thin_mode is not None and requested_thin_mode != thin_mode:
         errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
     return thin_mode
+
+
+def is_thin_mode() -> bool:
+    """
+    Return a boolean specifying whether the driver is using thin mode (True) or
+    thick mode (False).
+
+    Immediately after python-oracledb is imported, this function will return
+    True indicating that python-oracledb defaults to Thin mode. If
+    oracledb.init_oracle_client() is called, then a subsequent call to
+    is_thin_mode() will return False indicating that Thick mode is enabled.
+    Once the first standalone connection or connection pool is created, or a
+    call to oracledb.init_oracle_client() is made, then python-oracledb's mode
+    is fixed and the value returned by is_thin_mode() will never change for the
+    lifetime of the process.
+
+    """
+    if thin_mode is not None:
+        return thin_mode
+    return True

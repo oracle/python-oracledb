@@ -40,6 +40,9 @@ Common Changes
 #)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
     specified when building from source code on macOS (Intel x86) without
     Universal Python binaries.
+#)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
+    the driver is using thin mode or not
+    (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
 #)  Improved samples and documentation.
 
 

@@ -854,6 +854,26 @@ Oracledb Methods
         This method is an extension to the DB API definition.
 
 
+.. function:: is_thin_mode()
+
+    Returns a boolean indicating if Thin mode is in use.
+
+    Immediately after python-oracledb is imported, this function will return
+    True indicating that python-oracledb defaults to Thin mode. If
+    :func:`oracledb.init_oracle_client()` is called, then a subsequent call to
+    ``is_thin_mode()`` will return False indicating that Thick mode is
+    enabled. Once the first standalone connection or connection pool is
+    created, or a call to ``oracledb.init_oracle_client()`` is made, then
+    python-oracledb’s mode is fixed and the value returned by
+    ``is_thin_mode()`` will never change for the lifetime of the process.
+
+    The attribute :attr:`Connection.thin` can be used to check a connection's
+    mode.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
 .. function:: makedsn(host, port, sid=None, service_name=None, region=None, \
         sharding_key=None, super_sharding_key=None)
 
