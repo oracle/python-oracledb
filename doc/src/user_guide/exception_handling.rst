@@ -95,7 +95,8 @@ in the examples below:
 
     python-oracledb Thin mode Error::
 
-      [Errno 61] Connection refused
+      DPY-6005: cannot connect to database. Connection failed with "[Errno 61]
+      Connection refused"
 
     python-oracledb Thick mode Error::
 

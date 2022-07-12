@@ -40,8 +40,6 @@ Common Changes
 #)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
     specified when building from source code on macOS (Intel x86) without
     Universal Python binaries.
-#)  The connect() and create_pool() functions now have complete documentation
-    on their arguments.
 #)  Improved samples and documentation.
 
 
