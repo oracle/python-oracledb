@@ -157,17 +157,16 @@ cdef class Protocol:
             if connect_message.packet_type == TNS_PACKET_TYPE_ACCEPT:
                 break
 
-            # for TCPS connections, OOB processing is not supported; if a
-            # wallet is required, the socket must be rewrapped in order to
-            # be usable; disable the check on the host name, however, as that
-            # has already been done successfully
+            # for TCPS connections, OOB processing is not supported; if the
+            # packet flags indicate that TLS renegotiation is required, this is
+            # performed now
             if address.protocol == "tcps":
                 self._caps.supports_oob = False
-                if description.wallet_location is not None:
+                if connect_message.packet_flags & TNS_PACKET_FLAG_TLS_RENEG:
                     ssl_context = self._socket.context
-                    ssl_context.check_hostname = False
                     sock = socket.socket(fileno=self._socket.detach())
-                    sock = ssl_context.wrap_socket(sock)
+                    sock = perform_tls_negotiation(sock, ssl_context,
+                                                   description, address)
                     self._set_socket(sock)
 
     cdef int _connect_phase_two(self, ThinConnImpl conn_impl,
@@ -306,7 +305,7 @@ cdef class Protocol:
 
     cdef int _receive_packet(self, Message message) except -1:
         cdef ReadBuffer buf = self._read_buf
-        buf.receive_packet(&message.packet_type)
+        buf.receive_packet(&message.packet_type, &message.packet_flags)
         if message.packet_type == TNS_PACKET_TYPE_MARKER:
             self._reset(message)
         elif message.packet_type == TNS_PACKET_TYPE_REFUSE:
@@ -342,7 +341,8 @@ cdef class Protocol:
                 self._read_buf.read_ub1(&marker_type)
                 if marker_type == TNS_MARKER_TYPE_RESET:
                     break
-            self._read_buf.receive_packet(&message.packet_type)
+            self._read_buf.receive_packet(&message.packet_type,
+                                          &message.packet_flags)
 
         # read error packet; first skip as many marker packets as may be sent
         # by the server; if the server doesn't handle out-of-band breaks
@@ -350,7 +350,8 @@ cdef class Protocol:
         # markers (this addresses both situations without resulting in strange
         # errors)
         while message.packet_type == TNS_PACKET_TYPE_MARKER:
-            self._read_buf.receive_packet(&message.packet_type)
+            self._read_buf.receive_packet(&message.packet_type,
+                                          &message.packet_flags)
         self._break_in_progress = False
 
     cdef int _send_marker(self, WriteBuffer buf, uint8_t marker_type):

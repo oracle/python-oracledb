@@ -324,14 +324,14 @@ cdef class ReadBuffer:
         """
         cdef:
             ssize_t num_bytes_left, num_bytes_split, max_split_data
+            uint8_t packet_type, packet_flags
             const char_type *source_ptr
-            uint8_t packet_type
             char_type *dest_ptr
 
         # if no bytes are left in the buffer, a new packet needs to be fetched
         # before anything else can take place
         if self._offset == self._size:
-            self.receive_packet(&packet_type)
+            self.receive_packet(&packet_type, &packet_flags)
             self.skip_raw_bytes(2)          # skip data flags
 
         # if there is enough room in the buffer to satisfy the number of bytes
@@ -367,7 +367,7 @@ cdef class ReadBuffer:
         while num_bytes > 0:
 
             # acquire new packet
-            self.receive_packet(&packet_type)
+            self.receive_packet(&packet_type, &packet_flags)
             self.skip_raw_bytes(2)          # skip data flags
 
             # copy data into the chunked buffer or split buffer, as appropriate
@@ -405,7 +405,8 @@ cdef class ReadBuffer:
                 errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
                                   err_num=error_num)
 
-    cdef int _receive_packet_helper(self, uint8_t *packet_type) except -1:
+    cdef int _receive_packet_helper(self, uint8_t *packet_type,
+                                    uint8_t *packet_flags) except -1:
         """
         Receives a packet and updates the pointers appropriately. Note that
         multiple packets may be received if they are small enough or a portion
@@ -475,7 +476,8 @@ cdef class ReadBuffer:
         if self._caps.protocol_version < TNS_VERSION_MIN_LARGE_SDU:
             self.skip_raw_bytes(2)      # skip packet checksum
         self.read_ub1(packet_type)
-        self.skip_raw_bytes(3)          # skip reserved byte, header checksum
+        self.read_ub1(packet_flags)
+        self.skip_raw_bytes(2)          # header checksum
 
         # display packet if requested
         if DEBUG_PACKETS:
@@ -1079,14 +1081,15 @@ cdef class ReadBuffer:
 
         return bytes(output_value).decode()
 
-    cdef int receive_packet(self, uint8_t *packet_type) except -1:
+    cdef int receive_packet(self, uint8_t *packet_type,
+                            uint8_t *packet_flags) except -1:
         """
         Calls _receive_packet_helper() and checks the packet type. If a
         control packet is received, it is processed and the next packet is
         received.
         """
         while True:
-            self._receive_packet_helper(packet_type)
+            self._receive_packet_helper(packet_type, packet_flags)
             if packet_type[0] == TNS_PACKET_TYPE_CONTROL:
                 self._process_control_packet()
                 continue

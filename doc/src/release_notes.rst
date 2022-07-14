@@ -23,6 +23,9 @@ Thin Mode Changes
 #)  When using the connection parameter `https_proxy` while using protocol
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
+#)  Fixed a bug that caused TLS renegotiation to be skipped in some
+    configurations
+    (https://github.com/oracle/python-oracledb/discussions/34).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
 

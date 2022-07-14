@@ -51,6 +51,7 @@ cdef class Message:
         uint32_t call_status
         uint16_t end_to_end_seq_num
         uint8_t packet_type
+        uint8_t packet_flags
         bint error_occurred
         bint flush_out_binds
         bint processed_error
@@ -1543,7 +1544,7 @@ cdef class ConnectMessage(Message):
             const char_type *redirect_data
         if self.packet_type == TNS_PACKET_TYPE_REDIRECT:
             buf.read_uint16(&redirect_data_length)
-            buf.receive_packet(&self.packet_type)
+            buf.receive_packet(&self.packet_type, &self.packet_flags)
             buf.skip_raw_bytes(2)           # skip data flags
             redirect_data = buf._get_raw(redirect_data_length)
             self.redirect_data = \
