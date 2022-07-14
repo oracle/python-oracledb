@@ -224,6 +224,7 @@ cdef class ThinConnImpl(BaseConnImpl):
                                     6)
                     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT,
                                     10)
+            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             sock.settimeout(None)
             if address.protocol == "tcps":
                 sock = get_ssl_socket(sock, params, description, address)

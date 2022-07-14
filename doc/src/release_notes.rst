@@ -23,6 +23,8 @@ Thin Mode Changes
 #)  When using the connection parameter `https_proxy` while using protocol
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
+#)  Internally make use of the `TCP_NODELAY` socket option to remove delays
+    in socket reads.
 
 Thick Mode Changes
 ++++++++++++++++++
