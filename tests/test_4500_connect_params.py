@@ -460,6 +460,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("supershardingkey", [1, 2, 3])
         self.__test_writable_parameter("tag", "tag_4530")
         self.__test_writable_parameter("debug_jdwp", "host=host;port=4530")
+        self.__test_writable_parameter("externalauth", True)
 
     def test_4531_build_connect_string_with_tcp_connect_timeout(self):
         "4531 - test building connect string with TCP connect timeout"
