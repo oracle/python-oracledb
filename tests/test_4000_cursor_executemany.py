@@ -286,5 +286,13 @@ class TestCase(test_env.BaseTestCase):
                 end;""", data)
             self.assertEqual(out_bind.values, [5, 8, 17, 24, 6])
 
+    def test_4020_executemany_with_plsql_single_row(self):
+        "4020 - test PL/SQL statement with single row bind"
+        value = 4020
+        var = self.cursor.var(int)
+        data = [[var, value]]
+        self.cursor.executemany("begin :1 := :2; end;", data)
+        self.assertEqual(var.values, [value])
+
 if __name__ == "__main__":
     test_env.run_test_cases()
