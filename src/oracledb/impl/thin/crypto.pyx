@@ -117,6 +117,14 @@ def get_ssl_socket(sock, ConnectParamsImpl params, Description description,
         ssl_context.load_verify_locations(pem_file_name)
         ssl_context.load_cert_chain(pem_file_name,
                                     password=params._get_wallet_password())
+    return perform_tls_negotiation(sock, ssl_context, description, address)
+
+
+def perform_tls_negotiation(sock, ssl_context, Description description,
+                            Address address):
+    """
+    Peforms TLS negotiation.
+    """
     if description.ssl_server_dn_match \
             and description.ssl_server_cert_dn is None:
         sock = ssl_context.wrap_socket(sock, server_hostname=address.host)
