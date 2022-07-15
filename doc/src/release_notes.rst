@@ -24,7 +24,7 @@ Thin Mode Changes
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
 #)  Fixed a bug that caused TLS renegotiation to be skipped in some
-    configurations
+    configurations, thereby causing the connection to fail to be established
     (https://github.com/oracle/python-oracledb/discussions/34).
 
 Thick Mode Changes
