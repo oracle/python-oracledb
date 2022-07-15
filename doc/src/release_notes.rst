@@ -27,6 +27,10 @@ Thin Mode Changes
     configurations
     (https://github.com/oracle/python-oracledb/discussions/34).
 
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed the ability to use external authentication with connection pools.
 
 Common Changes
 ++++++++++++++
