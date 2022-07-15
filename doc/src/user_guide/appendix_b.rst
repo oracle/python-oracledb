@@ -215,9 +215,6 @@ differs from the python-oracledb Thick mode in the following ways:
   ``handle`` parameters.  The parameters that are ignored in the Thick mode include
   ``wallet_password``, ``disable_oob``, ``config_dir``, and ``debug_jdwp`` parameters.
 
-* The ``getmode`` value :data:`~oracledb.POOL_GETMODE_TIMEDWAIT` is not
-  implemented in the python-oracledb Thin mode.
-
 * The python-oracledb Thin mode only suppports :ref:`homogeneous
   <connpooltypes>` pools.
 
@@ -314,8 +311,13 @@ Globalization in Thin and Thick Modes
 =====================================
 
 All NLS environment variables, and the ``ORA_SDTZ`` and ``ORA_TZFILE``
-variables, are ignored by the python-oracledb Thin mode.  Use Python's
-capabilities instead.  See :ref:`globalization`.
+environment variables, are ignored by the python-oracledb Thin mode.  Use
+Python's capabilities instead.
+
+The python-oracledb Thin mode can only use NCHAR, NVARCHAR2, and NCLOB data
+when Oracle Database's secondary character set is AL16UTF16.
+
+See :ref:`globalization`.
 
 Tracing in Thin and Thick Modes
 ===============================

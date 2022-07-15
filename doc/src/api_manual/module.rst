@@ -1753,8 +1753,6 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
     of time (defined by the ``wait_timeout`` parameter) for a session to become
     available before returning with an error.
 
-    This constant is not supported in the python-oracledb Thin mode.
-
     .. note::
 
         This constant deprecates the ``SPOOL_ATTRVAL_TIMEDWAIT`` constant that
