@@ -21,6 +21,14 @@ Thin Mode Changes
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
 
+Common Changes
+++++++++++++++
+
+#)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
+    specified when building from source code on macOS (Intel x86) without
+    Universal Python binaries.
+#)  Improved samples and documentation.
+
 
 oracledb 1.0.1 (June 2022)
 --------------------------
