@@ -34,6 +34,8 @@ cdef class Capabilities:
     cdef:
         uint16_t protocol_version
         uint8_t ttc_field_version
+        uint16_t charset_id
+        uint16_t ncharset_id
         bytearray compile_caps
         bytearray runtime_caps
         bint char_conversion
@@ -57,6 +59,15 @@ cdef class Capabilities:
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
         pass
+
+    cdef int _check_ncharset_id(self) except -1:
+        """
+        Checks that the national character set id is AL16UTF16, which is the
+        only id that is currently supported.
+        """
+        if self.ncharset_id != TNS_CHARSET_UTF16:
+            errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
+                              charset_id=self.ncharset_id)
 
     @cython.boundscheck(False)
     cdef void _init_compile_caps(self):

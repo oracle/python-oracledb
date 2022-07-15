@@ -13,6 +13,10 @@ oracledb 1.0.2 (July 2022)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Connecting to a database with national character set `UTF8` is now
+    supported; an error is now raised only when the first attempt to use
+    NCHAR, NVARCHAR2 or NCLOB data is made
+    (`issue 16 <https://github.com/oracle/python-oracledb/issues/16>`__).
 #)  When using the connection parameter `https_proxy` while using protocol
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
