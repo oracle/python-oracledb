@@ -152,6 +152,7 @@ ERR_INVALID_CONNECT_PARAMS = 2025
 ERR_INVALID_POOL_CLASS = 2026
 ERR_INVALID_POOL_PARAMS = 2027
 ERR_EXPECTING_LIST_FOR_ARRAY_VAR = 2028
+ERR_HTTPS_PROXY_REQUIRES_TCPS = 2029
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -285,6 +286,8 @@ ERR_MESSAGE_FORMATS = {
             'to cursor.var()',
     ERR_FEATURE_NOT_SUPPORTED:
             '{feature} is only supported in python-oracledb {driver_type} mode',
+    ERR_HTTPS_PROXY_REQUIRES_TCPS:
+            'https_proxy requires use of the tcps protocol',
     ERR_INCONSISTENT_DATATYPES:
             'cannot convert from data type {input_type} to {output_type}',
     ERR_INCORRECT_VAR_ARRAYSIZE:

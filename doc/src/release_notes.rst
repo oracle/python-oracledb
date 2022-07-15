@@ -10,6 +10,13 @@ For deprecations, see :ref:`Deprecations <deprecations>`.
 oracledb 1.0.2 (July 2022)
 --------------------------
 
+Thin Mode Changes
++++++++++++++++++
+
+#)  When using the connection parameter `https_proxy` while using protocol
+    `tcp`, a more meaningful exception is now raised:
+    `DPY-2029: https_proxy requires use of the tcps protocol`.
+
 
 oracledb 1.0.1 (June 2022)
 --------------------------
