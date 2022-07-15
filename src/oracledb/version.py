@@ -26,7 +26,8 @@
 # version.py
 #
 # Defines the version of the package. This is the only place where this is
-# found. The setup.cfg configuration file references this file directly.
+# found. The setup.cfg configuration file and the documentation configuration
+# file doc/src/conf.py both reference this file directly.
 #------------------------------------------------------------------------------
 
 __version__ = "1.0.1"
