@@ -429,6 +429,7 @@ first connection is established.  System environment variables like
 
 .. list-table-with-summary:: Common Oracle environment variables
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 1 2
     :summary: The first column displays the Oracle Environment Variable. The second column, Purpose, describes what the environment variableis used for.
     :align: left

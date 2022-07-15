@@ -89,7 +89,7 @@ html_style = 'default.css'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['.static']
+html_static_path = ['.static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -119,6 +119,10 @@ html_copy_source = False
 htmlhelp_basename = 'oracledbdoc'
 
 numfig = True
+
+# Display tables with no horizontal scrollbar
+def setup(app):
+    app.add_css_file('custom.css')
 
 # Options for LaTeX output
 # ------------------------

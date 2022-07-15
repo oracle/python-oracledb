@@ -18,6 +18,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
 
 .. list-table-with-summary::  Features Supported by python-oracledb and cx_Oracle 8.3
     :header-rows: 1
+    :class: wy-table-responsive
     :align: center
     :summary: The first column displays the Oracle feature. The second column indicates whether the feature is supported in the python-oracledb Thin mode. The third column indicates whether the feature is supported in the python-oracledb Thick mode. The fourth column indicates if the feature is supported in cx_Oracle 8.3.
 
@@ -387,6 +388,7 @@ values.
 
 .. list-table-with-summary::  Oracle Database Data Types Supported
     :header-rows: 1
+    :class: wy-table-responsive
     :align: center
     :summary: The first column displays the database data type. The second column displays the python-oracledb constant Name. The third column indicates if the type is supported in python-oracledb.
 

@@ -164,6 +164,7 @@ Python object that is returned by default. Python types can be changed with
 
 .. list-table-with-summary::
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 1 1 1
     :align: left
     :summary: The first column is the Oracle Database Type. The second column is the oracledb Database Type that is returned in the query metadata. The third column is the type of Python object that is returned by default.

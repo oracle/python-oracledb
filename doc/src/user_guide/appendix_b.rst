@@ -91,6 +91,7 @@ used in :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
 
 .. list-table-with-summary::  Oracle Net Keywords Supported in the python-oracledb Thin Mode
     :header-rows: 1
+    :class: wy-table-responsive
     :align: center
     :summary: The first column displays the keyword. The second column displays the equivalent oracledb.connect(), oracledb.create_pool(), oracledb.ConnectParams(), or oracledb.PoolParams() parameters. The third column displays the notes.
 

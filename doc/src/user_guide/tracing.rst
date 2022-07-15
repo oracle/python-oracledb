@@ -287,6 +287,7 @@ columns:
 
 .. list-table-with-summary:: Sample V$SESSION_CONNECT_INFO column values
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 15 10 10
     :name: V$SESSION_CONNECT_INFO
     :summary: The first column is the name of V$SESSION_CONNECT_INFO view's column. The second column lists a sample python-oracledb Thick mode value. The third column list a sample python-oracledb Thin mode value.
@@ -314,6 +315,7 @@ The following table list sample values for columns with differences in
 
 .. list-table-with-summary:: Sample V$SESSION column values
     :header-rows: 1
+    :class: wy-table-responsive
     :widths: 15 10 10
     :name: V$SESSION_COLUMN_VALUES
     :summary: The first column is the name of the column. The second column lists a sample python-oracledb Thick mode value. The third column lists a sample python-oracledb Thin mode value.
