@@ -335,7 +335,7 @@ cdef class BaseCursorImpl:
         num_rows = len(parameters)
         self._reset_bind_vars(num_rows)
         for i, params_row in enumerate(parameters):
-            defer_type_assignment = (i == num_rows - 1)
+            defer_type_assignment = (i < num_rows - 1)
             self._bind_values(cursor, type_handler, params_row, num_rows, i,
                               defer_type_assignment)
 

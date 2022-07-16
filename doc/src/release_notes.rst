@@ -45,6 +45,9 @@ Common Changes
 #)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
     specified when building from source code on macOS (Intel x86) without
     Universal Python binaries.
+#)  Fixed bug with the deferral of type assignment when creating variables for
+    :func:`Cursor.executemany()`
+    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
 #)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
     the driver is using thin mode or not
     (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
