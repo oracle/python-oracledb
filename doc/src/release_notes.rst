@@ -13,6 +13,36 @@ oracledb 1.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Internally make use of the `TCP_NODELAY` socket option to remove delays
+    in socket reads.
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Added support for getting the message id of the AQ message which generated
+    a notification.
+#)  Added the ability to use `externalauth` as a connection parameter for
+    standalone connections in addition to creating pools. For standalone
+    connections, this parameter is optional.
+
+Common Changes
+++++++++++++++
+
+#)  Fixed bug with the deferral of type assignment when creating variables for
+    :func:`Cursor.executemany()`
+    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
+#)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
+    the driver is using thin mode or not
+    (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
+#)  Improved samples and documentation.
+
+
+oracledb 1.0.2 (July 2022)
+--------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
 #)  Connecting to a database with national character set `UTF8` is now
     supported; an error is now raised only when the first attempt to use
     NCHAR, NVARCHAR2 or NCLOB data is made
@@ -24,20 +54,13 @@ Thin Mode Changes
     `tcp`, a more meaningful exception is now raised:
     `DPY-2029: https_proxy requires use of the tcps protocol`.
 #)  Fixed a bug that caused TLS renegotiation to be skipped in some
-    configurations
+    configurations, thereby causing the connection to fail to be established
     (https://github.com/oracle/python-oracledb/discussions/34).
-#)  Internally make use of the `TCP_NODELAY` socket option to remove delays
-    in socket reads.
 
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Added support for getting the message id of the AQ message which generated
-    a notification.
 #)  Fixed the ability to use external authentication with connection pools.
-#)  Added the ability to use `externalauth` as a connection parameter for
-    standalone connections in addition to creating pools. For standalone
-    connections, this parameter is optional.
 
 Common Changes
 ++++++++++++++
@@ -45,12 +68,7 @@ Common Changes
 #)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
     specified when building from source code on macOS (Intel x86) without
     Universal Python binaries.
-#)  Fixed bug with the deferral of type assignment when creating variables for
-    :func:`Cursor.executemany()`
-    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
-#)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
-    the driver is using thin mode or not
-    (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
+#)  Binary packages have been added for the Linux ARM 64-bit platform.
 #)  Improved samples and documentation.
 
 
