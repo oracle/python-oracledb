@@ -38,6 +38,7 @@ Common Changes
 #)  The compiler flag ``-arch x86_64`` no longer needs to be explicitly
     specified when building from source code on macOS (Intel x86) without
     Universal Python binaries.
+#)  Binary packages have been added for the Linux ARM 64-bit platform.
 #)  Improved samples and documentation.
 
 
@@ -81,6 +82,7 @@ Common Changes
     ``wrapped()``.
 #)  Improved samples, including adding a Dockerfile that starts a container
     with a running database and the samples.
+#)  A binary package has been added for Python 3.7 on macOS (Intel x86).
 #)  Improved documentation.
 
 
