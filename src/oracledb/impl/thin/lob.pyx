@@ -85,6 +85,18 @@ cdef class ThinLobImpl(BaseLobImpl):
             self._conn_impl._temp_lobs_total_size += len(self._locator)
             self._conn_impl = None
 
+    def get_chunk_size(self):
+        """
+        Internal method for returning the chunk size of the LOB.
+        """
+        cdef LobOpMessage message
+        message = self._conn_impl._create_message(LobOpMessage)
+        message.operation = TNS_LOB_OP_GET_CHUNK_SIZE
+        message.source_lob_impl = self
+        message.send_amount = True
+        self._conn_impl._protocol._process_single_message(message)
+        return message.amount
+
     def get_is_open(self):
         """
         Internal method for returning whether the LOB is open or not.

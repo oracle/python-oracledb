@@ -13,6 +13,8 @@ oracledb 1.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for getthing the LOB chunk size
+    (`issue 14 <https://github.com/oracle/python-oracledb/issues/14>`__).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
 

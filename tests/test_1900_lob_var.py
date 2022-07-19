@@ -176,6 +176,7 @@ class TestCase(test_env.BaseTestCase):
                                lob.trim, new_size=50, newSize=60)
         lob.trim()
         self.assertEqual(lob.size(), 0)
+        self.assertIsInstance(lob.getchunksize(), int)
 
     def __test_pickle(self, lob_type):
         value = "A test string value for pickling"
