@@ -1477,9 +1477,13 @@ cdef class AuthMessage(Message):
             if self.purity != 0:
                 num_pairs += 1
             self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
-            if self.verifier_type == TNS_VERIFIER_TYPE_SHA1 \
-                    or self.verifier_type == TNS_VERIFIER_TYPE_SSHA1:
+
+            if self.verifier_type in (TNS_VERIFIER_TYPE_11G_1,
+                                      TNS_VERIFIER_TYPE_11G_2):
                 verifier_11g = True
+            elif self.verifier_type != TNS_VERIFIER_TYPE_12C:
+                errors._raise_err(errors.ERR_UNSUPPORTED_VERIFIER_TYPE,
+                                  verifier_type=self.verifier_type)
             else:
                 num_pairs += 1
             self._generate_verifier(verifier_11g)

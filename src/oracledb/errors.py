@@ -171,6 +171,7 @@ ERR_SERVER_LOGON_TYPE_NOT_SUPPORTED = 3011
 ERR_NCHAR_CS_NOT_SUPPORTED = 3012
 ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR = 3013
 ERR_LOB_OF_WRONG_TYPE = 3014
+ERR_UNSUPPORTED_VERIFIER_TYPE = 3015
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -437,6 +438,8 @@ ERR_MESSAGE_FORMATS = {
             '{db_type_name}',
     ERR_UNSUPPORTED_VAR_SET:
             'variable of type {db_type_name} does not support being set',
+    ERR_UNSUPPORTED_VERIFIER_TYPE:
+            'unsupported password verifier type: 0x{verifier_type:x}',
     ERR_WALLET_FILE_MISSING:
             'cannot connect to database. Wallet file {name} was not found',
     ERR_WRONG_ARRAY_DEFINITION:

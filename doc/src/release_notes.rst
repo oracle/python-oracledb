@@ -18,6 +18,10 @@ Thin Mode Changes
 #)  The error `DPY-2030: LOB offset must be greater than zero` is now raised
     when the offset parameter to :func:`LOB.read()` is zero or negative
     (`issue 13 <https://github.com/oracle/python-oracledb/issues/13>`__).
+#)  The error `DPY-3015: unsupported password verifier type` is now raised when
+    the database sends a password challenge with a verifier type that is not
+    recognized, instead of `ORA-01017: invalid username/password`
+    (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
 
