@@ -15,6 +15,9 @@ Thin Mode Changes
 
 #)  Added support for getthing the LOB chunk size
     (`issue 14 <https://github.com/oracle/python-oracledb/issues/14>`__).
+#)  The error `DPY-2030: LOB offset must be greater than zero` is now raised
+    when the offset parameter to :func:`LOB.read()` is zero or negative
+    (`issue 13 <https://github.com/oracle/python-oracledb/issues/13>`__).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
 

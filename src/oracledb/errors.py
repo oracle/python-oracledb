@@ -153,6 +153,7 @@ ERR_INVALID_POOL_CLASS = 2026
 ERR_INVALID_POOL_PARAMS = 2027
 ERR_EXPECTING_LIST_FOR_ARRAY_VAR = 2028
 ERR_HTTPS_PROXY_REQUIRES_TCPS = 2029
+ERR_INVALID_LOB_OFFSET = 2030
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -306,6 +307,8 @@ ERR_MESSAGE_FORMATS = {
             'invalid connect descriptor "{data}"',
     ERR_INVALID_CONNECT_PARAMS:
             'invalid connection params',
+    ERR_INVALID_LOB_OFFSET:
+            'LOB offset must be greater than zero',
     ERR_INVALID_MAKEDSN_ARG:
             '"{name}" argument contains invalid values',
     ERR_INVALID_NUMBER:

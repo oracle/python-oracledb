@@ -113,6 +113,8 @@ class LOB:
                 amount = amount - offset + 1
             else:
                 amount = 1
+        if offset <= 0:
+            errors._raise_err(errors.ERR_INVALID_LOB_OFFSET)
         return self._impl.read(offset, amount)
 
     def setfilename(self, dir_alias: str, name: str) -> None:
