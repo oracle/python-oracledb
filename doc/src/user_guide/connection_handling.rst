@@ -142,7 +142,7 @@ may cause complications if the password contains '@' or '/' characters:
     port = 1521
     service_name = "orclpdb"
 
-    dsn = f'{username}/{userpwd}@{port}:{host}/{service_name}'
+    dsn = f'{username}/{userpwd}@{host}:{port}/{service_name}'
     connection = oracledb.connect(dsn)
 
 Closing Connections
