@@ -439,7 +439,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNSUPPORTED_VAR_SET:
             'variable of type {db_type_name} does not support being set',
     ERR_UNSUPPORTED_VERIFIER_TYPE:
-            'unsupported password verifier type: 0x{verifier_type:x}',
+            'password verifier type 0x{verifier_type:x} is not supported by '
+            'python-oracledb in thin mode',
     ERR_WALLET_FILE_MISSING:
             'cannot connect to database. Wallet file {name} was not found',
     ERR_WRONG_ARRAY_DEFINITION:
