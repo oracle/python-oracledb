@@ -1540,7 +1540,8 @@ cdef class ConnectMessage(Message):
         bytes connect_string_bytes
         Description description
         str redirect_data
-        Address address
+        str host
+        int port
 
     cdef int process(self, ReadBuffer buf) except -1:
         cdef:
@@ -1572,13 +1573,11 @@ cdef class ConnectMessage(Message):
             if error_code_int == TNS_ERR_INVALID_SERVICE_NAME:
                 errors._raise_err(errors.ERR_INVALID_SERVICE_NAME,
                                   service_name=self.description.service_name,
-                                  host=self.address.host,
-                                  port=self.address.port)
+                                  host=self.host, port=self.port)
             elif error_code_int == TNS_ERR_INVALID_SID:
                 errors._raise_err(errors.ERR_INVALID_SID,
                                   sid=self.description.sid,
-                                  host=self.address.host,
-                                  port=self.address.port)
+                                  host=self.host, port=self.port)
             errors._raise_err(errors.ERR_LISTENER_REFUSED_CONNECTION,
                               error_code=error_code)
 

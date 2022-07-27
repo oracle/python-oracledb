@@ -337,21 +337,6 @@ cdef class ConnectParamsImpl:
                     address.set_from_args(addr_args)
                     address_list.addresses.append(address)
 
-    cdef int _process_redirect_data(self, str redirect_data) except -1:
-        """
-        Internal method used for parsing the redirect data that is returned
-        from a listener in order to determine the new host and part that should
-        be used to connect to the database.
-        """
-        cdef:
-            dict args = {}
-        pos = redirect_data.find('\x00')
-        if pos < 0:
-            errors._raise_err(errors.ERR_INVALID_REDIRECT_DATA,
-                              data=redirect_data)
-        _parse_connect_descriptor(redirect_data[:pos], args)
-        self._process_connect_descriptor(args)
-
     cdef int _set_new_password(self, str password) except -1:
         """
         Sets the new password on the instance after first obfuscating it.
@@ -403,6 +388,18 @@ cdef class ConnectParamsImpl:
         new_params = ConnectParamsImpl.__new__(ConnectParamsImpl)
         new_params._copy(self)
         return new_params
+
+    def _get_addresses(self):
+        """
+        Return a list of the stored addresses.
+        """
+        cdef:
+            AddressList addr_list
+            Description desc
+            Address addr
+        return [addr for desc in self.description_list.descriptions \
+                for addr_list in desc.address_lists \
+                for addr in addr_list.addresses]
 
     def get_connect_string(self):
         """

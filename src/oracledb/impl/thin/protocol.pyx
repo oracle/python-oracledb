@@ -116,45 +116,67 @@ cdef class Protocol:
                     self._process_message(message)
                 self._final_close(self._write_buf)
 
-    cdef ConnectParamsImpl _connect_phase_one(self, ThinConnImpl conn_impl,
-                                              ConnectParamsImpl params,
-                                              Description description,
-                                              Address address):
+    cdef int _connect_phase_one(self,
+                                ThinConnImpl conn_impl,
+                                ConnectParamsImpl params,
+                                Description description,
+                                Address address) except -1:
         """
         Method for performing the required steps for establishing a connection
         within the scope of a retry. If the listener refuses the connection, a
         retry will be performed, if retry_count is set.
         """
         cdef:
-            ConnectMessage connect_message
-            object ssl_context
+            str connect_string, host, redirect_data
+            ConnectMessage connect_message = None
+            object ssl_context, connect_info
+            ConnectParamsImpl temp_params
+            Address temp_address
             uint8_t packet_type
-            str connect_string
+            int port, pos
 
         # store whether OOB processing is possible or not
         self._caps.supports_oob = not params.disable_oob \
                 and sys.platform != "win32"
 
+        # establish initial TCP connection and get initial connect string
+        host = address.host
+        port = address.port
+        self._connect_tcp(params, description, address, host, port)
+        connect_string = _get_connect_data(address, description)
+
         # send connect message and process response; this may request the
         # message to be resent multiple times; if a redirect packet is
-        # detected, however, the process terminates and is restarted using the
-        # supplied redirect data
-        connect_string = _get_connect_data(address, description)
-        connect_message = conn_impl._create_message(ConnectMessage)
-        connect_message.address = address
-        connect_message.description = description
-        connect_message.connect_string_bytes = connect_string.encode()
-        connect_message.connect_string_len = \
-                <uint16_t> len(connect_message.connect_string_bytes)
+        # detected, a new TCP connection is established first
         while True:
+
+            # create connection message, if needed
+            if connect_message is None:
+                connect_message = conn_impl._create_message(ConnectMessage)
+                connect_message.host = host
+                connect_message.port = port
+                connect_message.description = description
+                connect_message.connect_string_bytes = connect_string.encode()
+                connect_message.connect_string_len = \
+                        <uint16_t> len(connect_message.connect_string_bytes)
+
+            # process connection message
             self._process_message(connect_message)
             if connect_message.redirect_data is not None:
-                params = params.copy()
-                params._default_description = description
-                params._default_address = address
-                params._process_redirect_data(connect_message.redirect_data)
-                return params
-            if connect_message.packet_type == TNS_PACKET_TYPE_ACCEPT:
+                redirect_data = connect_message.redirect_data
+                pos = redirect_data.find('\x00')
+                if pos < 0:
+                    errors._raise_err(errors.ERR_INVALID_REDIRECT_DATA,
+                                      data=redirect_data)
+                temp_params = ConnectParamsImpl()
+                temp_params._parse_connect_string(redirect_data[:pos])
+                temp_address = temp_params._get_addresses()[0]
+                host = temp_address.host
+                port = temp_address.port
+                connect_string = redirect_data[pos + 1:]
+                self._connect_tcp(params, description, address, host, port)
+                connect_message = None
+            elif connect_message.packet_type == TNS_PACKET_TYPE_ACCEPT:
                 break
 
             # for TCPS connections, OOB processing is not supported; if the
@@ -206,6 +228,58 @@ cdef class Protocol:
         # mark protocol to indicate that connect is no longer in progress; this
         # allows the normal break/reset mechanism to fire
         self._in_connect = False
+
+    cdef int _connect_tcp(self, ConnectParamsImpl params,
+                          Description description, Address address, str host,
+                          int port) except -1:
+        """
+        Creates a socket on which to communicate using the provided parameters.
+        If a proxy is configured, a connection to the proxy is established and
+        the target host and port is forwarded to the proxy.
+        """
+        cdef:
+            bint use_proxy = (address.https_proxy is not None)
+            double timeout = description.tcp_connect_timeout
+            object connect_info, sock, data, reply, m
+
+        # establish connection to appropriate host/port
+        if use_proxy:
+            if address.protocol != "tcps":
+                errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
+            connect_info = (address.https_proxy, address.https_proxy_port)
+        else:
+            connect_info = (host, port)
+        sock = socket.create_connection(connect_info, timeout)
+
+        # complete connection through proxy, if applicable
+        if use_proxy:
+            data = f"CONNECT {host}:{port} HTTP/1.0\r\n\r\n"
+            sock.send(data.encode())
+            reply = sock.recv(1024)
+            m = re.search('HTTP/1.[01]\\s+(\\d+)\\s+', reply.decode())
+            if m is None or m.groups()[0] != '200':
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response=reply.decode())
+
+        # set socket options
+        if description.expire_time > 0:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            if hasattr(socket, "TCP_KEEPIDLE") \
+                    and hasattr(socket, "TCP_KEEPINTVL") \
+                    and hasattr(socket, "TCP_KEEPCNT"):
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE,
+                                description.expire_time * 60)
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 6)
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 10)
+        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        sock.settimeout(None)
+
+        # establish TLS connection, if applicable
+        if address.protocol == "tcps":
+            sock = get_ssl_socket(sock, params, description, address)
+
+        # save final socket object
+        self._set_socket(sock)
 
     cdef int _final_close(self, WriteBuffer buf) except -1:
         """

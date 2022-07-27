@@ -187,7 +187,6 @@ cdef class ConnectParamsImpl:
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _process_connect_descriptor(self, dict args) except -1
-    cdef int _process_redirect_data(self, str redirect_data) except -1
     cdef int _set_new_password(self, str password) except -1
     cdef int _set_password(self, str password) except -1
     cdef int _set_wallet_password(self, str password) except -1

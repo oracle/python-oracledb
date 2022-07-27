@@ -85,9 +85,40 @@ cdef class ThinConnImpl(BaseConnImpl):
             elif stmt._cursor_id != 0:
                 self._add_cursor_to_close(stmt)
 
-    cdef object _connect_with_description(self, Description description,
-                                          ConnectParamsImpl params,
-                                          bint final_desc):
+    cdef int _connect_with_address(self, Address address,
+                                   Description description,
+                                   ConnectParamsImpl params,
+                                   bint raise_exception) except -1:
+        """
+        Internal method used for connecting with the given description and
+        address.
+        """
+        try:
+            self._protocol._connect_phase_one(self, params, description,
+                                              address)
+        except exceptions.DatabaseError:
+            if raise_exception:
+                raise
+            return 0
+        except (socket.gaierror, ConnectionRefusedError) as e:
+            if raise_exception:
+                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
+                                  exception=str(e))
+            return 0
+        except Exception as e:
+            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
+                              exception=str(e))
+        self._drcp_enabled = description.server_type == "pooled"
+        if self._cclass is None:
+            self._cclass = description.cclass
+        self._protocol._connect_phase_two(self, description, params)
+
+    cdef int _connect_with_description(self, Description description,
+                                       ConnectParamsImpl params,
+                                       bint final_desc) except -1:
+        """
+        Internal method used for connecting with the given description.
+        """
         cdef:
             bint load_balance = description.load_balance
             bint raise_exc = False
@@ -126,25 +157,18 @@ cdef class ThinConnImpl(BaseConnImpl):
                         raise_exc = i == num_attempts - 1 \
                                 and j == num_lists - 1 \
                                 and k == num_addresses - 1
-                    redirect_params = self._connect_with_address(address,
-                                                                 description,
-                                                                 params,
-                                                                 raise_exc)
-                    if redirect_params is not None:
-                        return redirect_params
+                    self._connect_with_address(address, description, params,
+                                               raise_exc)
                     if self._protocol._in_connect:
                         continue
                     address_list.lru_index = (idx1 + 1) % num_addresses
                     description.lru_index = (idx2 + 1) % num_lists
-                    return
+                    return 0
             time.sleep(description.retry_delay)
 
-    cdef ConnectParamsImpl _connect_with_params(self,
-                                                ConnectParamsImpl params):
+    cdef int _connect_with_params(self, ConnectParamsImpl params) except -1:
         """
-        Internal method used for connecting with the given parameters. If the
-        listener requests a redirect, the redirect data is returned so that
-        this process can be repeated as needed.
+        Internal method used for connecting with the given parameters.
         """
         cdef:
             DescriptionList description_list = params.description_list
@@ -160,14 +184,10 @@ cdef class ThinConnImpl(BaseConnImpl):
             else:
                 idx = i
             description = descriptions[idx]
-            redirect_params = self._connect_with_description(description,
-                                                             params,
-                                                             final_desc)
-            if redirect_params is not None \
-                    or not self._protocol._in_connect:
+            self._connect_with_description(description, params, final_desc)
+            if not self._protocol._in_connect:
                 description_list.lru_index = (idx + 1) % num_descriptions
                 break
-        return redirect_params
 
     cdef Message _create_message(self, type typ):
         """
@@ -182,75 +202,6 @@ cdef class ThinConnImpl(BaseConnImpl):
     cdef int _force_close(self) except -1:
         self._pool = None
         self._protocol._force_close()
-
-    cdef object _connect_with_address(self, Address address,
-                                      Description description,
-                                      ConnectParamsImpl params,
-                                      bint raise_exception):
-        """
-        Creates a socket on which to communicate using the provided parameters.
-        If a proxy is configured, a connection to the proxy is established and
-        the target host and port is forwarded to the proxy. The socket is used
-        to establish a connection with the database. If a redirect is
-        required, the redirect parameters are returned.
-        """
-        cdef:
-            bint use_proxy = (address.https_proxy is not None)
-            double timeout = description.tcp_connect_timeout
-        if use_proxy:
-            if address.protocol != "tcps":
-                errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
-            connect_info = (address.https_proxy, address.https_proxy_port)
-        else:
-            connect_info = (address.host, address.port)
-        try:
-            sock = socket.create_connection(connect_info, timeout)
-            if use_proxy:
-                data = f"CONNECT {address.host}:{address.port} HTTP/1.0\r\n\r\n"
-                sock.send(data.encode())
-                reply = sock.recv(1024)
-                match = re.search('HTTP/1.[01]\\s+(\\d+)\\s+', reply.decode())
-                if match is None or match.groups()[0] != '200':
-                    errors._raise_err(errors.ERR_PROXY_FAILURE,
-                                    response=reply.decode())
-            if description.expire_time > 0:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-                if hasattr(socket, "TCP_KEEPIDLE") \
-                        and hasattr(socket, "TCP_KEEPINTVL") \
-                        and hasattr(socket, "TCP_KEEPCNT"):
-                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE,
-                                    description.expire_time * 60)
-                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL,
-                                    6)
-                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT,
-                                    10)
-            sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            sock.settimeout(None)
-            if address.protocol == "tcps":
-                sock = get_ssl_socket(sock, params, description, address)
-            self._drcp_enabled = description.server_type == "pooled"
-            if self._cclass is None:
-                self._cclass = description.cclass
-            self._protocol._set_socket(sock)
-            redirect_params = self._protocol._connect_phase_one(self, params,
-                                                                description,
-                                                                address)
-            if redirect_params is not None:
-                return redirect_params
-        except exceptions.DatabaseError:
-            if raise_exception:
-                raise
-            return
-        except (socket.gaierror, ConnectionRefusedError) as e:
-            if raise_exception:
-                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                                  exception=str(e))
-            return
-        except Exception as e:
-            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                              exception=str(e))
-            return
-        self._protocol._connect_phase_two(self, description, params)
 
     cdef Statement _get_statement(self, str sql, bint cache_statement):
         """
@@ -341,14 +292,9 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._protocol._process_single_message(message)
 
     def connect(self, ConnectParamsImpl params):
-        cdef ConnectParamsImpl redirect_params
         if params._password is None:
             errors._raise_err(errors.ERR_NO_PASSWORD)
-        while True:
-            redirect_params = self._connect_with_params(params)
-            if redirect_params is None:
-                break
-            params = redirect_params
+        self._connect_with_params(params)
         self._statement_cache = collections.OrderedDict()
         self._statement_cache_size = params.stmtcachesize
         self._statement_cache_lock = threading.Lock()

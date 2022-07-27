@@ -23,6 +23,8 @@ Thin Mode Changes
     the database sends a password challenge with a verifier type that is not
     recognized, instead of `ORA-01017: invalid username/password`
     (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
+#)  Fixed bug with handling of redirect data returned by some SCAN listeners
+    (`issue 39 <https://github.com/oracle/python-oracledb/issues/39>`__).
 #)  Internally, before a connection is returned from a pool, check for control
     packets from the server (which may inform the client that the connection
     needs to be closed and a new one established).
