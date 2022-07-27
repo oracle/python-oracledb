@@ -211,7 +211,7 @@ cdef class Protocol:
         """
         Send the final close packet to the server and close the socket.
         """
-        buf.start_request(TNS_PACKET_TYPE_DATA, 0x0040)
+        buf.start_request(TNS_PACKET_TYPE_DATA, TNS_DATA_FLAGS_EOF)
         buf.end_request()
         self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()

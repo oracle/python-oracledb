@@ -35,19 +35,20 @@ cdef class ThinPoolImpl(BasePoolImpl):
         list _free_new_conn_impls
         list _free_used_conn_impls
         list _busy_conn_impls
-        list _conn_impls_to_close
-        uint8_t _getmode
+        list _conn_impls_to_drop
+        uint32_t _getmode
         uint32_t _stmt_cache_size
         uint32_t _timeout
         uint32_t _max_lifetime_session
-        uint32_t _num_pending_requests
-        uint32_t _wait_timeout
+        uint32_t _num_waiters
         uint32_t _auth_mode
         int _ping_interval
+        object _wait_timeout
         object _bg_exc
         object _bg_thread
         object _bg_thread_condition
         object _condition
+        bint _force_get
         bint _open
 
     def __init__(self, str dsn, PoolParamsImpl params):
@@ -60,14 +61,14 @@ cdef class ThinPoolImpl(BasePoolImpl):
         self.max = params.max
         self.increment = params.increment
         self.homogeneous = params.homogeneous
-        self._getmode = params.getmode
-        self._wait_timeout = params.wait_timeout
+        self.set_getmode(params.getmode)
+        self.set_wait_timeout(params.wait_timeout)
         self._stmt_cache_size = params.stmtcachesize
         self._ping_interval = params.ping_interval
         self._free_new_conn_impls = []
         self._free_used_conn_impls = []
         self._busy_conn_impls = []
-        self._conn_impls_to_close = []
+        self._conn_impls_to_drop = []
         self._auth_mode = constants.AUTH_MODE_DEFAULT
         self._open = True
         self._condition = threading.Condition()
@@ -99,64 +100,46 @@ cdef class ThinPoolImpl(BasePoolImpl):
         needed. The thread terminates automatically when the pool is closed.
         """
         cdef:
-            uint32_t open_count, num_conns = 0, i
-            ThinConnImpl connection
-            bint wait = False
+            uint32_t num_conns, open_count
+            list conn_impls_to_drop
+            bint wait
 
         # create the initial set of connections requested
         self._create_conn_impls_helper(self.min)
 
-        # wait for requests to create additional connections or destroy
-        # connections
+        # create connections and close connections as needed
         while True:
+            conn_impls_to_drop = []
+            num_conns = 0
+            wait = True
 
-            # determine whether to wait for work to do; a wait is forced if
-            # a background exception has taken place -- unless the pool has
-            # been closed, in which case no wait takes place
+            # determine if there is any work to do
             with self._condition:
-                wait = self._open and \
-                        (self._bg_exc is not None or \
-                                (self._num_pending_requests == 0 \
-                                 and len(self._conn_impls_to_close) == 0))
-            if wait:
-                with self._bg_thread_condition:
-                    self._bg_thread_condition.wait()
-
-            # perform work of creating/destroying connections
-            with self._condition:
-                if self._open and self._num_pending_requests > 0:
+                if self._open and self._num_waiters > 0:
                     open_count = self.get_open_count()
                     num_conns = min(self.increment, self.max - open_count)
-                else:
-                    num_conns = 0
-            self._create_conn_impls_helper(num_conns)
-            self._close_conn_impls_helper()
+                if not self._open or self._bg_exc is None:
+                    conn_impls_to_drop = self._conn_impls_to_drop
+                    self._conn_impls_to_drop = []
+
+            # create connections, if needed
+            if num_conns > 0:
+                wait = False
+                self._create_conn_impls_helper(num_conns)
+
+            # close connections, if needed
+            if conn_impls_to_drop:
+                wait = False
+                self._drop_conn_impls_helper(conn_impls_to_drop)
+
+            # if pool has closed, stop thread!
             if not self._open:
                 break
 
-    cdef int _close_connection(self, ThinConnImpl conn_impl) except -1:
-        """
-        Helper method which adds a connection to the list of connections to be
-        closed and notifies the background thread.
-        """
-        self._conn_impls_to_close.append(conn_impl)
-        with self._bg_thread_condition:
-            self._bg_thread_condition.notify()
-
-    cdef int _close_conn_impls_helper(self) except -1:
-        """
-        Helper method which closes the connections requested by the pool to be
-        closed. When the pool is closed, exceptions are ignored.
-        """
-        cdef ThinConnImpl conn_impl
-        while self._conn_impls_to_close:
-            conn_impl = self._conn_impls_to_close.pop()
-            try:
-                conn_impl._force_close()
-            except Exception as e:
-                if self._open:
-                    self._bg_exc = e
-                    break
+            # otherwise, if nothing needed to be done, wait for notification
+            if wait:
+                with self._bg_thread_condition:
+                    self._bg_thread_condition.wait()
 
     cdef int _create_conn_impls_helper(self, uint32_t num_conns) except -1:
         """
@@ -188,110 +171,123 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 if conn_impl is None:
                     break
 
-    cdef ThinConnImpl _get_connection(self, ConnectParamsImpl params):
+    cdef int _drop_conn_impl(self, ThinConnImpl conn_impl) except -1:
+        """
+        Helper method which adds a connection to the list of connections to be
+        closed and notifies the background thread.
+        """
+        self._conn_impls_to_drop.append(conn_impl)
+        with self._bg_thread_condition:
+            self._bg_thread_condition.notify()
+
+    cdef int _drop_conn_impls_helper(self, list conn_impls_to_drop) except -1:
+        """
+        Helper method which drops the requested list of connections. When the
+        pool is closed, exceptions are ignored.
+        """
+        cdef ThinConnImpl conn_impl
+        for conn_impl in conn_impls_to_drop:
+            try:
+                conn_impl._force_close()
+            except Exception as e:
+                if self._open:
+                    self._bg_exc = e
+
+    cdef object _get_connection(self, bint wants_new, bint cclass_matches,
+                                str cclass):
+        """
+        Returns a connection from the pool if one is available. If one is not
+        available and a new connection needs to be created, the value True is
+        returned.
+        """
         cdef:
             ThinConnImpl conn_impl
-            ConnectParamsImpl creation_params = self.connect_params
-            str pool_cclass =  creation_params._default_description.cclass
-            str cclass = params._default_description.cclass
-            uint32_t purity = params._default_description.purity
-            uint32_t i
-
-        # if a free new connection is available, it can be used without any
-        # other considerations unless cclass is specified; if specified,
-        # check if the cclass matches the cclass specified during pool
-        # creation
-        if self._free_new_conn_impls:
-            if cclass is None or cclass == pool_cclass:
-                conn_impl = self._free_new_conn_impls.pop()
-                self._busy_conn_impls.append(conn_impl)
-                return conn_impl
-
-        # if a free used connection is available and the purity and
-        # cclass allow the use of such a connection, it can be used directly
-        if self._free_used_conn_impls:
-            if cclass is not None and purity != PURITY_NEW:
-                for i, conn_impl in enumerate(self._free_used_conn_impls):
-                    if conn_impl._cclass == cclass:
-                        self._free_used_conn_impls.pop(i)
-                        self._busy_conn_impls.append(conn_impl)
-                        return conn_impl
-                # if there are no connections with a matching cclass, check
-                # if the pool has room to grow and if it does not, remove the
-                # oldest used connection from the pool before creating a new
-                # connection with the required cclass
-                if self.get_open_count() >= self.max:
-                    conn_impl = self._free_used_conn_impls.pop(0)
-                    self._close_connection(conn_impl)
-                conn_impl = self._create_conn_impl(params=params)
-                self._busy_conn_impls.append(conn_impl)
-            else:
-                conn_impl = self._free_used_conn_impls.pop(0)
-                if purity == PURITY_NEW:
-                    self._close_connection(conn_impl)
-                    conn_impl = self._create_conn_impl(params=params)
-                self._busy_conn_impls.append(conn_impl)
-        # if no new or used free connections are available, the
-        # get mode must be POOL_GETMODE_FORCEGET; in this case a brand
-        # new connection is created which is not returned to the pool
-        else:
-            conn_impl = self._create_conn_impl(params=params)
-            conn_impl._pool = None
-        return conn_impl
-
-    cdef ThinConnImpl _acquire_helper(self, object wait_timeout,
-                                             ConnectParamsImpl params):
-        cdef:
-            object predicate
             object exc
-            uint32_t purity = params._default_description.purity
-            ThinConnImpl conn_impl
+            ssize_t i
 
-        # ensure manipulation of busy and free lists are done with the lock
-        # held (in order to accommodate multiple threads attempting to acquire
-        # a connection simultaneously)
-        with self._condition:
+        # if an exception was raised in the background thread, raise it now
+        if self._bg_exc is not None:
+            exc = self._bg_exc
+            self._bg_exc = None
+            raise exc
 
-            # wait for pool to have room available; if no room available after
-            # timeout has been reached (if set), raise an exception
-            predicate = lambda: self._has_room(purity)
-            self._num_pending_requests += 1
-            if not self._condition.wait_for(predicate, wait_timeout):
-                self._num_pending_requests -= 1
-                errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
-
-            # if an exception was raised while creating a connection, raise it
-            # now (and clear it so subsequent attempts will try to create a
-            # connection again)
-            if self._bg_exc is not None:
-                exc = self._bg_exc
-                self._bg_exc = None
-                raise exc
-
-            # use helper function to find and return an appropriate connection
-            conn_impl = self._get_connection(params)
-            self._num_pending_requests -= 1
+        # check for an available new connection (only permitted if the cclass
+        # matches)
+        if cclass_matches and self._free_new_conn_impls:
+            conn_impl = self._free_new_conn_impls.pop()
+            self._busy_conn_impls.append(conn_impl)
             return conn_impl
 
-    def _has_room(self, purity):
-        """
-        Returns a boolean indicating if room is available in the pool. This is
-        true if there are free connections available. If no free connections
-        are available but there is free space available in the pool, the
-        creation thread is notified to create additional connections.
-        """
-        cdef uint32_t open_count
-        if self._bg_exc is not None or self._free_new_conn_impls:
+        # check for an available used connection (only permitted if a new
+        # connection is not required); in addition, if the cclass does not
+        # match, a new connection will be forced if one cannot be found
+        if not wants_new and self._free_used_conn_impls:
+            if cclass_matches:
+                conn_impl = self._free_used_conn_impls.pop(0)
+                self._busy_conn_impls.append(conn_impl)
+                return conn_impl
+            for i, conn_impl in enumerate(self._free_used_conn_impls):
+                if conn_impl._cclass == cclass:
+                    self._free_used_conn_impls.pop(i)
+                    self._busy_conn_impls.append(conn_impl)
+                    return conn_impl
+
+        # no connections are immediately available; if a brand new connection
+        # is desired, the cclass doesn't match, or the pool is full and a
+        # getmode of FORCE has been specified, force the creation of a new
+        # connection
+        if wants_new or not cclass_matches \
+                or (self._force_get and self.get_open_count() >= self.max):
             return True
-        open_count = self.get_open_count()
-        if self._free_used_conn_impls:
-            if purity != PURITY_NEW or open_count == self.max:
-                return True
-        if open_count < self.max:
-            with self._bg_thread_condition:
-                self._bg_thread_condition.notify()
-            return False
-        return self._getmode == constants.POOL_GETMODE_FORCEGET
+
+        # wake up the background thread to create a connection
+        with self._bg_thread_condition:
+            self._bg_thread_condition.notify()
+
+    cdef ThinConnImpl _acquire_helper(self, ConnectParamsImpl params):
+        cdef:
+            ConnectParamsImpl creation_params = self.connect_params
+            bint wants_new, cclass_matches
+            object result, predicate
+            str pool_cclass, cclass
+            ThinConnImpl conn_impl
+            ssize_t i
+
+        # initialize values used in determining which connection can be
+        # returned from the pool
+        cclass = params._default_description.cclass
+        pool_cclass = creation_params._default_description.cclass
+        wants_new = (params._default_description.purity == PURITY_NEW)
+        cclass_matches = (cclass is None or cclass == pool_cclass)
+        predicate = lambda: self._get_connection(wants_new, cclass_matches,
+                                                 cclass)
+
+        # get a connection from the pool; if one is not immediately available,
+        # wait as long as requested for one to be made available.
+        with self._condition:
+            self._num_waiters += 1
+            try:
+                result = self._condition.wait_for(predicate,
+                                                  self._wait_timeout)
+            finally:
+                self._num_waiters -= 1
+            if result is None:
+                errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
+            if isinstance(result, ThinConnImpl):
+                return result
+
+        # no connection was returned from the pool so a new connection needs to
+        # be created
+        conn_impl = self._create_conn_impl(params=params)
+        with self._condition:
+            if self.get_open_count() < self.max:
+                self._busy_conn_impls.append(conn_impl)
+            elif self._free_used_conn_impls:
+                self._drop_conn_impl(self._free_used_conn_impls.pop(0))
+                self._busy_conn_impls.append(conn_impl)
+            else:
+                conn_impl._pool = None
+        return conn_impl
 
     cdef int _return_connection(self, ThinConnImpl conn_impl) except -1:
         """
@@ -311,11 +307,11 @@ cdef class ThinPoolImpl(BasePoolImpl):
         Internal method for acquiring a connection from the pool.
         """
         cdef:
-            object wait_timeout
             ThinConnImpl conn_impl
+            double elapsed_time
+            ReadBuffer read_buf
             bint requires_ping
             Message message
-            double elapsed_time
 
         # if pool is closed, raise an exception
         if not self._open:
@@ -325,23 +321,22 @@ cdef class ThinPoolImpl(BasePoolImpl):
         if params.tag is not None:
             raise NotImplementedError("Tagging has not been implemented yet")
 
-        # determine wait timeout to use
-        if self._getmode == constants.POOL_GETMODE_TIMEDWAIT:
-            wait_timeout = self._wait_timeout / 1000
-        elif self._getmode == constants.POOL_GETMODE_WAIT \
-                or self._getmode == constants.POOL_GETMODE_FORCEGET:
-            wait_timeout = None
-        else:
-            wait_timeout = 0
-
         # acquire a connection from the pool and perform a ping if the ping
         # interval is set to 0 or if the connection was previously used and
         # has been idle for a time greater than the value of ping interval
         while True:
             requires_ping = False
-            conn_impl = self._acquire_helper(wait_timeout, params)
-            if conn_impl._protocol._read_buf._session_needs_to_be_closed:
-                self._close_connection(conn_impl)
+            conn_impl = self._acquire_helper(params)
+            read_buf = conn_impl._protocol._read_buf
+            if not read_buf._session_needs_to_be_closed:
+                socket_list = [conn_impl._protocol._socket]
+                read_socks, _, _ = select.select(socket_list, [], [], 0)
+                if read_socks:
+                    read_buf.check_control_packet()
+            if read_buf._session_needs_to_be_closed:
+                with self._condition:
+                    self._busy_conn_impls.remove(conn_impl)
+                    self._drop_conn_impl(conn_impl)
                 continue
             if self._ping_interval == 0:
                 requires_ping = True
@@ -356,7 +351,9 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 conn_impl._protocol._process_message(message)
                 break
             except exceptions.DatabaseError:
-                self._close_connection(conn_impl)
+                with self._condition:
+                    self._busy_conn_impls.remove(conn_impl)
+                    self._drop_conn_impl(conn_impl)
         return conn_impl
 
     def close(self, bint force):
@@ -380,7 +377,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
             for lst in (self._free_used_conn_impls,
                         self._free_new_conn_impls,
                         self._busy_conn_impls):
-                self._conn_impls_to_close.extend(lst)
+                self._conn_impls_to_drop.extend(lst)
                 for conn_impl in lst:
                     conn_impl._pool = None
                 lst.clear()
@@ -397,7 +394,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         with self._condition:
             self._busy_conn_impls.remove(conn_impl)
             conn_impl._pool = None
-            self._close_connection(conn_impl)
+            self._drop_conn_impl(conn_impl)
             self._condition.notify()
 
     def get_busy_count(self):
@@ -449,14 +446,24 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         Internal method for getting the wait timeout for acquiring sessions.
         """
-        return self._wait_timeout
+        if self._getmode == constants.POOL_GETMODE_TIMEDWAIT:
+            return self._wait_timeout
+        return 0
 
-    def set_getmode(self, uint8_t value):
+    def set_getmode(self, uint32_t value):
         """
         Internal method for setting the method by which connections are
         acquired from the pool.
         """
-        self._getmode = value
+        if self._getmode != value:
+            self._getmode = value
+            self._force_get = \
+                    (self._getmode == constants.POOL_GETMODE_FORCEGET)
+            if self._getmode == constants.POOL_GETMODE_TIMEDWAIT \
+                    or self._getmode == constants.POOL_GETMODE_NOWAIT:
+                self._wait_timeout = 0
+            else:
+                self._wait_timeout = None
 
     def set_max_lifetime_session(self, uint32_t value):
         """
@@ -486,4 +493,9 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         Internal method for setting the wait timeout for acquiring sessions.
         """
-        self._wait_timeout = value
+        if self._getmode == constants.POOL_GETMODE_TIMEDWAIT:
+            self._wait_timeout = value / 1000
+        elif self._getmode == constants.POOL_GETMODE_NOWAIT:
+            self._wait_timeout = 0
+        else:
+            self._wait_timeout = None

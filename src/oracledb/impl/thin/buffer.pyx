@@ -1081,6 +1081,21 @@ cdef class ReadBuffer:
 
         return bytes(output_value).decode()
 
+    cdef int check_control_packet(self) except -1:
+        """
+        Checks for a control packet or final close packet from the server.
+        """
+        cdef:
+            uint8_t packet_type, packet_flags
+            uint16_t data_flags
+        self._receive_packet_helper(&packet_type, &packet_flags)
+        if packet_type == TNS_PACKET_TYPE_CONTROL:
+            self._process_control_packet()
+        elif packet_type == TNS_PACKET_TYPE_DATA:
+            self.read_uint16(&data_flags)
+            if data_flags == TNS_DATA_FLAGS_EOF:
+                self._session_needs_to_be_closed = True
+
     cdef int receive_packet(self, uint8_t *packet_type,
                             uint8_t *packet_flags) except -1:
         """
