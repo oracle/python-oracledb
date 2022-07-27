@@ -54,10 +54,6 @@ cdef class ThickPoolImpl(BasePoolImpl):
         self.increment = params.increment
         self.homogeneous = params.homogeneous
 
-        # ensure that the Oracle Client library is initialized
-        if driver_context == NULL:
-            init_oracle_client()
-
         # set up common creation parameters
         if dpiContext_initCommonCreateParams(driver_context,
                                              &common_params) < 0:
