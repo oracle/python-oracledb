@@ -13,6 +13,12 @@ oracledb 1.0.3 (August 2022)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  The error `DPY-3015: password verifier type is not supported by
+    python-oracledb in thin mode` is now raised when
+    the database sends a password challenge with a verifier type that is not
+    recognized, instead of `ORA-01017: invalid username/password`
+    (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
+
 Common Changes
 ++++++++++++++
 
