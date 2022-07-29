@@ -7,6 +7,16 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+oracledb 1.0.3 (August 2022)
+----------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+Common Changes
+++++++++++++++
+
+
 oracledb 1.0.2 (July 2022)
 --------------------------
 
