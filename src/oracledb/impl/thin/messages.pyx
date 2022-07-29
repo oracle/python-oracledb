@@ -1657,13 +1657,18 @@ cdef class ExecuteMessage(MessageWithData):
         Runs after the database response has been processed. If the statement
         executed requires define and is not a REF cursor (which would already
         have performed the define during its execute), then mark the message as
-        needing to be resent.
+        needing to be resent. If this is after the second time the message has
+        been sent, mark the statement as no longer needing a define (since this
+        only needs to happen once).
         """
         MessageWithData._postprocess(self)
         cdef Statement stmt = self.cursor_impl._statement
         if stmt._requires_define and stmt._sql is not None:
-            stmt._requires_full_execute = True
-            self.resend = True
+            if self.resend:
+                stmt._requires_define = False
+            else:
+                stmt._requires_full_execute = True
+                self.resend = True
 
     cdef int _write_execute_message(self, WriteBuffer buf) except -1:
         """
