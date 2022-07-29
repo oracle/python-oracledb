@@ -784,5 +784,23 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(cursor.rowcount, 1)
         self.assertEqual(cursor.rowcount, -1)
 
+    def test_4362_change_of_bind_type_with_define(self):
+        "4362 - changing bind type with define needed"
+        self.cursor.execute("truncate table TestClobs")
+        row_for_1 = (1, "Short value 1")
+        row_for_56 = (56, "Short value 56")
+        for data in (row_for_1, row_for_56):
+            self.cursor.execute("""
+                    insert into TestClobs (IntCol, ClobCol)
+                    values (:1, :2)""", data)
+        sql = "select IntCol, ClobCol from TestClobs where IntCol = :int_col"
+        with test_env.FetchLobsContextManager(False):
+            self.cursor.execute(sql, int_col="1")
+            self.assertEqual(self.cursor.fetchone(), row_for_1)
+            self.cursor.execute(sql, int_col="56")
+            self.assertEqual(self.cursor.fetchone(), row_for_56)
+            self.cursor.execute(sql, int_col=1)
+            self.assertEqual(self.cursor.fetchone(), row_for_1)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
