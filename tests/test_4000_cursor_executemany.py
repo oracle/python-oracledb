@@ -294,5 +294,21 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.executemany("begin :1 := :2; end;", data)
         self.assertEqual(var.values, [value])
 
+    def test_4021_defer_type_assignment(self):
+        "4021 - test deferral of type assignment"
+        self.cursor.execute("truncate table TestTempTable")
+        data = [(1, None), (2, 25)]
+        self.cursor.executemany("""
+                insert into TestTempTable
+                (IntCol, NumberCol)
+                values (:1, :2)""", data)
+        self.connection.commit()
+        self.cursor.execute("""
+                select IntCol, NumberCol
+                from TestTempTable
+                order by IntCol""")
+        fetched_data = self.cursor.fetchall()
+        self.assertEqual(data, fetched_data)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

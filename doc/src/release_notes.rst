@@ -16,6 +16,10 @@ Thin Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug with the deferral of type assignment when creating variables for
+    :func:`Cursor.executemany()`
+    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
+
 
 oracledb 1.0.2 (July 2022)
 --------------------------
