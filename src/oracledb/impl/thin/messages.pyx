@@ -747,7 +747,6 @@ cdef class MessageWithData(Message):
             child_cursor = self._create_cursor_from_describe(buf)
             child_cursor_impl = child_cursor._impl
             buf.read_ub2(&child_cursor_impl._statement._cursor_id)
-            child_cursor_impl._is_implicit_cursor = True
             self.cursor_impl._implicit_resultsets.append(child_cursor)
 
     cdef int _process_io_vector(self, ReadBuffer buf) except -1:
