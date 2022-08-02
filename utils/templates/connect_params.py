@@ -70,12 +70,9 @@ class ConnectParams:
         """
         @functools.wraps(f)
         def wrapped(self):
-            output = []
-            for description in self._impl.description_list.descriptions:
-                for address_list in description.address_lists:
-                    for address in address_list.addresses:
-                        output.append(getattr(address, f.__name__))
-            return output if len(output) > 1 else output[0]
+            values = [getattr(a, f.__name__) \
+                      for a in self._impl._get_addresses()]
+            return values if len(values) > 1 else values[0]
         return wrapped
 
     def _description_attr(f):
@@ -84,10 +81,9 @@ class ConnectParams:
         """
         @functools.wraps(f)
         def wrapped(self):
-            output = []
-            for description in self._impl.description_list.descriptions:
-                output.append(getattr(description, f.__name__))
-            return output if len(output) > 1 else output[0]
+            values = [getattr(d, f.__name__) \
+                      for d in self._impl.description_list.descriptions]
+            return values if len(values) > 1 else values[0]
         return wrapped
 
     #{{ params_properties }}
