@@ -110,7 +110,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes - No TIMESTAMP support
       - Yes - No TIMESTAMP support
-    * - Oracle Database Native Network Encryption (NNE) (see :ref:`nne`)
+    * - Oracle Database Native Network Encryption (see :ref:`nne`)
       - No
       - Yes
       - Yes
