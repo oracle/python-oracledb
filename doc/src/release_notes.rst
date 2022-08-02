@@ -18,18 +18,6 @@ Thin Mode Changes
 #)  The error `DPY-2030: LOB offset must be greater than zero` is now raised
     when the offset parameter to :func:`LOB.read()` is zero or negative
     (`issue 13 <https://github.com/oracle/python-oracledb/issues/13>`__).
-#)  The error `DPY-3015: password verifier type is not supported by
-    python-oracledb in thin mode` is now raised when
-    the database sends a password challenge with a verifier type that is not
-    recognized, instead of `ORA-01017: invalid username/password`
-    (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
-#)  Fixed bug with handling of redirect data returned by some SCAN listeners
-    (`issue 39 <https://github.com/oracle/python-oracledb/issues/39>`__).
-#)  Fixed bug with re-execution of SQL that requires a define, such as occurs
-    when setting `oracledb.defaults.fetch_lobs` to the value `False`
-    (`issue 41 <https://github.com/oracle/python-oracledb/issues/41>`__).
-#)  Fixed bug that prevented cursors from implicit results sets from being
-    closed.
 #)  Internally, before a connection is returned from a pool, check for control
     packets from the server (which may inform the client that the connection
     needs to be closed and a new one established).
@@ -48,13 +36,37 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Fixed bug with the deferral of type assignment when creating variables for
-    :func:`Cursor.executemany()`
-    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
 #)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
     the driver is using thin mode or not
     (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
 #)  Improved samples and documentation.
+
+
+oracledb 1.0.3 (August 2022)
+----------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  The error `DPY-3015: password verifier type is not supported by
+    python-oracledb in thin mode` is now raised when
+    the database sends a password challenge with a verifier type that is not
+    recognized, instead of `ORA-01017: invalid username/password`
+    (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
+#)  Fixed bug with handling of redirect data returned by some SCAN listeners
+    (`issue 39 <https://github.com/oracle/python-oracledb/issues/39>`__).
+#)  Fixed bug with re-execution of SQL that requires a define, such as occurs
+    when setting `oracledb.defaults.fetch_lobs` to the value `False`
+    (`issue 41 <https://github.com/oracle/python-oracledb/issues/41>`__).
+#)  Fixed bug that prevented cursors from implicit results sets from being
+    closed.
+
+Common Changes
+++++++++++++++
+
+#)  Fixed bug with the deferral of type assignment when creating variables for
+    :func:`Cursor.executemany()`
+    (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
 
 
 oracledb 1.0.2 (July 2022)
