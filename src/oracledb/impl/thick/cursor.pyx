@@ -33,6 +33,7 @@
 cdef class ThickCursorImpl(BaseCursorImpl):
     cdef:
         ThickConnImpl _conn_impl
+        bint _is_implicit_cursor
         bint _fixup_ref_cursor
         dpiStmtInfo _stmt_info
         dpiStmt *_handle

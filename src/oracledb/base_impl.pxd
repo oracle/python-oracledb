@@ -251,7 +251,6 @@ cdef class BaseCursorImpl:
         uint32_t _buffer_index
         uint32_t _fetch_array_size
         bint _more_rows_to_fetch
-        bint _is_implicit_cursor
 
     cdef int _bind_values(self, object cursor, object type_handler,
                           object params, uint32_t num_rows, uint32_t row_num,

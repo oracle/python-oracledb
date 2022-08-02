@@ -28,6 +28,8 @@ Thin Mode Changes
 #)  Fixed bug with re-execution of SQL that requires a define, such as occurs
     when setting `oracledb.defaults.fetch_lobs` to the value `False`
     (`issue 41 <https://github.com/oracle/python-oracledb/issues/41>`__).
+#)  Fixed bug that prevented cursors from implicit results sets from being
+    closed.
 #)  Internally, before a connection is returned from a pool, check for control
     packets from the server (which may inform the client that the connection
     needs to be closed and a new one established).

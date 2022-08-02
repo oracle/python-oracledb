@@ -46,8 +46,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
 
     cdef int _close(self, bint in_del) except -1:
         if self._statement is not None:
-            if not self._is_implicit_cursor:
-                self._conn_impl._return_statement(self._statement)
+            self._conn_impl._return_statement(self._statement)
             self._statement = None
 
     cdef BaseVarImpl _create_var_impl(self, object conn):
@@ -188,8 +187,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
     def prepare(self, str sql, str tag, bint cache_statement):
         self.statement = sql
         if self._statement is not None:
-            if not self._is_implicit_cursor:
-                self._conn_impl._return_statement(self._statement)
+            self._conn_impl._return_statement(self._statement)
             self._statement = None
         self._statement = self._conn_impl._get_statement(sql.strip(),
                                                          cache_statement)
