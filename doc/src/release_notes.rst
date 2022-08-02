@@ -13,7 +13,7 @@ oracledb 1.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for getthing the LOB chunk size
+#)  Added support for getting the LOB chunk size
     (`issue 14 <https://github.com/oracle/python-oracledb/issues/14>`__).
 #)  The error `DPY-2030: LOB offset must be greater than zero` is now raised
     when the offset parameter to :func:`LOB.read()` is zero or negative
