@@ -23,6 +23,8 @@ Thin Mode Changes
     needs to be closed and a new one established).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
+#)  Eliminated unnecessary restriction that resulted in error
+    ``DPY-3011: server logon version is not supported``.
 
 Thick Mode Changes
 ++++++++++++++++++

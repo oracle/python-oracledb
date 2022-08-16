@@ -2105,8 +2105,6 @@ cdef class ProtocolMessage(Message):
             caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
             server_compile_caps = bytearray(buf.read_bytes())
             server_runtime_caps = bytearray(buf.read_bytes())
-            if not server_compile_caps[TNS_CCAP_LOGON_TYPES] & TNS_CCAP_O7LOGON:
-                errors._raise_err(errors.ERR_SERVER_LOGON_TYPE_NOT_SUPPORTED)
             buf._caps._adjust_for_server_compile_caps(server_compile_caps)
             buf._caps._adjust_for_server_runtime_caps(server_runtime_caps)
         else:

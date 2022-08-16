@@ -167,7 +167,6 @@ ERR_DB_TYPE_NOT_SUPPORTED = 3007
 ERR_UNSUPPORTED_INBAND_NOTIFICATION = 3008
 ERR_SELF_BIND_NOT_SUPPORTED = 3009
 ERR_SERVER_VERSION_NOT_SUPPORTED = 3010
-ERR_SERVER_LOGON_TYPE_NOT_SUPPORTED = 3011
 ERR_NCHAR_CS_NOT_SUPPORTED = 3012
 ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR = 3013
 ERR_LOB_OF_WRONG_TYPE = 3014
@@ -407,8 +406,6 @@ ERR_MESSAGE_FORMATS = {
             'binding to self is not supported',
     ERR_CONNECTION_CLOSED:
             'the database or network closed the connection',
-    ERR_SERVER_LOGON_TYPE_NOT_SUPPORTED:
-            'server logon version is not supported',
     ERR_SERVER_VERSION_NOT_SUPPORTED:
             'connections to this database server version are not supported '
             'by python-oracledb in thin mode',
