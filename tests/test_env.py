@@ -326,6 +326,23 @@ class BaseTestCase(unittest.TestCase):
     def assertRoundTrips(self, n):
         self.assertEqual(self.round_trip_info.get_value(), n)
 
+    def get_and_clear_queue(self, queue_name, payload_type=None,
+                            message="not supported with this client/server " \
+                                    "combination"):
+        if payload_type == "JSON":
+            if get_client_version() < (21, 0) \
+                    or get_server_version() < (21, 0):
+                self.skipTest(message)
+        elif isinstance(payload_type, str):
+            payload_type = self.connection.gettype(payload_type)
+        queue = self.connection.queue(queue_name, payload_type)
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        while queue.deqone():
+            pass
+        return self.connection.queue(queue_name, payload_type)
+
     def get_db_object_as_plain_object(self, obj):
         if obj.type.iscollection:
             element_values = []

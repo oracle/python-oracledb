@@ -193,7 +193,8 @@ Connection Methods
 
     The ``payload_type`` parameter, if specified, is expected to be an
     :ref:`object type <dbobjecttype>` that identifies the type of payload the
-    queue expects. If not specified, RAW data is enqueued and dequeued.
+    queue expects. If the string "JSON" is specified, JSON data is enqueued and
+    dequeued. If not specified, RAW data is enqueued and dequeued.
 
     For consistency and compliance with the PEP 8 naming style, the
     parameter `payloadType` was renamed to `payload_type`. The old name

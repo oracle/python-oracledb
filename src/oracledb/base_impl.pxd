@@ -395,6 +395,7 @@ cdef class BaseQueueImpl:
         readonly BaseDbObjectTypeImpl payload_type
         readonly BaseDeqOptionsImpl deq_options_impl
         readonly BaseEnqOptionsImpl enq_options_impl
+        readonly bint is_json
 
 
 cdef class BaseDeqOptionsImpl:

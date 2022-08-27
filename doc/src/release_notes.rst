@@ -31,6 +31,7 @@ Thick Mode Changes
 
 #)  Added support for getting the message id of the AQ message which generated
     a notification.
+#)  Added support for enqueuing and dequeing AQ messages as JSON.
 #)  Added the ability to use `externalauth` as a connection parameter for
     standalone connections in addition to creating pools. For standalone
     connections, this parameter is optional.

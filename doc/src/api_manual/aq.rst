@@ -106,7 +106,8 @@ Queue Attributes
 .. attribute:: Queue.payload_type
 
     This read-only attribute returns the object type for payloads that can be
-    enqueued and dequeued. If using a raw queue, this returns the value None.
+    enqueued and dequeued. If using a JSON queue, this returns the value
+    ``"JSON"``. If using a raw queue, this returns the value ``None``.
 
     For consistency and compliance with the PEP 8 naming style, the name of
     the attribute was changed from `payloadType`. The old name will

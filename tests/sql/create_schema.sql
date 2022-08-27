@@ -318,7 +318,15 @@ end;
 /
 
 -- create queue table and queues for testing advanced queuing
+declare
+    t_Version                           number;
 begin
+
+    select to_number(substr(version, 1, instr(version, '.') - 1))
+    into t_Version
+    from product_component_version
+    where product like 'Oracle Database%';
+
     dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_TAB',
             '&main_user..UDT_BOOK');
     dbms_aqadm.create_queue('&main_user..TEST_BOOK_QUEUE',
@@ -337,6 +345,14 @@ begin
     dbms_aqadm.start_queue('&main_user..BOOK_QUEUE_MULTI');
     dbms_aqadm.add_subscriber('&main_user..BOOK_QUEUE_MULTI',
             sys.aq$_agent('Sub1', null, null));
+
+    if t_Version >= 21 then
+        dbms_aqadm.create_queue_table('&main_user..JSON_QUEUE_TAB', 'JSON');
+        dbms_aqadm.create_queue('&main_user..TEST_JSON_QUEUE',
+                '&main_user..JSON_QUEUE_TAB');
+        dbms_aqadm.start_queue('&main_user..TEST_JSON_QUEUE');
+    end if;
+
 end;
 /
 

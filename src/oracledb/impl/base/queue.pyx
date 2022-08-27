@@ -49,7 +49,7 @@ cdef class BaseQueueImpl:
 
     @utils.CheckImpls("initializing a queue")
     def initialize(self, BaseConnImpl conn_impl, str name,
-                   BaseDbObjectImpl payload_type):
+                   BaseDbObjectImpl payload_type, bint is_json):
         pass
 
 

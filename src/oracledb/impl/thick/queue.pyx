@@ -32,6 +32,7 @@
 cdef class ThickQueueImpl(BaseQueueImpl):
     cdef:
         dpiQueue* _handle
+        ThickConnImpl _conn_impl
 
     def __dealloc__(self):
         if self._handle != NULL:
@@ -60,7 +61,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
                 props = ThickMsgPropsImpl.__new__(ThickMsgPropsImpl)
                 props._handle = handles[i]
                 processed_props += 1
-                props._initialize(self.payload_type)
+                props._initialize(self)
                 result.append(props)
         finally:
             for i in range(processed_props, num_props):
@@ -81,7 +82,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
         if status < 0:
             _raise_from_odpi()
         if props._handle != NULL:
-            props._initialize(self.payload_type)
+            props._initialize(self)
             return props
 
     def enq_many(self, list props_impls):
@@ -116,7 +117,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
             _raise_from_odpi()
 
     def initialize(self, ThickConnImpl conn_impl, str name,
-                   ThickDbObjectTypeImpl payload_type):
+                   ThickDbObjectTypeImpl payload_type, bint is_json):
         """
         Internal method for initializing the queue.
         """
@@ -125,12 +126,19 @@ cdef class ThickQueueImpl(BaseQueueImpl):
             ThickEnqOptionsImpl enq_options_impl
             dpiObjectType* type_handle = NULL
             StringBuffer buf = StringBuffer()
+        self._conn_impl = conn_impl
+        self.is_json = is_json
         buf.set_value(name)
-        if payload_type is not None:
-            type_handle = payload_type._handle
-        if dpiConn_newQueue(conn_impl._handle, buf.ptr, buf.length,
-                            type_handle, &self._handle) < 0:
-            _raise_from_odpi()
+        if is_json:
+            if dpiConn_newJsonQueue(conn_impl._handle, buf.ptr, buf.length,
+                            &self._handle) < 0:
+                _raise_from_odpi()
+        else:
+            if payload_type is not None:
+                type_handle = payload_type._handle
+            if dpiConn_newQueue(conn_impl._handle, buf.ptr, buf.length,
+                                type_handle, &self._handle) < 0:
+                _raise_from_odpi()
         deq_options_impl = ThickDeqOptionsImpl.__new__(ThickDeqOptionsImpl)
         if dpiQueue_getDeqOptions(self._handle, &deq_options_impl._handle) < 0:
             _raise_from_odpi()
@@ -391,29 +399,43 @@ cdef class ThickEnqOptionsImpl(BaseEnqOptionsImpl):
 cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
     cdef:
         dpiMsgProps* _handle
+        ThickConnImpl _conn_impl
 
     def __dealloc__(self):
         if self._handle != NULL:
             dpiMsgProps_release(self._handle)
 
-    cdef int _initialize(self, ThickDbObjectTypeImpl payload_type) except -1:
+    cdef int _initialize(self, ThickQueueImpl queue_impl) except -1:
         cdef:
             dpiObject *payload_obj_handle
             ThickDbObjectImpl obj_impl
             const char *payload_ptr
             uint32_t payload_len
-        if dpiMsgProps_getPayload(self._handle, &payload_obj_handle,
-                                  &payload_ptr, &payload_len) < 0:
-            _raise_from_odpi()
-        if payload_obj_handle != NULL:
-            obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
-            obj_impl.type = payload_type
-            if dpiObject_addRef(payload_obj_handle) < 0:
+            dpiJsonNode *node
+            int32_t status
+            dpiJson *json
+
+        self._conn_impl = queue_impl._conn_impl
+        if queue_impl.is_json:
+            if dpiMsgProps_getPayloadJson(self._handle, &json) < 0:
                 _raise_from_odpi()
-            obj_impl._handle = payload_obj_handle
-            self.payload = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
+            if dpiJson_getValue(json, DPI_JSON_OPT_NUMBER_AS_STRING,
+                                &node) < 0:
+                _raise_from_odpi()
+            self.payload = _convert_from_json_node(node)
         else:
-            self.payload = payload_ptr[:payload_len]
+            if dpiMsgProps_getPayload(self._handle, &payload_obj_handle,
+                            &payload_ptr, &payload_len) < 0:
+                _raise_from_odpi()
+            if payload_obj_handle != NULL:
+                obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
+                obj_impl.type = queue_impl.payload_type
+                if dpiObject_addRef(payload_obj_handle) < 0:
+                    _raise_from_odpi()
+                obj_impl._handle = payload_obj_handle
+                self.payload = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
+            else:
+                self.payload = payload_ptr[:payload_len]
 
     def get_num_attempts(self):
         """
@@ -563,6 +585,22 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
         Internal method for setting the payload from an object.
         """
         if dpiMsgProps_setPayloadObject(self._handle, obj_impl._handle) < 0:
+            _raise_from_odpi()
+
+    def set_payload_json(self, object json_val):
+        """
+        Internal method for setting the payload from a JSON object
+        """
+        cdef:
+            JsonBuffer json_buf = JsonBuffer()
+            dpiJson *json
+
+        json_buf.from_object(json_val)
+        if dpiConn_newJson(self._conn_impl._handle, &json) < 0:
+            _raise_from_odpi()
+        if dpiJson_setValue(json, &json_buf._top_node) < 0:
+            _raise_from_odpi()
+        if dpiMsgProps_setPayloadJson(self._handle, json) < 0:
             _raise_from_odpi()
 
     def set_priority(self, int32_t value):

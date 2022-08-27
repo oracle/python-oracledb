@@ -18,6 +18,10 @@ architecture.
 Python-oracledb uses the updated interface for Oracle Advanced Queuing that
 was first introduced in cx_Oracle 7.2.
 
+Starting from Oracle Database 21c, Advanced Queuing also supports the JSON
+payload type. To use the JSON payload type, the Oracle Client libraries must
+be version 21 or later.
+
 There are Advanced Queuing examples in the `GitHub examples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
 
@@ -25,7 +29,11 @@ There are Advanced Queuing examples in the `GitHub examples
 Creating a Queue
 ================
 
-Before being used, queues need to be created in the database, for example in
+Before being used, queues need to be created in the database.
+
+**Using RAW Payloads**
+
+Queues can be created using the RAW payload type, for example in
 SQL*Plus:
 
 .. code-block:: sql
@@ -37,15 +45,36 @@ SQL*Plus:
     end;
     /
 
-This examples creates a RAW queue suitable for sending string or raw bytes
+This example creates a RAW queue suitable for sending string or bytes
 messages.
 
+**Using JSON Payloads**
+
+Also, queues can be created using the JSON payload type. For example,
+in SQL*Plus:
+
+.. code-block:: sql
+
+    begin
+        dbms_aqadm.create_queue_table('JSON_QUEUE_TABLE', 'JSON');
+        dbms_aqadm.create_queue('DEMO_JSON_QUEUE', 'JSON_QUEUE_TABLE');
+        dbms_aqadm.start_queue('DEMO_JSON_QUEUE');
+    end;
+    /
+
+This example creates a JSON queue suitable for sending JSON data
+messages.
 
 Enqueuing Messages
 ==================
 
 To send messages in Python, you connect and get a :ref:`queue <queue>`. The
 queue can be used for enqueuing, dequeuing, or both as needed.
+
+**Using RAW Payloads**
+
+You can connect to the database and get the queue that was created with RAW
+payload type by using:
 
 .. code-block:: python
 
@@ -66,24 +95,63 @@ messages:
     connection.commit()
 
 Since the queue sending the messages is a RAW queue, the strings in this
-example will be internally encoded to bytes using :attr:`Connection.encoding`
+example will be internally encoded to bytes using ``message.encode()``
 before being enqueued.
 
+**Using JSON Payloads**
+
+You can connect to the database and get the queue that was created with JSON
+payload type by using:
+
+.. code-block:: python
+
+    queue = connection.queue("DEMO_JSON_QUEUE", "JSON")
+    # The second argument (JSON) indicates that the queue is of JSON payload type.
+
+Now the message can be enqueued using :meth:`~Queue.enqone()`.
+
+.. code-block:: python
+
+    json_data = [
+        [
+            2.75,
+            True,
+            'Ocean Beach',
+            b'Some bytes',
+            {'keyA': 1.0, 'KeyB': 'Melbourne'},
+            datetime.datetime(2022, 8, 1, 0, 0)
+        ],
+        dict(name="John", age=30, city="New York")
+    ]
+    for data in json_data:
+        queue.enqone(connection.msgproperties(payload=data))
+    connection.commit()
 
 Dequeuing Messages
 ==================
 
 Dequeuing is performed similarly. To dequeue a message call the method
-:meth:`~Queue.deqone()` as shown. Note that if the message is expected to be a
-string, the bytes must be decoded using :attr:`Connection.encoding`.
+:meth:`~Queue.deqone()` as shown in the examples below.
+
+**Using RAW Payload Type**
 
 .. code-block:: python
 
     queue = connection.queue("DEMO_RAW_QUEUE")
-    msg = queue.deqOne()
+    message = queue.deqOne()
     connection.commit()
-    print(msg.payload.decode(connection.encoding))
+    print(message.payload.decode())
 
+Note that if the message is expected to be a string, the bytes must
+be decoded using ``message.payload.decode()``, as shown.
+
+**Using JSON Payload Type**
+
+.. code-block:: python
+
+    queue = connection.queue("DEMO_JSON_QUEUE", "JSON")
+    message = queue.deqOne()
+    connection.commit()
 
 Using Object Queues
 ===================
@@ -133,9 +201,9 @@ Dequeuing is done like this:
     book_type = connection.gettype("UDT_BOOK")
     queue = connection.queue("DEMO_BOOK_QUEUE", book_type)
 
-    msg = queue.deqone()
+    message = queue.deqone()
     connection.commit()
-    print(msg.payload.TITLE)        # will print Quick Brown Fox
+    print(message.payload.TITLE)   # will print Quick Brown Fox
 
 
 Using Recipient Lists
@@ -241,8 +309,8 @@ time:
 
 .. code-block:: python
 
-    for m in queue.deqmany(10):
-        print(m.payload.decode(connection.encoding))
+    for message in queue.deqmany(10):
+        print(message.payload.decode())
 
 Depending on the queue properties and the number of messages available to
 dequeue, this code will print out from zero to ten messages.

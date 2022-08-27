@@ -594,6 +594,11 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             uint32_t nameLength, dpiObjectType *payloadType,
             dpiQueue **queue) nogil
 
+    int dpiConn_newJson(dpiConn *conn, dpiJson **json) nogil
+
+    int dpiConn_newJsonQueue(dpiConn *conn, const char *name,
+            uint32_t nameLength, dpiQueue **queue) nogil
+
     int dpiConn_newTempLob(dpiConn *conn, uint32_t lobType, dpiLob **lob) nogil
 
     int dpiConn_newVar(dpiConn *conn, uint32_t oracleTypeNum,
@@ -834,6 +839,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiMsgProps_getPayload(dpiMsgProps *props, dpiObject **obj,
             const char **value, uint32_t *valueLength) nogil
 
+    int dpiMsgProps_getPayloadJson(dpiMsgProps *props,
+        dpiJson **json) nogil
+
     int dpiMsgProps_getPriority(dpiMsgProps *props, int32_t *value) nogil
 
     int dpiMsgProps_getState(dpiMsgProps *props, uint32_t *value) nogil
@@ -857,6 +865,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             const char *value, uint32_t valueLength) nogil
 
     int dpiMsgProps_setPayloadObject(dpiMsgProps *props, dpiObject *obj) nogil
+
+    int dpiMsgProps_setPayloadJson(dpiMsgProps *props, dpiJson *json) nogil
 
     int dpiMsgProps_setPriority(dpiMsgProps *props, int32_t value) nogil
 

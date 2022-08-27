@@ -404,6 +404,7 @@ cdef class ThickConnImpl(BaseConnImpl):
     def create_msg_props_impl(self):
         cdef ThickMsgPropsImpl impl
         impl = ThickMsgPropsImpl.__new__(ThickMsgPropsImpl)
+        impl._conn_impl = self
         if dpiConn_newMsgProps(self._handle, &impl._handle) < 0:
             _raise_from_odpi()
         return impl

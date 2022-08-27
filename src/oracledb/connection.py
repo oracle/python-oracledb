@@ -603,7 +603,7 @@ class Connection:
         """
         return self.tpc_prepare()
 
-    def queue(self, name: str, payload_type: DbObjectType=None, *,
+    def queue(self, name: str, payload_type: [DbObjectType, str]=None, *,
               payloadType: DbObjectType=None) -> Queue:
         """
         Creates and returns a queue which is used to enqueue and dequeue
@@ -612,12 +612,14 @@ class Connection:
         The name parameter is expected to be a string identifying the queue in
         which messages are to be enqueued or dequeued.
 
-        The payload_type parameter, if specified, is expected to be an object
-        type that identifies the type of payload the queue expects. If not
-        specified, RAW data is enqueued and dequeued.
+        The payload_type parameter, if specified, is expected to be an
+        object type that identifies the type of payload the queue expects.
+        If the string "JSON" is specified, JSON data is enqueued and dequeued.
+        If not specified, RAW data is enqueued and dequeued.
         """
         self._verify_connected()
         payload_type_impl = None
+        is_json = False
         if payloadType is not None:
             if payload_type is not None:
                 errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
@@ -625,11 +627,14 @@ class Connection:
                                   new_name="payload_type")
             payload_type = payloadType
         if payload_type is not None:
-            if not isinstance(payload_type, DbObjectType):
+            if payload_type == "JSON":
+                is_json = True
+            elif not isinstance(payload_type, DbObjectType):
                 raise TypeError("expecting DbObjectType")
-            payload_type_impl = payload_type._impl
+            else:
+                payload_type_impl = payload_type._impl
         impl = self._impl.create_queue_impl()
-        impl.initialize(self._impl, name, payload_type_impl)
+        impl.initialize(self._impl, name, payload_type_impl, is_json)
         return Queue._from_impl(self, impl)
 
     def rollback(self) -> None:

@@ -175,8 +175,11 @@ class Queue:
         If using a raw queue, this returns the value None.
         """
         if self._payload_type is None:
-            self._payload_type = \
-                    DbObjectType._from_impl(self._impl.payload_type)
+            if self._impl.is_json:
+                self._payload_type = "JSON"
+            elif self._impl.payload_type is not None:
+                self._payload_type = \
+                        DbObjectType._from_impl(self._impl.payload_type)
         return self._payload_type
 
     @property
@@ -488,16 +491,16 @@ class MessageProperties:
         return self._impl.payload
 
     @payload.setter
-    def payload(self, value: Union[bytes, DbObject]) -> None:
+    def payload(self, value: object) -> None:
         if isinstance(value, DbObject):
             self._impl.set_payload_object(value._impl)
+        elif not isinstance(value, (str, bytes)):
+            self._impl.set_payload_json(value)
         else:
             if isinstance(value, str):
                 value_bytes = value.encode()
             elif isinstance(value, bytes):
                 value_bytes = value
-            else:
-                raise TypeError("payload must be a DbObject, string or bytes")
             self._impl.set_payload_bytes(value_bytes)
         self._impl.payload = value
 
