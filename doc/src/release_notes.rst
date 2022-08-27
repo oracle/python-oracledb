@@ -23,9 +23,9 @@ Thin Mode Changes
     needs to be closed and a new one established).
 #)  Internally make use of the `TCP_NODELAY` socket option to remove delays
     in socket reads.
-#)  Eliminated unnecessary restriction that resulted in error
-    ``DPY-3011: server logon version is not supported``.
-#)  Fixed bug when calling cursor.parse() multiple times with the same SQL.
+#)  Fixed bug when calling :func:`Cursor.parse()` multiple times with the same
+    SQL statement.
+#)  Fixed bug that prevented connecting to Oracle Database 12.1.0.1.
 
 Thick Mode Changes
 ++++++++++++++++++
