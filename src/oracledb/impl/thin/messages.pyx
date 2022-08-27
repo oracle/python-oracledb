@@ -1252,6 +1252,9 @@ cdef class AuthMessage(Message):
         str session_key
         str speedy_key
         str proxy_user
+        str token
+        str private_key
+        str service_name
         uint8_t purity
         ssize_t user_bytes_len
         bytes user_bytes
@@ -1322,7 +1325,8 @@ cdef class AuthMessage(Message):
         # combo session key with zeros padding
         if self.debug_jdwp is not None:
             jdwp_data = self.debug_jdwp.encode()
-            encrypted_jdwp_data = encrypt_cbc(session_key, jdwp_data, zeros=True)
+            encrypted_jdwp_data = encrypt_cbc(session_key, jdwp_data,
+                                              zeros=True)
             # Add a "01" at the end of the hex encrypted data to indicate the
             # use of AES encryption
             self.encoded_jdwp_data = encrypted_jdwp_data.hex().upper() + "01"
@@ -1353,8 +1357,9 @@ cdef class AuthMessage(Message):
         """
         self.function_code = TNS_FUNC_AUTH_PHASE_ONE
         self.session_data = {}
-        self.user_bytes = self.conn_impl.username.encode()
-        self.user_bytes_len = len(self.user_bytes)
+        if self.conn_impl.username is not None:
+            self.user_bytes = self.conn_impl.username.encode()
+            self.user_bytes_len = len(self.user_bytes)
         self.resend = True
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
@@ -1395,6 +1400,9 @@ cdef class AuthMessage(Message):
         """
         self.password = params._get_password()
         self.newpassword = params._get_new_password()
+        self.service_name = description.service_name
+        self.proxy_user = params.proxy_user
+        self.debug_jdwp = params.debug_jdwp
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -1408,8 +1416,17 @@ cdef class AuthMessage(Message):
         else:
             self.purity = description.purity
 
-        self.proxy_user = params.proxy_user
-        self.debug_jdwp = params.debug_jdwp
+        # set token parameters; adjust processing so that only phase two is
+        # sent
+        if params._token is not None \
+                or params.access_token_callback is not None:
+            self.token = params._get_token()
+            if params._private_key is not None:
+                self.private_key = params._get_private_key()
+            self.function_code = TNS_FUNC_AUTH_PHASE_TWO
+            self.resend = False
+
+        # set authentication mode
         if params._new_password is None:
             self.auth_mode = TNS_AUTH_MODE_LOGON
         if params.mode & constants.AUTH_MODE_SYSDBA:
@@ -1426,6 +1443,8 @@ cdef class AuthMessage(Message):
             self.auth_mode |= TNS_AUTH_MODE_SYSKMT
         if params.mode & constants.AUTH_MODE_SYSRAC:
             self.auth_mode |= TNS_AUTH_MODE_SYSRAC
+        if self.private_key is not None:
+            self.auth_mode |= TNS_AUTH_MODE_IAM_TOKEN
 
     cdef int _write_key_value(self, WriteBuffer buf, str key, str value,
                               uint32_t flags=0) except -1:
@@ -1443,18 +1462,63 @@ cdef class AuthMessage(Message):
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
+            uint8_t has_user = 1 if self.user_bytes_len > 0 else 0
             bint verifier_11g = False
             uint32_t num_pairs
-        self._write_function_code(buf)
-        buf.write_uint8(1)                  # pointer (authusr)
-        buf.write_ub4(self.user_bytes_len)
+
+        # perform final determination of data to write
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
-            buf.write_ub4(self.auth_mode)   # authentication mode
-            buf.write_uint8(1)              # pointer (authivl)
-            buf.write_ub4(5)                # number of key/value pairs
-            buf.write_uint8(0)              # pointer (authovl)
-            buf.write_uint8(1)              # pointer (authovln)
+            num_pairs = 5
+        else:
+            num_pairs = 3
+
+            # token authentication
+            if self.token is not None:
+                num_pairs += 1
+
+            # normal user/password authentication
+            else:
+                num_pairs += 2
+                self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
+                if self.verifier_type in (TNS_VERIFIER_TYPE_11G_1,
+                                          TNS_VERIFIER_TYPE_11G_2):
+                    verifier_11g = True
+                elif self.verifier_type != TNS_VERIFIER_TYPE_12C:
+                    errors._raise_err(errors.ERR_UNSUPPORTED_VERIFIER_TYPE,
+                                      verifier_type=self.verifier_type)
+                else:
+                    num_pairs += 1
+                self._generate_verifier(verifier_11g)
+
+            # determine which other key/value pairs to write
+            if self.newpassword is not None:
+                num_pairs += 1
+                self.auth_mode |= TNS_AUTH_MODE_CHANGE_PASSWORD
+            if self.proxy_user is not None:
+                num_pairs += 1
+            if self.conn_impl._cclass is not None:
+                num_pairs += 1
+            if self.purity != 0:
+                num_pairs += 1
+            if self.private_key is not None:
+                num_pairs += 2
+            if self.encoded_jdwp_data is not None:
+                num_pairs += 1
+
+        # write basic data to packet
+        self._write_function_code(buf)
+        buf.write_uint8(has_user)           # pointer (authusr)
+        buf.write_ub4(self.user_bytes_len)
+        buf.write_ub4(self.auth_mode)       # authentication mode
+        buf.write_uint8(1)                  # pointer (authivl)
+        buf.write_ub4(num_pairs)            # number of key/value pairs
+        buf.write_uint8(1)                  # pointer (authovl)
+        buf.write_uint8(1)                  # pointer (authovln)
+        if has_user:
             buf.write_bytes(self.user_bytes)
+
+        # write key/value pairs
+        if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             self._write_key_value(buf, "AUTH_TERMINAL",
                                   _connect_constants.terminal_name)
             self._write_key_value(buf, "AUTH_PROGRAM_NM",
@@ -1465,46 +1529,21 @@ cdef class AuthMessage(Message):
             self._write_key_value(buf, "AUTH_SID",
                                   _connect_constants.user_name)
         else:
-            num_pairs = 5
-            if self.newpassword is not None:
-                num_pairs += 1
-                self.auth_mode |= TNS_AUTH_MODE_CHANGE_PASSWORD
-            if self.proxy_user is not None:
-                num_pairs += 1
-            if self.conn_impl._cclass is not None:
-                num_pairs += 1
-            if self.purity != 0:
-                num_pairs += 1
-            self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
-
-            if self.verifier_type in (TNS_VERIFIER_TYPE_11G_1,
-                                      TNS_VERIFIER_TYPE_11G_2):
-                verifier_11g = True
-            elif self.verifier_type != TNS_VERIFIER_TYPE_12C:
-                errors._raise_err(errors.ERR_UNSUPPORTED_VERIFIER_TYPE,
-                                  verifier_type=self.verifier_type)
-            else:
-                num_pairs += 1
-            self._generate_verifier(verifier_11g)
-            if self.encoded_jdwp_data is not None:
-                num_pairs += 1
-            buf.write_ub4(self.auth_mode)   # authentication mode
-            buf.write_uint8(1)              # pointer (authivl)
-            buf.write_ub4(num_pairs)        # number of key/value pairs
-            buf.write_uint8(1)              # pointer (authovl)
-            buf.write_uint8(1)              # pointer (authovln)
-            buf.write_bytes(self.user_bytes)
             if self.proxy_user is not None:
                 self._write_key_value(buf, "PROXY_CLIENT_NAME",
                                       self.proxy_user)
-            self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
-            self._write_key_value(buf, "AUTH_PASSWORD", self.encoded_password)
+            if self.token is not None:
+                self._write_key_value(buf, "AUTH_TOKEN", self.token)
+            else:
+                self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
+                self._write_key_value(buf, "AUTH_PASSWORD",
+                                      self.encoded_password)
+                if not verifier_11g:
+                    self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",
+                                          self.speedy_key)
             if self.newpassword is not None:
                 self._write_key_value(buf, "AUTH_NEWPASSWORD",
                                       self.encoded_newpassword)
-            if not verifier_11g:
-                self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",
-                                      self.speedy_key)
             self._write_key_value(buf, "SESSION_CLIENT_CHARSET", "873")
             driver_name = f"{constants.DRIVER_NAME} thn : {VERSION}"
             self._write_key_value(buf, "SESSION_CLIENT_DRIVER_NAME",
@@ -1517,6 +1556,16 @@ cdef class AuthMessage(Message):
             if self.purity != 0:
                 self._write_key_value(buf, "AUTH_KPPL_PURITY",
                                       str(self.purity), 1)
+            if self.private_key is not None:
+                date_format = "%a, %d %b %Y %H:%M:%S GMT"
+                now = datetime.datetime.utcnow().strftime(date_format)
+                host_info = "%s:%d" % buf._socket.getpeername()
+                header = f"date: {now}\n" + \
+                         f"(request-target): {self.service_name}\n" + \
+                         f"host: {host_info}"
+                signature = get_signature(self.private_key, header)
+                self._write_key_value(buf, "AUTH_HEADER", header)
+                self._write_key_value(buf, "AUTH_SIGNATURE", signature)
             if self.encoded_jdwp_data is not None:
                 self._write_key_value(buf, "AUTH_ORA_DEBUG_JDWP",
                                       self.encoded_jdwp_data)

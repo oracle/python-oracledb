@@ -74,9 +74,13 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Oracle Cloud Infrastructure Identity and Access Management (IAM) Tokens
-      - No
+    * - Oracle Cloud Infrastructure (OCI) Identity and Access Management (IAM) Tokens (see :ref:`iamauth`)
+      - Yes
+      - Yes
       - Yes - in connection string with appropriate Oracle Client
+    * - Open Authorization (OAuth 2.0) (see :ref:`oauth2`)
+      - Yes
+      - Yes
       - Yes - in connection string with appropriate Oracle Client
     * - Kerberos and Radius authentication
       - No

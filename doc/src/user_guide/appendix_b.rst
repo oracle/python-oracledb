@@ -177,6 +177,22 @@ bare name as a hostname is important to you in the python-oracledb Thin mode,
 then you can alter the connection string to include a port number such as
 ``hostname:1521`` or a protocol such as ``tcp://hostname``.
 
+Token Based Authentication
+--------------------------
+
+In the python-oracledb Thin mode:
+
+- When connecting to Oracle Cloud Database with mutual TLS (mTLS) using OAuth2
+  tokens, you need to explicitly set the ``config_dir``, ``wallet_location``,
+  and ``wallet_password`` parameters of :func:`~oracledb.connect` or
+  :func:`~oracledb.create_pool()`. See, :ref:`autonomousdb`.
+
+- :ref:`Open Authorization (OAuth 2.0) token based authentication connection
+  strings <oauth2connstr>` and :ref:`Oracle Cloud Infrastructure (OCI) Identity
+  and Access Management (IAM) token based authentication connection strings
+  <iamauthconnstr>` are not supported. Use ``access_token`` parameter of
+  :func:`oracledb.ConnectParams()` instead. See :ref:`tokenauth`.
+
 Transport Layer Security (TLS) Support
 --------------------------------------
 

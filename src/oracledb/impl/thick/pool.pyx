@@ -29,6 +29,13 @@
 # thick_impl.pyx).
 #------------------------------------------------------------------------------
 
+cdef int _token_callback_handler(void *context,
+                                 dpiAccessToken *refresh_token) with gil:
+    cdef:
+        ThickPoolImpl pool_impl = <object> context
+    pool_impl._token_handler(refresh_token, pool_impl.connect_params)
+
+
 cdef class ThickPoolImpl(BasePoolImpl):
     cdef:
         dpiPool *_handle
@@ -43,6 +50,12 @@ cdef class ThickPoolImpl(BasePoolImpl):
             const char *password_ptr = NULL
             const char *user_ptr = NULL
             const char *dsn_ptr = NULL
+            bytes token_bytes, private_key_bytes
+            uint32_t token_len = 0, private_key_len = 0
+            const char *token_ptr = NULL
+            const char *private_key_ptr = NULL
+            dpiAccessToken access_token
+            str token, private_key
             int status
 
         # save parameters
@@ -53,6 +66,19 @@ cdef class ThickPoolImpl(BasePoolImpl):
         self.max = params.max
         self.increment = params.increment
         self.homogeneous = params.homogeneous
+
+        # set up token parameters if provided
+        if params._token is not None \
+                or params.access_token_callback is not None:
+            token = params._get_token()
+            token_bytes = token.encode()
+            token_ptr = token_bytes
+            token_len = <uint32_t> len(token_bytes)
+            private_key = params._get_private_key()
+            if private_key is not None:
+                private_key_bytes = private_key.encode()
+                private_key_ptr = private_key_bytes
+                private_key_len = <uint32_t> len(private_key_bytes)
 
         # set up common creation parameters
         if dpiContext_initCommonCreateParams(driver_context,
@@ -65,6 +91,12 @@ cdef class ThickPoolImpl(BasePoolImpl):
             edition_bytes = params.edition.encode()
             common_params.edition = edition_bytes
             common_params.editionLength = <uint32_t> len(edition_bytes)
+        if params._token is not None:
+            access_token.token = token_ptr
+            access_token.tokenLength = token_len
+            access_token.privateKey = private_key_ptr
+            access_token.privateKeyLength = private_key_len
+            common_params.accessToken = &access_token
 
         # set up pool creation parameters
         if dpiContext_initPoolCreateParams(driver_context, &create_params) < 0:
@@ -80,6 +112,9 @@ cdef class ThickPoolImpl(BasePoolImpl):
             create_params.plsqlFixupCallback = session_callback_bytes
             create_params.plsqlFixupCallbackLength = \
                     <uint32_t> len(session_callback_bytes)
+        if params.access_token_callback is not None:
+            create_params.accessTokenCallback = _token_callback_handler
+            create_params.accessTokenCallbackContext = <void*> self
         create_params.timeout = params.timeout
         create_params.waitTimeout = params.wait_timeout
         create_params.maxSessionsPerShard = params.max_sessions_per_shard
@@ -118,6 +153,28 @@ cdef class ThickPoolImpl(BasePoolImpl):
     def __dealloc__(self):
         if self._handle != NULL:
             dpiPool_release(self._handle)
+
+    cdef object _token_handler(self, dpiAccessToken *access_token,
+                               ConnectParamsImpl params):
+        cdef:
+            str token, private_key
+            bytes token_bytes, private_key_bytes
+            uint32_t token_len = 0, private_key_len = 0
+            const char *token_ptr = NULL
+            const char *private_key_ptr = NULL
+        token = params._get_token()
+        token_bytes = token.encode()
+        token_ptr = token_bytes
+        token_len = <uint32_t> len(token_bytes)
+        private_key = params._get_private_key()
+        if private_key is not None:
+            private_key_bytes = private_key.encode()
+            private_key_ptr = private_key_bytes
+            private_key_len = <uint32_t> len(private_key_bytes)
+        access_token.token = token_ptr
+        access_token.tokenLength = token_len
+        access_token.privateKey = private_key_ptr
+        access_token.privateKeyLength = private_key_len
 
     def close(self, bint force):
         """

@@ -155,6 +155,16 @@ cdef class ConnectParamsImpl:
         self._default_description.set_from_security_args(args)
         self._default_address.set_from_args(args)
         _set_bool_param(args, "externalauth", &self.externalauth)
+        self._set_access_token_param(args.get("access_token"))
+
+    cdef int _check_credentials(self) except -1:
+        """
+        Check to see that credentials have been supplied: either a password or
+        an access token.
+        """
+        if self._password is None and self._token is None \
+                and self.access_token_callback is None:
+            errors._raise_err(errors.ERR_NO_CREDENTIALS)
 
     cdef int _copy(self, ConnectParamsImpl other_params) except -1:
         """
@@ -176,6 +186,8 @@ cdef class ConnectParamsImpl:
         self.disable_oob = other_params.disable_oob
         self.debug_jdwp = other_params.debug_jdwp
         self.description_list = other_params.description_list
+        self.access_token_callback = other_params.access_token_callback
+        self.access_token_expires = other_params.access_token_expires
         self._external_handle = other_params._external_handle
         self._default_description = other_params._default_description
         self._default_address = other_params._default_address
@@ -186,6 +198,10 @@ cdef class ConnectParamsImpl:
         self._wallet_password = other_params._wallet_password
         self._wallet_password_obfuscator = \
                 other_params._wallet_password_obfuscator
+        self._token = other_params._token
+        self._token_obfuscator = other_params._token_obfuscator
+        self._private_key = other_params._private_key
+        self._private_key_obfuscator = other_params._private_key_obfuscator
 
     cdef bytes _get_new_password(self):
         """
@@ -195,11 +211,12 @@ cdef class ConnectParamsImpl:
             return bytes(self._xor_bytes(self._new_password,
                                          self._new_password_obfuscator))
 
-    cdef bytearray _get_obfuscator(self, str password):
+    cdef bytearray _get_obfuscator(self, str secret_value):
         """
-        Return a byte array suitable for obfuscating the specified password.
+        Return a byte array suitable for obfuscating the specified secret
+        value.
         """
-        return bytearray(secrets.token_bytes(len(password.encode())))
+        return bytearray(secrets.token_bytes(len(secret_value.encode())))
 
     cdef bytes _get_password(self):
         """
@@ -208,6 +225,14 @@ cdef class ConnectParamsImpl:
         if self._password is not None:
             return bytes(self._xor_bytes(self._password,
                                          self._password_obfuscator))
+
+    cdef str _get_private_key(self):
+        """
+        Returns the private key, after removing the obfuscation.
+        """
+        if self._private_key is not None:
+            return self._xor_bytes(self._private_key,
+                                   self._private_key_obfuscator).decode()
 
     cdef TnsnamesFile _get_tnsnames_file(self):
         """
@@ -234,6 +259,52 @@ cdef class ConnectParamsImpl:
         tnsnames_file.read()
         _tnsnames_files[self.config_dir] = tnsnames_file
         return tnsnames_file
+
+    cdef str _get_token(self):
+        """
+        Returns the token, after removing the obfuscation.
+
+        If a callable has been registered and there is no token stored yet, the
+        callable will be invoked with the refresh parameter set to False. If
+        the token returned by the callable is expired, the callable will be
+        invoked a second time with the refresh parameter set to True. If this
+        token is also expired, an exception will be raised.
+
+        If the stored token has expired and no callable has been registered, an
+        exception will be raised; otherwise, the callable will be invoked with
+        the refresh parameter set to True.
+        """
+        cdef:
+            object returned_val, current_date = datetime.datetime.utcnow()
+            bint expired
+        if self._token is None and self.access_token_callback is not None:
+            returned_val = self.access_token_callback(False)
+            self._set_access_token(returned_val,
+                                   errors.ERR_INVALID_ACCESS_TOKEN_RETURNED)
+        expired = self.access_token_expires < current_date
+        if expired and self.access_token_callback is not None:
+            returned_val = self.access_token_callback(True)
+            self._set_access_token(returned_val,
+                                   errors.ERR_INVALID_ACCESS_TOKEN_RETURNED)
+            expired = self.access_token_expires < current_date
+        if expired:
+            errors._raise_err(errors.ERR_EXPIRED_ACCESS_TOKEN)
+        return self._xor_bytes(self._token, self._token_obfuscator).decode()
+
+    cdef object _get_token_expires(self, str token):
+        """
+        Gets the expiry date from the token.
+        """
+        cdef:
+            str header_seg
+            dict header
+            int num_pad
+        header_seg = token.split(".")[1]
+        num_pad = len(header_seg) % 4
+        if num_pad != 0:
+            header_seg += '=' * num_pad
+        header = json.loads(base64.b64decode(header_seg))
+        return datetime.datetime.utcfromtimestamp(header["exp"])
 
     cdef str _get_wallet_password(self):
         """
@@ -337,6 +408,46 @@ cdef class ConnectParamsImpl:
                     address.set_from_args(addr_args)
                     address_list.addresses.append(address)
 
+    cdef int _set_access_token(self, object val, int error_num) except -1:
+        """
+        Sets the access token either supplied directly by the user or
+        indirectly via a callback.
+        """
+        cdef:
+            str token, private_key = None
+            object token_expires
+        if isinstance(val, tuple) and len(val) == 2:
+            token, private_key = val
+            if token is None or private_key is None:
+                errors._raise_err(error_num)
+        elif isinstance(val, str):
+            token = val
+        else:
+            errors._raise_err(error_num)
+        try:
+            token_expires = self._get_token_expires(token)
+        except Exception as e:
+            errors._raise_err(error_num, cause=e)
+        self._token_obfuscator = self._get_obfuscator(token)
+        self._token = self._xor_bytes(bytearray(token.encode()),
+                                                self._token_obfuscator)
+        if private_key is not None:
+            self._private_key_obfuscator = self._get_obfuscator(private_key)
+            self._private_key = self._xor_bytes(bytearray(private_key.encode()),
+                                                self._private_key_obfuscator)
+        self.access_token_expires = token_expires
+
+    cdef int _set_access_token_param(self, object val) except -1:
+        """
+        Sets the access token parameter.
+        """
+        if val is not None:
+            if callable(val):
+                self.access_token_callback = val
+            else:
+                self._set_access_token(val,
+                                       errors.ERR_INVALID_ACCESS_TOKEN_PARAM)
+
     cdef int _set_new_password(self, str password) except -1:
         """
         Sets the new password on the instance after first obfuscating it.
@@ -344,7 +455,7 @@ cdef class ConnectParamsImpl:
         if password is not None:
             self._new_password_obfuscator = self._get_obfuscator(password)
             self._new_password = self._xor_bytes(bytearray(password.encode()),
-                                                self._new_password_obfuscator)
+                                                 self._new_password_obfuscator)
 
     cdef int _set_password(self, str password) except -1:
         """

@@ -69,6 +69,7 @@ class PoolParams(ConnectParams):
                  password: str=None,
                  newpassword: str=None,
                  wallet_password: str=None,
+                 access_token: Union[str, tuple, Callable]=None,
                  host: str=None,
                  port: int=1521,
                  protocol: str="tcp",
@@ -177,6 +178,17 @@ class PoolParams(ConnectParams):
 
         - wallet_password: the password to use to decrypt the wallet, if it is
           encrypted. This value is only used in thin mode (default: None)
+
+        - access_token: expected to be a string or a 2-tuple or a callable. If
+          it is a string, it specifies an Azure AD OAuth2 token used for Open
+          Authorization (OAuth 2.0) token based authentication. If it is a
+          2-tuple, it specifies the token and private key strings used for
+          Oracle Cloud Infrastructure (OCI) Identity and Access Management
+          (IAM) token based authentication. If it is a callable, it returns
+          either a string or a 2-tuple used for OAuth 2.0 or OCI IAM token
+          based authentication and is useful when the pool needs to expand and
+          create new connections but the current authentication token has
+          expired (default: None)
 
         - host: the name or IP address of the machine hosting the database or
           the database listener (default: None)
@@ -484,6 +496,7 @@ class PoolParams(ConnectParams):
             password: str=None,
             newpassword: str=None,
             wallet_password: str=None,
+            access_token: Union[str, tuple, Callable]=None,
             host: str=None,
             port: int=None,
             protocol: str=None,
@@ -587,6 +600,17 @@ class PoolParams(ConnectParams):
 
         - wallet_password: the password to use to decrypt the wallet, if it is
           encrypted. This value is only used in thin mode
+
+        - access_token: expected to be a string or a 2-tuple or a callable. If
+          it is a string, it specifies an Azure AD OAuth2 token used for Open
+          Authorization (OAuth 2.0) token based authentication. If it is a
+          2-tuple, it specifies the token and private key strings used for
+          Oracle Cloud Infrastructure (OCI) Identity and Access Management
+          (IAM) token based authentication. If it is a callable, it returns
+          either a string or a 2-tuple used for OAuth 2.0 or OCI IAM token
+          based authentication and is useful when the pool needs to expand and
+          create new connections but the current authentication token has
+          expired
 
         - host: the name or IP address of the machine hosting the database or
           the database listener

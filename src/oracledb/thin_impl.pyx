@@ -43,6 +43,7 @@ from libc.string cimport memcpy, memset
 from cpython cimport array
 
 import array
+import base64
 import collections
 import datetime
 import decimal

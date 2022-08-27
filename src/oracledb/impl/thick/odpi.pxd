@@ -221,7 +221,11 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         pass
 
     # function pointer types
-    ctypedef void (*dpiSubscrCallback)(void* context, dpiSubscrMessage *message)
+    ctypedef void (*dpiSubscrCallback)(void* context,
+            dpiSubscrMessage *message)
+
+    ctypedef int (*dpiAccessTokenCallback)(void *context,
+            dpiAccessToken *accessToken)
 
     # complex native data types
     ctypedef struct dpiBytes:
@@ -287,6 +291,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t driverNameLength
         bint sodaMetadataCache
         uint32_t stmtCacheSize
+        dpiAccessToken *accessToken
 
     ctypedef struct dpiConnCreateParams:
         uint32_t authMode
@@ -358,6 +363,12 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint8_t fsPrecision
         dpiObjectType *objectType
 
+    ctypedef struct dpiAccessToken:
+        const char *token
+        uint32_t tokenLength
+        const char *privateKey
+        uint32_t privateKeyLength
+
     ctypedef struct dpiErrorInfo:
         int32_t code
         uint16_t offset16
@@ -402,6 +413,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         const char *plsqlFixupCallback
         uint32_t plsqlFixupCallbackLength
         uint32_t maxSessionsPerShard
+        dpiAccessTokenCallback accessTokenCallback
+        void *accessTokenCallbackContext
 
     ctypedef struct dpiQueryInfo:
         const char *name
@@ -943,6 +956,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     int dpiPool_reconfigure(dpiPool *pool, uint32_t minSessions,
             uint32_t maxSessions, uint32_t sessionIncrement) nogil
+
+    int dpiPool_setAccessToken(dpiPool *pool, dpiAccessToken *params) nogil
 
     int dpiPool_setGetMode(dpiPool *pool, uint8_t value) nogil
 

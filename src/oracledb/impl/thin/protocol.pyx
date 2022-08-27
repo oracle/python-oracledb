@@ -240,15 +240,19 @@ cdef class Protocol:
         cdef:
             bint use_proxy = (address.https_proxy is not None)
             double timeout = description.tcp_connect_timeout
+            bint use_tcps = (address.protocol == "tcps")
             object connect_info, sock, data, reply, m
 
         # establish connection to appropriate host/port
         if use_proxy:
-            if address.protocol != "tcps":
+            if not use_tcps:
                 errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
             connect_info = (address.https_proxy, address.https_proxy_port)
         else:
             connect_info = (host, port)
+            if not use_tcps and (params._token is not None
+                    or params.access_token_callback is not None):
+                errors._raise_err(errors.ERR_ACCESS_TOKEN_REQUIRES_TCPS)
         sock = socket.create_connection(connect_info, timeout)
 
         # complete connection through proxy, if applicable
@@ -275,7 +279,7 @@ cdef class Protocol:
         sock.settimeout(None)
 
         # establish TLS connection, if applicable
-        if address.protocol == "tcps":
+        if use_tcps:
             sock = get_ssl_socket(sock, params, description, address)
 
         # save final socket object

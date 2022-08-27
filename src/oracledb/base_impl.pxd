@@ -170,6 +170,8 @@ cdef class ConnectParamsImpl:
         public DescriptionList description_list
         uint64_t _external_handle
         public str debug_jdwp
+        object access_token_callback
+        object access_token_expires
         Description _default_description
         Address _default_address
         bytearray _password
@@ -178,15 +180,25 @@ cdef class ConnectParamsImpl:
         bytearray _new_password_obfuscator
         bytearray _wallet_password
         bytearray _wallet_password_obfuscator
+        bytearray _token
+        bytearray _token_obfuscator
+        bytearray _private_key
+        bytearray _private_key_obfuscator
 
+    cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
     cdef bytes _get_new_password(self)
-    cdef bytearray _get_obfuscator(self, str password)
+    cdef bytearray _get_obfuscator(self, str secret_value)
     cdef bytes _get_password(self)
+    cdef str _get_private_key(self)
     cdef TnsnamesFile _get_tnsnames_file(self)
+    cdef str _get_token(self)
+    cdef object _get_token_expires(self, str token)
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _process_connect_descriptor(self, dict args) except -1
+    cdef int _set_access_token(self, object val, int error_num) except -1
+    cdef int _set_access_token_param(self, object val) except -1
     cdef int _set_new_password(self, str password) except -1
     cdef int _set_password(self, str password) except -1
     cdef int _set_wallet_password(self, str password) except -1

@@ -38,6 +38,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for token authentication (Azure OAuth and IAM) via the new
+    parameter `access_token` to :func:`oracledb.connect()` and
+    :func:`oracledb.create_pool()`.
 #)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
     the driver is using thin mode or not
     (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).

@@ -33,9 +33,9 @@ ConnectParams Methods
   that are found in the connect string override any currently stored values.
 
 .. method:: ConnectParams.set(user=None, proxy_user=None, password=None, \
-    newpassword=None, wallet_password=None, host=None, port=None, protocol=None, \
-    https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
-    server_type=None, cclass=None, purity=None, expire_time=None, retry_count=None, \
+    newpassword=None, wallet_password=None, access_token=None, host=None, \
+    port=None, protocol=None, https_proxy=None, https_proxy_port=None, service_name=None, \
+    sid=None, server_type=None, cclass=None, purity=None, expire_time=None, retry_count=None, \
     retry_delay=None, tcp_connect_timeout=None, ssl_server_dn_match=None, \
     ssl_server_cert_dn=None, wallet_location=None, events=None, externalauth=None, \
     mode=None, disable_oob=None, stmtcachesize=None, edition=None, tag=None, \

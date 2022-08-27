@@ -40,6 +40,8 @@ cdef class ConnectionParams:
         bytes new_password
         bytes edition
         bytes tag
+        bytes token
+        bytes private_key
 
         const char *dsn_ptr
         const char *username_ptr
@@ -48,6 +50,8 @@ cdef class ConnectionParams:
         const char *new_password_ptr
         const char *edition_ptr
         const char *tag_ptr
+        const char *token_ptr
+        const char *private_key_ptr
 
         uint32_t dsn_len
         uint32_t username_len
@@ -56,6 +60,8 @@ cdef class ConnectionParams:
         uint32_t new_password_len
         uint32_t edition_len
         uint32_t tag_len
+        uint32_t token_len
+        uint32_t private_key_len
 
         uint32_t num_app_context
         list app_context_bytes
@@ -254,14 +260,14 @@ cdef class ThickConnImpl(BaseConnImpl):
 
     def connect(self, ConnectParamsImpl user_params, ThickPoolImpl pool_impl):
         cdef:
+            str full_user, cclass, token, private_key
             bytes password_bytes, new_password_bytes
             dpiCommonCreateParams common_params
             dpiConnCreateParams conn_params
-            ConnectionParams params
-            str full_user
-            int status
-            str cclass
             ConnectParamsImpl pool_params
+            dpiAccessToken access_token
+            ConnectionParams params
+            int status
 
         # if the connection is part of the pool, get the pool creation params
         if pool_impl is not None:
@@ -307,6 +313,17 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.tag_len = <uint32_t> len(params.tag)
         if user_params.appcontext:
             params.process_appcontext(user_params.appcontext)
+        if user_params._token is not None \
+                or user_params.access_token_callback is not None:
+            token = user_params._get_token()
+            private_key = user_params._get_private_key()
+            params.token = token.encode()
+            params.token_ptr = params.token
+            params.token_len = <uint32_t> len(params.token)
+            if private_key is not None:
+                params.private_key = private_key.encode()
+                params.private_key_ptr = params.private_key
+                params.private_key_len = <uint32_t> len(params.private_key)
 
         # set up common creation parameters
         if dpiContext_initCommonCreateParams(driver_context,
@@ -318,6 +335,12 @@ cdef class ThickConnImpl(BaseConnImpl):
         if user_params.edition is not None:
             common_params.edition = params.edition_ptr
             common_params.editionLength = params.edition_len
+        if params.token is not None:
+            access_token.token = params.token_ptr
+            access_token.tokenLength = params.token_len
+            access_token.privateKey = params.private_key_ptr
+            access_token.privateKeyLength = params.private_key_len
+            common_params.accessToken = &access_token
 
         # set up connection specific creation parameters
         if dpiContext_initConnCreateParams(driver_context, &conn_params) < 0:

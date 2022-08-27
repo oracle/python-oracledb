@@ -154,6 +154,10 @@ ERR_INVALID_POOL_PARAMS = 2027
 ERR_EXPECTING_LIST_FOR_ARRAY_VAR = 2028
 ERR_HTTPS_PROXY_REQUIRES_TCPS = 2029
 ERR_INVALID_LOB_OFFSET = 2030
+ERR_INVALID_ACCESS_TOKEN_PARAM = 2031
+ERR_INVALID_ACCESS_TOKEN_RETURNED = 2032
+ERR_EXPIRED_ACCESS_TOKEN = 2033
+ERR_ACCESS_TOKEN_REQUIRES_TCPS = 2034
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -174,7 +178,7 @@ ERR_UNSUPPORTED_VERIFIER_TYPE = 3015
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
-ERR_NO_PASSWORD = 4001
+ERR_NO_CREDENTIALS = 4001
 ERR_COLUMN_TRUNCATED = 4002
 ERR_ORACLE_NUMBER_NO_REPR = 4003
 ERR_INVALID_NUMBER = 4004
@@ -221,7 +225,7 @@ ERR_CONNECTION_FAILED = 6005
 ERR_ORACLE_ERROR_XREF = {
     28: ERR_CONNECTION_CLOSED,
     600: ERR_CONNECTION_CLOSED,
-    1005: ERR_NO_PASSWORD,
+    1005: ERR_NO_CREDENTIALS,
     24422: ERR_POOL_HAS_BUSY_CONNECTIONS,
     24349: ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED,
     24459: ERR_POOL_NO_CONNECTION_AVAILABLE,
@@ -250,6 +254,8 @@ ERR_EXCEPTION_TYPES = {
 
 # error message formats
 ERR_MESSAGE_FORMATS = {
+    ERR_ACCESS_TOKEN_REQUIRES_TCPS:
+            'access_token requires use of the tcps protocol',
     ERR_ARGS_MUST_BE_LIST_OR_TUPLE:
             'arguments must be a list or tuple',
     ERR_ARGS_AND_KEYWORD_ARGS:
@@ -285,6 +291,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_EXPECTING_VAR:
             'type handler should return None or the value returned by a call '
             'to cursor.var()',
+    ERR_EXPIRED_ACCESS_TOKEN:
+            'access token has expired',
     ERR_FEATURE_NOT_SUPPORTED:
             '{feature} is only supported in python-oracledb {driver_type} mode',
     ERR_HTTPS_PROXY_REQUIRES_TCPS:
@@ -299,6 +307,14 @@ ERR_MESSAGE_FORMATS = {
     ERR_INTEGER_TOO_LARGE:
             'internal error: read integer of length {length} when expecting '
             'integer of no more than length {max_length}',
+    ERR_INVALID_ACCESS_TOKEN_PARAM:
+            'invalid access token: value must be a string (for OAuth), a '
+            '2-tuple containing the token and private key strings (for IAM), '
+            'or a callable that returns a string or 2-tuple',
+    ERR_INVALID_ACCESS_TOKEN_RETURNED:
+            'invalid access token returned from callable: value must be a '
+            'string (for OAuth) or a 2-tuple containing the token and private '
+            'key strings (for IAM)',
     ERR_INVALID_BIND_NAME:
             'no bind placeholder named ":{name}" was found in the SQL text',
     ERR_INVALID_CONN_CLASS:
@@ -366,8 +382,8 @@ ERR_MESSAGE_FORMATS = {
             'python-oracledb in thin mode',
     ERR_NO_CONFIG_DIR:
             'no configuration directory to search for tnsnames.ora',
-    ERR_NO_PASSWORD:
-            'no password specified',
+    ERR_NO_CREDENTIALS:
+            'no credentials specified',
     ERR_NO_STATEMENT:
             'no statement specified and no prior statement prepared',
     ERR_NO_STATEMENT_EXECUTED:

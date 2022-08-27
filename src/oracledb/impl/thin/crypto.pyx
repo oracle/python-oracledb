@@ -30,8 +30,9 @@
 #------------------------------------------------------------------------------
 
 from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.kdf import pbkdf2
 
 DN_REGEX = '(?:^|,\s?)(?:(?P<name>[A-Z]+)=(?P<val>"(?:[^"]|"")+"|[^,]+))+'
@@ -87,6 +88,17 @@ def get_server_dn_matches(sock, expected_dn):
     expected_dn_dict = dict(re.findall(DN_REGEX, expected_dn))
     server_dn_dict = dict(re.findall(DN_REGEX, server_dn))
     return server_dn_dict == expected_dn_dict
+
+
+def get_signature(private_key_str, text):
+    """
+    Returns a signed version of the given text (used for IAM token
+    authentication) in base64 encoding.
+    """
+    private_key = serialization.load_pem_private_key(private_key_str.encode(),
+                                                     password=None)
+    sig = private_key.sign(text.encode(), padding.PKCS1v15(), hashes.SHA256())
+    return base64.b64encode(sig).decode()
 
 
 def get_ssl_socket(sock, ConnectParamsImpl params, Description description,

@@ -48,12 +48,12 @@ Oracledb Methods
         This method is an extension to the DB API definition.
 
 .. function:: connect(dsn=None, pool=None, conn_class=None, params=None, user=None, \
-    proxy_user=None, password=None, newpassword=None, wallet_password=None, \
+    proxy_user=None, password=None, newpassword=None, wallet_password=None, access_token=None, \
     host=None, port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
     service_name=None, sid=None, server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
     expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
-    ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, \
-    events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+    ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, events=False, \
+    externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
     stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, matchanytag=False, \
     config_dir=oracledb.defaults.config_dir, appcontext=[], shardingkey=[], supershardingkey=[], \
     debug_jdwp=None, handle=0)
@@ -124,6 +124,17 @@ Oracledb Methods
     value is only used in python-oracledb Thin mode. The ``wallet_password`` parameter
     is not needed for cwallet.sso files that are used in the python-oracledb Thick
     mode.
+
+    The ``access_token`` parameter is expected to be a string or a 2-tuple or
+    a callable. If it is a string, it specifies an Azure AD OAuth2 token used
+    for Open Authorization (OAuth 2.0) token based authentication. If it is a
+    2-tuple, it specifies the token and private key strings used for Oracle
+    Cloud Infrastructure (OCI) Identity and Access Management (IAM) token based
+    authentication. If it is a callable, it returns either a string or a 2-tuple
+    used for OAuth 2.0 or OCI IAM token based authentication and is useful when
+    the pool needs to expand and create new connections but the current
+    authentication token has expired. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``host`` parameter is expected to be a string which specifies the name or IP
     address of the machine hosting the listener, which handles the initial
@@ -285,9 +296,9 @@ Oracledb Methods
     should be used with extreme caution. The default value is 0.
 
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
-    newpassword=None, wallet_password=None, host=None, port=1521, protocol="tcp", \
-    https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
-    server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+    newpassword=None, wallet_password=None, access_token=None, host=None, \
+    port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, service_name=None, \
+    sid=None, server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
     retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
     ssl_server_cert_dn=None, wallet_location=None, events=False, externalauth=False, \
     mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -323,6 +334,17 @@ Oracledb Methods
     value is only used in python-oracledb Thin mode. The ``wallet_password`` parameter
     is not needed for cwallet.sso files that are used in the python-oracledb Thick
     mode.
+
+    The ``access_token`` parameter is expected to be a string or a 2-tuple or
+    a callable. If it is a string, it specifies an Azure AD OAuth2 token used
+    for Open Authorization (OAuth 2.0) token based authentication. If it is a
+    2-tuple, it specifies the token and private key strings used for Oracle
+    Cloud Infrastructure (OCI) Identity and Access Management (IAM) token based
+    authentication. If it is a callable, it returns either a string or a 2-tuple
+    used for OAuth 2.0 or OCI IAM token based authentication and is useful when
+    the pool needs to expand and create new connections but the current
+    authentication token has expired. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``host`` parameter is expected to be a string which specifies the name or IP
     address of the machine hosting the listener, which handles the initial
@@ -489,16 +511,15 @@ Oracledb Methods
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
         max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
         user=None, proxy_user=None, password=None, newpassword=None, \
-        wallet_password=None, host=None, port=1521, protocol="tcp", \
-        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
-        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
+        wallet_password=None, access_token=None, host=None, port=1521, \
+        protocol="tcp", https_proxy=None, https_proxy_port=0, service_name=None, \
+        sid=None, server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
         expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
-        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
-        wallet_location=None, events=False, externalauth=False, \
-        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
-        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, \
-        matchanytag=False, config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, \
+        events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
+        disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+        tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -618,6 +639,17 @@ Oracledb Methods
     encrypted. This value is only used in python-oracledb Thin mode. The
     ``wallet_password`` parameter is not needed for cwallet.sso files that are
     used in the python-oracledb Thick mode.
+
+    The ``access_token`` parameter is expected to be a string or a 2-tuple or
+    a callable. If it is a string, it specifies an Azure AD OAuth2 token used
+    for Open Authorization (OAuth 2.0) token based authentication. If it is a
+    2-tuple, it specifies the token and private key strings used for Oracle
+    Cloud Infrastructure (OCI) Identity and Access Management (IAM) token based
+    authentication. If it is a callable, it returns either a string or a 2-tuple
+    used for OAuth 2.0 or OCI IAM token based authentication and is useful when
+    the pool needs to expand and create new connections but the current
+    authentication token has expired. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``host`` parameter is expected to be a string which specifies the name
     or IP address of the machine hosting the listener, which handles the
@@ -894,15 +926,15 @@ Oracledb Methods
     wait_timeout=0, max_lifetime_session=0, session_callback=None, \
     max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
     user=None, proxy_user=Nonde, password=None, newpassword=None, \
-    wallet_password=None, host=None, port=1521, protocol="tcp", \
+    wallet_password=None, access_token=None, host=None, port=1521, protocol="tcp", \
     https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
     server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
     expire_time=0, retry_count=0, retry_delay=0, tcp_connect_timeout=60.0, \
     ssl_server_dn_match=True, ssl_server_cert_dn=None, wallet_location=None, \
-    events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
-    stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, tag=None, \
-    matchanytag=False, config_dir=oracledb.defaults.config_dir, appcontext=[], \
-    shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+    events=False, externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
+    disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+    tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+    appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -992,6 +1024,17 @@ Oracledb Methods
     encrypted. This value is only used in python-oracledb Thin mode. The
     ``wallet_password`` parameter is not needed for cwallet.sso files that are
     used in the python-oracledb Thick mode.
+
+    The ``access_token`` parameter is expected to be a string or a 2-tuple or
+    a callable. If it is a string, it specifies an Azure AD OAuth2 token used
+    for Open Authorization (OAuth 2.0) token based authentication. If it is a
+    2-tuple, it specifies the token and private key strings used for Oracle
+    Cloud Infrastructure (OCI) Identity and Access Management (IAM) token based
+    authentication. If it is a callable, it returns either a string or a 2-tuple
+    used for OAuth 2.0 or OCI IAM token based authentication and is useful when
+    the pool needs to expand and create new connections but the current
+    authentication token has expired. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``host`` parameter is expected to be a string which specifies the name
     or IP address of the machine hosting the listener, which handles the

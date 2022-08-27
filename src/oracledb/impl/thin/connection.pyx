@@ -292,8 +292,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._protocol._process_single_message(message)
 
     def connect(self, ConnectParamsImpl params):
-        if params._password is None:
-            errors._raise_err(errors.ERR_NO_PASSWORD)
+        params._check_credentials()
         self._connect_with_params(params)
         self._statement_cache = collections.OrderedDict()
         self._statement_cache_size = params.stmtcachesize

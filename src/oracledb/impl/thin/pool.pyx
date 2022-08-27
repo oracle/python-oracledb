@@ -52,8 +52,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         bint _open
 
     def __init__(self, str dsn, PoolParamsImpl params):
-        if params._password is None:
-            errors._raise_err(errors.ERR_NO_PASSWORD)
+        params._check_credentials()
         self.connect_params = params
         self.username = params.user
         self.dsn = dsn

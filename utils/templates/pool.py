@@ -32,7 +32,7 @@
 #------------------------------------------------------------------------------
 
 import functools
-from typing import Callable, Type
+from typing import Callable, Type, Union
 
 import oracledb
 
