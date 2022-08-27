@@ -501,5 +501,24 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(params.port, 1132)
                 self.assertEqual(params.service_name, "my_service_name32")
 
+    def test_4533_easy_connect_with_pool_parameters(self):
+        "4533 - test EasyConnect with pool parameters"
+        options = [
+            ("cclass_33a", "self", oracledb.PURITY_SELF),
+            ("cclass_33b", "new", oracledb.PURITY_NEW)
+        ]
+        for cclass, purity_str, purity_int in options:
+            connect_string = f"my_host_33/my_service_name_33:pooled?" \
+                             f"pool_connection_class={cclass}&" \
+                             f"pool_purity={purity_str}"
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            self.assertEqual(params.host, "my_host_33")
+            self.assertEqual(params.service_name, "my_service_name_33")
+            self.assertEqual(params.port, 1521)
+            self.assertEqual(params.server_type, "pooled")
+            self.assertEqual(params.cclass, cclass)
+            self.assertEqual(params.purity, purity_int)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

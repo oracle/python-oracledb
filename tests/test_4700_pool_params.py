@@ -54,7 +54,6 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("connectiontype", oracledb.Connection)
         self.__test_writable_parameter("getmode", oracledb.POOL_GETMODE_NOWAIT)
         self.__test_writable_parameter("homogeneous", False)
-        self.__test_writable_parameter("externalauth", True)
         self.__test_writable_parameter("timeout", 25)
         self.__test_writable_parameter("wait_timeout", 45)
         self.__test_writable_parameter("max_lifetime_session", 65)
