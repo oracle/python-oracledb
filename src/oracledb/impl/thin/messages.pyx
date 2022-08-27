@@ -486,7 +486,7 @@ cdef class MessageWithData(Message):
         if self.out_var_impls is None:
             return 0
         for var_impl in self.out_var_impls:
-            if var_impl.outconverter is None:
+            if var_impl is None or var_impl.outconverter is None:
                 continue
             var_impl._last_raw_value = \
                     var_impl._values[self.cursor_impl._last_row_index]
@@ -1904,7 +1904,7 @@ cdef class ExecuteMessage(MessageWithData):
         cdef:
             Statement stmt = self.cursor_impl._statement
         if stmt._cursor_id != 0 and not stmt._requires_full_execute \
-                and not stmt._is_ddl:
+                and not self.parse_only and not stmt._is_ddl:
             if stmt._is_query and not stmt._requires_define \
                     and self.cursor_impl.prefetchrows > 0:
                 self.function_code = TNS_FUNC_REEXECUTE_AND_FETCH

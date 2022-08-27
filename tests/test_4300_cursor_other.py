@@ -802,5 +802,18 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute(sql, int_col=1)
             self.assertEqual(self.cursor.fetchone(), row_for_1)
 
+    def test_4363_multiple_parse(self):
+        "4363 - test calling cursor.parse() twice with the same statement"
+        self.cursor.execute("truncate table TestTempTable")
+        data = (4363, "Value for test 4363")
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, :2)""", data)
+        sql = "update TestTempTable set StringCol1 = :v where IntCol = :i"
+        for i in range(2):
+            self.cursor.parse(sql)
+            self.cursor.execute(sql, ("Updated value", data[0]))
+
+
 if __name__ == "__main__":
     test_env.run_test_cases()

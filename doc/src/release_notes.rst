@@ -25,6 +25,7 @@ Thin Mode Changes
     in socket reads.
 #)  Eliminated unnecessary restriction that resulted in error
     ``DPY-3011: server logon version is not supported``.
+#)  Fixed bug when calling cursor.parse() multiple times with the same SQL.
 
 Thick Mode Changes
 ++++++++++++++++++
