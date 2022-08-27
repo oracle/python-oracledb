@@ -61,16 +61,22 @@ thin_depends = [os.path.join(impl_dir, n) \
                         or n.endswith(".pxd")]
 thin_depends.append(base_pxd)
 
-# if the platform is macOS, add arguments required for cross-compilation for
-# both x86_64 and arm64 architectures if the python interpreter is a
-# universal2 version.
+# if the platform is macOS:
+#  - target the minimim OS version that current Python packages work with.
+#    (Use 'otool -l /path/to/python' and look for 'version' in the
+#    LC_VERSION_MIN_MACOSX section)
+#  - add argument required for cross-compilation for both x86_64 and arm64
+#    architectures if the python interpreter is a universal2 version.
+
 extra_compile_args = []
-if sys.platform == "darwin" and "universal2" in sysconfig.get_platform():
-    if platform.machine() == "x86_64":
-        target = "arm64-apple-macos"
-    else:
-        target = "x86_64-apple-macos"
-    extra_compile_args.extend(["-target", target])
+if sys.platform == "darwin":
+    extra_compile_args.extend(["-mmacosx-version-min=10.9"])
+    if "universal2" in sysconfig.get_platform():
+        if platform.machine() == "x86_64":
+            target = "arm64-apple-macos"
+        else:
+            target = "x86_64-apple-macos"
+        extra_compile_args.extend(["-target", target])
 
 setup(
     ext_modules=[
