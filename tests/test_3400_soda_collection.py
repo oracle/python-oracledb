@@ -27,6 +27,7 @@
 """
 
 import unittest
+import json
 
 import oracledb
 import test_env
@@ -367,6 +368,83 @@ class TestCase(test_env.BaseTestCase):
                           dict(name="George", age=25), hint=10)
         self.assertRaises(TypeError, coll.saveAndGet,
                           dict(name="Sally", age=36), hint=5)
+
+    def test_3416_collection_name_and_metadata(self):
+        "3416 - test name and metadata attribute"
+        soda_db = self.connection.getSodaDatabase()
+        collection_name = "TestCollectionMetadata"
+        coll = soda_db.createCollection(collection_name)
+        self.assertEqual(coll.name, collection_name)
+        self.assertEqual(coll.metadata["tableName"], collection_name)
+        coll.drop()
+
+    def test_3417_insert_many(self):
+        "3417 - test insertMany"
+        soda_db = self.get_soda_database(minclient=(18, 5))
+        coll = soda_db.createCollection("TestInsertMany")
+        values_to_insert = [
+            dict(name="George", age=25),
+            soda_db.createDocument(dict(name="Lucas", age=47))
+        ]
+        coll.insertMany(values_to_insert)
+        self.connection.commit()
+        fetched_docs = list(coll.find().getCursor())
+        for fetched_doc, expected_doc in zip(fetched_docs, values_to_insert):
+            if isinstance(expected_doc, dict):
+                expected_doc = soda_db.createDocument(expected_doc)
+            self.assertEqual(fetched_doc.getContent(),
+                             expected_doc.getContent())
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1031:",
+                               coll.insertMany, [])
+        coll.drop()
+
+    def test_3418_save(self):
+        "3418 - test save"
+        soda_db = self.get_soda_database(minclient=(19, 9))
+        coll = soda_db.createCollection("TestSodaSave")
+        values_to_save = [
+            12,
+            "23",
+            soda_db.createDocument(45)
+        ]
+        for value in values_to_save:
+            coll.save(value)
+        self.connection.commit()
+        fetched_docs = coll.find().getDocuments()
+        for fetched_doc, expected_doc in zip(fetched_docs, values_to_save):
+            if isinstance(expected_doc, (int, str)):
+                expected_doc = soda_db.createDocument(expected_doc)
+            self.assertEqual(fetched_doc.getContent(),
+                             expected_doc.getContent())
+        coll.drop()
+
+    def test_3419_save_and_get_with_hint(self):
+        "3419 - test saveAndGet with hint"
+        soda_db = self.get_soda_database(minclient=(19, 11))
+        cursor = self.connection.cursor()
+        statement = """
+                SELECT
+                    ( SELECT t2.sql_fulltext
+                      FROM v$sql t2
+                      WHERE t2.sql_id = t1.prev_sql_id
+                        AND t2.child_number = t1.prev_child_number
+                    )
+                FROM v$session t1
+                WHERE t1.audsid = sys_context('userenv', 'sessionid')"""
+        coll = soda_db.createCollection("TestSodaSaveWithHint")
+        coll.find().remove()
+        values_to_save = [
+            dict(name="Jordan", age=59),
+            dict(name="Curry", age=34)
+        ]
+        hints = ["MONITOR", "NO_MONITOR"]
+
+        for value, hint in zip(values_to_save, hints):
+            coll.saveAndGet(value, hint=hint)
+            coll.find().hint(hint).getOne().getContent()
+            cursor.execute(statement)
+            result, = cursor.fetchone()
+            self.assertTrue(hint in result.read())
 
 if __name__ == "__main__":
     test_env.run_test_cases()

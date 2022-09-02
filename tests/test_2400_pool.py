@@ -693,5 +693,18 @@ class TestCase(test_env.BaseTestCase):
                 result, = cursor.fetchone()
                 self.assertEqual(result, test_env.get_main_user().upper())
 
+    @unittest.skipIf(test_env.get_is_thin(),
+                     "thin mode doesn't support soda_metadata_cache" \
+                     "parameter yet")
+    def test_2429_soda_metadata_cache(self):
+        "2429 - test soda_metadata_cache parameter"
+        pool = test_env.get_pool(min=0, max=2, increment=2)
+        self.assertEqual(pool.soda_metadata_cache, False)
+        pool = test_env.get_pool(min=0, max=2, increment=2,
+                                 soda_metadata_cache=True)
+        self.assertEqual(pool.soda_metadata_cache, True)
+        pool.soda_metadata_cache = False
+        self.assertEqual(pool.soda_metadata_cache, False)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

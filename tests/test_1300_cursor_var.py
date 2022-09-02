@@ -231,6 +231,48 @@ class TestCase(test_env.BaseTestCase):
         cursor.fetchall()
         self.assertEqual(Counter.num_cursors_created, 3)
 
+    def test_1312_fetch_nested_cursors_for_complex_sql(self):
+        "1312 - test that nested cursors are fetched correctly"
+        sql = """
+            select
+            'Level 1 String',
+            cursor(
+                select
+                'Level 2 String',
+                cursor(
+                    select
+                    'Level 3 String',
+                    cursor(
+                        select 1, 'Level 4 String A' from dual
+                        union all
+                        select 2, 'Level 4 String B' from dual
+                        union all
+                        select 3, 'Level 4 String C' from dual
+                    ) as nc3
+                    from dual
+                ) as nc2
+                from dual
+            ) as nc1
+            from dual"""
+        self.cursor.execute(sql)
+        transform_fn = lambda v: \
+                [transform_row(r) for r in v] \
+                if isinstance(v, oracledb.Cursor) \
+                else v
+        transform_row = lambda r: tuple(transform_fn(v) for v in r)
+        rows = [transform_row(r) for r in self.cursor]
+        expected_value = [
+            ('Level 1 String', [
+                ('Level 2 String', [
+                    ('Level 3 String', [
+                        (1, 'Level 4 String A'),
+                        (2, 'Level 4 String B'),
+                        (3, 'Level 4 String C')
+                    ]),
+                ]),
+            ])
+        ]
+        self.assertEqual(rows, expected_value)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
