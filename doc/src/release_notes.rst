@@ -26,6 +26,10 @@ Thin Mode Changes
 #)  Fixed bug when calling :func:`Cursor.parse()` multiple times with the same
     SQL statement.
 #)  Fixed bug that prevented connecting to Oracle Database 12.1.0.1.
+#)  Fixed bug that prevented the database error message from being returned
+    when connecting to a database that the listener configuration file states
+    exists but actually doesn't
+    (`issue 51 <https://github.com/oracle/python-oracledb/issues/51>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -2134,6 +2134,7 @@ cdef class ProtocolMessage(Message):
             bytearray server_runtime_caps
             Capabilities caps = buf._caps
             const char_type *fdo
+            bytes temp_buf
             ssize_t ix
             uint8_t c
         if message_type == TNS_MSG_TYPE_PROTOCOL:
@@ -2152,10 +2153,14 @@ cdef class ProtocolMessage(Message):
             fdo = buf.read_raw_bytes(fdo_length)
             ix = 6 + fdo[5] + fdo[6]
             caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
-            server_compile_caps = bytearray(buf.read_bytes())
-            server_runtime_caps = bytearray(buf.read_bytes())
-            buf._caps._adjust_for_server_compile_caps(server_compile_caps)
-            buf._caps._adjust_for_server_runtime_caps(server_runtime_caps)
+            temp_buf = buf.read_bytes()
+            if temp_buf is not None:
+                server_compile_caps = bytearray(temp_buf)
+                buf._caps._adjust_for_server_compile_caps(server_compile_caps)
+            temp_buf = buf.read_bytes()
+            if temp_buf is not None:
+                server_runtime_caps = bytearray(temp_buf)
+                buf._caps._adjust_for_server_runtime_caps(server_runtime_caps)
         else:
             Message._process_message(self, buf, message_type)
 
