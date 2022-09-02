@@ -195,7 +195,8 @@ resulting binary installed.  Compiling python-oracledb requires the
 ``Python.h`` header file.  If you are using the default ``python`` package,
 this file is in the ``python-devel`` package or equivalent.
 
-On Oracle Linux 8, to use the default Python 3.6 installation, install with:
+On Oracle Linux 8, to use the default Python 3.6 installation,
+install with:
 
 .. code-block:: shell
 
@@ -806,21 +807,29 @@ Troubleshooting
 
 If installation fails:
 
+- An error such as ``not a supported wheel on this platform.`` indicates that
+  you may be using an older `pip` version. Upgrade it with the following
+  command:
+
+  .. code-block:: shell
+
+      python -m pip install pip --upgrade --user
+
 - Use option ``-v`` with pip. Review your output and logs. Try to install
   using a different method. **Google anything that looks like an error.**
   Try some potential solutions.
 
 - If there was a network connection error, check if you need to set the
   environment variables ``http_proxy`` and/or ``https_proxy``  or
-  try ``pip install --proxy=http://proxy.example.com:80 oracledb
+  try ``python -m pip install --proxy=http://proxy.example.com:80 oracledb
   --upgrade``.
 
 - If the upgrade did not give any errors but the old version is still
-  installed, try ``pip install oracledb --upgrade
+  installed, try ``python -m pip install oracledb --upgrade
   --force-reinstall``.
 
 - If you do not have access to modify your system version of
-  Python, then use ``pip install oracledb --upgrade --user``
+  Python, then use ``python -m pip install oracledb --upgrade --user``
   or venv.
 
 - If you get the error ``No module named pip``, it means that the pip module

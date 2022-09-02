@@ -209,31 +209,30 @@ Dequeuing is done like this:
 Using Recipient Lists
 =====================
 
-You can associate a list of recipient names with a message at the time of
-enqueuing the message. This feature limits the set of recipients that have
-to dequeue each message.
+A list of recipient names can be associated with a message at the time
+a message is enqueued. This allows a limited set of recipients to
+dequeue each message. The recipient list associated with the message
+overrides the queue subscriber list, if there is one. The recipient
+names need not be in the subscriber list but can be, if desired.
 
-The recipient list associated with a message overrides the queue subscriber
-list, if it exists. It is not mandatory to include the recipient name in the
-subscriber list and if desired, it can be included.
+To dequeue a message, the ``consumername`` attribute can be set to
+one of the recipient names. The original message recipient list is
+not available on dequeued messages. All recipients have to dequeue
+a message before it gets removed from the queue.
 
-To dequeue a message, the consumername attribute can be set to one of the
-recipient names. The original message recipient list is not available
-on dequeued messages. All recipients have to dequeue a message
-before it gets removed from the queue.
-
-When subscribing to a queue, each subscriber can dequeue all the messages
-placed into a specific queue and each recipient is a designated target of
-a particular message.
-
+Subscribing to a queue is like subscribing to a magazine: each
+subscriber can dequeue all the messages placed into a specific queue,
+just as each magazine subscriber has access to all its articles.
+However, being a recipient is like getting a letter: each recipient
+is a designated target of a particular message.
 
 For example::
 
     props = self.connection.msgproperties(payload=book,recipients=["sub2", "sub3"])
     queue.enqone(props)
 
-Later, when dequeuing messages a specific recipient can be set to get messages intended
-for that recipient::
+Later, when dequeuing messages, a specific recipient can be set to get the
+messages intended for that recipient using the ``consumername`` attribute::
 
     queue.deqoptions.consumername = "sub3"
     m = queue.deqone()

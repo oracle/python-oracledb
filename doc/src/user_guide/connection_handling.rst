@@ -1656,40 +1656,44 @@ Operating System Authentication.
 
 .. _tokenauth:
 
-Token Based Authentication
+Token-Based Authentication
 ==========================
 
-Token Based Authentication allows applications to validate user access by using
-an encrypted authentication token. An authentication token provides users with
-access to the database for a limited period of time without having to enter
-their database username and password. The two authentication methods
-supported are :ref:`Open Authorization (OAuth 2.0) <oauth2>` and :ref:`Oracle
+Token-Based Authentication allows users to connect to a database by using an
+encrypted authentication token without having to enter a database username and
+password.  The authentication token must be valid and not expired for the
+connection to be successful.  Users already connected will be able to continue
+work after their token has expired but they will not be able to reconnect
+without getting a new token.
+
+The two authentication methods supported by python-oracledb are
+:ref:`Open Authorization (OAuth 2.0) <oauth2>` and :ref:`Oracle
 Cloud Infrastructure (OCI) Identity and Access Management (IAM) <iamauth>`.
 
 .. _oauth2:
 
-Connecting Using OAuth 2.0 Token Based Authentication
+Connecting Using OAuth 2.0 Token-Based Authentication
 -----------------------------------------------------
 
 Oracle Cloud Infrastructure (OCI) users can be centrally managed in a Microsoft
-Azure Active Directory (Azure AD) service. Open Authorization (OAuth 2.0) token based
+Azure Active Directory (Azure AD) service. Open Authorization (OAuth 2.0) token-based
 authentication allows users to authenticate to Oracle Database using Azure AD OAuth2
 tokens. Currently, only Azure AD tokens are supported. Ensure that you have a
 Microsoft Azure account and your Oracle Database is registered with Azure AD. See
 `Configuring the Oracle Autonomous Database for Microsoft Azure AD Integration
 <https://www.oracle.com/pls/topic/lookup?ctx=db19&id=
 GUID-0A60F22D-56A3-408D-8EC8-852C38C159C0>`_ for more information.
-Both Thin and Thick modes of the python-oracledb driver support OAuth 2.0 token based
+Both Thin and Thick modes of the python-oracledb driver support OAuth 2.0 token-based
 authentication.
 
 When using python-oracledb in Thick mode, Oracle Client libraries 19.15 (or later),
 or 21.7 (or later) are needed.
 
-OAuth 2.0 token based authentication can be used for both standalone connections
+OAuth 2.0 token-based authentication can be used for both standalone connections
 and connection pools. Tokens can be specified using the connection parameter
 introduced in python-oracledb 1.1. Users of earlier python-oracledb versions
 can alternatively use
-:ref:`OAuth 2.0 Token Based Authentication Connection Strings<oauth2connstr>`.
+:ref:`OAuth 2.0 Token-Based Authentication Connection Strings<oauth2connstr>`.
 
 OAuth2 Token Generation And Extraction
 ++++++++++++++++++++++++++++++++++++++
@@ -1765,12 +1769,12 @@ See :ref:`curl` for an alternative way to generate the tokens.
 Standalone Connection Creation with OAuth2 Access Tokens
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For OAuth 2.0 Token Based Authentication, the ``access_token`` connection parameter
+For OAuth 2.0 Token-Based Authentication, the ``access_token`` connection parameter
 must be specified. This parameter should be a string (or a callable that returns a
 string) specifying an Azure AD OAuth2 token.
 
 Standalone connections can be created in the python-oracledb Thick and Thin modes
-using OAuth 2.0 token based authentication. In the examples below, the
+using OAuth 2.0 token-based authentication. In the examples below, the
 ``access_token`` parameter is set to a callable.
 
 **In python-oracledb Thin mode**
@@ -1806,7 +1810,7 @@ TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
 Connection Pool Creation with OAuth2 Access Tokens
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For OAuth 2.0 Token Based Authentication, the ``access_token`` connection
+For OAuth 2.0 Token-Based Authentication, the ``access_token`` connection
 parameter must be specified. This parameter should be a string (or a callable
 that returns a string) specifying an Azure AD OAuth2 token.
 
@@ -1815,7 +1819,7 @@ mode.  The ``homogeneous`` parameter must be set to True in both the
 python-oracledb Thin and Thick modes.
 
 Connection pools can be created in the python-oracledb Thick and Thin modes
-using OAuth 2.0 token based authentication. In the examples below, the
+using OAuth 2.0 token-based authentication. In the examples below, the
 ``access_token`` parameter is set to a callable.
 
 Note that the ``access_token`` parameter should be set to a callable. This is
@@ -1856,18 +1860,18 @@ TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
 
 .. _oauth2connstr:
 
-OAuth 2.0 Token Based Authentication Connection Strings
+OAuth 2.0 Token-Based Authentication Connection Strings
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The connection string used by python-oracledb can specify the directory where
 the token file is located. This syntax is usable with older versions of
 python-oracledb. However, it is recommended to use connection parameters
 introduced in python-oracledb 1.1 instead. See
-:ref:`OAuth 2.0 Token Based Authentication<oauth2>`.
+:ref:`OAuth 2.0 Token-Based Authentication<oauth2>`.
 
 .. note::
 
-    OAuth 2.0 Token Based Authentication Connection Strings is only supported in
+    OAuth 2.0 Token-Based Authentication Connection Strings is only supported in
     the python-oracledb Thick mode. See :ref:`enablingthick`.
 
 There are different ways to retrieve Azure AD OAuth2 tokens. Some of the ways to
@@ -1950,22 +1954,22 @@ Connection pool example:
 
 .. _iamauth:
 
-Connecting Using OCI IAM Token Based Authentication
+Connecting Using OCI IAM Token-Based Authentication
 ---------------------------------------------------
 
 Oracle Cloud Infrastructure (OCI) Identity and Access Management (IAM) provides
 its users with a centralized database authentication and authorization system.
 Using this authentication method, users can use the database access token issued
 by OCI IAM to authenticate to the Oracle Cloud Database. Both Thin and Thick modes
-of the python-oracledb driver support OCI IAM token based authentication.
+of the python-oracledb driver support OCI IAM token-based authentication.
 
 When using python-oracledb in Thick mode, Oracle Client libraries 19.14 (or later),
 or 21.5 (or later) are needed.
 
-OCI IAM token based authentication can be used for both standalone connections and
+OCI IAM token-based authentication can be used for both standalone connections and
 connection pools. Tokens can be specified using the connection parameter
 introduced in python-oracledb 1.1. Users of earlier python-oracledb versions
-can alternatively use :ref:`OCI IAM Token Based Authentication Connection Strings
+can alternatively use :ref:`OCI IAM Token-Based Authentication Connection Strings
 <iamauthconnstr>`.
 
 OCI IAM Token Generation and Extraction
@@ -2037,12 +2041,12 @@ parameter set to True.
 Standalone Connection Creation with OCI IAM Access Tokens
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For OCI IAM Token Based Authentication, the ``access_token`` connection parameter
+For OCI IAM Token-Based Authentication, the ``access_token`` connection parameter
 must be specified. This parameter should be a 2-tuple (or a callable that returns
 a 2-tuple) containing the token and private key.
 
 Standalone connections can be created in the python-oracledb Thick and Thin modes
-using OCI IAM token based authentication. In the examples below, the
+using OCI IAM token-based authentication. In the examples below, the
 ``access_token`` parameter is set to a callable.
 
 **In python-oracledb Thin mode**
@@ -2078,7 +2082,7 @@ TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
 Connection Pool Creation with OCI IAM Access Tokens
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For OCI IAM Token Based Authentication, the ``access_token`` connection
+For OCI IAM Token-Based Authentication, the ``access_token`` connection
 parameter must be specified. This parameter should be a 2-tuple (or a callable
 that returns a 2-tuple) containing the token and private key.
 
@@ -2087,7 +2091,7 @@ mode.  The ``homogeneous`` parameter must be set to True in both the
 python-oracledb Thin and Thick modes.
 
 Connection pools can be created in the python-oracledb Thick and Thin modes
-using OCI IAM token based authentication. In the examples below, the
+using OCI IAM token-based authentication. In the examples below, the
 ``access_token`` parameter is set to a callable.
 
 Note that the ``access_token`` parameter should be set to a callable. This is
@@ -2130,18 +2134,18 @@ TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
 
 .. _iamauthconnstr:
 
-OCI IAM Token Based Authentication Connection Strings
+OCI IAM Token-Based Authentication Connection Strings
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The connection string used by python-oracledb can specify the directory where
 the token and private key files are located. This syntax is usable with older
 versions of python-oracledb. However, it is recommended to use connection
 parameters introduced in python-oracledb 1.1 instead. See
-:ref:`OCI IAM Token Based Authentication<iamauth>`.
+:ref:`OCI IAM Token-Based Authentication<iamauth>`.
 
 .. note::
 
-    OCI IAM Token Based Authentication Connection Strings is only supported in
+    OCI IAM Token-Based Authentication Connection Strings is only supported in
     the python-oracledb Thick mode. See :ref:`enablingthick`.
 
 The Oracle Cloud Infrastructure command line interface (OCI-CLI) can be used
