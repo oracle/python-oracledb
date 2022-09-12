@@ -906,6 +906,9 @@ Oracledb Methods
 
         This method is an extension to the DB API definition.
 
+    .. versionadded:: 1.1.0
+
+
 .. function:: makedsn(host, port, sid=None, service_name=None, region=None, \
         sharding_key=None, super_sharding_key=None)
 

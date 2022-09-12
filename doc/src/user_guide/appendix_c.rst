@@ -144,6 +144,12 @@ as follows:
   password is now supported in the same way as :func:`oracledb.connect()`. For
   example ``dsn="un/pw@cs"`` can be used.
 
+- New keyword arguments can be passed to :func:`~oracledb.create_pool()`.  For
+  example you can pass the hostname, port and servicename as separate
+  parameters instead of using an Easy Connect connection string.  In
+  python-oracledb Thin mode, some of the new arguments replace ``sqlnet.ora``
+  settings.
+
 - The default mode is :data:`~oracledb.POOL_GETMODE_WAIT` instead of
   :data:`~oracledb.POOL_GETMODE_NOWAIT`. If the mode
   :data:`~oracledb.POOL_GETMODE_NOWAIT` is truly desired, modify any pool
@@ -215,6 +221,14 @@ Replace:
 - :meth:`Connection.deqoptions()` with attribute :attr:`Queue.deqoptions`
 - :meth:`Connection.enq()` with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
 - :meth:`Connection.deqoptions()` with attribute :attr:`Queue.deqoptions`
+
+The AQ feature in the python-oracledb driver differs from cx_Oracle as follows:
+
+- AQ messages can be enqueued and dequeued as a JSON payload type
+- Recipient lists can be enqueued and dequeued
+- Enqueue options, dequeue options, and message properties can be set
+
+See :ref:`Oracle Advanced Queuing (AQ) <aqusermanual>`.
 
 .. _errordiff:
 

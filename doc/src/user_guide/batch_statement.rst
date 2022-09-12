@@ -1,8 +1,8 @@
 .. _batchstmnt:
 
-******************************************
-Executing Batch Statement and Bulk Loading
-******************************************
+*******************************************
+Executing Batch Statements and Bulk Loading
+*******************************************
 
 Inserting or updating multiple rows can be performed efficiently with
 :meth:`Cursor.executemany()`, making it easy to work with large data sets with

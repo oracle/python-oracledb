@@ -11,8 +11,9 @@ additions and a couple of exclusions.
 This module is currently tested with Python 3.6, 3.7, 3.8, 3.9, and 3.10
 against Oracle Database 21c, 19c, 18c, 12c, and 11.2.
 
-Changes in python-oracledb releases can be found in the :ref:`release notes
-<releasenotes>`.
+**python-oracledb** is distributed under an open-source
+:ref:`license <license>`. Changes in python-oracledb releases can be found in
+the :ref:`release notes <releasenotes>`.
 
 User Guide
 ==========
