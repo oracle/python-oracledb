@@ -183,6 +183,7 @@ ERR_NCHAR_CS_NOT_SUPPORTED = 3012
 ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR = 3013
 ERR_LOB_OF_WRONG_TYPE = 3014
 ERR_UNSUPPORTED_VERIFIER_TYPE = 3015
+ERR_NO_CRYPTOGRAPHY_PACKAGE = 3016
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -392,6 +393,9 @@ ERR_MESSAGE_FORMATS = {
             'no configuration directory to search for tnsnames.ora',
     ERR_NO_CREDENTIALS:
             'no credentials specified',
+    ERR_NO_CRYPTOGRAPHY_PACKAGE:
+            'python-oracledb thin mode cannot be used because the '
+            'cryptography package is not installed',
     ERR_NO_STATEMENT:
             'no statement specified and no prior statement prepared',
     ERR_NO_STATEMENT_EXECUTED:

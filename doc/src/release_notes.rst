@@ -30,6 +30,11 @@ Thin Mode Changes
     when connecting to a database that the listener configuration file states
     exists but actually doesn't
     (`issue 51 <https://github.com/oracle/python-oracledb/issues/51>`__).
+#)  The error `DPY-3016: python-oracledb thin mode cannot be used because the
+    cryptography package is not installed` is now raised when the cryptography
+    package is not installed, instead of an ImportError. This allows platforms
+    that are not capable of building the cryptography package to still use
+    Thick mode.
 #)  Fixed bug that prevented the `full_code` attribute from being populated on
     the errors returned by :func:`Cursor.getbatcherrors()`.
 
@@ -51,7 +56,7 @@ Common Changes
     via the new parameter `access_token` to :func:`oracledb.connect()` and
     :func:`oracledb.create_pool()`.
 #)  Added method :func:`oracledb.is_thin_mode()` to support determining whether
-    the driver is using thin mode or not
+    the driver is using Thin mode or not
     (`issue 16 <https://github.com/oracle/python-oracledb/issues/10>`__).
 #)  Improved samples and documentation.
 

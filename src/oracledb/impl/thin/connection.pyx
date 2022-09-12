@@ -67,6 +67,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         str _cclass
 
     def __init__(self, str dsn, ConnectParamsImpl params):
+        if not HAS_CRYPTOGRAPHY:
+            errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
         BaseConnImpl.__init__(self, dsn, params)
         self._protocol = Protocol()
 

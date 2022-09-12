@@ -158,7 +158,9 @@ To use python-oracledb, you need:
 
 - The Python cryptography package. This package is automatically installed as a
   dependency of python-oracledb.  It is strongly recommended that you keep the
-  cryptography package up to date whenever new versions are released.
+  cryptography package up to date whenever new versions are released.  If the
+  cryptography package is not available, you can still install python-oracledb
+  but can only use it in Thick mode, see :ref:`nocrypto`.
 
 - Optionally, Oracle Client libraries can be installed to enable some additional
   advanced functionality. These can be from the free `Oracle Instant Client
@@ -745,6 +747,29 @@ offline computer and install it with::
 Then follow the general python-oracledb platform installation instructions
 to install Oracle client libraries.
 
+.. _nocrypto:
+
+Installing python-oracledb without the Cryptography Package
+===========================================================
+
+If the Python cryptography package is not available, python-oracledb can still
+be installed but can only be used in Thick mode.
+
+To install without the cryptography package, use pip's ``--no-deps`` option,
+for example:
+
+.. code-block:: python
+
+    python -m pip install oracledb --no-deps
+
+Oracle Client libraries must then be installed.  See previous sections.
+
+To use python-oracledb in Thick mode you must call
+:meth:`oracledb.init_oracle_client()` in your application, see
+:ref:`enablingthick`.  Without this, your application will get the error
+``DPY-3016: python-oracledb thin mode cannot be used because the cryptography
+package is not installed``.
+
 Installing from Source Code
 ===========================
 
@@ -803,7 +828,7 @@ used to install into a local directory::
     python setup.py install --user
 
 Troubleshooting
-================
+===============
 
 If installation fails:
 

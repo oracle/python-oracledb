@@ -29,11 +29,15 @@
 # (embedded in thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.kdf import pbkdf2
+try:
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
+    from cryptography.hazmat.primitives.asymmetric import padding
+    from cryptography.hazmat.primitives.kdf import pbkdf2
+except ImportError:
+    HAS_CRYPTOGRAPHY = False
+
 
 DN_REGEX = '(?:^|,\s?)(?:(?P<name>[A-Z]+)=(?P<val>"(?:[^"]|"")+"|[^,]+))+'
 PEM_WALLET_FILE_NAME = "ewallet.pem"

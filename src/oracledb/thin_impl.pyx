@@ -85,6 +85,8 @@ from .var import Var
 
 ctypedef unsigned char char_type
 
+cdef bint HAS_CRYPTOGRAPHY = True
+
 include "impl/thin/constants.pxi"
 include "impl/thin/utils.pyx"
 include "impl/thin/crypto.pyx"
