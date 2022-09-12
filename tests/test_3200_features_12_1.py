@@ -448,12 +448,10 @@ class TestCase(test_env.BaseTestCase):
                                 arraydmlrowcounts=True)
         user = test_env.get_main_user()
         expected_errors = [
-            ( 4, 1438, "ORA-01438: value larger than specified " \
-                       "precision allowed for this column" ),
-            ( 2, 1, "ORA-00001: unique constraint " \
-                    "(%s.TESTARRAYDML_PK) violated" % user.upper())
+            (4, "ORA-01438"),
+            (2, "ORA-00001")
         ]
-        actual_errors = [(e.offset, e.code, e.message) \
+        actual_errors = [(e.offset, e.full_code) \
                          for e in self.cursor.getbatcherrors()]
         self.assertEqual(actual_errors, expected_errors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1, 0, 1, 0])
@@ -488,12 +486,8 @@ class TestCase(test_env.BaseTestCase):
         sql = "insert into TestArrayDML (IntCol, StringCol, IntCol2) " \
               "values (:1, :2, :3)"
         self.cursor.executemany(sql, rows, batcherrors=True)
-        user = test_env.get_main_user()
-        expected_errors = [
-            ( 6, 1, "ORA-00001: unique constraint " \
-                    "(%s.TESTARRAYDML_PK) violated" % user.upper())
-        ]
-        actual_errors = [(e.offset, e.code, e.message) \
+        expected_errors = [(6, "ORA-00001")]
+        actual_errors = [(e.offset, e.full_code) \
                          for e in self.cursor.getbatcherrors()]
         self.assertEqual(actual_errors, expected_errors)
         rows = [
@@ -506,11 +500,8 @@ class TestCase(test_env.BaseTestCase):
         sql = "update TestArrayDML set IntCol2 = :1 where StringCol = :2"
         self.cursor.executemany(sql, rows, arraydmlrowcounts=True,
                                 batcherrors=True)
-        expected_errors = [
-            (2, 1438, "ORA-01438: value larger than specified " \
-                      "precision allowed for this column")
-        ]
-        actual_errors = [(e.offset, e.code, e.message) \
+        expected_errors = [(2, "ORA-01438")]
+        actual_errors = [(e.offset, e.full_code) \
                          for e in self.cursor.getbatcherrors()]
         self.assertEqual(actual_errors, expected_errors)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 2, 0, 0, 1])

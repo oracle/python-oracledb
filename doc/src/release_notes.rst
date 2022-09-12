@@ -30,6 +30,8 @@ Thin Mode Changes
     when connecting to a database that the listener configuration file states
     exists but actually doesn't
     (`issue 51 <https://github.com/oracle/python-oracledb/issues/51>`__).
+#)  Fixed bug that prevented the `full_code` attribute from being populated on
+    the errors returned by :func:`Cursor.getbatcherrors()`.
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -51,27 +51,35 @@ class _Error:
         self.offset = offset
         self.is_session_dead = False
         self.full_code = ""
-        if message is not None:
-            pos = message.find(":")
+        self._make_adjustments()
+
+    def _make_adjustments(self):
+        """
+        Make adjustments to the error, if needed, and calculate the full_code
+        attribute.
+        """
+        if self.message is not None:
+            pos = self.message.find(":")
             if pos > 0:
-                self.full_code = message[:pos]
-        if code != 0 or self.full_code.startswith("DPI-"):
+                self.full_code = self.message[:pos]
+        if self.code != 0 or self.full_code.startswith("DPI-"):
             args = {}
-            if code != 0:
-                driver_error_info = ERR_ORACLE_ERROR_XREF.get(code)
+            if self.code != 0:
+                driver_error_info = ERR_ORACLE_ERROR_XREF.get(self.code)
             else:
                 error_num = int(self.full_code[4:])
                 driver_error_info = ERR_DPI_ERROR_XREF.get(error_num)
             if driver_error_info is not None:
                 if isinstance(driver_error_info, tuple):
                     driver_error_num, pattern = driver_error_info
-                    args = re.search(pattern, message).groupdict()
+                    args = re.search(pattern, self.message).groupdict()
                 else:
                     driver_error_num = driver_error_info
                 if driver_error_num == ERR_CONNECTION_CLOSED:
                     self.is_session_dead = True
                 driver_error = _get_error_text(driver_error_num, **args)
                 self.message = f"{driver_error}\n{self.message}"
+                self.full_code = f"{ERR_PREFIX}-{driver_error_num:04}"
 
     def __str__(self):
         return self.message

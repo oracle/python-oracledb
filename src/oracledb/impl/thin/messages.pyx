@@ -152,6 +152,7 @@ cdef class Message:
                 buf.skip_ub2()              # skip chunk length
                 info.batcherrors[i].message = \
                         buf.read_str(TNS_CS_IMPLICIT).rstrip()
+                info.batcherrors[i]._make_adjustments()
                 buf.skip_raw_bytes(2)       # ignore end marker
 
         buf.read_ub4(&info.num)             # error number (extended)
