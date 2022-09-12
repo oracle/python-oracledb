@@ -698,6 +698,7 @@ class TestCase(test_env.BaseTestCase):
                      "parameter yet")
     def test_2429_soda_metadata_cache(self):
         "2429 - test soda_metadata_cache parameter"
+        self.get_soda_database(minclient=(19, 11))
         pool = test_env.get_pool(min=0, max=2, increment=2)
         self.assertEqual(pool.soda_metadata_cache, False)
         pool = test_env.get_pool(min=0, max=2, increment=2,

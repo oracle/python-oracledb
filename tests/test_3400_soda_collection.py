@@ -403,16 +403,16 @@ class TestCase(test_env.BaseTestCase):
         soda_db = self.get_soda_database(minclient=(19, 9))
         coll = soda_db.createCollection("TestSodaSave")
         values_to_save = [
-            12,
-            "23",
-            soda_db.createDocument(45)
+            dict(name="Jill", age=37),
+            soda_db.createDocument(dict(name="John", age=7)),
+            soda_db.createDocument(dict(name="Charles", age=24))
         ]
         for value in values_to_save:
             coll.save(value)
         self.connection.commit()
         fetched_docs = coll.find().getDocuments()
         for fetched_doc, expected_doc in zip(fetched_docs, values_to_save):
-            if isinstance(expected_doc, (int, str)):
+            if isinstance(expected_doc, dict):
                 expected_doc = soda_db.createDocument(expected_doc)
             self.assertEqual(fetched_doc.getContent(),
                              expected_doc.getContent())
