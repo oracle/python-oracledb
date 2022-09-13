@@ -793,12 +793,12 @@ In order to install using the source on GitHub, use the following commands::
     python setup.py build
     python setup.py install
 
-Note that if you download a source zip file directly from GitHub then
-you will also need to download an `ODPI-C
-<https://github.com/oracle/odpi>`__ source zip file and extract it
-inside the directory called "odpi".
+Note that if you download a source zip file directly from GitHub then you will
+also need to download an `ODPI-C <https://github.com/oracle/odpi>`__ source zip
+file and put the extracted contents inside the subdirectory
+"python-oracledb-*/src/oracledb/impl/thick/odpi".
 
-python-oracledb source code is also available from opensource.oracle.com.  This
+Python-oracledb source code is also available from opensource.oracle.com.  This
 can be installed with::
 
     git clone --recurse-submodules git://opensource.oracle.com/git/oracle/python-oracledb.git

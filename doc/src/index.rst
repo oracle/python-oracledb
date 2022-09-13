@@ -15,6 +15,10 @@ against Oracle Database 21c, 19c, 18c, 12c, and 11.2.
 :ref:`license <license>`. Changes in python-oracledb releases can be found in
 the :ref:`release notes <releasenotes>`.
 
+You can use assistive technology products, such as screen readers, while you
+work with the python-oracledb documentation. You can also use the keyboard
+instead of the mouse.
+
 User Guide
 ==========
 
@@ -70,6 +74,11 @@ API Manual
     api_manual/soda.rst
     api_manual/deprecations.rst
 
+.. toctree::
+    :maxdepth: 1
+
+    release_notes.rst
+    license.rst
 
 Indices and tables
 ==================
