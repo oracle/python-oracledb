@@ -13,11 +13,14 @@ oracledb 1.2.0b1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#) Fixed bug that prevented binding data of types DB_TYPE_ROWID and
-   DB_TYPE_UROWID.
+#)  Fixed bug that prevented binding data of types DB_TYPE_ROWID and
+    DB_TYPE_UROWID.
 
 Thick Mode Changes
 ++++++++++++++++++
+
+#)  Fixed bug returning metadata of SODA documents inserted into a collection
+    using :meth:`SodaCollection.saveAndGet()`.
 
 Common Changes
 ++++++++++++++

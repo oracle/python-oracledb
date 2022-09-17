@@ -318,7 +318,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         if hint is not None and not isinstance(hint, str):
             raise TypeError("expecting a string")
-        return_doc_impl = self._impl.save(doc_impl, hint, return_doc=False)
+        return_doc_impl = self._impl.save(doc_impl, hint, return_doc=True)
         return SodaDocument._from_impl(return_doc_impl)
 
     def truncate(self) -> None:
