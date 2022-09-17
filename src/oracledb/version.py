@@ -30,4 +30,4 @@
 # file doc/src/conf.py both reference this file directly.
 #------------------------------------------------------------------------------
 
-__version__ = "1.1.0"
+__version__ = "1.2.0b1"

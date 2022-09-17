@@ -1,4 +1,4 @@
-# python-oracledb 1.1
+# python-oracledb 1.2 (Development)
 
 python-oracledb is a [Python programming language][python] extension module
 allowing Python programs to connect to [Oracle Database][oracledb].  It is the
