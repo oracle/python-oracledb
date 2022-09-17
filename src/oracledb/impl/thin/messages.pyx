@@ -537,7 +537,8 @@ cdef class MessageWithData(Message):
         if var_impl.bypass_decode:
             ora_type_num = TNS_DATA_TYPE_RAW
         if buffer_size == 0 and ora_type_num != TNS_DATA_TYPE_LONG \
-                and ora_type_num != TNS_DATA_TYPE_LONG_RAW:
+                and ora_type_num != TNS_DATA_TYPE_LONG_RAW \
+                and ora_type_num != TNS_DATA_TYPE_UROWID:
             column_value = None             # column is null by describe
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
@@ -557,7 +558,7 @@ cdef class MessageWithData(Message):
             column_value = buf.read_date()
         elif ora_type_num == TNS_DATA_TYPE_ROWID:
             if not self.in_fetch:
-                column_value = buf.read_urowid()
+                column_value = buf.read_str(TNS_CS_IMPLICIT)
             else:
                 buf.read_ub1(&num_bytes)
                 if _is_null_length(num_bytes):
@@ -566,7 +567,10 @@ cdef class MessageWithData(Message):
                     buf.read_rowid(&rowid)
                     column_value = _encode_rowid(&rowid)
         elif ora_type_num == TNS_DATA_TYPE_UROWID:
-            column_value = buf.read_urowid()
+            if not self.in_fetch:
+                column_value = buf.read_str(TNS_CS_IMPLICIT)
+            else:
+                column_value = buf.read_urowid()
         elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
             column_value = buf.read_binary_double()
         elif ora_type_num == TNS_DATA_TYPE_BINARY_FLOAT:
@@ -895,11 +899,14 @@ cdef class MessageWithData(Message):
                                     list bind_var_impls) except -1:
         cdef:
             uint8_t ora_type_num, flag
+            uint32_t buffer_size
             ThinVarImpl var_impl
         for var_impl in bind_var_impls:
             ora_type_num = var_impl.dbtype._ora_type_num
-            if ora_type_num == TNS_DATA_TYPE_ROWID:
-                ora_type_num = TNS_DATA_TYPE_UROWID
+            buffer_size = var_impl.buffer_size
+            if ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
+                ora_type_num = TNS_DATA_TYPE_VARCHAR
+                buffer_size = TNS_MAX_UROWID_LENGTH
             flag = TNS_BIND_USE_INDICATORS
             if var_impl.is_array:
                 flag |= TNS_BIND_ARRAY
@@ -909,10 +916,10 @@ cdef class MessageWithData(Message):
             # expects that and complains if any other value is sent!
             buf.write_uint8(0)
             buf.write_uint8(0)
-            if var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
+            if buffer_size >= TNS_MIN_LONG_LENGTH:
                 buf.write_ub4(TNS_MAX_LONG_LENGTH)
             else:
-                buf.write_ub4(var_impl.buffer_size)
+                buf.write_ub4(buffer_size)
             if var_impl.is_array:
                 buf.write_ub4(var_impl.num_elements)
             else:
@@ -996,6 +1003,9 @@ cdef class MessageWithData(Message):
             num_bytes = <uint32_t> len(lob_impl._locator)
             buf.write_ub4(num_bytes)
             buf.write_bytes_chunked(lob_impl._locator)
+        elif ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
+            temp_bytes = (<str> value).encode()
+            buf.write_bytes_chunked(temp_bytes)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)
