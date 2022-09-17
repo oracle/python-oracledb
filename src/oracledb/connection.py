@@ -603,7 +603,7 @@ class Connection:
         """
         return self.tpc_prepare()
 
-    def queue(self, name: str, payload_type: [DbObjectType, str]=None, *,
+    def queue(self, name: str, payload_type: Union[DbObjectType, str]=None, *,
               payloadType: DbObjectType=None) -> Queue:
         """
         Creates and returns a queue which is used to enqueue and dequeue
