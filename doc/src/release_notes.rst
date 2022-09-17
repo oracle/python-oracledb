@@ -25,6 +25,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed type checking errors
+    (`issue 52 <https://github.com/oracle/python-oracledb/issues/52>`__).
+
 
 oracledb 1.1.0 (September 2022)
 -------------------------------
