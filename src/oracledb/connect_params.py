@@ -34,7 +34,7 @@
 #------------------------------------------------------------------------------
 
 import functools
-from typing import Type, Union, Callable
+from typing import Union, Callable
 
 import oracledb
 
@@ -575,7 +575,7 @@ class ConnectParams:
         """
         return self._impl.wallet_location
 
-    def copy(self) -> Type["ConnectParams"]:
+    def copy(self) -> "ConnectParams":
         """
         Creates a copy of the parameters and returns it.
         """

@@ -29,7 +29,7 @@
 # fetching results from queries.
 #------------------------------------------------------------------------------
 
-from typing import Any, Type, Union, Callable
+from typing import Any, Union, Callable
 
 from . import __name__ as MODULE_NAME
 from . import errors, exceptions
@@ -42,7 +42,7 @@ from .dbobject import DbObjectType
 class Cursor:
     __module__ = MODULE_NAME
 
-    def __init__(self, connection: Type["connection_module.Connection"],
+    def __init__(self, connection: "connection_module.Connection",
                  scrollable: bool = False) -> None:
         self._impl = None
         self.connection = connection
@@ -309,7 +309,7 @@ class Cursor:
 
     def execute(self, statement: Union[str, None],
                 parameters: Union[list, tuple, dict]=None,
-                **keyword_parameters: dict) -> Union[Type["Cursor"], None]:
+                **keyword_parameters: dict) -> Union["Cursor", None]:
         """
         Execute a statement against the database.
 
@@ -739,7 +739,7 @@ class Cursor:
             encoding_errors: str=None,
             bypass_decode: bool=False,
             *,
-            encodingErrors: str=None) -> Type["Var"]:
+            encodingErrors: str=None) -> "Var":
         """
         Create a variable with the specified characteristics. This method was
         designed for use with PL/SQL in/out variables where the length or type

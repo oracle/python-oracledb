@@ -66,7 +66,7 @@ class PoolParams(ConnectParams):
 
     #{{ params_properties }}
 
-    def copy(self) -> Type["PoolParams"]:
+    def copy(self) -> "PoolParams":
         """
         Creates a copy of the parameters and returns it.
         """

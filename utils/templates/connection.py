@@ -62,7 +62,7 @@ class Connection:
 
     def __init__(self,
                  dsn: str=None, *,
-                 pool: Type["pool_module.ConnectionPool"]=None,
+                 pool: "pool_module.ConnectionPool"=None,
                  params: ConnectParams=None,
                  **kwargs) -> None:
         """
@@ -999,7 +999,7 @@ def _connection_factory(f):
     """
     @functools.wraps(f)
     def connect(dsn: str=None, *,
-                pool: Type["pool_module.ConnectionPool"]=None,
+                pool: "pool_module.ConnectionPool"=None,
                 conn_class: Type[Connection]=Connection,
                 params: ConnectParams=None,
                 **kwargs) -> Connection:
@@ -1012,7 +1012,7 @@ def _connection_factory(f):
 
 @_connection_factory
 def connect(dsn: str=None, *,
-            pool: Type["pool_module.ConnectionPool"]=None,
+            pool: "pool_module.ConnectionPool"=None,
             conn_class: Type[Connection]=Connection,
             params: ConnectParams=None,
             #{{ args_with_defaults }}

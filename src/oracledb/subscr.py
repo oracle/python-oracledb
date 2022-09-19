@@ -30,7 +30,7 @@
 # events are detected.
 #------------------------------------------------------------------------------
 
-from typing import Callable, Type, Union
+from typing import Callable, Union, List
 from . import connection
 
 class Subscription:
@@ -53,7 +53,7 @@ class Subscription:
         return self._impl.callback
 
     @property
-    def connection(self) -> Type["connection.Connection"]:
+    def connection(self) -> "connection.Connection":
         """
         Returns the connection that was used to register the subscription when
         it was created.
@@ -172,7 +172,7 @@ class Message:
 
 
     @property
-    def consumer_name(self) -> str:
+    def consumer_name(self) -> Union[str, None]:
         """
         Returns the name of the consumer which generated the notification. It
         will be populated if the subscription was created with the namespace
@@ -181,28 +181,29 @@ class Message:
         return self._consumer_name
 
     @property
-    def consumerName(self) -> str:
+    def consumerName(self) -> Union[str, None]:
         """
         Deprecated. Use property consumer_name instead.
         """
         return self.consumer_name
 
     @property
-    def dbname(self) -> str:
+    def dbname(self) -> Union[str, None]:
         """
         Returns the name of the database that generated the notification.
         """
         return self._db_name
 
     @property
-    def msgid(self) -> bytes:
+    def msgid(self) -> Union[bytes, None]:
         """
-        Returns the message id of the AQ message that generated the notification.
+        Returns the message id of the AQ message that generated the
+        notification.
         """
         return self._msgid
 
     @property
-    def queries(self) -> list:
+    def queries(self) -> List["MessageQuery"]:
         """
         Returns a list of message query objects that give information about
         query result sets changed for this notification. This attribute will be
@@ -212,7 +213,7 @@ class Message:
         return self._queries
 
     @property
-    def queue_name(self) -> str:
+    def queue_name(self) -> Union[str, None]:
         """
         Returns the name of the queue which generated the notification. It will
         only be populated if the subscription was created with the namespace
@@ -221,7 +222,7 @@ class Message:
         return self._queue_name
 
     @property
-    def queueName(self) -> str:
+    def queueName(self) -> Union[str, None]:
         """
         Deprecated. Use property queue_name instead.
         """
@@ -247,7 +248,7 @@ class Message:
         return self._subscription
 
     @property
-    def tables(self) -> list:
+    def tables(self) -> List["MessageTable"]:
         """
         Returns a list of message table objects that give information about the
         tables changed for this notification. This attribute will be an empty
@@ -257,14 +258,14 @@ class Message:
         return self._tables
 
     @property
-    def txid(self) -> bytes:
+    def txid(self) -> Union[bytes, None]:
         """
         Returns the id of the transaction that generated the notification.
         """
         return self._txid
 
     @property
-    def type(self) -> str:
+    def type(self) -> int:
         """
         Returns the type of message that has been sent.
         """
@@ -297,7 +298,7 @@ class MessageQuery:
         return self._operation
 
     @property
-    def tables(self) -> list:
+    def tables(self) -> List["MessageTable"]:
         """
         Returns a list of message table objects that give information about the
         table changes that caused the query result set to change for this
@@ -320,7 +321,7 @@ class MessageRow:
         return self._operation
 
     @property
-    def rowid(self) -> str:
+    def rowid(self) -> Union[str, None]:
         """
         Returns the rowid of the row that was changed.
         """
@@ -335,7 +336,7 @@ class MessageTable:
         self._rows = []
 
     @property
-    def name(self) -> str:
+    def name(self) -> Union[str, None]:
         """
         Returns the name of the table that was changed.
         """
@@ -349,7 +350,7 @@ class MessageTable:
         return self._operation
 
     @property
-    def rows(self) -> list:
+    def rows(self) -> List["MessageRow"]:
         """
         Returns a list of message row objects that give information about the
         rows changed on the table. This value is only filled in if the qos
