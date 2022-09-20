@@ -30,7 +30,8 @@ Common Changes
 #)  Fixed type checking errors
     (`issue 52 <https://github.com/oracle/python-oracledb/issues/52>`__).
 #)  Enhanced type checking
-    (`issue 54 <https://github.com/oracle/python-oracledb/issues/54>`__).
+    (`issue 54 <https://github.com/oracle/python-oracledb/issues/54>`__),
+    (`issue 60 <https://github.com/oracle/python-oracledb/issues/60>`__).
 #)  The mode of python-oracledb is now fixed only after a call to
     :meth:`oracledb.init_oracle_client()`, :meth:`oracledb.connect()` or
     :meth:`oracledb.create_pool()` has completed successfully
