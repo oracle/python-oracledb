@@ -31,27 +31,63 @@
 # simultaneously.
 #------------------------------------------------------------------------------
 
+import threading
+
 from . import errors
 
-# this flag is used to indicate which mode is currently being used:
-# None: neither thick nor thin implementation has been used yet
-# False: thick implementation is being used
-# True: thin implementation is being used
-thin_mode = None
-
-def check_and_return_mode(requested_thin_mode=None):
+# The DriverModeHandler class is used to manage which mode the driver is using.
+#
+# The "thin_mode" flag contains the current state:
+#     None: neither thick nor thin implementation has been used yet
+#     False: thick implementation is being used
+#     True: thin implementation is being used
+#
+# The "requested_thin_mode" flag is set to the mode that is being requested:
+#     False: thick implementation is being initialized
+#     True: thin implementation is being initialized
+class DriverModeManager:
     """
-    Internal function to return the current mode of python-oracledb.
+    Manages the mode the driver is using. The "thin_mode" flag contains the
+    current state:
+        None: neither thick nor thin implementation has been used yet
+        False: thick implementation is being used
+        True: thin implementation is being used
+    The "requested_thin_mode" is set to the mode that is being requested, but
+    only while initialization is taking place (otherwise, it contains the value
+    None):
+        False: thick implementation is being initialized
+        True: thin implementation is being initialized
+    The condition is used to ensure that only one thread is performing
+    initialization.
+    """
+    def __init__(self):
+        self.thin_mode = None
+        self.requested_thin_mode = None
+        self.condition = threading.Condition()
 
-    If neither the thick nor the thin implementation have been used yet (the
-    value of thin_mode is None), then:
+    def __enter__(self):
+        return self
 
-      - the mode is set to the requested mode, or
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        with self.condition:
+            if exc_type is None and exc_value is None and exc_tb is None \
+                    and self.requested_thin_mode is not None:
+                self.thin_mode = self.requested_thin_mode
+            self.requested_thin_mode = None
+            self.condition.notify()
 
-      - the mode is set to thin, if no mode is requested.
+    @property
+    def thin(self):
+        if self.requested_thin_mode is not None:
+            return self.requested_thin_mode
+        return self.thin_mode
 
-    Otherwise, if requested_thin_mode is used and the mode requested
-    does not match the current mode, an error is raised.
+manager = DriverModeManager()
+
+def get_manager(requested_thin_mode=None):
+    """
+    Returns the manager, but only after ensuring that no other threads are
+    attempting to initialize the mode.
 
     NOTE: the current implementation of the driver only requires
     requested_thin_mode to be set when initializing the thick mode; for this
@@ -59,15 +95,19 @@ def check_and_return_mode(requested_thin_mode=None):
     being created. If this assumption changes, a new error message will be
     required.
     """
-    global thin_mode
-    if thin_mode is None:
-        if requested_thin_mode is None:
-            thin_mode = True
-        else:
-            thin_mode = requested_thin_mode
-    elif requested_thin_mode is not None and requested_thin_mode != thin_mode:
-        errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
-    return thin_mode
+    with manager.condition:
+        if manager.thin_mode is None:
+            if manager.requested_thin_mode is not None:
+                manager.condition.wait()
+            if manager.thin_mode is None:
+                if requested_thin_mode is None:
+                    manager.requested_thin_mode = True
+                else:
+                    manager.requested_thin_mode = requested_thin_mode
+        elif requested_thin_mode is not None \
+                and requested_thin_mode != manager.thin_mode:
+            errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
+    return manager
 
 
 def is_thin_mode() -> bool:
@@ -77,14 +117,14 @@ def is_thin_mode() -> bool:
 
     Immediately after python-oracledb is imported, this function will return
     True indicating that python-oracledb defaults to Thin mode. If
-    oracledb.init_oracle_client() is called, then a subsequent call to
-    is_thin_mode() will return False indicating that Thick mode is enabled.
-    Once the first standalone connection or connection pool is created, or a
-    call to oracledb.init_oracle_client() is made, then python-oracledb's mode
-    is fixed and the value returned by is_thin_mode() will never change for the
-    lifetime of the process.
+    oracledb.init_oracle_client() is called successfully, then a subsequent
+    call to is_thin_mode() will return False indicating that Thick mode is
+    enabled.  Once the first standalone connection or connection pool is
+    created succesfully, or a call to oracledb.init_oracle_client() is made
+    successfully, then python-oracledb's mode is fixed and the value returned
+    by is_thin_mode() will never change for the lifetime of the process.
 
     """
-    if thin_mode is not None:
-        return thin_mode
+    if manager.thin_mode is not None:
+        return manager.thin_mode
     return True
