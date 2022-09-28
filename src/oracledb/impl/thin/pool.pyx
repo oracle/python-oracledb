@@ -331,8 +331,10 @@ cdef class ThinPoolImpl(BasePoolImpl):
             read_buf = conn_impl._protocol._read_buf
             if not read_buf._session_needs_to_be_closed:
                 socket_list = [conn_impl._protocol._socket]
-                read_socks, _, _ = select.select(socket_list, [], [], 0)
-                if read_socks:
+                while not read_buf._session_needs_to_be_closed:
+                    read_socks, _, _ = select.select(socket_list, [], [], 0)
+                    if not read_socks:
+                        break
                     read_buf.check_control_packet()
             if read_buf._session_needs_to_be_closed:
                 with self._condition:

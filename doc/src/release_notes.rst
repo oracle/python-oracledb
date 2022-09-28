@@ -15,6 +15,8 @@ Thin Mode Changes
 
 #)  Fixed bug that prevented binding data of types
     :data:`~oracledb.DB_TYPE_ROWID` and :data:`~oracledb.DB_TYPE_UROWID`.
+#)  Internally, before a connection is returned from a pool, perform additional
+    checks in order to avoid returning a dead connection from the pool.
 
 Thick Mode Changes
 ++++++++++++++++++
