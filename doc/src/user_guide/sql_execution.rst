@@ -744,15 +744,10 @@ Querying Corrupt Data
 If queries fail with the error "codec can't decode byte" when you select data,
 then:
 
-* Check your :ref:`character set <globalization>` is correct.  Review the
+* Check if your :ref:`character set <globalization>` is correct.  Review the
   :ref:`database character sets <findingcharset>`.  Check with
-  :ref:`fetching-raw-data`. Consider using UTF-8, if this is appropriate:
-
-    .. code-block:: python
-
-        connection = oracledb.connect(user="hr", password=userpwd,
-                                       dsn="dbhost.example.com/orclpdb",
-                                       encoding="UTF-8", nencoding="UTF-8")
+  :ref:`fetching-raw-data`. Note that the encoding used for all character
+  data in python-oracledb is "UTF-8".
 
 * Check for corrupt data in the database.
 
