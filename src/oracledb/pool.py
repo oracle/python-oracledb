@@ -120,7 +120,7 @@ class ConnectionPool:
                 tag: str=None,
                 matchanytag: bool=False,
                 shardingkey: list=None,
-                supershardingkey: list=None) -> Type["connection_module.Connection"]:
+                supershardingkey: list=None) -> "connection_module.Connection":
         """
         Acquire a connection from the pool and return it.
 
@@ -177,7 +177,7 @@ class ConnectionPool:
         self._impl.close(force)
         self._impl = None
 
-    def drop(self, connection: Type["connection_module.Connection"]) -> None:
+    def drop(self, connection: "connection_module.Connection") -> None:
         """
         Drop the connection from the pool, which is useful if the connection is
         no longer usable (such as when the database session is killed).
@@ -322,7 +322,7 @@ class ConnectionPool:
     def ping_interval(self, value: int) -> None:
         self._impl.set_ping_interval(value)
 
-    def release(self, connection: Type["connection_module.Connection"],
+    def release(self, connection: "connection_module.Connection",
                 tag: str=None) -> None:
         """
         Release the connection back to the pool now, rather than whenever

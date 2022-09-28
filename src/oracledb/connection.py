@@ -64,7 +64,7 @@ class Connection:
 
     def __init__(self,
                  dsn: str=None, *,
-                 pool: Type["pool_module.ConnectionPool"]=None,
+                 pool: "pool_module.ConnectionPool"=None,
                  params: ConnectParams=None,
                  **kwargs) -> None:
         """
@@ -603,7 +603,7 @@ class Connection:
         """
         return self.tpc_prepare()
 
-    def queue(self, name: str, payload_type: [DbObjectType, str]=None, *,
+    def queue(self, name: str, payload_type: Union[DbObjectType, str]=None, *,
               payloadType: DbObjectType=None) -> Queue:
         """
         Creates and returns a queue which is used to enqueue and dequeue
@@ -1001,7 +1001,7 @@ def _connection_factory(f):
     """
     @functools.wraps(f)
     def connect(dsn: str=None, *,
-                pool: Type["pool_module.ConnectionPool"]=None,
+                pool: "pool_module.ConnectionPool"=None,
                 conn_class: Type[Connection]=Connection,
                 params: ConnectParams=None,
                 **kwargs) -> Connection:
@@ -1014,7 +1014,7 @@ def _connection_factory(f):
 
 @_connection_factory
 def connect(dsn: str=None, *,
-            pool: Type["pool_module.ConnectionPool"]=None,
+            pool: "pool_module.ConnectionPool"=None,
             conn_class: Type[Connection]=Connection,
             params: ConnectParams=None,
             user: str=None,

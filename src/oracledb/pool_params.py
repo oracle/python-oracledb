@@ -468,7 +468,7 @@ class PoolParams(ConnectParams):
         """
         return self._impl.wait_timeout
 
-    def copy(self) -> Type["PoolParams"]:
+    def copy(self) -> "PoolParams":
         """
         Creates a copy of the parameters and returns it.
         """

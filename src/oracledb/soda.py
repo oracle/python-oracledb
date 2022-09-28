@@ -29,7 +29,7 @@
 # SodaDatabase, SodaCollection, SodaDocument, SodaDocCursor and SodaOperation.
 #------------------------------------------------------------------------------
 
-from typing import Type, Union
+from typing import Union, List
 import json
 
 from . import connection
@@ -58,7 +58,7 @@ class SodaDatabase:
         return json.dumps(content).encode()
 
     def createCollection(self, name: str, metadata: Union[str, dict]=None,
-                         mapMode: bool=False) -> Type["SodaCollection"]:
+                         mapMode: bool=False) -> "SodaCollection":
         """
         Creates a SODA collection with the given name and returns a new SODA
         collection object. If you try to create a collection, and a collection
@@ -85,7 +85,7 @@ class SodaDatabase:
         return SodaCollection._from_impl(self, collection_impl)
 
     def createDocument(self, content: object, key: str=None,
-                       mediaType: str="application/json") -> Type["SodaDocument"]:
+                       mediaType: str="application/json") -> "SodaDocument":
         """
         Creates a SODA document usable for SODA write operations. You only need
         to use this method if your collection requires client-assigned keys or
@@ -112,7 +112,8 @@ class SodaDatabase:
         doc_impl = self._impl.create_document(content_bytes, key, mediaType)
         return SodaDocument._from_impl(doc_impl)
 
-    def getCollectionNames(self, startName: str=None, limit: int=0) -> list:
+    def getCollectionNames(self, startName: str=None,
+                           limit: int=0) -> List[str]:
         """
         Returns a list of the names of collections in the database that match
         the criteria, in alphabetical order.
@@ -126,7 +127,7 @@ class SodaDatabase:
         """
         return self._impl.get_collection_names(startName, limit)
 
-    def openCollection(self, name: str) -> Type["SodaCollection"]:
+    def openCollection(self, name: str) -> "SodaCollection":
         """
         Opens an existing collection with the given name and returns a new SODA
         collection object. If a collection with that name does not exist, None
@@ -191,7 +192,7 @@ class SodaCollection:
         """
         return self._impl.drop_index(name, force)
 
-    def find(self) -> Type["SodaOperation"]:
+    def find(self) -> "SodaOperation":
         """
         This method is used to begin an operation that will act upon documents
         in the collection. It creates and returns a SodaOperation object which
@@ -200,7 +201,7 @@ class SodaCollection:
         """
         return SodaOperation(self)
 
-    def getDataGuide(self) -> Type["SodaDocument"]:
+    def getDataGuide(self) -> "SodaDocument":
         """
         Returns a SODA document object containing property names, data types
         and lengths inferred from the JSON documents in the collection. It can
@@ -253,7 +254,7 @@ class SodaCollection:
         self._impl.insert_one(doc_impl, hint=None, return_doc=False)
 
     def insertOneAndGet(self, doc: object,
-                        hint: str=None) -> Type["SodaDocument"]:
+                        hint: str=None) -> "SodaDocument":
         """
         Similarly to insertOne() this method inserts a given document into the
         collection. The only difference is that it returns a SODA Document
@@ -300,7 +301,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.save(doc_impl, hint=None, return_doc=False)
 
-    def saveAndGet(self, doc: object, hint: str=None) -> Type["SodaDocument"]:
+    def saveAndGet(self, doc: object, hint: str=None) -> "SodaDocument":
         """
         Saves a document into the collection. This method is equivalent to
         insertOneAndGet() except that if client-assigned keys are used, and the
@@ -461,7 +462,7 @@ class SodaOperation:
         """
         return self._collection._impl.get_count(self)
 
-    def fetchArraySize(self, value: int) -> Type["SodaOperation"]:
+    def fetchArraySize(self, value: int) -> "SodaOperation":
         """
         This is a tuning method to specify the number of documents that are
         internally fetched in batches by calls to getCursor() and
@@ -480,7 +481,7 @@ class SodaOperation:
             self._fetch_array_size = value
         return self
 
-    def filter(self, value: Union[dict, str]) -> Type["SodaOperation"]:
+    def filter(self, value: Union[dict, str]) -> "SodaOperation":
         """
         Sets a filter specification for complex document queries and ordering
         of JSON documents. Filter specifications must be provided as a
@@ -499,7 +500,7 @@ class SodaOperation:
             raise TypeError("expecting string or dictionary")
         return self
 
-    def getCursor(self) -> Type["SodaDocCursor"]:
+    def getCursor(self) -> "SodaDocCursor":
         """
         Returns a SodaDocCursor object that can be used to iterate over the
         documents that match the criteria.
@@ -513,7 +514,7 @@ class SodaOperation:
         """
         return [d for d in self.getCursor()]
 
-    def getOne(self) -> Union[Type["SodaDocument"], None]:
+    def getOne(self) -> Union["SodaDocument", None]:
         """
         Returns a single SodaDocument object that matches the criteria. Note
         that if multiple documents match the criteria only the first one is
@@ -523,7 +524,7 @@ class SodaOperation:
         if doc_impl is not None:
             return SodaDocument._from_impl(doc_impl)
 
-    def hint(self, value: str) -> Type["SodaOperation"]:
+    def hint(self, value: str) -> "SodaOperation":
         """
         Specifies a hint that will be provided to the SODA operation when it is
         performed. This is expected to be a string in the same format as SQL
@@ -541,7 +542,7 @@ class SodaOperation:
         self._hint = value
         return self
 
-    def key(self, value: str) -> Type["SodaOperation"]:
+    def key(self, value: str) -> "SodaOperation":
         """
         Specifies that the document with the specified key should be returned.
         This causes any previous calls made to this method and keys() to be
@@ -556,7 +557,7 @@ class SodaOperation:
         self._keys = None
         return self
 
-    def keys(self, value: list) -> Type["SodaOperation"]:
+    def keys(self, value: list) -> "SodaOperation":
         """
         Specifies that documents that match the keys found in the supplied
         sequence should be returned. This causes any previous calls made to
@@ -573,7 +574,7 @@ class SodaOperation:
         self._key = None
         return self
 
-    def limit(self, value: int) -> Type["SodaOperation"]:
+    def limit(self, value: int) -> "SodaOperation":
         """
         Specifies that only the specified number of documents should be
         returned. This method is only usable for read operations such as
@@ -609,7 +610,7 @@ class SodaOperation:
         return self._collection._impl.replace_one(self, doc_impl,
                                                   return_doc=False)
 
-    def replaceOneAndGet(self, doc: object) -> Type["SodaDocument"]:
+    def replaceOneAndGet(self, doc: object) -> "SodaDocument":
         """
         Similarly to replaceOne(), this method replaces a single document in
         the collection with the specified document. The only difference is that
@@ -621,7 +622,7 @@ class SodaOperation:
                                                              return_doc=True)
         return SodaDocument._from_impl(return_doc_impl)
 
-    def skip(self, value: int) -> Type["SodaOperation"]:
+    def skip(self, value: int) -> "SodaOperation":
         """
         Specifies the number of documents that match the other criteria that
         will be skipped. This method is only usable for read operations such as
@@ -636,7 +637,7 @@ class SodaOperation:
         self._skip = value
         return self
 
-    def version(self, value: str) -> Type["SodaOperation"]:
+    def version(self, value: str) -> "SodaOperation":
         """
         Specifies that documents with the specified version should be returned.
         Typically this is used with key() to implement optimistic locking, so

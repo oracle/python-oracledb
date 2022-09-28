@@ -32,7 +32,7 @@
 import datetime
 
 from . import connection as connection_module
-from typing import Type, Union
+from typing import Union, List
 from . import errors, exceptions
 from .dbobject import DbObject, DbObjectType
 
@@ -48,7 +48,7 @@ class Queue:
         queue._impl = impl
         return queue
 
-    def _verify_message(self, message: Type["MessageProperties"]) -> None:
+    def _verify_message(self, message: "MessageProperties") -> None:
         """
         Internal method used for verifying a message.
         """
@@ -58,7 +58,7 @@ class Queue:
             errors._raise_err(errors.ERR_MESSAGE_HAS_NO_PAYLOAD)
 
     @property
-    def connection(self) -> Type["connection_module.Connection"]:
+    def connection(self) -> "connection_module.Connection":
         """
         Returns the connection on which the queue was created.
         """
@@ -72,13 +72,13 @@ class Queue:
         message_impls = self._impl.deq_many(max_num_messages)
         return [MessageProperties._from_impl(impl) for impl in message_impls]
 
-    def deqMany(self, max_num_messages: int) -> list:
+    def deqMany(self, max_num_messages: int) -> List["MessageProperties"]:
         """
         Deprecated: use deqmany() instead.
         """
         return self.deqmany(max_num_messages)
 
-    def deqone(self) -> Union[Type["MessageProperties"], None]:
+    def deqone(self) -> Union["MessageProperties", None]:
         """
         Dequeues at most one message from the queue and returns it. If no
         message is dequeued, None is returned.
@@ -87,14 +87,14 @@ class Queue:
         if message_impl is not None:
             return MessageProperties._from_impl(message_impl)
 
-    def deqOne(self) -> Union[Type["MessageProperties"], None]:
+    def deqOne(self) -> Union["MessageProperties", None]:
         """
         Deprecated: use deqone() instead.
         """
         return self.deqone()
 
     @property
-    def deqoptions(self) -> Type["DeqOptions"]:
+    def deqoptions(self) -> "DeqOptions":
         """
         Returns the options that will be used when dequeuing messages from the
         queue.
@@ -102,7 +102,7 @@ class Queue:
         return self._deq_options
 
     @property
-    def deqOptions(self) -> Type["DeqOptions"]:
+    def deqOptions(self) -> "DeqOptions":
         """
         Deprecated: use deqoptions instead.
         """
@@ -131,7 +131,7 @@ class Queue:
         """
         return self.enqmany(messages)
 
-    def enqone(self, message: Type["MessageProperties"]) -> None:
+    def enqone(self, message: "MessageProperties") -> None:
         """
         Enqueues a single message into the queue. The message must be a message
         property object which has had its payload attribute set to a value that
@@ -140,14 +140,14 @@ class Queue:
         self._verify_message(message)
         self._impl.enq_one(message._impl)
 
-    def enqOne(self, message: Type["MessageProperties"]) -> None:
+    def enqOne(self, message: "MessageProperties") -> None:
         """
         Deprecated: use enqone() instead.
         """
         return self.enqone(message)
 
     @property
-    def enqoptions(self) -> Type["EnqOptions"]:
+    def enqoptions(self) -> "EnqOptions":
         """
         Returns the options that will be used when enqueuing messages into the
         queue.
@@ -155,7 +155,7 @@ class Queue:
         return self._enq_options
 
     @property
-    def enqOptions(self) -> Type["EnqOptions"]:
+    def enqOptions(self) -> "EnqOptions":
         """
         Deprecated: use enqoptions() instead.
         """

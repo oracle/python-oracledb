@@ -29,7 +29,7 @@
 # object type metadata: DbObject, DbObjectType and DbObjectAttr.
 #------------------------------------------------------------------------------
 
-from typing import Sequence, Type, Union
+from typing import Sequence, Union
 
 from . import __name__ as MODULE_NAME
 from .base_impl import DbType
@@ -91,7 +91,7 @@ class DbObject:
             ix = self._impl.get_next_index(ix)
         return result
 
-    def copy(self) -> Type["DbObject"]:
+    def copy(self) -> "DbObject":
         """
         Create a copy of the object and return it.
         """
@@ -181,7 +181,7 @@ class DbObject:
         self._impl.trim(num)
 
     @property
-    def type(self) -> Type["DbObjectType"]:
+    def type(self) -> "DbObjectType":
         """
         Returns an ObjectType corresponding to the type of the object.
         """
@@ -211,7 +211,7 @@ class DbObjectAttr:
         return self._impl.name
 
     @property
-    def type(self) -> Union[Type["DbObjectType"], DbType]:
+    def type(self) -> Union["DbObjectType", DbType]:
         """
         This read-only attribute returns the type of the attribute. This will
         be an Oracle Object Type if the variable binds Oracle objects;
@@ -274,7 +274,7 @@ class DbObjectType:
         return self._impl.name
 
     @property
-    def element_type(self) -> Union[Type["DbObjectType"], DbType]:
+    def element_type(self) -> Union["DbObjectType", DbType]:
         """
         This read-only attribute returns the type of elements found in
         collections of this type, if iscollection is True; otherwise, it
