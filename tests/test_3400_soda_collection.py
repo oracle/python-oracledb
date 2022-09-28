@@ -468,5 +468,24 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc.getContent(), fetched_doc.getContent())
         coll.drop()
 
+    def test_3421_insert_many_and_get(self):
+        "3421 - test insert many and get"
+        soda_db = self.get_soda_database(minclient=(18, 5))
+        coll = soda_db.createCollection("TestInsertManyAndGet")
+        values_to_insert = [
+            dict(name="George", age=25),
+            soda_db.createDocument(dict(name="Lucas", age=47))
+        ]
+        docs = coll.insertManyAndGet(values_to_insert)
+        inserted_keys = [i.key for i in docs]
+        self.connection.commit()
+        self.assertEqual(coll.find().count(), len(values_to_insert))
+        for key, expected_doc in zip(inserted_keys, values_to_insert):
+            if isinstance(expected_doc, dict):
+                expected_doc = soda_db.createDocument(expected_doc)
+            doc = coll.find().key(key).getOne()
+            self.assertEqual(doc.getContent(), expected_doc.getContent())
+        coll.drop()
+
 if __name__ == "__main__":
     test_env.run_test_cases()

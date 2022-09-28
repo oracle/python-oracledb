@@ -32,6 +32,7 @@ Common Changes
 #)  Enhanced type checking
     (`issue 54 <https://github.com/oracle/python-oracledb/issues/54>`__),
     (`issue 60 <https://github.com/oracle/python-oracledb/issues/60>`__).
+#)  Improved test suite and documentation.
 
 
 oracledb 1.1.0 (September 2022)
