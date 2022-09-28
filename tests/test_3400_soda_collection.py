@@ -446,5 +446,27 @@ class TestCase(test_env.BaseTestCase):
             result, = cursor.fetchone()
             self.assertTrue(hint in result.read())
 
+    def test_3420_save_and_get(self):
+        "3420 - test saveAndGet"
+        soda_db = self.get_soda_database(minclient=(19, 9))
+        coll = soda_db.createCollection("TestSodaSaveAndGet")
+        coll.find().remove()
+        values_to_save = [
+            dict(name="John", age=50),
+            soda_db.createDocument(dict(name="Mark", age=45)),
+            soda_db.createDocument(dict(name="Jill", age=32))
+        ]
+        inserted_keys = []
+        for value in values_to_save:
+            doc = coll.saveAndGet(value)
+            inserted_keys.append(doc.key)
+        fetched_docs = coll.find().getDocuments()
+        self.connection.commit()
+        self.assertEqual(coll.find().count(), len(values_to_save))
+        for key, fetched_doc in zip(inserted_keys, fetched_docs):
+            doc = coll.find().key(key).getOne()
+            self.assertEqual(doc.getContent(), fetched_doc.getContent())
+        coll.drop()
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -19,6 +19,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug returning metadata of SODA documents inserted into a collection
+    using :meth:`SodaCollection.saveAndGet()`.
+
 Common Changes
 ++++++++++++++
 
