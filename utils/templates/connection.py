@@ -97,51 +97,52 @@ class Connection:
         self._impl = None
 
         # determine if thin mode is being used
-        thin = driver_mode.check_and_return_mode()
+        with driver_mode.get_manager() as mode_mgr:
+            thin = mode_mgr.thin
 
-        # determine which connection parameters to use
-        if params is None:
-            params_impl = base_impl.ConnectParamsImpl()
-        elif not isinstance(params, ConnectParams):
-            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-        else:
-            params_impl = params._impl.copy()
-        if kwargs:
-            params_impl.set(kwargs)
-        if dsn is not None:
-            dsn = params_impl.parse_dsn(dsn, thin)
-        if dsn is None:
-            dsn = params_impl.get_connect_string()
-
-        # see if connection is being acquired from a pool
-        if pool is None:
-            pool_impl = None
-        elif not isinstance(pool, pool_module.ConnectionPool):
-            message = "pool must be an instance of oracledb.ConnectionPool"
-            raise TypeError(message)
-        else:
-            pool._verify_open()
-            pool_impl = pool._impl
-
-        # create thin or thick implementation object
-        if thin:
-            if pool is not None:
-                impl = pool_impl.acquire(params_impl)
+            # determine which connection parameters to use
+            if params is None:
+                params_impl = base_impl.ConnectParamsImpl()
+            elif not isinstance(params, ConnectParams):
+                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
             else:
-                impl = thin_impl.ThinConnImpl(dsn, params_impl)
-                impl.connect(params_impl)
-        else:
-            impl = thick_impl.ThickConnImpl(dsn, params_impl)
-            impl.connect(params_impl, pool_impl)
-        self._impl = impl
-        self._version = None
+                params_impl = params._impl.copy()
+            if kwargs:
+                params_impl.set(kwargs)
+            if dsn is not None:
+                dsn = params_impl.parse_dsn(dsn, thin)
+            if dsn is None:
+                dsn = params_impl.get_connect_string()
 
-        # invoke callback, if applicable
-        if impl.invoke_session_callback and pool is not None \
-                and pool.session_callback is not None \
-                and callable(pool.session_callback):
-            pool.session_callback(self, params_impl.tag)
-            impl.invoke_session_callback = False
+            # see if connection is being acquired from a pool
+            if pool is None:
+                pool_impl = None
+            elif not isinstance(pool, pool_module.ConnectionPool):
+                message = "pool must be an instance of oracledb.ConnectionPool"
+                raise TypeError(message)
+            else:
+                pool._verify_open()
+                pool_impl = pool._impl
+
+            # create thin or thick implementation object
+            if thin:
+                if pool is not None:
+                    impl = pool_impl.acquire(params_impl)
+                else:
+                    impl = thin_impl.ThinConnImpl(dsn, params_impl)
+                    impl.connect(params_impl)
+            else:
+                impl = thick_impl.ThickConnImpl(dsn, params_impl)
+                impl.connect(params_impl, pool_impl)
+            self._impl = impl
+            self._version = None
+
+            # invoke callback, if applicable
+            if impl.invoke_session_callback and pool is not None \
+                    and pool.session_callback is not None \
+                    and callable(pool.session_callback):
+                pool.session_callback(self, params_impl.tag)
+                impl.invoke_session_callback = False
 
     def __del__(self):
         if self._impl is not None:

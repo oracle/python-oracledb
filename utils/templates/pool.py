@@ -86,17 +86,18 @@ class ConnectionPool:
             params_impl.set(kwargs)
         self._connection_type = \
                 params_impl.connectiontype or connection_module.Connection
-        thin = driver_mode.check_and_return_mode()
-        if dsn is not None:
-            dsn = params_impl.parse_dsn(dsn, thin)
-        if dsn is None:
-            dsn = params_impl.get_connect_string()
-        if thin:
-            impl = thin_impl.ThinPoolImpl(dsn, params_impl)
-        else:
-            impl = thick_impl.ThickPoolImpl(dsn, params_impl)
-        self._impl = impl
-        self.session_callback = params_impl.session_callback
+        with driver_mode.get_manager() as mode_mgr:
+            thin = mode_mgr.thin
+            if dsn is not None:
+                dsn = params_impl.parse_dsn(dsn, thin)
+            if dsn is None:
+                dsn = params_impl.get_connect_string()
+            if thin:
+                impl = thin_impl.ThinPoolImpl(dsn, params_impl)
+            else:
+                impl = thick_impl.ThickPoolImpl(dsn, params_impl)
+            self._impl = impl
+            self.session_callback = params_impl.session_callback
 
     def __del__(self):
         if self._impl is not None:

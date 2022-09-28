@@ -452,31 +452,32 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         if params_tuple != driver_context_params:
             errors._raise_err(errors.ERR_LIBRARY_ALREADY_INITIALIZED)
         return
-    driver_mode.check_and_return_mode(requested_thin_mode=False)
-    memset(&params, 0, sizeof(dpiContextCreateParams))
-    encoding_bytes = constants.ENCODING.encode()
-    params.defaultEncoding = encoding_bytes
-    if config_dir is None:
-        config_dir = defaults.config_dir
-    if lib_dir is not None:
-        lib_dir_bytes = lib_dir.encode()
-        params.oracleClientLibDir = lib_dir_bytes
-    if config_dir is not None:
-        config_dir_bytes = config_dir.encode()
-        params.oracleClientConfigDir = config_dir_bytes
-    if driver_name is None:
-        driver_name = f"{constants.DRIVER_NAME} thk : {VERSION}"
-    driver_name_bytes = driver_name.encode()
-    params.defaultDriverName = driver_name_bytes
-    if error_url is not None:
-        error_url_bytes = error_url.encode()
-    else:
-        error_url_bytes = constants.INSTALLATION_URL.encode()
-    params.loadErrorUrl = error_url_bytes
-    if dpiContext_createWithParams(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
-                                   &params, &driver_context, &error_info) < 0:
-        _raise_from_info(&error_info)
-    driver_context_params = params_tuple
+    with driver_mode.get_manager(requested_thin_mode=False) as mode_mgr:
+        memset(&params, 0, sizeof(dpiContextCreateParams))
+        encoding_bytes = constants.ENCODING.encode()
+        params.defaultEncoding = encoding_bytes
+        if config_dir is None:
+            config_dir = defaults.config_dir
+        if lib_dir is not None:
+            lib_dir_bytes = lib_dir.encode()
+            params.oracleClientLibDir = lib_dir_bytes
+        if config_dir is not None:
+            config_dir_bytes = config_dir.encode()
+            params.oracleClientConfigDir = config_dir_bytes
+        if driver_name is None:
+            driver_name = f"{constants.DRIVER_NAME} thk : {VERSION}"
+        driver_name_bytes = driver_name.encode()
+        params.defaultDriverName = driver_name_bytes
+        if error_url is not None:
+            error_url_bytes = error_url.encode()
+        else:
+            error_url_bytes = constants.INSTALLATION_URL.encode()
+        params.loadErrorUrl = error_url_bytes
+        if dpiContext_createWithParams(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
+                                       &params, &driver_context,
+                                       &error_info) < 0:
+            _raise_from_info(&error_info)
+        driver_context_params = params_tuple
 
 
 def init_thick_impl(package):
