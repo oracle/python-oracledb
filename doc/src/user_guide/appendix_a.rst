@@ -463,11 +463,11 @@ values.
     * - ROWID
       - DB_TYPE_ROWID
       - Yes
-      - cannot be set
+      - bytes, str
     * - UROWID
-      - DB_TYPE_ROWID
+      - DB_TYPE_ROWID, DB_TYPE_UROWID (only supported in python-oracledb Thin mode)
       - Yes.  May show DB_TYPE_UROWID in metadata. See :ref:`Query Metadata Differences <querymetadatadiff>`.
-      - cannot be set
+      - bytes, str
     * - CHAR
       - DB_TYPE_CHAR
       - Yes
@@ -578,7 +578,7 @@ these arrays.
     * - DB_TYPE_RAW
       - bytes, str
     * - DB_TYPE_ROWID
-      - cannot be set
+      - bytes, str
     * - DB_TYPE_TIMESTAMP
       - datetime.date, datetime.datetime
     * - DB_TYPE_TIMESTAMP_LTZ
@@ -586,6 +586,6 @@ these arrays.
     * - DB_TYPE_TIMESTAMP_TZ
       - datetime.date, datetime.datetime
     * - DB_TYPE_UROWID
-      - cannot be set
+      - bytes, str
     * - DB_TYPE_VARCHAR
       - bytes, str

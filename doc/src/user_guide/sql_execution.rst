@@ -239,7 +239,7 @@ Python object that is returned by default. Python types can be changed with
       - :attr:`oracledb.DB_TYPE_TIMESTAMP_TZ`
       - datetime.datetime [2]_
     * - UROWID
-      - :attr:`oracledb.DB_TYPE_ROWID`
+      - :attr:`oracledb.DB_TYPE_ROWID`, :attr:`oracledb.DB_TYPE_UROWID`
       - str
     * - VARCHAR2
       - :attr:`oracledb.DB_TYPE_VARCHAR`

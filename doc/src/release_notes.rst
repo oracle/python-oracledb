@@ -13,6 +13,9 @@ oracledb 1.1.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug that prevented binding data of types
+    :data:`~oracledb.DB_TYPE_ROWID` and :data:`~oracledb.DB_TYPE_UROWID`.
+
 Thick Mode Changes
 ++++++++++++++++++
 

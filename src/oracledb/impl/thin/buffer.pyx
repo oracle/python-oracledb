@@ -1016,15 +1016,22 @@ cdef class ReadBuffer:
             const char_type *input_ptr
             bytearray output_value
             uint32_t num_bytes
+            uint8_t length
             Rowid rowid
 
         # check for null
-        self.read_ub4(&num_bytes)
-        if num_bytes == 0:
+        self.read_ub1(&length)
+        if _is_null_length(length):
             return None
 
-        # handle physical rowid
+        if length == 1:
+            self.skip_ub1()
+        else:
+            self.read_ub4(&num_bytes)
+
         self.read_raw_bytes_chunked(&input_ptr, &input_len)
+
+        # handle physical rowid
         if input_ptr[0] == 1:
             rowid.rba = unpack_uint32(&input_ptr[1], BYTE_ORDER_MSB)
             rowid.partition_id = unpack_uint16(&input_ptr[5], BYTE_ORDER_MSB)

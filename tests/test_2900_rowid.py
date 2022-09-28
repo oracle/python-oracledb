@@ -27,6 +27,7 @@
 """
 
 import datetime
+import unittest
 
 import oracledb
 import test_env
@@ -83,6 +84,91 @@ class TestCase(test_env.BaseTestCase):
                     where rowid = :val""",
                     val=rowid)
             self.assertEqual(self.cursor.fetchall(), [(int_val,)])
+
+    def test_2904_select_rowids_as_rowids(self):
+        "2904 - test selecting regular rowids stored in a rowid column"
+        self.cursor.execute("truncate table TestRowids")
+        self.cursor.execute("""
+                insert into TestRowids (IntCol, RowidCol)
+                select IntCol, rowid from TestNumbers""")
+        self.connection.commit()
+        self.cursor.execute("select IntCol, RowidCol from TestRowids")
+        for int_val, rowid in self.cursor.fetchall():
+            self.cursor.execute("""
+                    select IntCol
+                    from TestNumbers
+                    where rowid = :val""",
+                    val=rowid)
+            self.assertEqual(self.cursor.fetchall(), [(int_val,)])
+
+    def test_2905_test_bind_and_insert_rowid(self):
+        "2905 - binding and inserting a rowid"
+        self.cursor.execute("truncate table TestRowids")
+        insert_data = [
+            (1, "String #1"), (2, "String #2"),
+            (3, "String #3"),(4, "String #4")
+        ]
+        self.cursor.execute("truncate table TestTempTable")
+        sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
+        self.cursor.executemany(sql, insert_data)
+        self.connection.commit()
+        ridvar = self.cursor.var(oracledb.ROWID)
+        self.cursor.execute("""
+            begin
+                select rowid into :rid from TestTempTable
+                where IntCol = 3;
+            end;""",
+            rid=ridvar)
+        self.cursor.setinputsizes(r1=oracledb.ROWID)
+        self.cursor.execute("""
+            insert into TestRowids (IntCol, RowidCol)
+            values(1, :r1)""",
+            r1=ridvar)
+        self.connection.commit()
+        self.cursor.execute("select IntCol, RowidCol from TestRowids")
+        int_val, rowid = self.cursor.fetchone()
+        self.cursor.execute("""
+            select IntCol, StringCol1 from TestTempTable
+            where rowid = :val""",
+            val=rowid)
+        self.assertEqual(self.cursor.fetchone(), (3, "String #3"))
+
+    @unittest.skipIf(not test_env.get_is_thin(),
+                     "thick mode doesn't support DB_TYPE_UROWID")
+    def test_2906_test_bind_and_insert_rowid_as_urowid(self):
+        "2906 - binding and inserting a rowid as urowid"
+        self.cursor.execute("truncate table TestRowids")
+        insert_data = [
+            (1, "String #1", datetime.datetime(2017, 4, 4)),
+            (2, "String #2", datetime.datetime(2017, 4, 5)),
+            (3, "String #3", datetime.datetime(2017, 4, 6)),
+            (4, "A" * 250, datetime.datetime(2017, 4, 7))
+        ]
+        self.cursor.execute("truncate table TestUniversalRowids")
+        sql = "insert into TestUniversalRowids values (:1, :2, :3)"
+        self.cursor.executemany(sql, insert_data)
+        self.connection.commit()
+        ridvar = self.cursor.var(oracledb.DB_TYPE_UROWID)
+        self.cursor.execute("""
+            begin
+                select rowid into :rid from TestUniversalRowids
+                where IntCol = 3;
+            end;""",
+            rid=ridvar)
+        self.cursor.setinputsizes(r1=oracledb.DB_TYPE_UROWID)
+        self.cursor.execute("""
+            insert into TestRowids (IntCol, UrowidCol)
+            values(1, :r1)""",
+            r1=ridvar)
+        self.connection.commit()
+        self.cursor.execute("select IntCol, UrowidCol from TestRowids")
+        int_val, rowid = self.cursor.fetchone()
+        self.cursor.execute("""
+            select IntCol, StringCol, DateCol from TestUniversalRowids
+            where rowid = :val""",
+            val=rowid)
+        self.assertEqual(self.cursor.fetchone(),
+                         (3, "String #3", datetime.datetime(2017, 4, 6)))
 
 if __name__ == "__main__":
     test_env.run_test_cases()

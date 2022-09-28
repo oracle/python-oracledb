@@ -183,6 +183,48 @@ fetching a row and then updating that row by binding its rowid:
             where rowid = :rid""", manager_id=205, rid=rowid)
 
 
+Binding UROWID Values
+=====================
+
+Universal rowids (UROWID) are used to uniquely identify rows in index
+organized tables. In python-oracledb, UROWID values are represented as strings.
+The example below shows fetching a row from index organized table
+``universal_rowids`` and then updating that row by binding its urowid:
+
+.. code-block:: sql
+
+    CREATE TABLE universal_rowids (
+        int_col number(9) not null,
+        str_col varchar2(250) not null,
+        date_col date not null,
+        CONSTRAINT universal_rowids_pk PRIMARY KEY(int_col, str_col, date_col)
+    ) ORGANIZATION INDEX
+
+
+.. code-block:: python
+
+    ridvar = cursor.var(oracledb.DB_TYPE_UROWID)
+
+    # fetch the row
+    cursor.execute("""
+            begin
+                select rowid into :rid from universal_rowids
+                where int_col = 3;
+            end;""", rid=ridvar)
+
+    # update the row by binding UROWID
+    cursor.execute("""
+            update universal_rowids set
+                str_col = :str_val
+            where rowid = :rowid_val""",
+            str_val="String #33", rowid_val=ridvar)
+
+Note that the type :attr:`oracledb.DB_TYPE_UROWID` is only supported in
+python-oracledb Thin mode. For python-oracledb Thick mode, the database type
+UROWID can be bound with type :attr:`oracledb.DB_TYPE_ROWID`.
+See :ref:`querymetadatadiff`.
+
+
 DML RETURNING Bind Variables
 ============================
 
