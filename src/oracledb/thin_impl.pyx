@@ -80,10 +80,11 @@ from .base_impl cimport BaseLobImpl, BasePoolImpl, FetchInfo
 from .base_impl cimport Address, AddressList, Description, DescriptionList
 from .base_impl cimport ConnectParamsImpl, PoolParamsImpl
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB
-from .lob import LOB
-from .var import Var
 
 ctypedef unsigned char char_type
+
+cdef type PY_TYPE_DECIMAL = decimal.Decimal
+cdef type PY_TYPE_LOB
 
 cdef bint HAS_CRYPTOGRAPHY = True
 

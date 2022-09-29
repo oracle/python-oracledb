@@ -145,3 +145,12 @@ def _print_packet(operation, socket_fileno, data):
         offset += 8
     output_lines.append("")
     print("\n".join(output_lines))
+
+
+def init_thin_impl(package):
+    """
+    Initializes globals after the package has been completely initialized. This
+    is to avoid circular imports and eliminate the need for global lookups.
+    """
+    global PY_TYPE_LOB
+    PY_TYPE_LOB = package.LOB

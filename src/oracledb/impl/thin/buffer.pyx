@@ -687,7 +687,7 @@ cdef class ReadBuffer:
             return None
         self.skip_ub1()
         lob_impl = ThinLobImpl._create(conn_impl, dbtype, self.read_bytes())
-        return LOB._from_impl(lob_impl)
+        return PY_TYPE_LOB._from_impl(lob_impl)
 
     cdef object read_oracle_number(self, int preferred_num_type):
         """
@@ -728,14 +728,14 @@ cdef class ReadBuffer:
                 if preferred_num_type == NUM_TYPE_INT:
                     return 0
                 elif preferred_num_type == NUM_TYPE_DECIMAL:
-                    return decimal.Decimal(0)
+                    return PY_TYPE_DECIMAL(0)
                 elif preferred_num_type == NUM_TYPE_STR:
                     return "0"
                 return 0.0
             if preferred_num_type == NUM_TYPE_INT:
                 return -10 ** 126
             elif preferred_num_type == NUM_TYPE_DECIMAL:
-                return decimal.Decimal("-1e126")
+                return PY_TYPE_DECIMAL("-1e126")
             elif preferred_num_type == NUM_TYPE_STR:
                 return "-1e126"
             return -1.0e126
@@ -818,7 +818,7 @@ cdef class ReadBuffer:
         if preferred_num_type == NUM_TYPE_INT and is_integer:
             return int(buf[:num_bytes])
         elif preferred_num_type == NUM_TYPE_DECIMAL:
-            return decimal.Decimal(buf[:num_bytes].decode())
+            return PY_TYPE_DECIMAL(buf[:num_bytes].decode())
         elif preferred_num_type == NUM_TYPE_STR:
             return buf[:num_bytes].decode()
         return float(buf[:num_bytes])

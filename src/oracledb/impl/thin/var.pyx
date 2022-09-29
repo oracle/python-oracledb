@@ -71,7 +71,7 @@ cdef class ThinVarImpl(BaseVarImpl):
         if self.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
                 or self.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
             for idx, value in enumerate(self._values):
-                if value is not None and not isinstance(value, LOB):
+                if value is not None and not isinstance(value, PY_TYPE_LOB):
                     lob = conn.createlob(self.dbtype)
                     if value:
                         lob.write(value)

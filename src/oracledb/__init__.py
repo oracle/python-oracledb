@@ -53,6 +53,7 @@ from .thick_impl import clientversion, init_oracle_client
 package = sys.modules[__name__]
 init_base_impl(package)
 thick_impl.init_thick_impl(package)
+thin_impl.init_thin_impl(package)
 del package
 
 # future object used for managing backwards incompatible changes

@@ -113,7 +113,7 @@ cdef converter_dict = {
 }
 
 cdef object _to_binary_int(object fetch_value):
-    return int(decimal.Decimal(fetch_value))
+    return int(PY_TYPE_DECIMAL(fetch_value))
 
 cdef object _tstamp_to_date(object fetch_value):
     return fetch_value.replace(microsecond=0)
