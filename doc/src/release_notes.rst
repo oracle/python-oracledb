@@ -38,6 +38,7 @@ Common Changes
     :meth:`oracledb.init_oracle_client()`, :meth:`oracledb.connect()` or
     :meth:`oracledb.create_pool()` has completed successfully
     (`issue 44 <https://github.com/oracle/python-oracledb/issues/44>`__).
+#)  Improved test suite and documentation.
 
 
 oracledb 1.1.0 (September 2022)
