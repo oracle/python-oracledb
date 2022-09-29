@@ -13,6 +13,19 @@ oracledb 1.2.0b1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+Thick Mode Changes
+++++++++++++++++++
+
+Common Changes
+++++++++++++++
+
+
+oracledb 1.1.1 (September 2022)
+-------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
 #)  Fixed bug that prevented binding data of types
     :data:`~oracledb.DB_TYPE_ROWID` and :data:`~oracledb.DB_TYPE_UROWID`.
 #)  Fixed bug that caused :meth:`Connection.is_healthy()` to return `True`
