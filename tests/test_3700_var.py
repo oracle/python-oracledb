@@ -395,5 +395,12 @@ class TestCase(test_env.BaseTestCase):
         results = self.cursor.fetchall()
         self.assertEqual(results, [(None, None, None, None, None, None, None)])
 
+    @unittest.skipIf(not test_env.get_is_thin(),
+                     "thick mode doesn't support DB_TYPE_UROWID")
+    def test_3725_DB_TYPE_UROWID(self):
+        "3725 - setting values on variables of type DB_TYPE_UROWID"
+        self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, 12345)
+        self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, "523lkhlf")
+
 if __name__ == "__main__":
     test_env.run_test_cases()

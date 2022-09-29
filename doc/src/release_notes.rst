@@ -13,8 +13,8 @@ oracledb 1.2.0b1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug that prevented binding data of types DB_TYPE_ROWID and
-    DB_TYPE_UROWID.
+#)  Fixed bug that prevented binding data of types
+    :data:`~oracledb.DB_TYPE_ROWID` and :data:`~oracledb.DB_TYPE_UROWID`.
 #)  Fixed bug that caused :meth:`Connection.is_healthy()` to return `True`
     after a connection has been killed.
 #)  Internally, before a connection is returned from a pool, perform additional

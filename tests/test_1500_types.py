@@ -194,5 +194,10 @@ class TestCase(test_env.BaseTestCase):
         "1528 - test oracledb.ROWID pickling"
         self.__test_pickle(oracledb.ROWID)
 
+    def test_1529_DB_TYPE_UROWID(self):
+        "1529 - test oracledb.DB_TYPE_UROWID comparisons and pickling"
+        self.__test_compare(oracledb.DB_TYPE_UROWID, oracledb.ROWID)
+        self.__test_pickle(oracledb.DB_TYPE_UROWID)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

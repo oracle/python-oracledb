@@ -2066,9 +2066,9 @@ DB API Types
 .. data:: ROWID
 
     This type object is used to describe the pseudo column "rowid". The
-    database type :data:`DB_TYPE_ROWID` will compare equal to this value. If a
-    variable is created with this type, the database type
-    :data:`DB_TYPE_VARCHAR` will be used.
+    database types :data:`DB_TYPE_ROWID` and :data:`DB_TYPE_UROWID` will
+    compare equal to this value. If a variable is created with this type, the
+    database type :data:`DB_TYPE_VARCHAR` will be used.
 
 
 .. data:: STRING
@@ -2279,6 +2279,17 @@ when binding data.
     Describes columns, attributes or array elements in a database that are of
     type TIMESTAMP WITH TIME ZONE. It will compare equal to the DB API type
     :data:`DATETIME`.
+
+
+.. data:: DB_TYPE_UROWID
+
+    Describes columns, attributes or array elements in a database that are of
+    type UROWID. It will compare equal to the DB API type :data:`ROWID`.
+
+    .. note::
+
+        This type is not supported in python-oracledb Thick mode.
+        See :ref:`querymetadatadiff`.
 
 
 .. data:: DB_TYPE_VARCHAR
