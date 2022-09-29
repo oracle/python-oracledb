@@ -503,7 +503,7 @@ class Connection:
         This function performs a local check. To fully check a connection's
         health, use ping() which performs a round-trip to the database.
         """
-        return self._impl.get_is_healthy()
+        return self._impl is not None and self._impl.get_is_healthy()
 
     @property
     def ltxid(self) -> bytes:

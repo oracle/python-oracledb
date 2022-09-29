@@ -739,6 +739,7 @@ class TestCase(test_env.BaseTestCase):
             admin_cursor.execute(sql)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4011:",
                                cursor.execute, "select user from dual")
+        self.assertFalse(conn.is_healthy())
 
     def test_4359_kill_conn_in_context_manager(self):
         "4359 - kill connection in cursor context manager"

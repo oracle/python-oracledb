@@ -325,7 +325,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         return self._internal_name
 
     def get_is_healthy(self):
-        return not self._protocol._read_buf._session_needs_to_be_closed
+        return self._protocol._socket is not None \
+                and not self._protocol._read_buf._session_needs_to_be_closed
 
     def get_ltxid(self):
         return self._ltxid or b''
