@@ -13,6 +13,9 @@ oracledb 1.2.0b1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when fetching nested cursors with more columns than the parent
+    cursor.
+
 Thick Mode Changes
 ++++++++++++++++++
 

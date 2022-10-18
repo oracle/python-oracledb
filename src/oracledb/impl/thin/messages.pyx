@@ -683,7 +683,7 @@ cdef class MessageWithData(Message):
             str message
         buf.skip_ub4()                      # max row size
         buf.read_ub4(&cursor_impl._num_columns)
-        prev_fetch_var_impls = self.cursor_impl.fetch_var_impls
+        prev_fetch_var_impls = cursor_impl.fetch_var_impls
         cursor_impl._init_fetch_vars(cursor_impl._num_columns)
         if cursor_impl._num_columns > 0:
             buf.skip_ub1()

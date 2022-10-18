@@ -274,5 +274,32 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
+    def test_1313_fetch_nested_cursors_with_more_cols_than_parent(self):
+        "1313 - test fetching nested cursors with more columns than parent"
+        sql = """
+            select
+                'Top Level String',
+                cursor(
+                    select
+                        'Nested String 1',
+                        'Nested String 2',
+                        'Nested String 3'
+                    from dual
+                )
+            from dual"""
+        self.cursor.execute(sql)
+        transform_fn = lambda v: \
+                [transform_row(r) for r in v] \
+                if isinstance(v, oracledb.Cursor) \
+                else v
+        transform_row = lambda r: tuple(transform_fn(v) for v in r)
+        rows = [transform_row(r) for r in self.cursor]
+        expected_value = [
+            ('Top Level String', [
+                ('Nested String 1', 'Nested String 2', 'Nested String 3')
+            ])
+        ]
+        self.assertEqual(rows, expected_value)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
