@@ -727,6 +727,7 @@ class TestCase(test_env.BaseTestCase):
         "4538 - kill connection with open cursor"
         admin_conn = test_env.get_admin_connection()
         conn = test_env.get_connection()
+        self.assertEqual(conn.is_healthy(), True)
         cursor = conn.cursor()
         cursor.execute("""
                 select
@@ -745,6 +746,7 @@ class TestCase(test_env.BaseTestCase):
         "4359 - kill connection in cursor context manager"
         admin_conn = test_env.get_admin_connection()
         conn = test_env.get_connection()
+        self.assertEqual(conn.is_healthy(), True)
         with conn.cursor() as cursor:
             cursor.execute("""
                     select
@@ -757,6 +759,7 @@ class TestCase(test_env.BaseTestCase):
                 admin_cursor.execute(sql)
             self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4011:",
                                    cursor.execute, "select user from dual")
+            self.assertEqual(conn.is_healthy(), False)
 
     def test_4360_fetchmany(self):
         "4360 - fetchmany() with and without parameters"
