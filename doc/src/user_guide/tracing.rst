@@ -343,7 +343,7 @@ Low level tracing is mostly useful to maintainers of python-oracledb.
 - For the python-oracledb Thin mode, packets can be traced by setting the
   environment variable::
 
-      pyo_debug_packets=1
+      PYO_DEBUG_PACKETS=1
 
   Output goes to stdout. The logging is similar to an Oracle Net trace of
   level 16.
