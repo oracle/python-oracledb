@@ -561,7 +561,7 @@ cdef class MessageWithData(Message):
                 column_value = buf.read_str(TNS_CS_IMPLICIT)
             else:
                 buf.read_ub1(&num_bytes)
-                if _is_null_length(num_bytes):
+                if num_bytes == 0 or num_bytes == TNS_NULL_LENGTH_INDICATOR:
                     column_value = None
                 else:
                     buf.read_rowid(&rowid)
@@ -580,16 +580,12 @@ cdef class MessageWithData(Message):
             if column_value is not None:
                 column_value = int(column_value)
         elif ora_type_num == TNS_DATA_TYPE_CURSOR:
-            buf.read_ub1(&num_bytes)
-            if _is_null_length(num_bytes):
-                column_value = None
-            else:
-                if not self.in_fetch:
-                    column_value = var_impl._values[pos]
-                column_value = self._create_cursor_from_describe(buf,
-                                                                 column_value)
-                cursor_impl = column_value._impl
-                buf.read_ub2(&cursor_impl._statement._cursor_id)
+            buf.skip_ub1()                  # length (fixed value)
+            if not self.in_fetch:
+                column_value = var_impl._values[pos]
+            column_value = self._create_cursor_from_describe(buf, column_value)
+            cursor_impl = column_value._impl
+            buf.read_ub2(&cursor_impl._statement._cursor_id)
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
             column_value = buf.read_bool()
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
@@ -1972,7 +1968,7 @@ cdef class LobOpMessage(Message):
             ssize_t num_bytes
             str encoding
         if message_type == TNS_MSG_TYPE_LOB_DATA:
-            buf.read_raw_bytes_chunked(&ptr, &num_bytes)
+            buf.read_raw_bytes_and_length(&ptr, &num_bytes)
             if self.source_lob_impl.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
                 self.data = ptr[:num_bytes]
             else:

@@ -106,13 +106,6 @@ def _get_connect_data(address, description):
            f"(CONNECT_DATA={identity}{server_type}(CID={cid})))"
 
 
-cdef inline bint _is_null_length(uint8_t length):
-    """
-    Returns true if the length refers to a NULL length.
-    """
-    return length == 0 or length == TNS_NULL_LENGTH_INDICATOR
-
-
 def _print_packet(operation, socket_fileno, data):
     """
     Print the packet content in a format suitable for debugging.

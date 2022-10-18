@@ -105,8 +105,10 @@ class TestCase(test_env.BaseTestCase):
         "2905 - binding and inserting a rowid"
         self.cursor.execute("truncate table TestRowids")
         insert_data = [
-            (1, "String #1"), (2, "String #2"),
-            (3, "String #3"),(4, "String #4")
+            (1, "String #1"),
+            (2, "String #2"),
+            (3, "String #3"),
+            (4, "String #4")
         ]
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -169,6 +171,14 @@ class TestCase(test_env.BaseTestCase):
             val=rowid)
         self.assertEqual(self.cursor.fetchone(),
                          (3, "String #3", datetime.datetime(2017, 4, 6)))
+
+    def test_2907_test_fetch_null_rowids(self):
+        "2907 - fetching a null rowid"
+        self.cursor.execute("truncate table TestRowids")
+        self.cursor.execute("insert into TestRowids (IntCol) values (1)")
+        self.connection.commit()
+        self.cursor.execute("select * from TestRowids")
+        self.assertEqual(self.cursor.fetchone(), (1, None, None))
 
 if __name__ == "__main__":
     test_env.run_test_cases()

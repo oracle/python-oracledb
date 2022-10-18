@@ -22,6 +22,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Improved test suite and documentation.
+
 
 oracledb 1.1.1 (September 2022)
 -------------------------------

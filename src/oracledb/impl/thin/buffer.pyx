@@ -537,14 +537,14 @@ cdef class ReadBuffer:
         Python object representing that value.
         """
         cdef:
-            uint8_t b0, b1, b2, b3, b4, b5, b6, b7, num_bytes
+            uint8_t b0, b1, b2, b3, b4, b5, b6, b7
             uint64_t high_bits, low_bits, all_bits
             const uint8_t *ptr
             double *double_ptr
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
-        ptr = <uint8_t*> self._get_raw(num_bytes)
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -576,14 +576,14 @@ cdef class ReadBuffer:
         Python object representing that value.
         """
         cdef:
-            uint8_t b0, b1, b2, b3, num_bytes
+            uint8_t b0, b1, b2, b3
             const uint8_t *ptr
             uint64_t all_bits
+            ssize_t num_bytes
             float *float_ptr
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
-        ptr = <uint8_t*> self._get_raw(num_bytes)
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -606,7 +606,7 @@ cdef class ReadBuffer:
         cdef:
             const char_type *ptr
             ssize_t num_bytes
-        self.read_raw_bytes_chunked(&ptr, &num_bytes)
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
             return ptr[0] == 1
 
@@ -618,7 +618,7 @@ cdef class ReadBuffer:
         cdef:
             const char_type *ptr
             ssize_t num_bytes
-        self.read_raw_bytes_chunked(&ptr, &num_bytes)
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
             return ptr[:num_bytes]
 
@@ -630,15 +630,14 @@ cdef class ReadBuffer:
         cdef:
             int8_t tz_hour = 0, tz_minute = 0
             uint32_t fsecond = 0
-            const char_type *ptr
-            uint8_t num_bytes
+            const uint8_t *ptr
+            ssize_t num_bytes
             int32_t seconds
             uint16_t year
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
-        ptr = self._get_raw(num_bytes)
-        year = (<uint8_t> ptr[0] - 100) * 100 + <uint8_t> ptr[1] - 100
+        year = (ptr[0] - 100) * 100 + ptr[1] - 100
         if num_bytes >= 11:
             fsecond = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) // 1000
         value = cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
@@ -660,12 +659,11 @@ cdef class ReadBuffer:
             int32_t days, hours, minutes, seconds, total_seconds, fseconds
             uint8_t duration_offset = TNS_DURATION_OFFSET
             uint32_t duration_mid = TNS_DURATION_MID
-            const char_type *ptr
-            uint8_t num_bytes
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
-        ptr = self._get_raw(num_bytes)
         days = unpack_uint32(ptr, BYTE_ORDER_MSB) - duration_mid
         fseconds = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) - duration_mid
         hours = ptr[4] - duration_offset
@@ -681,11 +679,11 @@ cdef class ReadBuffer:
         """
         cdef:
             ThinLobImpl lob_impl
-            uint8_t num_bytes
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
-        self.skip_ub1()
         lob_impl = ThinLobImpl._create(conn_impl, dbtype, self.read_bytes())
         return PY_TYPE_LOB._from_impl(lob_impl)
 
@@ -696,25 +694,26 @@ cdef class ReadBuffer:
         (int, float, decimal.Decimal and str) is used, if possible.
         """
         cdef:
-            uint8_t num_digits, byte, digit, num_bytes
             char_type buf[NUMBER_AS_TEXT_CHARS]
             uint8_t digits[NUMBER_MAX_DIGITS]
+            uint8_t num_digits, byte, digit
             bint is_positive, is_integer
             int16_t decimal_point_index
-            const char_type *ptr
+            const uint8_t *ptr
+            ssize_t num_bytes
             int8_t exponent
             str text
 
         # read the number of bytes in the number; if the value is 0 or the null
         # length indicator, return None
-        self.read_ub1(&num_bytes)
-        if _is_null_length(num_bytes):
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr == NULL:
             return None
 
         # the first byte is the exponent; positive numbers have the highest
         # order bit set, whereas negative numbers have the highest order bit
         # cleared and the bits inverted
-        self.read_sb1(&exponent)
+        exponent = <int8_t> ptr[0]
         is_positive = (exponent & 0x80)
         if not is_positive:
             exponent = ~exponent
@@ -742,14 +741,13 @@ cdef class ReadBuffer:
 
         # check for the trailing 102 byte for negative numbers and, if present,
         # reduce the number of mantissa digits
-        ptr = self._get_raw(num_bytes - 1)
-        if not is_positive and ptr[num_bytes - 2] == 102:
+        if not is_positive and ptr[num_bytes - 1] == 102:
             num_bytes -= 1
 
         # process the mantissa bytes which are the remaining bytes; each
         # mantissa byte is a base-100 digit
         num_digits = 0
-        for i in range(num_bytes - 1):
+        for i in range(1, num_bytes):
 
             # positive numbers have 1 added to them; negative numbers are
             # subtracted from the value 101
@@ -774,7 +772,7 @@ cdef class ReadBuffer:
 
             # process the second digit; trailing zeroes are ignored
             digit = byte % 10
-            if digit != 0 or i < num_bytes - 2:
+            if digit != 0 or i < num_bytes - 1:
                 digits[num_digits] = digit
                 num_digits += 1
 
@@ -831,8 +829,8 @@ cdef class ReadBuffer:
         """
         return self._get_raw(num_bytes)
 
-    cdef int read_raw_bytes_chunked(self, const char_type **ptr,
-                                    ssize_t *num_bytes) except -1:
+    cdef int read_raw_bytes_and_length(self, const char_type **ptr,
+                                       ssize_t *num_bytes) except -1:
         """
         Reads bytes from the buffer into a contiguous buffer. The first byte
         read is the number of bytes to read, unless it is
@@ -842,7 +840,7 @@ cdef class ReadBuffer:
             uint32_t temp_num_bytes
             uint8_t length
         self.read_ub1(&length)
-        if _is_null_length(length):
+        if length == 0 or length == TNS_NULL_LENGTH_INDICATOR:
             ptr[0] = NULL
             num_bytes[0] = 0
         elif length != TNS_LONG_LENGTH_INDICATOR:
@@ -934,7 +932,7 @@ cdef class ReadBuffer:
         cdef:
             const char_type *ptr
             ssize_t num_bytes
-        self.read_raw_bytes_chunked(&ptr, &num_bytes)
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
             if csfrm == TNS_CS_IMPLICIT:
                 return ptr[:num_bytes].decode()
@@ -1019,17 +1017,11 @@ cdef class ReadBuffer:
             uint8_t length
             Rowid rowid
 
-        # check for null
-        self.read_ub1(&length)
-        if _is_null_length(length):
+        # get data (first buffer contains the length, which can be ignored)
+        self.read_raw_bytes_and_length(&input_ptr, &input_len)
+        if input_ptr == NULL:
             return None
-
-        if length == 1:
-            self.skip_ub1()
-        else:
-            self.read_ub4(&num_bytes)
-
-        self.read_raw_bytes_chunked(&input_ptr, &input_len)
+        self.read_raw_bytes_and_length(&input_ptr, &input_len)
 
         # handle physical rowid
         if input_ptr[0] == 1:
