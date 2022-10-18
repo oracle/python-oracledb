@@ -36,7 +36,7 @@ alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'
 alter session set nls_numeric_characters='.,'
 /
 
-create user &main_user identified by &main_password
+create user &main_user identified by "&main_password"
 /
 
 grant
@@ -83,7 +83,7 @@ begin
 end;
 /
 
-create user &edition_user identified by &edition_password
+create user &edition_user identified by "&edition_password"
 /
 
 grant
