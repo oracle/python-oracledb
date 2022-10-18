@@ -131,7 +131,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
         buf.set_value(name)
         if is_json:
             if dpiConn_newJsonQueue(conn_impl._handle, buf.ptr, buf.length,
-                            &self._handle) < 0:
+                                    &self._handle) < 0:
                 _raise_from_odpi()
         else:
             if payload_type is not None:
@@ -412,7 +412,6 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
             const char *payload_ptr
             uint32_t payload_len
             dpiJsonNode *node
-            int32_t status
             dpiJson *json
 
         self._conn_impl = queue_impl._conn_impl
@@ -425,7 +424,7 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
             self.payload = _convert_from_json_node(node)
         else:
             if dpiMsgProps_getPayload(self._handle, &payload_obj_handle,
-                            &payload_ptr, &payload_len) < 0:
+                                      &payload_ptr, &payload_len) < 0:
                 _raise_from_odpi()
             if payload_obj_handle != NULL:
                 obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
