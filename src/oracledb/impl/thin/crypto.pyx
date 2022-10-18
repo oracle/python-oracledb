@@ -131,8 +131,11 @@ def get_ssl_socket(sock, ConnectParamsImpl params, Description description,
             errors._raise_err(errors.ERR_WALLET_FILE_MISSING,
                               name=pem_file_name)
         ssl_context.load_verify_locations(pem_file_name)
-        ssl_context.load_cert_chain(pem_file_name,
-                                    password=params._get_wallet_password())
+        try:
+            ssl_context.load_cert_chain(pem_file_name,
+                                        password=params._get_wallet_password())
+        except ssl.SSLError:
+            pass
     return perform_tls_negotiation(sock, ssl_context, description, address)
 
 
