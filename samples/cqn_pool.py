@@ -87,7 +87,8 @@ pool = oracledb.create_pool(user=sample_env.get_main_user(),
 
 with pool.acquire() as connection:
     qos = oracledb.SUBSCR_QOS_QUERY | oracledb.SUBSCR_QOS_ROWIDS
-    sub = connection.subscribe(callback=callback, timeout=1800, qos=qos)
+    sub = connection.subscribe(callback=callback, timeout=1800,
+                               qos=qos, client_initiated=True)
     print("Subscription created with ID:", sub.id)
     query_id = sub.registerquery("select * from TestTempTable")
     print("Registered query with ID:", query_id)

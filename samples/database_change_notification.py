@@ -73,7 +73,7 @@ connection = oracledb.connect(user=sample_env.get_main_user(),
                               events=True)
 
 sub = connection.subscribe(callback=callback, timeout=1800,
-                           qos=oracledb.SUBSCR_QOS_ROWIDS)
+                           qos=oracledb.SUBSCR_QOS_ROWIDS, client_initiated=True)
 print("Subscription:", sub)
 print("--> Connection:", sub.connection)
 print("--> ID:", sub.id)
