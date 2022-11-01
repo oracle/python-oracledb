@@ -50,7 +50,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             data.isNull = 0
             _convert_from_python(value, dbtype, objtype, &data.value, buf)
 
-    def append(self, object value):
+    def append_checked(self, object value):
         """
         Internal method for appending a value to a collection object.
         """
@@ -204,7 +204,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             _raise_from_odpi()
         return size
 
-    def set_attr_value(self, ThickDbObjectAttrImpl attr, object value):
+    def set_attr_value_checked(self, ThickDbObjectAttrImpl attr, object value):
         """
         Internal method for setting an attribute value.
         """
@@ -222,7 +222,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
                                        native_type_num, &data) < 0:
             _raise_from_odpi()
 
-    def set_element_by_index(self, int32_t index, object value):
+    def set_element_by_index_checked(self, int32_t index, object value):
         """
         Internal method for setting an entry in a collection that is indexed by
         integers.

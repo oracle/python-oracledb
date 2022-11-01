@@ -214,8 +214,6 @@ class TestCase(test_env.BaseTestCase):
         var.setvalue(0, value_to_set)
         self.assertEqual(var.getvalue(), value_to_set)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support database objects yet")
     def test_4319_var_type_with_object_type(self):
         "4319 - test that an object type can be used as type in cursor.var()"
         obj_type = self.connection.gettype("UDT_OBJECT")

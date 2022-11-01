@@ -290,6 +290,7 @@ cdef class Message:
 
 cdef class MessageWithData(Message):
     cdef:
+        ThinDbObjectTypeCache type_cache
         ThinCursorImpl cursor_impl
         array.array bit_vector_buf
         const char_type *bit_vector
@@ -521,6 +522,7 @@ cdef class MessageWithData(Message):
             uint8_t num_bytes, ora_type_num, csfrm
             ThinCursorImpl cursor_impl
             object column_value = None
+            ThinDbObjectImpl obj_impl
             int32_t actual_num_bytes
             uint32_t buffer_size
             FetchInfo fetch_info
@@ -536,9 +538,10 @@ cdef class MessageWithData(Message):
             buffer_size = var_impl.buffer_size
         if var_impl.bypass_decode:
             ora_type_num = TNS_DATA_TYPE_RAW
-        if buffer_size == 0 and ora_type_num != TNS_DATA_TYPE_LONG \
-                and ora_type_num != TNS_DATA_TYPE_LONG_RAW \
-                and ora_type_num != TNS_DATA_TYPE_UROWID:
+        if buffer_size == 0 and self.in_fetch \
+                and ora_type_num not in (TNS_DATA_TYPE_LONG,
+                                         TNS_DATA_TYPE_LONG_RAW,
+                                         TNS_DATA_TYPE_UROWID):
             column_value = None             # column is null by describe
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
@@ -591,7 +594,17 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
             column_value = buf.read_interval_ds()
         elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
-            column_value = buf.read_lob(self.conn_impl, var_impl.dbtype)
+            column_value = buf.read_lob_with_length(self.conn_impl,
+                                                    var_impl.dbtype)
+        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+            obj_impl = buf.read_dbobject(var_impl.objtype)
+            if obj_impl is not None:
+                if not self.in_fetch:
+                    column_value = var_impl._values[pos]
+                if column_value is not None:
+                    column_value._impl = obj_impl
+                else:
+                    column_value = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)
@@ -615,11 +628,15 @@ cdef class MessageWithData(Message):
     cdef FetchInfo _process_column_info(self, ReadBuffer buf,
                                         ThinCursorImpl cursor_impl):
         cdef:
+            ThinDbObjectTypeImpl typ_impl
             uint8_t data_type, csfrm
             int8_t precision, scale
             uint8_t nulls_allowed
             FetchInfo fetch_info
             uint32_t num_bytes
+            str schema, name
+            int cache_num
+            bytes oid
         buf.read_ub1(&data_type)
         fetch_info = FetchInfo()
         buf.skip_ub1()                      # flags
@@ -639,7 +656,7 @@ cdef class MessageWithData(Message):
         buf.skip_ub4()                      # cont flags
         buf.read_ub4(&num_bytes)            # OID
         if num_bytes > 0:
-            buf.skip_raw_bytes(num_bytes + 1)
+            oid = buf.read_bytes()
         buf.skip_ub2()                      # version
         buf.skip_ub2()                      # character set id
         buf.read_ub1(&csfrm)                # character set form
@@ -657,14 +674,19 @@ cdef class MessageWithData(Message):
             fetch_info._name = buf.read_str(TNS_CS_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.skip_ub1()                  # skip repeated length
-            buf.skip_raw_bytes(num_bytes)   # schema name
+            schema = buf.read_str(TNS_CS_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.skip_ub1()                  # skip repeated length
-            buf.skip_raw_bytes(num_bytes)   # type name
+            name = buf.read_str(TNS_CS_IMPLICIT)
         buf.skip_ub2()                      # column position
         buf.skip_ub4()                      # uds flag
+        if data_type == TNS_DATA_TYPE_INT_NAMED:
+            if self.type_cache is None:
+                cache_num = self.conn_impl._dbobject_type_cache_num
+                self.type_cache = get_dbobject_type_cache(cache_num)
+            typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
+                                                         name)
+            fetch_info._objtype = typ_impl
         return fetch_info
 
     cdef int _process_describe_info(self, ReadBuffer buf,
@@ -894,6 +916,7 @@ cdef class MessageWithData(Message):
     cdef int _write_column_metadata(self, WriteBuffer buf,
                                     list bind_var_impls) except -1:
         cdef:
+            ThinDbObjectTypeImpl typ_impl
             uint8_t ora_type_num, flag
             uint32_t buffer_size
             ThinVarImpl var_impl
@@ -921,8 +944,14 @@ cdef class MessageWithData(Message):
             else:
                 buf.write_ub4(0)            # max num elements
             buf.write_ub4(0)                # cont flag
-            buf.write_ub4(0)                # OID
-            buf.write_ub4(0)                # version
+            if var_impl.objtype is not None:
+                typ_impl = var_impl.objtype
+                buf.write_ub4(len(typ_impl.oid))
+                buf.write_bytes_with_length(typ_impl.oid)
+                buf.write_ub4(typ_impl.version)
+            else:
+                buf.write_ub4(0)            # OID
+                buf.write_ub4(0)            # version
             if var_impl.dbtype._csfrm != 0:
                 buf.write_ub4(TNS_CHARSET_UTF8)
             else:
@@ -937,6 +966,7 @@ cdef class MessageWithData(Message):
                                        object value) except -1:
         cdef:
             uint8_t ora_type_num = var_impl.dbtype._ora_type_num
+            ThinDbObjectTypeImpl typ_impl
             ThinCursorImpl cursor_impl
             ThinLobImpl lob_impl
             uint32_t num_bytes
@@ -945,6 +975,13 @@ cdef class MessageWithData(Message):
             if ora_type_num == TNS_DATA_TYPE_BOOLEAN:
                 buf.write_uint8(TNS_ESCAPE_CHAR)
                 buf.write_uint8(1)
+            elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+                buf.write_ub4(0)                # TOID
+                buf.write_ub4(0)                # OID
+                buf.write_ub4(0)                # snapshot
+                buf.write_ub4(0)                # version
+                buf.write_ub4(0)                # packed data length
+                buf.write_ub4(TNS_OBJ_TOP_LEVEL)    # flags
             else:
                 buf.write_uint8(0)
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
@@ -955,10 +992,10 @@ cdef class MessageWithData(Message):
             else:
                 buf._caps._check_ncharset_id()
                 temp_bytes = (<str> value).encode(TNS_ENCODING_UTF16)
-            buf.write_bytes_chunked(temp_bytes)
+            buf.write_bytes_with_length(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_RAW \
                 or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
-            buf.write_bytes_chunked(value)
+            buf.write_bytes_with_length(value)
         elif ora_type_num == TNS_DATA_TYPE_NUMBER \
                 or ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
             if isinstance(value, bool):
@@ -986,22 +1023,17 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(1)
                 buf.write_ub4(cursor_impl._statement._cursor_id)
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
-            if value:
-                buf.write_uint8(2)
-                buf.write_uint16(0x0101)
-            else:
-                buf.write_uint16(0x0100)
+            buf.write_bool(value)
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
             buf.write_interval_ds(value)
         elif ora_type_num == TNS_DATA_TYPE_CLOB \
                 or ora_type_num == TNS_DATA_TYPE_BLOB:
-            lob_impl = value._impl
-            num_bytes = <uint32_t> len(lob_impl._locator)
-            buf.write_ub4(num_bytes)
-            buf.write_bytes_chunked(lob_impl._locator)
+            buf.write_lob_with_length(value._impl)
         elif ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
             temp_bytes = (<str> value).encode()
-            buf.write_bytes_chunked(temp_bytes)
+            buf.write_bytes_with_length(temp_bytes)
+        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+            buf.write_dbobject(value._impl)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)
@@ -1461,10 +1493,10 @@ cdef class AuthMessage(Message):
             uint32_t key_len = <uint32_t> len(key_bytes)
             uint32_t value_len = <uint32_t> len(value_bytes)
         buf.write_ub4(key_len)
-        buf.write_bytes_chunked(key_bytes)
+        buf.write_bytes_with_length(key_bytes)
         buf.write_ub4(value_len)
         if value_len > 0:
-            buf.write_bytes_chunked(value_bytes)
+            buf.write_bytes_with_length(value_bytes)
         buf.write_ub4(flags)
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
@@ -2049,7 +2081,7 @@ cdef class LobOpMessage(Message):
                 buf.write_ub4(TNS_CHARSET_UTF8)
         if self.data is not None:
             buf.write_uint8(TNS_MSG_TYPE_LOB_DATA)
-            buf.write_bytes_chunked(self.data)
+            buf.write_bytes_with_length(self.data)
         if self.send_amount:
             buf.write_ub8(self.amount)      # LOB amount
 

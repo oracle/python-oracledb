@@ -507,7 +507,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         return value
 
-    def get_type(self, str name):
+    def get_type(self, object conn, str name):
         cdef:
             dpiObjectType *handle
             const char *name_ptr

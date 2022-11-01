@@ -49,115 +49,25 @@ cdef class BaseVarImpl:
         exception is raised when the Python value is found to be unacceptable;
         otherwise, the flag is cleared if the Python value is unacceptable.
         """
-        cdef:
-            uint32_t db_type_num, size
-            bint type_ok = True
-            BaseLobImpl lob_impl
-            object orig_value
+        cdef uint32_t size
 
         # call in converter, if applicable
         if self.inconverter is not None:
             value = self.inconverter(value)
 
-        # if value is None, no further checks are needed
-        if value is None:
-            self._set_scalar_value(pos, value)
-            self._is_value_set = True
+        # check the value and verify it is acceptable
+        value = self._conn_impl._check_value(self.dbtype, self.objtype, value,
+                                             was_set)
+        if was_set != NULL and not was_set[0]:
             return 0
 
-        # check to see that the type of value is accepted; perform any
-        # necessary adjustments
-        db_type_num = self.dbtype.num
-        if db_type_num in (DB_TYPE_NUM_NUMBER, DB_TYPE_NUM_BINARY_INTEGER,
-                           DB_TYPE_NUM_BINARY_DOUBLE,
-                           DB_TYPE_NUM_BINARY_FLOAT):
-            type_ok = isinstance(value,
-                                 (PY_TYPE_BOOL, int, float, PY_TYPE_DECIMAL))
-            if type_ok:
-                if db_type_num in (DB_TYPE_NUM_BINARY_FLOAT,
-                                   DB_TYPE_NUM_BINARY_DOUBLE):
-                    value = float(value)
-                elif db_type_num == DB_TYPE_NUM_BINARY_INTEGER \
-                        or cpython.PyBool_Check(value):
-                    value = int(value)
-        elif db_type_num in (DB_TYPE_NUM_CHAR, DB_TYPE_NUM_VARCHAR,
-                             DB_TYPE_NUM_NCHAR, DB_TYPE_NUM_NVARCHAR,
-                             DB_TYPE_NUM_LONG_VARCHAR,
-                             DB_TYPE_NUM_LONG_NVARCHAR):
-            if isinstance(value, bytes):
-                value = (<bytes> value).decode()
-            else:
-                type_ok = isinstance(value, str)
-            if type_ok:
-                size = <uint32_t> len(<str> value)
-                if size > self.size:
-                    self._resize(size)
-        elif db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
-            if isinstance(value, str):
-                value = (<str> value).encode()
-            else:
-                type_ok = isinstance(value, bytes)
-            if type_ok:
-                size = <uint32_t> len(<bytes> value)
-                if size > self.size:
-                    self._resize(size)
-        elif db_type_num in (DB_TYPE_NUM_DATE, DB_TYPE_NUM_TIMESTAMP,
-                           DB_TYPE_NUM_TIMESTAMP_LTZ,
-                           DB_TYPE_NUM_TIMESTAMP_TZ):
-            type_ok = cydatetime.PyDateTime_Check(value) \
-                    or cydatetime.PyDate_Check(value)
-        elif db_type_num == DB_TYPE_NUM_INTERVAL_DS:
-            type_ok = isinstance(value, PY_TYPE_TIMEDELTA)
-        elif db_type_num in (DB_TYPE_NUM_CLOB,
-                             DB_TYPE_NUM_NCLOB,
-                             DB_TYPE_NUM_BLOB):
-            if isinstance(value, PY_TYPE_LOB):
-                lob_impl = value._impl
-                if lob_impl.dbtype is not self.dbtype:
-                    if was_set != NULL:
-                        was_set[0] = False
-                        return 0
-                    errors._raise_err(errors.ERR_LOB_OF_WRONG_TYPE,
-                                      actual_type_name=lob_impl.dbtype.name,
-                                      expected_type_name=self.dbtype.name)
-            else:
-                type_ok = isinstance(value, (bytes, str))
-                if type_ok:
-                    orig_value = self._get_scalar_value(pos)
-                    if isinstance(orig_value, PY_TYPE_LOB):
-                        orig_value.trim()
-                        if value:
-                            orig_value.write(value)
-                        value = orig_value
-        elif db_type_num == DB_TYPE_NUM_OBJECT:
-            type_ok = isinstance(value, PY_TYPE_DB_OBJECT)
-            if type_ok and value._impl.type != self.objtype:
-                if was_set != NULL:
-                    was_set[0] = False
-                    return 0
-                errors._raise_err(errors.ERR_WRONG_OBJECT_TYPE,
-                                  actual_schema=value.type.schema,
-                                  actual_name=value.type.name,
-                                  expected_schema=self.objtype.schema,
-                                  expected_name=self.objtype.name)
-        elif db_type_num == DB_TYPE_NUM_CURSOR:
-            type_ok = isinstance(value, PY_TYPE_CURSOR)
-        elif db_type_num in (DB_TYPE_NUM_ROWID, DB_TYPE_NUM_UROWID,
-                             DB_TYPE_NUM_INTERVAL_YM):
-            if was_set != NULL:
-                was_set[0] = False
-                return 0
-            errors._raise_err(errors.ERR_UNSUPPORTED_VAR_SET,
-                              db_type_name=self.dbtype.name)
-        elif db_type_num == DB_TYPE_NUM_BOOLEAN:
-            value = bool(value)
-        if not type_ok:
-            if was_set != NULL:
-                was_set[0] = False
-                return 0
-            errors._raise_err(errors.ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR,
-                              py_type_name = type(value).__name__,
-                              db_type_name = self.dbtype.name)
+        # resize variable, if applicable
+        if value is not None and self.dbtype.default_size != 0:
+            size = <uint32_t> len(value)
+            if size > self.size:
+                self._resize(size)
+
+        # set value
         self._set_scalar_value(pos, value)
         self._is_value_set = True
 

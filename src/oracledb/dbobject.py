@@ -31,6 +31,7 @@
 
 from typing import Sequence, Union
 
+from . import errors
 from . import __name__ as MODULE_NAME
 from .base_impl import DbType
 
@@ -42,7 +43,7 @@ class DbObject:
         return self._impl.get_attr_value(attr_impl)
 
     def __repr__(self):
-        return f"<oracledb.Object {self.type.schema}.{self.type.name} at " \
+        return f"<oracledb.Object {self.type._get_full_name()} at " \
                f"{hex(id(self))}>"
 
     def __setattr__(self, name, value):
@@ -51,6 +52,15 @@ class DbObject:
         else:
             attr_impl = self._impl.type.attrs_by_name[name]
             self._impl.set_attr_value(attr_impl, value)
+
+    def _ensure_is_collection(self):
+        """
+        Ensures that the object refers to a collection. If not, an exception is
+        raised.
+        """
+        if not self.type.iscollection:
+            errors._raise_err(errors.ERR_OBJECT_IS_NOT_A_COLLECTION,
+                              name=self.type._get_full_name())
 
     @classmethod
     def _from_impl(cls, impl):
@@ -73,6 +83,7 @@ class DbObject:
         Return a dictionary where the collection’s indexes are the keys and the
         elements are its values.
         """
+        self._ensure_is_collection()
         result = {}
         ix = self._impl.get_first_index()
         while ix is not None:
@@ -84,6 +95,7 @@ class DbObject:
         """
         Return a list of each of the collection’s elements in index order.
         """
+        self._ensure_is_collection()
         result = []
         ix = self._impl.get_first_index()
         while ix is not None:
@@ -106,6 +118,7 @@ class DbObject:
         not changed. In other words, the delete operation creates holes in the
         collection.
         """
+        self._ensure_is_collection()
         self._impl.delete_by_index(index)
 
     def exists(self, index: int) -> bool:
@@ -113,6 +126,7 @@ class DbObject:
         Return True or False indicating if an element exists in the collection
         at the specified index.
         """
+        self._ensure_is_collection()
         return self._impl.exists_by_index(index)
 
     def extend(self, seq: list) -> None:
@@ -121,6 +135,7 @@ class DbObject:
         the equivalent of performing append() for each element found in the
         sequence.
         """
+        self._ensure_is_collection()
         for value in seq:
             self.append(value)
 
@@ -129,6 +144,7 @@ class DbObject:
         Return the index of the first element in the collection. If the
         collection is empty, None is returned.
         """
+        self._ensure_is_collection()
         return self._impl.get_first_index()
 
     def getelement(self, index: int) -> object:
@@ -136,6 +152,7 @@ class DbObject:
         Return the element at the specified index of the collection. If no
         element exists at that index, an exception is raised.
         """
+        self._ensure_is_collection()
         return self._impl.get_element_by_index(index)
 
     def last(self) -> int:
@@ -143,6 +160,7 @@ class DbObject:
         Return the index of the last element in the collection. If the
         collection is empty, None is returned.
         """
+        self._ensure_is_collection()
         return self._impl.get_last_index()
 
     def next(self, index: int) -> int:
@@ -151,6 +169,7 @@ class DbObject:
         specified index. If there are no elements in the collection following
         the specified index, None is returned.
         """
+        self._ensure_is_collection()
         return self._impl.get_next_index(index)
 
     def prev(self, index: int) -> int:
@@ -159,6 +178,7 @@ class DbObject:
         specified index. If there are no elements in the collection preceding
         the specified index, None is returned.
         """
+        self._ensure_is_collection()
         return self._impl.get_prev_index(index)
 
     def setelement(self, index: int, value: object) -> None:
@@ -166,18 +186,21 @@ class DbObject:
         Set the value in the collection at the specified index to the given
         value.
         """
+        self._ensure_is_collection()
         self._impl.set_element_by_index(index, value)
 
     def size(self) -> int:
         """
         Return the number of elements in the collection.
         """
+        self._ensure_is_collection()
         return self._impl.get_size()
 
     def trim(self, num: int) -> None:
         """
         Remove the specified number of elements from the end of the collection.
         """
+        self._ensure_is_collection()
         self._impl.trim(num)
 
     @property
@@ -237,11 +260,7 @@ class DbObjectType:
         return NotImplemented
 
     def __repr__(self):
-        if self.package_name is not None:
-            full_name = f"{self.schema}.{self.package_name}.{self.name}"
-        else:
-            full_name = f"{self.schema}.{self.name}"
-        return f"<oracledb.DbObjectType {full_name}>"
+        return f"<oracledb.DbObjectType {self._get_full_name()}>"
 
     @classmethod
     def _from_impl(cls, impl):
@@ -250,6 +269,14 @@ class DbObjectType:
         typ._attributes = None
         typ._element_type = None
         return typ
+
+    def _get_full_name(self):
+        """
+        Returns the full name of the type.
+        """
+        if self.package_name is not None:
+            return f"{self.schema}.{self.package_name}.{self.name}"
+        return f"{self.schema}.{self.name}"
 
     @property
     def attributes(self) -> list:

@@ -42,7 +42,7 @@ class TestCase(test_env.BaseTestCase):
         result = var.getvalue()
         if isinstance(result, oracledb.LOB):
             result = result.read()
-        elif isinstance(result, oracledb.Object):
+        elif isinstance(result, oracledb.DbObject):
             result = self.get_db_object_as_plain_object(result)
         if isinstance(expected_value, datetime.date) \
                 and not isinstance(expected_value, datetime.datetime):
@@ -298,8 +298,6 @@ class TestCase(test_env.BaseTestCase):
         self._test_negative_set_and_get(oracledb.DB_TYPE_ROWID, 12345)
         self._test_negative_set_and_get(oracledb.DB_TYPE_ROWID, "523lkhlf")
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support database objects yet")
     def test_3721_DB_TYPE_OBJECT(self):
         "3721 - setting values on variables of type DB_TYPE_OBJECT"
         obj_type = self.connection.gettype("UDT_OBJECT")

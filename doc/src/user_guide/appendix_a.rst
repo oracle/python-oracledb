@@ -171,7 +171,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - SQL execution (see :ref:`sqlexecution`)
-      - Yes - bind and fetch all types except BFILE, OBJECT, and JSON
+      - Yes - bind and fetch all types except BFILE and JSON
       - Yes
       - Yes
     * - PL/SQL execution (see :ref:`plsqlexecution`)
@@ -191,7 +191,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - SQL and PL/SQL type and collections (see :ref:`fetchobjects`)
-      - No
+      - Yes
       - Yes
       - Yes
     * - Query column metadata
@@ -518,7 +518,7 @@ values.
       - n/a
     * - User-defined types (object type, VARRAY, records, collections, SDO_*types)
       - DB_TYPE_OBJECT
-      - Not supported in python-oracledb Thin mode
+      - Yes
       - OBJECT of specific type
 
 Binding of contiguous PL/SQL Index-by BINARY_INTEGER arrays of string, number, and date are

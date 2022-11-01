@@ -25,34 +25,18 @@
 #------------------------------------------------------------------------------
 # buffer.pyx
 #
-# Cython file defining the low-level network buffer read and write classes and
-# methods for reading and writing low-level data from those buffers (embedded
-# in thin_impl.pyx).
+# Cython file defining the low-level read and write methods for packed data
+# (packet data or database object pickled data).
 #------------------------------------------------------------------------------
 
-DEF PACKET_HEADER_SIZE = 8
 DEF NUMBER_AS_TEXT_CHARS = 172
 DEF NUMBER_MAX_DIGITS = 40
-DEF BUFFER_CHUNK_SIZE = 65536
-DEF CHUNKED_BYTES_CHUNK_SIZE = 65536
 
 DEF BYTE_ORDER_LSB = 1
 DEF BYTE_ORDER_MSB = 2
 
 cdef int MACHINE_BYTE_ORDER = BYTE_ORDER_MSB \
         if sys.byteorder == "big" else BYTE_ORDER_LSB
-
-cdef struct BytesChunk:
-    char_type *ptr
-    uint32_t length
-    uint32_t allocated_length
-
-cdef struct Rowid:
-    uint32_t rba
-    uint16_t partition_id
-    uint32_t block_num
-    uint16_t slot_num
-
 
 cdef inline uint16_t bswap16(uint16_t value):
     """
@@ -134,170 +118,20 @@ cdef inline uint32_t unpack_uint32(const char_type *buf, int order):
     return raw_value if order == MACHINE_BYTE_ORDER else bswap32(raw_value)
 
 
-@cython.final
-cdef class ChunkedBytesBuffer:
+cdef class Buffer:
 
     cdef:
-        uint32_t _num_chunks
-        uint32_t _allocated_chunks
-        BytesChunk *_chunks
-
-    def __dealloc__(self):
-        cdef uint32_t i
-        for i in range(self._allocated_chunks):
-            if self._chunks[i].ptr is not NULL:
-                cpython.PyMem_Free(self._chunks[i].ptr)
-                self._chunks[i].ptr = NULL
-        if self._chunks is not NULL:
-            cpython.PyMem_Free(self._chunks)
-            self._chunks = NULL
-
-    cdef int _allocate_chunks(self) except -1:
-        """
-        Allocates a new set of chunks and copies data from the original set of
-        chunks if needed.
-        """
-        cdef:
-            BytesChunk *chunks
-            uint32_t allocated_chunks
-        allocated_chunks = self._allocated_chunks + 8
-        chunks = <BytesChunk*> \
-                cpython.PyMem_Malloc(sizeof(BytesChunk) * allocated_chunks)
-        memset(chunks, 0, sizeof(BytesChunk) * allocated_chunks)
-        if self._num_chunks > 0:
-            memcpy(chunks, self._chunks, sizeof(BytesChunk) * self._num_chunks)
-            cpython.PyMem_Free(self._chunks)
-        self._chunks = chunks
-        self._allocated_chunks = allocated_chunks
-
-    cdef BytesChunk* _get_chunk(self, uint32_t num_bytes) except NULL:
-        """
-        Return the chunk that can be used to write the number of bytes
-        requested.
-        """
-        cdef:
-            uint32_t num_allocated_bytes
-            BytesChunk *chunk
-        if self._num_chunks > 0:
-            chunk = &self._chunks[self._num_chunks - 1]
-            if chunk.allocated_length >= chunk.length + num_bytes:
-                return chunk
-        if self._num_chunks >= self._allocated_chunks:
-            self._allocate_chunks()
-        self._num_chunks += 1
-        chunk = &self._chunks[self._num_chunks - 1]
-        chunk.length = 0
-        if chunk.allocated_length < num_bytes:
-            num_allocated_bytes = self._get_chunk_size(num_bytes)
-            if chunk.ptr:
-                cpython.PyMem_Free(chunk.ptr)
-            chunk.ptr = <char_type*> cpython.PyMem_Malloc(num_allocated_bytes)
-            chunk.allocated_length = num_allocated_bytes
-        return chunk
-
-    cdef inline uint32_t _get_chunk_size(self, uint32_t size):
-        """
-        Returns the size to allocate aligned on a 64K boundary.
-        """
-        return (size + CHUNKED_BYTES_CHUNK_SIZE - 1) & \
-               ~(CHUNKED_BYTES_CHUNK_SIZE - 1)
-
-    cdef char_type* end_chunked_read(self) except NULL:
-        """
-        Called when a chunked read has ended. Since a chunked read is never
-        started until at least some bytes are being read, it is assumed that at
-        least one chunk is in use. If one chunk is in use, those bytes are
-        returned directly, but if more than one chunk is in use, the first
-        chunk is resized to include all of the bytes in a contiguous section of
-        memory first.
-        """
-        cdef:
-            uint32_t i, num_allocated_bytes, total_num_bytes = 0, pos = 0
-            char_type *ptr
-        if self._num_chunks > 1:
-            for i in range(self._num_chunks):
-                total_num_bytes += self._chunks[i].length
-            num_allocated_bytes = self._get_chunk_size(total_num_bytes)
-            ptr = <char_type*> cpython.PyMem_Malloc(num_allocated_bytes)
-            for i in range(self._num_chunks):
-                memcpy(&ptr[pos], self._chunks[i].ptr, self._chunks[i].length)
-                pos += self._chunks[i].length
-                cpython.PyMem_Free(self._chunks[i].ptr)
-                self._chunks[i].ptr = NULL
-                self._chunks[i].allocated_length = 0
-                self._chunks[i].length = 0
-            self._num_chunks = 1
-            self._chunks[0].ptr = ptr
-            self._chunks[0].length = total_num_bytes
-            self._chunks[0].allocated_length = num_allocated_bytes
-        return self._chunks[0].ptr
-
-    cdef char_type* get_chunk_ptr(self, uint32_t size_required) except NULL:
-        """
-        Called when memory is required for a chunked read.
-        """
-        cdef:
-            BytesChunk *chunk
-            char_type *ptr
-        chunk = self._get_chunk(size_required)
-        ptr = &chunk.ptr[chunk.length]
-        chunk.length += size_required
-        return ptr
-
-    cdef inline void start_chunked_read(self):
-        """
-        Called when a chunked read is started and simply indicates that no
-        chunks are in use. The memory is retained in order to reduce the
-        overhead in freeing and reallocating memory for each chunked read.
-        """
-        self._num_chunks = 0
-
-
-@cython.final
-cdef class ReadBuffer:
-
-    cdef:
-        ssize_t _max_packet_size, _max_size, _size, _offset, _bytes_to_process
-        ChunkedBytesBuffer _chunked_bytes_buf
-        const char_type _split_data[255]
-        ssize_t _packet_start_offset
-        const char_type *_data
-        bytearray _data_obj
+        ssize_t _max_size, _size, _pos
         char_type[:] _data_view
-        Capabilities _caps
-        object _socket
-        bint _session_needs_to_be_closed
-
-    def __cinit__(self, object sock, ssize_t max_packet_size,
-                  Capabilities caps):
-        self._socket = sock
-        self._caps = caps
-        self._max_size = max_packet_size * 2
-        self._max_packet_size = max_packet_size
-        self._data_obj = bytearray(self._max_size)
-        self._data_view = self._data_obj
-        self._data = <char_type*> self._data_obj
-        self._chunked_bytes_buf = ChunkedBytesBuffer()
-
-    cdef inline int _get_data_from_socket(self, object obj,
-                                          ssize_t bytes_requested,
-                                          ssize_t *bytes_read) except -1:
-        """
-        Simple inline function that performs a socket read while verifying that
-        the server has not reset the connection. If it has, the dead connection
-        error is returned instead.
-        """
-        try:
-            bytes_read[0] = self._socket.recv_into(obj, bytes_requested)
-        except ConnectionResetError as e:
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e))
+        char_type *_data
+        bytearray _data_obj
 
     cdef int _get_int_length_and_sign(self, uint8_t *length,
                                       bint *is_negative,
                                       uint8_t max_length) except -1:
         """
-        Returns the length of an integer sent on the wire. A check is also made
-        to ensure the integer does not exceed the maximum length. If the
+        Returns the length of an integer stored in the buffer. A check is also
+        made to ensure the integer does not exceed the maximum length. If the
         is_negative pointer is NULL, negative integers will result in an
         exception being raised.
         """
@@ -315,175 +149,72 @@ cdef class ReadBuffer:
             errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=length[0],
                               max_length=max_length)
 
-    cdef const char_type* _get_raw(self, ssize_t num_bytes,
-                                   bint in_chunked_read=False) except NULL:
+    cdef const char_type* _get_more_data(self, ssize_t num_bytes_available,
+                                         ssize_t num_bytes_wanted) except NULL:
+        """
+        Called when the amount of data available is less than the amount of
+        data requested. By default an error is raised.
+        """
+        errors._raise_err(errors.ERR_UNEXPECTED_END_OF_DATA,
+                          num_bytes_wanted=num_bytes_wanted,
+                          num_bytes_available=num_bytes_available)
+
+    cdef const char_type* _get_raw(self, ssize_t num_bytes) except NULL:
         """
         Returns a pointer to a buffer containing the requested number of bytes.
-        This may be split across multiple packets in which case a chunked bytes
-        buffer is used.
         """
         cdef:
-            ssize_t num_bytes_left, num_bytes_split, max_split_data
-            uint8_t packet_type, packet_flags
-            const char_type *source_ptr
-            char_type *dest_ptr
+            ssize_t num_bytes_left
+            const char_type *ptr
+        num_bytes_left = self._size - self._pos
+        if num_bytes > num_bytes_left:
+            return self._get_more_data(num_bytes_left, num_bytes)
+        ptr = &self._data[self._pos]
+        self._pos += num_bytes
+        return ptr
 
-        # if no bytes are left in the buffer, a new packet needs to be fetched
-        # before anything else can take place
-        if self._offset == self._size:
-            self.receive_packet(&packet_type, &packet_flags)
-            self.skip_raw_bytes(2)          # skip data flags
-
-        # if there is enough room in the buffer to satisfy the number of bytes
-        # requested, return a pointer to the current location and advance the
-        # offset the required number of bytes
-        source_ptr = &self._data[self._offset]
-        num_bytes_left = self._size - self._offset
-        if num_bytes <= num_bytes_left:
-            if in_chunked_read:
-                dest_ptr = self._chunked_bytes_buf.get_chunk_ptr(num_bytes)
-                memcpy(dest_ptr, source_ptr, num_bytes)
-            self._offset += num_bytes
-            return source_ptr
-
-        # the requested bytes are split across multiple packets; if a chunked
-        # read is in progress, a chunk is acquired that will accommodate the
-        # remainder of the bytes in the current packet; otherwise, the split
-        # buffer will be used instead (after first checking to see if there is
-        # sufficient room available within it)
-        if in_chunked_read:
-            dest_ptr = self._chunked_bytes_buf.get_chunk_ptr(num_bytes_left)
-        else:
-            max_split_data = sizeof(self._split_data)
-            if max_split_data < num_bytes:
-                errors._raise_err(errors.ERR_BUFFER_LENGTH_INSUFFICIENT,
-                                  actual_buffer_len=max_split_data,
-                                  required_buffer_len=num_bytes)
-            dest_ptr = <char_type*> self._split_data
-        memcpy(dest_ptr, source_ptr, num_bytes_left)
-
-        # acquire packets until the requested number of bytes is satisfied
-        num_bytes -= num_bytes_left
-        while num_bytes > 0:
-
-            # acquire new packet
-            self.receive_packet(&packet_type, &packet_flags)
-            self.skip_raw_bytes(2)          # skip data flags
-
-            # copy data into the chunked buffer or split buffer, as appropriate
-            source_ptr = &self._data[self._offset]
-            num_bytes_split = min(num_bytes, self._size - self._offset)
-            if in_chunked_read:
-                dest_ptr = \
-                        self._chunked_bytes_buf.get_chunk_ptr(num_bytes_split)
-            else:
-                dest_ptr = <char_type*> &self._split_data[num_bytes_left]
-            memcpy(dest_ptr, source_ptr, num_bytes_split)
-            self._offset += num_bytes_split
-            num_bytes -= num_bytes_split
-
-        # return the split buffer unconditionally; if performing a chunked read
-        # the return value is ignored anyway
-        return self._split_data
-
-    cdef int _process_control_packet(self) except -1:
+    cdef int _initialize(self, ssize_t max_size) except -1:
         """
-        Process a control packed received in between data packets.
+        Initialize the buffer with an empty bytearray of the specified size.
         """
-        cdef uint16_t control_type, error_num
-        self.read_uint16(&control_type)
-        if control_type == TNS_CONTROL_TYPE_RESET_OOB:
-            self._caps.supports_oob = False
-        elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
-            self.skip_raw_bytes(6)           # skip flags
-            self.read_uint16(&error_num)
-            self.skip_raw_bytes(4)
-            if error_num == TNS_ERR_SESSION_SHUTDOWN \
-                    or error_num == TNS_ERR_INBAND_MESSAGE:
-                self._session_needs_to_be_closed = True
-            else:
-                errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
-                                  err_num=error_num)
+        self._max_size = max_size
+        self._data_obj = bytearray(max_size)
+        self._data_view = self._data_obj
+        self._data = <char_type*> self._data_obj
 
-    cdef int _receive_packet_helper(self, uint8_t *packet_type,
-                                    uint8_t *packet_flags) except -1:
+    cdef int _populate_from_bytes(self, bytes data) except -1:
         """
-        Receives a packet and updates the pointers appropriately. Note that
-        multiple packets may be received if they are small enough or a portion
-        of a second packet may be received so the buffer needs to be adjusted
-        as needed. This is also why room is available in the buffer for up to
-        two complete packets.
+        Initialize the buffer with the data in the specified byte string.
+        """
+        self._max_size = self._size = len(data)
+        self._data_obj = bytearray(data)
+        self._data_view = self._data_obj
+        self._data = <char_type*> self._data_obj
+
+    cdef int _read_raw_bytes_and_length(self, const char_type **ptr,
+                                        ssize_t *num_bytes) except -1:
+        """
+        Helper function that processes the length (if needed) and then acquires
+        the specified number of bytes from the buffer. The base function simply
+        uses the length as given.
+        """
+        ptr[0] = self._get_raw(num_bytes[0])
+
+    cdef int _resize(self, ssize_t new_max_size) except -1:
+        """
+        Resizes the buffer to the new maximum size, copying the data already
+        stored in the buffer first.
         """
         cdef:
-            ssize_t offset, bytes_to_read, bytes_read = 0
-            uint32_t packet_size
-            uint16_t temp16
-
-        # if no bytes are left over from a previous read, perform a read of the
-        # maximum packet size and reset the offset to 0
-        if self._bytes_to_process == 0:
-            self._packet_start_offset = 0
-            self._offset = 0
-            self._get_data_from_socket(self._data_obj, self._max_packet_size,
-                                       &bytes_read)
-
-        # otherwise, set the offset to the end of the previous packet and
-        # ensure that there are at least enough bytes available to cover the
-        # contents of the packet header
-        else:
-            self._packet_start_offset = self._size
-            self._offset = self._size
-            if self._bytes_to_process < PACKET_HEADER_SIZE:
-                offset = self._size + self._bytes_to_process
-                bytes_to_read = PACKET_HEADER_SIZE - self._bytes_to_process
-                self._get_data_from_socket(self._data_view[offset:],
-                                           bytes_to_read, &bytes_read)
-
-        # if no bytes were read this means the server closed the connection
-        if self._bytes_to_process < PACKET_HEADER_SIZE:
-            if bytes_read == 0:
-                if self._socket is not None:
-                    try:
-                        self._socket.shutdown(socket.SHUT_RDWR)
-                    except OSError:
-                        pass
-                    self._socket.close()
-                    self._socket = None
-                errors._raise_err(errors.ERR_CONNECTION_CLOSED)
-            self._bytes_to_process += bytes_read
-
-        # determine the packet length and ensure that all of the bytes for the
-        # packet are available; note that as of version 12.2 the packet size is
-        # 32 bits in size instead of 16 bits, but this doesn't take effect
-        # until it is known that the server is capable of that as well
-        if self._caps.protocol_version >= TNS_VERSION_MIN_LARGE_SDU:
-            self._size += 4
-            self.read_uint32(&packet_size)
-        else:
-            self._size += 2
-            self.read_uint16(&temp16)
-            packet_size = temp16
-        while self._bytes_to_process < packet_size:
-            offset = self._packet_start_offset + self._bytes_to_process
-            bytes_to_read = packet_size - self._bytes_to_process
-            self._get_data_from_socket(self._data_view[offset:], bytes_to_read,
-                                       &bytes_read)
-            self._bytes_to_process += bytes_read
-
-        # process remainder of packet header and set size to the new packet
-        self._size = self._packet_start_offset + packet_size
-        self._bytes_to_process -= packet_size
-        if self._caps.protocol_version < TNS_VERSION_MIN_LARGE_SDU:
-            self.skip_raw_bytes(2)      # skip packet checksum
-        self.read_ub1(packet_type)
-        self.read_ub1(packet_flags)
-        self.skip_raw_bytes(2)          # header checksum
-
-        # display packet if requested
-        if DEBUG_PACKETS:
-            offset = self._packet_start_offset
-            _print_packet("Receiving packet:", self._socket.fileno(),
-                          self._data_view[offset:self._size])
+            bytearray data_obj
+            char_type* data
+        data_obj = bytearray(new_max_size)
+        data = <char_type*> data_obj
+        memcpy(data, self._data, self._max_size)
+        self._max_size = new_max_size
+        self._data_obj = data_obj
+        self._data_view = data_obj
+        self._data = data
 
     cdef int _skip_int(self, uint8_t max_length, bint *is_negative) except -1:
         """
@@ -525,11 +256,41 @@ cdef class ReadBuffer:
                    ((<uint64_t> ptr[3]) << 32) | \
                    (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7]
 
+    cdef int _write_more_data(self, ssize_t num_bytes_available,
+                              ssize_t num_bytes_wanted) except -1:
+        """
+        Called when the amount of buffer available is less than the amount of
+        data requested. By default an error is raised.
+        """
+        errors._raise_err(errors.ERR_BUFFER_LENGTH_INSUFFICIENT,
+                          required_buffer_len=num_bytes_wanted,
+                          actual_buffer_len=num_bytes_available)
+
+    cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
+                                         ssize_t num_bytes) except -1:
+        """
+        Helper function that writes the length in the format required before
+        writing the bytes.
+        """
+        cdef ssize_t chunk_len
+        if num_bytes <= TNS_MAX_SHORT_LENGTH:
+            self.write_uint8(<uint8_t> num_bytes)
+            self.write_raw(ptr, num_bytes)
+        else:
+            self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
+            while num_bytes > 0:
+                chunk_len = min(num_bytes, TNS_CHUNK_SIZE)
+                self.write_ub4(chunk_len)
+                num_bytes -= chunk_len
+                self.write_raw(ptr, chunk_len)
+                ptr += chunk_len
+            self.write_ub4(0)
+
     cdef inline ssize_t bytes_left(self):
         """
         Return the number of bytes remaining in the buffer.
         """
-        return self._size - self._offset
+        return self._size - self._pos
 
     cdef object read_binary_double(self):
         """
@@ -599,6 +360,20 @@ cdef class ReadBuffer:
         float_ptr = <float*> &all_bits
         return float_ptr[0]
 
+    cdef object read_binary_integer(self):
+        """
+        Read a binary integer from the buffer.
+        """
+        cdef:
+            const char_type *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if num_bytes > 4:
+            errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=num_bytes,
+                              max_length=4)
+        if ptr != NULL:
+            return <int32_t> self._unpack_int(ptr, num_bytes)
+
     cdef object read_bool(self):
         """
         Read a boolean from the buffer and return True, False or None.
@@ -608,7 +383,7 @@ cdef class ReadBuffer:
             ssize_t num_bytes
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
-            return ptr[0] == 1
+            return ptr[num_bytes - 1] == 1
 
     cdef object read_bytes(self):
         """
@@ -650,6 +425,36 @@ cdef class ReadBuffer:
                 value += cydatetime.timedelta_new(0, seconds, 0)
         return value
 
+    cdef ThinDbObjectImpl read_dbobject(self, BaseDbObjectTypeImpl typ_impl):
+        """
+        Read a database object from the buffer and return a DbObject object
+        containing it.
+        it.
+        """
+        cdef:
+            bytes oid = None, toid = None
+            ThinDbObjectImpl obj_impl
+            uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # type OID
+            toid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # OID
+            oid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # snapshot
+            self.read_bytes()
+        self.skip_ub2()                     # version
+        self.read_ub4(&num_bytes)           # length of data
+        self.skip_ub2()                     # flags
+        if num_bytes > 0:
+            obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
+            obj_impl.type = typ_impl
+            obj_impl.toid = toid
+            obj_impl.oid = oid
+            obj_impl.packed_data = self.read_bytes()
+            return obj_impl
+
     cdef object read_interval_ds(self):
         """
         Read an interval day to second value from the buffer and return the
@@ -672,6 +477,15 @@ cdef class ReadBuffer:
         total_seconds = hours * 60 * 60 + minutes * 60 + seconds
         return cydatetime.timedelta_new(days, total_seconds, fseconds // 1000)
 
+    cdef int read_int32(self, int32_t *value,
+                         int byte_order=BYTE_ORDER_MSB) except -1:
+        """
+        Read a signed 32-bit integer from the buffer in the specified byte
+        order.
+        """
+        cdef const char_type *ptr = self._get_raw(4)
+        value[0] = <int32_t> unpack_uint32(ptr, byte_order)
+
     cdef object read_lob(self, ThinConnImpl conn_impl, DbType dbtype):
         """
         Read a LOB locator from the buffer and return a LOB object containing
@@ -679,12 +493,9 @@ cdef class ReadBuffer:
         """
         cdef:
             ThinLobImpl lob_impl
-            const uint8_t *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
-        lob_impl = ThinLobImpl._create(conn_impl, dbtype, self.read_bytes())
+            bytes locator
+        locator = self.read_bytes()
+        lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
         return PY_TYPE_LOB._from_impl(lob_impl)
 
     cdef object read_oracle_number(self, int preferred_num_type):
@@ -833,39 +644,16 @@ cdef class ReadBuffer:
                                        ssize_t *num_bytes) except -1:
         """
         Reads bytes from the buffer into a contiguous buffer. The first byte
-        read is the number of bytes to read, unless it is
-        TNS_LONG_LENGTH_INDICATOR, in which case a chunked read is performed.
+        read is the number of bytes to read.
         """
-        cdef:
-            uint32_t temp_num_bytes
-            uint8_t length
+        cdef uint8_t length
         self.read_ub1(&length)
         if length == 0 or length == TNS_NULL_LENGTH_INDICATOR:
             ptr[0] = NULL
             num_bytes[0] = 0
-        elif length != TNS_LONG_LENGTH_INDICATOR:
-            ptr[0] = self._get_raw(length)
-            num_bytes[0] = length
         else:
-            self._chunked_bytes_buf.start_chunked_read()
-            num_bytes[0] = 0
-            while True:
-                self.read_ub4(&temp_num_bytes)
-                if temp_num_bytes == 0:
-                    break
-                num_bytes[0] += temp_num_bytes
-                self._get_raw(temp_num_bytes, in_chunked_read=True)
-            ptr[0] = self._chunked_bytes_buf.end_chunked_read()
-
-    cdef int read_rowid(self, Rowid *rowid) except -1:
-        """
-        Reads a rowid from the buffer and populates the rowid structure.
-        """
-        self.read_ub4(&rowid.rba)
-        self.read_ub2(&rowid.partition_id)
-        self.skip_ub1()
-        self.read_ub4(&rowid.block_num)
-        self.read_ub2(&rowid.slot_num)
+            num_bytes[0] = length
+            self._read_raw_bytes_and_length(ptr, num_bytes)
 
     cdef int read_sb1(self, int8_t *value) except -1:
         """
@@ -927,7 +715,7 @@ cdef class ReadBuffer:
 
     cdef object read_str(self, int csfrm):
         """
-        Reads a string from the buffer.
+        Reads a string of the specified size (in bytes) from the buffer.
         """
         cdef:
             const char_type *ptr
@@ -1003,112 +791,6 @@ cdef class ReadBuffer:
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = unpack_uint32(ptr, byte_order)
 
-    cdef object read_urowid(self):
-        """
-        Read a universal rowid from the buffer and return the Python object
-        representing its value.
-        """
-        cdef:
-            ssize_t output_len, input_len, remainder, pos
-            int input_offset = 1, output_offset = 0
-            const char_type *input_ptr
-            bytearray output_value
-            uint32_t num_bytes
-            uint8_t length
-            Rowid rowid
-
-        # get data (first buffer contains the length, which can be ignored)
-        self.read_raw_bytes_and_length(&input_ptr, &input_len)
-        if input_ptr == NULL:
-            return None
-        self.read_raw_bytes_and_length(&input_ptr, &input_len)
-
-        # handle physical rowid
-        if input_ptr[0] == 1:
-            rowid.rba = unpack_uint32(&input_ptr[1], BYTE_ORDER_MSB)
-            rowid.partition_id = unpack_uint16(&input_ptr[5], BYTE_ORDER_MSB)
-            rowid.block_num = unpack_uint32(&input_ptr[7], BYTE_ORDER_MSB)
-            rowid.slot_num = unpack_uint16(&input_ptr[11], BYTE_ORDER_MSB)
-            return _encode_rowid(&rowid)
-
-        # handle logical rowid
-        output_len = (input_len // 3) * 4
-        remainder = input_len % 3
-        if remainder == 1:
-            output_len += 1
-        elif remainder == 2:
-            output_len += 3
-        output_value = bytearray(output_len)
-        input_len -= 1
-        output_value[0] = 42            # '*'
-        output_offset += 1
-        while input_len > 0:
-
-            # produce first byte of quadruple
-            pos = input_ptr[input_offset] >> 2
-            output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-            output_offset += 1
-
-            # produce second byte of quadruple, but if only one byte is left,
-            # produce that one byte and exit
-            pos = (input_ptr[input_offset] & 0x3) << 4
-            if input_len == 1:
-                output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-                break
-            input_offset += 1
-            pos |= ((input_ptr[input_offset] & 0xf0) >> 4)
-            output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-            output_offset += 1
-
-            # produce third byte of quadruple, but if only two bytes are left,
-            # produce that one byte and exit
-            pos = (input_ptr[input_offset] & 0xf) << 2
-            if input_len == 2:
-                output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-                break
-            input_offset += 1
-            pos |= ((input_ptr[input_offset] & 0xc0) >> 6)
-            output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-            output_offset += 1
-
-            # produce final byte of quadruple
-            pos = input_ptr[input_offset] & 0x3f
-            output_value[output_offset] = TNS_BASE64_ALPHABET_ARRAY[pos]
-            output_offset += 1
-            input_offset += 1
-            input_len -= 3
-
-        return bytes(output_value).decode()
-
-    cdef int check_control_packet(self) except -1:
-        """
-        Checks for a control packet or final close packet from the server.
-        """
-        cdef:
-            uint8_t packet_type, packet_flags
-            uint16_t data_flags
-        self._receive_packet_helper(&packet_type, &packet_flags)
-        if packet_type == TNS_PACKET_TYPE_CONTROL:
-            self._process_control_packet()
-        elif packet_type == TNS_PACKET_TYPE_DATA:
-            self.read_uint16(&data_flags)
-            if data_flags == TNS_DATA_FLAGS_EOF:
-                self._session_needs_to_be_closed = True
-
-    cdef int receive_packet(self, uint8_t *packet_type,
-                            uint8_t *packet_flags) except -1:
-        """
-        Calls _receive_packet_helper() and checks the packet type. If a
-        control packet is received, it is processed and the next packet is
-        received.
-        """
-        while True:
-            self._receive_packet_helper(packet_type, packet_flags)
-            if packet_type[0] == TNS_PACKET_TYPE_CONTROL:
-                self._process_control_packet()
-                continue
-            break
-
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """
         Skip the specified number of bytes in the buffer. In order to avoid
@@ -1121,31 +803,18 @@ cdef class ReadBuffer:
             self._get_raw(num_bytes_this_time)
             num_bytes -= num_bytes_this_time
 
-    cdef int skip_raw_bytes_chunked(self) except -1:
-        """
-        Skip a number of bytes that may or may not be chunked in the buffer.
-        The first byte gives the length. If the length is
-        TNS_LONG_LENGTH_INDICATOR, however, chunks are read and discarded.
-        """
-        cdef:
-            uint32_t temp_num_bytes
-            uint8_t length
-        self.read_ub1(&length)
-        if length != TNS_LONG_LENGTH_INDICATOR:
-            self.skip_raw_bytes(length)
-        else:
-            while True:
-                self.read_ub4(&temp_num_bytes)
-                if temp_num_bytes == 0:
-                    break
-                self.skip_raw_bytes(temp_num_bytes)
-
     cdef inline int skip_sb4(self) except -1:
         """
         Skips a signed 32-bit integer in the buffer.
         """
         cdef bint is_negative
         return self._skip_int(4, &is_negative)
+
+    cdef inline void skip_to(self, ssize_t pos):
+        """
+        Skips to the specified location in the buffer.
+        """
+        self._pos = pos
 
     cdef inline int skip_ub1(self) except -1:
         """
@@ -1164,85 +833,6 @@ cdef class ReadBuffer:
         Skips an unsigned 32-bit integer in the buffer.
         """
         return self._skip_int(4, NULL)
-
-
-@cython.final
-cdef class WriteBuffer:
-
-    cdef:
-        ssize_t _max_size, _actual_size
-        uint8_t _packet_type
-        bytearray _data_obj
-        char_type[:] _data_view
-        char_type *_data
-        Capabilities _caps
-        object _socket
-        uint8_t _seq_num
-        bint _packet_sent
-
-    def __cinit__(self, object sock, ssize_t max_size, Capabilities caps):
-        self._socket = sock
-        self._caps = caps
-        self._data_obj = bytearray(max_size)
-        self._data_view = self._data_obj
-        self._data = <char_type*> self._data_obj
-        self._max_size = max_size
-
-    cdef int _send_packet(self, bint final_packet) except -1:
-        """
-        Write the packet header and then send the packet. Once sent, reset the
-        pointers back to an empty packet.
-        """
-        cdef ssize_t size = self._actual_size
-        self._actual_size = 0
-        if self._caps.protocol_version >= TNS_VERSION_MIN_LARGE_SDU:
-            self.write_uint32(size)
-        else:
-            self.write_uint16(size)
-            self.write_uint16(0)
-        self.write_uint8(self._packet_type)
-        self.write_uint8(0)
-        self.write_uint16(0)
-        self._actual_size = size
-        if DEBUG_PACKETS:
-            _print_packet("Sending packet:", self._socket.fileno(),
-                          self._data_view[:self._actual_size])
-        try:
-            self._socket.send(self._data_view[:self._actual_size])
-        except OSError as e:
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e))
-        self._packet_sent = True
-        self._actual_size = PACKET_HEADER_SIZE
-        if not final_packet:
-            self.write_uint16(0)            # add data flags for next packet
-
-    cdef inline ssize_t bytes_left(self):
-        """
-        Return the number of bytes that can still be added to the packet before
-        it is full and must be sent to the server.
-        """
-        return self._max_size - self._actual_size
-
-    cdef int end_request(self) except -1:
-        """
-        Indicates that the request from the client is completing and will send
-        any packet remaining, if necessary.
-        """
-        if self._actual_size > PACKET_HEADER_SIZE:
-            self._send_packet(final_packet=True)
-
-    cdef void start_request(self, uint8_t packet_type, uint16_t data_flags=0):
-        """
-        Indicates that a request from the client is starting. The packet type
-        is retained just in case a request spans multiple packets. The packet
-        header (8 bytes in length) is written when a packet is actually being
-        sent and so is skipped at this point.
-        """
-        self._packet_sent = False
-        self._packet_type = packet_type
-        self._actual_size = PACKET_HEADER_SIZE
-        if packet_type == TNS_PACKET_TYPE_DATA:
-            self.write_uint16(data_flags)
 
     cdef int write_binary_double(self, double value) except -1:
         cdef:
@@ -1308,30 +898,57 @@ cdef class WriteBuffer:
         self.write_uint8(4)
         self.write_raw(buf, 4)
 
+    cdef int write_bool(self, bint value):
+        """
+        Writes a boolean value to the buffer.
+        """
+        if value:
+            self.write_uint8(2)
+            self.write_uint16(0x0101)
+        else:
+            self.write_uint16(0x0100)
+
     cdef int write_bytes(self, bytes value) except -1:
+        """
+        Writes the bytes to the buffer directly.
+        """
         cdef:
             ssize_t value_len
             char_type *ptr
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
         self.write_raw(ptr, value_len)
 
-    cdef int write_bytes_chunked(self, bytes value) except -1:
+    cdef int write_bytes_with_length(self, bytes value) except -1:
+        """
+        Writes the bytes to the buffer after first writing the length.
+        """
         cdef:
-            ssize_t value_len, chunk_len
+            ssize_t value_len
             char_type *ptr
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
-        if value_len <= TNS_MAX_SHORT_LENGTH:
-            self.write_uint8(<uint8_t> value_len)
-            self.write_raw(ptr, value_len)
-        else:
-            self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
-            while value_len > 0:
-                chunk_len = min(value_len, TNS_CHUNK_SIZE)
-                self.write_ub4(chunk_len)
-                value_len -= chunk_len
-                self.write_raw(ptr, chunk_len)
-                ptr += chunk_len
+        self._write_raw_bytes_and_length(ptr, value_len)
+
+    cdef object write_dbobject(self, ThinDbObjectImpl obj_impl):
+        """
+        Writes a database object to the buffer.
+        """
+        cdef:
+            ThinDbObjectTypeImpl typ_impl = obj_impl.type
+            uint32_t num_bytes
+            bytes packed_data
+        self.write_ub4(len(obj_impl.toid))
+        self.write_bytes_with_length(obj_impl.toid)
+        if obj_impl.oid is None:
             self.write_ub4(0)
+        else:
+            self.write_ub4(len(obj_impl.oid))
+            self.write_bytes_with_length(obj_impl.oid)
+        self.write_ub4(0)                   # snapshot
+        self.write_ub4(0)                   # version
+        packed_data = obj_impl._get_packed_data()
+        self.write_ub4(len(packed_data))
+        self.write_ub4(obj_impl.flags)      # flags
+        self.write_bytes_with_length(packed_data)
 
     cdef int write_interval_ds(self, object value) except -1:
         cdef:
@@ -1348,6 +965,12 @@ cdef class WriteBuffer:
         pack_uint32(&buf[7], fseconds + TNS_DURATION_MID, BYTE_ORDER_MSB)
         self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))
+
+    cdef int write_lob(self, ThinLobImpl lob_impl) except -1:
+        """
+        Writes a LOB locator to the buffer.
+        """
+        self.write_bytes_with_length(lob_impl._locator)
 
     cdef int write_oracle_date(self, object value, uint8_t length) except -1:
         cdef:
@@ -1522,52 +1145,45 @@ cdef class WriteBuffer:
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
         cdef ssize_t bytes_to_write
         while True:
-            bytes_to_write = min(self._max_size - self._actual_size, length)
+            bytes_to_write = min(self._max_size - self._pos, length)
             if bytes_to_write > 0:
-                memcpy(self._data + self._actual_size, <void*> data,
-                       bytes_to_write)
-                self._actual_size += bytes_to_write
+                memcpy(self._data + self._pos, <void*> data, bytes_to_write)
+                self._pos += bytes_to_write
             if bytes_to_write == length:
                 break
-            self._send_packet(final_packet=False)
+            self._write_more_data(self._max_size - self._pos, length)
             length -= bytes_to_write
             data += bytes_to_write
-
-    cdef int write_seq_num(self) except -1:
-        self._seq_num += 1
-        if self._seq_num == 0:
-            self._seq_num = 1
-        self.write_uint8(self._seq_num)
 
     cdef int write_str(self, str value) except -1:
         self.write_bytes(value.encode())
 
     cdef int write_uint8(self, uint8_t value) except -1:
-        if self._actual_size + 1 > self._max_size:
-            self._send_packet(final_packet=False)
-        self._data[self._actual_size] = value
-        self._actual_size += 1
+        if self._pos + 1 > self._max_size:
+            self._write_more_data(self._max_size - self._pos, 1)
+        self._data[self._pos] = value
+        self._pos += 1
 
     cdef int write_uint16(self, uint16_t value,
                           int byte_order=BYTE_ORDER_MSB) except -1:
-        if self._actual_size + 2 > self._max_size:
-            self._send_packet(final_packet=False)
-        pack_uint16(&self._data[self._actual_size], value, byte_order)
-        self._actual_size += 2
+        if self._pos + 2 > self._max_size:
+            self._write_more_data(self._max_size - self._pos, 2)
+        pack_uint16(&self._data[self._pos], value, byte_order)
+        self._pos += 2
 
     cdef int write_uint32(self, uint32_t value,
                           int byte_order=BYTE_ORDER_MSB) except -1:
-        if self._actual_size + 4 > self._max_size:
-            self._send_packet(final_packet=False)
-        pack_uint32(&self._data[self._actual_size], value, byte_order)
-        self._actual_size += 4
+        if self._pos + 4 > self._max_size:
+            self._write_more_data(self._max_size - self._pos, 4)
+        pack_uint32(&self._data[self._pos], value, byte_order)
+        self._pos += 4
 
     cdef int write_uint64(self, uint64_t value,
                           byte_order=BYTE_ORDER_MSB) except -1:
-        if self._actual_size + 8 > self._max_size:
-            self._send_packet(final_packet=False)
-        pack_uint64(&self._data[self._actual_size], value, byte_order)
-        self._actual_size += 8
+        if self._pos + 8 > self._max_size:
+            self._write_more_data(self._max_size - self._pos, 8)
+        pack_uint64(&self._data[self._pos], value, byte_order)
+        self._pos += 8
 
     cdef int write_ub4(self, uint32_t value) except -1:
         if value == 0:

@@ -31,8 +31,18 @@
 
 cdef class BaseDbObjectImpl:
 
-    @utils.CheckImpls("appending a value to a collection")
     def append(self, object value):
+        """
+        Appends a value to the collection after first checking to see if the
+        value is acceptable.
+        """
+        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        value = conn_impl._check_value(self.type.element_dbtype,
+                                       self.type.element_objtype, value, NULL)
+        self.append_checked(value)
+
+    @utils.CheckImpls("appending a value to a collection")
+    def append_checked(self, object value):
         pass
 
     @utils.CheckImpls("creating a copy of an object")
@@ -75,12 +85,31 @@ cdef class BaseDbObjectImpl:
     def get_size(self):
         pass
 
-    @utils.CheckImpls("setting an attribute value")
     def set_attr_value(self, BaseDbObjectAttrImpl attr, object value):
+        """
+        Sets the attribute value after first checking to see if the value is
+        acceptable.
+        """
+        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        value = conn_impl._check_value(attr.dbtype, attr.objtype, value, NULL)
+        self.set_attr_value_checked(attr, value)
+
+    @utils.CheckImpls("setting an attribute value")
+    def set_attr_value_checked(self, BaseDbObjectAttrImpl attr, object value):
         pass
 
-    @utils.CheckImpls("setting an element of a collection")
     def set_element_by_index(self, int32_t index, object value):
+        """
+        Sets the element value after first checking to see if the value is
+        acceptable.
+        """
+        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        value = conn_impl._check_value(self.type.element_dbtype,
+                                       self.type.element_objtype, value, NULL)
+        self.set_element_by_index_checked(index, value)
+
+    @utils.CheckImpls("setting an element of a collection")
+    def set_element_by_index_checked(self, int32_t index, object value):
         pass
 
     @utils.CheckImpls("trimming elements from a collection")

@@ -347,7 +347,7 @@ class BaseTestCase(unittest.TestCase):
         if obj.type.iscollection:
             element_values = []
             for value in obj.aslist():
-                if isinstance(value, oracledb.Object):
+                if isinstance(value, oracledb.DbObject):
                     value = self.get_db_object_as_plain_object(value)
                 elif isinstance(value, oracledb.LOB):
                     value = value.read()
@@ -356,7 +356,7 @@ class BaseTestCase(unittest.TestCase):
         attr_values = []
         for attribute in obj.type.attributes:
             value = getattr(obj, attribute.name)
-            if isinstance(value, oracledb.Object):
+            if isinstance(value, oracledb.DbObject):
                 value = self.get_db_object_as_plain_object(value)
             elif isinstance(value, oracledb.LOB):
                 value = value.read()

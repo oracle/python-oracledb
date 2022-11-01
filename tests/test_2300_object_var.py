@@ -33,8 +33,6 @@ import unittest
 import oracledb
 import test_env
 
-@unittest.skipIf(test_env.get_is_thin(),
-                 "thin mode doesn't support database objects yet")
 class TestCase(test_env.BaseTestCase):
 
     def __test_data(self, expected_int_value, expected_obj_value,
@@ -309,7 +307,7 @@ class TestCase(test_env.BaseTestCase):
         sub_obj.SUBSTRINGVALUE = "Substring value"
         obj.SUBOBJECTVALUE = sub_obj
         self.cursor.execute("insert into TestObjects (IntCol, ObjectCol) " \
-                            "values (4, :obj)", obj = obj)
+                            "values (4, :obj)", obj=obj)
         self.cursor.execute("""
                 select IntCol, ObjectCol, ArrayCol
                 from TestObjects
@@ -377,7 +375,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2308_invalid_type_object(self):
         "2308 - test trying to find an object type that does not exist"
-        self.assertRaisesRegex(oracledb.DatabaseError, "^OCI-22303",
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2035:",
                                self.connection.gettype,
                                "A TYPE THAT DOES NOT EXIST")
 
@@ -387,7 +385,7 @@ class TestCase(test_env.BaseTestCase):
         collection_obj = collection_obj_type.newobject()
         array_obj_type = self.connection.gettype("UDT_ARRAY")
         array_obj = array_obj_type.newobject()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1056:",
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2008:",
                                collection_obj.append, array_obj)
 
     def test_2310_referencing_sub_obj(self):
@@ -425,7 +423,7 @@ class TestCase(test_env.BaseTestCase):
         obj = obj_type.newobject()
         wrong_obj_type = self.connection.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1056:", setattr,
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2008:", setattr,
                                obj, "SUBOBJECTVALUE", wrong_obj)
 
     def test_2313_setting_var_wrong_object_type(self):
@@ -449,7 +447,7 @@ class TestCase(test_env.BaseTestCase):
         "2315 - test Trim number of elements from collection"
         sub_obj_type = self.connection.gettype("UDT_SUBOBJECT")
         array_type = self.connection.gettype("UDT_OBJECTARRAY")
-        data = [(1, "AB"), (2, "CDE"), (3, "FGH"), (4, "IJK")]
+        data = [(1, "AB"), (2, "CDE"), (3, "FGH"), (4, "IJK"), (5, "LMN")]
         array_obj = array_type()
         for num_val, str_val in data:
             subObj = sub_obj_type()
@@ -459,14 +457,14 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.get_db_object_as_plain_object(array_obj), data)
         array_obj.trim(2)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj),
-                         data[:2])
+                         data[:3])
         array_obj.trim(1)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj),
-                         data[:1])
+                         data[:2])
         array_obj.trim(0)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj),
-                         data[:1])
-        array_obj.trim(1)
+                         data[:2])
+        array_obj.trim(2)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj), [])
 
     def test_2316_sql_type_metadata(self):

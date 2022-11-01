@@ -83,11 +83,15 @@ cdef class DbType:
         readonly str name
         readonly uint32_t default_size
         uint32_t _buffer_size_factor
+        str _ora_name
         uint8_t _ora_type_num
         uint8_t _csfrm
 
     @staticmethod
     cdef DbType _from_num(uint32_t num)
+
+    @staticmethod
+    cdef DbType _from_ora_name(str name)
 
     @staticmethod
     cdef DbType _from_ora_type_and_csfrm(uint8_t ora_type_num, uint8_t csfrm)
@@ -231,6 +235,9 @@ cdef class BaseConnImpl:
         public bint autocommit
         public bint invoke_session_callback
 
+    cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
+                             object value, bint* is_ok)
+
 
 cdef class BasePoolImpl:
     cdef:
@@ -320,6 +327,7 @@ cdef class BaseVarImpl:
         public uint32_t num_elements_in_array
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype
+        BaseConnImpl _conn_impl
         int _preferred_num_type
         FetchInfo _fetch_info
         bint _is_value_set

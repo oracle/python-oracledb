@@ -166,13 +166,15 @@ ERR_INVALID_ACCESS_TOKEN_PARAM = 2031
 ERR_INVALID_ACCESS_TOKEN_RETURNED = 2032
 ERR_EXPIRED_ACCESS_TOKEN = 2033
 ERR_ACCESS_TOKEN_REQUIRES_TCPS = 2034
+ERR_INVALID_OBJECT_TYPE_NAME = 2035
+ERR_OBJECT_IS_NOT_A_COLLECTION = 2036
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
 ERR_FEATURE_NOT_SUPPORTED = 3001
 ERR_PYTHON_VALUE_NOT_SUPPORTED = 3002
 ERR_PYTHON_TYPE_NOT_SUPPORTED = 3003
-ERR_UNSUPPORTED_VAR_SET = 3004
+ERR_UNSUPPORTED_TYPE_SET = 3004
 ERR_ARRAYS_OF_ARRAYS = 3005
 ERR_ORACLE_TYPE_NOT_SUPPORTED = 3006
 ERR_DB_TYPE_NOT_SUPPORTED = 3007
@@ -180,10 +182,12 @@ ERR_UNSUPPORTED_INBAND_NOTIFICATION = 3008
 ERR_SELF_BIND_NOT_SUPPORTED = 3009
 ERR_SERVER_VERSION_NOT_SUPPORTED = 3010
 ERR_NCHAR_CS_NOT_SUPPORTED = 3012
-ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR = 3013
+ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE = 3013
 ERR_LOB_OF_WRONG_TYPE = 3014
 ERR_UNSUPPORTED_VERIFIER_TYPE = 3015
 ERR_NO_CRYPTOGRAPHY_PACKAGE = 3016
+ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED = 3017
+ERR_TDS_TYPE_NOT_SUPPORTED = 3018
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -221,6 +225,7 @@ ERR_INTEGER_TOO_LARGE = 5002
 ERR_UNEXPECTED_NEGATIVE_INTEGER = 5003
 ERR_UNEXPECTED_DATA = 5004
 ERR_UNEXPECTED_REFUSE = 5005
+ERR_UNEXPECTED_END_OF_DATA = 5006
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -235,6 +240,7 @@ ERR_ORACLE_ERROR_XREF = {
     28: ERR_CONNECTION_CLOSED,
     600: ERR_CONNECTION_CLOSED,
     1005: ERR_NO_CREDENTIALS,
+    22303: (ERR_INVALID_OBJECT_TYPE_NAME, 'type "(?P<name>[^"]*"."[^"]*)"'),
     24422: ERR_POOL_HAS_BUSY_CONNECTIONS,
     24349: ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED,
     24459: ERR_POOL_NO_CONNECTION_AVAILABLE,
@@ -274,7 +280,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_ARRAYS_OF_ARRAYS:
             'arrays of arrays are not supported',
     ERR_BUFFER_LENGTH_INSUFFICIENT:
-            'internal error: split buffer of length {actual_buffer_len} '
+            'internal error: buffer of length {actual_buffer_len} '
             'insufficient to hold {required_buffer_len} bytes',
     ERR_CALL_TIMEOUT_EXCEEDED:
             'call timeout of {timeout} ms exceeded',
@@ -338,6 +344,8 @@ ERR_MESSAGE_FORMATS = {
             '"{name}" argument contains invalid values',
     ERR_INVALID_NUMBER:
             'invalid number',
+    ERR_INVALID_OBJECT_TYPE_NAME:
+            'invalid object type name: "{name}"',
     ERR_INVALID_OCI_ATTR_TYPE:
             'invalid OCI attribute type {attr_type}',
     ERR_INVALID_POOL_CLASS:
@@ -414,8 +422,12 @@ ERR_MESSAGE_FORMATS = {
             'invalid number: empty exponent',
     ERR_NUMBER_WITH_INVALID_EXPONENT:
             'invalid number: invalid exponent',
+    ERR_OBJECT_IS_NOT_A_COLLECTION:
+            'object {name} is not a collection',
     ERR_ORACLE_NUMBER_NO_REPR:
             'value cannot be represented as an Oracle number',
+    ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED:
+            'Oracle data type name "{name}" is not supported',
     ERR_ORACLE_TYPE_NOT_SUPPORTED:
             'Oracle data type {num} is not supported',
     ERR_POOL_HAS_BUSY_CONNECTIONS:
@@ -437,6 +449,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_SERVER_VERSION_NOT_SUPPORTED:
             'connections to this database server version are not supported '
             'by python-oracledb in thin mode',
+    ERR_TDS_TYPE_NOT_SUPPORTED:
+            'Oracle TDS data type {num} is not supported',
     ERR_THIN_CONNECTION_ALREADY_CREATED:
             'python-oracledb thick mode cannot be used because a thin mode '
             'connection has already been created',
@@ -450,6 +464,9 @@ ERR_MESSAGE_FORMATS = {
             '{config_dir}',
     ERR_UNEXPECTED_DATA:
             'unexpected data received: {data}',
+    ERR_UNEXPECTED_END_OF_DATA:
+            'unexpected end of data: want {num_bytes_wanted} bytes but '
+            'only {num_bytes_available} bytes are available',
     ERR_UNEXPECTED_NEGATIVE_INTEGER:
             'internal error: read a negative integer when expecting a '
             'positive integer',
@@ -458,11 +475,11 @@ ERR_MESSAGE_FORMATS = {
             'format was returned',
     ERR_UNSUPPORTED_INBAND_NOTIFICATION:
             'unsupported in-band notification with error number {err_num}',
-    ERR_UNSUPPORTED_PYTHON_TYPE_FOR_VAR:
-            'unsupported Python type {py_type_name} for variable '
+    ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE:
+            'unsupported Python type {py_type_name} for database type '
             '{db_type_name}',
-    ERR_UNSUPPORTED_VAR_SET:
-            'variable of type {db_type_name} does not support being set',
+    ERR_UNSUPPORTED_TYPE_SET:
+            'type {db_type_name} does not support being set',
     ERR_UNSUPPORTED_VERIFIER_TYPE:
             'password verifier type 0x{verifier_type:x} is not supported by '
             'python-oracledb in thin mode',

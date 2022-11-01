@@ -35,6 +35,119 @@ cdef class BaseConnImpl:
         self.dsn = dsn
         self.username = params.user
 
+    cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
+                             object value, bint* is_ok):
+        """
+        Checks that the specified Python value is acceptable for the given
+        database type. If the "is_ok" parameter is passed as NULL, an exception
+        is raised.  The value to use is returned (possibly modified from the
+        value passed in).
+        """
+        cdef:
+            uint32_t db_type_num
+            BaseLobImpl lob_impl
+
+        # null values are always accepted
+        if value is None:
+            return value
+
+        # check to see if the Python value is accepted and perform any
+        # necessary adjustments
+        db_type_num = dbtype.num
+        if db_type_num in (DB_TYPE_NUM_NUMBER,
+                           DB_TYPE_NUM_BINARY_INTEGER,
+                           DB_TYPE_NUM_BINARY_DOUBLE,
+                           DB_TYPE_NUM_BINARY_FLOAT):
+            if isinstance(value, (PY_TYPE_BOOL, int, float, PY_TYPE_DECIMAL)):
+                if db_type_num in (DB_TYPE_NUM_BINARY_FLOAT,
+                                   DB_TYPE_NUM_BINARY_DOUBLE):
+                    return float(value)
+                elif db_type_num == DB_TYPE_NUM_BINARY_INTEGER \
+                        or cpython.PyBool_Check(value):
+                    return int(value)
+                return value
+        elif db_type_num in (DB_TYPE_NUM_CHAR,
+                             DB_TYPE_NUM_VARCHAR,
+                             DB_TYPE_NUM_NCHAR,
+                             DB_TYPE_NUM_NVARCHAR,
+                             DB_TYPE_NUM_LONG_VARCHAR,
+                             DB_TYPE_NUM_LONG_NVARCHAR):
+            if isinstance(value, bytes):
+                return (<bytes> value).decode()
+            elif isinstance(value, str):
+                return value
+        elif db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
+            if isinstance(value, str):
+                return (<str> value).encode()
+            elif isinstance(value, bytes):
+                return value
+        elif db_type_num in (DB_TYPE_NUM_DATE,
+                             DB_TYPE_NUM_TIMESTAMP,
+                             DB_TYPE_NUM_TIMESTAMP_LTZ,
+                             DB_TYPE_NUM_TIMESTAMP_TZ):
+            if cydatetime.PyDateTime_Check(value) \
+                    or cydatetime.PyDate_Check(value):
+                return value
+        elif db_type_num == DB_TYPE_NUM_INTERVAL_DS:
+            if isinstance(value, PY_TYPE_TIMEDELTA):
+                return value
+        elif db_type_num in (DB_TYPE_NUM_CLOB,
+                             DB_TYPE_NUM_NCLOB,
+                             DB_TYPE_NUM_BLOB):
+            if isinstance(value, PY_TYPE_LOB):
+                lob_impl = value._impl
+                if lob_impl.dbtype is not dbtype:
+                    if is_ok != NULL:
+                        is_ok[0] = False
+                        return value
+                    errors._raise_err(errors.ERR_LOB_OF_WRONG_TYPE,
+                                      actual_type_name=lob_impl.dbtype.name,
+                                      expected_type_name=dbtype.name)
+                return value
+            elif isinstance(value, (bytes, str)):
+                if db_type_num == DB_TYPE_NUM_BLOB:
+                    if isinstance(value, str):
+                        value = value.encode()
+                elif isinstance(value, bytes):
+                    value = value.decode()
+                lob_impl = self.create_temp_lob_impl(dbtype)
+                if value:
+                    lob_impl.write(value, 1)
+                return PY_TYPE_LOB._from_impl(lob_impl)
+        elif db_type_num == DB_TYPE_NUM_OBJECT:
+            if isinstance(value, PY_TYPE_DB_OBJECT):
+                if value._impl.type != objtype:
+                    if is_ok != NULL:
+                        is_ok[0] = False
+                        return value
+                    errors._raise_err(errors.ERR_WRONG_OBJECT_TYPE,
+                                      actual_schema=value.type.schema,
+                                      actual_name=value.type.name,
+                                      expected_schema=objtype.schema,
+                                      expected_name=objtype.name)
+                return value
+        elif db_type_num == DB_TYPE_NUM_CURSOR:
+            if isinstance(value, PY_TYPE_CURSOR):
+                return value
+        elif db_type_num == DB_TYPE_NUM_BOOLEAN:
+            return bool(value)
+        elif db_type_num == DB_TYPE_NUM_JSON:
+            return value
+        else:
+            if is_ok != NULL:
+                is_ok[0] = False
+                return value
+            errors._raise_err(errors.ERR_UNSUPPORTED_TYPE_SET,
+                              db_type_name=dbtype.name)
+
+        # the Python value was not considered acceptable
+        if is_ok != NULL:
+            is_ok[0] = False
+            return value
+        errors._raise_err(errors.ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE,
+                          py_type_name=type(value).__name__,
+                          db_type_name=dbtype.name)
+
     @utils.CheckImpls("getting a connection OCI attribute")
     def _get_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type):
@@ -123,7 +236,7 @@ cdef class BaseConnImpl:
         pass
 
     @utils.CheckImpls("getting an object type")
-    def get_type(self, str name):
+    def get_type(self, object conn, str name):
         pass
 
     @utils.CheckImpls("getting the database version")

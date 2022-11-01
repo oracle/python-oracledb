@@ -78,12 +78,15 @@ from .base_impl cimport NUM_TYPE_INT, NUM_TYPE_DECIMAL, NUM_TYPE_STR
 from .base_impl cimport BaseConnImpl, BaseCursorImpl, BaseVarImpl, DbType
 from .base_impl cimport BaseLobImpl, BasePoolImpl, FetchInfo
 from .base_impl cimport Address, AddressList, Description, DescriptionList
-from .base_impl cimport ConnectParamsImpl, PoolParamsImpl
+from .base_impl cimport ConnectParamsImpl, PoolParamsImpl, BaseDbObjectAttrImpl
+from .base_impl cimport BaseDbObjectImpl, BaseDbObjectTypeImpl
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB
+from .base_impl import DB_TYPE_BINARY_INTEGER, DB_TYPE_CURSOR, DB_TYPE_OBJECT
 
 ctypedef unsigned char char_type
 
 cdef type PY_TYPE_DECIMAL = decimal.Decimal
+cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_LOB
 
 cdef bint HAS_CRYPTOGRAPHY = True
@@ -93,6 +96,7 @@ include "impl/thin/utils.pyx"
 include "impl/thin/crypto.pyx"
 include "impl/thin/capabilities.pyx"
 include "impl/thin/buffer.pyx"
+include "impl/thin/packet.pyx"
 include "impl/thin/network_services.pyx"
 include "impl/thin/data_types.pyx"
 include "impl/thin/messages.pyx"
@@ -101,6 +105,7 @@ include "impl/thin/connection.pyx"
 include "impl/thin/statement.pyx"
 include "impl/thin/cursor.pyx"
 include "impl/thin/var.pyx"
+include "impl/thin/dbobject.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
 include "impl/thin/conversions.pyx"

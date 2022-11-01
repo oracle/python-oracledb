@@ -51,20 +51,23 @@ cdef class ApiType:
 
 
 cdef dict db_type_by_num = {}
+cdef dict db_type_by_ora_name = {}
 cdef dict db_type_by_ora_type_num = {}
 
 cdef class DbType:
 
-    def __init__(self, num, name, ora_type_num, default_size=0, csfrm=0,
-                 buffer_size_factor=0):
+    def __init__(self, num, name, ora_name, ora_type_num, default_size=0,
+                 csfrm=0, buffer_size_factor=0):
         cdef uint16_t ora_type_key = csfrm * 256 + ora_type_num
         self.num = num
         self.name = name
         self.default_size = default_size
+        self._ora_name = ora_name
         self._ora_type_num = ora_type_num
         self._csfrm = csfrm
         self._buffer_size_factor = buffer_size_factor
         db_type_by_num[num] = self
+        db_type_by_ora_name[ora_name] = self
         db_type_by_ora_type_num[ora_type_key] = self
 
     def __reduce__(self):
@@ -82,6 +85,14 @@ cdef class DbType:
         errors._raise_err(errors.ERR_ORACLE_TYPE_NOT_SUPPORTED, num=num)
 
     @staticmethod
+    cdef DbType _from_ora_name(str name):
+        try:
+            return db_type_by_ora_name[name]
+        except KeyError:
+            pass
+        errors._raise_err(errors.ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED, name=name)
+
+    @staticmethod
     cdef DbType _from_ora_type_and_csfrm(uint8_t ora_type_num, uint8_t csfrm):
         cdef uint16_t ora_type_key = csfrm * 256 + ora_type_num
         try:
@@ -93,62 +104,75 @@ cdef class DbType:
 
 
 # database types
-DB_TYPE_BFILE = DbType(DB_TYPE_NUM_BFILE, "DB_TYPE_BFILE", 114)
+DB_TYPE_BFILE = DbType(DB_TYPE_NUM_BFILE, "DB_TYPE_BFILE", "BFILE", 114)
 DB_TYPE_BINARY_DOUBLE = DbType(DB_TYPE_NUM_BINARY_DOUBLE,
-                               "DB_TYPE_BINARY_DOUBLE", 101,
+                               "DB_TYPE_BINARY_DOUBLE", "BINARY_DOUBLE", 101,
                                buffer_size_factor=8)
 DB_TYPE_BINARY_FLOAT = DbType(DB_TYPE_NUM_BINARY_FLOAT, "DB_TYPE_BINARY_FLOAT",
-                              100, buffer_size_factor=4)
+                              "BINARY_FLOAT", 100, buffer_size_factor=4)
 DB_TYPE_BINARY_INTEGER = DbType(DB_TYPE_NUM_BINARY_INTEGER,
-                                "DB_TYPE_BINARY_INTEGER", 3,
+                                "DB_TYPE_BINARY_INTEGER", "BINARY_INTEGER", 3,
                                 buffer_size_factor=22)
-DB_TYPE_BLOB = DbType(DB_TYPE_NUM_BLOB, "DB_TYPE_BLOB", 113,
+DB_TYPE_BLOB = DbType(DB_TYPE_NUM_BLOB, "DB_TYPE_BLOB", "BLOB", 113,
                       buffer_size_factor=112)
-DB_TYPE_BOOLEAN = DbType(DB_TYPE_NUM_BOOLEAN, "DB_TYPE_BOOLEAN", 252,
-                         buffer_size_factor=4)
-DB_TYPE_CHAR = DbType(DB_TYPE_NUM_CHAR, "DB_TYPE_CHAR", 96, 2000, csfrm=1,
-                      buffer_size_factor=4)
-DB_TYPE_CLOB = DbType(DB_TYPE_NUM_CLOB, "DB_TYPE_CLOB", 112, csfrm=1,
+DB_TYPE_BOOLEAN = DbType(DB_TYPE_NUM_BOOLEAN, "DB_TYPE_BOOLEAN", "BOOLEAN",
+                         252, buffer_size_factor=4)
+DB_TYPE_CHAR = DbType(DB_TYPE_NUM_CHAR, "DB_TYPE_CHAR", "CHAR", 96, 2000,
+                      csfrm=1, buffer_size_factor=4)
+DB_TYPE_CLOB = DbType(DB_TYPE_NUM_CLOB, "DB_TYPE_CLOB", "CLOB", 112, csfrm=1,
                       buffer_size_factor=112)
-DB_TYPE_CURSOR = DbType(DB_TYPE_NUM_CURSOR, "DB_TYPE_CURSOR", 102,
+DB_TYPE_CURSOR = DbType(DB_TYPE_NUM_CURSOR, "DB_TYPE_CURSOR", "CURSOR", 102,
                         buffer_size_factor=4)
-DB_TYPE_DATE = DbType(DB_TYPE_NUM_DATE, "DB_TYPE_DATE", 12,
+DB_TYPE_DATE = DbType(DB_TYPE_NUM_DATE, "DB_TYPE_DATE", "DATE", 12,
                       buffer_size_factor=7)
 DB_TYPE_INTERVAL_DS = DbType(DB_TYPE_NUM_INTERVAL_DS, "DB_TYPE_INTERVAL_DS",
-                             183, buffer_size_factor=11)
+                             "INTERVAL DAY TO SECOND", 183,
+                             buffer_size_factor=11)
 DB_TYPE_INTERVAL_YM = DbType(DB_TYPE_NUM_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
-                             182)
-DB_TYPE_JSON = DbType(DB_TYPE_NUM_JSON, "DB_TYPE_JSON", 119)
-DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", 8, csfrm=1,
-                      buffer_size_factor=2147483647)
+                             "INTERVAL YEAR TO MONTH", 182)
+DB_TYPE_JSON = DbType(DB_TYPE_NUM_JSON, "DB_TYPE_JSON", "JSON", 119)
+DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", "LONG",
+                      8, csfrm=1, buffer_size_factor=2147483647)
 DB_TYPE_LONG_NVARCHAR = DbType(DB_TYPE_NUM_LONG_NVARCHAR,
-                               "DB_TYPE_LONG_NVARCHAR", 8, csfrm=2,
-                               buffer_size_factor=2147483647)
-DB_TYPE_LONG_RAW = DbType(DB_TYPE_NUM_LONG_RAW, "DB_TYPE_LONG_RAW", 24,
-                          buffer_size_factor=2147483647)
-DB_TYPE_NCHAR = DbType(DB_TYPE_NUM_NCHAR, "DB_TYPE_NCHAR", 96, 2000, csfrm=2,
-                       buffer_size_factor=4)
-DB_TYPE_NCLOB = DbType(DB_TYPE_NUM_NCLOB, "DB_TYPE_NCLOB", 112, csfrm=2,
-                       buffer_size_factor=112)
-DB_TYPE_NUMBER = DbType(DB_TYPE_NUM_NUMBER, "DB_TYPE_NUMBER", 2,
+                               "DB_TYPE_LONG_NVARCHAR", "LONG NVARCHAR", 8,
+                               csfrm=2, buffer_size_factor=2147483647)
+DB_TYPE_LONG_RAW = DbType(DB_TYPE_NUM_LONG_RAW, "DB_TYPE_LONG_RAW", "LONG RAW",
+                          24, buffer_size_factor=2147483647)
+DB_TYPE_NCHAR = DbType(DB_TYPE_NUM_NCHAR, "DB_TYPE_NCHAR", "NCHAR", 96, 2000,
+                       csfrm=2, buffer_size_factor=4)
+DB_TYPE_NCLOB = DbType(DB_TYPE_NUM_NCLOB, "DB_TYPE_NCLOB", "NCLOB", 112,
+                       csfrm=2, buffer_size_factor=112)
+DB_TYPE_NUMBER = DbType(DB_TYPE_NUM_NUMBER, "DB_TYPE_NUMBER", "NUMBER", 2,
                         buffer_size_factor=22)
-DB_TYPE_NVARCHAR = DbType(DB_TYPE_NUM_NVARCHAR, "DB_TYPE_NVARCHAR", 1, 4000,
-                          csfrm=2, buffer_size_factor=4)
-DB_TYPE_OBJECT = DbType(DB_TYPE_NUM_OBJECT, "DB_TYPE_OBJECT", 109)
-DB_TYPE_RAW = DbType(DB_TYPE_NUM_RAW, "DB_TYPE_RAW", 23, 4000,
+DB_TYPE_NVARCHAR = DbType(DB_TYPE_NUM_NVARCHAR, "DB_TYPE_NVARCHAR",
+                          "NVARCHAR2", 1, 4000, csfrm=2, buffer_size_factor=4)
+DB_TYPE_OBJECT = DbType(DB_TYPE_NUM_OBJECT, "DB_TYPE_OBJECT", "OBJECT", 109)
+DB_TYPE_RAW = DbType(DB_TYPE_NUM_RAW, "DB_TYPE_RAW", "RAW", 23, 4000,
                      buffer_size_factor=1)
-DB_TYPE_ROWID = DbType(DB_TYPE_NUM_ROWID, "DB_TYPE_ROWID", 11,
+DB_TYPE_ROWID = DbType(DB_TYPE_NUM_ROWID, "DB_TYPE_ROWID", "ROWID", 11,
                        buffer_size_factor=18)
-DB_TYPE_TIMESTAMP = DbType(DB_TYPE_NUM_TIMESTAMP, "DB_TYPE_TIMESTAMP", 180,
-                           buffer_size_factor=11)
+DB_TYPE_TIMESTAMP = DbType(DB_TYPE_NUM_TIMESTAMP, "DB_TYPE_TIMESTAMP",
+                           "TIMESTAMP", 180, buffer_size_factor=11)
 DB_TYPE_TIMESTAMP_LTZ = DbType(DB_TYPE_NUM_TIMESTAMP_LTZ,
-                               "DB_TYPE_TIMESTAMP_LTZ", 231,
+                               "DB_TYPE_TIMESTAMP_LTZ",
+                               "TIMESTAMP WITH LOCAL TZ", 231,
                                buffer_size_factor=11)
 DB_TYPE_TIMESTAMP_TZ = DbType(DB_TYPE_NUM_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
-                              181, buffer_size_factor=13)
-DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", 208)
-DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", 1, 4000,
-                         csfrm=1, buffer_size_factor=4)
+                              "TIMESTAMP WITH TZ", 181,
+                              buffer_size_factor=13)
+DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID", 208)
+DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
+                         1, 4000, csfrm=1, buffer_size_factor=4)
+
+# additional aliases
+db_type_by_ora_name["DOUBLE PRECISION"] = DB_TYPE_NUMBER
+db_type_by_ora_name["FLOAT"] = DB_TYPE_NUMBER
+db_type_by_ora_name["INTEGER"] = DB_TYPE_NUMBER
+db_type_by_ora_name["PL/SQL BOOLEAN"] = DB_TYPE_BOOLEAN
+db_type_by_ora_name["PL/SQL BINARY INTEGER"] = DB_TYPE_BINARY_INTEGER
+db_type_by_ora_name["PL/SQL PLS INTEGER"] = DB_TYPE_BINARY_INTEGER
+db_type_by_ora_name["REAL"] = DB_TYPE_NUMBER
+db_type_by_ora_name["SMALLINT"] = DB_TYPE_NUMBER
 
 # DB API types
 BINARY = ApiType("BINARY", DB_TYPE_RAW, DB_TYPE_LONG_RAW)

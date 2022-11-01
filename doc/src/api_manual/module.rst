@@ -2243,10 +2243,6 @@ when binding data.
     Describes columns, attributes or array elements in a database that are an
     instance of a named SQL or PL/SQL type.
 
-    .. note::
-
-        This type is not supported in python-oracledb Thin mode.
-
 
 .. data:: DB_TYPE_RAW
 

@@ -37,7 +37,6 @@ cdef class ThickVarImpl(BaseVarImpl):
         uint32_t _native_type_num
         bint _get_returned_data
         object _conn
-        ThickConnImpl _conn_impl
 
     def __dealloc__(self):
         if self._handle != NULL:
@@ -75,6 +74,7 @@ cdef class ThickVarImpl(BaseVarImpl):
 
     cdef int _create_handle(self) except -1:
         cdef:
+             ThickConnImpl conn_impl = self._conn_impl
              dpiObjectType *obj_type_handle = NULL
              ThickDbObjectTypeImpl obj_type_impl
         if self._handle != NULL:
@@ -84,7 +84,7 @@ cdef class ThickVarImpl(BaseVarImpl):
              obj_type_impl = <ThickDbObjectTypeImpl> self.objtype
              obj_type_handle = obj_type_impl._handle
         self._native_type_num = _get_native_type_num(self.dbtype)
-        if dpiConn_newVar(self._conn_impl._handle, self.dbtype.num,
+        if dpiConn_newVar(conn_impl._handle, self.dbtype.num,
                           self._native_type_num, self.num_elements, self.size,
                           0, self.is_array, obj_type_handle, &self._handle,
                           &self._data) < 0:

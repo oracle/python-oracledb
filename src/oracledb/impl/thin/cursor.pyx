@@ -50,7 +50,10 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             self._statement = None
 
     cdef BaseVarImpl _create_var_impl(self, object conn):
-        return ThinVarImpl.__new__(ThinVarImpl)
+        cdef ThinVarImpl var_impl
+        var_impl = ThinVarImpl.__new__(ThinVarImpl)
+        var_impl._conn_impl = self._conn_impl
+        return var_impl
 
     cdef MessageWithData _create_message(self, type typ, object cursor):
         """
@@ -114,14 +117,18 @@ cdef class ThinCursorImpl(BaseCursorImpl):
                                   name=bind_info._bind_name)
 
     def execute(self, cursor):
-        cdef MessageWithData message
-        self._preprocess_execute(cursor.connection)
+        cdef:
+            object conn = cursor.connection
+            MessageWithData message
+        self._preprocess_execute(conn)
         message = self._create_message(ExecuteMessage, cursor)
         message.num_execs = 1
         self._conn_impl._protocol._process_single_message(message)
         self._statement._requires_full_execute = False
         if self._statement._is_query:
             self.rowcount = 0
+            if message.type_cache is not None:
+                message.type_cache.populate_partial_types(conn)
 
     def executemany(self, cursor, num_execs, batcherrors, arraydmlrowcounts):
         cdef:
