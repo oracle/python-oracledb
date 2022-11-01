@@ -541,7 +541,7 @@ def _pool_factory(f):
                 **kwargs) -> ConnectionPool:
         f(dsn=dsn, pool_class=pool_class, params=params, **kwargs)
         if not issubclass(pool_class, ConnectionPool):
-            errors._raise_err(errors.INVALID_POOL_CLASS)
+            errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
         return pool_class(dsn, params=params, **kwargs)
     return create_pool
 

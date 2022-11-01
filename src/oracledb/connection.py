@@ -1008,7 +1008,7 @@ def _connection_factory(f):
                 **kwargs) -> Connection:
         f(dsn=dsn, pool=pool, conn_class=conn_class, params=params, **kwargs)
         if not issubclass(conn_class, Connection):
-            errors._raise_err(errors.INVALID_CONN_CLASS)
+            errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
     return connect
 
