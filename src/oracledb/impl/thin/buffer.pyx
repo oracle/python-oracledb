@@ -1231,14 +1231,6 @@ cdef class WriteBuffer:
         if self._actual_size > PACKET_HEADER_SIZE:
             self._send_packet(final_packet=True)
 
-    cdef inline ssize_t max_payload_bytes(self):
-        """
-        Return the maximum number of bytes that can be sent in a packet. This
-        is the maximum size of the entire packet, less the bytes in the header
-        and 2 bytes for the data flags.
-        """
-        return self._max_size - PACKET_HEADER_SIZE - 2
-
     cdef void start_request(self, uint8_t packet_type, uint16_t data_flags=0):
         """
         Indicates that a request from the client is starting. The packet type
@@ -1325,7 +1317,7 @@ cdef class WriteBuffer:
 
     cdef int write_bytes_chunked(self, bytes value) except -1:
         cdef:
-            ssize_t value_len, bytes_left, chunk_len
+            ssize_t value_len, chunk_len
             char_type *ptr
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
         if value_len <= TNS_MAX_SHORT_LENGTH:
@@ -1333,20 +1325,12 @@ cdef class WriteBuffer:
             self.write_raw(ptr, value_len)
         else:
             self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
-            bytes_left = self.bytes_left()
             while value_len > 0:
                 chunk_len = min(value_len, TNS_CHUNK_SIZE)
                 self.write_ub4(chunk_len)
                 value_len -= chunk_len
-                while True:
-                    if bytes_left >= chunk_len:
-                        self.write_raw(ptr, chunk_len)
-                        ptr += chunk_len
-                        break
-                    self.write_raw(ptr, bytes_left)
-                    chunk_len -= bytes_left
-                    ptr += bytes_left
-                    bytes_left = self.max_payload_bytes()
+                self.write_raw(ptr, chunk_len)
+                ptr += chunk_len
             self.write_ub4(0)
 
     cdef int write_interval_ds(self, object value) except -1:
