@@ -469,5 +469,25 @@ class TestCase(test_env.BaseTestCase):
         array_obj.trim(1)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj), [])
 
+    def test_2316_sql_type_metadata(self):
+        "2316 - test the metadata of a SQL type"
+        user = test_env.get_main_user()
+        typ = self.connection.gettype("UDT_OBJECTARRAY")
+        self.assertEqual(typ.schema, user.upper())
+        self.assertEqual(typ.name, "UDT_OBJECTARRAY")
+        self.assertEqual(typ.package_name, None)
+        self.assertEqual(typ.element_type.schema, user.upper())
+        self.assertEqual(typ.element_type.name, "UDT_SUBOBJECT")
+        self.assertEqual(typ.element_type.package_name, None)
+
+    def test_2317_plsql_type_metadata(self):
+        "2317 - test the metadata of a PL/SQL type"
+        user = test_env.get_main_user()
+        typ = self.connection.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        self.assertEqual(typ.schema, user.upper())
+        self.assertEqual(typ.name, "UDT_STRINGLIST")
+        self.assertEqual(typ.package_name, "PKG_TESTSTRINGARRAYS")
+        self.assertEqual(typ.element_type, oracledb.DB_TYPE_VARCHAR)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -395,6 +395,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         bint isCollection
         dpiDataTypeInfo elementTypeInfo
         uint16_t numAttributes
+        const char *packageName
+        uint32_t packageNameLength
 
     ctypedef struct dpiPoolCreateParams:
         uint32_t minSessions

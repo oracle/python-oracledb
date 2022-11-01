@@ -351,6 +351,7 @@ cdef class BaseDbObjectTypeImpl:
     cdef:
         readonly str schema
         readonly str name
+        readonly str package_name
         readonly list attrs
         readonly bint is_collection
         readonly dict attrs_by_name

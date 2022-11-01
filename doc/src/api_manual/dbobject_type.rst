@@ -35,6 +35,15 @@ DbObjectType Attributes
     <dbobjectattr>` that make up the object type.
 
 
+.. attribute:: DbObjectType.element_type
+
+    This read-only attribute returns the type of elements found in collections
+    of this type, if :attr:`~DbObjectType.iscollection` is True; otherwise,
+    it returns None. If the collection contains objects, this will be
+    another object type; otherwise, it will be one of the
+    :ref:`database type constants <dbtypes>`.
+
+
 .. attribute:: DbObjectType.iscollection
 
     This read-only attribute returns a boolean indicating if the object type
@@ -46,13 +55,10 @@ DbObjectType Attributes
     This read-only attribute returns the name of the type.
 
 
-.. attribute:: DbObjectType.element_type
+.. attribute:: DbObjectType.package_name
 
-    This read-only attribute returns the type of elements found in collections
-    of this type, if :attr:`~DbObjectType.iscollection` is True; otherwise,
-    it returns None. If the collection contains objects, this will be
-    another object type; otherwise, it will be one of the
-    :ref:`database type constants <dbtypes>`.
+    This read-only attribute returns the name of the package, if the type
+    refers to a PL/SQL type (otherwise, it returns the value `None`).
 
 
 .. attribute:: DbObjectType.schema

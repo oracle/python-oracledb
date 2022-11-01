@@ -317,6 +317,9 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
             _raise_from_odpi()
         impl.schema = info.schema[:info.schemaLength].decode()
         impl.name = info.name[:info.nameLength].decode()
+        if info.packageNameLength > 0:
+            impl.package_name = \
+                    info.packageName[:info.packageNameLength].decode()
         impl.is_collection = info.isCollection
         if impl.is_collection:
             dbtype = DbType._from_num(info.elementTypeInfo.oracleTypeNum)

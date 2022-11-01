@@ -237,7 +237,11 @@ class DbObjectType:
         return NotImplemented
 
     def __repr__(self):
-        return f"<oracledb.DbObjectType {self.schema}.{self.name}>"
+        if self.package_name is not None:
+            full_name = f"{self.schema}.{self.package_name}.{self.name}"
+        else:
+            full_name = f"{self.schema}.{self.name}"
+        return f"<oracledb.DbObjectType {full_name}>"
 
     @classmethod
     def _from_impl(cls, impl):
@@ -302,6 +306,14 @@ class DbObjectType:
         if value is not None:
             obj.extend(value)
         return obj
+
+    @property
+    def package_name(self) -> str:
+        """
+        This read-only attribute returns the name of the package containing the
+        PL/SQL type or None if the type is not a PL/SQL type.
+        """
+        return self._impl.package_name
 
     @property
     def schema(self) -> str:
