@@ -24,8 +24,6 @@ Thin Mode Changes
     cursor.
 #)  Fixed bug preventing a cursor from being reused after it was bound as a
     REF CURSOR to a PL/SQL block that closes it.
-#)  Fixed bug causing a leading zero to be returned when certain numbers are
-    converted to strings.
 
 Thick Mode Changes
 ++++++++++++++++++
