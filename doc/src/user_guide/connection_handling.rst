@@ -2427,10 +2427,12 @@ Install the Wallet and Network Configuration Files
 
 From the Oracle Cloud console for the database, download the wallet zip file
 using the **DB Connection** button.  The zip contains the wallet and network
-configuration files.  Note: keep wallet files in a secure location and share
-them only with authorized users.
+configuration files.  When downloading the zip, the cloud console will ask you
+to create a wallet password.  This password is used by python-oracledb in Thin
+mode, but not in Thick mode.
 
-Unzip the wallet zip file.
+Note: keep wallet files in a secure location and only share them and the
+password with authorized users.
 
 **In python-oracledb Thin mode**
 
@@ -2443,20 +2445,24 @@ For python-oracledb in Thin mode, only two files from the zip are needed:
 
 If you do not have a PEM file, see :ref:`createpem`.
 
-Move these files to a location such as ``/opt/OracleCloud/MYDB``.
+Unzip the wallet zip file and move the required files to a location such as
+``/opt/OracleCloud/MYDB``.
 
 Connection can be made using your database credentials and setting the ``dsn``
 parameter to the desired network alias from the ``tnsnames.ora`` file.  The
 ``config_dir`` parameter indicates the directory containing ``tnsnames.ora``.
 The ``wallet_location`` parameter is the directory containing the PEM file.  In
-this example the files are in the same directory.  For example, to connect as
-the ADMIN user using the ``mydb_low`` network service name:
+this example the files are in the same directory.  The ``wallet_password``
+parameter should be set to the password created in the cloud console when
+downloading the wallet. For example, to connect as the ADMIN user using the
+``mydb_low`` network service name:
 
 .. code-block:: python
 
     connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low",
                                   config_dir="/opt/OracleCloud/MYDB",
-                                  wallet_location="/opt/OracleCloud/MYDB", wallet_password=wp)
+                                  wallet_location="/opt/OracleCloud/MYDB",
+                                  wallet_password=wp)
 
 **In python-oracledb Thick mode**
 
@@ -2468,7 +2474,8 @@ For python-oracledb in Thick mode, only these files from the zip are needed:
 - ``cwallet.sso`` - Enables SSL/TLS connections in Thick mode.  Keep this file
   secure
 
-There are two options:
+Unzip the wallet zip file.  There are two options for placing the required
+files:
 
 - Move the three files to the ``network/admin`` directory of the client
   libraries used by your application. For example if you are using Instant
