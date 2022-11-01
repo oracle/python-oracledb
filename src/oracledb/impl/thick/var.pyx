@@ -203,6 +203,7 @@ cdef class ThickVarImpl(BaseVarImpl):
                                    cursor_impl.prefetchrows) < 0:
             _raise_from_odpi()
         cursor_impl._fixup_ref_cursor = True
+        cursor.statement = None
 
     cdef int _set_num_elements_in_array(self, uint32_t num_elements) except -1:
         """

@@ -22,6 +22,8 @@ Thin Mode Changes
     (`issue 65 <https://github.com/oracle/python-oracledb/issues/65>`__).
 #)  Fixed bug when fetching nested cursors with more columns than the parent
     cursor.
+#)  Fixed bug preventing a cursor from being reused after it was bound as a
+    REF CURSOR to a PL/SQL block that closes it.
 
 Thick Mode Changes
 ++++++++++++++++++

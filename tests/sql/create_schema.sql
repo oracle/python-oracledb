@@ -876,6 +876,10 @@ create or replace package &main_user..pkg_TestRefCursors as
         a_Cursor                        out sys_refcursor
     );
 
+    procedure TestCloseCursor (
+        a_Cursor                        sys_refcursor
+    );
+
 end;
 /
 
@@ -927,6 +931,22 @@ create or replace package body &main_user..pkg_TestRefCursors as
         open a_Cursor for
             select to_clob(a_Value)
             from dual;
+    end;
+
+    procedure TestCloseCursor (
+        a_Cursor                        sys_refcursor
+    ) is
+        t_Id                            number;
+        t_StrVal                        varchar2(400);
+    begin
+        delete from TestTempTable;
+        fetch a_Cursor into t_Id, t_StrVal;
+        if not a_Cursor%notfound then
+            insert into TestTempTable (IntCol, StringCol1)
+            values (t_Id, t_StrVal);
+	end if;
+        close a_Cursor;
+        commit;
     end;
 
 end;

@@ -301,5 +301,28 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
+    def test_1314_reuse_closed_ref_cursor_with_different_sql(self):
+        "1314 - test reusing a closed ref cursor for executing different sql"
+        sql = "select 13141, 'String 13141' from dual"
+        ref_cursor = self.connection.cursor()
+        ref_cursor.prefetchrows = 0
+        ref_cursor.execute(sql)
+        plsql = "begin pkg_TestRefCursors.TestCloseCursor(:rcursor); end;"
+        self.cursor.execute(plsql, rcursor=ref_cursor)
+        sql = "select 13142, 'String 13142' from dual"
+        ref_cursor.execute(sql)
+        self.assertEqual(ref_cursor.fetchall(), [(13142, 'String 13142'),])
+
+    def test_1315_reuse_closed_ref_cursor_with_same_sql(self):
+        "1315 - test reusing a closed ref cursor for executing same sql"
+        sql = "select 1315, 'String 1315' from dual"
+        ref_cursor = self.connection.cursor()
+        ref_cursor.prefetchrows = 0
+        ref_cursor.execute(sql)
+        plsql = "begin pkg_TestRefCursors.TestCloseCursor(:rcursor); end;"
+        self.cursor.execute(plsql, rcursor=ref_cursor)
+        ref_cursor.execute(sql)
+        self.assertEqual(ref_cursor.fetchall(), [(1315, 'String 1315'),])
+
 if __name__ == "__main__":
     test_env.run_test_cases()
