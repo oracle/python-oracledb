@@ -570,7 +570,7 @@ cdef class Buffer:
 
             # process the first digit; leading zeroes are ignored
             digit = <uint8_t> byte // 10
-            if digit == 0 and i == 0:
+            if digit == 0 and num_digits == 0:
                 decimal_point_index -= 1
             elif digit == 10:
                 digits[num_digits] = 1

@@ -44,6 +44,11 @@ class TestCase(test_env.BaseTestCase):
             return cursor.var(str, 255, outconverter=decimal.Decimal,
                               arraysize=cursor.arraysize)
 
+    def output_type_handler_str(self, cursor, name, default_type, size,
+                                precision, scale):
+        return cursor.var(str, 255, arraysize=cursor.arraysize)
+
+
     def setUp(self):
         super().setUp()
         self.raw_data = []
@@ -470,6 +475,14 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute("select 1 from dual")
             result, = self.cursor.fetchone()
             self.assertEqual(type(result), int)
+
+    def test_2238_fetch_small_constant_with_decimal_point(self):
+        "2238 - fetch a small constant with a decimal point"
+        self.cursor.outputtypehandler = self.output_type_handler_str
+        self.cursor.execute("select 3 / 2 from dual")
+        result, = self.cursor.fetchone()
+        self.assertTrue(len(result) == 3 and result[0] == "1" \
+                        and result[-1] == "5")
 
 if __name__ == "__main__":
     test_env.run_test_cases()
