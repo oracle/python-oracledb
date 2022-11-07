@@ -520,6 +520,7 @@ cdef class MessageWithData(Message):
                                      ThinVarImpl var_impl, uint32_t pos):
         cdef:
             uint8_t num_bytes, ora_type_num, csfrm
+            ThinDbObjectTypeImpl typ_impl
             ThinCursorImpl cursor_impl
             object column_value = None
             ThinDbObjectImpl obj_impl
@@ -597,14 +598,18 @@ cdef class MessageWithData(Message):
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     var_impl.dbtype)
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
-            obj_impl = buf.read_dbobject(var_impl.objtype)
-            if obj_impl is not None:
-                if not self.in_fetch:
-                    column_value = var_impl._values[pos]
-                if column_value is not None:
-                    column_value._impl = obj_impl
-                else:
-                    column_value = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
+            typ_impl = var_impl.objtype
+            if typ_impl.is_xml_type:
+                column_value = buf.read_xmltype()
+            else:
+                obj_impl = buf.read_dbobject(typ_impl)
+                if obj_impl is not None:
+                    if not self.in_fetch:
+                        column_value = var_impl._values[pos]
+                    if column_value is not None:
+                        column_value._impl = obj_impl
+                    else:
+                        column_value = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)

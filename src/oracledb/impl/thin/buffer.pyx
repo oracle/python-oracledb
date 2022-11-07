@@ -791,6 +791,31 @@ cdef class Buffer:
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = unpack_uint32(ptr, byte_order)
 
+    cdef object read_xmltype(self):
+        """
+        Reads an XMLType value from the buffer and returns the string value.
+        The XMLType object is a special DbObjectType and is handled separately
+        since the structure is a bit different.
+        """
+        cdef:
+            uint32_t num_bytes
+            bytes packed_data
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # type OID
+            self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # OID
+            self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # snapshot
+            self.read_bytes()
+        self.skip_ub2()                     # version
+        self.read_ub4(&num_bytes)           # length of data
+        self.skip_ub2()                     # flags
+        if num_bytes > 0:
+            packed_data = self.read_bytes()
+            return packed_data[12:].decode()
+
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """
         Skip the specified number of bytes in the buffer. In order to avoid

@@ -539,6 +539,7 @@ cdef class ThinDbObjectTypeImpl(BaseDbObjectTypeImpl):
     cdef:
         uint8_t collection_type, collection_flags, version
         uint32_t max_num_elements
+        bint is_xml_type
         bytes oid
 
     def create_new_object(self):
@@ -835,6 +836,8 @@ cdef class ThinDbObjectTypeCache:
             typ_impl.schema = self.schema_var.getvalue()
             typ_impl.package_name = self.package_name_var.getvalue()
             typ_impl.name = self.name_var.getvalue()
+            typ_impl.is_xml_type = \
+                    (typ_impl.schema == "SYS" and typ_impl.name == "XMLTYPE")
         self._parse_tds(typ_impl, self.tds_var.getvalue())
         typ_impl.attrs = []
         typ_impl.attrs_by_name = {}
@@ -901,6 +904,7 @@ cdef class ThinDbObjectTypeCache:
             typ_impl.schema = schema
             typ_impl.package_name = package_name
             typ_impl.name = name
+            typ_impl.is_xml_type = (schema == "SYS" and name == "XMLTYPE")
             if oid is not None:
                 self.types_by_oid[oid] = typ_impl
             self.types_by_name[full_name] = typ_impl

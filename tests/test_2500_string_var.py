@@ -399,10 +399,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3004:",
                                var.setvalue, 0, "ABDHRYTHFJGKDKKDH")
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support XML type objects yet")
     def test_2530_short_xml_as_string(self):
-        "2530 - test fetching XMLType object as a string"
+        "2530 - test fetching XMLType (< 1K) as a string"
         self.cursor.execute("""
                 select XMLElement("string", stringCol)
                 from TestStrings
@@ -411,13 +409,11 @@ class TestCase(test_env.BaseTestCase):
         expected_value = "<string>String 1</string>"
         self.assertEqual(actual_value, expected_value)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support XML type objects yet")
     def test_2531_long_xml_as_string(self):
-        "2531 - test inserting and fetching an XMLType object (1K) as a string"
+        "2531 - test inserting and fetching XMLType (1K) as a string"
         chars = string.ascii_uppercase + string.ascii_lowercase
         random_string = ''.join(random.choice(chars) for _ in range(1024))
-        int_val = 200
+        int_val = 2531
         xml_string = '<data>' + random_string + '</data>'
         self.cursor.execute("truncate table TestTempXML")
         self.cursor.execute("""
@@ -457,6 +453,25 @@ class TestCase(test_env.BaseTestCase):
             cursor.outputtypehandler = None
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchone(), (1, string_val))
+
+    @unittest.skipIf(not test_env.get_is_thin(),
+                     "thick mode doesn't support fetching XMLType > VARCHAR2")
+    def test_2534_very_long_xml_as_string(self):
+        "2534 - test inserting and fetching XMLType (32K) as a string"
+        chars = string.ascii_uppercase + string.ascii_lowercase
+        random_string = ''.join(random.choice(chars) for _ in range(32768))
+        int_val = 2534
+        xml_string = f"<data>{random_string}</data>"
+        lob = self.connection.createlob(oracledb.DB_TYPE_CLOB)
+        lob.write(xml_string)
+        self.cursor.execute("truncate table TestTempXML")
+        self.cursor.execute("""
+                insert into TestTempXML (IntCol, XMLCol)
+                values (:1, sys.xmltype(:2))""", (int_val, lob))
+        self.cursor.execute("select XMLCol from TestTempXML where intCol = :1",
+                            (int_val,))
+        actual_value, = self.cursor.fetchone()
+        self.assertEqual(actual_value.strip(), xml_string)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

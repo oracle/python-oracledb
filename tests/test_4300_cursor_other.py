@@ -226,17 +226,15 @@ class TestCase(test_env.BaseTestCase):
         exp = "udt_Object(28, 'Bind obj out', null, null, null, null, null)"
         self.assertEqual(result, exp)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support XML type objects yet")
     def test_4320_fetch_xmltype(self):
         "4320 - test that fetching an XMLType returns a string"
         int_val = 5
         label = "IntCol"
-        expected_result = "<%s>%s</%s>" % (label, int_val, label)
-        self.cursor.execute("""
-                select XMLElement("%s", IntCol)
+        expected_result = f"<{label}>{int_val}</{label}>"
+        self.cursor.execute(f"""
+                select XMLElement("{label}", IntCol)
                 from TestStrings
-                where IntCol = :int_val""" % label,
+                where IntCol = :int_val""",
                 int_val=int_val)
         result, = self.cursor.fetchone()
         self.assertEqual(result, expected_result)

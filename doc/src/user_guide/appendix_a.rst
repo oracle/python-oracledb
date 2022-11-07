@@ -367,9 +367,9 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - XMLType data type (see :ref:`xmldatatype`)
-      - No
-      - No
-      - No
+      - Yes
+      - Yes - may need to fetch as CLOB
+      - Yes - may need to fetch as CLOB
     * - BFILE data type (see :data:`~oracledb.DB_TYPE_BFILE`)
       - No
       - Yes

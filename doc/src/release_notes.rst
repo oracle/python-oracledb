@@ -17,6 +17,9 @@ Thin Mode Changes
     :data:`~oracledb.DB_TYPE_OBJECT`. Note that some of the error codes and
     messages have changed as a result (DPY errors are raised instead of ones
     specific to ODPI-C and OCI).
+#)  Added support for fetching SYS.XMLTYPE data as strings. Note that unlike
+    in Thick mode, fetching longer values does not require using
+    ``XMLTYPE.GETCLOBVAL()``.
 #)  Added support for using a wallet for one-way TLS connections, rather than
     requiring OS recognition of certificates
     (`issue 65 <https://github.com/oracle/python-oracledb/issues/65>`__).
