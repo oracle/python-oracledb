@@ -481,7 +481,7 @@ class TestCase(test_env.BaseTestCase):
                              f"(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)" + \
                              f"(HOST={host})(PORT=1521)))(CONNECT_DATA=" + \
                              f"(SERVICE_NAME={service_name}))" + \
-                             f"(SECURITY=(SSL_SERVER_DN_MATCH=True)))"
+                             f"(SECURITY=(SSL_SERVER_DN_MATCH=ON)))"
             self.assertEqual(params.get_connect_string(), connect_string)
 
     def test_4532_multiple_alias_entry_tnsnames(self):

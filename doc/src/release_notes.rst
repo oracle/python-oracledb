@@ -31,6 +31,8 @@ Thin Mode Changes
     :data:`~oracledb.DB_TYPE_UROWID` that exceed 3950 bytes in length.
 #)  Fixed bug preventing correct parsing of connect descriptors with both
     ADDRESS and ADDRESS_LIST components at the same level.
+#)  The complete connect string is now sent to the server instead of just the
+    actual components being used. This is important for some configurations.
 
 Thick Mode Changes
 ++++++++++++++++++

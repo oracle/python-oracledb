@@ -120,17 +120,18 @@ cdef class Protocol:
                                 ThinConnImpl conn_impl,
                                 ConnectParamsImpl params,
                                 Description description,
-                                Address address) except -1:
+                                Address address,
+                                str connect_string) except -1:
         """
         Method for performing the required steps for establishing a connection
         within the scope of a retry. If the listener refuses the connection, a
         retry will be performed, if retry_count is set.
         """
         cdef:
-            str connect_string, host, redirect_data
             ConnectMessage connect_message = None
             object ssl_context, connect_info
             ConnectParamsImpl temp_params
+            str host, redirect_data
             Address temp_address
             uint8_t packet_type
             int port, pos
@@ -143,7 +144,6 @@ cdef class Protocol:
         host = address.host
         port = address.port
         self._connect_tcp(params, description, address, host, port)
-        connect_string = _get_connect_data(address, description)
 
         # send connect message and process response; this may request the
         # message to be resent multiple times; if a redirect packet is

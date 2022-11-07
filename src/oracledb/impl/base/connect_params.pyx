@@ -707,7 +707,7 @@ cdef class Description:
             return f"{value_minutes}min"
         return f"{value_int}"
 
-    cdef str build_connect_string(self):
+    cdef str build_connect_string(self, str cid=None):
         """
         Build a connect string from the components.
         """
@@ -728,10 +728,14 @@ cdef class Description:
             parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
         if self.purity != 0:
             parts.append(f"(POOL_PURITY={self.purity})")
+        if cid is not None:
+            parts.append(f"(CID={cid})")
         connect_data = f'(CONNECT_DATA={"".join(parts)})'
 
         # build security segment, if applicable
-        parts = [f"(SSL_SERVER_DN_MATCH={self.ssl_server_dn_match})"]
+        parts = []
+        if self.ssl_server_dn_match:
+            parts.append("(SSL_SERVER_DN_MATCH=ON)")
         if self.ssl_server_cert_dn is not None:
             parts.append(f"(SSL_SERVER_CERT_DN={self.ssl_server_cert_dn})")
         if self.wallet_location is not None:

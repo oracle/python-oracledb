@@ -91,6 +91,7 @@ cdef class ThinConnImpl(BaseConnImpl):
     cdef int _connect_with_address(self, Address address,
                                    Description description,
                                    ConnectParamsImpl params,
+                                   str connect_string,
                                    bint raise_exception) except -1:
         """
         Internal method used for connecting with the given description and
@@ -98,7 +99,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         try:
             self._protocol._connect_phase_one(self, params, description,
-                                              address)
+                                              address, connect_string)
         except exceptions.DatabaseError:
             if raise_exception:
                 raise
@@ -130,10 +131,12 @@ cdef class ThinConnImpl(BaseConnImpl):
             uint32_t num_attempts = description.retry_count + 1
             uint32_t num_lists = len(address_lists)
             AddressList address_list
+            str connect_string
             Address address
         # Retry connecting to the socket if an attempt fails and retry_count
         # is specified in the connect string. If an attempt succeeds, return
         # the socket and the valid address object.
+        connect_string = _get_connect_data(description)
         for i in range(num_attempts):
             # Iterate through each address_list in the description. If the
             # description level load_balance is on, keep track of the least
@@ -161,7 +164,7 @@ cdef class ThinConnImpl(BaseConnImpl):
                                 and j == num_lists - 1 \
                                 and k == num_addresses - 1
                     self._connect_with_address(address, description, params,
-                                               raise_exc)
+                                               connect_string, raise_exc)
                     if self._protocol._in_connect:
                         continue
                     address_list.lru_index = (idx1 + 1) % num_addresses

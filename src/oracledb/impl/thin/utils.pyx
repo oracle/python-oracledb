@@ -88,22 +88,15 @@ cdef object _encode_rowid(Rowid *rowid):
         return buf[:TNS_MAX_ROWID_LENGTH].decode()
 
 
-def _get_connect_data(address, description):
+cdef str _get_connect_data(Description description):
     """
     Return the connect data required by the listener in order to connect.
     """
     constants = _connect_constants
-    server_type = f"(SERVER={description.server_type})" \
-            if description.server_type is not None else ""
-    identity = f"(SERVICE_NAME={description.service_name})" \
-            if description.service_name is not None or \
-                    description.sid is None else f"(SID={description.sid})"
     cid = f"(PROGRAM={constants.sanitized_program_name})" + \
           f"(HOST={constants.sanitized_machine_name})" + \
           f"(USER={constants.sanitized_user_name})"
-    return f"(DESCRIPTION=(ADDRESS=(PROTOCOL={address.protocol.upper()})" + \
-           f"(HOST={address.host})(PORT={address.port}))" + \
-           f"(CONNECT_DATA={identity}{server_type}(CID={cid})))"
+    return description.build_connect_string(cid)
 
 
 def _print_packet(operation, socket_fileno, data):

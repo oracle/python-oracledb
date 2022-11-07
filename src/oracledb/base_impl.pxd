@@ -136,7 +136,7 @@ cdef class Description:
         public str wallet_location
 
     cdef str _build_duration_str(self, double value)
-    cdef str build_connect_string(self)
+    cdef str build_connect_string(self, str cid=*)
 
 
 cdef class DescriptionList:
