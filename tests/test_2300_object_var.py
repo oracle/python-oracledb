@@ -487,5 +487,10 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(typ.package_name, "PKG_TESTSTRINGARRAYS")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_VARCHAR)
 
+    def test_2318_negative_create_object_var_no_type_name(self):
+        "2318 - test creating an object variable without a type name"
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2037:",
+                               self.cursor.var, oracledb.DB_TYPE_OBJECT)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -36,7 +36,7 @@ from . import errors, exceptions
 from . import connection as connection_module
 from .defaults import defaults
 from .var import Var
-from .base_impl import DbType
+from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
 
 class Cursor:
@@ -793,6 +793,8 @@ class Cursor:
         self._verify_open()
         if typename is not None:
             typ = self.connection.gettype(typename)
+        elif typ is DB_TYPE_OBJECT:
+            errors._raise_err(errors.ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR)
         if encodingErrors is not None:
             if encoding_errors is not None:
                 errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,

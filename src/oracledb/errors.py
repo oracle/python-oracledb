@@ -168,6 +168,7 @@ ERR_EXPIRED_ACCESS_TOKEN = 2033
 ERR_ACCESS_TOKEN_REQUIRES_TCPS = 2034
 ERR_INVALID_OBJECT_TYPE_NAME = 2035
 ERR_OBJECT_IS_NOT_A_COLLECTION = 2036
+ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR = 2037
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -390,6 +391,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_MISSING_BIND_VALUE:
             'a bind variable replacement value for placeholder ":{name}" was '
             'not provided',
+    ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR:
+            'no object type specified for object variable',
     ERR_MIXED_ELEMENT_TYPES:
             'element {element} is not the same data type as previous elements',
     ERR_MIXED_POSITIONAL_AND_NAMED_BINDS:
