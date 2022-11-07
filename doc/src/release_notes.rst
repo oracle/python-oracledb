@@ -24,6 +24,8 @@ Thin Mode Changes
     cursor.
 #)  Fixed bug preventing a cursor from being reused after it was bound as a
     REF CURSOR to a PL/SQL block that closes it.
+#)  Fixed bug preventing binding OUT data of type
+    :data:`~oracledb.DB_TYPE_UROWID` that exceed 3950 bytes in length.
 
 Thick Mode Changes
 ++++++++++++++++++
