@@ -55,7 +55,7 @@ Connection Methods
 
 .. method:: Connection.cancel()
 
-    Breaks a long-running transaction.
+    Breaks a long-running statement.
 
     .. note::
 

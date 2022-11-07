@@ -2518,6 +2518,13 @@ files:
        connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low")
 
 
+In python-oracle Thick mode, to create mTLS connections in one Python process
+to two or more Oracle Autonomous Databases, move each ``cwallet.sso`` file to
+its own directory.  For each connection use different connection string
+``WALLET_LOCATION`` parameters to specify the directory of each ``cwallet.sso``
+file.  It is recommended to use Oracle Client libraries 19.17 (or later) when
+using multiple wallets.
+
 Access Through a Proxy
 +++++++++++++++++++++++
 

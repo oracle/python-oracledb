@@ -198,8 +198,8 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Client character set support
-      - UTF-8 - see :ref:`globalization`
+    * - Client character set support (see :ref:`globalization`)
+      - UTF-8
       - UTF-8
       - Yes - can use Python encodings. Default in 8.0 is UTF-8
     * - Oracle Globalization support
