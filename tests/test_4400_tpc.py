@@ -92,5 +92,29 @@ class TestCase(test_env.BaseTestCase):
         expected_rows = [(1, 'tesName'), (2, 'tesName')]
         self.assertEqual(self.cursor.fetchall(), expected_rows)
 
+    def test_4403_rollback_with_xid(self):
+        "4403 - test rollback with parameter xid"
+        self.cursor.execute("truncate table TestTempTable")
+        xid1 = self.connection.xid(3901, "txn3901", "branch1")
+        xid2 = self.connection.xid(3902, "txn3902", "branch2")
+        for count, xid in enumerate([xid1, xid2]):
+            self.connection.tpc_begin(xid)
+            self.cursor.execute("""
+                    insert into TestTempTable (IntCol, StringCol1)
+                    values (:id, 'tesName')""", id=count)
+            self.connection.tpc_end()
+        self.connection.tpc_rollback(xid1)
+
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24756",
+                               self.connection.tpc_prepare, xid1)
+        needs_commit = self.connection.tpc_prepare(xid2)
+        if needs_commit:
+            self.connection.tpc_commit(xid2)
+        self.cursor.execute("""
+                select IntCol, StringCol1
+                from TestTempTable
+                order by IntCol""")
+        self.assertEqual(self.cursor.fetchall(), [(1, 'tesName')])
+
 if __name__ == "__main__":
     test_env.run_test_cases()
