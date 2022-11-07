@@ -220,6 +220,9 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     cdef int _force_close(self) except -1:
         self._pool = None
+        if self._dbobject_type_cache_num > 0:
+            remove_dbobject_type_cache(self._dbobject_type_cache_num)
+            self._dbobject_type_cache_num = 0
         self._protocol._force_close()
 
     cdef Statement _get_statement(self, str sql, bint cache_statement):
@@ -301,9 +304,6 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     def close(self, bint in_del=False):
         try:
-            if self._dbobject_type_cache_num > 0:
-                remove_dbobject_type_cache(self._dbobject_type_cache_num)
-                self._dbobject_type_cache_num = 0
             self._protocol._close(self)
         except (ssl.SSLError, exceptions.DatabaseError):
             pass

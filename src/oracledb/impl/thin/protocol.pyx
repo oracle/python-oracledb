@@ -107,10 +107,14 @@ cdef class Protocol:
 
             # if the connection is part of a pool, return it to the pool
             if conn_impl._pool is not None:
-                conn_impl._pool._return_connection(conn_impl)
+                return conn_impl._pool._return_connection(conn_impl)
 
-            # otherwise, send the logoff message and final close
-            elif self._socket is not None:
+            # otherwise, destroy the database object type cache, send the
+            # logoff message and final close packet
+            if conn_impl._dbobject_type_cache_num > 0:
+                remove_dbobject_type_cache(conn_impl._dbobject_type_cache_num)
+                conn_impl._dbobject_type_cache_num = 0
+            if self._socket is not None:
                 if not conn_impl._drcp_enabled:
                     message = conn_impl._create_message(LogoffMessage)
                     self._process_message(message)
