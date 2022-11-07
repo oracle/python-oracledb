@@ -188,6 +188,7 @@ cdef class ConnectParamsImpl:
         bytearray _token_obfuscator
         bytearray _private_key
         bytearray _private_key_obfuscator
+        bint _has_components
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1

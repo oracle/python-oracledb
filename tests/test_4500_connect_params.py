@@ -520,5 +520,38 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.cclass, cclass)
             self.assertEqual(params.purity, purity_int)
 
+    def test_4534_connect_descriptor_small_container_first(self):
+        "4534 - test connect descriptor with different containers (small 1st)"
+        connect_string = """
+            (DESCRIPTION=
+                (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
+                (ADDRESS_LIST=
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host2a)(PORT=1522))
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host2b)(PORT=1523)))
+                (ADDRESS=(PROTOCOL=tcp)(HOST=host3)(PORT=1524))
+                (CONNECT_DATA=(SERVICE_NAME=my_service_34))
+            )"""
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.host, ["host1", "host2a", "host2b", "host3"])
+
+    def test_4535_connect_descriptor_small_container_second(self):
+        "4535 - test connect descriptor with different containers (small 2nd)"
+        connect_string = """
+            (DESCRIPTION=
+                (ADDRESS_LIST=
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host1a)(PORT=1532))
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host1b)(PORT=1533)))
+                (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1534))
+                (ADDRESS_LIST=
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host3a)(PORT=1535))
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host3b)(PORT=1536)))
+                (CONNECT_DATA=(SERVICE_NAME=my_service_34))
+            )"""
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.host,
+                         ["host1a", "host1b", "host2", "host3a", "host3b"])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

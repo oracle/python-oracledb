@@ -67,6 +67,19 @@ cdef uint32_t DEFAULT_PORT = 1521
 cdef double DEFAULT_TCP_CONNECT_TIMEOUT = 60
 
 
+cdef int _add_container(dict args, str name, object value) except -1:
+    """
+    Adds a container to the arguments.
+    """
+    if name == "address" and "address_list" in args:
+        value = dict(address=[value])
+        name = "address_list"
+    elif name == "address_list" and "address" in args:
+        args[name] = [dict(address=[v]) for v in args["address"]]
+        del args["address"]
+    args.setdefault(name, []).append(value)
+
+
 cdef dict _parse_connect_descriptor(str data, dict args):
     """
     Internal method which parses a connect descriptor containing name-value
@@ -104,7 +117,7 @@ cdef dict _parse_connect_descriptor(str data, dict args):
             data = data[end_pos + 1:].strip()
     name = ALTERNATIVE_PARAM_NAMES.get(name, name)
     if name in CONTAINER_PARAM_NAMES:
-        args.setdefault(name, []).append(value)
+        _add_container(args, name, value)
     else:
         args[name] = value
     return args
@@ -156,6 +169,8 @@ cdef class ConnectParamsImpl:
         self._default_address.set_from_args(args)
         _set_bool_param(args, "externalauth", &self.externalauth)
         self._set_access_token_param(args.get("access_token"))
+        if args:
+            self._has_components = True
 
     cdef int _check_credentials(self) except -1:
         """
@@ -329,6 +344,7 @@ cdef class ConnectParamsImpl:
         # to be a full connect descriptor
         if connect_string.startswith("("):
             _parse_connect_descriptor(connect_string, args)
+            self._has_components = True
             return self._process_connect_descriptor(args)
 
         # otherwise, see if the connect string is an EasyConnect string
@@ -372,6 +388,9 @@ cdef class ConnectParamsImpl:
                                   file_name=tnsnames_file.file_name)
             _parse_connect_descriptor(connect_string, args)
             self._process_connect_descriptor(args)
+
+        # mark that object has components
+        self._has_components = True
 
     cdef int _process_connect_descriptor(self, dict args) except -1:
         """
@@ -519,7 +538,7 @@ cdef class ConnectParamsImpl:
         will be a connect string built up from the components supplied when the
         object was built.
         """
-        if self._default_address.host is not None:
+        if self._has_components:
             return self.description_list.build_connect_string()
 
     def get_full_user(self):
