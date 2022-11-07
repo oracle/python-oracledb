@@ -272,6 +272,8 @@ cdef class ThickConnImpl(BaseConnImpl):
         # if the connection is part of the pool, get the pool creation params
         if pool_impl is not None:
             pool_params = pool_impl.connect_params
+            self.username = pool_impl.username
+            self.dsn = pool_impl.dsn
 
         # set up connection parameters
         params = ConnectionParams()

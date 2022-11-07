@@ -35,6 +35,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Connections acquired from a homogeneous pool now show the username and dsn
+    to which they are connected in their repr().
+
 Common Changes
 ++++++++++++++
 
