@@ -15,8 +15,9 @@ Thin Mode Changes
 
 #)  Added support for binding and fetching data of type
     :data:`~oracledb.DB_TYPE_OBJECT`. Note that some of the error codes and
-    messages have changed as a result (DPY errors are raised instead of ones
-    specific to ODPI-C and OCI).
+    messages have changed as a result: DPY errors are raised instead of ones
+    specific to ODPI-C and OCI
+    (`issue 43 <https://github.com/oracle/python-oracledb/issues/43>`__).
 #)  Added support for fetching SYS.XMLTYPE data as strings. Note that unlike
     in Thick mode, fetching longer values does not require using
     ``XMLTYPE.GETCLOBVAL()``.
