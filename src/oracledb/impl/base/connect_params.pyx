@@ -681,6 +681,7 @@ cdef class AddressList:
         node in a connect descriptor.
         """
         _set_bool_param(args, "load_balance", &self.load_balance)
+        _set_bool_param(args, "source_route", &self.source_route)
 
 
 cdef class Description:
@@ -746,6 +747,8 @@ cdef class Description:
         parts = []
         if self.load_balance:
             parts.append("(LOAD_BALANCE=ON)")
+        if self.source_route:
+            parts.append("(SOURCE_ROUTE=ON)")
         if self.retry_count != 0:
             parts.append(f"(RETRY_COUNT={self.retry_count})")
         if self.retry_delay != 0:
@@ -775,6 +778,7 @@ cdef class Description:
         description.purity = self.purity
         description.expire_time = self.expire_time
         description.load_balance = self.load_balance
+        description.source_route = self.source_route
         description.retry_count = self.retry_count
         description.retry_delay = self.retry_delay
         description.tcp_connect_timeout = self.tcp_connect_timeout
@@ -802,6 +806,7 @@ cdef class Description:
         cdef Address address
         _set_uint_param(args, "expire_time", &self.expire_time)
         _set_bool_param(args, "load_balance", &self.load_balance)
+        _set_bool_param(args, "source_route", &self.source_route)
         _set_uint_param(args, "retry_count", &self.retry_count)
         _set_uint_param(args, "retry_delay", &self.retry_delay)
         _set_duration_param(args, "tcp_connect_timeout",
@@ -844,6 +849,7 @@ cdef class DescriptionList:
         node in a connect descriptor.
         """
         _set_bool_param(args, "load_balance", &self.load_balance)
+        _set_bool_param(args, "source_route", &self.source_route)
 
 
 cdef class TnsnamesFile:

@@ -1655,12 +1655,13 @@ cdef class ConnectMessage(Message):
             response = self.error_info.message
             error_code = "unknown"
             error_code_int = 0
-            pos = response.find("(ERR=")
-            if pos > 0:
-                end_pos = response.find(")", pos)
-                if end_pos > 0:
-                    error_code = response[pos + 5:end_pos]
-                    error_code_int = int(error_code)
+            if response is not None:
+                pos = response.find("(ERR=")
+                if pos > 0:
+                    end_pos = response.find(")", pos)
+                    if end_pos > 0:
+                        error_code = response[pos + 5:end_pos]
+                        error_code_int = int(error_code)
             if error_code_int == 0:
                 errors._raise_err(errors.ERR_UNEXPECTED_REFUSE)
             if error_code_int == TNS_ERR_INVALID_SERVICE_NAME:

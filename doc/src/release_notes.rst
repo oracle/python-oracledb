@@ -24,6 +24,9 @@ Thin Mode Changes
 #)  Added support for using a wallet for one-way TLS connections, rather than
     requiring OS recognition of certificates
     (`issue 65 <https://github.com/oracle/python-oracledb/issues/65>`__).
+#)  Added support for connecting to CMAN using `(SOURCE_ROUTE=YES)` in the
+    connect string
+    (`issue 81 <https://github.com/oracle/python-oracledb/issues/81>`__).
 #)  Fixed bug when fetching nested cursors with more columns than the parent
     cursor.
 #)  Fixed bug preventing a cursor from being reused after it was bound as a

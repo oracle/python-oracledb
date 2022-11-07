@@ -553,5 +553,38 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.host,
                          ["host1a", "host1b", "host2", "host3a", "host3b"])
 
+    def test_4536_build_connect_string_with_source_route(self):
+        "4536 - test building connect string with source route designation"
+        host = "my_host4536"
+        service_name = "my_service4536"
+        options = [
+            ("on", True),
+            ("off", False),
+            ("true", True),
+            ("false", False),
+            ("yes", True),
+            ("no", False)
+        ]
+
+        for in_val, has_section in options:
+            connect_string = f"""
+                (DESCRIPTION=
+                    (SOURCE_ROUTE={in_val})
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
+                    (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522))
+                    (CONNECT_DATA=(SERVICE_NAME=my_service_35))
+                )"""
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            source_route_clause = "(SOURCE_ROUTE=ON)" if has_section else ""
+            connect_string = \
+                    f"(DESCRIPTION={source_route_clause}" + \
+                    f"(ADDRESS_LIST=" + \
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))" + \
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522)))" + \
+                    f"(CONNECT_DATA=(SERVICE_NAME=my_service_35))" + \
+                    f"(SECURITY=(SSL_SERVER_DN_MATCH=ON)))"
+            self.assertEqual(params.get_connect_string(), connect_string)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

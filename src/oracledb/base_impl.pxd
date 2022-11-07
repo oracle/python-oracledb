@@ -111,6 +111,7 @@ cdef class Address:
 cdef class AddressList:
     cdef:
         public list addresses
+        bint source_route
         bint load_balance
         int lru_index
 
@@ -120,6 +121,7 @@ cdef class AddressList:
 cdef class Description:
     cdef:
         public list address_lists
+        public bint source_route
         public bint load_balance
         public int lru_index
         public uint32_t expire_time
@@ -142,6 +144,7 @@ cdef class Description:
 cdef class DescriptionList:
     cdef:
         public list descriptions
+        bint source_route
         bint load_balance
         int lru_index
 

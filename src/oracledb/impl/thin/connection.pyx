@@ -133,26 +133,37 @@ cdef class ThinConnImpl(BaseConnImpl):
             AddressList address_list
             str connect_string
             Address address
+
         # Retry connecting to the socket if an attempt fails and retry_count
         # is specified in the connect string. If an attempt succeeds, return
         # the socket and the valid address object.
         connect_string = _get_connect_data(description)
         for i in range(num_attempts):
-            # Iterate through each address_list in the description. If the
+
+            # iterate through each address_list in the description; if the
             # description level load_balance is on, keep track of the least
-            # recently used address for subsequent connections. If not,
-            # iterate through the list in order.
+            # recently used address for subsequent connections; otherwise,
+            # iterate through the list in order; note that if source_route is
+            # enabled that only the first address list is examined as the rest
+            # are used for routing on the server
+            if description.source_route and num_lists > 0:
+                num_lists = 1
             for j in range(num_lists):
                 if load_balance:
                     idx1 = (j + description.lru_index) % num_lists
                 else:
                     idx1 = j
+
+                # iterate through each address in an address_list; if the
+                # address_list level load_balance is on, keep track of the
+                # least recently used address for subsequent connections;
+                # otherwise, iterate through the list in order; note that if
+                # source_route is enabled that only the first address is
+                # examined and the rest are used for routing on the server
                 address_list = address_lists[idx1]
                 num_addresses = len(address_list.addresses)
-                # Iterate through each address in an address_list. If the
-                # address_list level load_balance is on, keep track of the
-                # least recently used address for subsequent connections. If
-                # not, iterate through the list in order.
+                if address_list.source_route and num_addresses > 0:
+                    num_addresses = 1
                 for k in range(num_addresses):
                     if address_list.load_balance:
                         idx2 = (k + address_list.lru_index) % num_addresses
@@ -182,6 +193,8 @@ cdef class ThinConnImpl(BaseConnImpl):
             ssize_t i, idx, num_descriptions = len(descriptions)
             Description description
             bint final_desc = False
+        if description_list.source_route and num_descriptions > 0:
+            num_descriptions = 1
         for i in range(num_descriptions):
             if i == num_descriptions - 1:
                 final_desc = True
