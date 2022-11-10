@@ -228,16 +228,13 @@ cdef class Message:
             buf.skip_ub2()
             buf.skip_ub1()
             buf.read_ub2(&num_elements)
-            print("num elements:", num_elements)
             if num_elements > 0:
                 buf.skip_ub1()
                 for i in range(num_elements):
                     buf.read_ub2(&temp16)
-                    print("element:", i, "key length:", temp16)
                     if temp16 > 0:          # skip key
                         buf.skip_raw_bytes_chunked()
                     buf.read_ub2(&temp16)
-                    print("element:", i, "value length:", temp16)
                     if temp16 > 0:          # skip value
                         buf.skip_raw_bytes_chunked()
                     buf.skip_ub2()          # skip flags
