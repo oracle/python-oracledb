@@ -104,8 +104,11 @@ def get_admin_connection():
     admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
     admin_password = get_value("ADMIN_PASSWORD", f"Password for {admin_user}",
                                password=True)
-    return oracledb.connect(dsn=get_connect_string(),
-                            params=get_connect_params(),
+    params = get_connect_params()
+    if admin_user and admin_user.upper() == "SYS":
+        params = params.copy()
+        params.set(mode=oracledb.AUTH_MODE_SYSDBA)
+    return oracledb.connect(dsn=get_connect_string(), params=params,
                             user=admin_user, password=admin_password)
 
 def get_charset_ratios():
@@ -216,6 +219,17 @@ def get_wallet_password():
 def get_external_user():
     if not get_is_thin():
         return get_value("EXTERNAL_USER", "External User")
+
+def is_on_oracle_cloud(connection):
+    server = get_server_version()
+    if server < (18, 0):
+        return False
+    cursor = connection.cursor()
+    cursor.execute("""
+            select sys_context('userenv', 'cloud_service')
+            from dual""")
+    service_name, = cursor.fetchone()
+    return service_name is not None
 
 def run_sql_script(conn, script_name, **kwargs):
     statement_parts = []
@@ -377,17 +391,9 @@ class BaseTestCase(unittest.TestCase):
         return self.connection.getSodaDatabase()
 
     def is_on_oracle_cloud(self, connection=None):
-        server = get_server_version()
-        if server < (18, 0):
-            return False
         if connection is None:
             connection = self.connection
-        cursor = connection.cursor()
-        cursor.execute("""
-                select sys_context('userenv', 'cloud_service')
-                from dual""")
-        service_name, = cursor.fetchone()
-        return service_name is not None
+        return is_on_oracle_cloud(connection)
 
     def setUp(self):
         if self.requires_connection:

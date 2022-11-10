@@ -47,4 +47,7 @@ test_env.run_sql_script(conn, "create_schema",
                         main_password=test_env.get_main_password(),
                         proxy_user=test_env.get_proxy_user(),
                         proxy_password=test_env.get_proxy_password())
+if test_env.is_on_oracle_cloud(conn):
+    test_env.run_sql_script(conn, "create_schema_cloud",
+                            main_user=test_env.get_main_user())
 print("Done.")

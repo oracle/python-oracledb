@@ -469,6 +469,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2720_aq_notification(self):
         "2720 - verify msgid of aq message which spawned notification "
+        if self.is_on_oracle_cloud(self.connection):
+            self.skipTest("AQ notification not supported on the cloud")
         queue = self.get_and_clear_queue(self.book_queue_name,
                                          self.book_type_name)
         condition = threading.Condition()
