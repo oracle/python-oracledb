@@ -238,6 +238,13 @@ create table &main_user..CustomersAsBlob (
 )
 /
 
+create table &main_user..LoadCsvTab (
+    id                    number not null,
+    name                  varchar2(25),
+    constraint LoadCsvTab_pk primary key (id)
+)
+/
+
 declare
     t_Version                           number;
 begin

@@ -55,6 +55,7 @@ Common Changes
 #)  Added support for Python 3.11.
 #)  Added attribute :attr:`DbObjectType.package_name` which contains the name
     of the package if the type is a PL/SQL type (otherwise, it will be `None`).
+#)  Added sample for loading data from a CSV file.
 #)  Improved test suite and documentation.
 
 

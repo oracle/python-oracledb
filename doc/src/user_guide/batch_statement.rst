@@ -303,3 +303,6 @@ prevent all data being inserted at once:
 Depending on data sizes and business requirements, database changes such as
 temporarily disabling redo logging on the table, or disabling indexes may also
 be beneficial.
+
+See `load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
+samples/load_csv.py>`__ for a runnable example.
