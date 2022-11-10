@@ -591,6 +591,25 @@ cdef class ThinDbObjectTypeCache:
         dict types_by_name
         list partial_types
 
+    cdef int _clear_meta_cursor(self) except -1:
+        """
+        Clears the cursor used for searching metadata. This is needed when
+        returning a connection to the pool since user-level objects are
+        retained.
+        """
+        if self.meta_cursor is not None:
+            self.meta_cursor.close()
+            self.meta_cursor = None
+            self.return_value_var = None
+            self.full_name_var = None
+            self.oid_var = None
+            self.tds_var = None
+            self.attrs_ref_cursor_var = None
+            self.version_var = None
+            self.schema_var = None
+            self.package_name_var = None
+            self.name_var = None
+
     cdef int _determine_element_type_csfrm(self, ThinDbObjectTypeImpl typ_impl,
                                            uint8_t* csfrm) except -1:
         """

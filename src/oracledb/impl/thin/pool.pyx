@@ -296,7 +296,14 @@ cdef class ThinPoolImpl(BasePoolImpl):
         some reason it will be dropped; otherwise, it will be returned to the
         list of connections available for further use.
         """
+        cdef:
+            ThinDbObjectTypeCache type_cache
+            int cache_num
         with self._condition:
+            if conn_impl._dbobject_type_cache_num > 0:
+                cache_num = conn_impl._dbobject_type_cache_num
+                type_cache = get_dbobject_type_cache(cache_num)
+                type_cache._clear_meta_cursor()
             if conn_impl._protocol._socket is not None:
                 self._free_used_conn_impls.append(conn_impl)
                 conn_impl._time_in_pool = time.monotonic()

@@ -707,5 +707,15 @@ class TestCase(test_env.BaseTestCase):
         pool.soda_metadata_cache = False
         self.assertEqual(pool.soda_metadata_cache, False)
 
+    def test_2430_get_different_types_from_pooled_connections(self):
+        "2430 - get different object types from different connections"
+        pool = test_env.get_pool(min=1, max=2, increment=1)
+        with pool.acquire() as conn:
+            typ = conn.gettype("UDT_SUBOBJECT")
+            self.assertEqual(typ.name, "UDT_SUBOBJECT")
+        with pool.acquire() as conn:
+            typ = conn.gettype("UDT_OBJECTARRAY")
+            self.assertEqual(typ.name, "UDT_OBJECTARRAY")
+
 if __name__ == "__main__":
     test_env.run_test_cases()
