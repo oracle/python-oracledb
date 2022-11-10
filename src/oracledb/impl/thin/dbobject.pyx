@@ -122,7 +122,7 @@ cdef class DbObjectPickleBuffer(Buffer):
         """
         Writes the length to the buffer.
         """
-        if length <= TNS_MAX_SHORT_LENGTH:
+        if length <= TNS_OBJ_MAX_SHORT_LENGTH:
             self.write_uint8(<uint8_t> length)
         else:
             self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
