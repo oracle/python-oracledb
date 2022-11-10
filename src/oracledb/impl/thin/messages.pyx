@@ -197,7 +197,7 @@ cdef class Message:
             pass
         elif opcode == TNS_SERVER_PIGGYBACK_OS_PID_MTS:
             buf.read_ub2(&temp16)
-            buf.skip_raw_bytes(temp16 + 1)
+            buf.skip_raw_bytes_chunked()
         elif opcode == TNS_SERVER_PIGGYBACK_SYNC:
             buf.skip_ub2()                  # skip number of DTYs
             buf.skip_ub1()                  # skip length of DTYs
@@ -206,10 +206,10 @@ cdef class Message:
             for i in range(num_elements):
                 buf.read_ub2(&temp16)
                 if temp16 > 0:              # skip key
-                    buf.skip_raw_bytes(temp16 + 1)
+                    buf.skip_raw_bytes_chunked()
                 buf.read_ub2(&temp16)
                 if temp16 > 0:              # skip value
-                    buf.skip_raw_bytes(temp16 + 1)
+                    buf.skip_raw_bytes_chunked()
                 buf.skip_ub2()              # skip flags
             buf.skip_ub4()                  # skip overall flags
         elif opcode == TNS_SERVER_PIGGYBACK_EXT_SYNC:
@@ -228,15 +228,18 @@ cdef class Message:
             buf.skip_ub2()
             buf.skip_ub1()
             buf.read_ub2(&num_elements)
+            print("num elements:", num_elements)
             if num_elements > 0:
                 buf.skip_ub1()
                 for i in range(num_elements):
                     buf.read_ub2(&temp16)
+                    print("element:", i, "key length:", temp16)
                     if temp16 > 0:          # skip key
-                        buf.skip_raw_bytes(temp16 + 1)
+                        buf.skip_raw_bytes_chunked()
                     buf.read_ub2(&temp16)
+                    print("element:", i, "value length:", temp16)
                     if temp16 > 0:          # skip value
-                        buf.skip_raw_bytes(temp16 + 1)
+                        buf.skip_raw_bytes_chunked()
                     buf.skip_ub2()          # skip flags
             buf.read_ub4(&flags)            # session flags
             if flags & TNS_SESSGET_SESSION_CHANGED:
@@ -720,14 +723,14 @@ cdef class MessageWithData(Message):
                                           fetch_info)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.skip_raw_bytes(num_bytes + 1)   # current date
+            buf.skip_raw_bytes_chunked()    # current date
         buf.skip_ub4()                      # dcbflag
         buf.skip_ub4()                      # dcbmdbz
         buf.skip_ub4()                      # dcbmnpr
         buf.skip_ub4()                      # dcbmxpr
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.skip_raw_bytes(num_bytes + 1)   # dcbqcky
+            buf.skip_raw_bytes_chunked()    # dcbqcky
         stmt._fetch_vars = cursor_impl.fetch_vars
         stmt._fetch_var_impls = cursor_impl.fetch_var_impls
         stmt._num_columns = cursor_impl._num_columns
@@ -916,7 +919,7 @@ cdef class MessageWithData(Message):
             self._get_bit_vector(buf, num_bytes)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.skip_raw_bytes(num_bytes + 1)   # rxhrid
+            buf.skip_raw_bytes_chunked()    # rxhrid
 
     cdef int _write_column_metadata(self, WriteBuffer buf,
                                     list bind_var_impls) except -1:

@@ -37,6 +37,8 @@ Thin Mode Changes
     ADDRESS and ADDRESS_LIST components at the same level.
 #)  The complete connect string is now sent to the server instead of just the
     actual components being used. This is important for some configurations.
+#)  Fixed bug resulting in an internal protocol error when handling database
+    responses.
 
 Thick Mode Changes
 ++++++++++++++++++
