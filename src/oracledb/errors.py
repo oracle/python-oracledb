@@ -227,6 +227,7 @@ ERR_UNEXPECTED_NEGATIVE_INTEGER = 5003
 ERR_UNEXPECTED_DATA = 5004
 ERR_UNEXPECTED_REFUSE = 5005
 ERR_UNEXPECTED_END_OF_DATA = 5006
+ERR_UNEXPECTED_XML_TYPE = 5007
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -476,6 +477,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNEXPECTED_REFUSE:
             'the listener refused the connection but an unexpected error '
             'format was returned',
+    ERR_UNEXPECTED_XML_TYPE:
+            'unexpected XMLType with flag {flag}',
     ERR_UNSUPPORTED_INBAND_NOTIFICATION:
             'unsupported in-band notification with error number {err_num}',
     ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE:

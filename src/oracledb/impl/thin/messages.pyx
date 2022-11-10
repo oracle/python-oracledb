@@ -603,7 +603,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             typ_impl = var_impl.objtype
             if typ_impl.is_xml_type:
-                column_value = buf.read_xmltype()
+                column_value = buf.read_xmltype(self.conn_impl)
             else:
                 obj_impl = buf.read_dbobject(typ_impl)
                 if obj_impl is not None:

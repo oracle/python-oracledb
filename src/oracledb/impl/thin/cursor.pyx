@@ -77,13 +77,20 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         the variable is created to determine if a conversion is required and
         therefore a define must be performed.
         """
-        cdef ThinVarImpl var_impl
+        cdef:
+            ThinDbObjectTypeImpl typ_impl
+            ThinVarImpl var_impl
         BaseCursorImpl._create_fetch_var(self, conn, cursor, type_handler, pos,
                                          fetch_info)
         var_impl = self.fetch_var_impls[pos]
         if var_impl.dbtype._ora_type_num != fetch_info._dbtype._ora_type_num:
             conversion_helper(var_impl, fetch_info,
                               &self._statement._requires_define)
+        elif var_impl.objtype is not None:
+            typ_impl = var_impl.objtype
+            if typ_impl.is_xml_type:
+                var_impl.outconverter = \
+                        lambda v: v if isinstance(v, str) else v.read()
 
     cdef int _fetch_rows(self, object cursor) except -1:
         """

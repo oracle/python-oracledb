@@ -791,14 +791,20 @@ cdef class Buffer:
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = unpack_uint32(ptr, byte_order)
 
-    cdef object read_xmltype(self):
+    cdef object read_xmltype(self, ThinConnImpl conn_impl):
         """
         Reads an XMLType value from the buffer and returns the string value.
         The XMLType object is a special DbObjectType and is handled separately
         since the structure is a bit different.
         """
         cdef:
+            uint8_t image_flags, image_version
+            DbObjectPickleBuffer buf
+            ThinLobImpl lob_impl
+            const char_type *ptr
             uint32_t num_bytes
+            ssize_t bytes_left
+            uint32_t xml_flag
             bytes packed_data
         self.read_ub4(&num_bytes)
         if num_bytes > 0:                   # type OID
@@ -814,7 +820,22 @@ cdef class Buffer:
         self.skip_ub2()                     # flags
         if num_bytes > 0:
             packed_data = self.read_bytes()
-            return packed_data[12:].decode()
+            buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
+            buf._populate_from_bytes(packed_data)
+            buf.read_header(&image_flags, &image_version)
+            buf.skip_raw_bytes(1)           # XML version
+            buf.read_uint32(&xml_flag)
+            if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
+                buf.skip_raw_bytes(4)
+            bytes_left = buf.bytes_left()
+            ptr = buf.read_raw_bytes(bytes_left)
+            if xml_flag & TNS_XML_TYPE_STRING:
+                return ptr[:bytes_left].decode()
+            elif xml_flag & TNS_XML_TYPE_LOB:
+                lob_impl = ThinLobImpl._create(conn_impl, DB_TYPE_CLOB,
+                                               ptr[:bytes_left])
+                return PY_TYPE_LOB._from_impl(lob_impl)
+            errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
 
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """
