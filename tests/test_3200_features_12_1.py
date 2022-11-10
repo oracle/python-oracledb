@@ -512,5 +512,32 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.executemany(sql, rows, batcherrors=True)
         self.assertEqual(self.cursor.getbatcherrors(), [])
 
+    def test_3227_batch_error_multiple_execute(self):
+        "3227 - test batcherrors mode with multiple executes"
+        self.cursor.execute("truncate table TestArrayDML")
+        rows_1 = [
+            (1, "Value 1", 100),
+            (2, "Value 2", 200),
+            (2, "Value 2", 200)
+        ]
+        rows_2 = [
+            (3, "Value 3", 300),
+            (3, "Value 3", 300),
+            (4, "Value 4", 400)
+        ]
+        sql = """
+                insert into TestArrayDML (IntCol, StringCol, IntCol2)
+                values (:1, :2, :3)"""
+        self.cursor.executemany(sql, rows_1, batcherrors=True)
+        expected_errors = [(2, "ORA-00001")]
+        actual_errors = [(e.offset, e.full_code) \
+                         for e in self.cursor.getbatcherrors()]
+        self.assertEqual(actual_errors, expected_errors)
+        self.cursor.executemany(sql, rows_2, batcherrors=True)
+        expected_errors = [(1, "ORA-00001")]
+        actual_errors = [(e.offset, e.full_code) \
+                         for e in self.cursor.getbatcherrors()]
+        self.assertEqual(actual_errors, expected_errors)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

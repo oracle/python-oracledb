@@ -750,6 +750,9 @@ cdef class MessageWithData(Message):
             self.error_info.num = 0
             cursor_impl._more_rows_to_fetch = False
             self.error_occurred = False
+        elif self.error_info.num == TNS_ERR_ARRAY_DML_ERRORS:
+            self.error_info.num = 0
+            self.error_occurred = False
         elif self.error_info.num == TNS_ERR_VAR_NOT_IN_SELECT_LIST:
             conn_impl._add_cursor_to_close(cursor_impl._statement)
             cursor_impl._statement._cursor_id = 0
@@ -758,8 +761,6 @@ cdef class MessageWithData(Message):
             if exc_type is not exceptions.IntegrityError:
                 conn_impl._add_cursor_to_close(cursor_impl._statement)
                 cursor_impl._statement._cursor_id = 0
-        if self.error_info.batcherrors is not None:
-            self.error_occurred = False
 
     cdef int _process_implicit_result(self, ReadBuffer buf) except -1:
         cdef:
@@ -1950,7 +1951,8 @@ cdef class ExecuteMessage(MessageWithData):
         cdef:
             Statement stmt = self.cursor_impl._statement
         if stmt._cursor_id != 0 and not stmt._requires_full_execute \
-                and not self.parse_only and not stmt._is_ddl:
+                and not self.parse_only and not stmt._is_ddl \
+                and not self.batcherrors:
             if stmt._is_query and not stmt._requires_define \
                     and self.cursor_impl.prefetchrows > 0:
                 self.function_code = TNS_FUNC_REEXECUTE_AND_FETCH

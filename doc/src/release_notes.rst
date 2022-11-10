@@ -39,6 +39,9 @@ Thin Mode Changes
     actual components being used. This is important for some configurations.
 #)  Fixed bug resulting in an internal protocol error when handling database
     responses.
+#)  Fixed bug when calling :meth:`Cursor.executemany()` with the `batcherrors`
+    parameter set to `True` multiple times with each call resulting in at least
+    one batch error.
 
 Thick Mode Changes
 ++++++++++++++++++
