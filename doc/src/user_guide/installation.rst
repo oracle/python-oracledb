@@ -202,7 +202,7 @@ install with:
 
 .. code-block:: shell
 
-    python3 -m pip install oracledb cryptography --user
+    python3 -m pip install oracledb --user
 
 The ``--user`` option is useful when you do not have permission to write to
 system directories.

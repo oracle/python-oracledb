@@ -34,7 +34,7 @@ Thin Mode Changes
 #)  Fixed bug preventing binding OUT data of type
     :data:`~oracledb.DB_TYPE_UROWID` that exceeds 3950 bytes in length.
 #)  Fixed bug preventing correct parsing of connect descriptors with both
-    ADDRESS and ADDRESS_LIST components at the same level.
+    ``ADDRESS`` and ``ADDRESS_LIST`` components at the same level.
 #)  The complete connect string is now sent to the server instead of just the
     actual components being used. This is important for some configurations.
 #)  Fixed bug resulting in an internal protocol error when handling database
