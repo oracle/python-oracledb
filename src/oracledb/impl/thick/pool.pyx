@@ -126,7 +126,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
 
         # prepare user, password and DSN for use
         if self.username is not None:
-            user_bytes = self.username.encode()
+            user_bytes = params.get_full_user().encode()
             user_ptr = user_bytes
             user_len = <uint32_t> len(user_bytes)
         password_bytes = params._get_password()

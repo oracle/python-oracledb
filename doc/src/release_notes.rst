@@ -7,6 +7,16 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+oracledb 1.2.1 (TBD)
+--------------------
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed bug creating a homogeneous connection pool with a proxy user
+    (`issue 101 <https://github.com/oracle/python-oracledb/issues/101>`__).
+
+
 oracledb 1.2.0 (November 2022)
 ------------------------------
 

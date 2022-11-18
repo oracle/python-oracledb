@@ -717,5 +717,13 @@ class TestCase(test_env.BaseTestCase):
             typ = conn.gettype("UDT_OBJECTARRAY")
             self.assertEqual(typ.name, "UDT_OBJECTARRAY")
 
+    def test_2431_proxy_user_in_create(self):
+        "2431 - test creating a pool using a proxy user"
+        user_str = "%s[%s]" % \
+                (test_env.get_main_user(), test_env.get_proxy_user())
+        pool = test_env.get_pool(user=user_str)
+        self.__verify_connection(pool.acquire(), test_env.get_proxy_user(),
+                                 test_env.get_main_user())
+
 if __name__ == "__main__":
     test_env.run_test_cases()
