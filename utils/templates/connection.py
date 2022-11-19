@@ -157,7 +157,8 @@ class Connection:
         self.close()
 
     def __repr__(self):
-        cls_name = f"oracledb.{type(self).__name__}"
+        typ = type(self)
+        cls_name = f"{typ.__module__}.{typ.__qualname__}"
         if self._impl is None:
             return f"<{cls_name} disconnected>"
         elif self.username is None:
@@ -435,7 +436,7 @@ class Connection:
         objects which can be bound to cursors created by this connection.
         """
         self._verify_connected()
-        obj_type_impl = self._impl.get_type(name)
+        obj_type_impl = self._impl.get_type(self, name)
         return DbObjectType._from_impl(obj_type_impl)
 
     @property

@@ -159,7 +159,8 @@ class Connection:
         self.close()
 
     def __repr__(self):
-        cls_name = f"oracledb.{type(self).__name__}"
+        typ = type(self)
+        cls_name = f"{typ.__module__}.{typ.__qualname__}"
         if self._impl is None:
             return f"<{cls_name} disconnected>"
         elif self.username is None:

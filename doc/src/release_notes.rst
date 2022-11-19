@@ -16,6 +16,12 @@ Thick Mode Changes
 #)  Fixed bug creating a homogeneous connection pool with a proxy user
     (`issue 101 <https://github.com/oracle/python-oracledb/issues/101>`__).
 
+Common Changes
+++++++++++++++
+
+#)  Corrected ``__repr__()`` of connections to include the actual class name
+    instead of a hard-coded ``oracledb``.
+
 
 oracledb 1.2.0 (November 2022)
 ------------------------------
