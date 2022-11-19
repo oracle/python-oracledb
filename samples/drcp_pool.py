@@ -42,7 +42,7 @@
 # established.
 #
 # To use DRCP, the connection string should request the database use a pooled
-# server.  For example, "localhost/orclpdb:pool".  It is best practice for
+# server.  For example, "localhost/orclpdb:pooled".  It is best practice for
 # connections to specify a connection class and server purity when creating
 # a pool
 #
@@ -63,8 +63,19 @@
 #
 # See the python-oracledb documentation for more information on DRCP.
 #
-# To run this sample, install Flask with:
-#   pip install --upgrade Flask
+# To run this sample:
+#
+#  1. Install Flask, for example like:
+#
+#     python -m pip install Flask
+#
+#  2. (Optional) Set environment variables referenced in sample_env.py
+#
+#  3. Run:
+#
+#     python drcp_pool.py
+#
+#  4. In a browser load a URL as shown below.
 #
 # The default route will display a welcome message:
 #   http://127.0.0.1:8080/
@@ -87,14 +98,18 @@
 #
 # Output will be like:
 #
-# CCLASS_NAME      NUM_REQUESTS NUM_HITS NUM_MISSES NUM_WAITS NUM_AUTHENTICATIONS
-# ---------------- ------------ -------- ---------- --------- -------------------
-# PYTHONDEMO.MYAPP         1001      997          4         0                   4
+#   CCLASS_NAME      NUM_REQUESTS NUM_HITS NUM_MISSES NUM_WAITS NUM_AUTHENTICATIONS
+#   ---------------- ------------ -------- ---------- --------- -------------------
+#   PYTHONDEMO.MYAPP         1001      997          4         0                   4
+#
+# With ADB-S databases, query V$CPOOL_CONN_INFO instead.
 #
 #------------------------------------------------------------------------------
 
-from flask import Flask
 import os
+import sys
+
+from flask import Flask
 
 import oracledb
 import sample_env
@@ -213,6 +228,9 @@ if __name__ == '__main__':
 
     # Create a demo table
     create_schema()
+
+    m = f"\nTry loading http://127.0.0.1:{port}/user/1 in a browser\n"
+    sys.modules['flask.cli'].show_server_banner = lambda *x: print(m)
 
     # Start a webserver
     app.run(port=port)

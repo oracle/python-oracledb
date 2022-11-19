@@ -33,8 +33,19 @@
 # features help protect against dead connections, and also aid use of Oracle
 # Database features such as FAN and Application Continuity.
 #
-# To run this sample, install Flask with:
-#   pip install --upgrade Flask
+# To run this sample:
+#
+#  1. Install Flask, for example like:
+#
+#     python -m pip install Flask
+#
+#  2. (Optional) Set environment variables referenced in sample_env.py
+#
+#  3. Run:
+#
+#     python connection_pool.py
+#
+#  4. In a browser load a URL as shown below.
 #
 # The default route will display a welcome message:
 #   http://127.0.0.1:8080/
@@ -48,12 +59,15 @@
 #------------------------------------------------------------------------------
 
 import os
-import oracledb
+import sys
+
 from flask import Flask
+
+import oracledb
 import sample_env
 
 # Port to listen on
-port=int(os.environ.get('PORT', '8080'))
+port = int(os.environ.get('PORT', '8080'))
 
 # determine whether to use python-oracledb thin mode or thick mode
 if not sample_env.get_is_thin():
@@ -166,6 +180,9 @@ if __name__ == '__main__':
 
     # Create a demo table
     create_schema()
+
+    m = f"\nTry loading http://127.0.0.1:{port}/user/1 in a browser\n"
+    sys.modules['flask.cli'].show_server_banner = lambda *x: print(m)
 
     # Start a webserver
     app.run(port=port)
