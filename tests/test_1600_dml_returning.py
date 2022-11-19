@@ -399,9 +399,9 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestUniversalRowids")
         rowid_var = self.cursor.var(oracledb.ROWID)
         data = (1, "ABC", datetime.datetime(2017, 4, 11), rowid_var)
-        self.cursor.execute("""
-                insert into TestUniversalRowids values (:1, :2, :3)
-                returning rowid into :4""", data)
+        sql = "insert into TestUniversalRowids values (:1, :2, :3)\n" + \
+              "returning rowid into :4"
+        self.cursor.execute(sql, data)
         rowid_value, = rowid_var.getvalue()
         self.cursor.execute("""
                 select * from TestUniversalRowids where rowid = :1""",

@@ -10,6 +10,14 @@ For deprecations, see :ref:`Deprecations <deprecations>`.
 oracledb 1.2.1 (TBD)
 --------------------
 
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug determining RETURNING binds in a SQL statement when RETURNING and
+    INTO keywords are not separated by spaces, but are separated by other
+    whitespace characters
+    (`issue 104 <https://github.com/oracle/python-oracledb/issues/104>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
