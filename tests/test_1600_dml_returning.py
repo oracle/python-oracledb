@@ -212,8 +212,7 @@ class TestCase(test_env.BaseTestCase):
                                   typename="UDT_OBJECT")
         self.cursor.execute("""
                 insert into TestObjects (IntCol, ObjectCol)
-                values (4, :obj)
-                returning ObjectCol into :outObj""",
+                values (4, :obj)returning ObjectCol into :outObj""",
                 obj=obj, outObj=out_var)
         result, = out_var.getvalue()
         self.assertEqual(result.STRINGVALUE, string_value)
