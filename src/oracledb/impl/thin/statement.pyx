@@ -183,7 +183,7 @@ cdef class Statement:
 
         # Strip single/multiline comments and strings from the sql statement to
         # ease searching for bind variables.
-        sql = re.sub(r"/\*[\S\n ]+\*/", "", sql)
+        sql = re.sub(r"/\*[\S\n ]+?\*/", "", sql)
         sql = re.sub(r"\--.*(\n|$)", "", sql)
         sql = re.sub(r"""'[^']*'(?=(?:[^']*[^']*')*[^']*$)*""", "", sql,
                      flags=re.MULTILINE)

@@ -814,6 +814,17 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.parse(sql)
             self.cursor.execute(sql, ("Updated value", data[0]))
 
+    def test_4364_binds_between_comment_blocks(self):
+        "4364 - test bindnames() for bind variables between comment blocks"
+        self.cursor.prepare("""
+                select
+                    /* comment 1 */
+                    :a,
+                    /* comment 2 */
+                    :b
+                    /* comment 3 */
+                from dual""")
+        self.assertEqual(self.cursor.bindnames(), ["A", "B"])
 
 if __name__ == "__main__":
     test_env.run_test_cases()

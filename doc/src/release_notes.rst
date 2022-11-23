@@ -17,6 +17,8 @@ Thin Mode Changes
     INTO keywords are not separated by spaces, but are separated by other
     whitespace characters
     (`issue 104 <https://github.com/oracle/python-oracledb/issues/104>`__).
+#)  Fixed bug determining bind variables when found between two comment blocks
+    (`issue 105 <https://github.com/oracle/python-oracledb/issues/105>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
