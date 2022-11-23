@@ -274,6 +274,7 @@ class TestCase(test_env.BaseTestCase):
             thread = threading.Thread(None, self.__connect_and_drop)
             threads.append(thread)
             thread.start()
+            time.sleep(0.1)
         for thread in threads:
             thread.join()
 
