@@ -536,10 +536,12 @@ Connection Pooling
 Python-oracledb's connection pooling lets applications create and maintain a
 pool of open connections to the database.  Connection pooling is available in
 both Thin and :ref:`Thick <enablingthick>` modes.  Connection pooling is
-important for performance when applications frequently connect and disconnect
-from the database.  The high availability features of pools also make small pools
-useful for applications that want a few connections available for infrequent
-use and requires them to be immediately usable when acquired.
+important for performance and scalability when applications need to handle a
+large number of users who do database work for short periods of time but have
+relatively long periods when the connections are not needed.  The high
+availability features of pools also make small pools useful for applications
+that want a few connections available for infrequent use and requires them to
+be immediately usable when acquired.
 
 In python-oracledb Thick mode, the pool implementation uses Oracle's `session
 pool technology <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
@@ -550,53 +552,60 @@ Oracle Database features, for example some advanced :ref:`high availability
 Creating a Connection Pool
 --------------------------
 
-A connection pool is created by calling :meth:`oracledb.create_pool()`.  This
-is generally called during application initialization.  The initial pool size
-and the maximum pool size are provided at the time of pool creation.  When the
-pool needs to grow, new connections are created automatically.  The pool can
-shrink back to the minimum size when connections are no longer in use.  For
-pools created with :ref:`external authentication <extauth>`, with
-:ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`, then
-the number of connections initially created is zero even if a larger value is
-specified for ``min``.  Also, in these cases the pool increment unit is always 1
-regardless of the value of ``increment``.
+A connection pool is created by calling :meth:`oracledb.create_pool()`.
+Various pool options can be specified as described in
+:meth:`~oracledb.create_pool()` and detailed below.
 
-After a pool has been created, connections can be obtained from it by calling
-:meth:`ConnectionPool.acquire()`.  These connections can be used in the same way
-that standalone connections are used.
-
-Connections acquired from the pool should be released back to the pool using
-:meth:`ConnectionPool.release()` or :meth:`Connection.close()` when they are no
-longer required.  Otherwise, they will be released back to the pool
-automatically when all of the variables referencing the connection go out of
-scope.  This make connections available for other users of the pool.
-
-The connection pool can be completely closed using :meth:`ConnectionPool.close()`.
-
-The example below shows how to use a connection pool:
+For example, to create a pool that initially contains one connection but
+can grow up to five connections:
 
 .. code-block:: python
 
-    # Create the connection pool during application initialization
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
-                                min=2, max=5, increment=1)
+                                min=1, max=5, increment=1)
 
-    # Acquire a connection from the pool
+After the pool has been created, your application can get a connection from
+it by calling :meth:`ConnectionPool.acquire()`:
+
+.. code-block:: python
+
     connection = pool.acquire()
 
-    # Use the pooled connection
-    with connection.cursor() as cursor:
-        for result in cursor.execute("select * from mytab"):
-            print(result)
+These connections can be used in the same way that :ref:`standaloneconnection`
+are used.
 
-    # Release the connection to the pool
-    pool.release(connection)
+By default, :meth:`~ConnectionPool.acquire()` calls wait for a connection
+to be available before returning to the application.  A connection will be
+available if the pool currently has idle connections, when another user
+returns a connection to the pool, or after the pool grows.  Waiting allows
+applications to be resilient to temporary spikes in connection load.  Users
+may have to wait a brief time to get a connection but will not experience
+connection failures.
 
-    # Close the pool at application shutdown
-    pool.close()
+You can change the behavior of :meth:`~ConnectionPool.acquire()` by setting the
+``getmode`` option during pool creation.  For example, the option can be
+set so that if all the connections are currently in use by the application, any
+additional :meth:`~ConnectionPool.acquire()` call will return an error
+immediately.
 
-Similar to standalone connections, you may prefer to let connections be closed
-implicitly at the end of scope, for example using a ``with`` statement:
+.. code-block:: python
+
+    pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
+                                min=2, max=5, increment=1,
+                                getmode=oracledb.POOL_GETMODE_NOWAIT)
+
+Note that when using this option value in Thick mode with Oracle Client
+libraries 12.2 or earlier, the :meth:`~ConnectionPool.acquire()` call will
+still wait if the pool can grow.  However, you will get an error immediately if
+the pool is at its maximum size.  With newer Oracle Client libraries and with
+Thin mode, an error will be returned if the pool has to, or cannot, grow.
+
+When your application has finished performing all required database operations,
+the pooled connection should be released to make it available for other users
+of the pool.  You can do this with :meth:`ConnectionPool.release()` or
+:meth:`Connection.close()`.  Alternatively you may prefer to let pooled
+connections be closed implicitly at the end of scope.  For example, by using a
+``with`` statement:
 
 .. code-block:: python
 
@@ -605,20 +614,80 @@ implicitly at the end of scope, for example using a ``with`` statement:
             for result in cursor.execute("select * from mytab"):
                 print(result)
 
-Various :meth:`oracledb.create_pool()` options can be specified at pool
-creation.  For example the ``getmode`` value can be set so that any
-:meth:`ConnectionPool.acquire()` call will return immediately without waiting
-for a connection to become available if all are currently in use, for example:
+At application shutdown, the connection pool can be completely closed using
+:meth:`ConnectionPool.close()`:
 
 .. code-block:: python
 
-    pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
-                                min=2, max=5, increment=1,
-                                getmode=oracledb.POOL_GETMODE_NOWAIT)
+    pool.close()
+
+To force immediate pool termination when connections are still in use, execute:
+
+.. code-block:: python
+
+    pool.close(force=True)
 
 See `connection_pool.py
 <https://github.com/oracle/python-oracledb/tree/main/samples/connection_pool.py>`__
-for an example.
+for a runnable example of connection pooling.
+
+**Connection Pool Growth**
+
+At pool creation, ``min`` connections are established to the database.  When a
+pool needs to grow, new connections are created automatically limited by the
+``max`` size.  The pool ``max`` size restricts the number of application users
+that can do work in parallel on the database.
+
+The number of connections opened by a pool can shown with the attribute.
+:attr:`ConnectionPool.opened`.  The number of connections the application has
+obtained with :meth:`~ConnectionPool.acquire()` can be shown with
+:attr:`ConnectionPool.busy`.  The difference in values is the number of
+connections unused or 'idle' in the pool.  These idle connections may be
+candidates for the pool to close, depending on the pool configuration.
+
+Pool growth is normally initiated when :meth:`~ConnectionPool.acquire()` is
+called and there are no idle connections in the pool that can be returned to
+the application.  The number of new connections created internally will be the
+value of the :meth:`~oracledb.create_pool()` parameter ``increment``.
+
+Depending on whether Thin or Thick mode is used and on the pool creation
+``getmode`` value that is set, any :meth:`~ConnectionPool.acquire()` call that
+initiates pool growth may wait until all ``increment`` new connections are
+internally opened.  However, in this case the cost is amortized because later
+:meth:`~ConnectionPool.acquire()` calls may not have to wait and can
+immediately return an available connection.  Some users set larger
+``increment`` values even for fixed-size pools because it can help a pool
+re-establish itself if all connections become invalid, for example after a
+network dropout.  In the common case of Thin mode with the default ``getmode``
+of ``POOL_GETMODE_WAIT``, any :meth:`~ConnectionPool.acquire()` call that
+initiates pool growth will return after the first new connection is created,
+regardless of how big ``increment`` is.  The pool will then continue to
+re-establish connections in a background thread.
+
+A connection pool can shrink back to its minimum size when connections opened
+by the pool are not used by the application.  This frees up database resources
+while allowing pools to retain connections for active users.  Note this is
+currently applicable to Thick mode only.  If connections are idle in the pool
+(i.e. not currently acquired by the application) and are unused for longer than
+the pool creation attribute ``timeout`` value , then they will be closed.  The
+default ``timeout`` is 0 seconds signifying an infinite time and meaning idle
+connections will never be closed.  The pool creation parameter
+``max_lifetime_session`` also allows pools to shrink.  This parameter bounds
+the total length of time that a connection can exist starting from the time the
+pool created it.  If a connection was created ``max_lifetime_session`` or
+longer seconds ago, then it will be closed when it is idle in the pool.  In the
+case when ``timeout`` and ``max_lifetime_session`` are both set, the connection
+will be terminated if either the idle timeout happens or the max lifetime
+setting is exceeded.  Note that when using python-oracledb in Thick mode with
+Oracle Client libraries prior to 21c, pool shrinkage is only initiated when the
+pool is accessed so pools in fully dormant applications will not shrink until
+the application is next used.
+
+For pools created with :ref:`external authentication <extauth>`, with
+:ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`,
+then the number of connections opened at pool creation is zero even if a larger
+value is specified for ``min``.  Also, in these cases the pool increment unit
+is always 1 regardless of the value of ``increment``.
 
 **Pool Connection Health**
 
@@ -629,30 +698,28 @@ then :meth:`~ConnectionPool.acquire()` will clean up the connection and return
 a different one.
 
 This check will not detect cases such as where the database session has been
-terminated by the DBA, or reached a database resource manager quota limit.  To help
-in those cases, :meth:`~ConnectionPool.acquire()` will also do a full
+terminated by the DBA, or reached a database resource manager quota limit.  To
+help in those cases, :meth:`~ConnectionPool.acquire()` will also do a full
 :ref:`round-trip <roundtrips>` database ping similar to
-:meth:`Connection.ping()` when it is about to return a connection that was
-unused in the pool for :data:`ConnectionPool.ping_interval` seconds.  If the
-ping fails, the connection will be discarded and another one obtained before
+:meth:`Connection.ping()` when it is about to return a connection that was idle
+in the pool (i.e. not currently acquired by the application) for
+:data:`ConnectionPool.ping_interval` seconds.  If the ping fails, the
+connection will be discarded and another one obtained before
 :meth:`~ConnectionPool.acquire()` returns to the application.
 
-Because this full ping is time based it will not catch every failure.  Also,
-network timeouts and session termination may occur between the calls to
-:meth:`~ConnectionPool.acquire()` and :meth:`Cursor.execute()`.  To handle
-these cases, applications need to check for errors after each
+Because this full ping is time based and may not occur for each
+:meth:`~ConnectionPool.acquire()`, the application may still get an unusable
+connection.  Also, network timeouts and session termination may occur between
+the calls to :meth:`~ConnectionPool.acquire()` and :meth:`Cursor.execute()`.
+To handle these cases, applications need to check for errors after each
 :meth:`~Cursor.execute()` and make application-specific decisions about
 retrying work if there was a connection failure.  When using python-oracledb in
 Thick mode, Oracle Database features like :ref:`Application Continuity
 <highavailability>` can do this automatically in some cases.
 
-Note that both the lightweight and full ping connection checks can mask
-performance-impacting configuration issues such as firewalls terminating
-connections, and so monitor the connection rate in `AWR
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
-for an unexpectedly large value.  You can explicitly initiate a full round-trip
-ping at any time with :meth:`Connection.ping()` to check connection liveness but the
-overuse will impact performance and scalability.
+You can explicitly initiate a full round-trip ping at any time with
+:meth:`Connection.ping()` to check connection liveness but the overuse will
+impact performance and scalability.
 
 Ensure that the :ref:`firewall <hanetwork>`, `resource manager
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__
@@ -660,6 +727,12 @@ or user profile `IDLE_TIME
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
 do not expire idle sessions, since this will require connections to be recreated
 which will impact performance and scalability.
+
+A pool's internal connection re-establishment after lightweight and full pings
+can mask performance-impacting configuration issues such as firewalls
+terminating connections.  You should monitor `AWR
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+reports for an unexpectedly large connection rate.
 
 .. _connpoolsize:
 
@@ -669,19 +742,22 @@ Connection Pool Sizing
 The Oracle Real-World Performance Group's recommendation is to use fixed size
 connection pools.  The values of ``min`` and ``max`` should be the same.  When
 using older versions of Oracle Client libraries the ``increment`` parameter
-will need to be zero, but otherwise you may prefer a larger value so any
-necessary pool re-establishment occurs faster.  Fixed size pools avoid
-connection storms which can decrease throughput.  See `Guideline for Preventing
-Connection Storms: Use Static Pools
+will need to be zero (which is internally treated as a value of one), but
+otherwise you may prefer a larger size since this will affect how the
+connection pool is re-established after, for example, a network dropout
+invalidates all connections.
+
+Fixed size pools avoid connection storms on the database which can decrease
+throughput.  See `Guideline for Preventing Connection Storms: Use Static Pools
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
 which contains more details about sizing of pools.  Having a fixed size will
-guarantee that the database can handle the upper pool size.  For example, if a
-dynamically sized pool needs to grow but the database resources are limited,
-then :meth:`ConnectionPool.acquire()` may return errors such as ``ORA-28547``.
-With a fixed pool size, this class of error will occur when the pool is
-created, allowing you to change the size before users access the application.
-With a dynamically growing pool, the error may occur much later while the
-application is in use.
+also guarantee that the database can handle the upper pool size.  For example,
+if a dynamically sized pool needs to grow but the database resources are
+limited, then :meth:`ConnectionPool.acquire()` may return errors such as
+``ORA-28547``.  With a fixed pool size, this class of error will occur when the
+pool is created, allowing you to change the pool size or reconfigure the
+database before users access the application.  With a dynamically growing pool,
+the error may occur much later while the application is in use.
 
 The Real-World Performance Group also recommends keeping pool sizes small because
 they may perform better than larger pools. The pool attributes should be
@@ -710,15 +786,15 @@ when changing one attribute, then an exception will be generated but any already
 changed attributes will retain their new values.
 
 During reconfiguration of a pool's size, the behavior of
-:meth:`ConnectionPool.acquire()` depends on the ``getmode`` in effect when
-``acquire()`` is called, see :meth:`ConnectionPool.reconfigure()`.  Closing
-connections or closing the pool will wait until after pool reconfiguration is
-complete.
+:meth:`ConnectionPool.acquire()` depends on the pool creation ``getmode`` value
+in effect when :meth:`~ConnectionPool.acquire()` is called, see
+:meth:`ConnectionPool.reconfigure()`.  Closing connections or closing the pool
+will wait until after pool reconfiguration is complete.
 
 Calling ``reconfigure()`` is the only way to change a pool's ``min``, ``max``
 and ``increment`` values.  Other attributes such as
 :data:`~ConnectionPool.wait_timeout` can be passed to ``reconfigure()`` or they
-can be set directly:
+can be set directly, for example:
 
 .. code-block:: python
 
@@ -793,9 +869,10 @@ An example is:
     connection = pool.acquire()
 
 If needed, the ``init_session()`` procedure is called internally before
-``acquire()`` returns.  It will not be called when previously used connections
-are returned from the pool.  This means that the ALTER SESSION does not need to
-be executed after every ``acquire()`` call.  This improves performance and
+:meth:`~ConnectionPool.acquire()` returns.  It will not be called when
+previously used connections are returned from the pool.  This means that the
+ALTER SESSION does not need to be executed after every
+:meth:`~ConnectionPool.acquire()` call.  This improves performance and
 scalability.
 
 In this example tagging was not being used, so the ``requested_tag`` parameter
@@ -1016,9 +1093,9 @@ relatively short duration, and then releases it.
 
 For efficiency, it is recommended that DRCP connections should be used in
 conjunction with python-oracledb's local :ref:`connection pool <connpooling>`.
-Using DRCP with standalone connections is not as efficient as using it in
-conjunction with a python-oracledb connection pool, but does allow the database
-to reuse database server processes which can provide a performance benefit.
+However, although using DRCP with standalone connections is not as efficient
+it does allow the database to reuse database server processes which can provide
+a performance benefit for applications that cannot use a local connection pool.
 
 Although applications can choose whether or not to use pooled connections at
 runtime, care must be taken to configure the database appropriately for the
@@ -1206,7 +1283,7 @@ default, python-oracledb pooled connections use ``PURITY_SELF`` and standalone
 connections use ``PURITY_NEW``.
 
 To limit session sharing, you can explicitly require that new session memory be
-allocated each time ``acquire()`` is called:
+allocated each time :meth:`~ConnectionPool.acquire()` is called:
 
 .. code-block:: python
 
@@ -1350,8 +1427,12 @@ mode, the class name will be default to one like shown below::
     --------------------------------------- ------------
     CJ.OCI:SP:wshbIFDtb7rgQwMyuYvodA        cjlinux
 
-In this example, you would examine applications on ``cjlinux`` and make
-sure ``cclass`` is set.
+In this example, you would examine applications on ``cjlinux`` and make them
+set ``cclass``.
+
+When connecting to Oracle Autonomous Database on shared infrastructure (ADB-S),
+the ``V$CPOOL_CONN_INFO`` view can be used to track the number of connection
+hits and misses to show the pool efficiency.
 
 .. _proxyauth:
 
