@@ -127,7 +127,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
                                  &cursor_impl._handle) < 0:
             _raise_from_odpi()
         if args is not None:
-            cursor_impl.bind_one(args)
+            cursor_impl.bind_one(cursor, args)
         cursor_impl.execute(cursor)
         if self.qos & DPI_SUBSCR_QOS_QUERY:
             if dpiStmt_getSubscrQueryId(cursor_impl._handle, &query_id) < 0:
