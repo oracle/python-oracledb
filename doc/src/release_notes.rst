@@ -29,6 +29,7 @@ Thick Mode Changes
     allowing it to be closed automatically when it goes out of scope).
 #)  Fixed bug when calling :meth:`Subscription.registerquery()` with bind
     values.
+#)  Fixed bug that caused :data:`Message.dbname` to always be the value `None`.
 
 Common Changes
 ++++++++++++++

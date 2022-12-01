@@ -161,7 +161,7 @@ class Message:
     def __init__(self, subscription: Subscription) -> None:
         self._subscription = subscription
         self._consumer_name = None
-        self._db_name = None
+        self._dbname = None
         self._queries = []
         self._queue_name = None
         self._registered = False
@@ -192,7 +192,7 @@ class Message:
         """
         Returns the name of the database that generated the notification.
         """
-        return self._db_name
+        return self._dbname
 
     @property
     def msgid(self) -> Union[bytes, None]:
