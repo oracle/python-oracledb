@@ -570,6 +570,16 @@ cdef class ThickSodaDocCursorImpl(BaseSodaDocCursorImpl):
         if self._handle != NULL:
             dpiSodaDocCursor_release(self._handle)
 
+    def close(self):
+        """
+        Internal method for closing the cursor.
+        """
+        cdef int status
+        with nogil:
+            status = dpiSodaDocCursor_close(self._handle)
+        if status < 0:
+            _raise_from_odpi()
+
     def get_next_doc(self):
         """
         Internal method for getting the next document from the cursor.

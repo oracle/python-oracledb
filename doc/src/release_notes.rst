@@ -25,6 +25,8 @@ Thick Mode Changes
 
 #)  Fixed bug creating a homogeneous connection pool with a proxy user
     (`issue 101 <https://github.com/oracle/python-oracledb/issues/101>`__).
+#)  Fixed bug closing a SODA document cursor explicitly (instead of simply
+    allowing it to be closed automatically when it goes out of scope).
 
 Common Changes
 ++++++++++++++

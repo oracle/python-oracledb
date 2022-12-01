@@ -32,7 +32,7 @@
 from typing import Union, List
 import json
 
-from . import connection
+from . import connection, errors
 
 class SodaDatabase:
 
@@ -421,6 +421,8 @@ class SodaDocCursor:
         return self
 
     def __next__(self):
+        if self._impl is None:
+            errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
         doc_impl = self._impl.get_next_doc()
         if doc_impl is not None:
             return SodaDocument._from_impl(doc_impl)
@@ -438,7 +440,10 @@ class SodaDocCursor:
         cursor will be unusable from this point forward; an Error exception
         will be raised if any operation is attempted with the cursor.
         """
+        if self._impl is None:
+            errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
         self._impl.close()
+        self._impl = None
 
 
 class SodaOperation:
