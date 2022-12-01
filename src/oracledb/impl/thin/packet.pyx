@@ -227,16 +227,6 @@ cdef class ReadBuffer(Buffer):
             errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=length[0],
                               max_length=max_length)
 
-    cdef const char_type* _get_more_data(self, ssize_t num_bytes_available,
-                                         ssize_t num_bytes_wanted) except NULL:
-        """
-        Called when the amount of data available is less than the amount of
-        data requested. This will fetch another packet from the server. The
-        original data will be saved either in a chunked bytes buffer or the
-        split buffer (depending on how the data was requested).
-        """
-
-
     cdef const char_type* _get_raw(self, ssize_t num_bytes,
                                    bint in_chunked_read=False) except NULL:
         """

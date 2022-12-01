@@ -149,16 +149,6 @@ cdef class Buffer:
             errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=length[0],
                               max_length=max_length)
 
-    cdef const char_type* _get_more_data(self, ssize_t num_bytes_available,
-                                         ssize_t num_bytes_wanted) except NULL:
-        """
-        Called when the amount of data available is less than the amount of
-        data requested. By default an error is raised.
-        """
-        errors._raise_err(errors.ERR_UNEXPECTED_END_OF_DATA,
-                          num_bytes_wanted=num_bytes_wanted,
-                          num_bytes_available=num_bytes_available)
-
     cdef const char_type* _get_raw(self, ssize_t num_bytes) except NULL:
         """
         Returns a pointer to a buffer containing the requested number of bytes.
@@ -168,7 +158,9 @@ cdef class Buffer:
             const char_type *ptr
         num_bytes_left = self._size - self._pos
         if num_bytes > num_bytes_left:
-            return self._get_more_data(num_bytes_left, num_bytes)
+            errors._raise_err(errors.ERR_UNEXPECTED_END_OF_DATA,
+                              num_bytes_wanted=num_bytes,
+                              num_bytes_available=num_bytes_left)
         ptr = &self._data[self._pos]
         self._pos += num_bytes
         return ptr
