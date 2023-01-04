@@ -215,3 +215,22 @@ To convert dates:
          for row in cursor:
              print(row)       # gives 'Mi 15 Dez 19:57:56 2021'
          print()
+
+Inserting NVARCHAR2 and NCHAR Data
+----------------------------------
+
+To bind NVARCHAR2 data, use :func:`Cursor.setinputsizes()` or create a bind
+variable with the correct type by calling :func:`Cursor.var()`.  This removes
+an internal character set conversion to the standard `Database Character Set`_
+that may corrupt data.  By binding as :data:`oracledb.DB_TYPE_NVARCHAR`, the
+data is inserted directly as the `Database National Character Set`_. For
+example, to insert into a table containing two NVARCHAR2 columns:
+
+.. code-block:: python
+
+    sql = "insert into mytable values (:1, :2)"
+    bv = ['data1', 'data2']
+    cursor.setinputsizes(oracledb.DB_TYPE_NVARCHAR, oracledb.DB_TYPE_NVARCHAR)
+    cursor.execute(sql, bv)
+
+For NCHAR data, bind as :data:`oracledb.DB_TYPE_NCHAR`.
