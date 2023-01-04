@@ -89,7 +89,7 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_RPC_SIG] = TNS_CCAP_RPC_SIG_VALUE
         self.compile_caps[TNS_CCAP_DBF_VERSION] = TNS_CCAP_DBF_VERSION_MAX
         self.compile_caps[TNS_CCAP_LOB] = TNS_CCAP_LOB_UB8_SIZE | \
-                TNS_CCAP_LOB_ENCS
+                TNS_CCAP_LOB_ENCS | TNS_CCAP_LOB_PREFETCH
         self.compile_caps[TNS_CCAP_UB2_DTY] = 1
         self.compile_caps[TNS_CCAP_TTC3] = TNS_CCAP_IMPLICIT_RESULTS | \
                 TNS_CCAP_BIG_CHUNK_CLR | TNS_CCAP_KEEP_OUT_ORDER

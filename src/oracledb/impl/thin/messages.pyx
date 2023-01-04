@@ -922,9 +922,9 @@ cdef class MessageWithData(Message):
     cdef int _write_column_metadata(self, WriteBuffer buf,
                                     list bind_var_impls) except -1:
         cdef:
+            uint32_t buffer_size, cont_flag
             ThinDbObjectTypeImpl typ_impl
             uint8_t ora_type_num, flag
-            uint32_t buffer_size
             ThinVarImpl var_impl
         for var_impl in bind_var_impls:
             ora_type_num = var_impl.dbtype._ora_type_num
@@ -935,6 +935,9 @@ cdef class MessageWithData(Message):
             flag = TNS_BIND_USE_INDICATORS
             if var_impl.is_array:
                 flag |= TNS_BIND_ARRAY
+            cont_flag = 0
+            if ora_type_num in (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB):
+                cont_flag = TNS_LOB_PREFETCH_FLAG
             buf.write_uint8(ora_type_num)
             buf.write_uint8(flag)
             # precision and scale are always written as zero as the server
@@ -949,7 +952,7 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(var_impl.num_elements)
             else:
                 buf.write_ub4(0)            # max num elements
-            buf.write_ub4(0)                # cont flag
+            buf.write_ub8(cont_flag)
             if var_impl.objtype is not None:
                 typ_impl = var_impl.objtype
                 buf.write_ub4(len(typ_impl.oid))

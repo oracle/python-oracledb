@@ -86,6 +86,10 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         if var_impl.dbtype._ora_type_num != fetch_info._dbtype._ora_type_num:
             conversion_helper(var_impl, fetch_info,
                               &self._statement._requires_define)
+        elif not self._statement._requires_define \
+                and fetch_info._dbtype._ora_type_num in \
+                        (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB):
+            self._statement._requires_define = True
         elif var_impl.objtype is not None:
             typ_impl = var_impl.objtype
             if typ_impl.is_xml_type:

@@ -33,6 +33,9 @@ cdef class ThinLobImpl(BaseLobImpl):
     cdef:
         ThinConnImpl _conn_impl
         bytes _locator
+        bint _has_metadata
+        uint64_t _size
+        uint32_t _chunk_size
 
     @staticmethod
     cdef ThinLobImpl _create(ThinConnImpl conn_impl, DbType dbtype,
@@ -90,6 +93,8 @@ cdef class ThinLobImpl(BaseLobImpl):
         Internal method for returning the chunk size of the LOB.
         """
         cdef LobOpMessage message
+        if self._has_metadata:
+            return self._chunk_size
         message = self._conn_impl._create_message(LobOpMessage)
         message.operation = TNS_LOB_OP_GET_CHUNK_SIZE
         message.source_lob_impl = self
@@ -119,6 +124,8 @@ cdef class ThinLobImpl(BaseLobImpl):
         Internal method for returning the size of a LOB.
         """
         cdef LobOpMessage message
+        if self._has_metadata:
+            return self._size
         message = self._conn_impl._create_message(LobOpMessage)
         message.operation = TNS_LOB_OP_GET_LENGTH
         message.source_lob_impl = self
@@ -167,6 +174,7 @@ cdef class ThinLobImpl(BaseLobImpl):
         message.amount = new_size
         message.send_amount = True
         self._conn_impl._protocol._process_single_message(message)
+        self._has_metadata = False
 
     def write(self, object value, uint64_t offset):
         """
@@ -182,3 +190,4 @@ cdef class ThinLobImpl(BaseLobImpl):
         else:
             message.data = value.encode(self._get_encoding())
         self._conn_impl._protocol._process_single_message(message)
+        self._has_metadata = False

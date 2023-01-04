@@ -410,10 +410,21 @@ cdef class ReadBuffer(Buffer):
         Read a LOB locator from the buffer and return a LOB object containing
         it.
         """
-        cdef uint32_t num_bytes
+        cdef:
+            uint32_t chunk_size, num_bytes
+            ThinLobImpl lob_impl
+            uint64_t size
+            bytes locator
         self.read_ub4(&num_bytes)
         if num_bytes > 0:
-            return self.read_lob(conn_impl, dbtype)
+            self.read_ub8(&size)
+            self.read_ub4(&chunk_size)
+            locator = self.read_bytes()
+            lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
+            lob_impl._size = size
+            lob_impl._chunk_size = chunk_size
+            lob_impl._has_metadata = True
+            return PY_TYPE_LOB._from_impl(lob_impl)
 
     cdef int read_rowid(self, Rowid *rowid) except -1:
         """
