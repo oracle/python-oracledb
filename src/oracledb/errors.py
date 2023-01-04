@@ -169,6 +169,7 @@ ERR_ACCESS_TOKEN_REQUIRES_TCPS = 2034
 ERR_INVALID_OBJECT_TYPE_NAME = 2035
 ERR_OBJECT_IS_NOT_A_COLLECTION = 2036
 ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR = 2037
+ERR_INVALID_INDEX_IN_COLLECTION = 2038
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -253,6 +254,7 @@ ERR_ORACLE_ERROR_XREF = {
 # ODPI-C error number cross reference
 ERR_DPI_ERROR_XREF = {
     1010: ERR_CONNECTION_CLOSED,
+    1024: (ERR_INVALID_INDEX_IN_COLLECTION, "at index (?P<index>\d+) does"),
     1043: ERR_INVALID_NUMBER,
     1044: ERR_ORACLE_NUMBER_NO_REPR,
     1067: (ERR_CALL_TIMEOUT_EXCEEDED, "call timeout of (?P<timeout>\d+) ms"),
@@ -340,6 +342,8 @@ ERR_MESSAGE_FORMATS = {
             'invalid connect descriptor "{data}"',
     ERR_INVALID_CONNECT_PARAMS:
             'invalid connection params',
+    ERR_INVALID_INDEX_IN_COLLECTION:
+            'element at index {index} does not exist',
     ERR_INVALID_LOB_OFFSET:
             'LOB offset must be greater than zero',
     ERR_INVALID_MAKEDSN_ARG:

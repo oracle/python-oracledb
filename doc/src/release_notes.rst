@@ -28,6 +28,11 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
+    whenever an element in a database collection is missing (previously thick
+    mode raised ``DPI-1024: element at index {index} does not exist`` and thin
+    mode raised ``KeyError`` or ``IndexError``).
+
 
 oracledb 1.2.1 (December 2022)
 ------------------------------

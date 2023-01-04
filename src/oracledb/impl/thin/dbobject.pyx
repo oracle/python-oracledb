@@ -431,10 +431,14 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         by integers.
         """
         self._ensure_unpacked()
-        if self.unpacked_array:
-            return self.unpacked_array[index]
-        elif self.unpacked_assoc_array:
-            return self.unpacked_assoc_array[index]
+        try:
+            if self.unpacked_array is not None:
+                return self.unpacked_array[index]
+            else:
+                return self.unpacked_assoc_array[index]
+        except (KeyError, IndexError):
+            errors._raise_err(errors.ERR_INVALID_INDEX_IN_COLLECTION,
+                              index=index)
 
     def get_first_index(self):
         """
