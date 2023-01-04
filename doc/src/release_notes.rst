@@ -32,6 +32,11 @@ Common Changes
     whenever an element in a database collection is missing (previously thick
     mode raised ``DPI-1024: element at index {index} does not exist`` and thin
     mode raised ``KeyError`` or ``IndexError``).
+#)  Error ``DPY-2039: given index {index} must be in the range of {min_index}
+    to {max_index}`` is now raised whenever an element in a database collection
+    is set outside the bounds of the collection (previously thick mode raised
+    ``OCI-22165: given index [{index}] must be in the range of [{min_index}] to
+    [{max_index}]`` and thin mode raised ``IndexError``).
 
 
 oracledb 1.2.1 (December 2022)

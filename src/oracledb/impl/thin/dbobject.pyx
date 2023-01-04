@@ -437,8 +437,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             else:
                 return self.unpacked_assoc_array[index]
         except (KeyError, IndexError):
-            errors._raise_err(errors.ERR_INVALID_INDEX_IN_COLLECTION,
-                              index=index)
+            errors._raise_err(errors.ERR_INVALID_COLL_INDEX_GET, index=index)
 
     def get_first_index(self):
         """
@@ -519,7 +518,13 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         self._ensure_unpacked()
         if self.unpacked_array is not None:
-            self.unpacked_array[index] = value
+            try:
+                self.unpacked_array[index] = value
+            except IndexError:
+                max_index = max(len(self.unpacked_array) - 1, 0)
+                errors._raise_err(errors.ERR_INVALID_COLL_INDEX_SET,
+                                  index=index, min_index=0,
+                                  max_index=max_index)
         else:
             if index not in self.unpacked_assoc_array:
                 self.unpacked_assoc_keys = None

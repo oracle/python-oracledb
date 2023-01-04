@@ -169,7 +169,8 @@ ERR_ACCESS_TOKEN_REQUIRES_TCPS = 2034
 ERR_INVALID_OBJECT_TYPE_NAME = 2035
 ERR_OBJECT_IS_NOT_A_COLLECTION = 2036
 ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR = 2037
-ERR_INVALID_INDEX_IN_COLLECTION = 2038
+ERR_INVALID_COLL_INDEX_GET = 2038
+ERR_INVALID_COLL_INDEX_SET = 2039
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -243,6 +244,9 @@ ERR_ORACLE_ERROR_XREF = {
     28: ERR_CONNECTION_CLOSED,
     600: ERR_CONNECTION_CLOSED,
     1005: ERR_NO_CREDENTIALS,
+    22165: (ERR_INVALID_COLL_INDEX_SET,
+            'index \[(?P<index>\d+)\] must be in the range of '
+            '\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]'),
     22303: (ERR_INVALID_OBJECT_TYPE_NAME, 'type "(?P<name>[^"]*"."[^"]*)"'),
     24422: ERR_POOL_HAS_BUSY_CONNECTIONS,
     24349: ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED,
@@ -254,7 +258,7 @@ ERR_ORACLE_ERROR_XREF = {
 # ODPI-C error number cross reference
 ERR_DPI_ERROR_XREF = {
     1010: ERR_CONNECTION_CLOSED,
-    1024: (ERR_INVALID_INDEX_IN_COLLECTION, "at index (?P<index>\d+) does"),
+    1024: (ERR_INVALID_COLL_INDEX_GET, "at index (?P<index>\d+) does"),
     1043: ERR_INVALID_NUMBER,
     1044: ERR_ORACLE_NUMBER_NO_REPR,
     1067: (ERR_CALL_TIMEOUT_EXCEEDED, "call timeout of (?P<timeout>\d+) ms"),
@@ -342,8 +346,11 @@ ERR_MESSAGE_FORMATS = {
             'invalid connect descriptor "{data}"',
     ERR_INVALID_CONNECT_PARAMS:
             'invalid connection params',
-    ERR_INVALID_INDEX_IN_COLLECTION:
+    ERR_INVALID_COLL_INDEX_GET:
             'element at index {index} does not exist',
+    ERR_INVALID_COLL_INDEX_SET:
+            'given index {index} must be in the range of {min_index} to '
+            '{max_index}',
     ERR_INVALID_LOB_OFFSET:
             'LOB offset must be greater than zero',
     ERR_INVALID_MAKEDSN_ARG:
