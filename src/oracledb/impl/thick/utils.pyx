@@ -38,6 +38,7 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
         dict dict_value
         list list_value
         int32_t seconds
+        DbType dbtype
         uint32_t i
         str key
     if node.nativeTypeNum == DPI_NATIVE_TYPE_NULL:
@@ -81,8 +82,8 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
         for i in range(array.numElements):
             list_value[i] = _convert_from_json_node(&array.elements[i])
         return list_value
-    errors._raise_err(errors.ERR_ORACLE_TYPE_NOT_SUPPORTED,
-                      num=node.oracleTypeNum)
+    dbtype = DbType._from_num(node.oracleTypeNum)
+    errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
 
 cdef int _convert_from_python(object value, DbType dbtype,

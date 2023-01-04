@@ -20,6 +20,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Raise a more meaningful error when an unsupported type in a JSON value is
+    detected.
+
 Common Changes
 ++++++++++++++
 
