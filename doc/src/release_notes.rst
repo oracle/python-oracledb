@@ -18,6 +18,9 @@ Thin Mode Changes
     :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
 #)  Added check to prevent adding too many elements to bounded database
     collections.
+#)  Any exception raised attempting to find the logged on user for logging
+    purposes is now ignored
+    (`issue 112 <https://github.com/oracle/python-oracledb/issues/112>`__).
 #)  Fixed bug when binding OUT a NULL boolean value.
     (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
 
