@@ -16,6 +16,8 @@ Thin Mode Changes
 #)  Added internal support for prefetching the LOB size and chunk size, thereby
     eliminating a :ref:`round-trip<roundtrips>` when calling
     :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
+#)  Added check to prevent adding too many elements to bounded database
+    collections.
 
 Thick Mode Changes
 ++++++++++++++++++

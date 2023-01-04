@@ -365,9 +365,17 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         Internal method for appending a value to a collection object.
         """
-        cdef int32_t new_index
+        cdef:
+            ThinDbObjectTypeImpl typ_impl
+            int32_t new_index
         self._ensure_unpacked()
         if self.unpacked_array is not None:
+            typ_impl = self.type
+            if len(self.unpacked_array) >= typ_impl.max_num_elements:
+                errors._raise_err(errors.ERR_INVALID_COLL_INDEX_SET,
+                                  index=len(self.unpacked_array),
+                                  min_index=0,
+                                  max_index=typ_impl.max_num_elements - 1)
             self.unpacked_array.append(value)
         else:
             self._ensure_assoc_keys()
