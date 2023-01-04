@@ -567,5 +567,14 @@ class TestCase(test_env.BaseTestCase):
                                conn.cursor().callproc,
                                test_env.get_sleep_proc_name(), [2])
 
+    def test_1137_connection_repr(self):
+        "1137 - test Connection repr()"
+        class MyConnection(oracledb.Connection):
+            pass
+        connection = test_env.get_connection(conn_class=MyConnection)
+        expected_regex = f'^<{__name__}.TestCase.test_1137_connection_repr.' \
+                         f'<locals>.MyConnection .*>$'
+        self.assertRegex(repr(connection), expected_regex)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

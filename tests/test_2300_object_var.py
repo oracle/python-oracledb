@@ -506,7 +506,7 @@ class TestCase(test_env.BaseTestCase):
         array_obj.append(40)
         self.assertEqual(array_obj.exists(0), True)
         self.assertEqual(array_obj.exists(1), False)
-    
+
     def test_2321_first_and_last_indexes(self):
         "2321 - test first and last methods"
         array_type = self.connection.gettype("UDT_ARRAY")
@@ -554,6 +554,23 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(array_obj.getelement(0), 10)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
                                array_obj.setelement, 3, 4)
+
+    def test_2325_add_too_many_elements_to_collection(self):
+        "2325 - test appending too many elements to a collection"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        numbers = [i for i in range(11)]
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
+                               array_type.newobject, numbers)
+
+        array_obj = array_type.newobject()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
+                               array_obj.extend, numbers)
+
+        array_obj = array_type.newobject()
+        for elem in numbers[:10]:
+            array_obj.append(elem)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
+                               array_obj.append, numbers[10])
 
 if __name__ == "__main__":
     test_env.run_test_cases()
