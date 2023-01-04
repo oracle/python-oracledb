@@ -492,5 +492,68 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2037:",
                                self.cursor.var, oracledb.DB_TYPE_OBJECT)
 
+    def test_2319_collection_as_dictionary(self):
+        "2319 - test getting an empty collection as a dictionary"
+        type_obj = self.connection.gettype("UDT_ARRAY")
+        obj = type_obj.newobject()
+        self.assertEqual(obj.asdict(), {})
+
+    def test_2320_exists_in_collection(self):
+        "2320 - test if an element exists in a collection"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        array_obj = array_type.newobject()
+        self.assertEqual(array_obj.exists(0), False)
+        array_obj.append(40)
+        self.assertEqual(array_obj.exists(0), True)
+        self.assertEqual(array_obj.exists(1), False)
+    
+    def test_2321_first_and_last_indexes(self):
+        "2321 - test first and last methods"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        array_obj = array_type.newobject()
+        self.assertEqual(array_obj.first(), None)
+        self.assertEqual(array_obj.last(), None)
+        for i in range(7):
+            array_obj.append(i)
+        self.assertEqual(array_obj.first(), 0)
+        self.assertEqual(array_obj.last(), 6)
+
+    def test_2322_size(self):
+        "2322 - test getting the size of a collections"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        array_obj = array_type.newobject()
+        self.assertEqual(array_obj.size(), 0)
+        for i in range(5):
+            array_obj.append(i)
+        self.assertEqual(array_obj.size(), 5)
+
+    def test_2323_prev_next(self):
+        "2323 - test prev and next methods"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        array_obj = array_type.newobject()
+        self.assertEqual(array_obj.prev(0), None)
+        self.assertEqual(array_obj.next(0), None)
+        for i in range(2):
+            array_obj.append(i)
+        self.assertEqual(array_obj.prev(0), None)
+        self.assertEqual(array_obj.prev(1), 0)
+        self.assertEqual(array_obj.next(0), 1)
+        self.assertEqual(array_obj.next(1), None)
+
+    def test_2324_set_get_element(self):
+        "2324 - test setting and getting elements from a collection"
+        array_type = self.connection.gettype("UDT_ARRAY")
+        array_obj = array_type.newobject()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2038:",
+                               array_obj.getelement, 0)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
+                               array_obj.setelement, 0, 7)
+        array_obj.append(7)
+        self.assertEqual(array_obj.getelement(0), 7)
+        array_obj.setelement(0, 10)
+        self.assertEqual(array_obj.getelement(0), 10)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
+                               array_obj.setelement, 3, 4)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

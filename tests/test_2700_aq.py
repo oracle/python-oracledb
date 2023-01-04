@@ -518,5 +518,19 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1071:",
                                queue.enqone, props)
 
+    def test_2723_enqtime(self):
+        "2723 - test message props enqtime"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        book = queue.payload_type.newobject()
+        self.cursor.execute("select sysdate from dual")
+        start_date, = self.cursor.fetchone()
+        props = self.connection.msgproperties(payload=book)
+        queue.enqone(props)
+        props = queue.deqone()
+        self.cursor.execute("select sysdate from dual")
+        end_date, = self.cursor.fetchone()
+        self.assertTrue(start_date <= props.enqtime <= end_date)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
