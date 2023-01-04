@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -968,6 +968,9 @@ create or replace package &main_user..pkg_TestBooleans as
         a_Value                         udt_BooleanList
     ) return number;
 
+    function TestOutValueNull
+    return boolean;
+
     procedure TestOutArrays (
         a_NumElements                   number,
         a_Value                         out nocopy udt_BooleanList
@@ -1009,6 +1012,12 @@ create or replace package body &main_user..pkg_TestBooleans as
             end if;
         end loop;
         return t_Result;
+    end;
+
+    function TestOutValueNull
+    return boolean is
+    begin
+        return null;
     end;
 
     procedure TestOutArrays (

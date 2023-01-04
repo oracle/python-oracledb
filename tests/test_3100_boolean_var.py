@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -88,6 +88,12 @@ class TestCase(test_env.BaseTestCase):
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
                                       (True,))
         self.assertEqual(result, "TRUE")
+
+    def test_3108_bind_out_null(self):
+        "3108 - test binding out a boolean value (None)"
+        result = self.cursor.callfunc("pkg_TestBooleans.TestOutValueNull",
+                                      bool)
+        self.assertEqual(result, None)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
