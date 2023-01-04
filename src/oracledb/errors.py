@@ -73,9 +73,7 @@ class _Error:
                 if isinstance(driver_error_info, tuple):
                     driver_error_num, pattern = driver_error_info
                     match = re.search(pattern, self.message)
-                    if match is None:
-                        return
-                    args = match.groupdict()
+                    args = {} if match is None else match.groupdict()
                 else:
                     driver_error_num = driver_error_info
                 if driver_error_num == ERR_CONNECTION_CLOSED:
