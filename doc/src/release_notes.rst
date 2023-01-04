@@ -22,6 +22,8 @@ Thick Mode Changes
 
 #)  Raise a more meaningful error when an unsupported type in a JSON value is
     detected.
+#)  Added support for the "signed int", "signed long" and "decimal128" scalar
+    types in JSON (generally only seen when converting from MongoDB).
 
 Common Changes
 ++++++++++++++

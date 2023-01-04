@@ -206,5 +206,60 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3007:",
                                self.cursor.fetchone)
 
+    def test_3510_fetch_all_supported_types(self):
+        "3510 - fetch all supported types"
+        sql = """
+            select json('{
+                "binary_float": {"$numberFloat": 38.75},
+                "binary_double": {"$numberDouble": 125.875},
+                "date_no_time": {"$oracleDate": "2022-12-05"},
+                "date_with_time": {"$oracleDate": "2022-12-05T15:06:05"},
+                "empty_string": "",
+                "explicit_long": {"$numberLong": 9223372036854775807},
+                "false": false,
+                "interval_ds": {"$intervalDaySecond" : "P133DT2H5M8.123S"},
+                "long_integer": 12345678901234567890123456789012345,
+                "null": null,
+                "short_decimal": {"$numberDecimal": 18.25},
+                "short_integer": {"$numberInt": 5 },
+                "short_raw": {"$rawhex": "73686f72745f726177"},
+                "short_string": "A short string",
+                "small_integer": 1234,
+                "small_float": 25.25,
+                "string_uint8": "A longer string but still < 256 bytes",
+                "true": true,
+                "ts_no_fs": {"$oracleTimestamp": "2022-12-06T18:12:35"},
+                "ts_tz": {"$oracleTimestampTZ": "2022-12-07T22:59:15.1234Z"},
+                "ts_with_fs": {"$oracleTimestamp": "2022-12-06T18:12:35.123"}
+            }'
+            extended) from dual"""
+        expected_data = dict(
+            binary_float=38.75,
+            binary_double=125.875,
+            date_no_time=datetime.datetime(2022, 12, 5),
+            date_with_time=datetime.datetime(2022, 12, 5, 15, 6, 5),
+            empty_string="",
+            explicit_long=9223372036854775807,
+            false=False,
+            interval_ds=datetime.timedelta(days=133, seconds=7508,
+                                           microseconds=123000),
+            null=None,
+            long_integer=12345678901234567890123456789012345,
+            short_decimal=18.25,
+            short_integer=5,
+            short_raw=b"short_raw",
+            short_string="A short string",
+            small_integer=1234,
+            small_float=25.25,
+            string_uint8="A longer string but still < 256 bytes",
+            true=True,
+            ts_no_fs=datetime.datetime(2022, 12, 6, 18, 12, 35),
+            ts_tz=datetime.datetime(2022, 12, 7, 22, 59, 15, 123400),
+            ts_with_fs=datetime.datetime(2022, 12, 6, 18, 12, 35, 123000)
+        )
+        self.cursor.execute(sql)
+        actual_data, = self.cursor.fetchone()
+        self.assertEqual(actual_data, expected_data)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
