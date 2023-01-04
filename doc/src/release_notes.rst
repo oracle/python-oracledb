@@ -39,6 +39,8 @@ Common Changes
     is set outside the bounds of the collection (previously thick mode raised
     ``OCI-22165: given index [{index}] must be in the range of [{min_index}] to
     [{max_index}]`` and thin mode raised ``IndexError``).
+#)  Internal changes to ensure that errors taking place while raising
+    exceptions are handled more gracefully.
 
 
 oracledb 1.2.1 (December 2022)

@@ -72,7 +72,10 @@ class _Error:
             if driver_error_info is not None:
                 if isinstance(driver_error_info, tuple):
                     driver_error_num, pattern = driver_error_info
-                    args = re.search(pattern, self.message).groupdict()
+                    match = re.search(pattern, self.message)
+                    if match is None:
+                        return
+                    args = match.groupdict()
                 else:
                     driver_error_num = driver_error_info
                 if driver_error_num == ERR_CONNECTION_CLOSED:
@@ -94,7 +97,11 @@ def _get_error_text(error_num: int, **args) -> str:
         message_format = "missing error {error_num}"
         args = dict(error_num=error_num)
         error_num = ERR_MISSING_ERROR
-    message = message_format.format(**args)
+    try:
+        message = message_format.format(**args)
+    except KeyError:
+        message = message_format + "\nWrong arguments to message format:\n" + \
+                repr(args)
     return f"{ERR_PREFIX}-{error_num:04}: {message}"
 
 
