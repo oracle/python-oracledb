@@ -54,26 +54,35 @@ Setting the Oracle Client Library Directory
 -------------------------------------------
 
 When :meth:`~oracledb.init_oracle_client()` is called, python-oracledb
-dynamically loads Oracle Client libraries using a search heuristic.  Only the
-first set of libraries found are loaded.  The libraries can be:
+dynamically loads Oracle Client libraries using a search heuristic.  The
+libraries can be:
 
 - in an installation of Oracle Instant Client
 - or in a full Oracle Client installation
 - or in an Oracle Database installation (if Python is running on the same
   machine as the database).
 
-The versions of Oracle Client and Oracle Database do not have
-to be the same.  For certified configurations see Oracle Support's `Doc ID
-207303.1
-<https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
-
 See :ref:`installation` for information about installing Oracle Client
 libraries.
 
+The versions of Oracle Client libraries and Oracle Database do not have to be
+the same.  For certified configurations see Oracle Support's `Doc ID 207303.1
+<https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.
+
+.. note::
+
+    If Oracle Client libraries cannot be loaded then
+    :meth:`~oracledb.init_oracle_client()` will raise an error ``DPI-1047:
+    Oracle Client library cannot be loaded``.  To resolve this, review the
+    platform-specific instructions below or see :ref:`runtimetroubleshooting`.
+    Alternatively remove the call to :meth:`~oracledb.init_oracle_client()` and
+    use Thin mode. The features supported by Thin mode can be found in
+    :ref:`driverdiff`.
+
 .. _wininit:
 
-Setting the Oracle Client Directory on Windows
-++++++++++++++++++++++++++++++++++++++++++++++
+Setting the Oracle Client Library Directory on Windows
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 On Windows, python-oracledb Thick mode can be enabled as follows:
 
@@ -121,8 +130,8 @@ On Windows, python-oracledb Thick mode can be enabled as follows:
 
 .. _macinit:
 
-Setting the Oracle Client Directory on macOS
-++++++++++++++++++++++++++++++++++++++++++++
+Setting the Oracle Client Library Directory on macOS
+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 On macOS, python-oracledb Thick mode can be enabled as follows:
 
@@ -154,14 +163,33 @@ On macOS, python-oracledb Thick mode can be enabled as follows:
   'Basic' or 'Basic Light' package, or a symbolic link to the main Oracle
   Client library if Instant Client is in a different directory.
 
-  You can find the directory containing the Thick mode binary module by
-  calling the python CLI without specifying a Python script, executing
-  ``import oracledb``, and then typing ``oracledb`` at the prompt.  For
-  example if
-  ``/Users/yourname/Library/3.9.6/lib/python3.9/site-packages/oracledb-1.0.0-py3.9-macosx-11.5-x86_64.egg/oracledb``
-  contains ``thick_impl.cpython-39-darwin.so``, then you could run ``ln -s
-  ~/Downloads/instantclient_19_8/libclntsh.dylib
-  ~/Library/3.9.6/lib/python3.9/site-packages/oracledb-1.0.0-py3.9-macosx-11.5-x86_64.egg/oracledb/``.
+  You can find the directory containing the Thick mode binary module by calling
+  the python CLI without specifying a Python script, executing ``import
+  oracledb``, and then typing ``oracledb`` at the prompt.  For example this
+  might show
+  ``/Users/yourname/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb/__init__.py``.
+  After checking that
+  ``/Users/yourname/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb``
+  contains the binary module ``thick_impl.cpython-39-darwin.so`` you could then
+  run these commands in a terminal window::
+
+      CLIENT_DIR=~/Downloads/instantclient_19_8
+      DPY_DIR=~/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb
+      ln -s $CLIENT_DIR/libclntsh.dylib $DPY_DIR
+
+  This can be automated in Python with:
+
+  .. code-block:: python
+
+      CLIENT_DIR = "~/Downloads/instantclient_19_8"
+      LIB_NAME = "libclntsh.dylib"
+
+      import os
+      import oracledb
+
+      target_dir = oracledb.__path__[0]
+      os.symlink(os.path.join(CLIENT_DIR, LIB_NAME),
+                 os.path.join(target_dir, LIB_NAME))
 
   If python-oracledb does not find the Oracle Client library in that
   directory, the directories on the system library search path may be used,
@@ -174,8 +202,8 @@ On macOS, python-oracledb Thick mode can be enabled as follows:
 
 .. _linuxinit:
 
-Setting the Oracle Client Directory on Linux and Related Platforms
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Setting the Oracle Client Library Directory on Linux and Related Platforms
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 On Linux and related platforms, python-oracledb Thick mode can be enabled as
 follows:
@@ -207,16 +235,18 @@ follows:
   raised.
 
 Ensure that the Python process has directory and file access permissions for
-the Oracle Client libraries.  On Linux ensure a ``libclntsh.so`` file exists.
-On macOS ensure a ``libclntsh.dylib`` file exists.  python-oracledb Thick will
-not directly load ``libclntsh.*.XX.1`` files in ``lib_dir`` or from the directory
-where the python-oracledb binary module is available.  Note that other libraries
-used by ``libclntsh*`` are also required.
+the Oracle Client libraries.  On some platforms OS restrictions may prevent the
+opening of Oracle Client libraries installed in unsafe paths, such as from a
+user directory.  On Linux ensure a ``libclntsh.so`` file exists.  On macOS
+ensure a ``libclntsh.dylib`` file exists.  Python-oracledb Thick mode will not
+directly load ``libclntsh.*.XX.1`` files in ``lib_dir`` or from the directory
+where the python-oracledb binary module is available.  Note that other
+libraries used by ``libclntsh*`` are also required.
 
 .. _usinginitoracleclient:
 
-Calling oracledb.init_oracle_client() to Set the Oracle Client Directory
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Example Calling oracledb.init_oracle_client()
++++++++++++++++++++++++++++++++++++++++++++++
 
 Oracle Client Libraries are loaded when :meth:`oracledb.init_oracle_client()`
 is called.  In some environments, applications can use the ``lib_dir``
@@ -225,7 +255,7 @@ Otherwise, the system library search path should contain the relevant library
 directory before Python is invoked.
 
 For example, if the Oracle Instant Client Libraries are in
-``C:\oracle\instantclient_19_9`` on Windows or
+``C:\oracle\instantclient_19_17`` on Windows or
 ``$HOME/Downloads/instantclient_19_8`` on macOS (Intel x86), then you can use:
 
 .. code-block:: python
@@ -238,10 +268,10 @@ For example, if the Oracle Instant Client Libraries are in
     if platform.system() == "Darwin" and platform.machine() == "x86_64":
         d = os.environ.get("HOME")+"/Downloads/instantclient_19_8")
     elif platform.system() == "Windows":
-        d = r"C:\oracle\instantclient_19_14"
+        d = r"C:\oracle\instantclient_19_17"
     oracledb.init_oracle_client(lib_dir=d)
 
-Note the use of a 'raw' string ``r"..."`` on Windows so that backslashes are
+The use of a 'raw' string ``r"..."`` on Windows means that backslashes are
 treated as directory separators.
 
 **Note that if you set** ``lib_dir`` **on Linux and related platforms, you must
@@ -258,12 +288,16 @@ shown in :ref:`envset`.
 **Tracing Oracle Client Libraries Loading**
 
 To trace the loading of Oracle Client libraries, the environment variable
-``DPI_DEBUG_LEVEL`` can be set to 64 before starting Python.  For example, on
-Linux, you might use::
+``DPI_DEBUG_LEVEL`` can be set to 64 before starting Python.  At a Windows
+command prompt, this could be done with::
 
-    $ export DPI_DEBUG_LEVEL=64
-    $ python myapp.py 2> log.txt
+    set DPI_DEBUG_LEVEL=64
 
+On Linux and macOS, you might use::
+
+    export DPI_DEBUG_LEVEL=64
+
+When your python-oracledb application is run, logging output is shown.
 
 .. _optnetfiles:
 
