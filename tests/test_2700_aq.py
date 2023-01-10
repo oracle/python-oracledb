@@ -387,8 +387,9 @@ class TestCase(test_env.BaseTestCase):
         queue = other_connection.queue(self.book_queue_name, books_type)
         queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-        queue.deqoptions.transformation = \
-                "%s.transform2" % self.connection.username
+        transformation_str = "%s.transform2" % self.connection.username
+        queue.deqoptions.transformation = transformation_str
+        self.assertEqual(queue.deqOptions.transformation, transformation_str)
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
@@ -401,7 +402,9 @@ class TestCase(test_env.BaseTestCase):
         book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
         expected_price = book.PRICE + 5
         queue.enqoptions.transformation = \
-                "%s.transform1" % self.connection.username
+        transformation_str = "%s.transform1" % self.connection.username
+        queue.enqoptions.transformation = transformation_str
+        self.assertEqual(queue.enqOptions.transformation, transformation_str)
         props = self.connection.msgproperties(payload=book)
         queue.enqone(props)
         self.connection.commit()

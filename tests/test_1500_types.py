@@ -199,5 +199,13 @@ class TestCase(test_env.BaseTestCase):
         self.__test_compare(oracledb.DB_TYPE_UROWID, oracledb.ROWID)
         self.__test_pickle(oracledb.DB_TYPE_UROWID)
 
+    def test_1530_DB_TYPE_JSON(self):
+        "1530 - test oracledb.DB_TYPE_JSON pickling"
+        self.__test_pickle(oracledb.DB_TYPE_JSON)
+
+    def test_1531_DB_TYPE_INTERVAL_YM(self):
+        "1531 - test oracledb.DB_TYPE_INTERVAL_YM pickling"
+        self.__test_pickle(oracledb.DB_TYPE_INTERVAL_YM)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
