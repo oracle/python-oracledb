@@ -169,8 +169,6 @@ cdef class ConnectParamsImpl:
         self._default_address.set_from_args(args)
         _set_bool_param(args, "externalauth", &self.externalauth)
         self._set_access_token_param(args.get("access_token"))
-        if args:
-            self._has_components = True
 
     cdef int _check_credentials(self) except -1:
         """
@@ -344,7 +342,6 @@ cdef class ConnectParamsImpl:
         # to be a full connect descriptor
         if connect_string.startswith("("):
             _parse_connect_descriptor(connect_string, args)
-            self._has_components = True
             return self._process_connect_descriptor(args)
 
         # otherwise, see if the connect string is an EasyConnect string
@@ -388,9 +385,6 @@ cdef class ConnectParamsImpl:
                                   file_name=tnsnames_file.file_name)
             _parse_connect_descriptor(connect_string, args)
             self._process_connect_descriptor(args)
-
-        # mark that object has components
-        self._has_components = True
 
     cdef int _process_connect_descriptor(self, dict args) except -1:
         """
@@ -538,8 +532,7 @@ cdef class ConnectParamsImpl:
         will be a connect string built up from the components supplied when the
         object was built.
         """
-        if self._has_components:
-            return self.description_list.build_connect_string()
+        return self.description_list.build_connect_string()
 
     def get_full_user(self):
         """
@@ -613,16 +606,18 @@ cdef class Address:
 
     cdef str build_connect_string(self):
         """
-        Build a connect string from the components.
+        Build a connect string from the components. If no host is specified,
+        None is returned (used for bequeath connections).
         """
-        parts = [f"(PROTOCOL={self.protocol})",
-                 f"(HOST={self.host})",
-                 f"(PORT={self.port})"]
-        if self.https_proxy is not None:
-            parts.append(f"(HTTPS_PROXY={self.https_proxy})")
-        if self.https_proxy_port != 0:
-            parts.append(f"(HTTPS_PROXY_PORT={self.https_proxy_port})")
-        return f'(ADDRESS={"".join(parts)})'
+        if self.host is not None:
+            parts = [f"(PROTOCOL={self.protocol})",
+                     f"(HOST={self.host})",
+                     f"(PORT={self.port})"]
+            if self.https_proxy is not None:
+                parts.append(f"(HTTPS_PROXY={self.https_proxy})")
+            if self.https_proxy_port != 0:
+                parts.append(f"(HTTPS_PROXY_PORT={self.https_proxy_port})")
+            return f'(ADDRESS={"".join(parts)})'
 
     def copy(self):
         """
@@ -667,12 +662,25 @@ cdef class AddressList:
     def __init__(self):
         self.addresses = []
 
+    cdef bint _uses_tcps(self):
+        """
+        Returns a boolean indicating if any of the addresses in the address
+        list use the protocol TCPS.
+        """
+        cdef Address address
+        for address in self.addresses:
+            if address.protocol == "tcps":
+                return True
+        return False
+
     cdef str build_connect_string(self):
         """
         Build a connect string from the components.
         """
         cdef Address a
         parts = [a.build_connect_string() for a in self.addresses]
+        if len(parts) == 1:
+            return parts[0]
         return f'(ADDRESS_LIST={"".join(parts)})'
 
     def set_from_args(self, dict args):
@@ -713,37 +721,12 @@ cdef class Description:
         Build a connect string from the components.
         """
         cdef:
-            str connect_data, security, temp
-            list parts, address_lists
-            AddressList a
+            AddressList address_list
+            list parts, temp_parts
+            bint uses_tcps = False
+            str temp
 
-        # build connect data segment
-        parts = []
-        if self.service_name is not None:
-            parts.append(f"(SERVICE_NAME={self.service_name})")
-        elif self.sid is not None:
-            parts.append(f"(SID={self.sid})")
-        if self.server_type is not None:
-            parts.append(f"(SERVER={self.server_type})")
-        if self.cclass is not None:
-            parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
-        if self.purity != 0:
-            parts.append(f"(POOL_PURITY={self.purity})")
-        if cid is not None:
-            parts.append(f"(CID={cid})")
-        connect_data = f'(CONNECT_DATA={"".join(parts)})'
-
-        # build security segment, if applicable
-        parts = []
-        if self.ssl_server_dn_match:
-            parts.append("(SSL_SERVER_DN_MATCH=ON)")
-        if self.ssl_server_cert_dn is not None:
-            parts.append(f"(SSL_SERVER_CERT_DN={self.ssl_server_cert_dn})")
-        if self.wallet_location is not None:
-            parts.append(f"(MY_WALLET_DIRECTORY={self.wallet_location})")
-        security = f'(SECURITY={"".join(parts)})'
-
-        # build connect string
+        # build top-level description parts
         parts = []
         if self.load_balance:
             parts.append("(LOAD_BALANCE=ON)")
@@ -758,10 +741,48 @@ cdef class Description:
         if self.tcp_connect_timeout != DEFAULT_TCP_CONNECT_TIMEOUT:
             temp = self._build_duration_str(self.tcp_connect_timeout)
             parts.append(f"(TRANSPORT_CONNECT_TIMEOUT={temp})")
-        address_lists = [a.build_connect_string() for a in self.address_lists]
-        parts.extend(address_lists)
-        parts.append(connect_data)
-        parts.append(security)
+
+        # add address lists, but if the address list contains only a single
+        # entry and that entry does not have a host, the other parts aren't
+        # relevant anyway!
+        for address_list in self.address_lists:
+            temp = address_list.build_connect_string()
+            if temp is None:
+                return None
+            parts.append(temp)
+            if not uses_tcps:
+                uses_tcps = address_list._uses_tcps()
+
+        # build connect data segment
+        temp_parts = []
+        if self.service_name is not None:
+            temp_parts.append(f"(SERVICE_NAME={self.service_name})")
+        elif self.sid is not None:
+            temp_parts.append(f"(SID={self.sid})")
+        if self.server_type is not None:
+            temp_parts.append(f"(SERVER={self.server_type})")
+        if self.cclass is not None:
+            temp_parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
+        if self.purity != 0:
+            temp_parts.append(f"(POOL_PURITY={self.purity})")
+        if cid is not None:
+            temp_parts.append(f"(CID={cid})")
+        if temp_parts:
+            parts.append(f'(CONNECT_DATA={"".join(temp_parts)})')
+
+        # build security segment, if applicable
+        if uses_tcps:
+            temp_parts = []
+            if self.ssl_server_dn_match:
+                temp_parts.append("(SSL_SERVER_DN_MATCH=ON)")
+            if self.ssl_server_cert_dn is not None:
+                temp = f"(SSL_SERVER_CERT_DN={self.ssl_server_cert_dn})"
+                temp_parts.append(temp)
+            if self.wallet_location is not None:
+                temp = f"(MY_WALLET_DIRECTORY={self.wallet_location})"
+                temp_parts.append(temp)
+            parts.append(f'(SECURITY={"".join(temp_parts)})')
+
         return f'(DESCRIPTION={"".join(parts)})'
 
     def copy(self):

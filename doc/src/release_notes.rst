@@ -31,6 +31,9 @@ Thick Mode Changes
     detected.
 #)  Added support for the "signed int", "signed long" and "decimal128" scalar
     types in JSON (generally only seen when converting from MongoDB).
+#)  Fixed bug when attempting to create bequeath connections to a local
+    database
+    (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
 
 Common Changes
 ++++++++++++++
