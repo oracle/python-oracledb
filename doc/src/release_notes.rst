@@ -23,6 +23,8 @@ Thin Mode Changes
     (`issue 112 <https://github.com/oracle/python-oracledb/issues/112>`__).
 #)  Fixed bug when binding OUT a NULL boolean value.
     (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
+#)  Fixed bug when getting a record type based on a table (%ROWTYPE)
+    (`issue 123 <https://github.com/oracle/python-oracledb/issues/123>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
