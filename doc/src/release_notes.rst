@@ -25,6 +25,9 @@ Thin Mode Changes
     (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
 #)  Fixed bug when getting a record type based on a table (%ROWTYPE)
     (`issue 123 <https://github.com/oracle/python-oracledb/issues/123>`__).
+#)  Fixed bug when using a `select * from table` query and columns are added to
+    the table
+    (`issue 125 <https://github.com/oracle/python-oracledb/issues/125>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
