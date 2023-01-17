@@ -248,10 +248,10 @@ Python.
 Tuning Fetching from REF CURSORS
 --------------------------------
 
-In python-oracledb, REF CURSORS can also be tuned by setting the values of
-``arraysize`` and ``prefetchrows``. The ``prefetchrows`` value must be set
-before calling the PL/SQL procedure as the REF CURSOR is executed on the
-server.
+In python-oracledb, fetching data from REF CURSORS can be tuned by setting the
+values of ``arraysize`` and ``prefetchrows``. The ``prefetchrows`` value must
+be set before calling the PL/SQL procedure because the REF CURSOR is executed
+on the server.
 
 For example:
 
@@ -271,6 +271,8 @@ For example:
     print(sum_rows)
 
 .. _roundtrips:
+
+Also see `Avoiding Premature Prefetching`_.
 
 Database Round-trips
 ====================
