@@ -368,13 +368,15 @@ cdef class Buffer:
 
     cdef object read_bool(self):
         """
-        Read a boolean from the buffer and return True, False or None.
+        Read a boolean from the buffer and return True, False or None. A zero
+        length or a negative length (indicated by the value 0x81 in the first
+        byte) implies a null value.
         """
         cdef:
             const char_type *ptr
             ssize_t num_bytes
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
+        if ptr != NULL and ptr[0] != 0x81:
             return ptr[num_bytes - 1] == 1
 
     cdef object read_bytes(self):
