@@ -2387,7 +2387,7 @@ version of python-oracledb.
 
 .. data:: NCHAR
 
-    A synonym for :data:`DB_TYPE_NVARCHAR`.
+    A synonym for :data:`DB_TYPE_NCHAR`.
 
     .. deprecated:: cx_Oracle 8.0
 
