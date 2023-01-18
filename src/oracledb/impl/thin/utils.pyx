@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,7 +36,10 @@ class ConnectConstants:
         self.program_name = sys.executable
         self.machine_name = socket.gethostname()
         self.pid = str(os.getpid())
-        self.user_name = getpass.getuser()
+        try:
+            self.user_name = getpass.getuser()
+        except:
+            self.user_name = ""
         self.terminal_name = "unknown"
         self.sanitized_program_name = self._sanitize(self.program_name)
         self.sanitized_machine_name = self._sanitize(self.machine_name)
