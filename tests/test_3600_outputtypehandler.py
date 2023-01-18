@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -479,8 +479,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3671_incorrect_arraysize(self):
         "3671 - execute raises an error if an incorrect arraysize is used"
-        def type_handler(cursor, name, default_type, size,
-                         precision, scale):
+        def type_handler(cursor, name, default_type, size, precision, scale):
             return cursor.var(str)
         cursor = self.connection.cursor()
         cursor.arraysize = 100
