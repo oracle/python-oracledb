@@ -271,6 +271,10 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
        cd /opt/oracle
        unzip instantclient-basic-linux.x64-21.6.0.0.0.zip
 
+   Note OS restrictions may prevent the opening of Oracle Client libraries
+   installed in unsafe paths, such as from a user directory.  You may need to
+   install under a directory like ``/opt`` or ``/usr/local``.
+
 3. Install the ``libaio`` package with sudo or as the root user. For example::
 
        sudo yum install libaio
@@ -827,8 +831,13 @@ used to install into a local directory::
 
     python setup.py install --user
 
+.. _troubleshooting:
+
 Troubleshooting
 ===============
+
+Installation Troubleshooting
+----------------------------
 
 If installation fails:
 
@@ -866,6 +875,11 @@ If installation fails:
   a subdirectory called "odpi" containing files. If this is missing, review the
   section on `Install Using GitHub`_.
 
+.. _runtimetroubleshooting:
+
+Runtime Error Troubleshooting
+-----------------------------
+
 If using python-oracledb fails:
 
 - If you have multiple versions of Python installed, ensure that you are
@@ -884,14 +898,19 @@ If using python-oracledb fails:
     should be the location of your Oracle Client libraries. Do not pass
     this parameter on Linux.
 
+  - Check that the Python process has permission to open the Oracle Client
+    libraries.  OS restrictions may prevent the opening of libraries installed
+    in unsafe paths, such as from a user directory.  On Linux you may need to
+    install the Oracle Client libraries under a directory like ``/opt`` or
+    ``/usr/local``.
+
   - Check if Python and your Oracle Client libraries are both 64-bit or
     both 32-bit.  The ``DPI-1047`` message will tell you whether the 64-bit
     or 32-bit Oracle Client is needed for your Python.
 
-  - For Thick mode connections, set the environment variable
-    ``DPI_DEBUG_LEVEL`` to 64 and restart python-oracledb.  The trace
-    messages will show how and where python-oracledb is looking for the
-    Oracle Client libraries.
+  - Set the environment variable ``DPI_DEBUG_LEVEL`` to 64 and restart
+    python-oracledb.  The trace messages will show how and where
+    python-oracledb is looking for the Oracle Client libraries.
 
     At a Windows command prompt, this could be done with::
 
@@ -919,9 +938,10 @@ If using python-oracledb fails:
     been installed.
 
   - On Linux, check if the ``LD_LIBRARY_PATH`` environment variable contains
-    the Oracle Client library directory. Or, if you are using Oracle
-    Instant Client, a preferred alternative is to ensure that a file in the
-    ``/etc/ld.so.conf.d`` directory contains the path to the Instant Client
+    the Oracle Client library directory.  Some environments such as web servers
+    reset environment variables.  If you are using Oracle Instant Client, a
+    preferred alternative to ``LD_LIBRARY_PATH`` is to ensure that a file in
+    the ``/etc/ld.so.conf.d`` directory contains the path to the Instant Client
     directory, and then run ``ldconfig``.
 
 - If you get the error ``DPY-3010: connections to this database server
@@ -931,8 +951,8 @@ If using python-oracledb fails:
   :meth:`oracledb.init_oracle_client()` in your code.  Alternatively,
   upgrade your database.
 
-- If you get the error "``DPI-1072: the Oracle Client library version is
-  unsupported``", then review the installation requirements.  The Thick
+- If you get the error ``DPI-1072: the Oracle Client library version is
+  unsupported``, then review the installation requirements.  The Thick
   mode of python-oracledb needs Oracle Client libraries 11.2 or later.
   Note that version 19 is not supported on Windows 7.  Similar steps shown
   above for ``DPI-1047`` may help.  You may be able to use Thin mode which
