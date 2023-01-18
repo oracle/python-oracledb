@@ -46,6 +46,8 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
     elif node.oracleTypeNum == DPI_ORACLE_TYPE_NUMBER:
         if node.nativeTypeNum == DPI_NATIVE_TYPE_DOUBLE:
             return node.value.asDouble
+        elif node.nativeTypeNum == DPI_NATIVE_TYPE_FLOAT:
+            return node.value.asFloat
         as_bytes = &node.value.asBytes
         return PY_TYPE_DECIMAL(as_bytes.ptr[:as_bytes.length].decode())
     elif node.oracleTypeNum == DPI_ORACLE_TYPE_VARCHAR:
