@@ -716,7 +716,8 @@ cdef class MessageWithData(Message):
         conn = self.cursor.connection
         for i in range(cursor_impl._num_columns):
             fetch_info = self._process_column_info(buf, cursor_impl)
-            if prev_fetch_var_impls is not None:
+            if prev_fetch_var_impls is not None \
+                    and i < len(prev_fetch_var_impls):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler, i,
                                           fetch_info)

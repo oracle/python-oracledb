@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -825,6 +825,25 @@ class TestCase(test_env.BaseTestCase):
                     /* comment 3 */
                 from dual""")
         self.assertEqual(self.cursor.bindnames(), ["A", "B"])
+
+    def test_4365_add_column_to_cached_query(self):
+        "4365 - test addition of column to cached query"
+        table_name = "test_4365"
+        try:
+            self.cursor.execute(f"drop table {table_name}")
+        except:
+            pass
+        data = ('val 1', 'val 2')
+        self.cursor.execute(f"create table {table_name} (col1 varchar2(10))")
+        self.cursor.execute(f"insert into {table_name} values (:1)", [data[0]])
+        self.connection.commit()
+        self.cursor.execute(f"select * from {table_name}")
+        self.assertEqual(self.cursor.fetchall(), [(data[0],)])
+        self.cursor.execute(f"alter table {table_name} add col2 varchar2(10)")
+        self.cursor.execute(f"update {table_name} set col2 = :1", [data[1]])
+        self.connection.commit()
+        self.cursor.execute(f"select * from {table_name}")
+        self.assertEqual(self.cursor.fetchall(), [data])
 
 if __name__ == "__main__":
     test_env.run_test_cases()
