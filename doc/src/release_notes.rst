@@ -54,6 +54,8 @@ Common Changes
     [{max_index}]`` and thin mode raised ``IndexError``).
 #)  Internal changes to ensure that errors taking place while raising
     exceptions are handled more gracefully.
+#)  Fixed bug when attempting to populate an array variable with too many
+    elements.
 
 
 oracledb 1.2.1 (December 2022)

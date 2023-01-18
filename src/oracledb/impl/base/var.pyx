@@ -99,7 +99,7 @@ cdef class BaseVarImpl:
             if was_set != NULL:
                 was_set[0] = False
                 return 0
-            errors._raise_err(errors.ERR_INCORRECT_VAR_ARRAY_SIZE,
+            errors._raise_err(errors.ERR_INCORRECT_VAR_ARRAYSIZE,
                               var_arraysize=self.num_elements,
                               required_arraysize=num_elements_in_array)
 
