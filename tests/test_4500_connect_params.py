@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -478,10 +478,9 @@ class TestCase(test_env.BaseTestCase):
                                             tcp_connect_timeout=in_val)
             tcp_timeout_val = f"(TRANSPORT_CONNECT_TIMEOUT={out_val})"
             connect_string = f"(DESCRIPTION={tcp_timeout_val}" + \
-                             f"(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)" + \
-                             f"(HOST={host})(PORT=1521)))(CONNECT_DATA=" + \
-                             f"(SERVICE_NAME={service_name}))" + \
-                             f"(SECURITY=(SSL_SERVER_DN_MATCH=ON)))"
+                             f"(ADDRESS=(PROTOCOL=tcp)" + \
+                             f"(HOST={host})(PORT=1521))(CONNECT_DATA=" + \
+                             f"(SERVICE_NAME={service_name})))"
             self.assertEqual(params.get_connect_string(), connect_string)
 
     def test_4532_multiple_alias_entry_tnsnames(self):
@@ -582,9 +581,15 @@ class TestCase(test_env.BaseTestCase):
                     f"(ADDRESS_LIST=" + \
                     f"(ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))" + \
                     f"(ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522)))" + \
-                    f"(CONNECT_DATA=(SERVICE_NAME=my_service_35))" + \
-                    f"(SECURITY=(SSL_SERVER_DN_MATCH=ON)))"
+                    f"(CONNECT_DATA=(SERVICE_NAME=my_service_35)))"
             self.assertEqual(params.get_connect_string(), connect_string)
+
+    def test_4537_no_connect_string(self):
+        "4537 - test connect parameters which generate no connect string"
+        params = oracledb.ConnectParams()
+        self.assertEqual(params.get_connect_string(), None)
+        params.set(mode=oracledb.SYSDBA)
+        self.assertEqual(params.get_connect_string(), None)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -22,6 +22,10 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug when attempting to create bequeath connections to a local
+    database
+    (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
+
 Common Changes
 ++++++++++++++
 

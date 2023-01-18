@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -115,6 +115,7 @@ cdef class AddressList:
         bint load_balance
         int lru_index
 
+    cdef bint _uses_tcps(self)
     cdef str build_connect_string(self)
 
 
@@ -191,7 +192,6 @@ cdef class ConnectParamsImpl:
         bytearray _token_obfuscator
         bytearray _private_key
         bytearray _private_key_obfuscator
-        bint _has_components
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
