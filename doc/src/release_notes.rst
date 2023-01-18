@@ -13,6 +13,9 @@ oracledb 1.2.2 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when binding OUT a NULL boolean value.
+    (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
