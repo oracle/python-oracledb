@@ -1035,6 +1035,10 @@ end;
 
 create or replace package &main_user..pkg_TestBindObject as
 
+    subtype udt_RowType is TestTempTable%rowtype;
+
+    type udt_CollectionRowType is table of udt_RowType index by binary_integer;
+
     function GetStringRep (
         a_Object                        udt_Object
     ) return varchar2;

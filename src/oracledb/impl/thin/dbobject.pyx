@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -719,23 +719,35 @@ cdef class ThinDbObjectTypeCache:
                 t_SuperTypeOwner            varchar2(128);
                 t_SuperTypeName             varchar2(128);
                 t_SubTypeRefCursor          sys_refcursor;
+                t_Pos                       pls_integer;
             begin
                 :ret_val := dbms_pickler.get_type_shape(:full_name, :oid,
                     :version, :tds, t_Instantiable, t_SuperTypeOwner,
                     t_SuperTypeName, :attrs_rc, t_SubTypeRefCursor);
                 :package_name := null;
-                begin
-                    select owner, type_name
-                    into :schema, :name
-                    from all_types
-                    where type_oid = :oid;
-                exception
-                when no_data_found then
-                    select owner, package_name, type_name
-                    into :schema, :package_name, :name
-                    from all_plsql_types
-                    where type_oid = :oid;
-                end;
+                if substr(:full_name, length(:full_name) - 7) = '%ROWTYPE' then
+                    t_Pos := instr(:full_name, '.');
+                    :schema := substr(:full_name, 1, t_Pos - 1);
+                    :name := substr(:full_name, t_Pos + 1);
+                else
+                    begin
+                        select owner, type_name
+                        into :schema, :name
+                        from all_types
+                        where type_oid = :oid;
+                    exception
+                    when no_data_found then
+                        begin
+                            select owner, package_name, type_name
+                            into :schema, :package_name, :name
+                            from all_plsql_types
+                            where type_oid = :oid;
+                        exception
+                        when no_data_found then
+                            null;
+                        end;
+                    end;
+                end if;
             end;""")
         self.meta_cursor = cursor
 
@@ -939,17 +951,23 @@ cdef class ThinDbObjectTypeCache:
         """
         cdef:
             ThinDbObjectTypeImpl typ_impl
-            str full_name
+            str full_name, name, suffix
         while self.partial_types:
             typ_impl = self.partial_types.pop()
             if self.meta_cursor is None:
                 self._init_meta_cursor(conn)
+            suffix = "%ROWTYPE"
+            if typ_impl.name.endswith(suffix):
+                name = typ_impl.name[:-len(suffix)]
+            else:
+                name = typ_impl.name
+                suffix = ""
             if typ_impl.package_name is not None:
                 full_name = f'"{typ_impl.schema}".' + \
                             f'"{typ_impl.package_name}".' + \
-                            f'"{typ_impl.name}"'
+                            f'"{name}"{suffix}'
             else:
-                full_name = f'"{typ_impl.schema}"."{typ_impl.name}"'
+                full_name = f'"{typ_impl.schema}"."{name}"{suffix}'
             self._populate_type_info(full_name, typ_impl)
 
 
