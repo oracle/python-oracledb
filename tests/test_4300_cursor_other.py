@@ -845,5 +845,11 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(f"select * from {table_name}")
         self.assertEqual(self.cursor.fetchall(), [data])
 
+    def test_4366_populate_array_var_with_too_many_elements(self):
+        "4366 - test population of array var with too many elements"
+        var = self.cursor.arrayvar(int, 3)
+        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2016:",
+                               var.setvalue, 0, [1, 2, 3, 4])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

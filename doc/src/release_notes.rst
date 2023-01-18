@@ -31,6 +31,12 @@ Thick Mode Changes
     database
     (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
 
+Common Changes
+++++++++++++++
+
+#)  Fixed bug when attempting to populate an array variable with too many
+    elements.
+
 
 oracledb 1.2.1 (December 2022)
 ------------------------------
