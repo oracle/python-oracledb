@@ -7,15 +7,15 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 1.2.2 (TBD)
---------------------
+oracledb 1.2.2 (January 2023)
+-----------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Any exception raised attempting to find the logged on user for logging
-    purposes is now ignored
-    (`issue 112 <https://github.com/oracle/python-oracledb/issues/112>`__).
+#)  Any exception raised while finding the operating system user for database
+    logging is now ignored (`issue 112
+    <https://github.com/oracle/python-oracledb/issues/112>`__).
 #)  Fixed bug when binding OUT a NULL boolean value.
     (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
 #)  Fixed bug when getting a record type based on a table (%ROWTYPE)
@@ -30,9 +30,6 @@ Thick Mode Changes
 #)  Fixed bug when attempting to create bequeath connections to a local
     database
     (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
-
-Common Changes
-++++++++++++++
 
 
 oracledb 1.2.1 (December 2022)
