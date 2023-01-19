@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -571,6 +571,15 @@ class TestCase(test_env.BaseTestCase):
             array_obj.append(elem)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2039:",
                                array_obj.append, numbers[10])
+
+    def test_2326_test_unconstrained_table(self):
+        "2326 - test appending elements to an unconstrained table"
+        data = [1, 3, 6, 10, 15, 21]
+        typ = self.connection.gettype("UDT_UNCONSTRAINEDTABLE")
+        obj = typ.newobject(data)
+        self.cursor.execute("select :1 from dual", [obj])
+        output_obj, = self.cursor.fetchone()
+        self.assertEqual(output_obj.aslist(), data)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

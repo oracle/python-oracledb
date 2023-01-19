@@ -114,6 +114,9 @@ create type &main_user..udt_Object as object (
 create type &main_user..udt_Array as varray(10) of number;
 /
 
+create type &main_user..udt_UnconstrainedTable as table of number;
+/
+
 create or replace type &main_user..udt_Building as object (
     BuildingId                          number(9),
     NumFloors                           number(3),

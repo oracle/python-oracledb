@@ -371,7 +371,8 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         self._ensure_unpacked()
         if self.unpacked_array is not None:
             typ_impl = self.type
-            if len(self.unpacked_array) >= typ_impl.max_num_elements:
+            if typ_impl.max_num_elements > 0 \
+                    and len(self.unpacked_array) >= typ_impl.max_num_elements:
                 errors._raise_err(errors.ERR_INVALID_COLL_INDEX_SET,
                                   index=len(self.unpacked_array),
                                   min_index=0,
