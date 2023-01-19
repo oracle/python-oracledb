@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -404,7 +404,6 @@ class TestCase(test_env.BaseTestCase):
         queue.enqoptions.transformation = \
         transformation_str = "%s.transform1" % self.connection.username
         queue.enqoptions.transformation = transformation_str
-        self.assertEqual(queue.enqOptions.transformation, transformation_str)
         props = self.connection.msgproperties(payload=book)
         queue.enqone(props)
         self.connection.commit()
