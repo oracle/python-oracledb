@@ -18,16 +18,6 @@ Thin Mode Changes
     :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
 #)  Added check to prevent adding too many elements to bounded database
     collections.
-#)  Any exception raised attempting to find the logged on user for logging
-    purposes is now ignored
-    (`issue 112 <https://github.com/oracle/python-oracledb/issues/112>`__).
-#)  Fixed bug when binding OUT a NULL boolean value.
-    (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
-#)  Fixed bug when getting a record type based on a table (%ROWTYPE)
-    (`issue 123 <https://github.com/oracle/python-oracledb/issues/123>`__).
-#)  Fixed bug when using a `select * from table` query and columns are added to
-    the table
-    (`issue 125 <https://github.com/oracle/python-oracledb/issues/125>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -36,9 +26,6 @@ Thick Mode Changes
     detected.
 #)  Added support for the "signed int", "signed long" and "decimal128" scalar
     types in JSON (generally only seen when converting from MongoDB).
-#)  Fixed bug when attempting to create bequeath connections to a local
-    database
-    (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
 
 Common Changes
 ++++++++++++++
@@ -54,6 +41,35 @@ Common Changes
     [{max_index}]`` and thin mode raised ``IndexError``).
 #)  Internal changes to ensure that errors taking place while raising
     exceptions are handled more gracefully.
+
+
+oracledb 1.2.2 (January 2023)
+-----------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Any exception raised while finding the operating system user for database
+    logging is now ignored (`issue 112
+    <https://github.com/oracle/python-oracledb/issues/112>`__).
+#)  Fixed bug when binding OUT a NULL boolean value.
+    (`issue 119 <https://github.com/oracle/python-oracledb/issues/119>`__).
+#)  Fixed bug when getting a record type based on a table (%ROWTYPE)
+    (`issue 123 <https://github.com/oracle/python-oracledb/issues/123>`__).
+#)  Fixed bug when using a `select * from table` query and columns are added to
+    the table
+    (`issue 125 <https://github.com/oracle/python-oracledb/issues/125>`__).
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed bug when attempting to create bequeath connections to a local
+    database
+    (`issue 114 <https://github.com/oracle/python-oracledb/issues/114>`__).
+
+Common Changes
+++++++++++++++
+
 #)  Fixed bug when attempting to populate an array variable with too many
     elements.
 
