@@ -550,5 +550,17 @@ class TestCase(test_env.BaseTestCase):
         type_obj = self.connection.gettype(type_name)
         self.assertEqual(type_obj.element_type.attributes[3].name, "NUMBERCOL")
 
+    def test_3230_batcherrors_with_plsql(self):
+        "3230 - enabling batcherrors parameter with PL/SQL"
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2040:",
+                               self.cursor.executemany, "begin null; end;", 30,
+                               batcherrors=True)
+
+    def test_3231_arraydmlrowcounts_with_plsql(self):
+        "3230 - enabling arraydmlrowcountsbatcherrors parameter with PL/SQL"
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2040:",
+                               self.cursor.executemany, "begin null; end;", 31,
+                               arraydmlrowcounts=True)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

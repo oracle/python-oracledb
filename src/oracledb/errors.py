@@ -176,6 +176,7 @@ ERR_OBJECT_IS_NOT_A_COLLECTION = 2036
 ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR = 2037
 ERR_INVALID_COLL_INDEX_GET = 2038
 ERR_INVALID_COLL_INDEX_SET = 2039
+ERR_EXECUTE_MODE_ONLY_FOR_DML = 2040
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -266,6 +267,7 @@ ERR_DPI_ERROR_XREF = {
     1024: (ERR_INVALID_COLL_INDEX_GET, "at index (?P<index>\d+) does"),
     1043: ERR_INVALID_NUMBER,
     1044: ERR_ORACLE_NUMBER_NO_REPR,
+    1063: ERR_EXECUTE_MODE_ONLY_FOR_DML,
     1067: (ERR_CALL_TIMEOUT_EXCEEDED, "call timeout of (?P<timeout>\d+) ms"),
     1080: ERR_CONNECTION_CLOSED,
 }
@@ -312,6 +314,9 @@ ERR_MESSAGE_FORMATS = {
             'database type "{name}" is not supported',
     ERR_DUPLICATED_PARAMETER:
             '"{deprecated_name}" and "{new_name}" cannot be specified together',
+    ERR_EXECUTE_MODE_ONLY_FOR_DML:
+            'parameters "batcherrors" and "arraydmlrowcounts" may only be '
+            'true when used with insert, update, delete and merge statements',
     ERR_EXPECTING_LIST_FOR_ARRAY_VAR:
             'expecting list when setting array variables',
     ERR_EXPECTING_TYPE:

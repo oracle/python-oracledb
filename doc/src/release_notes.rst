@@ -33,14 +33,23 @@ Common Changes
 ++++++++++++++
 
 #)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
-    whenever an element in a database collection is missing (previously thick
+    whenever an element in a database collection is missing. Previously, thick
     mode raised ``DPI-1024: element at index {index} does not exist`` and thin
-    mode raised ``KeyError`` or ``IndexError``).
+    mode raised ``KeyError`` or ``IndexError``.
 #)  Error ``DPY-2039: given index {index} must be in the range of {min_index}
     to {max_index}`` is now raised whenever an element in a database collection
-    is set outside the bounds of the collection (previously thick mode raised
+    is set outside the bounds of the collection. Previously, thick mode raised
     ``OCI-22165: given index [{index}] must be in the range of [{min_index}] to
-    [{max_index}]`` and thin mode raised ``IndexError``).
+    [{max_index}]`` and thin mode raised ``IndexError``.
+#)  Error ``DPY-2040: parameters "batcherrors" and "arraydmlrowcounts" may only
+    be true when used with insert, update, delete and merge statements`` is now
+    raised when either of the parameters `batcherrors` and `arraydmlrowcounts`
+    is set to the value `True` when calling :meth:`Cursor.executemany()`.
+    Previously, thick mode raised ``DPI-1063: modes DPI_MODE_EXEC_BATCH_ERRORS
+    and DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS can only be used with insert, update,
+    delete and merge statements`` and thin mode raised
+    ``ORA-03137: malformed TTC packet from client rejected``
+    (`issue 128 <https://github.com/oracle/python-oracledb/issues/128>`__).
 #)  Internal changes to ensure that errors taking place while raising
     exceptions are handled more gracefully.
 

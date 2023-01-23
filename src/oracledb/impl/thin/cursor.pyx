@@ -153,6 +153,11 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         message.batcherrors = batcherrors
         message.arraydmlrowcounts = arraydmlrowcounts
 
+        # only DML statements may use the batch errors or array DML row counts
+        # flags
+        if not self._statement._is_dml and (batcherrors or arraydmlrowcounts):
+            errors._raise_err(errors.ERR_EXECUTE_MODE_ONLY_FOR_DML)
+
         # if a PL/SQL statement is being executed for the first time, perform
         # one execute. If the statement contains both in and out binds,
         # multiple executes will be performed; otherwise, a bulk execute will
