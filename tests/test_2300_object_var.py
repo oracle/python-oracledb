@@ -581,5 +581,18 @@ class TestCase(test_env.BaseTestCase):
         output_obj, = self.cursor.fetchone()
         self.assertEqual(output_obj.aslist(), data)
 
+    def test_2327_large_collection(self):
+        "2327 - test collection with thousands of entries"
+        typ = self.connection.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
+        obj = typ.newobject()
+        obj.setelement(1, 1)
+        running_total = 1
+        for i in range(1, 35000):
+            running_total += (i + 1)
+            obj.append(running_total)
+        result = self.cursor.callfunc("pkg_TestNumberArrays.TestInArrays", int,
+                                      (2327, obj))
+        self.assertEqual(result, 7146445847327)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -44,6 +44,20 @@ cdef class DbObjectPickleBuffer(Buffer):
             num_bytes[0] = <ssize_t> extended_num_bytes
         ptr[0] = self._get_raw(num_bytes[0])
 
+    cdef int _write_more_data(self, ssize_t num_bytes_available,
+                              ssize_t num_bytes_wanted) except -1:
+        """
+        Called when the amount of buffer available is less than the amount of
+        data requested. The buffer is increased in multiples of TNS_CHUNK_SIZE
+        in order to accomodate the number of bytes desired.
+        """
+        cdef:
+            ssize_t num_bytes_needed = num_bytes_wanted - num_bytes_available
+            ssize_t new_size
+        new_size = (self._max_size + num_bytes_needed + TNS_CHUNK_SIZE - 1) & \
+                ~(TNS_CHUNK_SIZE - 1)
+        self._resize(new_size)
+
     cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
                                          ssize_t num_bytes) except -1:
         """

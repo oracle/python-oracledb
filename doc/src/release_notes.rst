@@ -18,6 +18,8 @@ Thin Mode Changes
     :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
 #)  Added check to prevent adding too many elements to bounded database
     collections.
+#)  Removed internally set fixed size for database collections. Collections of
+    any size supported by the database can now be created.
 
 Thick Mode Changes
 ++++++++++++++++++
