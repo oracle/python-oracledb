@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,7 +45,7 @@ if platform.system() == "Windows":
     instant_client_dir = r"C:\Oracle\instantclient_19_14"
 
 # On macOS (Intel x86) set the directory to your Instant Client directory
-if platform.system() == "Darwin":
+if platform.system() == "Darwin" and platform.machine() == "x86_64":
     instant_client_dir = os.environ.get("HOME")+"/Downloads/instantclient_19_8"
 
 # You must always call init_oracle_client() to use thick mode in any platform

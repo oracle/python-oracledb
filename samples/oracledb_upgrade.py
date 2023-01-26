@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -133,7 +133,7 @@ ALLOW_POSITIONAL_CONNECT_ARGS = True
 # set lib_dir; instead set LD_LIBRARY_PATH or configure ldconfig before running
 # Python.
 lib_dir = None
-if platform.system() == "Darwin":
+if platform.system() == "Darwin" and platform.machine() == "x86_64":
     lib_dir = os.environ.get("HOME")+"/Downloads/instantclient_19_8"
 elif platform.system() == "Windows":
     lib_dir = r"C:\oracle\instantclient_19_14"

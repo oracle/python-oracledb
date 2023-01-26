@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -85,6 +85,7 @@
 
 import getpass
 import os
+import platform
 import sys
 
 # default values
@@ -164,7 +165,8 @@ def get_admin_connect_string():
     return "%s/%s@%s" % (admin_user, admin_password, get_connect_string())
 
 def get_oracle_client():
-    if sys.platform in ("darwin", "win32"):
+    if ((platform.system() == "Darwin" and platform.machine() == "x86_64") or
+        platform.system() == "Windows"):
         return get_value("PYO_SAMPLES_ORACLE_CLIENT_PATH",
                          "Oracle Instant Client Path")
 
