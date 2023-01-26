@@ -1684,10 +1684,12 @@ cdef class ConnectMessage(Message):
 
     cdef int send(self, WriteBuffer buf) except -1:
         cdef:
-            uint16_t service_options = TNS_BASE_SERVICE_OPTIONS
+            uint16_t service_options = TNS_GSO_DONT_CARE
             uint32_t connect_flags_1 = 0, connect_flags_2 = 0
+            uint8_t nsi_flags = \
+                    TNS_NSI_SUPPORT_SECURITY_RENEG | TNS_NSI_DISABLE_NA
         if buf._caps.supports_oob:
-            service_options |= TNS_CAN_RECV_ATTENTION
+            service_options |= TNS_GSO_CAN_RECV_ATTENTION
             connect_flags_2 |= TNS_CHECK_OOB
         buf.start_request(TNS_PACKET_TYPE_CONNECT)
         buf.write_uint16(TNS_VERSION_DESIRED)
@@ -1701,7 +1703,8 @@ cdef class ConnectMessage(Message):
         buf.write_uint16(self.connect_string_len)
         buf.write_uint16(74)                # offset to connect data
         buf.write_uint32(0)                 # max receivable data
-        buf.write_uint16(TNS_CONNECT_FLAGS)
+        buf.write_uint8(nsi_flags)
+        buf.write_uint8(nsi_flags)
         buf.write_uint64(0)                 # obsolete
         buf.write_uint64(0)                 # obsolete
         buf.write_uint64(0)                 # obsolete
@@ -2109,55 +2112,6 @@ cdef class LogoffMessage(Message):
         Perform initialization.
         """
         self.function_code = TNS_FUNC_LOGOFF
-
-
-@cython.final
-cdef class NetworkServicesMessage(Message):
-
-    cdef int _write_message(self, WriteBuffer buf) except -1:
-        cdef:
-            uint16_t packet_length
-            NetworkService service
-
-        # calculate length of packet
-        packet_length = TNS_NETWORK_HEADER_SIZE
-        for service in TNS_NETWORK_SERVICES:
-            packet_length += service.get_data_size()
-
-        # write header
-        buf.write_uint32(TNS_NETWORK_MAGIC)
-        buf.write_uint16(packet_length)
-        buf.write_uint32(TNS_NETWORK_VERSION)
-        buf.write_uint16(<uint16_t> len(TNS_NETWORK_SERVICES))
-        buf.write_uint8(0)                  # flags
-
-        # write service data
-        for service in TNS_NETWORK_SERVICES:
-            service.write_data(buf)
-
-    cdef int process(self, ReadBuffer buf) except -1:
-        cdef:
-            uint16_t num_services, num_subpackets, i, j, data_length
-            uint32_t temp32
-        buf.skip_raw_bytes(2)               # data flags
-        buf.read_uint32(&temp32)            # network magic num
-        if temp32 != TNS_NETWORK_MAGIC:
-            errors._raise_err(errors.ERR_UNEXPECTED_DATA, data=hex(temp32))
-        buf.skip_raw_bytes(2)               # length of packet
-        buf.skip_raw_bytes(4)               # version
-        buf.read_uint16(&num_services)
-        buf.skip_raw_bytes(1)               # error flags
-        for i in range(num_services):
-            buf.skip_raw_bytes(2)           # service num
-            buf.read_uint16(&num_subpackets)
-            buf.read_uint32(&temp32)        # error num
-            if temp32 != 0:
-                errors._raise_err(errors.ERR_LISTENER_REFUSED_CONNECTION,
-                                  error_code=temp32)
-            for j in range(num_subpackets):
-                buf.read_uint16(&data_length)
-                buf.skip_raw_bytes(2)       # data type
-                buf.skip_raw_bytes(data_length)
 
 
 @cython.final

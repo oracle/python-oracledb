@@ -48,7 +48,7 @@ cdef class Capabilities:
     cdef void _adjust_for_protocol(self, uint16_t protocol_version,
                                    uint16_t protocol_options):
         self.protocol_version = protocol_version
-        self.supports_oob = protocol_options & TNS_CAN_RECV_ATTENTION
+        self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_compile_caps(self, bytearray server_caps):

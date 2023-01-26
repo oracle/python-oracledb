@@ -217,8 +217,7 @@ cdef class Protocol:
             self._socket.send(b"!", socket.MSG_OOB)
             self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
 
-        # send services, protocol and data types messages and process responses
-        self._process_message(conn_impl._create_message(NetworkServicesMessage))
+        # send protocol and data types messages and process responses
         self._process_message(conn_impl._create_message(ProtocolMessage))
         self._process_message(conn_impl._create_message(DataTypesMessage))
 

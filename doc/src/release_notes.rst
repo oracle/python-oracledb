@@ -20,6 +20,8 @@ Thin Mode Changes
     collections.
 #)  Removed internally set fixed size for database collections. Collections of
     any size supported by the database can now be created.
+#)  Removed packet for negotiating network services which are not supported in
+    thin mode.
 
 Thick Mode Changes
 ++++++++++++++++++
