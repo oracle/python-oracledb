@@ -97,6 +97,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.bindnames(), ["A", "B"])
         self.cursor.prepare("select :value1 + :VaLue_2 from dual")
         self.assertEqual(self.cursor.bindnames(), ["VALUE1", "VALUE_2"])
+        self.cursor.prepare("select :élevé, :fenêtre from dual")
+        self.assertEqual(self.cursor.bindnames(), ["ÉLEVÉ", "FENÊTRE"])
 
     def test_4305_set_input_sizes_negative(self):
         "4305 - test cursor.setinputsizes() with invalid parameters"
