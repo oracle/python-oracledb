@@ -144,6 +144,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
     def executemany(self, cursor, num_execs, batcherrors, arraydmlrowcounts):
         cdef:
             MessageWithData messsage
+            Statement stmt
             uint32_t i
 
         # set up message to send
@@ -152,31 +153,27 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         message.num_execs = num_execs
         message.batcherrors = batcherrors
         message.arraydmlrowcounts = arraydmlrowcounts
+        stmt = self._statement
 
         # only DML statements may use the batch errors or array DML row counts
         # flags
-        if not self._statement._is_dml and (batcherrors or arraydmlrowcounts):
+        if not stmt._is_dml and (batcherrors or arraydmlrowcounts):
             errors._raise_err(errors.ERR_EXECUTE_MODE_ONLY_FOR_DML)
 
-        # if a PL/SQL statement is being executed for the first time, perform
-        # one execute. If the statement contains both in and out binds,
-        # multiple executes will be performed; otherwise, a bulk execute will
-        # be performed.
-        if self._statement._is_plsql and self._statement._cursor_id == 0:
+        # if a PL/SQL statement requires a full execute, perform only a single
+        # iteration in order to allow the determination of input/output binds
+        # to be completed; after that, an execution of the remaining iterations
+        # can be performed
+        if stmt._is_plsql and stmt._requires_full_execute:
             message.num_execs = 1
             self._conn_impl._protocol._process_single_message(message)
-            self._statement._requires_full_execute = False
-            if self._statement._plsql_multiple_execs:
-                for i in range(num_execs - 1):
-                    message.offset = i + 1
-                    self._conn_impl._protocol._process_single_message(message)
-            elif num_execs > 1:
-                message.offset = 1
-                message.num_execs = num_execs - 1
-                self._conn_impl._protocol._process_single_message(message)
-        else:
-            self._conn_impl._protocol._process_single_message(message)
-            self._statement._requires_full_execute = False
+            stmt._requires_full_execute = False
+            if num_execs == 1:
+                return
+            message.offset = 1
+            message.num_execs = num_execs - 1
+        self._conn_impl._protocol._process_single_message(message)
+        stmt._requires_full_execute = False
 
     def get_array_dml_row_counts(self):
         if self._dmlrowcounts is None:

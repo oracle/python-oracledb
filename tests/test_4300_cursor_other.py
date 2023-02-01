@@ -853,5 +853,22 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2016:",
                                var.setvalue, 0, [1, 2, 3, 4])
 
+    def test_4367_plsql_with_executemany_and_increasing_sizes(self):
+        "4367 - test executemany() with PL/SQL and increasing data lengths"
+        sql = """
+                begin
+                    :1 := length(:2);
+                end;"""
+        var = self.cursor.var(int, arraysize=3)
+        self.cursor.executemany(sql,
+                                [(var, "one"), (var, "two"), (var, "end")])
+        self.assertEqual(var.values, [3, 3, 3])
+        self.cursor.executemany(sql,
+                                [(var, "three"), (var, "four"), (var, "end")])
+        self.assertEqual(var.values, [5, 4, 3])
+        self.cursor.executemany(sql,
+                                [(var, "five"), (var, "six"), (var, "end")])
+        self.assertEqual(var.values, [4, 3, 3])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

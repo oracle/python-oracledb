@@ -386,32 +386,18 @@ cdef class MessageWithData(Message):
 
     cdef int _write_bind_params(self, WriteBuffer buf, list params) except -1:
         cdef:
-            bint returning_only = True, all_values_null = True
-            list bind_var_impls, bind_vals
-            uint32_t i
+            bint has_data = False
+            list bind_var_impls
             BindInfo bind_info
         bind_var_impls = []
         for bind_info in params:
             if not bind_info._is_return_bind:
-                returning_only = False
-            bind_vals = bind_info._bind_var_impl._values
-            for i in range(len(bind_vals)):
-                if cpython.PyList_GET_ITEM(bind_vals, i) is not \
-                        <cpython.ref.PyObject*> None:
-                    all_values_null = False
-                    break
+                has_data = True
             bind_var_impls.append(bind_info._bind_var_impl)
         self._write_column_metadata(buf, bind_var_impls)
 
-        # plsql batch executions without bind values
-        if self.cursor_impl._statement._is_plsql and self.num_execs > 1 \
-                and not all_values_null:
-            buf.write_uint8(TNS_MSG_TYPE_ROW_DATA)
-            buf.write_uint8(TNS_ESCAPE_CHAR)
-            buf.write_uint8(1)
-
         # write parameter values unless statement contains only returning binds
-        elif not returning_only:
+        if has_data:
             for i in range(self.num_execs):
                 buf.write_uint8(TNS_MSG_TYPE_ROW_DATA)
                 self._write_bind_params_row(buf, params, i)
@@ -789,7 +775,6 @@ cdef class MessageWithData(Message):
         cdef:
             uint16_t i, num_binds, num_bytes, temp16
             BindInfo bind_info
-            bint has_in_bind = False
         buf.skip_ub1()                      # flag
         buf.read_ub2(&num_binds)            # num requests
         buf.read_ub4(&self.row_index)       # iter num
@@ -806,12 +791,8 @@ cdef class MessageWithData(Message):
             bind_info = self.cursor_impl._statement._bind_info_list[i]
             buf.read_ub1(&bind_info.bind_dir)
             if bind_info.bind_dir == TNS_BIND_DIR_INPUT:
-                has_in_bind = True
                 continue
             self.out_var_impls.append(bind_info._bind_var_impl)
-        if self.cursor_impl._statement._is_plsql and \
-                self.out_var_impls and has_in_bind:
-            self.cursor_impl._statement._plsql_multiple_execs = True
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:

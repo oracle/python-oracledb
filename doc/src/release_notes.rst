@@ -22,6 +22,9 @@ Thin Mode Changes
     any size supported by the database can now be created.
 #)  Removed packet for negotiating network services which are not supported in
     thin mode.
+#)  Fixed bug when calling :meth:`Cursor.executemany()` with PL/SQL when the
+    size of the bound data increases on subsequent calls
+    (`issue 132 <https://github.com/oracle/python-oracledb/issues/132>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
