@@ -1028,7 +1028,7 @@ cdef class Buffer:
         if length > 7:
             fsecond = <uint32_t> \
                     cydatetime.PyDateTime_DATE_GET_MICROSECOND(value) * 1000
-            if fsecond == 0:
+            if fsecond == 0 and length <= 11:
                 length = 7
             else:
                 pack_uint32(&buf[7], fsecond, BYTE_ORDER_MSB)

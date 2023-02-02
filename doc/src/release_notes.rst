@@ -25,6 +25,8 @@ Thin Mode Changes
 #)  Fixed bug when calling :meth:`Cursor.executemany()` with PL/SQL when the
     size of the bound data increases on subsequent calls
     (`issue 132 <https://github.com/oracle/python-oracledb/issues/132>`__).
+#)  Fixed bug when binding data of type TIMESTAMP WITH TIME ZONE but with
+    zero fractional seconds.
 
 Thick Mode Changes
 ++++++++++++++++++
