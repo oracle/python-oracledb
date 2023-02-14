@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -242,7 +242,7 @@ cdef class Buffer:
                    ((<uint64_t> ptr[2]) << 32) | \
                    (ptr[3] << 24) | (ptr[4] << 16) | (ptr[5] << 8) | ptr[6]
         elif length == 8:
-            return ((<uint64_t> ptr[0]) << 46) | \
+            return ((<uint64_t> ptr[0]) << 56) | \
                    ((<uint64_t> ptr[1]) << 48) | \
                    ((<uint64_t> ptr[2]) << 40) | \
                    ((<uint64_t> ptr[3]) << 32) | \
