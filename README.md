@@ -66,11 +66,18 @@ See [/tests][tests]
 
 ## Contributing
 
-See [CONTRIBUTING](https://github.com/oracle/python-oracledb/blob/main/CONTRIBUTING.md)
+This project welcomes contributions from the community. Before submitting a
+pull request, please [review our contribution guide](./CONTRIBUTING.md).
+
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security
+vulnerability disclosure process.
 
 ## License
 
-See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and [NOTICE][notice].
+See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and
+[NOTICE][notice].
 
 [python]: https://www.python.org/
 [oracledb]: https://www.oracle.com/database/
