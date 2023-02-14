@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -251,9 +251,9 @@ ERR_ORACLE_ERROR_XREF = {
     600: ERR_CONNECTION_CLOSED,
     1005: ERR_NO_CREDENTIALS,
     22165: (ERR_INVALID_COLL_INDEX_SET,
-            'index \[(?P<index>\d+)\] must be in the range of '
-            '\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]'),
-    22303: (ERR_INVALID_OBJECT_TYPE_NAME, 'type "(?P<name>[^"]*"."[^"]*)"'),
+            r'index \[(?P<index>\d+)\] must be in the range of '
+            r'\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]'),
+    22303: (ERR_INVALID_OBJECT_TYPE_NAME, r'type "(?P<name>[^"]*"."[^"]*)"'),
     24422: ERR_POOL_HAS_BUSY_CONNECTIONS,
     24349: ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED,
     24459: ERR_POOL_NO_CONNECTION_AVAILABLE,
@@ -264,11 +264,11 @@ ERR_ORACLE_ERROR_XREF = {
 # ODPI-C error number cross reference
 ERR_DPI_ERROR_XREF = {
     1010: ERR_CONNECTION_CLOSED,
-    1024: (ERR_INVALID_COLL_INDEX_GET, "at index (?P<index>\d+) does"),
+    1024: (ERR_INVALID_COLL_INDEX_GET, r"at index (?P<index>\d+) does"),
     1043: ERR_INVALID_NUMBER,
     1044: ERR_ORACLE_NUMBER_NO_REPR,
     1063: ERR_EXECUTE_MODE_ONLY_FOR_DML,
-    1067: (ERR_CALL_TIMEOUT_EXCEEDED, "call timeout of (?P<timeout>\d+) ms"),
+    1067: (ERR_CALL_TIMEOUT_EXCEEDED, r"call timeout of (?P<timeout>\d+) ms"),
     1080: ERR_CONNECTION_CLOSED,
 }
 
