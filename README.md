@@ -66,7 +66,7 @@ See [/tests][tests]
 
 ## Contributing
 
-See [CONTRIBUTING](https://github.com/oracle/python-oracledb/blob/main/CONTRIBUTING.md)
+This project welcomes contributions from the community. Before submitting a pull request, please [review our contribution guide](./CONTRIBUTING.md)
 
 ## Security
 
