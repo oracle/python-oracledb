@@ -400,5 +400,13 @@ class TestCase(test_env.BaseTestCase):
         self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, 12345)
         self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, "523lkhlf")
 
+    def test_3726_getvalue_with_index(self):
+        "3726 - getting value with an specific index"
+        var = self.cursor.var(oracledb.DB_TYPE_NUMBER, 1000, 2)
+        var.setvalue(0, 10)
+        self.assertEqual(var.getvalue(0), 10)
+        self.assertEqual(var.getvalue(1), None)
+        self.assertRaises(IndexError, var.getvalue, 4)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
