@@ -68,6 +68,10 @@ See [/tests][tests]
 
 See [CONTRIBUTING](https://github.com/oracle/python-oracledb/blob/main/CONTRIBUTING.md)
 
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process
+
 ## License
 
 See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and [NOTICE][notice].
