@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -407,6 +407,19 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(var.getvalue(0), 10)
         self.assertEqual(var.getvalue(1), None)
         self.assertRaises(IndexError, var.getvalue, 4)
+
+    def test_3727_get_buffer_size(self):
+        "3727 - getting buffer_size attribute"
+        test_values = [
+            (oracledb.DB_TYPE_NUMBER, 200, 22),
+            (oracledb.DB_TYPE_VARCHAR, 3000, 12000),
+            (oracledb.DB_TYPE_RAW, 4000, 4000),
+            (oracledb.DB_TYPE_NCHAR, 1000, 4000),
+            (oracledb.DB_TYPE_CHAR, 2000, 8000)
+        ]
+        for typ, size, buffer_size in test_values:
+            var = self.cursor.var(typ, size)
+            self.assertEqual(var.buffer_size, buffer_size)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
