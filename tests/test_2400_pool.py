@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -724,6 +724,22 @@ class TestCase(test_env.BaseTestCase):
         pool = test_env.get_pool(user=user_str)
         self.__verify_connection(pool.acquire(), test_env.get_proxy_user(),
                                  test_env.get_main_user())
+
+    def test_2432_conn_acquire_in_lifo(self):
+        "2432 - test acquiring conn from pool in LIFO order"
+        pool = test_env.get_pool(min=5, max=10, increment=1,
+                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        sql = "select sys_context('userenv', 'sid') from dual"
+        conns = [pool.acquire() for i in range(3)]
+        sids = [c.cursor().execute(sql).fetchone()[0] for c in conns]
+
+        conns[1].close()
+        conns[2].close()
+        conns[0].close()
+
+        conn = pool.acquire()
+        sid = conn.cursor().execute(sql).fetchone()[0]
+        self.assertEqual(sid, sids[0], "not LIFO")
 
 if __name__ == "__main__":
     test_env.run_test_cases()

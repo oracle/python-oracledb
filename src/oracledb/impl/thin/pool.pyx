@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -212,26 +212,29 @@ cdef class ThinPoolImpl(BasePoolImpl):
             self._bg_exc = None
             raise exc
 
+        # check for an available used connection (only permitted if a new
+        # connection is not required); in addition, if the cclass does not
+        # match, a new connection will be forced if one cannot be found
+        if not wants_new and self._free_used_conn_impls:
+            if cclass_matches:
+                conn_impl = self._free_used_conn_impls.pop()
+                self._busy_conn_impls.append(conn_impl)
+                return conn_impl
+            i = len(self._free_used_conn_impls) - 1
+            while i >= 0:
+                conn_impl = self._free_used_conn_impls[i]
+                if conn_impl._cclass == cclass:
+                    self._free_used_conn_impls.pop(i)
+                    self._busy_conn_impls.append(conn_impl)
+                    return conn_impl
+                i -= 1
+
         # check for an available new connection (only permitted if the cclass
         # matches)
         if cclass_matches and self._free_new_conn_impls:
             conn_impl = self._free_new_conn_impls.pop()
             self._busy_conn_impls.append(conn_impl)
             return conn_impl
-
-        # check for an available used connection (only permitted if a new
-        # connection is not required); in addition, if the cclass does not
-        # match, a new connection will be forced if one cannot be found
-        if not wants_new and self._free_used_conn_impls:
-            if cclass_matches:
-                conn_impl = self._free_used_conn_impls.pop(0)
-                self._busy_conn_impls.append(conn_impl)
-                return conn_impl
-            for i, conn_impl in enumerate(self._free_used_conn_impls):
-                if conn_impl._cclass == cclass:
-                    self._free_used_conn_impls.pop(i)
-                    self._busy_conn_impls.append(conn_impl)
-                    return conn_impl
 
         # no connections are immediately available; if a brand new connection
         # is desired, the cclass doesn't match, or the pool is full and a
