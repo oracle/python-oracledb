@@ -2277,6 +2277,12 @@ when binding data.
     :data:`DATETIME`.
 
 
+.. data:: DB_TYPE_UNSUPPORTED
+
+    Describes columns, attributes or array elements in a database that are
+    unknown and unsupported.
+
+
 .. data:: DB_TYPE_UROWID
 
     Describes columns, attributes or array elements in a database that are of

@@ -35,6 +35,10 @@ Thick Mode Changes
     detected.
 #)  Added support for the "signed int", "signed long" and "decimal128" scalar
     types in JSON (generally only seen when converting from MongoDB).
+#)  Defer raising an exception when calling :meth:`Connection.gettype()`
+    for a type containing an attribute or element with an unsupported data type
+    until the first attempt to reference the attribute or element with the
+    unsupported data type.
 
 Common Changes
 ++++++++++++++

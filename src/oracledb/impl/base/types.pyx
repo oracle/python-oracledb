@@ -56,7 +56,7 @@ cdef dict db_type_by_ora_type_num = {}
 
 cdef class DbType:
 
-    def __init__(self, num, name, ora_name, ora_type_num, default_size=0,
+    def __init__(self, num, name, ora_name, ora_type_num=0, default_size=0,
                  csfrm=0, buffer_size_factor=0):
         cdef uint16_t ora_type_key = csfrm * 256 + ora_type_num
         self.num = num
@@ -160,6 +160,8 @@ DB_TYPE_TIMESTAMP_LTZ = DbType(DB_TYPE_NUM_TIMESTAMP_LTZ,
 DB_TYPE_TIMESTAMP_TZ = DbType(DB_TYPE_NUM_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
                               "TIMESTAMP WITH TZ", 181,
                               buffer_size_factor=13)
+DB_TYPE_UNSUPPORTED = DbType(DB_TYPE_NUM_UNSUPPORTED, "DB_TYPE_UNSUPPORTED",
+                             "UNSUPPORTED")
 DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID", 208)
 DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
                          1, 4000, csfrm=1, buffer_size_factor=4)
