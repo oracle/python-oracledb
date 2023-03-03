@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -160,8 +160,7 @@ DB_TYPE_TIMESTAMP_LTZ = DbType(DB_TYPE_NUM_TIMESTAMP_LTZ,
 DB_TYPE_TIMESTAMP_TZ = DbType(DB_TYPE_NUM_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
                               "TIMESTAMP WITH TZ", 181,
                               buffer_size_factor=13)
-DB_TYPE_UNSUPPORTED = DbType(DB_TYPE_NUM_UNSUPPORTED, "DB_TYPE_UNSUPPORTED",
-                             "UNSUPPORTED")
+DB_TYPE_UNKNOWN = DbType(DB_TYPE_NUM_UNKNOWN, "DB_TYPE_UNKNOWN", "UNKNOWN")
 DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID", 208)
 DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
                          1, 4000, csfrm=1, buffer_size_factor=4)

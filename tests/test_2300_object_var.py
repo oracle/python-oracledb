@@ -594,5 +594,19 @@ class TestCase(test_env.BaseTestCase):
                                       (2327, obj))
         self.assertEqual(result, 7146445847327)
 
+    @unittest.skipIf(test_env.get_is_thin(),
+                     "thin mode doesn't have any unknown types currently")
+    def test_2328_unknown_type_attribute(self):
+        "2328 - test object with unknown type in one of its attributes"
+        typ = self.connection.gettype("UDT_UNKNOWNATTRIBUTETYPE")
+        self.assertEqual(typ.attributes[1].type, oracledb.DB_TYPE_UNKNOWN)
+
+    @unittest.skipIf(test_env.get_is_thin(),
+                     "thin mode doesn't have any unknown types currently")
+    def test_2329_unknown_type_element(self):
+        "2329 - test object with unknown type as the element type"
+        typ = self.connection.gettype("UDT_UNKNOWNELEMENTTYPE")
+        self.assertEqual(typ.element_type, oracledb.DB_TYPE_UNKNOWN)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

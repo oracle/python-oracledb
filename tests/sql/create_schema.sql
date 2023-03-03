@@ -132,6 +132,16 @@ create or replace type &main_user..udt_Book as object (
 );
 /
 
+create or replace type &main_user..udt_UnknownAttributeType as object (
+    NumberValue                         number(9),
+    XMLValue                            sys.xmltype
+);
+/
+
+create or replace type &main_user..udt_UnknownElementType
+as table of sys.xmltype;
+/
+
 -- create tables
 create table &main_user..TestNumbers (
     IntCol                              number(9) not null,
