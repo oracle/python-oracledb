@@ -27,6 +27,9 @@ Thin Mode Changes
     (`issue 132 <https://github.com/oracle/python-oracledb/issues/132>`__).
 #)  Fixed bug when binding data of type TIMESTAMP WITH TIME ZONE but with
     zero fractional seconds.
+#)  Fixed bug with incorrect values of :data:`Cursor.rowcount` when fetching
+    data
+    (`issue 147 <https://github.com/oracle/python-oracledb/issues/147>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

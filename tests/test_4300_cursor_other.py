@@ -870,5 +870,23 @@ class TestCase(test_env.BaseTestCase):
                                 [(var, "five"), (var, "six"), (var, "end")])
         self.assertEqual(var.values, [4, 3, 3])
 
+    def test_4368_cursor_rowcount_for_queries(self):
+        "4368 - test cursor.rowcount values for queries"
+        max_rows = 93
+        sql = f"select rownum as id from dual connect by rownum <= {max_rows}"
+        self.cursor.arraysize = 10
+        self.cursor.execute(sql)
+        self.assertEqual(self.cursor.rowcount, 0)
+        batch_num = 1
+        while True:
+            rows = self.cursor.fetchmany()
+            if not rows:
+                break
+            expected_value = min(max_rows, batch_num * self.cursor.arraysize)
+            self.assertEqual(self.cursor.rowcount, expected_value)
+            batch_num += 1
+        self.cursor.fetchall()
+        self.assertEqual(self.cursor.rowcount, max_rows)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
