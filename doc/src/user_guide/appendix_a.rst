@@ -92,8 +92,8 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
     * - Connection mode privileges (see :ref:`connection-authorization-modes`)
       - Yes
-      - Yes - only :data:`~oracledb.AUTH_MODE_SYSDBA` is supported in Thick mode
-      - Yes
+      - Yes - only :data:`~oracledb.AUTH_MODE_SYSDBA` is supported
+      - Yes - only :data:`~oracledb.AUTH_MODE_SYSDBA` is supported
     * - Preliminary connections
       - No
       - Yes
@@ -178,7 +178,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes for scalar types. Yes for collection types using array interface.
       - Yes
       - Yes
-    * - Simple Oracle Document Access (SODA) API (:ref:`SODA <soda>`)
+    * - Simple Oracle Document Access (SODA) API (see :ref:`SODA <soda>`)
       - No
       - Yes
       - Yes
