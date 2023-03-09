@@ -30,6 +30,9 @@ Thin Mode Changes
 #)  Fixed bug with incorrect values of :data:`Cursor.rowcount` when fetching
     data
     (`issue 147 <https://github.com/oracle/python-oracledb/issues/147>`__).
+#)  Fixed bug with SQL containing multibyte characters with certain database
+    character sets
+    (`issue 133 <https://github.com/oracle/python-oracledb/issues/133>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

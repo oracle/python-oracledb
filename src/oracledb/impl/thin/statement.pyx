@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -156,7 +156,7 @@ cdef class Statement:
             elif sql_keyword in ("CREATE", "ALTER", "DROP", "TRUNCATE"):
                 self._is_ddl = True
 
-    cdef int _prepare(self, str sql, bint char_conversion) except -1:
+    cdef int _prepare(self, str sql) except -1:
         """
         Prepare the SQL for execution by determining the list of bind names
         that are found within it. The length of the SQL text is also calculated
@@ -171,10 +171,7 @@ cdef class Statement:
         # retain normalized SQL (as string and bytes) as well as the length
         self._sql = sql
         self._sql_bytes = self._sql.encode()
-        if char_conversion:
-            self._sql_length = <uint32_t> len(self._sql)
-        else:
-            self._sql_length = <uint32_t> len(self._sql_bytes)
+        self._sql_length = <uint32_t> len(self._sql_bytes)
 
         # create empty list (bind by position) and dict (bind by name)
         self._bind_info_dict = collections.OrderedDict()

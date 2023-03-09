@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -38,7 +38,6 @@ cdef class Capabilities:
         uint16_t ncharset_id
         bytearray compile_caps
         bytearray runtime_caps
-        bint char_conversion
         bint supports_oob
 
     def __init__(self):

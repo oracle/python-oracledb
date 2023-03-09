@@ -1090,7 +1090,7 @@ cdef class MessageWithData(Message):
         buf.write_uint8(1)                  # pointer
         schema_bytes = self.conn_impl._current_schema.encode()
         buf.write_ub4(len(schema_bytes))
-        buf.write_bytes(schema_bytes)
+        buf.write_bytes_with_length(schema_bytes)
 
     cdef int _write_close_temp_lobs_piggyback(self,
                                               WriteBuffer buf) except -1:
@@ -1235,15 +1235,15 @@ cdef class MessageWithData(Message):
         # write strings
         if conn._client_identifier_modified \
                 and conn._client_identifier is not None:
-            buf.write_bytes(client_identifier_bytes)
+            buf.write_bytes_with_length(client_identifier_bytes)
         if conn._module_modified and conn._module is not None:
-            buf.write_bytes(module_bytes)
+            buf.write_bytes_with_length(module_bytes)
         if conn._action_modified and conn._action is not None:
-            buf.write_bytes(action_bytes)
+            buf.write_bytes_with_length(action_bytes)
         if conn._client_info_modified and conn._client_info is not None:
-            buf.write_bytes(client_info_bytes)
+            buf.write_bytes_with_length(client_info_bytes)
         if conn._dbop_modified and conn._dbop is not None:
-            buf.write_bytes(dbop_bytes)
+            buf.write_bytes_with_length(dbop_bytes)
 
         # reset flags and values
         conn._action_modified = False
@@ -1548,7 +1548,7 @@ cdef class AuthMessage(Message):
         buf.write_uint8(1)                  # pointer (authovl)
         buf.write_uint8(1)                  # pointer (authovln)
         if has_user:
-            buf.write_bytes(self.user_bytes)
+            buf.write_bytes_with_length(self.user_bytes)
 
         # write key/value pairs
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
@@ -1712,7 +1712,8 @@ cdef class DataTypesMessage(Message):
         buf.write_uint8(TNS_MSG_TYPE_DATA_TYPES)
         buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
         buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
-        buf.write_ub4(len(buf._caps.compile_caps))
+        buf.write_uint8(TNS_ENCODING_MULTI_BYTE | TNS_ENCODING_CONV_LENGTH)
+        buf.write_uint8(len(buf._caps.compile_caps))
         buf.write_bytes(bytes(buf._caps.compile_caps))
         buf.write_uint8(len(buf._caps.runtime_caps))
         buf.write_bytes(bytes(buf._caps.runtime_caps))
@@ -1867,7 +1868,7 @@ cdef class ExecuteMessage(MessageWithData):
         if stmt._cursor_id == 0 or stmt._is_ddl:
             if stmt._sql_bytes is None:
                 errors._raise_err(errors.ERR_INVALID_REF_CURSOR)
-            buf.write_bytes(stmt._sql_bytes)
+            buf.write_bytes_with_length(stmt._sql_bytes)
             buf.write_ub4(1)                # al8i4[0] parse
         else:
             buf.write_ub4(0)                # al8i4[0] parse
@@ -2133,7 +2134,6 @@ cdef class ProtocolMessage(Message):
                 if c == 0:
                     break
             buf.read_uint16(&caps.charset_id, BYTE_ORDER_LSB)
-            buf._caps.char_conversion = caps.charset_id != TNS_CHARSET_UTF8
             buf.skip_ub1()                  # skip server flags
             buf.read_uint16(&num_elem, BYTE_ORDER_LSB)
             if num_elem > 0:                # skip elements
