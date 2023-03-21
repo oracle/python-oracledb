@@ -64,6 +64,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         self.homogeneous = params.homogeneous
         self.set_getmode(params.getmode)
         self.set_wait_timeout(params.wait_timeout)
+        self.set_timeout(params.timeout)
         self._stmt_cache_size = params.stmtcachesize
         self._ping_interval = params.ping_interval
         self._free_new_conn_impls = []
@@ -90,6 +91,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
             conn_impl._cclass = params._default_description.cclass
         conn_impl._pool = self
         conn_impl.connect(self.connect_params)
+        conn_impl._time_in_pool = time.monotonic()
         return conn_impl
 
     def _bg_thread_func(self):
@@ -257,6 +259,10 @@ cdef class ThinPoolImpl(BasePoolImpl):
             ThinConnImpl conn_impl
             ssize_t i
 
+        if self._timeout > 0:
+            self._timeout_helper(self._free_new_conn_impls)
+            self._timeout_helper(self._free_used_conn_impls)
+
         # initialize values used in determining which connection can be
         # returned from the pool
         cclass = params._default_description.cclass
@@ -313,6 +319,19 @@ cdef class ThinPoolImpl(BasePoolImpl):
             self._busy_conn_impls.remove(conn_impl)
             self._condition.notify()
 
+    cdef int _timeout_helper(self, list conn_impls_to_check) except -1:
+        """
+        Helper method which checks the free and used connection lists before
+        acquiring to drop off timed out connections
+        """
+        cdef ThinConnImpl conn_impl
+        current_time = time.monotonic()
+        while self.get_open_count() > self.min and conn_impls_to_check:
+            conn_impl = conn_impls_to_check[0]
+            if current_time - conn_impl._time_in_pool > self._timeout:
+                conn_impls_to_check.pop(0)
+                self._drop_conn_impl(conn_impl)
+
     def acquire(self, ConnectParamsImpl params):
         """
         Internal method for acquiring a connection from the pool.
@@ -353,7 +372,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 continue
             if self._ping_interval == 0:
                 requires_ping = True
-            elif self._ping_interval > 0 and conn_impl._time_in_pool > 0:
+            elif self._ping_interval > 0:
                 elapsed_time = time.monotonic() - conn_impl._time_in_pool
                 if elapsed_time > self._ping_interval:
                     requires_ping = True
