@@ -33,6 +33,7 @@ Thin Mode Changes
 #)  Fixed bug with SQL containing multibyte characters with certain database
     character sets
     (`issue 133 <https://github.com/oracle/python-oracledb/issues/133>`__).
+#)  Fixed bug connecting to an IPv6 address with IAM tokens.
 #)  Implementation changes:
 
     - Made the pool implementation LIFO to improve locality, reduce the number

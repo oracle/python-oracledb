@@ -1592,7 +1592,7 @@ cdef class AuthMessage(Message):
             if self.private_key is not None:
                 date_format = "%a, %d %b %Y %H:%M:%S GMT"
                 now = datetime.datetime.utcnow().strftime(date_format)
-                host_info = "%s:%d" % buf._socket.getpeername()
+                host_info = "%s:%d" % buf._socket.getpeername()[:2]
                 header = f"date: {now}\n" + \
                          f"(request-target): {self.service_name}\n" + \
                          f"host: {host_info}"
