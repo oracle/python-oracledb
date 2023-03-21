@@ -1061,7 +1061,8 @@ cdef class MessageWithData(Message):
                 for value in var_impl._values[:num_elements]:
                     self._write_bind_params_column(buf, var_impl, value)
             else:
-                if var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
+                if not self.cursor_impl._statement._is_plsql \
+                        and var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
                     found_long = True
                     continue
                 self._write_bind_params_column(buf, var_impl,

@@ -888,5 +888,28 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.fetchall()
         self.assertEqual(self.cursor.rowcount, max_rows)
 
+    def test_4369_bind_order_for_plsql(self):
+        "4369 - test bind order for PL/SQL"
+        self.cursor.execute("truncate table TestClobs")
+        sql = """
+            insert into TestClobs (IntCol, CLOBCol, ExtraNumCol1)
+            values (:1, :2, :3)"""
+        data = "x" * 9000
+        rows = [
+            (1, data, 5),
+            (2, data, 6)
+        ]
+        self.cursor.execute(sql, rows[0])
+        plsql = f"begin {sql}; end;"
+        self.cursor.execute(plsql, rows[1])
+        self.connection.commit()
+        oracledb.defaults.fetch_lobs = False
+        self.cursor.execute("""
+            select IntCol, CLOBCol, ExtraNumCol1
+            from TestCLOBs
+            order by IntCol""")
+        fetched_rows = self.cursor.fetchall()
+        self.assertEqual(fetched_rows, rows)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
