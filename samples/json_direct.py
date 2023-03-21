@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,8 +31,6 @@
 # See https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN
 #
 # For JSON with older databases see json_blob.py
-#
-# Note: To use the JSON type in python-oracledb thin mode see json_type.py
 #------------------------------------------------------------------------------
 
 import json
@@ -41,27 +39,29 @@ import sys
 import oracledb
 import sample_env
 
-# this script is currently only supported in python-oracledb thick mode
-oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
+# determine whether to use python-oracledb thin mode or thick mode
+if not sample_env.get_is_thin():
+    oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
 connection = oracledb.connect(user=sample_env.get_main_user(),
                               password=sample_env.get_main_password(),
                               dsn=sample_env.get_connect_string())
 
-client_version = oracledb.clientversion()[0]
+if not connection.thin:
+    client_version = oracledb.clientversion()[0]
 db_version = int(connection.version.split(".")[0])
 
 # this script only works with Oracle Database 21
 if db_version < 21:
     sys.exit("This example requires Oracle Database 21.1 or later. "
-             "Try json_blob.py")
+             "Try json_blob.py instead")
 
 # Insert JSON data
 with connection.cursor() as cursor:
 
     data = dict(name="Rod", dept="Sales", location="Germany")
     inssql = "insert into CustomersAsJson values (:1, :2)"
-    if client_version >= 21:
+    if connection.thin or client_version >= 21:
         # Take advantage of direct binding
         cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         cursor.execute(inssql, [1, data])
@@ -73,7 +73,7 @@ with connection.cursor() as cursor:
 with connection.cursor() as cursor:
 
     sql = "select c.json_data from CustomersAsJson c"
-    if client_version >= 21:
+    if connection.thin or client_version >= 21:
         for j, in cursor.execute(sql):
             print(j)
     else:
@@ -93,7 +93,7 @@ with connection.cursor() as cursor:
     sql = """select c.json_data.location
              from CustomersAsJson c
              offset 0 rows fetch next 1 rows only"""
-    if client_version >= 21:
+    if connection.thin or client_version >= 21:
         for j, in cursor.execute(sql):
             print(j)
     else:
@@ -104,5 +104,16 @@ with connection.cursor() as cursor:
 
     sql = """select json_object('key' is d.dummy) dummy
              from dual d"""
+    for r in cursor.execute(sql):
+        print(r)
+
+    # Using JSON_ARRAYAGG to extract a whole relational table as JSON
+
+    oracledb.defaults.fetch_lobs = False
+    sql = """select json_arrayagg(
+                        json_object('key' is c.id,
+                                    'name' is c.json_data)
+                        returning clob)
+             from CustomersAsJson c"""
     for r in cursor.execute(sql):
         print(r)

@@ -64,11 +64,12 @@ optimize memory usage.  This can reduce :ref:`round-trips <roundtrips>` which
 helps performance and scalability.  Tune "array fetching" with
 :attr:`Cursor.arraysize` and tune "row prefetching" with
 :attr:`Cursor.prefetchrows`.  Set these before calling
-:meth:`Cursor.execute()`.  In python-oracledb Thick mode, the internal buffers
-allocated for ``prefetchrows`` and ``arraysize`` are separate, so increasing
-both settings will require more Python process memory.  Queries that return
-LOBs and similar types will never prefetch rows, so the ``prefetchrows`` value
-is ignored in those cases.
+:meth:`Cursor.execute()`.  The value used for prefetching can also be set in an
+``oraaccess.xml`` file, see :ref:`optclientfiles`.  In python-oracledb Thick
+mode, the internal buffers allocated for ``prefetchrows`` and ``arraysize`` are
+separate, so increasing both settings will require more Python process memory.
+Queries that return LOBs and similar types will never prefetch rows, so the
+``prefetchrows`` value is ignored in those cases.
 
 The internal buffer sizes do not affect how or when rows are returned to your
 application regardless of which :ref:`python-oracledb method <fetching>` is

@@ -6,71 +6,124 @@ Using Bind Variables
 
 SQL and PL/SQL statements that pass data to and from Oracle Database should use
 placeholders in SQL and PL/SQL statements that mark where data is supplied or
-returned.  These placeholders are referred to as bind variables or bind
-parameters. A bind variable is a colon-prefixed identifier or numeral. For
-example, there are two bind variables (``dept_id`` and ``dept_name``) in this
-SQL statement:
+returned.  A bind variable placeholder is a colon-prefixed identifier or
+numeral. For example, ``:dept_id`` and ``:dept_name`` are the two bind variable
+placeholders in this SQL statement:
 
 .. code-block:: python
 
     sql = """insert into departments (department_id, department_name)
-              values (:dept_id, :dept_name)"""
+             values (:dept_id, :dept_name)"""
     cursor.execute(sql, [280, "Facility"])
+
+As part of execution, the supplied bind variable values ``280`` and
+``"Facility"`` are substituted for the placeholders by the database.  This is
+called binding.
 
 Using bind variables is important for scalability and security.  They help avoid
 SQL Injection security problems because data is never treated as part of an
-executable statement.  Never concatenate or interpolate user data into SQL
-statements:
-
-.. code-block:: python
-
-    did = 280
-    dnm = "Facility"
-
-    # !! Never do this !!
-    sql = f"""insert into departments (department_id, department_name)
-              values ({did}, '{dnm}')"""
-    cursor.execute(sql)
+executable statement when it is parsed.
 
 Bind variables reduce parsing and execution costs when statements are executed
 more than once with different data values.  If you do not use bind variables,
 Oracle must reparse and cache multiple statements.  When using bind variables,
 Oracle Database may be able to reuse the statement execution plan and context.
 
+.. note::
+
+    Never concatenate or interpolate user data into SQL statements:
+
+    .. code-block:: python
+
+        did = 280
+        dnm = "Facility"
+
+        # !! Never do this !!
+        sql = f"""insert into departments (department_id, department_name)
+                  values ({did}, '{dnm}')"""
+        cursor.execute(sql)
+
+    This is a security risk and can impact performance and scalability.
+
 Bind variables can be used to substitute data, but cannot be used to substitute
-the text of the statement.  You cannot, for example, use a bind variable where
-a column name or a table name is required.  Bind variables also cannot be used
-in Data Definition Language (DDL) statements, such as CREATE TABLE or ALTER
-statements.
+the text of the statement.  You cannot, for example, use a bind variable
+placeholder where a column name or a table name is required.  Bind variable
+placeholders also cannot be used in Data Definition Language (DDL) statements,
+such as CREATE TABLE or ALTER statements.
 
 Binding by Name or Position
 ===========================
 
-Binding can be done by name or by position. A named bind is performed when the
-bind variables in a statement are associated with a name. For example:
+Binding can be done "by name" or "by position".
+
+Bind by Name
+------------
+
+A named bind is performed when the bind variables in the Python statement use
+the names of placeholders in the SQL or PL/SQL statement. For example:
 
 .. code-block:: python
 
     cursor.execute("""
             insert into departments (department_id, department_name)
-            values (:dept_id, :dept_name)""", dept_id=280,
-            dept_name="Facility")
+            values (:dept_id, :dept_name)""",
+            dept_id=280, dept_name="Facility")
 
-    # alternatively, the parameters can be passed as a dictionary instead of as
-    # keyword parameters
+Alternatively, the parameters can be passed as a dictionary instead of as
+keyword parameters:
+
+.. code-block:: python
+
     data = dict(dept_id=280, dept_name="Facility")
     cursor.execute("""
             insert into departments (department_id, department_name)
             values (:dept_id, :dept_name)""", data)
 
-In the above example, the keyword parameter names or the keys of the dictionary
-must match the bind variable names. The advantages of this approach are that
-the location of the bind variables in the statement is not important, the
-names can be meaningful and the names can be repeated while still only
-supplying the value once.
+In the above examples, the keyword parameter names or the keys of the
+dictionary must match the bind variable placeholder names.
 
-A positional bind is performed when a list of bind values are passed to the
-execute() call. For example:
+The advantages of named binding are that the order of the bind values in the
+``execute()`` parameter is not important, the names can be meaningful, and the
+placeholder names can be repeated while still only supplying the value once in
+the application.
+
+An example of reusing a bind variable placeholder is:
+
+.. code-block:: python
+
+    cursor.execute("""
+            update departments set department_id = :dept_id + 10
+            where department_id = :dept_id""",
+            dept_id=280)
+
+
+Bind by Position
+----------------
+
+Positional binding occurs when a list or tuple of bind values is passed to the
+``execute()`` call. For example:
+
+.. code-block:: python
+
+    cursor.execute("""
+            insert into departments (department_id, department_name)
+            values (:1, :2)""", [280, "Facility"])
+
+The following example (which changes the order of the bind placeholder names)
+has exactly the same behavior.  The value used to substitute the placeholder
+":2" will be the first element of the list and ":1" will be replaced by the
+second element.  Bind by position works from left to right and pays no
+attention to the name of the bind variable:
+
+.. code-block:: python
+
+    cursor.execute("""
+            insert into departments (department_id, department_name)
+            values (:2, :1)""", [280, "Facility"])
+
+The following example is also bind by position despite the bind placeholders
+having alphabetic names.  The actual process of binding uses the list positions
+of the input data to associate the data with the placeholder locations:
 
 .. code-block:: python
 
@@ -78,12 +131,25 @@ execute() call. For example:
             insert into departments (department_id, department_name)
             values (:dept_id, :dept_name)""", [280, "Facility"])
 
-Note that for SQL statements, the order of the bind values must exactly match
-the order of each bind variable and duplicated names must have their values
-repeated. For PL/SQL statements, however, the order of the bind values must
-exactly match the order of each **unique** bind variable found in the PL/SQL
-block and values should not be repeated. In order to avoid this difference,
-binding by name is recommended when bind variable names are repeated.
+
+Python tuples can also be used for binding by position:
+
+.. code-block:: python
+
+    cursor.execute("""
+            insert into departments (department_id, department_name)
+            values (:1, :2)""", (280, "Facility"))
+
+If only a single bind placeholder is used in the SQL or PL/SQL statement, the
+data can be a list like ``[280]`` or a single element tuple like ``(280,)``.
+
+When using bind by position for SQL statements, the order of the bind values
+must exactly match the order of each bind variable and duplicated names must
+have their values repeated. For PL/SQL statements, however, the order of the
+bind values must exactly match the order of each **unique** bind variable found
+in the PL/SQL block and values should not be repeated. In order to avoid this
+difference, binding by name is recommended when bind variable names are
+repeated.
 
 
 Bind Direction
@@ -728,11 +794,12 @@ variable. For example, to use two values in an IN clause:
 
 .. code-block:: python
 
+    items = ["Smith", "Taylor"]
     cursor.execute("""
-            select employee_id, first_name, last_name
-            from employees
-            where last_name in (:name1, :name2)""",
-            name1="Smith", name2="Taylor")
+        select employee_id, first_name, last_name
+        from employees
+        where last_name in (:1, :2)""",
+        items)
     for row in cursor:
         print(row)
 
@@ -751,11 +818,12 @@ used for up to 5 values, the code will be:
 
 .. code-block:: python
 
+    items = ["Smith", "Taylor", None, None, None]
     cursor.execute("""
-            select employee_id, first_name, last_name
-            from employees
-            where last_name in (:name1, :name2, :name3, :name4, :name5)""",
-            name1="Smith", name2="Taylor", name3=None, name4=None, name5=None)
+        select employee_id, first_name, last_name
+        from employees
+        where last_name in (:1, :2, :3, :4, :5)""",
+        items)
     for row in cursor:
         print(row)
 
@@ -764,31 +832,55 @@ statement like this for a variable number of values, instead of constructing a
 unique statement per set of values, allows best reuse of Oracle Database
 resources.
 
-However, if the statement is not going to be re-executed or the number of
-values is only going to be known at runtime, then a SQL statement can be built
-up as follows:
+If other bind variables are required in the statement, adjust the bind variable
+placeholder numbers:
+
+.. code-block:: python
+
+    items = ["Smith", "Taylor", None, None, None]
+    binds = [120] + items
+    cursor.execute("""
+        select employee_id, first_name, last_name
+        from employees
+        where employee_id > :1
+        and last_name in (:2, :3, :4, :5, :6)""",
+        binds)
+    for row in cursor:
+        print(row)
+
+If a statement containing WHERE IN is not going to be re-executed or the number
+of values is only going to be known at runtime, then a SQL statement can be
+built up as follows:
 
 .. code-block:: python
 
     bind_values = ["Gates", "Marvin", "Fay"]
-    bind_names = [":" + str(i + 1) for i in range(len(bind_values))]
-    sql = "select employee_id, first_name, last_name from employees " + \
-            "where last_name in (%s)" % (",".join(bind_names))
+    bind_names = ",".join(":" + str(i + 1) for i in range(len(bind_values)))
+    sql = f"select first_name, last_name from employees where last_name in ({bind_names})"
     cursor.execute(sql, bind_values)
     for row in cursor:
         print(row)
+
+To exceed the IN clause value limit, you can add OR clauses like:
+
+.. code-block:: python
+
+    sql = """select . . .
+             where key in (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9,:10,:11,...)
+                or key in (:50,:51,:52,:53,:54,:55,:56,:57,:58,:59,...)
+                or key in (:100,:101,:102,:103,:104,:105,:106,:107,:108,:109,...)"""
 
 A general solution for a larger number of values is to construct a SQL
 statement like::
 
     SELECT ... WHERE col IN ( <something that returns a list of values> )
 
-The best way to do the '<something that returns a list of values>' depends
-on how the data is initially represented and the number of items. You might
-look at using CONNECT BY or at using a global temporary table.
+The best way to do the '<something that returns a list of values>' depends on
+how the data is initially represented and the number of items. For example you
+might look at using a global temporary table.
 
-One method is to use an Oracle collection with the ``TABLE()`` clause. For
-example, if the following type was created::
+One method for up to 32K values is to use an Oracle collection with the
+``TABLE()`` clause. For example, if the following type was created::
 
     SQL> CREATE OR REPLACE TYPE name_array AS TABLE OF VARCHAR2(25);
       2  /
@@ -807,8 +899,9 @@ then the application could do:
     for row in cursor:
         print(row)
 
-For efficiency, retain the return value of ``gettype()`` for reuse instead of
-making repeated calls to get the type information.
+For efficiency, retain the return value of ``gettype()`` for reuse where
+possible instead of making repeated calls to get the type information.
+
 
 Binding Column and Table Names
 ==============================
@@ -832,12 +925,15 @@ ORDER BY clause:
 .. code-block:: python
 
     sql = """
-            SELECT * FROM departments
-            ORDER BY
-                CASE :bindvar
-                    WHEN 'department_id' THEN DEPARTMENT_ID
-                    ELSE MANAGER_ID
-                END"""
+        select *
+        from departments
+        order by
+            case :bindvar
+                when 'DEPARTMENT_ID' then
+                    department_id
+                else
+                    manager_id
+            end"""
 
     col_name = get_column_name() # Obtain a column name from the user
     cursor.execute(sql, [col_name])

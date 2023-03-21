@@ -317,15 +317,6 @@ not supported in the Oracle Client libraries that are used in python-oracledb
 Thick mode. Note changing the type of bind variables for the same SQL text is
 inappropriate and gives indeterminate results in both modes.
 
-.. _fetchJSON:
-
-Fetching JSON in Thin and Thick Modes
-=====================================
-
-The python-oracledb Thin mode does not natively handle the Oracle Database 21c
-JSON data type but a type handler can be used when fetching the type, see
-:ref:`jsondatatype`.
-
 Error Handling in Thin and Thick Modes
 ======================================
 

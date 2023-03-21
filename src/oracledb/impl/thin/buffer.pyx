@@ -284,7 +284,7 @@ cdef class Buffer:
         """
         return self._size - self._pos
 
-    cdef object read_binary_double(self):
+    cdef object parse_binary_double(self, const uint8_t* ptr):
         """
         Read a binary double value from the buffer and return the corresponding
         Python object representing that value.
@@ -292,12 +292,7 @@ cdef class Buffer:
         cdef:
             uint8_t b0, b1, b2, b3, b4, b5, b6, b7
             uint64_t high_bits, low_bits, all_bits
-            const uint8_t *ptr
             double *double_ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -323,20 +318,15 @@ cdef class Buffer:
         double_ptr = <double*> &all_bits
         return double_ptr[0]
 
-    cdef object read_binary_float(self):
+    cdef object parse_binary_float(self, const uint8_t* ptr):
         """
-        Read a binary float value from the buffer and return the corresponding
+        Parse a binary float value from the buffer and return the corresponding
         Python object representing that value.
         """
         cdef:
             uint8_t b0, b1, b2, b3
-            const uint8_t *ptr
             uint64_t all_bits
-            ssize_t num_bytes
             float *float_ptr
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -352,46 +342,7 @@ cdef class Buffer:
         float_ptr = <float*> &all_bits
         return float_ptr[0]
 
-    cdef object read_binary_integer(self):
-        """
-        Read a binary integer from the buffer.
-        """
-        cdef:
-            const char_type *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if num_bytes > 4:
-            errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=num_bytes,
-                              max_length=4)
-        if ptr != NULL:
-            return <int32_t> self._unpack_int(ptr, num_bytes)
-
-    cdef object read_bool(self):
-        """
-        Read a boolean from the buffer and return True, False or None. A zero
-        length or a negative length (indicated by the value 0x81 in the first
-        byte) implies a null value.
-        """
-        cdef:
-            const char_type *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL and ptr[0] != 0x81:
-            return ptr[num_bytes - 1] == 1
-
-    cdef object read_bytes(self):
-        """
-        Read bytes from the buffer and return the corresponding Python object
-        representing that value.
-        """
-        cdef:
-            const char_type *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return ptr[:num_bytes]
-
-    cdef object read_date(self):
+    cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes):
         """
         Read a date from the buffer and return the corresponding Python object
         representing that value.
@@ -399,13 +350,8 @@ cdef class Buffer:
         cdef:
             int8_t tz_hour = 0, tz_minute = 0
             uint32_t fsecond = 0
-            const uint8_t *ptr
-            ssize_t num_bytes
             int32_t seconds
             uint16_t year
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
         year = (ptr[0] - 100) * 100 + ptr[1] - 100
         if num_bytes >= 11:
             fsecond = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) // 1000
@@ -419,37 +365,7 @@ cdef class Buffer:
                 value += cydatetime.timedelta_new(0, seconds, 0)
         return value
 
-    cdef ThinDbObjectImpl read_dbobject(self, BaseDbObjectTypeImpl typ_impl):
-        """
-        Read a database object from the buffer and return a DbObject object
-        containing it.
-        it.
-        """
-        cdef:
-            bytes oid = None, toid = None
-            ThinDbObjectImpl obj_impl
-            uint32_t num_bytes
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # type OID
-            toid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # OID
-            oid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # snapshot
-            self.read_bytes()
-        self.skip_ub2()                     # version
-        self.read_ub4(&num_bytes)           # length of data
-        self.skip_ub2()                     # flags
-        if num_bytes > 0:
-            obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
-            obj_impl.type = typ_impl
-            obj_impl.toid = toid
-            obj_impl.oid = oid
-            obj_impl.packed_data = self.read_bytes()
-            return obj_impl
-
-    cdef object read_interval_ds(self):
+    cdef object parse_interval_ds(self, const uint8_t* ptr):
         """
         Read an interval day to second value from the buffer and return the
         corresponding Python object representing that value.
@@ -458,11 +374,6 @@ cdef class Buffer:
             int32_t days, hours, minutes, seconds, total_seconds, fseconds
             uint8_t duration_offset = TNS_DURATION_OFFSET
             uint32_t duration_mid = TNS_DURATION_MID
-            const uint8_t *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
         days = unpack_uint32(ptr, BYTE_ORDER_MSB) - duration_mid
         fseconds = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) - duration_mid
         hours = ptr[4] - duration_offset
@@ -471,32 +382,13 @@ cdef class Buffer:
         total_seconds = hours * 60 * 60 + minutes * 60 + seconds
         return cydatetime.timedelta_new(days, total_seconds, fseconds // 1000)
 
-    cdef int read_int32(self, int32_t *value,
-                         int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef object parse_oracle_number(self, const uint8_t* ptr,
+                                    ssize_t num_bytes, int preferred_num_type):
         """
-        Read a signed 32-bit integer from the buffer in the specified byte
-        order.
-        """
-        cdef const char_type *ptr = self._get_raw(4)
-        value[0] = <int32_t> unpack_uint32(ptr, byte_order)
-
-    cdef object read_lob(self, ThinConnImpl conn_impl, DbType dbtype):
-        """
-        Read a LOB locator from the buffer and return a LOB object containing
-        it.
-        """
-        cdef:
-            ThinLobImpl lob_impl
-            bytes locator
-        locator = self.read_bytes()
-        lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
-        return PY_TYPE_LOB._from_impl(lob_impl)
-
-    cdef object read_oracle_number(self, int preferred_num_type):
-        """
-        Read an Oracle number from the buffer and return the corresponding
-        Python object representing that value. The preferred numeric type
-        (int, float, decimal.Decimal and str) is used, if possible.
+        Parse an Oracle number from the supplied buffer and return the
+        corresponding Python object representing that value. The preferred
+        numeric type (int, float, decimal.Decimal and str) is used, if
+        possible.
         """
         cdef:
             char_type buf[NUMBER_AS_TEXT_CHARS]
@@ -504,16 +396,8 @@ cdef class Buffer:
             uint8_t num_digits, byte, digit
             bint is_positive, is_integer
             int16_t decimal_point_index
-            const uint8_t *ptr
-            ssize_t num_bytes
             int8_t exponent
             str text
-
-        # read the number of bytes in the number; if the value is 0 or the null
-        # length indicator, return None
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr == NULL:
-            return None
 
         # the first byte is the exponent; positive numbers have the highest
         # order bit set, whereas negative numbers have the highest order bit
@@ -625,6 +509,158 @@ cdef class Buffer:
         elif preferred_num_type == NUM_TYPE_STR:
             return buf[:num_bytes].decode()
         return float(buf[:num_bytes])
+
+    cdef object read_binary_double(self):
+        """
+        Read a binary double value from the buffer and return the corresponding
+        Python object representing that value.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_binary_double(ptr)
+
+    cdef object read_binary_float(self):
+        """
+        Read a binary float value from the buffer and return the corresponding
+        Python object representing that value.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_binary_float(ptr)
+
+    cdef object read_binary_integer(self):
+        """
+        Read a binary integer from the buffer.
+        """
+        cdef:
+            const char_type *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if num_bytes > 4:
+            errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=num_bytes,
+                              max_length=4)
+        if ptr != NULL:
+            return <int32_t> self._unpack_int(ptr, num_bytes)
+
+    cdef object read_bool(self):
+        """
+        Read a boolean from the buffer and return True, False or None.
+        """
+        cdef:
+            const char_type *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return ptr[num_bytes - 1] == 1
+
+    cdef object read_bytes(self):
+        """
+        Read bytes from the buffer and return the corresponding Python object
+        representing that value.
+        """
+        cdef:
+            const char_type *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return ptr[:num_bytes]
+
+    cdef object read_date(self):
+        """
+        Read a date from the buffer and return the corresponding Python object
+        representing that value.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_date(ptr, num_bytes)
+
+    cdef ThinDbObjectImpl read_dbobject(self, BaseDbObjectTypeImpl typ_impl):
+        """
+        Read a database object from the buffer and return a DbObject object
+        containing it.
+        it.
+        """
+        cdef:
+            bytes oid = None, toid = None
+            ThinDbObjectImpl obj_impl
+            uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # type OID
+            toid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # OID
+            oid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # snapshot
+            self.read_bytes()
+        self.skip_ub2()                     # version
+        self.read_ub4(&num_bytes)           # length of data
+        self.skip_ub2()                     # flags
+        if num_bytes > 0:
+            obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
+            obj_impl.type = typ_impl
+            obj_impl.toid = toid
+            obj_impl.oid = oid
+            obj_impl.packed_data = self.read_bytes()
+            return obj_impl
+
+    cdef object read_interval_ds(self):
+        """
+        Read an interval day to second value from the buffer and return the
+        corresponding Python object representing that value.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_interval_ds(ptr)
+
+    cdef int read_int32(self, int32_t *value,
+                         int byte_order=BYTE_ORDER_MSB) except -1:
+        """
+        Read a signed 32-bit integer from the buffer in the specified byte
+        order.
+        """
+        cdef const char_type *ptr = self._get_raw(4)
+        value[0] = <int32_t> unpack_uint32(ptr, byte_order)
+
+    cdef object read_lob(self, ThinConnImpl conn_impl, DbType dbtype):
+        """
+        Read a LOB locator from the buffer and return a LOB object containing
+        it.
+        """
+        cdef:
+            ThinLobImpl lob_impl
+            bytes locator
+        locator = self.read_bytes()
+        lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
+        return PY_TYPE_LOB._from_impl(lob_impl)
+
+    cdef object read_oracle_number(self, int preferred_num_type):
+        """
+        Read an Oracle number from the buffer and return the corresponding
+        Python object representing that value. The preferred numeric type
+        (int, float, decimal.Decimal and str) is used, if possible.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+
+        # read the number of bytes in the number; if the value is 0 or the null
+        # length indicator, return None
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_oracle_number(ptr, num_bytes, preferred_num_type)
 
     cdef inline const char_type* read_raw_bytes(self,
                                                 ssize_t num_bytes) except NULL:
@@ -874,6 +910,12 @@ cdef class Buffer:
         """
         return self._skip_int(4, NULL)
 
+    cdef inline int skip_ub8(self) except -1:
+        """
+        Skips an unsigned 64-bit integer in the buffer.
+        """
+        return self._skip_int(8, NULL)
+
     cdef int write_binary_double(self, double value) except -1:
         cdef:
             uint8_t b0, b1, b2, b3, b4, b5, b6, b7
@@ -990,7 +1032,8 @@ cdef class Buffer:
         self.write_ub4(obj_impl.flags)      # flags
         self.write_bytes_with_length(packed_data)
 
-    cdef int write_interval_ds(self, object value) except -1:
+    cdef int write_interval_ds(self, object value,
+                               bint write_length=True) except -1:
         cdef:
             int32_t days, seconds, fseconds
             char_type buf[11]
@@ -1003,7 +1046,8 @@ cdef class Buffer:
         buf[6] = (seconds % 60) + TNS_DURATION_OFFSET
         fseconds = cydatetime.timedelta_microseconds(value) * 1000
         pack_uint32(&buf[7], fseconds + TNS_DURATION_MID, BYTE_ORDER_MSB)
-        self.write_uint8(sizeof(buf))
+        if write_length:
+            self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))
 
     cdef int write_lob(self, ThinLobImpl lob_impl) except -1:
@@ -1012,7 +1056,8 @@ cdef class Buffer:
         """
         self.write_bytes_with_length(lob_impl._locator)
 
-    cdef int write_oracle_date(self, object value, uint8_t length) except -1:
+    cdef int write_oracle_date(self, object value, uint8_t length,
+                               bint write_length=True) except -1:
         cdef:
             unsigned int year
             char_type buf[13]
@@ -1035,7 +1080,8 @@ cdef class Buffer:
         if length > 11:
             buf[11] = TZ_HOUR_OFFSET
             buf[12] = TZ_MINUTE_OFFSET
-        self.write_uint8(length)
+        if write_length:
+            self.write_uint8(length)
         self.write_raw(buf, length)
 
     cdef int write_oracle_number(self, bytes num_bytes) except -1:
@@ -1182,6 +1228,27 @@ cdef class Buffer:
         if append_sentinel:
             self.write_uint8(102)
 
+    cdef int write_qlocator(self, uint64_t data_length) except -1:
+        """
+        Writes a QLocator. QLocators are always 40 bytes in length.
+        """
+        self.write_ub4(40)                  # QLocator length
+        self.write_uint8(40)                # chunk length
+        self.write_uint16(38)               # QLocator length less 2 bytes
+        self.write_uint16(TNS_LOB_QLOCATOR_VERSION)
+        self.write_uint8(TNS_LOB_LOC_FLAGS_VALUE_BASED | \
+                         TNS_LOB_LOC_FLAGS_BLOB | \
+                         TNS_LOB_LOC_FLAGS_ABSTRACT)
+        self.write_uint8(TNS_LOB_LOC_FLAGS_INIT)
+        self.write_uint16(0)                # additional flags
+        self.write_uint16(1)                # byt1
+        self.write_uint64(data_length)
+        self.write_uint16(0)                # unused
+        self.write_uint16(0)                # csid
+        self.write_uint16(0)                # unused
+        self.write_uint64(0)                # unused
+        self.write_uint64(0)                # unused
+
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
         cdef ssize_t bytes_to_write
         while True:
@@ -1253,3 +1320,30 @@ cdef class Buffer:
         else:
             self.write_uint8(8)
             self.write_uint64(value)
+
+
+cdef class GrowableBuffer(Buffer):
+
+    cdef int _reserve_space(self, ssize_t num_bytes) except -1:
+        """
+        Reserves the requested amount of space in the buffer by moving the
+        pointer forward, allocating more space if necessary.
+        """
+        self._pos += num_bytes
+        if self._pos > self._size:
+            self._write_more_data(self._size - self._pos + num_bytes,
+                                  num_bytes)
+
+    cdef int _write_more_data(self, ssize_t num_bytes_available,
+                              ssize_t num_bytes_wanted) except -1:
+        """
+        Called when the amount of buffer available is less than the amount of
+        data requested. The buffer is increased in multiples of TNS_CHUNK_SIZE
+        in order to accomodate the number of bytes desired.
+        """
+        cdef:
+            ssize_t num_bytes_needed = num_bytes_wanted - num_bytes_available
+            ssize_t new_size
+        new_size = (self._max_size + num_bytes_needed + TNS_CHUNK_SIZE - 1) & \
+                ~(TNS_CHUNK_SIZE - 1)
+        self._resize(new_size)

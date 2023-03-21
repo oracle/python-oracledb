@@ -347,7 +347,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Oracle 21c JSON data type (see :data:`~oracledb.DB_TYPE_JSON`)
-      - No - can fetch with an output type handler, see :ref:`Fetching JSON Differences <fetchJSON>`
+      - Yes
       - Yes
       - Yes
     * - ROWID, UROWID data types
@@ -494,7 +494,7 @@ values.
       - cannot be set
     * - JSON
       - DB_TYPE_JSON
-      - Yes. In python-oracledb Thin mode use an output type handler to fetch this Oracle Database 21c data type. See :ref:`jsondatatype`.
+      - Yes
       - ANY (converted)
     * - REF CURSOR (PL/SQL OR nested cursor)
       - DB_TYPE_CURSOR

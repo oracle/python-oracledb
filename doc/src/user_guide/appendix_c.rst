@@ -516,7 +516,7 @@ following steps:
    the code.
 
 9. Modernize code as needed or desired.  See :ref:`deprecations` for the list
-   of deprecations in python-oracledb 1.0.
+   of deprecations in python-oracledb.
 
 Additional Upgrade Steps to use python-oracledb Thin Mode
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++

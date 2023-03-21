@@ -2179,16 +2179,6 @@ when binding data.
     Describes columns in a database that are of type JSON (with Oracle Database
     21 or later).
 
-    .. note::
-
-        DB_TYPE_JSON database type is only supported in the python-oracledb
-        Thick mode. See :ref:`enablingthick`.
-
-        In python-oracledb Thin mode, the JSON database type can be fetched
-        with an output type handler as described in :ref:`Fetching JSON
-        <fetchJSON>`.
-
-
 .. data:: DB_TYPE_LONG
 
     Describes columns, attributes or array elements in a database that are of

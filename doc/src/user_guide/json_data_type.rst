@@ -42,9 +42,9 @@ character set conversion overheads.
 
 Oracle Database 21c introduced a dedicated JSON data type with a new `binary
 storage format <https://blogs.oracle.com/jsondb/osonformat>`__ that improves
-performance and functionality.  To fully take advantage of the dedicated JSON
-type, use python-oracledb in Thick mode with Oracle Client libraries version
-21, or later.
+performance and functionality.  To take advantage of the dedicated JSON type
+you can use python-oracledb in Thin or Thick modes.  With Thick mode the Oracle
+Client libraries should be version 21, or later.
 
 In Oracle Database 21, to create a table with a column called ``JSON_DATA`` for
 JSON data you might use:
@@ -57,11 +57,12 @@ JSON data you might use:
     );
 
 
-Using the Oracle Database 21c JSON Type in python-oracledb Thick Mode
-=====================================================================
+Using the Oracle Database 21c JSON Type in python-oracledb
+==========================================================
 
-Using python-oracledb Thick mode with Oracle Database 21c and Oracle Client 21c
-(or later), you can insert by binding as shown below:
+Using python-oracledb Thin mode with Oracle Database 21c, or using Thick mode
+with Oracle Database 21c and Oracle Client 21c (or later), you can insert by
+binding as shown below:
 
 .. code-block:: python
 
@@ -86,62 +87,15 @@ See `json_direct.py
 for a runnable example.  The example also shows how to use this type when
 python-oracledb Thick mode uses older Oracle Client libraries.
 
-Using the Oracle Database 21c JSON Type and python-oracledb Thin Mode
-=====================================================================
-
-Using python-oracledb Thin mode with Oracle Database 21c, you can insert into a
-JSON column as shown below:
-
-.. code:: python
-
-    data = [
-      (1, dict(name="Rod", dept="Sales", location="Germany")),
-      (2, dict(name="George", dept="Marketing", location="Bangalore")),
-      (3, dict(name="Sam", dept="Sales", location="Mumbai")),
-      (4, dict(name="Jill", dept="Marketing", location="Germany"))
-    ]
-
-    insert_sql = "insert into CustomersAsJson values (:1, :2)"
-
-    # Insert the data as a JSON string
-    cursor.executemany(insert_sql, [(i, json.dumps(j)) for i, j in data])
-
-For python-oracledb Thin mode, a type handler is required to fetch the Oracle
-21c JSON datatype.  If a type handler is used in the python-oracledb Thick
-mode, then the behavior is same in both the python-oracledb modes. The
-following example shows a type handler:
-
-.. code-block:: python
-
-    def my_type_handler(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_JSON:
-            return cursor.var(str, arraysize=cursor.arraysize, outconverter=json.loads)
-
-    cursor.outputtypehandler = my_type_handler
-
-    for row in cursor.execute("select * from CustomersAsJson"):
-        print(row)
-
-With a type handler, the python-oracledb Thin mode is equivalent
-to using the python-oracledb Thick mode with Oracle Client 21c. The
-python-oracledb Thin mode returns timestamps in a string representation.
-Without a type handler, the python-oracledb Thin mode gives an error that
-``DB_TYPE_JSON`` is not supported.
-
-A type handler is not needed when fetching from the Oracle Database 19c JSON
-type, since this is represented as VARCHAR2 or LOB.
-
-See `json_type.py
-<https://github.com/oracle/python-oracledb/tree/main/samplesjson_type.py>`__
-for a runnable example.
-
 Using the Oracle 12c JSON type in python-oracledb
 =================================================
 
-When using Oracle Database 12c or later with JSON using BLOB storage to insert
-JSON strings, use:
+When using Oracle Database 12c or later with JSON using BLOB storage, you can
+insert JSON strings like:
 
 .. code-block:: python
+
+    import json
 
     data = dict(name="Rod", dept="Sales", location="Germany")
     inssql = "insert into CustomersAsBlob values (:1, :2)"
@@ -245,16 +199,17 @@ using SQL is:
 .. code-block:: python
 
     cursor.execute("""
-            insert into mytab (myjsoncol) values
-            (json_object(key 'mydocument' value json_scalar(to_clob(:b))
-                    returning json))""",
-            ['A short CLOB'])
+        insert into mytab (
+            myjsoncol
+        ) values (
+            json_object(key 'mydocument' value json_scalar(to_clob(:b)) returning json)
+        )""",
+        ['A short CLOB'])
 
 When `mytab` is queried in python-oracledb, the CLOB data will be returned as a
 Python string, as shown by the following table.  Output might be like::
 
     {mydocument: 'A short CLOB'}
-
 
 Query and OUT Bind Type Mapping
 ===============================
@@ -329,10 +284,16 @@ some JSON data.  To look for JSON entries that have a ``location`` field:
 
 .. code-block:: python
 
+    import json
+
     for blob, in cursor.execute("""
-            select json_data
-            from customers
-            where json_exists(json_data, '$.location')"""):
+        select
+            json_data
+        from
+            customers
+        where
+            json_exists(json_data,
+            '$.location')"""):
         data = json.loads(blob.read())
         print(data)
 
@@ -351,7 +312,6 @@ For more information, see `SQL/JSON Path Expressions
 id=GUID-2DC05D71-3D62-4A14-855F-76E054032494>`__
 in the Oracle JSON Developer's Guide.
 
-
 Accessing Relational Data as JSON
 =================================
 
@@ -362,10 +322,15 @@ function is a great way to convert relational table data to JSON:
 .. code-block:: python
 
     cursor.execute("""
-            select json_object('deptId' is d.department_id, 'name' is d.department_name) department
-            from departments d
-            where department_id < :did
-            order by d.department_id""",
+        select
+            json_object('deptId' is d.department_id,
+                        'name' is d.department_name) department
+        from
+            departments d
+        where
+            department_id < :did
+        order by
+            d.department_id""",
             [50]);
     for row in cursor:
         print(row)
@@ -376,3 +341,30 @@ This produces::
     ('{"deptId":20,"name":"Marketing"}',)
     ('{"deptId":30,"name":"Purchasing"}',)
     ('{"deptId":40,"name":"Human Resources"}',)
+
+To select a result set from a relational query as a single object you can use
+`JSON_ARRAYAGG
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-6D56077D-78DE-4CC0-9498-225DDC42E054>`__,
+for example:
+
+.. code-block:: python
+
+    oracledb.defaults.fetch_lobs = False
+
+    cursor.execute("""
+        select
+            json_arrayagg(
+                json_object('deptid' is d.department_id,
+                            'name' is d.department_name) returning clob)
+        from
+            departments d
+        where
+            department_id < :did""",
+       [50]);
+    j, = cursor.fetchone()
+    print(j)
+
+
+This produces::
+
+    [{"deptid":10,"name":"Administration"},{"deptid":20,"name":"Marketing"},{"deptid":30,"name":"Purchasing"},{"deptid":40,"name":"Human Resources"}]

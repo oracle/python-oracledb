@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,7 +64,7 @@ with connection.cursor() as cursor:
     data = dict(name="Rod", dept="Sales", location="Germany")
     inssql = "insert into CustomersAsBlob values (:1, :2)"
 
-    if not connection.thin and client_version >= 21 and db_version >= 21:
+    if (connection.thin or client_version >= 21) and db_version >= 21:
         # Take advantage of direct binding
         cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         cursor.execute(inssql, [1, data])
@@ -75,29 +75,40 @@ with connection.cursor() as cursor:
 # Select JSON data
 with connection.cursor() as cursor:
 
-    sql = "SELECT c.json_data FROM CustomersAsBlob c"
+    sql = "select c.json_data from CustomersAsBlob c"
     for j, in cursor.execute(sql):
         print(json.loads(j.read()))
 
     # Using JSON_VALUE to extract a value from a JSON column
 
-    sql = """SELECT JSON_VALUE(json_data, '$.location')
-             FROM CustomersAsBlob
-             OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
+    sql = """select json_value(json_data, '$.location')
+             from CustomersAsBlob
+             offset 0 rows fetch next 1 rows only"""
     for r in cursor.execute(sql):
         print(r)
 
     # Using dot-notation to extract a value from a JSON  (BLOB storage) column
 
-    sql = """SELECT c.json_data.location
-             FROM CustomersAsBlob c
-             OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY"""
+    sql = """select c.json_data.location
+             from CustomersAsBlob c
+             offset 0 rows fetch next 1 rows only"""
     for j, in cursor.execute(sql):
         print(j)
 
     # Using JSON_OBJECT to extract relational data as JSON
 
-    sql = """SELECT JSON_OBJECT('key' IS d.dummy) dummy
-             FROM dual d"""
+    sql = """select json_object('key' is d.dummy) dummy
+             from dual d"""
+    for r in cursor.execute(sql):
+        print(r)
+
+    # Using JSON_ARRAYAGG to extract a whole relational table as JSON
+
+    oracledb.defaults.fetch_lobs = False
+    sql = """select json_arrayagg(
+                        json_object('key' is c.id,
+                                    'name' is c.json_data)
+                        returning clob)
+             from CustomersAsBlob c"""
     for r in cursor.execute(sql):
         print(r)

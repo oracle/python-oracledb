@@ -37,8 +37,6 @@ import test_env
                      "unsupported client")
 @unittest.skipUnless(test_env.get_server_version() >= (21, 0),
                      "unsupported server")
-@unittest.skipIf(test_env.get_is_thin(),
-                 "thin mode doesn't support JSON yet")
 class TestCase(test_env.BaseTestCase):
 
     json_data = [
@@ -202,6 +200,7 @@ class TestCase(test_env.BaseTestCase):
         sql = """
                 select json(json_scalar(to_yminterval('8-04')))
                 from dual"""
+        self.cursor.prefetchrows = 0
         self.cursor.execute(sql)
         self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3007:",
                                self.cursor.fetchone)

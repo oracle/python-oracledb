@@ -320,8 +320,6 @@ class TestCase(test_env.BaseTestCase):
                      "unsupported client")
     @unittest.skipIf(test_env.get_server_version() < (21, 0),
                      "unsupported server")
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support JSON yet")
     def test_3722_DB_TYPE_JSON(self):
         "3722 - setting values on variables of type DB_TYPE_JSON"
         json_data = [

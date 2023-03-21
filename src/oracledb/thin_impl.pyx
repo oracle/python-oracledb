@@ -85,9 +85,12 @@ from .base_impl import DB_TYPE_BINARY_INTEGER, DB_TYPE_CURSOR, DB_TYPE_OBJECT
 
 ctypedef unsigned char char_type
 
+cdef type PY_TYPE_DATE = datetime.date
+cdef type PY_TYPE_DATETIME = datetime.datetime
 cdef type PY_TYPE_DECIMAL = decimal.Decimal
 cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_LOB
+cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 
 cdef bint HAS_CRYPTOGRAPHY = True
 
@@ -105,6 +108,7 @@ include "impl/thin/statement.pyx"
 include "impl/thin/cursor.pyx"
 include "impl/thin/var.pyx"
 include "impl/thin/dbobject.pyx"
+include "impl/thin/oson.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
 include "impl/thin/conversions.pyx"

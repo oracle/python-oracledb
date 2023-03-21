@@ -583,6 +583,8 @@ cdef class MessageWithData(Message):
         elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     var_impl.dbtype)
+        elif ora_type_num == TNS_DATA_TYPE_JSON:
+            column_value = buf.read_oson()
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             typ_impl = var_impl.objtype
             if typ_impl.is_xml_type:
@@ -906,7 +908,7 @@ cdef class MessageWithData(Message):
     cdef int _write_column_metadata(self, WriteBuffer buf,
                                     list bind_var_impls) except -1:
         cdef:
-            uint32_t buffer_size, cont_flag
+            uint32_t buffer_size, cont_flag, lob_prefetch_length
             ThinDbObjectTypeImpl typ_impl
             uint8_t ora_type_num, flag
             ThinVarImpl var_impl
@@ -920,8 +922,12 @@ cdef class MessageWithData(Message):
             if var_impl.is_array:
                 flag |= TNS_BIND_ARRAY
             cont_flag = 0
+            lob_prefetch_length = 0
             if ora_type_num in (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB):
                 cont_flag = TNS_LOB_PREFETCH_FLAG
+            elif ora_type_num == TNS_DATA_TYPE_JSON:
+                cont_flag = TNS_LOB_PREFETCH_FLAG
+                buffer_size = lob_prefetch_length = TNS_JSON_MAX_LENGTH
             buf.write_uint8(ora_type_num)
             buf.write_uint8(flag)
             # precision and scale are always written as zero as the server
@@ -950,7 +956,7 @@ cdef class MessageWithData(Message):
             else:
                 buf.write_ub4(0)
             buf.write_uint8(var_impl.dbtype._csfrm)
-            buf.write_ub4(0)                # max chars (not used)
+            buf.write_ub4(lob_prefetch_length)  # max chars (LOB prefetch)
             if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
                 buf.write_ub4(0)            # oaccolid
 
@@ -1028,6 +1034,8 @@ cdef class MessageWithData(Message):
             buf.write_bytes_with_length(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             buf.write_dbobject(value._impl)
+        elif ora_type_num == TNS_DATA_TYPE_JSON:
+            buf.write_oson(value)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)

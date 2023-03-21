@@ -57,78 +57,98 @@ optionally :ref:`overridden <outputtypehandlers>`.
 Fetch Methods
 -------------
 
-After :meth:`Cursor.execute()`, the cursor is returned as a convenience. This
-allows code to iterate over rows like:
+Rows can be fetched in various ways.
 
-.. code-block:: python
+- After :meth:`Cursor.execute()`, the cursor is returned as a convenience. This
+  allows code to iterate over rows like:
 
-    cur = connection.cursor()
-    for row in cur.execute("select * from MyTable"):
-        print(row)
+  .. code-block:: python
 
-Rows can also be fetched one at a time using the method
-:meth:`Cursor.fetchone()`:
+      cur = connection.cursor()
+      for row in cur.execute("select * from MyTable"):
+          print(row)
 
-.. code-block:: python
+- Rows can also be fetched one at a time using the method
+  :meth:`Cursor.fetchone()`:
 
-    cur = connection.cursor()
-    cur.execute("select * from MyTable")
-    while True:
-        row = cur.fetchone()
-        if row is None:
-            break
-        print(row)
+  .. code-block:: python
 
-If rows need to be processed in batches, the method :meth:`Cursor.fetchmany()`
-can be used. The size of the batch is controlled by the ``numRows`` parameter,
-which defaults to the value of :attr:`Cursor.arraysize`.
+      cur = connection.cursor()
+      cur.execute("select * from MyTable")
+      while True:
+          row = cur.fetchone()
+          if row is None:
+              break
+          print(row)
 
-.. code-block:: python
+- If rows need to be processed in batches, the method :meth:`Cursor.fetchmany()`
+  can be used. The size of the batch is controlled by the ``size`` parameter,
+  which defaults to the value of :attr:`Cursor.arraysize`.
 
-    cur = connection.cursor()
-    cur.execute("select * from MyTable")
-    num_rows = 10
-    while True:
-        rows = cur.fetchmany(num_rows)
-        if not rows:
-            break
-        for row in rows:
-            print(row)
+  .. code-block:: python
 
-If all of the rows need to be fetched and can be contained in memory, the
-method :meth:`Cursor.fetchall()` can be used.
+      cur = connection.cursor()
+      cur.execute("select * from MyTable")
+      num_rows = 10
+      while True:
+          rows = cur.fetchmany(size=num_rows)
+          if not rows:
+              break
+          for row in rows:
+              print(row)
 
-.. code-block:: python
+  Note the ``size`` parameter only affects the number of rows returned to the
+  application, not to the internal buffer size used for tuning fetch
+  performance.  That internal buffer size is controlled only by changing
+  :attr:`Cursor.arraysize`, see :ref:`tuningfetch`.
 
-    cur = connection.cursor()
-    cur.execute("select * from MyTable")
-    rows = cur.fetchall()
-    for row in rows:
-        print(row)
+- If all of the rows need to be fetched and can be contained in memory, the
+  method :meth:`Cursor.fetchall()` can be used.
 
-The fetch methods return data as tuples.  To return results as dictionaries, see
-:ref:`rowfactories`.
+  .. code-block:: python
+
+      cur = connection.cursor()
+      cur.execute("select * from MyTable")
+      rows = cur.fetchall()
+      for row in rows:
+          print(row)
+
+  The fetch methods return data as tuples.  To return results as dictionaries, see
+  :ref:`rowfactories`.
 
 Closing Cursors
 ---------------
 
-A cursor may be used to execute multiple statements. Once it is no longer
-needed, it should be closed by calling :meth:`~Cursor.close()` in order to
-reclaim resources in the database. It will be closed automatically when the
-variable referencing it goes out of scope (and no further references are
-retained). One other way to control the lifetime of a cursor is to use a "with"
-block, which ensures that a cursor is closed once the block is completed. For
-example:
+Once cursors are no longer needed, they should be closed in order to reclaim
+resources in the database.  Note cursors may be used to execute multiple
+statements.
 
-.. code-block:: python
+Cursors can be closed in various ways:
 
-    with connection.cursor() as cursor:
-        for row in cursor.execute("select * from MyTable"):
-            print(row)
+- A cursor will be closed automatically when the variable referencing it goes out
+  of scope (and no further references are retained). A ``with`` block is a
+  convenient way to ensure this. For example:
 
-This code ensures that once the block is completed, the cursor is closed and
-resources have been reclaimed by the database. In addition, any attempt to use
-the variable ``cursor`` outside of the block will simply fail.
+  .. code-block:: python
+
+      with connection.cursor() as cursor:
+          for row in cursor.execute("select * from MyTable"):
+              print(row)
+
+  This code ensures that once the block is completed, the cursor is closed and
+  database resources can be reclaimed. In addition, any attempt to use the
+  variable ``cursor`` outside of the block will fail.
+
+- Cursors can be explicitly closed by calling :meth:`~Cursor.close()`
+
+  .. code-block:: python
+
+      cursor = connection.cursor()
+
+      ...
+
+      cursor.close()
+
 
 .. _querymetadata:
 

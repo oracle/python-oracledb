@@ -404,6 +404,26 @@ cdef class ReadBuffer(Buffer):
             _print_packet("Receiving packet:", self._socket.fileno(),
                           self._data_view[offset:self._size])
 
+    cdef object read_oson(self):
+        """
+        Read an OSON value from the buffer and return the converted value. OSON
+        is sent as a LOB value with all of the data prefetched. Since the LOB
+        locator is not required it is simply discarded.
+        it.
+        """
+        cdef:
+            OsonDecoder decoder
+            uint32_t num_bytes
+            bytes data
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            self.skip_ub8()             # size (unused)
+            self.skip_ub4()             # chunk size (unused)
+            data = self.read_bytes()
+            self.read_bytes()           # LOB locator (unused)
+            decoder = OsonDecoder.__new__(OsonDecoder)
+            return decoder.decode(data)
+
     cdef object read_lob_with_length(self, ThinConnImpl conn_impl,
                                      DbType dbtype):
         """
@@ -649,6 +669,16 @@ cdef class WriteBuffer(Buffer):
         """
         self.write_ub4(len(lob_impl._locator))
         return self.write_lob(lob_impl)
+
+    cdef object write_oson(self, value):
+        """
+        Encodes the given value to OSON and then writes that to the buffer.
+        it.
+        """
+        cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
+        encoder.encode(value)
+        self.write_qlocator(encoder._pos)
+        self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 
     cdef int write_seq_num(self) except -1:
         self._seq_num += 1

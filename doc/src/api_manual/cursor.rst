@@ -348,14 +348,14 @@ Cursor Methods
 .. method:: Cursor.setinputsizes(\*args, \*\*keywordArgs)
 
     This can be used before a call to :meth:`~Cursor.execute()`,
-    :meth:`~Cursor.callfunc()` or :meth:`~Cursor.callproc()` to predefine
-    memory areas for the operation's parameters. Each parameter should be a
-    type object corresponding to the input that will be used or it should be an
-    integer specifying the maximum length of a string parameter. Use keyword
-    parameters when binding by name and positional parameters when binding by
-    position. The singleton None can be used as a parameter when using
-    positional parameters to indicate that no space should be reserved for that
-    position.
+    :meth:`~Cursor.executemany()`, :meth:`~Cursor.callfunc()` or
+    :meth:`~Cursor.callproc()` to predefine memory areas for the operation's
+    parameters. Each parameter should be a type object corresponding to the
+    input that will be used or it should be an integer specifying the maximum
+    length of a string parameter. Use keyword parameters when binding by name
+    and positional parameters when binding by position. The singleton None can
+    be used as a parameter when using positional parameters to indicate that no
+    space should be reserved for that position.
 
     .. note::
 

@@ -88,7 +88,8 @@ cdef class ThinCursorImpl(BaseCursorImpl):
                               &self._statement._requires_define)
         elif not self._statement._requires_define \
                 and fetch_info._dbtype._ora_type_num in \
-                        (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB):
+                        (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB,
+                         TNS_DATA_TYPE_JSON):
             self._statement._requires_define = True
         elif var_impl.objtype is not None:
             typ_impl = var_impl.objtype

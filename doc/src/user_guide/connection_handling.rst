@@ -2312,8 +2312,27 @@ This is equivalent to executing the following in SQL*Plus:
 
 .. code-block:: sql
 
-    CONNECT sys/syspwd AS SYSDBA
+    CONNECT sys/syspwd@dbhost.example.com/orclpdb AS SYSDBA
     GRANT SYSOPER TO hr;
+
+
+In python-oracledb Thick mode, when python-oracledb uses Oracle Client
+libraries from a database software installation, you can use "bequeath"
+connections to databases that are also using the same libraries.  Do this by
+setting the standard Oracle environment variables such as ``ORACLE_HOME`` and
+``ORACLE_SID`` and connecting in Python like:
+
+.. code-block:: python
+
+    oracledb.init_oracle_client()
+
+    conn = oracledb.connect(mode=oracledb.SYSDBA)
+
+This is equivalent to executing the following in SQL*Plus:
+
+.. code-block:: sql
+
+    CONNECT / AS SYSDBA
 
 .. _netencrypt:
 

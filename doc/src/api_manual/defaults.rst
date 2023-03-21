@@ -39,7 +39,8 @@ Defaults Attributes
 
 .. attribute:: defaults.fetch_decimals
 
-    Identifies whether numbers should be fetched as ``decimal.Decimal`` values.
+    Identifies whether numbers should be fetched as `decimal.Decimal
+    <https://docs.python.org/3/library/decimal.html#decimal-objects>`__ values.
     This can help avoid issues with converting numbers from Oracle Database's
     decimal format to Python's binary format.
 
@@ -47,7 +48,7 @@ Defaults Attributes
     `return_numbers_as_decimals.py <https://github.com/oracle/python-cx_Oracle/
     blob/main/samples/return_numbers_as_decimals.py>`__) can alternatively be
     used to adjust the returned type.  If a type handler exists and returns a
-    variable (that is, `cursor.var(...)`), then that return variable is used.
+    variable (that is, ``cursor.var(...)``), then that return variable is used.
     If the type handler returns None, then the value of
     ``oracledb.defaults.fetch_decimals`` is used to determine whether to return
     ``decimal.Decimal`` values.
@@ -67,6 +68,9 @@ Defaults Attributes
     If a type handler exists and returns a variable (that is, `cursor.var(...)`), then
     that return variable is used. If the type handler returns None, then the value of
     ``oracledb.defaults.fetch_lobs`` is used.
+
+    The value of ``oracledb.defaults.fetch_lobs`` does not affect LOBs returned
+    as OUT binds.
 
     This attribute has an initial value of True.
 

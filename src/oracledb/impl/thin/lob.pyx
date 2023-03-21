@@ -61,8 +61,8 @@ cdef class ThinLobImpl(BaseLobImpl):
 
     cdef str _get_encoding(self):
         if self.dbtype._csfrm == TNS_CS_NCHAR \
-                or self._locator[TNS_LOB_LOCATOR_OFFSET_FLAG_3] & \
-                TNS_LOB_LOCATOR_VAR_LENGTH_CHARSET:
+                or self._locator[TNS_LOB_LOC_OFFSET_FLAG_3] & \
+                TNS_LOB_LOC_FLAGS_VAR_LENGTH_CHARSET:
             return TNS_ENCODING_UTF16
         return TNS_ENCODING_UTF8
 
@@ -80,8 +80,11 @@ cdef class ThinLobImpl(BaseLobImpl):
         """
         Internal method for closing a temp LOB during the next piggyback.
         """
-        if self._locator[TNS_LOB_ABSTRACT_POS] & TNS_LOB_ABSTRACT_VALUE \
-                or self._locator[TNS_LOB_TEMP_POS] & TNS_LOB_TEMP_VALUE:
+        cdef:
+            uint8_t flags1 = self._locator[TNS_LOB_LOC_OFFSET_FLAG_1]
+            uint8_t flags4 = self._locator[TNS_LOB_LOC_OFFSET_FLAG_4]
+        if flags1 & TNS_LOB_LOC_FLAGS_ABSTRACT \
+                or flags4 & TNS_LOB_LOC_FLAGS_TEMP:
             if self._conn_impl._temp_lobs_to_close is None:
                 self._conn_impl._temp_lobs_to_close = []
             self._conn_impl._temp_lobs_to_close.append(self._locator)
