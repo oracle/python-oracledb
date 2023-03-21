@@ -306,3 +306,42 @@ be beneficial.
 
 See `load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/load_csv.py>`__ for a runnable example.
+
+
+Copying Data between Databases
+==============================
+
+The :meth:`Cursor.executemany()` function is useful for efficiently copying
+data from one database to another:
+
+.. code-block:: python
+
+    # Connect to both databases
+    source_connection = oracledb.connect(user=un1, password=pw1, dsn=cs1)
+    target_connection = oracledb.connect(user=un2, password=pw2, dsn=cs2)
+
+    # Setup cursors
+    source_cursor = source_connection.cursor()
+    source_cursor.arraysize = 1000              # tune this for query performance
+
+    target_cursor = target_connection.cursor()
+    target_cursor.setinputsizes(None, 25)       # set according to column types
+
+    # Perform bulk fetch and insertion
+    source_cursor.execute("select c1, c2 from MySrcTable")
+    while True:
+        rows = source_cursor.fetchmany()
+        if not rows:
+            break
+        target_cursor.executemany("insert into MyDestTable values (:1, :2)", rows)
+
+    target_connection.commit()
+
+Tune the :attr:`~Cursor.arraysize` value according to notes in
+:ref:`tuningfetch`.  Use ``setinputsizes()`` according to `Predefining Memory
+Areas`_.
+
+Note that it may be preferable to create a `database link
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D966642A-B19E-449D-9968-1121AF06D793>`__
+between the databases and use an INSERT INTO SELECT statement so that data is
+not copied to, and back from, the Python process.

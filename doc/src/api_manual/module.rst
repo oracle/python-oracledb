@@ -590,9 +590,10 @@ Oracledb Methods
     users). The default value is True.
 
     The ``timeout`` parameter is the length of time (in seconds) that a
-    connection may remain idle in the pool before it is terminated. If the
-    value of this parameter is 0, then the connections are never terminated.
-    The default value is 0.
+    connection may remain idle in the pool before it is terminated.  This
+    applies only when the pool has more than ``min`` connections open, allowing
+    it to shrink to the specified minimum size.  If the value of this parameter
+    is 0, then the connections are never terminated.  The default value is 0.
 
     The ``wait_timeout`` parameter is the length of time (in milliseconds) that
     a caller should wait when acquiring a connection from the pool with
@@ -970,9 +971,10 @@ Oracledb Methods
     The default value is True.
 
     The ``timeout`` parameter is the length of time (in seconds) that a
-    connection may remain idle in the pool before it is terminated. If the
-    value of this parameter is 0, then the connections are never terminated.
-    The default value is 0.
+    connection may remain idle in the pool before it is terminated.  This
+    applies only when the pool has more than ``min`` connections open, allowing
+    it to shrink to the specified minimim size.  If the value of this parameter
+    is 0, then the connections are never terminated.  The default value is 0.
 
     The ``wait_timeout`` parameter is the length of time (in milliseconds) that
     a caller should wait when acquiring a connection from the pool with

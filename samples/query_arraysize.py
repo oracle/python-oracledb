@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,10 +25,10 @@
 #------------------------------------------------------------------------------
 # query_arraysize.py
 #
-# Demonstrates how to alter the array size and prefetch rows values in order to
+# Demonstrates how to alter the arraysize and prefetchrows values in order to
 # tune the performance of fetching data from the database.  Increasing these
 # values can reduce the number of network round trips and overhead required to
-# fetch all of the rows from a large table. The value affect internal buffers
+# fetch all of the rows from a large table.  The value affect internal buffers
 # and do not affect how, or when, rows are returned to your application.
 #
 # The best values need to be determined by tuning in your production
@@ -50,34 +50,57 @@ connection = oracledb.connect(user=sample_env.get_main_user(),
 
 # Global values can be set to override the defaults used when a cursor is
 # created
-oracledb.defaults.prefetchrows = 200  # default is 2
-oracledb.defaults.arraysize = 200     # default is 100
+#
+#oracledb.defaults.prefetchrows = 200  # default is 2
+#oracledb.defaults.arraysize = 200     # default is 100
 
 with connection.cursor() as cursor:
 
-    # Example 1
+    # Scenario 1: Selecting from a "large" table
 
     start = time.time()
 
-    cursor.execute('select * from bigtab')
-    res = cursor.fetchall()
-
-    elapsed = (time.time() - start)
-    print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
-    print("Retrieved", len(res), "rows in", elapsed, "seconds")
-
-    # Example 2
-
-    start = time.time()
-
-    # values can be set per-cursor
-    cursor.prefetchrows = 1000
+    # Tune arraysize for your memory, network, and performance requirements.
+    # Generally leave prefetchrows at its default of 2.
     cursor.arraysize = 1000
 
-    cursor.execute('select * from bigtab')
+    cursor.execute("select * from bigtab")
     res = cursor.fetchall()
-    # print(res)  # uncomment to display the query results
 
     elapsed = (time.time() - start)
     print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
     print("Retrieved", len(res), "rows in", elapsed, "seconds")
+
+
+    # Scenario 2: Selecting a "page" of data
+
+    PAGE_SIZE = 20  # number of rows to fetch from the table
+
+    start = time.time()
+
+    cursor.arraysize    = PAGE_SIZE
+    cursor.prefetchrows = PAGE_SIZE + 1   # Set this one larger than arraysize
+                                          # to remove an extra round-trip
+
+    cursor.execute("""select * from bigtab
+                      offset 0 rows fetch next :r rows only""", [PAGE_SIZE])
+    res = cursor.fetchall()
+
+    elapsed = (time.time() - start)
+    print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
+    print("Retrieved", len(res), "rows in", elapsed, "seconds")
+
+
+    # Scenario 3: Selecting one row of data is similar to the previous example
+
+    start = time.time()
+
+    cursor.arraysize    = 1
+    cursor.prefetchrows = 2
+
+    cursor.execute("select * from bigtab where rownum < 2")
+    res = cursor.fetchall()
+
+    elapsed = (time.time() - start)
+    print("Prefetchrows:", cursor.prefetchrows, "Arraysize:", cursor.arraysize)
+    print("Retrieved", len(res), "row in", elapsed, "seconds")
