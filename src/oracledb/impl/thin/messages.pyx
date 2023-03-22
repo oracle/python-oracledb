@@ -934,7 +934,7 @@ cdef class MessageWithData(Message):
             # expects that and complains if any other value is sent!
             buf.write_uint8(0)
             buf.write_uint8(0)
-            if buffer_size >= TNS_MIN_LONG_LENGTH:
+            if buffer_size > buf._caps.max_string_size:
                 buf.write_ub4(TNS_MAX_LONG_LENGTH)
             else:
                 buf.write_ub4(buffer_size)
@@ -1062,7 +1062,7 @@ cdef class MessageWithData(Message):
                     self._write_bind_params_column(buf, var_impl, value)
             else:
                 if not self.cursor_impl._statement._is_plsql \
-                        and var_impl.buffer_size >= TNS_MIN_LONG_LENGTH:
+                        and var_impl.buffer_size > buf._caps.max_string_size:
                     found_long = True
                     continue
                 self._write_bind_params_column(buf, var_impl,
@@ -1072,7 +1072,7 @@ cdef class MessageWithData(Message):
                 if bind_info._is_return_bind:
                     continue
                 var_impl = bind_info._bind_var_impl
-                if var_impl.buffer_size < TNS_MIN_LONG_LENGTH:
+                if var_impl.buffer_size <= buf._caps.max_string_size:
                     continue
                 self._write_bind_params_column(buf, var_impl,
                                                var_impl._values[pos + offset])

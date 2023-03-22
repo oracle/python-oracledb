@@ -33,6 +33,8 @@ Thin Mode Changes
 #)  Fixed bug with SQL containing multibyte characters with certain database
     character sets
     (`issue 133 <https://github.com/oracle/python-oracledb/issues/133>`__).
+#)  Fixed bug with ordering of binds in SQL when the database version is 12.1
+    (`issue 135 <https://github.com/oracle/python-oracledb/issues/135>`__).
 #)  Fixed bug with ordering of binds in PL/SQL when the bind variable may
     potentially exceed the 32767 byte limit but the actual value bound does not
     (`issue 146 <https://github.com/oracle/python-oracledb/issues/146>`__).

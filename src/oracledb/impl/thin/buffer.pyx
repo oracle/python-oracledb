@@ -267,7 +267,8 @@ cdef class Buffer:
         cdef ssize_t chunk_len
         if num_bytes <= TNS_MAX_SHORT_LENGTH:
             self.write_uint8(<uint8_t> num_bytes)
-            self.write_raw(ptr, num_bytes)
+            if num_bytes > 0:
+                self.write_raw(ptr, num_bytes)
         else:
             self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
             while num_bytes > 0:

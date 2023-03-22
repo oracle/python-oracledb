@@ -38,6 +38,7 @@ cdef class Capabilities:
         uint16_t ncharset_id
         bytearray compile_caps
         bytearray runtime_caps
+        uint32_t max_string_size
         bint supports_oob
 
     def __init__(self):
@@ -57,7 +58,10 @@ cdef class Capabilities:
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
-        pass
+        if server_caps[TNS_RCAP_TTC] & TNS_RCAP_TTC_32K:
+            self.max_string_size = 32767
+        else:
+            self.max_string_size = 4000
 
     cdef int _check_ncharset_id(self) except -1:
         """
