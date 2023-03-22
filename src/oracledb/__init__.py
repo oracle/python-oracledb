@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -43,15 +43,67 @@ from .pool_params import PoolParams
 from .lob import LOB
 from .dbobject import DbObject, DbObjectType
 from .var import Var
-from .constructors import *
 from .dsn import makedsn
 from .driver_mode import is_thin_mode
 
-from .base_impl import *
-from .thick_impl import clientversion, init_oracle_client
+from .base_impl import (
+
+    # database types
+    DB_TYPE_BFILE,
+    DB_TYPE_BINARY_DOUBLE,
+    DB_TYPE_BINARY_FLOAT,
+    DB_TYPE_BINARY_INTEGER,
+    DB_TYPE_BLOB,
+    DB_TYPE_BOOLEAN,
+    DB_TYPE_CHAR,
+    DB_TYPE_CLOB,
+    DB_TYPE_CURSOR,
+    DB_TYPE_DATE,
+    DB_TYPE_INTERVAL_DS,
+    DB_TYPE_INTERVAL_YM,
+    DB_TYPE_JSON,
+    DB_TYPE_LONG,
+    DB_TYPE_LONG_NVARCHAR,
+    DB_TYPE_LONG_RAW,
+    DB_TYPE_NCHAR,
+    DB_TYPE_NCLOB,
+    DB_TYPE_NUMBER,
+    DB_TYPE_NVARCHAR,
+    DB_TYPE_OBJECT,
+    DB_TYPE_RAW,
+    DB_TYPE_ROWID,
+    DB_TYPE_TIMESTAMP,
+    DB_TYPE_TIMESTAMP_LTZ,
+    DB_TYPE_TIMESTAMP_TZ,
+    DB_TYPE_UNKNOWN,
+    DB_TYPE_UROWID,
+    DB_TYPE_VARCHAR,
+
+    # API types
+    BINARY,
+    DATETIME,
+    NUMBER,
+    ROWID,
+    STRING
+)
+
+from .thick_impl import (
+    clientversion,
+    init_oracle_client
+)
+
+from .constructors import (
+    Binary,
+    Date,
+    DateFromTicks,
+    Time,
+    TimeFromTicks,
+    Timestamp,
+    TimestampFromTicks
+)
 
 package = sys.modules[__name__]
-init_base_impl(package)
+base_impl.init_base_impl(package)
 thick_impl.init_thick_impl(package)
 thin_impl.init_thin_impl(package)
 del package
@@ -68,8 +120,9 @@ class Future:
 __future__ = Future()
 
 # remove unnecessary symbols
-del exceptions, errors, connection, pool, constants
-del constructors, base_impl, thick_impl, thin_impl, utils
+del exceptions, errors, connection, pool, constants, driver_mode, sys
+del constructors, dsn, lob, base_impl, thick_impl, thin_impl, utils, var
+del connect_params, pool_params, subscr, aq, soda, cursor, dbobject
 
 # general aliases (for backwards compatibility)
 ObjectType = DbObjectType

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -309,7 +309,7 @@ class Cursor:
 
     def execute(self, statement: Union[str, None],
                 parameters: Union[list, tuple, dict]=None,
-                **keyword_parameters: dict) -> Union["Cursor", None]:
+                **keyword_parameters: Any) -> Union["Cursor", None]:
         """
         Execute a statement against the database.
 
@@ -702,7 +702,7 @@ class Cursor:
         self._verify_open()
         self._impl.scrollable = value
 
-    def setinputsizes(self, *args: tuple, **kwargs: dict) -> Union[list, dict]:
+    def setinputsizes(self, *args: Any, **kwargs: Any) -> Union[list, dict]:
         """
         This can be used before a call to execute(), callfunc() or callproc()
         to predefine memory areas for the operation’s parameters. Each

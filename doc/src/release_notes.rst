@@ -63,6 +63,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Improved type annotations.
 #)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
     whenever an element in a database collection is missing. Previously, thick
     mode raised ``DPI-1024: element at index {index} does not exist`` and thin
