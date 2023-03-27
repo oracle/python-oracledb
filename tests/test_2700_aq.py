@@ -522,6 +522,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2723_enqtime(self):
         "2723 - test message props enqtime"
+        self.cursor.execute("alter session set time_zone = '0:00'")
         queue = self.get_and_clear_queue(self.book_queue_name,
                                          self.book_type_name)
         book = queue.payload_type.newobject()
