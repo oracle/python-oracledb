@@ -110,6 +110,8 @@ def _raise_err(error_num: int, context_error_message: str=None,
     supplied arguments.
     """
     message = _get_error_text(error_num, **args)
+    if context_error_message is None and cause is not None:
+        context_error_message = str(cause)
     if context_error_message is not None:
         message = f"{message}\n{context_error_message}"
     exc_type = ERR_EXCEPTION_TYPES[error_num // 1000]
@@ -307,7 +309,7 @@ ERR_MESSAGE_FORMATS = {
             'column truncated to {col_value_len} {unit}. '
             'Untruncated was {actual_len}',
     ERR_CONNECTION_FAILED:
-            'cannot connect to database. Connection failed with "{exception}"',
+            'cannot connect to database.',
     ERR_CONTENT_INVALID_AFTER_NUMBER:
             'invalid number (content after number)',
     ERR_CURSOR_NOT_OPEN:
@@ -386,25 +388,22 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_REF_CURSOR:
             'invalid REF CURSOR: never opened in PL/SQL',
     ERR_INVALID_SERVER_CERT_DN:
-            'cannot connect to database. The distinguished name (DN) on '
-            'the server certificate does not match the expected value',
+            'The distinguished name (DN) on the server certificate does not '
+            'match the expected value',
     ERR_INVALID_SERVER_TYPE:
             'invalid server_type: {server_type}',
     ERR_INVALID_SERVICE_NAME:
-            'cannot connect to database. Service "{service_name}" is not '
-            'registered with the listener at host "{host}" port {port}. '
-            '(Similar to ORA-12514)',
+            'Service "{service_name}" is not registered with the listener at '
+            'host "{host}" port {port}. (Similar to ORA-12514)',
     ERR_INVALID_SID:
-            'cannot connect to database. SID "{sid}" is not registered '
-            'with the listener at host "{host}" port {port}. '
-            '(Similar to ORA-12505)',
+            'SID "{sid}" is not registered with the listener at host "{host}" '
+            'port {port}. (Similar to ORA-12505)',
     ERR_KEYWORD_ARGS_MUST_BE_DICT:
             '"keyword_parameters" argument must be a dict',
     ERR_LIBRARY_ALREADY_INITIALIZED:
             'init_oracle_client() was already called with different arguments',
     ERR_LISTENER_REFUSED_CONNECTION:
-            'cannot connect to database. Listener refused connection. '
-            '(Similar to ORA-{error_code})',
+            'Listener refused connection. (Similar to ORA-{error_code})',
     ERR_LOB_OF_WRONG_TYPE:
             'LOB is of type {actual_type_name} but must be of type '
             '{expected_type_name}',
@@ -488,11 +487,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_TIME_NOT_SUPPORTED:
             'Oracle Database does not support time only variables',
     ERR_TNS_ENTRY_NOT_FOUND:
-            'cannot connect to database. Unable to find "{name}" in '
-            '{file_name}',
+            'unable to find "{name}" in {file_name}',
     ERR_TNS_NAMES_FILE_MISSING:
-            'cannot connect to database. File tnsnames.ora not found in '
-            '{config_dir}',
+            'file tnsnames.ora not found in {config_dir}',
     ERR_UNEXPECTED_DATA:
             'unexpected data received: {data}',
     ERR_UNEXPECTED_END_OF_DATA:
@@ -517,7 +514,7 @@ ERR_MESSAGE_FORMATS = {
             'password verifier type 0x{verifier_type:x} is not supported by '
             'python-oracledb in thin mode',
     ERR_WALLET_FILE_MISSING:
-            'cannot connect to database. Wallet file {name} was not found',
+            'wallet file {name} was not found',
     ERR_WRONG_ARRAY_DEFINITION:
             'expecting a list of two elements [type, numelems]',
     ERR_WRONG_EXECUTE_PARAMETERS_TYPE:

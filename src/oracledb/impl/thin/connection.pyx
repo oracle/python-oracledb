@@ -101,18 +101,13 @@ cdef class ThinConnImpl(BaseConnImpl):
         try:
             self._protocol._connect_phase_one(self, params, description,
                                               address, connect_string)
-        except exceptions.DatabaseError:
+        except (exceptions.DatabaseError, socket.gaierror,
+                ConnectionRefusedError) as e:
             if raise_exception:
-                raise
-            return 0
-        except (socket.gaierror, ConnectionRefusedError) as e:
-            if raise_exception:
-                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                                  exception=str(e))
+                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e)
             return 0
         except Exception as e:
-            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                              exception=str(e))
+            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e)
         self._drcp_enabled = description.server_type == "pooled"
         if self._cclass is None:
             self._cclass = description.cclass
