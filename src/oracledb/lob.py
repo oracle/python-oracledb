@@ -28,7 +28,7 @@
 # Contains the LOB class for managing BLOB, CLOB, NCLOB and BFILE data.
 #------------------------------------------------------------------------------
 
-from typing import Union
+from typing import Any, Union
 
 from . import __name__ as MODULE_NAME
 from . import errors
@@ -146,7 +146,7 @@ class LOB:
         self._impl.trim(new_size)
 
     @property
-    def type(self) -> object:
+    def type(self) -> Any:
         """
         Returns the type of the LOB as one of the database type constants.
         """

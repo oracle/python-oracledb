@@ -30,76 +30,118 @@
 
 import sys
 
-from .version import __version__
+from .version import (
+    __version__ as __version__
+)
+
 from .constants import *
 from .exceptions import *
-from .errors import _Error
-from .defaults import defaults
-from .connection import connect, Connection
-from .cursor import Cursor
-from .pool import create_pool, ConnectionPool
-from .connect_params import ConnectParams
-from .pool_params import PoolParams
-from .lob import LOB
-from .dbobject import DbObject, DbObjectType
-from .var import Var
-from .dsn import makedsn
-from .driver_mode import is_thin_mode
+
+from .errors import (
+    _Error as _Error
+)
+
+from .defaults import (
+    defaults as defaults
+)
+
+from .connection import (
+    connect as connect,
+    Connection as Connection
+)
+
+from .cursor import (
+    Cursor as Cursor
+)
+
+from .pool import (
+    create_pool as create_pool,
+    ConnectionPool as ConnectionPool
+)
+
+from .connect_params import (
+    ConnectParams as ConnectParams
+)
+
+from .pool_params import (
+    PoolParams as PoolParams
+)
+
+from .lob import (
+    LOB as LOB
+)
+
+from .dbobject import (
+    DbObject as DbObject,
+    DbObjectType as DbObjectType
+)
+
+from .var import (
+    Var as Var
+)
+
+from .dsn import (
+    makedsn as makedsn
+)
+
+from .driver_mode import (
+    is_thin_mode as is_thin_mode
+)
 
 from .base_impl import (
 
     # database types
-    DB_TYPE_BFILE,
-    DB_TYPE_BINARY_DOUBLE,
-    DB_TYPE_BINARY_FLOAT,
-    DB_TYPE_BINARY_INTEGER,
-    DB_TYPE_BLOB,
-    DB_TYPE_BOOLEAN,
-    DB_TYPE_CHAR,
-    DB_TYPE_CLOB,
-    DB_TYPE_CURSOR,
-    DB_TYPE_DATE,
-    DB_TYPE_INTERVAL_DS,
-    DB_TYPE_INTERVAL_YM,
-    DB_TYPE_JSON,
-    DB_TYPE_LONG,
-    DB_TYPE_LONG_NVARCHAR,
-    DB_TYPE_LONG_RAW,
-    DB_TYPE_NCHAR,
-    DB_TYPE_NCLOB,
-    DB_TYPE_NUMBER,
-    DB_TYPE_NVARCHAR,
-    DB_TYPE_OBJECT,
-    DB_TYPE_RAW,
-    DB_TYPE_ROWID,
-    DB_TYPE_TIMESTAMP,
-    DB_TYPE_TIMESTAMP_LTZ,
-    DB_TYPE_TIMESTAMP_TZ,
-    DB_TYPE_UNKNOWN,
-    DB_TYPE_UROWID,
-    DB_TYPE_VARCHAR,
+    DB_TYPE_BFILE as DB_TYPE_BFILE,
+    DB_TYPE_BINARY_DOUBLE as DB_TYPE_BINARY_DOUBLE,
+    DB_TYPE_BINARY_FLOAT as DB_TYPE_BINARY_FLOAT,
+    DB_TYPE_BINARY_INTEGER as DB_TYPE_BINARY_INTEGER,
+    DB_TYPE_BLOB as DB_TYPE_BLOB,
+    DB_TYPE_BOOLEAN as DB_TYPE_BOOLEAN,
+    DB_TYPE_CHAR as DB_TYPE_CHAR,
+    DB_TYPE_CLOB as DB_TYPE_CLOB,
+    DB_TYPE_CURSOR as DB_TYPE_CURSOR,
+    DB_TYPE_DATE as DB_TYPE_DATE,
+    DB_TYPE_INTERVAL_DS as DB_TYPE_INTERVAL_DS,
+    DB_TYPE_INTERVAL_YM as DB_TYPE_INTERVAL_YM,
+    DB_TYPE_JSON as DB_TYPE_JSON,
+    DB_TYPE_LONG as DB_TYPE_LONG,
+    DB_TYPE_LONG_NVARCHAR as DB_TYPE_LONG_NVARCHAR,
+    DB_TYPE_LONG_RAW as DB_TYPE_LONG_RAW,
+    DB_TYPE_NCHAR as DB_TYPE_NCHAR,
+    DB_TYPE_NCLOB as DB_TYPE_NCLOB,
+    DB_TYPE_NUMBER as DB_TYPE_NUMBER,
+    DB_TYPE_NVARCHAR as DB_TYPE_NVARCHAR,
+    DB_TYPE_OBJECT as DB_TYPE_OBJECT,
+    DB_TYPE_RAW as DB_TYPE_RAW,
+    DB_TYPE_ROWID as DB_TYPE_ROWID,
+    DB_TYPE_TIMESTAMP as DB_TYPE_TIMESTAMP,
+    DB_TYPE_TIMESTAMP_LTZ as DB_TYPE_TIMESTAMP_LTZ,
+    DB_TYPE_TIMESTAMP_TZ as DB_TYPE_TIMESTAMP_TZ,
+    DB_TYPE_UNKNOWN as DB_TYPE_UNKNOWN,
+    DB_TYPE_UROWID as DB_TYPE_UROWID,
+    DB_TYPE_VARCHAR as DB_TYPE_VARCHAR,
 
     # API types
-    BINARY,
-    DATETIME,
-    NUMBER,
-    ROWID,
-    STRING
+    BINARY as BINARY,
+    DATETIME as DATETIME,
+    NUMBER as NUMBER,
+    ROWID as ROWID,
+    STRING as STRING
 )
 
 from .thick_impl import (
-    clientversion,
-    init_oracle_client
+    clientversion as clientversion,
+    init_oracle_client as init_oracle_client
 )
 
 from .constructors import (
-    Binary,
-    Date,
-    DateFromTicks,
-    Time,
-    TimeFromTicks,
-    Timestamp,
-    TimestampFromTicks
+    Binary as Binary,
+    Date as Date,
+    DateFromTicks as DateFromTicks,
+    Time as Time,
+    TimeFromTicks as TimeFromTicks,
+    Timestamp as Timestamp,
+    TimestampFromTicks as TimestampFromTicks
 )
 
 package = sys.modules[__name__]

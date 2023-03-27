@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,7 @@
 # SodaDatabase, SodaCollection, SodaDocument, SodaDocCursor and SodaOperation.
 #------------------------------------------------------------------------------
 
-from typing import Union, List
+from typing import Any, Union, List
 import json
 
 from . import connection, errors
@@ -46,7 +46,7 @@ class SodaDatabase:
         db._impl = impl
         return db
 
-    def _get_content_bytes(self, content: object) -> bytes:
+    def _get_content_bytes(self, content: Any) -> bytes:
         """
         Internal method used for returning the bytes to store in document
         content.
@@ -84,7 +84,7 @@ class SodaDatabase:
         collection_impl = self._impl.create_collection(name, metadata, mapMode)
         return SodaCollection._from_impl(self, collection_impl)
 
-    def createDocument(self, content: object, key: str=None,
+    def createDocument(self, content: Any, key: str=None,
                        mediaType: str="application/json") -> "SodaDocument":
         """
         Creates a SODA document usable for SODA write operations. You only need
@@ -245,7 +245,7 @@ class SodaCollection:
                                                   return_docs=True)
         return [SodaDocument._from_impl(i) for i in return_doc_impls]
 
-    def insertOne(self, doc: object) -> None:
+    def insertOne(self, doc: Any) -> None:
         """
         Inserts a given document into the collection. The input document can be
         a dictionary or list or an existing SODA document object.
@@ -253,8 +253,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.insert_one(doc_impl, hint=None, return_doc=False)
 
-    def insertOneAndGet(self, doc: object,
-                        hint: str=None) -> "SodaDocument":
+    def insertOneAndGet(self, doc: Any, hint: str=None) -> "SodaDocument":
         """
         Similarly to insertOne() this method inserts a given document into the
         collection. The only difference is that it returns a SODA Document
@@ -291,7 +290,7 @@ class SodaCollection:
         """
         return self._impl.name
 
-    def save(self, doc: object) -> None:
+    def save(self, doc: Any) -> None:
         """
         Saves a document into the collection. This method is equivalent to
         insertOne() except that if client-assigned keys are used, and the
@@ -301,7 +300,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.save(doc_impl, hint=None, return_doc=False)
 
-    def saveAndGet(self, doc: object, hint: str=None) -> "SodaDocument":
+    def saveAndGet(self, doc: Any, hint: str=None) -> "SodaDocument":
         """
         Saves a document into the collection. This method is equivalent to
         insertOneAndGet() except that if client-assigned keys are used, and the
@@ -601,7 +600,7 @@ class SodaOperation:
         """
         return self._collection._impl.remove(self)
 
-    def replaceOne(self, doc: object) -> bool:
+    def replaceOne(self, doc: Any) -> bool:
         """
         Replaces a single document in the collection with the specified
         document. The input document can be a dictionary or list or an existing
@@ -615,7 +614,7 @@ class SodaOperation:
         return self._collection._impl.replace_one(self, doc_impl,
                                                   return_doc=False)
 
-    def replaceOneAndGet(self, doc: object) -> "SodaDocument":
+    def replaceOneAndGet(self, doc: Any) -> "SodaDocument":
         """
         Similarly to replaceOne(), this method replaces a single document in
         the collection with the specified document. The only difference is that

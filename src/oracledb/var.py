@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,7 @@
 # fetch. These hold the metadata as well as any necessary buffers.
 #------------------------------------------------------------------------------
 
-from typing import Callable, Union, Type
+from typing import Any, Callable, Union, Type
 from . import errors
 from .dbobject import DbObjectType
 from .base_impl import DbType
@@ -90,7 +90,7 @@ class Var:
         """
         return self.buffer_size
 
-    def getvalue(self, pos: int=0) -> object:
+    def getvalue(self, pos: int=0) -> Any:
         """
         Return the value at the given position in the variable. For variables
         created using the method Cursor.arrayvar() the value returned will be a
@@ -139,7 +139,7 @@ class Var:
         """
         return self._impl.outconverter
 
-    def setvalue(self, pos: int, value: object) -> None:
+    def setvalue(self, pos: int, value: Any) -> None:
         """
         Set the value at the given position in the variable.
         """

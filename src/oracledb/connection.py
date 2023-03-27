@@ -533,7 +533,7 @@ class Connection:
         self._verify_connected()
         self._impl.set_module(value)
 
-    def msgproperties(self, payload: Union[bytes, DbObject]=None,
+    def msgproperties(self, payload: Union[bytes, str, DbObject]=None,
                       correlation: str=None, delay: int=None,
                       exceptionq: str=None, expiration: int=None,
                       priority: int=None, recipients: list=None) -> MessageProperties:

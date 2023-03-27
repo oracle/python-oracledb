@@ -240,10 +240,10 @@ class Cursor:
         self._verify_open()
         return self._impl.get_bind_vars()
 
-    def callfunc(self, name: str, return_type: object,
+    def callfunc(self, name: str, return_type: Any,
                  parameters: Union[list, tuple]=None,
                  keyword_parameters: dict=None, *,
-                 keywordParameters: dict=None) -> object:
+                 keywordParameters: dict=None) -> Any:
         """
         Call a function with the given name. The return type is specified in
         the same notation as is required by setinputsizes(). The sequence of
@@ -309,7 +309,7 @@ class Cursor:
 
     def execute(self, statement: Union[str, None],
                 parameters: Union[list, tuple, dict]=None,
-                **keyword_parameters: Any) -> Union["Cursor", None]:
+                **keyword_parameters: Any) -> Any:
         """
         Execute a statement against the database.
 
@@ -495,7 +495,7 @@ class Cursor:
             result.append(row)
         return result
 
-    def fetchone(self) -> object:
+    def fetchone(self) -> Any:
         """
         Fetch the next row of a query result set, returning a single tuple or
         None when no more data is available.

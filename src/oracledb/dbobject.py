@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,7 @@
 # object type metadata: DbObject, DbObjectType and DbObjectAttr.
 #------------------------------------------------------------------------------
 
-from typing import Sequence, Union
+from typing import Any, Sequence, Union
 
 from . import errors
 from . import __name__ as MODULE_NAME
@@ -69,7 +69,7 @@ class DbObject:
         obj._type = None
         return obj
 
-    def append(self, element: object) -> None:
+    def append(self, element: Any) -> None:
         """
         Append an element to the collection object. If no elements exist in the
         collection, this creates an element at index 0; otherwise, it creates
@@ -147,7 +147,7 @@ class DbObject:
         self._ensure_is_collection()
         return self._impl.get_first_index()
 
-    def getelement(self, index: int) -> object:
+    def getelement(self, index: int) -> Any:
         """
         Return the element at the specified index of the collection. If no
         element exists at that index, an exception is raised.
@@ -181,7 +181,7 @@ class DbObject:
         self._ensure_is_collection()
         return self._impl.get_prev_index(index)
 
-    def setelement(self, index: int, value: object) -> None:
+    def setelement(self, index: int, value: Any) -> None:
         """
         Set the value in the collection at the specified index to the given
         value.

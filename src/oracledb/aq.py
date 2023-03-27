@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,7 +32,7 @@
 import datetime
 
 from . import connection as connection_module
-from typing import Union, List
+from typing import Any, Union, List
 from . import errors, exceptions
 from .dbobject import DbObject, DbObjectType
 
@@ -491,7 +491,7 @@ class MessageProperties:
         return self._impl.payload
 
     @payload.setter
-    def payload(self, value: object) -> None:
+    def payload(self, value: Any) -> None:
         if isinstance(value, DbObject):
             self._impl.set_payload_object(value._impl)
         elif not isinstance(value, (str, bytes)):
