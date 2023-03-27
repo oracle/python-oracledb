@@ -13,11 +13,10 @@ oracledb 1.3.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added direct support for the Oracle Database 21c JSON data type, removing
+    the need to use an output type handler.
 #)  Added support for connecting to databases that accept passwords longer than
     30 UTF-8 encoded bytes.
-#)  Added internal support for prefetching the LOB size and chunk size, thereby
-    eliminating a :ref:`round-trip<roundtrips>` when calling
-    :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
 #)  Added implementation for :data:`ConnectionPool.timeout` to allow pools to
     shrink to ``min`` connections.
 #)  Added check to prevent adding too many elements to bounded database
@@ -47,8 +46,11 @@ Thin Mode Changes
     potentially exceed the 32767 byte limit but the actual value bound does not
     (`issue 146 <https://github.com/oracle/python-oracledb/issues/146>`__).
 #)  Fixed bug connecting to an IPv6 address with IAM tokens.
-#)  Implementation changes:
+#)  Internal implementation changes:
 
+    - Added internal support for prefetching the LOB size and chunk size,
+      thereby eliminating a :ref:`round-trip<roundtrips>` when calling
+      :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
     - Made the pool implementation LIFO to improve locality, reduce the number
       of times any session callback must be invoked, and allow connections to
       be timed out.
@@ -68,15 +70,15 @@ Thick Mode Changes
     for a type containing an attribute or element with an unsupported data type
     until the first attempt to reference the attribute or element with the
     unsupported data type.
-#)  Fixed bug when attempting to create bequeath connections using the DSN
-    parameter with credentials.
+#)  Fixed bug when attempting to create bequeath connections when the DSN
+    contains credentials.
 
 Common Changes
 ++++++++++++++
 
 #)  Improved type annotations.
-#)  Added method for parsing a DSN with credentials by calling
-    :meth:`ConnectParams.parse_dsn_with_credentials()`.
+#)  Added method :meth:`ConnectParams.parse_dsn_with_credentials()` for parsing
+    a DSN that contains credentials.
 #)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
     whenever an element in a database collection is missing. Previously, thick
     mode raised ``DPI-1024: element at index {index} does not exist`` and thin
