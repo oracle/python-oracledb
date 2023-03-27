@@ -66,6 +66,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint32_t _call_timeout
         str _cclass
         int _dbobject_type_cache_num
+        bytes _combo_key
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:
@@ -296,8 +297,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._protocol._break_external()
 
     def change_password(self, str old_password, str new_password):
-        cdef AuthMessage message
-        message = self._create_message(AuthMessage)
+        cdef ChangePasswordMessage message
+        message = self._create_message(ChangePasswordMessage)
         message.password = old_password.encode()
         message.newpassword = new_password.encode()
         self._protocol._process_single_message(message)

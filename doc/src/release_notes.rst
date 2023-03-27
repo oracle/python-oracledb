@@ -47,6 +47,7 @@ Thin Mode Changes
       be timed out.
     - Removed packet for negotiating network services which are not supported
       in thin mode.
+    - Removed unneeded packet for changing the password of the connected user.
 
 
 Thick Mode Changes

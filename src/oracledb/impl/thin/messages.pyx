@@ -1284,7 +1284,6 @@ cdef class MessageWithData(Message):
             self._write_close_temp_lobs_piggyback(buf)
 
 
-@cython.final
 cdef class AuthMessage(Message):
     cdef:
         str encoded_password
@@ -1305,6 +1304,26 @@ cdef class AuthMessage(Message):
         dict session_data
         uint32_t auth_mode
         uint32_t verifier_type
+        bint change_password
+
+    cdef int _encrypt_passwords(self) except -1:
+        """
+        Encrypts the passwords using the session key.
+        """
+
+        # encrypt password
+        salt = secrets.token_bytes(16)
+        password_with_salt = salt + self.password
+        encrypted_password = encrypt_cbc(self.conn_impl._combo_key,
+                                         password_with_salt)
+        self.encoded_password = encrypted_password.hex().upper()
+
+        # encrypt new password
+        if self.newpassword is not None:
+            newpassword_with_salt = salt + self.newpassword
+            encrypted_newpassword = encrypt_cbc(self.conn_impl._combo_key,
+                                                newpassword_with_salt)
+            self.encoded_newpassword = encrypted_newpassword.hex().upper()
 
     cdef int _generate_verifier(self, bint verifier_11g) except -1:
         """
@@ -1342,35 +1361,27 @@ cdef class AuthMessage(Message):
         # create session key from combo key
         mixing_salt = bytes.fromhex(self.session_data['AUTH_PBKDF2_CSK_SALT'])
         iterations = int(self.session_data['AUTH_PBKDF2_SDER_COUNT'])
-        combo_key = session_key_part_b[:keylen] + session_key_part_a[:keylen]
-        session_key = get_derived_key(combo_key.hex().upper().encode(),
-                                      mixing_salt, keylen, iterations)
+        temp_key = session_key_part_b[:keylen] + session_key_part_a[:keylen]
+        combo_key = get_derived_key(temp_key.hex().upper().encode(),
+                                    mixing_salt, keylen, iterations)
+
+        # retain session key for use by the change password API
+        self.conn_impl._combo_key = combo_key
 
         # generate speedy key for 12c verifiers
         if not verifier_11g:
             salt = secrets.token_bytes(16)
-            speedy_key = encrypt_cbc(session_key, salt + password_key)
+            speedy_key = encrypt_cbc(combo_key, salt + password_key)
             self.speedy_key = speedy_key[:80].hex().upper()
 
-        # encrypt password
-        salt = secrets.token_bytes(16)
-        password_with_salt = salt + self.password
-        encrypted_password = encrypt_cbc(session_key, password_with_salt)
-        self.encoded_password = encrypted_password.hex().upper()
-
-        # encrypt new password
-        if self.newpassword is not None:
-            newpassword_with_salt = salt + self.newpassword
-            encrypted_newpassword = encrypt_cbc(session_key,
-                                                newpassword_with_salt)
-            self.encoded_newpassword = encrypted_newpassword.hex().upper()
+        # encrypts the passwords
+        self._encrypt_passwords()
 
         # check if debug_jdwp is set. if set, encode the data using the
         # combo session key with zeros padding
         if self.debug_jdwp is not None:
             jdwp_data = self.debug_jdwp.encode()
-            encrypted_jdwp_data = encrypt_cbc(session_key, jdwp_data,
-                                              zeros=True)
+            encrypted_jdwp_data = encrypt_cbc(combo_key, jdwp_data, zeros=True)
             # Add a "01" at the end of the hex encrypted data to indicate the
             # use of AES encryption
             self.encoded_jdwp_data = encrypted_jdwp_data.hex().upper() + "01"
@@ -1427,7 +1438,7 @@ cdef class AuthMessage(Message):
             self.session_data[key] = value
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             self.function_code = TNS_FUNC_AUTH_PHASE_TWO
-        else:
+        elif not self.change_password:
             self.conn_impl._session_id = \
                     <uint32_t> int(self.session_data["AUTH_SESSION_ID"])
             self.conn_impl._serial_num = \
@@ -1513,6 +1524,9 @@ cdef class AuthMessage(Message):
         # perform final determination of data to write
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             num_pairs = 5
+        elif self.change_password:
+            self._encrypt_passwords()
+            num_pairs = 2
         else:
             num_pairs = 3
 
@@ -1578,22 +1592,24 @@ cdef class AuthMessage(Message):
                                       self.proxy_user)
             if self.token is not None:
                 self._write_key_value(buf, "AUTH_TOKEN", self.token)
-            else:
+            elif not self.change_password:
                 self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
-                self._write_key_value(buf, "AUTH_PASSWORD",
-                                      self.encoded_password)
                 if not verifier_11g:
                     self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",
                                           self.speedy_key)
-            if self.newpassword is not None:
+            if self.encoded_password is not None:
+                self._write_key_value(buf, "AUTH_PASSWORD",
+                                      self.encoded_password)
+            if self.encoded_newpassword is not None:
                 self._write_key_value(buf, "AUTH_NEWPASSWORD",
                                       self.encoded_newpassword)
-            self._write_key_value(buf, "SESSION_CLIENT_CHARSET", "873")
-            driver_name = f"{constants.DRIVER_NAME} thn : {VERSION}"
-            self._write_key_value(buf, "SESSION_CLIENT_DRIVER_NAME",
-                                  driver_name)
-            self._write_key_value(buf, "SESSION_CLIENT_VERSION",
-                                  str(_connect_constants.full_version_num))
+            if not self.change_password:
+                self._write_key_value(buf, "SESSION_CLIENT_CHARSET", "873")
+                driver_name = f"{constants.DRIVER_NAME} thn : {VERSION}"
+                self._write_key_value(buf, "SESSION_CLIENT_DRIVER_NAME",
+                                    driver_name)
+                self._write_key_value(buf, "SESSION_CLIENT_VERSION",
+                                    str(_connect_constants.full_version_num))
             if self.conn_impl._cclass is not None:
                 self._write_key_value(buf, "AUTH_KPPL_CONN_CLASS",
                                       self.conn_impl._cclass)
@@ -1613,6 +1629,21 @@ cdef class AuthMessage(Message):
             if self.encoded_jdwp_data is not None:
                 self._write_key_value(buf, "AUTH_ORA_DEBUG_JDWP",
                                       self.encoded_jdwp_data)
+
+
+@cython.final
+cdef class ChangePasswordMessage(AuthMessage):
+
+    cdef int _initialize_hook(self) except -1:
+        """
+        Perform initialization.
+        """
+        self.change_password = True
+        self.function_code = TNS_FUNC_AUTH_PHASE_TWO
+        self.user_bytes = self.conn_impl.username.encode()
+        self.user_bytes_len = len(self.user_bytes)
+        self.auth_mode = TNS_AUTH_MODE_WITH_PASSWORD | \
+                TNS_AUTH_MODE_CHANGE_PASSWORD
 
 
 @cython.final
