@@ -13,6 +13,8 @@ oracledb 1.3.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for connecting to databases that accept passwords longer than
+    30 UTF-8 encoded bytes.
 #)  Added internal support for prefetching the LOB size and chunk size, thereby
     eliminating a :ref:`round-trip<roundtrips>` when calling
     :meth:`LOB.size()` and :meth:`LOB.getchunksize()`.
