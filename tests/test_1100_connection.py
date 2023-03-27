@@ -54,12 +54,6 @@ class TestCase(test_env.BaseTestCase):
                 fetched_data = [s for s, in cursor.execute(sql)]
                 self.assertEqual(fetched_data, expected_data)
 
-    def __verify_args(self, connection):
-        self.assertEqual(connection.username, test_env.get_main_user(),
-                         "user name differs")
-        self.assertEqual(connection.dsn, test_env.get_connect_string(),
-                         "dsn differs")
-
     def __verify_attributes(self, connection, attrName, value, sql):
         setattr(connection, attrName, value)
         cursor = connection.cursor()
@@ -70,7 +64,10 @@ class TestCase(test_env.BaseTestCase):
     def test_1100_simple_connection(self):
         "1100 - simple connection to database"
         connection = test_env.get_connection()
-        self.__verify_args(connection)
+        self.assertEqual(connection.username, test_env.get_main_user(),
+                         "user name differs")
+        self.assertEqual(connection.dsn, test_env.get_connect_string(),
+                         "dsn differs")
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support application context yet")
@@ -225,14 +222,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1034:",
                                connection2.close)
         connection.close()
-
-    def test_1115_single_arg(self):
-        "1115 - connection to database with user, password, DSN together"
-        arg = "%s/%s@%s" % (test_env.get_main_user(),
-                            test_env.get_main_password(),
-                            test_env.get_connect_string())
-        connection = test_env.get_connection(arg)
-        self.__verify_args(connection)
 
     def test_1116_version(self):
         "1116 - connection version is a string"

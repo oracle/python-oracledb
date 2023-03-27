@@ -527,10 +527,7 @@ cdef class ConnectParamsImpl:
 
     def get_connect_string(self):
         """
-        Internal method for getting the connect string. This will either be the
-        connect string supplied to parse_connect_string() or parse_dsn(), or it
-        will be a connect string built up from the components supplied when the
-        object was built.
+        Returns a connect string generated from the parameters.
         """
         return self.description_list.build_connect_string()
 
@@ -557,28 +554,28 @@ cdef class ConnectParamsImpl:
             errors._raise_err(errors.ERR_CANNOT_PARSE_CONNECT_STRING, cause=e,
                               data=connect_string)
 
-    def parse_dsn(self, str dsn, bint parse_connect_string):
+    def parse_dsn_with_credentials(self, str dsn):
         """
         Parse a dsn (data source name) string supplied by the user. This can be
-        in the form user/password@connect_string or it can be a simple connect
-        string. The connect string is returned and the user, proxy_user and
-        password values are retained.
+        in the form user/password@connect_string or it can be in the form
+        user/password. The user, password and connect string are returned in a
+        3-tuple.
         """
-        connect_string = dsn
         pos = dsn.rfind("@")
         if pos >= 0:
             credentials = dsn[:pos]
-            connect_string = dsn[pos + 1:]
-            pos = credentials.find("/")
-            if pos >= 0:
-                user = credentials[:pos]
-                self._set_password(credentials[pos + 1:])
-            else:
-                user = credentials
-            self.parse_user(user)
-        if parse_connect_string:
-            self.parse_connect_string(connect_string)
-        return connect_string
+            connect_string = dsn[pos + 1:] or None
+        else:
+            credentials = dsn
+            connect_string = None
+        pos = credentials.find("/")
+        if pos >= 0:
+            user = credentials[:pos] or None
+            password = credentials[pos + 1:] or None
+        else:
+            user = credentials or None
+            password = None
+        return (user, password, connect_string)
 
     def parse_user(self, str user):
         """
@@ -592,6 +589,30 @@ cdef class ConnectParamsImpl:
             self.user = user[:start_pos]
         else:
             self.user = user
+
+    def process_args(self, str dsn, dict kwargs, bint thin):
+        """
+        Processes the arguments to connect() and create_pool().
+
+            - the keyword arguments are set
+            - if no user was specified in the keyword arguments and a dsn is
+              specified, it is parsed to determine the user, password and
+              connect string and the user and password are stored
+            - in thin mode, the connect string is then parsed into its
+              components and stored
+            - if no dsn was specified, one is built from the components
+            - the connect string is returned
+        """
+        if kwargs:
+            self.set(kwargs)
+        if self.user is None and dsn is not None:
+            user, password, dsn = self.parse_dsn_with_credentials(dsn)
+            self.set(dict(user=user, password=password))
+        if dsn is not None and thin:
+            self.parse_connect_string(dsn)
+        if dsn is None:
+            dsn = self.get_connect_string()
+        return dsn
 
 
 cdef class Address:

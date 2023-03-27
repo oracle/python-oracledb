@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -107,12 +107,7 @@ class Connection:
                 errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
             else:
                 params_impl = params._impl.copy()
-            if kwargs:
-                params_impl.set(kwargs)
-            if dsn is not None:
-                dsn = params_impl.parse_dsn(dsn, thin)
-            if dsn is None:
-                dsn = params_impl.get_connect_string()
+            dsn = params_impl.process_args(dsn, kwargs, thin)
 
             # see if connection is being acquired from a pool
             if pool is None:

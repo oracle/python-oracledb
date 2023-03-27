@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -598,6 +598,17 @@ class ConnectParams:
         stored values.
         """
         self._impl.parse_connect_string(connect_string)
+
+    def parse_dsn_with_credentials(self, dsn: str) -> tuple:
+        """
+        Parses a dsn in the form <user>/<password>@<connect_string> or in the
+        form <user>/<password> and returns a 3-tuple containing the parsed
+        user, password and connect string. Empty strings are returned as the
+        value None. This is done automatically when a value is passed to
+        the dsn parameter but no value is passed to the user password when
+        creating a standalone connection or connection pool.
+        """
+        return self._impl.parse_dsn_with_credentials(dsn)
 
     @utils.params_setter
     def set(self, *,

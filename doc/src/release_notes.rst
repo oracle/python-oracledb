@@ -61,11 +61,15 @@ Thick Mode Changes
     for a type containing an attribute or element with an unsupported data type
     until the first attempt to reference the attribute or element with the
     unsupported data type.
+#)  Fixed bug when attempting to create bequeath connections using the DSN
+    parameter with credentials.
 
 Common Changes
 ++++++++++++++
 
 #)  Improved type annotations.
+#)  Added method for parsing a DSN with credentials by calling
+    :meth:`ConnectParams.parse_dsn_with_credentials()`.
 #)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
     whenever an element in a database collection is missing. Previously, thick
     mode raised ``DPI-1024: element at index {index} does not exist`` and thin

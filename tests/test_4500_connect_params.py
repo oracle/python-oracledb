@@ -591,5 +591,33 @@ class TestCase(test_env.BaseTestCase):
         params.set(mode=oracledb.SYSDBA)
         self.assertEqual(params.get_connect_string(), None)
 
+    def test_4538_dsn_with_credentials_and_connect_string(self):
+        "4538 - test parsing a DSN with credentials and a connect string"
+        params = oracledb.ConnectParams()
+        dsn = "my_user4538/my_password4538@localhost:1525/my_service_name"
+        user, password, dsn = params.parse_dsn_with_credentials(dsn)
+        self.assertEqual(user, "my_user4538")
+        self.assertEqual(password, "my_password4538")
+        self.assertEqual(dsn, "localhost:1525/my_service_name")
+
+    def test_4539_dsn_with_only_credentials(self):
+        "4539 - test parsing a DSN with only credentials"
+        params = oracledb.ConnectParams()
+        dsn = "my_user4539/my_password4539"
+        user, password, dsn = params.parse_dsn_with_credentials(dsn)
+        self.assertEqual(user, "my_user4539")
+        self.assertEqual(password, "my_password4539")
+        self.assertEqual(dsn, None)
+
+    def test_4560_dsn_with_empty_credentials(self):
+        "4560 - test parsing a DSN with empty credentials"
+        dsns = ["", "/"]
+        for dsn in ("", "/"):
+            params = oracledb.ConnectParams()
+            user, password, dsn = params.parse_dsn_with_credentials(dsn)
+            self.assertEqual(user, None)
+            self.assertEqual(password, None)
+            self.assertEqual(dsn, None)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

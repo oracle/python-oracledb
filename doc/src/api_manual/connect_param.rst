@@ -32,6 +32,15 @@ ConnectParams Methods
   pairs, or a simple alias which is looked up in ``tnsnames.ora``. Parameters
   that are found in the connect string override any currently stored values.
 
+.. method:: ConnectParams.parse_dsn_with_credentials(dsn)
+
+  Parses a dsn in the form <user>/<password>@<connect_string> or in the form
+  <user>/<password> and returns a 3-tuple containing the parsed user, password
+  and connect string. Empty strings are returned as the value ``None``. This is
+  done automatically when a value is passed to the ``dsn`` parameter but no
+  value is passed to the ``user`` password when creating a standalone
+  connection or connection pool.
+
 .. method:: ConnectParams.set(user=None, proxy_user=None, password=None, \
     newpassword=None, wallet_password=None, access_token=None, host=None, \
     port=None, protocol=None, https_proxy=None, https_proxy_port=None, service_name=None, \
