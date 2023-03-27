@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -568,7 +568,7 @@ DEF TNS_END_TO_END_DBOP = 0x0200
 DEF TNS_END_TO_END_MODULE = 0x0008
 
 # versions
-DEF TNS_VERSION_DESIRED = 318
+DEF TNS_VERSION_DESIRED = 319
 DEF TNS_VERSION_MINIMUM = 300
 DEF TNS_VERSION_MIN_ACCEPTED = 315      # 12.1
 DEF TNS_VERSION_MIN_LARGE_SDU = 315
@@ -662,7 +662,9 @@ DEF TNS_CCAP_FIELD_VERSION_19_1_EXT_1 = 13
 DEF TNS_CCAP_FIELD_VERSION_20_1 = 14
 DEF TNS_CCAP_FIELD_VERSION_20_1_EXT_1 = 15
 DEF TNS_CCAP_FIELD_VERSION_21_1 = 16
-DEF TNS_CCAP_FIELD_VERSION_MAX = 16
+DEF TNS_CCAP_FIELD_VERSION_23_1 = 17
+DEF TNS_CCAP_FIELD_VERSION_23_1_EXT_1 = 18
+DEF TNS_CCAP_FIELD_VERSION_MAX = 18
 DEF TNS_CCAP_O5LOGON = 8
 DEF TNS_CCAP_O5LOGON_NP = 2
 DEF TNS_CCAP_O7LOGON = 32

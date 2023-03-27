@@ -267,9 +267,19 @@ cdef class Message:
         buf.write_uint8(self.message_type)
         buf.write_uint8(self.function_code)
         buf.write_seq_num()
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_1:
+            buf.write_ub8(0)                # token number
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         self._write_function_code(buf)
+
+    cdef int _write_piggyback_code(self, WriteBuffer buf,
+                                   uint8_t code) except -1:
+        buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
+        buf.write_uint8(code)
+        buf.write_seq_num()
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_1:
+            buf.write_ub8(0)                # token number
 
     cdef int process(self, ReadBuffer buf) except -1:
         cdef uint8_t message_type
@@ -1081,9 +1091,7 @@ cdef class MessageWithData(Message):
         cdef:
             unsigned int *cursor_ids
             ssize_t i
-        buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
-        buf.write_uint8(TNS_FUNC_CLOSE_CURSORS)
-        buf.write_seq_num()
+        self._write_piggyback_code(buf, TNS_FUNC_CLOSE_CURSORS)
         buf.write_uint8(1)                  # pointer
         buf.write_ub4(self.conn_impl._num_cursors_to_close)
         cursor_ids = self.conn_impl._cursors_to_close.data.as_uints
@@ -1093,9 +1101,7 @@ cdef class MessageWithData(Message):
 
     cdef int _write_current_schema_piggyback(self, WriteBuffer buf) except -1:
         cdef bytes schema_bytes
-        buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
-        buf.write_uint8(TNS_FUNC_SET_SCHEMA)
-        buf.write_seq_num()
+        self._write_piggyback_code(buf, TNS_FUNC_SET_SCHEMA)
         buf.write_uint8(1)                  # pointer
         schema_bytes = self.conn_impl._current_schema.encode()
         buf.write_ub4(len(schema_bytes))
@@ -1106,10 +1112,8 @@ cdef class MessageWithData(Message):
         cdef:
             list lobs_to_close = self.conn_impl._temp_lobs_to_close
             uint64_t total_size = 0
-        buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
-        buf.write_uint8(TNS_FUNC_LOB_OP)
+        self._write_piggyback_code(buf, TNS_FUNC_LOB_OP)
         op_code = TNS_LOB_OP_FREE_TEMP | TNS_LOB_OP_ARRAY
-        buf.write_seq_num()
 
         # temp lob data
         buf.write_uint8(1)                  # pointer
@@ -1162,9 +1166,7 @@ cdef class MessageWithData(Message):
             flags |= TNS_END_TO_END_DBOP
 
         # write initial packet data
-        buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
-        buf.write_uint8(TNS_FUNC_SET_END_TO_END_ATTR)
-        buf.write_seq_num()
+        self._write_piggyback_code(buf, TNS_FUNC_SET_END_TO_END_ATTR)
         buf.write_uint8(0)                  # pointer (cidnam)
         buf.write_uint8(0)                  # pointer (cidser)
         buf.write_ub4(flags)

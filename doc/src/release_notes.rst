@@ -22,6 +22,7 @@ Thin Mode Changes
     collections.
 #)  Removed internally set fixed size for database collections. Collections of
     any size supported by the database can now be created.
+#)  Improved BOOLEAN handling.
 #)  Fixed bug when calling :meth:`Cursor.executemany()` with PL/SQL when the
     size of the bound data increases on subsequent calls
     (`issue 132 <https://github.com/oracle/python-oracledb/issues/132>`__).
