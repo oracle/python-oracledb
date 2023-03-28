@@ -2624,7 +2624,7 @@ to two or more Oracle Autonomous Databases, move each ``cwallet.sso`` file to
 its own directory.  For each connection use different connection string
 ``WALLET_LOCATION`` parameters to specify the directory of each ``cwallet.sso``
 file.  It is recommended to use Oracle Client libraries 19.17 (or later) when
-using multiple wallets.
+using :ref:`multiple wallets <connmultiwallets>`.
 
 Access Through a Proxy
 +++++++++++++++++++++++
@@ -2792,6 +2792,60 @@ location as the ``wallet_location`` parameter to :func:`oracledb.connect()` or
             f.write(cert.public_bytes(Encoding.PEM))
     print("PEM file", pem_file_name, "written.")
 
+.. _connmultiwallets:
+
+Connecting using Multiple Wallets
+=================================
+
+You can make multiple connections with different wallets in one Python
+process.
+
+**In python-oracledb Thin mode**
+
+To use multiple wallets in python-oracledb Thin mode, pass the different
+connection strings, wallet locations, and wallet password (if required) in each
+:meth:`oracledb.connect()` call or when creating a :ref:`connection pool
+<connpooling>`:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user=user_name, password=userpw, dsn=dsn,
+                                  config_dir="path_to_extracted_wallet_zip",
+                                  wallet_location="location_of_pem_file",
+                                  wallet_password=walletpw)
+
+The ``config_dir`` parameter is the directory containing the :ref:`tnsnames.ora
+<optnetfiles>` file.  The ``wallet_location`` parameter is the directory
+containing the ``ewallet.pem`` file.  If you are using Oracle Autonomous
+Database, both of these paths are typically the same directory where the
+``wallet.zip`` file was extracted.  The ``dsn`` should specify a TCPS
+connection.
+
+**In python-oracledb Thick mode**
+
+To use multiple wallets in python-oracledb Thick mode, a TCPS connection string
+containing the ``MY_WALLET_DIRECTORY`` option needs to be created:
+
+.. code-block:: python
+
+    dsn = "mydb_high"   # one of the network aliases from tnsnames.ora
+    params = oracledb.ConnectParams(config_dir="path_to_extracted_wallet_zip",
+                                    wallet_location="path_location_of_sso_file")
+    params.parse_connect_string(dsn)
+    dsn = params.get_connect_string()
+    connection = oracledb.connect(user=user_name, password=password, dsn=dsn)
+
+The ``config_dir`` parameter should be the directory containing the
+:ref:`tnsnames.ora <optnetfiles>` and ``sqlnet.ora`` files.  The
+``wallet_location`` parameter is the directory containing the ``cwallet.sso``
+file.  If you are using Oracle Autonomous Database, both of these paths are
+typically the same directory where the ``wallet.zip`` file was extracted.
+
+.. note::
+
+       Use Oracle Client libraries 19.17, or later, or use Oracle Client 21c.
+       They contain important bug fixes for using multiple wallets in the one
+       process.
 
 .. _connsharding:
 
