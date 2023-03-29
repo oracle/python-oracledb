@@ -202,6 +202,7 @@ ERR_TDS_TYPE_NOT_SUPPORTED = 3018
 ERR_OSON_NODE_TYPE_NOT_SUPPORTED = 3019
 ERR_OSON_FIELD_NAME_LIMITATION = 3020
 ERR_OSON_VERSION_NOT_SUPPORTED = 3021
+ERR_NAMED_TIMEZONE_NOT_SUPPORTED = 3022
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -421,6 +422,8 @@ ERR_MESSAGE_FORMATS = {
             'element {element} is not the same data type as previous elements',
     ERR_MIXED_POSITIONAL_AND_NAMED_BINDS:
             'positional and named binds cannot be intermixed',
+    ERR_NAMED_TIMEZONE_NOT_SUPPORTED:
+            'named time zones are not supported in thin mode',
     ERR_NCHAR_CS_NOT_SUPPORTED:
             'national character set id {charset_id} is not supported by '
             'python-oracledb in thin mode',

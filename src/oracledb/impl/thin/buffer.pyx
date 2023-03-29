@@ -359,6 +359,8 @@ cdef class Buffer:
         value = cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
                                         ptr[5] - 1, ptr[6] - 1, fsecond, None)
         if num_bytes > 11 and ptr[11] != 0 and ptr[12] != 0:
+            if ptr[11] & TNS_HAS_REGION_ID:
+                errors._raise_err(errors.ERR_NAMED_TIMEZONE_NOT_SUPPORTED)
             tz_hour = ptr[11] - TZ_HOUR_OFFSET
             tz_minute = ptr[12] - TZ_MINUTE_OFFSET
             if tz_hour != 0 or tz_minute != 0:

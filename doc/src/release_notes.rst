@@ -49,6 +49,11 @@ Thin Mode Changes
 #)  Fixed bug determining RETURNING binds in a SQL statement when RETURNING and
     INTO keywords are not separated by whitespace, but are separated by
     parentheses.
+#)  The exception ``DPY-3022: named time zones are not supported in thin mode``
+    is now raised when attempting to fetch data of type TIMESTAMP WITH TIME
+    ZONE when the time zone associated with the data is a named time zone.
+    Previously invalid data was returned
+    (`disc 131 <https://github.com/oracle/python-oracledb/discussions/131>`__).
 #)  Internal implementation changes:
 
     - Added internal support for prefetching the LOB size and chunk size,
