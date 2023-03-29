@@ -1400,6 +1400,8 @@ cdef class AuthMessage(Message):
         if tz_hour < 0:
             sign = "-"
             tz_hour = -tz_hour
+        else:
+            sign = "+"
         tz_repr = f"{sign}{tz_hour:02}:{tz_minute:02}"
         return f"ALTER SESSION SET TIME_ZONE='{tz_repr}'\x00"
 
