@@ -1386,6 +1386,23 @@ cdef class AuthMessage(Message):
             # use of AES encryption
             self.encoded_jdwp_data = encrypted_jdwp_data.hex().upper() + "01"
 
+    cdef str _get_alter_timezone_statement(self):
+        """
+        Returns the statement required to change the session time zone to match
+        the time zone in use by the Python interpreter.
+        """
+        cdef:
+            int tz_hour, tz_minute, timezone
+            str sign, tz_repr
+        timezone = -time.altzone if time.daylight else -time.timezone
+        tz_hour = timezone // 3600
+        tz_minute = (timezone - (tz_hour * 3600)) // 60
+        if tz_hour < 0:
+            sign = "-"
+            tz_hour = -tz_hour
+        tz_repr = f"{sign}{tz_hour:02}:{tz_minute:02}"
+        return f"ALTER SESSION SET TIME_ZONE='{tz_repr}'\x00"
+
     cdef tuple _get_version_tuple(self, ReadBuffer buf):
         """
         Return the 5-tuple for the database version. Note that the format
@@ -1528,7 +1545,7 @@ cdef class AuthMessage(Message):
             self._encrypt_passwords()
             num_pairs = 2
         else:
-            num_pairs = 3
+            num_pairs = 4
 
             # token authentication
             if self.token is not None:
@@ -1610,6 +1627,8 @@ cdef class AuthMessage(Message):
                                     driver_name)
                 self._write_key_value(buf, "SESSION_CLIENT_VERSION",
                                     str(_connect_constants.full_version_num))
+                self._write_key_value(buf, "AUTH_ALTER_SESSION",
+                                      self._get_alter_timezone_statement(), 1)
             if self.conn_impl._cclass is not None:
                 self._write_key_value(buf, "AUTH_KPPL_CONN_CLASS",
                                       self.conn_impl._cclass)

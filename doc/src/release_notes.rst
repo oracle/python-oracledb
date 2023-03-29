@@ -23,6 +23,9 @@ Thin Mode Changes
     collections.
 #)  Removed internally set fixed size for database collections. Collections of
     any size supported by the database can now be created.
+#)  Detect the time zone on the OS and set the session timezone using this
+    value to be consistent with thick mode
+    (`issue 144 <https://github.com/oracle/python-oracledb/issues/144>`__).
 #)  Improved BOOLEAN handling.
 #)  Error ``DPY-6005: cannot connect to database`` is now raised for all
     failures to connect to the database and the phrase ``cannot connect to
