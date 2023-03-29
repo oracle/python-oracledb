@@ -201,6 +201,7 @@ ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED = 3017
 ERR_TDS_TYPE_NOT_SUPPORTED = 3018
 ERR_OSON_NODE_TYPE_NOT_SUPPORTED = 3019
 ERR_OSON_FIELD_NAME_LIMITATION = 3020
+ERR_OSON_VERSION_NOT_SUPPORTED = 3021
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -460,6 +461,8 @@ ERR_MESSAGE_FORMATS = {
             'OSON field names may not exceed 255 UTF-8 encoded bytes',
     ERR_OSON_NODE_TYPE_NOT_SUPPORTED:
             'OSON node type 0x{node_type:x} is not supported',
+    ERR_OSON_VERSION_NOT_SUPPORTED:
+            'OSON version {version} is not supported',
     ERR_POOL_HAS_BUSY_CONNECTIONS:
             'connection pool cannot be closed because connections are busy',
     ERR_POOL_NO_CONNECTION_AVAILABLE:

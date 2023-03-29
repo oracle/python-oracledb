@@ -252,6 +252,9 @@ cdef class OsonDecoder(Buffer):
                 ptr[2] != TNS_JSON_MAGIC_BYTE_3:
             errors._raise_err(errors.ERR_UNEXPECTED_DATA, data=ptr[:3])
         self.read_ub1(&version)
+        if version != TNS_JSON_VERSION:
+            errors._raise_err(errors.ERR_OSON_VERSION_NOT_SUPPORTED,
+                              version=version)
         self.read_uint16(&self.flags)
 
         # if value is a scalar value, the header is much smaller
