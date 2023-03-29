@@ -424,5 +424,14 @@ class TestCase(test_env.BaseTestCase):
         row, = self.cursor.fetchall()
         self.assertEqual(data[:3], row)
 
+    def test_1622_parse_returning_clause_without_spaces(self):
+        "1622 - parse DML returning with no spaces"
+        self.cursor.execute("truncate table TestTempTable")
+        sql = 'insert into TestTempTable (IntCol) values (:in_val)' + \
+              'returning(IntCol)into :out_val'
+        out_val = self.cursor.var(int, arraysize=5)
+        self.cursor.execute(sql, in_val=25, out_val=out_val)
+        self.assertEqual(out_val.getvalue(), [25])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

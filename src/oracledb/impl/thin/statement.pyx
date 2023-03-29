@@ -43,7 +43,7 @@ BIND_PATTERN = r'(?<!"\:)(?<=\:)\s*("[^\"]*"|[^\W\d_][\w\$#]*|\d+)'
 # pattern used for detecting a DML returning clause; bind variables in the
 # first group are input variables; bind variables in the second group are
 # output only variables
-DML_RETURNING_PATTERN = r'(?si)([)\s]RETURNING\s+[\s\S]+\s+INTO\s+)(.*?$)'
+DML_RETURNING_PATTERN = r'(?si)([)\s]RETURNING[(\s][\s\S]+[)\s]INTO\s+)(.*?$)'
 
 cdef class BindInfo:
 

@@ -46,6 +46,9 @@ Thin Mode Changes
     potentially exceed the 32767 byte limit but the actual value bound does not
     (`issue 146 <https://github.com/oracle/python-oracledb/issues/146>`__).
 #)  Fixed bug connecting to an IPv6 address with IAM tokens.
+#)  Fixed bug determining RETURNING binds in a SQL statement when RETURNING and
+    INTO keywords are not separated by whitespace, but are separated by
+    parentheses.
 #)  Internal implementation changes:
 
     - Added internal support for prefetching the LOB size and chunk size,
