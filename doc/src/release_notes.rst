@@ -7,22 +7,22 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 1.3.0 (TBD)
---------------------
+oracledb 1.3.0 (March 2023)
+---------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
 #)  Added direct support for the Oracle Database 21c JSON data type, removing
     the need to use an output type handler.
-#)  Added support for connecting to databases that accept passwords longer than
-    30 UTF-8 encoded bytes.
 #)  Added implementation for :data:`ConnectionPool.timeout` to allow pools to
     shrink to ``min`` connections.
 #)  Added check to prevent adding too many elements to bounded database
     collections.
 #)  Removed internally set fixed size for database collections. Collections of
     any size supported by the database can now be created.
+#)  Added support for connecting to databases that accept passwords longer than
+    30 UTF-8 encoded bytes.
 #)  Detect the time zone on the OS and set the session timezone using this
     value to be consistent with thick mode
     (`issue 144 <https://github.com/oracle/python-oracledb/issues/144>`__).
