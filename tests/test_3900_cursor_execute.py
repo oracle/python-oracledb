@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -38,8 +38,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3901_execute_no_statement_with_args(self):
         "3901 - test executing a None statement with bind variables"
+        cursor = self.connection.cursor()
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:",
-                               self.cursor.execute, None, x=5)
+                               cursor.execute, None, x=5)
 
     def test_3902_execute_empty_keyword_args(self):
         "3902 - test executing a statement with args and empty keyword args"

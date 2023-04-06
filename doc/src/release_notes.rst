@@ -16,6 +16,11 @@ Thin Mode Changes
 #)  Fixed bug when SQL is executed after first being parsed with Oracle
     Database 23c.
 
+Common Changes
+++++++++++++++
+
+#)  Improved test suite.
+
 
 oracledb 1.3.0 (March 2023)
 ---------------------------

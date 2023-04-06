@@ -38,7 +38,6 @@ class TestCase(test_env.BaseTestCase):
         self.raw_data = []
         self.data_by_key = {}
         base_date = datetime.datetime(2022, 6, 2)
-        self.cursor.execute("alter session set time_zone = 'UTC'")
         for i in range(1, 11):
             if i % 4 == 0:
                 tz_hours = i

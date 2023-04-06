@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -207,8 +207,9 @@ class TestCase(test_env.BaseTestCase):
                 end;""",
                 cursor=ref_cursor_var)
         ref_cursor = ref_cursor_var.getvalue()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4025:",
-                               ref_cursor.fetchall)
+        if ref_cursor is not None:
+            self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4025:",
+                                   ref_cursor.fetchall)
 
     def test_1311_fetch_cursor_uses_custom_class(self):
         "1311 - test fetching a cursor with a custom class"

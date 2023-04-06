@@ -399,8 +399,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3221_implicit_results_no_statement(self):
         "3221 - test getimplicitresults() without executing a statement"
+        cursor = self.connection.cursor()
         self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1004:",
-                               self.cursor.getimplicitresults)
+                               cursor.getimplicitresults)
 
     def test_3222_insert_with_batch_error(self):
         "3222 - test executing insert with multiple distinct batch errors"

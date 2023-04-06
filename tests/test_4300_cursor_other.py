@@ -36,17 +36,18 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4300_prepare(self):
         "4300 - test preparing a statement and executing it multiple times"
-        self.assertEqual(self.cursor.statement, None)
+        cursor = self.connection.cursor()
+        self.assertEqual(cursor.statement, None)
         statement = "begin :value := :value + 5; end;"
-        self.cursor.prepare(statement)
-        var = self.cursor.var(oracledb.NUMBER)
-        self.assertEqual(self.cursor.statement, statement)
+        cursor.prepare(statement)
+        var = cursor.var(oracledb.NUMBER)
+        self.assertEqual(cursor.statement, statement)
         var.setvalue(0, 2)
-        self.cursor.execute(None, value = var)
+        cursor.execute(None, value = var)
         self.assertEqual(var.getvalue(), 7)
-        self.cursor.execute(None, value = var)
+        cursor.execute(None, value = var)
         self.assertEqual(var.getvalue(), 12)
-        self.cursor.execute("begin :value2 := 3; end;", value2 = var)
+        cursor.execute("begin :value2 := 3; end;", value2 = var)
         self.assertEqual(var.getvalue(), 3)
 
     def test_4301_exception_on_close(self):
@@ -81,24 +82,25 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4304_bind_names(self):
         "4304 - test that bindnames() works correctly."
+        cursor = self.connection.cursor()
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2002:",
-                               self.cursor.bindnames)
-        self.cursor.prepare("begin null; end;")
-        self.assertEqual(self.cursor.bindnames(), [])
-        self.cursor.prepare("begin :retval := :inval + 5; end;")
-        self.assertEqual(self.cursor.bindnames(), ["RETVAL", "INVAL"])
-        self.cursor.prepare("begin :retval := :a * :a + :b * :b; end;")
-        self.assertEqual(self.cursor.bindnames(), ["RETVAL", "A", "B"])
-        self.cursor.prepare("begin :a := :b + :c + :d + :e + :f + :g + " + \
-                            ":h + :i + :j + :k + :l; end;")
+                               cursor.bindnames)
+        cursor.prepare("begin null; end;")
+        self.assertEqual(cursor.bindnames(), [])
+        cursor.prepare("begin :retval := :inval + 5; end;")
+        self.assertEqual(cursor.bindnames(), ["RETVAL", "INVAL"])
+        cursor.prepare("begin :retval := :a * :a + :b * :b; end;")
+        self.assertEqual(cursor.bindnames(), ["RETVAL", "A", "B"])
+        cursor.prepare("begin :a := :b + :c + :d + :e + :f + :g + " + \
+                       ":h + :i + :j + :k + :l; end;")
         names = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
-        self.assertEqual(self.cursor.bindnames(), names)
-        self.cursor.prepare("select :a * :a + :b * :b from dual")
-        self.assertEqual(self.cursor.bindnames(), ["A", "B"])
-        self.cursor.prepare("select :value1 + :VaLue_2 from dual")
-        self.assertEqual(self.cursor.bindnames(), ["VALUE1", "VALUE_2"])
-        self.cursor.prepare("select :élevé, :fenêtre from dual")
-        self.assertEqual(self.cursor.bindnames(), ["ÉLEVÉ", "FENÊTRE"])
+        self.assertEqual(cursor.bindnames(), names)
+        cursor.prepare("select :a * :a + :b * :b from dual")
+        self.assertEqual(cursor.bindnames(), ["A", "B"])
+        cursor.prepare("select :value1 + :VaLue_2 from dual")
+        self.assertEqual(cursor.bindnames(), ["VALUE1", "VALUE_2"])
+        cursor.prepare("select :élevé, :fenêtre from dual")
+        self.assertEqual(cursor.bindnames(), ["ÉLEVÉ", "FENÊTRE"])
 
     def test_4305_set_input_sizes_negative(self):
         "4305 - test cursor.setinputsizes() with invalid parameters"

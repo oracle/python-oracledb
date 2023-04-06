@@ -34,6 +34,8 @@ alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'
 /
 alter session set nls_numeric_characters='.,'
 /
+alter session set time_zone='+00:00'
+/
 
 create user &main_user identified by &main_password
 /

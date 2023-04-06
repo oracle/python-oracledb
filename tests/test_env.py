@@ -399,6 +399,7 @@ class BaseTestCase(unittest.TestCase):
         if self.requires_connection:
             self.connection = get_connection()
             self.cursor = self.connection.cursor()
+            self.cursor.execute("alter session set time_zone = '+00:00'")
 
     def setup_parse_count_checker(self):
         self.parse_count_info = ParseCountInfo(self.connection)

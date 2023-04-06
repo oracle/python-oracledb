@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,16 +64,17 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1702_error_full_code(self):
         "1702 - test generation of full_code for ORA, DPI and DPY errors"
+        cursor = self.connection.cursor()
         with self.assertRaises(oracledb.Error) as cm:
-            self.cursor.execute(None)
+            cursor.execute(None)
         error_obj, = cm.exception.args
         self.assertEqual(error_obj.full_code, "DPY-2001")
         if not self.connection.thin:
             with self.assertRaises(oracledb.Error) as cm:
-                self.cursor.execute("truncate table TestTempTable")
-                int_var = self.cursor.var(int)
-                str_var = self.cursor.var(str, 2)
-                self.cursor.execute("""
+                cursor.execute("truncate table TestTempTable")
+                int_var = cursor.var(int)
+                str_var = cursor.var(str, 2)
+                cursor.execute("""
                         insert into TestTempTable (IntCol, StringCol1)
                         values (1, 'Longer than two chars')
                         returning IntCol, StringCol1
