@@ -1852,9 +1852,9 @@ cdef class ExecuteMessage(MessageWithData):
                     self.cursor_impl._fetch_array_size = num_iters
                 else:
                     num_iters = self.cursor_impl._fetch_array_size
-        if not stmt._is_plsql:
+        if not stmt._is_plsql and not self.parse_only:
             options |= TNS_EXEC_OPTION_NOT_PLSQL
-        elif num_params > 0:
+        elif stmt._is_plsql and num_params > 0:
             options |= TNS_EXEC_OPTION_PLSQL_BIND
         if num_params > 0:
             options |= TNS_EXEC_OPTION_BIND
