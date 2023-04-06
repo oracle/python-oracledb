@@ -107,10 +107,17 @@ Thin Mode Locale-aware Number and Date Conversions
     All NLS environment variables are ignored by the python-oracledb Thin mode.
     Also the ``ORA_SDTZ`` and ``ORA_TZFILE`` variables are ignored.
 
+.. note::
+
+    Trying to access TIMESTAMP WITH TIME ZONE data that contains a named time
+    zone will throw ``DPY-3022: named time zones are not supported in thin
+    mode``.  Data stored with a numeric offset such as ``+00:00`` can be
+    fetched.
+
 In the python-oracledb Thin mode, output type handlers need to be used to
-perform similar conversions.  The examples below show a simple conversion and
-also how the Python locale module can be used.  Type handlers like those below
-can also be used in python-oracledb Thick mode.
+perform date and number localizations.  The examples below show a simple
+conversion and also how the Python locale module can be used.  Type handlers
+like those below can also be used in python-oracledb Thick mode.
 
 To convert numbers:
 

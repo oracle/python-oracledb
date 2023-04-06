@@ -797,6 +797,11 @@ In order to install using the source on GitHub, use the following commands::
     python setup.py build
     python setup.py install
 
+If you do not have access to system directories, the ``--user`` option can be
+used to install into a local directory::
+
+    python setup.py install --user
+
 Note that if you download a source zip file directly from GitHub then you will
 also need to download an `ODPI-C <https://github.com/oracle/odpi>`__ source zip
 file and put the extracted contents inside the "odpi" subdirectory, for example
@@ -809,12 +814,6 @@ can be installed with::
     cd python-oracledb
     python setup.py build
     python setup.py install
-
-If you do not have access to system directories, the ``--user`` option can be
-used to install into a local directory::
-
-    python setup.py install --user
-
 
 Install Using Source from PyPI
 ------------------------------
