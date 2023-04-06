@@ -1776,10 +1776,8 @@ cdef class DataTypesMessage(Message):
         buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
         buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
         buf.write_uint8(TNS_ENCODING_MULTI_BYTE | TNS_ENCODING_CONV_LENGTH)
-        buf.write_uint8(len(buf._caps.compile_caps))
-        buf.write_bytes(bytes(buf._caps.compile_caps))
-        buf.write_uint8(len(buf._caps.runtime_caps))
-        buf.write_bytes(bytes(buf._caps.runtime_caps))
+        buf.write_bytes_with_length(bytes(buf._caps.compile_caps))
+        buf.write_bytes_with_length(bytes(buf._caps.runtime_caps))
 
         # write data types
         i = 0
