@@ -15,6 +15,8 @@ Thin Mode Changes
 
 #)  Fixed bug when SQL is executed after first being parsed with Oracle
     Database 23c.
+#)  Fixed bug when warning message is encountered during connect
+    (`issue 171 <https://github.com/oracle/python-oracledb/issues/171>`__).
 
 Common Changes
 ++++++++++++++

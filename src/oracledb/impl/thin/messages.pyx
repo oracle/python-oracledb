@@ -252,15 +252,13 @@ cdef class Message:
     cdef int _process_warning_info(self, ReadBuffer buf) except -1:
         cdef:
             _OracleErrorInfo info = self.error_info
-            const char_type *ptr
             uint16_t num_bytes, temp16
         buf.read_ub2(&temp16)               # error number
         info.num = temp16
         buf.read_ub2(&num_bytes)            # length of error message
         buf.skip_ub2()                      # flags
         if info.num != 0 and num_bytes > 0:
-            ptr = buf.read_raw_bytes(num_bytes)
-            info.message = ptr[:num_bytes].decode().rstrip()
+            info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
         info.is_warning = True
 
     cdef int _write_function_code(self, WriteBuffer buf) except -1:
