@@ -2000,8 +2000,11 @@ cdef class ExecuteMessage(MessageWithData):
         """
         cdef:
             Statement stmt = self.cursor_impl._statement
-        if stmt._cursor_id != 0 and not stmt._requires_full_execute \
-                and not self.parse_only and not stmt._is_ddl \
+        if stmt._cursor_id != 0 \
+                and not stmt._requires_full_execute \
+                and not stmt._always_full_execute \
+                and not self.parse_only \
+                and not stmt._is_ddl \
                 and not self.batcherrors:
             if stmt._is_query and not stmt._requires_define \
                     and self.cursor_impl.prefetchrows > 0:

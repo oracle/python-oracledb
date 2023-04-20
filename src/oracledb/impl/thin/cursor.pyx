@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -96,6 +96,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             if typ_impl.is_xml_type:
                 var_impl.outconverter = \
                         lambda v: v if isinstance(v, str) else v.read()
+        self._statement._always_full_execute = self._statement._requires_define
 
     cdef int _fetch_rows(self, object cursor) except -1:
         """
