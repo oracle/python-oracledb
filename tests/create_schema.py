@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -47,6 +47,9 @@ test_env.run_sql_script(conn, "create_schema",
                         main_password=test_env.get_main_password(),
                         proxy_user=test_env.get_proxy_user(),
                         proxy_password=test_env.get_proxy_password())
+if test_env.get_server_version() >= (21, 0):
+    test_env.run_sql_script(conn, "create_schema_21",
+                            main_user=test_env.get_main_user())
 if test_env.is_on_oracle_cloud(conn):
     test_env.run_sql_script(conn, "create_schema_cloud",
                             main_user=test_env.get_main_user())
