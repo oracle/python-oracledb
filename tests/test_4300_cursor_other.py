@@ -905,13 +905,13 @@ class TestCase(test_env.BaseTestCase):
         plsql = f"begin {sql}; end;"
         self.cursor.execute(plsql, rows[1])
         self.connection.commit()
-        oracledb.defaults.fetch_lobs = False
-        self.cursor.execute("""
-            select IntCol, CLOBCol, ExtraNumCol1
-            from TestCLOBs
-            order by IntCol""")
-        fetched_rows = self.cursor.fetchall()
-        self.assertEqual(fetched_rows, rows)
+        with test_env.FetchLobsContextManager(False):
+            self.cursor.execute("""
+                select IntCol, CLOBCol, ExtraNumCol1
+                from TestCLOBs
+                order by IntCol""")
+            fetched_rows = self.cursor.fetchall()
+            self.assertEqual(fetched_rows, rows)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
