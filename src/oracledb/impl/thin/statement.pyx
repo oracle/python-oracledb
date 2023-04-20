@@ -38,12 +38,18 @@
 #    the dollar sign and the pound sign.
 # 5. Non-quoted binds cannot be Oracle Database Reserved Names (Server handles
 #    this case and returns an appropriate error)
-BIND_PATTERN = r'(?<!"\:)(?<=\:)\s*("[^\"]*"|[^\W\d_][\w\$#]*|\d+)'
+BIND_PATTERN = r':\s*((?:".*?")|(?:[^\W\d_][\w\$#]*)|\d+)'
 
 # pattern used for detecting a DML returning clause; bind variables in the
-# first group are input variables; bind variables in the second group are
-# output only variables
-DML_RETURNING_PATTERN = r'(?si)([)\s]RETURNING[(\s][\s\S]+[)\s]INTO\s+)(.*?$)'
+# SQL prior to the INTO keyword are input variables; bind varibles in the SQL
+# after the INTO keyword are output variables
+DML_RETURNING_PATTERN = r'(?si)(?<=\bRETURNING\b)(.*?)(?=\bINTO\b)'
+
+# patterns for identifying comments and quoted strings
+SINGLE_LINE_COMMENT_PATTERN = r'--.*'
+MULTI_LINE_COMMENT_PATTERN = r'(?s)/\*.*?\*/'
+CONSTANT_STRING_PATTERN = r"(?s)'.*?'"
+QUOTED_NAME_PATTERN = r'(:\s*)?(".*?")'
 
 cdef class BindInfo:
 
@@ -178,14 +184,16 @@ cdef class Statement:
         self._bind_info_dict = collections.OrderedDict()
         self._bind_info_list = []
 
-        # Strip single/multiline comments and strings from the sql statement to
-        # ease searching for bind variables.
-        sql = re.sub(r"/\*[\S\n ]+?\*/", "", sql)
-        sql = re.sub(r"\--.*(\n|$)", "", sql)
-        sql = re.sub(r"""'[^']*'(?=(?:[^']*[^']*')*[^']*$)*""", "", sql,
-                     flags=re.MULTILINE)
-        sql = re.sub(r'(:\s*)?("([^"]*)")',
-                    lambda m: m.group(0) if sql[m.start(0)] == ":" else "",
+        # Strip single/multiline comments and replace constant strings and
+        # quoted names with single characters in order to facilitate detection
+        # of bind variables; note that bind variables can be quoted so a check
+        # must be made to ensure that a quoted string doesn't refer to a bind
+        # variable first before it can be replaced
+        sql = re.sub(MULTI_LINE_COMMENT_PATTERN, "", sql)
+        sql = re.sub(SINGLE_LINE_COMMENT_PATTERN, "", sql)
+        sql = re.sub(CONSTANT_STRING_PATTERN, "S", sql)
+        sql = re.sub(QUOTED_NAME_PATTERN,
+                    lambda m: m.group(0) if sql[m.start(0)] == ":" else "Q",
                     sql)
 
         # determine statement type
@@ -197,9 +205,9 @@ cdef class Statement:
             if not self._is_plsql:
                 match = re.search(DML_RETURNING_PATTERN, sql)
                 if match is not None:
-                    pos = match.start(2)
+                    pos = match.end()
                     input_sql = sql[:pos]
-                    returning_sql = sql[pos:]
+                    returning_sql = sql[pos + 4:]
             self._add_binds(input_sql, is_return_bind=False)
             if returning_sql is not None:
                 self._is_returning = True
