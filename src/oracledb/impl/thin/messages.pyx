@@ -454,6 +454,7 @@ cdef class MessageWithData(Message):
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
                                               i, var_impl._fetch_info)
+            cursor_impl._statement._adjust_requires_define()
             statement._last_output_type_handler = type_handler
 
         # the list of output variables is equivalent to the fetch variables
@@ -717,6 +718,7 @@ cdef class MessageWithData(Message):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler, i,
                                           fetch_info)
+        cursor_impl._statement._adjust_requires_define()
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # current date

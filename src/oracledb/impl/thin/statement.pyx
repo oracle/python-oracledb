@@ -146,6 +146,18 @@ cdef class Statement:
             else:
                 self._bind_info_dict[info._bind_name] = [info]
 
+    cdef int _adjust_requires_define(self) except -1:
+        """
+        The define step is only supposed to be done once for each cursor, but a
+        full execute is required if a define was ever performed, so perform
+        that adjustment here, if needed.
+        """
+        if self._requires_define:
+            if self._always_full_execute:
+                self._requires_define = False
+            else:
+                self._always_full_execute = True
+
     cdef _determine_statement_type(self, str sql):
         """
         Determine the type of the SQL statement by examining the first keyword

@@ -914,7 +914,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(fetched_rows, rows)
 
     def test_4370_rebuild_table_with_lob_in_cached_query(self):
-        "4370 - test rebuild of table with LOB in cached query"
+        "4370 - test rebuild of table with LOB in cached query (as string)"
         table_name = "test_4370"
         drop_sql = f"drop table {table_name} purge"
         create_sql = f"""
@@ -944,6 +944,40 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.executemany(insert_sql, data)
             self.cursor.execute(query_sql)
             self.assertEqual(self.cursor.fetchall(), data)
+
+    def test_4371_rebuild_table_with_lob_in_cached_query(self):
+        "4371 - test rebuild of table with LOB in cached query (as LOB)"
+        table_name = "test_4371"
+        drop_sql = f"drop table {table_name} purge"
+        create_sql = f"""
+            create table {table_name} (
+                Col1 number(9) not null,
+                Col2 clob not null
+            )"""
+        insert_sql = f"insert into {table_name} values (:1, :2)"
+        query_sql = f"select * from {table_name} order by Col1"
+        data = [
+            (1, "CLOB value 1"),
+            (2, "CLOB value 2")
+        ]
+        try:
+            self.cursor.execute(drop_sql)
+        except:
+            pass
+        self.cursor.execute(create_sql)
+        self.cursor.executemany(insert_sql, data)
+        self.cursor.execute(query_sql)
+        fetched_data = [(n, c.read()) for n, c in self.cursor]
+        self.assertEqual(fetched_data, data)
+        self.cursor.execute(query_sql)
+        fetched_data = [(n, c.read()) for n, c in self.cursor]
+        self.assertEqual(fetched_data, data)
+        self.cursor.execute(drop_sql)
+        self.cursor.execute(create_sql)
+        self.cursor.executemany(insert_sql, data)
+        self.cursor.execute(query_sql)
+        fetched_data = [(n, c.read()) for n, c in self.cursor]
+        self.assertEqual(fetched_data, data)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

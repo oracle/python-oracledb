@@ -96,7 +96,6 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             if typ_impl.is_xml_type:
                 var_impl.outconverter = \
                         lambda v: v if isinstance(v, str) else v.read()
-        self._statement._always_full_execute = self._statement._requires_define
 
     cdef int _fetch_rows(self, object cursor) except -1:
         """

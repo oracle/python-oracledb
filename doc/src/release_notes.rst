@@ -18,9 +18,9 @@ Thin Mode Changes
 #)  Replaced regular expressions for parsing SQL with regular expressions that
     perform better
     (`issue 172 <https://github.com/oracle/python-oracledb/issues/172>`__).
-#)  Fixed bug when a query is re-executed with the setting
-    ``oracledb.defaults.fetch_lobs = False`` after a table underlying the query
-    is dropped and recreated.
+#)  Fixed bug when a query is re-executed containing LOBs (either fetched as
+    LOB locators or as strings/bytes) or JSON data after a table underlying the
+    query is dropped and recreated.
 #)  Fixed bug when warning message is encountered during connect
     (`issue 171 <https://github.com/oracle/python-oracledb/issues/171>`__).
 
