@@ -214,7 +214,7 @@ cdef class Statement:
         # bind variables can only be found in queries, DML and PL/SQL
         if self._is_query or self._is_dml or self._is_plsql:
             input_sql = sql
-            if not self._is_plsql:
+            if self._is_dml:
                 match = re.search(DML_RETURNING_PATTERN, sql)
                 if match is not None:
                     pos = match.end()
