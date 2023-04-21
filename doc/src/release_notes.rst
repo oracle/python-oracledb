@@ -15,6 +15,8 @@ Thin Mode Changes
 
 #)  Fixed bug when SQL is executed after first being parsed with Oracle
     Database 23c.
+#)  Fixed bug when timeout is not ``None`` when creating a pool
+    (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
 #)  Replaced regular expressions for parsing SQL with regular expressions that
     perform better
     (`issue 172 <https://github.com/oracle/python-oracledb/issues/172>`__).

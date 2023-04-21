@@ -328,9 +328,10 @@ cdef class ThinPoolImpl(BasePoolImpl):
         current_time = time.monotonic()
         while self.get_open_count() > self.min and conn_impls_to_check:
             conn_impl = conn_impls_to_check[0]
-            if current_time - conn_impl._time_in_pool > self._timeout:
-                conn_impls_to_check.pop(0)
-                self._drop_conn_impl(conn_impl)
+            if current_time - conn_impl._time_in_pool < self._timeout:
+                break
+            conn_impls_to_check.pop(0)
+            self._drop_conn_impl(conn_impl)
 
     def acquire(self, ConnectParamsImpl params):
         """
