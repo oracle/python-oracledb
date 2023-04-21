@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2023, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -58,25 +58,7 @@ obj.SDO_ORDINATES.extend([1, 1, 5, 7])
 print("Created object", obj)
 
 with connection.cursor() as cursor:
-
-    # create sample table
-    cursor.execute("""
-        begin
-          begin
-            execute immediate 'drop table TestGeometry';
-          exception
-          when others then
-            if sqlcode <> -942 then
-              raise;
-            end if;
-          end;
-
-          execute immediate 'create table TestGeometry (
-                                 IntCol number(9) not null,
-                                 Geometry MDSYS.SDO_GEOMETRY)';
-        end;""")
-
-
+    cursor.execute("truncate table TestGeometry")
     print("Adding row to table...")
     cursor.execute("insert into TestGeometry values (1, :objbv)", objbv=obj)
     connection.commit()

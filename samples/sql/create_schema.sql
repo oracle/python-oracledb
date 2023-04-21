@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright 2017, 2022, Oracle and/or its affiliates.
+ * Copyright 2017, 2023, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -242,6 +242,12 @@ create table &main_user..LoadCsvTab (
     id                    number not null,
     name                  varchar2(25),
     constraint LoadCsvTab_pk primary key (id)
+)
+/
+
+create table &main_user..TestGeometry (
+    id                    number(9) not null,
+    geometry              mdsys.sdo_geometry not null
 )
 /
 

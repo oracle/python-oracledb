@@ -27,7 +27,7 @@ Thin Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Improved test suite.
+#)  Improved test suite and samples.
 
 
 oracledb 1.3.0 (March 2023)
