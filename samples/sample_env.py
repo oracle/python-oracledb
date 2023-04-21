@@ -88,6 +88,8 @@ import os
 import platform
 import sys
 
+import oracledb
+
 # default values
 DEFAULT_MAIN_USER = "pythondemo"
 DEFAULT_EDITION_USER = "pythoneditions"
@@ -169,6 +171,17 @@ def get_oracle_client():
         platform.system() == "Windows"):
         return get_value("PYO_SAMPLES_ORACLE_CLIENT_PATH",
                          "Oracle Instant Client Path")
+
+def get_server_version():
+    name = "SERVER_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        conn = oracledb.connect(user=get_main_user(),
+                                password=get_main_password(),
+                                dsn=get_connect_string())
+        value = tuple(int(s) for s in conn.version.split("."))[:2]
+        PARAMETERS[name] = value
+    return value
 
 def run_sql_script(conn, script_name, **kwargs):
     statement_parts = []
