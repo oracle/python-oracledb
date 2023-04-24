@@ -7,23 +7,22 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 1.3.1 (TBD)
---------------------
+oracledb 1.3.1 (April 2023)
+---------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug when SQL is executed after first being parsed with Oracle
-    Database 23c.
-#)  Fixed bug when timeout is not ``None`` when creating a pool
-    (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
-#)  Replaced regular expressions for parsing SQL with regular expressions that
-    perform better
+#)  Improved performance of regular expressions used for parsing SQL
     (`issue 172 <https://github.com/oracle/python-oracledb/issues/172>`__).
-#)  Fixed bug when a query is re-executed containing LOBs (either fetched as
-    LOB locators or as strings/bytes) or JSON data after a table underlying the
-    query is dropped and recreated.
-#)  Fixed bug when warning message is encountered during connect
+#)  Fixed bug with Oracle Database 23c when SQL is executed after first being
+    parsed.
+#)  Fixed bug when :data:`ConnectionPool.timeout` is not `None` when creating a
+    pool (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
+#)  Fixed bug when a query is re-executed after an underlying table is dropped
+    and recreated, and the query select list contains LOBs or JSON data.
+#)  Fixed bug when warning message such as for impending password expiry is
+    encountered during connect
     (`issue 171 <https://github.com/oracle/python-oracledb/issues/171>`__).
 
 Common Changes
