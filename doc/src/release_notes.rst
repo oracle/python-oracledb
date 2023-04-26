@@ -19,6 +19,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Improved test suite.
+
 
 oracledb 1.3.1 (April 2023)
 ---------------------------
