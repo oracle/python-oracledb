@@ -26,13 +26,13 @@ SQL statements should not contain a trailing semicolon (";") or forward slash
 
 .. code-block:: python
 
-    cur.execute("select * from MyTable;")
+    cursor.execute("select * from MyTable;")
 
 This is correct:
 
 .. code-block:: python
 
-    cur.execute("select * from MyTable")
+    cursor.execute("select * from MyTable")
 
 
 SQL Queries
@@ -48,9 +48,9 @@ optionally :ref:`overridden <outputtypehandlers>`.
 .. IMPORTANT::
 
     Interpolating or concatenating user data with SQL statements, for example
-    ``cur.execute("SELECT * FROM mytab WHERE mycol = '" + myvar + "'")``, is a security risk
+    ``cursor.execute("SELECT * FROM mytab WHERE mycol = '" + myvar + "'")``, is a security risk
     and impacts performance.  Use :ref:`bind variables <bind>` instead. For
-    example, ``cur.execute("SELECT * FROM mytab WHERE mycol = :mybv", mybv=myvar)``.
+    example, ``cursor.execute("SELECT * FROM mytab WHERE mycol = :mybv", mybv=myvar)``.
 
 .. _fetching:
 
@@ -64,8 +64,8 @@ Rows can be fetched in various ways.
 
   .. code-block:: python
 
-      cur = connection.cursor()
-      for row in cur.execute("select * from MyTable"):
+      cursor = connection.cursor()
+      for row in cursor.execute("select * from MyTable"):
           print(row)
 
 - Rows can also be fetched one at a time using the method
@@ -73,10 +73,10 @@ Rows can be fetched in various ways.
 
   .. code-block:: python
 
-      cur = connection.cursor()
-      cur.execute("select * from MyTable")
+      cursor = connection.cursor()
+      cursor.execute("select * from MyTable")
       while True:
-          row = cur.fetchone()
+          row = cursor.fetchone()
           if row is None:
               break
           print(row)
@@ -87,11 +87,11 @@ Rows can be fetched in various ways.
 
   .. code-block:: python
 
-      cur = connection.cursor()
-      cur.execute("select * from MyTable")
+      cursor = connection.cursor()
+      cursor.execute("select * from MyTable")
       num_rows = 10
       while True:
-          rows = cur.fetchmany(size=num_rows)
+          rows = cursor.fetchmany(size=num_rows)
           if not rows:
               break
           for row in rows:
@@ -107,9 +107,9 @@ Rows can be fetched in various ways.
 
   .. code-block:: python
 
-      cur = connection.cursor()
-      cur.execute("select * from MyTable")
-      rows = cur.fetchall()
+      cursor = connection.cursor()
+      cursor.execute("select * from MyTable")
+      rows = cursor.fetchall()
       for row in rows:
           print(row)
 
@@ -160,9 +160,9 @@ can be obtained using :attr:`Cursor.description`:
 
 .. code-block:: python
 
-    cur = connection.cursor()
-    cur.execute("select * from MyTable")
-    for column in cur.description:
+    cursor = connection.cursor()
+    cursor.execute("select * from MyTable")
+    for column in cursor.description:
         print(column)
 
 This could result in metadata like::
@@ -280,132 +280,153 @@ Python object that is returned by default. Python types can be changed with
        scalar value is returned.
 
 
+.. _changingdata:
+
+Changing Fetched Data
+---------------------
+
+Data returned by python-oracledb queries can be changed by using output type
+handlers, by using "outconverters", or by using row factories.
+
 .. _outputtypehandlers:
 
 Changing Fetched Data Types with Output Type Handlers
------------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Sometimes the default conversion from an Oracle Database type to a Python type
 must be changed in order to prevent data loss or to fit the purposes of the
 Python application. In such cases, an output type handler can be specified for
-queries.  Output type handlers do not affect values returned from
-:meth:`Cursor.callfunc()` or :meth:`Cursor.callproc()`.
+queries.  This asks the database to do a conversion from the column type to a
+different type before the data is returned from the database to
+python-oracledb.  If the database does not support such a mapping, an error
+will be returned.  Output type handlers only affect query output and do not
+affect values returned from :meth:`Cursor.callfunc()` or
+:meth:`Cursor.callproc()`.
 
-Output type handlers can be specified on the :attr:`connection
-<Connection.outputtypehandler>` or on the :attr:`cursor
-<Cursor.outputtypehandler>`. If specified on the cursor, fetch type handling is
-only changed on that particular cursor. If specified on the connection, all
+Output type handlers can be specified on a :attr:`connection
+<Connection.outputtypehandler>` or on a :attr:`cursor
+<Cursor.outputtypehandler>`. If specified on a cursor, fetch type handling is
+only changed on that particular cursor. If specified on a connection, all
 cursors created by that connection will have their fetch type handling changed.
 
 The output type handler is expected to be a function with the following
 signature::
 
-    handler(cursor, name, defaultType, size, precision, scale)
+    handler(cursor, name, default_type, size, precision, scale)
 
 The parameters are the same information as the query column metadata found in
-:attr:`Cursor.description`. The function is called once for each column that is
-going to be fetched. The function is expected to return a
-:ref:`variable object <varobj>` (generally by a call to :func:`Cursor.var()`)
-or the value ``None``. The value ``None`` indicates that the default type
-should be used.
+:attr:`Cursor.description`.
 
-Examples of output handlers are shown in :ref:`numberprecision`,
-:ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as `samples/type_handlers.py
-<https://github.com/oracle/python-oracledb/blob/main/samples/type_handlers.py>`__
+The function is called once for each column that is going to be
+fetched. The function is expected to return a :ref:`variable object <varobj>`
+(generally by a call to :func:`Cursor.var()`) or the value ``None``. The value
+``None`` indicates that the default type should be used.
 
-.. _numberprecision:
-
-Fetched Number Precision
-------------------------
-
-One reason for using an output type handler is to ensure that numeric precision
-is not lost when fetching certain numbers. Oracle Database uses decimal numbers
-and these cannot be converted seamlessly to binary number representations like
-Python floats. In addition, the range of Oracle numbers exceeds that of
-floating point numbers. Python has decimal objects which do not have these
-limitations and python-oracledb knows how to perform the conversion between Oracle
-numbers and Python decimal values if directed to do so.
-
-The following code sample demonstrates the issue:
+For example:
 
 .. code-block:: python
 
-    cur = connection.cursor()
-    cur.execute("create table test_float (X number(5, 3))")
-    cur.execute("insert into test_float values (7.1)")
-    connection.commit()
-    cur.execute("select * from test_float")
-    val, = cur.fetchone()
-    print(val, "* 3 =", val * 3)
-
-This displays ``7.1 * 3 = 21.299999999999997``
-
-Using Python decimal objects, however, there is no loss of precision:
-
-.. code-block:: python
-
-    import decimal
-
-    def number_to_decimal(cursor, name, default_type, size, precision, scale):
+    def output_type_handler(cursor, name, default_type, size, precision, scale):
         if default_type == oracledb.DB_TYPE_NUMBER:
-            return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
+            return cursor.var(oracledb.DB_TYPE_VARCHAR, arraysize=cursor.arraysize)
 
-    cur = connection.cursor()
-    cur.outputtypehandler = number_to_decimal
-    cur.execute("select * from test_float")
-    val, = cur.fetchone()
-    print(val, "* 3 =", val * 3)
+This output type handler is called once for each column in the SELECT query.
+For each numeric column, the database will now return a string representation
+of each row's value.  Using it in a query:
 
-This displays ``7.1 * 3 = 21.3``
+.. code-block:: python
 
-The Python ``decimal.Decimal`` converter gets called with the string
-representation of the Oracle number.  The output from ``decimal.Decimal`` is
-returned in the output tuple.
+    cursor.outputtypehandler = output_type_handler
 
-See `samples/return_numbers_as_decimals.py
-<https://github.com/oracle/python-oracledb/blob/main/samples/return_numbers_as_decimals.py>`__
+    cursor.execute("select 123 from dual")
+    r = cursor.fetchone()
+    print(r)
 
+prints ``('123',)`` showing the number was converted to a string.  Without the
+type handler, the output would have been ``(123,)``.
+
+When creating variables using :meth:`Cursor.var()` in a handler, the
+``arraysize`` parameter should be the same as the :attr:`~Cursor.arraysize` of
+the query cursor.  In python-oracledb Thick mode, the query (and ``var()``)
+arraysize multiplied by the byte size of the particular column must be less
+than INT_MAX.
+
+To unset an output type handler, set it to ``None``.  For example if you had
+previously set a type handler on a cursor, you can remove it with:
+
+.. code-block:: python
+
+    cursor.outputtypehandler = None
+
+Other examples of output handlers are shown in :ref:`numberprecision`,
+:ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as
+`samples/type_handlers.py
+<https://github.com/oracle/python-oracledb/blob/main/samples/type_handlers.py>`__
 
 .. _outconverters:
 
 Changing Query Results with Outconverters
------------------------------------------
++++++++++++++++++++++++++++++++++++++++++
 
 Python-oracledb "outconverters" can be used with :ref:`output type handlers
 <outputtypehandlers>` to change returned data.
 
-For example, to make queries return empty strings instead of NULLs:
+For example:
 
 .. code-block:: python
 
-    def out_converter(value):
-        if value is None:
-            return ''
-        return value
-
     def output_type_handler(cursor, name, default_type, size, precision, scale):
-        if default_type in (oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_CHAR):
-            return cursor.var(str, size, arraysize=cur.arraysize,
-                              outconverter=out_converter)
 
-    connection.outputtypehandler = output_type_handler
+        def out_converter(d):
+            if isinstance(d, str):
+                return f"{d} was a string"
+            else:
+                return f"{d} was not a string"
 
+        if default_type == oracledb.DB_TYPE_NUMBER:
+            return cursor.var(oracledb.DB_TYPE_VARCHAR,
+                 arraysize=cursor.arraysize, outconverter=out_converter)
+
+The output type handler is called once for each column in the SELECT query.
+For each numeric column, the database will now return a string representation
+of each row's value.  The outconverter will then be called in Python for each
+of those values.  Using it in a query:
+
+.. code-block:: python
+
+    cursor.outputtypehandler = output_type_handler
+
+    cursor.execute("select 123 as col1, 'abc' as col2 from dual")
+    for r in cursor.fetchall():
+        print(r)
+
+prints::
+
+    ('123 was a string', 'abc')
+
+This shows that the number was first converted to a string by the database, as
+requested in the output type handler.  The ``out_converter`` function then
+appended "was a string" to the data before the value was returned to the
+application.
+
+Note outconverters are not called for NULL data values.
 
 .. _rowfactories:
 
 Changing Query Results with Rowfactories
-----------------------------------------
+++++++++++++++++++++++++++++++++++++++++
 
-Python-oracledb "rowfactories" are methods called for each row that is retrieved from
-the database. The :meth:`Cursor.rowfactory` method is called with the tuple that
-would normally be returned from the database.  The method can convert the tuple
-to a different value and return it to the application in place of the tuple.
+Python-oracledb "rowfactories" are methods called for each row retrieved from
+the database. The :meth:`Cursor.rowfactory` method is called with the tuple
+fetched from the database before it is returned to the application.  The method
+can convert the tuple to a different value.
 
 For example, to fetch each row of a query as a dictionary:
 
 .. code-block:: python
 
     cursor.execute("select * from locations where location_id = 1000")
+
     columns = [col[0] for col in cursor.description]
     cursor.rowfactory = lambda *args: dict(zip(columns, args))
     data = cursor.fetchone()
@@ -413,7 +434,9 @@ For example, to fetch each row of a query as a dictionary:
 
 The output is::
 
-    {'LOCATION_ID': 1000, 'STREET_ADDRESS': '1297 Via Cola di Rie', 'POSTAL_CODE': '00989', 'CITY': 'Roma', 'STATE_PROVINCE': None, 'COUNTRY_ID': 'IT'}
+    {'LOCATION_ID': 1000, 'STREET_ADDRESS': '1297 Via Cola di Rie',
+    'POSTAL_CODE': '00989', 'CITY': 'Roma', 'STATE_PROVINCE': None,
+    'COUNTRY_ID': 'IT'}
 
 If you join tables where the same column name occurs in both tables with
 different meanings or values, then use a column alias in the query.  Otherwise,
@@ -427,6 +450,103 @@ only one of the similarly named columns will be included in the dictionary:
         dog_name,
         dogs.color
     from cats, dogs
+
+An example showing an :ref:`output type handler <outputtypehandlers>`, an
+:ref:`outconverter <outconverters>`, and a row factory is:
+
+.. code-block:: python
+
+    def output_type_handler(cursor, name, default_type, size, precision, scale):
+
+        def out_converter(d):
+            if type(d) is str:
+                return f"{d} was a string"
+            else:
+                return f"{d} was not a string"
+
+        if default_type == oracledb.DB_TYPE_NUMBER:
+            return cursor.var(oracledb.DB_TYPE_VARCHAR,
+                arraysize=cursor.arraysize, outconverter=out_converter)
+
+    cursor.outputtypehandler = output_type_handler
+
+    cursor.execute("select 123 as col1, 'abc' as col2 from dual")
+
+    columns = [col[0] for col in cursor.description]
+    cursor.rowfactory = lambda *args: dict(zip(columns, args))
+    for r in cursor.fetchall():
+        print(r)
+
+The database converts the number to a string before it is returned to
+python-oracledb.  The outconverter appends "was a string" to this value.
+Finally the row factory changes the complete row to a dictionary.  The output
+is::
+
+    {'COL1': '123 was a string', 'COL2': 'abc'}
+
+.. _numberprecision:
+
+Fetched Number Precision
+------------------------
+
+Oracle Database uses decimal numbers and these cannot be converted seamlessly
+to binary number representations like Python floats. In addition, the range of
+Oracle numbers exceeds that of floating point numbers. Python has decimal
+objects which do not have these limitations. In python-oracledb you can set
+``oracledb.defaults.fetch_decimals`` so that Decimals are returned to the
+application, ensuring that numeric precision is not lost when fetching certain
+numbers.
+
+The following code sample demonstrates the issue:
+
+.. code-block:: python
+
+    cursor.execute("create table test_float (X number(5, 3))")
+    cursor.execute("insert into test_float values (7.1)")
+
+    cursor.execute("select * from test_float")
+    val, = cursor.fetchone()
+    print(val, "* 3 =", val * 3)
+
+This displays ``7.1 * 3 = 21.299999999999997``
+
+Using Python decimal objects, however, there is no loss of precision:
+
+.. code-block:: python
+
+    oracledb.defaults.fetch_decimals = True
+
+    cursor.execute("select * from test_float")
+    val, = cursor.fetchone()
+    print(val, "* 3 =", val * 3)
+
+This displays ``7.1 * 3 = 21.3``
+
+See `samples/return_numbers_as_decimals.py
+<https://github.com/oracle/python-oracledb/blob/main/samples/return_numbers_as_decimals.py>`__
+
+An equivalent, longer, older coding idiom to :attr:`Defaults.fetch_decimals` is
+to use an :ref:`output type handler <outputtypehandlers>` do the conversion.
+
+.. code-block:: python
+
+    import decimal
+
+    def number_to_decimal(cursor, name, default_type, size, precision, scale):
+        if default_type == oracledb.DB_TYPE_NUMBER:
+            return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
+
+    cursor.outputtypehandler = number_to_decimal
+
+    cursor.execute("select * from test_float")
+    val, = cursor.fetchone()
+    print(val, "* 3 =", val * 3)
+
+This displays ``7.1 * 3 = 21.3``
+
+The Python ``decimal.Decimal`` converter gets called with the string
+representation of the Oracle number.  The output from ``decimal.Decimal`` is
+returned in the output tuple.
 
 .. _scrollablecursors:
 
@@ -488,8 +608,8 @@ then it can be queried and printed:
 
 .. code-block:: python
 
-    cur.execute("select geometry from mygeometrytab")
-    for obj, in cur:
+    cursor.execute("select geometry from mygeometrytab")
+    for obj, in cursor:
         dumpobject(obj)
 
 Where ``dumpobject()`` is defined as:
@@ -590,8 +710,8 @@ rows using:
          ORDER BY last_name
          OFFSET :offset ROWS FETCH NEXT :maxnumrows ROWS ONLY"""
 
-    cur = connection.cursor()
-    for row in cur.execute(sql, offset=myoffset, maxnumrows=mymaxnumrows):
+    cursor = connection.cursor()
+    for row in cursor.execute(sql, offset=myoffset, maxnumrows=mymaxnumrows):
         print(row)
 
 In applications where the SQL query is not known in advance, this method
@@ -803,8 +923,8 @@ easily be executed with python-oracledb.  For example:
 
 .. code-block:: python
 
-    cur = connection.cursor()
-    cur.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
+    cursor = connection.cursor()
+    cursor.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
 
 Do not concatenate or interpolate user data into SQL statements.  See
 :ref:`bind` instead.
@@ -827,6 +947,6 @@ SDO_GEOMETRY <spatial>` object:
 .. code-block:: python
 
     type_obj = connection.gettype("SDO_GEOMETRY")
-    cur = connection.cursor()
-    cur.setinputsizes(type_obj)
-    cur.execute("insert into sometable values (:1)", [None])
+    cursor = connection.cursor()
+    cursor.setinputsizes(type_obj)
+    cursor.execute("insert into sometable values (:1)", [None])

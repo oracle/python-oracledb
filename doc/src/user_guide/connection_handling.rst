@@ -504,7 +504,7 @@ attributes. For example, to get the stored host name:
 
 Attributes such as the password are not gettable.
 
-You can set individual attributes using :meth:`ConnectParams.set()`:
+You can set individual default attributes using :meth:`ConnectParams.set()`:
 
 .. code-block:: python
 
@@ -515,6 +515,9 @@ You can set individual attributes using :meth:`ConnectParams.set()`:
 
     # change both the port and service name
     cp.set(port=1523, service_name="orclpdb")
+
+Note :meth:`ConnectParams.set()` has no effect after
+:meth:`ConnectParams.parse_connect_string()` has been called.
 
 Some values such as the database host name can be specified as
 :func:`oracledb.connect()`, parameters, as part of the connect string, and in
@@ -527,6 +530,21 @@ that contains all relevant values specified.  The precedence in Thin mode is
 that values in any ``dsn`` parameter override values passed as individual
 parameters, which themselves override values set in the ``params`` object.
 Similar precedence rules also apply to other values.
+
+The :meth:`ConnectParams.parse_dsn_with_credentials()` can be used to extract
+the username, password and connection string from a DSN:
+
+.. code-block:: python
+
+    cp = oracledb.ConnectParams()
+    (un,pw,cs) = cp.parse_dsn_with_credentials("scott/tiger@localhost/orclpdb")
+
+Empty values are returned as ``None``.
+
+When creating a standalone connection or connection pool the equivalent
+internal extraction is done automatically when a value is passed to the ``dsn``
+parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
+no value is passed to the ``user`` password.
 
 .. _connpooling:
 

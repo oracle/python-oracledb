@@ -34,12 +34,10 @@ ConnectParams Methods
 
 .. method:: ConnectParams.parse_dsn_with_credentials(dsn)
 
-    Parses a dsn in the form <user>/<password>@<connect_string> or in the form
+    Parses a DSN in the form <user>/<password>@<connect_string> or in the form
     <user>/<password> and returns a 3-tuple containing the parsed user,
     password and connect string. Empty strings are returned as the value
-    ``None``. This is done automatically when a value is passed to the ``dsn``
-    parameter but no value is passed to the ``user`` password when creating a
-    standalone connection or connection pool.
+    ``None``.
 
     .. versionadded:: 1.3.0
 
@@ -53,7 +51,11 @@ ConnectParams Methods
     matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], supershardingkey=[], \
     debug_jdwp=None, handle=None)
 
-    Sets one or more of the parameters.
+    Sets the default values for one or more of the parameters of an empty
+    ConnectParams object.  A default will be overriden when a connection string
+    with that attribute is parsed.  After a ConnectParams object has been
+    populated by parsing a connection string, ``ConnectParams.set()`` will not
+    override any values.
 
 
 .. _connparamsattr:
