@@ -76,7 +76,8 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     cdef int _add_cursor_to_close(self, Statement stmt) except -1:
         if self._num_cursors_to_close == TNS_MAX_CURSORS_TO_CLOSE:
-            raise Exception("too many cursors to close!")
+            errors._raise_err(errors.ERR_TOO_MANY_CURSORS_TO_CLOSE,
+                              num_cursors=TNS_MAX_CURSORS_TO_CLOSE)
         self._cursors_to_close[self._num_cursors_to_close] = stmt._cursor_id
         self._num_cursors_to_close += 1
 

@@ -246,8 +246,8 @@ cdef class Message:
             buf.skip_ub4()                  # session id
             buf.skip_ub2()                  # serial number
         else:
-            msg = f"Unhandled server side piggyback opcode: {opcode}"
-            raise Exception(msg)
+            errors._raise_err(errors.ERR_UNKOWN_SERVER_SIDE_PIGGYBACK,
+                              opcode=opcode)
 
     cdef int _process_warning_info(self, ReadBuffer buf) except -1:
         cdef:
