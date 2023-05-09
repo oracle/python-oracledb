@@ -288,13 +288,16 @@ Also see `Avoiding Premature Prefetching`_.
 Database Round-trips
 ====================
 
-A round-trip is defined as the trip from the Oracle Client libraries (used by
-python-oracledb) to the database and back.  Calling each python-oracledb function, or
-accessing each attribute, will require zero or more round-trips.  Along with
-tuning an application's architecture and `tuning its SQL statements
+A round-trip is defined as the travel of a message from python-oracledb to the
+database and back. Calling each python-oracledb function, or accessing each
+attribute, will require zero or more round-trips.  For example, inserting a
+simple row involves sending data to the database and getting a success response
+back.  This is a round-trip. Along with tuning an application's architecture
+and `tuning its SQL statements
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGSQL>`__, a general
 performance and scalability goal is to minimize `round-trips
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9B2F05F9-D841-4493-A42D-A7D89694A2D1>`__.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9B2F05F9-D841-4493-A42D-A7D89694A2D1>`__
+because they impact application performance and overall system scalability.
 
 Some general tips for reducing round-trips are:
 
