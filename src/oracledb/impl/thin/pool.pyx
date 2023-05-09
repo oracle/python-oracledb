@@ -47,6 +47,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         object _bg_exc
         object _bg_thread
         object _bg_thread_condition
+        object _timer_thread
         object _condition
         bint _force_get
         bint _open
@@ -129,6 +130,8 @@ cdef class ThinPoolImpl(BasePoolImpl):
             if num_conns > 0:
                 wait = False
                 self._create_conn_impls_helper(num_conns)
+                if num_conns > 1:
+                    self._check_timeout()
 
             # close connections, if needed
             if conn_impls_to_drop:
@@ -143,6 +146,20 @@ cdef class ThinPoolImpl(BasePoolImpl):
             if wait:
                 with self._bg_thread_condition:
                     self._bg_thread_condition.wait()
+
+    cdef int _check_timeout(self) except -1:
+        """
+        Checks whether a timeout is in effect and that the number of
+        connections exceeds the minimum and if so, starts a timer to ensure
+        if these connections have expired. Only one thread is ever started.
+        The timeout value is increased by a second to allow for small time
+        discrepancies.
+        """
+        if self._timer_thread is None and self._timeout > 0 \
+                and self.get_open_count() > self.min:
+            self._timer_thread = threading.Timer(self._timeout + 1,
+                                                 self._process_timeout)
+            self._timer_thread.start()
 
     cdef int _create_conn_impls_helper(self, uint32_t num_conns) except -1:
         """
@@ -259,10 +276,6 @@ cdef class ThinPoolImpl(BasePoolImpl):
             ThinConnImpl conn_impl
             ssize_t i
 
-        if self._timeout > 0:
-            self._timeout_helper(self._free_new_conn_impls)
-            self._timeout_helper(self._free_used_conn_impls)
-
         # initialize values used in determining which connection can be
         # returned from the pool
         cclass = params._default_description.cclass
@@ -299,6 +312,17 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 conn_impl._pool = None
         return conn_impl
 
+    def _process_timeout(self):
+        """
+        Processes the timeout after the timer thread expires. Drops any free
+        connections that have expired (while maintaining the minimum number of
+        connections in the pool).
+        """
+        self._timer_thread = None
+        self._timeout_helper(self._free_new_conn_impls)
+        self._timeout_helper(self._free_used_conn_impls)
+        self._check_timeout()
+
     cdef int _return_connection(self, ThinConnImpl conn_impl) except -1:
         """
         Returns the connection to the pool. If the connection was closed for
@@ -317,12 +341,14 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 self._free_used_conn_impls.append(conn_impl)
                 conn_impl._time_in_pool = time.monotonic()
             self._busy_conn_impls.remove(conn_impl)
+            self._check_timeout()
             self._condition.notify()
 
     cdef int _timeout_helper(self, list conn_impls_to_check) except -1:
         """
-        Helper method which checks the free and used connection lists before
-        acquiring to drop off timed out connections
+        Helper method which checks the list of connections to see if any
+        connections have expired (while maintaining the minimum number of
+        connections in the pool).
         """
         cdef ThinConnImpl conn_impl
         current_time = time.monotonic()

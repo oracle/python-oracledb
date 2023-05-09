@@ -13,6 +13,10 @@ oracledb 1.4.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for shrinking the pool back to the minimum number of
+    connections allowed in the pool when the pool is idle for
+    :data:`ConnectionPool.timeout` seconds.
+
 Thick Mode Changes
 ++++++++++++++++++
 
