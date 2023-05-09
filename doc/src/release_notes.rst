@@ -13,6 +13,8 @@ oracledb 1.4.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for the ``ORA_SDTZ`` environment variable used to set the
+    session time zone used by the database.
 #)  Added support for shrinking the pool back to the minimum number of
     connections allowed in the pool when the pool is idle for
     :data:`ConnectionPool.timeout` seconds.
