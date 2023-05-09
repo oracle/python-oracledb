@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -259,6 +259,99 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql)
         actual_data, = self.cursor.fetchone()
         self.assertEqual(actual_data, expected_data)
+
+    def test_3511_update_json(self):
+        "3511 - test inserting and updating JSON"
+        self.cursor.execute("truncate table TestJSON")
+        self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        self.cursor.executemany("insert into TestJSON values (:1, :2)",
+                                list(enumerate(self.json_data)))
+        update_sql = "update TestJSON set JsonCol = :1 where IntCol = :2"
+        data = [({"a" : i}, i) for i in range(len(self.json_data))]
+        self.cursor.setinputsizes(oracledb.DB_TYPE_JSON)
+        self.cursor.executemany(update_sql, data)
+        query = "select JsonCol, IntCol from TestJSON order by IntCol"
+        self.cursor.execute(query)
+        self.assertEqual(self.cursor.fetchall(), data)
+
+    def test_3512_json_query(self):
+        "3512 - test fetching json with json_query"
+        self.cursor.execute("truncate table TestJson")
+        self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        self.cursor.executemany("insert into TestJSON values (:1, :2)",
+                                list(enumerate(self.json_data)))
+        cases = [
+            (2, "$.employees"),
+            (1, "$.employees.employee1.name")
+        ]
+        for num_rows, json_query in cases:
+            sql = f"""
+                    select json_query(JsonCol, '{json_query}')
+                    from TestJson
+                    order by IntCol"""
+            self.cursor.execute(sql)
+            result = [r for r, in self.cursor if r is not None]
+            self.assertEqual(len(result), num_rows)
+
+    def test_3513_json_exists(self):
+        "3513 - test fetching json with json_exists"
+        self.cursor.execute("truncate table TestJson")
+        self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        self.cursor.executemany("insert into TestJSON values (:1, :2)",
+                                list(enumerate(self.json_data)))
+        cases = [
+            (1, "$.Permanent"),
+            (2, "$.employees")
+        ]
+        for num_rows, json_query in cases:
+            sql = f"""
+                    select count(*)
+                    from TestJson
+                    where json_exists(JsonCol, '{json_query}')"""
+            self.cursor.execute(sql)
+            count, = self.cursor.fetchone()
+            self.assertEqual(count, num_rows)
+
+    def test_3514_select_json(self):
+        "3514 - test selecting json data"
+        self.cursor.execute("truncate table TestJson")
+        self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        self.cursor.executemany("insert into TestJSON values (:1, :2)",
+                                list(enumerate(self.json_data)))
+        self.cursor.execute("""
+                select t.JsonCol.employees
+                from TestJson t
+                where t.JsonCol.employees is not null
+                order by t.IntCol""")
+        expected_data = [
+            self.json_data[-2]["employees"],
+            self.json_data[-1]["employees"]
+        ]
+        data = [r for r, in self.cursor]
+        self.assertEqual(data, expected_data)
+
+    def test_3515_json_serialize(self):
+        "3515 - test fetching json with json_serialize"
+        self.cursor.execute("truncate table TestJson")
+        data = [
+            {"a": 12.5},
+            {"b": True},
+            {"c": None}
+        ]
+        expected_data = [
+            '{"a":12.5}',
+            '{"b":true}',
+            '{"c":null}'
+        ]
+        self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+        self.cursor.executemany("insert into TestJSON values (:1, :2)",
+                                list(enumerate(data)))
+        self.cursor.execute("""
+                select json_serialize(JsonCol)
+                from TestJson
+                order by IntCol""")
+        fetched_data = [r for r, in self.cursor]
+        self.assertEqual(fetched_data, expected_data)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

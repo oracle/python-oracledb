@@ -49,6 +49,9 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc.getContent(), content)
         self.assertEqual(doc.key, key)
         self.assertEqual(doc.mediaType, media_type)
+        self.assertEqual(doc.version, None)
+        self.assertEqual(doc.lastModified, None)
+        self.assertEqual(doc.createdOn, None)
 
     def test_3300_create_document_with_json(self):
         "3300 - test creating documents with JSON data"
