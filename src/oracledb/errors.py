@@ -414,7 +414,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_MESSAGE_HAS_NO_PAYLOAD:
             'message has no payload',
     ERR_MESSAGE_TYPE_UNKNOWN:
-            'internal error: unknown protocol message type {message_type}',
+            'internal error: unknown protocol message type {message_type} '
+            'at position {position}',
     ERR_MISSING_BIND_VALUE:
             'a bind variable replacement value for placeholder ":{name}" was '
             'not provided',

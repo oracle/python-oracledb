@@ -177,7 +177,8 @@ cdef class Message:
             self._process_server_side_piggyback(buf)
         else:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,
-                              message_type=message_type)
+                              message_type=message_type,
+                              position=buf._pos - 1)
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         raise NotImplementedError()
