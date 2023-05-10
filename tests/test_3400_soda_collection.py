@@ -487,5 +487,67 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc.getContent(), expected_doc.getContent())
         coll.drop()
 
+    def test_3422_close_cursor(self):
+        """3422 - test close SodaDocCursor and confirm an exception is raised
+                  after closing a SodaDocCursor"""
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestCloseSodaDocCursor")
+        cursor = coll.find().getCursor()
+        cursor.close()
+        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006",
+                               cursor.close)
+        coll.drop()
+
+    def test_3423_limit(self):
+        "3423 - test limit to get specific amount of documents"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaLimit")
+        data = [{"group": "Camila"} for i in range(20)]
+        coll.insertMany(data)
+        self.connection.commit()
+        docs = coll.find().getDocuments()
+        self.assertEqual(len(docs), len(data))
+        docs = coll.find().limit(3).getDocuments()
+        self.assertEqual(len(docs), 3)
+        coll.drop()
+
+    def test_3424_count_negative(self):
+        "3424 - get count exceptions when using limit and skip"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaCountExceptions")
+        data = [{"song": "WYMCA"} for i in range(20)]
+        coll.insertMany(data)
+        self.connection.commit()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
+                               coll.find().limit(5).count)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
+                               coll.find().skip(10).count)
+        coll.drop()
+
+    def test_3425_map_mode(self):
+        "3425 - test mapMode parameter"
+        soda_db = self.get_soda_database()
+        data = [
+             {"a": 3},
+             {"b": 4}
+        ]
+        expected_data = data * 2
+        for mapMode in [False, True]:
+            coll = soda_db.createCollection("TestSodaMapMode", mapMode=mapMode)
+            coll.insertMany(data)
+        fetched_data = list(d.getContent() for d in coll.find().getDocuments())
+        self.assertEqual(fetched_data, expected_data)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626",
+                               coll.drop)
+        self.connection.commit()
+        coll.drop()
+
+    def test_3426_negative_map_mode(self):
+        "3426 - test mapping a new collection from an non-existent table"
+        soda_db = self.get_soda_database()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40623",
+                               soda_db.createCollection,
+                               "TestSodaMapNonExistent", mapMode=True)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
