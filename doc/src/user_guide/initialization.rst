@@ -478,8 +478,9 @@ first connection is established.  System environment variables like
 
 .. note::
 
-  These variables, with the exception of ``TNS_ADMIN``, are only supported in
-  the python-oracledb Thick mode.  See :ref:`enablingthick`.
+    The variables listed below are only supported in the python-oracledb Thick
+    mode, with the exception of ``TNS_ADMIN`` and ``ORA_SDTZ`` which are also
+    supported in the python-oracledb Thin mode.
 
 .. list-table-with-summary:: Common Oracle environment variables
     :header-rows: 1

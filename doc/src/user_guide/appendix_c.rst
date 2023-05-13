@@ -367,8 +367,8 @@ to python-oracledb:
        oracledb.connect("scott", pw, "localhost/orclpdb")
 
 - The python-oracledb Thin mode ignores all NLS environment variables.  It also
-  ignores ``ORA_SDTZ`` and ``ORA_TZFILE`` environment variables.  Thick mode does use
-  these variables.  See :ref:`globalization` for alternatives.
+  ignores the ``ORA_TZFILE`` environment variable.  Thick mode does use these
+  variables.  See :ref:`globalization` for alternatives.
 
 - To use a ``tnsnames.ora`` file in the python-oracledb Thin mode, you must
   explicitly set the environment variable ``TNS_ADMIN`` to the directory

@@ -326,9 +326,8 @@ The python-oracledb Thin and Thick modes handle some errors differently. See
 Globalization in Thin and Thick Modes
 =====================================
 
-All NLS environment variables, and the ``ORA_SDTZ`` and ``ORA_TZFILE``
-environment variables, are ignored by the python-oracledb Thin mode.  Use
-Python's capabilities instead.
+All NLS environment variables, and the ``ORA_TZFILE`` environment variable, are
+ignored by the python-oracledb Thin mode.  Use Python's capabilities instead.
 
 The python-oracledb Thin mode can only use NCHAR, NVARCHAR2, and NCLOB data
 when Oracle Database's secondary character set is AL16UTF16.

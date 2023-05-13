@@ -105,7 +105,7 @@ Thin Mode Locale-aware Number and Date Conversions
 .. note::
 
     All NLS environment variables are ignored by the python-oracledb Thin mode.
-    Also the ``ORA_SDTZ`` and ``ORA_TZFILE`` variables are ignored.
+    Also the ``ORA_TZFILE`` variable is ignored.
 
 .. note::
 
