@@ -572,6 +572,9 @@ cdef class ConnectParamsImpl:
         if pos >= 0:
             user = credentials[:pos] or None
             password = credentials[pos + 1:] or None
+        elif connect_string is None:
+            connect_string = dsn or None
+            user = password = None
         else:
             user = credentials or None
             password = None

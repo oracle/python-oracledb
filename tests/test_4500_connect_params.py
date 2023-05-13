@@ -619,5 +619,14 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(password, None)
             self.assertEqual(dsn, None)
 
+    def test_4561_dsn_with_no_credentials(self):
+        "4561 - test parsing a DSN with no credentials"
+        dsn_in = "my_alias_4561"
+        params = oracledb.ConnectParams()
+        user, password, dsn_out = params.parse_dsn_with_credentials(dsn_in)
+        self.assertEqual(user, None)
+        self.assertEqual(password, None)
+        self.assertEqual(dsn_out, dsn_in)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
