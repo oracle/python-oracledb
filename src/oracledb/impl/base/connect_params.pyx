@@ -608,7 +608,7 @@ cdef class ConnectParamsImpl:
         """
         if kwargs:
             self.set(kwargs)
-        if self.user is None and dsn is not None:
+        if self.user is None and not self.externalauth and dsn is not None:
             user, password, dsn = self.parse_dsn_with_credentials(dsn)
             self.set(dict(user=user, password=password))
         if dsn is not None and thin:
