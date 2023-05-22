@@ -104,10 +104,10 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         cdef MessageWithData message
         if self._statement._requires_full_execute:
             message = self._create_message(ExecuteMessage, cursor)
-            message.num_execs = self._fetch_array_size
         else:
             message = self._create_message(FetchMessage, cursor)
         self._conn_impl._protocol._process_single_message(message)
+        self._statement._requires_full_execute = False
 
     cdef BaseConnImpl _get_conn_impl(self):
         """

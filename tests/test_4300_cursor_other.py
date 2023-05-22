@@ -346,13 +346,15 @@ class TestCase(test_env.BaseTestCase):
         num_rows = 590
         with self.connection.cursor() as cursor:
             cursor.execute("truncate table TestTempTable")
+            self.assertRoundTrips(1)
             sql = "insert into TestTempTable (IntCol) values (:1)"
             data = [(n + 1,) for n in range(num_rows)]
             cursor.executemany(sql, data)
-            cursor.prefetchrows = 300
-            cursor.arraysize = 300
+            self.assertRoundTrips(1)
+            cursor.prefetchrows = 30
+            cursor.arraysize = 100
             cursor.execute("select IntCol from TestTempTable").fetchall()
-            self.assertRoundTrips(4)
+            self.assertRoundTrips(7)
 
     def test_4324_bind_names_with_single_line_comments(self):
         "4324 - test bindnames() with single line comments"

@@ -352,7 +352,6 @@ cdef class MessageWithData(Message):
             cursor = self.cursor.connection.cursor()
         cursor_impl = cursor._impl
         cursor_impl._statement = Statement()
-        cursor_impl._fetch_array_size = cursor.arraysize + cursor.prefetchrows
         cursor_impl._more_rows_to_fetch = True
         cursor_impl._statement._is_query = True
         cursor_impl._statement._requires_full_execute = True
@@ -1846,13 +1845,13 @@ cdef class ExecuteMessage(MessageWithData):
             if self.parse_only:
                 options |= TNS_EXEC_OPTION_DESCRIBE
             else:
-                if self.cursor_impl.prefetchrows > 0:
-                    options |= TNS_EXEC_OPTION_FETCH
                 if stmt._cursor_id == 0 or stmt._requires_define:
                     num_iters = self.cursor_impl.prefetchrows
-                    self.cursor_impl._fetch_array_size = num_iters
                 else:
-                    num_iters = self.cursor_impl._fetch_array_size
+                    num_iters = self.cursor_impl.arraysize
+                self.cursor_impl._fetch_array_size = num_iters
+                if num_iters > 0:
+                    options |= TNS_EXEC_OPTION_FETCH
         if not stmt._is_plsql and not self.parse_only:
             options |= TNS_EXEC_OPTION_NOT_PLSQL
         elif stmt._is_plsql and num_params > 0:

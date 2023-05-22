@@ -199,9 +199,6 @@ cdef class ThickVarImpl(BaseVarImpl):
             if dpiStmt_addRef(data.value.asStmt) < 0:
                 _raise_from_odpi()
             cursor_impl._handle = data.value.asStmt
-        if dpiStmt_setPrefetchRows(cursor_impl._handle,
-                                   cursor_impl.prefetchrows) < 0:
-            _raise_from_odpi()
         cursor_impl._fixup_ref_cursor = True
         cursor.statement = None
 

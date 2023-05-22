@@ -18,17 +18,25 @@ Thin Mode Changes
 #)  Added support for shrinking the pool back to the minimum number of
     connections allowed in the pool when the pool is idle for
     :data:`ConnectionPool.timeout` seconds.
+#)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
+    CURSORS.
 
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Fixed bug when using external authentication with a TNS alias
+#)  Fixed bug when using external authentication with a Net Service Name
+    connection string
     (`issue 178 <https://github.com/oracle/python-oracledb/issues/178>`__).
-#)  Fixed bug when using external authentication with an EZ connect string.
+#)  Fixed bug when using external authentication with an Easy Connect
+    connection string.
 
 Common Changes
 ++++++++++++++
 
+#)  When fetching rows from REF CURSORS, the cursor's
+    :attr:`~Cursor.prefetchrows` attribute is now ignored. Use
+    :attr:`Cursor.arraysize` for tuning these fetches. This change allows
+    consistency between Thin and Thick modes.
 #)  Improved test suite.
 
 

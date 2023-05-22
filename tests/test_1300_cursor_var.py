@@ -138,8 +138,8 @@ class TestCase(test_env.BaseTestCase):
         rows = ref_cursor.fetchall()
         self.assertEqual(rows, expected_value)
 
-    def test_1306_refcursor_prefetchrows(self):
-        "1306 - test prefetch rows and arraysize using a refcursor"
+    def test_1306_refcursor_round_trips(self):
+        "1306 - test round trips using a REF cursor"
         self.setup_round_trip_checker()
 
         # simple DDL only requires a single round trip
@@ -155,14 +155,23 @@ class TestCase(test_env.BaseTestCase):
             cursor.executemany(sql, data)
             self.assertRoundTrips(1)
 
-        # create refcursor and execute stored procedure
+        # create REF cursor and execute stored procedure
+        # (array size set before procedure is called)
         with self.connection.cursor() as cursor:
             refcursor = self.connection.cursor()
-            refcursor.prefetchrows = 150
-            refcursor.arraysize = 50
+            refcursor.arraysize = 150
             cursor.callproc("myrefcursorproc", [refcursor])
             refcursor.fetchall()
-            self.assertRoundTrips(4)
+            self.assertRoundTrips(5)
+
+        # create REF cursor and execute stored procedure
+        # (array size set after procedure is called)
+        with self.connection.cursor() as cursor:
+            refcursor = self.connection.cursor()
+            cursor.callproc("myrefcursorproc", [refcursor])
+            refcursor.arraysize = 145
+            refcursor.fetchall()
+            self.assertRoundTrips(6)
 
     def test_1307_refcursor_execute_different_sql(self):
         "1307 - test executing different SQL after getting a REF cursor"
