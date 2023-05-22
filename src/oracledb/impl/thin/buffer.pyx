@@ -748,7 +748,8 @@ cdef class Buffer:
 
     cdef object read_str(self, int csfrm):
         """
-        Reads a string of the specified size (in bytes) from the buffer.
+        Reads bytes from the buffer and decodes them into a string following
+        the supplied character set form.
         """
         cdef:
             const char_type *ptr
