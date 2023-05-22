@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -548,6 +548,18 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40623",
                                soda_db.createCollection,
                                "TestSodaMapNonExistent", mapMode=True)
+
+    def test_3427_negative(self):
+        "3427 - test negative cases for SodaOperation methods"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaOperationNegative")
+        self.assertRaises(TypeError, coll.find().filter, 5)
+        self.assertRaises(TypeError, coll.find().key, 2)
+        self.assertRaises(TypeError, coll.find().keys, [1, 2, 3])
+        self.assertRaises(TypeError, coll.find().skip, "word")
+        self.assertRaises(TypeError, coll.find().skip, -5)
+        self.assertRaises(TypeError, coll.find().version, 1971)
+        self.assertRaises(TypeError, coll.find().limit, "a word")
 
 if __name__ == "__main__":
     test_env.run_test_cases()

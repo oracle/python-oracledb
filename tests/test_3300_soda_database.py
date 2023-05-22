@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -126,6 +126,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, soda_db.createCollection, 1)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40658:",
                                soda_db.createCollection, None)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40675:",
+                               soda_db.createCollection, "CollMetadata", 7)
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
 
 if __name__ == "__main__":
