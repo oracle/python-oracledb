@@ -20,6 +20,7 @@ Thin Mode Changes
     :data:`ConnectionPool.timeout` seconds.
 #)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
     CURSORS.
+#)  Fixed bugs in the implementation of the statement cache.
 
 Thick Mode Changes
 ++++++++++++++++++
