@@ -20,6 +20,8 @@ Thin Mode Changes
     :data:`ConnectionPool.timeout` seconds.
 #)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
     CURSORS.
+#)  Fixed bug connecting to databases with older 11g password verifiers
+    (`issue 189 <https://github.com/oracle/python-oracledb/issues/189>`__).
 #)  Fixed bugs in the implementation of the statement cache.
 
 Thick Mode Changes

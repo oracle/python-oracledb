@@ -1325,20 +1325,18 @@ cdef class AuthMessage(Message):
                                                 newpassword_with_salt)
             self.encoded_newpassword = encrypted_newpassword.hex().upper()
 
-    cdef int _generate_verifier(self, bint verifier_11g) except -1:
+    cdef int _generate_verifier(self) except -1:
         """
         Generate the multi-round verifier.
         """
-        cdef bytes jdwp_data
+        cdef:
+            bytes jdwp_data
+            bytearray b
+            ssize_t i
 
         # create password hash
         verifier_data = bytes.fromhex(self.session_data['AUTH_VFR_DATA'])
-        if verifier_11g:
-            keylen = 24
-            h = hashlib.sha1(self.password)
-            h.update(verifier_data)
-            password_hash = h.digest() + bytes(4)
-        else:
+        if self.verifier_type == TNS_VERIFIER_TYPE_12C:
             keylen = 32
             iterations = int(self.session_data['AUTH_PBKDF2_VGEN_COUNT'])
             salt = verifier_data + b'AUTH_PBKDF2_SPEEDY_KEY'
@@ -1348,28 +1346,42 @@ cdef class AuthMessage(Message):
             h.update(password_key)
             h.update(verifier_data)
             password_hash = h.digest()[:32]
+        else:
+            keylen = 24
+            h = hashlib.sha1(self.password)
+            h.update(verifier_data)
+            password_hash = h.digest() + bytes(4)
 
         # decrypt first half of session key
         encoded_server_key = bytes.fromhex(self.session_data['AUTH_SESSKEY'])
         session_key_part_a = decrypt_cbc(password_hash, encoded_server_key)
 
         # generate second half of session key
-        session_key_part_b = secrets.token_bytes(32)
+        session_key_part_b = secrets.token_bytes(len(session_key_part_a))
         encoded_client_key = encrypt_cbc(password_hash, session_key_part_b)
-        self.session_key = encoded_client_key.hex().upper()[:64]
 
-        # create session key from combo key
-        mixing_salt = bytes.fromhex(self.session_data['AUTH_PBKDF2_CSK_SALT'])
-        iterations = int(self.session_data['AUTH_PBKDF2_SDER_COUNT'])
-        temp_key = session_key_part_b[:keylen] + session_key_part_a[:keylen]
-        combo_key = get_derived_key(temp_key.hex().upper().encode(),
-                                    mixing_salt, keylen, iterations)
+        # create session key and combo key
+        if len(session_key_part_a) == 48:
+            self.session_key = encoded_client_key.hex().upper()[:96]
+            b = bytearray(24)
+            for i in range(16, 40):
+                b[i - 16] = session_key_part_a[i] ^ session_key_part_b[i]
+            part1 = hashlib.md5(b[:16]).digest()
+            part2 = hashlib.md5(b[16:]).digest()
+            combo_key = (part1 + part2)[:keylen]
+        else:
+            self.session_key = encoded_client_key.hex().upper()[:64]
+            salt = bytes.fromhex(self.session_data['AUTH_PBKDF2_CSK_SALT'])
+            iterations = int(self.session_data['AUTH_PBKDF2_SDER_COUNT'])
+            temp_key = session_key_part_b[:keylen] + session_key_part_a[:keylen]
+            combo_key = get_derived_key(temp_key.hex().upper().encode(), salt,
+                                        keylen, iterations)
 
         # retain session key for use by the change password API
         self.conn_impl._combo_key = combo_key
 
         # generate speedy key for 12c verifiers
-        if not verifier_11g:
+        if self.verifier_type == TNS_VERIFIER_TYPE_12C:
             salt = secrets.token_bytes(16)
             speedy_key = encrypt_cbc(combo_key, salt + password_key)
             self.speedy_key = speedy_key[:80].hex().upper()
@@ -1539,7 +1551,6 @@ cdef class AuthMessage(Message):
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
             uint8_t has_user = 1 if self.user_bytes_len > 0 else 0
-            bint verifier_11g = False
             uint32_t num_pairs
 
         # perform final determination of data to write
@@ -1559,15 +1570,13 @@ cdef class AuthMessage(Message):
             else:
                 num_pairs += 2
                 self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
-                if self.verifier_type in (TNS_VERIFIER_TYPE_11G_1,
-                                          TNS_VERIFIER_TYPE_11G_2):
-                    verifier_11g = True
-                elif self.verifier_type != TNS_VERIFIER_TYPE_12C:
+                if self.verifier_type == TNS_VERIFIER_TYPE_12C:
+                    num_pairs += 1
+                elif self.verifier_type not in (TNS_VERIFIER_TYPE_11G_1,
+                                                TNS_VERIFIER_TYPE_11G_2):
                     errors._raise_err(errors.ERR_UNSUPPORTED_VERIFIER_TYPE,
                                       verifier_type=self.verifier_type)
-                else:
-                    num_pairs += 1
-                self._generate_verifier(verifier_11g)
+                self._generate_verifier()
 
             # determine which other key/value pairs to write
             if self.newpassword is not None:
@@ -1615,7 +1624,7 @@ cdef class AuthMessage(Message):
                 self._write_key_value(buf, "AUTH_TOKEN", self.token)
             elif not self.change_password:
                 self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
-                if not verifier_11g:
+                if self.verifier_type == TNS_VERIFIER_TYPE_12C:
                     self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",
                                           self.speedy_key)
             if self.encoded_password is not None:
