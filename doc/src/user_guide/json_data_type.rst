@@ -15,13 +15,34 @@ For more information about using JSON in Oracle Database see the `Database JSON
 Developer's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN>`__.
 
+**Oracle Database 21c JSON Data Type**
+
+Oracle Database 21c introduced a dedicated JSON data type with a new `binary
+storage format <https://blogs.oracle.com/jsondb/osonformat>`__ that improves
+performance and functionality compared with earlier releases.  To take
+advantage of the dedicated JSON type with Oracle Database 21c, or later, you
+can use python-oracledb in Thin or Thick modes.  With Thick mode the Oracle
+Client libraries should be version 21, or later.
+
+To create a table with a column called ``JSON_DATA`` for JSON data you might
+use:
+
+.. code-block:: sql
+
+    create table CustomersAsJson (
+        id integer not null primary key,
+        json_data json
+    );
+
+
 **Oracle Database 12c JSON Data Type**
 
-In Oracle Database 12c, JSON in relational tables is stored as BLOB, CLOB or
-VARCHAR2 data.  All of these types can be used with python-oracledb in Thin or
-Thick modes.
+In Oracle Database 12c, or later, JSON in relational tables can be stored as
+BLOB, CLOB or VARCHAR2 data.  All of these types can be used with
+python-oracledb in Thin or Thick modes.  BLOB is preferred to avoid character
+set conversion overheads.
 
-The older syntax to create a table with a JSON column is like:
+The syntax to create a table with a JSON column using BLOB storage is like:
 
 .. code-block:: sql
 
@@ -33,29 +54,8 @@ The older syntax to create a table with a JSON column is like:
 The check constraint with the clause ``IS JSON`` ensures only JSON data is
 stored in that column.
 
-The older syntax can still be used in Oracle Database 21c; however, the
-recommendation is to move to the new JSON type.  With the old syntax, the
-storage can be BLOB, CLOB, or VARCHAR2.  Of these, BLOB is preferred to avoid
-character set conversion overheads.
-
-**Oracle Database 21c JSON Data Type**
-
-Oracle Database 21c introduced a dedicated JSON data type with a new `binary
-storage format <https://blogs.oracle.com/jsondb/osonformat>`__ that improves
-performance and functionality.  To take advantage of the dedicated JSON type
-you can use python-oracledb in Thin or Thick modes.  With Thick mode the Oracle
-Client libraries should be version 21, or later.
-
-In Oracle Database 21, to create a table with a column called ``JSON_DATA`` for
-JSON data you might use:
-
-.. code-block:: sql
-
-    create table CustomersAsJson (
-        id integer not null primary key,
-        json_data json
-    );
-
+This older syntax can still be used in Oracle Database 21c (and later);
+however, the recommendation is to move to the new JSON type.
 
 Using the Oracle Database 21c JSON Type in python-oracledb
 ==========================================================

@@ -9,7 +9,7 @@ Database. It conforms to the `Python Database API v2.0 Specification
 additions and a couple of exclusions.
 
 This module is currently tested with Python 3.6, 3.7, 3.8, 3.9, 3.10 and 3.11
-against Oracle Database 21c, 19c, 18c, 12c, and 11.2.
+against Oracle Database 23c, 21c, 19c, 18c, 12c, and 11.2.
 
 **python-oracledb** is distributed under an open-source
 :ref:`license <license>`. Changes in python-oracledb releases can be found in

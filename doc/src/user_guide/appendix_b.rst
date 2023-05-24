@@ -152,7 +152,7 @@ In python-oracledb Thin mode, using the ``POOL_CONNECTION_CLASS`` or
 equivalent attributes when creating a connection or connection pool.
 
 In python-oracledb Thick mode, the ``POOL_CONNECTION_CLASS`` or ``POOL_PURITY``
-values will only work when connected to Oracle Database 21c. Note if
+values will only work when connected to Oracle Database 21c, or later. Note if
 ``POOL_PURITY=SELF`` is used in a connect string, then python-oracledb Thick
 mode applications will ignore the action to drop the session when attempting to
 remove an unusable connections from a pool in some uncommon error cases.  It is
