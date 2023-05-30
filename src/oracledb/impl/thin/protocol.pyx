@@ -385,14 +385,22 @@ cdef class Protocol:
                 self._process_message(message)
 
     cdef int _receive_packet(self, Message message) except -1:
-        cdef ReadBuffer buf = self._read_buf
+        cdef:
+            ReadBuffer buf = self._read_buf
+            uint16_t refuse_message_len
+            const char_type* ptr
         buf.receive_packet(&message.packet_type, &message.packet_flags)
         if message.packet_type == TNS_PACKET_TYPE_MARKER:
             self._reset(message)
         elif message.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
-            buf.skip_raw_bytes(3)
-            message.error_info.message = buf.read_str(TNS_CS_IMPLICIT)
+            buf.skip_raw_bytes(2)
+            buf.read_uint16(&refuse_message_len)
+            if refuse_message_len == 0:
+                message.error_info.message = None
+            else:
+                ptr = buf.read_raw_bytes(refuse_message_len)
+                message.error_info.message = ptr[:refuse_message_len].decode()
 
     cdef int _release_drcp_session(self, WriteBuffer buf,
                                    uint32_t release_mode) except -1:

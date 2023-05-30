@@ -321,14 +321,15 @@ cdef class ReadBuffer(Buffer):
         """
         Process a control packed received in between data packets.
         """
-        cdef uint16_t control_type, error_num
+        cdef:
+            uint16_t control_type
+            uint32_t error_num
         self.read_uint16(&control_type)
         if control_type == TNS_CONTROL_TYPE_RESET_OOB:
             self._caps.supports_oob = False
         elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
-            self.skip_raw_bytes(6)           # skip flags
-            self.read_uint16(&error_num)
-            self.skip_raw_bytes(4)
+            self.skip_raw_bytes(4)           # skip first integer
+            self.read_uint32(&error_num)
             if error_num == TNS_ERR_SESSION_SHUTDOWN \
                     or error_num == TNS_ERR_INBAND_MESSAGE:
                 self._session_needs_to_be_closed = True
