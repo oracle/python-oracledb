@@ -217,7 +217,11 @@ See :ref:`enablingthick`.
 For example, if you use python-oracledb Thin mode and try to connect to the
 Oracle Cloud Infrastructure (OCI) Oracle Base Database where by default native
 network encryption is set to REQUIRED in the ``sqlnet.ora`` file of the OCI
-Oracle Base Database server, the connection will fail with the error::
+Oracle Base Database server, the connection will fail with an error like::
+
+  DPY-4011: the database or network closed the connection
+
+or::
 
   DPY-6000: cannot connect to database. Listener refused connection.
   (Similar to ORA-12660)
