@@ -226,7 +226,8 @@ cdef class Protocol:
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
         self._process_message(auth_message)
-        self._process_message(auth_message)
+        if auth_message.resend:
+            self._process_message(auth_message)
 
         # mark protocol to indicate that connect is no longer in progress; this
         # allows the normal break/reset mechanism to fire
