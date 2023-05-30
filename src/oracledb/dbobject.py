@@ -43,7 +43,7 @@ class DbObject:
         return self._impl.get_attr_value(attr_impl)
 
     def __repr__(self):
-        return f"<oracledb.Object {self.type._get_full_name()} at " \
+        return f"<oracledb.DbObject {self.type._get_full_name()} at " \
                f"{hex(id(self))}>"
 
     def __setattr__(self, name, value):

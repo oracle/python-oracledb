@@ -40,6 +40,9 @@ Common Changes
     :attr:`~Cursor.prefetchrows` attribute is now ignored. Use
     :attr:`Cursor.arraysize` for tuning these fetches. This change allows
     consistency between Thin and Thick modes.
+#)  The repr() value of the DbObject class now shows the string "DbObject"
+    instead of the string "Object" for consistency with the name of the class
+    and the other repr() values for DbObjectType and DbObjectAttr.
 #)  Improved test suite.
 
 

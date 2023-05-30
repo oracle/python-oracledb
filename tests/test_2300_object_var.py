@@ -606,5 +606,13 @@ class TestCase(test_env.BaseTestCase):
         typ = self.connection.gettype("UDT_UNKNOWNELEMENTTYPE")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_UNKNOWN)
 
+    def test_2330_repr(self):
+        "2330 - test DB Object repr()"
+        typ = self.connection.gettype("UDT_ARRAY")
+        obj = typ.newobject()
+        fqn = f"{typ.schema}.{typ.name}"
+        expected_str = f"^<oracledb.DbObject {fqn} at 0x.+>$"
+        self.assertRegex(repr(obj), expected_str)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
