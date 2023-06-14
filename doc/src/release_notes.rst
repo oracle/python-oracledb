@@ -23,6 +23,8 @@ Thin Mode Changes
 #)  Fixed bug connecting to databases with older 11g password verifiers
     (`issue 189 <https://github.com/oracle/python-oracledb/issues/189>`__).
 #)  Fixed bugs in the implementation of the statement cache.
+#)  Fixed bug which caused a cursor leak if an error was thrown while
+    processing the execution of a query.
 #)  Eliminated unneeded round trip when using token authentication to connect
     to the database.
 

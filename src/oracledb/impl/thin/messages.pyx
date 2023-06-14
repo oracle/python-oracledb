@@ -740,7 +740,8 @@ cdef class MessageWithData(Message):
             ThinConnImpl conn_impl = self.conn_impl
             object exc_type
         Message._process_error_info(self, buf)
-        cursor_impl._statement._cursor_id = self.error_info.cursor_id
+        if self.error_info.cursor_id != 0:
+            cursor_impl._statement._cursor_id = self.error_info.cursor_id
         if not cursor_impl._statement._is_plsql and not self.in_fetch:
             cursor_impl.rowcount = self.error_info.rowcount
         cursor_impl._lastrowid = self.error_info.rowid
