@@ -196,9 +196,10 @@ cdef class ThinPoolImpl(BasePoolImpl):
         Helper method which adds a connection to the list of connections to be
         closed and notifies the background thread.
         """
-        self._conn_impls_to_drop.append(conn_impl)
-        with self._bg_thread_condition:
-            self._bg_thread_condition.notify()
+        if conn_impl._protocol._socket is not None:
+            self._conn_impls_to_drop.append(conn_impl)
+            with self._bg_thread_condition:
+                self._bg_thread_condition.notify()
 
     cdef int _drop_conn_impls_helper(self, list conn_impls_to_drop) except -1:
         """

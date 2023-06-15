@@ -31,6 +31,8 @@ Thin Mode Changes
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
 #)  Fixed bug when using DRCP with Oracle Database 23c.
+#)  Fixed bug when a connection is discarded from the pool during
+    acquire() and the ping check fails due to the connection being dead.
 
 Thick Mode Changes
 ++++++++++++++++++
