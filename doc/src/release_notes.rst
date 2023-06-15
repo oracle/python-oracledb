@@ -16,6 +16,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug when using external authentication with a TNS alias
+    (`issue 178 <https://github.com/oracle/python-oracledb/issues/178>`__).
+
 Common Changes
 ++++++++++++++
 
