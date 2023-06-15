@@ -18,6 +18,9 @@ Thin Mode Changes
 #)  Added support for shrinking the pool back to the minimum number of
     connections allowed in the pool when the pool is idle for
     :data:`ConnectionPool.timeout` seconds.
+#)  Added support for growing the pool back to the minimum number of
+    connections allowed in the pool when connections are killed or otherwise
+    made unusable.
 #)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
     CURSORS.
 #)  Fixed bug connecting to databases with older 11g password verifiers
@@ -31,6 +34,8 @@ Thin Mode Changes
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
 #)  Fixed bug when using DRCP with Oracle Database 23c.
+#)  Fixed bug when a dynamically sized pool is created with an increment of
+    zero and the pool needs to grow.
 #)  Fixed bug when a connection is discarded from the pool during
     acquire() and the ping check fails due to the connection being dead.
 

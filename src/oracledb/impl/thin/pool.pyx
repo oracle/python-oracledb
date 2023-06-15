@@ -108,9 +108,6 @@ cdef class ThinPoolImpl(BasePoolImpl):
             list conn_impls_to_drop
             bint wait
 
-        # create the initial set of connections requested
-        self._create_conn_impls_helper(self.min)
-
         # create connections and close connections as needed
         while True:
             conn_impls_to_drop = []
@@ -119,9 +116,11 @@ cdef class ThinPoolImpl(BasePoolImpl):
 
             # determine if there is any work to do
             with self._condition:
-                if self._open and self._num_waiters > 0:
-                    open_count = self.get_open_count()
-                    num_conns = min(self.increment, self.max - open_count)
+                open_count = self.get_open_count()
+                if self._open and \
+                        (self._num_waiters > 0 or open_count < self.min):
+                    num_conns = max(self.min - open_count,
+                                    min(self.increment, self.max - open_count))
                 if not self._open or self._bg_exc is None:
                     conn_impls_to_drop = self._conn_impls_to_drop
                     self._conn_impls_to_drop = []

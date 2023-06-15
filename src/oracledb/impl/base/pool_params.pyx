@@ -94,3 +94,8 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
                                              &self.max_sessions_per_shard)
         _set_bool_param(args, "soda_metadata_cache", &self.soda_metadata_cache)
         _set_int_param(args, "ping_interval", &self.ping_interval)
+
+        # if the pool is dynamically sized (min != max) then ensure that the
+        # increment value is non-zero (as otherwise the pool would never grow!)
+        if self.max != self.min and self.increment == 0:
+            self.increment = 1

@@ -741,5 +741,18 @@ class TestCase(test_env.BaseTestCase):
         sid = conn.cursor().execute(sql).fetchone()[0]
         self.assertEqual(sid, sids[0], "not LIFO")
 
+    def test_2433_dynamic_pool_with_zero_increment(self):
+        "2433 - verify that dynamic pool cannot have an increment of zero"
+        pool = test_env.get_pool(min=1, max=3, increment=0)
+        self.assertEqual(pool.increment, 1)
+        conn1 = pool.acquire()
+        conn2 = pool.acquire()
+
+    def test_2434_static_pool_with_zero_increment(self):
+        "2434 - verify that static pool can have an increment of zero"
+        pool = test_env.get_pool(min=1, max=1, increment=0)
+        self.assertEqual(pool.increment, 0)
+        conn = pool.acquire()
+
 if __name__ == "__main__":
     test_env.run_test_cases()
