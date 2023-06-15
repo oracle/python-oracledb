@@ -102,7 +102,7 @@ cdef class Protocol:
                     message = conn_impl._create_message(RollbackMessage)
                     self._process_message(message)
                 if conn_impl._drcp_enabled:
-                    self._release_drcp_session(self._write_buf, release_mode)
+                    self._release_drcp_session(conn_impl, release_mode)
                     conn_impl._drcp_establish_session = True
 
             # if the connection is part of a pool, return it to the pool
@@ -405,20 +405,16 @@ cdef class Protocol:
                 ptr = buf.read_raw_bytes(refuse_message_len)
                 message.error_info.message = ptr[:refuse_message_len].decode()
 
-    cdef int _release_drcp_session(self, WriteBuffer buf,
+    cdef int _release_drcp_session(self, ThinConnImpl conn_impl,
                                    uint32_t release_mode) except -1:
         """
         Release the session back to DRCP. Standalone sessions are marked for
         deauthentication.
         """
-        buf.start_request(TNS_PACKET_TYPE_DATA)
-        buf.write_uint8(TNS_MSG_TYPE_ONEWAY_FN)
-        buf.write_uint8(TNS_FUNC_SESSION_RELEASE)
-        buf.write_uint8(0)                  # seq number
-        buf.write_uint8(0)                  # pointer (tag name)
-        buf.write_uint8(0)                  # tag name length
-        buf.write_ub4(release_mode)         # mode
-        buf.end_request()
+        cdef SessionReleaseMessage message
+        message = conn_impl._create_message(SessionReleaseMessage)
+        message.release_mode = release_mode
+        message.send(self._write_buf)
 
     cdef int _reset(self, Message message) except -1:
         cdef uint8_t marker_type
