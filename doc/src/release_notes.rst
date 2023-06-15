@@ -13,33 +13,35 @@ oracledb 1.3.2 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
+    CURSORS.
 #)  Fixed bug connecting to databases with older 11g password verifiers
     (`issue 189 <https://github.com/oracle/python-oracledb/issues/189>`__).
+#)  Fixed bugs in the implementation of the statement cache.
 #)  Fixed bug which caused a cursor leak if an error was thrown while
     processing the execution of a query.
-#)  Fixed bugs in the implementation of the statement cache.
+#)  Eliminated unneeded round trip when using token authentication to connect
+    to the database.
 #)  Fixed bug which could cause a redirect loop with improperly configured
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
-#)  Eliminated unneeded round trip when using token authentication to connect
-    to the database.
-#)  Adjusted fetching of REF cursors so that the cursor's arraysize attribute
-    is consistently taken into account before each internal fetch is performed.
-    This ensures that the number of round trips can be easily determined.
 
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Fixed bug when using external authentication with a TNS alias
+#)  Fixed bug when using external authentication with a Net Service Name
+    connection string
     (`issue 178 <https://github.com/oracle/python-oracledb/issues/178>`__).
-#)  Fixed bug when using external authentication with an EZ connect string.
+#)  Fixed bug when using external authentication with an Easy Connect
+    connection string.
 
 Common Changes
 ++++++++++++++
 
-#)  When fetching REF cursors, only the cursor's arraysize attribute is
-    considered. Previously, the cursor's prefetchrows attribute was also
-    considered, but in differing ways between thin and thick modes.
+#)  When fetching rows from REF CURSORS, the cursor's
+    :attr:`~Cursor.prefetchrows` attribute is now ignored. Use
+    :attr:`Cursor.arraysize` for tuning these fetches. This change allows
+    consistency between Thin and Thick modes.
 
 
 oracledb 1.3.1 (April 2023)
