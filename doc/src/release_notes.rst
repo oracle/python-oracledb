@@ -18,6 +18,8 @@ Thin Mode Changes
 #)  Fixed bug which caused a cursor leak if an error was thrown while
     processing the execution of a query.
 #)  Fixed bugs in the implementation of the statement cache.
+#)  Fixed bug which could cause a redirect loop with improperly configured
+    listener redirects.
 #)  Eliminated unneeded round trip when using token authentication to connect
     to the database.
 

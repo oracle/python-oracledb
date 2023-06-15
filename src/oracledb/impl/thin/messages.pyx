@@ -1746,7 +1746,7 @@ cdef class ConnectMessage(Message):
         if buf._caps.supports_oob:
             service_options |= TNS_GSO_CAN_RECV_ATTENTION
             connect_flags_2 |= TNS_CHECK_OOB
-        buf.start_request(TNS_PACKET_TYPE_CONNECT)
+        buf.start_request(TNS_PACKET_TYPE_CONNECT, self.packet_flags)
         buf.write_uint16(TNS_VERSION_DESIRED)
         buf.write_uint16(TNS_VERSION_MINIMUM)
         buf.write_uint16(service_options)

@@ -133,11 +133,11 @@ cdef class Protocol:
         """
         cdef:
             ConnectMessage connect_message = None
+            uint8_t packet_type, packet_flags = 0
             object ssl_context, connect_info
             ConnectParamsImpl temp_params
             str host, redirect_data
             Address temp_address
-            uint8_t packet_type
             int port, pos
 
         # store whether OOB processing is possible or not
@@ -163,6 +163,7 @@ cdef class Protocol:
                 connect_message.connect_string_bytes = connect_string.encode()
                 connect_message.connect_string_len = \
                         <uint16_t> len(connect_message.connect_string_bytes)
+                connect_message.packet_flags = packet_flags
 
             # process connection message
             self._process_message(connect_message)
@@ -180,6 +181,7 @@ cdef class Protocol:
                 connect_string = redirect_data[pos + 1:]
                 self._connect_tcp(params, description, address, host, port)
                 connect_message = None
+                packet_flags = TNS_PACKET_FLAG_REDIRECT
             elif connect_message.packet_type == TNS_PACKET_TYPE_ACCEPT:
                 break
 
@@ -293,7 +295,7 @@ cdef class Protocol:
         """
         Send the final close packet to the server and close the socket.
         """
-        buf.start_request(TNS_PACKET_TYPE_DATA, TNS_DATA_FLAGS_EOF)
+        buf.start_request(TNS_PACKET_TYPE_DATA, 0, TNS_DATA_FLAGS_EOF)
         buf.end_request()
         self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
