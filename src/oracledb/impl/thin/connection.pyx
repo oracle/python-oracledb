@@ -237,11 +237,12 @@ cdef class ThinConnImpl(BaseConnImpl):
             if statement is None:
                 statement = Statement()
                 statement._prepare(sql)
-                if len(self._statement_cache) < self._statement_cache_size \
-                        and cache_statement \
-                        and not self._drcp_establish_session:
-                    self._statement_cache[sql] = statement
+                if cache_statement and not self._drcp_establish_session \
+                        and not statement._is_ddl \
+                        and self._statement_cache_size > 0:
                     statement._return_to_cache = True
+                    self._statement_cache[sql] = statement
+                    self._adjust_statement_cache()
             elif statement._in_use or not cache_statement \
                     or self._drcp_establish_session:
                 if not cache_statement:
@@ -283,8 +284,6 @@ cdef class ThinConnImpl(BaseConnImpl):
         with self._statement_cache_lock:
             if statement._return_to_cache:
                 statement._in_use = False
-                self._statement_cache.move_to_end(statement._sql)
-                self._adjust_statement_cache()
             elif statement._cursor_id != 0:
                 self._add_cursor_to_close(statement)
 
