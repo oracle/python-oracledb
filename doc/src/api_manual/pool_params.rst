@@ -32,18 +32,21 @@ PoolParams Methods
   which is looked up in ``tnsnames.ora``. Parameters that are found in the connect string
   override any currently stored values.
 
-.. method:: PoolParams.set(min=None, max=None, increment=None, connectiontype=None, \
-    getmode=None, homogeneous=None, timeout=None, wait_timeout=None, \
-    max_lifetime_session=None, session_callback=None, max_sessions_per_shard=None, \
-    soda_metadata_cache=None, ping_interval=None, user=None, proxy_user=None,\
-    password=None, newpassword=None, wallet_password=None, access_token=None, \
-    host=None, port=None, protocol=None, https_proxy=None, https_proxy_port=None, \
-    service_name=None, sid=None, server_type=None, cclass=None, purity=None, \
-    expire_time=None, retry_count=None, retry_delay=None, tcp_connect_timeout=None, \
-    ssl_server_dn_match=None, ssl_server_cert_dn=None, wallet_location=None, \
-    events=None, externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
-    edition=None, tag=None, matchanytag=None, config_dir=None, appcontext=[], \
-    shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=None)
+.. method:: PoolParams.set(min=None, max=None, increment=None, \
+        connectiontype=None, getmode=None, homogeneous=None, timeout=None, \
+        wait_timeout=None, max_lifetime_session=None, session_callback=None, \
+        max_sessions_per_shard=None, soda_metadata_cache=None, \
+        ping_interval=None, user=None, proxy_user=None, password=None, \
+        newpassword=None, wallet_password=None, access_token=None, host=None, \
+        port=None, protocol=None, https_proxy=None, https_proxy_port=None, \
+        service_name=None, sid=None, server_type=None, cclass=None, \
+        purity=None, expire_time=None, retry_count=None, retry_delay=None, \
+        tcp_connect_timeout=None, ssl_server_dn_match=None, \
+        ssl_server_cert_dn=None, wallet_location=None, events=None, \
+        externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
+        edition=None, tag=None, matchanytag=None, config_dir=None, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        handle=None)
 
   Sets one or more of the parameters.
 
@@ -55,19 +58,20 @@ PoolParams Attributes
 .. attribute:: PoolParams.connectiontype
 
   This read-only attribute specifies the class of the connection that should
-  be returned during calls to :meth:`ConnectionPool.acquire()`. It must be Connection
-  or a subclass of Connection. This attribute is of type Type["oracledb.connection"].
-  The default value is ``oracledb.Connection``.
+  be returned during calls to :meth:`ConnectionPool.acquire()`. It must be
+  Connection or a subclass of Connection. This attribute is of type
+  Type["oracledb.connection"].  The default value is ``oracledb.Connection``.
 
   This attribute is supported in the python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.getmode
 
   This read-write attribute is an integer that determines the behavior of
-  :meth:`ConnectionPool.acquire()`. The value of this attribute can be one of the
-  constants :data:`oracledb.POOL_GETMODE_WAIT`, :data:`oracledb.POOL_GETMODE_NOWAIT`,
-  :data:`oracledb.POOL_GETMODE_FORCEGET`, or :data:`oracledb.POOL_GETMODE_TIMEDWAIT`.
-  The default value is :data:`oracledb.POOL_GETMODE_WAIT`.
+  :meth:`ConnectionPool.acquire()`. The value of this attribute can be one of
+  the constants :data:`oracledb.POOL_GETMODE_WAIT`,
+  :data:`oracledb.POOL_GETMODE_NOWAIT`, :data:`oracledb.POOL_GETMODE_FORCEGET`,
+  or :data:`oracledb.POOL_GETMODE_TIMEDWAIT`.  The default value is
+  :data:`oracledb.POOL_GETMODE_WAIT`.
 
   This attribute is supported in the python-oracledb Thin and Thick modes.
 
@@ -125,9 +129,10 @@ PoolParams Attributes
   (in seconds) after which an unused connection in the pool will be a
   candidate for pinging when :meth:`ConnectionPool.acquire()` is called.
   If the ping to the database indicates that the connection is not alive,
-  then a replacement connection will be returned by :meth:`ConnectionPool.acquire()`.
-  If the ``ping_interval`` is a negative value, then the ping functionality
-  will be disabled. The default value is 60 seconds.
+  then a replacement connection will be returned by
+  :meth:`ConnectionPool.acquire()`.  If the ``ping_interval`` is a negative
+  value, then the ping functionality will be disabled. The default value is 60
+  seconds.
 
   This attribute is supported in the python-oracledb Thin and Thick modes.
 

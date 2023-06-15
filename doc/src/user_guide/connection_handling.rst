@@ -682,25 +682,28 @@ initiates pool growth will return after the first new connection is created,
 regardless of how big ``increment`` is.  The pool will then continue to
 re-establish connections in a background thread.
 
-A connection pool can shrink back to its minimum size when connections opened
-by the pool are not used by the application.  This frees up database resources
-while allowing pools to retain connections for active users.  If connections
-are idle in the pool (i.e. not currently acquired by the application) and are
-unused for longer than the pool creation attribute ``timeout`` value, then they
-will be closed.  The default ``timeout`` is 0 seconds signifying an infinite
-time and meaning idle connections will never be closed.  In python-oracledb
-Thick mode, the pool creation parameter ``max_lifetime_session`` also allows
-pools to shrink.  This parameter bounds the total length of time that a
-connection can exist starting from the time the pool created it.  If a
-connection was created ``max_lifetime_session`` or longer seconds ago, then it
-will be closed when it is idle in the pool.  In the case when ``timeout`` and
-``max_lifetime_session`` are both set, the connection will be terminated if
-either the idle timeout happens or the max lifetime setting is exceeded.  Note
-that when using python-oracledb in Thick mode with Oracle Client libraries
-prior to 21c, pool shrinkage is only initiated when the pool is accessed so
-pools in fully dormant applications will not shrink until the application is
-next used.  When using python-oracledb in Thin mode, connection timeout checks
-only occur when :meth:`~ConnectionPool.acquire()` is called.
+A connection pool can shrink back to its minimum size ``min`` when connections
+opened by the pool are not used by the application.  This frees up database
+resources while allowing pools to retain connections for active users.  If
+connections are idle in the pool (i.e. not currently acquired by the
+application) and are unused for longer than the pool creation attribute
+``timeout`` value, then they will be closed.  The check occurs every
+``timeout`` interval and hence in the worst case it may take twice the
+``timeout`` time to close the idle connections.  The default ``timeout`` is 0
+seconds signifying an infinite time and meaning idle connections will never be
+closed.
+
+In python-oracledb Thick mode, the pool creation parameter
+``max_lifetime_session`` also allows pools to shrink.  This parameter bounds
+the total length of time that a connection can exist starting from the time the
+pool created it.  If a connection was created ``max_lifetime_session`` or
+longer seconds ago, then it will be closed when it is idle in the pool.  In the
+case when ``timeout`` and ``max_lifetime_session`` are both set, the connection
+will be terminated if either the idle timeout happens or the max lifetime
+setting is exceeded.  Note that when using python-oracledb in Thick mode with
+Oracle Client libraries prior to 21c, pool shrinkage is only initiated when the
+pool is accessed so pools in fully dormant applications will not shrink until
+the application is next used.
 
 For pools created with :ref:`external authentication <extauth>`, with
 :ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`,
@@ -2418,11 +2421,37 @@ requirements and read the documentation for your Oracle version. In particular,
 review the available algorithms for security and performance.
 
 The ``NETWORK_SERVICE_BANNER`` column of the database view
-`V$SESSION_CONNECT_INFO
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+`V$SESSION_CONNECT_INFO <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__ can be used to verify the
-encryption status of a connection.
+encryption status of a connection. For example with SQL*Plus::
 
+    SQL> SELECT network_service_banner FROM v$session_connect_info;
+
+If the connection is encrypted, then this query prints an output that includes
+the available encryption service, the crypto-checksumming service, and the
+algorithms in use, such as::
+
+    NETWORK_SERVICE_BANNER
+    -------------------------------------------------------------------------------------
+    TCP/IP NT Protocol Adapter for Linux: Version 19.0.0.0.0 - Production
+    Encryption service for Linux: Version 19.0.1.0.0 - Production
+    AES256 Encryption service adapter for Linux: Version 19.0.1.0.0 - Production
+    Crypto-checksumming service for Linux: Version 19.0.1.0.0 - Production
+    SHA256 Crypto-checksumming service adapter for Linux: Version 19.0.1.0.0 - Production
+
+If the connection is unencrypted, then the query will only print the
+available encryption and crypto-checksumming services in the output. For example::
+
+    NETWORK_SERVICE_BANNER
+    -------------------------------------------------------------------------------------
+    TCP/IP NT Protocol Adapter for Linux: Version 19.0.0.0.0 - Production
+    Encryption service for Linux: Version 19.0.1.0.0 - Production
+    Crypto-checksumming service for Linux: Version 19.0.1.0.0 - Production
+
+For more information about Oracle Data Network Encryption and Integrity,
+and for information about configuring TLS network encryption, refer to
+the `Oracle Database Security Guide <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=DBSEG>`__.
 
 Resetting Passwords
 ===================
