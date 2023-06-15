@@ -21,6 +21,39 @@ Thin Mode Changes
 #)  Added support for growing the pool back to the minimum number of
     connections allowed in the pool when connections are killed or otherwise
     made unusable.
+#)  Fixed bug when a dynamically sized pool is created with an increment of
+    zero and the pool needs to grow.
+#)  Fixed bug when a connection is discarded from the pool during
+    acquire() and the ping check fails due to the connection being dead.
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed bug when using external authentication with an Easy Connect
+    connection string.
+#)  Relaxed restriction for end-to-end string connection attributes. These
+    values can be set to the value ``None`` which will be treated the same as
+    an empty string.
+
+Common Changes
+++++++++++++++
+
+#)  Added support for automatically retrying a query if the error
+    ``ORA-00932: inconsistent data types`` is raised (which can occur if a
+    table or view is recreated with a data type that is incompatible with
+    the column's previous data type).
+#)  The repr() value of the DbObject class now shows the string "DbObject"
+    instead of the string "Object" for consistency with the name of the class
+    and the other repr() values for DbObjectType and DbObjectAttr.
+#)  Improved test suite.
+
+
+oracledb 1.3.2 (June 2023)
+--------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
 #)  Fixed bug using :attr:`Cursor.arraysize` for tuning data fetches from REF
     CURSORS.
 #)  Fixed bug connecting to databases with older 11g password verifiers
@@ -34,10 +67,6 @@ Thin Mode Changes
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
 #)  Fixed bug when using DRCP with Oracle Database 23c.
-#)  Fixed bug when a dynamically sized pool is created with an increment of
-    zero and the pool needs to grow.
-#)  Fixed bug when a connection is discarded from the pool during
-    acquire() and the ping check fails due to the connection being dead.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -47,9 +76,6 @@ Thick Mode Changes
     (`issue 178 <https://github.com/oracle/python-oracledb/issues/178>`__).
 #)  Fixed bug when using external authentication with an Easy Connect
     connection string.
-#)  Relaxed restriction for end-to-end string connection attributes. These
-    values can be set to the value ``None`` which will be treated the same as
-    an empty string.
 
 Common Changes
 ++++++++++++++
@@ -58,14 +84,6 @@ Common Changes
     :attr:`~Cursor.prefetchrows` attribute is now ignored. Use
     :attr:`Cursor.arraysize` for tuning these fetches. This change allows
     consistency between Thin and Thick modes.
-#)  Added support for automatically retrying a query if the error
-    ``ORA-00932: inconsistent data types`` is raised (which can occur if a
-    table or view is recreated with a data type that is incompatible with
-    the column's previous data type).
-#)  The repr() value of the DbObject class now shows the string "DbObject"
-    instead of the string "Object" for consistency with the name of the class
-    and the other repr() values for DbObjectType and DbObjectAttr.
-#)  Improved test suite.
 
 
 oracledb 1.3.1 (April 2023)
