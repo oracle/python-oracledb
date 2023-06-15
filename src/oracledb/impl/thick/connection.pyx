@@ -183,9 +183,13 @@ cdef class ThickConnImpl(BaseConnImpl):
             uint32_t value_length
             const char *value_ptr
             bytes value_bytes
-        value_bytes = value.encode()
-        value_ptr = value_bytes
-        value_length = len(value_bytes)
+        if value is not None:
+            value_bytes = value.encode()
+            value_ptr = value_bytes
+            value_length = len(value_bytes)
+        else:
+            value_ptr = NULL
+            value_length = 0
         if func(self._handle, value_ptr, value_length) < 0:
             _raise_from_odpi()
 

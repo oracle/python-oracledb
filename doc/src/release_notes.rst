@@ -39,6 +39,9 @@ Thick Mode Changes
     (`issue 178 <https://github.com/oracle/python-oracledb/issues/178>`__).
 #)  Fixed bug when using external authentication with an Easy Connect
     connection string.
+#)  Relaxed restriction for end-to-end string connection attributes. These
+    values can be set to the value ``None`` which will be treated the same as
+    an empty string.
 
 Common Changes
 ++++++++++++++

@@ -206,7 +206,8 @@ class Connection:
     def action(self, value: str) -> None:
         """
         Specifies the action column in the v$session table. It is a string
-        attribute and cannot be set to None -- use the empty string instead.
+        attribute but the value None is also accepted and treated as an empty
+        string.
         """
         self._verify_connected()
         self._impl.set_action(value)
