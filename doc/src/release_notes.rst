@@ -29,6 +29,7 @@ Thin Mode Changes
     to the database.
 #)  Fixed bug which could cause a redirect loop with improperly configured
     listener redirects.
+#)  Fixed bug when executing PL/SQL with a large number of binds.
 
 Thick Mode Changes
 ++++++++++++++++++
