@@ -23,6 +23,9 @@ Thin Mode Changes
 #)  Fixed bug when executing PL/SQL with a large number of binds.
 #)  Eliminated unneeded round trip when using token authentication to connect
     to the database.
+#)  Adjusted fetching of REF cursors so that the cursor's arraysize attribute
+    is consistently taken into account before each internal fetch is performed.
+    This ensures that the number of round trips can be easily determined.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -33,6 +36,10 @@ Thick Mode Changes
 
 Common Changes
 ++++++++++++++
+
+#)  When fetching REF cursors, only the cursor's arraysize attribute is
+    considered. Previously, the cursor's prefetchrows attribute was also
+    considered, but in differing ways between thin and thick modes.
 
 
 oracledb 1.3.1 (April 2023)

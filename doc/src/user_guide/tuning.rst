@@ -245,11 +245,10 @@ Avoiding Premature Prefetching
 
 There are two cases that will benefit from setting ``prefetchrows`` to zero:
 
-* When passing REF CURSORS into PL/SQL packages.  Setting ``prefetchrows`` to 0
-  can stop rows being prematurely (and silently) fetched into the
-  python-oracledb or Oracle Client (in python-oracledb Thick mode) internal
-  buffer, making those rows unavailable to the PL/SQL code that receives the
-  REF CURSOR.
+* When passing REF CURSORS *into* PL/SQL packages.  Setting ``prefetchrows`` to
+  0 can stop rows being prematurely (and silently) fetched into the
+  python-oracledb internal buffer, making those rows unavailable to the PL/SQL
+  code that receives the REF CURSOR.
 
 * When querying a PL/SQL function that uses PIPE ROW to emit rows at
   intermittent intervals.  By default, several rows needs to be emitted by the
@@ -259,27 +258,33 @@ There are two cases that will benefit from setting ``prefetchrows`` to zero:
 Tuning Fetching from REF CURSORS
 --------------------------------
 
-In python-oracledb, fetching data from REF CURSORS can be tuned by setting the
-values of ``arraysize`` and ``prefetchrows``. The ``prefetchrows`` value must
-be set before calling the PL/SQL procedure because the REF CURSOR is executed
-on the server.
+The internal buffering and performance of fetching data from REF CURSORS can be
+tuned by setting the value of ``arraysize`` before rows are fetched from the
+cursor. The ``prefetchrows`` value is ignored when fetching *from* REF CURSORS.
 
 For example:
 
 .. code-block:: python
 
-    # Set the arraysize and prefetch rows of the REF cursor
     ref_cursor = connection.cursor()
-    ref_cursor.prefetchrows = 1000
-    ref_cursor.arraysize = 1000
-
-    # Perform the tuned fetch
-    sum_rows = 0
     cursor.callproc("myrefcursorproc", [ref_cursor])
+
+    ref_cursor.arraysize = 1000
     print("Sum of IntCol for", num_rows, "rows:")
     for row in ref_cursor:
         sum_rows += row[0]
     print(sum_rows)
+
+The ``arraysize`` value can also be set before calling the procedure:
+
+.. code-block:: python
+
+    ref_cursor = connection.cursor()
+    ref_cursor.arraysize = 1000
+
+    cursor.callproc("myrefcursorproc", [ref_cursor])
+    for row in ref_cursor:
+        . . .
 
 .. _roundtrips:
 
