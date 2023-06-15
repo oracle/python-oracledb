@@ -118,8 +118,8 @@ cdef object _to_binary_int(object fetch_value):
 cdef object _tstamp_to_date(object fetch_value):
     return fetch_value.replace(microsecond=0)
 
-cdef int conversion_helper(ThinVarImpl output_var, FetchInfo fetch_info,
-                           bint *requires_define) except -1:
+cdef int conversion_helper(ThinVarImpl output_var,
+                           FetchInfo fetch_info) except -1:
     cdef:
         uint8_t fetch_ora_type_num, output_ora_type_num, csfrm
         object key, value
@@ -134,7 +134,6 @@ cdef int conversion_helper(ThinVarImpl output_var, FetchInfo fetch_info,
             if fetch_ora_type_num == TNS_DATA_TYPE_NUMBER:
                 output_var._preferred_num_type = value
             else:
-                requires_define[0] = True
                 csfrm = output_var.dbtype._csfrm
                 fetch_info._dbtype = DbType._from_ora_type_and_csfrm(value,
                                                                      csfrm)

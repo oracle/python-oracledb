@@ -364,7 +364,7 @@ cdef class Protocol:
             self._break_in_progress = False
         self._txn_in_progress = message.call_status & TNS_TXN_IN_PROGRESS
         if message.error_occurred:
-            if message.error_info.num == TNS_ERR_VAR_NOT_IN_SELECT_LIST:
+            if message.retry:
                 message.error_occurred = False
                 return self._process_message(message)
             error = errors._Error(message.error_info.message,

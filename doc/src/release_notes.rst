@@ -46,6 +46,10 @@ Common Changes
     :attr:`~Cursor.prefetchrows` attribute is now ignored. Use
     :attr:`Cursor.arraysize` for tuning these fetches. This change allows
     consistency between Thin and Thick modes.
+#)  Added support for automatically retrying a query if the error
+    ``ORA-00932: inconsistent data types`` is raised (which can occur if a
+    table or view is recreated with a data type that is incompatible with
+    the column's previous data type).
 #)  The repr() value of the DbObject class now shows the string "DbObject"
     instead of the string "Object" for consistency with the name of the class
     and the other repr() values for DbObjectType and DbObjectAttr.

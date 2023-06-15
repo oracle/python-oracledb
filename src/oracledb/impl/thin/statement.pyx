@@ -93,8 +93,9 @@ cdef class Statement:
         object _bind_info_dict
         object _last_output_type_handler
         uint32_t _num_columns
-        bint _requires_full_execute
-        bint _always_full_execute
+        bint _executed
+        bint _binds_changed
+        bint _no_prefetch
         bint _requires_define
         bint _return_to_cache
         bint _in_use
@@ -145,18 +146,6 @@ cdef class Statement:
                 self._bind_info_dict[info._bind_name].append(info)
             else:
                 self._bind_info_dict[info._bind_name] = [info]
-
-    cdef int _adjust_requires_define(self) except -1:
-        """
-        The define step is only supposed to be done once for each cursor, but a
-        full execute is required if a define was ever performed, so perform
-        that adjustment here, if needed.
-        """
-        if self._requires_define:
-            if self._always_full_execute:
-                self._requires_define = False
-            else:
-                self._always_full_execute = True
 
     cdef _determine_statement_type(self, str sql):
         """
@@ -238,7 +227,7 @@ cdef class Statement:
             for value in var_impl._values:
                 if value is not None and value._impl is cursor_impl:
                     errors._raise_err(errors.ERR_SELF_BIND_NOT_SUPPORTED)
-            self._requires_full_execute = True
+            self._binds_changed = True
         if var_impl.dbtype._ora_type_num != bind_info.ora_type_num \
                 or var_impl.size != bind_info.size \
                 or var_impl.buffer_size != bind_info.buffer_size \
@@ -255,5 +244,5 @@ cdef class Statement:
             bind_info.buffer_size = var_impl.buffer_size
             bind_info.precision = var_impl.precision
             bind_info.scale = var_impl.scale
-            self._requires_full_execute = True
+            self._binds_changed = True
         bind_info._bind_var_impl = var_impl

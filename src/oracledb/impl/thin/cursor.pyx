@@ -84,13 +84,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
                                          fetch_info)
         var_impl = self.fetch_var_impls[pos]
         if var_impl.dbtype._ora_type_num != fetch_info._dbtype._ora_type_num:
-            conversion_helper(var_impl, fetch_info,
-                              &self._statement._requires_define)
-        elif not self._statement._requires_define \
-                and fetch_info._dbtype._ora_type_num in \
-                        (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB,
-                         TNS_DATA_TYPE_JSON):
-            self._statement._requires_define = True
+            conversion_helper(var_impl, fetch_info)
         elif var_impl.objtype is not None:
             typ_impl = var_impl.objtype
             if typ_impl.is_xml_type:
@@ -102,12 +96,11 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         Internal method used for fetching rows from the database.
         """
         cdef MessageWithData message
-        if self._statement._requires_full_execute:
+        if self._statement._sql is None:
             message = self._create_message(ExecuteMessage, cursor)
         else:
             message = self._create_message(FetchMessage, cursor)
         self._conn_impl._protocol._process_single_message(message)
-        self._statement._requires_full_execute = False
 
     cdef BaseConnImpl _get_conn_impl(self):
         """
@@ -136,7 +129,6 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         message = self._create_message(ExecuteMessage, cursor)
         message.num_execs = 1
         self._conn_impl._protocol._process_single_message(message)
-        self._statement._requires_full_execute = False
         if self._statement._is_query:
             self.rowcount = 0
             if message.type_cache is not None:
@@ -165,16 +157,14 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         # iteration in order to allow the determination of input/output binds
         # to be completed; after that, an execution of the remaining iterations
         # can be performed
-        if stmt._is_plsql and stmt._requires_full_execute:
+        if stmt._is_plsql and (stmt._cursor_id == 0 or stmt._binds_changed):
             message.num_execs = 1
             self._conn_impl._protocol._process_single_message(message)
-            stmt._requires_full_execute = False
             if num_execs == 1:
                 return
             message.offset = 1
             message.num_execs = num_execs - 1
         self._conn_impl._protocol._process_single_message(message)
-        stmt._requires_full_execute = False
 
     def get_array_dml_row_counts(self):
         if self._dmlrowcounts is None:

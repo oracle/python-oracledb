@@ -56,6 +56,7 @@ cdef class Message:
         bint flush_out_binds
         bint processed_error
         bint resend
+        bint retry
 
     cdef bint _has_more_data(self, ReadBuffer buf):
         return buf.bytes_left() > 0 and not self.flush_out_binds
@@ -354,7 +355,6 @@ cdef class MessageWithData(Message):
         cursor_impl._statement = Statement()
         cursor_impl._more_rows_to_fetch = True
         cursor_impl._statement._is_query = True
-        cursor_impl._statement._requires_full_execute = True
         self._process_describe_info(buf, cursor, cursor_impl)
         return cursor
 
@@ -454,7 +454,6 @@ cdef class MessageWithData(Message):
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
                                               i, var_impl._fetch_info)
-            cursor_impl._statement._adjust_requires_define()
             statement._last_output_type_handler = type_handler
 
         # the list of output variables is equivalent to the fetch variables
@@ -716,9 +715,14 @@ cdef class MessageWithData(Message):
             if prev_fetch_var_impls is not None \
                     and i < len(prev_fetch_var_impls):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
+            if not stmt._no_prefetch and \
+                    fetch_info._dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
+                                                         TNS_DATA_TYPE_CLOB,
+                                                         TNS_DATA_TYPE_JSON):
+                stmt._requires_define = True
+                stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler, i,
                                           fetch_info)
-        cursor_impl._statement._adjust_requires_define()
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # current date
@@ -755,9 +759,15 @@ cdef class MessageWithData(Message):
         elif self.error_info.num == TNS_ERR_ARRAY_DML_ERRORS:
             self.error_info.num = 0
             self.error_occurred = False
-        elif self.error_info.num == TNS_ERR_VAR_NOT_IN_SELECT_LIST:
+        elif self.retry:
+            self.retry = False
+        elif cursor_impl._statement._is_query \
+                and self.error_info.num in (TNS_ERR_VAR_NOT_IN_SELECT_LIST,
+                                            TNS_ERR_INCONSISTENT_DATA_TYPES):
+            self.retry = True
             conn_impl._add_cursor_to_close(cursor_impl._statement)
             cursor_impl._statement._cursor_id = 0
+            cursor_impl._statement._executed = False
         elif self.error_info.num != 0 and self.error_info.cursor_id != 0:
             exc_type = get_exception_class(self.error_info.num)
             if exc_type is not exceptions.IntegrityError:
@@ -1822,11 +1832,12 @@ cdef class ExecuteMessage(MessageWithData):
         """
         MessageWithData._postprocess(self)
         cdef Statement stmt = self.cursor_impl._statement
+        if not self.parse_only:
+            stmt._executed = True
         if stmt._requires_define and stmt._sql is not None:
             if self.resend:
                 stmt._requires_define = False
             else:
-                stmt._requires_full_execute = True
                 self.resend = True
 
     cdef int _write_execute_message(self, WriteBuffer buf) except -1:
@@ -1860,7 +1871,7 @@ cdef class ExecuteMessage(MessageWithData):
                 else:
                     num_iters = self.cursor_impl.arraysize
                 self.cursor_impl._fetch_array_size = num_iters
-                if num_iters > 0:
+                if num_iters > 0 and not stmt._no_prefetch:
                     options |= TNS_EXEC_OPTION_FETCH
         if not stmt._is_plsql and not self.parse_only:
             options |= TNS_EXEC_OPTION_NOT_PLSQL
@@ -2010,25 +2021,36 @@ cdef class ExecuteMessage(MessageWithData):
         """
         Write the execute message to the buffer. Two types of execute messages
         are possible: one for a full execute and the second, simpler message,
-        for when an existing cursor is being re-executed.
+        for when an existing cursor is being re-executed. A full execute is
+        required under the following circumstances:
+            - the statement has never been executed
+            - the statement refers to a REF cursor (no sql is defined)
+            - prefetch is not possible (LOB columns fetched)
+            - bind metadata has changed
+            - parse is being performed
+            - define is being performed
+            - DDL is being executed
+            - batch errors mode is enabled
         """
         cdef:
             Statement stmt = self.cursor_impl._statement
-        if stmt._cursor_id != 0 \
-                and not stmt._requires_full_execute \
-                and not stmt._always_full_execute \
-                and not self.parse_only \
-                and not stmt._is_ddl \
-                and not self.batcherrors:
-            if stmt._is_query and not stmt._requires_define \
-                    and self.cursor_impl.prefetchrows > 0:
-                self.function_code = TNS_FUNC_REEXECUTE_AND_FETCH
-            else:
-                self.function_code = TNS_FUNC_REEXECUTE
-            self._write_reexecute_message(buf)
-        else:
+        if stmt._cursor_id == 0 or not stmt._executed \
+                or stmt._sql is None \
+                or stmt._no_prefetch \
+                or stmt._binds_changed \
+                or self.parse_only \
+                or stmt._requires_define \
+                or stmt._is_ddl \
+                or self.batcherrors:
             self.function_code = TNS_FUNC_EXECUTE
             self._write_execute_message(buf)
+        elif stmt._is_query and self.cursor_impl.prefetchrows > 0:
+            self.function_code = TNS_FUNC_REEXECUTE_AND_FETCH
+            self._write_reexecute_message(buf)
+        else:
+            self.function_code = TNS_FUNC_REEXECUTE
+            self._write_reexecute_message(buf)
+        stmt._binds_changed = False
 
 
 @cython.final

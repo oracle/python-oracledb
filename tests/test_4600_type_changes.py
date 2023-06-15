@@ -178,11 +178,10 @@ class TestCase(test_env.BaseTestCase):
                                 "string_4615")
 
     def test_4616_NUMBER_to_DATE(self):
-        "4616 - test unsupported data type changing from NUMBER to DATE"
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00932",
-                               self.__test_type_change, "to_number('4616')",
-                               4616, "to_date('05-JAN-2022')",
-                               datetime.datetime(2022, 1, 4, 0, 0))
+        "4616 - test data type changing from NUMBER to DATE"
+        self.__test_type_change("to_number('4616')", 4616,
+                                "to_date('05-JAN-2022')",
+                                datetime.datetime(2022, 1, 5, 0, 0))
 
 if __name__ == "__main__":
     test_env.run_test_cases()
