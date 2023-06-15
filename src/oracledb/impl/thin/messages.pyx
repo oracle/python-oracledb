@@ -2238,3 +2238,26 @@ cdef class RollbackMessage(Message):
         Perform initialization.
         """
         self.function_code = TNS_FUNC_ROLLBACK
+
+
+@cython.final
+cdef class SessionReleaseMessage(Message):
+
+    cdef:
+        uint32_t release_mode
+
+    cdef int _initialize_hook(self) except -1:
+        """
+        Perform initialization.
+        """
+        self.message_type = TNS_MSG_TYPE_ONEWAY_FN
+        self.function_code = TNS_FUNC_SESSION_RELEASE
+
+    cdef int _write_message(self, WriteBuffer buf) except -1:
+        """
+        Write the message for a DRCP session release.
+        """
+        self._write_function_code(buf)
+        buf.write_uint8(0)                  # pointer (tag name)
+        buf.write_uint8(0)                  # tag name length
+        buf.write_ub4(self.release_mode)    # mode

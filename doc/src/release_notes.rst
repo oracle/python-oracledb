@@ -25,6 +25,7 @@ Thin Mode Changes
 #)  Fixed bug which could cause a redirect loop with improperly configured
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
+#)  Fixed bug when using DRCP with a 23c Oracle Database.
 
 Thick Mode Changes
 ++++++++++++++++++
