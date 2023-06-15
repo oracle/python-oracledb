@@ -588,6 +588,7 @@ cdef class WriteBuffer(Buffer):
 
     cdef:
         uint8_t _packet_type
+        uint8_t _packet_flags
         Capabilities _caps
         object _socket
         uint8_t _seq_num
@@ -611,7 +612,7 @@ cdef class WriteBuffer(Buffer):
             self.write_uint16(size)
             self.write_uint16(0)
         self.write_uint8(self._packet_type)
-        self.write_uint8(0)
+        self.write_uint8(self._packet_flags)
         self.write_uint16(0)
         self._pos = size
         if DEBUG_PACKETS:
@@ -651,7 +652,8 @@ cdef class WriteBuffer(Buffer):
         """
         return self._max_size - PACKET_HEADER_SIZE - 2
 
-    cdef void start_request(self, uint8_t packet_type, uint16_t data_flags=0):
+    cdef void start_request(self, uint8_t packet_type, uint8_t packet_flags=0,
+                            uint16_t data_flags=0):
         """
         Indicates that a request from the client is starting. The packet type
         is retained just in case a request spans multiple packets. The packet
@@ -660,6 +662,7 @@ cdef class WriteBuffer(Buffer):
         """
         self._packet_sent = False
         self._packet_type = packet_type
+        self._packet_flags = packet_flags
         self._pos = PACKET_HEADER_SIZE
         if packet_type == TNS_PACKET_TYPE_DATA:
             self.write_uint16(data_flags)

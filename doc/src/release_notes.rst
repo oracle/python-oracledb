@@ -27,6 +27,8 @@ Thin Mode Changes
     processing the execution of a query.
 #)  Eliminated unneeded round trip when using token authentication to connect
     to the database.
+#)  Fixed bug which could cause a redirect loop with improperly configured
+    listener redirects.
 
 Thick Mode Changes
 ++++++++++++++++++
