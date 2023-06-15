@@ -13,6 +13,9 @@ oracledb 1.3.2 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug connecting to databases with older 11g password verifiers
+    (`issue 189 <https://github.com/oracle/python-oracledb/issues/189>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
