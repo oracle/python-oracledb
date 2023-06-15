@@ -420,6 +420,9 @@ class TestCase(test_env.BaseTestCase):
     def test_2716_payloadType_deprecation(self):
         "2716 - test to verify payloadType is deprecated"
         books_type = self.connection.gettype(self.book_type_name)
+        queue = self.connection.queue(self.book_queue_name,
+                                      payloadType=books_type)
+        self.assertEqual(queue.payload_type, books_type)
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
                                self.connection.queue, self.book_queue_name,
                                books_type, payloadType=books_type)
@@ -533,6 +536,23 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select sysdate from dual")
         end_date, = self.cursor.fetchone()
         self.assertTrue(start_date <= props.enqtime <= end_date)
+
+    def test_2724_msgproperties_constructor(self):
+        "2724 - test message props declared attributes"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        book = queue.payload_type.newobject()
+        values = dict(payload=book, correlation="TEST_CORRELATION", delay=7,
+                      exceptionq="TEST_EXCEPTIONQ", expiration=10, priority=1)
+        props = self.connection.msgproperties(**values)
+        for attr_name in values:
+            self.assertEqual(getattr(props, attr_name), values[attr_name])
+
+    def test_2725_payload_type_negative(self):
+        "2725 - test error for invalid type for payload_type"
+        self.assertRaises(TypeError, self.connection.queue, "THE QUEUE",
+                          payload_type=4)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

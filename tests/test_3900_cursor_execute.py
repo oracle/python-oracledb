@@ -268,7 +268,9 @@ class TestCase(test_env.BaseTestCase):
         self.connection.commit()
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         column_names = [col[0] for col in self.cursor.description]
-        self.cursor.rowfactory = lambda *row: dict(zip(column_names, row))
+        rowfactory_func = lambda *row: dict(zip(column_names, row))
+        self.cursor.rowfactory = rowfactory_func
+        self.assertEqual(self.cursor.rowfactory, rowfactory_func)
         self.assertEqual(self.cursor.fetchall(),
                          [{'INTCOL': 1, 'STRINGCOL1': 'Test 1'}])
 

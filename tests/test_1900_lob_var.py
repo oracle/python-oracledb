@@ -493,5 +493,10 @@ class TestCase(test_env.BaseTestCase):
         "1932 - test bind ordering with NCLOB"
         self.__test_bind_ordering("NCLOB")
 
+    def test_1933_create_lob_with_invalid_type(self):
+        "1933 - test creating a lob with an invalid type"
+        self.assertRaises(TypeError, self.connection.createlob,
+                          oracledb.DB_TYPE_NUMBER)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

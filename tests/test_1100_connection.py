@@ -561,8 +561,30 @@ class TestCase(test_env.BaseTestCase):
             pass
         connection = test_env.get_connection(conn_class=MyConnection)
         expected_regex = f'^<{__name__}.TestCase.test_1137_connection_repr.' \
-                         f'<locals>.MyConnection .*>$'
+                         f'<locals>.MyConnection to {connection.username}@' \
+                         f'{connection.dsn}>$'
         self.assertRegex(repr(connection), expected_regex)
+
+        expected_regex = f'^<{__name__}.TestCase.test_1137_connection_repr.' \
+                         '<locals>.MyConnection disconnected>$'
+        connection.close()
+        self.assertRegex(repr(connection), expected_regex)
+
+    def test_1138_get_write_only_attributes(self):
+        "1138 - test getting write-only attributes"
+        connection = test_env.get_connection()
+        with self.assertRaises(AttributeError):
+            connection.action
+        with self.assertRaises(AttributeError):
+            connection.dbop
+        with self.assertRaises(AttributeError):
+            connection.clientinfo
+        with self.assertRaises(AttributeError):
+            connection.econtext_id
+        with self.assertRaises(AttributeError):
+            connection.module
+        with self.assertRaises(AttributeError):
+            connection.client_identifier
 
 if __name__ == "__main__":
     test_env.run_test_cases()

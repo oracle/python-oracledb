@@ -419,5 +419,12 @@ class TestCase(test_env.BaseTestCase):
             var = self.cursor.var(typ, size)
             self.assertEqual(var.buffer_size, buffer_size)
 
+    def test_3728_actual_elements(self):
+        "3728 - getting actual elements"
+        array_size = 8
+        var = self.cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=array_size)
+        self.assertEqual(var.actual_elements, array_size)
+        self.assertEqual(var.actual_elements, var.num_elements)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

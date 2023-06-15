@@ -99,6 +99,8 @@ class TestCase(test_env.BaseTestCase):
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         self.cursor.inputtypehandler = self.input_type_handler
         self.cursor.execute(sql, (building.building_id, building))
+        self.assertEqual(self.cursor.bindvars[1].inconverter,
+                         self.building_in_converter)
         self.connection.commit()
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(self.cursor.fetchall(),
@@ -134,6 +136,7 @@ class TestCase(test_env.BaseTestCase):
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         connection = test_env.get_connection()
         connection.inputtypehandler = self.input_type_handler
+        self.assertEqual(connection.inputtypehandler, self.input_type_handler)
         cursor_one = connection.cursor()
         cursor_two = connection.cursor()
         cursor_one.execute(sql, (building_one.building_id, building_one))
@@ -145,6 +148,8 @@ class TestCase(test_env.BaseTestCase):
         ]
         connection.outputtypehandler = self.output_type_handler
         cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
+        self.assertEqual(cursor_one.fetchvars[1].outconverter,
+                         Building.from_json)
         self.assertEqual(cursor_one.fetchall(), expected_data)
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(cursor_two.fetchall(), expected_data)

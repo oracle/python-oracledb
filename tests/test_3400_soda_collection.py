@@ -189,6 +189,7 @@ class TestCase(test_env.BaseTestCase):
         self.connection.commit()
         coll.dropIndex(index_name)
         coll.createIndex(index_spec)
+        self.assertRaises(TypeError, coll.createIndex, 3)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40733:",
                                coll.createIndex, index_spec)
         self.assertEqual(coll.dropIndex(index_name), True)
@@ -368,6 +369,7 @@ class TestCase(test_env.BaseTestCase):
                           dict(name="George", age=25), hint=10)
         self.assertRaises(TypeError, coll.saveAndGet,
                           dict(name="Sally", age=36), hint=5)
+        self.assertRaises(TypeError, coll.find().hint, 2)
 
     def test_3416_collection_name_and_metadata(self):
         "3416 - test name and metadata attribute"
@@ -496,6 +498,8 @@ class TestCase(test_env.BaseTestCase):
         cursor.close()
         self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006",
                                cursor.close)
+        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:",
+                               next, cursor)
         coll.drop()
 
     def test_3423_limit(self):
