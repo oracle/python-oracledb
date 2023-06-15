@@ -787,13 +787,15 @@ cdef class MessageWithData(Message):
         It indicates whether binds are IN only, IN/OUT or OUT only.
         """
         cdef:
-            uint16_t i, num_binds, num_bytes, temp16
+            uint16_t i, num_bytes, temp16
+            uint32_t temp32, num_binds
             BindInfo bind_info
         buf.skip_ub1()                      # flag
-        buf.read_ub2(&num_binds)            # num requests
-        buf.read_ub4(&self.row_index)       # iter num
+        buf.read_ub2(&temp16)               # num requests
+        buf.read_ub4(&temp32)               # num iters
+        num_binds = temp32 * 256 + temp16
         buf.skip_ub4()                      # num iters this time
-        buf.read_ub2(&temp16)               # uac buffer length
+        buf.skip_ub2()                      # uac buffer length
         buf.read_ub2(&num_bytes)            # bit vector for fast fetch
         if num_bytes > 0:
             buf.skip_raw_bytes(num_bytes)

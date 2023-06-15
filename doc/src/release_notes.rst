@@ -20,6 +20,7 @@ Thin Mode Changes
 #)  Fixed bugs in the implementation of the statement cache.
 #)  Fixed bug which could cause a redirect loop with improperly configured
     listener redirects.
+#)  Fixed bug when executing PL/SQL with a large number of binds.
 #)  Eliminated unneeded round trip when using token authentication to connect
     to the database.
 

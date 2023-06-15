@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -309,6 +309,33 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         fetched_data = self.cursor.fetchall()
         self.assertEqual(data, fetched_data)
+
+    def test_4022_plsql_large_number_of_binds(self):
+        "4022 - test PL/SQL with a lerge number of binds"
+        parts = []
+        bind_names = []
+        all_bind_values = []
+        out_binds = []
+        for i in range(5):
+            all_bind_values.append([])
+        for i in range(350):
+            n = len(parts) + 1
+            bind_names.extend([f"v_out_{n}_0", f"a_{n}", f"b_{n}", f"c_{n}"])
+            parts.append(f":v_out{n} := :a_{n} + :b_{n} + :c_{n};")
+            out_binds.append(self.cursor.var(int,
+                                             arraysize=len(all_bind_values)))
+            for j, bind_values in enumerate(all_bind_values):
+                bind_values.extend([out_binds[-1], n * 1 + j, n * 2 + j,
+                                    n * 3 + j])
+        lf = "\n"
+        sql = f"begin{lf}{lf.join(parts)}{lf}end;"
+        self.cursor.executemany(sql, all_bind_values)
+        init_val = 6
+        for var in out_binds:
+            expected = [init_val, init_val + 3, init_val + 6, init_val + 9,
+                        init_val + 12]
+            self.assertEqual(var.values, expected)
+            init_val += 6
 
 if __name__ == "__main__":
     test_env.run_test_cases()
