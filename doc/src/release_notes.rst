@@ -20,15 +20,16 @@ Thin Mode Changes
     :data:`ConnectionPool.timeout` seconds.
 #)  Added support for sending a generated connection identifier to the
     database used for tracing. An application specific prefix is prepended to
-    this value if specified via the ``connection_id_prefix`` parameter when
+    this value if specified via a new ``connection_id_prefix`` parameter when
     creating standalone connections or connection pools.
 #)  Added support for growing the pool back to the minimum number of
     connections allowed in the pool when connections are killed or otherwise
     made unusable.
-#)  Fixed bug when a dynamically sized pool is created with an increment of
-    zero and the pool needs to grow.
+#)  Fixed bug when a dynamically sized pool is created with an ``increment``
+    of zero and the pool needs to grow.
 #)  Fixed bug when a connection is discarded from the pool during
-    acquire() and the ping check fails due to the connection being dead.
+    :meth:`ConnectionPool.acquire()` and the ping check fails due to the
+    connection being dead.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -46,9 +47,9 @@ Common Changes
     ``ORA-00932: inconsistent data types`` is raised (which can occur if a
     table or view is recreated with a data type that is incompatible with
     the column's previous data type).
-#)  The repr() value of the DbObject class now shows the string "DbObject"
+#)  The ``repr()`` value of the DbObject class now shows the string "DbObject"
     instead of the string "Object" for consistency with the name of the class
-    and the other repr() values for DbObjectType and DbObjectAttr.
+    and the other ``repr()`` values for DbObjectType and DbObjectAttr.
 #)  Improved test suite.
 
 
