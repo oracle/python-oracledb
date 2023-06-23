@@ -134,10 +134,12 @@ cdef class Description:
         public str server_type
         public str sid
         public str cclass
+        public str connection_id_prefix
         public uint32_t purity
         public bint ssl_server_dn_match
         public str ssl_server_cert_dn
         public str wallet_location
+        str connection_id
 
     cdef str _build_duration_str(self, double value)
     cdef str build_connect_string(self, str cid=*)

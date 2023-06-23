@@ -18,6 +18,10 @@ Thin Mode Changes
 #)  Added support for shrinking the pool back to the minimum number of
     connections allowed in the pool when the pool is idle for
     :data:`ConnectionPool.timeout` seconds.
+#)  Added support for sending a generated connection identifier to the
+    database used for tracing. An application specific prefix is prepended to
+    this value if specified via the ``connection_id_prefix`` parameter when
+    creating standalone connections or connection pools.
 #)  Added support for growing the pool back to the minimum number of
     connections allowed in the pool when connections are killed or otherwise
     made unusable.

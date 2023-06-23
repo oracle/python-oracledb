@@ -791,6 +791,8 @@ cdef class Description:
             temp_parts.append(f"(POOL_PURITY={self.purity})")
         if cid is not None:
             temp_parts.append(f"(CID={cid})")
+        if self.connection_id is not None:
+            temp_parts.append(f"(CONNECTION_ID={self.connection_id})")
         if temp_parts:
             parts.append(f'(CONNECT_DATA={"".join(temp_parts)})')
 
@@ -830,6 +832,7 @@ cdef class Description:
         description.ssl_server_dn_match = self.ssl_server_dn_match
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
         description.wallet_location = self.wallet_location
+        description.connection_id_prefix = self.connection_id_prefix
         return description
 
     def set_from_connect_data_args(self, dict args):
@@ -842,6 +845,7 @@ cdef class Description:
         _set_server_type_param(args, "server_type", self)
         _set_str_param(args, "cclass", self)
         _set_purity_param(args, "purity", &self.purity)
+        _set_str_param(args, "connection_id_prefix", self)
 
     def set_from_description_args(self, dict args):
         """

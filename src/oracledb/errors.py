@@ -313,7 +313,7 @@ ERR_MESSAGE_FORMATS = {
             'column truncated to {col_value_len} {unit}. '
             'Untruncated was {actual_len}',
     ERR_CONNECTION_FAILED:
-            'cannot connect to database.',
+            'cannot connect to database (CONNECTION_ID={connection_id}).',
     ERR_CONTENT_INVALID_AFTER_NUMBER:
             'invalid number (content after number)',
     ERR_CURSOR_NOT_OPEN:

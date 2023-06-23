@@ -630,5 +630,20 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(password, None)
         self.assertEqual(dsn_out, dsn_in)
 
+    def test_4562_connection_id_prefix(self):
+        "4529 - test connect strings with connection_id_prefix defined"
+        params = oracledb.ConnectParams()
+        connect_string = \
+            "(DESCRIPTION=" \
+            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4562a)(PORT=4562))" \
+            "(CONNECT_DATA=(CONNECTION_ID_PREFIX=prefix4562a)" \
+            "(SERVICE_NAME=my_service_name4562a)))"
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.connection_id_prefix, "prefix4562a")
+        params = oracledb.ConnectParams()
+        params.set(connection_id_prefix="prefix4562b")
+        params.parse_connect_string("my_host4562b/my_service_name_4562b")
+        self.assertEqual(params.connection_id_prefix, "prefix4562b")
+
 if __name__ == "__main__":
     test_env.run_test_cases()

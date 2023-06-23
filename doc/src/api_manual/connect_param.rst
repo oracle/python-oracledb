@@ -51,7 +51,7 @@ ConnectParams Methods
         externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
         edition=None, tag=None, matchanytag=None, config_dir=None, \
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        handle=None)
+        connection_id_prefix=None, handle=None)
 
     Sets the default values for one or more of the parameters of an empty
     ConnectParams object.  A default will be overriden when a connection string
@@ -90,6 +90,13 @@ ConnectParams Attributes
 
     For the python-oracledb Thick mode, use the ``config_dir`` parameter of
     :func:`oracledb.init_oracle_client`.
+
+.. attribute:: ConnectParams.connection_id_prefix
+
+    This read-only attribute is a string that is added to the beginning of the
+    generated ``connection_id`` that is sent to the database for
+    `tracing <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.
 
 .. attribute:: ConnectParams.debug_jdwp
 

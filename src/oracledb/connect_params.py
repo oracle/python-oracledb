@@ -87,6 +87,7 @@ class ConnectParams:
                  shardingkey: list=None,
                  supershardingkey: list=None,
                  debug_jdwp: str=None,
+                 connection_id_prefix: str=None,
                  handle: int=0,
                  threaded: bool=True,
                  encoding: str=None,
@@ -235,6 +236,9 @@ class ConnectParams:
           only used in thin mode. For thick mode set the ORA_DEBUG_JDWP
           environment variable (default: None)
 
+        - connection_id_prefix: an application specific prefix that is added to
+          the connection identifier used for tracing (default: None)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -274,7 +278,8 @@ class ConnectParams:
                f"appcontext={self.appcontext!r}, " + \
                f"shardingkey={self.shardingkey!r}, " + \
                f"supershardingkey={self.supershardingkey!r}, " + \
-               f"debug_jdwp={self.debug_jdwp!r}" + \
+               f"debug_jdwp={self.debug_jdwp!r}, " + \
+               f"connection_id_prefix={self.connection_id_prefix!r}" + \
                ")"
 
     def _address_attr(f):
@@ -325,6 +330,15 @@ class ConnectParams:
         config_dir parameter of init_oracle_client().
         """
         return self._impl.config_dir
+
+    @property
+    @_description_attr
+    def connection_id_prefix(self) -> Union[list, str]:
+        """
+        An application specific prefix that is added to the connection
+        identifier used for tracing.
+        """
+        return self._impl.connection_id_prefix
 
     @property
     def debug_jdwp(self) -> str:
@@ -648,6 +662,7 @@ class ConnectParams:
             shardingkey: list=None,
             supershardingkey: list=None,
             debug_jdwp: str=None,
+            connection_id_prefix: str=None,
             handle: int=None,
             threaded: bool=None,
             encoding: str=None,
@@ -786,6 +801,9 @@ class ConnectParams:
           specifies the host and port of the PL/SQL debugger. This value is
           only used in thin mode. For thick mode set the ORA_DEBUG_JDWP
           environment variable
+
+        - connection_id_prefix: an application specific prefix that is added to
+          the connection identifier used for tracing
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

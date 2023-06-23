@@ -59,7 +59,8 @@ Oracledb Methods
         disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        connection_id_prefix=None, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -300,6 +301,12 @@ Oracledb Methods
     ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
     information, see :ref:`applntracing`.
 
+    The ``connection_id_prefix`` parameter is expected to be a string and is
+    added to the beginning of the generated ``connection_id`` that is sent to
+    the database for `tracing <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
+    is only used in the python-oracledb Thin mode.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -318,7 +325,8 @@ Oracledb Methods
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        connection_id_prefix=None, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -524,6 +532,12 @@ Oracledb Methods
     ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
     information, see :ref:`applntracing`.
 
+    The ``connection_id_prefix`` parameter is expected to be a string and is
+    added to the beginning of the generated ``connection_id`` that is sent to
+    the database for `tracing <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
+    is only used in the python-oracledb Thin mode.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
@@ -547,7 +561,8 @@ Oracledb Methods
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        connection_id_prefix=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -835,6 +850,12 @@ Oracledb Methods
     ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
     information, see :ref:`applntracing`.
 
+    The ``connection_id_prefix`` parameter is expected to be a string and is
+    added to the beginning of the generated ``connection_id`` that is sent to
+    the database for `tracing <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
+    is only used in the python-oracledb Thin mode.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -969,7 +990,8 @@ Oracledb Methods
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, handle=0)
+        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        connection_id_prefix=None, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -1226,6 +1248,12 @@ Oracledb Methods
     python-oracledb Thin mode.  For python-oracledb Thick mode, set the
     ``ORA_DEBUG_JDWP`` environment variable which has the same syntax. For more
     information, see :ref:`jdwp`.
+
+    The ``connection_id_prefix`` parameter is expected to be a string and is
+    added to the beginning of the generated ``connection_id`` that is sent to
+    the database for `tracing <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
+    is only used in the python-oracledb Thin mode.
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the

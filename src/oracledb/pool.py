@@ -594,6 +594,7 @@ def create_pool(dsn: str=None, *,
                 shardingkey: list=None,
                 supershardingkey: list=None,
                 debug_jdwp: str=None,
+                connection_id_prefix: str=None,
                 handle: int=0,
                 threaded: bool=True,
                 encoding: str=None,
@@ -812,6 +813,9 @@ def create_pool(dsn: str=None, *,
       specifies the host and port of the PL/SQL debugger. This value is only
       used in thin mode. For thick mode set the ORA_DEBUG_JDWP environment
       variable (default: None)
+
+    - connection_id_prefix: an application specific prefix that is added to the
+      connection identifier used for tracing (default: None)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

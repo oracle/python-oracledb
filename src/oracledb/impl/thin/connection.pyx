@@ -67,6 +67,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         str _cclass
         int _dbobject_type_cache_num
         bytes _combo_key
+        str _connection_id
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:
@@ -105,10 +106,12 @@ cdef class ThinConnImpl(BaseConnImpl):
         except (exceptions.DatabaseError, socket.gaierror,
                 ConnectionRefusedError) as e:
             if raise_exception:
-                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e)
+                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
+                                  connection_id=description.connection_id)
             return 0
         except Exception as e:
-            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e)
+            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
+                              connection_id=description.connection_id)
         self._drcp_enabled = description.server_type == "pooled"
         if self._cclass is None:
             self._cclass = description.cclass
@@ -134,7 +137,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         # Retry connecting to the socket if an attempt fails and retry_count
         # is specified in the connect string. If an attempt succeeds, return
         # the socket and the valid address object.
-        connect_string = _get_connect_data(description)
+        connect_string = _get_connect_data(description, self._connection_id)
         for i in range(num_attempts):
 
             # iterate through each address_list in the description; if the
@@ -311,6 +314,7 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     def connect(self, ConnectParamsImpl params):
         params._check_credentials()
+        self._connection_id = base64.b64encode(secrets.token_bytes(16)).decode()
         self._connect_with_params(params)
         self._statement_cache = collections.OrderedDict()
         self._statement_cache_size = params.stmtcachesize

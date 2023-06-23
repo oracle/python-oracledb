@@ -91,7 +91,7 @@ cdef object _encode_rowid(Rowid *rowid):
         return buf[:TNS_MAX_ROWID_LENGTH].decode()
 
 
-cdef str _get_connect_data(Description description):
+cdef str _get_connect_data(Description description, str connection_id):
     """
     Return the connect data required by the listener in order to connect.
     """
@@ -99,6 +99,11 @@ cdef str _get_connect_data(Description description):
     cid = f"(PROGRAM={constants.sanitized_program_name})" + \
           f"(HOST={constants.sanitized_machine_name})" + \
           f"(USER={constants.sanitized_user_name})"
+    if description.connection_id_prefix:
+        description.connection_id = description.connection_id_prefix + \
+                connection_id
+    else:
+        description.connection_id = connection_id
     return description.build_connect_string(cid)
 
 
