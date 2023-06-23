@@ -746,6 +746,18 @@ cdef class Buffer:
             if is_negative:
                 value[0] = -value[0]
 
+    cdef bytes read_null_terminated_bytes(self):
+        """
+        Reads null-terminated bytes from the buffer (including the null
+        terminator). It is assumed that the buffer contains the full amount. If
+        it does not, the remainder of the buffer is returned instead.
+        """
+        cdef ssize_t start_pos = self._pos, end_pos = self._pos
+        while self._data[end_pos] != 0 and end_pos < self._size:
+            end_pos += 1
+        self._pos = end_pos + 1
+        return self._data[start_pos:self._pos]
+
     cdef object read_str(self, int csfrm):
         """
         Reads bytes from the buffer and decodes them into a string following

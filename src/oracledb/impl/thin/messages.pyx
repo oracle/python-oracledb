@@ -1704,8 +1704,9 @@ cdef class CommitMessage(Message):
 @cython.final
 cdef class ConnectMessage(Message):
     cdef:
-        uint16_t connect_string_len
         bytes connect_string_bytes
+        uint16_t connect_string_len
+        ConnectionCookie cookie
         Description description
         str redirect_data
         str host
@@ -1715,6 +1716,7 @@ cdef class ConnectMessage(Message):
         cdef:
             uint16_t redirect_data_length, protocol_version, protocol_options
             const char_type *redirect_data
+            bytes db_uuid
         if self.packet_type == TNS_PACKET_TYPE_REDIRECT:
             buf.read_uint16(&redirect_data_length)
             buf.receive_packet(&self.packet_type, &self.packet_flags)
@@ -1725,6 +1727,10 @@ cdef class ConnectMessage(Message):
         elif self.packet_type == TNS_PACKET_TYPE_ACCEPT:
             buf.read_uint16(&protocol_version)
             buf.read_uint16(&protocol_options)
+            if protocol_version >= TNS_VERSION_MIN_UUID:
+                buf.skip_raw_bytes(33)
+                db_uuid = buf.read_raw_bytes(16)[:16]
+                self.cookie = get_connection_cookie_by_uuid(db_uuid)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options)
         elif self.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message
@@ -1790,6 +1796,17 @@ cdef class ConnectMessage(Message):
 @cython.final
 cdef class DataTypesMessage(Message):
 
+    cdef int _process_message(self, ReadBuffer buf,
+                              uint8_t message_type) except -1:
+        cdef uint16_t data_type, conv_data_type
+        while True:
+            buf.read_uint16(&data_type)
+            if data_type == 0:
+                break
+            buf.read_uint16(&conv_data_type)
+            if conv_data_type != 0:
+                buf.skip_raw_bytes(4)
+
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
             DataType* data_type
@@ -1815,9 +1832,6 @@ cdef class DataTypesMessage(Message):
             buf.write_uint16(data_type.representation)
             buf.write_uint16(0)
         buf.write_uint16(0)
-
-    cdef int process(self, ReadBuffer buf) except -1:
-        pass
 
 
 @cython.final
@@ -2208,6 +2222,12 @@ cdef class PingMessage(Message):
 
 @cython.final
 cdef class ProtocolMessage(Message):
+    cdef:
+        uint8_t server_version
+        uint8_t server_flags
+        bytes server_compile_caps
+        bytes server_runtime_caps
+        bytes server_banner
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         buf.write_uint8(TNS_MSG_TYPE_PROTOCOL)
@@ -2218,40 +2238,86 @@ cdef class ProtocolMessage(Message):
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
-        cdef:
-            uint16_t num_elem, fdo_length
-            bytearray server_compile_caps
-            bytearray server_runtime_caps
-            Capabilities caps = buf._caps
-            const char_type *fdo
-            bytes temp_buf
-            ssize_t ix
-            uint8_t c
         if message_type == TNS_MSG_TYPE_PROTOCOL:
-            buf.skip_raw_bytes(2)           # skip protocol array
-            while True:                     # skip server banner
-                buf.read_ub1(&c)
-                if c == 0:
-                    break
-            buf.read_uint16(&caps.charset_id, BYTE_ORDER_LSB)
-            buf.skip_ub1()                  # skip server flags
-            buf.read_uint16(&num_elem, BYTE_ORDER_LSB)
-            if num_elem > 0:                # skip elements
-                buf.skip_raw_bytes(num_elem * 5)
-            buf.read_uint16(&fdo_length)
-            fdo = buf.read_raw_bytes(fdo_length)
-            ix = 6 + fdo[5] + fdo[6]
-            caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
-            temp_buf = buf.read_bytes()
-            if temp_buf is not None:
-                server_compile_caps = bytearray(temp_buf)
-                buf._caps._adjust_for_server_compile_caps(server_compile_caps)
-            temp_buf = buf.read_bytes()
-            if temp_buf is not None:
-                server_runtime_caps = bytearray(temp_buf)
-                buf._caps._adjust_for_server_runtime_caps(server_runtime_caps)
+            self._process_protocol_info(buf)
         else:
             Message._process_message(self, buf, message_type)
+
+    cdef int _process_protocol_info(self, ReadBuffer buf) except -1:
+        """
+        Processes the response to the protocol request and stores the
+        information that is used to identify the server in a connection cookie
+        (which is used in 23c and higher to optimize the connection packets).
+        """
+        cdef:
+            uint16_t num_elem, fdo_length
+            Capabilities caps = buf._caps
+            const char_type *fdo
+            bytearray temp_array
+            ssize_t ix
+        buf.read_ub1(&self.server_version)
+        buf.skip_ub1()                      # skip zero byte
+        self.server_banner = buf.read_null_terminated_bytes()
+        buf.read_uint16(&caps.charset_id, BYTE_ORDER_LSB)
+        buf.read_ub1(&self.server_flags)
+        buf.read_uint16(&num_elem, BYTE_ORDER_LSB)
+        if num_elem > 0:                    # skip elements
+            buf.skip_raw_bytes(num_elem * 5)
+        buf.read_uint16(&fdo_length)
+        fdo = buf.read_raw_bytes(fdo_length)
+        ix = 6 + fdo[5] + fdo[6]
+        caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
+        self.server_compile_caps = buf.read_bytes()
+        if self.server_compile_caps is not None:
+            temp_array = bytearray(self.server_compile_caps)
+            caps._adjust_for_server_compile_caps(temp_array)
+        self.server_runtime_caps = buf.read_bytes()
+        if self.server_runtime_caps is not None:
+            temp_array = bytearray(self.server_runtime_caps)
+            caps._adjust_for_server_runtime_caps(temp_array)
+
+
+@cython.final
+cdef class ConnectionCookieMessage(Message):
+    cdef:
+        DataTypesMessage data_types_message
+        ProtocolMessage protocol_message
+        AuthMessage auth_message
+        ConnectionCookie cookie
+
+    cdef int _process_message(self, ReadBuffer buf,
+                              uint8_t message_type) except -1:
+        """
+        Processes the messages returned from the server response.
+        """
+        if message_type == TNS_MSG_TYPE_RENEGOTIATE:
+            self.cookie.populated = False
+        elif message_type == TNS_MSG_TYPE_PROTOCOL:
+            ProtocolMessage._process_message(self.protocol_message, buf,
+                                             message_type)
+        elif message_type == TNS_MSG_TYPE_DATA_TYPES:
+            DataTypesMessage._process_message(self.data_types_message, buf,
+                                              message_type)
+        else:
+            AuthMessage._process_message(self.auth_message, buf, message_type)
+
+    cdef int _write_message(self, WriteBuffer buf) except -1:
+        """
+        Writes the message to the buffer. This includes not just the cookie but
+        also the protocol, data types and auth message information as well!
+        """
+        ProtocolMessage._write_message(self.protocol_message, buf)
+        buf.write_uint8(TNS_MSG_TYPE_COOKIE)
+        buf.write_uint8(1)                  # cookie version
+        buf.write_uint8(self.cookie.protocol_version)
+        buf.write_uint16(self.cookie.charset_id, BYTE_ORDER_LSB)
+        buf.write_uint8(self.cookie.flags)
+        buf.write_uint16(self.cookie.ncharset_id, BYTE_ORDER_LSB)
+        buf.write_bytes_with_length(self.cookie.server_banner)
+        buf.write_bytes_with_length(self.cookie.compile_caps)
+        buf.write_bytes_with_length(self.cookie.runtime_caps)
+        DataTypesMessage._write_message(self.data_types_message, buf)
+        AuthMessage._write_message(self.auth_message, buf)
 
 
 @cython.final

@@ -13,6 +13,10 @@ oracledb 1.4.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for an Oracle Database 23c feature that can improve the
+    performance of connection creation by reducing the number of round trips
+    required to create the second and subsequent connections to the same
+    database.
 #)  Added support for the ``ORA_SDTZ`` environment variable used to set the
     session time zone used by the database.
 #)  Added support for shrinking the pool back to the minimum number of

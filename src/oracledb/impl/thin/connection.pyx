@@ -100,9 +100,11 @@ cdef class ThinConnImpl(BaseConnImpl):
         Internal method used for connecting with the given description and
         address.
         """
+        cdef ConnectionCookie cookie
         try:
-            self._protocol._connect_phase_one(self, params, description,
-                                              address, connect_string)
+            cookie = self._protocol._connect_phase_one(self, params,
+                                                       description, address,
+                                                       connect_string)
         except (exceptions.DatabaseError, socket.gaierror,
                 ConnectionRefusedError) as e:
             if raise_exception:
@@ -115,7 +117,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._drcp_enabled = description.server_type == "pooled"
         if self._cclass is None:
             self._cclass = description.cclass
-        self._protocol._connect_phase_two(self, description, params)
+        self._protocol._connect_phase_two(self, cookie, description, params)
 
     cdef int _connect_with_description(self, Description description,
                                        ConnectParamsImpl params,
