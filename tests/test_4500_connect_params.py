@@ -461,6 +461,8 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("tag", "tag_4530")
         self.__test_writable_parameter("debug_jdwp", "host=host;port=4530")
         self.__test_writable_parameter("externalauth", True)
+        self.__test_writable_parameter("user", "USER_1")
+        self.__test_writable_parameter("proxy_user", "PROXY_USER_1")
 
     def test_4531_build_connect_string_with_tcp_connect_timeout(self):
         "4531 - test building connect string with TCP connect timeout"

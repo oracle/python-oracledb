@@ -147,6 +147,7 @@ class TestCase(test_env.BaseTestCase):
             (building_two.building_id, building_two)
         ]
         connection.outputtypehandler = self.output_type_handler
+        self.assertEqual(connection.outputtypehandler, self.output_type_handler)
         cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(cursor_one.fetchvars[1].outconverter,
                          Building.from_json)

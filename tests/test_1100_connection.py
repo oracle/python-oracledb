@@ -592,5 +592,16 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             connection.client_identifier
 
+    def test_1139_invalid_params(self):
+        "1139 - test error for invalid type for params and pool"
+        pool = test_env.get_pool()
+        pool.close()
+        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:",
+                               test_env.get_connection, pool=pool)
+        self.assertRaises(TypeError, test_env.get_connection,
+                          pool="This isn't an instance of a pool")
+        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2025:",
+                               oracledb.connect, params={"number": 7})
+
 if __name__ == "__main__":
     test_env.run_test_cases()

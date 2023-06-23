@@ -614,5 +614,13 @@ class TestCase(test_env.BaseTestCase):
         expected_str = f"^<oracledb.DbObject {fqn} at 0x.+>$"
         self.assertRegex(repr(obj), expected_str)
 
+    def test_2331_new_object_negative(self):
+        "2331 - test creating an object with invalid data type"
+        type_obj = self.connection.gettype("UDT_ARRAY")
+        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3013:",
+                               type_obj.newobject, [490, "not a number"])
+        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3013:",
+                               type_obj, [71, "not a number"])
+
 if __name__ == "__main__":
     test_env.run_test_cases()
