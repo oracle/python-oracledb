@@ -222,10 +222,10 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     # function pointer types
     ctypedef void (*dpiSubscrCallback)(void* context,
-            dpiSubscrMessage *message)
+            dpiSubscrMessage *message) except * nogil
 
     ctypedef int (*dpiAccessTokenCallback)(void *context,
-            dpiAccessToken *accessToken)
+            dpiAccessToken *accessToken) except * nogil
 
     # complex native data types
     ctypedef struct dpiBytes:
