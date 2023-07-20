@@ -117,6 +117,11 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._drcp_enabled = description.server_type == "pooled"
         if self._cclass is None:
             self._cclass = description.cclass
+        if self._cclass is None and self._pool is not None \
+                and self._drcp_enabled:
+            gen_uuid = uuid.uuid4()
+            self._cclass = f"DPY:{base64.b64encode(gen_uuid.bytes).decode()}"
+            params._default_description.cclass = self._cclass
         self._protocol._connect_phase_two(self, cookie, description, params)
 
     cdef int _connect_with_description(self, Description description,

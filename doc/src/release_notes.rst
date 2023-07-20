@@ -29,6 +29,10 @@ Thin Mode Changes
 #)  Added support for growing the pool back to the minimum number of
     connections allowed in the pool when connections are killed or otherwise
     made unusable.
+#)  A default connection class is now generated when DRCP is used with a
+    connection pool and no connection class was specified when the pool was
+    created. The default connection class will be of the form ``DPY:`` followed
+    by a 16-byte unique identifier converted to base64 encoding.
 #)  Fixed bug when a dynamically sized pool is created with an ``increment``
     of zero and the pool needs to grow.
 #)  Fixed bug when a connection is discarded from the pool during

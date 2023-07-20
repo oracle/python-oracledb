@@ -59,6 +59,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 
 try:
     import certifi

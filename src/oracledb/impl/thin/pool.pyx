@@ -88,6 +88,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         cdef ThinConnImpl conn_impl
         conn_impl = ThinConnImpl(self.dsn, self.connect_params)
+        conn_impl._cclass = self.connect_params._default_description.cclass
         if params is not None:
             conn_impl._cclass = params._default_description.cclass
         conn_impl._pool = self
