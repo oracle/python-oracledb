@@ -477,7 +477,7 @@ class SodaOperation:
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
         """
-        if not isinstance(value, int) or value  < 0:
+        if not isinstance(value, int) or value < 0:
             raise TypeError("expecting integer >= 0")
         if value == 0:
             self._fetch_array_size = None
