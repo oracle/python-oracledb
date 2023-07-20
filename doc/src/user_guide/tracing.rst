@@ -21,10 +21,14 @@ There are multiple approaches for application tracing and monitoring:
   tracing capabilities <https://docs.python.org/3/library/trace.html>`__ can be
   used.
 
-- The Java Debug Wire Protocol (JDWP) for debugging PL/SQL can be used. See :ref:`jdwp`.
+- The Java Debug Wire Protocol (JDWP) for debugging PL/SQL can be used. See
+  :ref:`jdwp`.
 
 - Python-oracledb in Thick mode can dump a trace of SQL statements
   executed. See :ref:`lowlevelsqltrace`.
+
+- The connection identifiers that appear in the traces and logs can be used
+  to resolve connectivity errors. See :ref:`connectionid`.
 
 .. _endtoendtracing:
 
@@ -234,9 +238,61 @@ See `ODPI-C Debugging
 <https://oracle.github.io/odpi/doc/user_guide/debugging.html>`__ for
 documentation on ``DPI_DEBUG_LEVEL``.
 
+.. _connectionid:
+
+Using Connection Identifiers
+----------------------------
+
+A unique connection identifier (``CONNECTION_ID``) is generated for each
+connection to the Oracle Database. The connection identifier is shown in some
+Oracle Network error messages and logs, which helps in better tracing and
+diagnosing of connection failures. For example::
+
+    DPY-6005: cannot connect to database (CONNECTION_ID=m0PfUY6hYSmWPcgrHZCQIQ==)
+
+You can define a prefix value which is added to the beginning of the
+``CONNECTION_ID``. This prefix aids in identifying the connections from a
+specific application.
+
+In python-oracledb Thin mode, you can specify a prefix in the
+``connection_id_prefix`` parameter when creating
+:meth:`standalone connections <oracledb.connect()>`, or
+:meth:`pooled connections <oracledb.create_pool()>`. Also, you can specify
+the connection identifier in :meth:`oracledb.ConnectParams()` or
+:meth:`oracledb.PoolParams()`. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="localhost/orclpdb",
+                                  connection_id_prefix="MYAPP")
+
+If this connection to the database fails, ``MYAPP`` is added as a prefix to the
+``CONNECTION_ID`` as shown in the error message below::
+
+    DPY-6005: cannot connect to database (CONNECTION_ID=MYAPPm0PfUY6hYSmWPcgrHZCQIQ==).
+
+In python-oracledb Thick mode, you can specify the connection identifier prefix in
+a connection string. For example::
+
+    mydb = (DESCRIPTION =
+             (ADDRESS_LIST= (ADDRESS=...) (ADDRESS=...))
+             (CONNECT_DATA=
+                (SERVICE_NAME=sales.us.example.com)
+                (CONNECTION_ID_PREFIX=MYAPP)
+             )
+           )
+
+Depending on the Oracle Database version in use, the information that is shown
+in logs varies.
+
+See `Troubleshooting Oracle Net Services <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-3F42D057-C9AC-4747-B48B-5A5FF7672E5D>`_ for more
+information on connection identifiers.
+
 .. _vsessconinfo:
 
-Finding the Python-oracledb Mode
+Finding the python-oracledb Mode
 ================================
 
 The boolean attributes :attr:`Connection.thin` and :attr:`ConnectionPool.thin`

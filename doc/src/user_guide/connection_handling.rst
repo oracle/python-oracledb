@@ -1219,38 +1219,44 @@ Coding Applications to use DRCP
 
 To use DRCP, application connection establishment must request a DRCP pooled
 server.  The best practice is also to specify a user-chosen connection class
-name.  A 'purity' of the connection session state can optionally be specified.
-See the Oracle Database documentation on `benefiting from scalability
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-661BB906-74D2-4C5D-9C7E-2798F76501B3>`__
-for more information on purity and connection classes.
+name when creating a connection pool.  A 'purity' of the connection session
+state can optionally be specified. See the Oracle Database documentation on
+`benefiting from scalability <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-661BB906-74D2-4C5D-9C7E-2798F76501B3>`__ for more information
+on purity and connection classes.
 
-To request the database, use a DRCP pooled server and you can use a specific
-connection string in :meth:`oracledb.create_pool()` or
-:meth:`oracledb.connect()` like one of the following syntaxes.
+**Requesting a Pooled Server**
 
-For example with the :ref:`Easy Connect syntax <easyconnect>`:
+To request a DRCP pooled server, you can:
 
-.. code-block:: python
+- Use a specific connection string in :meth:`oracledb.create_pool()` or
+  :meth:`oracledb.connect()`. For example with the
+  :ref:`Easy Connect syntax <easyconnect>`:
 
-    dsn = "dbhost.example.com/orcl:pooled"
+  .. code-block:: python
 
-Alternatively, add ``(SERVER=POOLED)`` to the connect descriptor such as used in
-an Oracle Network configuration file ``tnsnames.ora``::
+        pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
+                                    min=2, max=5, increment=1,
+                                    cclass="MYAPP")
+
+- Alternatively, add ``(SERVER=POOLED)`` to the connect descriptor such as
+  used in an Oracle Network configuration file ``tnsnames.ora``::
 
     customerpool = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)
               (HOST=dbhost.example.com)
               (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=CUSTOMER)
               (SERVER=POOLED)))
 
-You can also specify to use a DRCP pooled server by setting the ``server_type``
-parameter when creating a standalone connection or creating a python-oracledb
-connection pool.  For example:
+- Another way to use a DRCP pooled server is to set the ``server_type``
+  parameter during standalone connection creation or python-oracledb
+  connection pool creation.  For example:
 
-.. code-block:: python
+  .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
                                 min=2, max=5, increment=1,
-                                server_type="pooled")
+                                server_type="pooled",
+                                cclass="MYAPP")
 
 
 **DRCP Connection Class Names**
@@ -1263,8 +1269,12 @@ processes are started.  A class name also allows better DRCP usage tracking in
 the database.  In the database monitoring views, the class name shown will be
 the value specified in the application prefixed with the user name.
 
+If ``cclass`` was not specified during pool creation, then the python-oracledb
+Thin mode generates a unique connection class with the prefix "DPY" while the
+Thick mode generates a unique connection class with the prefix "OCI".
+
 To create a connection pool requesting a DRCP pooled server and specifying a
-class name you can call:
+class name, you can call:
 
 .. code-block:: python
 
@@ -1272,12 +1282,19 @@ class name you can call:
                                 min=2, max=5, increment=1,
                                 cclass="MYAPP")
 
+Once the pool has been created, your application can get a connection from it
+by calling:
+
+.. code-block:: python
+
+    connection = pool.acquire()
+
 The python-oracledb connection pool size does not need to match the DRCP pool
 size.  The limit on overall execution parallelism is determined by the DRCP
 pool size.
 
 Connection class names can also be passed to :meth:`~ConnectionPool.acquire()`,
-if desired:
+if you want to use a connection with a different class:
 
 .. code-block:: python
 
@@ -1315,21 +1332,22 @@ allocated each time :meth:`~ConnectionPool.acquire()` is called:
 
 **Setting the Connection Class and Purity in the Connection String**
 
-For the python-oracledb Thin mode, you can specify the class and purity in the
-connection string itself.  This removes the need to modify an existing
-application when you want to use DRCP:
+Using python-oracledb Thin mode with Oracle Database 21c, you can specify the
+class and purity in the connection string itself.  This removes the need to
+modify an existing application when you want to use DRCP:
 
 .. code-block:: python
 
     dsn = "localhost/orclpdb:pooled?pool_connection_class=MYAPP&pool_purity=self"
 
-Recent versions of Oracle Client libraries also support this syntax. However,
-explicitly specifying the purity as SELF in this way may cause some unusable
-connections in a python-oracledb Thick mode connection pool not to be
-terminated.  In summary, if you cannot programmatically set the class name and
-purity, or cannot use python-oracledb Thin mode, then avoid explicitly setting
-the purity as a connection string parameter when using a python-oracledb
-connection pooling in Thick mode.
+For python-oracledb Thick mode, this syntax is supported if you are using
+Oracle Database 21c and Oracle Client 19c (or later). However, explicitly
+specifying the purity as *SELF* in this way may cause some unusable connections
+in a python-oracledb Thick mode connection pool to not be terminated.  In
+summary, if you cannot programmatically set the class name and purity, or
+cannot use python-oracledb Thin mode, then avoid explicitly setting the purity
+as a connection string parameter when using a python-oracledb connection
+pooling in Thick mode.
 
 **Closing Connections when using DRCP**
 
@@ -1358,6 +1376,10 @@ other users:
     connection = mypool.acquire()   # <- And get a new pooled server only when needed
     . . .
     connection.close();
+
+See `drcp_pool.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/drcp_pool.py>`__
+for a runnable example of DRCP.
 
 .. _monitoringdrcp:
 
