@@ -426,5 +426,12 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(var.actual_elements, array_size)
         self.assertEqual(var.actual_elements, var.num_elements)
 
+    def test_3729_deprecations(self):
+        "3729 - test deprecated attributes"
+        var = self.cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=200)
+        self.assertEqual(var.bufferSize, 22)
+        self.assertEqual(var.actualElements, 200)
+        self.assertEqual(var.numElements, 200)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -619,5 +619,15 @@ class TestCase(test_env.BaseTestCase):
         instance_name, = cursor.fetchone()
         self.assertEqual(connection.instance_name.upper(), instance_name)
 
+    def test_1141_deprecations(self):
+        "1141 - test deprecated attributes"
+        conn = test_env.get_connection()
+        conn.callTimeout = 500
+        self.assertEqual(conn.callTimeout, 500)
+        self.assertEqual(conn.encoding, "UTF-8")
+        self.assertEqual(conn.nencoding, "UTF-8")
+        self.assertEqual(conn.maxBytesPerCharacter, 4)
+        self.assertEqual(conn.tnsentry, conn.dsn)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
