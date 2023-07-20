@@ -29,11 +29,13 @@
 # (packet data or database object pickled data).
 #------------------------------------------------------------------------------
 
-DEF NUMBER_AS_TEXT_CHARS = 172
-DEF NUMBER_MAX_DIGITS = 40
+cdef enum:
+    NUMBER_AS_TEXT_CHARS = 172
+    NUMBER_MAX_DIGITS = 40
 
-DEF BYTE_ORDER_LSB = 1
-DEF BYTE_ORDER_MSB = 2
+cdef enum:
+    BYTE_ORDER_LSB = 1
+    BYTE_ORDER_MSB = 2
 
 cdef int MACHINE_BYTE_ORDER = BYTE_ORDER_MSB \
         if sys.byteorder == "big" else BYTE_ORDER_LSB

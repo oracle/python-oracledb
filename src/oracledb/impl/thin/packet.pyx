@@ -30,8 +30,9 @@
 # in thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-DEF PACKET_HEADER_SIZE = 8
-DEF CHUNKED_BYTES_CHUNK_SIZE = 65536
+cdef enum:
+    PACKET_HEADER_SIZE = 8
+    CHUNKED_BYTES_CHUNK_SIZE = 65536
 
 cdef struct BytesChunk:
     char_type *ptr
