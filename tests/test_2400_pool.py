@@ -699,13 +699,13 @@ class TestCase(test_env.BaseTestCase):
     def test_2429_soda_metadata_cache(self):
         "2429 - test soda_metadata_cache parameter"
         self.get_soda_database(minclient=(19, 11))
-        pool = test_env.get_pool(min=0, max=2, increment=2)
+        pool = test_env.get_pool()
         self.assertEqual(pool.soda_metadata_cache, False)
-        pool = test_env.get_pool(min=0, max=2, increment=2,
-                                 soda_metadata_cache=True)
+        pool = test_env.get_pool(soda_metadata_cache=True)
         self.assertEqual(pool.soda_metadata_cache, True)
         pool.soda_metadata_cache = False
         self.assertEqual(pool.soda_metadata_cache, False)
+        self.assertRaises(TypeError, setattr, pool, "soda_metadata_cache", 22)
 
     def test_2430_get_different_types_from_pooled_connections(self):
         "2430 - get different object types from different connections"

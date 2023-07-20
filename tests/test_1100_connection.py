@@ -183,6 +183,10 @@ class TestCase(test_env.BaseTestCase):
                                "^ORA-01017:|^ORA-00988:",
                                connection.changepassword,
                                test_env.get_main_password(), new_password)
+        self.assertRaisesRegex(oracledb.DatabaseError,
+                               "^ORA-01017:|^ORA-28008:|^ORA-00988:",
+                               connection.changepassword,
+                               "incorrect old password", new_password)
 
     def test_1109_parse_password(self):
         "1109 - test connecting with password containing / and @ symbols"
@@ -327,9 +331,11 @@ class TestCase(test_env.BaseTestCase):
                                    getattr, connection, name)
 
     def test_1124_ping(self):
-        "1124 - test connection ping"
-        connection = test_env.get_connection()
-        connection.ping()
+        "1124 - test connection ping makes a round trip"
+        self.connection = test_env.get_connection()
+        self.setup_round_trip_checker()
+        self.connection.ping()
+        self.assertRoundTrips(1)
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support two-phase commit yet")

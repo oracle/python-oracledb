@@ -158,8 +158,12 @@ class TestCase(test_env.BaseTestCase):
         lob, = self.cursor.fetchone()
         self.assertEqual(lob.isopen(), False)
         lob.open()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-22293:",
+                               lob.open)
         self.assertEqual(lob.isopen(), True)
         lob.close()
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-22289:",
+                               lob.close)
         self.assertEqual(lob.isopen(), False)
         self.assertEqual(lob.size(), 75000)
         lob.write(write_value, 75001)
@@ -178,6 +182,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(lob.size(), 10000)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2014:",
                                lob.trim, new_size=50, newSize=60)
+        self.assertRaises(TypeError, lob.trim, newSize="10000")
         lob.trim()
         self.assertEqual(lob.size(), 0)
         self.assertIsInstance(lob.getchunksize(), int)

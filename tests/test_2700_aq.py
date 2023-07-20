@@ -553,6 +553,12 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, self.connection.queue, "THE QUEUE",
                           payload_type=4)
 
+    def test_2726_set_payload_bytes(self):
+        "2726 - test setting bytes to payload"
+        props = self.connection.msgproperties()
+        bytes_val = b"Hello there"
+        props.payload = bytes_val
+        self.assertEqual(props.payload, bytes_val)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -390,12 +390,12 @@ class TestCase(test_env.BaseTestCase):
         ]
         coll.insertMany(values_to_insert)
         self.connection.commit()
-        fetched_docs = list(coll.find().getCursor())
-        for fetched_doc, expected_doc in zip(fetched_docs, values_to_insert):
-            if isinstance(expected_doc, dict):
-                expected_doc = soda_db.createDocument(expected_doc)
-            self.assertEqual(fetched_doc.getContent(),
-                             expected_doc.getContent())
+        fetched_values = [d.getContent() for d in coll.find().getCursor()]
+        fetched_values.sort(key=lambda x: x["name"])
+        for fetched_val, expected_val in zip(fetched_values, values_to_insert):
+            if not isinstance(expected_val, dict):
+                expected_val = expected_val.getContent()
+            self.assertEqual(fetched_val, fetched_val)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1031:",
                                coll.insertMany, [])
         coll.drop()

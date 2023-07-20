@@ -337,5 +337,11 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(var.values, expected)
             init_val += 6
 
+    def test_4023_execute_no_statement(self):
+        "3901 - test executing a None statement"
+        cursor = self.connection.cursor()
+        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:",
+                               cursor.executemany, None, [1, 2])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

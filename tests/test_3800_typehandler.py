@@ -89,6 +89,7 @@ class TestCase(test_env.BaseTestCase):
         building = Building(1, "The First Building", 5)
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         self.cursor.inputtypehandler = 5
+        self.assertEqual(self.cursor.inputtypehandler, 5)
         self.assertRaises(TypeError, self.cursor.execute, sql,
                           (building.building_id, building))
 
