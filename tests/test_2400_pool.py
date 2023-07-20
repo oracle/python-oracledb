@@ -754,5 +754,34 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.increment, 0)
         conn = pool.acquire()
 
+    def test_2435_acquire_with_different_cclass(self):
+        "2435 - verify that connection with different cclass is reused"
+        cclass = "cclass2435"
+        pool = test_env.get_pool(min=1, max=1)
+        # ignore the first acquire which, depending on the speed with which the
+        # minimum connections are created, may create a connection that is
+        # discarded; instead, use the second acquire which should remain in the
+        # pool
+        with pool.acquire(cclass=cclass) as conn:
+            pass
+        with pool.acquire(cclass=cclass) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    select
+                        dbms_debug_jdwp.current_session_id || ',' ||
+                        dbms_debug_jdwp.current_session_serial
+                    from dual""")
+                sid_serial, = cursor.fetchone()
+        with pool.acquire(cclass=cclass) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    select
+                        dbms_debug_jdwp.current_session_id || ',' ||
+                        dbms_debug_jdwp.current_session_serial
+                    from dual""")
+                next_sid_serial, = cursor.fetchone()
+                self.assertEqual(next_sid_serial, sid_serial)
+        self.assertEqual(pool.opened, 1)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

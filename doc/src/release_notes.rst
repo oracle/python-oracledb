@@ -35,6 +35,9 @@ Thin Mode Changes
     by a 16-byte unique identifier converted to base64 encoding.
 #)  Fixed bug when a dynamically sized pool is created with an ``increment``
     of zero and the pool needs to grow.
+#)  Fixed bug affecting connection reuse when connections were acquired from
+    the connection pool with a ``cclass`` different to the one used to
+    create the pool.
 #)  Fixed bug when a connection is discarded from the pool during
     :meth:`ConnectionPool.acquire()` and the ping check fails due to the
     connection being dead.

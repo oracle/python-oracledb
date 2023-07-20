@@ -68,6 +68,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         int _dbobject_type_cache_num
         bytes _combo_key
         str _connection_id
+        bint _is_pool_extra
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:

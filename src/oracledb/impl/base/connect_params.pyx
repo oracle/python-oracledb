@@ -785,12 +785,13 @@ cdef class Description:
             temp_parts.append(f"(SID={self.sid})")
         if self.server_type is not None:
             temp_parts.append(f"(SERVER={self.server_type})")
-        if self.cclass is not None:
-            temp_parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
-        if self.purity != 0:
-            temp_parts.append(f"(POOL_PURITY={self.purity})")
         if cid is not None:
             temp_parts.append(f"(CID={cid})")
+        else:
+            if self.cclass is not None:
+                temp_parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
+            if self.purity != 0:
+                temp_parts.append(f"(POOL_PURITY={self.purity})")
         if self.connection_id is not None:
             temp_parts.append(f"(CONNECTION_ID={self.connection_id})")
         if temp_parts:
