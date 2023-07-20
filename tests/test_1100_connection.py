@@ -609,5 +609,15 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2025:",
                                oracledb.connect, params={"number": 7})
 
+    def test_1140_instance_name(self):
+        "1140 - test connection instance name"
+        connection = test_env.get_connection()
+        cursor = connection.cursor()
+        cursor.execute("""
+                select upper(sys_context('userenv', 'instance_name'))
+                from dual""")
+        instance_name, = cursor.fetchone()
+        self.assertEqual(connection.instance_name.upper(), instance_name)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

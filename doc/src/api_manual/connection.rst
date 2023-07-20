@@ -683,6 +683,16 @@ Connection Attributes
         This attribute is an extension to the DB API definition.
 
 
+.. attribute:: Connection.instance_name
+
+    This read-only attribute specifies the Oracle Database instance name
+    associated with the connection. It is the same value as the SQL expression
+    ``sys_context('userenv', 'instance_name')``.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
 .. attribute:: Connection.internal_name
 
     This read-write attribute specifies the internal name that is used by the

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -489,6 +489,15 @@ cdef class ThickConnImpl(BaseConnImpl):
         if dpiConn_getHandle(self._handle, &handle) < 0:
             _raise_from_odpi()
         return <uint64_t> handle
+
+    def get_instance_name(self):
+        cdef:
+            uint32_t value_length
+            const char *value
+        if dpiConn_getInstanceName(self._handle, &value, &value_length) < 0:
+            _raise_from_odpi()
+        if value is not NULL:
+            return value[:value_length].decode()
 
     def get_internal_name(self):
         cdef:

@@ -54,6 +54,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added new property :attr:`Connection.instance_name` which provides the
+    Oracle Database instance name associated with the connection. This is the
+    same value as the SQL expression
+    ``sys_context('userenv', 'instance_name')``.
 #)  Added support for automatically retrying a query if the error
     ``ORA-00932: inconsistent data types`` is raised (which can occur if a
     table or view is recreated with a data type that is incompatible with

@@ -1489,6 +1489,8 @@ cdef class AuthMessage(Message):
                     <uint32_t> int(self.session_data["AUTH_SESSION_ID"])
             self.conn_impl._serial_num = \
                     <uint32_t> int(self.session_data["AUTH_SERIAL_NUM"])
+            self.conn_impl._instance_name = \
+                    self.session_data.get("AUTH_INSTANCENAME")
             self.conn_impl._server_version = \
                     "%d.%d.%d.%d.%d" % self._get_version_tuple(buf)
 

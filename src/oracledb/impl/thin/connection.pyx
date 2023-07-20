@@ -54,6 +54,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         str _current_schema
         bint _current_schema_modified
         str _edition
+        str _instance_name
         str _internal_name
         str _external_name
         array.array _cursors_to_close
@@ -349,6 +350,9 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     def get_external_name(self):
         return self._external_name
+
+    def get_instance_name(self):
+        return self._instance_name
 
     def get_internal_name(self):
         return self._internal_name
