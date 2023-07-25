@@ -26,6 +26,8 @@
 3900 - Module for testing the cursor execute() method
 """
 
+import collections
+
 import oracledb
 import test_env
 
@@ -345,6 +347,30 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(self.cursor.fetchall(),
                          [(3927, "3927 - String Value")])
+
+    def test_3928_sequence_of_params(self):
+        "3928 - test using a sequence of parameters other than a list or tuple"
+        class MySeq(collections.abc.Sequence):
+            def __init__(self, *data):
+                self.data = data
+            def __len__(self):
+                return len(self.data)
+            def __getitem__(self, index):
+                return self.data[index]
+        data = [
+            MySeq(1, "String 1"),
+            MySeq(2, "String 2")
+        ]
+        expected_data = [tuple(r) for r in data]
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:int_val, :str_val)""", data)
+        self.cursor.execute("""
+                select IntCol, StringCol1
+                from TestTempTable
+                order by IntCol""")
+        self.assertEqual(self.cursor.fetchall(), expected_data)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

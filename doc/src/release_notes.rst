@@ -65,6 +65,8 @@ Common Changes
 #)  The ``repr()`` value of the DbObject class now shows the string "DbObject"
     instead of the string "Object" for consistency with the name of the class
     and the other ``repr()`` values for DbObjectType and DbObjectAttr.
+#)  Fixed bug when binding sequences other than lists and tuples
+    (`issue 205 <https://github.com/oracle/python-oracledb/issues/205>`__).
 #)  Added support for using the Cython 3.0 release
     (`issue 204 <https://github.com/oracle/python-oracledb/issues/204>`__).
 #)  Improved test suite.

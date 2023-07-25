@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -53,7 +53,7 @@ cdef class BaseCursorImpl:
                 errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
             self._bind_values_by_name(cursor, type_handler, <dict> params,
                                       num_rows, row_num, defer_type_assignment)
-        elif isinstance(params, (list, tuple)):
+        elif cpython.PySequence_Check(params):
             if self.bind_style is None:
                 self.bind_style = list
             elif self.bind_style is not list:
