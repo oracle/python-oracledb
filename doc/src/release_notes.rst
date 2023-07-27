@@ -44,6 +44,9 @@ Thin Mode Changes
 #)  Fixed bug when an output type handler is used and the value of
     cursor.prefetchrows exceeds cursor.arraysize
     (`issue 173 <https://github.com/oracle/python-oracledb/issues/173>`__).
+#)  Fixed bug when an AC replay context is returned during connection to the
+    database
+    (`issue 176 <https://github.com/oracle/python-oracledb/issues/176>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

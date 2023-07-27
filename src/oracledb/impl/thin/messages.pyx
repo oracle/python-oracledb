@@ -225,7 +225,7 @@ cdef class Message:
             buf.skip_ub1()                  # skip queue
             buf.read_ub4(&num_bytes)        # skip replay context
             if num_bytes > 0:
-                buf.skip_raw_bytes(num_bytes)
+                buf.skip_raw_bytes_chunked()
         elif opcode == TNS_SERVER_PIGGYBACK_SESS_RET:
             buf.skip_ub2()
             buf.skip_ub1()
