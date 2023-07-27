@@ -372,5 +372,16 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
+    def test_3929_output_type_handler_with_prefetch_gt_arraysize(self):
+        "3929 - test an output type handler with prefetch > arraysize"
+        def type_handler(cursor, name, default_type, size, precision, scale):
+            return cursor.var(default_type, arraysize=cursor.arraysize)
+        self.cursor.arraysize = 2
+        self.cursor.prefetchrows = 3
+        self.cursor.outputtypehandler = type_handler
+        self.cursor.execute("select level from dual connect by level <= 5")
+        self.assertEqual(self.cursor.fetchall(),
+                         [(1,), (2,), (3,), (4,), (5,)])
+
 if __name__ == "__main__":
     test_env.run_test_cases()

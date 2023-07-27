@@ -41,6 +41,9 @@ Thin Mode Changes
 #)  Fixed bug when a connection is discarded from the pool during
     :meth:`ConnectionPool.acquire()` and the ping check fails due to the
     connection being dead.
+#)  Fixed bug when an output type handler is used and the value of
+    cursor.prefetchrows exceeds cursor.arraysize
+    (`issue 173 <https://github.com/oracle/python-oracledb/issues/173>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

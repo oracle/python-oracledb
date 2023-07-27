@@ -155,6 +155,9 @@ cdef class BaseCursorImpl:
                 self._verify_var(var)
                 var_impl = var._impl
                 var_impl._fetch_info = fetch_info
+                if var_impl.num_elements < self._fetch_array_size:
+                    var_impl.num_elements = self._fetch_array_size
+                    var_impl._finalize_init()
                 self.fetch_vars[pos] = var
                 self.fetch_var_impls[pos] = var_impl
                 return 0
