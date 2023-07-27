@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -362,6 +362,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         int8_t scale
         uint8_t fsPrecision
         dpiObjectType *objectType
+        bint isJson
 
     ctypedef struct dpiAccessToken:
         const char *token

@@ -316,6 +316,7 @@ cdef class FetchInfo:
         str _name
         DbType _dbtype
         BaseDbObjectTypeImpl _objtype
+        bint _is_json_col
 
 
 cdef class BaseVarImpl:

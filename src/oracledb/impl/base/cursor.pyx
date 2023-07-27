@@ -183,6 +183,15 @@ cdef class BaseCursorImpl:
             elif var_impl.scale == 0 \
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
+        elif future.old_json_col_as_obj and fetch_info._is_json_col \
+                and db_type_num != DB_TYPE_NUM_JSON:
+            def converter(value):
+                if isinstance(value, PY_TYPE_LOB):
+                    value = value.read()
+                if isinstance(value, bytes):
+                    value = value.decode()
+                return json.loads(value)
+            var_impl.outconverter = converter
         elif not defaults.fetch_lobs:
             if db_type_num == DB_TYPE_NUM_BLOB:
                 var_impl.dbtype = DB_TYPE_LONG_RAW

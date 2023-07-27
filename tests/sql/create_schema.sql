@@ -306,6 +306,17 @@ create table &main_user..TestRowids (
 )
 /
 
+create table &main_user..TestJsonCols (
+    IntCol                              number(9) not null,
+    JsonVarchar                         varchar2(4000) not null,
+    JsonClob                            clob not null,
+    JsonBlob                            blob not null,
+    constraint TestJsonCols_ck_1 check (JsonVarchar is json),
+    constraint TestJsonCols_ck_2 check (JsonClob is json),
+    constraint TestJsonCols_ck_3 check (JsonBlob is json)
+)
+/
+
 create table &main_user..PlsqlSessionCallbacks (
     RequestedTag          varchar2(250),
     ActualTag             varchar2(250),
@@ -525,6 +536,10 @@ insert into &main_user..TestObjects values (3,
                 &main_user..udt_SubObject(20, 'element #2'),
                 &main_user..udt_SubObject(30, 'element #3'),
                 &main_user..udt_SubObject(40, 'element #4'))), null)
+/
+
+insert into &main_user..TestJsonCols values (1,
+    '[1, 2, 3]', '[4, 5, 6]', '[7, 8, 9]')
 /
 
 commit

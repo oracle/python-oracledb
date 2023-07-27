@@ -758,6 +758,10 @@ cdef enum:
     TNS_VERIFIER_TYPE_11G_2 = 0x1b25
     TNS_VERIFIER_TYPE_12C = 0x4815
 
+# UDS flags
+cdef enum:
+    TNS_UDS_FLAGS_IS_JSON = 0x00000100
+
 # other constants
 cdef enum:
     TNS_MAX_SHORT_LENGTH = 252

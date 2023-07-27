@@ -632,11 +632,11 @@ cdef class MessageWithData(Message):
                                         ThinCursorImpl cursor_impl):
         cdef:
             ThinDbObjectTypeImpl typ_impl
+            uint32_t num_bytes, uds_flags
             uint8_t data_type, csfrm
             int8_t precision, scale
             uint8_t nulls_allowed
             FetchInfo fetch_info
-            uint32_t num_bytes
             str schema, name
             int cache_num
             bytes oid
@@ -682,7 +682,8 @@ cdef class MessageWithData(Message):
         if num_bytes > 0:
             name = buf.read_str(TNS_CS_IMPLICIT)
         buf.skip_ub2()                      # column position
-        buf.skip_ub4()                      # uds flag
+        buf.read_ub4(&uds_flags)
+        fetch_info._is_json_col = uds_flags & TNS_UDS_FLAGS_IS_JSON
         if data_type == TNS_DATA_TYPE_INT_NAMED:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num

@@ -144,27 +144,20 @@ from .constructors import (
     TimestampFromTicks as TimestampFromTicks
 )
 
+from .future import (
+    future as __future__
+)
+
 package = sys.modules[__name__]
 base_impl.init_base_impl(package)
 thick_impl.init_thick_impl(package)
 thin_impl.init_thin_impl(package)
 del package
 
-# future object used for managing backwards incompatible changes
-class Future:
-
-    def __getattr__(self, name):
-        return None
-
-    def __setattr__(self, name, value):
-        pass
-
-__future__ = Future()
-
 # remove unnecessary symbols
 del exceptions, errors, connection, pool, constants, driver_mode, sys
 del constructors, dsn, lob, base_impl, thick_impl, thin_impl, utils, var
-del connect_params, pool_params, subscr, aq, soda, cursor, dbobject
+del connect_params, pool_params, subscr, aq, soda, cursor, dbobject, future
 
 # general aliases (for backwards compatibility)
 ObjectType = DbObjectType
