@@ -974,11 +974,11 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(typ_impl.version)
             else:
                 buf.write_ub4(0)            # OID
-                buf.write_ub4(0)            # version
+                buf.write_ub2(0)            # version
             if var_impl.dbtype._csfrm != 0:
-                buf.write_ub4(TNS_CHARSET_UTF8)
+                buf.write_ub2(TNS_CHARSET_UTF8)
             else:
-                buf.write_ub4(0)
+                buf.write_ub2(0)
             buf.write_uint8(var_impl.dbtype._csfrm)
             buf.write_ub4(lob_prefetch_length)  # max chars (LOB prefetch)
             if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
@@ -1002,7 +1002,7 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(0)                # TOID
                 buf.write_ub4(0)                # OID
                 buf.write_ub4(0)                # snapshot
-                buf.write_ub4(0)                # version
+                buf.write_ub2(0)                # version
                 buf.write_ub4(0)                # packed data length
                 buf.write_ub4(TNS_OBJ_TOP_LEVEL)    # flags
             else:

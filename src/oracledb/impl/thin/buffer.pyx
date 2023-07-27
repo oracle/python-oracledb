@@ -935,6 +935,10 @@ cdef class Buffer:
         return self._skip_int(8, NULL)
 
     cdef int write_binary_double(self, double value) except -1:
+        """
+        Writes a double value to the buffer in Oracle canonical double floating
+        point format.
+        """
         cdef:
             uint8_t b0, b1, b2, b3, b4, b5, b6, b7
             uint64_t all_bits
@@ -973,6 +977,10 @@ cdef class Buffer:
         self.write_raw(buf, 8)
 
     cdef int write_binary_float(self, float value) except -1:
+        """
+        Writes a float value to the buffer in Oracle canonical floating point
+        format.
+        """
         cdef:
             uint8_t b0, b1, b2, b3
             uint32_t all_bits
@@ -1052,6 +1060,10 @@ cdef class Buffer:
 
     cdef int write_interval_ds(self, object value,
                                bint write_length=True) except -1:
+        """
+        Writes an interval to the buffer in Oracle Interval Day To Second
+        format.
+        """
         cdef:
             int32_t days, seconds, fseconds
             char_type buf[11]
@@ -1076,6 +1088,9 @@ cdef class Buffer:
 
     cdef int write_oracle_date(self, object value, uint8_t length,
                                bint write_length=True) except -1:
+        """
+        Writes a date to the buffer in Oracle Date format.
+        """
         cdef:
             unsigned int year
             char_type buf[13]
@@ -1103,6 +1118,10 @@ cdef class Buffer:
         self.write_raw(buf, length)
 
     cdef int write_oracle_number(self, bytes num_bytes) except -1:
+        """
+        Writes a number in UTF-8 encoded bytes in Oracle Number format to the
+        buffer.
+        """
         cdef:
             uint8_t num_digits = 0, digit, num_pairs, pair_num, digits_pos
             bint exponent_is_negative = False, append_sentinel = False
@@ -1268,6 +1287,9 @@ cdef class Buffer:
         self.write_uint64(0)                # unused
 
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
+        """
+        Writes raw bytes of the specified length to the buffer.
+        """
         cdef ssize_t bytes_to_write
         while True:
             bytes_to_write = min(self._max_size - self._pos, length)
@@ -1281,9 +1303,15 @@ cdef class Buffer:
             data += bytes_to_write
 
     cdef int write_str(self, str value) except -1:
+        """
+        Writes a string to the buffer as UTF-8 encoded bytes.
+        """
         self.write_bytes(value.encode())
 
     cdef int write_uint8(self, uint8_t value) except -1:
+        """
+        Writes an 8-bit integer to the buffer.
+        """
         if self._pos + 1 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 1)
         self._data[self._pos] = value
@@ -1291,6 +1319,9 @@ cdef class Buffer:
 
     cdef int write_uint16(self, uint16_t value,
                           int byte_order=BYTE_ORDER_MSB) except -1:
+        """
+        Writes a 16-bit integer to the buffer in native format.
+        """
         if self._pos + 2 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 2)
         pack_uint16(&self._data[self._pos], value, byte_order)
@@ -1298,6 +1329,9 @@ cdef class Buffer:
 
     cdef int write_uint32(self, uint32_t value,
                           int byte_order=BYTE_ORDER_MSB) except -1:
+        """
+        Writes a 32-bit integer to the buffer in native format.
+        """
         if self._pos + 4 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 4)
         pack_uint32(&self._data[self._pos], value, byte_order)
@@ -1305,12 +1339,31 @@ cdef class Buffer:
 
     cdef int write_uint64(self, uint64_t value,
                           byte_order=BYTE_ORDER_MSB) except -1:
+        """
+        Writes a 64-bit integer to the buffer in native format.
+        """
         if self._pos + 8 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 8)
         pack_uint64(&self._data[self._pos], value, byte_order)
         self._pos += 8
 
+    cdef int write_ub2(self, uint16_t value) except -1:
+        """
+        Writes a 16-bit integer to the buffer in universal format.
+        """
+        if value == 0:
+            self.write_uint8(0)
+        elif value <= UINT8_MAX:
+            self.write_uint8(1)
+            self.write_uint8(<uint8_t> value)
+        else:
+            self.write_uint8(2)
+            self.write_uint16(value)
+
     cdef int write_ub4(self, uint32_t value) except -1:
+        """
+        Writes a 32-bit integer to the buffer in universal format.
+        """
         if value == 0:
             self.write_uint8(0)
         elif value <= UINT8_MAX:
@@ -1324,6 +1377,9 @@ cdef class Buffer:
             self.write_uint32(value)
 
     cdef int write_ub8(self, uint64_t value) except -1:
+        """
+        Writes a 64-bit integer to the buffer in universal format.
+        """
         if value == 0:
             self.write_uint8(0)
         elif value <= UINT8_MAX:
@@ -1334,7 +1390,7 @@ cdef class Buffer:
             self.write_uint16(<uint16_t> value)
         elif value <= UINT32_MAX:
             self.write_uint8(4)
-            self.write_uint32(value)
+            self.write_uint32(<uint32_t> value)
         else:
             self.write_uint8(8)
             self.write_uint64(value)
