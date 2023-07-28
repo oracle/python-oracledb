@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -182,7 +182,10 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(lob.size(), 10000)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2014:",
                                lob.trim, new_size=50, newSize=60)
+        self.assertRaises(TypeError, lob.trim, new_size="10000")
         self.assertRaises(TypeError, lob.trim, newSize="10000")
+        lob.trim(new_size=40)
+        self.assertEqual(lob.size(), 40)
         lob.trim()
         self.assertEqual(lob.size(), 0)
         self.assertIsInstance(lob.getchunksize(), int)

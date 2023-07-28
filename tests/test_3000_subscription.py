@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -205,6 +205,30 @@ class TestCase(test_env.BaseTestCase):
 
         # wait for all messages to be sent
         data.wait_for_messages()
+
+    @unittest.skip("FIXME: threaded mode fails on close of connection?")
+    def test_3003_registerquery_returns(self):
+        "3003 - test verifying what registerquery returns"
+        data = DMLSubscriptionData(5)
+        qos_constants = [
+                oracledb.SUBSCR_QOS_QUERY,
+                oracledb.SUBSCR_QOS_RELIABLE,
+                oracledb.SUBSCR_QOS_DEREG_NFY,
+                oracledb.SUBSCR_QOS_ROWIDS,
+                oracledb.SUBSCR_QOS_BEST_EFFORT
+        ]
+        for qos_constant in qos_constants:
+            connection = test_env.get_connection(events=True)
+            sub = connection.subscribe(qos=qos_constant,
+                                       callback=data.callback_handler)
+            query_id = sub.registerquery("select * from TestTempTable")
+            if qos_constant == oracledb.SUBSCR_QOS_QUERY:
+                self.assertEqual(type(query_id), int)
+                self.assertEqual(type(sub.id), int)
+            else:
+                self.assertEqual(query_id, None)
+            connection.unsubscribe(sub)
+            connection.close()
 
 if __name__ == "__main__":
     test_env.run_test_cases()

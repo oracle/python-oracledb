@@ -404,6 +404,9 @@ class TestCase(test_env.BaseTestCase):
         queue.enqoptions.transformation = \
         transformation_str = "%s.transform1" % self.connection.username
         queue.enqoptions.transformation = transformation_str
+        if test_env.get_client_version() >= (23, 1):
+            self.assertEqual(queue.enqoptions.transformation,
+                             transformation_str)
         props = self.connection.msgproperties(payload=book)
         queue.enqone(props)
         self.connection.commit()
@@ -559,6 +562,22 @@ class TestCase(test_env.BaseTestCase):
         bytes_val = b"Hello there"
         props.payload = bytes_val
         self.assertEqual(props.payload, bytes_val)
+
+    def test_2727_queue_attributes(self):
+        "2727 - test getting queue attributes"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        self.assertEqual(queue.name, self.book_queue_name)
+        self.assertEqual(queue.connection, self.connection)
+
+    def test_2728_get_write_only_attributes(self):
+        "2728 - test getting write-only attributes"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        with self.assertRaises(AttributeError):
+            queue.enqoptions.deliverymode
+        with self.assertRaises(AttributeError):
+            queue.deqoptions.deliverymode
 
 if __name__ == "__main__":
     test_env.run_test_cases()

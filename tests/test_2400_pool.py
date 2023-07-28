@@ -91,13 +91,15 @@ class TestCase(test_env.BaseTestCase):
                                    wait_timeout=5000, stmtcachesize=25,
                                    max_lifetime_session=1000,
                                    max_sessions_per_shard=3, ping_interval=30,
-                                   getmode=oracledb.POOL_GETMODE_WAIT):
+                                   getmode=oracledb.POOL_GETMODE_WAIT,
+                                   soda_metadata_cache=False):
         creation_args = dict(min=min, max=max, increment=increment,
                              timeout=timeout, wait_timeout=wait_timeout,
                              stmtcachesize=stmtcachesize,
                              max_lifetime_session=max_lifetime_session,
                              max_sessions_per_shard=max_sessions_per_shard,
-                             ping_interval=ping_interval, getmode=getmode)
+                             ping_interval=ping_interval, getmode=getmode,
+                             soda_metadata_cache=soda_metadata_cache)
         reconfigure_args = {}
         reconfigure_args[parameter_name] = parameter_value
 
@@ -111,7 +113,8 @@ class TestCase(test_env.BaseTestCase):
                            max_lifetime_session=pool.max_lifetime_session,
                            max_sessions_per_shard=pool.max_sessions_per_shard,
                            ping_interval=pool.ping_interval,
-                           getmode=pool.getmode)
+                           getmode=pool.getmode,
+                           soda_metadata_cache=pool.soda_metadata_cache)
         expected_args = creation_args.copy()
         expected_args.update(reconfigure_args)
         self.assertEqual(actual_args, expected_args)
@@ -487,6 +490,8 @@ class TestCase(test_env.BaseTestCase):
         self.__perform_reconfigure_test("ping_interval", 50)
         self.__perform_reconfigure_test("getmode",
                                         oracledb.POOL_GETMODE_NOWAIT)
+        if test_env.get_client_version() >= (19, 11):
+            self.__perform_reconfigure_test("soda_metadata_cache", True)
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support all the pool params yet")
@@ -782,6 +787,25 @@ class TestCase(test_env.BaseTestCase):
                 next_sid_serial, = cursor.fetchone()
                 self.assertEqual(next_sid_serial, sid_serial)
         self.assertEqual(pool.opened, 1)
+
+    def test_2436_pool_params_negative(self):
+        "2436 - test creating a pool invalid params"
+        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2027:",
+                               oracledb.create_pool, params="bad params")
+
+    def test_2437_conn_release_and_drop_negative(self):
+        "2437 - test releasing and dropping an invalid connection"
+        pool = test_env.get_pool()
+        self.assertRaises(TypeError, pool.release, ["invalid connection"])
+        self.assertRaises(TypeError, pool.drop, ["invalid connection"])
+
+    @unittest.skipIf(test_env.get_is_thin(),
+                     "thin mode doesn't set a pool name")
+    def test_2438_name(self):
+        "2438 - test getting pool name"
+        pool = test_env.get_pool()
+        expected_name = "^OCI:SP:.+"
+        self.assertRegex(pool.name, expected_name)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

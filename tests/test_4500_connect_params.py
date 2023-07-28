@@ -645,5 +645,19 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string("my_host4562b/my_service_name_4562b")
         self.assertEqual(params.connection_id_prefix, "prefix4562b")
 
+    def test_4563_override_parameters(self):
+        "4563 - test overriding parameters with parse_connection_string"
+        params = oracledb.ConnectParams()
+        params.parse_connect_string("my_host:3578/my_service_name")
+        params.set(service_name="new_service_name", port=613)
+        self.assertEqual(params.service_name, "my_service_name")
+        self.assertEqual(params.port, 3578)
+
+        params = oracledb.ConnectParams()
+        params.set(service_name="my_service_name", port=613)
+        params.parse_connect_string("my_host:3578/new_service_name")
+        self.assertEqual(params.service_name, "new_service_name")
+        self.assertEqual(params.port, 3578)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

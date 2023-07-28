@@ -565,5 +565,51 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, coll.find().version, 1971)
         self.assertRaises(TypeError, coll.find().limit, "a word")
 
+    def test_3428_fetch_array_size(self):
+        "3428 - test fetchArraySize"
+        soda_db = self.get_soda_database(minclient=(19, 5))
+        coll = soda_db.createCollection("TestSodaFetchArraySize")
+        coll.find().remove()
+        for i in range(90):
+            coll.save({'name': 'Emmanuel', 'age': i + 1})
+        self.connection.commit()
+
+        self.setup_round_trip_checker()
+        # setting array size to 0 will use the default value of 100
+        # requires a single round-trip
+        docs = coll.find().fetchArraySize(0).getDocuments()
+        self.assertRoundTrips(1)
+
+        # setting array size to 1 requires a round-trip for each SodaDoc
+        coll.find().fetchArraySize(1).getDocuments()
+        self.assertRoundTrips(91)
+
+        # setting array size to 20 requires 5 round-trips
+        coll.find().fetchArraySize(20).getDocuments()
+        self.assertRoundTrips(5)
+
+        # getting a SodaDocCursor requires a round-trip
+        coll.find().fetchArraySize(0).getCursor()
+        self.assertRoundTrips(1)
+
+        # setting array size to 1 and iterating the SodaDocCursor requires a
+        # round-trip for each SodaDoc
+        soda_doc_cursor = coll.find().fetchArraySize(1).getCursor()
+        for soda_doc in soda_doc_cursor:
+            continue
+        self.assertRoundTrips(91)
+
+        # setting array size to 50 and iterating the SodaDocCursor requires
+        # two round-trips
+        soda_doc_cursor = coll.find().fetchArraySize(50).getCursor()
+        for soda_doc in soda_doc_cursor:
+            continue
+        self.assertRoundTrips(2)
+
+        # check a few negative scenarios
+        self.assertRaises(TypeError, coll.find().fetchArraySize, "Mijares")
+        self.assertRaises(TypeError, coll.find().fetchArraySize, -1)
+        coll.drop()
+
 if __name__ == "__main__":
     test_env.run_test_cases()
