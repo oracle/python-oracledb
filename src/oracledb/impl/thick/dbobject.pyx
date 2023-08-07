@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -114,8 +114,12 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         if data.isNull:
             return None
         type_impl = self.type
-        return _convert_to_python(type_impl._conn_impl, attr.dbtype,
-                                  attr.objtype, &data.value)
+        try:
+            return _convert_to_python(type_impl._conn_impl, attr.dbtype,
+                                      attr.objtype, &data.value)
+        finally:
+            if attr.objtype is not None:
+                dpiObject_release(data.value.asObject)
 
     def get_element_by_index(self, int32_t index):
         """
@@ -138,8 +142,13 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             _raise_from_odpi()
         if data.isNull:
             return None
-        return _convert_to_python(objtype._conn_impl, objtype.element_dbtype,
-                                  objtype.element_objtype, &data.value)
+        try:
+            return _convert_to_python(objtype._conn_impl,
+                                      objtype.element_dbtype,
+                                      objtype.element_objtype, &data.value)
+        finally:
+            if objtype.element_objtype is not None:
+                dpiObject_release(data.value.asObject)
 
     def get_first_index(self):
         """

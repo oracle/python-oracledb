@@ -60,6 +60,7 @@ Thick Mode Changes
 #)  Relaxed restriction for end-to-end string connection attributes. These
     values can be set to the value ``None`` which will be treated the same as
     an empty string.
+#)  Fixed memory leak when accessing objects embedded within other objects.
 
 Common Changes
 ++++++++++++++
