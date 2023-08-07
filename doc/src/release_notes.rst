@@ -29,6 +29,8 @@ Thin Mode Changes
 #)  Added support for growing the pool back to the minimum number of
     connections allowed in the pool when connections are killed or otherwise
     made unusable.
+#)  Added URL to the Oracle Database Error Help Portal in Oracle Database
+    error messages similar to when Thick mode uses Oracle Client 23c.
 #)  A default connection class is now generated when DRCP is used with a
     connection pool and no connection class was specified when the pool was
     created. The default connection class will be of the form ``DPY:`` followed

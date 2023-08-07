@@ -33,6 +33,7 @@
 
 import re
 
+from .driver_mode import is_thin_mode
 from . import exceptions
 
 class _Error:
@@ -62,6 +63,14 @@ class _Error:
             pos = self.message.find(":")
             if pos > 0:
                 self.full_code = self.message[:pos]
+
+                # add Oracle Database Error Help Portal URL for database error
+                # messages, but only in thin mode since this is done
+                # automatically in thick mode with Oracle Client 23c and higher
+                if self.code != 0 and is_thin_mode():
+                    self.message = self.message + "\n" + \
+                        "Help: https://docs.oracle.com/error-help/db/ora-" + \
+                        f"{self.code:05}/"
         if self.code != 0 or self.full_code.startswith("DPI-"):
             args = {}
             if self.code != 0:

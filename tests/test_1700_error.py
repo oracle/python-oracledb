@@ -27,6 +27,7 @@
 """
 
 import pickle
+import unittest
 
 import oracledb
 import test_env
@@ -82,6 +83,17 @@ class TestCase(test_env.BaseTestCase):
                         int_var=int_var, str_var=str_var)
             error_obj, = cm.exception.args
             self.assertEqual(error_obj.full_code, "DPI-1037")
+
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "unsupported client")
+    def test_1703_error_help_url(self):
+        "1703 - test generation of error help portal URL"
+        cursor = self.connection.cursor()
+        with self.assertRaises(oracledb.Error) as cm:
+            cursor.execute("select 1 / 0 from dual")
+        error_obj, = cm.exception.args
+        to_check = "Help: https://docs.oracle.com/error-help/db/ora-01476/"
+        self.assertIn(to_check, error_obj.message)
 
 if __name__ == "__main__":
     test_env.run_test_cases()
