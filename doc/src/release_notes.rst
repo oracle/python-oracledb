@@ -79,6 +79,8 @@ Common Changes
     ``ORA-00932: inconsistent data types`` is raised (which can occur if a
     table or view is recreated with a data type that is incompatible with
     the column's previous data type).
+#)  Added support for the embedded OIDs found in SODA documents in Oracle
+    Database 23c.
 #)  The ``repr()`` value of the DbObject class now shows the string "DbObject"
     instead of the string "Object" for consistency with the name of the class
     and the other ``repr()`` values for DbObjectType and DbObjectAttr.
