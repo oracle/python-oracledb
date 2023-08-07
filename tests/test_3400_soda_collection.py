@@ -36,10 +36,20 @@ import test_env
                  "unsupported client/server combination")
 class TestCase(test_env.BaseTestCase):
 
+    def __normalize_docs(self, docs):
+        """
+        Remove the embedded OID added in Oracle Database 23c, if found, in
+        order to ease comparison.
+        """
+        for doc in docs:
+            if doc is not None and "_id" in doc:
+                del doc["_id"]
+
     def __test_skip(self, coll, num_to_skip, expected_content):
         filter_spec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
         doc = coll.find().filter(filter_spec).skip(num_to_skip).getOne()
         content = doc.getContent() if doc is not None else None
+        self.__normalize_docs([content])
         self.assertEqual(content, expected_content)
 
     def test_3400_invalid_json(self):
@@ -70,8 +80,9 @@ class TestCase(test_env.BaseTestCase):
         self.connection.commit()
         self.assertEqual(coll.find().count(), len(values_to_insert))
         for key, value in zip(inserted_keys, values_to_insert):
-            doc = coll.find().key(key).getOne()
-            self.assertEqual(doc.getContent(), value)
+            doc = coll.find().key(key).getOne().getContent()
+            self.__normalize_docs([doc])
+            self.assertEqual(doc, value)
         coll.drop()
 
     def test_3402_skip_documents(self):
@@ -104,8 +115,9 @@ class TestCase(test_env.BaseTestCase):
         new_content = {'name': 'John', 'address': {'city':'Melbourne'}}
         coll.find().key(doc.key).replaceOne(new_content)
         self.connection.commit()
-        self.assertEqual(coll.find().key(doc.key).getOne().getContent(),
-                         new_content)
+        doc = coll.find().key(doc.key).getOne().getContent()
+        self.__normalize_docs([doc])
+        self.assertEqual(doc, new_content)
         coll.drop()
 
     def test_3404_search_documents_with_content(self):
@@ -260,15 +272,17 @@ class TestCase(test_env.BaseTestCase):
         inserted_doc = coll.insertOneAndGet(content)
         key = inserted_doc.key
         version = inserted_doc.version
-        doc = coll.find().key(key).version(version).getOne()
-        self.assertEqual(doc.getContent(), content)
+        doc = coll.find().key(key).version(version).getOne().getContent()
+        self.__normalize_docs([doc])
+        self.assertEqual(doc, content)
         new_content = {'name': 'James', 'address': {'city': 'Delhi'}}
         replacedDoc = coll.find().key(key).replaceOneAndGet(new_content)
         new_version = replacedDoc.version
         doc = coll.find().key(key).version(version).getOne()
         self.assertEqual(doc, None)
-        doc = coll.find().key(key).version(new_version).getOne()
-        self.assertEqual(doc.getContent(), new_content)
+        doc = coll.find().key(key).version(new_version).getOne().getContent()
+        self.__normalize_docs([doc])
+        self.assertEqual(doc, new_content)
         self.assertEqual(coll.find().key(key).version(version).remove(), 0)
         self.assertEqual(coll.find().key(key).version(new_version).remove(), 1)
         self.assertEqual(coll.find().count(), 0)
@@ -473,6 +487,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3421_insert_many_and_get(self):
         "3421 - test insert many and get"
         soda_db = self.get_soda_database(minclient=(18, 5))
+        for name in soda_db.getCollectionNames():
+            soda_db.openCollection(name).drop()
         coll = soda_db.createCollection("TestInsertManyAndGet")
         values_to_insert = [
             dict(name="George", age=25),
@@ -485,8 +501,9 @@ class TestCase(test_env.BaseTestCase):
         for key, expected_doc in zip(inserted_keys, values_to_insert):
             if isinstance(expected_doc, dict):
                 expected_doc = soda_db.createDocument(expected_doc)
-            doc = coll.find().key(key).getOne()
-            self.assertEqual(doc.getContent(), expected_doc.getContent())
+            doc = coll.find().key(key).getOne().getContent()
+            self.__normalize_docs([doc])
+            self.assertEqual(doc, expected_doc.getContent())
         coll.drop()
 
     def test_3422_close_cursor(self):
@@ -540,6 +557,7 @@ class TestCase(test_env.BaseTestCase):
             coll = soda_db.createCollection("TestSodaMapMode", mapMode=mapMode)
             coll.insertMany(data)
         fetched_data = list(d.getContent() for d in coll.find().getDocuments())
+        self.__normalize_docs(fetched_data)
         self.assertEqual(fetched_data, expected_data)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626",
                                coll.drop)
@@ -614,6 +632,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3429_getting_indexes(self):
         "3429 - test getting indexes on a collection"
         soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaGetIndexes")
+        coll.drop()
         coll = soda_db.createCollection("TestSodaGetIndexes")
         index_1 =  {
             'name': 'ix_3428-1',

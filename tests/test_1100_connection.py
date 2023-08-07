@@ -149,7 +149,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4000:|^DPY-4001:",
                                oracledb.connect, test_env.get_main_user() + \
                                "@" + test_env.get_connect_string())
-        errors = "^DPY-4000:|^DPY-4001:|^DPY-4017:|^ORA-12154:|^ORA-12521:"
+        errors = "^DPY-4000:|^DPY-4001:|^DPY-4017:|^ORA-12154:|^ORA-12521:|" \
+                 "^ORA-12262:"
         self.assertRaisesRegex(oracledb.DatabaseError, errors,
                                oracledb.connect, test_env.get_main_user() + \
                                "@" + test_env.get_connect_string() + "/" + \
@@ -628,6 +629,30 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.nencoding, "UTF-8")
         self.assertEqual(conn.maxBytesPerCharacter, 4)
         self.assertEqual(conn.tnsentry, conn.dsn)
+
+    @unittest.skipIf(test_env.get_server_version() < (23, 0) or \
+                     test_env.get_client_version() < (23, 0),
+                     "unsupported client/server")
+    def test_1142_max_length_password(self):
+        "1142 - test maximum allowed length for password"
+        connection = test_env.get_connection()
+        if self.is_on_oracle_cloud(connection):
+            self.skipTest("passwords on Oracle Cloud are strictly controlled")
+
+        orig_password = test_env.get_main_password()
+        new_password_32 = 'a' * 32
+        connection.changepassword(orig_password, new_password_32)
+        connection = test_env.get_connection(password=new_password_32)
+
+        new_password_1024 = 'a' * 1024
+        connection.changepassword(new_password_32, new_password_1024)
+        connection = test_env.get_connection(password=new_password_1024)
+        connection.changepassword(new_password_1024, orig_password)
+
+        new_password_1025 = 'a' * 1025
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-28218:",
+                          connection.changepassword, orig_password,
+                          new_password_1025)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

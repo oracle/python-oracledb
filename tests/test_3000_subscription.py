@@ -81,7 +81,8 @@ class DMLSubscriptionData(SubscriptionData):
                  "thin mode doesn't support subscriptions")
 class TestCase(test_env.BaseTestCase):
 
-    @unittest.skip("FIXME: threaded mode fails on close of connection?")
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
     def test_3000_dml_subscription(self):
         "3000 - test subscription for insert, update, delete and truncate"
 
@@ -181,7 +182,8 @@ class TestCase(test_env.BaseTestCase):
                                self.connection.subscribe,
                                client_initiated=True, clientInitiated=True)
 
-    @unittest.skip("multiple subscriptions cannot be created simultaneously")
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
     def test_3002_aq_subscription(self):
         "3002 - test subscription for AQ"
 
@@ -206,7 +208,8 @@ class TestCase(test_env.BaseTestCase):
         # wait for all messages to be sent
         data.wait_for_messages()
 
-    @unittest.skip("FIXME: threaded mode fails on close of connection?")
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
     def test_3003_registerquery_returns(self):
         "3003 - test verifying what registerquery returns"
         data = DMLSubscriptionData(5)
@@ -229,6 +232,27 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(query_id, None)
             connection.unsubscribe(sub)
             connection.close()
+
+    def test_3004_repr(self):
+        "3004 - test Subscription repr()"
+        data = DMLSubscriptionData(5)
+        with test_env.get_connection(events=True) as conn:
+            sub = conn.subscribe(callback=data.callback_handler)
+            self.assertEqual(repr(sub), f"<oracledb.Subscription on {conn}>")
+            conn.unsubscribe(sub)
+
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
+    def test_3005_registerquery_negative(self):
+        "3005 - test registerquery with invalid parameters"
+        data = DMLSubscriptionData(5)
+        connection = test_env.get_connection(events=True)
+        sub = connection.subscribe(callback=data.callback_handler)
+        self.assertRaises(TypeError, sub.registerquery,
+                          "select * from TestTempTable", "invalid args")
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00942",
+                               sub.registerquery, "select * from Nonexistent")
+        connection.unsubscribe(sub)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

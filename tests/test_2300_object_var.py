@@ -373,6 +373,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2308_invalid_type_object(self):
         "2308 - test trying to find an object type that does not exist"
+        self.assertRaises(TypeError, self.connection.gettype, 2)
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2035:",
                                self.connection.gettype,
                                "A TYPE THAT DOES NOT EXIST")

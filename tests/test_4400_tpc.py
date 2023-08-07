@@ -220,5 +220,34 @@ class TestCase(test_env.BaseTestCase):
         recovers = self.connection.tpc_recover()
         self.assertEqual(len(recovers), 0)
 
+    def test_4409_tpc_commit_one_phase(self):
+        "4409 - test tpc_commit() with one_phase parameter"
+        self.cursor.execute("truncate table TestTempTable")
+        xid = self.connection.xid(4409, "txn4409", "branch1")
+        self.connection.tpc_begin(xid)
+        values = (1, 'test4409')
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, :2)""", values)
+        self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
+        self.connection.tpc_commit(xid, one_phase=True)
+        self.assertEqual(self.cursor.fetchall(), [values])
+
+    def test_4410_tpc_commit_one_phase_negative(self):
+        "4410 - test negative cases for tpc_commit()"
+        self.cursor.execute("truncate table TestTempTable")
+        xid = self.connection.xid(4410, "txn4410", "branch1")
+        self.connection.tpc_begin(xid)
+        self.cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (1, 'test4410')""")
+        self.assertRaises(TypeError, self.connection.tpc_commit, "invalid xid")
+        self.connection.tpc_prepare(xid)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-02053:",
+                               self.connection.tpc_commit, xid, one_phase=True)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24756:",
+                               self.connection.tpc_commit, xid)
+        self.connection.tpc_rollback(xid)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
