@@ -46,20 +46,20 @@ Thin Mode Changes
 #)  Fixed bug when an output type handler is used and the value of
     cursor.prefetchrows exceeds cursor.arraysize
     (`issue 173 <https://github.com/oracle/python-oracledb/issues/173>`__).
-#)  Fixed bug when an AC replay context is returned during connection to the
-    database
+#)  Fixed bug when an Application Continuity replay context is returned during
+    connection to the database
     (`issue 176 <https://github.com/oracle/python-oracledb/issues/176>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Added function :meth:`SodaCollection.getIndexes()` for geting the indexes
+#)  Added function :meth:`SodaCollection.getIndexes()` for getting the indexes
     on a SODA collection.
+#)  Relaxed restriction for end-to-end tracing string connection
+    attributes. These values can now be set to the value ``None`` which will be
+    treated the same as an empty string.
 #)  Fixed bug when using external authentication with an Easy Connect
     connection string.
-#)  Relaxed restriction for end-to-end string connection attributes. These
-    values can be set to the value ``None`` which will be treated the same as
-    an empty string.
 #)  Fixed memory leak when accessing objects embedded within other objects.
 
 Common Changes
@@ -76,12 +76,12 @@ Common Changes
     Oracle Database instance name associated with the connection. This is the
     same value as the SQL expression
     ``sys_context('userenv', 'instance_name')``.
-#)  Added support for automatically retrying a query if the error
-    ``ORA-00932: inconsistent data types`` is raised (which can occur if a
-    table or view is recreated with a data type that is incompatible with
-    the column's previous data type).
-#)  Added support for the embedded OIDs found in SODA documents in Oracle
-    Database 23c.
+#)  Added support for relational queries on the underlying tables of SODA
+    collections created in Oracle Database 23c if they contain JSON documents
+    with embedded OIDs.
+#)  Automatically retry a query if the error ``ORA-00932: inconsistent data
+    types`` is raised (which can occur if a table or view is recreated with a
+    data type that is incompatible with the column's previous data type).
 #)  The ``repr()`` value of the DbObject class now shows the string "DbObject"
     instead of the string "Object" for consistency with the name of the class
     and the other ``repr()`` values for DbObjectType and DbObjectAttr.
@@ -89,8 +89,7 @@ Common Changes
     (`issue 205 <https://github.com/oracle/python-oracledb/issues/205>`__).
 #)  Added support for using the Cython 3.0 release
     (`issue 204 <https://github.com/oracle/python-oracledb/issues/204>`__).
-#)  Improved test suite.
-
+#)  Improved test suite and documentation.
 
 oracledb 1.3.2 (June 2023)
 --------------------------

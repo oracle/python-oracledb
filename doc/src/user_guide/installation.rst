@@ -259,8 +259,12 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
   - `x86 32-bit <https://www.oracle.com/database/technologies/instant-client/linux-x86-32-downloads.html>`__
   - `ARM (aarch64) 64-bit <https://www.oracle.com/database/technologies/instant-client/linux-arm-aarch64-downloads.html>`__
 
-  The latest version is recommended. Oracle Instant Client 21 will connect to
-  Oracle Database 12.1 or later.
+  Oracle Database 19c is a Long Term Support Release whereas Oracle Database
+  21c is an Innovation Release.  It is recommended to keep up to date with the
+  latest Oracle Instant Client release updates of your desired major version.
+
+  Oracle Instant Client 19c will connect to Oracle Database 11.2 or later.
+  Oracle Instant Client 21c will connect to Oracle Database 12.1 or later.
 
 2. Unzip the package into a single directory that is accessible to your
    application. For example:
@@ -298,6 +302,10 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
    example::
 
        export LD_LIBRARY_PATH=/opt/oracle/instantclient_21_6:$LD_LIBRARY_PATH
+
+  Make sure this is set in each shell that invokes Python.  Web servers and
+  other daemons commonly reset environment variables so using ``ldconfig`` is
+  generally preferred instead.
 
 5. If you use optional Oracle configuration files such as ``tnsnames.ora``,
    ``sqlnet.ora``, or ``oraaccess.xml`` with Instant Client, then put the files
@@ -340,8 +348,12 @@ To use python-oracledb with Oracle Instant Client RPMs:
   - `Instant Client RPMs for Oracle Linux ARM (aarch64) 8 <https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient/aarch64/index.html>`__
   - `Instant Client RPMs for Oracle Linux ARM (aarch64) 7 <https://yum.oracle.com/repo/OracleLinux/OL7/oracle/instantclient/aarch64/index.html>`__
 
-  The latest version is recommended.  Oracle Instant Client 21 will connect to
-  Oracle Database 12.1 or later.
+  Oracle Database 19c is a Long Term Support Release whereas Oracle Database
+  21c is an Innovation Release.  It is recommended to keep up to date with the
+  latest Oracle Instant Client release updates of your desired major version.
+
+  Oracle Instant Client 19c will connect to Oracle Database 11.2 or later.
+  Oracle Instant Client 21c will connect to Oracle Database 12.1 or later.
 
 2. Install the downloaded RPM with sudo or as the root user. For example:
 
@@ -372,6 +384,9 @@ To use python-oracledb with Oracle Instant Client RPMs:
    Instant Client version. For example::
 
        export LD_LIBRARY_PATH=/usr/lib/oracle/18.5/client64/lib:$LD_LIBRARY_PATH
+
+  Web servers and other daemons commonly reset environment variables so using
+  ``ldconfig`` is generally preferred instead.
 
 4. If you use optional Oracle configuration files such as ``tnsnames.ora``,
    ``sqlnet.ora`` or ``oraaccess.xml`` with Instant Client, then put the files
@@ -938,10 +953,10 @@ If using python-oracledb fails:
 
   - On Linux, check if the ``LD_LIBRARY_PATH`` environment variable contains
     the Oracle Client library directory.  Some environments such as web servers
-    reset environment variables.  If you are using Oracle Instant Client, a
-    preferred alternative to ``LD_LIBRARY_PATH`` is to ensure that a file in
-    the ``/etc/ld.so.conf.d`` directory contains the path to the Instant Client
-    directory, and then run ``ldconfig``.
+    and daemons reset environment variables.  If you are using Oracle Instant
+    Client, a preferred alternative to ``LD_LIBRARY_PATH`` is to ensure that a
+    file in the ``/etc/ld.so.conf.d`` directory contains the path to the
+    Instant Client directory, and then run ``ldconfig``.
 
 - If you get the error ``DPY-3010: connections to this database server
   version are not supported by python-oracledb in thin mode`` when

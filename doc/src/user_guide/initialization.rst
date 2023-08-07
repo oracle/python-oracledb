@@ -253,11 +253,12 @@ parameter.
 
     oracledb.init_oracle_client()
 
-Oracle Client libraries are looked for in the operating system library
-search path, such as configured with ``ldconfig`` or set in the environment
-variable ``LD_LIBRARY_PATH``.  On some UNIX platforms an OS specific
-equivalent, such as ``LIBPATH`` or ``SHLIB_PATH``, is used instead of
-``LD_LIBRARY_PATH``.
+Oracle Client libraries are looked for in the operating system library search
+path, such as configured with ``ldconfig`` or set in the environment variable
+``LD_LIBRARY_PATH``.  Web servers and other daemons commonly reset environment
+variables so using ``ldconfig`` is generally preferred instead.  On some UNIX
+platforms an OS specific equivalent, such as ``LIBPATH`` or ``SHLIB_PATH``, is
+used instead of ``LD_LIBRARY_PATH``.
 
 If libraries are not found in the system library search path, then libraries
 in ``$ORACLE_HOME/lib`` will be used.  Note that the environment variable
