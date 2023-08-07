@@ -374,6 +374,24 @@ cdef uint32_t _get_native_type_num(DbType dbtype):
         return DPI_NATIVE_TYPE_JSON
     return DPI_NATIVE_TYPE_BYTES
 
+cdef list _string_list_to_python(dpiStringList *str_list):
+    """
+    Converts the contents of dpiStringList to a Python list of strings.
+    """
+    cdef:
+        list result
+        uint32_t i
+        str temp
+    try:
+        result = cpython.PyList_New(str_list.numStrings)
+        for i in range(str_list.numStrings):
+            temp = str_list.strings[i][:str_list.stringLengths[i]].decode()
+            cpython.Py_INCREF(temp)
+            cpython.PyList_SET_ITEM(result, i, temp)
+        return result
+    finally:
+        if dpiContext_freeStringList(driver_context, str_list) < 0:
+            _raise_from_odpi()
 
 cdef object _create_new_from_info(dpiErrorInfo *error_info):
     """

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -99,30 +99,19 @@ cdef class ThickSodaDbImpl(BaseSodaDbImpl):
         """
         cdef:
             StringBuffer start_name_buf = StringBuffer()
-            dpiSodaCollNames coll_names
-            uint32_t flags, i
-            list result
+            dpiStringList names
+            uint32_t flags
             int status
-            str temp
         start_name_buf.set_value(start_name)
         self._get_flags(&flags)
         with nogil:
             status = dpiSodaDb_getCollectionNames(self._handle,
                                                   start_name_buf.ptr,
                                                   start_name_buf.length,
-                                                  limit, flags, &coll_names)
+                                                  limit, flags, &names)
         if status < 0:
             _raise_from_odpi()
-        try:
-            result = cpython.PyList_New(coll_names.numNames)
-            for i in range(coll_names.numNames):
-                temp = coll_names.names[i][:coll_names.nameLengths[i]].decode()
-                cpython.Py_INCREF(temp)
-                cpython.PyList_SET_ITEM(result, i, temp)
-            return result
-        finally:
-            if dpiSodaDb_freeCollectionNames(self._handle, &coll_names) < 0:
-                _raise_from_odpi()
+        return _string_list_to_python(&names)
 
     def open_collection(self, str name):
         """
@@ -282,6 +271,21 @@ cdef class ThickSodaCollImpl(BaseSodaCollImpl):
             _raise_from_odpi()
         if doc_impl._handle != NULL:
             return doc_impl
+
+    def get_indexes(self):
+        """
+        Internal method for getting the list of indexes on a collection.
+        """
+        cdef:
+            dpiStringList indexes
+            uint32_t flags
+            int status
+        self._db_impl._get_flags(&flags)
+        with nogil:
+            status = dpiSodaColl_getIndexes(self._handle, flags, &indexes)
+        if status < 0:
+            _raise_from_odpi()
+        return _string_list_to_python(&indexes)
 
     def get_metadata(self):
         """

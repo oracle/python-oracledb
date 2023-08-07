@@ -218,6 +218,13 @@ SodaCollection Methods
     no documents in the collection, None is returned.
 
 
+.. method:: SodaCollection.getIndexes()
+
+    Returns a list of specifications for the indexes found on the collection.
+
+    .. versionadded:: 1.4.0
+
+
 .. method:: SodaCollection.insertMany(docs)
 
     Inserts a list of documents into the collection at one time. Each of the

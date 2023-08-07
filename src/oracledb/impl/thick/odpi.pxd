@@ -430,11 +430,6 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t nativeTypeNum
         dpiDataBuffer value
 
-    ctypedef struct dpiSodaCollNames:
-        uint32_t numNames
-        const char **names
-        uint32_t *nameLengths
-
     ctypedef struct dpiSodaOperOptions:
         uint32_t numKeys
         const char **keys
@@ -458,6 +453,11 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         bint isDML
         uint16_t statementType
         bint isReturning
+
+    ctypedef struct dpiStringList:
+        uint32_t numStrings
+        const char **strings
+        uint32_t *stringLengths
 
     ctypedef struct dpiSubscrCreateParams:
         uint32_t subscrNamespace
@@ -683,6 +683,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiContext_createWithParams(unsigned int majorVersion,
             unsigned int minorVersion, dpiContextCreateParams *params,
             dpiContext **context, dpiErrorInfo *errorInfo) nogil
+
+    int dpiContext_freeStringList(dpiContext *context,
+            dpiStringList *stringList) nogil
 
     int dpiContext_getClientVersion(const dpiContext *context,
             dpiVersionInfo *versionInfo) nogil
@@ -1037,6 +1040,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             const dpiSodaOperOptions *options, uint32_t flags,
             uint64_t *count) nogil
 
+    int dpiSodaColl_getIndexes(dpiSodaColl *coll, uint32_t flags,
+            dpiStringList *lst) nogil
+
     int dpiSodaColl_getMetadata(dpiSodaColl *coll, const char **value,
             uint32_t *valueLength) nogil
 
@@ -1076,12 +1082,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             const char *mediaType, uint32_t mediaTypeLength, uint32_t flags,
             dpiSodaDoc **doc) nogil
 
-    int dpiSodaDb_freeCollectionNames(dpiSodaDb *db,
-            dpiSodaCollNames *names) nogil
-
     int dpiSodaDb_getCollectionNames(dpiSodaDb *db,
             const char *startName, uint32_t startNameLength, uint32_t limit,
-            uint32_t flags, dpiSodaCollNames *names) nogil
+            uint32_t flags, dpiStringList *names) nogil
 
     int dpiSodaDb_openCollection(dpiSodaDb *db, const char *name,
             uint32_t nameLength, uint32_t flags, dpiSodaColl **coll) nogil

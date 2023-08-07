@@ -611,5 +611,37 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, coll.find().fetchArraySize, -1)
         coll.drop()
 
+    def test_3429_getting_indexes(self):
+        "3429 - test getting indexes on a collection"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaGetIndexes")
+        index_1 =  {
+            'name': 'ix_3428-1',
+            'fields': [
+                {
+                    'path': 'address.city',
+                    'datatype': 'string',
+                    'order': 'asc'
+                }
+            ]
+        }
+        index_2 =  {
+            'name': 'ix_3428-2',
+            'fields': [
+                {
+                    'path': 'address.postal_code',
+                    'datatype': 'string',
+                    'order': 'asc'
+                }
+            ]
+        }
+        self.assertEqual(coll.getIndexes(), [])
+        coll.createIndex(index_1)
+        coll.createIndex(index_2)
+        indexes = coll.getIndexes()
+        indexes.sort(key=lambda x: x["name"])
+        self.assertEqual(indexes[0]["fields"][0]["path"], "address.city")
+        self.assertEqual(indexes[1]["fields"][0]["path"], "address.postal_code")
+
 if __name__ == "__main__":
     test_env.run_test_cases()

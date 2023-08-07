@@ -53,6 +53,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added function :meth:`SodaCollection.getIndexes()` for geting the indexes
+    on a SODA collection.
 #)  Fixed bug when using external authentication with an Easy Connect
     connection string.
 #)  Relaxed restriction for end-to-end string connection attributes. These

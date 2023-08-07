@@ -214,6 +214,12 @@ class SodaCollection:
         if doc_impl is not None:
             return SodaDocument._from_impl(doc_impl)
 
+    def getIndexes(self) -> list:
+        """
+        Return a list of indexes associated with the collection.
+        """
+        return [json.loads(s) for s in self._impl.get_indexes()]
+
     def insertMany(self, docs: list) -> None:
         """
         Inserts a list of documents into the collection at one time. Each of
