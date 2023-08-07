@@ -340,17 +340,18 @@ cdef class Protocol:
         Forces the connection closed. This is used when an unrecoverable error
         has taken place.
         """
-        sock = self._socket
-        if DEBUG_PACKETS:
-            now = datetime.datetime.now()
-            print(now.isoformat(sep=" ", timespec="milliseconds"),
-                  f"[socket: {sock.fileno()}]", "force closing connection")
-            print()
-        self._socket = None
-        self._read_buf._socket = None
-        self._write_buf._socket = None
-        sock.shutdown(socket.SHUT_RDWR)
-        sock.close()
+        if self._socket is not None:
+            sock = self._socket
+            if DEBUG_PACKETS:
+                now = datetime.datetime.now()
+                print(now.isoformat(sep=" ", timespec="milliseconds"),
+                      f"[socket: {sock.fileno()}]", "force closing connection")
+                print()
+            self._socket = None
+            self._read_buf._socket = None
+            self._write_buf._socket = None
+            sock.shutdown(socket.SHUT_RDWR)
+            sock.close()
 
     cdef int _process_message(self, Message message) except -1:
         try:

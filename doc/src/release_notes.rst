@@ -51,6 +51,9 @@ Thin Mode Changes
 #)  Fixed bug when an Application Continuity replay context is returned during
     connection to the database
     (`issue 176 <https://github.com/oracle/python-oracledb/issues/176>`__).
+#)  Fixed bug when socket is not closed immediately upon failure to establish a
+    connection to the database
+    (`issue 211 <https://github.com/oracle/python-oracledb/issues/211>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

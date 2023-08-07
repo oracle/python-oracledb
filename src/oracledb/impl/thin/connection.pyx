@@ -324,14 +324,18 @@ cdef class ThinConnImpl(BaseConnImpl):
     def connect(self, ConnectParamsImpl params):
         params._check_credentials()
         self._connection_id = base64.b64encode(secrets.token_bytes(16)).decode()
-        self._connect_with_params(params)
-        self._statement_cache = collections.OrderedDict()
-        self._statement_cache_size = params.stmtcachesize
-        self._statement_cache_lock = threading.Lock()
-        self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
-        self._cursors_to_close = array.array('I')
-        array.resize(self._cursors_to_close, TNS_MAX_CURSORS_TO_CLOSE)
-        self.invoke_session_callback = True
+        try:
+            self._connect_with_params(params)
+            self._statement_cache = collections.OrderedDict()
+            self._statement_cache_size = params.stmtcachesize
+            self._statement_cache_lock = threading.Lock()
+            self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
+            self._cursors_to_close = array.array('I')
+            array.resize(self._cursors_to_close, TNS_MAX_CURSORS_TO_CLOSE)
+            self.invoke_session_callback = True
+        except:
+            self._force_close()
+            raise
 
     def create_cursor_impl(self):
         return ThinCursorImpl.__new__(ThinCursorImpl, self)
