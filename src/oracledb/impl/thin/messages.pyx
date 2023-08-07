@@ -1733,7 +1733,8 @@ cdef class ConnectMessage(Message):
             if protocol_version >= TNS_VERSION_MIN_UUID:
                 buf.skip_raw_bytes(33)
                 db_uuid = buf.read_raw_bytes(16)[:16]
-                self.cookie = get_connection_cookie_by_uuid(db_uuid)
+                self.cookie = get_connection_cookie_by_uuid(db_uuid,
+                                                            self.description)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options)
         elif self.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message

@@ -42,13 +42,20 @@ cdef class ConnectionCookie:
 
 cdef dict connection_cookies_by_uuid = {}
 
-cdef ConnectionCookie get_connection_cookie_by_uuid(bytes uuid):
+cdef ConnectionCookie get_connection_cookie_by_uuid(bytes uuid,
+                                                    Description description):
     """
     Returns a connection cookie given the UUID supplied in the accept packet.
     If no such cookie exists, a new one is created and returned for population.
     """
-    cdef ConnectionCookie cookie = connection_cookies_by_uuid.get(uuid)
+    cdef:
+        ConnectionCookie cookie
+        str key_str
+        bytes key
+    key_str = description.service_name or description.sid or ""
+    key = uuid + key_str.encode()
+    cookie = connection_cookies_by_uuid.get(key)
     if cookie is None:
         cookie = ConnectionCookie.__new__(ConnectionCookie)
-        connection_cookies_by_uuid[uuid] = cookie
+        connection_cookies_by_uuid[key] = cookie
     return cookie
