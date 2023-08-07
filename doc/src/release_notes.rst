@@ -66,8 +66,8 @@ Common Changes
 
 #)  Added support for fetching VARCHAR2 and LOB columns which contain JSON (and
     have the "IS JSON" check constraint enabled) in the same way as columns of
-    type JSON (which requires Oracle Database 21 or higher) are fetched. In
-    thick mode this requires Oracle Client 19 or higher. The attribute
+    type JSON (which requires Oracle Database 21c or higher) are fetched. In
+    thick mode this requires Oracle Client 19c or higher. The attribute
     ``oracledb.__future__.old_json_col_as_obj`` must be set to the value
     ``True`` for this behavior to occur. In version 2.0 this will become the
     normal behavior and setting this attribute will no longer be needed.
