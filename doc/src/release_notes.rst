@@ -33,6 +33,8 @@ Thin Mode Changes
     connection pool and no connection class was specified when the pool was
     created. The default connection class will be of the form ``DPY:`` followed
     by a 16-byte unique identifier converted to base64 encoding.
+#)  Changed internal connection feature negotiation for more accurate Oracle
+    Database 23c support.
 #)  Fixed bug when a dynamically sized pool is created with an ``increment``
     of zero and the pool needs to grow.
 #)  Fixed bug affecting connection reuse when connections were acquired from

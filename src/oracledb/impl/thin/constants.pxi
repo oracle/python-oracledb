@@ -691,7 +691,7 @@ cdef enum:
     TNS_CCAP_TTC3 = 37
     TNS_CCAP_TTC4 = 40
     TNS_CCAP_LOB2 = 42
-    TNS_CCAP_MAX = 45
+    TNS_CCAP_MAX = 51
 
 # compile time capability values
 cdef enum:
@@ -709,7 +709,11 @@ cdef enum:
     TNS_CCAP_FIELD_VERSION_21_1 = 16
     TNS_CCAP_FIELD_VERSION_23_1 = 17
     TNS_CCAP_FIELD_VERSION_23_1_EXT_1 = 18
-    TNS_CCAP_FIELD_VERSION_MAX = 18
+    TNS_CCAP_FIELD_VERSION_23_2_EXT_2 = 19
+    TNS_CCAP_FIELD_VERSION_23_3_EXT_3 = 20
+    TNS_CCAP_FIELD_VERSION_23_4_EXT_4 = 21
+    TNS_CCAP_FIELD_VERSION_23_5_EXT_5 = 22
+    TNS_CCAP_FIELD_VERSION_MAX = 22
     TNS_CCAP_O5LOGON = 8
     TNS_CCAP_O5LOGON_NP = 2
     TNS_CCAP_O7LOGON = 32
@@ -744,7 +748,7 @@ cdef enum:
 cdef enum:
     TNS_RCAP_COMPAT = 0
     TNS_RCAP_TTC = 6
-    TNS_RCAP_MAX = 7
+    TNS_RCAP_MAX = 11
 
 # runtime capability values
 cdef enum:
