@@ -52,10 +52,10 @@ Variable Attributes
 
 .. attribute:: Variable.convert_nulls
 
-   This read-only attribute returns whether the :data:`~Variable.outconverter`
+   This read-only attribute returns whether the :attr:`~Variable.outconverter`
    method is called when null values are fetched from the database.
 
-   .. versionadded:: 1.4
+   .. versionadded:: 1.4.0
 
 .. attribute:: Variable.inconverter
 

@@ -98,6 +98,8 @@ ConnectParams Attributes
     `tracing <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.
 
+    .. versionadded:: 1.4.0
+
 .. attribute:: ConnectParams.debug_jdwp
 
     This read-only attribute is a string with the format

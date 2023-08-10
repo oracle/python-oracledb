@@ -689,6 +689,8 @@ Connection Attributes
     associated with the connection. It is the same value as the SQL expression
     ``sys_context('userenv', 'instance_name')``.
 
+    .. versionadded:: 1.4.0
+
     .. note::
 
         This attribute is an extension to the DB API definition.

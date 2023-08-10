@@ -75,6 +75,8 @@ binding as shown below:
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
     cursor.execute(insert_sql, [1, data])
 
+.. _json21fetch:
+
 To fetch a JSON column, use:
 
 .. code-block:: python
@@ -83,7 +85,7 @@ To fetch a JSON column, use:
         print(row)
 
 See `json_direct.py
-<https://github.com/oracle/python-oracledb/tree/main/samplesjson_direct.py>`__
+<https://github.com/oracle/python-oracledb/tree/main/samples/json_direct.py>`__
 for a runnable example.  The example also shows how to use this type when
 python-oracledb Thick mode uses older Oracle Client libraries.
 
@@ -102,7 +104,24 @@ insert JSON strings like:
 
     cursor.execute(inssql, [1, json.dumps(data)])
 
-To fetch JSON strings, use:
+You can fetch VARCHAR2 and LOB columns that contain JSON data without needing
+to call ``json.loads()`` on the value (similar to
+:ref:`fetching JSON type columns <json21fetch>` when using Oracle Database
+21c). This can be done by setting the attribute
+:attr:`oracledb.__future__.old_json_col_as_obj` to the value *True* as shown
+below.  If you are using python-oracledb Thick mode, you must also use Oracle
+Client 19c (or later).
+
+.. code-block:: python
+
+    oracledb.__future__.old_json_col_as_obj = True
+
+    for row in cursor.execute("select * from CustomersAsBlob"):
+        print(row)
+
+To fetch JSON without setting the attribute
+``oracledb.__future__.old_json_col_as_obj``, you can use ``json.loads()`` on
+the returned data. For example, to fetch JSON which uses BLOB storage:
 
 .. code-block:: python
 
@@ -113,7 +132,7 @@ To fetch JSON strings, use:
         print(json.loads(j.read()))
 
 See `json_blob.py
-<https://github.com/oracle/python-oracledb/tree/main/samplesjson_blob.py>`__
+<https://github.com/oracle/python-oracledb/tree/main/samples/json_blob.py>`__
 for a runnable example.
 
 IN Bind Type Mapping

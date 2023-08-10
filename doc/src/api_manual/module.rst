@@ -11,18 +11,6 @@ API: python-oracledb Module
 Oracledb Methods
 ================
 
-.. data:: __future__
-
-    Special object which contains attributes which control the behavior of
-    python-oracledb, allowing for opting in for new features. No attributes are
-    currently supported so all attributes will silently ignore being set and
-    will always appear to have the value None.
-
-    .. note::
-
-        This method is an extension to the DB API definition.
-
-
 .. function:: Binary(string)
 
     Constructs an object holding a binary (long) string value.
@@ -1291,6 +1279,30 @@ Oracledb Methods
     (number of seconds since the epoch; see the documentation of the standard
     Python time module for details).
 
+.. _futureobj:
+
+Oracledb.__future__ Object
+==========================
+
+Special object that contains attributes which control the behavior of
+python-oracledb, allowing for opting in for new features.
+
+.. note::
+
+    This method is an extension to the DB API definition.
+
+.. attribute:: __future__.old_json_col_as_obj
+
+    A boolean attribute which when set to *True* while using Oracle Database
+    12c (or later), fetches VARCHAR2 and LOB columns that were created with
+    the ``IS JSON`` constraint and therefore contain JSON data in the same way
+    that :ref:`columns of type JSON <json21fetch>` are fetched when using
+    Oracle Database 21c (or later).
+
+    In python-oracledb 2.0, the setting of this attribute will no longer be
+    required since this will be the default behavior.
+
+    .. versionadded:: 1.4.0
 
 .. _constants:
 

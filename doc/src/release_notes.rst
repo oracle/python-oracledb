@@ -17,36 +17,35 @@ Thin Mode Changes
     performance of connection creation by reducing the number of round trips
     required to create the second and subsequent connections to the same
     database.
-#)  Added support for the ``ORA_SDTZ`` environment variable used to set the
-    session time zone used by the database.
-#)  Added support for shrinking the pool back to the minimum number of
-    connections allowed in the pool when the pool is idle for
-    :data:`ConnectionPool.timeout` seconds.
-#)  Added support for sending a generated connection identifier to the
-    database used for tracing. An application specific prefix is prepended to
-    this value if specified via a new ``connection_id_prefix`` parameter when
-    creating standalone connections or connection pools.
-#)  Added support for growing the pool back to the minimum number of
-    connections allowed in the pool when connections are killed or otherwise
-    made unusable.
-#)  Added URL to the Oracle Database Error Help Portal in Oracle Database
-    error messages similar to when Thick mode uses Oracle Client 23c.
+#)  Added support for shrinking the connection pool back to the specified
+    minimum size when the pool is idle for :data:`ConnectionPool.timeout`
+    seconds.
+#)  Added support for growing the connection pool back to the minimum number of
+    connections after connections are killed or otherwise made unusable.
 #)  A default connection class is now generated when DRCP is used with a
     connection pool and no connection class was specified when the pool was
     created. The default connection class will be of the form ``DPY:`` followed
     by a 16-byte unique identifier converted to base64 encoding.
 #)  Changed internal connection feature negotiation for more accurate Oracle
     Database 23c support.
-#)  Fixed bug when a dynamically sized pool is created with an ``increment``
-    of zero and the pool needs to grow.
+#)  Added support for sending a generated connection identifier to the
+    database used for tracing. An application specific prefix is prepended to
+    this value if specified via a new ``connection_id_prefix`` parameter when
+    creating standalone connections or connection pools.
+#)  Added URL to the Oracle Database Error Help Portal in Oracle Database
+    error messages similar to when Thick mode uses Oracle Client 23c.
+#)  Added support for the ``ORA_SDTZ`` environment variable used to set the
+    session time zone used by the database.
+#)  Fixed bug when a dynamically sized connection pool is created with an
+    ``increment`` of zero and the pool needs to grow.
 #)  Fixed bug affecting connection reuse when connections were acquired from
     the connection pool with a ``cclass`` different to the one used to
     create the pool.
-#)  Fixed bug when a connection is discarded from the pool during
+#)  Fixed bug when a connection is discarded from the connection pool during
     :meth:`ConnectionPool.acquire()` and the ping check fails due to the
     connection being dead.
 #)  Fixed bug when an output type handler is used and the value of
-    cursor.prefetchrows exceeds cursor.arraysize
+    :attr:`Cursor.prefetchrows` exceeds :attr:`Cursor.arraysize`
     (`issue 173 <https://github.com/oracle/python-oracledb/issues/173>`__).
 #)  Fixed bug when an Application Continuity replay context is returned during
     connection to the database
@@ -58,7 +57,7 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Added function :meth:`SodaCollection.getIndexes()` for getting the indexes
+#)  Added function :meth:`SodaCollection.listIndexes()` for getting the indexes
     on a SODA collection.
 #)  Added support for specifying if documents should be locked when fetched
     from SODA collections. A new non-terminal method
@@ -87,12 +86,12 @@ Common Changes
     ``handler(cursor, metadata)`` where the ``metadata`` parameter is a
     :ref:`FetchInfo<fetchinfoobj>` object containing the same information found
     in :data:`Cursor.description`. The original signature for output type
-    handlers is deprecated and will be removed in some future version.
+    handlers is deprecated and will be removed in a future version.
 #)  Added support for fetching VARCHAR2 and LOB columns which contain JSON (and
     have the "IS JSON" check constraint enabled) in the same way as columns of
     type JSON (which requires Oracle Database 21c or higher) are fetched. In
     thick mode this requires Oracle Client 19c or higher. The attribute
-    ``oracledb.__future__.old_json_col_as_obj`` must be set to the value
+    :attr:`oracledb.__future__.old_json_col_as_obj` must be set to the value
     ``True`` for this behavior to occur. In version 2.0 this will become the
     normal behavior and setting this attribute will no longer be needed.
 #)  Added new property :attr:`Connection.instance_name` which provides the
@@ -163,7 +162,8 @@ Thin Mode Changes
 #)  Fixed bug with Oracle Database 23c when SQL is executed after first being
     parsed.
 #)  Fixed bug when :data:`ConnectionPool.timeout` is not `None` when creating a
-    pool (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
+    connection pool
+    (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
 #)  Fixed bug when a query is re-executed after an underlying table is dropped
     and recreated, and the query select list contains LOBs or JSON data.
 #)  Fixed bug when warning message such as for impending password expiry is
