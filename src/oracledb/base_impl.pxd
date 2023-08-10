@@ -333,6 +333,7 @@ cdef class BaseVarImpl:
         readonly bint bypass_decode
         readonly bint is_array
         readonly bint nulls_allowed
+        readonly bint convert_nulls
         public uint32_t num_elements_in_array
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype

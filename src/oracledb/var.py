@@ -90,6 +90,14 @@ class Var:
         """
         return self.buffer_size
 
+    @property
+    def convert_nulls(self) -> bool:
+        """
+        This read-only attribute returns whether null values are converted
+        using the supplied ``outconverter``.
+        """
+        return self._impl.convert_nulls
+
     def getvalue(self, pos: int=0) -> Any:
         """
         Return the value at the given position in the variable. For variables

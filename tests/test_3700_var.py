@@ -433,5 +433,26 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(var.actualElements, 200)
         self.assertEqual(var.numElements, 200)
 
+    def test_3730_convert_nulls(self):
+        "3730 - test calling of outconverter with null values"
+        def type_handler(cursor, metadata):
+            return cursor.var(metadata.type_code,
+                              outconverter=lambda v: f"|{v}|" if v else '',
+                              convert_nulls=True, arraysize=cursor.arraysize)
+        self.cursor.outputtypehandler = type_handler
+        self.cursor.execute("""
+                select 'First - A', 'First - B' from dual
+                union all
+                select 'Second - A', null from dual
+                union all
+                select null, 'Third - B' from dual""")
+        rows = self.cursor.fetchall()
+        expected_rows = [
+            ('|First - A|', '|First - B|'),
+            ('|Second - A|', ''),
+            ('', '|Third - B|')
+        ]
+        self.assertEqual(rows, expected_rows)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

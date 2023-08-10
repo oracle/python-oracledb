@@ -743,6 +743,7 @@ class Cursor:
             typename: str=None,
             encoding_errors: str=None,
             bypass_decode: bool=False,
+            convert_nulls: bool=False,
             *,
             encodingErrors: str=None) -> "Var":
         """
@@ -794,6 +795,9 @@ class Cursor:
         DB_TYPE_VARCHAR, DB_TYPE_CHAR, DB_TYPE_NVARCHAR, DB_TYPE_NCHAR and
         DB_TYPE_LONG to be returned as bytes instead of str, meaning that
         oracledb doesn't do any decoding.
+
+        The convert_nulls parameter specifies whether the outconverter should
+        be called when null values are fetched from the database.
         """
         self._verify_open()
         if typename is not None:
@@ -808,4 +812,5 @@ class Cursor:
             encoding_errors = encodingErrors
         return self._impl.create_var(self.connection, typ, size, arraysize,
                                      inconverter, outconverter,
-                                     encoding_errors, bypass_decode)
+                                     encoding_errors, bypass_decode,
+                                     convert_nulls=convert_nulls)

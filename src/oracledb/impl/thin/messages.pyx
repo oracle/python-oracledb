@@ -494,7 +494,7 @@ cdef class MessageWithData(Message):
                 num_elements = self.row_index
             for i in range(num_elements):
                 value = var_impl._values[i]
-                if value is None:
+                if value is None and not var_impl.convert_nulls:
                     continue
                 if isinstance(value, list):
                     for j, element_value in enumerate(value):

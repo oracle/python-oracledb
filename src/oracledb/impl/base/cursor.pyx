@@ -403,7 +403,8 @@ cdef class BaseCursorImpl:
     def create_var(self, object conn, object typ, uint32_t size=0,
                    uint32_t num_elements=1, object inconverter=None,
                    object outconverter=None, str encoding_errors=None,
-                   bint bypass_decode=False, bint is_array=False):
+                   bint bypass_decode=False, bint is_array=False,
+                   bint convert_nulls=False):
         cdef BaseVarImpl var_impl
         var_impl = self._create_var_impl(conn)
         var_impl._set_type_info_from_type(typ)
@@ -413,6 +414,7 @@ cdef class BaseCursorImpl:
         var_impl.outconverter = outconverter
         var_impl.bypass_decode = bypass_decode
         var_impl.is_array = is_array
+        var_impl.convert_nulls = convert_nulls
         var_impl._finalize_init()
         return PY_TYPE_VAR._from_impl(var_impl)
 

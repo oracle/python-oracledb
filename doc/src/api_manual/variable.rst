@@ -50,6 +50,13 @@ Variable Attributes
     name will continue to work for a period of time.
 
 
+.. attribute:: Variable.convert_nulls
+
+   This read-only attribute returns whether the :data:`~Variable.outconverter`
+   method is called when null values are fetched from the database.
+
+   .. versionadded:: 1.4
+
 .. attribute:: Variable.inconverter
 
     This read-write attribute specifies the method used to convert data from

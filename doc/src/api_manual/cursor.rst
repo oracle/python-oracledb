@@ -371,7 +371,7 @@ Cursor Methods
 
 
 .. method:: Cursor.var(typ, [size, arraysize, inconverter, outconverter, \
-        typename, encoding_errors, bypass_decode])
+        typename, encoding_errors, bypass_decode, convert_nulls])
 
     Creates a variable with the specified characteristics. This method was
     designed for use with PL/SQL in/out variables where the length or type
@@ -442,9 +442,19 @@ Cursor Methods
     meaning that python-oracledb does not do any decoding. See :ref:`Fetching raw
     data <fetching-raw-data>` for more information.
 
+    The ``convert_nulls`` parameter, if specified, should be passed a boolean
+    value. Passing the value ``True`` causes the ``outconverter`` to be called
+    when a null value is fetched from the database; otherwise, the
+    ``outconverter`` is only called when non-null values are fetched from the
+    database.
+
     For consistency and compliance with the PEP 8 naming style, the
     parameter `encodingErrors` was renamed to `encoding_errors`. The old
     name will continue to work as a keyword parameter for a period of time.
+
+    .. versionchanged:: 1.4
+
+        The ``convert_nulls`` parameter was added.
 
     .. note::
 

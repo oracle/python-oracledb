@@ -74,6 +74,11 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for the :attr:`~Variable.outconverter` being called when a
+    null value is fetched from the database and the new parameter
+    ``convert_nulls`` to the method :meth:`Cursor.var()` is passed the value
+    ``True``
+    (`issue 107 <https://github.com/oracle/python-oracledb/issues/107>`__).
 #)  Replaced fixed 7-tuple for the cursor metadata found in
     :data:`Cursor.description` with a class which provides additional
     information such as the database object type and whether the column
