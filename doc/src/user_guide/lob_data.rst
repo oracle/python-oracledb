@@ -107,12 +107,12 @@ handler:
 
 .. code-block:: python
 
-    def output_type_handler(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_CLOB:
+    def output_type_handler(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_CLOB:
             return cursor.var(oracledb.DB_TYPE_LONG, arraysize=cursor.arraysize)
-        if default_type == oracledb.DB_TYPE_BLOB:
+        if metadata.type_code is oracledb.DB_TYPE_BLOB:
             return cursor.var(oracledb.DB_TYPE_LONG_RAW, arraysize=cursor.arraysize)
-        if default_type == oracledb.DB_TYPE_NCLOB:
+        if metadata.type_code is oracledb.DB_TYPE_NCLOB:
             return cursor.var(oracledb.DB_TYPE_LONG_NVARCHAR, arraysize=cursor.arraysize)
 
     connection.outputtypehandler = output_type_handler

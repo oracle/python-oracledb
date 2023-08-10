@@ -268,6 +268,7 @@ cdef class BaseCursorImpl:
         public object outputtypehandler
         public object rowfactory
         public bint scrollable
+        public list fetch_info_impls
         public list fetch_vars
         public list fetch_var_impls
         public list bind_vars
@@ -291,14 +292,14 @@ cdef class BaseCursorImpl:
                                       bint defer_type_assignment) except -1
     cdef int _close(self, bint in_del) except -1
     cdef int _create_fetch_var(self, object conn, object cursor,
-                               object type_handler, ssize_t pos,
-                               FetchInfo fetch_info) except -1
+                               object type_handler, bint uses_fetch_info,
+                               ssize_t pos, FetchInfoImpl fetch_info) except -1
     cdef object _create_row(self)
     cdef BaseVarImpl _create_var_impl(self, object conn)
     cdef int _fetch_rows(self, object cursor) except -1
     cdef BaseConnImpl _get_conn_impl(self)
     cdef object _get_input_type_handler(self)
-    cdef object _get_output_type_handler(self)
+    cdef object _get_output_type_handler(self, bint* uses_fetch_info)
     cdef int _init_fetch_vars(self, uint32_t num_columns) except -1
     cdef bint _is_plsql(self)
     cdef int _perform_binds(self, object conn, uint32_t num_execs) except -1
@@ -306,17 +307,17 @@ cdef class BaseCursorImpl:
     cdef int _verify_var(self, object var) except -1
 
 
-cdef class FetchInfo:
+cdef class FetchInfoImpl:
     cdef:
-        int16_t _precision
-        int16_t _scale
-        uint32_t _buffer_size
-        uint32_t _size
-        bint _nulls_allowed
-        str _name
-        DbType _dbtype
-        BaseDbObjectTypeImpl _objtype
-        bint _is_json_col
+        readonly int16_t precision
+        readonly int16_t scale
+        readonly uint32_t buffer_size
+        readonly uint32_t size
+        readonly bint nulls_allowed
+        readonly str name
+        readonly DbType dbtype
+        readonly BaseDbObjectTypeImpl objtype
+        readonly bint is_json
 
 
 cdef class BaseVarImpl:
@@ -337,7 +338,7 @@ cdef class BaseVarImpl:
         readonly BaseDbObjectTypeImpl objtype
         BaseConnImpl _conn_impl
         int _preferred_num_type
-        FetchInfo _fetch_info
+        FetchInfoImpl _fetch_info
         bint _is_value_set
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor,

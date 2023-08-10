@@ -35,6 +35,7 @@ from . import __name__ as MODULE_NAME
 from . import errors, exceptions
 from . import connection as connection_module
 from .defaults import defaults
+from .fetch_info import FetchInfo
 from .var import Var
 from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
@@ -52,6 +53,7 @@ class Cursor:
         self._impl.scrollable = scrollable
         self._impl.arraysize = defaults.arraysize
         self._impl.prefetchrows = defaults.prefetchrows
+        self._fetch_infos = None
 
     def __del__(self):
         if self._impl is not None:
@@ -137,6 +139,7 @@ class Cursor:
         self._impl.prepare(statement, tag, cache_statement)
         self.statement = statement
         self._impl.rowfactory = None
+        self._fetch_infos = None
 
     def _set_oci_attr(self, attr_num: int, attr_type: int,
                       value: Any) -> None:
@@ -304,8 +307,10 @@ class Cursor:
         cursor has not had an operation invoked via the execute() method yet.
         """
         self._verify_open()
-        if self._impl.is_query(self):
-            return self._impl.get_description()
+        if self._fetch_infos is None and self._impl.is_query(self):
+            self._fetch_infos = [FetchInfo._from_impl(i) \
+                                 for i in self._impl.fetch_info_impls]
+        return self._fetch_infos
 
     def execute(self, statement: Union[str, None],
                 parameters: Union[list, tuple, dict]=None,

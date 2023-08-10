@@ -66,6 +66,7 @@ API Manual
     api_manual/connection_pool.rst
     api_manual/pool_params.rst
     api_manual/cursor.rst
+    api_manual/fetch_info.rst
     api_manual/variable.rst
     api_manual/subscription.rst
     api_manual/lob.rst

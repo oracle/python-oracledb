@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -68,10 +68,9 @@ class TestCase(test_env.BaseTestCase):
             return cursor.var(oracledb.STRING, arraysize=num_elements,
                               inconverter=self.building_in_converter)
 
-    def output_type_handler(self, cursor, name, default_type, size, precision,
-                            scale):
-        if default_type == oracledb.STRING:
-            return cursor.var(default_type, arraysize=cursor.arraysize,
+    def output_type_handler(self, cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
+            return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
                               outconverter=Building.from_json)
 
     def test_3800(self):
@@ -173,9 +172,8 @@ class TestCase(test_env.BaseTestCase):
         self.connection.commit()
         def converter(value):
             return "CONVERTED"
-        def output_type_handler(cursor, name, default_type, size, precision,
-                                scale):
-            if default_type is oracledb.DB_TYPE_VARCHAR:
+        def output_type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
                 return cursor.var(str, outconverter=converter,
                                   arraysize=cursor.arraysize)
         self.cursor.outputtypehandler = output_type_handler
@@ -212,16 +210,15 @@ class TestCase(test_env.BaseTestCase):
             # take advantage of direct binding
             self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
             self.cursor.executemany(insert_sql, data_to_insert)
-        def output_type_handler(cursor, name, default_type, size, precision,
-                                scale):
+        def output_type_handler(cursor, metadata):
             # fetch 21c JSON datatype when using python-oracledb thin mode
-            if default_type == oracledb.DB_TYPE_JSON:
+            if metadata.type_code is oracledb.DB_TYPE_JSON:
                 return cursor.var(str, arraysize=cursor.arraysize,
                                   outconverter=json.loads)
             # if using Oracle Client version < 21, then database returns BLOB
             # data type instead of JSON data type
-            elif default_type == oracledb.DB_TYPE_BLOB:
-                return cursor.var(default_type, arraysize=cursor.arraysize,
+            elif metadata.type_code is oracledb.DB_TYPE_BLOB:
+                return cursor.var(metadata.type, arraysize=cursor.arraysize,
                                   outconverter=lambda v: json.loads(v.read()))
         if json_as_string:
             self.cursor.outputtypehandler = output_type_handler

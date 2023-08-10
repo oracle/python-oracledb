@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2023, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -82,9 +82,9 @@ def input_type_handler(cursor, value, num_elements):
         return cursor.var(obj_type, arraysize=num_elements,
                           inconverter=building_in_converter)
 
-def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == oracledb.OBJECT:
-        return cursor.var(obj_type, arraysize=cursor.arraysize,
+def output_type_handler(cursor, metadata):
+    if metadata.type_code is oracledb.DB_TYPE_OBJECT:
+        return cursor.var(metadata.type, arraysize=cursor.arraysize,
                           outconverter=building_out_converter)
 
 buildings = [

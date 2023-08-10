@@ -37,7 +37,7 @@ class TestCase(test_env.BaseTestCase):
 
     def __test_type_handler(self, input_type, output_type, in_value,
                             expected_out_value):
-        def type_handler(cursor, name, default_type, size, precision, scale):
+        def type_handler(cursor, metadata):
             return cursor.var(output_type, arraysize=cursor.arraysize)
         self.cursor.outputtypehandler = type_handler
         var = self.cursor.var(input_type)
@@ -49,8 +49,8 @@ class TestCase(test_env.BaseTestCase):
 
     def __test_type_handler_lob(self, lob_type, output_type):
         db_type = getattr(oracledb, lob_type)
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == db_type:
+        def type_handler(cursor, metadata):
+            if metadata.type_code is db_type:
                 return cursor.var(output_type, arraysize=cursor.arraysize)
         self.cursor.outputtypehandler = type_handler
         in_value = f"Some {lob_type} data"
@@ -479,7 +479,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3671_incorrect_arraysize(self):
         "3671 - execute raises an error if an incorrect arraysize is used"
-        def type_handler(cursor, name, default_type, size, precision, scale):
+        def type_handler(cursor, metadata):
             return cursor.var(str)
         cursor = self.connection.cursor()
         cursor.arraysize = 100
@@ -489,8 +489,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3672_incorrect_outputtypehandler_return_type(self):
         "3672 - execute raises an error if a var is not returned"
-        def type_handler(cursor, name, default_type, size,
-                         precision, scale):
+        def type_handler(cursor, metadata):
             return "incorrect_return"
         cursor = self.connection.cursor()
         cursor.outputtypehandler = type_handler
@@ -506,8 +505,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3674_cursor_description_unchanged(self):
         "3674 - use of output type handler does not affect description"
-        def type_handler(cursor, name, default_type, size,
-                         precision, scale):
+        def type_handler(cursor, metadata):
             return cursor.var(str, arraysize=cursor.arraysize)
         with self.connection.cursor() as cursor:
             cursor.execute("select user from dual")
@@ -516,6 +514,15 @@ class TestCase(test_env.BaseTestCase):
             cursor.outputtypehandler = type_handler
             cursor.execute("select user from dual")
             self.assertEqual(cursor.description, desc_before)
+
+    def test_3675_old_signature(self):
+        "3675 - use the old signature for an output type handler"
+        def type_handler(cursor, name, default_type, size, precision, scale):
+            return cursor.var(str, arraysize=cursor.arraysize)
+        with self.connection.cursor() as cursor:
+            cursor.outputtypehandler = type_handler
+            cursor.execute("select 1 from dual")
+            self.assertEqual(cursor.fetchall(), [('1',)])
 
 if __name__ == "__main__":
     test_env.run_test_cases()

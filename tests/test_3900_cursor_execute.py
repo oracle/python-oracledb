@@ -374,8 +374,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3929_output_type_handler_with_prefetch_gt_arraysize(self):
         "3929 - test an output type handler with prefetch > arraysize"
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            return cursor.var(default_type, arraysize=cursor.arraysize)
+        def type_handler(cursor, metadata):
+            return cursor.var(metadata.type_code, arraysize=cursor.arraysize)
         self.cursor.arraysize = 2
         self.cursor.prefetchrows = 3
         self.cursor.outputtypehandler = type_handler

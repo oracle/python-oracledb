@@ -318,7 +318,7 @@ cdef class MessageWithData(Message):
 
     cdef int _adjust_fetch_info(self,
                                 ThinVarImpl prev_var_impl,
-                                FetchInfo fetch_info) except -1:
+                                FetchInfoImpl fetch_info) except -1:
         """
         When a query is re-executed but the data type of a column has changed
         the server returns the type information of the new type. However, if
@@ -329,22 +329,22 @@ cdef class MessageWithData(Message):
         Detect this situation and adjust the fetch type appropriately.
         """
         cdef:
-            FetchInfo prev_fetch_info = prev_var_impl._fetch_info
+            FetchInfoImpl prev_fetch_info = prev_var_impl._fetch_info
             uint8_t csfrm = prev_var_impl.dbtype._csfrm
             uint8_t type_num
-        if fetch_info._dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
-                and prev_fetch_info._dbtype._ora_type_num in \
+        if fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
+                and prev_fetch_info.dbtype._ora_type_num in \
                         (TNS_DATA_TYPE_CHAR, TNS_DATA_TYPE_VARCHAR,
                          TNS_DATA_TYPE_LONG):
             type_num = TNS_DATA_TYPE_LONG
-            fetch_info._dbtype = DbType._from_ora_type_and_csfrm(type_num,
-                                                                 csfrm)
-        elif fetch_info._dbtype._ora_type_num == TNS_DATA_TYPE_BLOB \
-                and prev_fetch_info._dbtype._ora_type_num in \
+            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
+                                                                csfrm)
+        elif fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB \
+                and prev_fetch_info.dbtype._ora_type_num in \
                         (TNS_DATA_TYPE_RAW, TNS_DATA_TYPE_LONG_RAW):
             type_num = TNS_DATA_TYPE_LONG_RAW
-            fetch_info._dbtype = DbType._from_ora_type_and_csfrm(type_num,
-                                                                 csfrm)
+            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
+                                                                csfrm)
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):
@@ -432,6 +432,7 @@ cdef class MessageWithData(Message):
             Statement statement = cursor_impl._statement
             object type_handler, conn
             ThinVarImpl var_impl
+            bint uses_fetch_info
             ssize_t i, num_vals
 
         # set values to indicate the start of a new fetch operation
@@ -449,11 +450,12 @@ cdef class MessageWithData(Message):
         # the one that was used during the last fetch, rebuild the fetch
         # variables in order to take the new type handler into account
         conn = self.cursor.connection
-        type_handler = cursor_impl._get_output_type_handler()
+        type_handler = cursor_impl._get_output_type_handler(&uses_fetch_info)
         if type_handler is not statement._last_output_type_handler:
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
-                                              i, var_impl._fetch_info)
+                                              uses_fetch_info, i,
+                                              var_impl._fetch_info)
             statement._last_output_type_handler = type_handler
 
         # the list of output variables is equivalent to the fetch variables
@@ -518,15 +520,15 @@ cdef class MessageWithData(Message):
             ThinCursorImpl cursor_impl
             object column_value = None
             ThinDbObjectImpl obj_impl
+            FetchInfoImpl fetch_info
             int32_t actual_num_bytes
             uint32_t buffer_size
-            FetchInfo fetch_info
             Rowid rowid
         fetch_info = var_impl._fetch_info
         if fetch_info is not None:
-            ora_type_num = fetch_info._dbtype._ora_type_num
-            csfrm =  fetch_info._dbtype._csfrm
-            buffer_size = fetch_info._buffer_size
+            ora_type_num = fetch_info.dbtype._ora_type_num
+            csfrm =  fetch_info.dbtype._csfrm
+            buffer_size = fetch_info.buffer_size
         else:
             ora_type_num = var_impl.dbtype._ora_type_num
             csfrm = var_impl.dbtype._csfrm
@@ -628,33 +630,33 @@ cdef class MessageWithData(Message):
                 column_value = var_impl._conv_func(column_value)
         return column_value
 
-    cdef FetchInfo _process_column_info(self, ReadBuffer buf,
-                                        ThinCursorImpl cursor_impl):
+    cdef FetchInfoImpl _process_column_info(self, ReadBuffer buf,
+                                            ThinCursorImpl cursor_impl):
         cdef:
             ThinDbObjectTypeImpl typ_impl
             uint32_t num_bytes, uds_flags
             uint8_t data_type, csfrm
+            FetchInfoImpl fetch_info
             int8_t precision, scale
             uint8_t nulls_allowed
-            FetchInfo fetch_info
             str schema, name
             int cache_num
             bytes oid
         buf.read_ub1(&data_type)
-        fetch_info = FetchInfo()
+        fetch_info = FetchInfoImpl()
         buf.skip_ub1()                      # flags
         buf.read_sb1(&precision)
-        fetch_info._precision = precision
+        fetch_info.precision = precision
         if data_type == TNS_DATA_TYPE_NUMBER \
                 or data_type == TNS_DATA_TYPE_INTERVAL_DS \
                 or data_type == TNS_DATA_TYPE_TIMESTAMP \
                 or data_type == TNS_DATA_TYPE_TIMESTAMP_LTZ \
                 or data_type == TNS_DATA_TYPE_TIMESTAMP_TZ:
-            buf.read_sb2(&fetch_info._scale)
+            buf.read_sb2(&fetch_info.scale)
         else:
             buf.read_sb1(&scale)
-            fetch_info._scale = scale
-        buf.read_ub4(&fetch_info._buffer_size)
+            fetch_info.scale = scale
+        buf.read_ub4(&fetch_info.buffer_size)
         buf.skip_ub4()                      # max number of array elements
         buf.skip_ub4()                      # cont flags
         buf.read_ub4(&num_bytes)            # OID
@@ -663,18 +665,18 @@ cdef class MessageWithData(Message):
         buf.skip_ub2()                      # version
         buf.skip_ub2()                      # character set id
         buf.read_ub1(&csfrm)                # character set form
-        fetch_info._dbtype = DbType._from_ora_type_and_csfrm(data_type, csfrm)
-        buf.read_ub4(&fetch_info._size)
+        fetch_info.dbtype = DbType._from_ora_type_and_csfrm(data_type, csfrm)
+        buf.read_ub4(&fetch_info.size)
         if data_type == TNS_DATA_TYPE_RAW:
-            fetch_info._size = fetch_info._buffer_size
+            fetch_info.size = fetch_info.buffer_size
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
             buf.skip_ub4()                  # oaccolid
         buf.read_ub1(&nulls_allowed)
-        fetch_info._nulls_allowed = nulls_allowed
+        fetch_info.nulls_allowed = nulls_allowed
         buf.skip_ub1()                      # v7 length of name
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            fetch_info._name = buf.read_str(TNS_CS_IMPLICIT)
+            fetch_info.name = buf.read_str(TNS_CS_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             schema = buf.read_str(TNS_CS_IMPLICIT)
@@ -683,14 +685,14 @@ cdef class MessageWithData(Message):
             name = buf.read_str(TNS_CS_IMPLICIT)
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
-        fetch_info._is_json_col = uds_flags & TNS_UDS_FLAGS_IS_JSON
+        fetch_info.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
         if data_type == TNS_DATA_TYPE_INT_NAMED:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num
                 self.type_cache = get_dbobject_type_cache(cache_num)
             typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
                                                          name)
-            fetch_info._objtype = typ_impl
+            fetch_info.objtype = typ_impl
         return fetch_info
 
     cdef int _process_describe_info(self, ReadBuffer buf,
@@ -700,8 +702,9 @@ cdef class MessageWithData(Message):
             Statement stmt = cursor_impl._statement
             list prev_fetch_var_impls
             object type_handler, conn
+            FetchInfoImpl fetch_info
             uint32_t num_bytes, i
-            FetchInfo fetch_info
+            bint uses_fetch_info
             str message
         buf.skip_ub4()                      # max row size
         buf.read_ub4(&cursor_impl._num_columns)
@@ -709,7 +712,7 @@ cdef class MessageWithData(Message):
         cursor_impl._init_fetch_vars(cursor_impl._num_columns)
         if cursor_impl._num_columns > 0:
             buf.skip_ub1()
-        type_handler = cursor_impl._get_output_type_handler()
+        type_handler = cursor_impl._get_output_type_handler(&uses_fetch_info)
         conn = self.cursor.connection
         for i in range(cursor_impl._num_columns):
             fetch_info = self._process_column_info(buf, cursor_impl)
@@ -717,13 +720,13 @@ cdef class MessageWithData(Message):
                     and i < len(prev_fetch_var_impls):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
             if not stmt._no_prefetch and \
-                    fetch_info._dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                                         TNS_DATA_TYPE_CLOB,
-                                                         TNS_DATA_TYPE_JSON):
+                    fetch_info.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
+                                                        TNS_DATA_TYPE_CLOB,
+                                                        TNS_DATA_TYPE_JSON):
                 stmt._requires_define = True
                 stmt._no_prefetch = True
-            cursor_impl._create_fetch_var(conn, self.cursor, type_handler, i,
-                                          fetch_info)
+            cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
+                                          uses_fetch_info, i, fetch_info)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # current date
@@ -734,6 +737,7 @@ cdef class MessageWithData(Message):
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # dcbqcky
+        stmt._fetch_info_impls = cursor_impl.fetch_info_impls
         stmt._fetch_vars = cursor_impl.fetch_vars
         stmt._fetch_var_impls = cursor_impl.fetch_var_impls
         stmt._num_columns = cursor_impl._num_columns

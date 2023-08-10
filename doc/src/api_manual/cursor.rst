@@ -496,14 +496,10 @@ Cursor Attributes
 
 .. data:: Cursor.description
 
-    This read-only attribute is a sequence of 7-item sequences. Each of these
-    sequences contains information describing one result column: (name, type,
-    display_size, internal_size, precision, scale, null_ok). This attribute
-    will be None for operations that do not return rows or if the cursor has
-    not had an operation invoked via the :meth:`~Cursor.execute()` method yet.
-
-    The type will be one of the :ref:`database type constants <dbtypes>`
-    defined at the module level.
+    This read-only attribute is a sequence of :ref:`FetchInfo<fetchinfoobj>`
+    objects. This attribute will be None for operations that do not return rows
+    or if the cursor has not had an operation invoked via the
+    :meth:`~Cursor.execute()` method yet.
 
 .. attribute:: Cursor.fetchvars
 
@@ -541,12 +537,18 @@ Cursor Attributes
 
     This read-write attribute specifies a method called for each column that is
     to be fetched from this cursor. The method signature is
-    handler(cursor, name, defaultType, length, precision, scale) and the return
-    value is expected to be a variable object or None in which case a default
-    variable object will be created. If this attribute is None, then the default
+    handler(cursor, metadata) and the return value is expected to be a
+    :ref:`variable object<varobj>` or None in which case a default variable
+    object will be created. If this attribute is None, then the default
     behavior will take place for all columns fetched from this cursor.
 
     See :ref:`outputtypehandlers`.
+
+    .. versionchanged:: 1.4
+
+        The method signature was changed. The previous signature
+        handler(cursor, name, default_type, length, precision, scale) will
+        still work but is deprecated and will be removed in a future version.
 
     .. note::
 

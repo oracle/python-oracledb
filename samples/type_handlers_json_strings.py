@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -79,9 +79,9 @@ def input_type_handler(cursor, value, num_elements):
                           inconverter=building_in_converter)
 
 
-def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == oracledb.STRING:
-        return cursor.var(default_type, arraysize=cursor.arraysize,
+def output_type_handler(cursor, metadata):
+    if metadata.type_code is oracledb.STRING:
+        return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
                           outconverter=Building.from_json)
 
 connection = oracledb.connect(user=sample_env.get_main_user(),

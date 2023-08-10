@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -258,43 +258,6 @@ cdef class BaseVarImpl:
             errors._raise_err(errors.ERR_MIXED_ELEMENT_TYPES, element=value)
         if size > self.size:
             self.size = size
-
-    def get_description(self):
-        """
-        Return a 7-tuple containing information about the variable: (name,
-        type, display_size, internal_size, precision, scale, null_ok).
-        """
-        cdef:
-            uint32_t display_size = 0, size_in_bytes = 0
-            FetchInfo fetch_info = self._fetch_info
-            DbType dbtype = fetch_info._dbtype
-            object precision, scale
-        if fetch_info._size > 0:
-            display_size = fetch_info._size
-            size_in_bytes = fetch_info._buffer_size
-        elif dbtype is DB_TYPE_DATE \
-                or dbtype is DB_TYPE_TIMESTAMP \
-                or dbtype is DB_TYPE_TIMESTAMP_LTZ \
-                or dbtype is DB_TYPE_TIMESTAMP_TZ:
-            display_size = 23
-        elif dbtype is DB_TYPE_BINARY_FLOAT \
-                or dbtype is DB_TYPE_BINARY_DOUBLE \
-                or dbtype is DB_TYPE_BINARY_INTEGER \
-                or dbtype is DB_TYPE_NUMBER:
-            if fetch_info._precision:
-                display_size = fetch_info._precision + 1
-                if fetch_info._scale > 0:
-                    display_size += fetch_info._scale + 1
-            else:
-                display_size = 127
-        if fetch_info._precision or fetch_info._scale:
-            precision = fetch_info._precision
-            scale = fetch_info._scale
-        else:
-            scale = precision = None
-        return (fetch_info._name, dbtype, display_size or None,
-                size_in_bytes or None, precision, scale,
-                fetch_info._nulls_allowed)
 
     def get_all_values(self):
         """

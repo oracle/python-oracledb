@@ -76,6 +76,10 @@ from .dbobject import (
     DbObjectType as DbObjectType
 )
 
+from .fetch_info import (
+    FetchInfo as FetchInfo
+)
+
 from .var import (
     Var as Var
 )
@@ -158,6 +162,7 @@ del package
 del exceptions, errors, connection, pool, constants, driver_mode, sys
 del constructors, dsn, lob, base_impl, thick_impl, thin_impl, utils, var
 del connect_params, pool_params, subscr, aq, soda, cursor, dbobject, future
+del fetch_info
 
 # general aliases (for backwards compatibility)
 ObjectType = DbObjectType

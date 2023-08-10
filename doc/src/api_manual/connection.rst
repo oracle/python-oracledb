@@ -756,13 +756,18 @@ Connection Attributes
 
     This read-write attribute specifies a method called for each column that is
     going to be fetched from any cursor associated with this connection. The
-    method signature is handler(cursor, name, defaultType, length, precision,
-    scale) and the return value is expected to be a variable object or None in
-    which case a default variable object will be created. If this attribute is
-    None, the default behavior will take place for all columns fetched from
-    cursors.
+    method signature is ``handler(cursor, metadata)`` and the return value is
+    expected to be a :ref:`variable object<varobj>` or None in which case a
+    default variable object will be created. If this attribute is None, the
+    default behavior will take place for all columns fetched from cursors.
 
     See :ref:`outputtypehandlers`.
+
+    .. versionchanged:: 1.4
+
+        The method signature was changed. The previous signature
+        ``handler(cursor, name, default_type, length, precision, scale)`` will
+        still work but is deprecated and will be removed in a future version.
 
     .. note::
 

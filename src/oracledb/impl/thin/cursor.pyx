@@ -70,8 +70,9 @@ cdef class ThinCursorImpl(BaseCursorImpl):
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef int _create_fetch_var(self, object conn, object cursor,
-                               object type_handler, ssize_t pos,
-                               FetchInfo fetch_info) except -1:
+                               object type_handler, bint uses_fetch_info,
+                               ssize_t pos,
+                               FetchInfoImpl fetch_info) except -1:
         """
         Internal method that creates a fetch variable. A check is made after
         the variable is created to determine if a conversion is required and
@@ -80,10 +81,10 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         cdef:
             ThinDbObjectTypeImpl typ_impl
             ThinVarImpl var_impl
-        BaseCursorImpl._create_fetch_var(self, conn, cursor, type_handler, pos,
-                                         fetch_info)
+        BaseCursorImpl._create_fetch_var(self, conn, cursor, type_handler,
+                                         uses_fetch_info, pos, fetch_info)
         var_impl = self.fetch_var_impls[pos]
-        if var_impl.dbtype._ora_type_num != fetch_info._dbtype._ora_type_num:
+        if var_impl.dbtype._ora_type_num != fetch_info.dbtype._ora_type_num:
             conversion_helper(var_impl, fetch_info)
         elif var_impl.objtype is not None:
             typ_impl = var_impl.objtype
@@ -202,6 +203,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             self._statement = None
         self._statement = self._conn_impl._get_statement(sql.strip(),
                                                          cache_statement)
+        self.fetch_info_impls = self._statement._fetch_info_impls
         self.fetch_vars = self._statement._fetch_vars
         self.fetch_var_impls = self._statement._fetch_var_impls
         self._num_columns = self._statement._num_columns

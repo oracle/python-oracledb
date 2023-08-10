@@ -133,16 +133,16 @@ To convert numbers:
     locale.setlocale(locale.LC_ALL, 'de_DE.UTF-8')
 
     # simple naive conversion
-    def type_handler1(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_NUMBER:
+    def type_handler1(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(oracledb.DB_TYPE_VARCHAR, arraysize=cursor.arraysize,
-                    outconverter=lambda v: v.replace('.', ','))
+                              outconverter=lambda v: v.replace('.', ','))
 
     # locale conversion
-    def type_handler2(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_NUMBER:
-            return cursor.var(default_type, arraysize=cursor.arraysize,
-                    outconverter=lambda v: locale.format_string("%g", v))
+    def type_handler2(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
+            return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
+                              outconverter=lambda v: locale.format_string("%g", v))
 
 
     connection = oracledb.connect(user="hr", password=userpwd,
@@ -186,16 +186,16 @@ To convert dates:
     locale_date_format = locale.nl_langinfo(locale.D_T_FMT)
 
     # simple naive conversion
-    def type_handler3(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_DATE:
-            return cursor.var(default_type, arraysize=cursor.arraysize,
-                    outconverter=lambda v: v.strftime("%Y-%m-%d %H:%M:%S"))
+    def type_handler3(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_DATE:
+            return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
+                              outconverter=lambda v: v.strftime("%Y-%m-%d %H:%M:%S"))
 
     # locale conversion
     def type_handler4(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_DATE:
-            return cursor.var(default_type, arraysize=cursor.arraysize,
-                    outconverter=lambda v: v.strftime(locale_date_format))
+        if metadata.type_code is oracledb.DB_TYPE_DATE:
+            return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
+                              outconverter=lambda v: v.strftime(locale_date_format))
 
 
     connection = oracledb.connect(user="hr", password=userpwd,

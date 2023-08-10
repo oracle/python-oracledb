@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -72,7 +72,7 @@ with connection.cursor() as cursor:
 
     print("Fetch each row as a Dictionary")
     cursor.execute(sql)
-    columns = [col[0] for col in cursor.description]
+    columns = [col.name for col in cursor.description]
     cursor.rowfactory = lambda *args: dict(zip(columns, args))
     for row in cursor:
         print(row)

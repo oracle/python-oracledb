@@ -88,6 +88,7 @@ cdef class Statement:
         bint _is_ddl
         bint _is_returning
         list _bind_info_list
+        list _fetch_info_impls
         list _fetch_vars
         list _fetch_var_impls
         object _bind_info_dict

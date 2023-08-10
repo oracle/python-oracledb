@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,19 +33,16 @@ import test_env
 
 class TestCase(test_env.BaseTestCase):
 
-    def output_type_handler_binary_int(self, cursor, name, default_type, size,
-                                       precision, scale):
+    def output_type_handler_binary_int(self, cursor, metadata):
         return cursor.var(oracledb.DB_TYPE_BINARY_INTEGER,
                           arraysize=cursor.arraysize)
 
-    def output_type_handler_decimal(self, cursor, name, default_type, size,
-                                    precision, scale):
-        if default_type == oracledb.NUMBER:
+    def output_type_handler_decimal(self, cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(str, 255, outconverter=decimal.Decimal,
                               arraysize=cursor.arraysize)
 
-    def output_type_handler_str(self, cursor, name, default_type, size,
-                                precision, scale):
+    def output_type_handler_str(self, cursor, metadata):
         return cursor.var(str, 255, arraysize=cursor.arraysize)
 
 

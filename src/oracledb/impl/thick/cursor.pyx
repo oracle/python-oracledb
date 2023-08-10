@@ -69,7 +69,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         return var_impl
 
     cdef int _define_var(self, object conn, object cursor, object type_handler,
-                         ssize_t pos) except -1:
+                         bint uses_fetch_info, ssize_t pos) except -1:
         """
         Internal method that creates the variable using the query info (unless
         an output type handler has been specified) and then performs the define
@@ -78,37 +78,38 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         cdef:
             ThickDbObjectTypeImpl typ_impl
             dpiDataTypeInfo *type_info
+            FetchInfoImpl fetch_info
             ThickConnImpl conn_impl
             dpiQueryInfo query_info
             ThickVarImpl var_impl
-            FetchInfo fetch_info
 
-        # build FetchInfo based on query info provided by ODPI-C
+        # build FetchInfoImpl based on query info provided by ODPI-C
         if dpiStmt_getQueryInfo(self._handle, pos + 1, &query_info) < 0:
             _raise_from_odpi()
         type_info = &query_info.typeInfo
-        fetch_info = FetchInfo()
-        fetch_info._dbtype = DbType._from_num(type_info.oracleTypeNum)
-        if fetch_info._dbtype.num == DPI_ORACLE_TYPE_INTERVAL_YM:
+        fetch_info = FetchInfoImpl()
+        fetch_info.dbtype = DbType._from_num(type_info.oracleTypeNum)
+        if fetch_info.dbtype.num == DPI_ORACLE_TYPE_INTERVAL_YM:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
-                              name=fetch_info._dbtype.name)
+                              name=fetch_info.dbtype.name)
         if type_info.sizeInChars > 0:
-            fetch_info._size = type_info.sizeInChars
+            fetch_info.size = type_info.sizeInChars
         else:
-            fetch_info._size = type_info.clientSizeInBytes
-        fetch_info._buffer_size = type_info.clientSizeInBytes
-        fetch_info._name = query_info.name[:query_info.nameLength].decode()
-        fetch_info._scale = type_info.scale + type_info.fsPrecision
-        fetch_info._precision = type_info.precision
-        fetch_info._nulls_allowed = query_info.nullOk
-        fetch_info._is_json_col = type_info.isJson
+            fetch_info.size = type_info.clientSizeInBytes
+        fetch_info.buffer_size = type_info.clientSizeInBytes
+        fetch_info.name = query_info.name[:query_info.nameLength].decode()
+        fetch_info.scale = type_info.scale + type_info.fsPrecision
+        fetch_info.precision = type_info.precision
+        fetch_info.nulls_allowed = query_info.nullOk
+        fetch_info.is_json = type_info.isJson
         if type_info.objectType != NULL:
             typ_impl = ThickDbObjectTypeImpl._from_handle(self._conn_impl,
                                                           type_info.objectType)
-            fetch_info._objtype = typ_impl
+            fetch_info.objtype = typ_impl
 
         # create variable and call define in ODPI-C
-        self._create_fetch_var(conn, cursor, type_handler, pos, fetch_info)
+        self._create_fetch_var(conn, cursor, type_handler, uses_fetch_info,
+                               pos, fetch_info)
         var_impl = self.fetch_var_impls[pos]
         var_impl._create_handle()
         if dpiStmt_define(self._handle, pos + 1, var_impl._handle) < 0:
@@ -167,6 +168,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             ThickCursorImpl cursor_impl = <ThickCursorImpl> cursor._impl
             object var, type_handler, conn
             ThickVarImpl var_impl
+            bint uses_fetch_info
             ssize_t i
 
         # initialize fetching variables; these are used to reduce the number of
@@ -184,10 +186,10 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         # populate list to contain fetch variables that are created
         self._fetch_array_size = self.arraysize
         self._init_fetch_vars(num_query_cols)
-        type_handler = self._get_output_type_handler()
+        type_handler = self._get_output_type_handler(&uses_fetch_info)
         conn = cursor.connection
         for i in range(num_query_cols):
-            self._define_var(conn, cursor, type_handler, i)
+            self._define_var(conn, cursor, type_handler, uses_fetch_info, i)
 
     def _set_oci_attr(self, uint32_t attr_num, uint32_t attr_type,
                       object value):

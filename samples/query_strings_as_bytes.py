@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -39,9 +39,8 @@ if not sample_env.get_is_thin():
 
 STRING_VAL = 'I bought a cafetière on the Champs-Élysées'
 
-def return_strings_as_bytes(cursor, name, default_type, size, precision,
-                            scale):
-    if default_type == oracledb.DB_TYPE_VARCHAR:
+def return_strings_as_bytes(cursor, metadata):
+    if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
         return cursor.var(str, arraysize=cursor.arraysize, bypass_decode=True)
 
 connection = oracledb.connect(user=sample_env.get_main_user(),

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -200,9 +200,10 @@ def init_base_impl(package):
     is to avoid circular imports and eliminate the need for global lookups.
     """
     global PY_TYPE_CURSOR, PY_TYPE_DB_OBJECT, PY_TYPE_DB_OBJECT_TYPE
-    global PY_TYPE_LOB, PY_TYPE_VAR
+    global PY_TYPE_LOB, PY_TYPE_VAR, PY_TYPE_FETCHINFO
     PY_TYPE_CURSOR = package.Cursor
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
+    PY_TYPE_FETCHINFO = package.FetchInfo
     PY_TYPE_LOB = package.LOB
     PY_TYPE_VAR = package.Var

@@ -9,6 +9,19 @@ when they were first deprecated and a comment on what should be used instead,
 if applicable. The most recent deprecations are listed first.
 
 
+.. list-table-with-summary:: Deprecated in python-oracledb 1.4
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :name: _deprecations_1_4
+
+    * - Name
+      - Comments
+    * - Output type handler with arguments
+        ``handler(cursor, name, default_type, length, precision, scale)``
+      - Replace with ``handler(cursor, metadata)``. See
+        :ref:`outputtypehandlers`.
+
 .. list-table-with-summary:: Deprecated in python-oracledb 1.0
     :header-rows: 1
     :class: wy-table-responsive

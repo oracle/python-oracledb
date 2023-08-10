@@ -70,6 +70,15 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Replaced fixed 7-tuple for the cursor metadata found in
+    :data:`Cursor.description` with a class which provides additional
+    information such as the database object type and whether the column
+    contains JSON data.
+#)  Changed the signature for output type handlers to
+    ``handler(cursor, metadata)`` where the ``metadata`` parameter is a
+    :ref:`FetchInfo<fetchinfoobj>` object containing the same information found
+    in :data:`Cursor.description`. The original signature for output type
+    handlers is deprecated and will be removed in some future version.
 #)  Added support for fetching VARCHAR2 and LOB columns which contain JSON (and
     have the "IS JSON" check constraint enabled) in the same way as columns of
     type JSON (which requires Oracle Database 21c or higher) are fetched. In

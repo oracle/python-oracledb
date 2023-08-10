@@ -1315,8 +1315,8 @@ for row in cur.execute("select * from dept"):
       <p>Add an output type handler to the bottom of the file:</p>
 
 <pre>
-<strong>def ReturnNumbersAsStrings(cursor, name, defaultType, size, precision, scale):
-    if defaultType == oracledb.NUMBER:
+<strong>def ReturnNumbersAsStrings(cursor, metadata):
+    if metdata.type_code is oracledb.DB_TYPE_NUMBER:
         return cursor.var(str, 9, cursor.arraysize)
 
 print("Output type handler output...")
@@ -1376,8 +1376,8 @@ import db_config
 con = oracledb.connect(user=db_config.user, password=db_config.pw, dsn=db_config.dsn)
 cur = con.cursor()
 
-<strong>def ReturnNumbersAsDecimal(cursor, name, defaultType, size, precision, scale):
-    if defaultType == oracledb.NUMBER:
+<strong>def ReturnNumbersAsDecimal(cursor, metadata):
+    if metadata.type_code is oracledb.NUMBER:
         return cursor.var(str, 9, cursor.arraysize, outconverter=decimal.Decimal)
 
 cur.outputtypehandler = ReturnNumbersAsDecimal</strong>
@@ -2228,10 +2228,9 @@ def SDOInputTypeHandler(cursor, value, numElements):
     return mySDO(int(DBobj.SDO_GTYPE), DBobj.SDO_ELEM_INFO.aslist(),
                  DBobj.SDO_ORDINATES.aslist())</strong>
 
-<strong>def SDOOutputTypeHandler(cursor, name, default_type, size, precision,
-                         scale):
-    if default_type == oracledb.DB_TYPE_OBJECT:
-        return cursor.var(obj_type, arraysize=cursor.arraysize,
+<strong>def SDOOutputTypeHandler(cursor, metadata):
+    if metadata.type_code is oracledb.DB_TYPE_OBJECT:
+        return cursor.var(metadata.type, arraysize=cursor.arraysize,
                           outconverter=SDOOutConverter)</strong>
 
 sdo = mySDO(2003, [1, 1003, 3], [1, 1, 5, 7])  # Python object

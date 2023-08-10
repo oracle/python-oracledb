@@ -588,8 +588,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4348_reexecute_query_with_blob_as_bytes(self):
         "4348 - test re-executing a query with blob as bytes"
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            if default_type == oracledb.DB_TYPE_BLOB:
+        def type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_BLOB:
                 return cursor.var(bytes, arraysize=cursor.arraysize)
         self.connection.outputtypehandler = type_handler
         blob_data = b"An arbitrary set of blob data for test case 4348"
@@ -700,8 +700,8 @@ class TestCase(test_env.BaseTestCase):
         def out_converter(value):
             self.assertIs(type(value), str)
             return int(value)
-        def type_handler(cursor, name, default_type, size, precision, scale):
-            if name == "COL_3":
+        def type_handler(cursor, metadata):
+            if metadata.name == "COL_3":
                 return cursor.var(str, arraysize=cursor.arraysize,
                                   outconverter=out_converter)
         self.cursor.outputtypehandler = type_handler

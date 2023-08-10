@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -51,9 +51,8 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    def __return_strings_as_bytes(self, cursor, name, default_type, size,
-                                  precision, scale):
-        if default_type == oracledb.DB_TYPE_VARCHAR:
+    def __return_strings_as_bytes(self, cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
             return cursor.var(str, arraysize=cursor.arraysize,
                               bypass_decode=True)
 

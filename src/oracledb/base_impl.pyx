@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -41,6 +41,7 @@ from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 import base64
 import datetime
 import decimal
+import inspect
 import json
 import os
 import re
@@ -65,6 +66,7 @@ cdef type PY_TYPE_DB_OBJECT_TYPE
 cdef type PY_TYPE_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
+cdef type PY_TYPE_FETCHINFO
 
 cdef int32_t* INTEGRITY_ERROR_CODES = [
         1,          # unique constraint violated

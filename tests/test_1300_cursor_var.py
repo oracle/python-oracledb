@@ -192,7 +192,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1309_output_type_handler_with_ref_cursor(self):
         "1309 - test using an output type handler with a REF cursor"
-        def type_handler(cursor, name, default_type, size, precision, scale):
+        def type_handler(cursor, metadata):
             return cursor.var(str, arraysize=cursor.arraysize)
         self.connection.outputtypehandler = type_handler
         var = self.cursor.var(oracledb.DB_TYPE_CURSOR)

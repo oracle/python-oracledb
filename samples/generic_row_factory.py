@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -52,7 +52,7 @@ class Cursor(oracledb.Cursor):
         if prepare_needed:
             description = self.description
             if description is not None:
-                names = [d[0] for d in description]
+                names = [d.name for d in description]
                 self.rowfactory = collections.namedtuple("GenericQuery", names)
         return result
 

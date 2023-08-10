@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -52,8 +52,8 @@ from .base_impl cimport BaseDbObjectImpl, BaseLobImpl, BasePoolImpl
 from .base_impl cimport BaseSodaDbImpl, BaseSodaCollImpl, BaseSodaDocImpl
 from .base_impl cimport BaseSodaDocCursorImpl, BaseQueueImpl
 from .base_impl cimport BaseDeqOptionsImpl, BaseEnqOptionsImpl
-from .base_impl cimport BaseMsgPropsImpl, BaseSubscrImpl, BindVar, FetchInfo
-from .base_impl cimport ConnectParamsImpl, PoolParamsImpl
+from .base_impl cimport BaseMsgPropsImpl, BaseSubscrImpl, BindVar
+from .base_impl cimport ConnectParamsImpl, PoolParamsImpl, FetchInfoImpl
 from .base_impl cimport NUM_TYPE_FLOAT, NUM_TYPE_INT, NUM_TYPE_DECIMAL
 from libc.string cimport memchr, memset
 

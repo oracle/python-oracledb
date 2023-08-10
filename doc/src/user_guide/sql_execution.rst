@@ -312,10 +312,10 @@ cursors created by that connection will have their fetch type handling changed.
 The output type handler is expected to be a function with the following
 signature::
 
-    handler(cursor, name, default_type, size, precision, scale)
+    handler(cursor, metadata)
 
-The parameters are the same information as the query column metadata found in
-:attr:`Cursor.description`.
+The metadata parameter is a :ref:`FetchInfo object<fetchinfoobj>`, which is the
+same value found in :attr:`Cursor.description`.
 
 The function is called once for each column that is going to be
 fetched. The function is expected to return a :ref:`variable object <varobj>`
@@ -326,8 +326,8 @@ For example:
 
 .. code-block:: python
 
-    def output_type_handler(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_NUMBER:
+    def output_type_handler(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(oracledb.DB_TYPE_VARCHAR, arraysize=cursor.arraysize)
 
 This output type handler is called once for each column in the SELECT query.
@@ -375,7 +375,7 @@ For example:
 
 .. code-block:: python
 
-    def output_type_handler(cursor, name, default_type, size, precision, scale):
+    def output_type_handler(cursor, metadata):
 
         def out_converter(d):
             if isinstance(d, str):
@@ -383,7 +383,7 @@ For example:
             else:
                 return f"{d} was not a string"
 
-        if default_type == oracledb.DB_TYPE_NUMBER:
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(oracledb.DB_TYPE_VARCHAR,
                  arraysize=cursor.arraysize, outconverter=out_converter)
 
@@ -456,7 +456,7 @@ An example showing an :ref:`output type handler <outputtypehandlers>`, an
 
 .. code-block:: python
 
-    def output_type_handler(cursor, name, default_type, size, precision, scale):
+    def output_type_handler(cursor, metadata):
 
         def out_converter(d):
             if type(d) is str:
@@ -464,7 +464,7 @@ An example showing an :ref:`output type handler <outputtypehandlers>`, an
             else:
                 return f"{d} was not a string"
 
-        if default_type == oracledb.DB_TYPE_NUMBER:
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(oracledb.DB_TYPE_VARCHAR,
                 arraysize=cursor.arraysize, outconverter=out_converter)
 
@@ -532,8 +532,8 @@ to use an :ref:`output type handler <outputtypehandlers>` do the conversion.
 
     import decimal
 
-    def number_to_decimal(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_NUMBER:
+    def number_to_decimal(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_NUMBER:
             return cursor.var(decimal.Decimal, arraysize=cursor.arraysize)
 
     cursor.outputtypehandler = number_to_decimal
@@ -824,9 +824,8 @@ The following sample demonstrates how to use this feature:
     .. code-block:: python
 
         # define output type handler
-        def return_strings_as_bytes(cursor, name, default_type, size,
-                                    precision, scale):
-            if default_type == oracledb.DB_TYPE_VARCHAR:
+        def return_strings_as_bytes(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
                 return cursor.var(str, arraysize=cursor.arraysize,
                                   bypass_decode=True)
 
@@ -900,9 +899,10 @@ columns:
 
 .. code-block:: python
 
-    def output_type_handler(cursor, name, default_type, size, precision, scale):
-        if default_type == oracledb.DB_TYPE_VARCHAR:
-            return cursor.var(default_type, size, arraysize=cursor.arraysize,
+    def output_type_handler(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
+            return cursor.var(metadata.type_code, size,
+                              arraysize=cursor.arraysize,
                               encoding_errors="replace")
 
     cursor.outputtypehandler = output_type_handler

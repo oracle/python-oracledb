@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2018, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -65,12 +65,9 @@ cursor = connection.cursor()
 # executed for a single transaction
 connection.autocommit = True
 
-# define output type handler to fetch LOBs, avoiding the second round trip to
-# the database to read the LOB contents
-def output_type_handler(cursor, name, default_type, size, precision, scale):
-    if default_type == oracledb.BLOB:
-        return cursor.var(oracledb.LONG_BINARY, arraysize=cursor.arraysize)
-connection.outputtypehandler = output_type_handler
+# do not fetch LOBs, avoiding the second round trip to the database to read the
+# LOB contents
+oracledb.defaults.fetch_lobs = False
 
 # drop and create table
 print("Dropping and creating table...")

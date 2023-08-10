@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -119,12 +119,12 @@ cdef object _tstamp_to_date(object fetch_value):
     return fetch_value.replace(microsecond=0)
 
 cdef int conversion_helper(ThinVarImpl output_var,
-                           FetchInfo fetch_info) except -1:
+                           FetchInfoImpl fetch_info) except -1:
     cdef:
         uint8_t fetch_ora_type_num, output_ora_type_num, csfrm
         object key, value
 
-    fetch_ora_type_num = fetch_info._dbtype._ora_type_num
+    fetch_ora_type_num = fetch_info.dbtype._ora_type_num
     output_ora_type_num = output_var.dbtype._ora_type_num
 
     key = (fetch_ora_type_num, output_ora_type_num)
@@ -135,11 +135,11 @@ cdef int conversion_helper(ThinVarImpl output_var,
                 output_var._preferred_num_type = value
             else:
                 csfrm = output_var.dbtype._csfrm
-                fetch_info._dbtype = DbType._from_ora_type_and_csfrm(value,
-                                                                     csfrm)
+                fetch_info.dbtype = DbType._from_ora_type_and_csfrm(value,
+                                                                    csfrm)
         else:
             output_var._conv_func = value
     except:
         errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
-                          input_type=fetch_info._dbtype.name,
+                          input_type=fetch_info.dbtype.name,
                           output_type=output_var.dbtype.name)
