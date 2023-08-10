@@ -75,7 +75,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         self._busy_conn_impls = []
         self._conn_impls_to_drop = []
         self._extra_conn_impls = []
-        self._auth_mode = constants.AUTH_MODE_DEFAULT
+        self._auth_mode = AUTH_MODE_DEFAULT
         self._open = True
         self._condition = threading.Condition()
         self._bg_thread_condition = threading.Condition()
@@ -537,7 +537,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         Internal method for getting the wait timeout for acquiring sessions.
         """
-        if self._getmode == constants.POOL_GETMODE_TIMEDWAIT:
+        if self._getmode == POOL_GETMODE_TIMEDWAIT:
             return self._wait_timeout
         return 0
 
@@ -548,10 +548,9 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         if self._getmode != value:
             self._getmode = value
-            self._force_get = \
-                    (self._getmode == constants.POOL_GETMODE_FORCEGET)
-            if self._getmode == constants.POOL_GETMODE_TIMEDWAIT \
-                    or self._getmode == constants.POOL_GETMODE_NOWAIT:
+            self._force_get = (self._getmode == POOL_GETMODE_FORCEGET)
+            if self._getmode == POOL_GETMODE_TIMEDWAIT \
+                    or self._getmode == POOL_GETMODE_NOWAIT:
                 self._wait_timeout = 0
             else:
                 self._wait_timeout = None
@@ -584,9 +583,9 @@ cdef class ThinPoolImpl(BasePoolImpl):
         """
         Internal method for setting the wait timeout for acquiring sessions.
         """
-        if self._getmode == constants.POOL_GETMODE_TIMEDWAIT:
+        if self._getmode == POOL_GETMODE_TIMEDWAIT:
             self._wait_timeout = value / 1000
-        elif self._getmode == constants.POOL_GETMODE_NOWAIT:
+        elif self._getmode == POOL_GETMODE_NOWAIT:
             self._wait_timeout = 0
         else:
             self._wait_timeout = None

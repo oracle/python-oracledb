@@ -1533,19 +1533,19 @@ cdef class AuthMessage(Message):
         # set authentication mode
         if params._new_password is None:
             self.auth_mode = TNS_AUTH_MODE_LOGON
-        if params.mode & constants.AUTH_MODE_SYSDBA:
+        if params.mode & AUTH_MODE_SYSDBA:
             self.auth_mode |= TNS_AUTH_MODE_SYSDBA
-        if params.mode & constants.AUTH_MODE_SYSOPER:
+        if params.mode & AUTH_MODE_SYSOPER:
             self.auth_mode |= TNS_AUTH_MODE_SYSOPER
-        if params.mode & constants.AUTH_MODE_SYSASM:
+        if params.mode & AUTH_MODE_SYSASM:
             self.auth_mode |= TNS_AUTH_MODE_SYSASM
-        if params.mode & constants.AUTH_MODE_SYSBKP:
+        if params.mode & AUTH_MODE_SYSBKP:
             self.auth_mode |= TNS_AUTH_MODE_SYSBKP
-        if params.mode & constants.AUTH_MODE_SYSDGD:
+        if params.mode & AUTH_MODE_SYSDGD:
             self.auth_mode |= TNS_AUTH_MODE_SYSDGD
-        if params.mode & constants.AUTH_MODE_SYSKMT:
+        if params.mode & AUTH_MODE_SYSKMT:
             self.auth_mode |= TNS_AUTH_MODE_SYSKMT
-        if params.mode & constants.AUTH_MODE_SYSRAC:
+        if params.mode & AUTH_MODE_SYSRAC:
             self.auth_mode |= TNS_AUTH_MODE_SYSRAC
         if self.private_key is not None:
             self.auth_mode |= TNS_AUTH_MODE_IAM_TOKEN
