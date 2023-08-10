@@ -272,21 +272,6 @@ cdef class ThickSodaCollImpl(BaseSodaCollImpl):
         if doc_impl._handle != NULL:
             return doc_impl
 
-    def get_indexes(self):
-        """
-        Internal method for getting the list of indexes on a collection.
-        """
-        cdef:
-            dpiStringList indexes
-            uint32_t flags
-            int status
-        self._db_impl._get_flags(&flags)
-        with nogil:
-            status = dpiSodaColl_getIndexes(self._handle, flags, &indexes)
-        if status < 0:
-            _raise_from_odpi()
-        return _string_list_to_python(&indexes)
-
     def get_metadata(self):
         """
         Internal method for getting the metadata for a collection.
@@ -388,6 +373,21 @@ cdef class ThickSodaCollImpl(BaseSodaCollImpl):
             _raise_from_odpi()
         if return_doc:
             return output_doc_impl
+
+    def list_indexes(self):
+        """
+        Internal method for getting the list of indexes on a collection.
+        """
+        cdef:
+            dpiStringList indexes
+            uint32_t flags
+            int status
+        self._db_impl._get_flags(&flags)
+        with nogil:
+            status = dpiSodaColl_listIndexes(self._handle, flags, &indexes)
+        if status < 0:
+            _raise_from_odpi()
+        return _string_list_to_python(&indexes)
 
     def remove(self, object op):
         """

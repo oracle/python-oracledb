@@ -1041,9 +1041,6 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             const dpiSodaOperOptions *options, uint32_t flags,
             uint64_t *count) nogil
 
-    int dpiSodaColl_getIndexes(dpiSodaColl *coll, uint32_t flags,
-            dpiStringList *lst) nogil
-
     int dpiSodaColl_getMetadata(dpiSodaColl *coll, const char **value,
             uint32_t *valueLength) nogil
 
@@ -1057,6 +1054,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiSodaColl_insertOneWithOptions(dpiSodaColl *coll, dpiSodaDoc *doc,
             dpiSodaOperOptions *options, uint32_t flags,
             dpiSodaDoc **insertedDoc) nogil
+
+    int dpiSodaColl_listIndexes(dpiSodaColl *coll, uint32_t flags,
+            dpiStringList *lst) nogil
 
     int dpiSodaColl_release(dpiSodaColl *coll) nogil
 

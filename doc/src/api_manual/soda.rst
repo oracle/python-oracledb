@@ -217,14 +217,6 @@ SodaCollection Methods
     index has been created with the 'dataguide' option enabled. If there are
     no documents in the collection, None is returned.
 
-
-.. method:: SodaCollection.getIndexes()
-
-    Returns a list of specifications for the indexes found on the collection.
-
-    .. versionadded:: 1.4.0
-
-
 .. method:: SodaCollection.insertMany(docs)
 
     Inserts a list of documents into the collection at one time. Each of the
@@ -294,6 +286,11 @@ SodaCollection Methods
 
         Use of the ``hint`` parameter requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
 
+.. method:: SodaCollection.listIndexes()
+
+    Returns a list of specifications for the indexes found on the collection.
+
+    .. versionadded:: 1.4.0
 
 .. method:: SodaCollection.save(doc)
 

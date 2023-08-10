@@ -632,9 +632,9 @@ class TestCase(test_env.BaseTestCase):
     def test_3429_getting_indexes(self):
         "3429 - test getting indexes on a collection"
         soda_db = self.get_soda_database()
-        coll = soda_db.createCollection("TestSodaGetIndexes")
+        coll = soda_db.createCollection("TestSodaListIndexes")
         coll.drop()
-        coll = soda_db.createCollection("TestSodaGetIndexes")
+        coll = soda_db.createCollection("TestSodaListIndexes")
         index_1 =  {
             'name': 'ix_3428-1',
             'fields': [
@@ -655,10 +655,10 @@ class TestCase(test_env.BaseTestCase):
                 }
             ]
         }
-        self.assertEqual(coll.getIndexes(), [])
+        self.assertEqual(coll.listIndexes(), [])
         coll.createIndex(index_1)
         coll.createIndex(index_2)
-        indexes = coll.getIndexes()
+        indexes = coll.listIndexes()
         indexes.sort(key=lambda x: x["name"])
         self.assertEqual(indexes[0]["fields"][0]["path"], "address.city")
         self.assertEqual(indexes[1]["fields"][0]["path"], "address.postal_code")
