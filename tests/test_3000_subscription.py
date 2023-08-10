@@ -254,5 +254,26 @@ class TestCase(test_env.BaseTestCase):
                                sub.registerquery, "select * from Nonexistent")
         connection.unsubscribe(sub)
 
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
+    def test_3006_attributes(self):
+        "3006 - test getting subscription attributes"
+        data = DMLSubscriptionData(1)
+        connection = test_env.get_connection(events=True)
+        cursor = connection.cursor()
+        args = dict(callback=data.callback_handler, ip_address=None, port=0,
+                    name="Sub1", namespace=oracledb.SUBSCR_NAMESPACE_DBCHANGE,
+                    timeout=10, protocol=oracledb.SUBSCR_PROTO_OCI,
+                    qos=oracledb.SUBSCR_QOS_QUERY,
+                    operations=oracledb.OPCODE_INSERT)
+        sub = connection.subscribe(**args)
+        for attr_name in args:
+            self.assertEqual(getattr(sub, attr_name), args[attr_name])
+        self.assertEqual(sub.connection, connection)
+        cursor.execute("select REGID from USER_CHANGE_NOTIFICATION_REGS")
+        self.assertEqual(sub.id, cursor.fetchone()[0])
+        connection.unsubscribe(sub)
+        connection.close()
+
 if __name__ == "__main__":
     test_env.run_test_cases()
