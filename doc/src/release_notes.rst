@@ -60,6 +60,10 @@ Thick Mode Changes
 
 #)  Added function :meth:`SodaCollection.getIndexes()` for getting the indexes
     on a SODA collection.
+#)  Added support for specifying if documents should be locked when fetched
+    from SODA collections. A new non-terminal method
+    :meth:`~SodaOperation.lock()` was added which requires Oracle Client
+    21.3 or higher (or Oracle Client 19 from 19.11).
 #)  Relaxed restriction for end-to-end tracing string connection
     attributes. These values can now be set to the value ``None`` which will be
     treated the same as an empty string.

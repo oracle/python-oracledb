@@ -545,6 +545,29 @@ SodaOperation Methods
     19 from 19.11).
 
 
+.. method:: SodaOperation.lock()
+
+    Specifies whether the documents fetched from the collection should be
+    locked (equivalent to SQL "select for update").
+
+    The next commit or rollback on the connection made after the operation is
+    performed will "unlock" the documents. Ensure that the connection is not in
+    autocommit mode or the documents will be unlocked immediately after the
+    operation is complete.
+
+    This method should only be used with read operations (other than
+    :func:`~SodaOperation.count()`) and should not be used in
+    conjunction with non-terminal methods :meth:`~SodaOperation.skip()` and
+    :meth:`~SodaOperation.limit()`.
+
+    If this method is specified in conjunction with a write operation this
+    method is ignored.
+
+    This method is only supported in Oracle Client 21.3 and higher (also
+    available in Oracle Client 19 from 19.11).
+
+    .. versionadded:: 1.4
+
 .. method:: SodaOperation.key(value)
 
     Specifies that the document with the specified key should be returned.

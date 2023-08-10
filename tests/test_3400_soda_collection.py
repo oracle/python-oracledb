@@ -663,5 +663,18 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(indexes[0]["fields"][0]["path"], "address.city")
         self.assertEqual(indexes[1]["fields"][0]["path"], "address.postal_code")
 
+    def test_3430_lock_documents(self):
+        "3430 - test locking documents on fetch"
+        soda_db = self.get_soda_database(minclient=(19, 11))
+        coll = soda_db.createCollection("TestSodaLockDocs")
+        coll.find().remove()
+        values_to_insert = [
+            {"name": "Bob", "age": 46},
+            {"name": "Barb", "age": 45},
+            {"name": "Sandy", "age": 47}
+        ]
+        coll.insertMany(values_to_insert)
+        coll.find().lock().getDocuments()
+
 if __name__ == "__main__":
     test_env.run_test_cases()

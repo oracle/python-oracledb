@@ -445,6 +445,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t skip
         uint32_t limit
         uint32_t fetchArraySize
+        bint lock
 
     ctypedef struct dpiStmtInfo:
         bint isQuery

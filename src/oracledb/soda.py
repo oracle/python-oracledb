@@ -463,6 +463,7 @@ class SodaOperation:
         self._skip = None
         self._limit = None
         self._fetch_array_size = None
+        self._lock = False
 
     def count(self) -> int:
         """
@@ -550,6 +551,18 @@ class SodaOperation:
         if not isinstance(value, str):
             raise TypeError("expecting a string")
         self._hint = value
+        return self
+
+    def lock(self) -> "SodaOperation":
+        """
+        Specifies whether the documents fetched from the collection should be
+        locked (equivalent to SQL "select for update"). Use of this method
+        requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+
+        As a convenience, the SodaOperation object is returned so that further
+        criteria can be specified by chaining methods together.
+        """
+        self._lock = True
         return self
 
     def key(self, value: str) -> "SodaOperation":

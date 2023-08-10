@@ -664,4 +664,6 @@ cdef class ThickSodaOpImpl:
             options.limit = op._limit
         if op._fetch_array_size is not None:
             options.fetchArraySize = op._fetch_array_size
+        if op._lock:
+            options.lock = True
         return impl
