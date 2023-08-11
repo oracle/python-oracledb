@@ -233,6 +233,8 @@ class TestCase(test_env.BaseTestCase):
             connection.unsubscribe(sub)
             connection.close()
 
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
     def test_3004_repr(self):
         "3004 - test Subscription repr()"
         data = DMLSubscriptionData(5)
