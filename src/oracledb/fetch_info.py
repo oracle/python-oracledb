@@ -72,6 +72,8 @@ class FetchInfo:
             return self.scale
         elif index == 6 or index == -1:
             return self.null_ok
+        elif isinstance(index, slice):
+            return tuple(self).__getitem__(index)
         raise IndexError("list index out of range")
 
     def __len__(self):
