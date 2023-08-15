@@ -409,7 +409,9 @@ requested in the output type handler.  The ``out_converter`` function then
 appended "was a string" to the data before the value was returned to the
 application.
 
-Note outconverters are not called for NULL data values.
+Note outconverters are not called for NULL data values unless the value
+specified in the ``convert_nulls`` parameter was *True* when the variable was
+created using :meth:`Cursor.var()`.
 
 .. _rowfactories:
 
