@@ -29,6 +29,14 @@
 #------------------------------------------------------------------------------
 
 import sys
+import warnings
+
+if sys.version_info[:2] < (3, 8):
+    message = f"Python {sys.version_info[0]}.{sys.version_info[1]} " \
+        "is no longer supported by the Python core team. " \
+        "Therefore, support for it is deprecated in python-oracledb and " \
+        "will be removed in a future release"
+    warnings.warn(message)
 
 from .version import (
     __version__ as __version__

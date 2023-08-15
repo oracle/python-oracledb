@@ -73,6 +73,13 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Use of Python 3.6 and 3.7 is deprecated and support for them will be
+    removed in a future release. A warning is issued when these versions are
+    used but otherwise they will continue to function as usual. The warning can
+    be suppressed by importing `warnings
+    <https://docs.python.org/3/library/warnings.html>`__ and adding a call like
+    ``warnings.filterwarnings(action='ignore', module="oracledb")``
+    *before* importing ``oracledb``.
 #)  Added support for the :attr:`~Variable.outconverter` being called when a
     null value is fetched from the database and the new parameter
     ``convert_nulls`` to the method :meth:`Cursor.var()` is passed the value
