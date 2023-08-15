@@ -426,6 +426,7 @@ class TestCase(test_env.BaseTestCase):
         queue = self.connection.queue(self.book_queue_name,
                                       payloadType=books_type)
         self.assertEqual(queue.payload_type, books_type)
+        self.assertEqual(queue.payloadType, books_type)
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
                                self.connection.queue, self.book_queue_name,
                                books_type, payloadType=books_type)
@@ -475,8 +476,8 @@ class TestCase(test_env.BaseTestCase):
         props1 = queue.deqone()
         self.assertTrue(props1 is None)
 
-    def test_2720_aq_notification(self):
-        "2720 - verify msgid of aq message which spawned notification "
+    def test_2720_aq_message_attributes(self):
+        "2720 - verify attributes of AQ message which spawned notification"
         if self.is_on_oracle_cloud(self.connection):
             self.skipTest("AQ notification not supported on the cloud")
         queue = self.get_and_clear_queue(self.book_queue_name,
@@ -486,7 +487,12 @@ class TestCase(test_env.BaseTestCase):
         def notification_callback(message):
             self.cursor.execute("select msgid from book_queue_tab")
             actual_msgid, = self.cursor.fetchone()
-            self.assertEqual(actual_msgid, message.msgid)
+            self.assertEqual(message.msgid, actual_msgid)
+            self.assertEqual(message.consumer_name, None)
+            main_user = test_env.get_main_user().upper()
+            self.assertEqual(message.queue_name,
+                             f'"{main_user}"."{queue.name}"')
+            self.assertEqual(message.type, oracledb.EVENT_AQ)
             with condition:
                 condition.notify()
         sub = connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,

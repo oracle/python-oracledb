@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -190,6 +190,21 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         actual_data = [m.payload for m in messages]
         self.assertEqual(actual_data, JSON_DATA_PAYLOAD)
+
+    def test_2808_no_json_payload(self):
+        "2808 - test enqueuing to a JSON queue without a JSON payload"
+        queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
+        props = self.connection.msgproperties(payload="string message")
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1071:",
+                               queue.enqmany, [props, props])
+
+    def test_2809_errors_for_invalid_values(self):
+        "2809 - test errors for invalid values for enqmany and deqmany"
+        queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
+        props = self.connection.msgproperties(payload="string message")
+        self.assertRaises(TypeError, queue.enqmany, props)
+        self.assertRaises(TypeError, queue.enqmany, ["Not", "msgproperties"])
+        self.assertRaises(TypeError, queue.deqmany, "5")
 
 if __name__ == "__main__":
     test_env.run_test_cases()
