@@ -631,7 +631,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3429_getting_indexes(self):
         "3429 - test getting indexes on a collection"
-        soda_db = self.get_soda_database()
+        soda_db = self.get_soda_database(minclient=(19, 13))
         coll = soda_db.createCollection("TestSodaListIndexes")
         coll.drop()
         coll = soda_db.createCollection("TestSodaListIndexes")
