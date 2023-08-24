@@ -1317,15 +1317,6 @@ General
     String constant stating the supported DB API level. Currently '2.0'.
 
 
-.. data:: buildtime
-
-    String constant stating the time when the binary was built.
-
-    .. note::
-
-        This constant is an extension to the DB API definition.
-
-
 .. data:: paramstyle
 
     String constant stating the type of parameter marker formatting expected by

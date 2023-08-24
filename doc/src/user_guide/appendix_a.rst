@@ -86,10 +86,18 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
+    * - Lightweight Directory Access Protocol (LDAP) connections
+      - No
+      - Yes
+      - Yes
     * - Proxy connections (see :ref:`proxyauth`)
       - Yes
       - Yes
       - Yes
+    * - Socket Secure (SOCKS) Proxy connections
+      - No
+      - No
+      - No
     * - Connection mode privileges (see :ref:`connection-authorization-modes`)
       - Yes
       - Yes - only :data:`~oracledb.AUTH_MODE_SYSDBA` is supported
@@ -114,7 +122,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes - No TIMESTAMP support
       - Yes - No TIMESTAMP support
-    * - Oracle Database Native Network Encryption (see :ref:`nne`)
+    * - Oracle Database Native Network Encryption (NNE) (see :ref:`nne`)
       - No
       - Yes
       - Yes
