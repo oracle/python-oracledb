@@ -30,27 +30,6 @@
 # may be bound to those statements (embedded in thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-# Rules for named binds:
-# 1. Quoted and non-quoted bind names are allowed.
-# 2. Quoted binds can contain any characters.
-# 3. Non-quoted binds must begin with an alphabet character.
-# 4. Non-quoted binds can only contain alphanumeric characters, the underscore,
-#    the dollar sign and the pound sign.
-# 5. Non-quoted binds cannot be Oracle Database Reserved Names (Server handles
-#    this case and returns an appropriate error)
-BIND_PATTERN = r':\s*((?:".*?")|(?:[^\W\d_][\w\$#]*)|\d+)'
-
-# pattern used for detecting a DML returning clause; bind variables in the
-# SQL prior to the INTO keyword are input variables; bind varibles in the SQL
-# after the INTO keyword are output variables
-DML_RETURNING_PATTERN = r'(?si)(?<=\bRETURNING\b)(.*?)(?=\bINTO\b)'
-
-# patterns for identifying comments and quoted strings
-SINGLE_LINE_COMMENT_PATTERN = r'--.*'
-MULTI_LINE_COMMENT_PATTERN = r'(?s)/\*.*?\*/'
-CONSTANT_STRING_PATTERN = r"(?s)'.*?'"
-QUOTED_NAME_PATTERN = r'(:\s*)?(".*?")'
-
 cdef class BindInfo:
 
     cdef:
@@ -73,6 +52,244 @@ cdef class BindInfo:
 
     cdef BindInfo copy(self):
         return BindInfo(self._bind_name, self._is_return_bind)
+
+
+cdef class Parser:
+
+    cdef:
+        bint returning_keyword_found
+        ssize_t pos, max_pos
+        void* sql_data
+        int sql_kind
+
+    cdef int _parse_bind_name(self, Statement stmt) except -1:
+        """
+        Bind variables are identified as follows:
+        - Quoted and non-quoted bind names are allowed.
+        - Quoted bind names can contain any characters.
+        - Non-quoted bind names must begin with an alphabetic character.
+        - Non-quoted bind names can only contain alphanumeric characters, the
+          underscore, the dollar sign and the pound sign.
+        - Non-quoted bind names cannot be Oracle Database Reserved Names (this
+          is left to the server to detct and return an appropriate error).
+        """
+        cdef:
+            bint quoted_name = False, in_bind = False, digits_only = False
+            ssize_t start_pos = 0, pos = self.pos + 1
+            str bind_name
+            Py_UCS4 ch
+        while pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+            if not in_bind:
+                if cpython.Py_UNICODE_ISSPACE(ch):
+                    pos += 1
+                    continue
+                elif ch == '"':
+                    quoted_name = True
+                elif cpython.Py_UNICODE_ISDIGIT(ch):
+                    digits_only = True
+                elif not cpython.Py_UNICODE_ISALPHA(ch):
+                    break
+                in_bind = True
+                start_pos = pos
+            elif digits_only and not cpython.Py_UNICODE_ISDIGIT(ch):
+                self.pos = pos - 1
+                break
+            elif quoted_name and ch == '"':
+                self.pos = pos
+                break
+            elif not digits_only and not quoted_name \
+                    and not cpython.Py_UNICODE_ISALNUM(ch) \
+                    and ch not in ('_', '$', '#'):
+                self.pos = pos - 1
+                break
+            pos += 1
+        if in_bind:
+            if quoted_name:
+                bind_name = stmt._sql[start_pos + 1:pos]
+            elif digits_only:
+                bind_name = stmt._sql[start_pos:pos]
+            else:
+                bind_name = stmt._sql[start_pos:pos].upper()
+            stmt._add_bind(bind_name)
+
+    cdef int _parse_multiple_line_comment(self) except -1:
+        """
+        Multiple line comments consist of the characters /* followed by all
+        characters up until */. This method is called when the first slash is
+        detected and checks for the subsequent asterisk. If found, the comment
+        is traversed and the current position is updaqted; otherwise, the
+        current position is left untouched.
+        """
+        cdef:
+            bint in_comment = False, exiting_comment = False
+            ssize_t pos = self.pos + 1
+            Py_UCS4 ch
+        while pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+            if not in_comment:
+                if ch != '*':
+                    break
+                in_comment = True
+            elif not exiting_comment and ch == '*':
+                exiting_comment = True
+            elif exiting_comment:
+                if ch == '/':
+                    self.pos = pos
+                    break
+                exiting_comment = False
+            pos += 1
+
+    cdef int _parse_qstring(self) except -1:
+        """
+        Parses a q-string which consists of the characters "q" and a single
+        quote followed by a start separator, any text that does not contain the
+        end seprator and the end separator and ending quote. The following are
+        examples that demonstrate this:
+            - q'[...]'
+            - q'{...}'
+            - q'<...>'
+            - q'(...)'
+            - q'?...?' (where ? is any character)
+        """
+        cdef:
+            bint exiting_qstring = False, in_qstring = False
+            Py_UCS4 ch, sep = 0
+        self.pos += 1
+        while self.pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
+            if not in_qstring:
+                if ch == '[':
+                    sep = ']'
+                elif ch == '{':
+                    sep = '}'
+                elif ch == '<':
+                    sep = '>'
+                elif ch == '(':
+                    sep = ')'
+                else:
+                    sep = ch
+                in_qstring = True
+            elif not exiting_qstring and ch == sep:
+                exiting_qstring = True
+            elif exiting_qstring:
+                if ch == "'":
+                    break
+                elif ch != sep:
+                    exiting_qstring = False
+            self.pos += 1
+
+    cdef int _parse_quoted_string(self, Py_UCS4 sep) except -1:
+        """
+        Parses a quoted string with the given separator. All characters until
+        the separate is detected are discarded.
+        """
+        cdef Py_UCS4 ch
+        self.pos += 1
+        while self.pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
+            if ch == sep:
+                break
+            self.pos += 1
+
+    cdef int _parse_single_line_comment(self) except -1:
+        """
+        Single line comments consist of two dashes and all characters up to the
+        next line break. This method is called when the first dash is detected
+        and checks for the subsequent dash. If found, the single line comment
+        is traversed and the current position is updated; otherwise, the
+        current position is left untouched.
+        """
+        cdef:
+            ssize_t pos = self.pos + 1
+            bint in_comment = False
+            Py_UCS4 ch
+        while pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+            if not in_comment:
+                if ch != '-':
+                    break
+                in_comment = True
+            elif cpython.Py_UNICODE_ISLINEBREAK(ch):
+                self.pos = pos
+                break
+            pos += 1
+
+    cdef int parse(self, Statement stmt) except -1:
+        """
+        Parses the SQL stored in the statement in order to determine the
+        keyword that identifies the type of SQL being executed as well as a
+        list of bind variable names. A check is also made for DML returning
+        statements since the bind variables following the "INTO" keyword are
+        treated differently from other bind variables.
+        """
+        cdef:
+            bint initial_keyword_found = False, last_was_string = False
+            Py_UCS4 ch, last_ch = 0, alpha_start_ch = 0
+            ssize_t alpha_start_pos = 0, alpha_len
+            bint last_was_alpha = False, is_alpha
+            str keyword
+
+        # initialization
+        self.pos = 0
+        self.max_pos = cpython.PyUnicode_GET_LENGTH(stmt._sql) - 1
+        self.sql_kind = cpython.PyUnicode_KIND(stmt._sql)
+        self.sql_data = cpython.PyUnicode_DATA(stmt._sql)
+
+        # scan all characters in the string
+        while self.pos <= self.max_pos:
+            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
+
+            # look for certain keywords (initial keyword and the ones for
+            # detecting DML returning statements
+            is_alpha = cpython.Py_UNICODE_ISALPHA(ch)
+            if is_alpha and not last_was_alpha:
+                alpha_start_pos = self.pos
+                alpha_start_ch = ch
+            elif not is_alpha and last_was_alpha:
+                alpha_len = self.pos - alpha_start_pos
+                if not initial_keyword_found:
+                    keyword = stmt._sql[alpha_start_pos:self.pos].upper()
+                    stmt._determine_statement_type(keyword)
+                    if stmt._is_ddl:
+                        break
+                    initial_keyword_found = True
+                elif stmt._is_dml and not self.returning_keyword_found \
+                        and alpha_len == 9 and alpha_start_ch in ('r', 'R'):
+                    keyword = stmt._sql[alpha_start_pos:self.pos].upper()
+                    if keyword == "RETURNING":
+                        self.returning_keyword_found = True
+                elif self.returning_keyword_found and alpha_len == 4 \
+                        and alpha_start_ch in ('i', 'I'):
+                    keyword = stmt._sql[alpha_start_pos:self.pos].upper()
+                    if keyword == "INTO":
+                        stmt._is_returning = True
+
+            # need to keep track of whether the last token parsed was a string
+            # (excluding whitespace) as if the last token parsed was a string
+            # a following colon is not a bind variable but a part of the JSON
+            # constant syntax
+            if ch == "'":
+                last_was_string = True
+                if last_ch in ('q', 'Q'):
+                    self._parse_qstring()
+                else:
+                    self._parse_quoted_string(ch)
+            elif not cpython.Py_UNICODE_ISSPACE(ch):
+                if ch == '-':
+                    self._parse_single_line_comment()
+                elif ch == '/':
+                    self._parse_multiple_line_comment()
+                elif ch == '"':
+                    self._parse_quoted_string(ch)
+                elif ch == ':' and not last_was_string:
+                    self._parse_bind_name(stmt)
+                last_was_string = False
+
+            # advance to next character and track previous character
+            self.pos += 1
+            last_was_alpha = is_alpha
+            last_ch = ch
 
 
 cdef class Statement:
@@ -126,94 +343,53 @@ cdef class Statement:
         copied_statement._return_to_cache = False
         return copied_statement
 
-    cdef int _add_binds(self, str sql, bint is_return_bind) except -1:
+    cdef int _add_bind(self, str name) except -1:
         """
         Add bind information to the statement by examining the passed SQL for
         bind variable names.
         """
-        cdef:
-            BindInfo info
-            str name
-        for name in re.findall(BIND_PATTERN, sql):
-            if name.startswith('"') and name.endswith('"'):
-                name = name[1:-1]
-            else:
-                name = name.upper()
-            if self._is_plsql and name in self._bind_info_dict:
-                continue
-            info = BindInfo(name, is_return_bind)
+        cdef BindInfo info
+        if not self._is_plsql or name not in self._bind_info_dict:
+            info = BindInfo(name, self._is_returning)
             self._bind_info_list.append(info)
             if info._bind_name in self._bind_info_dict:
                 self._bind_info_dict[info._bind_name].append(info)
             else:
                 self._bind_info_dict[info._bind_name] = [info]
 
-    cdef _determine_statement_type(self, str sql):
+    cdef _determine_statement_type(self, str sql_keyword):
         """
         Determine the type of the SQL statement by examining the first keyword
         found in the statement.
         """
-        tokens = sql.strip().lstrip("(")[:10].split()
-        if tokens:
-            sql_keyword = tokens[0].upper()
-            if sql_keyword in ("DECLARE", "BEGIN", "CALL"):
-                self._is_plsql = True
-            elif sql_keyword in ("SELECT", "WITH"):
-                self._is_query = True
-            elif sql_keyword in ("INSERT", "UPDATE", "DELETE", "MERGE"):
-                self._is_dml = True
-            elif sql_keyword in ("CREATE", "ALTER", "DROP", "TRUNCATE"):
-                self._is_ddl = True
+        if sql_keyword in ("DECLARE", "BEGIN", "CALL"):
+            self._is_plsql = True
+        elif sql_keyword in ("SELECT", "WITH"):
+            self._is_query = True
+        elif sql_keyword in ("INSERT", "UPDATE", "DELETE", "MERGE"):
+            self._is_dml = True
+        elif sql_keyword in ("CREATE", "ALTER", "DROP", "GRANT", "REVOKE",
+                             "ANALYZE", "AUDIT", "COMMENT", "TRUNCATE"):
+            self._is_ddl = True
 
     cdef int _prepare(self, str sql) except -1:
         """
         Prepare the SQL for execution by determining the list of bind names
         that are found within it. The length of the SQL text is also calculated
-        at this time. If the character sets of the client and server are
-        identical, the length is calculated in bytes; otherwise, the length is
-        calculated in characters.
+        at this time.
         """
-        cdef:
-            str input_sql, returning_sql = None
-            object match
+        cdef Parser parser = Parser.__new__(Parser)
 
         # retain normalized SQL (as string and bytes) as well as the length
         self._sql = sql
         self._sql_bytes = self._sql.encode()
         self._sql_length = <uint32_t> len(self._sql_bytes)
 
-        # create empty list (bind by position) and dict (bind by name)
+        # parse SQL and populate bind variable list (bind by position) and dict
+        # (bind by name)
         self._bind_info_dict = collections.OrderedDict()
         self._bind_info_list = []
-
-        # Strip single/multiline comments and replace constant strings and
-        # quoted names with single characters in order to facilitate detection
-        # of bind variables; note that bind variables can be quoted so a check
-        # must be made to ensure that a quoted string doesn't refer to a bind
-        # variable first before it can be replaced
-        sql = re.sub(MULTI_LINE_COMMENT_PATTERN, "", sql)
-        sql = re.sub(SINGLE_LINE_COMMENT_PATTERN, "", sql)
-        sql = re.sub(CONSTANT_STRING_PATTERN, "S", sql)
-        sql = re.sub(QUOTED_NAME_PATTERN,
-                    lambda m: m.group(0) if sql[m.start(0)] == ":" else "Q",
-                    sql)
-
-        # determine statement type
-        self._determine_statement_type(sql)
-
-        # bind variables can only be found in queries, DML and PL/SQL
-        if self._is_query or self._is_dml or self._is_plsql:
-            input_sql = sql
-            if self._is_dml:
-                match = re.search(DML_RETURNING_PATTERN, sql)
-                if match is not None:
-                    pos = match.end()
-                    input_sql = sql[:pos]
-                    returning_sql = sql[pos + 4:]
-            self._add_binds(input_sql, is_return_bind=False)
-            if returning_sql is not None:
-                self._is_returning = True
-                self._add_binds(returning_sql, is_return_bind=True)
+        parser.parse(self)
 
     cdef int _set_var(self, BindInfo bind_info, ThinVarImpl var_impl,
                       ThinCursorImpl cursor_impl) except -1:
