@@ -585,5 +585,45 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             queue.deqoptions.deliverymode
 
+    def test_2729_correlation(self):
+        "2729 - test correlation deqoption"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        book = queue.payload_type.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
+        correlations = ["Math", "Programming"]
+        num_messages = 3
+        messages = [self.connection.msgproperties(payload=book,
+                                                  correlation=c) \
+                    for c in correlations \
+                    for i in range(num_messages)]
+        queue.enqmany(messages)
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.correlation = correlations[0]
+        correlated_messages = queue.deqmany(num_messages + 1)
+        self.assertEqual(len(correlated_messages), num_messages)
+
+        queue.deqoptions.correlation = correlations[1]
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-25241:",
+                               queue.deqone)
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        correlated_messages = queue.deqmany(num_messages + 1)
+        self.assertEqual(len(correlated_messages), num_messages)
+
+    def test_2730_correlation_with_pattern(self):
+        "2730 - test correlation deqoption with pattern-matching characters"
+        queue = self.get_and_clear_queue(self.book_queue_name,
+                                         self.book_type_name)
+        book = queue.payload_type.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
+        for correlation in ("PreCalculus-math1", "Calculus-Math2"):
+            props = self.connection.msgproperties(payload=book,
+                                                  correlation=correlation)
+            queue.enqone(props)
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.correlation = "%Calculus-%ath_"
+        messages = queue.deqmany(5)
+        self.assertEqual(len(messages), 2)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -659,5 +659,47 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "new_service_name")
         self.assertEqual(params.port, 3578)
 
+    def test_4564_repr(self):
+        "4564 - test ConnectParams repr()"
+        values = [
+            ("user", "USER_1"),
+            ("proxy_user", "PROXY_USER_1"),
+            ("host", "my_host_1"),
+            ("port", 1521),
+            ("protocol", "tcp"),
+            ("https_proxy", "proxy_a"),
+            ("https_proxy_port", 4528),
+            ("service_name", "my_service_name1"),
+            ("sid", "my_sid1"),
+            ("server_type", "dedicated"),
+            ("cclass", "cclass_1"),
+            ("purity", oracledb.PURITY_SELF),
+            ("expire_time", 60),
+            ("retry_count", 6),
+            ("retry_delay", 10),
+            ("tcp_connect_timeout", 40.0),
+            ("ssl_server_dn_match", False),
+            ("ssl_server_cert_dn", "CN=unknown19a"),
+            ("wallet_location", "/tmp/wallet_loc1a"),
+            ("events", True),
+            ("externalauth", True),
+            ("mode", oracledb.AUTH_MODE_SYSDBA),
+            ("disable_oob", True),
+            ("stmtcachesize", 25),
+            ("edition", "edition_4"),
+            ("tag", "tag4"),
+            ("matchanytag", True),
+            ("config_dir", "config_dir_4"),
+            ("appcontext", [("a", "b", "c")]),
+            ("shardingkey", [1, 2, 3]),
+            ("supershardingkey", [4]),
+            ("debug_jdwp", "host=host;port=4538"),
+            ("connection_id_prefix", "prefix4564")
+        ]
+        params = oracledb.ConnectParams(**dict(values))
+        parts = [f"{name}={value!r}" for name, value in values]
+        expected_value = f"ConnectParams({', '.join(parts)})"
+        self.assertEqual(repr(params), expected_value)
+
 if __name__ == "__main__":
     test_env.run_test_cases()

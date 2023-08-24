@@ -214,11 +214,11 @@ class TestCase(test_env.BaseTestCase):
         "3003 - test verifying what registerquery returns"
         data = DMLSubscriptionData(5)
         qos_constants = [
-                oracledb.SUBSCR_QOS_QUERY,
-                oracledb.SUBSCR_QOS_RELIABLE,
-                oracledb.SUBSCR_QOS_DEREG_NFY,
-                oracledb.SUBSCR_QOS_ROWIDS,
-                oracledb.SUBSCR_QOS_BEST_EFFORT
+            oracledb.SUBSCR_QOS_QUERY,
+            oracledb.SUBSCR_QOS_RELIABLE,
+            oracledb.SUBSCR_QOS_DEREG_NFY,
+            oracledb.SUBSCR_QOS_ROWIDS,
+            oracledb.SUBSCR_QOS_BEST_EFFORT
         ]
         for qos_constant in qos_constants:
             connection = test_env.get_connection(events=True)
@@ -226,10 +226,10 @@ class TestCase(test_env.BaseTestCase):
                                        callback=data.callback_handler)
             query_id = sub.registerquery("select * from TestTempTable")
             if qos_constant == oracledb.SUBSCR_QOS_QUERY:
-                self.assertEqual(type(query_id), int)
-                self.assertEqual(type(sub.id), int)
+                self.assertIsInstance(query_id, int)
+                self.assertIsInstance(sub.id, int)
             else:
-                self.assertEqual(query_id, None)
+                self.assertIsNone(query_id)
             connection.unsubscribe(sub)
             connection.close()
 
@@ -276,6 +276,48 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(sub.id, cursor.fetchone()[0])
         connection.unsubscribe(sub)
         connection.close()
+
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
+    def test_3007_query_message_table_attributes(self):
+        "3007 - test getting Message, MessageQuery, MessageTable attributes"
+        condition = threading.Condition()
+        connection = test_env.get_connection(events=True)
+
+        def callback_handler(message):
+            self.assertEqual(message.dbname.upper(),
+                             connection.instance_name.upper())
+            self.assertTrue(message.registered)
+            self.assertEqual(message.subscription, sub)
+            self.assertEqual(message.tables, [])
+            self.assertIsInstance(message.txid, bytes)
+            self.assertEqual(message.type, oracledb.EVENT_QUERYCHANGE)
+            self.assertIsInstance(message.queries, list)
+            queries, = message.queries
+            self.assertEqual(queries.id, sub_id)
+            self.assertEqual(queries.operation, oracledb.EVENT_QUERYCHANGE)
+            self.assertIsInstance(queries.tables, list)
+            tables, = queries.tables
+            table_name = f"{test_env.get_main_user().upper()}.TESTTEMPTABLE"
+            self.assertEqual(tables.name, table_name)
+            self.assertIsInstance(tables.operation, int)
+            self.assertIsInstance(tables.rows, list)
+            with condition:
+                condition.notify()
+
+        sub = connection.subscribe(callback=callback_handler,
+                                   qos=oracledb.SUBSCR_QOS_QUERY)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        sub_id = sub.registerquery("select * from TestTempTable")
+        cursor.execute("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (1, 'test')""")
+        connection.commit()
+
+        with condition:
+            self.assertTrue(condition.wait(5))
+        connection.unsubscribe(sub)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -44,9 +44,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1001_future_obj(self):
         "1001 - test management of __future__ object"
-        self.assertEqual(oracledb.__future__.dummy, None)
+        self.assertIsNone(oracledb.__future__.dummy)
         oracledb.__future__.dummy = "Unimportant"
-        self.assertEqual(oracledb.__future__.dummy, None)
+        self.assertIsNone(oracledb.__future__.dummy)
 
     def test_1002_timestamp_from_ticks(self):
         "1002 - test TimestampFromTicks()"
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1004_makedsn(self):
         "1004 - test makedsn() with valid arguments"
-        format_string = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" + \
+        format_string = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" \
                         "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
         args = ("hostname", 1521, "TEST")
         result = oracledb.makedsn(*args)
