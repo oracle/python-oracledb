@@ -322,8 +322,9 @@ cdef class BaseCursorImpl:
             BindVar bind_var
             ssize_t i
         for i, bind_var in enumerate(self.bind_vars):
-            bind_var.var_impl._bind(conn, self, num_execs, bind_var.name,
-                                    bind_var.pos)
+            if bind_var is not None and bind_var.var_impl is not None:
+                bind_var.var_impl._bind(conn, self, num_execs, bind_var.name,
+                                        bind_var.pos)
 
     cdef int _reset_bind_vars(self, uint32_t num_rows) except -1:
         """
