@@ -318,6 +318,9 @@ cdef class FetchInfoImpl:
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype
         readonly bint is_json
+        readonly str domain_schema
+        readonly str domain_name
+        readonly dict annotations
 
 
 cdef class BaseVarImpl:

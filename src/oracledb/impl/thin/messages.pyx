@@ -633,13 +633,13 @@ cdef class MessageWithData(Message):
     cdef FetchInfoImpl _process_column_info(self, ReadBuffer buf,
                                             ThinCursorImpl cursor_impl):
         cdef:
+            uint32_t num_bytes, uds_flags, num_annotations, i
             ThinDbObjectTypeImpl typ_impl
-            uint32_t num_bytes, uds_flags
+            str schema, name, key, value
             uint8_t data_type, csfrm
             FetchInfoImpl fetch_info
             int8_t precision, scale
             uint8_t nulls_allowed
-            str schema, name
             int cache_num
             bytes oid
         buf.read_ub1(&data_type)
@@ -686,6 +686,31 @@ cdef class MessageWithData(Message):
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
         fetch_info.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
+            buf.read_ub4(&num_bytes)
+            if num_bytes > 0:
+                fetch_info.domain_schema = buf.read_str(TNS_CS_IMPLICIT)
+            buf.read_ub4(&num_bytes)
+            if num_bytes > 0:
+                fetch_info.domain_name = buf.read_str(TNS_CS_IMPLICIT)
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
+            buf.read_ub4(&num_annotations)
+            if num_annotations > 0:
+                buf.skip_ub1()
+                fetch_info.annotations = {}
+                buf.read_ub4(&num_annotations)
+                buf.skip_ub1()
+                for i in range(num_annotations):
+                    buf.skip_ub4()          # length of key
+                    key = buf.read_str(TNS_CS_IMPLICIT)
+                    buf.read_ub4(&num_bytes)
+                    if num_bytes > 0:
+                        value = buf.read_str(TNS_CS_IMPLICIT)
+                    else:
+                        value = ""
+                    fetch_info.annotations[key] = value
+                    buf.skip_ub4()          # flags
+                buf.skip_ub4()              # flags
         if data_type == TNS_DATA_TYPE_INT_NAMED:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num

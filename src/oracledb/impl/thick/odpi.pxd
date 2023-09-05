@@ -273,6 +273,12 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         int8_t tzMinuteOffset
 
     # public structures
+    ctypedef struct dpiAnnotation:
+        const char *key
+        uint32_t keyLength
+        const char *value
+        uint32_t valueLength
+
     ctypedef struct dpiAppContext:
         const char *namespaceName
         uint32_t namespaceNameLength
@@ -363,6 +369,12 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint8_t fsPrecision
         dpiObjectType *objectType
         bint isJson
+        const char *domainSchema
+        uint32_t domainSchemaLength
+        const char *domainName
+        uint32_t domainNameLength
+        uint32_t numAnnotations
+        dpiAnnotation *annotations
 
     ctypedef struct dpiAccessToken:
         const char *token

@@ -96,6 +96,14 @@ class FetchInfo:
         return info
 
     @property
+    def annotations(self) -> Union[dict, None]:
+        """
+        Returns a dictionary of the annotations associated with the column, if
+        applicable.
+        """
+        return self._impl.annotations
+
+    @property
     def display_size(self) -> Union[int, None]:
         """
         Returns the display size of the column.
@@ -119,6 +127,21 @@ class FetchInfo:
             else:
                 display_size = 127
             return display_size
+
+    @property
+    def domain_name(self) -> Union[str, None]:
+        """
+        Returns the name of the domain, if applicable.
+        """
+        return self._impl.domain_name
+
+    @property
+    def domain_schema(self) -> Union[str, None]:
+        """
+        Returns the name of the schema in which the domain is found, if
+        applicable.
+        """
+        return self._impl.domain_schema
 
     @property
     def internal_size(self) -> Union[int, None]:

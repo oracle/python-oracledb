@@ -68,6 +68,10 @@ cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO
 
+cdef uint32_t PURITY_NEW = constants.PURITY_NEW
+cdef uint32_t PURITY_SELF = constants.PURITY_SELF
+cdef uint32_t PURITY_DEFAULT = constants.PURITY_DEFAULT
+
 cdef int32_t* INTEGRITY_ERROR_CODES = [
         1,          # unique constraint violated
         1400,       # cannot insert NULL

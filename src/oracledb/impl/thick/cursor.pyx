@@ -82,6 +82,8 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             ThickConnImpl conn_impl
             dpiQueryInfo query_info
             ThickVarImpl var_impl
+            uint32_t i, temp_len
+            str key, value
 
         # build FetchInfoImpl based on query info provided by ODPI-C
         if dpiStmt_getQueryInfo(self._handle, pos + 1, &query_info) < 0:
@@ -102,6 +104,21 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         fetch_info.precision = type_info.precision
         fetch_info.nulls_allowed = query_info.nullOk
         fetch_info.is_json = type_info.isJson
+        if type_info.domainSchema:
+            temp_len = type_info.domainSchemaLength
+            fetch_info.domain_schema = \
+                    type_info.domainSchema[:temp_len].decode()
+        if type_info.domainName:
+            fetch_info.domain_name = \
+                    type_info.domainName[:type_info.domainNameLength].decode()
+        if type_info.numAnnotations > 0:
+            fetch_info.annotations = {}
+            for i in range(type_info.numAnnotations):
+                temp_len = type_info.annotations[i].keyLength
+                key = type_info.annotations[i].key[:temp_len].decode()
+                temp_len = type_info.annotations[i].valueLength
+                value = type_info.annotations[i].value[:temp_len].decode()
+                fetch_info.annotations[key] = value
         if type_info.objectType != NULL:
             typ_impl = ThickDbObjectTypeImpl._from_handle(self._conn_impl,
                                                           type_info.objectType)

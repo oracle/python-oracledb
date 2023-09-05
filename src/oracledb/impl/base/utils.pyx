@@ -147,23 +147,31 @@ cdef int _set_purity_param(dict args, str name, uint32_t* out_val) except -1:
     must be one of "new" or "self" currently (or the equivalent constants, if
     specified directly). If it is not one of these values an error is raised.
     """
+    cdef bint ok = True
     in_val = args.get(name)
     if in_val is not None:
         if isinstance(in_val, str):
             in_val = in_val.lower()
             if in_val == "new":
-                out_val[0] = constants.PURITY_NEW
+                out_val[0] = PURITY_NEW
             elif in_val == "self":
-                out_val[0] = constants.PURITY_SELF
+                out_val[0] = PURITY_SELF
             else:
-                errors._raise_err(errors.ERR_INVALID_POOL_PURITY,
-                                  purity=in_val)
+                ok = False
+        elif isinstance(in_val, int):
+            if in_val == PURITY_NEW:
+                out_val[0] = PURITY_NEW
+            elif in_val == PURITY_SELF:
+                out_val[0] = PURITY_SELF
+            elif in_val == PURITY_DEFAULT:
+                out_val[0] = PURITY_DEFAULT
+            else:
+                ok = False
         else:
-            if in_val not in (constants.PURITY_SELF, constants.PURITY_NEW,
-                              constants.PURITY_DEFAULT):
-                errors._raise_err(errors.ERR_INVALID_POOL_PURITY,
-                                  purity=in_val)
-            out_val[0] = in_val
+            ok = False
+        if not ok:
+            errors._raise_err(errors.ERR_INVALID_POOL_PURITY,
+                              purity=in_val)
 
 
 cdef int _set_server_type_param(dict args, str name, object target) except -1:

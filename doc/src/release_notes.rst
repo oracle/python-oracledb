@@ -25,6 +25,14 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added attributes :data:`FetchInfo.domain_schema`,
+    :data:`FetchInfo.domain_name` and :data:`FetchInfo.annotations` for the
+    `SQL domain <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
+    and
+    `annotations <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/annotations_clause.html#GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__
+    associated with columns that are being fetched. SQL domains and annotations
+    require Oracle Database 23c. If using thick mode, Oracle Client 23c or
+    higher is also required.
 #)  Fixed bug when calling :meth:`Cursor.execute()` or
     :meth:`Cursor.executemany()` with missing bind data after calling
     :meth:`Cursor.setinputsizes()` with at least one of the values supplied as

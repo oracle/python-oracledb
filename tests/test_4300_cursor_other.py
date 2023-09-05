@@ -852,5 +852,28 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestJsonCols")
         self.assertEqual(self.cursor.fetchone(), expected_data)
 
+    @unittest.skipIf(test_env.get_server_version() < (23, 1),
+                     "unsupported database")
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "unsupported client")
+    def test_4373_fetch_domain_and_annotations(self):
+        "4373 - fetch table with domain and annotations"
+        self.cursor.execute("select * from TableWithDomainAndAnnotations")
+        self.assertEqual(self.cursor.fetchall(), [(1, 25)])
+        column_1 = self.cursor.description[0]
+        self.assertIsNone(column_1.domain_schema)
+        self.assertIsNone(column_1.domain_name)
+        self.assertIsNone(column_1.annotations)
+        column_2 = self.cursor.description[1]
+        self.assertEqual(column_2.domain_schema,
+                         test_env.get_main_user().upper())
+        self.assertEqual(column_2.domain_name, "SIMPLEDOMAIN")
+        expected_annotations = {
+            "ANNO_1": "first annotation",
+            "ANNO_2": "second annotation",
+            "ANNO_3": ""
+        }
+        self.assertEqual(column_2.annotations, expected_annotations)
+
 if __name__ == "__main__":
     test_env.run_test_cases()
