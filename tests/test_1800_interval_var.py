@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -166,7 +166,7 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
-        self.assertEqual(self.cursor.fetchone(), None)
+        self.assertIsNone(self.cursor.fetchone())
 
     def test_1811_bind_and_fetch_negative_interval(self):
         "1811 - test binding and fetching a negative interval"

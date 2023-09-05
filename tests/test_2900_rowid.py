@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -41,9 +41,10 @@ class TestCase(test_env.BaseTestCase):
             (2, "DEF" * 80, datetime.datetime(2017, 4, 12))
         ]
         self.cursor.executemany("""
-                    insert into TestUniversalRowids
-                    values (:1, :2, :3)""", data)
-        self.connection.commit()
+                insert into TestUniversalRowids 
+                values (:1, :2, :3)""",
+                data)
+        self.conn.commit()
 
     def __test_select_rowids(self, table_name):
         self.cursor.execute(f"select rowid, IntCol from {table_name}")
@@ -74,8 +75,9 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute("""
                 insert into TestRowids (IntCol, UrowidCol)
-                select IntCol, rowid from TestNumbers""")
-        self.connection.commit()
+                select IntCol, rowid
+                from TestNumbers""")
+        self.conn.commit()
         self.cursor.execute("select IntCol, UrowidCol from TestRowids")
         for int_val, rowid in self.cursor.fetchall():
             self.cursor.execute("""
@@ -90,8 +92,9 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute("""
                 insert into TestRowids (IntCol, RowidCol)
-                select IntCol, rowid from TestNumbers""")
-        self.connection.commit()
+                select IntCol, rowid
+                from TestNumbers""")
+        self.conn.commit()
         self.cursor.execute("select IntCol, RowidCol from TestRowids")
         for int_val, rowid in self.cursor.fetchall():
             self.cursor.execute("""
@@ -111,13 +114,16 @@ class TestCase(test_env.BaseTestCase):
             (4, "String #4")
         ]
         self.cursor.execute("truncate table TestTempTable")
-        sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        self.cursor.executemany(sql, insert_data)
-        self.connection.commit()
+        self.cursor.executemany("""
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, :2)""",
+                insert_data)
+        self.conn.commit()
         ridvar = self.cursor.var(oracledb.ROWID)
         self.cursor.execute("""
             begin
-                select rowid into :rid from TestTempTable
+                select rowid into :rid
+                from TestTempTable
                 where IntCol = 3;
             end;""",
             rid=ridvar)
@@ -126,7 +132,7 @@ class TestCase(test_env.BaseTestCase):
             insert into TestRowids (IntCol, RowidCol)
             values(1, :r1)""",
             r1=ridvar)
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("select IntCol, RowidCol from TestRowids")
         int_val, rowid = self.cursor.fetchone()
         self.cursor.execute("""
@@ -147,13 +153,16 @@ class TestCase(test_env.BaseTestCase):
             (4, "A" * 250, datetime.datetime(2017, 4, 7))
         ]
         self.cursor.execute("truncate table TestUniversalRowids")
-        sql = "insert into TestUniversalRowids values (:1, :2, :3)"
-        self.cursor.executemany(sql, insert_data)
-        self.connection.commit()
+        self.cursor.executemany("""
+                insert into TestUniversalRowids
+                values (:1, :2, :3)""",
+                insert_data)
+        self.conn.commit()
         ridvar = self.cursor.var(oracledb.DB_TYPE_UROWID)
         self.cursor.execute("""
             begin
-                select rowid into :rid from TestUniversalRowids
+                select rowid into :rid
+                from TestUniversalRowids
                 where IntCol = 3;
             end;""",
             rid=ridvar)
@@ -162,11 +171,12 @@ class TestCase(test_env.BaseTestCase):
             insert into TestRowids (IntCol, UrowidCol)
             values(1, :r1)""",
             r1=ridvar)
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("select IntCol, UrowidCol from TestRowids")
         int_val, rowid = self.cursor.fetchone()
         self.cursor.execute("""
-            select IntCol, StringCol, DateCol from TestUniversalRowids
+            select IntCol, StringCol, DateCol
+            from TestUniversalRowids
             where rowid = :val""",
             val=rowid)
         self.assertEqual(self.cursor.fetchone(),
@@ -176,7 +186,7 @@ class TestCase(test_env.BaseTestCase):
         "2907 - fetching a null rowid"
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute("insert into TestRowids (IntCol) values (1)")
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("select * from TestRowids")
         self.assertEqual(self.cursor.fetchone(), (1, None, None))
 

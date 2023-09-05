@@ -33,8 +33,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1300_bind_cursor(self):
         "1300 - test binding in a cursor"
-        cursor = self.connection.cursor()
-        self.assertEqual(cursor.description, None)
+        cursor = self.conn.cursor()
+        self.assertIsNone(cursor.description)
         self.cursor.execute("""
                 begin
                     open :cursor for select 'X' StringValue from dual;
@@ -50,8 +50,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1301_bind_cursor_in_package(self):
         "1301 - test binding in a cursor from a package"
-        cursor = self.connection.cursor()
-        self.assertEqual(cursor.description, None)
+        cursor = self.conn.cursor()
+        self.assertIsNone(cursor.description)
         self.cursor.callproc("pkg_TestRefCursors.TestOutCursor", (2, cursor))
         varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
         expected_value = [
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1302_bind_self(self):
         "1302 - test that binding the cursor itself is not supported"
-        cursor = self.connection.cursor()
+        cursor = self.conn.cursor()
         sql = """
                 begin
                     open :pcursor for
@@ -75,7 +75,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1303_execute_after_close(self):
         "1303 - test returning a ref cursor after closing it"
-        out_cursor = self.connection.cursor()
+        out_cursor = self.conn.cursor()
         sql = """
                 begin
                     open :pcursor for
@@ -86,7 +86,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, pcursor=out_cursor)
         rows = out_cursor.fetchall()
         out_cursor.close()
-        out_cursor = self.connection.cursor()
+        out_cursor = self.conn.cursor()
         self.cursor.execute(sql, pcursor=out_cursor)
         rows2 = out_cursor.fetchall()
         self.assertEqual(rows, rows2)
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1305_ref_cursor_binds(self):
         "1305 - test that ref cursor binds cannot use optimised path"
-        ref_cursor = self.connection.cursor()
+        ref_cursor = self.conn.cursor()
         sql = """
                 begin
                     open :rcursor for
@@ -118,38 +118,37 @@ class TestCase(test_env.BaseTestCase):
                         from TestStrings where IntCol
                         between :start_value and :end_value;
                 end;"""
-        self.cursor.execute(sql, rcursor=ref_cursor, start_value=2,
-                            end_value=4)
         expected_value = [
             (2, 'String 2'),
             (3, 'String 3'),
             (4, 'String 4')
         ]
-        rows = ref_cursor.fetchall()
+        self.cursor.execute(sql, rcursor=ref_cursor, start_value=2,
+                            end_value=4)
+        self.assertEqual(ref_cursor.fetchall(), expected_value)
         ref_cursor.close()
-        self.assertEqual(rows, expected_value)
-        ref_cursor = self.connection.cursor()
-        self.cursor.execute(sql, rcursor=ref_cursor, start_value=5,
-                            end_value=6)
+
         expected_value = [
             (5, 'String 5'),
             (6, 'String 6')
         ]
-        rows = ref_cursor.fetchall()
-        self.assertEqual(rows, expected_value)
+        ref_cursor = self.conn.cursor()
+        self.cursor.execute(sql, rcursor=ref_cursor, start_value=5,
+                            end_value=6)
+        self.assertEqual(ref_cursor.fetchall(), expected_value)
 
     def test_1306_refcursor_round_trips(self):
         "1306 - test round trips using a REF cursor"
         self.setup_round_trip_checker()
 
         # simple DDL only requires a single round trip
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.execute("truncate table TestTempTable")
             self.assertRoundTrips(1)
 
         # array execution only requires a single round trip
         num_rows = 590
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             sql = "insert into TestTempTable (IntCol) values (:1)"
             data = [(n + 1,) for n in range(num_rows)]
             cursor.executemany(sql, data)
@@ -157,8 +156,8 @@ class TestCase(test_env.BaseTestCase):
 
         # create REF cursor and execute stored procedure
         # (array size set before procedure is called)
-        with self.connection.cursor() as cursor:
-            refcursor = self.connection.cursor()
+        with self.conn.cursor() as cursor:
+            refcursor = self.conn.cursor()
             refcursor.arraysize = 150
             cursor.callproc("myrefcursorproc", [refcursor])
             refcursor.fetchall()
@@ -166,8 +165,8 @@ class TestCase(test_env.BaseTestCase):
 
         # create REF cursor and execute stored procedure
         # (array size set after procedure is called)
-        with self.connection.cursor() as cursor:
-            refcursor = self.connection.cursor()
+        with self.conn.cursor() as cursor:
+            refcursor = self.conn.cursor()
             cursor.callproc("myrefcursorproc", [refcursor])
             refcursor.arraysize = 145
             refcursor.fetchall()
@@ -175,8 +174,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1307_refcursor_execute_different_sql(self):
         "1307 - test executing different SQL after getting a REF cursor"
-        with self.connection.cursor() as cursor:
-            refcursor = self.connection.cursor()
+        with self.conn.cursor() as cursor:
+            refcursor = self.conn.cursor()
             cursor.callproc("myrefcursorproc", [refcursor])
             var = cursor.var(int)
             refcursor.execute("begin :1 := 15; end;", [var])
@@ -184,20 +183,20 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1308_function_with_ref_cursor_return(self):
         "1308 - test calling a function that returns a REF cursor"
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             ref_cursor = cursor.callfunc("pkg_TestRefCursors.TestReturnCursor",
                                          oracledb.DB_TYPE_CURSOR, [2])
-            rows = ref_cursor.fetchall()
-            self.assertEqual(rows, [(1, 'String 1'), (2, 'String 2')])
+            self.assertEqual(ref_cursor.fetchall(),
+                             [(1, 'String 1'), (2, 'String 2')])
 
     def test_1309_output_type_handler_with_ref_cursor(self):
         "1309 - test using an output type handler with a REF cursor"
         def type_handler(cursor, metadata):
             return cursor.var(str, arraysize=cursor.arraysize)
-        self.connection.outputtypehandler = type_handler
+        self.conn.outputtypehandler = type_handler
         var = self.cursor.var(oracledb.DB_TYPE_CURSOR)
         string_val = "Test String - 1309"
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.callproc("pkg_TestRefCursors.TestLobCursor",
                             [string_val, var])
         ref_cursor = var.getvalue()
@@ -314,7 +313,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1314_reuse_closed_ref_cursor_with_different_sql(self):
         "1314 - test reusing a closed ref cursor for executing different sql"
         sql = "select 13141, 'String 13141' from dual"
-        ref_cursor = self.connection.cursor()
+        ref_cursor = self.conn.cursor()
         ref_cursor.prefetchrows = 0
         ref_cursor.execute(sql)
         plsql = "begin pkg_TestRefCursors.TestCloseCursor(:rcursor); end;"
@@ -326,7 +325,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1315_reuse_closed_ref_cursor_with_same_sql(self):
         "1315 - test reusing a closed ref cursor for executing same sql"
         sql = "select 1315, 'String 1315' from dual"
-        ref_cursor = self.connection.cursor()
+        ref_cursor = self.conn.cursor()
         ref_cursor.prefetchrows = 0
         ref_cursor.execute(sql)
         plsql = "begin pkg_TestRefCursors.TestCloseCursor(:rcursor); end;"

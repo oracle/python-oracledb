@@ -103,7 +103,7 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(self.cursor.bindnames(), expected)
 
     def test_5208_sql_with_quoted_identifiers_and_strings(self):
-        "5208 - sql contaiting quoted identifiers and strings"
+        "5208 - sql containing quoted identifiers and strings"
         sql = 'select "/*_value1" + : "VaLue_2" + :"*/3VALUE" from dual'
         self.cursor.prepare(sql)
         self.assertEqual(self.cursor.bindnames(), ["VaLue_2", "*/3VALUE"])

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -91,8 +91,8 @@ class TestCase(test_env.BaseTestCase):
         pool = test_env.get_pool(min=1, max=2, increment=1,
                                  getmode=oracledb.POOL_GETMODE_WAIT,
                                  externalauth=False, homogeneous=False)
-        with pool.acquire() as connection:
-            self.__verify_connection(connection, test_env.get_main_user())
+        with pool.acquire() as conn:
+            self.__verify_connection(conn, test_env.get_main_user())
 
     def test_5004_user_and_password_with_externalauth_enabled(self):
         """
@@ -154,28 +154,28 @@ class TestCase(test_env.BaseTestCase):
         5008 - test creating a connection with user and password specified and
         externalauth set to False
         """
-        connection = oracledb.connect(user=test_env.get_main_user(),
-                                      password=test_env.get_main_password(),
-                                      dsn=test_env.get_connect_string(),
-                                      externalauth=False)
-        self.__verify_connection(connection, test_env.get_main_user())
+        conn = oracledb.connect(user=test_env.get_main_user(),
+                                password=test_env.get_main_password(),
+                                dsn=test_env.get_connect_string(),
+                                externalauth=False)
+        self.__verify_connection(conn, test_env.get_main_user())
 
     def test_5009_external_authentication_with_externalauth_enabled(self):
         """
         5009 - test creating standalone connection with externalauth set to
         True explicitly
         """
-        connection = oracledb.connect(dsn=test_env.get_connect_string(),
-                                      externalauth=True)
-        self.__verify_connection(connection, test_env.get_external_user())
+        conn = oracledb.connect(dsn=test_env.get_connect_string(),
+                                externalauth=True)
+        self.__verify_connection(conn, test_env.get_external_user())
 
     def test_5010_external_authentication_with_externalauth_not_set(self):
         """
         5010 - test creating standalone connection with no user and password
         specified and externalauth not set
         """
-        connection = oracledb.connect(dsn=test_env.get_connect_string())
-        self.__verify_connection(connection, test_env.get_external_user())
+        conn = oracledb.connect(dsn=test_env.get_connect_string())
+        self.__verify_connection(conn, test_env.get_external_user())
 
     def test_5011_pool_with_external_authentication(self):
         "5011 - test creating a pool with external authentication"
@@ -184,8 +184,8 @@ class TestCase(test_env.BaseTestCase):
                                     getmode=oracledb.POOL_GETMODE_WAIT,
                                     externalauth=True, homogeneous=False)
         self.assertEqual(pool.opened, 0)
-        with pool.acquire() as connection:
-            self.__verify_connection(connection, test_env.get_external_user())
+        with pool.acquire() as conn:
+            self.__verify_connection(conn, test_env.get_external_user())
 
     def test_5012_pool_with_no_user_and_password_and_externalauth_not_set(self):
         """
@@ -239,8 +239,8 @@ class TestCase(test_env.BaseTestCase):
                                     min=1, max=2, increment=1,
                                     getmode=oracledb.POOL_GETMODE_WAIT)
         self.assertEqual(pool.opened, 0)
-        connection = pool.acquire(user=f"[{schema_user}]")
-        self.__verify_connection(connection, schema_user, proxy_user)
+        conn = pool.acquire(user=f"[{schema_user}]")
+        self.__verify_connection(conn, schema_user, proxy_user)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

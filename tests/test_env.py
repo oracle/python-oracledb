@@ -348,14 +348,14 @@ class BaseTestCase(unittest.TestCase):
                     or get_server_version() < (21, 0):
                 self.skipTest(message)
         elif isinstance(payload_type, str):
-            payload_type = self.connection.gettype(payload_type)
-        queue = self.connection.queue(queue_name, payload_type)
+            payload_type = self.conn.gettype(payload_type)
+        queue = self.conn.queue(queue_name, payload_type)
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
         while queue.deqone():
             pass
-        return self.connection.queue(queue_name, payload_type)
+        return self.conn.queue(queue_name, payload_type)
 
     def get_db_object_as_plain_object(self, obj):
         if obj.type.iscollection:
@@ -388,30 +388,30 @@ class BaseTestCase(unittest.TestCase):
             self.skipTest(message)
         if server > (20, 1) and client < (20, 1):
             self.skipTest(message)
-        return self.connection.getSodaDatabase()
+        return self.conn.getSodaDatabase()
 
     def is_on_oracle_cloud(self, connection=None):
         if connection is None:
-            connection = self.connection
+            connection = self.conn
         return is_on_oracle_cloud(connection)
 
     def setUp(self):
         if self.requires_connection:
-            self.connection = get_connection()
-            self.cursor = self.connection.cursor()
+            self.conn = get_connection()
+            self.cursor = self.conn.cursor()
             self.cursor.execute("alter session set time_zone = '+00:00'")
 
     def setup_parse_count_checker(self):
-        self.parse_count_info = ParseCountInfo(self.connection)
+        self.parse_count_info = ParseCountInfo(self.conn)
 
     def setup_round_trip_checker(self):
-        self.round_trip_info = RoundTripInfo(self.connection)
+        self.round_trip_info = RoundTripInfo(self.conn)
 
     def tearDown(self):
         if self.requires_connection:
-            self.connection.close()
+            self.conn.close()
             del self.cursor
-            del self.connection
+            del self.conn
 
 # ensure that thick mode is enabled, if desired
 if not get_is_thin():

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,10 +36,10 @@ class TestCase(test_env.BaseTestCase):
         self.raw_data = []
         self.data_by_key = {}
         for i in range(1, 11):
-            unicode_col = "Unicode \u3042 %d" % i
-            fixed_char_col = ("Fixed Unicode %d" % i).ljust(40)
+            unicode_col = f"Unicode \u3042 {i}"
+            fixed_char_col = f"Fixed Unicode {i}".ljust(40)
             if i % 2:
-                nullable_col = "Nullable %d" % i
+                nullable_col = f"Nullable {i}"
             else:
                 nullable_col = None
             data_tuple = (i, unicode_col, fixed_char_col, nullable_col)
@@ -61,7 +61,8 @@ class TestCase(test_env.BaseTestCase):
         "2101 - test binding in a unicode"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute("""
-                select * from TestUnicodes
+                select *
+                from TestUnicodes
                 where UnicodeCol = :value""",
                 value="Unicode \u3042 5")
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
@@ -82,7 +83,8 @@ class TestCase(test_env.BaseTestCase):
         unicode_val.setvalue(0, "Unicode \u3042 6")
         self.cursor.setinputsizes(value=oracledb.NUMBER)
         self.cursor.execute("""
-                select * from TestUnicodes
+                select *
+                from TestUnicodes
                 where UnicodeCol = :value""",
                 value=unicode_val)
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[6]])
@@ -100,7 +102,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, retval=return_value, integer_value=5,
                             array=array_var)
         self.assertEqual(return_value.getvalue(), 116)
-        array = ["Unicode - \u3042 %d" % i for i in range(15)]
+        array = [f"Unicode - \u3042 {i}" for i in range(15)]
         array_var = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, array)
         self.cursor.execute(statement, integer_value=8, array=array_var)
         self.assertEqual(return_value.getvalue(), 208)
@@ -112,8 +114,8 @@ class TestCase(test_env.BaseTestCase):
         array = [r[1] for r in self.raw_data]
         self.cursor.execute("""
                 begin
-                    :retval := pkg_TestUnicodeArrays.TestInArrays(:integer_value,
-                        :array);
+                    :retval := pkg_TestUnicodeArrays.TestInArrays(
+                        :integer_value, :array);
                 end;""",
                 retval=return_value,
                 integer_value=6,
@@ -127,8 +129,8 @@ class TestCase(test_env.BaseTestCase):
         array.setvalue(0, [r[1] for r in self.raw_data])
         self.cursor.execute("""
                 begin
-                    :retval := pkg_TestUnicodeArrays.TestInArrays(:integer_value,
-                        :array);
+                    :retval := pkg_TestUnicodeArrays.TestInArrays(
+                        :integer_value, :array);
                 end;""",
                 retval=return_value,
                 integer_value=7,
@@ -147,8 +149,8 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     pkg_TestUnicodeArrays.TestInOutArrays(:numElems, :array);
                 end;""",
-                numElems = 5,
-                array = array)
+                numElems=5,
+                array=array)
         self.assertEqual(array.getvalue(), expected_data)
 
     def test_2108_bind_out_unicode_array_by_var(self):
@@ -160,8 +162,8 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     pkg_TestUnicodeArrays.TestOutArrays(:numElems, :array);
                 end;""",
-                numElems = 6,
-                array = array)
+                numElems=6,
+                array=array)
         self.assertEqual(array.getvalue(), expected_data)
 
     def test_2109_bind_null(self):
@@ -169,7 +171,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("""
                 select * from TestUnicodes
                 where UnicodeCol = :value""",
-                value = None)
+                value=None)
         self.assertEqual(self.cursor.fetchall(), [])
 
     def test_2110_bind_out_set_input_sizes_by_type(self):
@@ -188,7 +190,7 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     :value := :value || unistr(' TSI \3042');
                 end;""",
-                value = "InVal \u3041")
+                value="InVal \u3041")
         self.assertEqual(bind_vars["value"].getvalue(),
                          "InVal \u3041 TSI \u3042")
 
@@ -210,7 +212,7 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     :value := :value || unistr(' TSI (VAR) \3042');
                 end;""",
-                value = var)
+                value=var)
         self.assertEqual(var.getvalue(), "InVal \u3041 TSI (VAR) \u3042")
 
     def test_2114_cursor_description(self):
@@ -252,7 +254,7 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
-        self.assertEqual(self.cursor.fetchone(), None)
+        self.assertIsNone(self.cursor.fetchone())
 
 if __name__ == "__main__":
     test_env.run_test_cases()

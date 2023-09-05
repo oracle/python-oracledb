@@ -113,12 +113,12 @@ class TestCase(test_env.BaseTestCase):
 
         # set up subscription
         data = DMLSubscriptionData(5)
-        connection = test_env.get_connection(events=True)
-        sub = connection.subscribe(callback=data.callback_handler,
+        conn = test_env.get_connection(events=True)
+        sub = conn.subscribe(callback=data.callback_handler,
                                    timeout=10, qos=oracledb.SUBSCR_QOS_ROWIDS)
         sub.registerquery("select * from TestTempTable")
-        connection.autocommit = True
-        cursor = connection.cursor()
+        conn.autocommit = True
+        cursor = conn.cursor()
 
         # insert statement
         cursor.execute("""
@@ -166,20 +166,20 @@ class TestCase(test_env.BaseTestCase):
     def test_3001_deprecations(self):
         "3001 - test to verify deprecations"
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.connection.subscribe,
+                               self.conn.subscribe,
                                ip_address='www.oracle.in',
                                ipAddress='www.oracle.in')
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.connection.subscribe, grouping_class=1,
+                               self.conn.subscribe, grouping_class=1,
                                groupingClass=1)
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.connection.subscribe, grouping_value=3,
+                               self.conn.subscribe, grouping_value=3,
                                groupingValue=3)
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.connection.subscribe, grouping_type=2,
+                               self.conn.subscribe, grouping_type=2,
                                groupingType=2)
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.connection.subscribe,
+                               self.conn.subscribe,
                                client_initiated=True, clientInitiated=True)
 
     @unittest.skipIf(test_env.get_client_version() < (23, 1),
@@ -188,22 +188,22 @@ class TestCase(test_env.BaseTestCase):
         "3002 - test subscription for AQ"
 
         # create queue and clear it of all messages
-        queue = self.connection.queue("TEST_RAW_QUEUE")
+        queue = self.conn.queue("TEST_RAW_QUEUE")
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         while queue.deqone():
             pass
-        self.connection.commit()
+        self.conn.commit()
 
         # set up subscription
         data = AQSubscriptionData(1)
-        connection = test_env.get_connection(events=True)
-        sub = connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+        conn = test_env.get_connection(events=True)
+        sub = conn.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_AQ,
                                    name=queue.name, timeout=10,
                                    callback=data.callback_handler)
 
         # enqueue a message
-        queue.enqone(self.connection.msgproperties(payload="Some data"))
-        self.connection.commit()
+        queue.enqone(self.conn.msgproperties(payload="Some data"))
+        self.conn.commit()
 
         # wait for all messages to be sent
         data.wait_for_messages()
@@ -221,8 +221,8 @@ class TestCase(test_env.BaseTestCase):
             oracledb.SUBSCR_QOS_BEST_EFFORT
         ]
         for qos_constant in qos_constants:
-            connection = test_env.get_connection(events=True)
-            sub = connection.subscribe(qos=qos_constant,
+            conn = test_env.get_connection(events=True)
+            sub = conn.subscribe(qos=qos_constant,
                                        callback=data.callback_handler)
             query_id = sub.registerquery("select * from TestTempTable")
             if qos_constant == oracledb.SUBSCR_QOS_QUERY:
@@ -230,8 +230,8 @@ class TestCase(test_env.BaseTestCase):
                 self.assertIsInstance(sub.id, int)
             else:
                 self.assertIsNone(query_id)
-            connection.unsubscribe(sub)
-            connection.close()
+            conn.unsubscribe(sub)
+            conn.close()
 
     @unittest.skipIf(test_env.get_client_version() < (23, 1),
                      "crashes in older clients")
@@ -248,45 +248,45 @@ class TestCase(test_env.BaseTestCase):
     def test_3005_registerquery_negative(self):
         "3005 - test registerquery with invalid parameters"
         data = DMLSubscriptionData(5)
-        connection = test_env.get_connection(events=True)
-        sub = connection.subscribe(callback=data.callback_handler)
+        conn = test_env.get_connection(events=True)
+        sub = conn.subscribe(callback=data.callback_handler)
         self.assertRaises(TypeError, sub.registerquery,
                           "select * from TestTempTable", "invalid args")
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00942",
                                sub.registerquery, "select * from Nonexistent")
-        connection.unsubscribe(sub)
+        conn.unsubscribe(sub)
 
     @unittest.skipIf(test_env.get_client_version() < (23, 1),
                      "crashes in older clients")
     def test_3006_attributes(self):
         "3006 - test getting subscription attributes"
         data = DMLSubscriptionData(1)
-        connection = test_env.get_connection(events=True)
-        cursor = connection.cursor()
+        conn = test_env.get_connection(events=True)
+        cursor = conn.cursor()
         args = dict(callback=data.callback_handler, ip_address=None, port=0,
                     name="Sub1", namespace=oracledb.SUBSCR_NAMESPACE_DBCHANGE,
                     timeout=10, protocol=oracledb.SUBSCR_PROTO_OCI,
                     qos=oracledb.SUBSCR_QOS_QUERY,
                     operations=oracledb.OPCODE_INSERT)
-        sub = connection.subscribe(**args)
+        sub = conn.subscribe(**args)
         for attr_name in args:
             self.assertEqual(getattr(sub, attr_name), args[attr_name])
-        self.assertEqual(sub.connection, connection)
+        self.assertEqual(sub.connection, conn)
         cursor.execute("select REGID from USER_CHANGE_NOTIFICATION_REGS")
         self.assertEqual(sub.id, cursor.fetchone()[0])
-        connection.unsubscribe(sub)
-        connection.close()
+        conn.unsubscribe(sub)
+        conn.close()
 
     @unittest.skipIf(test_env.get_client_version() < (23, 1),
                      "crashes in older clients")
     def test_3007_query_message_table_attributes(self):
         "3007 - test getting Message, MessageQuery, MessageTable attributes"
         condition = threading.Condition()
-        connection = test_env.get_connection(events=True)
+        conn = test_env.get_connection(events=True)
 
         def callback_handler(message):
             self.assertEqual(message.dbname.upper(),
-                             connection.instance_name.upper())
+                             conn.instance_name.upper())
             self.assertTrue(message.registered)
             self.assertEqual(message.subscription, sub)
             self.assertEqual(message.tables, [])
@@ -305,19 +305,19 @@ class TestCase(test_env.BaseTestCase):
             with condition:
                 condition.notify()
 
-        sub = connection.subscribe(callback=callback_handler,
+        sub = conn.subscribe(callback=callback_handler,
                                    qos=oracledb.SUBSCR_QOS_QUERY)
-        cursor = connection.cursor()
+        cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
         sub_id = sub.registerquery("select * from TestTempTable")
         cursor.execute("""
                 insert into TestTempTable (IntCol, StringCol1)
                 values (1, 'test')""")
-        connection.commit()
+        conn.commit()
 
         with condition:
             self.assertTrue(condition.wait(5))
-        connection.unsubscribe(sub)
+        conn.unsubscribe(sub)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

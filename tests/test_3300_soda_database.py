@@ -41,7 +41,7 @@ class TestCase(test_env.BaseTestCase):
             soda_db.openCollection(name).drop()
 
     def __verify_doc(self, doc, raw_content, str_content=None, content=None,
-                     key=None, media_type='application/json'):
+                     key=None, media_type="application/json"):
         self.assertEqual(doc.getContentAsBytes(), raw_content)
         if str_content is not None:
             self.assertEqual(doc.getContentAsString(), str_content)
@@ -49,13 +49,13 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc.getContent(), content)
         self.assertEqual(doc.key, key)
         self.assertEqual(doc.mediaType, media_type)
-        self.assertEqual(doc.version, None)
-        self.assertEqual(doc.lastModified, None)
-        self.assertEqual(doc.createdOn, None)
+        self.assertIsNone(doc.version)
+        self.assertIsNone(doc.lastModified)
+        self.assertIsNone(doc.createdOn)
 
     def test_3300_create_document_with_json(self):
         "3300 - test creating documents with JSON data"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         val = {"testKey1": "testValue1", "testKey2": "testValue2"}
         str_val = json.dumps(val)
         bytes_val = str_val.encode()
@@ -70,7 +70,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3301_create_document_with_raw(self):
         "3301 - test creating documents with raw data"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         val = b"<html/>"
         key = "MyRawKey"
         media_type = "text/html"
@@ -83,7 +83,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3302_get_collection_names(self):
         "3302 - test getting collection names from the database"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         self.__drop_existing_collections(soda_db)
         self.assertEqual(soda_db.getCollectionNames(), [])
         names = ["zCol", "dCol", "sCol", "aCol", "gCol"]
@@ -100,10 +100,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3303_open_collection(self):
         "3303 - test opening a collection"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         self.__drop_existing_collections(soda_db)
         coll = soda_db.openCollection("CollectionThatDoesNotExist")
-        self.assertEqual(coll, None)
+        self.assertIsNone(coll)
         created_coll = soda_db.createCollection("TestOpenCollection")
         coll = soda_db.openCollection(created_coll.name)
         self.assertEqual(coll.name, created_coll.name)
@@ -111,17 +111,17 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3304_repr(self):
         "3304 - test SodaDatabase representation"
-        con1 = self.connection
-        con2 = test_env.get_connection()
-        soda_db1 = self.connection.getSodaDatabase()
-        soda_db2 = con1.getSodaDatabase()
-        soda_db3 = con2.getSodaDatabase()
+        conn1 = self.conn
+        conn2 = test_env.get_connection()
+        soda_db1 = self.conn.getSodaDatabase()
+        soda_db2 = conn1.getSodaDatabase()
+        soda_db3 = conn2.getSodaDatabase()
         self.assertEqual(str(soda_db1), str(soda_db2))
         self.assertEqual(str(soda_db2), str(soda_db3))
 
     def test_3305_negative(self):
         "3305 - test negative cases for SODA database methods"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         self.assertRaises(TypeError, soda_db.createCollection)
         self.assertRaises(TypeError, soda_db.createCollection, 1)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40658:",

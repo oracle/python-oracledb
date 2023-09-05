@@ -77,9 +77,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4503_simple_connect_descriptor(self):
         "4503 - test simple name-value pair format connect string"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4)(PORT=1589))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name4)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4)(PORT=1589))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name4)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, "my_host4")
@@ -88,10 +88,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4504_search_tnsnames(self):
         "4504 - test simple tnsnames entry"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host5)(PORT=1624))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name5)))"
-        alias = "tns_alias = " + connect_string
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host5)(PORT=1624))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name5)))"""
+        alias = f"tns_alias = {connect_string}"
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = os.path.join(temp_dir, "tnsnames.ora")
             with open(file_name, "w") as f:
@@ -119,19 +119,19 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4507_exception_on_ipc_protocol(self):
         "4507 - confirm an exception is raised if using ipc protocol"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=my_view8))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name8)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=my_view8))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name8)))"""
         params = oracledb.ConnectParams()
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4021:",
                                params.parse_connect_string, connect_string)
 
     def test_4508_retry_count_and_delay(self):
         "4508 - connect descriptor with retry count and retry delay"
-        connect_string = \
-            "(DESCRIPTION=(RETRY_COUNT=6)(RETRY_DELAY=5)" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host9)(PORT=1593))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name9)))"
+        connect_string = """
+            (DESCRIPTION=(RETRY_COUNT=6)(RETRY_DELAY=5)
+            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host9)(PORT=1593))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name9)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.retry_count, 6)
@@ -139,20 +139,21 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4509_connect_descriptor_expire_time(self):
         "4509 - connect descriptor with expire_time setting"
-        connect_string = \
-            "(DESCRIPTION=(EXPIRE_TIME=12)" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host11)(PORT=1594))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name11)))"
+        connect_string = """
+            (DESCRIPTION=(EXPIRE_TIME=12)
+            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host11)(PORT=1594))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name11)))
+        """
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.expire_time, 12)
 
     def test_4510_pool_parameters(self):
         "4510 - connect descriptor with pool parameters"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name12)" \
-            "(POOL_CONNECTION_CLASS=cclass_12)(POOL_PURITY=SELF)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name12)
+            (POOL_CONNECTION_CLASS=cclass_12)(POOL_PURITY=SELF)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.cclass, "cclass_12")
@@ -163,20 +164,20 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4511_invalid_pool_purity(self):
         "4511 - connect descriptor with invalid pool purity"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host13)(PORT=695))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name13)" \
-            "(POOL_CONNECTION_CLASS=cclass_13)(POOL_PURITY=INVALID)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host13)(PORT=695))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name13)
+            (POOL_CONNECTION_CLASS=cclass_13)(POOL_PURITY=INVALID)))"""
         params = oracledb.ConnectParams()
         self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4022:",
                                params.parse_connect_string, connect_string)
 
     def test_4512_tcp_connect_timeout(self):
         "4512 - connect descriptor with transport connect timeout values"
-        connect_string = \
-            "(DESCRIPTION=(TRANSPORT_CONNECT_TIMEOUT=500 ms)" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host14)(PORT=695))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name14)))"
+        connect_string = """
+            (DESCRIPTION=(TRANSPORT_CONNECT_TIMEOUT=500 ms)
+            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host14)(PORT=695))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name14)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.tcp_connect_timeout, 0.5)
@@ -219,10 +220,10 @@ class TestCase(test_env.BaseTestCase):
     def test_4516_invalid_number_in_connect_string(self):
         "4516 - test connect descriptor with invalid number"
         params = oracledb.ConnectParams()
-        connect_string = \
-            "(DESCRIPTION=(RETRY_COUNT=wrong)(RETRY_DELAY=5)" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host18)(PORT=1598))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name18)))"
+        connect_string = """
+            (DESCRIPTION=(RETRY_COUNT=wrong)(RETRY_DELAY=5)
+            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host18)(PORT=1598))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name18)))"""
         self.assertRaisesRegex(oracledb.DatabaseError, "DPY-4018",
                                params.parse_connect_string, connect_string)
 
@@ -261,11 +262,11 @@ class TestCase(test_env.BaseTestCase):
         ]
         for dn, wallet_loc, match_option, match_value in options:
             params = oracledb.ConnectParams()
-            connect_string = f'''
+            connect_string = f"""
                 my_host20/my_server_name20?
                 ssl_server_cert_dn="{dn}"&
                 ssl_server_dn_match= {match_option} &
-                wallet_location = "{wallet_loc}"'''
+                wallet_location = "{wallet_loc}" """
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
             self.assertEqual(params.ssl_server_cert_dn, dn)
@@ -275,11 +276,12 @@ class TestCase(test_env.BaseTestCase):
     def test_4519_easy_connect_description_options(self):
         "4519 - test easy connect string with description options"
         params = oracledb.ConnectParams()
-        connect_string = 'my_host21/my_server_name21?' \
-            'expire_time=5&' \
-            'retry_delay=10&' \
-            'retry_count=12&' \
-            'transport_connect_timeout=2.5'
+        connect_string = """
+            my_host21/my_server_name21?
+            expire_time=5&
+            retry_delay=10&
+            retry_count=12&
+            transport_connect_timeout=2.5"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.expire_time, 5)
         self.assertEqual(params.retry_delay, 10)
@@ -289,10 +291,10 @@ class TestCase(test_env.BaseTestCase):
     def test_4520_easy_connect_invalid_parameters(self):
         "4520 - test easy connect string with invalid parameters"
         params = oracledb.ConnectParams()
-        connect_string_prefix = 'my_host22/my_server_name22?'
+        connect_string_prefix = "my_host22/my_server_name22?"
         suffixes = [
-            'expire_time=invalid',
-            'expire_time'
+            "expire_time=invalid",
+            "expire_time"
         ]
         for suffix in suffixes:
             self.assertRaisesRegex(oracledb.DatabaseError, "DPY-4018",
@@ -302,10 +304,10 @@ class TestCase(test_env.BaseTestCase):
     def test_4521_connect_string_with_newlines_and_spaces(self):
         "4521 - test connect string containing spaces and newlines"
         params = oracledb.ConnectParams()
-        connect_string = \
-            '(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP) \n(HOST=my_host23)\n' \
-            '(PORT=1560))(CONNECT_DATA=  (SERVICE_NAME=my_service_name23))' \
-            '(SECURITY=(MY_WALLET_DIRECTORY="my wallet dir 23")))'
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP) \n(HOST=my_host23)\n
+            (PORT=1560))(CONNECT_DATA=  (SERVICE_NAME=my_service_name23))
+            (SECURITY=(MY_WALLET_DIRECTORY="my wallet dir 23")))"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, "my_host23")
         self.assertEqual(params.port, 1560)
@@ -327,9 +329,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4524_invalid_entries_in_tnsnames(self):
         "4524 - test tnsnames.ora with invalid entries"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host24)(PORT=1148))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name24)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host24)(PORT=1148))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name24)))"""
         alias = f"tns_alias24 = {connect_string}"
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = os.path.join(temp_dir, "tnsnames.ora")
@@ -346,12 +348,12 @@ class TestCase(test_env.BaseTestCase):
     def test_4525_single_address_list(self):
         "4525 - test connect string with an address list"
         params = oracledb.ConnectParams()
-        connect_string = \
-            '(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)'  \
-            '(ADDRESS_LIST=(LOAD_BALANCE=ON)' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host25))' \
-            '(ADDRESS=(PROTOCOL=tcps)(PORT=222)(HOST=my_host26)))' \
-            '(CONNECT_DATA=(SERVICE_NAME=my_service_name25)))'
+        connect_string = """
+            (DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)
+            (ADDRESS_LIST=(LOAD_BALANCE=ON)
+            (ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host25))
+            (ADDRESS=(PROTOCOL=tcps)(PORT=222)(HOST=my_host26)))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name25)))"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, ["my_host25", "my_host26"])
         self.assertEqual(params.port, [1521, 222])
@@ -363,15 +365,15 @@ class TestCase(test_env.BaseTestCase):
     def test_4526_multiple_address_lists(self):
         "4526 - test connect string with multiple address lists"
         params = oracledb.ConnectParams()
-        connect_string = \
-            '(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)'  \
-            '(ADDRESS_LIST=(LOAD_BALANCE=ON)' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host26))' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=222)(HOST=my_host27)))' \
-            '(ADDRESS_LIST=(LOAD_BALANCE=ON)' \
-            '(ADDRESS=(PROTOCOL=tcps)(PORT=5555)(HOST=my_host28))' \
-            '(ADDRESS=(PROTOCOL=tcps)(PORT=444)(HOST=my_host29)))' \
-            '(CONNECT_DATA=(SERVICE_NAME=my_service_name26)))'
+        connect_string = """
+            (DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)
+            (ADDRESS_LIST=(LOAD_BALANCE=ON)
+            (ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host26))
+            (ADDRESS=(PROTOCOL=tcp)(PORT=222)(HOST=my_host27)))
+            (ADDRESS_LIST=(LOAD_BALANCE=ON)
+            (ADDRESS=(PROTOCOL=tcps)(PORT=5555)(HOST=my_host28))
+            (ADDRESS=(PROTOCOL=tcps)(PORT=444)(HOST=my_host29)))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name26)))"""
         params.parse_connect_string(connect_string)
         hosts = ["my_host26", "my_host27", "my_host28", "my_host29"]
         self.assertEqual(params.host, hosts)
@@ -384,24 +386,24 @@ class TestCase(test_env.BaseTestCase):
     def test_4527_multiple_descriptions(self):
         "4527 - test connect string with multiple descriptions"
         params = oracledb.ConnectParams()
-        connect_string = \
-            '(DESCRIPTION_LIST=(FAIL_OVER=ON)(LOAD_BALANCE=OFF)' \
-            '(DESCRIPTION=(LOAD_BALANCE=OFF)(RETRY_COUNT=1)(RETRY_DELAY=1)' \
-            '(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5001)' \
-            '(HOST=my_host30))' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host31)))' \
-            '(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5002) ' \
-            '(HOST=my_host32))' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=5003)(HOST=my_host33)))' \
-            '(CONNECT_DATA=(SERVICE_NAME=my_service_name27)))' \
-            '(DESCRIPTION=(LOAD_BALANCE=OFF)(RETRY_COUNT=2)(RETRY_DELAY=3)' \
-            '(ADDRESS_LIST = (ADDRESS=(PROTOCOL=tcp)(PORT=5001)' \
-            '(HOST=my_host34))' \
-            '(ADDRESS=(PROTOCOL=tcp)(PORT=5001)(HOST=my_host35)))' \
-            '(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5001)' \
-            '(HOST=my_host36))' \
-            '(ADDRESS=(PROTOCOL=tcps)(HOST=my_host37)(PORT=1521)))' \
-            '(CONNECT_DATA=(SERVICE_NAME=my_service_name28))))'
+        connect_string = """
+            (DESCRIPTION_LIST=(FAIL_OVER=ON)(LOAD_BALANCE=OFF)
+            (DESCRIPTION=(LOAD_BALANCE=OFF)(RETRY_COUNT=1)(RETRY_DELAY=1)
+            (ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5001)
+            (HOST=my_host30))
+            (ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host31)))
+            (ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5002) 
+            (HOST=my_host32))
+            (ADDRESS=(PROTOCOL=tcp)(PORT=5003)(HOST=my_host33)))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name27)))
+            (DESCRIPTION=(LOAD_BALANCE=OFF)(RETRY_COUNT=2)(RETRY_DELAY=3)
+            (ADDRESS_LIST = (ADDRESS=(PROTOCOL=tcp)(PORT=5001)
+            (HOST=my_host34))
+            (ADDRESS=(PROTOCOL=tcp)(PORT=5001)(HOST=my_host35)))
+            (ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(PORT=5001)
+            (HOST=my_host36))
+            (ADDRESS=(PROTOCOL=tcps)(HOST=my_host37)(PORT=1521)))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name28))))"""
         params.parse_connect_string(connect_string)
         hosts = ["my_host30", "my_host31", "my_host32", "my_host33", \
                  "my_host34", "my_host35", "my_host36", "my_host37"]
@@ -418,16 +420,17 @@ class TestCase(test_env.BaseTestCase):
     def test_4528_https_proxy(self):
         "4528 - test connect strings with https_proxy defined"
         params = oracledb.ConnectParams()
-        connect_string = \
-            "(DESCRIPTION=" \
-            "(ADDRESS=(HTTPS_PROXY=proxy_4528a)(HTTPS_PROXY_PORT=4528)" \
-            "(PROTOCOL=TCP)(HOST=my_host4528a)(PORT=8528))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name4528a)))"
+        connect_string = """
+            (DESCRIPTION=
+            (ADDRESS=(HTTPS_PROXY=proxy_4528a)(HTTPS_PROXY_PORT=4528)
+            (PROTOCOL=TCP)(HOST=my_host4528a)(PORT=8528))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name4528a)))"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.https_proxy, "proxy_4528a")
         self.assertEqual(params.https_proxy_port, 4528)
-        connect_string = "tcps://my_host_4528b/my_service_name_4528b?" \
-                "https_proxy=proxy_4528b&https_proxy_port=9528"
+        connect_string = """
+            tcps://my_host_4528b/my_service_name_4528b?
+            https_proxy=proxy_4528b&https_proxy_port=9528"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.https_proxy, "proxy_4528b")
         self.assertEqual(params.https_proxy_port, 9528)
@@ -435,11 +438,10 @@ class TestCase(test_env.BaseTestCase):
     def test_4529_server_type(self):
         "4529 - test connect strings with server_type defined"
         params = oracledb.ConnectParams()
-        connect_string = \
-            "(DESCRIPTION=" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4529)(PORT=4529))" \
-            "(CONNECT_DATA=(SERVER=DEDICATED)" \
-            "(SERVICE_NAME=my_service_name4529)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4529)(PORT=4529))
+            (CONNECT_DATA=(SERVER=DEDICATED)
+            (SERVICE_NAME=my_service_name4529)))"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.server_type, "dedicated")
         connect_string = connect_string.replace("DEDICATED", "INVALID")
@@ -487,9 +489,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4532_multiple_alias_entry_tnsnames(self):
         "4532 - test tnsnames.ora with multiple aliases on one line"
-        connect_string = \
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host32)(PORT=1132))" \
-            "(CONNECT_DATA=(SERVICE_NAME=my_service_name32)))"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host32)(PORT=1132))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name32)))"""
         aliases = f"tns_alias32a,tns_alias32b = {connect_string}"
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = os.path.join(temp_dir, "tnsnames.ora")
@@ -509,9 +511,10 @@ class TestCase(test_env.BaseTestCase):
             ("cclass_33b", "new", oracledb.PURITY_NEW)
         ]
         for cclass, purity_str, purity_int in options:
-            connect_string = f"my_host_33/my_service_name_33:pooled?" \
-                             f"pool_connection_class={cclass}&" \
-                             f"pool_purity={purity_str}"
+            connect_string = f"""
+                my_host_33/my_service_name_33:pooled?
+                pool_connection_class={cclass}&
+                pool_purity={purity_str}"""
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
             self.assertEqual(params.host, "my_host_33")
@@ -530,8 +533,7 @@ class TestCase(test_env.BaseTestCase):
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host2a)(PORT=1522))
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host2b)(PORT=1523)))
                 (ADDRESS=(PROTOCOL=tcp)(HOST=host3)(PORT=1524))
-                (CONNECT_DATA=(SERVICE_NAME=my_service_34))
-            )"""
+                (CONNECT_DATA=(SERVICE_NAME=my_service_34)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, ["host1", "host2a", "host2b", "host3"])
@@ -547,8 +549,7 @@ class TestCase(test_env.BaseTestCase):
                 (ADDRESS_LIST=
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host3a)(PORT=1535))
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host3b)(PORT=1536)))
-                (CONNECT_DATA=(SERVICE_NAME=my_service_34))
-            )"""
+                (CONNECT_DATA=(SERVICE_NAME=my_service_34)))"""
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host,
@@ -573,8 +574,7 @@ class TestCase(test_env.BaseTestCase):
                     (SOURCE_ROUTE={in_val})
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522))
-                    (CONNECT_DATA=(SERVICE_NAME=my_service_35))
-                )"""
+                    (CONNECT_DATA=(SERVICE_NAME=my_service_35)))"""
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
             source_route_clause = "(SOURCE_ROUTE=ON)" if has_section else ""
@@ -613,7 +613,6 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4560_dsn_with_empty_credentials(self):
         "4560 - test parsing a DSN with empty credentials"
-        dsns = ["", "/"]
         for dsn in ("", "/"):
             params = oracledb.ConnectParams()
             user, password, dsn = params.parse_dsn_with_credentials(dsn)
@@ -633,11 +632,11 @@ class TestCase(test_env.BaseTestCase):
     def test_4562_connection_id_prefix(self):
         "4529 - test connect strings with connection_id_prefix defined"
         params = oracledb.ConnectParams()
-        connect_string = \
-            "(DESCRIPTION=" \
-            "(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4562a)(PORT=4562))" \
-            "(CONNECT_DATA=(CONNECTION_ID_PREFIX=prefix4562a)" \
-            "(SERVICE_NAME=my_service_name4562a)))"
+        connect_string = """
+            (DESCRIPTION=
+                (ADDRESS=(PROTOCOL=TCP)(HOST=my_host4562a)(PORT=4562))
+                (CONNECT_DATA=(CONNECTION_ID_PREFIX=prefix4562a)
+                (SERVICE_NAME=my_service_name4562a)))"""
         params.parse_connect_string(connect_string)
         self.assertEqual(params.connection_id_prefix, "prefix4562a")
         params = oracledb.ConnectParams()

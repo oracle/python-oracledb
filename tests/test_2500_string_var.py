@@ -40,11 +40,11 @@ class TestCase(test_env.BaseTestCase):
         self.raw_data = []
         self.data_by_key = {}
         for i in range(1, 11):
-            string_col = "String %d" % i
-            fixed_char_col = ("Fixed Char %d" % i).ljust(40)
-            raw_col = ("Raw %d" % i).encode("ascii")
+            string_col = f"String {i}"
+            fixed_char_col = f"Fixed Char {i}".ljust(40)
+            raw_col = f"Raw {i}".encode("ascii")
             if i % 2:
-                nullable_col = "Nullable %d" % i
+                nullable_col = f"Nullable {i}"
             else:
                 nullable_col = None
             data_tuple = (i, string_col, raw_col, fixed_char_col, nullable_col)
@@ -108,7 +108,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, return_value=return_value,
                             integer_value=5, array=array)
         self.assertEqual(return_value.getvalue(), 86)
-        array = [ "String - %d" % i for i in range(15) ]
+        array = [f"String - {i}" for i in range(15)]
         self.cursor.execute(statement, integer_value=8, array=array)
         self.assertEqual(return_value.getvalue(), 163)
 
@@ -161,7 +161,7 @@ class TestCase(test_env.BaseTestCase):
     def test_2509_bind_out_string_array_by_var(self):
         "2509 - test binding out a string array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.STRING, 6, 100)
-        expected_data = ["Test out element # %d" % i for i in range(1, 7)]
+        expected_data = [f"Test out element # {i}" for i in range(1, 7)]
         self.cursor.execute("""
                 begin
                     pkg_TestStringArrays.TestOutArrays(:num_elems, :array);
@@ -321,7 +321,7 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
-        self.assertEqual(self.cursor.fetchone(), None)
+        self.assertIsNone(self.cursor.fetchone())
 
     def test_2526_supplemental_characters(self):
         "2526 - test binding and fetching supplemental charcters"
@@ -332,16 +332,17 @@ class TestCase(test_env.BaseTestCase):
         charset, = self.cursor.fetchone()
         if charset != "AL32UTF8":
             self.skipTest("Database character set must be AL32UTF8")
-        supplemental_chars = "𠜎 𠜱 𠝹 𠱓 𠱸 𠲖 𠳏 𠳕 𠴕 𠵼 𠵿 𠸎 𠸏 𠹷 𠺝 " \
-                "𠺢 𠻗 𠻹 𠻺 𠼭 𠼮 𠽌 𠾴 𠾼 𠿪 𡁜 𡁯 𡁵 𡁶 𡁻 𡃁 𡃉 𡇙 𢃇 " \
-                "𢞵 𢫕 𢭃 𢯊 𢱑 𢱕 𢳂 𢴈 𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 " \
-                "𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
+        supplemental_chars = "𠜎 𠜱 𠝹 𠱓 𠱸 𠲖 𠳏 𠳕 𠴕 𠵼 𠵿 𠸎 𠸏 " \
+                             "𠹷 𠺝 𠺢 𠻗 𠻹 𠻺 𠼭 𠼮 𠽌 𠾴 𠾼 𠿪 𡁜 " \
+                             "𡁯 𡁵 𡁶 𡁻 𡃁 𡃉 𡇙 𢃇 𢞵 𢫕 𢭃 𢯊 𢱑 " \
+                             "𢱕 𢳂 𢴈 𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 " \
+                             "𦧲 𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.execute("""
                 insert into TestTempTable (IntCol, StringCol1)
                 values (:1, :2)""",
                 (1, supplemental_chars))
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("select StringCol1 from TestTempTable")
         value, = self.cursor.fetchone()
         self.assertEqual(value, supplemental_chars)
@@ -354,7 +355,7 @@ class TestCase(test_env.BaseTestCase):
         long_string = "long string " * 30
         self.cursor.execute(sql, (1, short_string))
         self.cursor.execute(sql, (2, long_string))
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("""
                 select IntCol, StringCol1
                 from TestTempTable
@@ -364,7 +365,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2528_issue_50(self):
         "2528 - test issue 50 - avoid error ORA-24816"
-        cursor = self.connection.cursor()
+        cursor = self.conn.cursor()
         try:
             cursor.execute("drop table issue_50 purge")
         except oracledb.DatabaseError:
@@ -383,13 +384,13 @@ class TestCase(test_env.BaseTestCase):
                 insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
                 values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
                 returning id into :arg6""",
-                [1, '555a4c78', 'f319ef0e', '23009914', '', '', id_var])
-        cursor = self.connection.cursor()
+                [1, "555a4c78", "f319ef0e", "23009914", "", "", id_var])
+        cursor = self.conn.cursor()
         cursor.execute("""
                 insert into issue_50 (Id, Str2, Str3, NClob1, NClob2, Str1)
                 values (:arg0, :arg1, :arg2, :arg3, :arg4, :arg5)
                 returning id into :arg6""",
-                [2, 'd5ff845a', '94275767', 'bf161ff6', '', '', id_var])
+                [2, "d5ff845a", "94275767", "bf161ff6", "", "", id_var])
         cursor.execute("drop table issue_50 purge")
 
     def test_2529_set_rowid_to_string(self):
@@ -405,21 +406,23 @@ class TestCase(test_env.BaseTestCase):
                 from TestStrings
                 where intCol = 1""")
         actual_value, = self.cursor.fetchone()
-        expected_value = "<string>String 1</string>"
-        self.assertEqual(actual_value, expected_value)
+        self.assertEqual(actual_value, "<string>String 1</string>")
 
     def test_2531_long_xml_as_string(self):
         "2531 - test inserting and fetching XMLType (1K) as a string"
-        chars = string.ascii_uppercase + string.ascii_lowercase
-        random_string = ''.join(random.choice(chars) for _ in range(1024))
-        int_val = 2531
-        xml_string = '<data>' + random_string + '</data>'
         self.cursor.execute("truncate table TestTempXML")
+        chars = string.ascii_uppercase + string.ascii_lowercase
+        random_string = "".join(random.choice(chars) for _ in range(1024))
+        int_val = 2531
+        xml_string = f"<data>{random_string}</data>"
         self.cursor.execute("""
                 insert into TestTempXML (IntCol, XMLCol)
                 values (:1, :2)""", (int_val, xml_string))
-        self.cursor.execute("select XMLCol from TestTempXML where intCol = :1",
-                            (int_val,))
+        self.cursor.execute("""
+                select XMLCol
+                from TestTempXML
+                where intCol = :1""",
+                [int_val])
         actual_value, = self.cursor.fetchone()
         self.assertEqual(actual_value.strip(), xml_string)
 
@@ -440,15 +443,15 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         string_val = "I bought a cafetière on the Champs-Élysées"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.execute(sql, (1, string_val))
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchone(), (1, string_val))
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.outputtypehandler = self.__return_strings_as_bytes
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchone(), (1, string_val.encode()))
-        with self.connection.cursor() as cursor:
+        with self.conn.cursor() as cursor:
             cursor.outputtypehandler = None
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchone(), (1, string_val))
@@ -457,18 +460,22 @@ class TestCase(test_env.BaseTestCase):
                      "thick mode doesn't support fetching XMLType > VARCHAR2")
     def test_2534_very_long_xml_as_string(self):
         "2534 - test inserting and fetching XMLType (32K) as a string"
+        self.cursor.execute("truncate table TestTempXML")
         chars = string.ascii_uppercase + string.ascii_lowercase
-        random_string = ''.join(random.choice(chars) for _ in range(32768))
+        random_string = "".join(random.choice(chars) for _ in range(32768))
         int_val = 2534
         xml_string = f"<data>{random_string}</data>"
-        lob = self.connection.createlob(oracledb.DB_TYPE_CLOB)
+        lob = self.conn.createlob(oracledb.DB_TYPE_CLOB)
         lob.write(xml_string)
-        self.cursor.execute("truncate table TestTempXML")
         self.cursor.execute("""
                 insert into TestTempXML (IntCol, XMLCol)
-                values (:1, sys.xmltype(:2))""", (int_val, lob))
-        self.cursor.execute("select XMLCol from TestTempXML where intCol = :1",
-                            (int_val,))
+                values (:1, sys.xmltype(:2))""",
+                (int_val, lob))
+        self.cursor.execute("""
+                select XMLCol
+                from TestTempXML
+                where intCol = :1""",
+                [int_val])
         actual_value, = self.cursor.fetchone()
         self.assertEqual(actual_value.strip(), xml_string)
 

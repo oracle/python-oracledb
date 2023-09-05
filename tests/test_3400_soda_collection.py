@@ -46,7 +46,7 @@ class TestCase(test_env.BaseTestCase):
                 del doc["_id"]
 
     def __test_skip(self, coll, num_to_skip, expected_content):
-        filter_spec = {'$orderby': [{'path': 'name', 'order': 'desc'}]}
+        filter_spec = {"$orderby": [{"path": "name", "order": "desc"}]}
         doc = coll.find().filter(filter_spec).skip(num_to_skip).getOne()
         content = doc.getContent() if doc is not None else None
         self.__normalize_docs([content])
@@ -55,7 +55,7 @@ class TestCase(test_env.BaseTestCase):
     def test_3400_invalid_json(self):
         "3400 - test inserting invalid JSON value into SODA collection"
         invalid_json = "{testKey:testValue}"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("InvalidJSON")
         doc = soda_db.createDocument(invalid_json)
         self.assertRaisesRegex(oracledb.DatabaseError,
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3401_insert_documents(self):
         "3401 - test inserting documents into a SODA collection"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestInsertDocs")
         coll.find().remove()
         values_to_insert = [
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseTestCase):
         for value in values_to_insert:
             doc = coll.insertOneAndGet(value)
             inserted_keys.append(doc.key)
-        self.connection.commit()
+        self.conn.commit()
         self.assertEqual(coll.find().count(), len(values_to_insert))
         for key, value in zip(inserted_keys, values_to_insert):
             doc = coll.find().key(key).getOne().getContent()
@@ -87,7 +87,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3402_skip_documents(self):
         "3402 - test skipping documents in a SODA collection"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestSkipDocs")
         coll.find().remove()
         values_to_insert = [
@@ -98,7 +98,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         for value in values_to_insert:
             coll.insertOne(value)
-        self.connection.commit()
+        self.conn.commit()
         self.__test_skip(coll, 0, values_to_insert[3])
         self.__test_skip(coll, 1, values_to_insert[2])
         self.__test_skip(coll, 3, values_to_insert[0])
@@ -107,14 +107,14 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3403_replace_document(self):
         "3403 - test replace documents in SODA collection"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestReplaceDoc")
         coll.find().remove()
-        content = {'name': 'John', 'address': {'city': 'Sydney'}}
+        content = {"name": "John", "address": {"city": "Sydney"}}
         doc = coll.insertOneAndGet(content)
-        new_content = {'name': 'John', 'address': {'city':'Melbourne'}}
+        new_content = {"name": "John", "address": {"city":"Melbourne"}}
         coll.find().key(doc.key).replaceOne(new_content)
-        self.connection.commit()
+        self.conn.commit()
         doc = coll.find().key(doc.key).getOne().getContent()
         self.__normalize_docs([doc])
         self.assertEqual(doc, new_content)
@@ -122,35 +122,35 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3404_search_documents_with_content(self):
         "3404 - test search documents with content using $like and $regex"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestSearchDocContent")
         coll.find().remove()
         data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Bangalore'}},
-            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
-            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
-            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Bangalore"}},
+            {"name": "Jibin", "address": {"city": "Secunderabad"}},
+            {"name": "Andrew", "address": {"city": "Hyderabad"}},
+            {"name": "Matthew", "address": {"city": "Mumbai"}}
         ]
         for value in data:
             coll.insertOne(value)
-        self.connection.commit()
+        self.conn.commit()
         filter_specs = [
-            ({'name': {'$like': 'And%'}}, 1),
-            ({'name': {'$like': 'J%n'}}, 3),
-            ({'name': {'$like': '%hn%'}}, 2),
-            ({'address.city': {'$like': 'Ban%'}}, 3),
-            ({'address.city': {'$like': '%bad'}}, 2),
-            ({'address.city': {'$like': 'Hyderabad'}}, 1),
-            ({'address.city': {'$like': 'China%'}}, 0),
-            ({'name': {'$regex': 'Jo.*'}}, 3),
-            ({'name': {'$regex': '.*[ho]n'}}, 2),
-            ({'name': {'$regex': 'J.*h'}}, 1),
-            ({'address.city': {'$regex': 'Ba.*'}}, 3),
-            ({'address.city': {'$regex': '.*bad'}}, 2),
-            ({'address.city': {'$regex': 'Hyderabad'}}, 1),
-            ({'name': {'$regex': 'Js.*n'}}, 0)
+            ({"name": {"$like": "And%"}}, 1),
+            ({"name": {"$like": "J%n"}}, 3),
+            ({"name": {"$like": "%hn%"}}, 2),
+            ({"address.city": {"$like": "Ban%"}}, 3),
+            ({"address.city": {"$like": "%bad"}}, 2),
+            ({"address.city": {"$like": "Hyderabad"}}, 1),
+            ({"address.city": {"$like": "China%"}}, 0),
+            ({"name": {"$regex": "Jo.*"}}, 3),
+            ({"name": {"$regex": ".*[ho]n"}}, 2),
+            ({"name": {"$regex": "J.*h"}}, 1),
+            ({"address.city": {"$regex": "Ba.*"}}, 3),
+            ({"address.city": {"$regex": ".*bad"}}, 2),
+            ({"address.city": {"$regex": "Hyderabad"}}, 1),
+            ({"name": {"$regex": "Js.*n"}}, 0)
         ]
         for filter_spec, expected_count in filter_specs:
             self.assertEqual(coll.find().filter(filter_spec).count(),
@@ -159,162 +159,162 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3405_document_remove(self):
         "3405 - test removing documents"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestRemoveDocs")
         coll.find().remove()
         data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
-            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
-            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
-            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Mangalore"}},
+            {"name": "Jibin", "address": {"city": "Secunderabad"}},
+            {"name": "Andrew", "address": {"city": "Hyderabad"}},
+            {"name": "Matthew", "address": {"city": "Mumbai"}}
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         coll.find().key(docs[3].key).remove()
         self.assertEqual(coll.find().count(), len(data) - 1)
-        searchResults = coll.find().filter({'name': {'$like': 'Jibin'}})
-        self.assertEqual(searchResults.count(), 0)
-        coll.find().filter({'name': {'$like': 'John%'}}).remove()
+        search_results = coll.find().filter({"name": {"$like": "Jibin"}})
+        self.assertEqual(search_results.count(), 0)
+        coll.find().filter({"name": {"$like": "John%"}}).remove()
         self.assertEqual(coll.find().count(), len(data) - 3)
-        coll.find().filter({'name': {'$regex': 'J.*'}}).remove()
+        coll.find().filter({"name": {"$regex": "J.*"}}).remove()
         self.assertEqual(coll.find().count(), len(data) - 4)
-        self.connection.commit()
+        self.conn.commit()
         coll.drop()
 
     def test_3406_create_and_drop_index(self):
         "3406 - test create and drop Index"
         index_name = "TestIndexes_ix_1"
         index_spec =  {
-            'name': index_name,
-            'fields': [
+            "name": index_name,
+            "fields": [
                 {
-                    'path': 'address.city',
-                    'datatype': 'string',
-                    'order': 'asc'
+                    "path": "address.city",
+                    "datatype": "string",
+                    "order": "asc"
                 }
             ]
         }
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestIndexes")
         coll.find().remove()
-        self.connection.commit()
+        self.conn.commit()
         coll.dropIndex(index_name)
         coll.createIndex(index_spec)
         self.assertRaises(TypeError, coll.createIndex, 3)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40733:",
                                coll.createIndex, index_spec)
-        self.assertEqual(coll.dropIndex(index_name), True)
-        self.assertEqual(coll.dropIndex(index_name), False)
+        self.assertTrue(coll.dropIndex(index_name))
+        self.assertFalse(coll.dropIndex(index_name))
         coll.drop()
 
     def test_3407_get_documents(self):
         "3407 - test getting documents from Collection"
-        self.connection.autocommit = True
-        soda_db = self.connection.getSodaDatabase()
+        self.conn.autocommit = True
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestGetDocs")
         coll.find().remove()
         data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
-            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
-            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}}
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Mangalore"}},
+            {"name": "Jibin", "address": {"city": "Secunderabad"}},
+            {"name": "Andrew", "address": {"city": "Hyderabad"}}
         ]
         inserted_keys = list(sorted(coll.insertOneAndGet(v).key for v in data))
-        fetched_keys = list(sorted(d.key for d in coll.find().getDocuments()))
+        fetched_keys = list(sorted(doc.key for doc in coll.find().getDocuments()))
         self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
     def test_3408_cursor(self):
         "3408 - test fetching documents from a cursor"
-        self.connection.autocommit = True
-        soda_db = self.connection.getSodaDatabase()
+        self.conn.autocommit = True
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestFindViaCursor")
         coll.find().remove()
         data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Mangalore"}},
         ]
         inserted_keys = list(sorted(coll.insertOneAndGet(v).key for v in data))
-        fetched_keys = list(sorted(d.key for d in coll.find().getCursor()))
+        fetched_keys = list(sorted(doc.key for doc in coll.find().getCursor()))
         self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
     def test_3409_multiple_document_remove(self):
         "3409 - test removing multiple documents using multiple keys"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestRemoveMultipleDocs")
         coll.find().remove()
         data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
-            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
-            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
-            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Mangalore"}},
+            {"name": "Jibin", "address": {"city": "Secunderabad"}},
+            {"name": "Andrew", "address": {"city": "Hyderabad"}},
+            {"name": "Matthew", "address": {"city": "Mumbai"}}
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         keys = [docs[i].key for i in (1, 3, 5)]
         num_removed = coll.find().keys(keys).remove()
         self.assertEqual(num_removed, len(keys))
         self.assertEqual(coll.find().count(), len(data) - len(keys))
-        self.connection.commit()
+        self.conn.commit()
         coll.drop()
 
     def test_3410_document_version(self):
         "3410 - test using version to get documents and remove them"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestDocumentVersion")
         coll.find().remove()
-        content = {'name': 'John', 'address': {'city': 'Bangalore'}}
+        content = {"name": "John", "address": {"city": "Bangalore"}}
         inserted_doc = coll.insertOneAndGet(content)
         key = inserted_doc.key
         version = inserted_doc.version
         doc = coll.find().key(key).version(version).getOne().getContent()
         self.__normalize_docs([doc])
         self.assertEqual(doc, content)
-        new_content = {'name': 'James', 'address': {'city': 'Delhi'}}
+        new_content = {"name": "James", "address": {"city": "Delhi"}}
         replacedDoc = coll.find().key(key).replaceOneAndGet(new_content)
         new_version = replacedDoc.version
         doc = coll.find().key(key).version(version).getOne()
-        self.assertEqual(doc, None)
+        self.assertIsNone(doc)
         doc = coll.find().key(key).version(new_version).getOne().getContent()
         self.__normalize_docs([doc])
         self.assertEqual(doc, new_content)
         self.assertEqual(coll.find().key(key).version(version).remove(), 0)
         self.assertEqual(coll.find().key(key).version(new_version).remove(), 1)
         self.assertEqual(coll.find().count(), 0)
-        self.connection.commit()
+        self.conn.commit()
         coll.drop()
 
     def test_3411_get_cursor(self):
         "3411 - test keys with GetCursor"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestKeysWithGetCursor")
         coll.find().remove()
-        data = [
-            {'name': 'John', 'address': {'city': 'Bangalore'}},
-            {'name': 'Johnson', 'address': {'city': 'Banaras'}},
-            {'name': 'Joseph', 'address': {'city': 'Mangalore'}},
-            {'name': 'Jibin', 'address': {'city': 'Secunderabad'}},
-            {'name': 'Andrew', 'address': {'city': 'Hyderabad'}},
-            {'name': 'Matthew', 'address': {'city': 'Mumbai'}}
+        values_to_insert = [
+            {"name": "John", "address": {"city": "Bangalore"}},
+            {"name": "Johnson", "address": {"city": "Banaras"}},
+            {"name": "Joseph", "address": {"city": "Mangalore"}},
+            {"name": "Jibin", "address": {"city": "Secunderabad"}},
+            {"name": "Andrew", "address": {"city": "Hyderabad"}},
+            {"name": "Matthew", "address": {"city": "Mumbai"}}
         ]
-        docs = [coll.insertOneAndGet(v) for v in data]
+        docs = [coll.insertOneAndGet(value) for value in values_to_insert]
         keys = [docs[i].key for i in (2, 4, 5)]
-        fetched_keys = [d.key for d in coll.find().keys(keys).getCursor()]
+        fetched_keys = [doc.key for doc in coll.find().keys(keys).getCursor()]
         self.assertEqual(list(sorted(fetched_keys)), list(sorted(keys)))
-        self.connection.commit()
+        self.conn.commit()
         coll.drop()
 
     def test_3412_created_on(self):
         "3412 - test createdOn attribute of Document"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("CreatedOn")
         coll.find().remove()
-        data = {'name': 'John', 'address': {'city': 'Bangalore'}}
+        data = {"name": "John", "address": {"city": "Bangalore"}}
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
 
@@ -322,7 +322,7 @@ class TestCase(test_env.BaseTestCase):
                      "unsupported client")
     def test_3413_soda_truncate(self):
         "3413 - test Soda truncate"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestTruncateDocs")
         coll.find().remove()
         values_to_insert = [
@@ -333,7 +333,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         for value in values_to_insert:
             coll.insertOne(value)
-        self.connection.commit()
+        self.conn.commit()
         self.assertEqual(coll.find().count(), len(values_to_insert))
         coll.truncate()
         self.assertEqual(coll.find().count(), 0)
@@ -341,8 +341,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3414_soda_hint(self):
         "3414 - verify hints are reflected in the executed SQL statement"
-        soda_db = self.connection.getSodaDatabase()
-        cursor = self.connection.cursor()
+        soda_db = self.conn.getSodaDatabase()
+        cursor = self.conn.cursor()
         statement = """
                 SELECT
                     ( SELECT t2.sql_fulltext
@@ -361,21 +361,21 @@ class TestCase(test_env.BaseTestCase):
         coll.insertOneAndGet(values_to_insert[0], hint="MONITOR")
         cursor.execute(statement)
         result, = cursor.fetchone()
-        self.assertTrue('MONITOR' in result.read())
+        self.assertIn("MONITOR", result.read())
 
         coll.find().hint("MONITOR").getOne().getContent()
         cursor.execute(statement)
         result, = cursor.fetchone()
-        self.assertTrue('MONITOR' in result.read())
+        self.assertIn("MONITOR", result.read())
 
         coll.insertOneAndGet(values_to_insert[1], hint="NO_MONITOR")
         cursor.execute(statement)
         result, = cursor.fetchone()
-        self.assertTrue('NO_MONITOR' in result.read())
+        self.assertIn("NO_MONITOR", result.read())
 
     def test_3415_soda_hint_with_invalid_type(self):
         "3415 - test error for invalid type for soda hint"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("InvalidSodaHint")
         self.assertRaises(TypeError, coll.insertOneAndGet,
                           dict(name="Fred", age=16), hint=5)
@@ -387,7 +387,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3416_collection_name_and_metadata(self):
         "3416 - test name and metadata attribute"
-        soda_db = self.connection.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
         collection_name = "TestCollectionMetadata"
         coll = soda_db.createCollection(collection_name)
         self.assertEqual(coll.name, collection_name)
@@ -403,8 +403,8 @@ class TestCase(test_env.BaseTestCase):
             soda_db.createDocument(dict(name="Lucas", age=47))
         ]
         coll.insertMany(values_to_insert)
-        self.connection.commit()
-        fetched_values = [d.getContent() for d in coll.find().getCursor()]
+        self.conn.commit()
+        fetched_values = [doc.getContent() for doc in coll.find().getCursor()]
         fetched_values.sort(key=lambda x: x["name"])
         for fetched_val, expected_val in zip(fetched_values, values_to_insert):
             if not isinstance(expected_val, dict):
@@ -425,7 +425,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         for value in values_to_save:
             coll.save(value)
-        self.connection.commit()
+        self.conn.commit()
         fetched_docs = coll.find().getDocuments()
         for fetched_doc, expected_doc in zip(fetched_docs, values_to_save):
             if isinstance(expected_doc, dict):
@@ -437,7 +437,7 @@ class TestCase(test_env.BaseTestCase):
     def test_3419_save_and_get_with_hint(self):
         "3419 - test saveAndGet with hint"
         soda_db = self.get_soda_database(minclient=(19, 11))
-        cursor = self.connection.cursor()
+        cursor = self.conn.cursor()
         statement = """
                 SELECT
                     ( SELECT t2.sql_fulltext
@@ -449,18 +449,18 @@ class TestCase(test_env.BaseTestCase):
                 WHERE t1.audsid = sys_context('userenv', 'sessionid')"""
         coll = soda_db.createCollection("TestSodaSaveWithHint")
         coll.find().remove()
+
         values_to_save = [
             dict(name="Jordan", age=59),
             dict(name="Curry", age=34)
         ]
         hints = ["MONITOR", "NO_MONITOR"]
-
         for value, hint in zip(values_to_save, hints):
             coll.saveAndGet(value, hint=hint)
             coll.find().hint(hint).getOne().getContent()
             cursor.execute(statement)
             result, = cursor.fetchone()
-            self.assertTrue(hint in result.read())
+            self.assertIn(hint, result.read())
 
     def test_3420_save_and_get(self):
         "3420 - test saveAndGet"
@@ -477,7 +477,7 @@ class TestCase(test_env.BaseTestCase):
             doc = coll.saveAndGet(value)
             inserted_keys.append(doc.key)
         fetched_docs = coll.find().getDocuments()
-        self.connection.commit()
+        self.conn.commit()
         self.assertEqual(coll.find().count(), len(values_to_save))
         for key, fetched_doc in zip(inserted_keys, fetched_docs):
             doc = coll.find().key(key).getOne()
@@ -495,8 +495,8 @@ class TestCase(test_env.BaseTestCase):
             soda_db.createDocument(dict(name="Lucas", age=47))
         ]
         docs = coll.insertManyAndGet(values_to_insert)
-        inserted_keys = [i.key for i in docs]
-        self.connection.commit()
+        inserted_keys = [doc.key for doc in docs]
+        self.conn.commit()
         self.assertEqual(coll.find().count(), len(values_to_insert))
         for key, expected_doc in zip(inserted_keys, values_to_insert):
             if isinstance(expected_doc, dict):
@@ -523,11 +523,11 @@ class TestCase(test_env.BaseTestCase):
         "3423 - test limit to get specific amount of documents"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestSodaLimit")
-        data = [{"group": "Camila"} for i in range(20)]
-        coll.insertMany(data)
-        self.connection.commit()
+        values_to_insert = [{"group": "Camila"} for i in range(20)]
+        coll.insertMany(values_to_insert)
+        self.conn.commit()
         docs = coll.find().getDocuments()
-        self.assertEqual(len(docs), len(data))
+        self.assertEqual(len(docs), len(values_to_insert))
         docs = coll.find().limit(3).getDocuments()
         self.assertEqual(len(docs), 3)
         coll.drop()
@@ -538,7 +538,7 @@ class TestCase(test_env.BaseTestCase):
         coll = soda_db.createCollection("TestSodaCountExceptions")
         data = [{"song": "WYMCA"} for i in range(20)]
         coll.insertMany(data)
-        self.connection.commit()
+        self.conn.commit()
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
                                coll.find().limit(5).count)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
@@ -548,20 +548,17 @@ class TestCase(test_env.BaseTestCase):
     def test_3425_map_mode(self):
         "3425 - test mapMode parameter"
         soda_db = self.get_soda_database()
-        data = [
-             {"a": 3},
-             {"b": 4}
-        ]
+        data = [{"a": 3}, {"b": 4}]
         expected_data = data * 2
         for mapMode in [False, True]:
             coll = soda_db.createCollection("TestSodaMapMode", mapMode=mapMode)
             coll.insertMany(data)
-        fetched_data = list(d.getContent() for d in coll.find().getDocuments())
+        fetched_data = list(doc.getContent() for doc in coll.find().getDocuments())
         self.__normalize_docs(fetched_data)
         self.assertEqual(fetched_data, expected_data)
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626",
                                coll.drop)
-        self.connection.commit()
+        self.conn.commit()
         coll.drop()
 
     def test_3426_negative_map_mode(self):
@@ -589,8 +586,8 @@ class TestCase(test_env.BaseTestCase):
         coll = soda_db.createCollection("TestSodaFetchArraySize")
         coll.find().remove()
         for i in range(90):
-            coll.save({'name': 'Emmanuel', 'age': i + 1})
-        self.connection.commit()
+            coll.save({"name": "Emmanuel", "age": i + 1})
+        self.conn.commit()
 
         self.setup_round_trip_checker()
         # setting array size to 0 will use the default value of 100
@@ -636,22 +633,22 @@ class TestCase(test_env.BaseTestCase):
         coll.drop()
         coll = soda_db.createCollection("TestSodaListIndexes")
         index_1 =  {
-            'name': 'ix_3428-1',
-            'fields': [
+            "name": "ix_3428-1",
+            "fields": [
                 {
-                    'path': 'address.city',
-                    'datatype': 'string',
-                    'order': 'asc'
+                    "path": "address.city",
+                    "datatype": "string",
+                    "order": "asc"
                 }
             ]
         }
         index_2 =  {
-            'name': 'ix_3428-2',
-            'fields': [
+            "name": "ix_3428-2",
+            "fields": [
                 {
-                    'path': 'address.postal_code',
-                    'datatype': 'string',
-                    'order': 'asc'
+                    "path": "address.postal_code",
+                    "datatype": "string",
+                    "order": "asc"
                 }
             ]
         }
@@ -661,7 +658,8 @@ class TestCase(test_env.BaseTestCase):
         indexes = coll.listIndexes()
         indexes.sort(key=lambda x: x["name"])
         self.assertEqual(indexes[0]["fields"][0]["path"], "address.city")
-        self.assertEqual(indexes[1]["fields"][0]["path"], "address.postal_code")
+        self.assertEqual(indexes[1]["fields"][0]["path"],
+                         "address.postal_code")
 
     def test_3430_lock_documents(self):
         "3430 - test locking documents on fetch"

@@ -40,13 +40,13 @@ class TestCase(test_env.BaseTestCase):
         var = self.cursor.var(bool)
         var.setvalue(0, value)
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      (var,))
+                                      [var])
         self.assertEqual(result, expected_result)
 
     def test_3100_bind_false(self):
         "3100 - test binding in a False value"
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      (False,))
+                                      [False])
         self.assertEqual(result, "FALSE")
 
     def test_3101_bind_float_as_boolean(self):
@@ -63,20 +63,20 @@ class TestCase(test_env.BaseTestCase):
         "3103 - test binding in a null value"
         self.cursor.setinputsizes(None, bool)
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      (None,))
+                                      [None])
         self.assertEqual(result, "NULL")
 
     def test_3104_bind_out_false(self):
         "3104 - test binding out a boolean value (False)"
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10",
-                                      oracledb.DB_TYPE_BOOLEAN, (15,))
-        self.assertEqual(result, False)
+                                      oracledb.DB_TYPE_BOOLEAN, [15])
+        self.assertFalse(result)
 
     def test_3105_bind_out_true(self):
         "3105 - test binding out a boolean value (True)"
         result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool,
-                                      (5,))
-        self.assertEqual(result, True)
+                                      [5])
+        self.assertTrue(result)
 
     def test_3106_bind_string_as_boolean(self):
         "3106 - test binding in a string as a boolean"
@@ -86,14 +86,14 @@ class TestCase(test_env.BaseTestCase):
     def test_3107_bind_true(self):
         "3107 - test binding in a True value"
         result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      (True,))
+                                      [True])
         self.assertEqual(result, "TRUE")
 
     def test_3108_bind_out_null(self):
         "3108 - test binding out a boolean value (None)"
         result = self.cursor.callfunc("pkg_TestBooleans.TestOutValueNull",
                                       bool)
-        self.assertEqual(result, None)
+        self.assertIsNone(result)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,7 +27,6 @@
 """
 
 import datetime
-import time
 
 import oracledb
 import test_env
@@ -38,8 +37,8 @@ class TestCase(test_env.BaseTestCase):
     def test_1000_date_from_ticks(self):
         "1000 - test DateFromTicks()"
         today = datetime.datetime.today()
-        timestamp = time.mktime(today.timetuple())
-        date = oracledb.DateFromTicks(timestamp)
+        timestamp = today.timestamp()
+        date = oracledb.DateFromTicks(int(timestamp))
         self.assertEqual(date, today.date())
 
     def test_1001_future_obj(self):
@@ -50,7 +49,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1002_timestamp_from_ticks(self):
         "1002 - test TimestampFromTicks()"
-        timestamp = time.mktime(datetime.datetime.today().timetuple())
+        timestamp = datetime.datetime.today().timestamp()
         today = datetime.datetime.fromtimestamp(timestamp)
         date = oracledb.TimestampFromTicks(timestamp)
         self.assertEqual(date, today)

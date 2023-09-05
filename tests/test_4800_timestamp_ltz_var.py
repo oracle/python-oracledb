@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -67,7 +67,8 @@ class TestCase(test_env.BaseTestCase):
         "4800 - test binding in a timestamp"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute("""
-                select * from TestTimestampLTZs
+                select *
+                from TestTimestampLTZs
                 where TimestampLTZCol = :value""",
                 value=datetime.datetime(2022, 6, 6, 18, 30, 10, 250000))
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
@@ -76,7 +77,8 @@ class TestCase(test_env.BaseTestCase):
         "4801 - test binding in a null"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute("""
-                select * from TestTimestampLTZs
+                select *
+                from TestTimestampLTZs
                 where TimestampLTZCol = :value""",
                 value=None)
         self.assertEqual(self.cursor.fetchall(), [])
@@ -121,7 +123,7 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     :value := :value + 5.25;
                 end;""",
-                value = var)
+                value=var)
         self.assertEqual(var.getvalue(),
                          datetime.datetime(2022, 6, 4, 12, 0, 0))
 

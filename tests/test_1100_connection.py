@@ -328,9 +328,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1124_ping(self):
         "1124 - test connection ping makes a round trip"
-        self.connection = test_env.get_connection()
+        self.conn = test_env.get_connection()
         self.setup_round_trip_checker()
-        self.connection.ping()
+        self.conn.ping()
         self.assertRoundTrips(1)
 
     @unittest.skipIf(test_env.get_is_thin(),

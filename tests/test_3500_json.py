@@ -84,8 +84,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.executemany("""
                 insert into TestJson values (:1, :2)
                 returning JsonCol into :json_out""", bind_data)
-        self.connection.commit()
-        self.assertEqual(out_var.values, [[v] for v in data])
+        self.conn.commit()
+        self.assertEqual(out_var.values, [[value] for value in data])
 
     def test_3500_insert_and_fetch_single_json(self):
         "3500 - insert and fetch single row with JSON"
@@ -104,7 +104,8 @@ class TestCase(test_env.BaseTestCase):
         json_out = self.cursor.var(oracledb.DB_TYPE_JSON)
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON, json_out)
         self.cursor.execute("""
-                insert into TestJson values (:1, :2)
+                insert into TestJson
+                values (:1, :2)
                 returning  JsonCol into :json_out""",
                 [1, json_val])
         self.assertEqual(json_out.getvalue(0), [json_val])
@@ -116,8 +117,7 @@ class TestCase(test_env.BaseTestCase):
         data = list(enumerate(self.json_data))
         self.cursor.executemany("insert into TestJson values(:1, :2)", data)
         self.cursor.execute("select * from TestJson")
-        fetched_data = self.cursor.fetchall()
-        self.assertEqual(fetched_data, data)
+        self.assertEqual(self.cursor.fetchall(), data)
 
     def test_3503_executemany_with_dml_returning(self):
         "3503 - inserting multiple rows with JSON and DML returning"
@@ -197,11 +197,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3509_unsupported_python_type_fetch(self):
         "3509 - test fetching an unsupported python type with JSON"
-        sql = """
-                select json(json_scalar(to_yminterval('8-04')))
-                from dual"""
         self.cursor.prefetchrows = 0
-        self.cursor.execute(sql)
+        self.cursor.execute("""
+                select json(json_scalar(to_yminterval('8-04')))
+                from dual""")
         self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3007:",
                                self.cursor.fetchone)
 
@@ -266,12 +265,15 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany("insert into TestJSON values (:1, :2)",
                                 list(enumerate(self.json_data)))
-        update_sql = "update TestJSON set JsonCol = :1 where IntCol = :2"
         data = [({"a" : i}, i) for i in range(len(self.json_data))]
         self.cursor.setinputsizes(oracledb.DB_TYPE_JSON)
-        self.cursor.executemany(update_sql, data)
-        query = "select JsonCol, IntCol from TestJSON order by IntCol"
-        self.cursor.execute(query)
+        self.cursor.executemany("""
+                update TestJSON set JsonCol = :1
+                where IntCol = :2""",
+                data)
+        self.cursor.execute("""
+                select JsonCol, IntCol
+                from TestJSON order by IntCol""")
         self.assertEqual(self.cursor.fetchall(), data)
 
     def test_3512_json_query(self):
@@ -280,16 +282,12 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany("insert into TestJSON values (:1, :2)",
                                 list(enumerate(self.json_data)))
-        cases = [
-            (2, "$.employees"),
-            (1, "$.employees.employee1.name")
-        ]
+        cases = [(1, "$.employees.employee1.name"), (2, "$.employees")]
         for num_rows, json_query in cases:
-            sql = f"""
+            self.cursor.execute(f"""
                     select json_query(JsonCol, '{json_query}')
                     from TestJson
-                    order by IntCol"""
-            self.cursor.execute(sql)
+                    order by IntCol""")
             result = [r for r, in self.cursor if r is not None]
             self.assertEqual(len(result), num_rows)
 
@@ -299,16 +297,12 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany("insert into TestJSON values (:1, :2)",
                                 list(enumerate(self.json_data)))
-        cases = [
-            (1, "$.Permanent"),
-            (2, "$.employees")
-        ]
+        cases = [(1, "$.Permanent"),  (2, "$.employees")]
         for num_rows, json_query in cases:
-            sql = f"""
+            self.cursor.execute(f"""
                     select count(*)
                     from TestJson
-                    where json_exists(JsonCol, '{json_query}')"""
-            self.cursor.execute(sql)
+                    where json_exists(JsonCol, '{json_query}')""")
             count, = self.cursor.fetchone()
             self.assertEqual(count, num_rows)
 
@@ -333,16 +327,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3515_json_serialize(self):
         "3515 - test fetching json with json_serialize"
         self.cursor.execute("truncate table TestJson")
-        data = [
-            {"a": 12.5},
-            {"b": True},
-            {"c": None}
-        ]
-        expected_data = [
-            '{"a":12.5}',
-            '{"b":true}',
-            '{"c":null}'
-        ]
+        data = [{"a": 12.5}, {"b": True}, {"c": None}]
+        expected_data = ['{"a":12.5}', '{"b":true}', '{"c":null}']
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany("insert into TestJSON values (:1, :2)",
                                 list(enumerate(data)))

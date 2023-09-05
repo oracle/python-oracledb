@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -50,20 +50,15 @@ class TestCase(test_env.BaseTestCase):
                 else:
                     bind_value = long_string
             self.cursor.execute(f"""
-                    insert into Test{name_part}s (
-                        IntCol,
-                        {name_part}Col
-                    ) values (
-                        :integer_value,
-                        :long_string
-                    )""",
+                    insert into Test{name_part}s (IntCol, {name_part}Col)
+                    values (:integer_value, :long_string)""",
                     integer_value=i,
                     long_string=bind_value)
-        self.connection.commit()
-        self.cursor.execute("""
+        self.conn.commit()
+        self.cursor.execute(f"""
                 select *
-                from Test%ss
-                order by IntCol""" % name_part)
+                from Test{name_part}s
+                order by IntCol""")
         long_string = ""
         for integer_value, fetched_value in self.cursor:
             char = chr(ord('A') + integer_value - 1)
@@ -92,10 +87,9 @@ class TestCase(test_env.BaseTestCase):
             long_str = char * (32768 * (i + 1))
             data.append((i + 1, long_str))
         self.cursor.executemany("insert into TestLongs values (:1, :2)", data)
-        self.connection.commit()
+        self.conn.commit()
         self.cursor.execute("select * from TestLongs order by IntCol")
-        fetched_data = self.cursor.fetchall()
-        self.assertEqual(fetched_data, data)
+        self.assertEqual(self.cursor.fetchall(), data)
 
     def test_2002_long_raws(self):
         "2002 - test binding and fetching long raw data"

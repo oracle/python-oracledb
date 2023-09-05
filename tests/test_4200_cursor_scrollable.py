@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,18 +37,18 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4200_create_scrollable_cursor(self):
         "4200 - test creating a scrollable cursor"
-        cursor = self.connection.cursor()
+        cursor = self.conn.cursor()
         self.assertEqual(cursor.scrollable, False)
-        cursor = self.connection.cursor(True)
+        cursor = self.conn.cursor(True)
         self.assertEqual(cursor.scrollable, True)
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         self.assertEqual(cursor.scrollable, True)
         cursor.scrollable = False
         self.assertEqual(cursor.scrollable, False)
 
     def test_4201_scroll_absolute_exception_after(self):
         "4201 - test scrolling absolute yields an exception (after result set)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -59,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4202_scroll_absolute_in_buffer(self):
         "4202 - test scrolling absolute (when in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -69,26 +69,26 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(cursor.arraysize > 1,
                 "array size must exceed 1 for this test to work correctly")
         cursor.scroll(1, mode="absolute")
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 1.25)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
     def test_4203_scroll_absolute_not_in_buffer(self):
         "4203 - test scrolling absolute (when not in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
         cursor.scroll(6, mode="absolute")
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 7.5)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 7.5)
         self.assertEqual(cursor.rowcount, 6)
 
     def test_4204_scroll_first_in_buffer(self):
         "4204 - test scrolling to first row in result set (in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -96,13 +96,13 @@ class TestCase(test_env.BaseTestCase):
                 order by IntCol""")
         cursor.fetchmany()
         cursor.scroll(mode="first")
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 1.25)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
     def test_4205_scroll_first_not_in_buffer(self):
         "4205 - test scrolling to first row in result set (not in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -111,26 +111,26 @@ class TestCase(test_env.BaseTestCase):
         cursor.fetchmany()
         cursor.fetchmany()
         cursor.scroll(mode="first")
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 1.25)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
     def test_4206_scroll_last(self):
         "4206 - test scrolling to last row in result set"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
                 from TestNumbers
                 order by IntCol""")
         cursor.scroll(mode="last")
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 12.5)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 12.5)
         self.assertEqual(cursor.rowcount, 10)
 
     def test_4207_scroll_relative_exception_after(self):
         "4207 - test scrolling relative yields an exception (after result set)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -141,7 +141,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4208_scroll_relative_exception_before(self):
         "4208 - test scrolling relative yields exception (before result set)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -152,7 +152,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4209_scroll_relative_in_buffer(self):
         "4209 - test scrolling relative (when in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -162,13 +162,13 @@ class TestCase(test_env.BaseTestCase):
         message = "array size must exceed 1 for this test to work correctly"
         self.assertTrue(cursor.arraysize > 1, message)
         cursor.scroll(2 - cursor.rowcount)
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 2.5)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 2.5)
         self.assertEqual(cursor.rowcount, 2)
 
     def test_4210_scroll_relative_not_in_buffer(self):
         "4210 - test scrolling relative (when not in buffers)"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol
@@ -179,14 +179,14 @@ class TestCase(test_env.BaseTestCase):
         message = "array size must exceed 1 for this test to work correctly"
         self.assertTrue(cursor.arraysize > 1, message)
         cursor.scroll(3 - cursor.rowcount)
-        row = cursor.fetchone()
-        self.assertEqual(row[0], 3.75)
+        value, = cursor.fetchone()
+        self.assertEqual(value, 3.75)
         self.assertEqual(cursor.rowcount, 3)
 
     def test_4211_scroll_no_rows(self):
         "4211 - test scrolling when there are no rows"
         self.cursor.execute("truncate table TestTempTable")
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.execute("select * from TestTempTable")
         cursor.scroll(mode="last")
         self.assertEqual(cursor.fetchall(), [])
@@ -202,9 +202,9 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute("""
                     insert into TestTempTable (IntCol, StringCol1)
                     values (:1, null)""",
-                    (i + 1,))
+                    [i + 1])
         for arraysize in range(1, 6):
-            cursor = self.connection.cursor(scrollable = True)
+            cursor = self.conn.cursor(scrollable=True)
             cursor.arraysize = arraysize
             cursor.execute("select IntCol from TestTempTable order by IntCol")
             for num_rows in range(1, arraysize + 1):
@@ -227,7 +227,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4213_scroll_with_invalid_mode(self):
         "4213 - test calling scroll() with invalid mode"
-        cursor = self.connection.cursor(scrollable=True)
+        cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("""
                 select NumberCol

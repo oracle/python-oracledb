@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -44,8 +44,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(), [(query_value_1,)])
         self.cursor.execute(f"""
                 create or replace view TestTypesChanged as
-                select {query_frag_2} as value
-                from dual""")
+                    select {query_frag_2} as value
+                    from dual""")
         self.cursor.execute("select * from TestTypesChanged")
         self.assertEqual(self.cursor.fetchall(), [(query_value_2,)])
 
