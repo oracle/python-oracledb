@@ -2051,7 +2051,7 @@ alternatively, you can specify it inside a connect descriptor stored in
             (ADDRESS=(PROTOCOL=TCPS)(PORT=1522)(HOST=xxx.oraclecloud.com))
             (CONNECT_DATA=(SERVICE_NAME=xxx.adb.oraclecloud.com))
             (SECURITY =
-                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com,OU=Oracle BMCS US, \
+                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com, \
                  O=Oracle Corporation,L=Redwood City,ST=California,C=US")
                 (TOKEN_AUTH=OAUTH)
                 (TOKEN_LOCATION="/home/user1/mytokens/oauthtoken")
@@ -2289,7 +2289,7 @@ Alternatively, you can specify it in a connect descriptor, for example::
             (ADDRESS=(PROTOCOL=TCPS)(PORT=1522)(HOST=xxx.oraclecloud.com))
             (CONNECT_DATA=(SERVICE_NAME=xxx.adb.oraclecloud.com))
             (SECURITY =
-                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com,OU=Oracle BMCS US, \
+                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com, \
                  O=Oracle Corporation,L=Redwood City,ST=California,C=US")
                 (TOKEN_AUTH=OCI_TOKEN)
             )
@@ -2308,7 +2308,7 @@ sqlnet.ora file or in a connect descriptor stored inside
             (ADDRESS=(PROTOCOL=TCPS)(PORT=1522)(HOST=xxx.oraclecloud.com))
             (CONNECT_DATA=(SERVICE_NAME=xxx.adb.oraclecloud.com))
             (SECURITY =
-                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com,OU=Oracle BMCS US, \
+                (SSL_SERVER_CERT_DN="CN=xxx.oraclecloud.com, \
                  O=Oracle Corporation,L=Redwood City,ST=California,C=US")
                 (TOKEN_AUTH=OCI_TOKEN)
                 (TOKEN_LOCATION="/path/to/token/folder")
@@ -2569,7 +2569,7 @@ ADMIN user:
 
     cs = '''(description = (retry_count=20)(retry_delay=3)(address=(protocol=tcps)
                (port=1522)(host=xxx.oraclecloud.com))(connect_data=(service_name=xxx.adb.oraclecloud.com))
-               (security=(ssl_server_dn_match=yes)(ssl_server_cert_dn="CN=xxx.oraclecloud.com,OU=Oracle BMCS US,
+               (security=(ssl_server_dn_match=yes)(ssl_server_cert_dn="CN=xxx.oraclecloud.com,
                O=Oracle Corporation, L=Redwood City, T=California, C=US")))'''
 
     connection = oracledb.connect(user="admin", password=pw, dsn=cs)
@@ -2762,15 +2762,15 @@ For example, if your ``tnsnames.ora`` file had an entry::
 
     cjjson_high = (description=(retry_count=20)(retry_delay=3)
         (address=(protocol=tcps)(port=1522)
-        (host=adb.ap-sydney-1.oraclecloud.com))
+        (host=xxx.oraclecloud.com))
         (connect_data=(service_name=abc_cjjson_high.adb.oraclecloud.com))
-        (security=(ssl_server_cert_dn="CN=adb.ap-sydney-1.oraclecloud.com,OU=Oracle ADB SYDNEY,O=Oracle Corporation,L=Redwood City,ST=California,C=US")))
+        (security=(ssl_server_cert_dn="CN=xxx.oraclecloud.com,O=Oracle Corporation,L=Redwood City,ST=California,C=US")))
 
 Then your applications can connect using the connection string:
 
 .. code-block:: python
 
-    dsn = "tcps://adb.ap-sydney-1.oraclecloud.com:1522/abc_cjjson_high.adb.oraclecloud.com?wallet_location=/Users/cjones/Cloud/CJJSON&retry_count=20&retry_delay=3"
+    dsn = "tcps://xxx.oraclecloud.com:1522/abc_cjjson_high.adb.oraclecloud.com?wallet_location=/Users/cjones/Cloud/CJJSON&retry_count=20&retry_delay=3"
     connection = oracledb.connect(user="hr", password=userpwd, dsn=dsn)
 
 The ``wallet_location`` parameter needs to be set to the directory containing
