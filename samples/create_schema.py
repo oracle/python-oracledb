@@ -36,7 +36,7 @@ import drop_schema
 import sample_env
 
 # connect as administrative user (usually SYSTEM or ADMIN)
-conn = oracledb.connect(sample_env.get_admin_connect_string())
+conn = sample_env.get_admin_connection()
 
 # drop existing users and editions, if applicable
 drop_schema.drop_schema(conn)

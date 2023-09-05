@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -43,6 +43,6 @@ def drop_schema(conn):
                               edition_name=sample_env.get_edition_name())
 
 if __name__ == "__main__":
-    conn = oracledb.connect(sample_env.get_admin_connect_string())
+    conn = sample_env.get_admin_connection()
     drop_schema(conn)
     print("Done.")

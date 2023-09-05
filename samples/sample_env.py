@@ -159,12 +159,16 @@ def get_edition_connect_string():
     return "%s/%s@%s" % \
             (get_edition_user(), get_edition_password(), get_connect_string())
 
-def get_admin_connect_string():
+def get_admin_connection():
     admin_user = get_value("PYO_SAMPLES_ADMIN_USER", "Administrative user",
                            "admin")
     admin_password = get_value("PYO_SAMPLES_ADMIN_PASSWORD",
                                f"Password for {admin_user}", password=True)
-    return "%s/%s@%s" % (admin_user, admin_password, get_connect_string())
+    params = oracledb.ConnectParams()
+    if admin_user and admin_user.upper() == "SYS":
+        params.set(mode=oracledb.AUTH_MODE_SYSDBA)
+    return oracledb.connect(dsn=get_connect_string(), params=params,
+                            user=admin_user, password=admin_password)
 
 def get_oracle_client():
     if ((platform.system() == "Darwin" and platform.machine() == "x86_64") or
