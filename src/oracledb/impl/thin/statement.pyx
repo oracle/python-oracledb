@@ -118,7 +118,7 @@ cdef class Parser:
         Multiple line comments consist of the characters /* followed by all
         characters up until */. This method is called when the first slash is
         detected and checks for the subsequent asterisk. If found, the comment
-        is traversed and the current position is updaqted; otherwise, the
+        is traversed and the current position is updated; otherwise, the
         current position is left untouched.
         """
         cdef:
