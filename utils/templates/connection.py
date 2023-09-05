@@ -466,6 +466,17 @@ class Connection:
         self._impl.inputtypehandler = value
 
     @property
+    def instance_name(self) -> str:
+        """
+        Returns the instance name associated with the connection. This is the
+        equivalent of the SQL expression:
+
+        sys_context('userenv', 'instance_name')
+        """
+        self._verify_connected()
+        return self._impl.get_instance_name()
+
+    @property
     def internal_name(self) -> str:
         """
         Specifies the internal name that is used by the connection when logging
