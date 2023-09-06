@@ -188,6 +188,8 @@ ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR = 2037
 ERR_INVALID_COLL_INDEX_GET = 2038
 ERR_INVALID_COLL_INDEX_SET = 2039
 ERR_EXECUTE_MODE_ONLY_FOR_DML = 2040
+ERR_MISSING_QUOTE_IN_STRING = 2041
+ERR_MISSING_QUOTE_IN_IDENTIFIER = 2042
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -267,6 +269,8 @@ ERR_ORACLE_ERROR_XREF = {
     28: ERR_CONNECTION_CLOSED,
     600: ERR_CONNECTION_CLOSED,
     1005: ERR_NO_CREDENTIALS,
+    1740: ERR_MISSING_QUOTE_IN_IDENTIFIER,
+    1756: ERR_MISSING_QUOTE_IN_STRING,
     22165: (ERR_INVALID_COLL_INDEX_SET,
             r'index \[(?P<index>\d+)\] must be in the range of '
             r'\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]'),
@@ -428,6 +432,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_MISSING_BIND_VALUE:
             'a bind variable replacement value for placeholder ":{name}" was '
             'not provided',
+    ERR_MISSING_QUOTE_IN_IDENTIFIER:
+            'missing ending quote (") in identifier',
+    ERR_MISSING_QUOTE_IN_STRING:
+            "missing ending quote (') in string",
     ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR:
             'no object type specified for object variable',
     ERR_MIXED_ELEMENT_TYPES:

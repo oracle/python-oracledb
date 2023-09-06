@@ -30,6 +30,11 @@ Common Changes
     :meth:`Cursor.setinputsizes()` with at least one of the values supplied as
     ``None``
     (`issue 217 <https://github.com/oracle/python-oracledb/issues/217>`__).
+#)  SQL statement parsing now raises ``DPY-2041: missing ending quote (') in
+    string`` or ``DPY-2042: missing ending quote (") in identifier`` for
+    statements with the noted invalid syntax.  Previously, thick mode gave
+    ``ORA-1756`` or ``ORA-1740``, respectively, while thin mode did not throw
+    an error.
 
 
 oracledb 1.4.0 (August 2023)
