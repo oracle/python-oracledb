@@ -13,6 +13,12 @@ oracledb 1.4.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Improved statement bind variable placeholder parser performance, handle
+    statements which use the `Alternative Quoting Mechanism
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1824CBAA-6E16-4921-B2A6-112FB02248DA>`__
+    ('Q' strings), and fix some issues identifying bind variable placeholders
+    in embedded quotes and in JSON syntax.
+
 Thick Mode Changes
 ++++++++++++++++++
 

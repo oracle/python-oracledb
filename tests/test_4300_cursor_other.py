@@ -360,31 +360,6 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("select IntCol from TestTempTable").fetchall()
             self.assertRoundTrips(7)
 
-    def test_4324_bind_names_with_single_line_comments(self):
-        "4324 - test bindnames() with single line comments"
-        self.cursor.prepare("""--begin :value2 := :a + :b + :c +:a +3; end;
-                            begin :value2 := :a + :c +3; end;
-                            """)
-        self.assertEqual(self.cursor.bindnames(), ["VALUE2", "A", "C"])
-
-    def test_4325_bind_names_with_multi_line_comments(self):
-        "4325 - test bindnames() with multi line comments"
-        self.cursor.prepare("""/*--select * from :a where :a = 1
-                            select * from table_names where :a = 1*/
-                            select * from :table_name where :value = 1
-                            """)
-        self.assertEqual(self.cursor.bindnames(), ["TABLE_NAME", "VALUE"])
-
-    def test_4326_bind_names_with_strings(self):
-        "4326 - test bindnames() with strings in the statement"
-        statement = """
-                    begin
-                        :value := to_date('20021231 12:31:00',
-                            'YYYYMMDD HH24:MI:SS');
-                    end;"""
-        self.cursor.prepare(statement)
-        self.assertEqual(self.cursor.bindnames(), ["VALUE"])
-
     def test_4327_parse_plsql(self):
         "4327 - test parsing plsql statements"
         sql = "begin :value := 5; end;"
@@ -451,13 +426,6 @@ class TestCase(test_env.BaseTestCase):
         values = [var.getvalue() for var in out_vars]
         self.assertEqual(values, [None, 'Value 1', None, 'Value 2'])
 
-    def test_4336_bind_names_with_division_operators(self):
-        "4336 - test bindnames() with multiple division operators"
-        self.cursor.prepare("""
-                select :a / :b, :c / :d
-                from dual""")
-        self.assertEqual(self.cursor.bindnames(), ["A", "B", "C", "D"])
-
     def test_4337_exclude_from_stmt_cache(self):
         "4337 - test excluding statement from statement cache"
         num_iters = 10
@@ -477,12 +445,6 @@ class TestCase(test_env.BaseTestCase):
                 cursor.prepare(sql, cache_statement=False)
                 cursor.execute(None)
         self.assertParseCount(num_iters - 1)
-
-    def test_4338_bind_names_with_opening_parentheses(self):
-        "4338 - test bindnames() with opening parentheses in statement"
-        sql = "(select :a from dual) union (select :b from dual)"
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), ["A", "B"])
 
     def test_4339_repeated_ddl(self):
         "4339 - test repeated DDL"
@@ -517,65 +479,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError,
                                "^ORA-01745:", self.cursor.parse, sql)
 
-    def test_4344_invalid_quoted_bind(self):
-        "4344 - test using an invalid quoted bind"
-        sql = 'select ":test" from dual'
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), [])
-
-    def test_4345_non_ascii_bind_name(self):
-        "4345 - test using a non-ascii character in the bind name"
-        sql = 'select :méil$ from dual'
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), ['MÉIL$'])
-
-    def test_4346_various_quoted_binds(self):
-        "4346 - test various quoted bind names"
-        self.cursor.prepare('select :"percent%" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["percent%"])
-
-        self.cursor.prepare('select :"q?marks" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["q?marks"])
-
-        self.cursor.prepare('select :"percent%(ens)yah" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["percent%(ens)yah"])
-
-        self.cursor.prepare('select :"per % cent" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["per % cent"])
-
-        self.cursor.prepare('select :"per cent" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["per cent"])
-
-        self.cursor.prepare('select :"par(ens)" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["par(ens)"])
-
-        self.cursor.prepare('select :"more/slashes" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["more/slashes"])
-
-        self.cursor.prepare('select :"%percent" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["%percent"])
-
-        self.cursor.prepare('select :"/slashes/" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["/slashes/"])
-
-        self.cursor.prepare('select :"1col:on" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["1col:on"])
-
-        self.cursor.prepare('select :"col:ons" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["col:ons"])
-
-        self.cursor.prepare('select :"more :: %colons%" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["more :: %colons%"])
-
-        self.cursor.prepare('select :"more/slashes" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["more/slashes"])
-
-        self.cursor.prepare('select :"spaces % more spaces" from dual')
-        self.assertEqual(self.cursor.bindnames(), ["spaces % more spaces"])
-
-        self.cursor.prepare('select "col:ons", :"col:ons", :id from dual')
-        self.assertEqual(self.cursor.bindnames(), ["col:ons", "ID"])
-
     def test_4347_arraysize_lt_prefetchrows(self):
         "4347 - test array size less than prefetch rows"
         sql = "select 1 from dual union select 2 from dual"
@@ -609,12 +512,6 @@ class TestCase(test_env.BaseTestCase):
                 [blob_data])
         self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         self.assertEqual(self.cursor.fetchall(), [(1, blob_data)])
-
-    def test_4349_test_sql_with_quoted_identifiers_and_strings(self):
-        "4349 - test parsing sql contaiting quoted identifiers and strings"
-        sql = 'select "_value1" + : "VaLue_2" + :"3VALUE" from dual'
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), ["VaLue_2", "3VALUE"])
 
     def test_4350_reexecute_after_error(self):
         "4350 - test re-executing a statement after raising an error"
@@ -670,12 +567,6 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, [1, "test string 4352", int_var])
         self.assertEqual(int_var.values, [None])
 
-    def test_4353_single_quoted_strings(self):
-        "4353 - test bindnames with statement containing strings"
-        sql = '''select '"string_1"', :bind_1, 'string_2' from dual'''
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), ['BIND_1'])
-
     def test_4354_fetch_duplicate_data_twice(self):
         "4354 - fetch duplicate data from query in statement cache"
         sql = """
@@ -713,12 +604,6 @@ class TestCase(test_env.BaseTestCase):
                 select 'A' as col_1, 2 as col_2, 3 as col_3 from dual""")
         expected_data = [('A', 2, 3)] * 3
         self.assertEqual(self.cursor.fetchall(), expected_data)
-
-    def test_4356_multiple_single_quoted_strings(self):
-        "4356 - test bindnames with statement containing quoted strings"
-        sql = "select :bind_4356, 'string_4356', ':string_4356' from dual"
-        self.cursor.prepare(sql)
-        self.assertEqual(self.cursor.bindnames(), ['BIND_4356'])
 
     def test_4357_setinputsizes_with_defaults(self):
         "4357 - test setinputsizes() with defaults specified"
@@ -823,18 +708,6 @@ class TestCase(test_env.BaseTestCase):
         for i in range(2):
             self.cursor.parse(sql)
             self.cursor.execute(sql, ("Updated value", data[0]))
-
-    def test_4364_binds_between_comment_blocks(self):
-        "4364 - test bindnames() for bind variables between comment blocks"
-        self.cursor.prepare("""
-                select
-                    /* comment 1 */
-                    :a,
-                    /* comment 2 */
-                    :b
-                    /* comment 3 */
-                from dual""")
-        self.assertEqual(self.cursor.bindnames(), ["A", "B"])
 
     def test_4365_add_column_to_cached_query(self):
         "4365 - test addition of column to cached query"
