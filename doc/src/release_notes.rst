@@ -19,9 +19,6 @@ Thin Mode Changes
     ('Q' strings), and fix some issues identifying bind variable placeholders
     in embedded quotes and in JSON syntax.
 
-Thick Mode Changes
-++++++++++++++++++
-
 Common Changes
 ++++++++++++++
 
@@ -35,6 +32,7 @@ Common Changes
     statements with the noted invalid syntax.  Previously, thick mode gave
     ``ORA-1756`` or ``ORA-1740``, respectively, while thin mode did not throw
     an error.
+#)  Added missing ">" to repr() of SodaDatabase.
 
 
 oracledb 1.4.0 (August 2023)

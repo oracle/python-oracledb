@@ -37,7 +37,7 @@ from . import connection, errors
 class SodaDatabase:
 
     def __repr__(self):
-        return f"<oracledb.SodaDatabase on {self._conn!r}"
+        return f"<oracledb.SodaDatabase on {self._conn!r}>"
 
     @classmethod
     def _from_impl(cls, conn, impl):
