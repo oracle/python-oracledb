@@ -94,27 +94,26 @@ class TestCase(test_env.BaseTestCase):
                                    getmode=oracledb.POOL_GETMODE_WAIT,
                                    soda_metadata_cache=False):
         creation_args = dict(min=min, max=max, increment=increment,
-                             timeout=timeout, wait_timeout=wait_timeout,
-                             stmtcachesize=stmtcachesize,
-                             max_lifetime_session=max_lifetime_session,
-                             max_sessions_per_shard=max_sessions_per_shard,
-                             ping_interval=ping_interval, getmode=getmode,
-                             soda_metadata_cache=soda_metadata_cache)
+                             timeout=timeout, stmtcachesize=stmtcachesize,
+                             ping_interval=ping_interval, getmode=getmode)
+        if test_env.get_client_version() >= (12, 1):
+            creation_args["max_lifetime_session"] = max_lifetime_session
+        if test_env.get_client_version() >= (12, 2):
+            creation_args["wait_timeout"] = wait_timeout
+        if test_env.get_client_version() >= (18, 3):
+            creation_args["max_sessions_per_shard"] = max_sessions_per_shard
+        if test_env.get_client_version() >= (19, 11):
+            creation_args["soda_metadata_cache"] = soda_metadata_cache
+
         reconfigure_args = {}
         reconfigure_args[parameter_name] = parameter_value
 
         pool = test_env.get_pool(**creation_args)
         connection = pool.acquire()
         pool.reconfigure(**reconfigure_args)
-        actual_args = dict(min=pool.min, max=pool.max,
-                           increment=pool.increment, timeout=pool.timeout,
-                           wait_timeout=pool.wait_timeout,
-                           stmtcachesize=pool.stmtcachesize,
-                           max_lifetime_session=pool.max_lifetime_session,
-                           max_sessions_per_shard=pool.max_sessions_per_shard,
-                           ping_interval=pool.ping_interval,
-                           getmode=pool.getmode,
-                           soda_metadata_cache=pool.soda_metadata_cache)
+        actual_args = {}
+        for name in creation_args:
+            actual_args[name] = getattr(pool, name)
         expected_args = creation_args.copy()
         expected_args.update(reconfigure_args)
         self.assertEqual(actual_args, expected_args)
@@ -483,13 +482,16 @@ class TestCase(test_env.BaseTestCase):
         self.__perform_reconfigure_test("max", 20)
         self.__perform_reconfigure_test("increment", 5)
         self.__perform_reconfigure_test("timeout", 10)
-        self.__perform_reconfigure_test("wait_timeout", 8000)
         self.__perform_reconfigure_test("stmtcachesize", 40)
-        self.__perform_reconfigure_test("max_lifetime_session", 2000)
-        self.__perform_reconfigure_test("max_sessions_per_shard", 5)
         self.__perform_reconfigure_test("ping_interval", 50)
         self.__perform_reconfigure_test("getmode",
                                         oracledb.POOL_GETMODE_NOWAIT)
+        if test_env.get_client_version() >= (12, 1):
+            self.__perform_reconfigure_test("max_lifetime_session", 2000)
+        if test_env.get_client_version() >= (12, 2):
+            self.__perform_reconfigure_test("wait_timeout", 8000)
+        if test_env.get_client_version() >= (18, 3):
+            self.__perform_reconfigure_test("max_sessions_per_shard", 5)
         if test_env.get_client_version() >= (19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 

@@ -19,6 +19,12 @@ Thin Mode Changes
     ('Q' strings), and fix some issues identifying bind variable placeholders
     in embedded quotes and in JSON syntax.
 
+Thick Changes
++++++++++++++
+
+#)  Fixed error checking when getting and setting the pool ping interval and
+    the SODA metadata cache flag.
+
 Common Changes
 ++++++++++++++
 
