@@ -25,6 +25,12 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug when calling :meth:`Cursor.execute()` or
+    :meth:`Cursor.executemany()` with missing bind data after calling
+    :meth:`Cursor.setinputsizes()` with at least one of the values supplied as
+    ``None``
+    (`issue 217 <https://github.com/oracle/python-oracledb/issues/217>`__).
+
 
 oracledb 1.4.0 (August 2023)
 ----------------------------

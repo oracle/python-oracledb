@@ -383,5 +383,13 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchall(),
                          [(1,), (2,), (3,), (4,), (5,)])
 
+    def test_3930_setinputsizes_no_binds(self):
+        "3930 - test setinputsizes() but without binding"
+        self.cursor.setinputsizes(None, int)
+        sql = "select :1, : 2 from dual"
+        self.assertRaisesRegex(oracledb.DatabaseError,
+                               "^ORA-01008:|^DPY-4010:",
+                               self.cursor.execute, sql, [])
+
 if __name__ == "__main__":
     test_env.run_test_cases()
