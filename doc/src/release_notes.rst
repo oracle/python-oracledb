@@ -13,19 +13,8 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Improved statement bind variable placeholder parser performance, handle
-    statements which use the `Alternative Quoting Mechanism
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1824CBAA-
-    6E16-4921-B2A6-112FB02248DA>`__ ('Q' strings), and fix some issues
-    identifying bind variable placeholders in embedded quotes and in JSON
-    syntax.
-#)  Added missing ">" to repr() of SodaDatabase.
-
 Thick Mode Changes
 ++++++++++++++++++
-
-#)  Fixed error checking when getting and setting the pool ping interval and
-    the SODA metadata cache flag.
 
 Common Changes
 ++++++++++++++
@@ -39,6 +28,29 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
+
+
+oracledb 1.4.1 (September 2023)
+-------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Improved statement bind variable placeholder parser performance, handle
+    statements which use the `Alternative Quoting Mechanism
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1824CBAA-6E16-4921-B2A6-112FB02248DA>`__
+    ('Q' strings), and fix some issues identifying bind variable placeholders
+    in embedded quotes and in JSON syntax.
+
+Thick Changes
++++++++++++++
+
+#)  Fixed error checking when getting and setting the pool ping interval and
+    the SODA metadata cache flag.
+
+Common Changes
+++++++++++++++
+
 #)  Fixed bug when calling :meth:`Cursor.execute()` or
     :meth:`Cursor.executemany()` with missing bind data after calling
     :meth:`Cursor.setinputsizes()` with at least one of the values supplied as
@@ -49,6 +61,7 @@ Common Changes
     statements with the noted invalid syntax.  Previously, thick mode gave
     ``ORA-1756`` or ``ORA-1740``, respectively, while thin mode did not throw
     an error.
+#)  Added missing ">" to repr() of SodaDatabase.
 
 
 oracledb 1.4.0 (August 2023)
