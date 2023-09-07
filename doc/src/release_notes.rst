@@ -19,6 +19,7 @@ Thin Mode Changes
     6E16-4921-B2A6-112FB02248DA>`__ ('Q' strings), and fix some issues
     identifying bind variable placeholders in embedded quotes and in JSON
     syntax.
+#)  Added missing ">" to repr() of SodaDatabase.
 
 Thick Mode Changes
 ++++++++++++++++++
