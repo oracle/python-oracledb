@@ -24,6 +24,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed error checking when getting and setting the pool ping interval and
+    the SODA metadata cache flag.
+
 Common Changes
 ++++++++++++++
 
