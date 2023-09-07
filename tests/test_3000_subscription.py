@@ -306,7 +306,7 @@ class TestCase(test_env.BaseTestCase):
                 condition.notify()
 
         sub = conn.subscribe(callback=callback_handler,
-                                   qos=oracledb.SUBSCR_QOS_QUERY)
+                             qos=oracledb.SUBSCR_QOS_QUERY)
         cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
         sub_id = sub.registerquery("select * from TestTempTable")
@@ -318,6 +318,17 @@ class TestCase(test_env.BaseTestCase):
         with condition:
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
+
+    @unittest.skipIf(test_env.get_client_version() < (23, 1),
+                     "crashes in older clients")
+    def test_3008_unsubscribe_negative(self):
+        "3008 - test unsubscribe with invalid parameter"
+        conn = test_env.get_connection(events=True)
+        self.assertRaises(TypeError, conn.unsubscribe, "not a sub object")
+        sub = conn.subscribe(callback=lambda x: f"Message: {x}")
+        conn.unsubscribe(sub)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1002",
+                               conn.unsubscribe, sub)
 
 if __name__ == "__main__":
     test_env.run_test_cases()

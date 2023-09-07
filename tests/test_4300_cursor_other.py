@@ -149,12 +149,11 @@ class TestCase(test_env.BaseTestCase):
                 end;""", [var, 'test_', 5, '_second_', 3, 7])
         self.assertEqual(var.getvalue(), "test_5_second_37")
 
-    def test_4310_string_format(self):
-        "4310 - test string format of cursor"
-        format_string = "<oracledb.Cursor on <oracledb.Connection to %s@%s>>"
-        expected_value = format_string % \
-                (test_env.get_main_user(), test_env.get_connect_string())
+    def test_4310_repr(self):
+        "4310 - test Cursor repr()"
+        expected_value = f"<oracledb.Cursor on {self.conn}>"
         self.assertEqual(str(self.cursor), expected_value)
+        self.assertEqual(repr(self.cursor), expected_value)
 
     def test_4311_parse_query(self):
         "4311 - test parsing query statements"
@@ -204,19 +203,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4317_query_row_count(self):
         "4317 - test that rowcount attribute is reset to zero on query execute"
-        sql = "select * from dual where 1 = :s"
-        self.cursor.execute(sql, [0])
-        self.cursor.fetchone()
-        self.assertEqual(self.cursor.rowcount, 0)
-        self.cursor.execute(sql, [1])
-        self.cursor.fetchone()
-        self.assertEqual(self.cursor.rowcount, 1)
-        self.cursor.execute(sql, [1])
-        self.cursor.fetchone()
-        self.assertEqual(self.cursor.rowcount, 1)
-        self.cursor.execute(sql, [0])
-        self.cursor.fetchone()
-        self.assertEqual(self.cursor.rowcount, 0)
+        for num in [0, 1, 1, 0]:
+            self.cursor.execute("select * from dual where 1 = :s", [num])
+            self.cursor.fetchone()
+            self.assertEqual(self.cursor.rowcount, num)
 
     def test_4318_var_type_name_none(self):
         "4318 - test that the typename attribute can be passed a value of None"
