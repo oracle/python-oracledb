@@ -87,9 +87,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3907_bad_execute(self):
         "3907 - test that subsequent executes succeed after bad execute"
         sql = "begin raise_application_error(-20000, 'this); end;"
-        self.assertRaisesRegex(oracledb.DatabaseError,
-                               "^ORA-06550:|^ORA-01756:", self.cursor.execute,
-                               sql)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2041:",
+                               self.cursor.execute, sql)
         self.cursor.execute("begin null; end;")
 
     def test_3908_fetch_after_bad_execute(self):

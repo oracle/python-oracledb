@@ -174,10 +174,11 @@ cdef class Parser:
                 exiting_qstring = True
             elif exiting_qstring:
                 if ch == "'":
-                    break
+                    return 0
                 elif ch != sep:
                     exiting_qstring = False
             self.pos += 1
+        errors._raise_err(errors.ERR_MISSING_QUOTE_IN_STRING)
 
     cdef int _parse_quoted_string(self, Py_UCS4 sep) except -1:
         """
@@ -189,8 +190,12 @@ cdef class Parser:
         while self.pos <= self.max_pos:
             ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
             if ch == sep:
-                break
+                return 0
             self.pos += 1
+        if sep == "'":
+            errors._raise_err(errors.ERR_MISSING_QUOTE_IN_STRING)
+        else:
+            errors._raise_err(errors.ERR_MISSING_QUOTE_IN_IDENTIFIER)
 
     cdef int _parse_single_line_comment(self) except -1:
         """
