@@ -392,8 +392,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_commit()`` function::
 
-        connection.tpc_commit(xid=x, one_phase=False)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_commit(xid=x, one_phase=False)
 
     See :ref:`tcp` for information on TPC.
 
