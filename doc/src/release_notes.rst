@@ -24,6 +24,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Dropped support for Python 3.6 and added support for Python 3.12.
 #)  Added attributes :data:`FetchInfo.domain_schema`,
     :data:`FetchInfo.domain_name` and :data:`FetchInfo.annotations` for the
     `SQL domain <https://docs.oracle.com/en/database/oracle/oracle-database/

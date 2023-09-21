@@ -33,11 +33,7 @@ This section contains the steps that you need to perform to install python-oracl
 quickly.
 
 1. Install `Python 3 <https://www.python.org/downloads>`__, if it is not already
-   available. The version of Python to be used depends on the operating system (OS):
-
-  - On Windows, use Python 3.7 to 3.11
-  - On macOS, use Python 3.7 to 3.11
-  - On Linux, use Python 3.6 to 3.11
+   available. Use any version from Python 3.7 through 3.12.
 
   By default, python-oracledb connects directly to Oracle Database.  This lets
   it be used when Oracle Client libraries are not available (such Apple M1 or
@@ -150,11 +146,7 @@ Installation Requirements
 
 To use python-oracledb, you need:
 
-- Python 3.6, 3.7, 3.8, 3.9, 3.10 or 3.11 depending on the operating system:
-
-  - Windows: Use Python 3.7 to 3.11
-  - macOS: Use Python 3.7 to 3.11
-  - Linux: Use Python 3.6 to 3.11
+- Python 3.7, 3.8, 3.9, 3.10, 3.11 or 3.12
 
 - The Python cryptography package. This package is automatically installed as a
   dependency of python-oracledb.  It is strongly recommended that you keep the
