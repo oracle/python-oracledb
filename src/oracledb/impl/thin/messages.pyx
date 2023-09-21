@@ -103,10 +103,10 @@ cdef class Message:
         buf.skip_ub2()                      # array elem error
         buf.read_ub2(&info.cursor_id)       # cursor id
         buf.read_ub2(&info.pos)             # error position
-        buf.skip_ub1()                      # sql type
+        buf.skip_ub1()                      # sql type (19c and earlier)
         buf.skip_ub1()                      # fatal?
-        buf.skip_ub2()                      # flags
-        buf.skip_ub2()                      # user cursor options
+        buf.skip_ub1()                      # flags
+        buf.skip_ub1()                      # user cursor options
         buf.skip_ub1()                      # UPI parameter
         buf.skip_ub1()                      # warning flag
         buf.read_rowid(&info.rowid)         # rowid
@@ -158,6 +158,13 @@ cdef class Message:
 
         buf.read_ub4(&info.num)             # error number (extended)
         buf.read_ub8(&info.rowcount)        # row number (extended)
+
+        # fields added in Oracle Database 20c
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_20_1:
+            buf.skip_ub4()                  # sql type
+            buf.skip_ub4()                  # server checksum
+
+        # error message
         if info.num != 0:
             self.error_occurred = True
             info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
@@ -647,18 +654,11 @@ cdef class MessageWithData(Message):
         buf.skip_ub1()                      # flags
         buf.read_sb1(&precision)
         fetch_info.precision = precision
-        if data_type == TNS_DATA_TYPE_NUMBER \
-                or data_type == TNS_DATA_TYPE_INTERVAL_DS \
-                or data_type == TNS_DATA_TYPE_TIMESTAMP \
-                or data_type == TNS_DATA_TYPE_TIMESTAMP_LTZ \
-                or data_type == TNS_DATA_TYPE_TIMESTAMP_TZ:
-            buf.read_sb2(&fetch_info.scale)
-        else:
-            buf.read_sb1(&scale)
-            fetch_info.scale = scale
+        buf.read_sb1(&scale)
+        fetch_info.scale = scale
         buf.read_ub4(&fetch_info.buffer_size)
         buf.skip_ub4()                      # max number of array elements
-        buf.skip_ub4()                      # cont flags
+        buf.skip_ub8()                      # cont flags
         buf.read_ub4(&num_bytes)            # OID
         if num_bytes > 0:
             oid = buf.read_bytes()
@@ -2160,7 +2160,7 @@ cdef class LobOpMessage(Message):
         cdef:
             cdef const char_type *ptr
             ssize_t num_bytes
-            uint16_t temp16
+            uint8_t temp8
         if self.source_lob_impl is not None:
             num_bytes = len(self.source_lob_impl._locator)
             ptr = buf.read_raw_bytes(num_bytes)
@@ -2171,12 +2171,12 @@ cdef class LobOpMessage(Message):
             self.dest_lob_impl._locator = ptr[:num_bytes]
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             buf.skip_ub2()                  # skip character set
-        if self.send_amount:
+            buf.skip_raw_bytes(3)           # skip trailing flags, amount
+        elif self.send_amount:
             buf.read_sb8(&self.amount)
-        if self.operation == TNS_LOB_OP_CREATE_TEMP \
-                or self.operation == TNS_LOB_OP_IS_OPEN:
-            buf.read_ub2(&temp16)           # flag
-            self.bool_flag = temp16 > 0
+        if self.operation == TNS_LOB_OP_IS_OPEN:
+            buf.read_ub1(&temp8)
+            self.bool_flag = temp8 > 0
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef int i

@@ -13,6 +13,9 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Internal changes to improve handling of protocol between database and
+    client.
+
 Thick Mode Changes
 ++++++++++++++++++
 
