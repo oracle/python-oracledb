@@ -26,6 +26,8 @@
 5200 - Module for testing the SQL parser.
 """
 
+import unittest
+
 import oracledb
 import test_env
 
@@ -146,6 +148,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.bindnames(),
                          ["A", "B", "C", "D", "E", "F"])
 
+    @unittest.skipUnless(test_env.get_client_version() >= (19, 1),
+                         "unsupported client")
     def test_5212_binds_between_json_constants(self):
         "5212 - bind variables between JSON constants"
         self.cursor.prepare("""

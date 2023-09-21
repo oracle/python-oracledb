@@ -433,45 +433,6 @@ class TestCase(test_env.BaseTestCase):
         pool.release(conn3)
 
     @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support pool reconfigure yet")
-    def test_2415_reconfigure_pool(self):
-        "2415 - test to ensure reconfigure() updates pool properties"
-        pool = test_env.get_pool(min=1, max=2, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        self.assertEqual(pool.min, 1, "min (1)")
-        self.assertEqual(pool.max, 2, "max (2)")
-        self.assertEqual(pool.increment, 1, "increment (1)")
-        self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT,
-                         "getmode differs")
-        self.assertEqual(pool.timeout, 0, "timeout (0)")
-        self.assertEqual(pool.wait_timeout, 5000, "wait_timeout (5000)")
-        self.assertEqual(pool.max_lifetime_session, 0,
-                         "max_lifetime_sessionmeout (0)")
-        self.assertEqual(pool.max_sessions_per_shard, 0,
-                         "max_sessions_per_shard (0)")
-        self.assertEqual(pool.stmtcachesize, 20, "stmtcachesize (20)")
-        self.assertEqual(pool.ping_interval, 60, "ping_interval (60)")
-
-        pool.reconfigure(min=2, max=5, increment=2, timeout=30,
-                         getmode=oracledb.POOL_GETMODE_TIMEDWAIT,
-                         wait_timeout=3000, max_lifetime_session=20,
-                         max_sessions_per_shard=2, stmtcachesize=30,
-                         ping_interval=30)
-        self.assertEqual(pool.min, 2, "min (2)")
-        self.assertEqual(pool.max, 5, "max (5)")
-        self.assertEqual(pool.increment, 2, "increment (2)")
-        self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_TIMEDWAIT,
-                         "getmode differs")
-        self.assertEqual(pool.timeout, 30, "timeout (30)")
-        self.assertEqual(pool.wait_timeout, 3000, "wait_timeout (3000)")
-        self.assertEqual(pool.max_lifetime_session, 20,
-                         "max_lifetime_sessionmeout (20)")
-        self.assertEqual(pool.max_sessions_per_shard, 2,
-                         "max_sessions_per_shard (2)")
-        self.assertEqual(pool.stmtcachesize, 30, "stmtcachesize (30)")
-        self.assertEqual(pool.ping_interval, 30, "ping_interval (30)")
-
-    @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support all the pool params yet")
     def test_2416_test_reconfigure_pool_with_missing_values(self):
         "2416 - test the reconfigure values are changed and rest unchanged"

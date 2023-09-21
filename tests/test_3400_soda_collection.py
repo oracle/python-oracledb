@@ -121,36 +121,51 @@ class TestCase(test_env.BaseTestCase):
         coll.drop()
 
     def test_3404_search_documents_with_content(self):
-        "3404 - test search documents with content using $like and $regex"
+        "3404 - test search documents with different QBEs"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestSearchDocContent")
         coll.find().remove()
         data = [
-            {"name": "John", "address": {"city": "Bangalore"}},
-            {"name": "Johnson", "address": {"city": "Banaras"}},
-            {"name": "Joseph", "address": {"city": "Bangalore"}},
-            {"name": "Jibin", "address": {"city": "Secunderabad"}},
-            {"name": "Andrew", "address": {"city": "Hyderabad"}},
-            {"name": "Matthew", "address": {"city": "Mumbai"}}
+            {
+                "name": "John",
+                "age": 22,
+                "birthday": "2000-12-15",
+                "locations": [{"city": "Bangalore"}, {"city": "Other"}],
+            },
+            {
+                "name": "Johnson",
+                "age": 45,
+                "birthday": "1978-02-03",
+                "locations": [{"city": "Banaras"}, {"city": "Manhattan"}],
+            },
+            {
+                "name": "William",
+                "age": 32,
+                "birthday": "1991-05-17",
+                "locations": {"city": "New Banaras"},
+            },
         ]
-        for value in data:
-            coll.insertOne(value)
+        coll.insertMany(data)
         self.conn.commit()
         filter_specs = [
-            ({"name": {"$like": "And%"}}, 1),
-            ({"name": {"$like": "J%n"}}, 3),
-            ({"name": {"$like": "%hn%"}}, 2),
-            ({"address.city": {"$like": "Ban%"}}, 3),
-            ({"address.city": {"$like": "%bad"}}, 2),
-            ({"address.city": {"$like": "Hyderabad"}}, 1),
-            ({"address.city": {"$like": "China%"}}, 0),
-            ({"name": {"$regex": "Jo.*"}}, 3),
+            ({"name": {"$like": "J%n"}}, 2),
             ({"name": {"$regex": ".*[ho]n"}}, 2),
-            ({"name": {"$regex": "J.*h"}}, 1),
-            ({"address.city": {"$regex": "Ba.*"}}, 3),
-            ({"address.city": {"$regex": ".*bad"}}, 2),
-            ({"address.city": {"$regex": "Hyderabad"}}, 1),
-            ({"name": {"$regex": "Js.*n"}}, 0)
+            ("""{"locations.city": {"$regex": "^Ban.*"}}""", 2),
+            ({"birthday": {"$date": {"$gt": "2000-01-01"}}}, 1),
+            ({"birthday": {"$date": "2000-12-15"}}, 1),
+            ({"age": {"$gt": 18}}, 3),
+            ({"age": {"$lt": 25}}, 1),
+            ({"$or": [{"age": {"$gt": 50}},
+                        {"locations[*].city": {"$like": "%Ban%"}}]}, 3),
+            ({"$and": [{"age": {"$gt": 40}},
+                       {"locations[0 to 1].city": {"$like": "%aras"}}]}, 1),
+            ({"name": {"$hasSubstring": "John"}}, 2),
+            ({"name": {"$instr": "John"}}, 2),
+            ({"name": {"$startsWith": "John"}}, 2),
+            ({"name": {"$upper": {"$startsWith": "JO"}}}, 2),
+            ({"age": {"$not": {"$eq": 22}}}, 2),
+            ({"age": {"$not": {"$lt": 30, "$gt": 10}}}, 2),
+            ({"locations": {"$type": "array"}}, 2)
         ]
         for filter_spec, expected_count in filter_specs:
             self.assertEqual(coll.find().filter(filter_spec).count(),

@@ -403,5 +403,52 @@ class TestCase(test_env.BaseTestCase):
                                "^ORA-01008:|^DPY-4010:",
                                self.cursor.execute, sql, [])
 
+    def test_3931_fetch_info_attributes(self):
+        "3931 - test getting FetchInfo attributes"
+        type_obj = self.conn.gettype("UDT_OBJECT")
+        varchar_ratio, _ = test_env.get_charset_ratios()
+        test_values = [
+            ("select IntCol from TestObjects", 10, None, False, "INTCOL",
+                False, 9, 0, oracledb.DB_TYPE_NUMBER, oracledb.DB_TYPE_NUMBER),
+            ("select ObjectCol from TestObjects", None, None, False,
+                "OBJECTCOL", True, None, None, type_obj,
+                oracledb.DB_TYPE_OBJECT),
+            ("select JsonVarchar from TestJsonCols", 4000,
+                4000 * varchar_ratio, True, "JSONVARCHAR", False, None, None,
+                oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_VARCHAR),
+            ("select FLOATCOL from TestNumbers", 127, None, False,
+                "FLOATCOL", False, 126, -127, oracledb.DB_TYPE_NUMBER,
+                oracledb.DB_TYPE_NUMBER)
+        ]
+        for sql, display_size, internal_size, is_json, name, null_ok, \
+                precision, scale, typ,type_code in test_values:
+            self.cursor.execute(sql)
+            fetch_info, = self.cursor.description
+            self.assertIsInstance(fetch_info, oracledb.FetchInfo)
+            self.assertEqual(fetch_info.display_size, display_size)
+            self.assertEqual(fetch_info.internal_size, internal_size)
+            self.assertEqual(fetch_info.is_json, is_json)
+            self.assertEqual(fetch_info.name, name)
+            self.assertEqual(fetch_info.null_ok, null_ok)
+            self.assertEqual(fetch_info.precision, precision)
+            self.assertEqual(fetch_info.scale, scale)
+            self.assertEqual(fetch_info.type, typ)
+            self.assertEqual(fetch_info.type_code, type_code)
+
+    def test_3932_fetch_info_repr_str(self):
+        "3932 - test FetchInfo repr() and str()"
+        self.cursor.execute("select IntCol from TestObjects")
+        fetch_info, = self.cursor.description
+        self.assertEqual(str(fetch_info),
+            "('INTCOL', <DbType DB_TYPE_NUMBER>, 10, None, 9, 0, False)")
+        self.assertEqual(repr(fetch_info),
+            "('INTCOL', <DbType DB_TYPE_NUMBER>, 10, None, 9, 0, False)")
+
+    def test_3933_fetch_info_slice(self):
+        "3933 - test slicing FetchInfo"
+        self.cursor.execute("select IntCol from TestObjects")
+        fetch_info, = self.cursor.description
+        self.assertEqual(fetch_info[1:3], (oracledb.DB_TYPE_NUMBER, 10))
+
 if __name__ == "__main__":
     test_env.run_test_cases()

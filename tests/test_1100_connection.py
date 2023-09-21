@@ -201,16 +201,16 @@ class TestCase(test_env.BaseTestCase):
         finally:
             conn.changepassword(new_password, test_env.get_main_password())
 
-    def test_1112_exception_on_close(self):
-        "1112 - confirm an exception is raised after closing a connection"
+    def test_1110_exception_on_close(self):
+        "1110 - confirm an exception is raised after closing a connection"
         conn = test_env.get_connection()
         conn.close()
         self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1001:",
                                conn.rollback)
 
     @unittest.skipIf(test_env.get_is_thin(), "not relevant for thin mode")
-    def test_1113_connect_with_handle(self):
-        "1113 - test creating a connection using a handle"
+    def test_1111_connect_with_handle(self):
+        "1111 - test creating a connection using a handle"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -229,13 +229,13 @@ class TestCase(test_env.BaseTestCase):
                                conn2.close)
         conn.close()
 
-    def test_1116_version(self):
-        "1116 - connection version is a string"
+    def test_1112_version(self):
+        "1112 - connection version is a string"
         conn = test_env.get_connection()
         self.assertIsInstance(conn.version, str)
 
-    def test_1117_rollback_on_close(self):
-        "1117 - connection rolls back before close"
+    def test_1113_rollback_on_close(self):
+        "1113 - connection rolls back before close"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -248,8 +248,8 @@ class TestCase(test_env.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 
-    def test_1118_rollback_on_del(self):
-        "1118 - connection rolls back before destruction"
+    def test_1114_rollback_on_del(self):
+        "1114 - connection rolls back before destruction"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -262,8 +262,8 @@ class TestCase(test_env.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 0)
 
-    def test_1119_threading(self):
-        "1119 - multiple connections to database with multiple threads"
+    def test_1115_threading(self):
+        "1115 - multiple connections to database with multiple threads"
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__connect_and_drop)
@@ -273,15 +273,15 @@ class TestCase(test_env.BaseTestCase):
         for thread in threads:
             thread.join()
 
-    def test_1120_string_format(self):
-        "1120 - test string format of connection"
+    def test_1116_string_format(self):
+        "1116 - test string format of connection"
         conn = test_env.get_connection()
         expected_value = "<oracledb.Connection to %s@%s>" % \
                 (test_env.get_main_user(), test_env.get_connect_string())
         self.assertEqual(str(conn), expected_value)
 
-    def test_1121_ctx_mgr_close(self):
-        "1121 - test context manager - close"
+    def test_1117_ctx_mgr_close(self):
+        "1117 - test context manager - close"
         with test_env.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("truncate table TestTempTable")
@@ -296,8 +296,8 @@ class TestCase(test_env.BaseTestCase):
         count, = cursor.fetchone()
         self.assertEqual(count, 1)
 
-    def test_1122_connection_attributes(self):
-        "1122 - test connection attribute values"
+    def test_1118_connection_attributes(self):
+        "1118 - test connection attribute values"
         conn = test_env.get_connection()
         if test_env.get_client_version() >= (12, 1):
             self.assertEqual(conn.ltxid, b'')
@@ -314,8 +314,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
         self.assertRaises(TypeError, conn.stmtcachesize, "value")
 
-    def test_1123_closed_connection_attributes(self):
-        "1123 - test closed connection attribute values"
+    def test_1119_closed_connection_attributes(self):
+        "1119 - test closed connection attribute values"
         conn = test_env.get_connection()
         conn.close()
         attr_names = ["current_schema", "edition", "external_name",
@@ -326,8 +326,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1001:",
                                    getattr, conn, name)
 
-    def test_1124_ping(self):
-        "1124 - test connection ping makes a round trip"
+    def test_1120_ping(self):
+        "1120 - test connection ping makes a round trip"
         self.conn = test_env.get_connection()
         self.setup_round_trip_checker()
         self.conn.ping()
@@ -335,8 +335,8 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support two-phase commit yet")
-    def test_1125_transaction_begin(self):
-        "1125 - test begin, prepare, cancel transaction"
+    def test_1121_transaction_begin(self):
+        "1121 - test begin, prepare, cancel transaction"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("truncate table TestTempTable")
@@ -355,8 +355,8 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support two-phase commit yet")
-    def test_1126_multiple_transactions(self):
-        "1126 - test multiple transactions on the same connection"
+    def test_1122_multiple_transactions(self):
+        "1122 - test multiple transactions on the same connection"
         conn = test_env.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("truncate table TestTempTable")
@@ -389,8 +389,8 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support two-phase commit yet")
-    def test_1127_multiple_global_transactions(self):
-        "1127 - test multiple global transactions on the same connection"
+    def test_1123_multiple_global_transactions(self):
+        "1123 - test multiple global transactions on the same connection"
         conn = test_env.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("truncate table TestTempTable")
@@ -434,8 +434,8 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(test_env.get_is_thin(),
                      "thin mode doesn't support two-phase commit yet")
-    def test_1128_exception_creating_global_txn_after_local_txn(self):
-        "1128 - test creating global txn after a local txn"
+    def test_1124_exception_creating_global_txn_after_local_txn(self):
+        "1124 - test creating global txn after a local txn"
         conn = test_env.get_connection()
         with conn.cursor() as cursor:
             cursor.execute("truncate table TestTempTable")
@@ -450,8 +450,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24776:",
                                conn.begin, *xid)
 
-    def test_1129_threading_single_connection(self):
-        "1129 - single connection to database with multiple threads"
+    def test_1125_threading_single_connection(self):
+        "1125 - single connection to database with multiple threads"
         with test_env.get_connection() as conn:
             threads = [threading.Thread(target=self.__verify_fetched_data,
                                         args=(conn,)) for i in range(3)]
@@ -460,8 +460,8 @@ class TestCase(test_env.BaseTestCase):
             for t in threads:
                 t.join()
 
-    def test_1130_cancel(self):
-        "1130 - test connection cancel"
+    def test_1126_cancel(self):
+        "1126 - test connection cancel"
         conn = test_env.get_connection()
         sleep_proc_name = test_env.get_sleep_proc_name()
         def perform_cancel():
@@ -480,8 +480,8 @@ class TestCase(test_env.BaseTestCase):
             user, = cursor.fetchone()
             self.assertEqual(user, test_env.get_main_user().upper())
 
-    def test_1131_change_password_during_connect(self):
-        "1131 - test changing password during connect"
+    def test_1127_change_password_during_connect(self):
+        "1127 - test changing password during connect"
         conn = test_env.get_connection()
         if self.is_on_oracle_cloud(conn):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
@@ -492,8 +492,8 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection(password=new_password)
         conn.changepassword(new_password, test_env.get_main_password())
 
-    def test_1132_autocommit_during_reexecute(self):
-        "1132 - test use of autocommit during reexecute"
+    def test_1128_autocommit_during_reexecute(self):
+        "1128 - test use of autocommit during reexecute"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         data_to_insert = [
             (1, "Test String #1"),
@@ -512,8 +512,8 @@ class TestCase(test_env.BaseTestCase):
         other_cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(other_cursor.fetchall(), data_to_insert)
 
-    def test_1133_current_schema(self):
-        "1133 - test current_schema is set properly"
+    def test_1129_current_schema(self):
+        "1129 - test current_schema is set properly"
         conn = test_env.get_connection()
         self.assertIsNone(conn.current_schema)
 
@@ -532,8 +532,8 @@ class TestCase(test_env.BaseTestCase):
         result, = cursor.fetchone()
         self.assertEqual(result, user)
 
-    def test_1134_dbms_output(self):
-        "1134 - test dbms_output package"
+    def test_1130_dbms_output(self):
+        "1130 - test dbms_output package"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         test_string = "Testing DBMS_OUTPUT package"
@@ -550,8 +550,8 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(not test_env.get_is_thin() and \
                      test_env.get_client_version() < (18, 1),
                      "unsupported client")
-    def test_1135_calltimeout(self):
-        "1135 - test connection call_timeout"
+    def test_1131_calltimeout(self):
+        "1131 - test connection call_timeout"
         conn = test_env.get_connection()
         conn.call_timeout = 500   # milliseconds
         self.assertEqual(conn.call_timeout, 500)
@@ -559,23 +559,23 @@ class TestCase(test_env.BaseTestCase):
                                conn.cursor().callproc,
                                test_env.get_sleep_proc_name(), [2])
 
-    def test_1137_connection_repr(self):
-        "1137 - test Connection repr()"
+    def test_1132_connection_repr(self):
+        "1132 - test Connection repr()"
         class MyConnection(oracledb.Connection):
             pass
         conn = test_env.get_connection(conn_class=MyConnection)
-        expected_regex = f"^<{__name__}.TestCase.test_1137_connection_repr." \
+        expected_value = f"<{__name__}.TestCase.test_1132_connection_repr." \
                          f"<locals>.MyConnection to {conn.username}@" \
-                         f"{conn.dsn}>$"
-        self.assertRegex(repr(conn), expected_regex)
+                         f"{conn.dsn}>"
+        self.assertEqual(repr(conn), expected_value)
 
-        expected_regex = f"^<{__name__}.TestCase.test_1137_connection_repr." \
-                         "<locals>.MyConnection disconnected>$"
         conn.close()
-        self.assertRegex(repr(conn), expected_regex)
+        expected_value = f"<{__name__}.TestCase.test_1132_connection_repr." \
+                         "<locals>.MyConnection disconnected>"
+        self.assertEqual(repr(conn), expected_value)
 
-    def test_1138_get_write_only_attributes(self):
-        "1138 - test getting write-only attributes"
+    def test_1133_get_write_only_attributes(self):
+        "1133 - test getting write-only attributes"
         conn = test_env.get_connection()
         with self.assertRaises(AttributeError):
             conn.action
@@ -590,8 +590,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             conn.client_identifier
 
-    def test_1139_invalid_params(self):
-        "1139 - test error for invalid type for params and pool"
+    def test_1134_invalid_params(self):
+        "1134 - test error for invalid type for params and pool"
         pool = test_env.get_pool()
         pool.close()
         self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:",
@@ -601,8 +601,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2025:",
                                oracledb.connect, params={"number": 7})
 
-    def test_1140_instance_name(self):
-        "1140 - test connection instance name"
+    def test_1135_instance_name(self):
+        "1135 - test connection instance name"
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -611,8 +611,8 @@ class TestCase(test_env.BaseTestCase):
         instance_name, = cursor.fetchone()
         self.assertEqual(conn.instance_name.upper(), instance_name)
 
-    def test_1141_deprecations(self):
-        "1141 - test deprecated attributes"
+    def test_1136_deprecations(self):
+        "1136 - test deprecated attributes"
         conn = test_env.get_connection()
         conn.callTimeout = 500
         self.assertEqual(conn.callTimeout, 500)
@@ -624,8 +624,8 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(test_env.get_server_version() < (23, 0) or \
                      test_env.get_client_version() < (23, 0),
                      "unsupported client/server")
-    def test_1142_max_length_password(self):
-        "1142 - test maximum allowed length for password"
+    def test_1137_max_length_password(self):
+        "1137 - test maximum allowed length for password"
         conn = test_env.get_connection()
         if self.is_on_oracle_cloud(conn):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")

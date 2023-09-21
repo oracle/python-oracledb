@@ -33,6 +33,8 @@ import test_env
 
 @unittest.skipUnless(test_env.get_client_version() >= (12, 1),
                      "unsupported client")
+@unittest.skipUnless(test_env.get_server_version() >= (12, 1),
+                     "unsupported server")
 class TestCase(test_env.BaseTestCase):
 
     def __test_bind_value_as_boolean(self, value):

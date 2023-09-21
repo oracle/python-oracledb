@@ -110,14 +110,11 @@ class TestCase(test_env.BaseTestCase):
         coll.drop()
 
     def test_3304_repr(self):
-        "3304 - test SodaDatabase representation"
-        conn1 = self.conn
-        conn2 = test_env.get_connection()
-        soda_db1 = self.conn.getSodaDatabase()
-        soda_db2 = conn1.getSodaDatabase()
-        soda_db3 = conn2.getSodaDatabase()
-        self.assertEqual(str(soda_db1), str(soda_db2))
-        self.assertEqual(str(soda_db2), str(soda_db3))
+        "3304 - test SodaDatabase repr() and str()"
+        conn = test_env.get_connection()
+        soda_db = conn.getSodaDatabase()
+        self.assertEqual(repr(soda_db), f"<oracledb.SodaDatabase on {conn}>")
+        self.assertEqual(str(soda_db), f"<oracledb.SodaDatabase on {conn}>")
 
     def test_3305_negative(self):
         "3305 - test negative cases for SODA database methods"
