@@ -199,7 +199,7 @@ ConnectionPool Attributes
 
 .. attribute:: ConnectionPool.homogeneous
 
-    This read-write boolean attribute indicates whether the pool is considered
+    This read-only boolean attribute indicates whether the pool is considered
     :ref:`homogeneous <connpooltypes>` or not. If the pool is not homogeneous,
     different authentication can be used for each connection acquired from the
     pool.

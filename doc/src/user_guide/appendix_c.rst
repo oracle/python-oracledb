@@ -484,15 +484,15 @@ following steps:
 
 6. The default value of the ``oracledb.SessionPool()`` parameter
    :attr:`~Connection.getmode` now waits for an available connection.  That is the
-   default is now :data:`~oracledb.SPOOL_ATTRVAL_WAIT` instead of
-   :data:`~oracledb.SPOOL_ATTRVAL_NOWAIT`.  The new default value improves the
+   default is now :data:`~oracledb.POOL_GETMODE_WAIT` instead of
+   :data:`~oracledb.POOL_GETMODE_NOWAIT`.  The new default value improves the
    behavior for most applications.  If the pool is in the middle of growing, the
    new value prevents transient connection creation errors from occurring when
    using the Thin mode, or when using the Thick mode with recent Oracle
    Client libraries.
 
    If the old default value is required, modify any pool creation code to
-   explicitly specify ``getmode=oracledb.POOL_SPOOL_ATTRVAL_NOWAIT``.
+   explicitly specify ``getmode=oracledb.POOL_GETMODE_NOWAIT``.
 
    Note a :ref:`ConnectionPool class <connpool>` deprecates the equivalent
    SessionPool class. The method :meth:`oracledb.create_pool()` deprecates the
@@ -558,8 +558,7 @@ addition to the common :ref:`commonupgrade`:
    this behavior is also similar in recent versions of the Oracle Call
    Interface (OCI) Session Pool used by the Thick mode.  Unless the
    ``oracledb.SessionPool()`` function's parameter ``getmode`` is
-   ``SPOOL_ATTRVAL_WAIT`` (or the new equivalent
-   :data:`oracledb.POOL_GETMODE_WAIT`), then applications should not call
+   :data:`oracledb.POOL_GETMODE_WAIT`, then applications should not call
    :meth:`ConnectionPool.acquire()` until sufficient time has passed for
    connections in the pool to be created.
 

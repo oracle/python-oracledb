@@ -352,7 +352,7 @@ Connection Methods
         explicitly closed using the function :meth:`~Connection.close()`, the
         subscription will not be deregistered in the database.
 
-.. method:: Connection.tpc_begin(xid, flags)
+.. method:: Connection.tpc_begin(xid, flags, timeout)
 
     Begins a Two-Phase Commit (TPC) on a global transaction using the specified
     transaction identifier (xid).
@@ -364,10 +364,19 @@ Connection Methods
     :data:`oracledb.TPC_BEGIN_NEW`, :data:`oracledb.TPC_BEGIN_PROMOTE`, or
     :data:`oracledb.TPC_BEGIN_RESUME`. The default is :data:`oracledb.TPC_BEGIN_NEW`.
 
+    The ``timeout ``parameter is the number of seconds to wait for a transaction to
+    become available for resumption when :data:`~oracledb.TPC_BEGIN_RESUME` is
+    specified in the ``flags`` parameter. When :data:`~oracledb.TPC_BEGIN_NEW` is
+    specified in the ``flags`` parameter, the ``timeout`` parameter indicates the
+    number of seconds the transaction can be inactive before it is automatically
+    terminated by the system. A transaction is inactive between the time it is
+    detached with :meth:`Connection.tpc_end()` and the time it is resumed with
+    :meth:`Connection.tpc_begin()`.The default is 0 seconds.
+
     The following code sample demonstrates the ``tpc_begin()`` function::
 
-        connection.tpc_begin(xid=x, flags=oracledb.TPC_BEGIN_NEW)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_begin(xid=x, flags=oracledb.TPC_BEGIN_NEW, timeout=30)
 
     See :ref:`tcp` for information on TPC.
 
@@ -392,8 +401,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_commit()`` function::
 
-        connection.tpc_commit(xid=x, one_phase=False)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_commit(xid=x, one_phase=False)
 
     See :ref:`tcp` for information on TPC.
 
@@ -415,8 +424,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_end()`` function::
 
-        connection.tpc_end(xid=x, flags=oracledb.TPC_END_NORMAL)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_end(xid=x, flags=oracledb.TPC_END_NORMAL)
 
     See :ref:`tcp` for information on TPC.
 
@@ -430,8 +439,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_forget()`` function::
 
-        connection.tpc_forget(xid=x)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_forget(xid=x)
 
     See :ref:`tcp` for information on TPC.
 
@@ -452,8 +461,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_prepare()`` function::
 
-        connection.tpc_prepare(xid=x)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_prepare(xid=x)
 
     See :ref:`tcp` for information on TPC.
 
@@ -487,8 +496,8 @@ Connection Methods
 
     The following code sample demonstrates the ``tpc_rollback()`` function::
 
-        connection.tpc_rollback(xid=x)
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        connection.tpc_rollback(xid=x)
 
     See :ref:`tcp` for information on TPC.
 
