@@ -15,6 +15,8 @@ Thin Mode Changes
 
 #)  Internal changes to improve handling of protocol between database and
     client.
+#)  Internal changes to improve handling of multiple address and description
+    lists in full connect descriptors.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -31,6 +33,7 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
+#)  Added support for parsing the FAILOVER clause in full connect descriptors.
 
 
 oracledb 1.4.1 (September 2023)

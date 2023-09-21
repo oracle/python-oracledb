@@ -82,7 +82,7 @@ class ConnectParams:
         @functools.wraps(f)
         def wrapped(self):
             values = [getattr(d, f.__name__) \
-                      for d in self._impl.description_list.descriptions]
+                      for d in self._impl.description_list.children]
             return values if len(values) > 1 else values[0]
         return wrapped
 

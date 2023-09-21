@@ -98,7 +98,20 @@ cdef class DbType:
     cdef DbType _from_ora_type_and_csfrm(uint8_t ora_type_num, uint8_t csfrm)
 
 
-cdef class Address:
+cdef class ConnectParamsNode:
+    cdef:
+        public bint source_route
+        public bint load_balance
+        public bint failover
+        public bint must_have_children
+        public list children
+        public list active_children
+
+    cdef int _copy(self, ConnectParamsNode source) except -1
+    cdef int _set_active_children(self) except -1
+
+
+cdef class Address(ConnectParamsNode):
     cdef:
         public str host
         public uint32_t port
@@ -109,23 +122,14 @@ cdef class Address:
     cdef str build_connect_string(self)
 
 
-cdef class AddressList:
-    cdef:
-        public list addresses
-        bint source_route
-        bint load_balance
-        int lru_index
+cdef class AddressList(ConnectParamsNode):
 
     cdef bint _uses_tcps(self)
     cdef str build_connect_string(self)
 
 
-cdef class Description:
+cdef class Description(ConnectParamsNode):
     cdef:
-        public list address_lists
-        public bint source_route
-        public bint load_balance
-        public int lru_index
         public uint32_t expire_time
         public uint32_t retry_count
         public uint32_t retry_delay
@@ -145,12 +149,7 @@ cdef class Description:
     cdef str build_connect_string(self, str cid=*)
 
 
-cdef class DescriptionList:
-    cdef:
-        public list descriptions
-        bint source_route
-        bint load_balance
-        int lru_index
+cdef class DescriptionList(ConnectParamsNode):
 
     cdef str build_connect_string(self)
 

@@ -132,11 +132,11 @@ cdef class ConnectParamsImpl:
         self._default_description = Description()
         self._default_address = Address()
         self.description_list = DescriptionList()
-        self.description_list.descriptions.append(self._default_description)
+        self.description_list.children.append(self._default_description)
         self.debug_jdwp = os.getenv("ORA_DEBUG_JDWP")
         address_list = AddressList()
-        address_list.addresses.append(self._default_address)
-        self._default_description.address_lists.append(address_list)
+        address_list.children.append(self._default_address)
+        self._default_description.children.append(address_list)
 
     def set(self, dict args):
         """
@@ -369,10 +369,10 @@ cdef class ConnectParamsImpl:
             description.set_from_connect_data_args(args)
             description.set_from_description_args(args)
             description.set_from_security_args(args)
-            description.address_lists = [AddressList()]
-            description.address_lists[0].addresses.append(address)
+            description.children = [AddressList()]
+            description.children[0].children.append(address)
             self.description_list = DescriptionList()
-            self.description_list.descriptions.append(description)
+            self.description_list.children.append(description)
 
         # otherwise, see if the name is a connect alias in a tnsnames.ora
         # configuration file
@@ -405,7 +405,7 @@ cdef class ConnectParamsImpl:
         for desc_args in list_args.get("description", [list_args]):
             description = self._default_description.copy()
             description.set_from_description_args(desc_args)
-            self.description_list.descriptions.append(description)
+            self.description_list.children.append(description)
             sub_args = desc_args.get("connect_data")
             if sub_args is not None:
                 description.set_from_connect_data_args(sub_args)
@@ -415,11 +415,11 @@ cdef class ConnectParamsImpl:
             for list_args in desc_args.get("address_list", [desc_args]):
                 address_list = AddressList()
                 address_list.set_from_args(list_args)
-                description.address_lists.append(address_list)
+                description.children.append(address_list)
                 for addr_args in list_args.get("address", []):
                     address = self._default_address.copy()
                     address.set_from_args(addr_args)
-                    address_list.addresses.append(address)
+                    address_list.children.append(address)
 
     cdef int _set_access_token(self, object val, int error_num) except -1:
         """
@@ -521,9 +521,9 @@ cdef class ConnectParamsImpl:
             AddressList addr_list
             Description desc
             Address addr
-        return [addr for desc in self.description_list.descriptions \
-                for addr_list in desc.address_lists \
-                for addr in addr_list.addresses]
+        return [addr for desc in self.description_list.children \
+                for addr_list in desc.children \
+                for addr in addr_list.children]
 
     def get_connect_string(self):
         """
@@ -618,13 +618,74 @@ cdef class ConnectParamsImpl:
         return dsn
 
 
-cdef class Address:
+cdef class ConnectParamsNode:
+
+    def __init__(self, bint must_have_children):
+        self.must_have_children = must_have_children
+        self.failover = True
+        if must_have_children:
+            self.children = []
+
+    cdef int _copy(self, ConnectParamsNode source) except -1:
+        """
+        Copies data from the source to this node.
+        """
+        self.must_have_children = source.must_have_children
+        if self.must_have_children:
+            self.children = []
+            self.failover = source.failover
+            self.load_balance = source.load_balance
+            self.source_route = source.source_route
+
+    cdef int _set_active_children(self) except -1:
+        """
+        Set the active children to process when connecting to the database.
+        This call is recursive and will set the active children of each of its
+        children.
+        """
+        cdef ConnectParamsNode child
+
+        # if only one child is present, that child is considered active
+        if len(self.children) == 1:
+            self.active_children = self.children
+
+        # for source route, only the first child is considered active
+        elif self.source_route:
+            self.active_children = self.children[:1]
+
+        # for failover with load balance, all of the children are active but
+        # are processed in a random order
+        elif self.failover and self.load_balance:
+            self.active_children = random.sample(self.children,
+                                                 k=len(self.children))
+
+        # for failover without load balance, all of the children are active and
+        # are processed in the same order
+        elif self.failover:
+            self.active_children = self.children
+
+        # without failover, load balance indicates that only one of the
+        # children is considered active and which one is selected randomly
+        elif self.load_balance:
+            self.active_children = random.sample(self.children, k=1)
+
+        # without failover or load balance, just the first child is navigated
+        else:
+            self.active_children = self.children[:1]
+
+        for child in self.children:
+            if child.must_have_children:
+                child._set_active_children()
+
+
+cdef class Address(ConnectParamsNode):
     """
     Internal class used to hold parameters for an address used to create a
     connection to the database.
     """
 
     def __init__(self):
+        ConnectParamsNode.__init__(self, False)
         self.protocol = DEFAULT_PROTOCOL
         self.port = DEFAULT_PORT
 
@@ -648,6 +709,7 @@ cdef class Address:
         Creates a copy of the address and returns it.
         """
         cdef Address address = Address.__new__(Address)
+        address._copy(self)
         address.host = self.host
         address.port = self.port
         address.protocol = self.protocol
@@ -677,14 +739,14 @@ cdef class Address:
         _set_uint_param(args, "https_proxy_port", &self.https_proxy_port)
 
 
-cdef class AddressList:
+cdef class AddressList(ConnectParamsNode):
     """
     Internal class used to hold address list parameters and a list of addresses
     used to create connections to the database.
     """
 
     def __init__(self):
-        self.addresses = []
+        ConnectParamsNode.__init__(self, True)
 
     cdef bint _uses_tcps(self):
         """
@@ -692,7 +754,7 @@ cdef class AddressList:
         list use the protocol TCPS.
         """
         cdef Address address
-        for address in self.addresses:
+        for address in self.children:
             if address.protocol == "tcps":
                 return True
         return False
@@ -702,7 +764,7 @@ cdef class AddressList:
         Build a connect string from the components.
         """
         cdef Address a
-        parts = [a.build_connect_string() for a in self.addresses]
+        parts = [a.build_connect_string() for a in self.children]
         if len(parts) == 1:
             return parts[0]
         return f'(ADDRESS_LIST={"".join(parts)})'
@@ -712,17 +774,18 @@ cdef class AddressList:
         Set paramter values from an argument dictionary or an (ADDRESS_LIST)
         node in a connect descriptor.
         """
+        _set_bool_param(args, "failover", &self.failover)
         _set_bool_param(args, "load_balance", &self.load_balance)
         _set_bool_param(args, "source_route", &self.source_route)
 
 
-cdef class Description:
+cdef class Description(ConnectParamsNode):
     """
     Internal class used to hold description parameters.
     """
 
     def __init__(self):
-        self.address_lists = []
+        ConnectParamsNode.__init__(self, True)
         self.tcp_connect_timeout = DEFAULT_TCP_CONNECT_TIMEOUT
         self.ssl_server_dn_match = True
 
@@ -769,7 +832,7 @@ cdef class Description:
         # add address lists, but if the address list contains only a single
         # entry and that entry does not have a host, the other parts aren't
         # relevant anyway!
-        for address_list in self.address_lists:
+        for address_list in self.children:
             temp = address_list.build_connect_string()
             if temp is None:
                 return None
@@ -818,7 +881,7 @@ cdef class Description:
         returns it.
         """
         cdef Description description = Description.__new__(Description)
-        description.address_lists = []
+        description._copy(self)
         description.service_name = self.service_name
         description.sid = self.sid
         description.server_type = self.server_type
@@ -855,6 +918,7 @@ cdef class Description:
         """
         cdef Address address
         _set_uint_param(args, "expire_time", &self.expire_time)
+        _set_bool_param(args, "failover", &self.failover)
         _set_bool_param(args, "load_balance", &self.load_balance)
         _set_bool_param(args, "source_route", &self.source_route)
         _set_uint_param(args, "retry_count", &self.retry_count)
@@ -872,14 +936,14 @@ cdef class Description:
         _set_str_param(args, "wallet_location", self)
 
 
-cdef class DescriptionList:
+cdef class DescriptionList(ConnectParamsNode):
     """
     Internal class used to hold description list parameters and a list of
     descriptions.
     """
 
     def __init__(self):
-        self.descriptions = []
+        ConnectParamsNode.__init__(self, True)
 
     cdef str build_connect_string(self):
         """
@@ -888,7 +952,7 @@ cdef class DescriptionList:
         cdef:
             Description d
             list parts
-        parts = [d.build_connect_string() for d in self.descriptions]
+        parts = [d.build_connect_string() for d in self.children]
         if len(parts) == 1:
             return parts[0]
         return f'(DESCIPTION_LIST={"".join(parts)})'
@@ -898,6 +962,7 @@ cdef class DescriptionList:
         Set paramter values from an argument dictionary or a (DESCRIPTION_LIST)
         node in a connect descriptor.
         """
+        _set_bool_param(args, "failover", &self.failover)
         _set_bool_param(args, "load_balance", &self.load_balance)
         _set_bool_param(args, "source_route", &self.source_route)
 

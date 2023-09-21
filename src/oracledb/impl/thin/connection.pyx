@@ -130,66 +130,31 @@ cdef class ThinConnImpl(BaseConnImpl):
                                        ConnectParamsImpl params,
                                        bint final_desc) except -1:
         """
-        Internal method used for connecting with the given description.
+        Internal method used for connecting with the given description. Retry
+        connecting to the socket if an attempt fails and retry_count is
+        specified in the connect string.
         """
         cdef:
-            bint load_balance = description.load_balance
-            bint raise_exc = False
-            list address_lists = description.address_lists
-            uint32_t i, j, k, num_addresses, idx1, idx2
-            uint32_t num_attempts = description.retry_count + 1
-            uint32_t num_lists = len(address_lists)
+            uint32_t i, j, k, num_attempts, num_lists, num_addresses
             AddressList address_list
+            bint raise_exc = False
             str connect_string
             Address address
-
-        # Retry connecting to the socket if an attempt fails and retry_count
-        # is specified in the connect string. If an attempt succeeds, return
-        # the socket and the valid address object.
+        num_lists = len(description.active_children)
+        num_attempts = description.retry_count + 1
         connect_string = _get_connect_data(description, self._connection_id)
         for i in range(num_attempts):
-
-            # iterate through each address_list in the description; if the
-            # description level load_balance is on, keep track of the least
-            # recently used address for subsequent connections; otherwise,
-            # iterate through the list in order; note that if source_route is
-            # enabled that only the first address list is examined as the rest
-            # are used for routing on the server
-            if description.source_route and num_lists > 0:
-                num_lists = 1
-            for j in range(num_lists):
-                if load_balance:
-                    idx1 = (j + description.lru_index) % num_lists
-                else:
-                    idx1 = j
-
-                # iterate through each address in an address_list; if the
-                # address_list level load_balance is on, keep track of the
-                # least recently used address for subsequent connections;
-                # otherwise, iterate through the list in order; note that if
-                # source_route is enabled that only the first address is
-                # examined and the rest are used for routing on the server
-                address_list = address_lists[idx1]
-                num_addresses = len(address_list.addresses)
-                if address_list.source_route and num_addresses > 0:
-                    num_addresses = 1
-                for k in range(num_addresses):
-                    if address_list.load_balance:
-                        idx2 = (k + address_list.lru_index) % num_addresses
-                    else:
-                        idx2 = k
-                    address = address_list.addresses[idx2]
+            for j, address_list in enumerate(description.active_children):
+                num_addresses = len(address_list.active_children)
+                for k, address in enumerate(address_list.active_children):
                     if final_desc:
                         raise_exc = i == num_attempts - 1 \
                                 and j == num_lists - 1 \
                                 and k == num_addresses - 1
                     self._connect_with_address(address, description, params,
                                                connect_string, raise_exc)
-                    if self._protocol._in_connect:
-                        continue
-                    address_list.lru_index = (idx1 + 1) % num_addresses
-                    description.lru_index = (idx2 + 1) % num_lists
-                    return 0
+                    if not self._protocol._in_connect:
+                        return 0
             time.sleep(description.retry_delay)
 
     cdef int _connect_with_params(self, ConnectParamsImpl params) except -1:
@@ -198,23 +163,15 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         cdef:
             DescriptionList description_list = params.description_list
-            list descriptions = description_list.descriptions
-            ssize_t i, idx, num_descriptions = len(descriptions)
+            ssize_t i, num_descriptions
             Description description
-            bint final_desc = False
-        if description_list.source_route and num_descriptions > 0:
-            num_descriptions = 1
-        for i in range(num_descriptions):
-            if i == num_descriptions - 1:
-                final_desc = True
-            if description_list.load_balance:
-                idx = (i + description_list.lru_index) % num_descriptions
-            else:
-                idx = i
-            description = descriptions[idx]
+            bint final_desc
+        description_list._set_active_children()
+        num_descriptions = len(description_list.active_children)
+        for i, description in enumerate(description_list.active_children):
+            final_desc = (i == num_descriptions - 1)
             self._connect_with_description(description, params, final_desc)
             if not self._protocol._in_connect:
-                description_list.lru_index = (idx + 1) % num_descriptions
                 break
 
     cdef Message _create_message(self, type typ):
