@@ -13,8 +13,8 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Internal changes to improve handling of protocol between database and
-    client.
+#)  Internal changes to improve handling of the network protocol between
+    python-oracledb and Oracle Database.
 #)  Internal changes to improve handling of multiple address and description
     lists in full connect descriptors.
 
@@ -33,7 +33,8 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
-#)  Added support for parsing the FAILOVER clause in full connect descriptors.
+#)  Added support for parsing the ``FAILOVER`` clause in full connect
+    descriptors.
 
 
 oracledb 1.4.1 (September 2023)
@@ -51,8 +52,8 @@ Thin Mode Changes
 Thick Changes
 +++++++++++++
 
-#)  Fixed error checking when getting and setting the pool ping interval and
-    the SODA metadata cache flag.
+#)  Fixed error checking when getting or setting the connection pool parameters
+    ``ping_interval`` and ``soda_metadata_cache``.
 
 Common Changes
 ++++++++++++++
