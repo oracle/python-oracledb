@@ -364,7 +364,7 @@ Connection Methods
     :data:`oracledb.TPC_BEGIN_NEW`, :data:`oracledb.TPC_BEGIN_PROMOTE`, or
     :data:`oracledb.TPC_BEGIN_RESUME`. The default is :data:`oracledb.TPC_BEGIN_NEW`.
 
-    The ``timeout ``parameter is the number of seconds to wait for a transaction to
+    The ``timeout`` parameter is the number of seconds to wait for a transaction to
     become available for resumption when :data:`~oracledb.TPC_BEGIN_RESUME` is
     specified in the ``flags`` parameter. When :data:`~oracledb.TPC_BEGIN_NEW` is
     specified in the ``flags`` parameter, the ``timeout`` parameter indicates the
