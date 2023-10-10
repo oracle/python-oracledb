@@ -63,6 +63,61 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("soda_metadata_cache", True)
         self.__test_writable_parameter("ping_interval", 20)
 
+    def test_4701_repr(self):
+        "4701 - test PoolParams repr()"
+        values = [
+            ("min", 3),
+            ("max", 10),
+            ("increment", 4),
+            ("connectiontype", oracledb.Connection),
+            ("getmode", oracledb.POOL_GETMODE_WAIT),
+            ("homogeneous", True),
+            ("timeout", 60),
+            ("wait_timeout", 20),
+            ("max_lifetime_session", 80),
+            ("session_callback", lambda c: None),
+            ("max_sessions_per_shard", 4),
+            ("soda_metadata_cache", False),
+            ("ping_interval", 50),
+            ("user", test_env.get_main_user()),
+            ("proxy_user", test_env.get_proxy_user()),
+            ("host", "my_host1"),
+            ("port", 1522),
+            ("protocol", "tcp"),
+            ("https_proxy", "proxy_4701"),
+            ("https_proxy_port", 4701),
+            ("service_name", "my_service_name1"),
+            ("sid", "my_sid1"),
+            ("server_type", "dedicated"),
+            ("cclass", "cclass_1"),
+            ("purity", oracledb.PURITY_SELF),
+            ("expire_time", 60),
+            ("retry_count", 6),
+            ("retry_delay", 10),
+            ("tcp_connect_timeout", 40.0),
+            ("ssl_server_dn_match", False),
+            ("ssl_server_cert_dn", "CN=unknown4701a"),
+            ("wallet_location", "/tmp/wallet_loc1a"),
+            ("events", True),
+            ("externalauth", True),
+            ("mode", oracledb.AUTH_MODE_SYSDBA),
+            ("disable_oob", True),
+            ("stmtcachesize", 25),
+            ("edition", "edition_4701"),
+            ("tag", "tag4701"),
+            ("matchanytag", True),
+            ("config_dir", "config_dir_4701"),
+            ("appcontext", [("a", "b", "c")]),
+            ("shardingkey", [1, 2, 3]),
+            ("supershardingkey", [4]),
+            ("debug_jdwp", "host=host;port=1523"),
+            ("connection_id_prefix", "prefix4701"),
+        ]
+        params = oracledb.PoolParams(**dict(values))
+        parts = [f"{name}={value!r}" for name, value in values]
+        expected_value = f"PoolParams({', '.join(parts)})"
+        self.assertEqual(repr(params), expected_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

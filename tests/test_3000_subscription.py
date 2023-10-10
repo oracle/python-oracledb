@@ -298,6 +298,12 @@ class TestCase(test_env.BaseTestCase):
             sub.registerquery,
             "select * from Nonexistent",
         )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^DPI-1013:",
+            sub.registerquery,
+            "insert into TestTempTable (IntCol) values (1)",
+        )
         conn.unsubscribe(sub)
 
     @unittest.skipIf(
@@ -388,6 +394,45 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaisesRegex(
             oracledb.DatabaseError, "^DPI-1002", conn.unsubscribe, sub
         )
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    )
+    def test_3010_registerquery_with_active_txn(self):
+        "3010 - test registerquery in the middle of an active transaction"
+        connection = test_env.get_connection(events=True)
+        cursor = connection.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute(
+            "insert into TestTempTable (IntCol, StringCol1) values (1, 'test')"
+        )
+        sub = connection.subscribe(callback=lambda x: f"Msg: {x}")
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-29975:",
+            sub.registerquery,
+            "select * from TestTempTable",
+        )
+        connection.unsubscribe(sub)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    )
+    def test_3011_registerquery_with_aq_sub(self):
+        "3011 - test registerquery with aq subscription"
+        connection = test_env.get_connection(events=True)
+        sub = connection.subscribe(
+            callback=lambda x: None,
+            namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+            name="TEST_RAW_QUEUE",
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-24315:",
+            sub.registerquery,
+            "select * from TestTempTable",
+        )
+        connection.unsubscribe(sub)
 
 
 if __name__ == "__main__":

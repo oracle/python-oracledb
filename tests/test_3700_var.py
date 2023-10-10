@@ -504,6 +504,12 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_rows)
 
+    def test_3731_get_convert_nulls(self):
+        "3731 - test getting convert_nulls"
+        for convert_nulls in [True, False]:
+            simple_var = self.cursor.var(str, convert_nulls=convert_nulls)
+            self.assertEqual(simple_var.convert_nulls, convert_nulls)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
