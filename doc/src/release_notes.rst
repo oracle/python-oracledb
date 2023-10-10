@@ -7,6 +7,22 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+oracledb 1.4.2 (October 2023)
+-----------------------------
+
+Thick Changes
++++++++++++++
+
+#)  Fixed bug resulting in a segfault on some platforms when using two-phase
+    commit.
+
+Common Changes
+++++++++++++++
+
+#)  Pre-built binaries are now being created for Python 3.12
+    (`issue 237 <https://github.com/oracle/python-oracledb/issues/237>`__).
+
+
 oracledb 1.4.1 (September 2023)
 -------------------------------
 
