@@ -211,6 +211,14 @@ cdef class BaseConnImpl:
     def get_current_schema(self):
         pass
 
+    @utils.CheckImpls("getting the database domain name")
+    def get_db_domain(self):
+        pass
+
+    @utils.CheckImpls("getting the database name")
+    def get_db_name(self):
+        pass
+
     @utils.CheckImpls("getting the edition")
     def get_edition(self):
         pass
@@ -235,8 +243,20 @@ cdef class BaseConnImpl:
     def get_ltxid(self):
         pass
 
+    @utils.CheckImpls("getting the maximum number of open cursors")
+    def get_max_open_cursors(self):
+        pass
+
+    @utils.CheckImpls("getting the service name")
+    def get_service_name(self):
+        pass
+
     @utils.CheckImpls("getting the statement cache size")
     def get_stmt_cache_size(self):
+        pass
+
+    @utils.CheckImpls("getting if a transaction is in progress")
+    def get_transaction_in_progress(self):
         pass
 
     @utils.CheckImpls("getting an object type")

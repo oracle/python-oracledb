@@ -25,6 +25,10 @@ Common Changes
 ++++++++++++++
 
 #)  Dropped support for Python 3.6 and added support for Python 3.12.
+#)  Added properties that provide information about the database:
+    :attr:`Connection.db_domain`, :attr:`Connection.db_name`,
+    :attr:`Connection.max_open_cursors`, :attr:`Connection.service_name`
+    and :attr:`Connection.transaction_in_progress`.
 #)  Added attributes :data:`FetchInfo.domain_schema`,
     :data:`FetchInfo.domain_name` and :data:`FetchInfo.annotations` for the
     `SQL domain <https://docs.oracle.com/en/database/oracle/oracle-database/

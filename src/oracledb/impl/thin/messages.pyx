@@ -1519,8 +1519,17 @@ cdef class AuthMessage(Message):
                     <uint32_t> int(self.session_data["AUTH_SESSION_ID"])
             self.conn_impl._serial_num = \
                     <uint32_t> int(self.session_data["AUTH_SERIAL_NUM"])
+            self.conn_impl._db_domain = \
+                    self.session_data.get("AUTH_SC_DB_DOMAIN")
+            self.conn_impl._db_name = \
+                    self.session_data.get("AUTH_SC_DBUNIQUE_NAME")
+            self.conn_impl._max_open_cursors = \
+                    int(self.session_data.get("AUTH_MAX_OPEN_CURSORS"))
+            self.conn_impl._service_name = \
+                    self.session_data.get("AUTH_SC_SERVICE_NAME")
             self.conn_impl._instance_name = \
                     self.session_data.get("AUTH_INSTANCENAME")
+
             self.conn_impl._server_version = \
                     "%d.%d.%d.%d.%d" % self._get_version_tuple(buf)
 

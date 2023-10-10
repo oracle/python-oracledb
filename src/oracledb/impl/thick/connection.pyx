@@ -466,6 +466,24 @@ cdef class ThickConnImpl(BaseConnImpl):
         if value is not NULL:
             return value[:value_length].decode()
 
+    def get_db_domain(self):
+        cdef:
+            uint32_t value_length
+            const char *value
+        if dpiConn_getDbDomain(self._handle, &value, &value_length) < 0:
+            _raise_from_odpi()
+        if value is not NULL:
+            return value[:value_length].decode()
+
+    def get_db_name(self):
+        cdef:
+            uint32_t value_length
+            const char *value
+        if dpiConn_getDbName(self._handle, &value, &value_length) < 0:
+            _raise_from_odpi()
+        if value is not NULL:
+            return value[:value_length].decode()
+
     def get_edition(self):
         cdef:
             uint32_t value_length
@@ -516,9 +534,30 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         return value[:value_length]
 
+    def get_max_open_cursors(self):
+        cdef uint32_t value
+        if dpiConn_getMaxOpenCursors(self._handle, &value) < 0:
+            _raise_from_odpi()
+        return value
+
+    def get_service_name(self):
+        cdef:
+            uint32_t value_length
+            const char *value
+        if dpiConn_getServiceName(self._handle, &value, &value_length) < 0:
+            _raise_from_odpi()
+        if value is not NULL:
+            return value[:value_length].decode()
+
     def get_stmt_cache_size(self):
         cdef uint32_t value
         if dpiConn_getStmtCacheSize(self._handle, &value) < 0:
+            _raise_from_odpi()
+        return value
+
+    def get_transaction_in_progress(self):
+        cdef bint value
+        if dpiConn_getTransactionInProgress(self._handle, &value) < 0:
             _raise_from_odpi()
         return value
 

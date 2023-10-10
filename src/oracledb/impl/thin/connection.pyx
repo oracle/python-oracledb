@@ -53,10 +53,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         bytes _ltxid
         str _current_schema
         bint _current_schema_modified
+        uint32_t _max_open_cursors
+        str _db_domain
+        str _db_name
         str _edition
         str _instance_name
         str _internal_name
         str _external_name
+        str _service_name
         array.array _cursors_to_close
         ssize_t _num_cursors_to_close
         bint _drcp_enabled
@@ -306,6 +310,12 @@ cdef class ThinConnImpl(BaseConnImpl):
     def get_current_schema(self):
         return self._current_schema
 
+    def get_db_domain(self):
+        return self._db_domain
+
+    def get_db_name(self):
+        return self._db_name
+
     def get_edition(self):
         return self._edition
 
@@ -325,8 +335,17 @@ cdef class ThinConnImpl(BaseConnImpl):
     def get_ltxid(self):
         return self._ltxid or b''
 
+    def get_max_open_cursors(self):
+        return self._max_open_cursors
+
+    def get_service_name(self):
+        return self._service_name
+
     def get_stmt_cache_size(self):
         return self._statement_cache_size
+
+    def get_transaction_in_progress(self):
+        return self._protocol._txn_in_progress
 
     def get_type(self, object conn, str name):
         cdef ThinDbObjectTypeCache cache = \

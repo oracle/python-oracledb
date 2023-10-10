@@ -404,6 +404,22 @@ class Connection:
         self._impl.set_econtext_id(value)
 
     @property
+    def db_domain(self) -> str:
+        """
+        Specifies the name of the database domain.
+        """
+        self._verify_connected()
+        return self._impl.get_db_domain()
+
+    @property
+    def db_name(self) -> str:
+        """
+        Specifies the name of the database.
+        """
+        self._verify_connected()
+        return self._impl.get_db_name()
+
+    @property
     def edition(self) -> str:
         """
         Specifies the session edition.
@@ -546,6 +562,15 @@ class Connection:
         return 4
 
     @property
+    def max_open_cursors(self) -> int:
+        """
+        Specifies the maximum number of cursors that the database can have open
+        concurrently.
+        """
+        self._verify_connected()
+        return self._impl.get_max_open_cursors()
+
+    @property
     def module(self) -> None:
         raise AttributeError("module is not readable")
 
@@ -679,6 +704,15 @@ class Connection:
         """
         self._verify_connected()
         self._impl.rollback()
+
+    @property
+    def service_name(self) -> str:
+        """
+        Specifies the name of the service that was used to connect to the
+        database.
+        """
+        self._verify_connected()
+        return self._impl.get_service_name()
 
     def shutdown(self, mode: int = 0) -> None:
         """
@@ -1001,6 +1035,15 @@ class Connection:
         if xid is not None:
             self._verify_xid(xid)
         self._impl.tpc_rollback(xid)
+
+    @property
+    def transaction_in_progress(self) -> bool:
+        """
+        Specifies whether a transaction is currently in progress on the
+        database using this connection.
+        """
+        self._verify_connected()
+        return self._impl.get_transaction_in_progress()
 
     def unsubscribe(self, subscr: Subscription) -> None:
         """

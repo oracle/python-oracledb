@@ -609,6 +609,30 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
+.. attribute:: Connection.db_domain
+
+    This read-only attribute specifies the Oracle Database domain name
+    associated with the connection. It is the same value returned by the SQL
+    ``SELECT value FROM V$PARAMETER WHERE NAME = 'db_domain'``.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+.. attribute:: Connection.db_name
+
+    This read-only attribute specifies the Oracle Database name associated with
+    the connection. It is the same value returned by the SQL
+    ``SELECT NAME FROM V$DATABASE``.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
 .. attribute:: Connection.dbop
 
     This write-only attribute sets the database operation that is to be
@@ -742,6 +766,19 @@ Connection Attributes
         This attribute is an extension to the DB API definition.
 
 
+.. attribute:: Connection.max_open_cursors
+
+    This read-only attribute specifies the maximum number of cursors that the
+    database can have open concurrently. It is the same value returned by the
+    SQL ``SELECT VALUE FROM V$PARAMETER WHERE NAME = 'open_cursors'``.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+
 .. attribute:: Connection.module
 
     This write-only attribute sets the module column in the v$session table.
@@ -779,6 +816,18 @@ Connection Attributes
         The method signature was changed. The previous signature
         ``handler(cursor, name, default_type, length, precision, scale)`` will
         still work but is deprecated and will be removed in a future version.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+.. attribute:: Connection.service_name
+
+    This read-only attribute specifies the Oracle Database service name
+    associated with the connection.  This is the same value returned by the SQL
+    ``SELECT SYS_CONTEXT('USERENV', 'SERVICE_NAME') FROM DUAL``.
+
+    .. versionadded:: 2.0.0
 
     .. note::
 
@@ -832,6 +881,17 @@ Connection Attributes
     .. deprecated:: cx_Oracle 8.2
 
     Use the attribute :attr:`~Connection.dsn` instead.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+.. attribute:: Connection.transaction_in_progress
+
+    This read-only attribute specifies whether a transaction is currently in
+    progress on the database associated with the connection.
+
+    .. versionadded:: 2.0.0
 
     .. note::
 

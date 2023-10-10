@@ -572,6 +572,12 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiConn_getCurrentSchema(dpiConn *conn, const char **value,
             uint32_t *valueLength) nogil
 
+    int dpiConn_getDbDomain(dpiConn *conn, const char **value,
+            uint32_t *valueLength) nogil
+
+    int dpiConn_getDbName(dpiConn *conn, const char **value,
+            uint32_t *valueLength) nogil
+
     int dpiConn_getEdition(dpiConn *conn, const char **value,
             uint32_t *valueLength) nogil
 
@@ -591,6 +597,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiConn_getLTXID(dpiConn *conn, const char **value,
             uint32_t *valueLength) nogil
 
+    int dpiConn_getMaxOpenCursors(dpiConn *conn,
+            uint32_t *maxOpenCursors) nogil
+
     int dpiConn_getOciAttr(dpiConn *conn, uint32_t handleType,
             uint32_t attribute, dpiDataBuffer *value,
             uint32_t *valueLength) nogil
@@ -601,9 +610,15 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiConn_getServerVersion(dpiConn *conn, const char **releaseString,
             uint32_t *releaseStringLength, dpiVersionInfo *versionInfo) nogil
 
+    int dpiConn_getServiceName(dpiConn *conn, const char **value,
+            uint32_t *valueLength) nogil
+
     int dpiConn_getSodaDb(dpiConn *conn, dpiSodaDb **db) nogil
 
     int dpiConn_getStmtCacheSize(dpiConn *conn, uint32_t *cacheSize) nogil
+
+    int dpiConn_getTransactionInProgress(dpiConn *conn,
+            bint *txnInProgress) nogil
 
     int dpiConn_getCallTimeout(dpiConn *conn, uint32_t *value) nogil
 
