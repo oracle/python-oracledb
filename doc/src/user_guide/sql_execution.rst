@@ -16,10 +16,14 @@ PL/SQL statements are discussed in :ref:`plsqlexecution`.  Other chapters
 contain information on specific data types and features.  See :ref:`batchstmnt`,
 :ref:`lobdata`, :ref:`jsondatatype`, and :ref:`xmldatatype`.
 
-Python-oracledb can be used to execute individual statements, one at a time.  It does
-not read SQL*Plus ".sql" files.  To read SQL files, use a technique like the one
-in ``run_sql_script()`` in `samples/sample_env.py
-<https://github.com/oracle/python-oracledb/blob/main/samples/sample_env.py>`__
+Python-oracledb can be used to execute individual statements, one at a time.
+Once a statement has finished execution, only then will the next statement
+execute. If you try to execute statements concurrently, the statements are
+queued and run consecutively in the order they are in the code.
+
+Python-oracledb does not read SQL*Plus ".sql" files.  To read SQL files, use a
+technique like the one in ``run_sql_script()`` in `samples/sample_env.py
+<https://github.com/oracle/python-oracledb/blob/main/samples/sample_env.py>`__.
 
 SQL statements should not contain a trailing semicolon (";") or forward slash
 ("/").  This will fail:

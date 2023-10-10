@@ -226,7 +226,7 @@ ConnectionPool Attributes
     seconds. Note that termination only occurs when the pool is accessed. A
     value of 0 means that there is no maximum length of time that a pooled
     connection may exist. This attribute is only available in Oracle Database
-    12.1.
+    12.1 or later.
 
 .. attribute:: ConnectionPool.max_sessions_per_shard
 

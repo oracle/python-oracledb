@@ -48,6 +48,7 @@ User Guide
     user_guide/tracing.rst
     user_guide/globalization.rst
     user_guide/exception_handling.rst
+    user_guide/troubleshooting.rst
     user_guide/appendix_a.rst
     user_guide/appendix_b.rst
     user_guide/appendix_c.rst

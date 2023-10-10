@@ -290,6 +290,9 @@ SodaCollection Methods
 
     Returns a list of specifications for the indexes found on the collection.
 
+    This method requires Oracle Client 21.3 or later (or Oracle Client 19 from
+    19.13).
+
     .. versionadded:: 1.4.0
 
 .. method:: SodaCollection.save(doc)
