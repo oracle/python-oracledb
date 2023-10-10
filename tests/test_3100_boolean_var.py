@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 3100 - Module for testing boolean variables
@@ -31,24 +31,28 @@ import unittest
 import oracledb
 import test_env
 
-@unittest.skipUnless(test_env.get_client_version() >= (12, 1),
-                     "unsupported client")
-@unittest.skipUnless(test_env.get_server_version() >= (12, 1),
-                     "unsupported server")
-class TestCase(test_env.BaseTestCase):
 
+@unittest.skipUnless(
+    test_env.get_client_version() >= (12, 1), "unsupported client"
+)
+@unittest.skipUnless(
+    test_env.get_server_version() >= (12, 1), "unsupported server"
+)
+class TestCase(test_env.BaseTestCase):
     def __test_bind_value_as_boolean(self, value):
         expected_result = str(bool(value)).upper()
         var = self.cursor.var(bool)
         var.setvalue(0, value)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      [var])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.GetStringRep", str, [var]
+        )
         self.assertEqual(result, expected_result)
 
     def test_3100_bind_false(self):
         "3100 - test binding in a False value"
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      [False])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.GetStringRep", str, [False]
+        )
         self.assertEqual(result, "FALSE")
 
     def test_3101_bind_float_as_boolean(self):
@@ -64,20 +68,23 @@ class TestCase(test_env.BaseTestCase):
     def test_3103_bind_null(self):
         "3103 - test binding in a null value"
         self.cursor.setinputsizes(None, bool)
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      [None])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.GetStringRep", str, [None]
+        )
         self.assertEqual(result, "NULL")
 
     def test_3104_bind_out_false(self):
         "3104 - test binding out a boolean value (False)"
-        result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10",
-                                      oracledb.DB_TYPE_BOOLEAN, [15])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.IsLessThan10", oracledb.DB_TYPE_BOOLEAN, [15]
+        )
         self.assertFalse(result)
 
     def test_3105_bind_out_true(self):
         "3105 - test binding out a boolean value (True)"
-        result = self.cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool,
-                                      [5])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.IsLessThan10", bool, [5]
+        )
         self.assertTrue(result)
 
     def test_3106_bind_string_as_boolean(self):
@@ -87,15 +94,18 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3107_bind_true(self):
         "3107 - test binding in a True value"
-        result = self.cursor.callfunc("pkg_TestBooleans.GetStringRep", str,
-                                      [True])
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.GetStringRep", str, [True]
+        )
         self.assertEqual(result, "TRUE")
 
     def test_3108_bind_out_null(self):
         "3108 - test binding out a boolean value (None)"
-        result = self.cursor.callfunc("pkg_TestBooleans.TestOutValueNull",
-                                      bool)
+        result = self.cursor.callfunc(
+            "pkg_TestBooleans.TestOutValueNull", bool
+        )
         self.assertIsNone(result)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

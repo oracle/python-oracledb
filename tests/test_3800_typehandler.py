@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 3800 - Module for testing the input and output type handlers.
@@ -32,8 +32,8 @@ import unittest
 import oracledb
 import test_env
 
-class Building(object):
 
+class Building:
     def __init__(self, building_id, description, num_floors):
         self.building_id = building_id
         self.description = description
@@ -44,9 +44,11 @@ class Building(object):
 
     def __eq__(self, other):
         if isinstance(other, Building):
-            return other.building_id == self.building_id \
-                    and other.description == self.description \
-                    and other.num_floors == self.num_floors
+            return (
+                other.building_id == self.building_id
+                and other.description == self.description
+                and other.num_floors == self.num_floors
+            )
         return NotImplemented
 
     def to_json(self):
@@ -59,28 +61,37 @@ class Building(object):
 
 
 class TestCase(test_env.BaseTestCase):
-
     def building_in_converter(self, value):
         return value.to_json()
 
     def input_type_handler(self, cursor, value, num_elements):
         if isinstance(value, Building):
-            return cursor.var(oracledb.STRING, arraysize=num_elements,
-                              inconverter=self.building_in_converter)
+            return cursor.var(
+                oracledb.STRING,
+                arraysize=num_elements,
+                inconverter=self.building_in_converter,
+            )
 
     def output_type_handler(self, cursor, metadata):
         if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
-            return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
-                              outconverter=Building.from_json)
+            return cursor.var(
+                metadata.type_code,
+                arraysize=cursor.arraysize,
+                outconverter=Building.from_json,
+            )
 
     def test_3800(self):
         "3800 - binding unsupported python object without input type handler"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         building = Building(1, "The First Building", 5)
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:",
-                               self.cursor.execute, sql,
-                               [building.building_id, building])
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError,
+            "^DPY-3002:",
+            self.cursor.execute,
+            sql,
+            [building.building_id, building],
+        )
 
     def test_3801(self):
         "3801 - not callable input type handler"
@@ -89,24 +100,34 @@ class TestCase(test_env.BaseTestCase):
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         self.cursor.inputtypehandler = 5
         self.assertEqual(self.cursor.inputtypehandler, 5)
-        self.assertRaises(TypeError, self.cursor.execute, sql,
-                          (building.building_id, building))
+        self.assertRaises(
+            TypeError,
+            self.cursor.execute,
+            sql,
+            (building.building_id, building),
+        )
 
     def test_3802(self):
         "3802 - binding unsupported python object with input type handler"
         self.cursor.execute("truncate table TestTempTable")
         building = Building(1, "The First Building", 5)
         self.cursor.inputtypehandler = self.input_type_handler
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (:1, :2)""",
-                [building.building_id, building])
-        self.assertEqual(self.cursor.bindvars[1].inconverter,
-                         self.building_in_converter)
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:1, :2)
+            """,
+            [building.building_id, building],
+        )
+        self.assertEqual(
+            self.cursor.bindvars[1].inconverter, self.building_in_converter
+        )
         self.conn.commit()
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
-        self.assertEqual(self.cursor.fetchall(),
-                         [(building.building_id, building.to_json())])
+        self.assertEqual(
+            self.cursor.fetchall(),
+            [(building.building_id, building.to_json())],
+        )
 
     def test_3803(self):
         "3803 - input type handler and output type handler on cursor level"
@@ -121,16 +142,23 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
 
         cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
-        self.assertEqual(cursor_one.fetchall(),
-                         [(building_one.building_id, building_one.to_json())])
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:",
-                               cursor_two.execute, sql,
-                               (building_two.building_id, building_two))
+        self.assertEqual(
+            cursor_one.fetchall(),
+            [(building_one.building_id, building_one.to_json())],
+        )
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError,
+            "^DPY-3002:",
+            cursor_two.execute,
+            sql,
+            (building_two.building_id, building_two),
+        )
 
         cursor_two.outputtypehandler = self.output_type_handler
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
-        self.assertEqual(cursor_two.fetchall(),
-                         [(building_one.building_id, building_one)])
+        self.assertEqual(
+            cursor_two.fetchall(), [(building_one.building_id, building_one)]
+        )
 
     def test_3804(self):
         "3804 - input type handler and output type handler on connection level"
@@ -147,33 +175,43 @@ class TestCase(test_env.BaseTestCase):
         cursor_one.execute(sql, [building_one.building_id, building_one])
         cursor_two.execute(sql, [building_two.building_id, building_two])
         connection.commit()
-        
+
         expected_data = [
             (building_one.building_id, building_one),
-            (building_two.building_id, building_two)
+            (building_two.building_id, building_two),
         ]
         connection.outputtypehandler = self.output_type_handler
-        self.assertEqual(connection.outputtypehandler, self.output_type_handler)
+        self.assertEqual(
+            connection.outputtypehandler, self.output_type_handler
+        )
         cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
-        self.assertEqual(cursor_one.fetchvars[1].outconverter,
-                         Building.from_json)
+        self.assertEqual(
+            cursor_one.fetchvars[1].outconverter, Building.from_json
+        )
         self.assertEqual(cursor_one.fetchall(), expected_data)
 
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(cursor_two.fetchall(), expected_data)
         other_cursor = self.conn.cursor()
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:",
-                               other_cursor.execute, sql,
-                               (building_one.building_id, building_one))
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError,
+            "^DPY-3002:",
+            other_cursor.execute,
+            sql,
+            (building_one.building_id, building_one),
+        )
 
     def test_3805(self):
         "3805 - output type handler with outconvert and null values"
         self.cursor.execute("truncate table TestTempTable")
         data_to_insert = [(1, "String 1"), (2, None), (3, "String 2")]
-        self.cursor.executemany("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (:1, :2)""",
-                data_to_insert)
+        self.cursor.executemany(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:1, :2)
+            """,
+            data_to_insert,
+        )
         self.conn.commit()
 
         def converter(value):
@@ -181,42 +219,54 @@ class TestCase(test_env.BaseTestCase):
 
         def output_type_handler(cursor, metadata):
             if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
-                return cursor.var(str, outconverter=converter,
-                                  arraysize=cursor.arraysize)
+                return cursor.var(
+                    str, outconverter=converter, arraysize=cursor.arraysize
+                )
 
         self.cursor.outputtypehandler = output_type_handler
-        self.cursor.execute("""
-                select IntCol, StringCol1
-                from TestTempTable
-                order by IntCol""")
+        self.cursor.execute(
+            """
+            select IntCol, StringCol1
+            from TestTempTable
+            order by IntCol
+            """
+        )
         expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(test_env.get_server_version() >= (21, 0),
-                         "unsupported server")
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (21, 0), "unsupported server"
+    )
     def test_3806(self):
         "3806 - output type handler for fetching 21c JSON"
+
         def output_type_handler(cursor, metadata):
             # fetch 21c JSON datatype when using python-oracledb thin mode
             if metadata.type_code is oracledb.DB_TYPE_JSON:
-                return cursor.var(str, arraysize=cursor.arraysize,
-                                  outconverter=json.loads)
+                return cursor.var(
+                    str, arraysize=cursor.arraysize, outconverter=json.loads
+                )
             # if using Oracle Client version < 21, then database returns BLOB
             # data type instead of JSON data type
             elif metadata.type_code is oracledb.DB_TYPE_BLOB:
-                return cursor.var(metadata.type, arraysize=cursor.arraysize,
-                                  outconverter=lambda v: json.loads(v.read()))
+                return cursor.var(
+                    metadata.type,
+                    arraysize=cursor.arraysize,
+                    outconverter=lambda v: json.loads(v.read()),
+                )
 
         self.cursor.execute("truncate table TestJson")
         insert_sql = "insert into TestJson values (:1, :2)"
         json_data = [
             dict(name="John", city="Delhi"),
             dict(name="George", city="Bangalore"),
-            dict(name="Sam", city="Mumbai")
+            dict(name="Sam", city="Mumbai"),
         ]
         data_to_insert = list(enumerate(json_data))
-        json_as_string = self.conn.thin or \
-                test_env.get_client_version() < (21, 0)
+        json_as_string = self.conn.thin or test_env.get_client_version() < (
+            21,
+            0,
+        )
         if json_as_string:
             # insert data as JSON string
             json_string_data = [(i, json.dumps(j)) for i, j in data_to_insert]
@@ -230,6 +280,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.outputtypehandler = output_type_handler
         self.cursor.execute("select * from TestJson")
         self.assertEqual(self.cursor.fetchall(), data_to_insert)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

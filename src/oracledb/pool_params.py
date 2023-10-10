@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # pool_params.py
 #
 # Contains the PoolParams class used for managing the parameters required to
@@ -31,85 +31,88 @@
 # *** NOTICE *** This file is generated from a template and should not be
 # modified directly. See build_from_template.py in the utils subdirectory for
 # more information.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Callable, Type, Union
 
 import oracledb
 
-from . import base_impl, constants, errors, utils
-from . import connection as connection_module
+from . import base_impl, utils
 from .connect_params import ConnectParams
+
 
 class PoolParams(ConnectParams):
     """
     Contains all parameters used for creating a connection pool.
     """
+
     __module__ = oracledb.__name__
     __slots__ = ["_impl"]
     _impl_class = base_impl.PoolParamsImpl
 
     @utils.params_initer
-    def __init__(self, *,
-                 min: int=1,
-                 max: int=2,
-                 increment: int=1,
-                 connectiontype: Type["oracledb.Connection"]=None,
-                 getmode: int=oracledb.POOL_GETMODE_WAIT,
-                 homogeneous: bool=True,
-                 timeout: int=0,
-                 wait_timeout: int=0,
-                 max_lifetime_session: int=0,
-                 session_callback: Callable=None,
-                 max_sessions_per_shard: int=0,
-                 soda_metadata_cache: bool=False,
-                 ping_interval: int=60,
-                 user: str=None,
-                 proxy_user: str=None,
-                 password: str=None,
-                 newpassword: str=None,
-                 wallet_password: str=None,
-                 access_token: Union[str, tuple, Callable]=None,
-                 host: str=None,
-                 port: int=1521,
-                 protocol: str="tcp",
-                 https_proxy: str=None,
-                 https_proxy_port: int=0,
-                 service_name: str=None,
-                 sid: str=None,
-                 server_type: str=None,
-                 cclass: str=None,
-                 purity: int=oracledb.PURITY_DEFAULT,
-                 expire_time: int=0,
-                 retry_count: int=0,
-                 retry_delay: int=0,
-                 tcp_connect_timeout: float=60.0,
-                 ssl_server_dn_match: bool=True,
-                 ssl_server_cert_dn: str=None,
-                 wallet_location: str=None,
-                 events: bool=False,
-                 externalauth: bool=False,
-                 mode: int=oracledb.AUTH_MODE_DEFAULT,
-                 disable_oob: bool=False,
-                 stmtcachesize: int=oracledb.defaults.stmtcachesize,
-                 edition: str=None,
-                 tag: str=None,
-                 matchanytag: bool=False,
-                 config_dir: str=oracledb.defaults.config_dir,
-                 appcontext: list=None,
-                 shardingkey: list=None,
-                 supershardingkey: list=None,
-                 debug_jdwp: str=None,
-                 connection_id_prefix: str=None,
-                 handle: int=0,
-                 threaded: bool=True,
-                 encoding: str=None,
-                 nencoding: str=None,
-                 waitTimeout: int=None,
-                 maxLifetimeSession: int=None,
-                 maxSessionsPerShard: int=None,
-                 sessionCallback: Callable=None
-                ):
+    def __init__(
+        self,
+        *,
+        min: int = 1,
+        max: int = 2,
+        increment: int = 1,
+        connectiontype: Type["oracledb.Connection"] = None,
+        getmode: int = oracledb.POOL_GETMODE_WAIT,
+        homogeneous: bool = True,
+        timeout: int = 0,
+        wait_timeout: int = 0,
+        max_lifetime_session: int = 0,
+        session_callback: Callable = None,
+        max_sessions_per_shard: int = 0,
+        soda_metadata_cache: bool = False,
+        ping_interval: int = 60,
+        user: str = None,
+        proxy_user: str = None,
+        password: str = None,
+        newpassword: str = None,
+        wallet_password: str = None,
+        access_token: Union[str, tuple, Callable] = None,
+        host: str = None,
+        port: int = 1521,
+        protocol: str = "tcp",
+        https_proxy: str = None,
+        https_proxy_port: int = 0,
+        service_name: str = None,
+        sid: str = None,
+        server_type: str = None,
+        cclass: str = None,
+        purity: int = oracledb.PURITY_DEFAULT,
+        expire_time: int = 0,
+        retry_count: int = 0,
+        retry_delay: int = 0,
+        tcp_connect_timeout: float = 60.0,
+        ssl_server_dn_match: bool = True,
+        ssl_server_cert_dn: str = None,
+        wallet_location: str = None,
+        events: bool = False,
+        externalauth: bool = False,
+        mode: int = oracledb.AUTH_MODE_DEFAULT,
+        disable_oob: bool = False,
+        stmtcachesize: int = oracledb.defaults.stmtcachesize,
+        edition: str = None,
+        tag: str = None,
+        matchanytag: bool = False,
+        config_dir: str = oracledb.defaults.config_dir,
+        appcontext: list = None,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+        debug_jdwp: str = None,
+        connection_id_prefix: str = None,
+        handle: int = 0,
+        threaded: bool = True,
+        encoding: str = None,
+        nencoding: str = None,
+        waitTimeout: int = None,
+        maxLifetimeSession: int = None,
+        maxSessionsPerShard: int = None,
+        sessionCallback: Callable = None,
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
@@ -314,54 +317,57 @@ class PoolParams(ConnectParams):
         pass
 
     def __repr__(self):
-        return self.__class__.__qualname__ + "(" + \
-               f"min={self.min!r}, " + \
-               f"max={self.max!r}, " + \
-               f"increment={self.increment!r}, " + \
-               f"connectiontype={self.connectiontype!r}, " + \
-               f"getmode={self.getmode!r}, " + \
-               f"homogeneous={self.homogeneous!r}, " + \
-               f"timeout={self.timeout!r}, " + \
-               f"wait_timeout={self.wait_timeout!r}, " + \
-               f"max_lifetime_session={self.max_lifetime_session!r}, " + \
-               f"session_callback={self.session_callback!r}, " + \
-               f"max_sessions_per_shard={self.max_sessions_per_shard!r}, " + \
-               f"soda_metadata_cache={self.soda_metadata_cache!r}, " + \
-               f"ping_interval={self.ping_interval!r}, " + \
-               f"user={self.user!r}, " + \
-               f"proxy_user={self.proxy_user!r}, " + \
-               f"host={self.host!r}, " + \
-               f"port={self.port!r}, " + \
-               f"protocol={self.protocol!r}, " + \
-               f"https_proxy={self.https_proxy!r}, " + \
-               f"https_proxy_port={self.https_proxy_port!r}, " + \
-               f"service_name={self.service_name!r}, " + \
-               f"sid={self.sid!r}, " + \
-               f"server_type={self.server_type!r}, " + \
-               f"cclass={self.cclass!r}, " + \
-               f"purity={self.purity!r}, " + \
-               f"expire_time={self.expire_time!r}, " + \
-               f"retry_count={self.retry_count!r}, " + \
-               f"retry_delay={self.retry_delay!r}, " + \
-               f"tcp_connect_timeout={self.tcp_connect_timeout!r}, " + \
-               f"ssl_server_dn_match={self.ssl_server_dn_match!r}, " + \
-               f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, " + \
-               f"wallet_location={self.wallet_location!r}, " + \
-               f"events={self.events!r}, " + \
-               f"externalauth={self.externalauth!r}, " + \
-               f"mode={self.mode!r}, " + \
-               f"disable_oob={self.disable_oob!r}, " + \
-               f"stmtcachesize={self.stmtcachesize!r}, " + \
-               f"edition={self.edition!r}, " + \
-               f"tag={self.tag!r}, " + \
-               f"matchanytag={self.matchanytag!r}, " + \
-               f"config_dir={self.config_dir!r}, " + \
-               f"appcontext={self.appcontext!r}, " + \
-               f"shardingkey={self.shardingkey!r}, " + \
-               f"supershardingkey={self.supershardingkey!r}, " + \
-               f"debug_jdwp={self.debug_jdwp!r}, " + \
-               f"connection_id_prefix={self.connection_id_prefix!r}" + \
-               ")"
+        return (
+            self.__class__.__qualname__
+            + "("
+            + f"min={self.min!r}, "
+            + f"max={self.max!r}, "
+            + f"increment={self.increment!r}, "
+            + f"connectiontype={self.connectiontype!r}, "
+            + f"getmode={self.getmode!r}, "
+            + f"homogeneous={self.homogeneous!r}, "
+            + f"timeout={self.timeout!r}, "
+            + f"wait_timeout={self.wait_timeout!r}, "
+            + f"max_lifetime_session={self.max_lifetime_session!r}, "
+            + f"session_callback={self.session_callback!r}, "
+            + f"max_sessions_per_shard={self.max_sessions_per_shard!r}, "
+            + f"soda_metadata_cache={self.soda_metadata_cache!r}, "
+            + f"ping_interval={self.ping_interval!r}, "
+            + f"user={self.user!r}, "
+            + f"proxy_user={self.proxy_user!r}, "
+            + f"host={self.host!r}, "
+            + f"port={self.port!r}, "
+            + f"protocol={self.protocol!r}, "
+            + f"https_proxy={self.https_proxy!r}, "
+            + f"https_proxy_port={self.https_proxy_port!r}, "
+            + f"service_name={self.service_name!r}, "
+            + f"sid={self.sid!r}, "
+            + f"server_type={self.server_type!r}, "
+            + f"cclass={self.cclass!r}, "
+            + f"purity={self.purity!r}, "
+            + f"expire_time={self.expire_time!r}, "
+            + f"retry_count={self.retry_count!r}, "
+            + f"retry_delay={self.retry_delay!r}, "
+            + f"tcp_connect_timeout={self.tcp_connect_timeout!r}, "
+            + f"ssl_server_dn_match={self.ssl_server_dn_match!r}, "
+            + f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, "
+            + f"wallet_location={self.wallet_location!r}, "
+            + f"events={self.events!r}, "
+            + f"externalauth={self.externalauth!r}, "
+            + f"mode={self.mode!r}, "
+            + f"disable_oob={self.disable_oob!r}, "
+            + f"stmtcachesize={self.stmtcachesize!r}, "
+            + f"edition={self.edition!r}, "
+            + f"tag={self.tag!r}, "
+            + f"matchanytag={self.matchanytag!r}, "
+            + f"config_dir={self.config_dir!r}, "
+            + f"appcontext={self.appcontext!r}, "
+            + f"shardingkey={self.shardingkey!r}, "
+            + f"supershardingkey={self.supershardingkey!r}, "
+            + f"debug_jdwp={self.debug_jdwp!r}, "
+            + f"connection_id_prefix={self.connection_id_prefix!r}"
+            + ")"
+        )
 
     @property
     def connectiontype(self) -> Type["oracledb.Connection"]:
@@ -482,66 +488,68 @@ class PoolParams(ConnectParams):
         return params
 
     @utils.params_setter
-    def set(self, *,
-            min: int=None,
-            max: int=None,
-            increment: int=None,
-            connectiontype: Type["oracledb.Connection"]=None,
-            getmode: int=None,
-            homogeneous: bool=None,
-            timeout: int=None,
-            wait_timeout: int=None,
-            max_lifetime_session: int=None,
-            session_callback: Callable=None,
-            max_sessions_per_shard: int=None,
-            soda_metadata_cache: bool=None,
-            ping_interval: int=None,
-            user: str=None,
-            proxy_user: str=None,
-            password: str=None,
-            newpassword: str=None,
-            wallet_password: str=None,
-            access_token: Union[str, tuple, Callable]=None,
-            host: str=None,
-            port: int=None,
-            protocol: str=None,
-            https_proxy: str=None,
-            https_proxy_port: int=None,
-            service_name: str=None,
-            sid: str=None,
-            server_type: str=None,
-            cclass: str=None,
-            purity: int=None,
-            expire_time: int=None,
-            retry_count: int=None,
-            retry_delay: int=None,
-            tcp_connect_timeout: float=None,
-            ssl_server_dn_match: bool=None,
-            ssl_server_cert_dn: str=None,
-            wallet_location: str=None,
-            events: bool=None,
-            externalauth: bool=None,
-            mode: int=None,
-            disable_oob: bool=None,
-            stmtcachesize: int=None,
-            edition: str=None,
-            tag: str=None,
-            matchanytag: bool=None,
-            config_dir: str=None,
-            appcontext: list=None,
-            shardingkey: list=None,
-            supershardingkey: list=None,
-            debug_jdwp: str=None,
-            connection_id_prefix: str=None,
-            handle: int=None,
-            threaded: bool=None,
-            encoding: str=None,
-            nencoding: str=None,
-            waitTimeout: int=None,
-            maxLifetimeSession: int=None,
-            maxSessionsPerShard: int=None,
-            sessionCallback: Callable=None
-           ):
+    def set(
+        self,
+        *,
+        min: int = None,
+        max: int = None,
+        increment: int = None,
+        connectiontype: Type["oracledb.Connection"] = None,
+        getmode: int = None,
+        homogeneous: bool = None,
+        timeout: int = None,
+        wait_timeout: int = None,
+        max_lifetime_session: int = None,
+        session_callback: Callable = None,
+        max_sessions_per_shard: int = None,
+        soda_metadata_cache: bool = None,
+        ping_interval: int = None,
+        user: str = None,
+        proxy_user: str = None,
+        password: str = None,
+        newpassword: str = None,
+        wallet_password: str = None,
+        access_token: Union[str, tuple, Callable] = None,
+        host: str = None,
+        port: int = None,
+        protocol: str = None,
+        https_proxy: str = None,
+        https_proxy_port: int = None,
+        service_name: str = None,
+        sid: str = None,
+        server_type: str = None,
+        cclass: str = None,
+        purity: int = None,
+        expire_time: int = None,
+        retry_count: int = None,
+        retry_delay: int = None,
+        tcp_connect_timeout: float = None,
+        ssl_server_dn_match: bool = None,
+        ssl_server_cert_dn: str = None,
+        wallet_location: str = None,
+        events: bool = None,
+        externalauth: bool = None,
+        mode: int = None,
+        disable_oob: bool = None,
+        stmtcachesize: int = None,
+        edition: str = None,
+        tag: str = None,
+        matchanytag: bool = None,
+        config_dir: str = None,
+        appcontext: list = None,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+        debug_jdwp: str = None,
+        connection_id_prefix: str = None,
+        handle: int = None,
+        threaded: bool = None,
+        encoding: str = None,
+        nencoding: str = None,
+        waitTimeout: int = None,
+        maxLifetimeSession: int = None,
+        maxSessionsPerShard: int = None,
+        sessionCallback: Callable = None,
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:

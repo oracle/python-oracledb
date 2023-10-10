@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,14 +20,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # fetch_info.py
 #
 # Contains the FetchInfo class which stores metadata about columns that are
 # being fetched.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Union
 
@@ -42,13 +42,15 @@ from .base_impl import (
     DB_TYPE_BINARY_FLOAT,
     DB_TYPE_BINARY_DOUBLE,
     DB_TYPE_BINARY_INTEGER,
-    DB_TYPE_NUMBER
+    DB_TYPE_NUMBER,
 )
+
 
 class FetchInfo:
     """
     Identifies metadata of columns that are being fetched.
     """
+
     __module__ = MODULE_NAME
 
     def __eq__(self, other):
@@ -111,15 +113,19 @@ class FetchInfo:
         if self._impl.size > 0:
             return self._impl.size
         dbtype = self._impl.dbtype
-        if dbtype is DB_TYPE_DATE \
-                or dbtype is DB_TYPE_TIMESTAMP \
-                or dbtype is DB_TYPE_TIMESTAMP_LTZ \
-                or dbtype is DB_TYPE_TIMESTAMP_TZ:
+        if (
+            dbtype is DB_TYPE_DATE
+            or dbtype is DB_TYPE_TIMESTAMP
+            or dbtype is DB_TYPE_TIMESTAMP_LTZ
+            or dbtype is DB_TYPE_TIMESTAMP_TZ
+        ):
             return 23
-        elif dbtype is DB_TYPE_BINARY_FLOAT \
-                or dbtype is DB_TYPE_BINARY_DOUBLE \
-                or dbtype is DB_TYPE_BINARY_INTEGER \
-                or dbtype is DB_TYPE_NUMBER:
+        elif (
+            dbtype is DB_TYPE_BINARY_FLOAT
+            or dbtype is DB_TYPE_BINARY_DOUBLE
+            or dbtype is DB_TYPE_BINARY_INTEGER
+            or dbtype is DB_TYPE_NUMBER
+        ):
             if self._impl.precision:
                 display_size = self._impl.precision + 1
                 if self._impl.scale > 0:

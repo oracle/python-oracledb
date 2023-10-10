@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2022, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,14 +20,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # table_with_summary.py
 #
 # Defines a directive (list-table-with-summary) that adds support for a summary
 # option on top of the regular "list-table" directive.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import sphinx
 from docutils.parsers.rst import directives
@@ -35,14 +35,14 @@ from docutils.parsers.rst.directives import tables
 
 from packaging import version
 
-class ListTableWithSummary(tables.ListTable):
 
-    option_spec = {'summary': directives.unchanged}
+class ListTableWithSummary(tables.ListTable):
+    option_spec = {"summary": directives.unchanged}
     option_spec.update(tables.ListTable.option_spec)
 
     def run(self):
         result = super().run()
-        summary = self.options.get('summary')
+        summary = self.options.get("summary")
         if summary:
             table_node = result[0]
             table_node["summary"] = summary
@@ -50,29 +50,29 @@ class ListTableWithSummary(tables.ListTable):
 
 
 class HTMLTranslator(sphinx.writers.html5.HTML5Translator):
-
     def visit_table(self, node):
-        if version.parse(sphinx.__version__) > version.parse('4.2.0'):
+        if version.parse(sphinx.__version__) > version.parse("4.2.0"):
             self._table_row_indices = [0]
         else:
             self._table_row_index = 0
 
         atts = {}
-        classes = [cls.strip(' \t\n') \
-                for cls in self.settings.table_style.split(',')]
+        classes = [
+            cls.strip(" \t\n") for cls in self.settings.table_style.split(",")
+        ]
         classes.insert(0, "docutils")  # compat
 
         # set align-default if align not specified to give a default style
-        classes.append('align-%s' % node.get('align', 'default'))
+        classes.append("align-%s" % node.get("align", "default"))
 
-        if 'width' in node:
-            atts['style'] = 'width: %s' % node['width']
-        if 'summary' in node:
-            atts['summary'] = node['summary']
-        tag = self.starttag(node, 'table', CLASS=' '.join(classes), **atts)
+        if "width" in node:
+            atts["style"] = "width: %s" % node["width"]
+        if "summary" in node:
+            atts["summary"] = node["summary"]
+        tag = self.starttag(node, "table", CLASS=" ".join(classes), **atts)
         self.body.append(tag)
 
 
 def setup(app):
-    app.add_directive('list-table-with-summary', ListTableWithSummary)
+    app.add_directive("list-table-with-summary", ListTableWithSummary)
     app.set_translator("html", HTMLTranslator, override=True)

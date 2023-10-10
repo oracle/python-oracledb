@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,51 +20,49 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # pool_params.py
 #
 # Contains the PoolParams class used for managing the parameters required to
 # create a connection pool.
 #
-# #{{ generated_notice }}
-#------------------------------------------------------------------------------
+# # {{ generated_notice }}
+# -----------------------------------------------------------------------------
 
 from typing import Callable, Type, Union
 
 import oracledb
 
-from . import base_impl, constants, errors, utils
-from . import connection as connection_module
+from . import base_impl, utils
 from .connect_params import ConnectParams
+
 
 class PoolParams(ConnectParams):
     """
     Contains all parameters used for creating a connection pool.
     """
+
     __module__ = oracledb.__name__
     __slots__ = ["_impl"]
     _impl_class = base_impl.PoolParamsImpl
 
     @utils.params_initer
-    def __init__(self, *,
-                 #{{ args_with_defaults }}
-                ):
+    def __init__(
+        # {{ params_constructor_args }}
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
 
-        #{{ args_help_with_defaults }}
+        # {{ args_help_with_defaults }}
         """
         pass
 
-    def __repr__(self):
-        return self.__class__.__qualname__ + "(" + \
-               #{{ params_repr_parts }} + \
-               ")"
+    # {{ params_repr }}
 
-    #{{ params_properties }}
+    # {{ params_properties }}
 
     def copy(self) -> "PoolParams":
         """
@@ -75,13 +73,13 @@ class PoolParams(ConnectParams):
         return params
 
     @utils.params_setter
-    def set(self, *,
-            #{{ args_without_defaults }}
-           ):
+    def set(
+        # {{ params_setter_args }}
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
 
-        #{{ args_help_without_defaults }}
+        # {{ args_help_without_defaults }}
         """
         pass

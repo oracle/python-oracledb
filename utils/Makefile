@@ -44,4 +44,3 @@ $(SOURCE_DIR)/pool.py: fields.cfg $(TEMPLATE_DIR)/pool.py
 
 $(SOURCE_DIR)/pool_params.py: fields.cfg $(TEMPLATE_DIR)/pool_params.py
 	python build_from_template.py pool_params
-

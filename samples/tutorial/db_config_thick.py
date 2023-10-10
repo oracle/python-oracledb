@@ -1,4 +1,4 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import platform
@@ -46,7 +46,9 @@ if platform.system() == "Windows":
 
 # On macOS (Intel x86) set the directory to your Instant Client directory
 if platform.system() == "Darwin" and platform.machine() == "x86_64":
-    instant_client_dir = os.environ.get("HOME")+"/Downloads/instantclient_19_8"
+    instant_client_dir = (
+        os.environ.get("HOME") + "/Downloads/instantclient_19_8"
+    )
 
 # You must always call init_oracle_client() to use thick mode in any platform
 oracledb.init_oracle_client(lib_dir=instant_client_dir)

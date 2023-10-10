@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,21 +20,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # subscr.py
 #
 # Contains the Subscription class and Message classes used for managing
 # subscriptions to database events and the messages that are sent when those
 # events are detected.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Callable, Union, List
 from . import connection
 
-class Subscription:
 
+class Subscription:
     def __repr__(self):
         return f"<oracledb.Subscription on {self.connection!r}>"
 
@@ -132,8 +132,9 @@ class Subscription:
         """
         return self._impl.qos
 
-    def registerquery(self, statement: str,
-                      args: Union[list, dict]=None) -> int:
+    def registerquery(
+        self, statement: str, args: Union[list, dict] = None
+    ) -> int:
         """
         Register the query for subsequent notification when tables referenced
         by the query are changed. This behaves similarly to cursor.execute()
@@ -157,7 +158,6 @@ class Subscription:
 
 
 class Message:
-
     def __init__(self, subscription: Subscription) -> None:
         self._subscription = subscription
         self._consumer_name = None
@@ -169,7 +169,6 @@ class Message:
         self._txid = None
         self._type = 0
         self._msgid = None
-
 
     @property
     def consumer_name(self) -> Union[str, None]:
@@ -273,7 +272,6 @@ class Message:
 
 
 class MessageQuery:
-
     def __init__(self) -> None:
         self._id = 0
         self._operation = 0
@@ -308,7 +306,6 @@ class MessageQuery:
 
 
 class MessageRow:
-
     def __init__(self) -> None:
         self._operation = 0
         self._rowid = None
@@ -329,7 +326,6 @@ class MessageRow:
 
 
 class MessageTable:
-
     def __init__(self) -> None:
         self._name = None
         self._operation = 0

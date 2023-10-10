@@ -1,5 +1,5 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
-dirName = os.path.dirname(os.path.dirname(__file__))
-exec(open(os.path.join(dirName, "db_config.py"), "r").read())
+dir_name = os.path.dirname(os.path.dirname(__file__))
+exec(open(os.path.join(dir_name, "db_config.py"), "r").read())

@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 3300 - Module for testing Simple Oracle Document Access (SODA) Database
@@ -32,16 +32,24 @@ import unittest
 import oracledb
 import test_env
 
-@unittest.skipIf(test_env.skip_soda_tests(),
-                 "unsupported client/server combination")
-class TestCase(test_env.BaseTestCase):
 
+@unittest.skipIf(
+    test_env.skip_soda_tests(), "unsupported client/server combination"
+)
+class TestCase(test_env.BaseTestCase):
     def __drop_existing_collections(self, soda_db):
         for name in soda_db.getCollectionNames():
             soda_db.openCollection(name).drop()
 
-    def __verify_doc(self, doc, raw_content, str_content=None, content=None,
-                     key=None, media_type="application/json"):
+    def __verify_doc(
+        self,
+        doc,
+        raw_content,
+        str_content=None,
+        content=None,
+        key=None,
+        media_type="application/json",
+    ):
         self.assertEqual(doc.getContentAsBytes(), raw_content)
         if str_content is not None:
             self.assertEqual(doc.getContentAsString(), str_content)
@@ -94,8 +102,9 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(soda_db.getCollectionNames(limit=2), sorted_names[:2])
         self.assertEqual(soda_db.getCollectionNames("a"), sorted_names)
         self.assertEqual(soda_db.getCollectionNames("C"), sorted_names)
-        self.assertEqual(soda_db.getCollectionNames("b", limit=3),
-                                                    sorted_names[1:4])
+        self.assertEqual(
+            soda_db.getCollectionNames("b", limit=3), sorted_names[1:4]
+        )
         self.assertEqual(soda_db.getCollectionNames("z"), sorted_names[-1:])
 
     def test_3303_open_collection(self):
@@ -121,11 +130,21 @@ class TestCase(test_env.BaseTestCase):
         soda_db = self.conn.getSodaDatabase()
         self.assertRaises(TypeError, soda_db.createCollection)
         self.assertRaises(TypeError, soda_db.createCollection, 1)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40658:",
-                               soda_db.createCollection, None)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40675:",
-                               soda_db.createCollection, "CollMetadata", 7)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40658:",
+            soda_db.createCollection,
+            None,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40675:",
+            soda_db.createCollection,
+            "CollMetadata",
+            7,
+        )
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

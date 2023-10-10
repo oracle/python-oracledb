@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 4100 - Module for testing the methods for calling stored procedures and
@@ -30,8 +30,8 @@ functions (callproc() and callfunc())
 import oracledb
 import test_env
 
-class TestCase(test_env.BaseTestCase):
 
+class TestCase(test_env.BaseTestCase):
     def test_4100_callproc(self):
         "4100 - test executing a stored procedure"
         var = self.cursor.var(oracledb.NUMBER)
@@ -43,8 +43,9 @@ class TestCase(test_env.BaseTestCase):
         inout_value = self.cursor.var(oracledb.NUMBER)
         inout_value.setvalue(0, 5)
         out_value = self.cursor.var(oracledb.NUMBER)
-        kwargs = dict(a_InOutValue=inout_value, a_InValue="hi",
-                      a_OutValue=out_value)
+        kwargs = dict(
+            a_InOutValue=inout_value, a_InValue="hi", a_OutValue=out_value
+        )
         results = self.cursor.callproc("proc_Test", [], kwargs)
         self.assertEqual(results, [])
         self.assertEqual(inout_value.getvalue(), 10)
@@ -60,11 +61,17 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4103_callproc_repeated_keyword_parameters(self):
         "4103 - test executing a stored procedure, repeated keyword arg"
-        kwargs = dict(a_InValue="hi",
-                      a_OutValue=self.cursor.var(oracledb.NUMBER))
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:",
-                               self.cursor.callproc, "proc_Test", ("hi", 5),
-                               kwargs)
+        kwargs = dict(
+            a_InValue="hi", a_OutValue=self.cursor.var(oracledb.NUMBER)
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-06550:",
+            self.cursor.callproc,
+            "proc_Test",
+            ("hi", 5),
+            kwargs,
+        )
 
     def test_4104_callproc_no_args(self):
         "4104 - test executing a stored procedure without any arguments"
@@ -84,48 +91,103 @@ class TestCase(test_env.BaseTestCase):
     def test_4107_callfunc_negative(self):
         "4107 - test executing a stored function with wrong parameters"
         func_name = "func_Test"
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2007:",
-                               self.cursor.callfunc, oracledb.NUMBER,
-                               func_name, ("hi", 5))
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:",
-                               self.cursor.callfunc, func_name,
-                               oracledb.NUMBER, ("hi", 5, 7))
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2012:",
-                               self.cursor.callfunc, func_name,
-                               oracledb.NUMBER, "hi", 7)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06502:",
-                               self.cursor.callfunc, func_name,
-                               oracledb.NUMBER, [5, "hi"])
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:",
-                               self.cursor.callfunc, func_name,
-                               oracledb.NUMBER)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2012:",
-                               self.cursor.callfunc, func_name,
-                               oracledb.NUMBER, 5)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2007:",
+            self.cursor.callfunc,
+            oracledb.NUMBER,
+            func_name,
+            ("hi", 5),
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-06550:",
+            self.cursor.callfunc,
+            func_name,
+            oracledb.NUMBER,
+            ("hi", 5, 7),
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2012:",
+            self.cursor.callfunc,
+            func_name,
+            oracledb.NUMBER,
+            "hi",
+            7,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-06502:",
+            self.cursor.callfunc,
+            func_name,
+            oracledb.NUMBER,
+            [5, "hi"],
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-06550:",
+            self.cursor.callfunc,
+            func_name,
+            oracledb.NUMBER,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2012:",
+            self.cursor.callfunc,
+            func_name,
+            oracledb.NUMBER,
+            5,
+        )
 
     def test_4108_keywordParameters_deprecation(self):
         "4108 - test to verify keywordParameters is deprecated"
         out_value = self.cursor.var(oracledb.NUMBER)
         kwargs = dict(a_OutValue=out_value)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.cursor.callproc, "proc_Test", ("hi", 5),
-                               kwargs, keywordParameters=kwargs)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            self.cursor.callproc,
+            "proc_Test",
+            ("hi", 5),
+            kwargs,
+            keywordParameters=kwargs,
+        )
         extra_amount = self.cursor.var(oracledb.NUMBER)
         extra_amount.setvalue(0, 5)
         kwargs = dict(a_ExtraAmount=extra_amount, a_String="hi")
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               self.cursor.callfunc, "func_Test",
-                               oracledb.NUMBER, [], kwargs,
-                               keywordParameters=kwargs)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            self.cursor.callfunc,
+            "func_Test",
+            oracledb.NUMBER,
+            [],
+            kwargs,
+            keywordParameters=kwargs,
+        )
 
     def test_4109_keyword_args_with_invalid_type(self):
         "4109 - test error for keyword args with invalid type"
         kwargs = [5]
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2013:",
-                               self.cursor.callproc, "proc_Test", [], kwargs)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2013:",
-                               self.cursor.callfunc, "func_Test",
-                               oracledb.NUMBER, [], kwargs)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2013:",
+            self.cursor.callproc,
+            "proc_Test",
+            [],
+            kwargs,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2013:",
+            self.cursor.callfunc,
+            "func_Test",
+            oracledb.NUMBER,
+            [],
+            kwargs,
+        )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

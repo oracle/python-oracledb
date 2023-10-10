@@ -1,5 +1,5 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,9 +20,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-import oracledb
 import os
 import getpass
 
@@ -33,7 +32,7 @@ import getpass
 
 sysuser = os.environ.get("PYTHON_SYSUSER", "SYSTEM")
 
-dsn = os.environ.get("PYTHON_SYS_CONNECT_STRING", "localhost/orclpdb")
+dsn = os.environ.get("PYTHON_CONNECT_STRING", "localhost/orclpdb")
 
 syspw = os.environ.get("PYTHON_SYSPASSWORD")
 if syspw is None:

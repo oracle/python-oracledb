@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # connect_params.py
 #
 # Contains the ConnectParams class used for managing the parameters required to
@@ -31,68 +31,72 @@
 # *** NOTICE *** This file is generated from a template and should not be
 # modified directly. See build_from_template.py in the utils subdirectory for
 # more information.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import functools
 from typing import Union, Callable
 
 import oracledb
 
-from . import base_impl, constants, errors, utils
+from . import base_impl, utils
+
 
 class ConnectParams:
     """
     Contains all parameters used for establishing a connection to the
     database.
     """
+
     __module__ = oracledb.__name__
     __slots__ = ["_impl"]
     _impl_class = base_impl.ConnectParamsImpl
 
     @utils.params_initer
-    def __init__(self, *,
-                 user: str=None,
-                 proxy_user: str=None,
-                 password: str=None,
-                 newpassword: str=None,
-                 wallet_password: str=None,
-                 access_token: Union[str, tuple, Callable]=None,
-                 host: str=None,
-                 port: int=1521,
-                 protocol: str="tcp",
-                 https_proxy: str=None,
-                 https_proxy_port: int=0,
-                 service_name: str=None,
-                 sid: str=None,
-                 server_type: str=None,
-                 cclass: str=None,
-                 purity: int=oracledb.PURITY_DEFAULT,
-                 expire_time: int=0,
-                 retry_count: int=0,
-                 retry_delay: int=0,
-                 tcp_connect_timeout: float=60.0,
-                 ssl_server_dn_match: bool=True,
-                 ssl_server_cert_dn: str=None,
-                 wallet_location: str=None,
-                 events: bool=False,
-                 externalauth: bool=False,
-                 mode: int=oracledb.AUTH_MODE_DEFAULT,
-                 disable_oob: bool=False,
-                 stmtcachesize: int=oracledb.defaults.stmtcachesize,
-                 edition: str=None,
-                 tag: str=None,
-                 matchanytag: bool=False,
-                 config_dir: str=oracledb.defaults.config_dir,
-                 appcontext: list=None,
-                 shardingkey: list=None,
-                 supershardingkey: list=None,
-                 debug_jdwp: str=None,
-                 connection_id_prefix: str=None,
-                 handle: int=0,
-                 threaded: bool=True,
-                 encoding: str=None,
-                 nencoding: str=None
-                ):
+    def __init__(
+        self,
+        *,
+        user: str = None,
+        proxy_user: str = None,
+        password: str = None,
+        newpassword: str = None,
+        wallet_password: str = None,
+        access_token: Union[str, tuple, Callable] = None,
+        host: str = None,
+        port: int = 1521,
+        protocol: str = "tcp",
+        https_proxy: str = None,
+        https_proxy_port: int = 0,
+        service_name: str = None,
+        sid: str = None,
+        server_type: str = None,
+        cclass: str = None,
+        purity: int = oracledb.PURITY_DEFAULT,
+        expire_time: int = 0,
+        retry_count: int = 0,
+        retry_delay: int = 0,
+        tcp_connect_timeout: float = 60.0,
+        ssl_server_dn_match: bool = True,
+        ssl_server_cert_dn: str = None,
+        wallet_location: str = None,
+        events: bool = False,
+        externalauth: bool = False,
+        mode: int = oracledb.AUTH_MODE_DEFAULT,
+        disable_oob: bool = False,
+        stmtcachesize: int = oracledb.defaults.stmtcachesize,
+        edition: str = None,
+        tag: str = None,
+        matchanytag: bool = False,
+        config_dir: str = oracledb.defaults.config_dir,
+        appcontext: list = None,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+        debug_jdwp: str = None,
+        connection_id_prefix: str = None,
+        handle: int = 0,
+        threaded: bool = True,
+        encoding: str = None,
+        nencoding: str = None,
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
@@ -246,62 +250,72 @@ class ConnectParams:
         pass
 
     def __repr__(self):
-        return self.__class__.__qualname__ + "(" + \
-               f"user={self.user!r}, " + \
-               f"proxy_user={self.proxy_user!r}, " + \
-               f"host={self.host!r}, " + \
-               f"port={self.port!r}, " + \
-               f"protocol={self.protocol!r}, " + \
-               f"https_proxy={self.https_proxy!r}, " + \
-               f"https_proxy_port={self.https_proxy_port!r}, " + \
-               f"service_name={self.service_name!r}, " + \
-               f"sid={self.sid!r}, " + \
-               f"server_type={self.server_type!r}, " + \
-               f"cclass={self.cclass!r}, " + \
-               f"purity={self.purity!r}, " + \
-               f"expire_time={self.expire_time!r}, " + \
-               f"retry_count={self.retry_count!r}, " + \
-               f"retry_delay={self.retry_delay!r}, " + \
-               f"tcp_connect_timeout={self.tcp_connect_timeout!r}, " + \
-               f"ssl_server_dn_match={self.ssl_server_dn_match!r}, " + \
-               f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, " + \
-               f"wallet_location={self.wallet_location!r}, " + \
-               f"events={self.events!r}, " + \
-               f"externalauth={self.externalauth!r}, " + \
-               f"mode={self.mode!r}, " + \
-               f"disable_oob={self.disable_oob!r}, " + \
-               f"stmtcachesize={self.stmtcachesize!r}, " + \
-               f"edition={self.edition!r}, " + \
-               f"tag={self.tag!r}, " + \
-               f"matchanytag={self.matchanytag!r}, " + \
-               f"config_dir={self.config_dir!r}, " + \
-               f"appcontext={self.appcontext!r}, " + \
-               f"shardingkey={self.shardingkey!r}, " + \
-               f"supershardingkey={self.supershardingkey!r}, " + \
-               f"debug_jdwp={self.debug_jdwp!r}, " + \
-               f"connection_id_prefix={self.connection_id_prefix!r}" + \
-               ")"
+        return (
+            self.__class__.__qualname__
+            + "("
+            + f"user={self.user!r}, "
+            + f"proxy_user={self.proxy_user!r}, "
+            + f"host={self.host!r}, "
+            + f"port={self.port!r}, "
+            + f"protocol={self.protocol!r}, "
+            + f"https_proxy={self.https_proxy!r}, "
+            + f"https_proxy_port={self.https_proxy_port!r}, "
+            + f"service_name={self.service_name!r}, "
+            + f"sid={self.sid!r}, "
+            + f"server_type={self.server_type!r}, "
+            + f"cclass={self.cclass!r}, "
+            + f"purity={self.purity!r}, "
+            + f"expire_time={self.expire_time!r}, "
+            + f"retry_count={self.retry_count!r}, "
+            + f"retry_delay={self.retry_delay!r}, "
+            + f"tcp_connect_timeout={self.tcp_connect_timeout!r}, "
+            + f"ssl_server_dn_match={self.ssl_server_dn_match!r}, "
+            + f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, "
+            + f"wallet_location={self.wallet_location!r}, "
+            + f"events={self.events!r}, "
+            + f"externalauth={self.externalauth!r}, "
+            + f"mode={self.mode!r}, "
+            + f"disable_oob={self.disable_oob!r}, "
+            + f"stmtcachesize={self.stmtcachesize!r}, "
+            + f"edition={self.edition!r}, "
+            + f"tag={self.tag!r}, "
+            + f"matchanytag={self.matchanytag!r}, "
+            + f"config_dir={self.config_dir!r}, "
+            + f"appcontext={self.appcontext!r}, "
+            + f"shardingkey={self.shardingkey!r}, "
+            + f"supershardingkey={self.supershardingkey!r}, "
+            + f"debug_jdwp={self.debug_jdwp!r}, "
+            + f"connection_id_prefix={self.connection_id_prefix!r}"
+            + ")"
+        )
 
     def _address_attr(f):
         """
         Helper function used to get address level attributes.
         """
+
         @functools.wraps(f)
         def wrapped(self):
-            values = [getattr(a, f.__name__) \
-                      for a in self._impl._get_addresses()]
+            values = [
+                getattr(a, f.__name__) for a in self._impl._get_addresses()
+            ]
             return values if len(values) > 1 else values[0]
+
         return wrapped
 
     def _description_attr(f):
         """
         Helper function used to get description level attributes.
         """
+
         @functools.wraps(f)
         def wrapped(self):
-            values = [getattr(d, f.__name__) \
-                      for d in self._impl.description_list.children]
+            values = [
+                getattr(d, f.__name__)
+                for d in self._impl.description_list.children
+            ]
             return values if len(values) > 1 else values[0]
+
         return wrapped
 
     @property
@@ -625,49 +639,51 @@ class ConnectParams:
         return self._impl.parse_dsn_with_credentials(dsn)
 
     @utils.params_setter
-    def set(self, *,
-            user: str=None,
-            proxy_user: str=None,
-            password: str=None,
-            newpassword: str=None,
-            wallet_password: str=None,
-            access_token: Union[str, tuple, Callable]=None,
-            host: str=None,
-            port: int=None,
-            protocol: str=None,
-            https_proxy: str=None,
-            https_proxy_port: int=None,
-            service_name: str=None,
-            sid: str=None,
-            server_type: str=None,
-            cclass: str=None,
-            purity: int=None,
-            expire_time: int=None,
-            retry_count: int=None,
-            retry_delay: int=None,
-            tcp_connect_timeout: float=None,
-            ssl_server_dn_match: bool=None,
-            ssl_server_cert_dn: str=None,
-            wallet_location: str=None,
-            events: bool=None,
-            externalauth: bool=None,
-            mode: int=None,
-            disable_oob: bool=None,
-            stmtcachesize: int=None,
-            edition: str=None,
-            tag: str=None,
-            matchanytag: bool=None,
-            config_dir: str=None,
-            appcontext: list=None,
-            shardingkey: list=None,
-            supershardingkey: list=None,
-            debug_jdwp: str=None,
-            connection_id_prefix: str=None,
-            handle: int=None,
-            threaded: bool=None,
-            encoding: str=None,
-            nencoding: str=None
-           ):
+    def set(
+        self,
+        *,
+        user: str = None,
+        proxy_user: str = None,
+        password: str = None,
+        newpassword: str = None,
+        wallet_password: str = None,
+        access_token: Union[str, tuple, Callable] = None,
+        host: str = None,
+        port: int = None,
+        protocol: str = None,
+        https_proxy: str = None,
+        https_proxy_port: int = None,
+        service_name: str = None,
+        sid: str = None,
+        server_type: str = None,
+        cclass: str = None,
+        purity: int = None,
+        expire_time: int = None,
+        retry_count: int = None,
+        retry_delay: int = None,
+        tcp_connect_timeout: float = None,
+        ssl_server_dn_match: bool = None,
+        ssl_server_cert_dn: str = None,
+        wallet_location: str = None,
+        events: bool = None,
+        externalauth: bool = None,
+        mode: int = None,
+        disable_oob: bool = None,
+        stmtcachesize: int = None,
+        edition: str = None,
+        tag: str = None,
+        matchanytag: bool = None,
+        config_dir: str = None,
+        appcontext: list = None,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+        debug_jdwp: str = None,
+        connection_id_prefix: str = None,
+        handle: int = None,
+        threaded: bool = None,
+        encoding: str = None,
+        nencoding: str = None,
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:

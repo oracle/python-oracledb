@@ -36,6 +36,7 @@ Common Changes
     Client 23c is also required.
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
+#)  Black is now used to format Python code and ruff to lint Python code.
 
 
 oracledb 1.4.1 (September 2023)

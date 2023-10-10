@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,18 +20,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # lob.py
 #
 # Contains the LOB class for managing BLOB, CLOB, NCLOB and BFILE data.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Any, Union
 
 from . import __name__ as MODULE_NAME
 from . import errors
+
 
 class LOB:
     __module__ = MODULE_NAME
@@ -98,7 +99,7 @@ class LOB:
         """
         self._impl.open()
 
-    def read(self, offset: int=1, amount: int=None) -> Union[str, bytes]:
+    def read(self, offset: int = 1, amount: int = None) -> Union[str, bytes]:
         """
         Return a portion (or all) of the data in the LOB. Note that the amount
         and offset are in bytes for BLOB and BFILE type LOBs and in UCS-2 code
@@ -132,16 +133,18 @@ class LOB:
         """
         return self._impl.get_size()
 
-    def trim(self, new_size: int=0, *, newSize: int=None) -> None:
+    def trim(self, new_size: int = 0, *, newSize: int = None) -> None:
         """
         Trim the LOB to the new size (the second parameter is deprecated and
         should not be used).
         """
         if newSize is not None:
             if new_size != 0:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="newSize",
-                                  new_name="new_size")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="newSize",
+                    new_name="new_size",
+                )
             new_size = newSize
         self._impl.trim(new_size)
 
@@ -152,7 +155,7 @@ class LOB:
         """
         return self._impl.dbtype
 
-    def write(self, data: Union[str, bytes], offset: int=1) -> None:
+    def write(self, data: Union[str, bytes], offset: int = 1) -> None:
         """
         Write the data to the LOB at the given offset. The offset is in bytes
         for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type

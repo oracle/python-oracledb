@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,15 +20,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # utils.py
 #
 # Contains utility classes and methods.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from . import errors
+
 
 class CheckImpls:
     """
@@ -45,11 +46,16 @@ class CheckImpls:
 
     def __call__(self, f):
         feature = self.feature
+
         def wrapped_f(self, *args, **kwargs):
             class_name = type(self).__name__
             driver_type = "thin" if class_name.startswith("Thick") else "thick"
-            errors._raise_err(errors.ERR_FEATURE_NOT_SUPPORTED,
-                              feature=feature, driver_type=driver_type)
+            errors._raise_err(
+                errors.ERR_FEATURE_NOT_SUPPORTED,
+                feature=feature,
+                driver_type=driver_type,
+            )
+
         return wrapped_f
 
 
@@ -61,11 +67,13 @@ def params_initer(f):
     method to ensure that the keyword parameters supplied are valid (the
     original method itself does nothing).
     """
+
     def wrapped_f(self, *args, **kwargs):
         f(self, *args, **kwargs)
         self._impl = self._impl_class()
         if kwargs:
             self._impl.set(kwargs)
+
     return wrapped_f
 
 
@@ -77,7 +85,9 @@ def params_setter(f):
     method to ensure that the keyword parameters supplied are valid (the
     original method itself does nothing).
     """
+
     def wrapped_f(self, *args, **kwargs):
         f(self, *args, **kwargs)
         self._impl.set(kwargs)
+
     return wrapped_f

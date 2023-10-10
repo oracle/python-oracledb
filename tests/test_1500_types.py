@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 1500 - Module for testing comparisons with database types and API types,
@@ -32,6 +32,7 @@ import pickle
 
 import oracledb
 import test_env
+
 
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
@@ -206,6 +207,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1531_DB_TYPE_INTERVAL_YM(self):
         "1531 - test oracledb.DB_TYPE_INTERVAL_YM pickling"
         self.__test_pickle(oracledb.DB_TYPE_INTERVAL_YM)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

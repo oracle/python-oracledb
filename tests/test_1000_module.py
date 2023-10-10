@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 1000 - Module for testing top-level module methods
@@ -30,6 +30,7 @@ import datetime
 
 import oracledb
 import test_env
+
 
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
@@ -56,38 +57,75 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1003_unsupported_functions(self):
         "1003 - test unsupported time functions"
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3000:",
-                               oracledb.Time, 12, 0, 0)
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3000:",
-                               oracledb.TimeFromTicks, 100)
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError, "^DPY-3000:", oracledb.Time, 12, 0, 0
+        )
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError,
+            "^DPY-3000:",
+            oracledb.TimeFromTicks,
+            100,
+        )
 
     def test_1004_makedsn(self):
         "1004 - test makedsn() with valid arguments"
-        format_string = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)" \
-                        "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
+        format_string = (
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)"
+            "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
+        )
         args = ("hostname", 1521, "TEST")
         result = oracledb.makedsn(*args)
         self.assertEqual(result, format_string % args)
 
     def test_1005_makedsn_invalid_args(self):
         "1005 - test makedsn() with invalid arguments"
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="(invalid)", port=1521)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="host", port=1521,
-                               sid="(invalid)")
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="host", port=1521,
-                               service_name="(invalid)")
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="host", port=1521,
-                               region="(invalid)")
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="host", port=1521,
-                               sharding_key="(invalid)")
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2020:",
-                               oracledb.makedsn, host="host", port=1521,
-                               super_sharding_key="(invalid)")
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="(invalid)",
+            port=1521,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="host",
+            port=1521,
+            sid="(invalid)",
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="host",
+            port=1521,
+            service_name="(invalid)",
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="host",
+            port=1521,
+            region="(invalid)",
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="host",
+            port=1521,
+            sharding_key="(invalid)",
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2020:",
+            oracledb.makedsn,
+            host="host",
+            port=1521,
+            super_sharding_key="(invalid)",
+        )
 
     def test_1006_aliases(self):
         "1006 - test aliases match"
@@ -128,12 +166,15 @@ class TestCase(test_env.BaseTestCase):
 
         # pool "get" mode aliases
         self.assertIs(oracledb.SPOOL_ATTRVAL_WAIT, oracledb.POOL_GETMODE_WAIT)
-        self.assertIs(oracledb.SPOOL_ATTRVAL_NOWAIT,
-                      oracledb.POOL_GETMODE_NOWAIT)
-        self.assertIs(oracledb.SPOOL_ATTRVAL_FORCEGET,
-                      oracledb.POOL_GETMODE_FORCEGET)
-        self.assertIs(oracledb.SPOOL_ATTRVAL_TIMEDWAIT,
-                      oracledb.POOL_GETMODE_TIMEDWAIT)
+        self.assertIs(
+            oracledb.SPOOL_ATTRVAL_NOWAIT, oracledb.POOL_GETMODE_NOWAIT
+        )
+        self.assertIs(
+            oracledb.SPOOL_ATTRVAL_FORCEGET, oracledb.POOL_GETMODE_FORCEGET
+        )
+        self.assertIs(
+            oracledb.SPOOL_ATTRVAL_TIMEDWAIT, oracledb.POOL_GETMODE_TIMEDWAIT
+        )
 
         # purity aliases
         self.assertIs(oracledb.ATTR_PURITY_DEFAULT, oracledb.PURITY_DEFAULT)
@@ -141,9 +182,11 @@ class TestCase(test_env.BaseTestCase):
         self.assertIs(oracledb.ATTR_PURITY_SELF, oracledb.PURITY_SELF)
 
         # other aliases
-        self.assertIs(oracledb.SUBSCR_PROTO_OCI,
-                      oracledb.SUBSCR_PROTO_CALLBACK)
+        self.assertIs(
+            oracledb.SUBSCR_PROTO_OCI, oracledb.SUBSCR_PROTO_CALLBACK
+        )
         self.assertIs(oracledb.version, oracledb.__version__)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,73 +20,79 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # connect_params.py
 #
 # Contains the ConnectParams class used for managing the parameters required to
 # establish a connection to the database.
 #
-# #{{ generated_notice }}
-#------------------------------------------------------------------------------
+# # {{ generated_notice }}
+# -----------------------------------------------------------------------------
 
 import functools
 from typing import Union, Callable
 
 import oracledb
 
-from . import base_impl, constants, errors, utils
+from . import base_impl, utils
+
 
 class ConnectParams:
     """
     Contains all parameters used for establishing a connection to the
     database.
     """
+
     __module__ = oracledb.__name__
     __slots__ = ["_impl"]
     _impl_class = base_impl.ConnectParamsImpl
 
     @utils.params_initer
-    def __init__(self, *,
-                 #{{ args_with_defaults }}
-                ):
+    def __init__(
+        # {{ params_constructor_args }}
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
 
-        #{{ args_help_with_defaults }}
+        # {{ args_help_with_defaults }}
         """
         pass
 
-    def __repr__(self):
-        return self.__class__.__qualname__ + "(" + \
-               #{{ params_repr_parts }} + \
-               ")"
+    # {{ params_repr }}
 
     def _address_attr(f):
         """
         Helper function used to get address level attributes.
         """
+
         @functools.wraps(f)
         def wrapped(self):
-            values = [getattr(a, f.__name__) \
-                      for a in self._impl._get_addresses()]
+            values = [
+                getattr(a, f.__name__) for a in self._impl._get_addresses()
+            ]
             return values if len(values) > 1 else values[0]
+
         return wrapped
 
     def _description_attr(f):
         """
         Helper function used to get description level attributes.
         """
+
         @functools.wraps(f)
         def wrapped(self):
-            values = [getattr(d, f.__name__) \
-                      for d in self._impl.description_list.children]
+            values = [
+                getattr(d, f.__name__)
+                for d in self._impl.description_list.children
+            ]
             return values if len(values) > 1 else values[0]
+
         return wrapped
 
-    #{{ params_properties }}
+    # {{ params_properties }}
 
     def copy(self) -> "ConnectParams":
         """
@@ -124,13 +130,13 @@ class ConnectParams:
         return self._impl.parse_dsn_with_credentials(dsn)
 
     @utils.params_setter
-    def set(self, *,
-            #{{ args_without_defaults }}
-           ):
+    def set(
+        # {{ params_setter_args }}
+    ):
         """
         All parameters are optional. A brief description of each parameter
         follows:
 
-        #{{ args_help_without_defaults }}
+        # {{ args_help_without_defaults }}
         """
         pass

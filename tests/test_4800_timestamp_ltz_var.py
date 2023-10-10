@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 4800 - Module for testing timestamp with local time zone variables
@@ -31,8 +31,8 @@ import datetime
 import oracledb
 import test_env
 
-class TestCase(test_env.BaseTestCase):
 
+class TestCase(test_env.BaseTestCase):
     def setUp(self):
         super().setUp()
         self.raw_data = []
@@ -47,15 +47,16 @@ class TestCase(test_env.BaseTestCase):
                 tz_hours = -(i + 0.5)
             tz_offset = datetime.timedelta(hours=tz_hours)
             microseconds = int(str(i * 50).ljust(6, "0"))
-            offset = datetime.timedelta(days=i, seconds=i * 2,
-                                        microseconds=microseconds)
+            offset = datetime.timedelta(
+                days=i, seconds=i * 2, microseconds=microseconds
+            )
             col = base_date + tz_offset + offset
             if i % 2:
                 tz_offset = datetime.timedelta(hours=6)
                 microseconds = int(str(i * 125).ljust(6, "0"))
-                offset = datetime.timedelta(days=i + 1,
-                                            seconds=i * 3,
-                                            microseconds=microseconds)
+                offset = datetime.timedelta(
+                    days=i + 1, seconds=i * 3, microseconds=microseconds
+                )
                 nullable_col = base_date + offset
             else:
                 nullable_col = None
@@ -66,76 +67,110 @@ class TestCase(test_env.BaseTestCase):
     def test_4800_bind_timestamp(self):
         "4800 - test binding in a timestamp"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                select *
-                from TestTimestampLTZs
-                where TimestampLTZCol = :value""",
-                value=datetime.datetime(2022, 6, 6, 18, 30, 10, 250000))
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestampLTZs
+            where TimestampLTZCol = :value
+            """,
+            value=datetime.datetime(2022, 6, 6, 18, 30, 10, 250000),
+        )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
     def test_4801_bind_null(self):
         "4801 - test binding in a null"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                select *
-                from TestTimestampLTZs
-                where TimestampLTZCol = :value""",
-                value=None)
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestampLTZs
+            where TimestampLTZCol = :value
+            """,
+            value=None,
+        )
         self.assertEqual(self.cursor.fetchall(), [])
 
     def test_4802_bind_out_set_input_sizes(self):
         "4802 - test binding out with set input sizes defined"
         bv = self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                begin
-                    :value := to_timestamp('20220603', 'YYYYMMDD');
-                end;""")
+        self.cursor.execute(
+            """
+            begin
+                :value := to_timestamp('20220603', 'YYYYMMDD');
+            end;
+            """
+        )
         self.assertEqual(bv["value"].getvalue(), datetime.datetime(2022, 6, 3))
 
     def test_4803_bind_in_out_set_input_sizes(self):
         "4803 - test binding in/out with set input sizes defined"
         bv = self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                begin
-                    :value := :value + 5.25;
-                end;""",
-                value=datetime.datetime(2022, 5, 10, 12, 0, 0))
-        self.assertEqual(bv["value"].getvalue(),
-                         datetime.datetime(2022, 5, 15, 18, 0, 0))
+        self.cursor.execute(
+            """
+            begin
+                :value := :value + 5.25;
+            end;
+            """,
+            value=datetime.datetime(2022, 5, 10, 12, 0, 0),
+        )
+        self.assertEqual(
+            bv["value"].getvalue(), datetime.datetime(2022, 5, 15, 18, 0, 0)
+        )
 
     def test_4804_bind_out_var(self):
         "4804 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                begin
-                    :value := to_date('20220601 15:38:12',
-                        'YYYYMMDD HH24:MI:SS');
-                end;""",
-                value=var)
-        self.assertEqual(var.getvalue(),
-                         datetime.datetime(2022, 6, 1, 15, 38, 12))
+        self.cursor.execute(
+            """
+            begin
+                :value := to_date('20220601 15:38:12', 'YYYYMMDD HH24:MI:SS');
+            end;
+            """,
+            value=var,
+        )
+        self.assertEqual(
+            var.getvalue(), datetime.datetime(2022, 6, 1, 15, 38, 12)
+        )
 
     def test_4805_bind_in_out_var_direct_set(self):
         "4805 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_TIMESTAMP_LTZ)
         var.setvalue(0, datetime.datetime(2022, 5, 30, 6, 0, 0))
-        self.cursor.execute("""
-                begin
-                    :value := :value + 5.25;
-                end;""",
-                value=var)
-        self.assertEqual(var.getvalue(),
-                         datetime.datetime(2022, 6, 4, 12, 0, 0))
+        self.cursor.execute(
+            """
+            begin
+                :value := :value + 5.25;
+            end;
+            """,
+            value=var,
+        )
+        self.assertEqual(
+            var.getvalue(), datetime.datetime(2022, 6, 4, 12, 0, 0)
+        )
 
     def test_4806_cursor_description(self):
         "4806 - test cursor description is accurate"
         self.cursor.execute("select * from TestTimestampLTZs")
         expected_value = [
-            ('INTCOL', oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
-            ('TIMESTAMPLTZCOL', oracledb.DB_TYPE_TIMESTAMP_LTZ, 23, None, 0, 6,
-                    False),
-            ('NULLABLECOL', oracledb.DB_TYPE_TIMESTAMP_LTZ, 23, None, 0, 6,
-                    True)
+            ("INTCOL", oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
+            (
+                "TIMESTAMPLTZCOL",
+                oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                23,
+                None,
+                0,
+                6,
+                False,
+            ),
+            (
+                "NULLABLECOL",
+                oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                23,
+                None,
+                0,
+                6,
+                True,
+            ),
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
@@ -156,11 +191,14 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4809_fetchone(self):
         "4809 - test that fetching a single row returns the correct results"
-        self.cursor.execute("""
-                select *
-                from TestTimestampLTZs
-                where IntCol in (3, 4)
-                order by IntCol""")
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestampLTZs
+            where IntCol in (3, 4)
+            order by IntCol
+            """
+        )
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[3])
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertEqual(self.cursor.fetchone(), None)
@@ -168,12 +206,16 @@ class TestCase(test_env.BaseTestCase):
     def test_4810_bind_timestamp_with_zero_fseconds(self):
         "4810 - test binding a timestamp with zero fractional seconds"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
-        self.cursor.execute("""
-                select *
-                from TestTimestampLTZs
-                where trunc(TimestampLTZCol) = :value""",
-                value=datetime.datetime(2022, 6, 12))
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestampLTZs
+            where trunc(TimestampLTZCol) = :value
+            """,
+            value=datetime.datetime(2022, 6, 12),
+        )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[10]])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

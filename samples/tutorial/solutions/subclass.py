@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# subclass.py (Section 9.2)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,28 +24,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# subclass.py (Section 9.2)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config
 
 
 class MyConnection(oracledb.Connection):
-
     def __init__(self):
         print("Connecting to database")
-        return super(MyConnection, self).__init__(user=db_config.user, password=db_config.pw, dsn=db_config.dsn)
+        return super(MyConnection, self).__init__(
+            user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+        )
 
     def cursor(self):
         return MyCursor(self)
 
 
 class MyCursor(oracledb.Cursor):
-
     def execute(self, statement, args):
         print("Executing:", statement)
         print("Arguments:")
@@ -58,5 +58,5 @@ con = MyConnection()
 cur = con.cursor()
 
 cur.execute("select count(*) from emp where deptno = :bv", (10,))
-count, = cur.fetchone()
+(count,) = cur.fetchone()
 print("Number of rows:", count)

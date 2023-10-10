@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,23 +20,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # defaults.py
 #
 # Contains the Defaults class used for managing default values used throughout
 # the module.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import os
 
 from . import __name__ as MODULE_NAME
 
+
 class Defaults:
     """
     Identifies the default values used by the driver.
     """
+
     __module__ = MODULE_NAME
 
     def __init__(self) -> None:
@@ -46,5 +48,6 @@ class Defaults:
         self.fetch_lobs = True
         self.fetch_decimals = False
         self.prefetchrows = 2
+
 
 defaults = Defaults()

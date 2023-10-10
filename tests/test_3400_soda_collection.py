@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,22 +20,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
 import unittest
-import json
 
 import oracledb
 import test_env
 
-@unittest.skipIf(test_env.skip_soda_tests(),
-                 "unsupported client/server combination")
-class TestCase(test_env.BaseTestCase):
 
+@unittest.skipIf(
+    test_env.skip_soda_tests(), "unsupported client/server combination"
+)
+class TestCase(test_env.BaseTestCase):
     def __normalize_docs(self, docs):
         """
         Remove the embedded OID added in Oracle Database 23c, if found, in
@@ -58,8 +58,12 @@ class TestCase(test_env.BaseTestCase):
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("InvalidJSON")
         doc = soda_db.createDocument(invalid_json)
-        self.assertRaisesRegex(oracledb.DatabaseError,
-                               "^ORA-40780:|^ORA-02290:", coll.insertOne, doc)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40780:|^ORA-02290:",
+            coll.insertOne,
+            doc,
+        )
         coll.drop()
 
     def test_3401_insert_documents(self):
@@ -71,7 +75,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "George", "age": 47},
             {"name": "Susan", "age": 39},
             {"name": "John", "age": 50},
-            {"name": "Jill", "age": 54}
+            {"name": "Jill", "age": 54},
         ]
         inserted_keys = []
         for value in values_to_insert:
@@ -94,7 +98,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Anna", "age": 62},
             {"name": "Mark", "age": 37},
             {"name": "Martha", "age": 43},
-            {"name": "Matthew", "age": 28}
+            {"name": "Matthew", "age": 28},
         ]
         for value in values_to_insert:
             coll.insertOne(value)
@@ -112,7 +116,7 @@ class TestCase(test_env.BaseTestCase):
         coll.find().remove()
         content = {"name": "John", "address": {"city": "Sydney"}}
         doc = coll.insertOneAndGet(content)
-        new_content = {"name": "John", "address": {"city":"Melbourne"}}
+        new_content = {"name": "John", "address": {"city": "Melbourne"}}
         coll.find().key(doc.key).replaceOne(new_content)
         self.conn.commit()
         doc = coll.find().key(doc.key).getOne().getContent()
@@ -155,21 +159,38 @@ class TestCase(test_env.BaseTestCase):
             ({"birthday": {"$date": "2000-12-15"}}, 1),
             ({"age": {"$gt": 18}}, 3),
             ({"age": {"$lt": 25}}, 1),
-            ({"$or": [{"age": {"$gt": 50}},
-                        {"locations[*].city": {"$like": "%Ban%"}}]}, 3),
-            ({"$and": [{"age": {"$gt": 40}},
-                       {"locations[0 to 1].city": {"$like": "%aras"}}]}, 1),
+            (
+                {
+                    "$or": [
+                        {"age": {"$gt": 50}},
+                        {"locations[*].city": {"$like": "%Ban%"}},
+                    ]
+                },
+                3,
+            ),
+            (
+                {
+                    "$and": [
+                        {"age": {"$gt": 40}},
+                        {"locations[0 to 1].city": {"$like": "%aras"}},
+                    ]
+                },
+                1,
+            ),
             ({"name": {"$hasSubstring": "John"}}, 2),
             ({"name": {"$instr": "John"}}, 2),
             ({"name": {"$startsWith": "John"}}, 2),
             ({"name": {"$upper": {"$startsWith": "JO"}}}, 2),
             ({"age": {"$not": {"$eq": 22}}}, 2),
             ({"age": {"$not": {"$lt": 30, "$gt": 10}}}, 2),
-            ({"locations": {"$type": "array"}}, 2)
+            ({"locations": {"$type": "array"}}, 2),
         ]
         for filter_spec, expected_count in filter_specs:
-            self.assertEqual(coll.find().filter(filter_spec).count(),
-                             expected_count, filter_spec)
+            self.assertEqual(
+                coll.find().filter(filter_spec).count(),
+                expected_count,
+                filter_spec,
+            )
         coll.drop()
 
     def test_3405_document_remove(self):
@@ -183,7 +204,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Joseph", "address": {"city": "Mangalore"}},
             {"name": "Jibin", "address": {"city": "Secunderabad"}},
             {"name": "Andrew", "address": {"city": "Hyderabad"}},
-            {"name": "Matthew", "address": {"city": "Mumbai"}}
+            {"name": "Matthew", "address": {"city": "Mumbai"}},
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         coll.find().key(docs[3].key).remove()
@@ -200,15 +221,11 @@ class TestCase(test_env.BaseTestCase):
     def test_3406_create_and_drop_index(self):
         "3406 - test create and drop Index"
         index_name = "TestIndexes_ix_1"
-        index_spec =  {
+        index_spec = {
             "name": index_name,
             "fields": [
-                {
-                    "path": "address.city",
-                    "datatype": "string",
-                    "order": "asc"
-                }
-            ]
+                {"path": "address.city", "datatype": "string", "order": "asc"}
+            ],
         }
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestIndexes")
@@ -217,8 +234,9 @@ class TestCase(test_env.BaseTestCase):
         coll.dropIndex(index_name)
         coll.createIndex(index_spec)
         self.assertRaises(TypeError, coll.createIndex, 3)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40733:",
-                               coll.createIndex, index_spec)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-40733:", coll.createIndex, index_spec
+        )
         self.assertTrue(coll.dropIndex(index_name))
         self.assertFalse(coll.dropIndex(index_name))
         coll.drop()
@@ -234,10 +252,12 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Johnson", "address": {"city": "Banaras"}},
             {"name": "Joseph", "address": {"city": "Mangalore"}},
             {"name": "Jibin", "address": {"city": "Secunderabad"}},
-            {"name": "Andrew", "address": {"city": "Hyderabad"}}
+            {"name": "Andrew", "address": {"city": "Hyderabad"}},
         ]
         inserted_keys = list(sorted(coll.insertOneAndGet(v).key for v in data))
-        fetched_keys = list(sorted(doc.key for doc in coll.find().getDocuments()))
+        fetched_keys = list(
+            sorted(doc.key for doc in coll.find().getDocuments())
+        )
         self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
@@ -268,7 +288,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Joseph", "address": {"city": "Mangalore"}},
             {"name": "Jibin", "address": {"city": "Secunderabad"}},
             {"name": "Andrew", "address": {"city": "Hyderabad"}},
-            {"name": "Matthew", "address": {"city": "Mumbai"}}
+            {"name": "Matthew", "address": {"city": "Mumbai"}},
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
         keys = [docs[i].key for i in (1, 3, 5)]
@@ -315,7 +335,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Joseph", "address": {"city": "Mangalore"}},
             {"name": "Jibin", "address": {"city": "Secunderabad"}},
             {"name": "Andrew", "address": {"city": "Hyderabad"}},
-            {"name": "Matthew", "address": {"city": "Mumbai"}}
+            {"name": "Matthew", "address": {"city": "Mumbai"}},
         ]
         docs = [coll.insertOneAndGet(value) for value in values_to_insert]
         keys = [docs[i].key for i in (2, 4, 5)]
@@ -333,8 +353,9 @@ class TestCase(test_env.BaseTestCase):
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
 
-    @unittest.skipIf(test_env.get_client_version() < (20, 1),
-                     "unsupported client")
+    @unittest.skipIf(
+        test_env.get_client_version() < (20, 1), "unsupported client"
+    )
     def test_3413_soda_truncate(self):
         "3413 - test Soda truncate"
         soda_db = self.conn.getSodaDatabase()
@@ -344,7 +365,7 @@ class TestCase(test_env.BaseTestCase):
             {"name": "George", "age": 47},
             {"name": "Susan", "age": 39},
             {"name": "John", "age": 50},
-            {"name": "Jill", "age": 54}
+            {"name": "Jill", "age": 54},
         ]
         for value in values_to_insert:
             coll.insertOne(value)
@@ -375,29 +396,35 @@ class TestCase(test_env.BaseTestCase):
         ]
         coll.insertOneAndGet(values_to_insert[0], hint="MONITOR")
         cursor.execute(statement)
-        result, = cursor.fetchone()
+        (result,) = cursor.fetchone()
         self.assertIn("MONITOR", result.read())
 
         coll.find().hint("MONITOR").getOne().getContent()
         cursor.execute(statement)
-        result, = cursor.fetchone()
+        (result,) = cursor.fetchone()
         self.assertIn("MONITOR", result.read())
 
         coll.insertOneAndGet(values_to_insert[1], hint="NO_MONITOR")
         cursor.execute(statement)
-        result, = cursor.fetchone()
+        (result,) = cursor.fetchone()
         self.assertIn("NO_MONITOR", result.read())
 
     def test_3415_soda_hint_with_invalid_type(self):
         "3415 - test error for invalid type for soda hint"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("InvalidSodaHint")
-        self.assertRaises(TypeError, coll.insertOneAndGet,
-                          dict(name="Fred", age=16), hint=5)
-        self.assertRaises(TypeError, coll.insertManyAndGet,
-                          dict(name="George", age=25), hint=10)
-        self.assertRaises(TypeError, coll.saveAndGet,
-                          dict(name="Sally", age=36), hint=5)
+        self.assertRaises(
+            TypeError, coll.insertOneAndGet, dict(name="Fred", age=16), hint=5
+        )
+        self.assertRaises(
+            TypeError,
+            coll.insertManyAndGet,
+            dict(name="George", age=25),
+            hint=10,
+        )
+        self.assertRaises(
+            TypeError, coll.saveAndGet, dict(name="Sally", age=36), hint=5
+        )
         self.assertRaises(TypeError, coll.find().hint, 2)
 
     def test_3416_collection_name_and_metadata(self):
@@ -415,7 +442,7 @@ class TestCase(test_env.BaseTestCase):
         coll = soda_db.createCollection("TestInsertMany")
         values_to_insert = [
             dict(name="George", age=25),
-            soda_db.createDocument(dict(name="Lucas", age=47))
+            soda_db.createDocument(dict(name="Lucas", age=47)),
         ]
         coll.insertMany(values_to_insert)
         self.conn.commit()
@@ -425,8 +452,9 @@ class TestCase(test_env.BaseTestCase):
             if not isinstance(expected_val, dict):
                 expected_val = expected_val.getContent()
             self.assertEqual(fetched_val, fetched_val)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1031:",
-                               coll.insertMany, [])
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^DPI-1031:", coll.insertMany, []
+        )
         coll.drop()
 
     def test_3418_save(self):
@@ -436,7 +464,7 @@ class TestCase(test_env.BaseTestCase):
         values_to_save = [
             dict(name="Jill", age=37),
             soda_db.createDocument(dict(name="John", age=7)),
-            soda_db.createDocument(dict(name="Charles", age=24))
+            soda_db.createDocument(dict(name="Charles", age=24)),
         ]
         for value in values_to_save:
             coll.save(value)
@@ -445,8 +473,9 @@ class TestCase(test_env.BaseTestCase):
         for fetched_doc, expected_doc in zip(fetched_docs, values_to_save):
             if isinstance(expected_doc, dict):
                 expected_doc = soda_db.createDocument(expected_doc)
-            self.assertEqual(fetched_doc.getContent(),
-                             expected_doc.getContent())
+            self.assertEqual(
+                fetched_doc.getContent(), expected_doc.getContent()
+            )
         coll.drop()
 
     def test_3419_save_and_get_with_hint(self):
@@ -467,14 +496,14 @@ class TestCase(test_env.BaseTestCase):
 
         values_to_save = [
             dict(name="Jordan", age=59),
-            dict(name="Curry", age=34)
+            dict(name="Curry", age=34),
         ]
         hints = ["MONITOR", "NO_MONITOR"]
         for value, hint in zip(values_to_save, hints):
             coll.saveAndGet(value, hint=hint)
             coll.find().hint(hint).getOne().getContent()
             cursor.execute(statement)
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertIn(hint, result.read())
 
     def test_3420_save_and_get(self):
@@ -485,7 +514,7 @@ class TestCase(test_env.BaseTestCase):
         values_to_save = [
             dict(name="John", age=50),
             soda_db.createDocument(dict(name="Mark", age=45)),
-            soda_db.createDocument(dict(name="Jill", age=32))
+            soda_db.createDocument(dict(name="Jill", age=32)),
         ]
         inserted_keys = []
         for value in values_to_save:
@@ -507,7 +536,7 @@ class TestCase(test_env.BaseTestCase):
         coll = soda_db.createCollection("TestInsertManyAndGet")
         values_to_insert = [
             dict(name="George", age=25),
-            soda_db.createDocument(dict(name="Lucas", age=47))
+            soda_db.createDocument(dict(name="Lucas", age=47)),
         ]
         docs = coll.insertManyAndGet(values_to_insert)
         inserted_keys = [doc.key for doc in docs]
@@ -522,16 +551,17 @@ class TestCase(test_env.BaseTestCase):
         coll.drop()
 
     def test_3422_close_cursor(self):
-        """3422 - test close SodaDocCursor and confirm an exception is raised
-                  after closing a SodaDocCursor"""
+        "3422 - close document cursor and confirm exception is raised"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestCloseSodaDocCursor")
         cursor = coll.find().getCursor()
         cursor.close()
-        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006",
-                               cursor.close)
-        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:",
-                               next, cursor)
+        self.assertRaisesRegex(
+            oracledb.InterfaceError, "^DPY-1006", cursor.close
+        )
+        self.assertRaisesRegex(
+            oracledb.InterfaceError, "^DPY-1006:", next, cursor
+        )
         coll.drop()
 
     def test_3423_limit(self):
@@ -554,10 +584,12 @@ class TestCase(test_env.BaseTestCase):
         data = [{"song": "WYMCA"} for i in range(20)]
         coll.insertMany(data)
         self.conn.commit()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
-                               coll.find().limit(5).count)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40748:",
-                               coll.find().skip(10).count)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-40748:", coll.find().limit(5).count
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-40748:", coll.find().skip(10).count
+        )
         coll.drop()
 
     def test_3425_map_mode(self):
@@ -568,20 +600,25 @@ class TestCase(test_env.BaseTestCase):
         for mapMode in [False, True]:
             coll = soda_db.createCollection("TestSodaMapMode", mapMode=mapMode)
             coll.insertMany(data)
-        fetched_data = list(doc.getContent() for doc in coll.find().getDocuments())
+        fetched_data = list(
+            doc.getContent() for doc in coll.find().getDocuments()
+        )
         self.__normalize_docs(fetched_data)
         self.assertEqual(fetched_data, expected_data)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626",
-                               coll.drop)
+        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626", coll.drop)
         self.conn.commit()
         coll.drop()
 
     def test_3426_negative_map_mode(self):
         "3426 - test mapping a new collection from an non-existent table"
         soda_db = self.get_soda_database()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40623",
-                               soda_db.createCollection,
-                               "TestSodaMapNonExistent", mapMode=True)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40623",
+            soda_db.createCollection,
+            "TestSodaMapNonExistent",
+            mapMode=True,
+        )
 
     def test_3427_negative(self):
         "3427 - test negative cases for SodaOperation methods"
@@ -607,7 +644,7 @@ class TestCase(test_env.BaseTestCase):
         self.setup_round_trip_checker()
         # setting array size to 0 will use the default value of 100
         # requires a single round-trip
-        docs = coll.find().fetchArraySize(0).getDocuments()
+        coll.find().fetchArraySize(0).getDocuments()
         self.assertRoundTrips(1)
 
         # setting array size to 1 requires a round-trip for each SodaDoc
@@ -647,25 +684,21 @@ class TestCase(test_env.BaseTestCase):
         coll = soda_db.createCollection("TestSodaListIndexes")
         coll.drop()
         coll = soda_db.createCollection("TestSodaListIndexes")
-        index_1 =  {
+        index_1 = {
             "name": "ix_3428-1",
             "fields": [
-                {
-                    "path": "address.city",
-                    "datatype": "string",
-                    "order": "asc"
-                }
-            ]
+                {"path": "address.city", "datatype": "string", "order": "asc"}
+            ],
         }
-        index_2 =  {
+        index_2 = {
             "name": "ix_3428-2",
             "fields": [
                 {
                     "path": "address.postal_code",
                     "datatype": "string",
-                    "order": "asc"
+                    "order": "asc",
                 }
-            ]
+            ],
         }
         self.assertEqual(coll.listIndexes(), [])
         coll.createIndex(index_1)
@@ -673,8 +706,9 @@ class TestCase(test_env.BaseTestCase):
         indexes = coll.listIndexes()
         indexes.sort(key=lambda x: x["name"])
         self.assertEqual(indexes[0]["fields"][0]["path"], "address.city")
-        self.assertEqual(indexes[1]["fields"][0]["path"],
-                         "address.postal_code")
+        self.assertEqual(
+            indexes[1]["fields"][0]["path"], "address.postal_code"
+        )
 
     def test_3430_lock_documents(self):
         "3430 - test locking documents on fetch"
@@ -684,10 +718,11 @@ class TestCase(test_env.BaseTestCase):
         values_to_insert = [
             {"name": "Bob", "age": 46},
             {"name": "Barb", "age": 45},
-            {"name": "Sandy", "age": 47}
+            {"name": "Sandy", "age": 47},
         ]
         coll.insertMany(values_to_insert)
         coll.find().lock().getDocuments()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

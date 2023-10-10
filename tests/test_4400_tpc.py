@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 4400 - Module for testing TPC (two-phase commit) transactions.
@@ -31,10 +31,11 @@ import unittest
 import oracledb
 import test_env
 
-@unittest.skipIf(test_env.get_is_thin(),
-                 "thin mode doesn't support two-phase commit yet")
-class TestCase(test_env.BaseTestCase):
 
+@unittest.skipIf(
+    test_env.get_is_thin(), "thin mode doesn't support two-phase commit yet"
+)
+class TestCase(test_env.BaseTestCase):
     def test_4400_tpc_with_rolback(self):
         "4400 - test begin, prepare, roll back global transaction"
         self.cursor.execute("truncate table TestTempTable")
@@ -42,13 +43,16 @@ class TestCase(test_env.BaseTestCase):
         self.conn.tpc_begin(xid)
         self.assertEqual(self.conn.tpc_prepare(), False)
         self.conn.tpc_begin(xid)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (1, 'tesName')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'tesName')
+            """
+        )
         self.assertEqual(self.conn.tpc_prepare(), True)
         self.conn.tpc_rollback()
         self.cursor.execute("select count(*) from TestTempTable")
-        count, = self.cursor.fetchone()
+        (count,) = self.cursor.fetchone()
         self.assertEqual(count, 0)
 
     def test_4401_tpc_with_commit(self):
@@ -56,13 +60,16 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(3901, "txn3901", "branchId")
         self.conn.tpc_begin(xid)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (1, 'tesName')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'tesName')
+            """
+        )
         self.assertEqual(self.conn.tpc_prepare(), True)
         self.conn.tpc_commit()
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
-        self.assertEqual(self.cursor.fetchall(), [(1, 'tesName')])
+        self.assertEqual(self.cursor.fetchall(), [(1, "tesName")])
 
     def test_4402_tpc_multiple_transactions(self):
         "4402 - test multiple global transactions on the same connection"
@@ -70,14 +77,20 @@ class TestCase(test_env.BaseTestCase):
         xid1 = self.conn.xid(3902, "txn3902", "branch1")
         xid2 = self.conn.xid(3902, "txn3902", "branch2")
         self.conn.tpc_begin(xid1)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (1, 'tesName')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'tesName')
+            """
+        )
         self.conn.tpc_end()
         self.conn.tpc_begin(xid2)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (2, 'tesName')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (2, 'tesName')
+            """
+        )
         self.conn.tpc_end()
         needs_commit1 = self.conn.tpc_prepare(xid1)
         needs_commit2 = self.conn.tpc_prepare(xid2)
@@ -85,11 +98,10 @@ class TestCase(test_env.BaseTestCase):
             self.conn.tpc_commit(xid1)
         if needs_commit2:
             self.conn.tpc_commit(xid2)
-        self.cursor.execute("""
-                select IntCol, StringCol1
-                from TestTempTable
-                order by IntCol""")
-        expected_rows = [(1, 'tesName'), (2, 'tesName')]
+        self.cursor.execute(
+            "select IntCol, StringCol1 from TestTempTable order by IntCol"
+        )
+        expected_rows = [(1, "tesName"), (2, "tesName")]
         self.assertEqual(self.cursor.fetchall(), expected_rows)
 
     def test_4403_rollback_with_xid(self):
@@ -99,43 +111,47 @@ class TestCase(test_env.BaseTestCase):
         xid2 = self.conn.xid(3902, "txn3902", "branch2")
         for count, xid in enumerate([xid1, xid2]):
             self.conn.tpc_begin(xid)
-            self.cursor.execute("""
-                    insert into TestTempTable (IntCol, StringCol1)
-                    values (:id, 'tesName')""", id=count)
+            self.cursor.execute(
+                """
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:id, 'tesName')
+                """,
+                id=count,
+            )
             self.conn.tpc_end()
         self.conn.tpc_rollback(xid1)
 
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24756",
-                               self.conn.tpc_prepare, xid1)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-24756", self.conn.tpc_prepare, xid1
+        )
         needs_commit = self.conn.tpc_prepare(xid2)
         if needs_commit:
             self.conn.tpc_commit(xid2)
-        self.cursor.execute("""
-                select IntCol, StringCol1
-                from TestTempTable
-                order by IntCol""")
-        self.assertEqual(self.cursor.fetchall(), [(1, 'tesName')])
+        self.cursor.execute(
+            "select IntCol, StringCol1 from TestTempTable order by IntCol"
+        )
+        self.assertEqual(self.cursor.fetchall(), [(1, "tesName")])
 
     def test_4404_tpc_begin_resume(self):
         "4404 - test resuming a transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3939, "txn3939", "branch39")
         xid2 = self.conn.xid(3940, "txn3940", "branch40")
-        values = [
-            [xid1, (1, "User Info")],
-            [xid2, (2, "Other User Info")]
-        ]
+        values = [[xid1, (1, "User Info")], [xid2, (2, "Other User Info")]]
         for xid, data in values:
             self.conn.tpc_begin(xid)
-            self.cursor.execute("""
-                    insert into TestTempTable (IntCol, StringCol1)
-                    values (:1, :2)""", data)
+            self.cursor.execute(
+                """
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, :2)
+                """,
+                data,
+            )
             self.conn.tpc_end()
         for xid, data in values:
             self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_RESUME)
-            self.cursor.execute(
-                    "select IntCol, StringCol1 from TestTempTable")
-            res, = self.cursor.fetchall()
+            self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
+            (res,) = self.cursor.fetchall()
             self.assertEqual(res, data)
             self.conn.tpc_rollback(xid)
 
@@ -145,13 +161,15 @@ class TestCase(test_env.BaseTestCase):
         xid = self.conn.xid(3941, "txn3941", "branch41")
         values = (1, "String 1")
         self.cursor.execute(
-                """insert into TestTempTable (IntCol, StringCol1)
-                   values (:1, :2)""", values)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24776",
-                               self.conn.tpc_begin, xid)
+            "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+            values,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-24776", self.conn.tpc_begin, xid
+        )
         self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_PROMOTE)
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
-        res, = self.cursor.fetchall()
+        (res,) = self.cursor.fetchall()
         self.assertEqual(res, values)
         self.conn.tpc_rollback(xid)
 
@@ -161,18 +179,26 @@ class TestCase(test_env.BaseTestCase):
         xid1 = self.conn.xid(4406, "txn4406a", "branch3")
         xid2 = self.conn.xid(4406, "txn4406b", "branch4")
         self.conn.tpc_begin(xid1)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (1, 'test4406a')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'test4406a')
+            """
+        )
         self.conn.tpc_begin(xid2)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24758:",
-                               self.conn.tpc_end, xid1)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (2, 'test4406b')""")
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-24758:", self.conn.tpc_end, xid1
+        )
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (2, 'test4406b')
+            """
+        )
         self.conn.tpc_end(xid2)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-25352:",
-                               self.conn.tpc_end, xid1)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-25352:", self.conn.tpc_end, xid1
+        )
         self.conn.tpc_rollback(xid1)
         self.conn.tpc_rollback(xid2)
 
@@ -183,9 +209,13 @@ class TestCase(test_env.BaseTestCase):
         for i in range(n_xids):
             xid = self.conn.xid(4407 + i, f"txn4407{i}", f"branch{i}")
             self.conn.tpc_begin(xid)
-            self.cursor.execute("""
-                    insert into TestTempTable (IntCol, StringCol1)
-                    values (:1, 'test4407')""", [i + 1])
+            self.cursor.execute(
+                """
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, 'test4407')
+                """,
+                [i + 1],
+            )
             self.conn.tpc_prepare(xid)
         recovers = self.conn.tpc_recover()
         self.assertEqual(len(recovers), n_xids)
@@ -222,10 +252,14 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4409, "txn4409", "branch1")
         self.conn.tpc_begin(xid)
-        values = (1, 'test4409')
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (:1, :2)""", values)
+        values = (1, "test4409")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:1, :2)
+            """,
+            values,
+        )
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.conn.tpc_commit(xid, one_phase=True)
         self.assertEqual(self.cursor.fetchall(), [values])
@@ -235,15 +269,24 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4410, "txn4410", "branch1")
         self.conn.tpc_begin(xid)
-        self.cursor.execute("""
-                insert into TestTempTable (IntCol, StringCol1)
-                values (1, 'test4410')""")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'test4410')
+            """
+        )
         self.assertRaises(TypeError, self.conn.tpc_commit, "invalid xid")
         self.conn.tpc_prepare(xid)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-02053:",
-                               self.conn.tpc_commit, xid, one_phase=True)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24756:",
-                               self.conn.tpc_commit, xid)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-02053:",
+            self.conn.tpc_commit,
+            xid,
+            one_phase=True,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-24756:", self.conn.tpc_commit, xid
+        )
         self.conn.tpc_rollback(xid)
 
     def test_4411_tpc_begin_negative(self):
@@ -251,16 +294,29 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4411, "txn4411", "branch1")
         self.conn.tpc_begin(xid)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24757:",
-                                self.conn.tpc_begin, xid,
-                                oracledb.TPC_BEGIN_NEW)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24797:",
-                                self.conn.tpc_begin, xid,
-                                oracledb.TPC_BEGIN_PROMOTE)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-24757:",
+            self.conn.tpc_begin,
+            xid,
+            oracledb.TPC_BEGIN_NEW,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-24797:",
+            self.conn.tpc_begin,
+            xid,
+            oracledb.TPC_BEGIN_PROMOTE,
+        )
         self.conn.tpc_end()
         for flag in [oracledb.TPC_BEGIN_NEW, oracledb.TPC_BEGIN_PROMOTE]:
-            self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24757:",
-                                   self.conn.tpc_begin, xid, flag)
+            self.assertRaisesRegex(
+                oracledb.DatabaseError,
+                "^ORA-24757:",
+                self.conn.tpc_begin,
+                xid,
+                flag,
+            )
         self.conn.tpc_rollback(xid)
 
     def test_4412_resuming_prepared_txn_negative(self):
@@ -269,9 +325,13 @@ class TestCase(test_env.BaseTestCase):
         xid = self.conn.xid(4412, "txn4412", "branch1")
         self.conn.tpc_begin(xid)
         self.conn.tpc_prepare(xid)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24756",
-                               self.conn.tpc_begin, xid,
-                               oracledb.TPC_BEGIN_RESUME)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-24756",
+            self.conn.tpc_begin,
+            xid,
+            oracledb.TPC_BEGIN_RESUME,
+        )
 
     def test_4413_tpc_begin_end_params_negative(self):
         "4413 - test tpc_begin and tpc_end with invalid parameters"
@@ -279,14 +339,16 @@ class TestCase(test_env.BaseTestCase):
         xid = self.conn.xid(4413, "txn4413", "branch1")
         test_values = [
             (self.conn.tpc_begin, "^ORA-24759:"),
-            (self.conn.tpc_end, "^DPI-1002:")
+            (self.conn.tpc_end, "^DPI-1002:"),
         ]
         for tpc_function, error_code in test_values:
             self.assertRaises(TypeError, tpc_function, "invalid xid")
             self.assertRaises(TypeError, tpc_function, xid, "invalid flag")
-            self.assertRaisesRegex(oracledb.DatabaseError, error_code,
-                                   tpc_function, xid, 70)
+            self.assertRaisesRegex(
+                oracledb.DatabaseError, error_code, tpc_function, xid, 70
+            )
         self.conn.tpc_rollback(xid)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

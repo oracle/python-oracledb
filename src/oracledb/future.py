@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,13 +20,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # future.py
 #
 # Module for handling backwards incompatible changes.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 FEATURES = [
     # fetch VARCHAR2 and LOB columns that contain JSON data (and have the "IS
@@ -35,9 +35,9 @@ FEATURES = [
     "old_json_col_as_obj"
 ]
 
+
 # future object used for managing backwards incompatible changes
 class Future:
-
     def __getattr__(self, name):
         if name in FEATURES:
             return super().__getattr__(name)
@@ -46,6 +46,7 @@ class Future:
     def __setattr__(self, name, value):
         if name in FEATURES:
             return super().__setattr__(name, value)
+
 
 future = Future()
 future.old_json_col_as_obj = False

@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # connection.py
 #
 # Contains the Connection class and the factory method connect() used for
@@ -31,7 +31,7 @@
 # *** NOTICE *** This file is generated from a template and should not be
 # modified directly. See build_from_template.py in the utils subdirectory for
 # more information.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import collections
 import functools
@@ -41,10 +41,9 @@ import oracledb
 from . import __name__ as MODULE_NAME
 
 from typing import Any, Callable, Type, Union
-from . import constants, driver_mode, errors, exceptions, utils
+from . import constants, driver_mode, errors
 from . import base_impl, thick_impl, thin_impl
 from . import pool as pool_module
-from .defaults import defaults
 from .connect_params import ConnectParams
 from .cursor import Cursor
 from .lob import LOB
@@ -55,18 +54,22 @@ from .dbobject import DbObjectType, DbObject
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
 
 # named tuple used for representing global transactions
-Xid = collections.namedtuple("Xid",
-                             ["format_id", "global_transaction_id",
-                              "branch_qualifier"])
+Xid = collections.namedtuple(
+    "Xid", ["format_id", "global_transaction_id", "branch_qualifier"]
+)
+
 
 class Connection:
     __module__ = MODULE_NAME
 
-    def __init__(self,
-                 dsn: str=None, *,
-                 pool: "pool_module.ConnectionPool"=None,
-                 params: ConnectParams=None,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        dsn: str = None,
+        *,
+        pool: "pool_module.ConnectionPool" = None,
+        params: ConnectParams = None,
+        **kwargs,
+    ) -> None:
         """
         Constructor for creating a connection to the database.
 
@@ -85,9 +88,9 @@ class Connection:
         information. If this parameter is not specified, the additional keyword
         parameters will be used to create an instance of ConnectParams. If both
         the params parameter and additional keyword parameters are specified,
-        the values in the keyword parameters have precedence. Note that if a dsn
-        is also supplied, then in the python-oracledb Thin mode, the values of
-        the parameters specified (if any) within the dsn will override the
+        the values in the keyword parameters have precedence. Note that if a
+        dsn is also supplied, then in the python-oracledb Thin mode, the values
+        of the parameters specified (if any) within the dsn will override the
         values passed as additional keyword parameters, which themselves
         override the values set in the params parameter object.
         """
@@ -135,9 +138,12 @@ class Connection:
             self._version = None
 
             # invoke callback, if applicable
-            if impl.invoke_session_callback and pool is not None \
-                    and pool.session_callback is not None \
-                    and callable(pool.session_callback):
+            if (
+                impl.invoke_session_callback
+                and pool is not None
+                and pool.session_callback is not None
+                and callable(pool.session_callback)
+            ):
                 pool.session_callback(self, params_impl.tag)
                 impl.invoke_session_callback = False
 
@@ -151,7 +157,9 @@ class Connection:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        self.close()
+        if self._impl is not None:
+            self._impl.close(in_del=True)
+            self._impl = None
 
     def __repr__(self):
         typ = type(self)
@@ -162,8 +170,9 @@ class Connection:
             return f"<{cls_name} to externally identified user>"
         return f"<{cls_name} to {self.username}@{self.dsn}>"
 
-    def _get_oci_attr(self, handle_type: int, attr_num: int,
-                      attr_type: int) -> Any:
+    def _get_oci_attr(
+        self, handle_type: int, attr_num: int, attr_type: int
+    ) -> Any:
         """
         Returns the value of the specified OCI attribute from the internal
         handle. This is only supported in python-oracledb thick mode and should
@@ -172,8 +181,9 @@ class Connection:
         self._verify_connected()
         return self._impl._get_oci_attr(handle_type, attr_num, attr_type)
 
-    def _set_oci_attr(self, handle_type: int, attr_num: int, attr_type: int,
-                      value: Any) -> None:
+    def _set_oci_attr(
+        self, handle_type: int, attr_num: int, attr_type: int, value: Any
+    ) -> None:
         """
         Sets the value of the specified OCI attribute on the internal handle.
         This is only supported in python-oracledb thick mode and should only
@@ -227,8 +237,12 @@ class Connection:
         self._verify_connected()
         self._impl.autocommit = value
 
-    def begin(self, format_id: int=-1, transaction_id: str="",
-              branch_id: str="") -> None:
+    def begin(
+        self,
+        format_id: int = -1,
+        transaction_id: str = "",
+        branch_id: str = "",
+    ) -> None:
         """
         Deprecated. Use tpc_begin() instead.
         """
@@ -323,8 +337,10 @@ class Connection:
         """
         self._verify_connected()
         if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
-            message = "parameter should be one of oracledb.DB_TYPE_CLOB, " \
-                      "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
+            message = (
+                "parameter should be one of oracledb.DB_TYPE_CLOB, "
+                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
+            )
             raise TypeError(message)
         impl = self._impl.create_temp_lob_impl(lob_type)
         return LOB._from_impl(impl)
@@ -346,7 +362,7 @@ class Connection:
         self._verify_connected()
         self._impl.set_current_schema(value)
 
-    def cursor(self, scrollable: bool=False) -> Cursor:
+    def cursor(self, scrollable: bool = False) -> Cursor:
         """
         Returns a cursor associated with the connection.
         """
@@ -545,10 +561,16 @@ class Connection:
         self._verify_connected()
         self._impl.set_module(value)
 
-    def msgproperties(self, payload: Union[bytes, str, DbObject]=None,
-                      correlation: str=None, delay: int=None,
-                      exceptionq: str=None, expiration: int=None,
-                      priority: int=None, recipients: list=None) -> MessageProperties:
+    def msgproperties(
+        self,
+        payload: Union[bytes, str, DbObject] = None,
+        correlation: str = None,
+        delay: int = None,
+        exceptionq: str = None,
+        expiration: int = None,
+        priority: int = None,
+        recipients: list = None,
+    ) -> MessageProperties:
         """
         Create and return a message properties object. If the parameters are
         not None, they act as a shortcut for setting each of the equivalently
@@ -612,8 +634,13 @@ class Connection:
         """
         return self.tpc_prepare()
 
-    def queue(self, name: str, payload_type: Union[DbObjectType, str]=None, *,
-              payloadType: DbObjectType=None) -> Queue:
+    def queue(
+        self,
+        name: str,
+        payload_type: Union[DbObjectType, str] = None,
+        *,
+        payloadType: DbObjectType = None,
+    ) -> Queue:
         """
         Creates and returns a queue which is used to enqueue and dequeue
         messages in Advanced Queueing (AQ).
@@ -631,9 +658,11 @@ class Connection:
         is_json = False
         if payloadType is not None:
             if payload_type is not None:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="payloadType",
-                                  new_name="payload_type")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="payloadType",
+                    new_name="payload_type",
+                )
             payload_type = payloadType
         if payload_type is not None:
             if payload_type == "JSON":
@@ -653,7 +682,7 @@ class Connection:
         self._verify_connected()
         self._impl.rollback()
 
-    def shutdown(self, mode: int=0) -> None:
+    def shutdown(self, mode: int = 0) -> None:
         """
         Shutdown the database. In order to do this the connection must be
         connected as SYSDBA or SYSOPER. Two calls must be made unless the mode
@@ -662,8 +691,9 @@ class Connection:
         self._verify_connected()
         self._impl.shutdown(mode)
 
-    def startup(self, force: bool=False, restrict: bool=False,
-                pfile: str=None) -> None:
+    def startup(
+        self, force: bool = False, restrict: bool = False, pfile: str = None
+    ) -> None:
         """
         Startup the database. This is equivalent to the SQL*Plus command
         “startup nomount”. The connection must be connected as SYSDBA or
@@ -691,26 +721,28 @@ class Connection:
         self._verify_connected()
         self._impl.set_stmt_cache_size(value)
 
-    def subscribe(self,
-                  namespace: int=constants.SUBSCR_NAMESPACE_DBCHANGE,
-                  protocol: int=constants.SUBSCR_PROTO_CALLBACK,
-                  callback: Callable=None,
-                  timeout: int=0,
-                  operations: int=constants.OPCODE_ALLOPS,
-                  port: int=0,
-                  qos: int=constants.SUBSCR_QOS_DEFAULT,
-                  ip_address: str=None,
-                  grouping_class: int=constants.SUBSCR_GROUPING_CLASS_NONE,
-                  grouping_value: int=0,
-                  grouping_type: int=constants.SUBSCR_GROUPING_TYPE_SUMMARY,
-                  name: str=None,
-                  client_initiated: bool=False,
-                  *,
-                  ipAddress: str=None,
-                  groupingClass: int=constants.SUBSCR_GROUPING_CLASS_NONE,
-                  groupingValue: int=0,
-                  groupingType: int=constants.SUBSCR_GROUPING_TYPE_SUMMARY,
-                  clientInitiated: bool=False) -> Subscription:
+    def subscribe(
+        self,
+        namespace: int = constants.SUBSCR_NAMESPACE_DBCHANGE,
+        protocol: int = constants.SUBSCR_PROTO_CALLBACK,
+        callback: Callable = None,
+        timeout: int = 0,
+        operations: int = constants.OPCODE_ALLOPS,
+        port: int = 0,
+        qos: int = constants.SUBSCR_QOS_DEFAULT,
+        ip_address: str = None,
+        grouping_class: int = constants.SUBSCR_GROUPING_CLASS_NONE,
+        grouping_value: int = 0,
+        grouping_type: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
+        name: str = None,
+        client_initiated: bool = False,
+        *,
+        ipAddress: str = None,
+        groupingClass: int = constants.SUBSCR_GROUPING_CLASS_NONE,
+        groupingValue: int = 0,
+        groupingType: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
+        clientInitiated: bool = False,
+    ) -> Subscription:
         """
         Return a new subscription object that receives notification for events
         that take place in the database that match the given parameters.
@@ -776,39 +808,60 @@ class Connection:
         self._verify_connected()
         if ipAddress is not None:
             if ip_address is not None:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="ipAddress",
-                                  new_name="ip_address")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="ipAddress",
+                    new_name="ip_address",
+                )
             ip_address = ipAddress
         if groupingClass != constants.SUBSCR_GROUPING_CLASS_NONE:
             if grouping_class != constants.SUBSCR_GROUPING_CLASS_NONE:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="groupingClass",
-                                  new_name="grouping_class")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingClass",
+                    new_name="grouping_class",
+                )
             grouping_class = groupingClass
         if groupingValue != 0:
             if grouping_value != 0:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="groupingValue",
-                                  new_name="grouping_value")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingValue",
+                    new_name="grouping_value",
+                )
             grouping_value = groupingValue
         if groupingType != constants.SUBSCR_GROUPING_TYPE_SUMMARY:
             if grouping_type != constants.SUBSCR_GROUPING_TYPE_SUMMARY:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="groupingType",
-                                  new_name="grouping_type")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingType",
+                    new_name="grouping_type",
+                )
             grouping_type = groupingType
         if clientInitiated:
             if client_initiated:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="clientInitiated",
-                                  new_name="client_initiated")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="clientInitiated",
+                    new_name="client_initiated",
+                )
             client_initiated = clientInitiated
-        impl = self._impl.create_subscr_impl(self, callback, namespace, name,
-                                             protocol, ip_address, port,
-                                             timeout, operations, qos,
-                                             grouping_class, grouping_value,
-                                             grouping_type, client_initiated)
+        impl = self._impl.create_subscr_impl(
+            self,
+            callback,
+            namespace,
+            name,
+            protocol,
+            ip_address,
+            port,
+            timeout,
+            operations,
+            qos,
+            grouping_class,
+            grouping_value,
+            grouping_type,
+            client_initiated,
+        )
         subscr = Subscription._from_impl(impl)
         impl.subscribe(subscr, self._impl)
         return subscr
@@ -851,10 +904,9 @@ class Connection:
         """
         return self.dsn
 
-    def tpc_begin(self,
-                  xid: Xid,
-                  flags: int=constants.TPC_BEGIN_NEW,
-                  timeout: int=0) -> None:
+    def tpc_begin(
+        self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0
+    ) -> None:
         """
         Begins a TPC (two-phase commit) transaction with the given transaction
         id. This method should be called outside of a transaction (i.e. nothing
@@ -864,9 +916,7 @@ class Connection:
         self._verify_xid(xid)
         self._impl.tpc_begin(xid, flags, timeout)
 
-    def tpc_commit(self,
-                   xid: Xid=None,
-                   one_phase: bool=False) -> None:
+    def tpc_commit(self, xid: Xid = None, one_phase: bool = False) -> None:
         """
         Prepare the global transaction for commit. Return a boolean indicating
         if a transaction was actually prepared in order to avoid the error
@@ -886,9 +936,9 @@ class Connection:
             self._verify_xid(xid)
         self._impl.tpc_commit(xid, one_phase)
 
-    def tpc_end(self,
-                xid: Xid=None,
-                flags: int=constants.TPC_END_NORMAL) -> None:
+    def tpc_end(
+        self, xid: Xid = None, flags: int = constants.TPC_END_NORMAL
+    ) -> None:
         """
         Ends (detaches from) a TPC (two-phase commit) transaction.
         """
@@ -905,7 +955,7 @@ class Connection:
         self._verify_xid(xid)
         self._impl.tpc_forget(xid)
 
-    def tpc_prepare(self, xid: Xid=None) -> bool:
+    def tpc_prepare(self, xid: Xid = None) -> bool:
         """
         Prepares a global transaction for commit. After calling this function,
         no further activity should take place on this connection until either
@@ -930,15 +980,17 @@ class Connection:
         """
         with self.cursor() as cursor:
             cursor.rowfactory = Xid
-            cursor.execute("""
+            cursor.execute(
+                """
                     select
                         formatid,
                         globalid,
                         branchid
-                    from dba_pending_transactions""")
+                    from dba_pending_transactions"""
+            )
             return cursor.fetchall()
 
-    def tpc_rollback(self, xid: Xid=None) -> None:
+    def tpc_rollback(self, xid: Xid = None) -> None:
         """
         When called with no arguments, rolls back the transaction previously
         started with tpc_begin().
@@ -984,10 +1036,12 @@ class Connection:
             self._version = self._impl.get_version()
         return self._version
 
-    def xid(self,
-            format_id: int,
-            global_transaction_id: Union[bytes, str],
-            branch_qualifier: Union[bytes, str]) -> Xid:
+    def xid(
+        self,
+        format_id: int,
+        global_transaction_id: Union[bytes, str],
+        branch_qualifier: Union[bytes, str],
+    ) -> Xid:
         """
         Returns a global transaction identifier that can be used with the TPC
         (two-phase commit) functions.
@@ -1008,66 +1062,73 @@ def _connection_factory(f):
     class constructor does not check the validity of the supplied keyword
     parameters.
     """
+
     @functools.wraps(f)
-    def connect(dsn: str=None, *,
-                pool: "pool_module.ConnectionPool"=None,
-                conn_class: Type[Connection]=Connection,
-                params: ConnectParams=None,
-                **kwargs) -> Connection:
+    def connect(
+        dsn: str = None,
+        *,
+        pool: "pool_module.ConnectionPool" = None,
+        conn_class: Type[Connection] = Connection,
+        params: ConnectParams = None,
+        **kwargs,
+    ) -> Connection:
         f(dsn=dsn, pool=pool, conn_class=conn_class, params=params, **kwargs)
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
+
     return connect
 
 
 @_connection_factory
-def connect(dsn: str=None, *,
-            pool: "pool_module.ConnectionPool"=None,
-            conn_class: Type[Connection]=Connection,
-            params: ConnectParams=None,
-            user: str=None,
-            proxy_user: str=None,
-            password: str=None,
-            newpassword: str=None,
-            wallet_password: str=None,
-            access_token: Union[str, tuple, Callable]=None,
-            host: str=None,
-            port: int=1521,
-            protocol: str="tcp",
-            https_proxy: str=None,
-            https_proxy_port: int=0,
-            service_name: str=None,
-            sid: str=None,
-            server_type: str=None,
-            cclass: str=None,
-            purity: int=oracledb.PURITY_DEFAULT,
-            expire_time: int=0,
-            retry_count: int=0,
-            retry_delay: int=0,
-            tcp_connect_timeout: float=60.0,
-            ssl_server_dn_match: bool=True,
-            ssl_server_cert_dn: str=None,
-            wallet_location: str=None,
-            events: bool=False,
-            externalauth: bool=False,
-            mode: int=oracledb.AUTH_MODE_DEFAULT,
-            disable_oob: bool=False,
-            stmtcachesize: int=oracledb.defaults.stmtcachesize,
-            edition: str=None,
-            tag: str=None,
-            matchanytag: bool=False,
-            config_dir: str=oracledb.defaults.config_dir,
-            appcontext: list=None,
-            shardingkey: list=None,
-            supershardingkey: list=None,
-            debug_jdwp: str=None,
-            connection_id_prefix: str=None,
-            handle: int=0,
-            threaded: bool=True,
-            encoding: str=None,
-            nencoding: str=None
-           ) -> Connection:
+def connect(
+    dsn: str = None,
+    *,
+    pool: "pool_module.ConnectionPool" = None,
+    conn_class: Type[Connection] = Connection,
+    params: ConnectParams = None,
+    user: str = None,
+    proxy_user: str = None,
+    password: str = None,
+    newpassword: str = None,
+    wallet_password: str = None,
+    access_token: Union[str, tuple, Callable] = None,
+    host: str = None,
+    port: int = 1521,
+    protocol: str = "tcp",
+    https_proxy: str = None,
+    https_proxy_port: int = 0,
+    service_name: str = None,
+    sid: str = None,
+    server_type: str = None,
+    cclass: str = None,
+    purity: int = oracledb.PURITY_DEFAULT,
+    expire_time: int = 0,
+    retry_count: int = 0,
+    retry_delay: int = 0,
+    tcp_connect_timeout: float = 60.0,
+    ssl_server_dn_match: bool = True,
+    ssl_server_cert_dn: str = None,
+    wallet_location: str = None,
+    events: bool = False,
+    externalauth: bool = False,
+    mode: int = oracledb.AUTH_MODE_DEFAULT,
+    disable_oob: bool = False,
+    stmtcachesize: int = oracledb.defaults.stmtcachesize,
+    edition: str = None,
+    tag: str = None,
+    matchanytag: bool = False,
+    config_dir: str = oracledb.defaults.config_dir,
+    appcontext: list = None,
+    shardingkey: list = None,
+    supershardingkey: list = None,
+    debug_jdwp: str = None,
+    connection_id_prefix: str = None,
+    handle: int = 0,
+    threaded: bool = True,
+    encoding: str = None,
+    nencoding: str = None,
+) -> Connection:
     """
     Factory function which creates a connection to the database and returns it.
 

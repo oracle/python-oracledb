@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,13 +20,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # constants.py
 #
 # Contains the constants defined by the package.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 # mandated DB API constants
 apilevel = "2.0"
@@ -56,11 +56,11 @@ PURITY_NEW = 1
 PURITY_SELF = 2
 
 # AQ delivery modes
-MSG_BUFFERED =  2
+MSG_BUFFERED = 2
 MSG_PERSISTENT = 1
 MSG_PERSISTENT_OR_BUFFERED = 3
 
-# AQ deque modes
+# AQ dequeue modes
 DEQ_BROWSE = 1
 DEQ_LOCKED = 2
 DEQ_REMOVE = 3
@@ -77,7 +77,7 @@ DEQ_ON_COMMIT = 2
 
 # AQ dequeue wait modes
 DEQ_NO_WAIT = 0
-DEQ_WAIT_FOREVER = 2 ** 32 - 1
+DEQ_WAIT_FOREVER = 2**32 - 1
 
 # AQ enqueue visibility modes
 ENQ_IMMEDIATE = 1
@@ -157,6 +157,8 @@ TPC_END_SUSPEND = 0x00100000
 
 # basic configuration constants
 DRIVER_NAME = "python-oracledb"
-INSTALLATION_URL = "https://python-oracledb.readthedocs.io/en/" \
-                   "latest/user_guide/initialization.html"
+INSTALLATION_URL = (
+    "https://python-oracledb.readthedocs.io/en/"
+    "latest/user_guide/initialization.html"
+)
 ENCODING = "UTF-8"

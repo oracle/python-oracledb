@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 5100 - Module for testing array variables.
@@ -29,8 +29,8 @@
 import oracledb
 import test_env
 
-class TestCase(test_env.BaseTestCase):
 
+class TestCase(test_env.BaseTestCase):
     def test_5100_arrayvar_attributes(self):
         "5100 - checking the attributes of an array variable"
         var = self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 1000)
@@ -63,30 +63,44 @@ class TestCase(test_env.BaseTestCase):
 
     def test_5103_arrayvar_with_invalid_parameters(self):
         "5103 - creating array variables with invalid parameters"
-        self.assertRaises(TypeError, self.cursor.arrayvar,
-                          oracledb.DB_TYPE_NUMBER, "10", 40)
-        self.assertRaises(TypeError, self.cursor.arrayvar,
-                          oracledb.DB_TYPE_NUMBER, 10, "40")
-        self.assertRaises(TypeError, self.cursor.arrayvar,
-                          oracledb.DB_TYPE_NUMBER, 10, [])
+        self.assertRaises(
+            TypeError, self.cursor.arrayvar, oracledb.DB_TYPE_NUMBER, "10", 40
+        )
+        self.assertRaises(
+            TypeError, self.cursor.arrayvar, oracledb.DB_TYPE_NUMBER, 10, "40"
+        )
+        self.assertRaises(
+            TypeError, self.cursor.arrayvar, oracledb.DB_TYPE_NUMBER, 10, []
+        )
 
     def test_5104_adding_incorrect_type_value(self):
         "5104 - declaring an array variable with an incorrect Python type"
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3013:",
-                               self.cursor.arrayvar, oracledb.DB_TYPE_NUMBER,
-                               [3, "ab"])
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError,
+            "^DPY-3013:",
+            self.cursor.arrayvar,
+            oracledb.DB_TYPE_NUMBER,
+            [3, "ab"],
+        )
 
     def test_5105_arrayvar_with_more_elements_than_declared(self):
         "5105 - adding more elements than declared to an array variable"
         var = self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2016",
-                               var.setvalue, 0, [i for i in range(5)])
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2016",
+            var.setvalue,
+            0,
+            [i for i in range(5)],
+        )
 
     def test_5106_array_of_arrays_negative(self):
         "5106 - creating an invalid array of arrays"
         var = self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
-        self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3005",
-                               var.setvalue, 1, [1, 2])
+        self.assertRaisesRegex(
+            oracledb.NotSupportedError, "^DPY-3005", var.setvalue, 1, [1, 2]
+        )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

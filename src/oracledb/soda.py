@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,22 +20,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # soda.py
 #
 # Contains the classes for managing Simple Oracle Document Access (SODA):
 # SodaDatabase, SodaCollection, SodaDocument, SodaDocCursor and SodaOperation.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Any, Union, List
 import json
 
-from . import connection, errors
+from . import errors
+
 
 class SodaDatabase:
-
     def __repr__(self):
         return f"<oracledb.SodaDatabase on {self._conn!r}>"
 
@@ -57,8 +57,12 @@ class SodaDatabase:
             return content
         return json.dumps(content).encode()
 
-    def createCollection(self, name: str, metadata: Union[str, dict]=None,
-                         mapMode: bool=False) -> "SodaCollection":
+    def createCollection(
+        self,
+        name: str,
+        metadata: Union[str, dict] = None,
+        mapMode: bool = False,
+    ) -> "SodaCollection":
         """
         Creates a SODA collection with the given name and returns a new SODA
         collection object. If you try to create a collection, and a collection
@@ -84,8 +88,12 @@ class SodaDatabase:
         collection_impl = self._impl.create_collection(name, metadata, mapMode)
         return SodaCollection._from_impl(self, collection_impl)
 
-    def createDocument(self, content: Any, key: str=None,
-                       mediaType: str="application/json") -> "SodaDocument":
+    def createDocument(
+        self,
+        content: Any,
+        key: str = None,
+        mediaType: str = "application/json",
+    ) -> "SodaDocument":
         """
         Creates a SODA document usable for SODA write operations. You only need
         to use this method if your collection requires client-assigned keys or
@@ -112,8 +120,9 @@ class SodaDatabase:
         doc_impl = self._impl.create_document(content_bytes, key, mediaType)
         return SodaDocument._from_impl(doc_impl)
 
-    def getCollectionNames(self, startName: str=None,
-                           limit: int=0) -> List[str]:
+    def getCollectionNames(
+        self, startName: str = None, limit: int = 0
+    ) -> List[str]:
         """
         Returns a list of the names of collections in the database that match
         the criteria, in alphabetical order.
@@ -139,7 +148,6 @@ class SodaDatabase:
 
 
 class SodaCollection:
-
     @classmethod
     def _from_impl(cls, db, impl):
         coll = cls.__new__(cls)
@@ -178,7 +186,7 @@ class SodaCollection:
         """
         return self._impl.drop()
 
-    def dropIndex(self, name: str, force: bool=False) -> bool:
+    def dropIndex(self, name: str, force: bool = False) -> bool:
         """
         Drops the index with the specified name, if it exists.
 
@@ -223,7 +231,7 @@ class SodaCollection:
         doc_impls = [self._process_doc_arg(d) for d in docs]
         self._impl.insert_many(doc_impls, hint=None, return_docs=False)
 
-    def insertManyAndGet(self, docs: list, hint: str=None) -> list:
+    def insertManyAndGet(self, docs: list, hint: str = None) -> list:
         """
         Similarly to insertMany() this method inserts a list of documents into
         the collection at one time. The only difference is that it returns a
@@ -241,8 +249,9 @@ class SodaCollection:
         doc_impls = [self._process_doc_arg(d) for d in docs]
         if hint is not None and not isinstance(hint, str):
             raise TypeError("expecting a string")
-        return_doc_impls = self._impl.insert_many(doc_impls, hint,
-                                                  return_docs=True)
+        return_doc_impls = self._impl.insert_many(
+            doc_impls, hint, return_docs=True
+        )
         return [SodaDocument._from_impl(i) for i in return_doc_impls]
 
     def insertOne(self, doc: Any) -> None:
@@ -253,7 +262,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.insert_one(doc_impl, hint=None, return_doc=False)
 
-    def insertOneAndGet(self, doc: Any, hint: str=None) -> "SodaDocument":
+    def insertOneAndGet(self, doc: Any, hint: str = None) -> "SodaDocument":
         """
         Similarly to insertOne() this method inserts a given document into the
         collection. The only difference is that it returns a SODA Document
@@ -271,8 +280,9 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         if hint is not None and not isinstance(hint, str):
             raise TypeError("expecting a string")
-        return_doc_impl = self._impl.insert_one(doc_impl, hint,
-                                                return_doc=True)
+        return_doc_impl = self._impl.insert_one(
+            doc_impl, hint, return_doc=True
+        )
         return SodaDocument._from_impl(return_doc_impl)
 
     def listIndexes(self) -> list:
@@ -306,7 +316,7 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.save(doc_impl, hint=None, return_doc=False)
 
-    def saveAndGet(self, doc: Any, hint: str=None) -> "SodaDocument":
+    def saveAndGet(self, doc: Any, hint: str = None) -> "SodaDocument":
         """
         Saves a document into the collection. This method is equivalent to
         insertOneAndGet() except that if client-assigned keys are used, and the
@@ -336,7 +346,6 @@ class SodaCollection:
 
 
 class SodaDocument:
-
     @classmethod
     def _from_impl(cls, impl):
         doc = cls.__new__(cls)
@@ -421,7 +430,6 @@ class SodaDocument:
 
 
 class SodaDocCursor:
-
     def __iter__(self):
         return self
 
@@ -452,7 +460,6 @@ class SodaDocCursor:
 
 
 class SodaOperation:
-
     def __init__(self, collection: SodaCollection) -> None:
         self._collection = collection
         self._key = None
@@ -630,8 +637,9 @@ class SodaOperation:
         called.
         """
         doc_impl = self._collection._process_doc_arg(doc)
-        return self._collection._impl.replace_one(self, doc_impl,
-                                                  return_doc=False)
+        return self._collection._impl.replace_one(
+            self, doc_impl, return_doc=False
+        )
 
     def replaceOneAndGet(self, doc: Any) -> "SodaDocument":
         """
@@ -641,8 +649,9 @@ class SodaOperation:
         returned document does not contain the content.
         """
         doc_impl = self._collection._process_doc_arg(doc)
-        return_doc_impl = self._collection._impl.replace_one(self, doc_impl,
-                                                             return_doc=True)
+        return_doc_impl = self._collection._impl.replace_one(
+            self, doc_impl, return_doc=True
+        )
         return SodaDocument._from_impl(return_doc_impl)
 
     def skip(self, value: int) -> "SodaOperation":

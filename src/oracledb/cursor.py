@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,19 +20,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # cursor.py
 #
 # Contains the Cursor class used for executing statements on connections and
 # fetching results from queries.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Any, Union, Callable
 
 from . import __name__ as MODULE_NAME
-from . import errors, exceptions
+from . import errors
 from . import connection as connection_module
 from .defaults import defaults
 from .fetch_info import FetchInfo
@@ -40,11 +40,15 @@ from .var import Var
 from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
 
+
 class Cursor:
     __module__ = MODULE_NAME
 
-    def __init__(self, connection: "connection_module.Connection",
-                 scrollable: bool = False) -> None:
+    def __init__(
+        self,
+        connection: "connection_module.Connection",
+        scrollable: bool = False,
+    ) -> None:
         self._impl = None
         self.connection = connection
         self.statement = None
@@ -81,19 +85,26 @@ class Cursor:
     def __repr__(self):
         return f"<oracledb.Cursor on {self.connection!r}>"
 
-    def _call(self, name: str, parameters: Union[list, tuple],
-              keyword_parameters: dict, return_value: str=None) -> None:
+    def _call(
+        self,
+        name: str,
+        parameters: Union[list, tuple],
+        keyword_parameters: dict,
+        return_value: str = None,
+    ) -> None:
         """
         Internal method used for generating the PL/SQL block used to call
         stored procedures.
         """
 
         # verify parameters
-        if parameters is not None \
-                and not isinstance(parameters, (list, tuple)):
+        if parameters is not None and not isinstance(
+            parameters, (list, tuple)
+        ):
             errors._raise_err(errors.ERR_ARGS_MUST_BE_LIST_OR_TUPLE)
-        if keyword_parameters is not None \
-                and not isinstance(keyword_parameters, dict):
+        if keyword_parameters is not None and not isinstance(
+            keyword_parameters, dict
+        ):
             errors._raise_err(errors.ERR_KEYWORD_ARGS_MUST_BE_DICT)
         self._verify_open()
 
@@ -126,8 +137,9 @@ class Cursor:
         self._verify_open()
         return self._impl._get_oci_attr(attr_num, attr_type)
 
-    def _prepare(self, statement: str, tag: str=None,
-                 cache_statement: bool=True) -> None:
+    def _prepare(
+        self, statement: str, tag: str = None, cache_statement: bool = True
+    ) -> None:
         """
         Internal method used for preparing a statement for execution.
         """
@@ -141,8 +153,7 @@ class Cursor:
         self._impl.rowfactory = None
         self._fetch_infos = None
 
-    def _set_oci_attr(self, attr_num: int, attr_type: int,
-                      value: Any) -> None:
+    def _set_oci_attr(self, attr_num: int, attr_type: int, value: Any) -> None:
         """
         Sets the value of the specified OCI attribute on the internal handle.
         This is only supported in python-oracledb's thick mode and should only
@@ -191,8 +202,12 @@ class Cursor:
         self._verify_open()
         self._impl.arraysize = value
 
-    def arrayvar(self, typ: Union[DbType, DbObjectType, type],
-                 value: Union[list, int], size: int=0) -> Var:
+    def arrayvar(
+        self,
+        typ: Union[DbType, DbObjectType, type],
+        value: Union[list, int],
+        size: int = 0,
+    ) -> Var:
         """
         Create an array variable associated with the cursor of the given type
         and size and return a variable object. The value is either an integer
@@ -216,8 +231,13 @@ class Cursor:
             num_elements = value
         else:
             raise TypeError("expecting integer or list of values")
-        var = self._impl.create_var(self.connection, typ, size=size,
-                                    num_elements=num_elements, is_array=True)
+        var = self._impl.create_var(
+            self.connection,
+            typ,
+            size=size,
+            num_elements=num_elements,
+            is_array=True,
+        )
         if isinstance(value, list):
             var.setvalue(0, value)
         return var
@@ -243,10 +263,15 @@ class Cursor:
         self._verify_open()
         return self._impl.get_bind_vars()
 
-    def callfunc(self, name: str, return_type: Any,
-                 parameters: Union[list, tuple]=None,
-                 keyword_parameters: dict=None, *,
-                 keywordParameters: dict=None) -> Any:
+    def callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+        *,
+        keywordParameters: dict = None,
+    ) -> Any:
         """
         Call a function with the given name. The return type is specified in
         the same notation as is required by setinputsizes(). The sequence of
@@ -257,16 +282,23 @@ class Cursor:
         var = self.var(return_type)
         if keywordParameters is not None:
             if keyword_parameters is not None:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="keywordParameters",
-                                  new_name="keyword_parameters")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
             keyword_parameters = keywordParameters
         self._call(name, parameters, keyword_parameters, var)
         return var.getvalue()
 
-    def callproc(self, name: str, parameters: Union[list, tuple]=None,
-                 keyword_parameters: dict=None, *,
-                 keywordParameters: dict=None) -> list:
+    def callproc(
+        self,
+        name: str,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+        *,
+        keywordParameters: dict = None,
+    ) -> list:
         """
         Call a procedure with the given name. The sequence of parameters must
         contain one entry for each parameter that the procedure expects. The
@@ -278,14 +310,18 @@ class Cursor:
         """
         if keywordParameters is not None:
             if keyword_parameters is not None:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="keywordParameters",
-                                  new_name="keyword_parameters")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
             keyword_parameters = keywordParameters
         self._call(name, parameters, keyword_parameters)
         if parameters is None:
             return []
-        return [v.get_value(0) for v in self._impl.bind_vars[:len(parameters)]]
+        return [
+            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
+        ]
 
     def close(self) -> None:
         """
@@ -308,13 +344,17 @@ class Cursor:
         """
         self._verify_open()
         if self._fetch_infos is None and self._impl.is_query(self):
-            self._fetch_infos = [FetchInfo._from_impl(i) \
-                                 for i in self._impl.fetch_info_impls]
+            self._fetch_infos = [
+                FetchInfo._from_impl(i) for i in self._impl.fetch_info_impls
+            ]
         return self._fetch_infos
 
-    def execute(self, statement: Union[str, None],
-                parameters: Union[list, tuple, dict]=None,
-                **keyword_parameters: Any) -> Any:
+    def execute(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, tuple, dict] = None,
+        **keyword_parameters: Any,
+    ) -> Any:
         """
         Execute a statement against the database.
 
@@ -358,18 +398,26 @@ class Cursor:
             if parameters:
                 errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
             parameters = keyword_parameters
-        elif parameters is not None \
-                and not isinstance(parameters, (list, tuple, dict)):
+        elif parameters is not None and not isinstance(
+            parameters, (list, tuple, dict)
+        ):
             errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         self._verify_open()
         impl = self._impl
         bind_vars = impl.bind_vars
         bind_style = impl.bind_style
         prepare_needed = statement and statement != self.statement
-        if not (prepare_needed and not self._set_input_sizes) \
-                and bind_vars is not None and parameters is not None:
-            if bind_style is dict and not isinstance(parameters, dict) \
-                    or bind_style is not dict and isinstance(parameters, dict):
+        if (
+            not (prepare_needed and not self._set_input_sizes)
+            and bind_vars is not None
+            and parameters is not None
+        ):
+            if (
+                bind_style is dict
+                and not isinstance(parameters, dict)
+                or bind_style is not dict
+                and isinstance(parameters, dict)
+            ):
                 errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
 
         # prepare statement, if necessary
@@ -384,9 +432,13 @@ class Cursor:
         if impl.fetch_vars is not None:
             return self
 
-    def executemany(self, statement: Union[str, None],
-                    parameters: Union[list, int], batcherrors: bool=False,
-                    arraydmlrowcounts: bool=False) -> None:
+    def executemany(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, int],
+        batcherrors: bool = False,
+        arraydmlrowcounts: bool = False,
+    ) -> None:
         """
         Prepare a statement for execution against a database and then execute
         it against all parameter mappings or sequences found in the sequence
@@ -441,8 +493,9 @@ class Cursor:
             num_execs = len(parameters)
             if num_execs > 0:
                 self._impl.bind_many(self, parameters)
-        self._impl.executemany(self, num_execs, bool(batcherrors),
-                               bool(arraydmlrowcounts))
+        self._impl.executemany(
+            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+        )
 
     def fetchall(self) -> list:
         """
@@ -465,7 +518,7 @@ class Cursor:
             result.append(row)
         return result
 
-    def fetchmany(self, size: int=None, numRows: int=None) -> list:
+    def fetchmany(self, size: int = None, numRows: int = None) -> list:
         """
         Fetch the next set of rows of a query result, returning a list of
         tuples. An empty list is returned if no more rows are available. Note
@@ -489,8 +542,11 @@ class Cursor:
             else:
                 size = self._impl.arraysize
         elif numRows is not None:
-            errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                              deprecated_name="numRows", new_name="size")
+            errors._raise_err(
+                errors.ERR_DUPLICATED_PARAMETER,
+                deprecated_name="numRows",
+                new_name="size",
+            )
         result = []
         fetch_next_row = self._impl.fetch_next_row
         while len(result) < size:
@@ -628,8 +684,9 @@ class Cursor:
         self._verify_open()
         self._impl.prefetchrows = value
 
-    def prepare(self, statement: str, tag: str=None,
-                cache_statement: bool=True) -> None:
+    def prepare(
+        self, statement: str, tag: str = None, cache_statement: bool = True
+    ) -> None:
         """
         This can be used before a call to execute() to define the statement
         that will be executed. When this is done, the prepare phase will not be
@@ -673,7 +730,7 @@ class Cursor:
         self._verify_open()
         self._impl.rowfactory = value
 
-    def scroll(self, value: int=0, mode: str="relative") -> None:
+    def scroll(self, value: int = 0, mode: str = "relative") -> None:
         """
         Scroll the cursor in the result set to a new position according to the
         mode.
@@ -727,25 +784,27 @@ class Cursor:
             return self._impl.get_bind_vars()
         return []
 
-    def setoutputsize(self, size: int, column: int=0) -> None:
+    def setoutputsize(self, size: int, column: int = 0) -> None:
         """
         Sets a column buffer size for fetches of long columns.  However
         python-oracledb does not require it so this method does nothing.
         """
         pass
 
-    def var(self,
-            typ: Union[DbType, DbObjectType, type],
-            size: int=0,
-            arraysize: int=1,
-            inconverter: Callable=None,
-            outconverter: Callable=None,
-            typename: str=None,
-            encoding_errors: str=None,
-            bypass_decode: bool=False,
-            convert_nulls: bool=False,
-            *,
-            encodingErrors: str=None) -> "Var":
+    def var(
+        self,
+        typ: Union[DbType, DbObjectType, type],
+        size: int = 0,
+        arraysize: int = 1,
+        inconverter: Callable = None,
+        outconverter: Callable = None,
+        typename: str = None,
+        encoding_errors: str = None,
+        bypass_decode: bool = False,
+        convert_nulls: bool = False,
+        *,
+        encodingErrors: str = None,
+    ) -> "Var":
         """
         Create a variable with the specified characteristics. This method was
         designed for use with PL/SQL in/out variables where the length or type
@@ -806,11 +865,20 @@ class Cursor:
             errors._raise_err(errors.ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR)
         if encodingErrors is not None:
             if encoding_errors is not None:
-                errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                                  deprecated_name="encodingErrors",
-                                  new_name="encoding_errors")
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="encodingErrors",
+                    new_name="encoding_errors",
+                )
             encoding_errors = encodingErrors
-        return self._impl.create_var(self.connection, typ, size, arraysize,
-                                     inconverter, outconverter,
-                                     encoding_errors, bypass_decode,
-                                     convert_nulls=convert_nulls)
+        return self._impl.create_var(
+            self.connection,
+            typ,
+            size,
+            arraysize,
+            inconverter,
+            outconverter,
+            encoding_errors,
+            bypass_decode,
+            convert_nulls=convert_nulls,
+        )

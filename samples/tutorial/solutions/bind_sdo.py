@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# bind_sdo.py (Section 12.1)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,30 +24,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# bind_sdo.py (Section 12.1)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config_thick as db_config
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 cur = con.cursor()
 
 # Create table
-cur.execute("""begin
-                 execute immediate 'drop table testgeometry';
-                 exception when others then
-                   if sqlcode <> -942 then
-                     raise;
-                   end if;
-               end;""")
-cur.execute("""create table testgeometry (
-               id number(9) not null,
-               geometry MDSYS.SDO_GEOMETRY not null)""")
+cur.execute(
+    """
+    begin
+        execute immediate 'drop table testgeometry';
+    exception when others then
+        if sqlcode <> -942 then
+            raise;
+        end if;
+    end;
+    """
+)
+cur.execute(
+    """
+    create table testgeometry (
+        id number(9) not null,
+        geometry MDSYS.SDO_GEOMETRY not null
+    )
+    """
+)
 
 # Create and populate Oracle objects
 type_obj = con.gettype("MDSYS.SDO_GEOMETRY")
@@ -98,6 +108,6 @@ def dumpobject(obj, prefix="  "):
 # Query the row
 print("Querying row just inserted...")
 cur.execute("select id, geometry from testgeometry")
-for (id, obj) in cur:
+for id, obj in cur:
     print("Id: ", id)
     dumpobject(obj)

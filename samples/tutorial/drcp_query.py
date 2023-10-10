@@ -1,5 +1,10 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+# -----------------------------------------------------------------------------
+# drcp_query.py (Section 2.4 and 2.5)
+# Look at pool statistics of the DRCP Connection
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,12 +25,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# drcp_query.py (Section 2.4 and 2.5)
-# Look at pool statistics of the DRCP Connection
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import getpass
@@ -71,8 +71,11 @@ def get_main_password():
 
 
 def get_drcp_connect_string():
-    connect_string = get_value("DRCP_CONNECT_STRING", "Enter the DRCP Connect String",
-                               PYTHON_DRCP_CONNECT_STRING)
+    connect_string = get_value(
+        "DRCP_CONNECT_STRING",
+        "Enter the DRCP Connect String",
+        PYTHON_DRCP_CONNECT_STRING,
+    )
     return "%s/%s@%s" % (get_main_user(), get_main_password(), connect_string)
 
 
@@ -80,17 +83,20 @@ drcp_user = get_main_user()
 drcp_password = get_main_password()
 drcp_connect_string = get_drcp_connect_string()
 
-con = oracledb.connect(user=drcp_user,
-                       password=drcp_password, dsn=drcp_connect_string)
+con = oracledb.connect(
+    user=drcp_user, password=drcp_password, dsn=drcp_connect_string
+)
 cur = con.cursor()
 # looking at the pool stats of the DRCP Connection
 print("\nLooking at DRCP Pool statistics...\n")
 cur.execute(
-    "select cclass_name, num_requests, num_hits, num_misses from v$cpool_cc_stats")
+    "select cclass_name, num_requests, num_hits, num_misses "
+    "from v$cpool_cc_stats"
+)
 res = cur.fetchall()
 
-print('(CCLASS_NAME, NUM_REQUESTS, NUM_HITS, NUM_MISSES)')
-print('-------------------------------------------------')
+print("(CCLASS_NAME, NUM_REQUESTS, NUM_HITS, NUM_MISSES)")
+print("-------------------------------------------------")
 for row in res:
     print(row)
 print("Done.")

@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # drop_schema.py
 #
 # Drops the database objects used by the python-oracledb test suite.
@@ -30,16 +30,20 @@
 # This script is also executed by the Python script create_schema.py for
 # dropping the existing users and editions, if applicable, before creating the
 # test schemas.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-import oracledb
 import test_env
+
 
 def drop_schema(conn):
     print("Dropping test schemas...")
-    test_env.run_sql_script(conn, "drop_schema",
-                            main_user=test_env.get_main_user(),
-                            proxy_user=test_env.get_proxy_user())
+    test_env.run_sql_script(
+        conn,
+        "drop_schema",
+        main_user=test_env.get_main_user(),
+        proxy_user=test_env.get_proxy_user(),
+    )
+
 
 if __name__ == "__main__":
     conn = test_env.get_admin_connection()

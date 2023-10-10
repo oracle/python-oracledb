@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# type_input.py (Section 6.3)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,38 +24,43 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# type_input.py (Section 6.3)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config
 import json
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 cur = con.cursor()
 
 # Create table
-cur.execute("""begin
-                 execute immediate 'drop table BuildingTable';
-                 exception when others then
-                   if sqlcode <> -942 then
-                     raise;
-                   end if;
-               end;""")
-cur.execute("""create table BuildingTable (
-               ID number(9) not null,
-               BuildingDetails varchar2(400),
-               constraint TestTempTable_pk primary key (ID))""")
+cur.execute(
+    """
+    begin
+        execute immediate 'drop table BuildingTable';
+    exception when others then
+        if sqlcode <> -942 then
+            raise;
+        end if;
+    end;
+    """
+)
+cur.execute(
+    """
+    create table BuildingTable (
+        ID number(9) not null,
+        BuildingDetails varchar2(400),
+        constraint TestTempTable_pk primary key (ID)
+    )
+    """
+)
 
 # Create a Python class for a Building
 
 
 class Building(object):
-
     def __init__(self, building_id, description, num_floors):
         self.building_id = building_id
         self.description = description
@@ -62,9 +71,11 @@ class Building(object):
 
     def __eq__(self, other):
         if isinstance(other, Building):
-            return other.building_id == self.building_id \
-                and other.description == self.description \
+            return (
+                other.building_id == self.building_id
+                and other.description == self.description
                 and other.num_floors == self.num_floors
+            )
         return NotImplemented
 
     def to_json(self):
@@ -75,7 +86,9 @@ class Building(object):
         result = json.loads(value)
         return cls(**result)
 
-# Convert a Python building object to SQL JSON type that can be read as a string
+
+# Convert a Python building object to a SQL JSON type that can be read as a
+# string
 
 
 def building_in_converter(value):
@@ -84,20 +97,25 @@ def building_in_converter(value):
 
 def input_type_handler(cursor, value, num_elements):
     if isinstance(value, Building):
-        return cursor.var(oracledb.STRING, arraysize=num_elements,
-                          inconverter=building_in_converter)
+        return cursor.var(
+            oracledb.STRING,
+            arraysize=num_elements,
+            inconverter=building_in_converter,
+        )
 
 
 building = Building(1, "The First Building", 5)  # Python object
 cur.execute("truncate table BuildingTable")
 cur.inputtypehandler = input_type_handler
-cur.execute("insert into BuildingTable (ID, BuildingDetails) values (:1, :2)",
-            (building.building_id, building))
+cur.execute(
+    "insert into BuildingTable (ID, BuildingDetails) values (:1, :2)",
+    (building.building_id, building),
+)
 con.commit()
 
 # Query the row
 print("Querying the row just inserted...")
 cur.execute("select ID, BuildingDetails from BuildingTable")
-for (int_col, string_col) in cur:
+for int_col, string_col in cur:
     print("Building ID:", int_col)
     print("Building Details in JSON format:", string_col)

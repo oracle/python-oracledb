@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# aq-dequeue.py (Section 14.1)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,18 +24,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# aq-dequeue.py (Section 14.1)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
-import decimal
 import db_config_thick as db_config
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 cur = con.cursor()
 
 BOOK_TYPE_NAME = "UDT_BOOK"

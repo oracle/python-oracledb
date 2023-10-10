@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,20 +20,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # dbobject.py
 #
 # Contains the classes used for managing database objects and the database
 # object type metadata: DbObject, DbObjectType and DbObjectAttr.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from typing import Any, Sequence, Union
 
 from . import errors
 from . import __name__ as MODULE_NAME
 from .base_impl import DbType
+
 
 class DbObject:
     __module__ = MODULE_NAME
@@ -43,8 +44,10 @@ class DbObject:
         return self._impl.get_attr_value(attr_impl)
 
     def __repr__(self):
-        return f"<oracledb.DbObject {self.type._get_full_name()} at " \
-               f"{hex(id(self))}>"
+        return (
+            f"<oracledb.DbObject {self.type._get_full_name()} at "
+            f"{hex(id(self))}>"
+        )
 
     def __setattr__(self, name, value):
         if name == "_impl" or name == "_type":
@@ -59,8 +62,10 @@ class DbObject:
         raised.
         """
         if not self.type.iscollection:
-            errors._raise_err(errors.ERR_OBJECT_IS_NOT_A_COLLECTION,
-                              name=self.type._get_full_name())
+            errors._raise_err(
+                errors.ERR_OBJECT_IS_NOT_A_COLLECTION,
+                name=self.type._get_full_name(),
+            )
 
     @classmethod
     def _from_impl(cls, impl):
@@ -285,8 +290,9 @@ class DbObjectType:
         the object type.
         """
         if self._attributes is None:
-            self._attributes = [DbObjectAttr._from_impl(i) \
-                                for i in self._impl.attrs]
+            self._attributes = [
+                DbObjectAttr._from_impl(i) for i in self._impl.attrs
+            ]
         return self._attributes
 
     @property
@@ -320,7 +326,7 @@ class DbObjectType:
                 self._element_type = self._impl.element_dbtype
         return self._element_type
 
-    def newobject(self, value: Sequence=None) -> DbObject:
+    def newobject(self, value: Sequence = None) -> DbObject:
         """
         Return a new Oracle object of the given type. This object can then be
         modified by setting its attributes and then bound to a cursor for

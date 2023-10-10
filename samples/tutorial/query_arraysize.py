@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# query_arraysize.py (Section 3.5)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,18 +24,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# query_arraysize.py (Section 3.5)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import time
 import db_config
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 
 start = time.time()
 
@@ -42,5 +43,5 @@ cur.execute("select * from bigtab")
 res = cur.fetchall()
 # print(res)  # uncomment to display the query results
 
-elapsed = (time.time() - start)
+elapsed = time.time() - start
 print(elapsed, "seconds")

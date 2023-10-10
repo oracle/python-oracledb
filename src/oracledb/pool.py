@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,9 +20,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # pool.py
 #
 # Contains the ConnectionPool class and the factory method create_pool() used
@@ -31,27 +31,26 @@
 # *** NOTICE *** This file is generated from a template and should not be
 # modified directly. See build_from_template.py in the utils subdirectory for
 # more information.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import functools
 from typing import Callable, Type, Union
 
 import oracledb
 
-from . import errors, exceptions, utils
 from . import base_impl, thick_impl, thin_impl
 from . import connection as connection_module
 from . import driver_mode
-from .connect_params import ConnectParams
+from . import errors
 from .pool_params import PoolParams
-from .defaults import defaults
+
 
 class ConnectionPool:
     __module__ = oracledb.__name__
 
-    def __init__(self, dsn: str=None, *,
-                 params: PoolParams=None,
-                 **kwargs) -> None:
+    def __init__(
+        self, dsn: str = None, *, params: PoolParams = None, **kwargs
+    ) -> None:
         """
         Constructor for creating a connection pool. Connection pooling creates
         a pool of available connections to the database, allowing applications
@@ -67,8 +66,8 @@ class ConnectionPool:
 
         The params parameter is expected to be of type PoolParams and contains
         parameters that are used to create the pool. See the documentation on
-        PoolParams for more information. If this parameter is not specified, the
-        additional keyword parameters will be used to create an instance of
+        PoolParams for more information. If this parameter is not specified,
+        the additional keyword parameters will be used to create an instance of
         PoolParams. If both the params parameter and additional keyword
         parameters are specified, the values in the keyword parameters have
         precedence. Note that if a dsn is also supplied, then in the
@@ -87,8 +86,9 @@ class ConnectionPool:
         with driver_mode.get_manager() as mode_mgr:
             thin = mode_mgr.thin
             dsn = params_impl.process_args(dsn, kwargs, thin)
-            self._connection_type = \
-                    params_impl.connectiontype or connection_module.Connection
+            self._connection_type = (
+                params_impl.connectiontype or connection_module.Connection
+            )
             if thin:
                 impl = thin_impl.ThinPoolImpl(dsn, params_impl)
             else:
@@ -108,15 +108,17 @@ class ConnectionPool:
         if self._impl is None:
             errors._raise_err(errors.ERR_POOL_NOT_OPEN)
 
-    def acquire(self,
-                user: str=None,
-                password: str=None,
-                cclass: str=None,
-                purity: int=oracledb.PURITY_DEFAULT,
-                tag: str=None,
-                matchanytag: bool=False,
-                shardingkey: list=None,
-                supershardingkey: list=None) -> "connection_module.Connection":
+    def acquire(
+        self,
+        user: str = None,
+        password: str = None,
+        cclass: str = None,
+        purity: int = oracledb.PURITY_DEFAULT,
+        tag: str = None,
+        matchanytag: bool = False,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+    ) -> "connection_module.Connection":
         """
         Acquire a connection from the pool and return it.
 
@@ -145,12 +147,17 @@ class ConnectionPool:
         bytes or dates.
         """
         self._verify_open()
-        return self._connection_type(user=user, password=password,
-                                     cclass=cclass, purity=purity, tag=tag,
-                                     matchanytag=matchanytag,
-                                     shardingkey=shardingkey,
-                                     supershardingkey=supershardingkey,
-                                     pool=self)
+        return self._connection_type(
+            user=user,
+            password=password,
+            cclass=cclass,
+            purity=purity,
+            tag=tag,
+            matchanytag=matchanytag,
+            shardingkey=shardingkey,
+            supershardingkey=supershardingkey,
+            pool=self,
+        )
 
     @property
     def busy(self) -> int:
@@ -161,7 +168,7 @@ class ConnectionPool:
         self._verify_open()
         return self._impl.get_busy_count()
 
-    def close(self, force: bool=False) -> None:
+    def close(self, force: bool = False) -> None:
         """
         Close the pool now, rather than when the last reference to it is
         released, which makes it unusable for further work.
@@ -180,8 +187,7 @@ class ConnectionPool:
         """
         self._verify_open()
         if not isinstance(connection, connection_module.Connection):
-            message = "connection must be an instance of " \
-                      "oracledb.Connection"
+            message = "connection must be an instance of oracledb.Connection"
             raise TypeError(message)
         connection._verify_connected()
         self._impl.drop(connection._impl)
@@ -318,8 +324,9 @@ class ConnectionPool:
     def ping_interval(self, value: int) -> None:
         self._impl.set_ping_interval(value)
 
-    def release(self, connection: "connection_module.Connection",
-                tag: str=None) -> None:
+    def release(
+        self, connection: "connection_module.Connection", tag: str = None
+    ) -> None:
         """
         Release the connection back to the pool now, rather than whenever
         __del__ is called. The connection will be unusable from this point
@@ -343,25 +350,26 @@ class ConnectionPool:
         """
         self._verify_open()
         if not isinstance(connection, connection_module.Connection):
-            message = "connection must be an instance of " \
-                      "oracledb.Connection"
+            message = "connection must be an instance of oracledb.Connection"
             raise TypeError(message)
         if tag is not None:
             connection.tag = tag
         connection.close()
 
-    def reconfigure(self,
-                    min: int=None,
-                    max: int=None,
-                    increment: int=None,
-                    getmode: int=None,
-                    timeout: int=None,
-                    wait_timeout: int=None,
-                    max_lifetime_session: int=None,
-                    max_sessions_per_shard: int=None,
-                    soda_metadata_cache: bool=None,
-                    stmtcachesize: int=None,
-                    ping_interval: int=None) -> None:
+    def reconfigure(
+        self,
+        min: int = None,
+        max: int = None,
+        increment: int = None,
+        getmode: int = None,
+        timeout: int = None,
+        wait_timeout: int = None,
+        max_lifetime_session: int = None,
+        max_sessions_per_shard: int = None,
+        soda_metadata_cache: bool = None,
+        stmtcachesize: int = None,
+        ping_interval: int = None,
+    ) -> None:
         """
         Reconfigures various parameters of a connection pool. The pool size
         can be altered with reconfigure() by passing values for min, max
@@ -529,81 +537,88 @@ def _pool_factory(f):
     ConnectionPool class constructor does not check the validity of the
     supplied keyword parameters.
     """
+
     @functools.wraps(f)
-    def create_pool(dsn: str=None, *,
-                pool_class: Type[ConnectionPool]=ConnectionPool,
-                params: PoolParams=None,
-                **kwargs) -> ConnectionPool:
+    def create_pool(
+        dsn: str = None,
+        *,
+        pool_class: Type[ConnectionPool] = ConnectionPool,
+        params: PoolParams = None,
+        **kwargs,
+    ) -> ConnectionPool:
         f(dsn=dsn, pool_class=pool_class, params=params, **kwargs)
         if not issubclass(pool_class, ConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
         return pool_class(dsn, params=params, **kwargs)
+
     return create_pool
 
 
 @_pool_factory
-def create_pool(dsn: str=None, *,
-                pool_class: Type[ConnectionPool]=ConnectionPool,
-                params: PoolParams=None,
-                min: int=1,
-                max: int=2,
-                increment: int=1,
-                connectiontype: Type["oracledb.Connection"]=None,
-                getmode: int=oracledb.POOL_GETMODE_WAIT,
-                homogeneous: bool=True,
-                timeout: int=0,
-                wait_timeout: int=0,
-                max_lifetime_session: int=0,
-                session_callback: Callable=None,
-                max_sessions_per_shard: int=0,
-                soda_metadata_cache: bool=False,
-                ping_interval: int=60,
-                user: str=None,
-                proxy_user: str=None,
-                password: str=None,
-                newpassword: str=None,
-                wallet_password: str=None,
-                access_token: Union[str, tuple, Callable]=None,
-                host: str=None,
-                port: int=1521,
-                protocol: str="tcp",
-                https_proxy: str=None,
-                https_proxy_port: int=0,
-                service_name: str=None,
-                sid: str=None,
-                server_type: str=None,
-                cclass: str=None,
-                purity: int=oracledb.PURITY_DEFAULT,
-                expire_time: int=0,
-                retry_count: int=0,
-                retry_delay: int=0,
-                tcp_connect_timeout: float=60.0,
-                ssl_server_dn_match: bool=True,
-                ssl_server_cert_dn: str=None,
-                wallet_location: str=None,
-                events: bool=False,
-                externalauth: bool=False,
-                mode: int=oracledb.AUTH_MODE_DEFAULT,
-                disable_oob: bool=False,
-                stmtcachesize: int=oracledb.defaults.stmtcachesize,
-                edition: str=None,
-                tag: str=None,
-                matchanytag: bool=False,
-                config_dir: str=oracledb.defaults.config_dir,
-                appcontext: list=None,
-                shardingkey: list=None,
-                supershardingkey: list=None,
-                debug_jdwp: str=None,
-                connection_id_prefix: str=None,
-                handle: int=0,
-                threaded: bool=True,
-                encoding: str=None,
-                nencoding: str=None,
-                waitTimeout: int=None,
-                maxLifetimeSession: int=None,
-                maxSessionsPerShard: int=None,
-                sessionCallback: Callable=None
-               ) -> ConnectionPool:
+def create_pool(
+    dsn: str = None,
+    *,
+    pool_class: Type[ConnectionPool] = ConnectionPool,
+    params: PoolParams = None,
+    min: int = 1,
+    max: int = 2,
+    increment: int = 1,
+    connectiontype: Type["oracledb.Connection"] = None,
+    getmode: int = oracledb.POOL_GETMODE_WAIT,
+    homogeneous: bool = True,
+    timeout: int = 0,
+    wait_timeout: int = 0,
+    max_lifetime_session: int = 0,
+    session_callback: Callable = None,
+    max_sessions_per_shard: int = 0,
+    soda_metadata_cache: bool = False,
+    ping_interval: int = 60,
+    user: str = None,
+    proxy_user: str = None,
+    password: str = None,
+    newpassword: str = None,
+    wallet_password: str = None,
+    access_token: Union[str, tuple, Callable] = None,
+    host: str = None,
+    port: int = 1521,
+    protocol: str = "tcp",
+    https_proxy: str = None,
+    https_proxy_port: int = 0,
+    service_name: str = None,
+    sid: str = None,
+    server_type: str = None,
+    cclass: str = None,
+    purity: int = oracledb.PURITY_DEFAULT,
+    expire_time: int = 0,
+    retry_count: int = 0,
+    retry_delay: int = 0,
+    tcp_connect_timeout: float = 60.0,
+    ssl_server_dn_match: bool = True,
+    ssl_server_cert_dn: str = None,
+    wallet_location: str = None,
+    events: bool = False,
+    externalauth: bool = False,
+    mode: int = oracledb.AUTH_MODE_DEFAULT,
+    disable_oob: bool = False,
+    stmtcachesize: int = oracledb.defaults.stmtcachesize,
+    edition: str = None,
+    tag: str = None,
+    matchanytag: bool = False,
+    config_dir: str = oracledb.defaults.config_dir,
+    appcontext: list = None,
+    shardingkey: list = None,
+    supershardingkey: list = None,
+    debug_jdwp: str = None,
+    connection_id_prefix: str = None,
+    handle: int = 0,
+    threaded: bool = True,
+    encoding: str = None,
+    nencoding: str = None,
+    waitTimeout: int = None,
+    maxLifetimeSession: int = None,
+    maxSessionsPerShard: int = None,
+    sessionCallback: Callable = None,
+) -> ConnectionPool:
     """
     Creates a connection pool with the supplied parameters and returns it.
 
@@ -623,9 +638,9 @@ def create_pool(dsn: str=None, *,
     PoolParams. If both the params parameter and additional keyword parameters
     are specified, the values in the keyword parameters have precedence.
     Note that if a dsn is also supplied, then in the python-oracledb Thin mode,
-    the values of the parameters specified (if any) within the dsn will override
-    the values passed as additional keyword parameters, which themselves
-    override the values set in the params parameter object.
+    the values of the parameters specified (if any) within the dsn will
+    override the values passed as additional keyword parameters, which
+    themselves override the values set in the params parameter object.
 
     The following parameters are all optional. A brief description of each
     parameter follows:

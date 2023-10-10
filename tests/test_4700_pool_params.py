@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 4700 - Module for testing pool parameters.
@@ -28,6 +28,7 @@
 
 import oracledb
 import test_env
+
 
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
@@ -61,6 +62,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("max_sessions_per_shard", 5)
         self.__test_writable_parameter("soda_metadata_cache", True)
         self.__test_writable_parameter("ping_interval", 20)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

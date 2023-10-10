@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,24 +20,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # aq.py
 #
 # Contains the classes used for handling Advanced Queuing (AQ): Queue,
 # DeqOptions, EnqOptions and MessageProperties.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import datetime
 
 from . import connection as connection_module
 from typing import Any, Union, List
-from . import errors, exceptions
+from . import errors
 from .dbobject import DbObject, DbObjectType
 
-class Queue:
 
+class Queue:
     @classmethod
     def _from_impl(cls, connection, impl):
         queue = cls.__new__(cls)
@@ -178,8 +178,9 @@ class Queue:
             if self._impl.is_json:
                 self._payload_type = "JSON"
             elif self._impl.payload_type is not None:
-                self._payload_type = \
-                        DbObjectType._from_impl(self._impl.payload_type)
+                self._payload_type = DbObjectType._from_impl(
+                    self._impl.payload_type
+                )
         return self._payload_type
 
     @property
@@ -191,7 +192,6 @@ class Queue:
 
 
 class DeqOptions:
-
     @classmethod
     def _from_impl(cls, impl):
         options = cls.__new__(cls)
@@ -336,7 +336,6 @@ class DeqOptions:
 
 
 class EnqOptions:
-
     @classmethod
     def _from_impl(cls, impl):
         options = cls.__new__(cls)

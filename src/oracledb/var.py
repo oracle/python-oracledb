@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,22 +20,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # var.py
 #
 # Contains the Var class used for managing variables used during bind and
 # fetch. These hold the metadata as well as any necessary buffers.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Union, Type
-from . import errors
+from typing import Any, Callable, Union
 from .dbobject import DbObjectType
 from .base_impl import DbType
 
-class Var:
 
+class Var:
     def __repr__(self):
         value = self._impl.get_all_values()
         if not self._impl.is_array and len(value) == 1:
@@ -98,7 +97,7 @@ class Var:
         """
         return self._impl.convert_nulls
 
-    def getvalue(self, pos: int=0) -> Any:
+    def getvalue(self, pos: int = 0) -> Any:
         """
         Return the value at the given position in the variable. For variables
         created using the method Cursor.arrayvar() the value returned will be a

@@ -1,5 +1,5 @@
-#------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022 Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2021, 2023 Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,20 +20,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # driver_mode.py
 #
 # Contains a simple method for checking and returning which mode the driver is
 # currently using. The driver only supports creating connections and pools with
 # either the thin implementation or the thick implementation, not both
 # simultaneously.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import threading
 
 from . import errors
+
 
 # The DriverModeHandler class is used to manage which mode the driver is using.
 #
@@ -60,6 +61,7 @@ class DriverModeManager:
     The condition is used to ensure that only one thread is performing
     initialization.
     """
+
     def __init__(self):
         self.thin_mode = None
         self.requested_thin_mode = None
@@ -70,8 +72,12 @@ class DriverModeManager:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         with self.condition:
-            if exc_type is None and exc_value is None and exc_tb is None \
-                    and self.requested_thin_mode is not None:
+            if (
+                exc_type is None
+                and exc_value is None
+                and exc_tb is None
+                and self.requested_thin_mode is not None
+            ):
                 self.thin_mode = self.requested_thin_mode
             self.requested_thin_mode = None
             self.condition.notify()
@@ -82,7 +88,9 @@ class DriverModeManager:
             return self.requested_thin_mode
         return self.thin_mode
 
+
 manager = DriverModeManager()
+
 
 def get_manager(requested_thin_mode=None):
     """
@@ -104,8 +112,10 @@ def get_manager(requested_thin_mode=None):
                     manager.requested_thin_mode = True
                 else:
                     manager.requested_thin_mode = requested_thin_mode
-        elif requested_thin_mode is not None \
-                and requested_thin_mode != manager.thin_mode:
+        elif (
+            requested_thin_mode is not None
+            and requested_thin_mode != manager.thin_mode
+        ):
             errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
     return manager
 

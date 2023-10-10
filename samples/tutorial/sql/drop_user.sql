@@ -24,7 +24,7 @@
 
 /*-----------------------------------------------------------------------------
  * drop_user.sql (Setup Section)
- *   Drops the database user used for the python-oracledb tutorial 
+ *   Drops the database user used for the python-oracledb tutorial
  *
  * Substitute your actual password and connection string.
  * For Oracle Autonomous Database, use 'admin' instead of system.

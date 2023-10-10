@@ -1,9 +1,9 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # connect_pool.py (Section 2.1)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -24,14 +24,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import threading
 import db_config
 
-pool = oracledb.create_pool(user=db_config.user, password=db_config.pw, dsn=db_config.dsn,
-                            min=2, max=5, increment=1, getmode=oracledb.POOL_GETMODE_WAIT)
+pool = oracledb.create_pool(
+    user=db_config.user,
+    password=db_config.pw,
+    dsn=db_config.dsn,
+    min=2,
+    max=5,
+    increment=1,
+    getmode=oracledb.POOL_GETMODE_WAIT,
+)
 
 
 def Query():
@@ -39,15 +46,19 @@ def Query():
     cur = con.cursor()
     for i in range(4):
         cur.execute("select myseq.nextval from dual")
-        seqval, = cur.fetchone()
-        print("Thread", threading.current_thread().name,
-              "fetched sequence =", seqval)
+        (seqval,) = cur.fetchone()
+        print(
+            "Thread",
+            threading.current_thread().name,
+            "fetched sequence =",
+            seqval,
+        )
 
 
-thread1 = threading.Thread(name='#1', target=Query)
+thread1 = threading.Thread(name="#1", target=Query)
 thread1.start()
 
-thread2 = threading.Thread(name='#2', target=Query)
+thread2 = threading.Thread(name="#2", target=Query)
 thread2.start()
 
 thread1.join()

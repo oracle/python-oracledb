@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,30 +20,37 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # errors.py
 #
 # Contains the _Error class and all of the errors that are raised explicitly by
 # the package. Oracle Database errors and ODPI-C errors (when using thick mode)
 # are only referenced here if they are transformed into package specific
 # errors.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import re
 
 from .driver_mode import is_thin_mode
 from . import exceptions
 
+
 class _Error:
     """
     Error class which is used for all errors that are raised by the driver.
     """
 
-    def __init__(self, message: str=None, context: str=None,
-                 isrecoverable: bool=False, iswarning: bool=False,
-                 code: int=0, offset: int=0) -> None:
+    def __init__(
+        self,
+        message: str = None,
+        context: str = None,
+        isrecoverable: bool = False,
+        iswarning: bool = False,
+        code: int = 0,
+        offset: int = 0,
+    ) -> None:
         self.message = message
         self.context = context
         self.isrecoverable = isrecoverable
@@ -68,9 +75,12 @@ class _Error:
                 # messages, but only in thin mode since this is done
                 # automatically in thick mode with Oracle Client 23c and higher
                 if self.code != 0 and is_thin_mode():
-                    self.message = self.message + "\n" + \
-                        "Help: https://docs.oracle.com/error-help/db/ora-" + \
-                        f"{self.code:05}/"
+                    self.message = (
+                        self.message
+                        + "\n"
+                        + "Help: https://docs.oracle.com/error-help/db/ora-"
+                        + f"{self.code:05}/"
+                    )
         if self.code != 0 or self.full_code.startswith("DPI-"):
             args = {}
             if self.code != 0:
@@ -107,13 +117,20 @@ def _get_error_text(error_num: int, **args) -> str:
     try:
         message = message_format.format(**args)
     except KeyError:
-        message = message_format + "\nWrong arguments to message format:\n" + \
-                repr(args)
+        message = (
+            message_format
+            + "\nWrong arguments to message format:\n"
+            + repr(args)
+        )
     return f"{ERR_PREFIX}-{error_num:04}: {message}"
 
 
-def _raise_err(error_num: int, context_error_message: str=None,
-               cause: Exception=None, **args) -> None:
+def _raise_err(
+    error_num: int,
+    context_error_message: str = None,
+    cause: Exception = None,
+    **args,
+) -> None:
     """
     Raises a driver specific exception from the specified error number and
     supplied arguments.
@@ -271,9 +288,11 @@ ERR_ORACLE_ERROR_XREF = {
     1005: ERR_NO_CREDENTIALS,
     1740: ERR_MISSING_QUOTE_IN_IDENTIFIER,
     1756: ERR_MISSING_QUOTE_IN_STRING,
-    22165: (ERR_INVALID_COLL_INDEX_SET,
-            r'index \[(?P<index>\d+)\] must be in the range of '
-            r'\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]'),
+    22165: (
+        ERR_INVALID_COLL_INDEX_SET,
+        r"index \[(?P<index>\d+)\] must be in the range of "
+        r"\[(?P<min_index>\d+)\] to \[(?P<max_index>\d+)\]",
+    ),
     22303: (ERR_INVALID_OBJECT_TYPE_NAME, r'type "(?P<name>[^"]*"."[^"]*)"'),
     24422: ERR_POOL_HAS_BUSY_CONNECTIONS,
     24349: ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED,
@@ -300,265 +319,270 @@ ERR_EXCEPTION_TYPES = {
     3: exceptions.NotSupportedError,
     4: exceptions.DatabaseError,
     5: exceptions.InternalError,
-    6: exceptions.OperationalError
+    6: exceptions.OperationalError,
 }
 
 # error message formats
 ERR_MESSAGE_FORMATS = {
-    ERR_ACCESS_TOKEN_REQUIRES_TCPS:
-            'access_token requires use of the tcps protocol',
-    ERR_ARGS_MUST_BE_LIST_OR_TUPLE:
-            'arguments must be a list or tuple',
-    ERR_ARGS_AND_KEYWORD_ARGS:
-            'expecting positional arguments or keyword arguments, not both',
-    ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED:
-            'array DML row counts mode is not enabled',
-    ERR_ARRAYS_OF_ARRAYS:
-            'arrays of arrays are not supported',
-    ERR_BUFFER_LENGTH_INSUFFICIENT:
-            'internal error: buffer of length {actual_buffer_len} '
-            'insufficient to hold {required_buffer_len} bytes',
-    ERR_CALL_TIMEOUT_EXCEEDED:
-            'call timeout of {timeout} ms exceeded',
-    ERR_CANNOT_PARSE_CONNECT_STRING:
-            'cannot parse connect string "{data}"',
-    ERR_COLUMN_TRUNCATED:
-            'column truncated to {col_value_len} {unit}. '
-            'Untruncated was {actual_len}',
-    ERR_CONNECTION_FAILED:
-            'cannot connect to database (CONNECTION_ID={connection_id}).',
-    ERR_CONTENT_INVALID_AFTER_NUMBER:
-            'invalid number (content after number)',
-    ERR_CURSOR_NOT_OPEN:
-            'cursor is not open',
-    ERR_DB_TYPE_NOT_SUPPORTED:
-            'database type "{name}" is not supported',
-    ERR_DUPLICATED_PARAMETER:
-            '"{deprecated_name}" and "{new_name}" cannot be specified together',
-    ERR_EXECUTE_MODE_ONLY_FOR_DML:
-            'parameters "batcherrors" and "arraydmlrowcounts" may only be '
-            'true when used with insert, update, delete and merge statements',
-    ERR_EXPECTING_LIST_FOR_ARRAY_VAR:
-            'expecting list when setting array variables',
-    ERR_EXPECTING_TYPE:
-            'expected a type',
-    ERR_EXPECTING_VAR:
-            'type handler should return None or the value returned by a call '
-            'to cursor.var()',
-    ERR_EXPIRED_ACCESS_TOKEN:
-            'access token has expired',
-    ERR_FEATURE_NOT_SUPPORTED:
-            '{feature} is only supported in python-oracledb {driver_type} mode',
-    ERR_HTTPS_PROXY_REQUIRES_TCPS:
-            'https_proxy requires use of the tcps protocol',
-    ERR_INCONSISTENT_DATATYPES:
-            'cannot convert from data type {input_type} to {output_type}',
-    ERR_INCORRECT_VAR_ARRAYSIZE:
-            'variable array size of {var_arraysize} is '
-            'too small (should be at least {required_arraysize})',
-    ERR_INIT_ORACLE_CLIENT_NOT_CALLED:
-            'init_oracle_client() must be called first',
-    ERR_INTEGER_TOO_LARGE:
-            'internal error: read integer of length {length} when expecting '
-            'integer of no more than length {max_length}',
-    ERR_INVALID_ACCESS_TOKEN_PARAM:
-            'invalid access token: value must be a string (for OAuth), a '
-            '2-tuple containing the token and private key strings (for IAM), '
-            'or a callable that returns a string or 2-tuple',
-    ERR_INVALID_ACCESS_TOKEN_RETURNED:
-            'invalid access token returned from callable: value must be a '
-            'string (for OAuth) or a 2-tuple containing the token and private '
-            'key strings (for IAM)',
-    ERR_INVALID_BIND_NAME:
-            'no bind placeholder named ":{name}" was found in the SQL text',
-    ERR_INVALID_CONN_CLASS:
-            'invalid connection class',
-    ERR_INVALID_CONNECT_DESCRIPTOR:
-            'invalid connect descriptor "{data}"',
-    ERR_INVALID_CONNECT_PARAMS:
-            'invalid connection params',
-    ERR_INVALID_COLL_INDEX_GET:
-            'element at index {index} does not exist',
-    ERR_INVALID_COLL_INDEX_SET:
-            'given index {index} must be in the range of {min_index} to '
-            '{max_index}',
-    ERR_INVALID_LOB_OFFSET:
-            'LOB offset must be greater than zero',
-    ERR_INVALID_MAKEDSN_ARG:
-            '"{name}" argument contains invalid values',
-    ERR_INVALID_NUMBER:
-            'invalid number',
-    ERR_INVALID_OBJECT_TYPE_NAME:
-            'invalid object type name: "{name}"',
-    ERR_INVALID_OCI_ATTR_TYPE:
-            'invalid OCI attribute type {attr_type}',
-    ERR_INVALID_POOL_CLASS:
-            'invalid connection pool class',
-    ERR_INVALID_POOL_PARAMS:
-            'invalid pool params',
-    ERR_INVALID_POOL_PURITY:
-            'invalid DRCP purity {purity}',
-    ERR_INVALID_PROTOCOL:
-            'invalid protocol "{protocol}"',
-    ERR_INVALID_REDIRECT_DATA:
-            'invalid redirect data {data}',
-    ERR_INVALID_REF_CURSOR:
-            'invalid REF CURSOR: never opened in PL/SQL',
-    ERR_INVALID_SERVER_CERT_DN:
-            'The distinguished name (DN) on the server certificate does not '
-            'match the expected value',
-    ERR_INVALID_SERVER_TYPE:
-            'invalid server_type: {server_type}',
-    ERR_INVALID_SERVICE_NAME:
-            'Service "{service_name}" is not registered with the listener at '
-            'host "{host}" port {port}. (Similar to ORA-12514)',
-    ERR_INVALID_SID:
-            'SID "{sid}" is not registered with the listener at host "{host}" '
-            'port {port}. (Similar to ORA-12505)',
-    ERR_KEYWORD_ARGS_MUST_BE_DICT:
-            '"keyword_parameters" argument must be a dict',
-    ERR_LIBRARY_ALREADY_INITIALIZED:
-            'init_oracle_client() was already called with different arguments',
-    ERR_LISTENER_REFUSED_CONNECTION:
-            'Listener refused connection. (Similar to ORA-{error_code})',
-    ERR_LOB_OF_WRONG_TYPE:
-            'LOB is of type {actual_type_name} but must be of type '
-            '{expected_type_name}',
-    ERR_MESSAGE_HAS_NO_PAYLOAD:
-            'message has no payload',
-    ERR_MESSAGE_TYPE_UNKNOWN:
-            'internal error: unknown protocol message type {message_type} '
-            'at position {position}',
-    ERR_MISSING_BIND_VALUE:
-            'a bind variable replacement value for placeholder ":{name}" was '
-            'not provided',
-    ERR_MISSING_QUOTE_IN_IDENTIFIER:
-            'missing ending quote (") in identifier',
-    ERR_MISSING_QUOTE_IN_STRING:
-            "missing ending quote (') in string",
-    ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR:
-            'no object type specified for object variable',
-    ERR_MIXED_ELEMENT_TYPES:
-            'element {element} is not the same data type as previous elements',
-    ERR_MIXED_POSITIONAL_AND_NAMED_BINDS:
-            'positional and named binds cannot be intermixed',
-    ERR_NAMED_TIMEZONE_NOT_SUPPORTED:
-            'named time zones are not supported in thin mode',
-    ERR_NCHAR_CS_NOT_SUPPORTED:
-            'national character set id {charset_id} is not supported by '
-            'python-oracledb in thin mode',
-    ERR_NO_CONFIG_DIR:
-            'no configuration directory to search for tnsnames.ora',
-    ERR_NO_CREDENTIALS:
-            'no credentials specified',
-    ERR_NO_CRYPTOGRAPHY_PACKAGE:
-            'python-oracledb thin mode cannot be used because the '
-            'cryptography package is not installed',
-    ERR_NO_STATEMENT:
-            'no statement specified and no prior statement prepared',
-    ERR_NO_STATEMENT_EXECUTED:
-            'no statement executed',
-    ERR_NO_STATEMENT_PREPARED:
-            'statement must be prepared first',
-    ERR_NOT_A_QUERY:
-            'the executed statement does not return rows',
-    ERR_NOT_CONNECTED:
-            'not connected to database',
-    ERR_NUMBER_STRING_OF_ZERO_LENGTH:
-            'invalid number: zero length string',
-    ERR_NUMBER_STRING_TOO_LONG:
-            'invalid number: string too long',
-    ERR_NUMBER_WITH_EMPTY_EXPONENT:
-            'invalid number: empty exponent',
-    ERR_NUMBER_WITH_INVALID_EXPONENT:
-            'invalid number: invalid exponent',
-    ERR_OBJECT_IS_NOT_A_COLLECTION:
-            'object {name} is not a collection',
-    ERR_ORACLE_NUMBER_NO_REPR:
-            'value cannot be represented as an Oracle number',
-    ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED:
-            'Oracle data type name "{name}" is not supported',
-    ERR_ORACLE_TYPE_NOT_SUPPORTED:
-            'Oracle data type {num} is not supported',
-    ERR_OSON_FIELD_NAME_LIMITATION:
-            'OSON field names may not exceed 255 UTF-8 encoded bytes',
-    ERR_OSON_NODE_TYPE_NOT_SUPPORTED:
-            'OSON node type 0x{node_type:x} is not supported',
-    ERR_OSON_VERSION_NOT_SUPPORTED:
-            'OSON version {version} is not supported',
-    ERR_POOL_HAS_BUSY_CONNECTIONS:
-            'connection pool cannot be closed because connections are busy',
-    ERR_POOL_NO_CONNECTION_AVAILABLE:
-            'timed out waiting for the connection pool to return a connection',
-    ERR_POOL_NOT_OPEN:
-            'connection pool is not open',
-    ERR_PROXY_FAILURE:
-            'network proxy failed: response was {response}',
-    ERR_PYTHON_TYPE_NOT_SUPPORTED:
-            'Python type {typ} is not supported',
-    ERR_PYTHON_VALUE_NOT_SUPPORTED:
-            'Python value of type "{type_name}" is not supported',
-    ERR_SELF_BIND_NOT_SUPPORTED:
-            'binding to self is not supported',
-    ERR_CONNECTION_CLOSED:
-            'the database or network closed the connection',
-    ERR_SERVER_VERSION_NOT_SUPPORTED:
-            'connections to this database server version are not supported '
-            'by python-oracledb in thin mode',
-    ERR_TDS_TYPE_NOT_SUPPORTED:
-            'Oracle TDS data type {num} is not supported',
-    ERR_THIN_CONNECTION_ALREADY_CREATED:
-            'python-oracledb thick mode cannot be used because a thin mode '
-            'connection has already been created',
-    ERR_TIME_NOT_SUPPORTED:
-            'Oracle Database does not support time only variables',
-    ERR_TNS_ENTRY_NOT_FOUND:
-            'unable to find "{name}" in {file_name}',
-    ERR_TNS_NAMES_FILE_MISSING:
-            'file tnsnames.ora not found in {config_dir}',
-    ERR_TOO_MANY_CURSORS_TO_CLOSE:
-            'internal error: attempt to close more than {num_cursors} cursors',
-    ERR_UNEXPECTED_DATA:
-            'unexpected data received: {data}',
-    ERR_UNEXPECTED_END_OF_DATA:
-            'unexpected end of data: want {num_bytes_wanted} bytes but '
-            'only {num_bytes_available} bytes are available',
-    ERR_UNEXPECTED_NEGATIVE_INTEGER:
-            'internal error: read a negative integer when expecting a '
-            'positive integer',
-    ERR_UNEXPECTED_REFUSE:
-            'the listener refused the connection but an unexpected error '
-            'format was returned',
-    ERR_UNEXPECTED_XML_TYPE:
-            'unexpected XMLType with flag {flag}',
-    ERR_UNKOWN_SERVER_SIDE_PIGGYBACK:
-            'internal error: unknown server side piggyback opcode {opcode}',
-    ERR_UNSUPPORTED_INBAND_NOTIFICATION:
-            'unsupported in-band notification with error number {err_num}',
-    ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE:
-            'unsupported Python type {py_type_name} for database type '
-            '{db_type_name}',
-    ERR_UNSUPPORTED_TYPE_SET:
-            'type {db_type_name} does not support being set',
-    ERR_UNSUPPORTED_VERIFIER_TYPE:
-            'password verifier type 0x{verifier_type:x} is not supported by '
-            'python-oracledb in thin mode',
-    ERR_WALLET_FILE_MISSING:
-            'wallet file {name} was not found',
-    ERR_WRONG_ARRAY_DEFINITION:
-            'expecting a list of two elements [type, numelems]',
-    ERR_WRONG_EXECUTE_PARAMETERS_TYPE:
-            'expecting a dictionary, list or tuple, or keyword args',
-    ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE:
-            '"parameters" argument should be a list of sequences or '
-            'dictionaries, or an integer specifying the number of '
-            'times to execute the statement',
-    ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS:
-            '{expected_num} positional bind values are required but '
-            '{actual_num} were provided',
-    ERR_WRONG_OBJECT_TYPE:
-            'found object of type "{actual_schema}.{actual_name}" when '
-            'expecting object of type "{expected_schema}.{expected_name}"',
-    ERR_WRONG_SCROLL_MODE:
-            'scroll mode must be relative, absolute, first or last',
+    ERR_ACCESS_TOKEN_REQUIRES_TCPS: (
+        "access_token requires use of the tcps protocol"
+    ),
+    ERR_ARGS_MUST_BE_LIST_OR_TUPLE: "arguments must be a list or tuple",
+    ERR_ARGS_AND_KEYWORD_ARGS: (
+        "expecting positional arguments or keyword arguments, not both"
+    ),
+    ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED: (
+        "array DML row counts mode is not enabled"
+    ),
+    ERR_ARRAYS_OF_ARRAYS: "arrays of arrays are not supported",
+    ERR_BUFFER_LENGTH_INSUFFICIENT: (
+        "internal error: buffer of length {actual_buffer_len} "
+        "insufficient to hold {required_buffer_len} bytes"
+    ),
+    ERR_CALL_TIMEOUT_EXCEEDED: "call timeout of {timeout} ms exceeded",
+    ERR_CANNOT_PARSE_CONNECT_STRING: 'cannot parse connect string "{data}"',
+    ERR_COLUMN_TRUNCATED: (
+        "column truncated to {col_value_len} {unit}. "
+        "Untruncated was {actual_len}"
+    ),
+    ERR_CONNECTION_FAILED: (
+        "cannot connect to database (CONNECTION_ID={connection_id})."
+    ),
+    ERR_CONTENT_INVALID_AFTER_NUMBER: "invalid number (content after number)",
+    ERR_CURSOR_NOT_OPEN: "cursor is not open",
+    ERR_DB_TYPE_NOT_SUPPORTED: 'database type "{name}" is not supported',
+    ERR_DUPLICATED_PARAMETER: (
+        '"{deprecated_name}" and "{new_name}" cannot be specified together'
+    ),
+    ERR_EXECUTE_MODE_ONLY_FOR_DML: (
+        'parameters "batcherrors" and "arraydmlrowcounts" may only be '
+        "true when used with insert, update, delete and merge statements"
+    ),
+    ERR_EXPECTING_LIST_FOR_ARRAY_VAR: (
+        "expecting list when setting array variables"
+    ),
+    ERR_EXPECTING_TYPE: "expected a type",
+    ERR_EXPECTING_VAR: (
+        "type handler should return None or the value returned by a call "
+        "to cursor.var()"
+    ),
+    ERR_EXPIRED_ACCESS_TOKEN: "access token has expired",
+    ERR_FEATURE_NOT_SUPPORTED: (
+        "{feature} is only supported in python-oracledb {driver_type} mode"
+    ),
+    ERR_HTTPS_PROXY_REQUIRES_TCPS: (
+        "https_proxy requires use of the tcps protocol"
+    ),
+    ERR_INCONSISTENT_DATATYPES: (
+        "cannot convert from data type {input_type} to {output_type}"
+    ),
+    ERR_INCORRECT_VAR_ARRAYSIZE: (
+        "variable array size of {var_arraysize} is "
+        "too small (should be at least {required_arraysize})"
+    ),
+    ERR_INIT_ORACLE_CLIENT_NOT_CALLED: (
+        "init_oracle_client() must be called first"
+    ),
+    ERR_INTEGER_TOO_LARGE: (
+        "internal error: read integer of length {length} when expecting "
+        "integer of no more than length {max_length}"
+    ),
+    ERR_INVALID_ACCESS_TOKEN_PARAM: (
+        "invalid access token: value must be a string (for OAuth), a "
+        "2-tuple containing the token and private key strings (for IAM), "
+        "or a callable that returns a string or 2-tuple"
+    ),
+    ERR_INVALID_ACCESS_TOKEN_RETURNED: (
+        "invalid access token returned from callable: value must be a "
+        "string (for OAuth) or a 2-tuple containing the token and private "
+        "key strings (for IAM)"
+    ),
+    ERR_INVALID_BIND_NAME: (
+        'no bind placeholder named ":{name}" was found in the SQL text'
+    ),
+    ERR_INVALID_CONN_CLASS: "invalid connection class",
+    ERR_INVALID_CONNECT_DESCRIPTOR: 'invalid connect descriptor "{data}"',
+    ERR_INVALID_CONNECT_PARAMS: "invalid connection params",
+    ERR_INVALID_COLL_INDEX_GET: "element at index {index} does not exist",
+    ERR_INVALID_COLL_INDEX_SET: (
+        "given index {index} must be in the range of {min_index} to "
+        "{max_index}"
+    ),
+    ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
+    ERR_INVALID_MAKEDSN_ARG: '"{name}" argument contains invalid values',
+    ERR_INVALID_NUMBER: "invalid number",
+    ERR_INVALID_OBJECT_TYPE_NAME: 'invalid object type name: "{name}"',
+    ERR_INVALID_OCI_ATTR_TYPE: "invalid OCI attribute type {attr_type}",
+    ERR_INVALID_POOL_CLASS: "invalid connection pool class",
+    ERR_INVALID_POOL_PARAMS: "invalid pool params",
+    ERR_INVALID_POOL_PURITY: "invalid DRCP purity {purity}",
+    ERR_INVALID_PROTOCOL: 'invalid protocol "{protocol}"',
+    ERR_INVALID_REDIRECT_DATA: "invalid redirect data {data}",
+    ERR_INVALID_REF_CURSOR: "invalid REF CURSOR: never opened in PL/SQL",
+    ERR_INVALID_SERVER_CERT_DN: (
+        "The distinguished name (DN) on the server certificate does not "
+        "match the expected value"
+    ),
+    ERR_INVALID_SERVER_TYPE: "invalid server_type: {server_type}",
+    ERR_INVALID_SERVICE_NAME: (
+        'Service "{service_name}" is not registered with the listener at '
+        'host "{host}" port {port}. (Similar to ORA-12514)'
+    ),
+    ERR_INVALID_SID: (
+        'SID "{sid}" is not registered with the listener at host "{host}" '
+        "port {port}. (Similar to ORA-12505)"
+    ),
+    ERR_KEYWORD_ARGS_MUST_BE_DICT: (
+        '"keyword_parameters" argument must be a dict'
+    ),
+    ERR_LIBRARY_ALREADY_INITIALIZED: (
+        "init_oracle_client() was already called with different arguments"
+    ),
+    ERR_LISTENER_REFUSED_CONNECTION: (
+        "Listener refused connection. (Similar to ORA-{error_code})"
+    ),
+    ERR_LOB_OF_WRONG_TYPE: (
+        "LOB is of type {actual_type_name} but must be of type "
+        "{expected_type_name}"
+    ),
+    ERR_MESSAGE_HAS_NO_PAYLOAD: "message has no payload",
+    ERR_MESSAGE_TYPE_UNKNOWN: (
+        "internal error: unknown protocol message type {message_type} "
+        "at position {position}"
+    ),
+    ERR_MISSING_BIND_VALUE: (
+        'a bind variable replacement value for placeholder ":{name}" was '
+        "not provided"
+    ),
+    ERR_MISSING_QUOTE_IN_IDENTIFIER: 'missing ending quote (") in identifier',
+    ERR_MISSING_QUOTE_IN_STRING: "missing ending quote (') in string",
+    ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR: (
+        "no object type specified for object variable"
+    ),
+    ERR_MIXED_ELEMENT_TYPES: (
+        "element {element} is not the same data type as previous elements"
+    ),
+    ERR_MIXED_POSITIONAL_AND_NAMED_BINDS: (
+        "positional and named binds cannot be intermixed"
+    ),
+    ERR_NAMED_TIMEZONE_NOT_SUPPORTED: (
+        "named time zones are not supported in thin mode"
+    ),
+    ERR_NCHAR_CS_NOT_SUPPORTED: (
+        "national character set id {charset_id} is not supported by "
+        "python-oracledb in thin mode"
+    ),
+    ERR_NO_CONFIG_DIR: "no configuration directory to search for tnsnames.ora",
+    ERR_NO_CREDENTIALS: "no credentials specified",
+    ERR_NO_CRYPTOGRAPHY_PACKAGE: (
+        "python-oracledb thin mode cannot be used because the "
+        "cryptography package is not installed"
+    ),
+    ERR_NO_STATEMENT: "no statement specified and no prior statement prepared",
+    ERR_NO_STATEMENT_EXECUTED: "no statement executed",
+    ERR_NO_STATEMENT_PREPARED: "statement must be prepared first",
+    ERR_NOT_A_QUERY: "the executed statement does not return rows",
+    ERR_NOT_CONNECTED: "not connected to database",
+    ERR_NUMBER_STRING_OF_ZERO_LENGTH: "invalid number: zero length string",
+    ERR_NUMBER_STRING_TOO_LONG: "invalid number: string too long",
+    ERR_NUMBER_WITH_EMPTY_EXPONENT: "invalid number: empty exponent",
+    ERR_NUMBER_WITH_INVALID_EXPONENT: "invalid number: invalid exponent",
+    ERR_OBJECT_IS_NOT_A_COLLECTION: "object {name} is not a collection",
+    ERR_ORACLE_NUMBER_NO_REPR: (
+        "value cannot be represented as an Oracle number"
+    ),
+    ERR_ORACLE_TYPE_NAME_NOT_SUPPORTED: (
+        'Oracle data type name "{name}" is not supported'
+    ),
+    ERR_ORACLE_TYPE_NOT_SUPPORTED: "Oracle data type {num} is not supported",
+    ERR_OSON_FIELD_NAME_LIMITATION: (
+        "OSON field names may not exceed 255 UTF-8 encoded bytes"
+    ),
+    ERR_OSON_NODE_TYPE_NOT_SUPPORTED: (
+        "OSON node type 0x{node_type:x} is not supported"
+    ),
+    ERR_OSON_VERSION_NOT_SUPPORTED: "OSON version {version} is not supported",
+    ERR_POOL_HAS_BUSY_CONNECTIONS: (
+        "connection pool cannot be closed because connections are busy"
+    ),
+    ERR_POOL_NO_CONNECTION_AVAILABLE: (
+        "timed out waiting for the connection pool to return a connection"
+    ),
+    ERR_POOL_NOT_OPEN: "connection pool is not open",
+    ERR_PROXY_FAILURE: "network proxy failed: response was {response}",
+    ERR_PYTHON_TYPE_NOT_SUPPORTED: "Python type {typ} is not supported",
+    ERR_PYTHON_VALUE_NOT_SUPPORTED: (
+        'Python value of type "{type_name}" is not supported'
+    ),
+    ERR_SELF_BIND_NOT_SUPPORTED: "binding to self is not supported",
+    ERR_CONNECTION_CLOSED: "the database or network closed the connection",
+    ERR_SERVER_VERSION_NOT_SUPPORTED: (
+        "connections to this database server version are not supported "
+        "by python-oracledb in thin mode"
+    ),
+    ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
+    ERR_THIN_CONNECTION_ALREADY_CREATED: (
+        "python-oracledb thick mode cannot be used because a thin mode "
+        "connection has already been created"
+    ),
+    ERR_TIME_NOT_SUPPORTED: (
+        "Oracle Database does not support time only variables"
+    ),
+    ERR_TNS_ENTRY_NOT_FOUND: 'unable to find "{name}" in {file_name}',
+    ERR_TNS_NAMES_FILE_MISSING: "file tnsnames.ora not found in {config_dir}",
+    ERR_TOO_MANY_CURSORS_TO_CLOSE: (
+        "internal error: attempt to close more than {num_cursors} cursors"
+    ),
+    ERR_UNEXPECTED_DATA: "unexpected data received: {data}",
+    ERR_UNEXPECTED_END_OF_DATA: (
+        "unexpected end of data: want {num_bytes_wanted} bytes but "
+        "only {num_bytes_available} bytes are available"
+    ),
+    ERR_UNEXPECTED_NEGATIVE_INTEGER: (
+        "internal error: read a negative integer when expecting a "
+        "positive integer"
+    ),
+    ERR_UNEXPECTED_REFUSE: (
+        "the listener refused the connection but an unexpected error "
+        "format was returned"
+    ),
+    ERR_UNEXPECTED_XML_TYPE: "unexpected XMLType with flag {flag}",
+    ERR_UNKOWN_SERVER_SIDE_PIGGYBACK: (
+        "internal error: unknown server side piggyback opcode {opcode}"
+    ),
+    ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
+        "unsupported in-band notification with error number {err_num}"
+    ),
+    ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE: (
+        "unsupported Python type {py_type_name} for database type "
+        "{db_type_name}"
+    ),
+    ERR_UNSUPPORTED_TYPE_SET: "type {db_type_name} does not support being set",
+    ERR_UNSUPPORTED_VERIFIER_TYPE: (
+        "password verifier type 0x{verifier_type:x} is not supported by "
+        "python-oracledb in thin mode"
+    ),
+    ERR_WALLET_FILE_MISSING: "wallet file {name} was not found",
+    ERR_WRONG_ARRAY_DEFINITION: (
+        "expecting a list of two elements [type, numelems]"
+    ),
+    ERR_WRONG_EXECUTE_PARAMETERS_TYPE: (
+        "expecting a dictionary, list or tuple, or keyword args"
+    ),
+    ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE: (
+        '"parameters" argument should be a list of sequences or '
+        "dictionaries, or an integer specifying the number of "
+        "times to execute the statement"
+    ),
+    ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS: (
+        "{expected_num} positional bind values are required but "
+        "{actual_num} were provided"
+    ),
+    ERR_WRONG_OBJECT_TYPE: (
+        'found object of type "{actual_schema}.{actual_name}" when '
+        'expecting object of type "{expected_schema}.{expected_name}"'
+    ),
+    ERR_WRONG_SCROLL_MODE: (
+        "scroll mode must be relative, absolute, first or last"
+    ),
 }

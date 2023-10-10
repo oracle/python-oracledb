@@ -1,9 +1,9 @@
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # connect_health.py (Section 1.7)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -24,14 +24,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 if con.is_healthy():
     print("Healthy connection!")
 else:
-    print("Unusable connection. Please check the database and network settings.")
+    print(
+        "Unusable connection. Please check the database and network settings."
+    )

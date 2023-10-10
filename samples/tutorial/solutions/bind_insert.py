@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# bind_insert.py (Section 4.3)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,27 +24,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# bind_insert.py (Section 4.3)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config
 
-con = oracledb.connect(user=db_config.user,
-                       password=db_config.pw, dsn=db_config.dsn)
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 cur = con.cursor()
 
-rows = [(1, "First"), (2, "Second"),
-        (3, "Third"), (4, "Fourth"),
-        (5, "Fifth"), (6, "Sixth"),
-        (6, "Duplicate"),
-        (7, "Seventh")]
+rows = [
+    (1, "First"),
+    (2, "Second"),
+    (3, "Third"),
+    (4, "Fourth"),
+    (5, "Fifth"),
+    (6, "Sixth"),
+    (6, "Duplicate"),
+    (7, "Seventh"),
+]
 
-cur.executemany("insert into mytab(id, data) values (:1, :2)",
-                rows, batcherrors=True)
+cur.executemany(
+    "insert into mytab(id, data) values (:1, :2)", rows, batcherrors=True
+)
 
 for error in cur.getbatcherrors():
     print("Error", error.message.rstrip(), "at row offset", error.offset)
@@ -48,6 +55,6 @@ for error in cur.getbatcherrors():
 # Now query the results back
 
 cur2 = con.cursor()
-cur2.execute('select * from mytab')
+cur2.execute("select * from mytab")
 res = cur2.fetchall()
 print(res)

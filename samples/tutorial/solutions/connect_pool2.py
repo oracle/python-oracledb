@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# connect_pool2.py (Section 2.5)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,20 +24,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# connect_pool2.py (Section 2.5)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import threading
-import time
+import time  # noqa: F401
 import db_config
 
-pool = oracledb.create_pool(user=db_config.user, password=db_config.pw, dsn=db_config.dsn + ":pooled",
-                            min=2, max=5, increment=1, getmode=oracledb.POOL_GETMODE_WAIT,
-                            cclass="PYTHONDEMO", purity=oracledb.PURITY_SELF) # try PURITY_NEW
+pool = oracledb.create_pool(
+    user=db_config.user,
+    password=db_config.pw,
+    dsn=db_config.dsn + ":pooled",
+    min=2,
+    max=5,
+    increment=1,
+    getmode=oracledb.POOL_GETMODE_WAIT,
+    cclass="PYTHONDEMO",
+    purity=oracledb.PURITY_SELF,
+)  # try PURITY_NEW
 
 
 def Query():
@@ -41,9 +49,13 @@ def Query():
     cur = con.cursor()
     for i in range(4):
         cur.execute("select myseq.nextval from dual")
-        seqval, = cur.fetchone()
-        print("Thread", threading.current_thread().name,
-              "fetched sequence =", seqval)
+        (seqval,) = cur.fetchone()
+        print(
+            "Thread",
+            threading.current_thread().name,
+            "fetched sequence =",
+            seqval,
+        )
         # time.sleep(1)
 
 
@@ -51,7 +63,7 @@ numberOfThreads = 5
 threadArray = []
 
 for i in range(numberOfThreads):
-    thread = threading.Thread(name='#'+str(i), target=Query)
+    thread = threading.Thread(name="#" + str(i), target=Query)
     threadArray.append(thread)
     # time.sleep(4)
     thread.start()

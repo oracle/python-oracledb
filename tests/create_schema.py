@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,16 +20,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # create_schema.py
 #
 # Creates users and populates their schemas with the tables and packages
 # necessary for running the python-oracledb test suite.
-#------------------------------------------------------------------------------
-
-import oracledb
+# -----------------------------------------------------------------------------
 
 import drop_schema
 import test_env
@@ -42,18 +40,24 @@ drop_schema.drop_schema(conn)
 
 # create test schemas
 print("Creating test schemas...")
-test_env.run_sql_script(conn, "create_schema",
-                        main_user=test_env.get_main_user(),
-                        main_password=test_env.get_main_password(),
-                        proxy_user=test_env.get_proxy_user(),
-                        proxy_password=test_env.get_proxy_password())
+test_env.run_sql_script(
+    conn,
+    "create_schema",
+    main_user=test_env.get_main_user(),
+    main_password=test_env.get_main_password(),
+    proxy_user=test_env.get_proxy_user(),
+    proxy_password=test_env.get_proxy_password(),
+)
 if test_env.get_server_version() >= (21, 0):
-    test_env.run_sql_script(conn, "create_schema_21",
-                            main_user=test_env.get_main_user())
+    test_env.run_sql_script(
+        conn, "create_schema_21", main_user=test_env.get_main_user()
+    )
 if test_env.get_server_version() >= (23, 0):
-    test_env.run_sql_script(conn, "create_schema_23",
-                            main_user=test_env.get_main_user())
+    test_env.run_sql_script(
+        conn, "create_schema_23", main_user=test_env.get_main_user()
+    )
 if test_env.is_on_oracle_cloud(conn):
-    test_env.run_sql_script(conn, "create_schema_cloud",
-                            main_user=test_env.get_main_user())
+    test_env.run_sql_script(
+        conn, "create_schema_cloud", main_user=test_env.get_main_user()
+    )
 print("Done.")

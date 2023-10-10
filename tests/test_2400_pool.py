@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 2400 - Module for testing pools
@@ -32,6 +32,7 @@ import unittest
 import oracledb
 import test_env
 
+
 class TestCase(test_env.BaseTestCase):
     require_connection = False
 
@@ -39,31 +40,32 @@ class TestCase(test_env.BaseTestCase):
         with self.pool.acquire() as conn:
             cursor = conn.cursor()
             cursor.execute("select count(*) from TestNumbers")
-            count, = cursor.fetchone()
+            (count,) = cursor.fetchone()
             self.assertEqual(count, 10)
 
     def __connect_and_generate_error(self):
         with self.pool.acquire() as conn:
             cursor = conn.cursor()
-            self.assertRaisesRegex(oracledb.DatabaseError,"^ORA-01476:",
-                                   cursor.execute, "select 1 / 0 from dual")
+            self.assertRaisesRegex(
+                oracledb.DatabaseError,
+                "^ORA-01476:",
+                cursor.execute,
+                "select 1 / 0 from dual",
+            )
 
     def __callable_session_callback(self, conn, requested_tag):
         self.session_called = True
 
         supported_formats = {
-            "SIMPLE" : "'YYYY-MM-DD HH24:MI'",
-            "FULL" : "'YYYY-MM-DD HH24:MI:SS'"
+            "SIMPLE": "'YYYY-MM-DD HH24:MI'",
+            "FULL": "'YYYY-MM-DD HH24:MI:SS'",
         }
 
-        supported_time_zones = {
-            "UTC" : "'UTC'",
-            "MST" : "'-07:00'"
-        }
+        supported_time_zones = {"UTC": "'UTC'", "MST": "'-07:00'"}
 
         supported_keys = {
-            "NLS_DATE_FORMAT" : supported_formats,
-            "TIME_ZONE" : supported_time_zones
+            "NLS_DATE_FORMAT": supported_formats,
+            "TIME_ZONE": supported_time_zones,
         }
         if requested_tag is not None:
             state_parts = []
@@ -74,28 +76,47 @@ class TestCase(test_env.BaseTestCase):
                 key, value = parts
                 value_dict = supported_keys.get(key)
                 if value_dict is None:
-                    raise ValueError("Tag only supports keys: %s" % \
-                                     (", ".join(supported_keys)))
+                    raise ValueError(
+                        "Tag only supports keys: %s"
+                        % (", ".join(supported_keys))
+                    )
                 actual_value = value_dict.get(value)
                 if actual_value is None:
-                    raise ValueError("Key %s only supports values: %s" % \
-                                     (key, ", ".join(value_dict)))
+                    raise ValueError(
+                        "Key %s only supports values: %s"
+                        % (key, ", ".join(value_dict))
+                    )
                 state_parts.append(f"{key} = {actual_value}")
             sql = f"alter session set {' '.join(state_parts)}"
             cursor = conn.cursor()
             cursor.execute(sql)
         conn.tag = requested_tag
 
-    def __perform_reconfigure_test(self, parameter_name, parameter_value,
-                                   min=3, max=30, increment=4, timeout=5,
-                                   wait_timeout=5000, stmtcachesize=25,
-                                   max_lifetime_session=1000,
-                                   max_sessions_per_shard=3, ping_interval=30,
-                                   getmode=oracledb.POOL_GETMODE_WAIT,
-                                   soda_metadata_cache=False):
-        creation_args = dict(min=min, max=max, increment=increment,
-                             timeout=timeout, stmtcachesize=stmtcachesize,
-                             ping_interval=ping_interval, getmode=getmode)
+    def __perform_reconfigure_test(
+        self,
+        parameter_name,
+        parameter_value,
+        min=3,
+        max=30,
+        increment=4,
+        timeout=5,
+        wait_timeout=5000,
+        stmtcachesize=25,
+        max_lifetime_session=1000,
+        max_sessions_per_shard=3,
+        ping_interval=30,
+        getmode=oracledb.POOL_GETMODE_WAIT,
+        soda_metadata_cache=False,
+    ):
+        creation_args = dict(
+            min=min,
+            max=max,
+            increment=increment,
+            timeout=timeout,
+            stmtcachesize=stmtcachesize,
+            ping_interval=ping_interval,
+            getmode=getmode,
+        )
         if test_env.get_client_version() >= (12, 1):
             creation_args["max_lifetime_session"] = max_lifetime_session
         if test_env.get_client_version() >= (12, 2):
@@ -109,7 +130,7 @@ class TestCase(test_env.BaseTestCase):
         reconfigure_args[parameter_name] = parameter_value
 
         pool = test_env.get_pool(**creation_args)
-        conn = pool.acquire()
+        pool.acquire()
         pool.reconfigure(**reconfigure_args)
         actual_args = {}
         for name in creation_args:
@@ -118,27 +139,36 @@ class TestCase(test_env.BaseTestCase):
         expected_args.update(reconfigure_args)
         self.assertEqual(actual_args, expected_args)
 
-    def __verify_connection(self, connection, expected_user,
-                            expected_proxy_user=None):
+    def __verify_connection(
+        self, connection, expected_user, expected_proxy_user=None
+    ):
         cursor = connection.cursor()
-        cursor.execute("""
-                select
-                    sys_context('userenv', 'session_user'),
-                    sys_context('userenv', 'proxy_user')
-                from dual""")
+        cursor.execute(
+            """
+            select
+                sys_context('userenv', 'session_user'),
+                sys_context('userenv', 'proxy_user')
+            from dual
+            """
+        )
         actual_user, actual_proxy_user = cursor.fetchone()
         self.assertEqual(actual_user, expected_user.upper())
-        self.assertEqual(actual_proxy_user,
-                         expected_proxy_user and expected_proxy_user.upper())
+        self.assertEqual(
+            actual_proxy_user,
+            expected_proxy_user and expected_proxy_user.upper(),
+        )
 
     def test_2400_pool(self):
         "2400 - test that the pool is created and has the right attributes"
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        self.assertEqual(pool.username, test_env.get_main_user(),
-                         "user name differs")
-        self.assertEqual(pool.dsn, test_env.get_connect_string(),
-                         "dsn differs")
+        pool = test_env.get_pool(
+            min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_WAIT
+        )
+        self.assertEqual(
+            pool.username, test_env.get_main_user(), "user name differs"
+        )
+        self.assertEqual(
+            pool.dsn, test_env.get_connect_string(), "dsn differs"
+        )
         self.assertEqual(pool.max, 8, "max differs")
         self.assertEqual(pool.min, 2, "min differs")
         self.assertEqual(pool.increment, 3, "increment differs")
@@ -168,25 +198,36 @@ class TestCase(test_env.BaseTestCase):
             pool.max_lifetime_session = 10
             self.assertEqual(pool.max_lifetime_session, 10)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support proxy users yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
+    )
     def test_2401_proxy_auth(self):
         "2401 - test that proxy authentication is possible"
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        self.assertTrue(pool.homogeneous,
-                        "homogeneous should be True by default")
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1012:",
-                               pool.acquire, user="missing_proxyuser")
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_WAIT,
-                                 homogeneous=False)
+        pool = test_env.get_pool(
+            min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_WAIT
+        )
+        self.assertTrue(
+            pool.homogeneous, "homogeneous should be True by default"
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^DPI-1012:",
+            pool.acquire,
+            user="missing_proxyuser",
+        )
+        pool = test_env.get_pool(
+            min=2,
+            max=8,
+            increment=3,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+            homogeneous=False,
+        )
         msg = "homogeneous should be False after setting it in the constructor"
         self.assertFalse(pool.homogeneous, msg)
         conn = pool.acquire(user=test_env.get_proxy_user())
         cursor = conn.cursor()
-        cursor.execute('select user from dual')
-        user, = cursor.fetchone()
+        cursor.execute("select user from dual")
+        (user,) = cursor.fetchone()
         self.assertEqual(user, test_env.get_proxy_user().upper())
         conn.close()
 
@@ -203,14 +244,15 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire()
         cursor = conn.cursor()
         cursor.execute("select count(*) from TestTempTable")
-        count, = cursor.fetchone()
+        (count,) = cursor.fetchone()
         self.assertEqual(count, 0)
         conn.close()
 
     def test_2404_threading(self):
         "2404 - test session pool with multiple threads"
-        self.pool = test_env.get_pool(min=5, max=20, increment=2,
-                                      getmode=oracledb.POOL_GETMODE_WAIT)
+        self.pool = test_env.get_pool(
+            min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__connect_and_drop)
@@ -221,8 +263,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2405_threading_with_errors(self):
         "2405 - test session pool with multiple threads (with errors)"
-        self.pool = test_env.get_pool(min=5, max=20, increment=2,
-                                      getmode=oracledb.POOL_GETMODE_WAIT)
+        self.pool = test_env.get_pool(
+            min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         threads = []
         for i in range(20):
             thread = threading.Thread(None, self.__connect_and_generate_error)
@@ -233,8 +276,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2406_purity(self):
         "2406 - test session pool with various types of purity"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
 
         # get connection and set the action
         action = "TEST_ACTION"
@@ -250,7 +294,7 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire()
         cursor = conn.cursor()
         cursor.execute("select sys_context('userenv', 'action') from dual")
-        result, = cursor.fetchone()
+        (result,) = cursor.fetchone()
         self.assertEqual(result, action)
         cursor.close()
         pool.release(conn)
@@ -260,73 +304,102 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire(purity=oracledb.ATTR_PURITY_NEW)
         cursor = conn.cursor()
         cursor.execute("select sys_context('userenv', 'action') from dual")
-        result, = cursor.fetchone()
+        (result,) = cursor.fetchone()
         self.assertIsNone(result)
         cursor.close()
         pool.release(conn)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support proxy users yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
+    )
     def test_2407_heterogeneous(self):
         "2407 - test heterogeneous pool with user and password specified"
-        pool = test_env.get_pool(min=2, max=8, increment=3, homogeneous=False,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=2,
+            max=8,
+            increment=3,
+            homogeneous=False,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+        )
         self.assertEqual(pool.homogeneous, 0)
         conn = pool.acquire()
         self.__verify_connection(pool.acquire(), test_env.get_main_user())
         conn.close()
-        conn = pool.acquire(test_env.get_main_user(),
-                            test_env.get_main_password())
+        conn = pool.acquire(
+            test_env.get_main_user(), test_env.get_main_password()
+        )
         self.__verify_connection(conn, test_env.get_main_user())
         conn.close()
-        conn = pool.acquire(test_env.get_proxy_user(),
-                            test_env.get_proxy_password())
+        conn = pool.acquire(
+            test_env.get_proxy_user(), test_env.get_proxy_password()
+        )
         self.__verify_connection(conn, test_env.get_proxy_user())
         conn.close()
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         conn = pool.acquire(user_str, test_env.get_main_password())
-        self.__verify_connection(conn, test_env.get_proxy_user(),
-                                 test_env.get_main_user())
+        self.__verify_connection(
+            conn, test_env.get_proxy_user(), test_env.get_main_user()
+        )
         conn.close()
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support proxy users yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
+    )
     def test_2408_heterogenous_without_user(self):
         "2408 - test heterogeneous pool without user and password specified"
-        pool = test_env.get_pool(user="", password="", min=2, max=8,
-                                 increment=3,
-                                 getmode=oracledb.POOL_GETMODE_WAIT,
-                                 homogeneous=False)
-        conn = pool.acquire(test_env.get_main_user(),
-                            test_env.get_main_password())
+        pool = test_env.get_pool(
+            user="",
+            password="",
+            min=2,
+            max=8,
+            increment=3,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+            homogeneous=False,
+        )
+        conn = pool.acquire(
+            test_env.get_main_user(), test_env.get_main_password()
+        )
         self.__verify_connection(conn, test_env.get_main_user())
         conn.close()
-        conn = pool.acquire(test_env.get_proxy_user(),
-                            test_env.get_proxy_password())
+        conn = pool.acquire(
+            test_env.get_proxy_user(), test_env.get_proxy_password()
+        )
         self.__verify_connection(conn, test_env.get_proxy_user())
         conn.close()
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         conn = pool.acquire(user_str, test_env.get_main_password())
-        self.__verify_connection(conn, test_env.get_proxy_user(),
-                                 test_env.get_main_user())
+        self.__verify_connection(
+            conn, test_env.get_proxy_user(), test_env.get_main_user()
+        )
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support proxy users yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
+    )
     def test_2409_heterogeneous_wrong_password(self):
         "2409 - test heterogeneous pool with wrong password specified"
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_WAIT,
-                                 homogeneous=False)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01017:",
-                               pool.acquire, test_env.get_proxy_user(),
-                               "this is the wrong password")
+        pool = test_env.get_pool(
+            min=2,
+            max=8,
+            increment=3,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+            homogeneous=False,
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-01017:",
+            pool.acquire,
+            test_env.get_proxy_user(),
+            "this is the wrong password",
+        )
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support tagging yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
+    )
     def test_2410_tagging_session(self):
         "2410 - test tagging a session"
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_NOWAIT)
+        pool = test_env.get_pool(
+            min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_NOWAIT
+        )
         tag_mst = "TIME_ZONE=MST"
         tag_utc = "TIME_ZONE=UTC"
 
@@ -347,20 +420,26 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.tag, tag_utc)
         conn.close()
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support session callbacks yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support session callbacks yet",
+    )
     def test_2411_plsql_session_callbacks(self):
         "2411 - test PL/SQL session callbacks"
         if test_env.get_client_version() < (12, 2):
             self.skipTest("PL/SQL session callbacks not supported before 12.2")
         callback = "pkg_SessionCallback.TheCallback"
-        pool = test_env.get_pool(min=2, max=8, increment=3,
-                                 getmode=oracledb.POOL_GETMODE_NOWAIT,
-                                 session_callback=callback)
+        pool = test_env.get_pool(
+            min=2,
+            max=8,
+            increment=3,
+            getmode=oracledb.POOL_GETMODE_NOWAIT,
+            session_callback=callback,
+        )
         tags = [
             "NLS_DATE_FORMAT=SIMPLE",
             "NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC",
-            "NLS_DATE_FORMAT=FULL;TIME_ZONE=MST"
+            "NLS_DATE_FORMAT=FULL;TIME_ZONE=MST",
         ]
         actual_tags = [None, None, "NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC"]
 
@@ -382,30 +461,40 @@ class TestCase(test_env.BaseTestCase):
         # verify the PL/SQL session callback log is accurate
         conn = pool.acquire()
         cursor = conn.cursor()
-        cursor.execute("""
-                select RequestedTag, ActualTag
-                from PLSQLSessionCallbacks
-                order by FixupTimestamp""")
+        cursor.execute(
+            """
+            select RequestedTag, ActualTag
+            from PLSQLSessionCallbacks
+            order by FixupTimestamp
+            """
+        )
         results = cursor.fetchall()
         expected_results = list(zip(tags, actual_tags))
         self.assertEqual(results, expected_results)
         conn.close()
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support tagging yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
+    )
     def test_2412_tagging_invalid_key(self):
         "2412 - testTagging with Invalid key"
         pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
         conn = pool.acquire()
         self.assertRaises(TypeError, pool.release, conn, tag=12345)
         if test_env.get_client_version() >= (12, 2):
-            self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-24488:",
-                                   pool.release, conn, tag="INVALID_TAG")
+            self.assertRaisesRegex(
+                oracledb.DatabaseError,
+                "^ORA-24488:",
+                pool.release,
+                conn,
+                tag="INVALID_TAG",
+            )
 
     def test_2413_close_and_drop_connection_from_pool(self):
         "2413 - test dropping/closing a connection from the pool"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         conn = pool.acquire()
         self.assertEqual(pool.busy, 1, "busy (1)")
         self.assertEqual(pool.opened, 1, "opened (1)")
@@ -421,8 +510,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2414_create_new_pure_connection(self):
         "2414 - test to ensure pure connections are being created correctly"
-        pool = test_env.get_pool(min=1, max=2, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         conn1 = pool.acquire()
         conn2 = pool.acquire()
         self.assertEqual(pool.opened, 2, "opened (1)")
@@ -432,8 +522,10 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.opened, 2, "opened (2)")
         pool.release(conn3)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support all the pool params yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support all the pool params yet",
+    )
     def test_2416_test_reconfigure_pool_with_missing_values(self):
         "2416 - test the reconfigure values are changed and rest unchanged"
         self.__perform_reconfigure_test("min", 5)
@@ -442,8 +534,9 @@ class TestCase(test_env.BaseTestCase):
         self.__perform_reconfigure_test("timeout", 10)
         self.__perform_reconfigure_test("stmtcachesize", 40)
         self.__perform_reconfigure_test("ping_interval", 50)
-        self.__perform_reconfigure_test("getmode",
-                                        oracledb.POOL_GETMODE_NOWAIT)
+        self.__perform_reconfigure_test(
+            "getmode", oracledb.POOL_GETMODE_NOWAIT
+        )
         if test_env.get_client_version() >= (12, 1):
             self.__perform_reconfigure_test("max_lifetime_session", 2000)
         if test_env.get_client_version() >= (12, 2):
@@ -453,68 +546,116 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support all the pool params yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support all the pool params yet",
+    )
     def test_2417_setting_each_pool_param(self):
         "2417 - test to see if specified parameters are set during creation"
-        pool = test_env.get_pool(min=1, max=2, increment=1, timeout=10,
-                                 wait_timeout=10, max_lifetime_session=20,
-                                 max_sessions_per_shard=1, stmtcachesize=25,
-                                 ping_interval=25,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1,
+            max=2,
+            increment=1,
+            timeout=10,
+            wait_timeout=10,
+            max_lifetime_session=20,
+            max_sessions_per_shard=1,
+            stmtcachesize=25,
+            ping_interval=25,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+        )
         self.assertEqual(pool.min, 1, "min (1)")
         self.assertEqual(pool.max, 2, "max (2)")
         self.assertEqual(pool.increment, 1, "increment (1)")
-        self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT,
-                         "getmode differs")
+        self.assertEqual(
+            pool.getmode, oracledb.POOL_GETMODE_WAIT, "getmode differs"
+        )
         self.assertEqual(pool.timeout, 10, "timeout (10)")
         self.assertEqual(pool.wait_timeout, 10, "wait_timeout (10)")
-        self.assertEqual(pool.max_lifetime_session, 20,
-                         "max_lifetime_sessionmeout (20)")
-        self.assertEqual(pool.max_sessions_per_shard, 1,
-                         "max_sessions_per_shard (1)")
+        self.assertEqual(
+            pool.max_lifetime_session, 20, "max_lifetime_sessionmeout (20)"
+        )
+        self.assertEqual(
+            pool.max_sessions_per_shard, 1, "max_sessions_per_shard (1)"
+        )
         self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
         self.assertEqual(pool.ping_interval, 25, "ping_interval (25)")
 
     def test_2418_deprecations(self):
         "2418 - test to verify deprecations"
         callback = "pkg_SessionCallback.TheCallback"
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               test_env.get_pool, min=1, max=2, increment=1,
-                               wait_timeout=10, waitTimeout=10)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               test_env.get_pool, min=1, max=2, increment=1,
-                               max_lifetime_session=20, maxLifetimeSession=20)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               test_env.get_pool, min=1, max=2, increment=1,
-                               max_sessions_per_shard=1, maxSessionsPerShard=1)
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2014:",
-                               test_env.get_pool, min=2, max=8, increment=3,
-                               getmode=oracledb.POOL_GETMODE_NOWAIT,
-                               session_callback=callback,
-                               sessionCallback=callback)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            test_env.get_pool,
+            min=1,
+            max=2,
+            increment=1,
+            wait_timeout=10,
+            waitTimeout=10,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            test_env.get_pool,
+            min=1,
+            max=2,
+            increment=1,
+            max_lifetime_session=20,
+            maxLifetimeSession=20,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            test_env.get_pool,
+            min=1,
+            max=2,
+            increment=1,
+            max_sessions_per_shard=1,
+            maxSessionsPerShard=1,
+        )
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2014:",
+            test_env.get_pool,
+            min=2,
+            max=8,
+            increment=3,
+            getmode=oracledb.POOL_GETMODE_NOWAIT,
+            session_callback=callback,
+            sessionCallback=callback,
+        )
 
     def test_2419_statement_cache_size(self):
         "2419 - test to verify statement cache size is retained"
-        pool = test_env.get_pool(min=1, max=2, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT,
-                                 stmtcachesize=25)
+        pool = test_env.get_pool(
+            min=1,
+            max=2,
+            increment=1,
+            getmode=oracledb.POOL_GETMODE_WAIT,
+            stmtcachesize=25,
+        )
         self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
         pool.stmtcachesize = 35
         self.assertEqual(pool.stmtcachesize, 35, "stmtcachesize (35)")
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support tagging yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
+    )
     def test_2420_callable_session_callbacks(self):
         "2420 - test that session callbacks are being called correctly"
-        pool = test_env.get_pool(min=2, max=5, increment=1,
-                        session_callback=self.__callable_session_callback)
+        pool = test_env.get_pool(
+            min=2,
+            max=5,
+            increment=1,
+            session_callback=self.__callable_session_callback,
+        )
 
         # new connection with a tag should invoke the session callback
         with pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE") as conn:
             cursor = conn.cursor()
             cursor.execute("select to_char(2021-05-20) from dual")
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
         # acquiring a connection with the same tag should not invoke the
@@ -523,7 +664,7 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE") as conn:
             cursor = conn.cursor()
             cursor.execute("select to_char(2021-05-20) from dual")
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertFalse(self.session_called)
 
         # acquiring a connection with a new tag should invoke the session
@@ -532,18 +673,19 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=UTC") as conn:
             cursor = conn.cursor()
             cursor.execute("select to_char(current_date) from dual")
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
         # acquiring a connection with a new tag and specifying that a
         # connection with any tag can be acquired should invoke the session
         # callback
         self.session_called = False
-        with pool.acquire(tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=MST", \
-                          matchanytag=True) as conn:
+        with pool.acquire(
+            tag="NLS_DATE_FORMAT=FULL;TIME_ZONE=MST", matchanytag=True
+        ) as conn:
             cursor = conn.cursor()
             cursor.execute("select to_char(current_date) from dual")
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
         # new connection with no tag should invoke the session callback
@@ -551,63 +693,75 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire() as conn:
             cursor = conn.cursor()
             cursor.execute("select to_char(current_date) from dual")
-            result, = cursor.fetchone()
+            (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
     def test_2421_pool_close_normal_no_connections(self):
         "2421 - test closing a pool normally with no connections checked out"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         pool.close()
 
     def test_2422_pool_close_normal_with_connections(self):
         "2422 - test closing a pool normally with connections checked out"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        conn = pool.acquire()
-        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1005:",
-                               pool.close)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
+        with pool.acquire():
+            self.assertRaisesRegex(
+                oracledb.InterfaceError, "^DPY-1005:", pool.close
+            )
 
     def test_2423_pool_close_force(self):
         "2423 - test closing a pool forcibly"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        conn = pool.acquire()
-        pool.close(force=True)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
+        with pool.acquire():
+            pool.close(force=True)
 
     def test_2424_exception_on_acquire_after_pool_closed(self):
         "2424 - using the pool after it is closed raises an exception"
-        pool = test_env.get_pool(min=1, max=8, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         pool.close()
-        self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:",
-                               pool.acquire)
+        self.assertRaisesRegex(
+            oracledb.InterfaceError, "^DPY-1002:", pool.acquire
+        )
 
     def test_2425_pool_with_no_connections(self):
         "2425 - using the pool beyond max limit raises an error"
-        pool = test_env.get_pool(min=1, max=2, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
-        conn1 = pool.acquire()
-        conn2 = pool.acquire()
-        pool.getmode = oracledb.POOL_GETMODE_NOWAIT
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4005:",
-                               pool.acquire)
+        pool = test_env.get_pool(
+            min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
+        with pool.acquire(), pool.acquire():
+            pool.getmode = oracledb.POOL_GETMODE_NOWAIT
+            self.assertRaisesRegex(
+                oracledb.DatabaseError, "^DPY-4005:", pool.acquire
+            )
 
     def test_2426_session_callback_for_new_connections(self):
         "2426 - callable session callback is executed for new connections"
+
         class Counter:
             num_calls = 0
+
             @classmethod
             def session_callback(cls, conn, requested_tag):
                 cls.num_calls += 1
-        pool = test_env.get_pool(min=1, max=2, increment=1,
-                                 session_callback=Counter.session_callback)
-        with pool.acquire() as conn1:
-            with pool.acquire() as conn2:
-                pass
-        with pool.acquire() as conn1:
-            with pool.acquire() as conn2:
-                pass
+
+        pool = test_env.get_pool(
+            min=1,
+            max=2,
+            increment=1,
+            session_callback=Counter.session_callback,
+        )
+        with pool.acquire(), pool.acquire():
+            pass
+        with pool.acquire(), pool.acquire():
+            pass
         self.assertEqual(Counter.num_calls, 2)
 
     def test_2427_drop_dead_connection_from_pool(self):
@@ -619,11 +773,14 @@ class TestCase(test_env.BaseTestCase):
         with admin_conn.cursor() as admin_cursor:
             for conn in [pool.acquire() for i in range(2)]:
                 with conn.cursor() as cursor:
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         select
                             dbms_debug_jdwp.current_session_id,
                             dbms_debug_jdwp.current_session_serial
-                        from dual""")
+                        from dual
+                        """
+                    )
                     sid, serial = cursor.fetchone()
                     sql = f"alter system kill session '{sid},{serial}'"
                     admin_cursor.execute(sql)
@@ -634,8 +791,12 @@ class TestCase(test_env.BaseTestCase):
         # release all such connections
         for conn in [pool.acquire() for i in range(2)]:
             with conn.cursor() as cursor:
-                self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4011:",
-                                       cursor.execute, "select user from dual")
+                self.assertRaisesRegex(
+                    oracledb.DatabaseError,
+                    "^DPY-4011:",
+                    cursor.execute,
+                    "select user from dual",
+                )
             conn.close()
         self.assertEqual(pool.opened, 0)
 
@@ -644,7 +805,7 @@ class TestCase(test_env.BaseTestCase):
         for conn in [pool.acquire() for i in range(2)]:
             with conn.cursor() as cursor:
                 cursor.execute("select user from dual")
-                user, = cursor.fetchone()
+                (user,) = cursor.fetchone()
                 self.assertEqual(user, test_env.get_main_user().upper())
             conn.close()
         self.assertEqual(pool.opened, 2)
@@ -655,12 +816,13 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("select user from dual")
-                result, = cursor.fetchone()
+                (result,) = cursor.fetchone()
                 self.assertEqual(result, test_env.get_main_user().upper())
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't support soda_metadata_cache" \
-                     "parameter yet")
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support soda_metadata_cache" "parameter yet",
+    )
     def test_2429_soda_metadata_cache(self):
         "2429 - test soda_metadata_cache parameter"
         self.get_soda_database(minclient=(19, 11))
@@ -686,13 +848,15 @@ class TestCase(test_env.BaseTestCase):
         "2431 - test creating a pool using a proxy user"
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         pool = test_env.get_pool(user=user_str)
-        self.__verify_connection(pool.acquire(), test_env.get_proxy_user(),
-                                 test_env.get_main_user())
+        self.__verify_connection(
+            pool.acquire(), test_env.get_proxy_user(), test_env.get_main_user()
+        )
 
     def test_2432_conn_acquire_in_lifo(self):
         "2432 - test acquiring conn from pool in LIFO order"
-        pool = test_env.get_pool(min=5, max=10, increment=1,
-                                 getmode=oracledb.POOL_GETMODE_WAIT)
+        pool = test_env.get_pool(
+            min=5, max=10, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
+        )
         sql = "select sys_context('userenv', 'sid') from dual"
         conns = [pool.acquire() for i in range(3)]
         sids = [conn.cursor().execute(sql).fetchone()[0] for conn in conns]
@@ -709,14 +873,15 @@ class TestCase(test_env.BaseTestCase):
         "2433 - verify that dynamic pool cannot have an increment of zero"
         pool = test_env.get_pool(min=1, max=3, increment=0)
         self.assertEqual(pool.increment, 1)
-        conn1 = pool.acquire()
-        conn2 = pool.acquire()
+        with pool.acquire(), pool.acquire():
+            pass
 
     def test_2434_static_pool_with_zero_increment(self):
         "2434 - verify that static pool can have an increment of zero"
         pool = test_env.get_pool(min=1, max=1, increment=0)
         self.assertEqual(pool.increment, 0)
-        conn = pool.acquire()
+        with pool.acquire():
+            pass
 
     def test_2435_acquire_with_different_cclass(self):
         "2435 - verify that connection with different cclass is reused"
@@ -730,27 +895,37 @@ class TestCase(test_env.BaseTestCase):
             pass
         with pool.acquire(cclass=cclass) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     select
                         dbms_debug_jdwp.current_session_id || ',' ||
                         dbms_debug_jdwp.current_session_serial
-                    from dual""")
-                sid_serial, = cursor.fetchone()
+                    from dual
+                    """
+                )
+                (sid_serial,) = cursor.fetchone()
         with pool.acquire(cclass=cclass) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     select
                         dbms_debug_jdwp.current_session_id || ',' ||
                         dbms_debug_jdwp.current_session_serial
-                    from dual""")
-                next_sid_serial, = cursor.fetchone()
+                    from dual
+                    """
+                )
+                (next_sid_serial,) = cursor.fetchone()
                 self.assertEqual(next_sid_serial, sid_serial)
         self.assertEqual(pool.opened, 1)
 
     def test_2436_pool_params_negative(self):
         "2436 - test creating a pool invalid params"
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2027:",
-                               oracledb.create_pool, params="bad params")
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2027:",
+            oracledb.create_pool,
+            params="bad params",
+        )
 
     def test_2437_connection_release_and_drop_negative(self):
         "2437 - test releasing and dropping an invalid connection"
@@ -758,13 +933,15 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, pool.release, ["invalid connection"])
         self.assertRaises(TypeError, pool.drop, ["invalid connection"])
 
-    @unittest.skipIf(test_env.get_is_thin(),
-                     "thin mode doesn't set a pool name")
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't set a pool name"
+    )
     def test_2438_name(self):
         "2438 - test getting pool name"
         pool = test_env.get_pool()
         expected_name = "^OCI:SP:.+"
         self.assertRegex(pool.name, expected_name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

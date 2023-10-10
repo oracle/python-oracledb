@@ -1,5 +1,9 @@
-# ------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# -----------------------------------------------------------------------------
+# drop_user.py (Setup Section)
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -20,11 +24,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
-# drop_user.py (Setup Section)
-# ------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 import oracledb
 import db_config_sys
@@ -32,8 +32,11 @@ import db_config
 import run_sql_script
 
 # Connect using the System User ID and password
-con = oracledb.connect(user=db_config_sys.sysuser,
-                       password=db_config_sys.syspw, dsn=db_config_sys.dsn)
+con = oracledb.connect(
+    user=db_config_sys.sysuser,
+    password=db_config_sys.syspw,
+    dsn=db_config_sys.dsn,
+)
 
 # drop the tutorial user and schema
 print("Dropping the tutorial user...")

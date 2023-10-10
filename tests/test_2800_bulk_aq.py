@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2020, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,7 +20,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 """
 2800 - Module for testing AQ Bulk enqueue/dequeue
@@ -47,24 +47,24 @@ RAW_PAYLOAD_DATA = [
     "The ninth message",
     "The tenth message",
     "The eleventh message",
-    "The twelfth and final message"
+    "The twelfth and final message",
 ]
 
 JSON_DATA_PAYLOAD = [
     [
         2.75,
         True,
-        'Ocean Beach',
-        b'Some bytes',
-        {'keyA': 1.0, 'KeyB': 'Melbourne'},
-        datetime.datetime(2022, 8, 1, 0, 0)
+        "Ocean Beach",
+        b"Some bytes",
+        {"keyA": 1.0, "KeyB": "Melbourne"},
+        datetime.datetime(2022, 8, 1, 0, 0),
     ],
-    dict(name="John", age=30, city="New York")
+    dict(name="John", age=30, city="New York"),
 ]
+
 
 @unittest.skipIf(test_env.get_is_thin(), "thin mode doesn't support AQ yet")
 class TestCase(test_env.BaseTestCase):
-
     def __deq_in_thread(self, results):
         with test_env.get_connection() as conn:
             queue = conn.queue(RAW_QUEUE_NAME)
@@ -81,8 +81,9 @@ class TestCase(test_env.BaseTestCase):
     def test_2800_enq_and_deq(self):
         "2800 - test bulk enqueue and dequeue"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
-        messages = [self.conn.msgproperties(payload=data) \
-                    for data in RAW_PAYLOAD_DATA]
+        messages = [
+            self.conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+        ]
         queue.enqmany(messages)
         messages = queue.deqmany(len(RAW_PAYLOAD_DATA))
         data = [message.payload.decode() for message in messages]
@@ -103,8 +104,9 @@ class TestCase(test_env.BaseTestCase):
         results = []
         thread = threading.Thread(target=self.__deq_in_thread, args=(results,))
         thread.start()
-        messages = [self.conn.msgproperties(payload=data) \
-                    for data in RAW_PAYLOAD_DATA]
+        messages = [
+            self.conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+        ]
         queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
         queue.enqmany(messages)
         thread.join()
@@ -115,8 +117,10 @@ class TestCase(test_env.BaseTestCase):
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         data_to_enqueue = RAW_PAYLOAD_DATA
         for num in (2, 6, 4):
-            messages = [self.conn.msgproperties(payload=data) \
-                        for data in data_to_enqueue[:num]]
+            messages = [
+                self.conn.msgproperties(payload=data)
+                for data in data_to_enqueue[:num]
+            ]
             data_to_enqueue = data_to_enqueue[num:]
             queue.enqmany(messages)
         self.conn.commit()
@@ -161,14 +165,16 @@ class TestCase(test_env.BaseTestCase):
         "2805 - test error for messages with no payload"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         messages = [self.conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
-        self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2000:",
-                               queue.enqmany, messages)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError, "^DPY-2000:", queue.enqmany, messages
+        )
 
     def test_2806_verify_msgid(self):
         "2806 - verify that the msgid property is returned correctly"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
-        messages = [self.conn.msgproperties(payload=data) \
-                    for data in RAW_PAYLOAD_DATA]
+        messages = [
+            self.conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+        ]
         queue.enqmany(messages)
         self.cursor.execute("select msgid from raw_queue_tab")
         actual_msgids = set(m for m, in self.cursor)
@@ -181,8 +187,9 @@ class TestCase(test_env.BaseTestCase):
     def test_2807_json_enq_deq(self):
         "4800 - test enqueuing and dequeuing JSON message"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
-        props = [self.conn.msgproperties(payload=data) \
-                 for data in JSON_DATA_PAYLOAD]
+        props = [
+            self.conn.msgproperties(payload=data) for data in JSON_DATA_PAYLOAD
+        ]
         queue.enqmany(props)
         self.conn.commit()
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
@@ -194,8 +201,9 @@ class TestCase(test_env.BaseTestCase):
         "2808 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = self.conn.msgproperties(payload="string message")
-        self.assertRaisesRegex(oracledb.DatabaseError, "^DPI-1071:",
-                               queue.enqmany, [props, props])
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^DPI-1071:", queue.enqmany, [props, props]
+        )
 
     def test_2809_errors_for_invalid_values(self):
         "2809 - test errors for invalid values for enqmany and deqmany"
@@ -204,6 +212,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, queue.enqmany, props)
         self.assertRaises(TypeError, queue.enqmany, ["Not", "msgproperties"])
         self.assertRaises(TypeError, queue.deqmany, "5")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

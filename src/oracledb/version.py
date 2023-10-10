@@ -1,4 +1,4 @@
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
@@ -20,14 +20,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # version.py
 #
 # Defines the version of the package. This is the only place where this is
 # found. The setup.cfg configuration file and the documentation configuration
 # file doc/src/conf.py both reference this file directly.
-#------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __version__ = "2.0.0b1"
