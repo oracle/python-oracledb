@@ -340,7 +340,7 @@ cdef class Protocol:
         Forces the connection closed. This is used when an unrecoverable error
         has taken place.
         """
-        if self._socket is not None:
+        if self._socket is not None and self._read_buf._socket is not None:
             sock = self._socket
             if DEBUG_PACKETS:
                 now = datetime.datetime.now()

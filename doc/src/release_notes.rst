@@ -18,6 +18,7 @@ Thin Mode Changes
 #)  Internal changes to improve handling of multiple address and description
     lists in full connect descriptors.
 #)  Fixed bug in handling database response in certain unusual circumstances.
+#)  Fixed bug in handling exceptions raised during connection establishment.
 
 Thick Mode Changes
 ++++++++++++++++++
