@@ -117,9 +117,6 @@ class Connection:
             # see if connection is being acquired from a pool
             if pool is None:
                 pool_impl = None
-            elif not isinstance(pool, pool_module.ConnectionPool):
-                message = "pool must be an instance of oracledb.ConnectionPool"
-                raise TypeError(message)
             else:
                 pool._verify_open()
                 pool_impl = pool._impl
@@ -1118,6 +1115,11 @@ def _connection_factory(f):
         f(dsn=dsn, pool=pool, conn_class=conn_class, params=params, **kwargs)
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+        if pool is not None and not isinstance(
+            pool, pool_module.ConnectionPool
+        ):
+            message = "pool must be an instance of oracledb.ConnectionPool"
+            raise TypeError(message)
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
 
     return connect
