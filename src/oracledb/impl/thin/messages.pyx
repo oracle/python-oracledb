@@ -94,6 +94,7 @@ cdef class Message:
             uint16_t num_entries, error_code
             uint32_t num_bytes, i, offset
             uint8_t first_byte
+            int16_t error_pos
             str error_msg
         buf.read_ub4(&self.call_status)     # end of call status
         buf.skip_ub2()                      # end to end seq#
@@ -102,7 +103,7 @@ cdef class Message:
         buf.skip_ub2()                      # array elem error
         buf.skip_ub2()                      # array elem error
         buf.read_ub2(&info.cursor_id)       # cursor id
-        buf.read_ub2(&info.pos)             # error position
+        buf.read_sb2(&error_pos)            # error position
         buf.skip_ub1()                      # sql type (19c and earlier)
         buf.skip_ub1()                      # fatal?
         buf.skip_ub1()                      # flags
@@ -167,6 +168,8 @@ cdef class Message:
         # error message
         if info.num != 0:
             self.error_occurred = True
+            if error_pos > 0:
+                info.pos = error_pos
             info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
         info.is_warning = False
 

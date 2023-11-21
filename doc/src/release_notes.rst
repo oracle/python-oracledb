@@ -17,6 +17,7 @@ Thin Mode Changes
     python-oracledb and Oracle Database.
 #)  Internal changes to improve handling of multiple address and description
     lists in full connect descriptors.
+#)  Fixed bug in handling database response in certain unusual circumstances.
 
 Thick Mode Changes
 ++++++++++++++++++
