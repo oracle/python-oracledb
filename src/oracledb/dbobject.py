@@ -40,7 +40,10 @@ class DbObject:
     __module__ = MODULE_NAME
 
     def __getattr__(self, name):
-        attr_impl = self._impl.type.attrs_by_name[name]
+        try:
+            attr_impl = self._impl.type.attrs_by_name[name]
+        except KeyError:
+            return super().__getattribute__(name)
         return self._impl.get_attr_value(attr_impl)
 
     def __repr__(self):

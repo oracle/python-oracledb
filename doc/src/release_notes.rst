@@ -42,6 +42,7 @@ Common Changes
     Client 23c is also required.
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
+#)  Fixed bug with getting unknown attributes from DbObject instances.
 #)  Errors that have entries in the troubleshooting documentation now have
     links to that documentation included in the message text.
 #)  The attribute ``oracledb.__future__.old_json_col_as_obj`` no longer needs

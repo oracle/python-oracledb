@@ -719,6 +719,13 @@ class TestCase(test_env.BaseTestCase):
             [71, "not a number"],
         )
 
+    def test_2332_validate_invalid_attr_name(self):
+        "2332 - test getting an invalid attribute name from an object"
+        typ = self.conn.gettype("UDT_OBJECT")
+        obj = typ.newobject()
+        with self.assertRaises(AttributeError):
+            obj.MISSING
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
