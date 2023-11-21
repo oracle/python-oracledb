@@ -195,8 +195,7 @@ cdef class BaseCursorImpl:
             elif var_impl.scale == 0 \
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
-        elif future.old_json_col_as_obj and fetch_info.is_json \
-                and db_type_num != DB_TYPE_NUM_JSON:
+        elif fetch_info.is_json and db_type_num != DB_TYPE_NUM_JSON:
             def converter(value):
                 if isinstance(value, PY_TYPE_LOB):
                     value = value.read()

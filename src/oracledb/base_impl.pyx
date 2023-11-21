@@ -55,7 +55,6 @@ include "impl/base/types.pyx"
 
 from . import constants, errors, exceptions, utils
 from .defaults import defaults
-from .future import future
 
 cdef type PY_TYPE_BOOL = bool
 cdef type PY_TYPE_CURSOR

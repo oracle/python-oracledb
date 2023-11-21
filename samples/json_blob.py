@@ -46,10 +46,6 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-# use the feature that transforms JSON data in VARCHAR2 and LOB columns to
-# objects
-oracledb.__future__.old_json_col_as_obj = True
-
 connection = oracledb.connect(
     user=sample_env.get_main_user(),
     password=sample_env.get_main_password(),

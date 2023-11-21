@@ -28,12 +28,7 @@
 # Module for handling backwards incompatible changes.
 # -----------------------------------------------------------------------------
 
-FEATURES = [
-    # fetch VARCHAR2 and LOB columns that contain JSON data (and have the "IS
-    # JSON" constraint enabled) in the same way that columns of type JSON
-    # (which requires Oracle Database 21 and higher) are fetched
-    "old_json_col_as_obj"
-]
+FEATURES = []
 
 
 # future object used for managing backwards incompatible changes
@@ -49,4 +44,3 @@ class Future:
 
 
 future = Future()
-future.old_json_col_as_obj = False

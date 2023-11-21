@@ -34,10 +34,6 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def tearDown(self):
-        super().tearDown()
-        oracledb.__future__.old_json_col_as_obj = False
-
     def test_4300_prepare(self):
         "4300 - test preparing a statement and executing it multiple times"
         cursor = self.conn.cursor()
@@ -961,7 +957,6 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4360_fetch_json_columns(self):
         "4360 - fetch JSON columns as Python objects"
-        oracledb.__future__.old_json_col_as_obj = True
         expected_data = (1, [1, 2, 3], [4, 5, 6], [7, 8, 9])
         self.cursor.execute("select * from TestJsonCols")
         self.assertEqual(self.cursor.fetchone(), expected_data)
