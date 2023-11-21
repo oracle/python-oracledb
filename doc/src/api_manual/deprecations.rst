@@ -8,6 +8,16 @@ The following tables contain all of the deprecations in the python-oracledb API,
 when they were first deprecated and a comment on what should be used instead,
 if applicable. The most recent deprecations are listed first.
 
+.. list-table-with-summary:: Desupported in python-oracledb 2.0
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated or desupported API name. The second column, Comments, includes information about when the API was deprecated or desupported and what API to use, if applicable.
+    :name: _deprecations_2_0
+
+    * - Name
+      - Comments
+    * - ``oracledb.__future__.old_json_col_as_obj``
+      - This attribute is desupported and does not need to be set to fetch VARCHAR2 and LOB columns that contain JSON data.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 1.4
     :header-rows: 1

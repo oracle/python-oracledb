@@ -90,11 +90,12 @@ Connection Methods
 
     Commits any pending transactions to the database.
 
-.. method:: Connection.createlob(lobType)
+.. method:: Connection.createlob(lob_type)
 
     Creates and returns a new temporary :ref:`LOB object <lobobj>` of the
-    specified type. The ``lobType`` parameter should be one of
-    :data:`oracledb.CLOB`, :data:`oracledb.BLOB` or :data:`oracledb.NCLOB`.
+    specified type. The ``lob_type`` parameter should be one of
+    :data:`oracledb.DB_TYPE_CLOB`, :data:`oracledb.DB_TYPE_BLOB`, or
+    :data:`oracledb.DB_TYPE_NCLOB`.
 
     .. note::
 
@@ -540,8 +541,8 @@ Connection Attributes
 .. attribute:: Connection.action
 
     This write-only attribute sets the action column in the v$session table. It
-    is a string attribute and cannot be set to None -- use the empty string
-    instead.
+    is a string attribute but the value None is accepted and treated as an
+    empty string.
 
     .. note::
 
@@ -917,6 +918,6 @@ Connection Attributes
 
     .. note::
 
-        If you connect to Oracle Database 18 or higher with client libraries
-        12.2 or lower that you will only receive the base version (such as
-        18.0.0.0.0) instead of the full version (18.3.0.0.0).
+        If you connect to Oracle Database 18 or higher using Oracle Client
+        libraries 12.2 or lower you will only receive the base version (such as
+        18.0.0.0.0) instead of the full version (such as 18.3.0.0.0).

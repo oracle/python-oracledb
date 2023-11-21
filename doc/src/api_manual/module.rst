@@ -1518,8 +1518,9 @@ Advanced Queuing: Message States
 These constants are extensions to the DB API definition. They are possible
 values for the :attr:`~MessageProperties.state` attribute of the
 :ref:`message properties object <msgproperties>`. This object is the
-``msgproperties`` parameter for the :meth:`Connection.deq()` and
-:meth:`Queue.enqone()` or :meth:`Queue.enqmany()` methods.
+``msgproperties`` parameter for the :meth:`Queue.deqone()` or
+:meth:`Queue.deqmany()`, and :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
+methods.
 
 
 .. data:: MSG_EXPIRED

@@ -104,32 +104,27 @@ insert JSON strings like:
 
     cursor.execute(inssql, [1, json.dumps(data)])
 
-You can fetch VARCHAR2 and LOB columns that contain JSON data without needing
-to call ``json.loads()`` on the value (similar to
-:ref:`fetching JSON type columns <json21fetch>` when using Oracle Database
-21c). This can be done by setting the attribute
-:attr:`oracledb.__future__.old_json_col_as_obj` to the value *True* as shown
-below.  If you are using python-oracledb Thick mode, you must also use Oracle
-Client 19c (or later).
+You can fetch VARCHAR2 and LOB columns that contain JSON data in the same way
+that :ref:`JSON type columns <json21fetch>` are fetched when using Oracle
+Database 21c or later. If you are using python-oracledb Thick mode, you must
+use Oracle Client 19c (or later). For example:
 
 .. code-block:: python
-
-    oracledb.__future__.old_json_col_as_obj = True
 
     for row in cursor.execute("select * from CustomersAsBlob"):
         print(row)
 
-To fetch JSON without setting the attribute
-``oracledb.__future__.old_json_col_as_obj``, you can use ``json.loads()`` on
-the returned data. For example, to fetch JSON which uses BLOB storage:
+.. versionchanged:: 2.0
 
-.. code-block:: python
-
-    import json
-
-    sql = "SELECT c.json_data FROM CustomersAsBlob c"
-    for j, in cursor.execute(sql):
-        print(json.loads(j.read()))
+    Previously, the ``oracledb.__future__.old_json_col_as_obj`` attribute
+    needed to be set to *True* to fetch VARCHAR2 and LOB columns that
+    contained JSON data. Also, you could fetch JSON data without setting this
+    attribute with a call to ``json.loads()`` on the returned data. With this
+    change, the ``oracledb.__future__.old_json_col_as_obj`` attribute is
+    desupported. VARCHAR2 and LOB columns containing JSON data can now be
+    fetched directly without setting the
+    ``oracledb.__future__.old_json_col_as_obj`` attribute or without needing
+    to call ``json.loads()`` on the value.
 
 See `json_blob.py
 <https://github.com/oracle/python-oracledb/tree/main/samples/json_blob.py>`__

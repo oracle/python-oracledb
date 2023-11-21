@@ -334,7 +334,7 @@ Encryption (NNE) enabled. NNE is only supported in python-oracledb Thick mode.
 
     SELECT network_service_banner FROM v$session_connect_info;
 
-If NNE is enabled, then this query prints an output that includes the
+If NNE is enabled, then this query prints output that includes the
 available encryption service, the crypto-checksumming service, and the
 algorithms in use, such as::
 
