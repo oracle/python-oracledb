@@ -180,6 +180,15 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.bindnames(), ["BV1", "BV2", "BV3", "BV4"])
 
+    def test_5213_multiple_line_comment_multiple_asterisks(self):
+        "5213 - multiple line comment with multiple asterisks"
+        self.cursor.prepare(
+            "/****--select * from :a where :a = 1\n"
+            "select * from table_names where :a = 1****/\n"
+            "select :table_name, :value from dual"
+        )
+        self.assertEqual(self.cursor.bindnames(), ["TABLE_NAME", "VALUE"])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

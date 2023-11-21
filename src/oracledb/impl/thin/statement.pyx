@@ -131,7 +131,7 @@ cdef class Parser:
                 if ch != '*':
                     break
                 in_comment = True
-            elif not exiting_comment and ch == '*':
+            elif ch == '*':
                 exiting_comment = True
             elif exiting_comment:
                 if ch == '/':

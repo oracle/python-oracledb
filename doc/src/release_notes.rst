@@ -19,6 +19,8 @@ Thin Mode Changes
     lists in full connect descriptors.
 #)  Fixed bug in handling database response in certain unusual circumstances.
 #)  Fixed bug in handling exceptions raised during connection establishment.
+#)  Fixed bug in identifying bind variables in SQL statements containing
+    multiple line comments with multiple asterisks before the closing slash.
 
 Thick Mode Changes
 ++++++++++++++++++
