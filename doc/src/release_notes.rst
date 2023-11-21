@@ -42,6 +42,8 @@ Common Changes
     Client 23c is also required.
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
+#)  Errors that have entries in the troubleshooting documentation now have
+    links to that documentation included in the message text.
 #)  The attribute ``oracledb.__future__.old_json_col_as_obj`` no longer needs
     to be set in order to fetch JSON data found in VARCHAR2 and LOB columns in
     the same way that JSON columns (which requires Oracle Database 21c or

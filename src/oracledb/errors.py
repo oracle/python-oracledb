@@ -81,6 +81,15 @@ class _Error:
                         + "Help: https://docs.oracle.com/error-help/db/ora-"
                         + f"{self.code:05}/"
                     )
+                elif self.full_code in ERR_TROUBLESHOOTING_AVAILABLE:
+                    self.message = (
+                        self.message
+                        + "\n"
+                        + "Help: https://python-oracledb.readthedocs.io/en/"
+                        + "latest/user_guide/troubleshooting.html#"
+                        + self.full_code.lower()
+                    )
+
         if self.code != 0 or self.full_code.startswith("DPI-"):
             args = {}
             if self.code != 0:
@@ -321,6 +330,17 @@ ERR_EXCEPTION_TYPES = {
     5: exceptions.InternalError,
     6: exceptions.OperationalError,
 }
+
+# error messages that have a troubleshooting section available
+ERR_TROUBLESHOOTING_AVAILABLE = set(
+    [
+        "DPI-1047",  # Oracle Client library cannot be loaded
+        "DPI-1072",  # Oracle Client library version is unsupported
+        "DPY-3010",  # connections to Oracle Database version not supported
+        "DPY-3015",  # password verifier type is not supported
+        "DPY-4011",  # the database or network closed the connection
+    ]
+)
 
 # error message formats
 ERR_MESSAGE_FORMATS = {
