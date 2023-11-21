@@ -776,6 +776,49 @@ class TestCase(test_env.BaseTestCase):
             new_password_1025,
         )
 
+    def test_1138_db_name(self):
+        "1138 - test getting db_name"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("select name from V$DATABASE")
+        (db_name,) = cursor.fetchone()
+        self.assertEqual(conn.db_name.upper(), db_name.upper())
+
+    def test_1139_max_open_cursors(self):
+        "1139 - test getting max_open_cursors"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "select value from V$PARAMETER where name='open_cursors'"
+        )
+        (max_open_cursors,) = cursor.fetchone()
+        self.assertEqual(conn.max_open_cursors, int(max_open_cursors))
+
+    def test_1140_service_name(self):
+        "1140 - test getting service_name"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "select sys_context('userenv', 'service_name') from dual"
+        )
+        (service_name,) = cursor.fetchone()
+        self.assertEqual(conn.service_name, service_name)
+
+    def test_1141_transaction_in_progress(self):
+        "1141 - test transaction_in_progress"
+        conn = test_env.get_connection()
+        self.assertFalse(conn.transaction_in_progress)
+
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        self.assertFalse(conn.transaction_in_progress)
+
+        cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        self.assertTrue(conn.transaction_in_progress)
+
+        conn.commit()
+        self.assertFalse(conn.transaction_in_progress)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

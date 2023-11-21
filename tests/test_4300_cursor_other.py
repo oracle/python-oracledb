@@ -786,7 +786,7 @@ class TestCase(test_env.BaseTestCase):
                 data,
             )
         sql = "select IntCol, ClobCol from TestClobs where IntCol = :int_col"
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute(sql, int_col="1")
             self.assertEqual(self.cursor.fetchone(), row_for_1)
             self.cursor.execute(sql, int_col="56")
@@ -886,7 +886,7 @@ class TestCase(test_env.BaseTestCase):
         plsql = f"begin {sql}; end;"
         self.cursor.execute(plsql, rows[1])
         self.conn.commit()
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute(
                 """
                 select IntCol, CLOBCol, ExtraNumCol1
@@ -912,7 +912,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute(drop_sql)
         except oracledb.DatabaseError:
             pass
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute(create_sql)
             self.cursor.executemany(insert_sql, data)
             self.cursor.execute(query_sql)

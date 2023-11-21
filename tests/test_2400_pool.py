@@ -126,12 +126,14 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (19, 11):
             creation_args["soda_metadata_cache"] = soda_metadata_cache
 
+        pool = test_env.get_pool(**creation_args)
+        conn = pool.acquire()
+
         reconfigure_args = {}
         reconfigure_args[parameter_name] = parameter_value
-
-        pool = test_env.get_pool(**creation_args)
-        pool.acquire()
         pool.reconfigure(**reconfigure_args)
+        conn.close()
+
         actual_args = {}
         for name in creation_args:
             actual_args[name] = getattr(pool, name)
@@ -158,45 +160,36 @@ class TestCase(test_env.BaseTestCase):
             expected_proxy_user and expected_proxy_user.upper(),
         )
 
-    def test_2400_pool(self):
-        "2400 - test that the pool is created and has the right attributes"
-        pool = test_env.get_pool(
-            min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_WAIT
-        )
-        self.assertEqual(
-            pool.username, test_env.get_main_user(), "user name differs"
-        )
-        self.assertEqual(
-            pool.dsn, test_env.get_connect_string(), "dsn differs"
-        )
-        self.assertEqual(pool.max, 8, "max differs")
-        self.assertEqual(pool.min, 2, "min differs")
-        self.assertEqual(pool.increment, 3, "increment differs")
-        self.assertEqual(pool.busy, 0, "busy not 0 at start")
-        conn1 = pool.acquire()
-        self.assertEqual(pool.busy, 1, "busy not 1 after acquire")
-        conn2 = oracledb.connect(pool=pool)
-        self.assertEqual(pool.busy, 2, "busy not 2 after acquire")
-        self.assertEqual(pool.opened, 2, "opened differs")
-        conn3 = pool.acquire()
-        self.assertEqual(pool.busy, 3, "busy not 3 after acquire")
-        pool.release(conn3)
-        self.assertEqual(pool.busy, 2, "busy not 2 after release")
-        pool.release(conn1)
-        conn2.close()
-        self.assertEqual(pool.busy, 0, "busy not 0 after release")
-        pool.getmode = oracledb.POOL_GETMODE_NOWAIT
-        self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_NOWAIT)
+    def test_2400_pool_attributes(self):
+        "2400 - test getting default pool parameters"
+        pool = test_env.get_pool()
+        self.assertEqual(pool.busy, 0)
+        self.assertEqual(pool.dsn, test_env.get_connect_string())
         if test_env.get_client_version() >= (12, 2):
-            pool.getmode = oracledb.POOL_GETMODE_TIMEDWAIT
-            self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_TIMEDWAIT)
-        pool.stmtcachesize = 50
-        self.assertEqual(pool.stmtcachesize, 50)
-        pool.timeout = 10
-        self.assertEqual(pool.timeout, 10)
+            self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT)
+        self.assertTrue(pool.homogeneous)
+        self.assertEqual(pool.increment, 1)
+        self.assertEqual(pool.max, 2)
         if test_env.get_client_version() >= (12, 1):
-            pool.max_lifetime_session = 10
-            self.assertEqual(pool.max_lifetime_session, 10)
+            self.assertEqual(pool.max_lifetime_session, 0)
+        if not test_env.get_is_thin() and test_env.get_client_version() >= (
+            18,
+            3,
+        ):
+            self.assertEqual(pool.max_sessions_per_shard, 0)
+        self.assertEqual(pool.min, 1)
+        if not test_env.get_is_thin():
+            self.assertRegex(pool.name, "^OCI:SP:.+")
+        self.assertEqual(pool.ping_interval, 60)
+        self.assertEqual(pool.stmtcachesize, oracledb.defaults.stmtcachesize)
+        if not test_env.get_is_thin() and test_env.get_client_version() >= (
+            19,
+            11,
+        ):
+            self.assertFalse(pool.soda_metadata_cache)
+        self.assertEqual(pool.thin, test_env.get_is_thin())
+        self.assertEqual(pool.timeout, 0)
+        self.assertEqual(pool.username, test_env.get_main_user())
 
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
@@ -230,6 +223,43 @@ class TestCase(test_env.BaseTestCase):
         (user,) = cursor.fetchone()
         self.assertEqual(user, test_env.get_proxy_user().upper())
         conn.close()
+
+    def test_2402_pool_set_attr(self):
+        "2402 - test setting pool attributes"
+        pool = test_env.get_pool()
+        test_values = [
+            ((11, 2), "ping_interval", 30),
+            ((11, 2), "stmtcachesize", 100),
+            ((11, 2), "timeout", 10),
+            ((12, 2), "getmode", oracledb.POOL_GETMODE_TIMEDWAIT),
+            ((12, 1), "max_lifetime_session", 3),
+        ]
+        for version, attr_name, value in test_values:
+            if test_env.get_client_version() >= version:
+                setattr(pool, attr_name, value)
+                self.assertEqual(getattr(pool, attr_name), value)
+                self.assertRaises(
+                    TypeError, setattr, pool, attr_name, "invalid value"
+                )
+
+        if not test_env.get_is_thin() and test_env.get_client_version() >= (
+            18,
+            3,
+        ):
+            self.assertEqual(pool.max_sessions_per_shard, 0)
+            self.assertRaises(
+                TypeError, setattr, pool, "max_sessions_per_shard", "bad_val"
+            )
+
+        if not test_env.get_is_thin() and test_env.get_client_version() >= (
+            19,
+            11,
+        ):
+            pool.soda_metadata_cache = True
+            self.assertTrue(pool.soda_metadata_cache)
+            self.assertRaises(
+                TypeError, setattr, pool, "soda_metadata_cache", 22
+            )
 
     def test_2403_rollback_on_release(self):
         "2403 - connection rolls back before released back to the pool"
@@ -492,21 +522,21 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2413_close_and_drop_connection_from_pool(self):
         "2413 - test dropping/closing a connection from the pool"
-        pool = test_env.get_pool(
-            min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
-        )
-        conn = pool.acquire()
-        self.assertEqual(pool.busy, 1, "busy (1)")
-        self.assertEqual(pool.opened, 1, "opened (1)")
-        pool.drop(conn)
-        self.assertEqual(pool.busy, 0, "busy (2)")
-        self.assertEqual(pool.opened, 0, "opened (2)")
-        conn = pool.acquire()
-        self.assertEqual(pool.busy, 1, "busy (3)")
-        self.assertEqual(pool.opened, 1, "opened (3)")
-        conn.close()
-        self.assertEqual(pool.busy, 0, "busy (4)")
-        self.assertEqual(pool.opened, 1, "opened (4)")
+        pool = test_env.get_pool(min=1, max=5, increment=2)
+        conns1 = [pool.acquire() for _ in range(2)]
+        conns2 = [oracledb.connect(pool=pool) for _ in range(3)]
+        self.assertEqual(pool.busy, 5)
+        self.assertEqual(pool.opened, 5)
+
+        for conn in conns1:
+            pool.drop(conn)
+        self.assertEqual(pool.busy, 3)
+        self.assertEqual(pool.opened, 3)
+
+        for conn in conns2:
+            conn.close()
+        self.assertEqual(pool.busy, 0)
+        self.assertEqual(pool.opened, 3)
 
     def test_2414_create_new_pure_connection(self):
         "2414 - test to ensure pure connections are being created correctly"
@@ -526,8 +556,8 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_is_thin(),
         "thin mode doesn't support all the pool params yet",
     )
-    def test_2416_test_reconfigure_pool_with_missing_values(self):
-        "2416 - test the reconfigure values are changed and rest unchanged"
+    def test_2415_test_reconfigure_pool_with_missing_values(self):
+        "2415 - test the reconfigure values are changed and rest unchanged"
         self.__perform_reconfigure_test("min", 5)
         self.__perform_reconfigure_test("max", 20)
         self.__perform_reconfigure_test("increment", 5)
@@ -546,43 +576,10 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support all the pool params yet",
-    )
-    def test_2417_setting_each_pool_param(self):
-        "2417 - test to see if specified parameters are set during creation"
-        pool = test_env.get_pool(
-            min=1,
-            max=2,
-            increment=1,
-            timeout=10,
-            wait_timeout=10,
-            max_lifetime_session=20,
-            max_sessions_per_shard=1,
-            stmtcachesize=25,
-            ping_interval=25,
-            getmode=oracledb.POOL_GETMODE_WAIT,
-        )
-        self.assertEqual(pool.min, 1, "min (1)")
-        self.assertEqual(pool.max, 2, "max (2)")
-        self.assertEqual(pool.increment, 1, "increment (1)")
-        self.assertEqual(
-            pool.getmode, oracledb.POOL_GETMODE_WAIT, "getmode differs"
-        )
-        self.assertEqual(pool.timeout, 10, "timeout (10)")
-        self.assertEqual(pool.wait_timeout, 10, "wait_timeout (10)")
-        self.assertEqual(
-            pool.max_lifetime_session, 20, "max_lifetime_sessionmeout (20)"
-        )
-        self.assertEqual(
-            pool.max_sessions_per_shard, 1, "max_sessions_per_shard (1)"
-        )
-        self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
-        self.assertEqual(pool.ping_interval, 25, "ping_interval (25)")
-
-    def test_2418_deprecations(self):
-        "2418 - test to verify deprecations"
+    def test_2416_deprecations(self):
+        "2416 - test to verify deprecations"
+        pool = test_env.get_pool()
+        self.assertEqual(pool.tnsentry, test_env.get_connect_string())
         callback = "pkg_SessionCallback.TheCallback"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
@@ -626,24 +623,11 @@ class TestCase(test_env.BaseTestCase):
             sessionCallback=callback,
         )
 
-    def test_2419_statement_cache_size(self):
-        "2419 - test to verify statement cache size is retained"
-        pool = test_env.get_pool(
-            min=1,
-            max=2,
-            increment=1,
-            getmode=oracledb.POOL_GETMODE_WAIT,
-            stmtcachesize=25,
-        )
-        self.assertEqual(pool.stmtcachesize, 25, "stmtcachesize (25)")
-        pool.stmtcachesize = 35
-        self.assertEqual(pool.stmtcachesize, 35, "stmtcachesize (35)")
-
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support tagging yet"
     )
-    def test_2420_callable_session_callbacks(self):
-        "2420 - test that session callbacks are being called correctly"
+    def test_2417_callable_session_callbacks(self):
+        "2417 - test that session callbacks are being called correctly"
         pool = test_env.get_pool(
             min=2,
             max=5,
@@ -696,15 +680,15 @@ class TestCase(test_env.BaseTestCase):
             (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
-    def test_2421_pool_close_normal_no_connections(self):
-        "2421 - test closing a pool normally with no connections checked out"
+    def test_2418_pool_close_normal_no_connections(self):
+        "2418 - test closing a pool normally with no connections checked out"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
         pool.close()
 
-    def test_2422_pool_close_normal_with_connections(self):
-        "2422 - test closing a pool normally with connections checked out"
+    def test_2419_pool_close_normal_with_connections(self):
+        "2419 - test closing a pool normally with connections checked out"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
@@ -713,16 +697,16 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.InterfaceError, "^DPY-1005:", pool.close
             )
 
-    def test_2423_pool_close_force(self):
-        "2423 - test closing a pool forcibly"
+    def test_2420_pool_close_force(self):
+        "2420 - test closing a pool forcibly"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
         with pool.acquire():
             pool.close(force=True)
 
-    def test_2424_exception_on_acquire_after_pool_closed(self):
-        "2424 - using the pool after it is closed raises an exception"
+    def test_2421_exception_on_acquire_after_pool_closed(self):
+        "2421 - using the pool after it is closed raises an exception"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
@@ -731,8 +715,8 @@ class TestCase(test_env.BaseTestCase):
             oracledb.InterfaceError, "^DPY-1002:", pool.acquire
         )
 
-    def test_2425_pool_with_no_connections(self):
-        "2425 - using the pool beyond max limit raises an error"
+    def test_2422_pool_with_no_connections(self):
+        "2422 - using the pool beyond max limit raises an error"
         pool = test_env.get_pool(
             min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
@@ -742,8 +726,8 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.DatabaseError, "^DPY-4005:", pool.acquire
             )
 
-    def test_2426_session_callback_for_new_connections(self):
-        "2426 - callable session callback is executed for new connections"
+    def test_2423_session_callback_for_new_connections(self):
+        "2423 - callable session callback is executed for new connections"
 
         class Counter:
             num_calls = 0
@@ -764,8 +748,8 @@ class TestCase(test_env.BaseTestCase):
             pass
         self.assertEqual(Counter.num_calls, 2)
 
-    def test_2427_drop_dead_connection_from_pool(self):
-        "2427 - drop the pooled connection on receiving dead connection error"
+    def test_2424_drop_dead_connection_from_pool(self):
+        "2424 - drop the pooled connection on receiving dead connection error"
         admin_conn = test_env.get_admin_connection()
         pool = test_env.get_pool(min=2, max=2, increment=2)
 
@@ -810,8 +794,8 @@ class TestCase(test_env.BaseTestCase):
             conn.close()
         self.assertEqual(pool.opened, 2)
 
-    def test_2428_acquire_connection_from_empty_pool(self):
-        "2428 - acquire a connection from an empty pool (min=0)"
+    def test_2425_acquire_connection_from_empty_pool(self):
+        "2425 - acquire a connection from an empty pool (min=0)"
         pool = test_env.get_pool(min=0, max=2, increment=2)
         with pool.acquire() as conn:
             with conn.cursor() as cursor:
@@ -819,23 +803,8 @@ class TestCase(test_env.BaseTestCase):
                 (result,) = cursor.fetchone()
                 self.assertEqual(result, test_env.get_main_user().upper())
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support soda_metadata_cache" "parameter yet",
-    )
-    def test_2429_soda_metadata_cache(self):
-        "2429 - test soda_metadata_cache parameter"
-        self.get_soda_database(minclient=(19, 11))
-        pool = test_env.get_pool()
-        self.assertEqual(pool.soda_metadata_cache, False)
-        pool = test_env.get_pool(soda_metadata_cache=True)
-        self.assertEqual(pool.soda_metadata_cache, True)
-        pool.soda_metadata_cache = False
-        self.assertEqual(pool.soda_metadata_cache, False)
-        self.assertRaises(TypeError, setattr, pool, "soda_metadata_cache", 22)
-
-    def test_2430_get_different_types_from_pooled_connections(self):
-        "2430 - get different object types from different connections"
+    def test_2426_get_different_types_from_pooled_connections(self):
+        "2426 - get different object types from different connections"
         pool = test_env.get_pool(min=1, max=2, increment=1)
         with pool.acquire() as conn:
             typ = conn.gettype("UDT_SUBOBJECT")
@@ -844,16 +813,16 @@ class TestCase(test_env.BaseTestCase):
             typ = conn.gettype("UDT_OBJECTARRAY")
             self.assertEqual(typ.name, "UDT_OBJECTARRAY")
 
-    def test_2431_proxy_user_in_create(self):
-        "2431 - test creating a pool using a proxy user"
+    def test_2427_proxy_user_in_create(self):
+        "2427 - test creating a pool using a proxy user"
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         pool = test_env.get_pool(user=user_str)
         self.__verify_connection(
             pool.acquire(), test_env.get_proxy_user(), test_env.get_main_user()
         )
 
-    def test_2432_conn_acquire_in_lifo(self):
-        "2432 - test acquiring conn from pool in LIFO order"
+    def test_2428_conn_acquire_in_lifo(self):
+        "2428 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool(
             min=5, max=10, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
@@ -869,23 +838,23 @@ class TestCase(test_env.BaseTestCase):
         sid = conn.cursor().execute(sql).fetchone()[0]
         self.assertEqual(sid, sids[0], "not LIFO")
 
-    def test_2433_dynamic_pool_with_zero_increment(self):
-        "2433 - verify that dynamic pool cannot have an increment of zero"
+    def test_2429_dynamic_pool_with_zero_increment(self):
+        "2429 - verify that dynamic pool cannot have an increment of zero"
         pool = test_env.get_pool(min=1, max=3, increment=0)
         self.assertEqual(pool.increment, 1)
         with pool.acquire(), pool.acquire():
             pass
 
-    def test_2434_static_pool_with_zero_increment(self):
-        "2434 - verify that static pool can have an increment of zero"
+    def test_2430_static_pool_with_zero_increment(self):
+        "2430 - verify that static pool can have an increment of zero"
         pool = test_env.get_pool(min=1, max=1, increment=0)
         self.assertEqual(pool.increment, 0)
         with pool.acquire():
             pass
 
-    def test_2435_acquire_with_different_cclass(self):
-        "2435 - verify that connection with different cclass is reused"
-        cclass = "cclass2435"
+    def test_2431_acquire_with_different_cclass(self):
+        "2431 - verify that connection with different cclass is reused"
+        cclass = "cclass2431"
         pool = test_env.get_pool(min=1, max=1)
         # ignore the first acquire which, depending on the speed with which the
         # minimum connections are created, may create a connection that is
@@ -918,8 +887,8 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(next_sid_serial, sid_serial)
         self.assertEqual(pool.opened, 1)
 
-    def test_2436_pool_params_negative(self):
-        "2436 - test creating a pool invalid params"
+    def test_2432_pool_params_negative(self):
+        "2432 - test creating a pool invalid params"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
             "^DPY-2027:",
@@ -927,20 +896,20 @@ class TestCase(test_env.BaseTestCase):
             params="bad params",
         )
 
-    def test_2437_connection_release_and_drop_negative(self):
-        "2437 - test releasing and dropping an invalid connection"
+    def test_2433_connection_release_and_drop_negative(self):
+        "2433 - test releasing and dropping an invalid connection"
         pool = test_env.get_pool()
         self.assertRaises(TypeError, pool.release, ["invalid connection"])
         self.assertRaises(TypeError, pool.drop, ["invalid connection"])
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't set a pool name"
-    )
-    def test_2438_name(self):
-        "2438 - test getting pool name"
-        pool = test_env.get_pool()
-        expected_name = "^OCI:SP:.+"
-        self.assertRegex(pool.name, expected_name)
+    def test_2434_invalid_pool_class(self):
+        "2434 - test creating a pool with invalid pool_class"
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2026:",
+            oracledb.create_pool,
+            pool_class=int,
+        )
 
 
 if __name__ == "__main__":

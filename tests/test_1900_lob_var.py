@@ -101,7 +101,7 @@ class TestCase(test_env.BaseTestCase):
             """,
             data,
         )
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute(f"select * from Test{lob_type}s")
             self.assertEqual(self.cursor.fetchone(), data)
 
@@ -124,7 +124,7 @@ class TestCase(test_env.BaseTestCase):
             """,
             data,
         )
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute(
                 f"""
                 select IntCol, {lob_type}Col

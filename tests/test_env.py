@@ -330,17 +330,18 @@ def skip_soda_tests():
     return False
 
 
-class FetchLobsContextManager:
-    def __init__(self, desired_value):
+class DefaultsContextManager:
+    def __init__(self, attribute, desired_value):
+        self.attribute = attribute
         self.desired_value = desired_value
 
     def __enter__(self):
-        self.original_value = oracledb.defaults.fetch_lobs
-        oracledb.defaults.fetch_lobs = self.desired_value
+        self.original_value = getattr(oracledb.defaults, self.attribute)
+        setattr(oracledb.defaults, self.attribute, self.desired_value)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        oracledb.defaults.fetch_lobs = self.original_value
+        setattr(oracledb.defaults, self.attribute, self.original_value)
 
 
 class SystemStatInfo:

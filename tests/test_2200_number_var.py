@@ -577,7 +577,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2237_fetch_number_with_lobs_default_false(self):
         "2237 - fetch a number with oracledb.defaults.fetch_lobs = False"
-        with test_env.FetchLobsContextManager(False):
+        with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute("select 1 from dual")
             (result,) = self.cursor.fetchone()
             self.assertIsInstance(result, int)
@@ -590,6 +590,61 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(len(result), 3)
         self.assertEqual(result[0], "1")
         self.assertEqual(result[2], "5")
+
+    def test_2239_defaults_arraysize(self):
+        "2239 - test setting defaults.arraysize"
+        with test_env.DefaultsContextManager("arraysize", 50):
+            conn = test_env.get_connection()
+            cursor = conn.cursor()
+            self.assertEqual(cursor.arraysize, oracledb.defaults.arraysize)
+
+    def test_2240_defaults_fetch_decimals(self):
+        "2240 - test getting decimals with defaults.fetch_decimals=True"
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            self.cursor.execute("select 9 from dual")
+            (result,) = self.cursor.fetchone()
+            self.assertIsInstance(result, decimal.Decimal)
+
+    def test_2241_defaults_fetch_lobs(self):
+        "2241 - test getting string lob with defaults.fetch_lobs=False"
+        with test_env.DefaultsContextManager("fetch_lobs", False):
+            lob = self.conn.createlob(oracledb.DB_TYPE_CLOB)
+            lob.write("Hello world")
+            self.cursor.execute(
+                "select :1 from dual",
+                [lob],
+            )
+            (result,) = self.cursor.fetchone()
+            self.assertIsInstance(result, str)
+
+    def test_2242_defaults_prefetchrows(self):
+        "2242 - test setting defaults.prefetchrows"
+        with test_env.DefaultsContextManager("prefetchrows", 20):
+            conn = test_env.get_connection()
+            cursor = conn.cursor()
+            self.assertEqual(
+                cursor.prefetchrows, oracledb.defaults.prefetchrows
+            )
+
+    def test_2243_defaults_stmtcachesize(self):
+        "2243 - test setting defaults.stmtcachesize"
+        with test_env.DefaultsContextManager("stmtcachesize", 40):
+            pool = test_env.get_pool()
+            conn = pool.acquire()
+            self.assertEqual(
+                conn.stmtcachesize, oracledb.defaults.stmtcachesize
+            )
+
+    def test_2244_defaults_fetch_lobs_bind_out(self):
+        """2244 - test that fetch_lobs does not affect LOBS returned as OUT
+        binds"""
+        with test_env.DefaultsContextManager("fetch_lobs", False):
+            var = self.cursor.var(oracledb.DB_TYPE_CLOB)
+            self.cursor.execute(
+                "begin :value := to_clob('test clob'); end;",
+                value=var,
+            )
+            self.assertIsInstance(var.getvalue(), oracledb.LOB)
 
 
 if __name__ == "__main__":

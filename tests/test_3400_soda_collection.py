@@ -595,21 +595,28 @@ class TestCase(test_env.BaseTestCase):
     def test_3425_map_mode(self):
         "3425 - test mapMode parameter"
         soda_db = self.get_soda_database()
-        data = [{"a": 3}, {"b": 4}]
+        data = [{"price": 4900}, {"price": 8}]
         expected_data = data * 2
-        for mapMode in [False, True]:
-            coll = soda_db.createCollection("TestSodaMapMode", mapMode=mapMode)
-            coll.insertMany(data)
-        fetched_data = list(
-            doc.getContent() for doc in coll.find().getDocuments()
-        )
-        self.__normalize_docs(fetched_data)
-        self.assertEqual(fetched_data, expected_data)
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40626", coll.drop)
-        self.conn.commit()
-        coll.drop()
 
-    def test_3426_negative_map_mode(self):
+        original_coll = soda_db.createCollection("TestCollMapMode")
+        original_coll.insertMany(data)
+        mapped_coll = soda_db.createCollection("TestCollMapMode", mapMode=True)
+        mapped_coll.insertMany(data)
+
+        for coll in [original_coll, mapped_coll]:
+            fetched_data = list(
+                doc.getContent() for doc in coll.find().getDocuments()
+            )
+            self.__normalize_docs(fetched_data)
+            self.assertEqual(fetched_data, expected_data)
+            self.assertRaisesRegex(
+                oracledb.DatabaseError, "^ORA-40626", coll.drop
+            )
+        self.conn.commit()
+        self.assertTrue(original_coll.drop())
+        self.assertFalse(mapped_coll.drop())
+
+    def test_3426_map_mode_negative(self):
         "3426 - test mapping a new collection from an non-existent table"
         soda_db = self.get_soda_database()
         self.assertRaisesRegex(
@@ -722,6 +729,23 @@ class TestCase(test_env.BaseTestCase):
         ]
         coll.insertMany(values_to_insert)
         coll.find().lock().getDocuments()
+
+    def test_3431_drop(self):
+        "3431 - test that drop returns the correct boolean"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestDropCollection")
+        self.assertTrue(coll.drop())
+
+        # the collection has already been dropped
+        self.assertFalse(coll.drop())
+
+    def test_3432_drop_empty_mapped_collection(self):
+        "3432 - test drop with an empty mapped collection"
+        soda_db = self.get_soda_database()
+        original_coll = soda_db.createCollection("TestDropMapMode")
+        mapped_coll = soda_db.createCollection("TestDropMapMode", mapMode=True)
+        self.assertTrue(mapped_coll.drop())
+        self.assertFalse(original_coll.drop())
 
 
 if __name__ == "__main__":
