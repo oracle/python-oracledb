@@ -240,6 +240,7 @@ cdef class BaseConnImpl:
         public object outputtypehandler
         public bint autocommit
         public bint invoke_session_callback
+        bint _allow_bind_str_to_lob
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok)

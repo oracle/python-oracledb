@@ -28,7 +28,8 @@
 # Cython file defining utility classes and methods (embedded in thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-cdef bint DEBUG_PACKETS = ("PYO_DEBUG_PACKETS" in os.environ)
+class OutOfPackets(Exception):
+    pass
 
 class ConnectConstants:
 
@@ -107,45 +108,12 @@ cdef str _get_connect_data(Description description, str connection_id):
     return description.build_connect_string(cid)
 
 
-def _print_packet(operation, socket_fileno, data):
-    """
-    Print the packet content in a format suitable for debugging.
-    """
-    offset = 0
-    hex_data = memoryview(data).hex().upper()
-    current_date = datetime.datetime.now().isoformat(sep=" ",
-                                                     timespec="milliseconds")
-    output_lines = [f"{current_date} [socket: {socket_fileno}] {operation}"]
-    while hex_data:
-        line_hex_data = hex_data[:16]
-        hex_data = hex_data[16:]
-        hex_dump_values = []
-        printable_values = []
-        for i in range(0, len(line_hex_data), 2):
-            hex_byte = line_hex_data[i:i + 2]
-            hex_dump_values.append(hex_byte)
-            byte_val = ord(bytes.fromhex(hex_byte))
-            char_byte = chr(byte_val)
-            if char_byte.isprintable() and byte_val < 128 \
-                    and char_byte != " ":
-                printable_values.append(char_byte)
-            else:
-                printable_values.append(".")
-        while len(hex_dump_values) < 8:
-            hex_dump_values.append("  ")
-            printable_values.append(" ")
-        output_lines.append(f'{offset:04} : {" ".join(hex_dump_values)} ' + \
-                            f'|{"".join(printable_values)}|')
-        offset += 8
-    output_lines.append("")
-    print("\n".join(output_lines))
-
-
 def init_thin_impl(package):
     """
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_DB_OBJECT, PY_TYPE_LOB
+    global PY_TYPE_DB_OBJECT, PY_TYPE_LOB, PY_TYPE_ASYNC_LOB
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_LOB = package.LOB
+    PY_TYPE_ASYNC_LOB = package.AsyncLOB

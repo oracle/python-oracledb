@@ -44,14 +44,12 @@ cdef class _OracleErrorInfo:
 
 cdef class Message:
     cdef:
-        ThinConnImpl conn_impl
+        BaseThinConnImpl conn_impl
         _OracleErrorInfo error_info
         uint8_t message_type
         uint8_t function_code
         uint32_t call_status
         uint16_t end_to_end_seq_num
-        uint8_t packet_type
-        uint8_t packet_flags
         bint error_occurred
         bint flush_out_binds
         bint processed_error
@@ -61,7 +59,7 @@ cdef class Message:
     cdef bint _has_more_data(self, ReadBuffer buf):
         return buf.bytes_left() > 0 and not self.flush_out_binds
 
-    cdef int _initialize(self, ThinConnImpl conn_impl) except -1:
+    cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
         """
         Initializes the message to contain the connection and a place to store
         error information. For DRCP, the status of the connection may change
@@ -83,9 +81,6 @@ cdef class Message:
         pass
 
     cdef int _preprocess(self) except -1:
-        pass
-
-    cdef int _postprocess(self) except -1:
         pass
 
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
@@ -291,16 +286,21 @@ cdef class Message:
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_1:
             buf.write_ub8(0)                # token number
 
+    cdef int postprocess(self) except -1:
+        pass
+
+    async def postprocess_async(self):
+        pass
+
     cdef int process(self, ReadBuffer buf) except -1:
         cdef uint8_t message_type
         self.flush_out_binds = False
         self.processed_error = False
         self._preprocess()
-        buf.skip_raw_bytes(2)               # skip data flags
         while self._has_more_data(buf):
+            buf.save_point()
             buf.read_ub1(&message_type)
             self._process_message(buf, message_type)
-        self._postprocess()
 
     cdef int send(self, WriteBuffer buf) except -1:
         buf.start_request(TNS_PACKET_TYPE_DATA)
@@ -310,8 +310,8 @@ cdef class Message:
 
 cdef class MessageWithData(Message):
     cdef:
-        ThinDbObjectTypeCache type_cache
-        ThinCursorImpl cursor_impl
+        BaseThinDbObjectTypeCache type_cache
+        BaseThinCursorImpl cursor_impl
         array.array bit_vector_buf
         const char_type *bit_vector
         bint arraydmlrowcounts
@@ -358,7 +358,7 @@ cdef class MessageWithData(Message):
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):
-        cdef ThinCursorImpl cursor_impl
+        cdef BaseThinCursorImpl cursor_impl
         if cursor is None:
             cursor = self.cursor.connection.cursor()
         cursor_impl = cursor._impl
@@ -438,7 +438,7 @@ cdef class MessageWithData(Message):
         Actions that takes place before query data is processed.
         """
         cdef:
-            ThinCursorImpl cursor_impl = self.cursor_impl
+            BaseThinCursorImpl cursor_impl = self.cursor_impl
             Statement statement = cursor_impl._statement
             object type_handler, conn
             ThinVarImpl var_impl
@@ -480,40 +480,6 @@ cdef class MessageWithData(Message):
             var_impl.num_elements = cursor_impl._fetch_array_size
             var_impl._values.extend([None] * num_vals)
 
-    cdef int _postprocess(self) except -1:
-        """
-        Run any variable out converter functions on all non-null values that
-        were returned in the current database response. This must be done
-        independently since the out converter function may itself invoke a
-        database round-trip.
-        """
-        cdef:
-            uint32_t i, j, num_elements
-            object value, element_value
-            ThinVarImpl var_impl
-        if self.out_var_impls is None:
-            return 0
-        for var_impl in self.out_var_impls:
-            if var_impl is None or var_impl.outconverter is None:
-                continue
-            var_impl._last_raw_value = \
-                    var_impl._values[self.cursor_impl._last_row_index]
-            if var_impl.is_array:
-                num_elements = var_impl.num_elements_in_array
-            else:
-                num_elements = self.row_index
-            for i in range(num_elements):
-                value = var_impl._values[i]
-                if value is None and not var_impl.convert_nulls:
-                    continue
-                if isinstance(value, list):
-                    for j, element_value in enumerate(value):
-                        if element_value is None:
-                            continue
-                        value[j] = var_impl.outconverter(element_value)
-                else:
-                    var_impl._values[i] = var_impl.outconverter(value)
-
     cdef int _process_bit_vector(self, ReadBuffer buf) except -1:
         cdef ssize_t num_bytes
         buf.read_ub2(&self.num_columns_sent)
@@ -527,7 +493,7 @@ cdef class MessageWithData(Message):
         cdef:
             uint8_t num_bytes, ora_type_num, csfrm
             ThinDbObjectTypeImpl typ_impl
-            ThinCursorImpl cursor_impl
+            BaseThinCursorImpl cursor_impl
             object column_value = None
             ThinDbObjectImpl obj_impl
             FetchInfoImpl fetch_info
@@ -641,7 +607,7 @@ cdef class MessageWithData(Message):
         return column_value
 
     cdef FetchInfoImpl _process_column_info(self, ReadBuffer buf,
-                                            ThinCursorImpl cursor_impl):
+                                            BaseThinCursorImpl cursor_impl):
         cdef:
             uint32_t num_bytes, uds_flags, num_annotations, i
             ThinDbObjectTypeImpl typ_impl
@@ -725,7 +691,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_describe_info(self, ReadBuffer buf,
                                     object cursor,
-                                    ThinCursorImpl cursor_impl) except -1:
+                                    BaseThinCursorImpl cursor_impl) except -1:
         cdef:
             Statement stmt = cursor_impl._statement
             list prev_fetch_var_impls
@@ -773,8 +739,8 @@ cdef class MessageWithData(Message):
 
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
         cdef:
-            ThinCursorImpl cursor_impl = self.cursor_impl
-            ThinConnImpl conn_impl = self.conn_impl
+            BaseThinCursorImpl cursor_impl = self.cursor_impl
+            BaseThinConnImpl conn_impl = self.conn_impl
             object exc_type
         Message._process_error_info(self, buf)
         if self.error_info.cursor_id != 0:
@@ -809,7 +775,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_implicit_result(self, ReadBuffer buf) except -1:
         cdef:
-            ThinCursorImpl child_cursor_impl
+            BaseThinCursorImpl child_cursor_impl
             uint32_t i, num_results
             object child_cursor
             uint8_t num_bytes
@@ -1022,8 +988,8 @@ cdef class MessageWithData(Message):
         cdef:
             uint8_t ora_type_num = var_impl.dbtype._ora_type_num
             ThinDbObjectTypeImpl typ_impl
-            ThinCursorImpl cursor_impl
-            ThinLobImpl lob_impl
+            BaseThinCursorImpl cursor_impl
+            BaseThinLobImpl lob_impl
             uint32_t num_bytes
             bytes temp_bytes
         if value is None:
@@ -1195,20 +1161,20 @@ cdef class MessageWithData(Message):
     cdef int _write_end_to_end_piggyback(self, WriteBuffer buf) except -1:
         cdef:
             bytes action_bytes, client_identifier_bytes, client_info_bytes
-            ThinConnImpl conn = self.conn_impl
+            BaseThinConnImpl conn_impl = self.conn_impl
             bytes module_bytes, dbop_bytes
             uint32_t flags = 0
 
         # determine which flags to send
-        if conn._action_modified:
+        if conn_impl._action_modified:
             flags |= TNS_END_TO_END_ACTION
-        if conn._client_identifier_modified:
+        if conn_impl._client_identifier_modified:
             flags |= TNS_END_TO_END_CLIENT_IDENTIFIER
-        if conn._client_info_modified:
+        if conn_impl._client_info_modified:
             flags |= TNS_END_TO_END_CLIENT_INFO
-        if conn._module_modified:
+        if conn_impl._module_modified:
             flags |= TNS_END_TO_END_MODULE
-        if conn._dbop_modified:
+        if conn_impl._dbop_modified:
             flags |= TNS_END_TO_END_DBOP
 
         # write initial packet data
@@ -1218,36 +1184,36 @@ cdef class MessageWithData(Message):
         buf.write_ub4(flags)
 
         # write client identifier header info
-        if conn._client_identifier_modified:
+        if conn_impl._client_identifier_modified:
             buf.write_uint8(1)              # pointer (client identifier)
-            if conn._client_identifier is None:
+            if conn_impl._client_identifier is None:
                 buf.write_ub4(0)
             else:
-                client_identifier_bytes = conn._client_identifier.encode()
+                client_identifier_bytes = conn_impl._client_identifier.encode()
                 buf.write_ub4(len(client_identifier_bytes))
         else:
             buf.write_uint8(0)              # pointer (client identifier)
             buf.write_ub4(0)                # length of client identifier
 
         # write module header info
-        if conn._module_modified:
+        if conn_impl._module_modified:
             buf.write_uint8(1)              # pointer (module)
-            if conn._module is None:
+            if conn_impl._module is None:
                 buf.write_ub4(0)
             else:
-                module_bytes = conn._module.encode()
+                module_bytes = conn_impl._module.encode()
                 buf.write_ub4(len(module_bytes))
         else:
             buf.write_uint8(0)              # pointer (module)
             buf.write_ub4(0)                # length of module
 
         # write action header info
-        if conn._action_modified:
+        if conn_impl._action_modified:
             buf.write_uint8(1)              # pointer (action)
-            if conn._action is None:
+            if conn_impl._action is None:
                 buf.write_ub4(0)
             else:
-                action_bytes = conn._action.encode()
+                action_bytes = conn_impl._action.encode()
                 buf.write_ub4(len(action_bytes))
         else:
             buf.write_uint8(0)              # pointer (action)
@@ -1260,12 +1226,12 @@ cdef class MessageWithData(Message):
         buf.write_ub4(0)                    # cidecs
 
         # write client info header info
-        if conn._client_info_modified:
+        if conn_impl._client_info_modified:
             buf.write_uint8(1)              # pointer (client info)
-            if conn._client_info is None:
+            if conn_impl._client_info is None:
                 buf.write_ub4(0)
             else:
-                client_info_bytes = conn._client_info.encode()
+                client_info_bytes = conn_impl._client_info.encode()
                 buf.write_ub4(len(client_info_bytes))
         else:
             buf.write_uint8(0)              # pointer (client info)
@@ -1278,41 +1244,42 @@ cdef class MessageWithData(Message):
         buf.write_ub4(0)                    # length (cidktgt)
 
         # write dbop header info
-        if conn._dbop_modified:
+        if conn_impl._dbop_modified:
             buf.write_uint8(1)              # pointer (dbop)
-            if conn._dbop is None:
+            if conn_impl._dbop is None:
                 buf.write_ub4(0)
             else:
-                dbop_bytes = conn._dbop.encode()
+                dbop_bytes = conn_impl._dbop.encode()
                 buf.write_ub4(len(dbop_bytes))
         else:
             buf.write_uint8(0)              # pointer (dbop)
             buf.write_ub4(0)                # length of dbop
 
         # write strings
-        if conn._client_identifier_modified \
-                and conn._client_identifier is not None:
+        if conn_impl._client_identifier_modified \
+                and conn_impl._client_identifier is not None:
             buf.write_bytes_with_length(client_identifier_bytes)
-        if conn._module_modified and conn._module is not None:
+        if conn_impl._module_modified and conn_impl._module is not None:
             buf.write_bytes_with_length(module_bytes)
-        if conn._action_modified and conn._action is not None:
+        if conn_impl._action_modified and conn_impl._action is not None:
             buf.write_bytes_with_length(action_bytes)
-        if conn._client_info_modified and conn._client_info is not None:
+        if conn_impl._client_info_modified \
+                and conn_impl._client_info is not None:
             buf.write_bytes_with_length(client_info_bytes)
-        if conn._dbop_modified and conn._dbop is not None:
+        if conn_impl._dbop_modified and conn_impl._dbop is not None:
             buf.write_bytes_with_length(dbop_bytes)
 
         # reset flags and values
-        conn._action_modified = False
-        conn._action = None
-        conn._client_identifier_modified = False
-        conn._client_identifier = None
-        conn._client_info_modified = False
-        conn._client_info = None
-        conn._dbop_modified = False
-        conn._dbop = None
-        conn._module_modified = False
-        conn._module = None
+        conn_impl._action_modified = False
+        conn_impl._action = None
+        conn_impl._client_identifier_modified = False
+        conn_impl._client_identifier = None
+        conn_impl._client_info_modified = False
+        conn_impl._client_info = None
+        conn_impl._dbop_modified = False
+        conn_impl._dbop = None
+        conn_impl._module_modified = False
+        conn_impl._module = None
 
     cdef int _write_piggybacks(self, WriteBuffer buf) except -1:
         if self.conn_impl._current_schema_modified:
@@ -1328,6 +1295,81 @@ cdef class MessageWithData(Message):
             self._write_end_to_end_piggyback(buf)
         if self.conn_impl._temp_lobs_total_size > 0:
             self._write_close_temp_lobs_piggyback(buf)
+
+    cdef int postprocess(self) except -1:
+        """
+        Run any variable out converter functions on all non-null values that
+        were returned in the current database response. This must be done
+        independently since the out converter function may itself invoke a
+        database round-trip.
+        """
+        cdef:
+            uint32_t i, j, num_elements
+            object value, element_value
+            ThinVarImpl var_impl
+        if self.out_var_impls is None:
+            return 0
+        for var_impl in self.out_var_impls:
+            if var_impl is None or var_impl.outconverter is None:
+                continue
+            var_impl._last_raw_value = \
+                    var_impl._values[self.cursor_impl._last_row_index]
+            if var_impl.is_array:
+                num_elements = var_impl.num_elements_in_array
+            else:
+                num_elements = self.row_index
+            for i in range(num_elements):
+                value = var_impl._values[i]
+                if value is None and not var_impl.convert_nulls:
+                    continue
+                if isinstance(value, list):
+                    for j, element_value in enumerate(value):
+                        if element_value is None:
+                            continue
+                        value[j] = var_impl.outconverter(element_value)
+                else:
+                    var_impl._values[i] = var_impl.outconverter(value)
+
+    async def postprocess_async(self):
+        """
+        Run any variable out converter functions on all non-null values that
+        were returned in the current database response. This must be done
+        independently since the out converter function may itself invoke a
+        database round-trip.
+        """
+        cdef:
+            object value, element_value, fn
+            uint32_t i, j, num_elements
+            ThinVarImpl var_impl
+        if self.out_var_impls is None:
+            return 0
+        for var_impl in self.out_var_impls:
+            if var_impl is None or var_impl.outconverter is None:
+                continue
+            var_impl._last_raw_value = \
+                    var_impl._values[self.cursor_impl._last_row_index]
+            if var_impl.is_array:
+                num_elements = var_impl.num_elements_in_array
+            else:
+                num_elements = self.row_index
+            fn = var_impl.outconverter
+            for i in range(num_elements):
+                value = var_impl._values[i]
+                if value is None and not var_impl.convert_nulls:
+                    continue
+                if isinstance(value, list):
+                    for j, element_value in enumerate(value):
+                        if element_value is None:
+                            continue
+                        element_value = fn(element_value)
+                        if inspect.isawaitable(element_value):
+                            element_value = await element_value
+                        value[j] = element_value
+                else:
+                    value = fn(value)
+                    if inspect.isawaitable(value):
+                        value = await value
+                    var_impl._values[i] = value
 
 
 cdef class AuthMessage(Message):
@@ -1752,6 +1794,7 @@ cdef class ConnectMessage(Message):
         uint16_t connect_string_len
         ConnectionCookie cookie
         Description description
+        uint8_t packet_flags
         str redirect_data
         str host
         int port
@@ -1761,14 +1804,13 @@ cdef class ConnectMessage(Message):
             uint16_t redirect_data_length, protocol_version, protocol_options
             const char_type *redirect_data
             bytes db_uuid
-        if self.packet_type == TNS_PACKET_TYPE_REDIRECT:
+        if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             buf.read_uint16(&redirect_data_length)
-            buf.receive_packet(&self.packet_type, &self.packet_flags)
-            buf.skip_raw_bytes(2)           # skip data flags
+            buf.wait_for_packets_sync()
             redirect_data = buf._get_raw(redirect_data_length)
             self.redirect_data = \
                     redirect_data[:redirect_data_length].decode()
-        elif self.packet_type == TNS_PACKET_TYPE_ACCEPT:
+        elif buf._current_packet.packet_type == TNS_PACKET_TYPE_ACCEPT:
             buf.read_uint16(&protocol_version)
             buf.read_uint16(&protocol_options)
             if protocol_version >= TNS_VERSION_MIN_UUID:
@@ -1777,7 +1819,8 @@ cdef class ConnectMessage(Message):
                 self.cookie = get_connection_cookie_by_uuid(db_uuid,
                                                             self.description)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options)
-        elif self.packet_type == TNS_PACKET_TYPE_REFUSE:
+            buf._transport._full_packet_size = True
+        elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message
             error_code = "unknown"
             error_code_int = 0
@@ -1882,25 +1925,6 @@ cdef class DataTypesMessage(Message):
 @cython.final
 cdef class ExecuteMessage(MessageWithData):
 
-    cdef int _postprocess(self) except -1:
-        """
-        Runs after the database response has been processed. If the statement
-        executed requires define and is not a REF cursor (which would already
-        have performed the define during its execute), then mark the message as
-        needing to be resent. If this is after the second time the message has
-        been sent, mark the statement as no longer needing a define (since this
-        only needs to happen once).
-        """
-        MessageWithData._postprocess(self)
-        cdef Statement stmt = self.cursor_impl._statement
-        if not self.parse_only:
-            stmt._executed = True
-        if stmt._requires_define and stmt._sql is not None:
-            if self.resend:
-                stmt._requires_define = False
-            else:
-                self.resend = True
-
     cdef int _write_execute_message(self, WriteBuffer buf) except -1:
         """
         Write the message for a full execute.
@@ -1908,7 +1932,7 @@ cdef class ExecuteMessage(MessageWithData):
         cdef:
             uint32_t options, dml_options = 0, num_params = 0, num_iters = 1
             Statement stmt = self.cursor_impl._statement
-            ThinCursorImpl cursor_impl = self.cursor_impl
+            BaseThinCursorImpl cursor_impl = self.cursor_impl
             list params = stmt._bind_info_list
 
         # determine the options to use for the execute
@@ -2113,6 +2137,25 @@ cdef class ExecuteMessage(MessageWithData):
             self._write_reexecute_message(buf)
         stmt._binds_changed = False
 
+    cdef int process(self, ReadBuffer buf) except -1:
+        """
+        Runs after the database response has been processed. If the statement
+        executed requires define and is not a REF cursor (which would already
+        have performed the define during its execute), then mark the message as
+        needing to be resent. If this is after the second time the message has
+        been sent, mark the statement as no longer needing a define (since this
+        only needs to happen once).
+        """
+        cdef Statement stmt = self.cursor_impl._statement
+        MessageWithData.process(self, buf)
+        if not self.parse_only:
+            stmt._executed = True
+        if stmt._requires_define and stmt._sql is not None:
+            if self.resend:
+                stmt._requires_define = False
+            else:
+                self.resend = True
+
 
 @cython.final
 cdef class FetchMessage(MessageWithData):
@@ -2134,8 +2177,8 @@ cdef class FetchMessage(MessageWithData):
 cdef class LobOpMessage(Message):
     cdef:
         uint32_t operation
-        ThinLobImpl source_lob_impl
-        ThinLobImpl dest_lob_impl
+        BaseThinLobImpl source_lob_impl
+        BaseThinLobImpl dest_lob_impl
         uint64_t source_offset
         uint64_t dest_offset
         int64_t amount
