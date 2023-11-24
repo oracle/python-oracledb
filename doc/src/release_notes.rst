@@ -21,6 +21,8 @@ Thin Mode Changes
 #)  Fixed bug in handling exceptions raised during connection establishment.
 #)  Fixed bug in identifying bind variables in SQL statements containing
     multiple line comments with multiple asterisks before the closing slash.
+#)  A more meaningful error is raised when the wrong type of data is passed to
+    lob.write().
 
 Thick Mode Changes
 ++++++++++++++++++
