@@ -207,13 +207,17 @@ class TestCase(test_env.BaseTestCase):
             {"name": "Matthew", "address": {"city": "Mumbai"}},
         ]
         docs = [coll.insertOneAndGet(v) for v in data]
-        coll.find().key(docs[3].key).remove()
+        self.assertEqual(coll.find().key(docs[3].key).remove(), 1)
         self.assertEqual(coll.find().count(), len(data) - 1)
         search_results = coll.find().filter({"name": {"$like": "Jibin"}})
         self.assertEqual(search_results.count(), 0)
-        coll.find().filter({"name": {"$like": "John%"}}).remove()
+        self.assertEqual(
+            coll.find().filter({"name": {"$like": "John%"}}).remove(), 2
+        )
         self.assertEqual(coll.find().count(), len(data) - 3)
-        coll.find().filter({"name": {"$regex": "J.*"}}).remove()
+        self.assertEqual(
+            coll.find().filter({"name": {"$regex": "J.*"}}).remove(), 1
+        )
         self.assertEqual(coll.find().count(), len(data) - 4)
         self.conn.commit()
         coll.drop()

@@ -819,6 +819,14 @@ class TestCase(test_env.BaseTestCase):
         conn.commit()
         self.assertFalse(conn.transaction_in_progress)
 
+    def test_1142_db_domain(self):
+        "1142 - test getting db_domain"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("select value from V$PARAMETER where name='db_domain'")
+        (db_domain,) = cursor.fetchone()
+        self.assertEqual(conn.db_domain, db_domain)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -311,7 +311,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         return self._current_schema
 
     def get_db_domain(self):
-        return self._db_domain
+        if self._db_domain:
+            return self._db_domain
 
     def get_db_name(self):
         return self._db_name

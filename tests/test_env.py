@@ -151,19 +151,14 @@ def get_client_version():
 
 
 def get_connect_params():
-    name = "CONNECT_PARAMS"
-    params = PARAMETERS.get(name)
-    if params is None:
-        wallet_location = get_wallet_location()
-        params = oracledb.ConnectParams(
-            user=get_main_user(),
-            password=get_main_password(),
-            config_dir=wallet_location,
-            wallet_location=wallet_location,
-            wallet_password=get_wallet_password(),
-        )
-        PARAMETERS[name] = params
-    return params
+    wallet_location = get_wallet_location()
+    return oracledb.ConnectParams(
+        user=get_main_user(),
+        password=get_main_password(),
+        config_dir=wallet_location,
+        wallet_location=wallet_location,
+        wallet_password=get_wallet_password(),
+    )
 
 
 def get_connection(dsn=None, **kwargs):
@@ -200,19 +195,14 @@ def get_pool(**kwargs):
 
 
 def get_pool_params():
-    name = "POOL_PARAMS"
-    params = PARAMETERS.get(name)
-    if params is None:
-        wallet_location = get_wallet_location()
-        params = oracledb.PoolParams(
-            user=get_main_user(),
-            password=get_main_password(),
-            config_dir=wallet_location,
-            wallet_location=wallet_location,
-            wallet_password=get_wallet_password(),
-        )
-        PARAMETERS[name] = params
-    return params
+    wallet_location = get_wallet_location()
+    return oracledb.PoolParams(
+        user=get_main_user(),
+        password=get_main_password(),
+        config_dir=wallet_location,
+        wallet_location=wallet_location,
+        wallet_password=get_wallet_password(),
+    )
 
 
 def get_proxy_password():

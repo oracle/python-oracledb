@@ -169,6 +169,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertFalse(lob.isopen())
         self.assertEqual(lob.size(), 75000)
         lob.write(write_value, 75001)
+        self.assertRaises(TypeError, lob.write, 1000, 1)
+        self.assertRaises(TypeError, lob.write, "data", "1")
         self.assertEqual(lob.size(), 75000 + len(write_value))
         self.assertRaisesRegex(
             oracledb.DatabaseError, "^DPY-2030:", lob.read, 0
