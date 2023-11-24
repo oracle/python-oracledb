@@ -827,6 +827,13 @@ class TestCase(test_env.BaseTestCase):
         (db_domain,) = cursor.fetchone()
         self.assertEqual(conn.db_domain, db_domain)
 
+    def test_1143_proxy_user(self):
+        "1143 - test connecting with a proxy user"
+        proxy_user = test_env.get_proxy_user()
+        conn = test_env.get_connection(proxy_user=proxy_user)
+        self.assertEqual(conn.username, test_env.get_main_user())
+        self.assertEqual(conn.proxy_user, proxy_user)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

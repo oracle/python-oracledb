@@ -654,6 +654,14 @@ class Connection:
         """
         return self.tpc_prepare()
 
+    @property
+    def proxy_user(self) -> Union[str, None]:
+        """
+        Returns the name of the proxy user, if applicable.
+        """
+        self._verify_connected()
+        return self._impl.proxy_user
+
     def queue(
         self,
         name: str,

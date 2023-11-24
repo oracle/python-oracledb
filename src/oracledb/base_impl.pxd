@@ -237,6 +237,7 @@ cdef class BaseConnImpl:
     cdef:
         readonly str username
         readonly str dsn
+        readonly str proxy_user
         public object inputtypehandler
         public object outputtypehandler
         public bint autocommit
