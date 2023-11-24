@@ -379,6 +379,7 @@ cdef class BaseDbObjectTypeImpl:
         readonly DbType element_dbtype
         readonly BaseDbObjectTypeImpl element_objtype
         readonly BaseConnImpl _conn_impl
+        int _element_preferred_num_type
 
 
 cdef class BaseDbObjectAttrImpl:
@@ -386,6 +387,7 @@ cdef class BaseDbObjectAttrImpl:
         readonly str name
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype
+        int _preferred_num_type
 
 
 cdef class BaseDbObjectImpl:
@@ -474,3 +476,4 @@ cdef class BindVar:
                            bint defer_type_assignment) except -1
 
 cdef object get_exception_class(int32_t code)
+cdef int get_preferred_num_type(int16_t precision, int8_t scale)

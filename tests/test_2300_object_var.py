@@ -40,6 +40,10 @@ class TestCase(test_env.BaseTestCase):
     ):
         int_value, object_value, array_value = self.cursor.fetchone()
         if object_value is not None:
+            self.assertIsInstance(object_value.INTVALUE, int)
+            self.assertIsInstance(object_value.SMALLINTVALUE, int)
+            self.assertIsInstance(object_value.FLOATVALUE, float)
+        if object_value is not None:
             object_value = self.get_db_object_as_plain_object(object_value)
         if array_value is not None:
             array_value = array_value.aslist()
@@ -325,7 +329,7 @@ class TestCase(test_env.BaseTestCase):
         obj.SMALLINTVALUE = 13
         obj.REALVALUE = 184.875
         obj.DOUBLEPRECISIONVALUE = 1.375
-        obj.FLOATVALUE = 23.75
+        obj.FLOATVALUE = 23.0
         obj.DATEVALUE = datetime.date(2017, 5, 9)
         obj.TIMESTAMPVALUE = datetime.datetime(2017, 5, 9, 9, 41, 13)
         obj.TIMESTAMPTZVALUE = datetime.datetime(1986, 8, 2, 15, 27, 38)
@@ -365,7 +369,7 @@ class TestCase(test_env.BaseTestCase):
             13,
             184.875,
             1.375,
-            23.75,
+            23.0,
             14.25,
             29.1625,
             datetime.datetime(2017, 5, 9, 0, 0, 0),
@@ -407,7 +411,7 @@ class TestCase(test_env.BaseTestCase):
             13,
             184.875,
             1.375,
-            23.75,
+            23.0,
             14.25,
             29.1625,
             datetime.datetime(2017, 5, 9, 0, 0, 0),

@@ -298,8 +298,12 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             for i in range(num_elements):
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     buf.read_int32(&assoc_index)
-                value = self._unpack_value(buf, typ_impl.element_dbtype,
-                                           typ_impl.element_objtype)
+                value = self._unpack_value(
+                    buf,
+                    typ_impl.element_dbtype,
+                    typ_impl.element_objtype,
+                    typ_impl._element_preferred_num_type
+                )
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     unpacked_assoc_array[assoc_index] = value
                 else:
@@ -307,14 +311,16 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         else:
             unpacked_attrs = {}
             for attr in typ_impl.attrs:
-                value = self._unpack_value(buf, attr.dbtype, attr.objtype)
+                value = self._unpack_value(buf, attr.dbtype, attr.objtype,
+                                           attr._preferred_num_type)
                 unpacked_attrs[attr.name] = value
         self.unpacked_attrs = unpacked_attrs
         self.unpacked_array = unpacked_array
         self.unpacked_assoc_array = unpacked_assoc_array
 
     cdef object _unpack_value(self, DbObjectPickleBuffer buf,
-                              DbType dbtype, ThinDbObjectTypeImpl objtype):
+                              DbType dbtype, ThinDbObjectTypeImpl objtype,
+                              int preferred_num_type):
         """
         Unpacks a single value and returns it.
         """
@@ -325,7 +331,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             ThinConnImpl conn_impl
             bint is_null
         if ora_type_num == TNS_DATA_TYPE_NUMBER:
-            return buf.read_oracle_number(NUM_TYPE_FLOAT)
+            return buf.read_oracle_number(preferred_num_type)
         elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
             return buf.read_binary_integer()
         elif ora_type_num in (TNS_DATA_TYPE_VARCHAR, TNS_DATA_TYPE_CHAR):
@@ -628,43 +634,43 @@ cdef class ThinDbObjectTypeCache:
             self.package_name_var = None
             self.name_var = None
 
-    cdef int _determine_element_type_csfrm(self, ThinDbObjectTypeImpl typ_impl,
-                                           uint8_t* csfrm) except -1:
+    cdef int _get_element_type_clob(self,
+                                    ThinDbObjectTypeImpl typ_impl) except -1:
         """
-        Determine the element type's character set form. This is only needed
-        for CLOB and NCLOB where this information is not stored in the TDS.
+        Determine if the element type refers to an NCLOB or CLOB value. This
+        must be fetched from the data dictionary since it is not included in
+        the TDS.
         """
-        cdef:
-            object cursor
-            str type_name
         cursor = self.meta_cursor.connection.cursor()
         if typ_impl.package_name is not None:
-            cursor.execute("""
+            cursor.execute(
+                    """
                     select elem_type_name
                     from all_plsql_coll_types
                     where owner = :owner
                       and package_name = :package_name
-                      and type_name = :name""",
+                      and type_name = :name
+                    """,
                     owner=typ_impl.schema,
                     package_name=typ_impl.package_name,
                     name=typ_impl.name)
         else:
-            cursor.execute("""
+            cursor.execute(
+                    """
                     select elem_type_name
                     from all_coll_types
                     where owner = :owner
-                      and type_name = :name""",
+                      and type_name = :name
+                    """,
                     owner=typ_impl.schema,
                     name=typ_impl.name)
-
         type_name, = cursor.fetchone()
         if type_name == "NCLOB":
-            csfrm[0] = TNS_CS_NCHAR
-        else:
-            csfrm[0] = TNS_CS_IMPLICIT
+            typ_impl.element_dbtype = DB_TYPE_NCLOB
 
-    cdef int _determine_element_objtype(self,
-                                        ThinDbObjectTypeImpl impl) except -1:
+
+    cdef int _get_element_type_obj(self,
+                                   ThinDbObjectTypeImpl typ_impl) except -1:
         """
         Determine the element type's object type. This is needed when
         processing collections with object as the element type since this
@@ -674,8 +680,9 @@ cdef class ThinDbObjectTypeCache:
             str schema, name, package_name = None
             object cursor
         cursor = self.meta_cursor.connection.cursor()
-        if impl.package_name is not None:
-            cursor.execute("""
+        if typ_impl.package_name is not None:
+            cursor.execute(
+                    """
                     select
                         elem_type_owner,
                         elem_type_package,
@@ -683,24 +690,27 @@ cdef class ThinDbObjectTypeCache:
                     from all_plsql_coll_types
                     where owner = :owner
                       and package_name = :package_name
-                      and type_name = :name""",
-                    owner=impl.schema,
-                    package_name=impl.package_name,
-                    name=impl.name)
+                      and type_name = :name
+                    """,
+                    owner=typ_impl.schema,
+                    package_name=typ_impl.package_name,
+                    name=typ_impl.name)
             schema, package_name, name = cursor.fetchone()
         else:
-            cursor.execute("""
+            cursor.execute(
+                    """
                     select
                         elem_type_owner,
                         elem_type_name
                     from all_coll_types
                     where owner = :owner
-                      and type_name = :name""",
-                    owner=impl.schema,
-                    name=impl.name)
+                      and type_name = :name
+                    """,
+                    owner=typ_impl.schema,
+                    name=typ_impl.name)
             schema, name = cursor.fetchone()
-        impl.element_objtype = self.get_type_for_info(None, schema,
-                                                      package_name, name)
+        typ_impl.element_objtype = self.get_type_for_info(None, schema,
+                                                          package_name, name)
 
     cdef int _initialize(self, ThinConnImpl conn_impl) except -1:
         self.types_by_oid = {}
@@ -769,52 +779,6 @@ cdef class ThinDbObjectTypeCache:
             end;""")
         self.meta_cursor = cursor
 
-    cdef int _parse_element_type(self, ThinDbObjectTypeImpl typ_impl,
-                                 TDSBuffer buf) except -1:
-        """
-        Parses the element type from the TDS buffer.
-        """
-        cdef uint8_t attr_type, ora_type_num = 0, csfrm = 0
-        buf.read_ub1(&attr_type)
-        if attr_type in (TNS_OBJ_TDS_TYPE_NUMBER, TNS_OBJ_TDS_TYPE_FLOAT):
-            ora_type_num = TNS_DATA_TYPE_NUMBER
-        elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
-            buf.skip_raw_bytes(2)           # maximum length
-            buf.read_ub1(&csfrm)
-            csfrm = csfrm & 0x7f
-            if attr_type == TNS_OBJ_TDS_TYPE_VARCHAR:
-                ora_type_num = TNS_DATA_TYPE_VARCHAR
-            else:
-                ora_type_num = TNS_DATA_TYPE_CHAR
-        elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
-            ora_type_num = TNS_DATA_TYPE_RAW
-        elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:
-            ora_type_num = TNS_DATA_TYPE_BINARY_FLOAT
-        elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_DOUBLE:
-            ora_type_num = TNS_DATA_TYPE_BINARY_DOUBLE
-        elif attr_type == TNS_OBJ_TDS_TYPE_DATE:
-            ora_type_num = TNS_DATA_TYPE_DATE
-        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP:
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP
-        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_LTZ:
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_LTZ
-        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_TZ:
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_TZ
-        elif attr_type == TNS_OBJ_TDS_TYPE_BOOLEAN:
-            ora_type_num = TNS_DATA_TYPE_BOOLEAN
-        elif attr_type == TNS_OBJ_TDS_TYPE_CLOB:
-            ora_type_num = TNS_DATA_TYPE_CLOB
-            self._determine_element_type_csfrm(typ_impl, &csfrm)
-        elif attr_type == TNS_OBJ_TDS_TYPE_BLOB:
-            ora_type_num = TNS_DATA_TYPE_BLOB
-        elif attr_type == TNS_OBJ_TDS_TYPE_OBJ:
-            ora_type_num = TNS_DATA_TYPE_INT_NAMED
-            self._determine_element_objtype(typ_impl)
-        else:
-            errors._raise_err(errors.ERR_TDS_TYPE_NOT_SUPPORTED, num=attr_type)
-        typ_impl.element_dbtype = DbType._from_ora_type_and_csfrm(ora_type_num,
-                                                                  csfrm)
-
     cdef int _parse_tds(self, ThinDbObjectTypeImpl typ_impl,
                         bytes tds) except -1:
         """
@@ -823,10 +787,12 @@ cdef class ThinDbObjectTypeCache:
         information is skipped.
         """
         cdef:
-            uint32_t element_pos
-            uint16_t num_attrs
+            ThinDbObjectAttrImpl attr_impl
+            int preferred_num_type
+            uint16_t num_attrs, i
             uint8_t attr_type
             TDSBuffer buf
+            uint32_t pos
 
         # parse initial TDS bytes
         buf = TDSBuffer.__new__(TDSBuffer)
@@ -834,34 +800,115 @@ cdef class ThinDbObjectTypeCache:
         buf.skip_raw_bytes(4)               # end offset
         buf.skip_raw_bytes(2)               # version op code and version
         buf.skip_raw_bytes(2)               # unknown
-
-        # if the number of attributes exceeds 1, the type cannot refer to a
-        # collection, so nothing further needs to be done
-        buf.read_uint16(&num_attrs)
-        if num_attrs > 1:
-            return 0
-
-        # continue parsing TDS bytes to discover if type refers to a collection
+        buf.read_uint16(&num_attrs)         # number of attributes
         buf.skip_raw_bytes(1)               # TDS attributes?
         buf.skip_raw_bytes(1)               # start ADT op code
         buf.skip_raw_bytes(2)               # ADT number (always zero)
         buf.skip_raw_bytes(4)               # offset to index table
 
-        # if type of first attribute is not a collection, nothing further needs
-        # to be done
-        buf.read_ub1(&attr_type)
-        if attr_type != TNS_OBJ_TDS_TYPE_COLL:
-            return 0
-        typ_impl.is_collection = True
+        # check to see if type refers to a collection (only one attribute is
+        # present in that case)
+        if num_attrs == 1:
+            pos = buf._pos
+            buf.read_ub1(&attr_type)
+            if attr_type == TNS_OBJ_TDS_TYPE_COLL:
+                typ_impl.is_collection = True
+            else:
+                buf.skip_to(pos)
 
-        # continue parsing TDS to determine element type
-        buf.read_uint32(&element_pos)
-        buf.read_uint32(&typ_impl.max_num_elements)
-        buf.read_ub1(&typ_impl.collection_type)
-        if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
-            typ_impl.collection_flags = TNS_OBJ_HAS_INDEXES
-        buf.skip_to(element_pos)
-        self._parse_element_type(typ_impl, buf)
+        # handle collections
+        if typ_impl.is_collection:
+            buf.read_uint32(&pos)
+            buf.read_uint32(&typ_impl.max_num_elements)
+            buf.read_ub1(&typ_impl.collection_type)
+            if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
+                typ_impl.collection_flags = TNS_OBJ_HAS_INDEXES
+            buf.skip_to(pos)
+            typ_impl.element_dbtype = self._parse_tds_attr(
+                buf, &typ_impl._element_preferred_num_type
+            )
+            if typ_impl.element_dbtype is DB_TYPE_CLOB:
+                self._get_element_type_clob(typ_impl)
+            elif typ_impl.element_dbtype is DB_TYPE_OBJECT:
+                self._get_element_type_obj(typ_impl)
+
+        # handle objects with attributes
+        else:
+            for i, attr_impl in enumerate(typ_impl.attrs):
+                self._parse_tds_attr(buf, &attr_impl._preferred_num_type)
+
+    cdef DbType _parse_tds_attr(self, TDSBuffer buf, int* preferred_num_type):
+        """
+        Parses a TDS attribute from the buffer.
+        """
+        cdef:
+            uint8_t attr_type, ora_type_num = 0, csfrm = 0
+            int temp_preferred_num_type
+            int8_t precision, scale
+
+        # skip until a type code that is of interest
+        while True:
+            buf.read_ub1(&attr_type)
+            if attr_type == TNS_OBJ_TDS_TYPE_EMBED_ADT_INFO:
+                buf.skip_raw_bytes(1)       # flags
+            elif attr_type != TNS_OBJ_TDS_TYPE_SUBTYPE_MARKER:
+                break
+
+        # process the type code
+        if attr_type == TNS_OBJ_TDS_TYPE_NUMBER:
+            ora_type_num = TNS_DATA_TYPE_NUMBER
+            buf.read_sb1(&precision)
+            buf.read_sb1(&scale)
+            preferred_num_type[0] = get_preferred_num_type(precision, scale)
+        elif attr_type == TNS_OBJ_TDS_TYPE_FLOAT:
+            ora_type_num = TNS_DATA_TYPE_NUMBER
+            buf.skip_raw_bytes(1)           # precision
+        elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
+            buf.skip_raw_bytes(2)           # maximum length
+            buf.read_ub1(&csfrm)
+            csfrm = csfrm & 0x7f
+            buf.skip_raw_bytes(2)           # character set
+            if attr_type == TNS_OBJ_TDS_TYPE_VARCHAR:
+                ora_type_num = TNS_DATA_TYPE_VARCHAR
+            else:
+                ora_type_num = TNS_DATA_TYPE_CHAR
+        elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
+            buf.skip_raw_bytes(2)           # maximum length
+            ora_type_num = TNS_DATA_TYPE_RAW
+        elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:
+            ora_type_num = TNS_DATA_TYPE_BINARY_FLOAT
+        elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_DOUBLE:
+            ora_type_num = TNS_DATA_TYPE_BINARY_DOUBLE
+        elif attr_type == TNS_OBJ_TDS_TYPE_DATE:
+            ora_type_num = TNS_DATA_TYPE_DATE
+        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP:
+            buf.skip_raw_bytes(1)           # precision
+            ora_type_num = TNS_DATA_TYPE_TIMESTAMP
+        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_LTZ:
+            buf.skip_raw_bytes(1)           # precision
+            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_LTZ
+        elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_TZ:
+            buf.skip_raw_bytes(1)           # precision
+            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_TZ
+        elif attr_type == TNS_OBJ_TDS_TYPE_BOOLEAN:
+            ora_type_num = TNS_DATA_TYPE_BOOLEAN
+        elif attr_type == TNS_OBJ_TDS_TYPE_CLOB:
+            ora_type_num = TNS_DATA_TYPE_CLOB
+            csfrm = TNS_CS_IMPLICIT
+        elif attr_type == TNS_OBJ_TDS_TYPE_BLOB:
+            ora_type_num = TNS_DATA_TYPE_BLOB
+        elif attr_type == TNS_OBJ_TDS_TYPE_OBJ:
+            ora_type_num = TNS_DATA_TYPE_INT_NAMED
+            buf.skip_raw_bytes(5)           # offset and code
+        elif attr_type == TNS_OBJ_TDS_TYPE_START_EMBED_ADT:
+            ora_type_num = TNS_DATA_TYPE_INT_NAMED
+            while self._parse_tds_attr(buf, &temp_preferred_num_type):
+                pass
+        elif attr_type == TNS_OBJ_TDS_TYPE_END_EMBED_ADT:
+            return None
+        else:
+            errors._raise_err(errors.ERR_TDS_TYPE_NOT_SUPPORTED, num=attr_type)
+        return DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
 
     cdef int _populate_type_info(self, str name,
                                  ThinDbObjectTypeImpl typ_impl) except -1:
@@ -887,7 +934,6 @@ cdef class ThinDbObjectTypeCache:
             typ_impl.name = self.name_var.getvalue()
             typ_impl.is_xml_type = \
                     (typ_impl.schema == "SYS" and typ_impl.name == "XMLTYPE")
-        self._parse_tds(typ_impl, self.tds_var.getvalue())
         typ_impl.attrs = []
         typ_impl.attrs_by_name = {}
         attrs_rc = self.attrs_ref_cursor_var.getvalue()
@@ -907,6 +953,7 @@ cdef class ThinDbObjectTypeCache:
                 attr_impl.dbtype = DbType._from_ora_name(attr_type_name)
             typ_impl.attrs.append(attr_impl)
             typ_impl.attrs_by_name[attr_name] = attr_impl
+        self._parse_tds(typ_impl, self.tds_var.getvalue())
 
     cdef ThinDbObjectTypeImpl get_type(self, object conn, str name):
         """

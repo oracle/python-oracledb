@@ -116,7 +116,8 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         type_impl = self.type
         try:
             return _convert_to_python(type_impl._conn_impl, attr.dbtype,
-                                      attr.objtype, &data.value)
+                                      attr.objtype, &data.value,
+                                      attr._preferred_num_type)
         finally:
             if attr.objtype is not None:
                 dpiObject_release(data.value.asObject)
@@ -145,7 +146,8 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         try:
             return _convert_to_python(objtype._conn_impl,
                                       objtype.element_dbtype,
-                                      objtype.element_objtype, &data.value)
+                                      objtype.element_objtype, &data.value,
+                                      objtype._element_preferred_num_type)
         finally:
             if objtype.element_objtype is not None:
                 dpiObject_release(data.value.asObject)
@@ -285,6 +287,9 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
             _raise_from_odpi()
         impl.name = info.name[:info.nameLength].decode()
         impl.dbtype = DbType._from_num(info.typeInfo.oracleTypeNum)
+        impl._preferred_num_type = \
+                get_preferred_num_type(info.typeInfo.precision,
+                                       info.typeInfo.scale)
         if info.typeInfo.objectType:
             typ_handle = info.typeInfo.objectType
             impl.objtype = ThickDbObjectTypeImpl._from_handle(conn_impl,
@@ -333,6 +338,9 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
         if impl.is_collection:
             dbtype = DbType._from_num(info.elementTypeInfo.oracleTypeNum)
             impl.element_dbtype = dbtype
+            impl._element_preferred_num_type = \
+                get_preferred_num_type(info.elementTypeInfo.precision,
+                                       info.elementTypeInfo.scale)
             if info.elementTypeInfo.objectType != NULL:
                 handle = info.elementTypeInfo.objectType
                 temp = ThickDbObjectTypeImpl._from_handle(conn_impl, handle)

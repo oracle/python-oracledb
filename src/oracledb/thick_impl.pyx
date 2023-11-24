@@ -45,7 +45,7 @@ from .defaults import defaults
 
 from . import __version__ as VERSION
 
-from .base_impl cimport get_exception_class
+from .base_impl cimport get_exception_class, get_preferred_num_type
 from .base_impl cimport BaseConnImpl, BaseCursorImpl, BaseVarImpl, DbType
 from .base_impl cimport BaseDbObjectTypeImpl, BaseDbObjectAttrImpl
 from .base_impl cimport BaseDbObjectImpl, BaseLobImpl, BasePoolImpl

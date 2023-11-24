@@ -49,6 +49,10 @@ Common Changes
     :data:`FetchInfo.type_code` for data of this type was
     :data:`~oracledb.DB_TYPE_LONG` in Thick mode and
     :data:`~oracledb.DB_TYPE_OBJECT` in Thin mode.
+#)  Attribute and element values of DbObject instances that are numbers are now
+    returned as integers if the precision and scale allow for it -- in the same
+    way that numbers are fetched from the database
+    (`issue 99 <https://github.com/oracle/python-oracledb/issues/99>`__).
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
 #)  Fixed bug with getting unknown attributes from DbObject instances.

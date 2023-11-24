@@ -140,6 +140,12 @@ cdef object get_exception_class(int32_t code):
     return exceptions.DatabaseError
 
 
+cdef int get_preferred_num_type(int16_t precision, int8_t scale):
+    if scale == 0 or (scale == -127 and precision == 0):
+        return NUM_TYPE_INT
+    return NUM_TYPE_FLOAT
+
+
 include "impl/base/utils.pyx"
 include "impl/base/connect_params.pyx"
 include "impl/base/pool_params.pyx"
