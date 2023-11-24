@@ -822,6 +822,15 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
+.. attribute:: Connection.proxy_user
+
+    This read-only attribute returns the name of the user which was used as a
+    proxy when creating the connection to the database.
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
 .. attribute:: Connection.service_name
 
     This read-only attribute specifies the Oracle Database service name

@@ -452,7 +452,6 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_5334_invalid_params(self):
         "5334 - test error for invalid type for params and pool"
         pool = test_env.get_pool_async()
-        print("pool is:", pool)
         await pool.close()
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:"):
             await test_env.get_connection_async(pool=pool)

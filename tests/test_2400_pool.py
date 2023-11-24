@@ -367,6 +367,8 @@ class TestCase(test_env.BaseTestCase):
         conn.close()
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         conn = pool.acquire(user_str, test_env.get_main_password())
+        self.assertEqual(conn.username, test_env.get_main_user())
+        self.assertEqual(conn.proxy_user, test_env.get_proxy_user())
         self.__verify_connection(
             conn, test_env.get_proxy_user(), test_env.get_main_user()
         )

@@ -298,8 +298,12 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             for i in range(num_elements):
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     buf.read_int32(&assoc_index)
-                value = self._unpack_value(buf, typ_impl.element_dbtype,
-                                           typ_impl.element_objtype)
+                value = self._unpack_value(
+                    buf,
+                    typ_impl.element_dbtype,
+                    typ_impl.element_objtype,
+                    typ_impl._element_preferred_num_type
+                )
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     unpacked_assoc_array[assoc_index] = value
                 else:
@@ -307,14 +311,16 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         else:
             unpacked_attrs = {}
             for attr in typ_impl.attrs:
-                value = self._unpack_value(buf, attr.dbtype, attr.objtype)
+                value = self._unpack_value(buf, attr.dbtype, attr.objtype,
+                                           attr._preferred_num_type)
                 unpacked_attrs[attr.name] = value
         self.unpacked_attrs = unpacked_attrs
         self.unpacked_array = unpacked_array
         self.unpacked_assoc_array = unpacked_assoc_array
 
     cdef object _unpack_value(self, DbObjectPickleBuffer buf,
-                              DbType dbtype, ThinDbObjectTypeImpl objtype):
+                              DbType dbtype, ThinDbObjectTypeImpl objtype,
+                              int preferred_num_type):
         """
         Unpacks a single value and returns it.
         """
@@ -325,7 +331,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             ThinDbObjectImpl obj_impl
             bint is_null
         if ora_type_num == TNS_DATA_TYPE_NUMBER:
-            return buf.read_oracle_number(NUM_TYPE_FLOAT)
+            return buf.read_oracle_number(preferred_num_type)
         elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
             return buf.read_binary_integer()
         elif ora_type_num in (TNS_DATA_TYPE_VARCHAR, TNS_DATA_TYPE_CHAR):

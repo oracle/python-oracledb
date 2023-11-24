@@ -13,6 +13,8 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for asyncio
+    (`issue 6 <https://github.com/oracle/python-oracledb/issues/6>`__).
 #)  Internal changes to improve handling of the network protocol between
     python-oracledb and Oracle Database.
 #)  Internal changes to improve handling of multiple address and description
@@ -21,6 +23,8 @@ Thin Mode Changes
 #)  Fixed bug in handling exceptions raised during connection establishment.
 #)  Fixed bug in identifying bind variables in SQL statements containing
     multiple line comments with multiple asterisks before the closing slash.
+#)  A more meaningful error is raised when the wrong type of data is passed to
+    lob.write().
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -42,6 +46,17 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
+#)  Added attribute :data:`Connection.proxy_user` as requested
+    (`issue 250 <https://github.com/oracle/python-oracledb/issues/250>`__).
+#)  Added type :data:`~oracledb.DB_TYPE_XMLTYPE` to represent data of type
+    ``SYS.XMLTYPE`` in the database. Previously the value of
+    :data:`FetchInfo.type_code` for data of this type was
+    :data:`~oracledb.DB_TYPE_LONG` in Thick mode and
+    :data:`~oracledb.DB_TYPE_OBJECT` in Thin mode.
+#)  Attribute and element values of DbObject instances that are numbers are now
+    returned as integers if the precision and scale allow for it -- in the same
+    way that numbers are fetched from the database
+    (`issue 99 <https://github.com/oracle/python-oracledb/issues/99>`__).
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
 #)  Fixed bug with getting unknown attributes from DbObject instances.

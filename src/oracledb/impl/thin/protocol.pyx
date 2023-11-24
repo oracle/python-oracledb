@@ -731,29 +731,19 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             return await self._transport.negotiate_tls_async(self, description)
 
     async def _process_message(self, Message message):
+        """
+        Sends a message to the server and processes its response.
+        """
         cdef:
             uint32_t timeout = message.conn_impl._call_timeout
             object timeout_obj = (timeout / 1000) or None
         try:
-            async with asyncio.timeout(timeout_obj):
-                self._read_buf.reset_packets()
-                message.send(self._write_buf)
-                await self._receive_packet(message)
-                while True:
-                    try:
-                        message.process(self._read_buf)
-                        break
-                    except OutOfPackets:
-                        await self._receive_packet(message)
-                        self._read_buf.restore_point()
+            coroutine = self._process_message_helper(message)
+            await asyncio.wait_for(coroutine, timeout_obj)
         except TimeoutError:
             try:
-                async with asyncio.timeout(timeout_obj):
-                    self._break_external()
-                    await self._receive_packet(message)
-                    self._break_in_progress = False
-                    errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED,
-                                    timeout=timeout)
+                coroutine = self._process_timeout_helper(message, timeout)
+                await asyncio.wait_for(coroutine, timeout_obj)
             except TimeoutError:
                 self._force_close()
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED,
@@ -800,6 +790,21 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             exc_type = get_exception_class(message.error_info.num)
             raise exc_type(error)
 
+    async def _process_message_helper(self, Message message):
+        """
+        Helper routine that is called to process a message within a timeout.
+        """
+        self._read_buf.reset_packets()
+        message.send(self._write_buf)
+        await self._receive_packet(message)
+        while True:
+            try:
+                message.process(self._read_buf)
+                break
+            except OutOfPackets:
+                await self._receive_packet(message)
+                self._read_buf.restore_point()
+
     async def _process_single_message(self, Message message):
         """
         Process a single message within a request.
@@ -809,6 +814,15 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if message.resend:
                 await self._process_message(message)
         await message.postprocess_async()
+
+    async def _process_timeout_helper(self, Message message, uint32_t timeout):
+        """
+        Helper routine that is called to process a timeout.
+        """
+        self._break_external()
+        await self._receive_packet(message)
+        self._break_in_progress = False
+        errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED, timeout=timeout)
 
     async def _receive_packet(self, Message message):
         cdef:

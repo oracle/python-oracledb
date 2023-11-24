@@ -130,6 +130,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_ORACLE_TYPE_TIMESTAMP_LTZ
         DPI_ORACLE_TYPE_TIMESTAMP_TZ
         DPI_ORACLE_TYPE_VARCHAR
+        DPI_ORACLE_TYPE_XMLTYPE
 
     # SODA flags
     enum:

@@ -34,6 +34,7 @@ cdef class BaseConnImpl:
     def __init__(self, str dsn, ConnectParamsImpl params):
         self.dsn = dsn
         self.username = params.user
+        self.proxy_user = params.proxy_user
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok):

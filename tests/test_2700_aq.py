@@ -665,6 +665,54 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         self.assertEqual(len(messages), 2)
 
+    def test_2731_condition_and_priority(self):
+        "2731 - test condition deqoption with priority"
+        queue = self.get_and_clear_queue(
+            self.book_queue_name, self.book_type_name
+        )
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+
+        priorities = [5, 10]
+        indexes = [0, 1]
+        for priority, ix in zip(priorities, indexes):
+            book = queue.payload_type.newobject()
+            book.TITLE, book.AUTHORS, book.PRICE = self.book_data[ix]
+            props = self.conn.msgproperties(payload=book, priority=priority)
+            queue.enqone(props)
+
+        queue.deqoptions.condition = "priority = 9"
+        messages = queue.deqmany(3)
+        self.assertEqual(len(messages), 0)
+
+        for priority, ix in zip(priorities, indexes):
+            queue.deqoptions.condition = f"priority = {priority}"
+            messages = queue.deqmany(3)
+            self.assertEqual(len(messages), 1)
+            book = messages[0].payload
+            data = book.TITLE, book.AUTHORS, book.PRICE
+            self.assertEqual(data, self.book_data[ix])
+
+    def test_2732_mode_deq_remove_nodata(self):
+        "2732 - test mode deqoption with DEQ_REMOVE_NODATA"
+        queue = self.get_and_clear_queue(
+            self.book_queue_name, self.book_type_name
+        )
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.mode = oracledb.DEQ_REMOVE_NODATA
+
+        book = queue.payload_type.newobject()
+        for data in self.book_data:
+            book.TITLE, book.AUTHORS, book.PRICE = data
+            props = self.conn.msgproperties(payload=book)
+            queue.enqone(props)
+
+        messages = queue.deqmany(5)
+        self.assertEqual(len(messages), 3)
+        for message in messages:
+            self.assertIsNone(message.payload.TITLE)
+            self.assertIsNone(message.payload.AUTHORS)
+            self.assertIsNone(message.payload.PRICE)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

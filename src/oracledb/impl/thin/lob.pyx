@@ -144,8 +144,14 @@ cdef class BaseThinLobImpl(BaseLobImpl):
         message.source_lob_impl = self
         message.source_offset = offset
         if self.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
+            if not isinstance(value, bytes):
+                raise TypeError("only bytes can be written to BLOBs")
             message.data = value
         else:
+            if not isinstance(value, str):
+                raise TypeError(
+                    "only strings can be written to CLOBs and NCLOBS"
+                )
             message.data = value.encode(self._get_encoding())
         return message
 

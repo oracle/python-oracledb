@@ -349,6 +349,47 @@ class TestCase(test_env.BaseTestCase):
             )
         self.conn.tpc_rollback(xid)
 
+    def test_4414_implicit_commit_negative(self):
+        "4414 - test commiting transaction without tpc_commit"
+        xid = self.conn.xid(4414, "txn4409", "branch1")
+        self.conn.tpc_begin(xid)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-02089",
+            self.cursor.execute,
+            "truncate table TestTempTable",
+        )
+
+    def test_4415_commit_is_not_needed(self):
+        "4415 - test tpc_commit when a commit is not needed"
+        xid = self.conn.xid(4416, "txn4416", "branch1")
+        self.conn.tpc_begin(xid)
+        self.cursor.execute("select * from TestTempTable")
+        self.conn.tpc_end(xid)
+        self.conn.tpc_prepare(xid)
+        self.assertRaisesRegex(
+            oracledb.DatabaseError, "^ORA-24756:", self.conn.tpc_commit, xid
+        )
+
+    def test_4416_transaction_in_progress(self):
+        "4416 - test transaction_in_progress"
+        self.cursor.execute("truncate table TestTempTable")
+        xid = self.conn.xid(4415, "txn4415", "branch1")
+        self.assertFalse(self.conn.transaction_in_progress)
+
+        self.conn.tpc_begin(xid)
+        self.assertTrue(self.conn.transaction_in_progress)
+        self.cursor.execute("insert into TestTempTable (IntCol) values (2)")
+
+        self.conn.tpc_end(xid)
+        self.assertFalse(self.conn.transaction_in_progress)
+
+        self.conn.tpc_prepare(xid)
+        self.assertFalse(self.conn.transaction_in_progress)
+
+        self.conn.tpc_commit(xid)
+        self.assertFalse(self.conn.transaction_in_progress)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
