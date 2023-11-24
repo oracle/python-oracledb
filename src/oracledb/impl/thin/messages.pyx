@@ -1457,7 +1457,7 @@ cdef class AuthMessage(Message):
             str sign, tz_repr
         tz_repr = os.environ.get("ORA_SDTZ")
         if tz_repr is None:
-            timezone = -time.altzone if time.daylight else -time.timezone
+            timezone = time.localtime().tm_gmtoff
             tz_hour = timezone // 3600
             tz_minute = (timezone - (tz_hour * 3600)) // 60
             if tz_hour < 0:
