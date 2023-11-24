@@ -44,6 +44,11 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
+#)  Added type :data:`~oracledb.DB_TYPE_XMLTYPE` to represent data of type
+    ``SYS.XMLTYPE`` in the database. Previously the value of
+    :data:`FetchInfo.type_code` for data of this type was
+    :data:`~oracledb.DB_TYPE_LONG` in Thick mode and
+    :data:`~oracledb.DB_TYPE_OBJECT` in Thin mode.
 #)  Added support for parsing the ``FAILOVER`` clause in full connect
     descriptors.
 #)  Fixed bug with getting unknown attributes from DbObject instances.

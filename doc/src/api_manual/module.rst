@@ -2347,6 +2347,12 @@ when binding data.
     type VARCHAR2. It will compare equal to the DB API type :data:`STRING`.
 
 
+.. data:: DB_TYPE_XMLTYPE
+
+    Describes columns, attributes or array elements in a database that are of
+    type SYS.XMLTYPE.
+
+
 .. _dbtypesynonyms:
 
 Database Type Synonyms

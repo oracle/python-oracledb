@@ -164,6 +164,8 @@ DB_TYPE_UNKNOWN = DbType(DB_TYPE_NUM_UNKNOWN, "DB_TYPE_UNKNOWN", "UNKNOWN")
 DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID", 208)
 DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
                          1, 4000, csfrm=1, buffer_size_factor=4)
+DB_TYPE_XMLTYPE = DbType(DB_TYPE_NUM_XMLTYPE, "DB_TYPE_XMLTYPE", "XMLTYPE",
+                         109, csfrm=1, buffer_size_factor=2147483647)
 
 # additional aliases
 db_type_by_ora_name["DOUBLE PRECISION"] = DB_TYPE_NUMBER

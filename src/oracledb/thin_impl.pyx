@@ -83,6 +83,7 @@ from .base_impl cimport ConnectParamsImpl, PoolParamsImpl, BaseDbObjectAttrImpl
 from .base_impl cimport BaseDbObjectImpl, BaseDbObjectTypeImpl
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB
 from .base_impl import DB_TYPE_BINARY_INTEGER, DB_TYPE_CURSOR, DB_TYPE_OBJECT
+from .base_impl import DB_TYPE_XMLTYPE
 
 ctypedef unsigned char char_type
 

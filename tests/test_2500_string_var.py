@@ -486,13 +486,17 @@ class TestCase(test_env.BaseTestCase):
         "2530 - test fetching XMLType (< 1K) as a string"
         self.cursor.execute(
             """
-            select XMLElement("string", stringCol)
+            select XMLElement("string", stringCol) as xml
             from TestStrings
             where intCol = 1
             """
         )
         (actual_value,) = self.cursor.fetchone()
         self.assertEqual(actual_value, "<string>String 1</string>")
+        self.assertEqual(
+            self.cursor.description,
+            [("XML", oracledb.DB_TYPE_XMLTYPE, None, None, None, None, True)],
+        )
 
     def test_2531_long_xml_as_string(self):
         "2531 - test inserting and fetching XMLType (1K) as a string"

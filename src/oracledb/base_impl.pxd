@@ -70,6 +70,7 @@ cdef enum:
     DB_TYPE_NUM_UNKNOWN = 0
     DB_TYPE_NUM_UROWID = 2030
     DB_TYPE_NUM_VARCHAR = 2001
+    DB_TYPE_NUM_XMLTYPE = 2032
 
 
 cdef class ApiType:

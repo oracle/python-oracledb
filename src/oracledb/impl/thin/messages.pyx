@@ -607,7 +607,7 @@ cdef class MessageWithData(Message):
             column_value = buf.read_oson()
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             typ_impl = var_impl.objtype
-            if typ_impl.is_xml_type:
+            if typ_impl is None:
                 column_value = buf.read_xmltype(self.conn_impl)
             else:
                 obj_impl = buf.read_dbobject(typ_impl)
@@ -720,7 +720,10 @@ cdef class MessageWithData(Message):
                 self.type_cache = get_dbobject_type_cache(cache_num)
             typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
                                                          name)
-            fetch_info.objtype = typ_impl
+            if typ_impl.is_xml_type:
+                fetch_info.dbtype = DB_TYPE_XMLTYPE
+            else:
+                fetch_info.objtype = typ_impl
         return fetch_info
 
     cdef int _process_describe_info(self, ReadBuffer buf,
