@@ -13,16 +13,16 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Internal changes to improve handling of the network protocol between
-    python-oracledb and Oracle Database.
-#)  Internal changes to improve handling of multiple address and description
-    lists in full connect descriptors.
 #)  Fixed bug in handling database response in certain unusual circumstances.
 #)  Fixed bug in handling exceptions raised during connection establishment.
 #)  Fixed bug in identifying bind variables in SQL statements containing
     multiple line comments with multiple asterisks before the closing slash.
 #)  A more meaningful error is raised when the wrong type of data is passed to
     lob.write().
+#)  Internal changes to improve handling of the network protocol between
+    python-oracledb and Oracle Database.
+#)  Internal changes to improve handling of multiple address and description
+    lists in full connect descriptors.
 
 Thick Mode Changes
 ++++++++++++++++++
