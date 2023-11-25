@@ -15,6 +15,8 @@ Thin Mode Changes
 
 #)  Fixed bug in detecting the current time zone
     (`issue 257 <https://github.com/oracle/python-oracledb/issues/257>`__).
+#)  Added parameter :data:`ConnectParams.ssl_context`
+    (`issue 259 <https://github.com/oracle/python-oracledb/issues/259>`__).
 #)  Fixed bug in handling database response in certain unusual circumstances.
 #)  Fixed bug in handling exceptions raised during connection establishment.
 #)  Fixed bug in identifying bind variables in SQL statements containing

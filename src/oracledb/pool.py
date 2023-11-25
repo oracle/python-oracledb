@@ -34,7 +34,7 @@
 # -----------------------------------------------------------------------------
 
 import functools
-from typing import Callable, Type, Union
+from typing import Callable, Type, Union, Any
 
 import oracledb
 
@@ -610,6 +610,7 @@ def create_pool(
     supershardingkey: list = None,
     debug_jdwp: str = None,
     connection_id_prefix: str = None,
+    ssl_context: Any = None,
     handle: int = 0,
     threaded: bool = True,
     encoding: str = None,
@@ -831,6 +832,12 @@ def create_pool(
 
     - connection_id_prefix: an application specific prefix that is added to the
       connection identifier used for tracing (default: None)
+
+    - ssl_context: an SSLContext object used for connecting to the database
+      using TLS.  This SSL context will be modified to include the private key
+      or any certificates found in a separately supplied wallet. This parameter
+      should only be specified if the default SSLContext object cannot be used.
+      (default: None)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

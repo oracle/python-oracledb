@@ -33,7 +33,7 @@
 # more information.
 # -----------------------------------------------------------------------------
 
-from typing import Callable, Type, Union
+from typing import Callable, Type, Union, Any
 
 import oracledb
 
@@ -104,6 +104,7 @@ class PoolParams(ConnectParams):
         supershardingkey: list = None,
         debug_jdwp: str = None,
         connection_id_prefix: str = None,
+        ssl_context: Any = None,
         handle: int = 0,
         threaded: bool = True,
         encoding: str = None,
@@ -310,6 +311,12 @@ class PoolParams(ConnectParams):
         - connection_id_prefix: an application specific prefix that is added to
           the connection identifier used for tracing (default: None)
 
+        - ssl_context: an SSLContext object used for connecting to the database
+          using TLS.  This SSL context will be modified to include the private
+          key or any certificates found in a separately supplied wallet. This
+          parameter should only be specified if the default SSLContext object
+          cannot be used. (default: None)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -365,7 +372,8 @@ class PoolParams(ConnectParams):
             + f"shardingkey={self.shardingkey!r}, "
             + f"supershardingkey={self.supershardingkey!r}, "
             + f"debug_jdwp={self.debug_jdwp!r}, "
-            + f"connection_id_prefix={self.connection_id_prefix!r}"
+            + f"connection_id_prefix={self.connection_id_prefix!r}, "
+            + f"ssl_context={self.ssl_context!r}"
             + ")"
         )
 
@@ -541,6 +549,7 @@ class PoolParams(ConnectParams):
         supershardingkey: list = None,
         debug_jdwp: str = None,
         connection_id_prefix: str = None,
+        ssl_context: Any = None,
         handle: int = None,
         threaded: bool = None,
         encoding: str = None,
@@ -733,6 +742,12 @@ class PoolParams(ConnectParams):
 
         - connection_id_prefix: an application specific prefix that is added to
           the connection identifier used for tracing
+
+        - ssl_context: an SSLContext object used for connecting to the database
+          using TLS.  This SSL context will be modified to include the private
+          key or any certificates found in a separately supplied wallet. This
+          parameter should only be specified if the default SSLContext object
+          cannot be used.
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

@@ -31,7 +31,7 @@
 # # {{ generated_notice }}
 # -----------------------------------------------------------------------------
 
-from typing import Callable, Type, Union
+from typing import Callable, Type, Union, Any
 
 import oracledb
 

@@ -178,6 +178,7 @@ cdef class ConnectParamsImpl:
         public list supershardingkey
         public uint32_t stmtcachesize
         public bint disable_oob
+        public object ssl_context
         public DescriptionList description_list
         uint64_t _external_handle
         public str debug_jdwp

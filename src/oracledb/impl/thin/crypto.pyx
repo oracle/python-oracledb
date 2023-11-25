@@ -111,7 +111,9 @@ def get_ssl_socket(sock, ConnectParamsImpl params, Description description,
     Returns a wrapped SSL socket given a socket and the parameters supplied by
     the user.
     """
-    ssl_context = ssl.create_default_context()
+    ssl_context = params.ssl_context
+    if ssl_context is None:
+        ssl_context = ssl.create_default_context()
 
     # if the platform is macOS, and one-way TLS or mTLS is being used, check
     # if the certifi package is installed. If certifi is not installed, load
