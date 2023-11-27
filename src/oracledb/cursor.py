@@ -952,7 +952,7 @@ class AsyncCursor(BaseCursor):
         statement: Union[str, None],
         parameters: Union[list, tuple, dict] = None,
         **keyword_parameters: Any,
-    ) -> Any:
+    ) -> None:
         """
         Execute a statement against the database.
 
@@ -983,10 +983,6 @@ class AsyncCursor(BaseCursor):
         of time; in particular, None is assumed to be a string of length 1 so
         any values that are later bound as numbers or dates will raise a
         TypeError exception.
-
-        If the statement is a query, the cursor is returned as a convenience to
-        the caller (so it can be used directly as an iterator over the rows in
-        the cursor); otherwise, None is returned.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
         await self._impl.execute(self)

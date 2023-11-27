@@ -60,18 +60,17 @@ async def main():
         print(row)
         print()
 
-        print("Fetch many rows")
-        await cursor.execute(sql)
-        res = await cursor.fetchmany(3)
-        print(res)
-        print()
+    print("Fetch many rows")
+    res = await connection.fetchmany(sql, num_rows=3)
+    print(res)
+    print()
 
-        print("Fetch all rows")
-        await cursor.execute(sql)
-        res = await cursor.fetchall()
-        print(res)
-        print()
+    print("Fetch all rows")
+    res = await connection.fetchall(sql)
+    print(res)
+    print()
 
+    with connection.cursor() as cursor:
         print("Fetch each row as a Dictionary")
         await cursor.execute(sql)
         columns = [col.name for col in cursor.description]

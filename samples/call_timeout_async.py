@@ -47,8 +47,7 @@ async def main():
     print("Call timeout set at", connection.call_timeout, "milliseconds...")
 
     with connection.cursor() as cursor:
-        await cursor.execute("select sysdate from dual")
-        (today,) = await cursor.fetchone()
+        (today,) = await connection.fetchone("select sysdate from dual")
         print("Fetch of current date before timeout:", today)
 
         # dbms_session.sleep() replaces dbms_lock.sleep() from Oracle Database
@@ -65,8 +64,7 @@ async def main():
         except oracledb.DatabaseError as e:
             print("ERROR:", e)
 
-        await cursor.execute("select sysdate from dual")
-        (today,) = await cursor.fetchone()
+        (today,) = await connection.fetchone("select sysdate from dual")
         print("Fetch of current date after timeout:", today)
 
 

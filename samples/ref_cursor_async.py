@@ -42,90 +42,89 @@ async def main():
         dsn=sample_env.get_connect_string(),
     )
 
-    with connection.cursor() as cursor:
-        ref_cursor = connection.cursor()
-        await cursor.callproc("myrefcursorproc", (2, 6, ref_cursor))
-        print("Rows between 2 and 6:")
-        async for row in ref_cursor:
-            print(row)
-        print()
+    ref_cursor = connection.cursor()
+    await connection.callproc("myrefcursorproc", (2, 6, ref_cursor))
+    print("Rows between 2 and 6:")
+    async for row in ref_cursor:
+        print(row)
+    print()
 
-        ref_cursor = connection.cursor()
-        await cursor.callproc("myrefcursorproc", (8, 9, ref_cursor))
-        print("Rows between 8 and 9:")
-        async for row in ref_cursor:
-            print(row)
-        print()
+    ref_cursor = connection.cursor()
+    await connection.callproc("myrefcursorproc", (8, 9, ref_cursor))
+    print("Rows between 8 and 9:")
+    async for row in ref_cursor:
+        print(row)
+    print()
 
-        # ---------------------------------------------------------------------
-        # Setting prefetchrows and arraysize of a REF CURSOR can improve
-        # performance when fetching a large number of rows by reducing network
-        # round-trips.
-        # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # Setting prefetchrows and arraysize of a REF CURSOR can improve
+    # performance when fetching a large number of rows by reducing network
+    # round-trips.
+    # ---------------------------------------------------------------------
 
-        # Truncate the table used for this demo
-        await cursor.execute("truncate table TestTempTable")
+    # Truncate the table used for this demo
+    await connection.execute("truncate table TestTempTable")
 
-        # Populate the table with a large number of rows
-        num_rows = 50000
-        sql = "insert into TestTempTable (IntCol) values (:1)"
-        data = [(n + 1,) for n in range(num_rows)]
-        await cursor.executemany(sql, data)
+    # Populate the table with a large number of rows
+    num_rows = 50000
+    sql = "insert into TestTempTable (IntCol) values (:1)"
+    data = [(n + 1,) for n in range(num_rows)]
+    await connection.executemany(sql, data)
 
-        # Perform an untuned fetch
-        ref_cursor = connection.cursor()
+    # Perform an untuned fetch
+    ref_cursor = connection.cursor()
 
-        print(
-            "ref_cursor.prefetchrows =",
-            ref_cursor.prefetchrows,
-            "ref_cursor.arraysize =",
-            ref_cursor.arraysize,
-        )
-        start = time.time()
-        sum_rows = 0
-        await cursor.callproc("myrefcursorproc2", [ref_cursor])
-        async for row in ref_cursor:
-            sum_rows += row[0]
-        elapsed = time.time() - start
-        print(
-            "Sum of IntCol for",
-            num_rows,
-            "rows is ",
-            sum_rows,
-            "in",
-            elapsed,
-            "seconds",
-        )
-        print()
+    print(
+        "ref_cursor.prefetchrows =",
+        ref_cursor.prefetchrows,
+        "ref_cursor.arraysize =",
+        ref_cursor.arraysize,
+    )
+    start = time.time()
+    sum_rows = 0
+    await connection.callproc("myrefcursorproc2", [ref_cursor])
+    async for row in ref_cursor:
+        sum_rows += row[0]
+    elapsed = time.time() - start
+    print(
+        "Sum of IntCol for",
+        num_rows,
+        "rows is ",
+        sum_rows,
+        "in",
+        elapsed,
+        "seconds",
+    )
+    print()
 
-        # Repeat the call but increase the internal arraysize and prefetch row
-        # buffers for the REF CURSOR to tune the number of round-trips to the
-        # database
-        ref_cursor = connection.cursor()
-        ref_cursor.prefetchrows = 1000
-        ref_cursor.arraysize = 1000
+    # Repeat the call but increase the internal arraysize and prefetch row
+    # buffers for the REF CURSOR to tune the number of round-trips to the
+    # database
+    ref_cursor = connection.cursor()
+    ref_cursor.prefetchrows = 1000
+    ref_cursor.arraysize = 1000
 
-        print(
-            "ref_cursor.prefetchrows =",
-            ref_cursor.prefetchrows,
-            "ref_cursor.arraysize =",
-            ref_cursor.arraysize,
-        )
-        start = time.time()
-        sum_rows = 0
-        await cursor.callproc("myrefcursorproc2", [ref_cursor])
-        async for row in ref_cursor:
-            sum_rows += row[0]
-        elapsed = time.time() - start
-        print(
-            "Sum of IntCol for",
-            num_rows,
-            "rows is ",
-            sum_rows,
-            "in",
-            elapsed,
-            "seconds",
-        )
+    print(
+        "ref_cursor.prefetchrows =",
+        ref_cursor.prefetchrows,
+        "ref_cursor.arraysize =",
+        ref_cursor.arraysize,
+    )
+    start = time.time()
+    sum_rows = 0
+    await connection.callproc("myrefcursorproc2", [ref_cursor])
+    async for row in ref_cursor:
+        sum_rows += row[0]
+    elapsed = time.time() - start
+    print(
+        "Sum of IntCol for",
+        num_rows,
+        "rows is ",
+        sum_rows,
+        "in",
+        elapsed,
+        "seconds",
+    )
 
 
 asyncio.run(main())

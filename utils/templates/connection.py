@@ -1284,6 +1284,39 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         return parameters
 
+    async def callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> Any:
+        """
+        Call a function with the given name.
+
+        This is a shortcut for creating a cursor, calling the stored function
+        with the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            return await cursor.callfunc(
+                name, return_type, parameters, keyword_parameters
+            )
+
+    async def callproc(
+        self,
+        name: str,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> list:
+        """
+        Call a procedure with the given name.
+
+        This is a shortcut for creating a cursor, calling the stored procedure
+        with the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            return await cursor.callproc(name, parameters, keyword_parameters)
+
     async def changepassword(
         self, old_password: str, new_password: str
     ) -> None:
@@ -1328,6 +1361,83 @@ class AsyncConnection(BaseConnection):
         """
         self._verify_connected()
         return AsyncCursor(self, scrollable)
+
+    async def execute(
+        self, statement: str, parameters: Union[list, tuple, dict] = None
+    ) -> None:
+        """
+        Execute a statement against the database.
+
+        This is a shortcut for creating a cursor, executing a statement with
+        the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            await cursor.execute(statement, parameters)
+
+    async def executemany(
+        self, statement: Union[str, None], parameters: Union[list, int]
+    ) -> None:
+        """
+        Prepare a statement for execution against a database and then execute
+        it against all parameter mappings or sequences found in the sequence
+        parameters.
+
+        This is a shortcut for creating a cursor, calling executemany() on the
+        cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            await cursor.executemany(statement, parameters)
+
+    async def fetchall(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        arraysize: int = None,
+        rowfactory: Callable = None,
+    ) -> list:
+        """
+        Executes a query and returns all of the rows. After the rows are
+        fetched, the cursor is closed.
+        """
+        with self.cursor() as cursor:
+            if arraysize is not None:
+                cursor.arraysize = arraysize
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchall()
+
+    async def fetchmany(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        num_rows: int = None,
+        rowfactory: Callable = None,
+    ) -> list:
+        """
+        Executes a query and returns up to the specified number of rows. After
+        the rows are fetched, the cursor is closed.
+        """
+        with self.cursor() as cursor:
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchmany(num_rows)
+
+    async def fetchone(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        rowfactory: Callable = None,
+    ) -> Any:
+        """
+        Executes a query and returns the first row of the result set if one
+        exists (or None if no rows exist). After the row is fetched the cursor
+        is closed.
+        """
+        with self.cursor() as cursor:
+            cursor.prefetchrows = cursor.arraysize = 2
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchone()
 
     async def gettype(self, name: str) -> DbObjectType:
         """

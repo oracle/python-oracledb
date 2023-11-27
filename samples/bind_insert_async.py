@@ -91,10 +91,9 @@ async def main():
 
     rows = [("Eleventh",), ("Twelth",)]
 
-    with connection.cursor() as cursor:
-        await cursor.executemany(
-            "insert into mytab(id, data) values (12, :1)", rows
-        )
+    await connection.executemany(
+        "insert into mytab(id, data) values (12, :1)", rows
+    )
 
     # Don't commit - this lets the demo be run multiple times
     # await connection.commit()
@@ -103,10 +102,8 @@ async def main():
     # Now query the results back
     # -------------------------------------------------------------------------
 
-    with connection.cursor() as cursor:
-        await cursor.execute("select * from mytab order by id")
-        async for row in cursor:
-            print(row)
+    for row in await connection.fetchall("select * from mytab order by id"):
+        print(row)
 
 
 asyncio.run(main())

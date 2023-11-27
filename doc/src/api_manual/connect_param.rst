@@ -277,6 +277,16 @@ ConnectParams Attributes
 
     This attribute is supported in the python-oracledb Thin and Thick modes.
 
+.. attribute:: ConnectParams.ssl_context
+
+    This read-only attribute is an SSLContext object which is used for
+    connecting to the database using TLS. This SSL context will be modified to
+    include the private key or any certificates found in a separately supplied
+    wallet. This parameter should only be specified if the default SSLContext
+    object cannot be used.
+
+    This attribute is only supported in the python-oracledb Thin mode.
+
 .. attribute:: ConnectParams.ssl_server_cert_dn
 
     This read-only attribute is a string that returns the distinguished name

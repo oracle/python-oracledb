@@ -47,136 +47,88 @@ async def main():
     )
 
     # Bind by position with lists
-    with connection.cursor() as cursor:
-        print("1. Bind by position: single value list")
-        sql = "select * from SampleQueryTab where id = :bvid"
-        await cursor.execute(sql, [1])
-        async for row in cursor:
-            print(row)
-        print()
+    print("1. Bind by position: single value list")
+    sql = "select * from SampleQueryTab where id = :bvid"
+    print(await connection.fetchone(sql, [1]))
+    print()
 
-        print("2. Bind by position: multiple values")
-        sql = (
-            "select * from SampleQueryTab where id = :bvid "
-            "and 123 = :otherbind"
-        )
-        await cursor.execute(sql, [2, 123])
-        async for row in cursor:
-            print(row)
-        print()
+    print("2. Bind by position: multiple values")
+    sql = "select * from SampleQueryTab where id = :bvid and 123 = :otherbind"
+    print(await connection.fetchone(sql, [2, 123]))
+    print()
 
-        # With bind-by-position, the order of the data in the bind list matches
-        # the order of the placeholders used in the SQL statement.  The bind
-        # list data order is not associated by the name of the bind variable
-        # placeholders in the SQL statement, even though those names are ":1"
-        # and ":2".
-        print(
-            "3. Bind by position: multiple values with numeric placeholder "
-            "names"
-        )
-        sql = "select * from SampleQueryTab where id = :2 and 456 = :1"
-        await cursor.execute(sql, [3, 456])
-        async for row in cursor:
-            print(row)
-        print()
+    # With bind-by-position, the order of the data in the bind list matches
+    # the order of the placeholders used in the SQL statement.  The bind
+    # list data order is not associated by the name of the bind variable
+    # placeholders in the SQL statement, even though those names are ":1"
+    # and ":2".
+    print(
+        "3. Bind by position: multiple values with numeric placeholder names"
+    )
+    sql = "select * from SampleQueryTab where id = :2 and 456 = :1"
+    print(await connection.fetchone(sql, [3, 456]))
+    print()
 
-        # With bind-by-position, repeated use of bind placeholder names in the
-        # SQL statement requires the input list data to be repeated.
-        print(
-            "4. Bind by position: multiple values with a repeated placeholder"
-        )
-        sql = "select * from SampleQueryTab where id = :2 and 3 = :2"
-        await cursor.execute(sql, [3, 3])
-        async for row in cursor:
-            print(row)
-        print()
+    # With bind-by-position, repeated use of bind placeholder names in the
+    # SQL statement requires the input list data to be repeated.
+    print("4. Bind by position: multiple values with a repeated placeholder")
+    sql = "select * from SampleQueryTab where id = :2 and 3 = :2"
+    print(await connection.fetchall(sql, [3, 3]))
+    print()
 
     # Bind by position with tuples
-    with connection.cursor() as cursor:
-        print("5. Bind by position with single value tuple")
-        sql = "select * from SampleQueryTab where id = :bvid"
-        await cursor.execute(sql, (4,))
-        async for row in cursor:
-            print(row)
-        print()
+    print("5. Bind by position with single value tuple")
+    sql = "select * from SampleQueryTab where id = :bvid"
+    print(await connection.fetchone(sql, (4,)))
+    print()
 
-        print("6. Bind by position with a multiple value tuple")
-        sql = (
-            "select * from SampleQueryTab "
-            "where id = :bvid and 789 = :otherbind"
-        )
-        await cursor.execute(sql, (4, 789))
-        async for row in cursor:
-            print(row)
-        print()
+    print("6. Bind by position with a multiple value tuple")
+    sql = "select * from SampleQueryTab where id = :bvid and 789 = :otherbind"
+    print(await connection.fetchone(sql, (4, 789)))
+    print()
 
     # Bind by name with a dictionary
-    with connection.cursor() as cursor:
-        print("7. Bind by name with a dictionary")
-        sql = "select * from SampleQueryTab where id = :bvid"
-        await cursor.execute(sql, {"bvid": 4})
-        async for row in cursor:
-            print(row)
-        print()
+    print("7. Bind by name with a dictionary")
+    sql = "select * from SampleQueryTab where id = :bvid"
+    print(await connection.fetchone(sql, {"bvid": 4}))
+    print()
 
-        # With bind-by-name, repeated use of bind placeholder names in the SQL
-        # statement lets you supply the data once.
-        print(
-            "8. Bind by name with multiple value dict "
-            "and repeated placeholders"
-        )
-        sql = "select * from SampleQueryTab where id = :bvid and 4 = :bvid"
-        await cursor.execute(sql, {"bvid": 4})
-        async for row in cursor:
-            print(row)
-        print()
+    # With bind-by-name, repeated use of bind placeholder names in the SQL
+    # statement lets you supply the data once.
+    print("8. Bind by name with multiple value dict and repeated placeholders")
+    sql = "select * from SampleQueryTab where id = :bvid and 4 = :bvid"
+    print(await connection.fetchone(sql, {"bvid": 4}))
+    print()
 
     # Bind by name with parameters.  The execute() parameter names match the
     # bind variable placeholder names.
-    with connection.cursor() as cursor:
-        print("9. Bind by name using parameters")
-        sql = "select * from SampleQueryTab where id = :bvid"
-        await cursor.execute(sql, bvid=5)
-        async for row in cursor:
-            print(row)
-        print()
+    print("9. Bind by name using parameters")
+    sql = "select * from SampleQueryTab where id = :bvid"
+    print(await connection.fetchone(sql, dict(bvid=5)))
+    print()
 
-        print("10. Bind by name using multiple parameters")
-        sql = (
-            "select * from SampleQueryTab "
-            "where id = :bvid and 101 = :otherbind"
-        )
-        await cursor.execute(sql, bvid=5, otherbind=101)
-        async for row in cursor:
-            print(row)
-        print()
+    print("10. Bind by name using multiple parameters")
+    sql = "select * from SampleQueryTab where id = :bvid and 101 = :otherbind"
+    print(await connection.fetchone(sql, dict(bvid=5, otherbind=101)))
+    print()
 
-        # With bind-by-name, repeated use of bind placeholder names in the SQL
-        # statement lets you supply the data once.
-        print(
-            "11. Bind by name: multiple values with repeated placeholder names"
-        )
-        sql = "select * from SampleQueryTab where id = :bvid and 6 = :bvid"
-        await cursor.execute(sql, bvid=6)
-        async for row in cursor:
-            print(row)
-        print()
+    # With bind-by-name, repeated use of bind placeholder names in the SQL
+    # statement lets you supply the data once.
+    print("11. Bind by name: multiple values with repeated placeholder names")
+    sql = "select * from SampleQueryTab where id = :bvid and 6 = :bvid"
+    print(await connection.fetchone(sql, dict(bvid=6)))
+    print()
 
     # Rexcuting a query with different data values
-    with connection.cursor() as cursor:
-        sql = "select * from SampleQueryTab where id = :bvid"
+    sql = "select * from SampleQueryTab where id = :bvid"
 
-        print("12. Query results with id = 7")
-        await cursor.execute(sql, [4])
-        async for row in cursor:
-            print(row)
-        print()
+    print("12. Query results with id = 7")
+    print(await connection.fetchone(sql, [4]))
+    print()
 
-        print("13. Rexcuted query results with id = 1")
-        await cursor.execute(sql, [1])
-        async for row in cursor:
-            print(row)
-        print()
+    print("13. Rexcuted query results with id = 1")
+    print(await connection.fetchone(sql, [1]))
+    print()
 
 
 asyncio.run(main())

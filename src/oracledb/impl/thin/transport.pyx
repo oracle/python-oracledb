@@ -126,8 +126,10 @@ cdef class Transport:
         between the database and the client.
         """
 
-        # start with a default SSL context
-        self._ssl_context = ssl.create_default_context()
+        # start with a default SSL context, unless a custom one is supplied
+        self._ssl_context = params.ssl_context
+        if self._ssl_context is None:
+            self._ssl_context = ssl.create_default_context()
 
         # if the platform is macOS, check if the certifi package is installed;
         # if certifi is not installed, load the certificates from the macOS

@@ -158,6 +158,7 @@ cdef class ConnectParamsImpl:
         _set_bool_param(args, "matchanytag", &self.matchanytag)
         _set_uint_param(args, "stmtcachesize", &self.stmtcachesize)
         _set_bool_param(args, "disable_oob", &self.disable_oob)
+        self.ssl_context = args.get("ssl_context")
         _set_str_param(args, "debug_jdwp", self)
         _set_str_param(args, "config_dir", self)
         self.appcontext = args.get("appcontext")
@@ -198,6 +199,7 @@ cdef class ConnectParamsImpl:
         self.stmtcachesize = other_params.stmtcachesize
         self.disable_oob = other_params.disable_oob
         self.debug_jdwp = other_params.debug_jdwp
+        self.ssl_context = other_params.ssl_context
         self.description_list = other_params.description_list
         self.access_token_callback = other_params.access_token_callback
         self.access_token_expires = other_params.access_token_expires
