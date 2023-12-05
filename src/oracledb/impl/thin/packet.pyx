@@ -681,7 +681,7 @@ cdef class WriteBuffer(Buffer):
         it.
         """
         cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
-        encoder.encode(value)
+        encoder.encode(value, self._caps.oson_max_fname_size)
         self.write_qlocator(encoder._pos)
         self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 

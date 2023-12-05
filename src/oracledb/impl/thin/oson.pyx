@@ -33,10 +33,12 @@
 cdef class OsonDecoder(Buffer):
 
     cdef:
+        uint16_t primary_flags, secondary_flags
         ssize_t field_id_length
         ssize_t tree_seg_pos
         list field_names
-        uint16_t flags
+        uint8_t version
+        bint relative_offsets
 
     cdef object _decode_container_node(self, uint8_t node_type):
         """
@@ -45,8 +47,8 @@ cdef class OsonDecoder(Buffer):
         cdef:
             bint is_shared, is_object = (node_type & 0x40) == 0
             ssize_t field_ids_pos = 0, offsets_pos = 0, pos
+            uint32_t container_offset, offset, temp32
             uint32_t i, num_children = 0
-            uint32_t offset, temp32
             uint16_t temp16
             uint8_t temp8
             object value
@@ -55,6 +57,7 @@ cdef class OsonDecoder(Buffer):
         # determine the number of children by examining the 4th and 5th most
         # significant bits of the node type; determine the offsets in the tree
         # segment to the field ids array and the value offsets array
+        container_offset = self._pos - self.tree_seg_pos - 1
         self._get_num_children(node_type, &num_children, &is_shared)
         if is_shared:
             value = {}
@@ -88,6 +91,8 @@ cdef class OsonDecoder(Buffer):
                 field_ids_pos = self._pos
             self.skip_to(offsets_pos)
             self._get_offset(node_type, &offset)
+            if self.relative_offsets:
+                offset += container_offset
             offsets_pos = self._pos
             self.skip_to(self.tree_seg_pos + offset)
             if is_object:
@@ -193,6 +198,43 @@ cdef class OsonDecoder(Buffer):
         errors._raise_err(errors.ERR_OSON_NODE_TYPE_NOT_SUPPORTED,
                           node_type=node_type)
 
+    cdef list _get_long_field_names(self, uint32_t num_fields,
+                                    ssize_t offsets_size,
+                                    uint32_t field_names_seg_size):
+        """
+        Read the long field names from the buffer.
+        """
+        cdef:
+            ssize_t offsets_pos, final_pos
+            const char_type* ptr
+            uint32_t offset, i
+            list field_names
+            uint16_t temp16
+            uint8_t temp8
+
+        # skip the hash id array (2 bytes for each field)
+        self.skip_raw_bytes(num_fields * 2)
+
+        # skip the field name offsets array for now
+        offsets_pos = self._pos
+        self.skip_raw_bytes(num_fields * offsets_size)
+        ptr = self._get_raw(field_names_seg_size)
+        final_pos = self._pos
+
+        # determine the names of the fields
+        self.skip_to(offsets_pos)
+        field_names = [None] * num_fields
+        for i in range(num_fields):
+            if offsets_size == 2:
+                self.read_uint16(&temp16)
+                offset = temp16
+            else:
+                self.read_uint32(&offset)
+            temp16 = unpack_uint16(&ptr[offset], BYTE_ORDER_MSB)
+            field_names[i] = ptr[offset + 2:offset + temp16 + 2].decode()
+        self.skip_to(final_pos)
+        return field_names
+
     cdef int _get_num_children(self, uint8_t node_type, uint32_t* num_children,
                                bint* is_shared) except -1:
         """
@@ -233,15 +275,55 @@ cdef class OsonDecoder(Buffer):
             self.read_uint16(&temp16)
             offset[0] = temp16
 
+    cdef list _get_short_field_names(self, uint32_t num_fields,
+                                     ssize_t offsets_size,
+                                     uint32_t field_names_seg_size):
+        """
+        Read the short field names from the buffer.
+        """
+        cdef:
+            ssize_t offsets_pos, final_pos
+            const char_type* ptr
+            uint32_t offset, i
+            list field_names
+            uint16_t temp16
+            uint8_t temp8
+
+        # skip the hash id array (1 byte for each field)
+        self.skip_raw_bytes(num_fields)
+
+        # skip the field name offsets array for now
+        offsets_pos = self._pos
+        self.skip_raw_bytes(num_fields * offsets_size)
+        ptr = self._get_raw(field_names_seg_size)
+        final_pos = self._pos
+
+        # determine the names of the fields
+        self.skip_to(offsets_pos)
+        field_names = [None] * num_fields
+        for i in range(num_fields):
+            if offsets_size == 2:
+                self.read_uint16(&temp16)
+                offset = temp16
+            else:
+                self.read_uint32(&offset)
+            temp8 = ptr[offset]
+            field_names[i] = ptr[offset + 1:offset + temp8 + 1].decode()
+        self.skip_to(final_pos)
+        return field_names
+
     cdef object decode(self, bytes data):
         """
         Returns a Python object corresponding to the encoded OSON bytes.
         """
         cdef:
-            uint32_t num_field_names, field_names_seg_size, tree_seg_size, i
-            ssize_t hash_id_size, field_name_offsets_size
+            uint32_t short_field_names_seg_size, long_field_names_seg_size = 0
+            uint32_t num_short_field_names, num_long_field_names = 0
+            ssize_t hash_id_size, short_field_name_offsets_size
+            ssize_t long_field_name_offsets_size = 0
             uint16_t num_tiny_nodes, temp16
             ssize_t field_name_offsets_pos
+            uint32_t tree_seg_size, i
             uint8_t version, temp8
             const char_type* ptr
             uint32_t offset
@@ -255,44 +337,60 @@ cdef class OsonDecoder(Buffer):
                 ptr[1] != TNS_JSON_MAGIC_BYTE_2 or \
                 ptr[2] != TNS_JSON_MAGIC_BYTE_3:
             errors._raise_err(errors.ERR_UNEXPECTED_DATA, data=ptr[:3])
-        self.read_ub1(&version)
-        if version != TNS_JSON_VERSION:
+        self.read_ub1(&self.version)
+        if self.version not in (
+            TNS_JSON_VERSION_MAX_FNAME_255,
+            TNS_JSON_VERSION_MAX_FNAME_65535
+        ):
             errors._raise_err(errors.ERR_OSON_VERSION_NOT_SUPPORTED,
-                              version=version)
-        self.read_uint16(&self.flags)
+                              version=self.version)
+        self.read_uint16(&self.primary_flags)
+        self.relative_offsets = \
+                self.primary_flags & TNS_JSON_FLAG_REL_OFFSET_MODE
 
         # if value is a scalar value, the header is much smaller
-        if self.flags & TNS_JSON_FLAG_IS_SCALAR:
-            if self.flags & TNS_JSON_FLAG_TREE_SEG_UINT32:
+        if self.primary_flags & TNS_JSON_FLAG_IS_SCALAR:
+            if self.primary_flags & TNS_JSON_FLAG_TREE_SEG_UINT32:
                 self.skip_raw_bytes(4)
             else:
                 self.skip_raw_bytes(2)
             return self._decode_node()
 
         # determine the number of field names
-        if self.flags & TNS_JSON_FLAG_NUM_FNAMES_UINT32:
-            self.read_uint32(&num_field_names)
+        if self.primary_flags & TNS_JSON_FLAG_NUM_FNAMES_UINT32:
+            self.read_uint32(&num_short_field_names)
             self.field_id_length = 4
-        elif self.flags & TNS_JSON_FLAG_NUM_FNAMES_UINT16:
+        elif self.primary_flags & TNS_JSON_FLAG_NUM_FNAMES_UINT16:
             self.read_uint16(&temp16)
-            num_field_names = temp16
+            num_short_field_names = temp16
             self.field_id_length = 2
         else:
             self.read_ub1(&temp8)
-            num_field_names = temp8
+            num_short_field_names = temp8
             self.field_id_length = 1
 
         # determine the size of the field names segment
-        if self.flags & TNS_JSON_FLAG_FNAMES_SEG_UINT32:
-            field_name_offsets_size = 4
-            self.read_uint32(&field_names_seg_size)
+        if self.primary_flags & TNS_JSON_FLAG_FNAMES_SEG_UINT32:
+            short_field_name_offsets_size = 4
+            self.read_uint32(&short_field_names_seg_size)
         else:
-            field_name_offsets_size = 2
+            short_field_name_offsets_size = 2
             self.read_uint16(&temp16)
-            field_names_seg_size = temp16
+            short_field_names_seg_size = temp16
+
+        # if the version indicates that field names > 255 bytes exist, parse
+        # the information about that segment
+        if self.version == TNS_JSON_VERSION_MAX_FNAME_65535:
+            self.read_uint16(&self.secondary_flags)
+            if self.secondary_flags & TNS_JSON_FLAG_SEC_FNAMES_SEG_UINT16:
+                long_field_name_offsets_size = 2
+            else:
+                long_field_name_offsets_size = 4
+            self.read_uint32(&num_long_field_names)
+            self.read_uint32(&long_field_names_seg_size)
 
         # determine the size of the tree segment
-        if self.flags & TNS_JSON_FLAG_TREE_SEG_UINT32:
+        if self.primary_flags & TNS_JSON_FLAG_TREE_SEG_UINT32:
             self.read_uint32(&tree_seg_size)
         else:
             self.read_uint16(&temp16)
@@ -301,34 +399,28 @@ cdef class OsonDecoder(Buffer):
         # determine the number of "tiny" nodes
         self.read_uint16(&num_tiny_nodes)
 
-        # skip the hash id array
-        if self.flags & TNS_JSON_FLAG_HASH_ID_UINT8:
-            hash_id_size = 1
-        elif self.flags & TNS_JSON_FLAG_HASH_ID_UINT16:
-            hash_id_size = 2
-        else:
-            hash_id_size = 4
-        self.skip_raw_bytes(num_field_names * hash_id_size)
+        # if there are any short names, read them now
+        self.field_names = []
+        if num_short_field_names > 0:
+            self.field_names.extend(
+                self._get_short_field_names(
+                    num_short_field_names,
+                    short_field_name_offsets_size,
+                    short_field_names_seg_size
+                )
+            )
 
-        # skip the field name offsets array for now
-        field_name_offsets_pos = self._pos
-        self.skip_raw_bytes(num_field_names * field_name_offsets_size)
-        ptr = self._get_raw(field_names_seg_size)
-
-        # determine the names of the fields
-        self.skip_to(field_name_offsets_pos)
-        self.field_names = [None] * num_field_names
-        for i in range(num_field_names):
-            if self.flags & TNS_JSON_FLAG_FNAMES_SEG_UINT32:
-                self.read_uint32(&offset)
-            else:
-                self.read_uint16(&temp16)
-                offset = temp16
-            temp8 = ptr[offset]
-            self.field_names[i] = ptr[offset + 1:offset + temp8 + 1].decode()
+        # if there are any long names, read them now
+        if num_long_field_names > 0:
+            self.field_names.extend(
+                self._get_long_field_names(
+                    num_long_field_names,
+                    long_field_name_offsets_size,
+                    long_field_names_seg_size
+                )
+            )
 
         # get tree segment
-        self.skip_raw_bytes(field_names_seg_size)
         self.tree_seg_pos = self._pos
 
         # return root node
@@ -359,20 +451,18 @@ cdef class OsonFieldName:
             self.hash_id = (self.hash_id ^ ptr[i]) * 16777619
 
     @staticmethod
-    cdef OsonFieldName create(str name):
+    cdef OsonFieldName create(str name, ssize_t max_fname_size):
         """
         Creates and initializes the field name.
         """
-        cdef:
-            OsonFieldName field_name
-            ssize_t name_bytes_len
+        cdef OsonFieldName field_name
         field_name = OsonFieldName.__new__(OsonFieldName)
         field_name.name = name
         field_name.name_bytes = name.encode()
-        name_bytes_len = len(field_name.name_bytes)
-        if name_bytes_len > 255:
-            errors._raise_err(errors.ERR_OSON_FIELD_NAME_LIMITATION)
-        field_name.name_bytes_len = <uint8_t> name_bytes_len
+        field_name.name_bytes_len = len(field_name.name_bytes)
+        if field_name.name_bytes_len > max_fname_size:
+            errors._raise_err(errors.ERR_OSON_FIELD_NAME_LIMITATION,
+                              max_fname_size=max_fname_size)
         field_name._calc_hash_id()
         return field_name
 
@@ -388,45 +478,22 @@ cdef class OsonFieldNamesSegment(GrowableBuffer):
 
     cdef:
         uint32_t num_field_names
-        dict field_names_dict
         list field_names
 
-    cdef int _examine_node(self, object value) except -1:
+    cdef int add_name(self, OsonFieldName field_name) except -1:
         """
-        Examines the value. If it is a dictionary, all keys are extracted and
-        unique names retained. Elements in lists and tuples and values in
-        dictionaries are then examined to determine if they contain
-        dictionaries as well.
+        Adds a name to the field names segment.
         """
-        cdef OsonFieldName field_name
-        if isinstance(value, (list, tuple)):
-            for child_value in value:
-                self._examine_node(child_value)
-        elif isinstance(value, dict):
-            for key, child_value in (<dict> value).items():
-                if key not in self.field_names_dict:
-                    field_name = OsonFieldName.create(key)
-                    self.field_names_dict[key] = field_name
-                    field_name.offset = self._pos
-                    self.write_uint8(field_name.name_bytes_len)
-                    self.write_bytes(field_name.name_bytes)
-                self._examine_node(child_value)
-
-    cdef int _process_field_names(self) except -1:
-        """
-        Processes the field names in preparation for encoding within OSON.
-        """
-        cdef:
-            OsonFieldName field_name
-            ssize_t i
-        self.field_names = sorted(self.field_names_dict.values(),
-                                  key=OsonFieldName.sort_key)
-        for i, field_name in enumerate(self.field_names):
-            field_name.field_id = i + 1
-        self.num_field_names = <uint32_t> len(self.field_names)
+        field_name.offset = self._pos
+        if field_name.name_bytes_len <= 255:
+            self.write_uint8(field_name.name_bytes_len)
+        else:
+            self.write_uint16(field_name.name_bytes_len)
+        self.write_bytes(field_name.name_bytes)
+        self.field_names.append(field_name)
 
     @staticmethod
-    cdef OsonFieldNamesSegment create(object value):
+    cdef OsonFieldNamesSegment create():
         """
         Creates and initializes the segment. The value (and all of its
         children) are examined for dictionaries and the keys retained as
@@ -435,10 +502,20 @@ cdef class OsonFieldNamesSegment(GrowableBuffer):
         cdef OsonFieldNamesSegment seg
         seg = OsonFieldNamesSegment.__new__(OsonFieldNamesSegment)
         seg._initialize(TNS_CHUNK_SIZE)
-        seg.field_names_dict = {}
-        seg._examine_node(value)
-        seg._process_field_names()
+        seg.field_names = []
         return seg
+
+    cdef int process_field_names(self, ssize_t field_id_offset) except -1:
+        """
+        Processes the field names in preparation for encoding within OSON.
+        """
+        cdef:
+            OsonFieldName field_name
+            ssize_t i
+        self.field_names.sort(key=OsonFieldName.sort_key)
+        for i, field_name in enumerate(self.field_names):
+            field_name.field_id = field_id_offset + i + 1
+        self.num_field_names = <uint32_t> len(self.field_names)
 
 
 @cython.final
@@ -462,8 +539,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
         else:
             self.write_uint32(<uint32_t> num_children)
 
-    cdef int encode_array(self, object value,
-                          OsonFieldNamesSegment fnames_seg) except -1:
+    cdef int encode_array(self, object value, OsonEncoder encoder) except -1:
         """
         Encode an array in the OSON tree segment.
         """
@@ -478,48 +554,41 @@ cdef class OsonTreeSegment(GrowableBuffer):
         for element in value:
             pack_uint32(&self._data[offset], self._pos, BYTE_ORDER_MSB)
             offset += sizeof(uint32_t)
-            self.encode_node(element, fnames_seg)
+            self.encode_node(element, encoder)
 
-    cdef int encode_object(self, dict value,
-                           OsonFieldNamesSegment fnames_seg) except -1:
+    cdef int encode_object(self, dict value, OsonEncoder encoder) except -1:
         """
         Encode an object in the OSON tree segment.
         """
         cdef:
-            uint32_t field_id_offset, value_offset
-            uint8_t node_type, field_id_size
+            uint32_t field_id_offset, value_offset, final_offset
             OsonFieldName field_name
             ssize_t num_children
             object child_value
+            uint8_t node_type
             str key
         num_children = len(value)
         self._encode_container(TNS_JSON_TYPE_OBJECT, num_children)
-        if fnames_seg.num_field_names < 256:
-            field_id_size = 1
-        elif fnames_seg.num_field_names < 65536:
-            field_id_size = 2
-        else:
-            field_id_size = 4
         field_id_offset = self._pos
-        value_offset = self._pos + num_children * field_id_size
-        self._reserve_space(num_children * (field_id_size + sizeof(uint32_t)))
+        value_offset = self._pos + num_children * encoder.field_id_size
+        final_offset = value_offset + num_children * sizeof(uint32_t)
+        self._reserve_space(final_offset - self._pos)
         for key, child_value in value.items():
-            field_name = fnames_seg.field_names_dict[key]
-            if field_id_size == 1:
+            field_name = encoder.field_names_dict[key]
+            if encoder.field_id_size == 1:
                 self._data[field_id_offset] = <uint8_t> field_name.field_id
-            elif field_id_size == 2:
+            elif encoder.field_id_size == 2:
                 pack_uint16(&self._data[field_id_offset],
                             <uint16_t> field_name.field_id, BYTE_ORDER_MSB)
             else:
                 pack_uint32(&self._data[field_id_offset], field_name.field_id,
                             BYTE_ORDER_MSB)
             pack_uint32(&self._data[value_offset], self._pos, BYTE_ORDER_MSB)
-            field_id_offset += field_id_size
+            field_id_offset += encoder.field_id_size
             value_offset += sizeof(uint32_t)
-            self.encode_node(child_value, fnames_seg)
+            self.encode_node(child_value, encoder)
 
-    cdef int encode_node(self, object value,
-                         OsonFieldNamesSegment fnames_seg) except -1:
+    cdef int encode_node(self, object value, OsonEncoder encoder) except -1:
         """
         Encode a value (node) in the OSON tree segment.
         """
@@ -592,11 +661,11 @@ cdef class OsonTreeSegment(GrowableBuffer):
 
         # handle lists/tuples
         elif isinstance(value, (list, tuple)):
-            self.encode_array(value, fnames_seg)
+            self.encode_array(value, encoder)
 
         # handle dictionaries
         elif isinstance(value, dict):
-            self.encode_object(value, fnames_seg)
+            self.encode_object(value, encoder)
 
         # other types are not supported
         else:
@@ -607,35 +676,156 @@ cdef class OsonTreeSegment(GrowableBuffer):
 @cython.final
 cdef class OsonEncoder(GrowableBuffer):
 
-    cdef int encode(self, object value) except -1:
+    cdef:
+        OsonFieldNamesSegment short_fnames_seg
+        OsonFieldNamesSegment long_fnames_seg
+        uint32_t num_field_names
+        ssize_t max_fname_size
+        dict field_names_dict
+        uint8_t field_id_size
+
+    cdef int _add_field_name(self, str name) except -1:
+        """
+        Add a field with the given name.
+        """
+        cdef OsonFieldName field_name
+        field_name = OsonFieldName.create(name, self.max_fname_size)
+        self.field_names_dict[name] = field_name
+        if field_name.name_bytes_len <= 255:
+            self.short_fnames_seg.add_name(field_name)
+        else:
+            if self.long_fnames_seg is None:
+                self.long_fnames_seg = OsonFieldNamesSegment.create()
+            self.long_fnames_seg.add_name(field_name)
+
+    cdef int _determine_flags(self, object value, uint16_t *flags) except -1:
+        """
+        Determine the flags to use for the OSON image.
+        """
+
+        # if value is a simple scalar, nothing more needs to be done
+        flags[0] = TNS_JSON_FLAG_INLINE_LEAF
+        if not isinstance(value, (list, tuple, dict)):
+            flags[0] |= TNS_JSON_FLAG_IS_SCALAR
+            return 0
+
+        # examine all values recursively to determine the unique set of field
+        # names and whether they need to be added to the long field names
+        # segment (> 255 bytes) or short field names segment (<= 255 bytes)
+        self.field_names_dict = {}
+        self.short_fnames_seg = OsonFieldNamesSegment.create()
+        self._examine_node(value)
+
+        # perform processing of field names segments and determine the total
+        # number of unique field names in the value
+        if self.short_fnames_seg is not None:
+            self.short_fnames_seg.process_field_names(0)
+            self.num_field_names += self.short_fnames_seg.num_field_names
+        if self.long_fnames_seg is not None:
+            self.long_fnames_seg.process_field_names(self.num_field_names)
+            self.num_field_names += self.long_fnames_seg.num_field_names
+
+        # determine remaining flags and field id size
+        flags[0] |= TNS_JSON_FLAG_HASH_ID_UINT8 | \
+                TNS_JSON_FLAG_TINY_NODES_STAT
+        if self.num_field_names > 65535:
+            flags[0] |= TNS_JSON_FLAG_NUM_FNAMES_UINT32
+            self.field_id_size = 4
+        elif self.num_field_names > 255:
+            flags[0] |= TNS_JSON_FLAG_NUM_FNAMES_UINT16
+            self.field_id_size = 2
+        else:
+            self.field_id_size = 1
+        if self.short_fnames_seg._pos > 65535:
+            flags[0] |= TNS_JSON_FLAG_FNAMES_SEG_UINT32
+
+    cdef int _examine_node(self, object value) except -1:
+        """
+        Examines the value. If it is a dictionary, all keys are extracted and
+        unique names retained. Elements in lists and tuples and values in
+        dictionaries are then examined to determine if they contain
+        dictionaries as well.
+        """
+        cdef str key
+        if isinstance(value, (list, tuple)):
+            for child_value in value:
+                self._examine_node(child_value)
+        elif isinstance(value, dict):
+            for key, child_value in (<dict> value).items():
+                if key not in self.field_names_dict:
+                    self._add_field_name(key)
+                self._examine_node(child_value)
+
+    cdef int _write_extended_header(self) except -1:
+        """
+        Write the extended header containing information about the short and
+        long field name segments.
+        """
+        cdef uint16_t secondary_flags = 0
+
+        # write number of short field names
+        if self.field_id_size == 1:
+            self.write_uint8(<uint8_t> self.short_fnames_seg.num_field_names)
+        elif self.field_id_size == 2:
+            self.write_uint16(<uint16_t> self.short_fnames_seg.num_field_names)
+        else:
+            self.write_uint32(self.short_fnames_seg.num_field_names)
+
+        # write size of short field names segment
+        if self.short_fnames_seg._pos < 65536:
+            self.write_uint16(<uint16_t> self.short_fnames_seg._pos)
+        else:
+            self.write_uint32(self.short_fnames_seg._pos)
+
+        # write fields for long field names segment, if applicable
+        if self.long_fnames_seg is not None:
+            if self.long_fnames_seg._pos < 65536:
+                secondary_flags = TNS_JSON_FLAG_SEC_FNAMES_SEG_UINT16
+            self.write_uint16(secondary_flags)
+            self.write_uint32(self.long_fnames_seg.num_field_names)
+            self.write_uint32(self.long_fnames_seg._pos)
+
+    cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1:
+        """
+        Write the contents of the field names segment to the buffer.
+        """
+        cdef OsonFieldName field_name
+
+        # write array of hash ids
+        for field_name in seg.field_names:
+            if field_name.name_bytes_len <= 255:
+                self.write_uint8(field_name.hash_id & 0xff)
+            else:
+                self.write_uint16(field_name.hash_id & 0xffff)
+
+        # write array of field name offsets for the short field names
+        for field_name in seg.field_names:
+            if seg._pos < 65536:
+                self.write_uint16(<uint16_t> field_name.offset)
+            else:
+                self.write_uint32(field_name.offset)
+
+        # write field names
+        if seg._pos > 0:
+            self.write_raw(seg._data, seg._pos)
+
+    cdef int encode(self, object value, ssize_t max_fname_size) except -1:
         """
         Encodes the given value to OSON.
         """
         cdef:
-            OsonFieldNamesSegment fnames_seg = None
             OsonFieldName field_name
             OsonTreeSegment tree_seg
             uint16_t flags
 
         # determine the flags to use
-        flags = TNS_JSON_FLAG_INLINE_LEAF
-        if isinstance(value, (list, tuple, dict)):
-            flags |= TNS_JSON_FLAG_HASH_ID_UINT8 | \
-                     TNS_JSON_FLAG_TINY_NODES_STAT
-            fnames_seg = OsonFieldNamesSegment.create(value);
-            if fnames_seg.num_field_names > 65535:
-                flags |= TNS_JSON_FLAG_NUM_FNAMES_UINT32
-            elif fnames_seg.num_field_names > 255:
-                flags |= TNS_JSON_FLAG_NUM_FNAMES_UINT16
-            if fnames_seg._pos > 65535:
-                flags |= TNS_JSON_FLAG_FNAMES_SEG_UINT32
-        else:
-            flags |= TNS_JSON_FLAG_IS_SCALAR
+        self.max_fname_size = max_fname_size
+        self._determine_flags(value, &flags)
 
         # encode values into tree segment
         tree_seg = OsonTreeSegment.__new__(OsonTreeSegment)
         tree_seg._initialize(TNS_CHUNK_SIZE)
-        tree_seg.encode_node(value, fnames_seg)
+        tree_seg.encode_node(value, self)
         if tree_seg._pos > 65535:
             flags |= TNS_JSON_FLAG_TREE_SEG_UINT32
 
@@ -643,52 +833,32 @@ cdef class OsonEncoder(GrowableBuffer):
         self.write_uint8(TNS_JSON_MAGIC_BYTE_1)
         self.write_uint8(TNS_JSON_MAGIC_BYTE_2)
         self.write_uint8(TNS_JSON_MAGIC_BYTE_3)
-        self.write_uint8(TNS_JSON_VERSION)
+        if self.long_fnames_seg is not None:
+            self.write_uint8(TNS_JSON_VERSION_MAX_FNAME_65535)
+        else:
+            self.write_uint8(TNS_JSON_VERSION_MAX_FNAME_255)
         self.write_uint16(flags)
 
         # write extended header (when value is not scalar)
-        if fnames_seg is not None:
-
-            # write number of field names
-            if fnames_seg.num_field_names < 256:
-                self.write_uint8(<uint8_t> fnames_seg.num_field_names)
-            elif fnames_seg.num_field_names < 65536:
-                self.write_uint16(<uint16_t> fnames_seg.num_field_names)
-            else:
-                self.write_uint32(fnames_seg.num_field_names)
-
-            # write size of field names segment
-            if fnames_seg._pos < 65536:
-                self.write_uint16(<uint16_t> fnames_seg._pos)
-            else:
-                self.write_uint32(fnames_seg._pos)
+        if self.short_fnames_seg is not None:
+            self._write_extended_header()
 
         # write size of tree segment
-        if (tree_seg._pos < 65536):
+        if tree_seg._pos < 65536:
             self.write_uint16(<uint16_t> tree_seg._pos)
         else:
             self.write_uint32(tree_seg._pos)
 
         # write remainder of header and any data (when value is not scalar)
-        if fnames_seg is not None:
+        if self.short_fnames_seg is not None:
 
             # write number of "tiny" nodes (always zero)
             self.write_uint16(0)
 
-            # write array of hash ids
-            for field_name in fnames_seg.field_names:
-                self.write_uint8(field_name.hash_id & 0xff)
-
-            # write array of field name offsets
-            for field_name in fnames_seg.field_names:
-                if fnames_seg._pos < 65536:
-                    self.write_uint16(<uint16_t> field_name.offset)
-                else:
-                    self.write_uint32(field_name.offset)
-
-            # write field names
-            if fnames_seg._pos > 0:
-                self.write_raw(fnames_seg._data, fnames_seg._pos)
+            # write field name segments
+            self._write_fnames_seg(self.short_fnames_seg)
+            if self.long_fnames_seg is not None:
+                self._write_fnames_seg(self.long_fnames_seg)
 
         # write tree segment data
         self.write_raw(tree_seg._data, tree_seg._pos)

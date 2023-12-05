@@ -50,3 +50,11 @@ insert into &main_user..TableWithDomainAndAnnotations values (1, 25)
 
 commit
 /
+
+create table &main_user..TestCompressedJson (
+    IntCol number(9) not null,
+    JsonCol json not null
+)
+json (JsonCol)
+store as (compress high)
+/

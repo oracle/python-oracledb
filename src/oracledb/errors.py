@@ -516,7 +516,7 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_ORACLE_TYPE_NOT_SUPPORTED: "Oracle data type {num} is not supported",
     ERR_OSON_FIELD_NAME_LIMITATION: (
-        "OSON field names may not exceed 255 UTF-8 encoded bytes"
+        "OSON field names may not exceed {max_fname_size} UTF-8 encoded bytes"
     ),
     ERR_OSON_NODE_TYPE_NOT_SUPPORTED: (
         "OSON node type 0x{node_type:x} is not supported"

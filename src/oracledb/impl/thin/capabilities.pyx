@@ -40,6 +40,7 @@ cdef class Capabilities:
         bytearray runtime_caps
         uint32_t max_string_size
         bint supports_oob
+        ssize_t oson_max_fname_size
 
     def __init__(self):
         self._init_compile_caps()
@@ -55,6 +56,9 @@ cdef class Capabilities:
         if server_caps[TNS_CCAP_FIELD_VERSION] < self.ttc_field_version:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
+        self.oson_max_fname_size = 65535 \
+                if self.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1 \
+                else 255
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
