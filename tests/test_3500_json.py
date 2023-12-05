@@ -70,7 +70,7 @@ class TestCase(test_env.BaseTestCase):
     ]
 
     def __bind_scalar_as_json(self, data):
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         out_var = self.cursor.var(oracledb.DB_TYPE_JSON, arraysize=len(data))
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON, out_var)
         bind_data = list(enumerate(data))
@@ -86,7 +86,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3500_insert_and_fetch_single_json(self):
         "3500 - insert and fetch single row with JSON"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.execute(
             "insert into TestJson values (:1, :2)", [1, self.json_data]
@@ -98,7 +98,7 @@ class TestCase(test_env.BaseTestCase):
     def test_3501_execute_with_dml_returning(self):
         "3501 - inserting single rows with JSON and DML returning"
         json_val = self.json_data[11]
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         json_out = self.cursor.var(oracledb.DB_TYPE_JSON)
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON, json_out)
         self.cursor.execute(
@@ -113,7 +113,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3502_insert_and_fetch_multiple_json(self):
         "3502 - insert and fetch multiple rows with JSON"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         data = list(enumerate(self.json_data))
         self.cursor.executemany("insert into TestJson values(:1, :2)", data)
@@ -122,7 +122,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3503_executemany_with_dml_returning(self):
         "3503 - inserting multiple rows with JSON and DML returning"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         int_values = [i for i in range(len(self.json_data))]
         out_int_var = self.cursor.var(int, arraysize=len(int_values))
         out_json_var = self.cursor.var(
@@ -189,7 +189,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3508_unsupported_python_type_bind(self):
         "3508 - test binding unsupported python type with JSON"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         insert_sql = "insert into TestJson values (:1, :2)"
         self.assertRaisesRegex(
@@ -268,7 +268,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3511_update_json(self):
         "3511 - test inserting and updating JSON"
-        self.cursor.execute("truncate table TestJSON")
+        self.cursor.execute("delete from TestJSON")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany(
             "insert into TestJSON values (:1, :2)",
@@ -287,7 +287,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3512_json_query(self):
         "3512 - test fetching json with json_query"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany(
             "insert into TestJSON values (:1, :2)",
@@ -307,7 +307,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3513_json_exists(self):
         "3513 - test fetching json with json_exists"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany(
             "insert into TestJSON values (:1, :2)",
@@ -327,7 +327,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3514_select_json(self):
         "3514 - test selecting json data"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         self.cursor.executemany(
             "insert into TestJSON values (:1, :2)",
@@ -350,7 +350,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3515_json_serialize(self):
         "3515 - test fetching json with json_serialize"
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         data = [{"a": 12.5}, {"b": True}, {"c": None}]
         expected_data = ['{"a":12.5}', '{"b":true}', '{"c":null}']
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)

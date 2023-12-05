@@ -255,7 +255,7 @@ class TestCase(test_env.BaseTestCase):
                     outconverter=lambda v: json.loads(v.read()),
                 )
 
-        self.cursor.execute("truncate table TestJson")
+        self.cursor.execute("delete from TestJson")
         insert_sql = "insert into TestJson values (:1, :2)"
         json_data = [
             dict(name="John", city="Delhi"),

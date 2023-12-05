@@ -289,9 +289,9 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2307_round_trip_object(self):
         "2307 - test inserting and then querying object with all data types"
-        self.cursor.execute("truncate table TestClobs")
-        self.cursor.execute("truncate table TestNClobs")
-        self.cursor.execute("truncate table TestBlobs")
+        self.cursor.execute("delete from TestClobs")
+        self.cursor.execute("delete from TestNClobs")
+        self.cursor.execute("delete from TestBlobs")
         self.cursor.execute(
             """
             insert into TestClobs (IntCol, ClobCol)

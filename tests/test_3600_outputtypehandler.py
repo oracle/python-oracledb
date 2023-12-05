@@ -59,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
         in_value = f"Some {lob_type} data"
         if lob_type == "BLOB":
             in_value = in_value.encode()
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
         self.cursor.execute(
             f"""
             insert into Test{lob_type}s (IntCol, {lob_type}Col)

@@ -440,7 +440,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1618_dml_returning_with_lob_and_outconverter(self):
         "1618 - test DML returning with LOBs and an output converter"
-        self.cursor.execute("truncate table TestCLOBs")
+        self.cursor.execute("delete from TestCLOBs")
         out_var = self.cursor.var(
             oracledb.DB_TYPE_CLOB, outconverter=lambda value: value.read()
         )
@@ -459,7 +459,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1619_dml_returning_with_clob_converted_to_long(self):
         "1619 - test DML returning with CLOB converted to LONG"
-        self.cursor.execute("truncate table TestCLOBs")
+        self.cursor.execute("delete from TestCLOBs")
         out_var = self.cursor.var(oracledb.DB_TYPE_LONG)
         lob_value = "A short CLOB - 1619"
         self.cursor.execute(

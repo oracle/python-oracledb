@@ -51,7 +51,8 @@ class TestCase(test_env.BaseTestCase):
     def __perform_test(self, lob_type, input_type):
         long_string = ""
         db_type = getattr(oracledb, f"DB_TYPE_{lob_type}")
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
+        self.conn.commit()
         for i in range(11):
             if i > 0:
                 char = chr(ord("A") + i - 1)
@@ -90,7 +91,8 @@ class TestCase(test_env.BaseTestCase):
             extra_col_1 = extra_col_1.encode()
             extra_col_2 = extra_col_2.encode()
         self.conn.stmtcachesize = 0
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
+        self.conn.commit()
         data = (1, main_col, 8, extra_col_1, 15, extra_col_2)
         self.cursor.execute(
             f"""
@@ -106,7 +108,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(self.cursor.fetchone(), data)
 
     def __test_fetch_lobs_direct(self, lob_type):
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
+        self.conn.commit()
         data = []
         long_string = ""
         for i in range(1, 11):
@@ -135,7 +138,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(self.cursor.fetchall(), data)
 
     def __test_lob_operations(self, lob_type):
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
+        self.conn.commit()
         self.cursor.setinputsizes(long_string=getattr(oracledb, lob_type))
         long_string = "X" * 75000
         write_value = "TEST"
@@ -214,7 +218,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(unpickled_value, value)
 
     def __test_temporary_lob(self, lob_type):
-        self.cursor.execute(f"truncate table Test{lob_type}s")
+        self.cursor.execute(f"delete from Test{lob_type}s")
+        self.conn.commit()
         value = "A test string value"
         if lob_type == "BLOB":
             value = value.encode("ascii")
@@ -267,7 +272,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1900_bind_lob_value(self):
         "1900 - test binding a LOB value directly"
-        self.cursor.execute("truncate table TestCLOBs")
+        self.cursor.execute("delete from TestCLOBs")
         self.cursor.execute(
             """
             insert into TestCLOBs
@@ -275,6 +280,7 @@ class TestCase(test_env.BaseTestCase):
             values (1, 'Short value')
             """
         )
+        self.conn.commit()
         self.cursor.execute("select ClobCol from TestCLOBs")
         (lob,) = self.cursor.fetchone()
         self.cursor.execute(
@@ -343,9 +349,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1912_multiple_fetch(self):
         "1912 - test retrieving data from a CLOB after multiple fetches"
         self.cursor.arraysize = 1
-        self.cursor.execute("select * from TestCLOBS")
-        rows = self.cursor.fetchall()
-        self.__validate_query(rows, "CLOB")
+        self.__perform_test("CLOB", oracledb.DB_TYPE_CLOB)
 
     def test_1913_nclob_cursor_description(self):
         "1913 - test cursor description is accurate for NCLOBs"
@@ -363,7 +367,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1915_nclob_non_ascii_chars(self):
         "1915 - test binding and fetching NCLOB data (with non-ASCII chars)"
         value = "\u03b4\u4e2a"
-        self.cursor.execute("truncate table TestNCLOBs")
+        self.cursor.execute("delete from TestNCLOBs")
         self.cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(
             """
@@ -372,6 +376,7 @@ class TestCase(test_env.BaseTestCase):
             """,
             val=value,
         )
+        self.conn.commit()
         self.cursor.execute("select NCLOBCol from TestNCLOBs")
         (nclob,) = self.cursor.fetchone()
         self.cursor.setinputsizes(val=oracledb.DB_TYPE_NVARCHAR)
@@ -429,7 +434,7 @@ class TestCase(test_env.BaseTestCase):
             "𠽌 𠾴 𠾼 𠿪 𡁜 𡁯 𡁵 𡁶 𡁻 𡃁 𡃉 𡇙 𢃇 𢞵 𢫕 𢭃 𢯊 𢱑 𢱕 𢳂 𢴈 "
             "𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
         )
-        self.cursor.execute("truncate table TestCLOBs")
+        self.cursor.execute("delete from TestCLOBs")
         lob = self.conn.createlob(oracledb.DB_TYPE_CLOB)
         lob.write(supplemental_chars)
         self.cursor.execute(

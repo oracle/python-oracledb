@@ -558,7 +558,7 @@ class TestCase(test_env.BaseTestCase):
 
         self.conn.outputtypehandler = type_handler
         blob_data = b"An arbitrary set of blob data for test case 4348"
-        self.cursor.execute("truncate table TestBLOBs")
+        self.cursor.execute("delete from TestBLOBs")
         self.cursor.execute(
             "insert into TestBLOBs (IntCol, BlobCol) values (1, :data)",
             [blob_data],
@@ -566,7 +566,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         self.assertEqual(self.cursor.fetchall(), [(1, blob_data)])
 
-        self.cursor.execute("truncate table TestBLOBs")
+        self.cursor.execute("delete from TestBLOBs")
         self.cursor.execute(
             "insert into TestBLOBs (IntCol, BlobCol) values (1, :data)",
             [blob_data],
@@ -777,7 +777,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4351_change_of_bind_type_with_define(self):
         "4351 - changing bind type with define needed"
-        self.cursor.execute("truncate table TestClobs")
+        self.cursor.execute("delete from TestClobs")
         row_for_1 = (1, "Short value 1")
         row_for_56 = (56, "Short value 56")
         for data in (row_for_1, row_for_56):
@@ -876,7 +876,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4357_bind_order_for_plsql(self):
         "4357 - test bind order for PL/SQL"
-        self.cursor.execute("truncate table TestClobs")
+        self.cursor.execute("delete from TestClobs")
         sql = """
             insert into TestClobs (IntCol, CLOBCol, ExtraNumCol1)
             values (:1, :2, :3)"""
