@@ -521,9 +521,9 @@ values.
       - Not supported in python-oracledb Thin mode
       - n/a
     * - XMLType
-      - n/a
-      - Not supported in python-oracledb. Use ``xmltype.getclobval()`` to fetch.
-      - n/a
+      - DB_TYPE_XMLTYPE
+      - Yes. May need to use ``xmltype.getclobval()`` to fetch in python-oracledb Thick mode.
+      - bytes, str
     * - User-defined types (object type, VARRAY, records, collections, SDO_*types)
       - DB_TYPE_OBJECT
       - Yes

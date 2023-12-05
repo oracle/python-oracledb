@@ -827,6 +827,8 @@ Connection Attributes
     This read-only attribute returns the name of the user which was used as a
     proxy when creating the connection to the database.
 
+    .. versionadded:: 2.0.0
+
     .. note::
 
         This attribute is an extension to the DB API definition.

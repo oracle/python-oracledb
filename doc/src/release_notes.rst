@@ -15,14 +15,15 @@ Thin Mode Changes
 
 #)  Fixed bug in detecting the current time zone
     (`issue 257 <https://github.com/oracle/python-oracledb/issues/257>`__).
-#)  Added parameter :data:`ConnectParams.ssl_context`
+#)  Added connection establishment parameter :data:`ConnectParams.ssl_context`
     (`issue 259 <https://github.com/oracle/python-oracledb/issues/259>`__).
 #)  Fixed bug in handling database response in certain unusual circumstances.
 #)  Fixed bug in handling exceptions raised during connection establishment.
 #)  Fixed bug in identifying bind variables in SQL statements containing
     multiple line comments with multiple asterisks before the closing slash.
+#)  Added support for the ``FAILOVER`` clause in full connect descriptors.
 #)  A more meaningful error is raised when the wrong type of data is passed to
-    lob.write().
+    :meth:`LOB.write()`.
 #)  Internal changes to improve handling of the network protocol between
     python-oracledb and Oracle Database.
 #)  Internal changes to improve handling of multiple address and description
@@ -55,15 +56,15 @@ Common Changes
     :data:`FetchInfo.type_code` for data of this type was
     :data:`~oracledb.DB_TYPE_LONG` in Thick mode and
     :data:`~oracledb.DB_TYPE_OBJECT` in Thin mode.
-#)  Attribute and element values of DbObject instances that are numbers are now
-    returned as integers if the precision and scale allow for it -- in the same
-    way that numbers are fetched from the database
+#)  Attribute and element values of :ref:`Oracle Object <dbobject>`
+    instances that are numbers are now returned as integers if the precision
+    and scale allow for it -- in the same way that numbers are fetched from the
+    database
     (`issue 99 <https://github.com/oracle/python-oracledb/issues/99>`__).
-#)  Added support for parsing the ``FAILOVER`` clause in full connect
-    descriptors.
 #)  Fixed bug with getting unknown attributes from DbObject instances.
-#)  Errors that have entries in the troubleshooting documentation now have
-    links to that documentation included in the message text.
+#)  Errors that have entries in the
+    :ref:`troubleshooting documentation <troubleshooting>` now have links to
+    that documentation included in the message text.
 #)  The attribute ``oracledb.__future__.old_json_col_as_obj`` no longer needs
     to be set in order to fetch JSON data found in VARCHAR2 and LOB columns in
     the same way that JSON columns (which requires Oracle Database 21c or

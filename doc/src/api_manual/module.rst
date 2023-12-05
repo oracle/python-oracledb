@@ -2352,6 +2352,8 @@ when binding data.
     Describes columns, attributes or array elements in a database that are of
     type SYS.XMLTYPE.
 
+    .. versionadded:: 2.0.0
+
 
 .. _dbtypesynonyms:
 

@@ -340,7 +340,7 @@ Message Properties
     :data:`~oracledb.MSG_READY`, :data:`~oracledb.MSG_PROCESSED` or
     :data:`~oracledb.MSG_EXPIRED`.
 
-.. attribute:: Messageproperties.recipient
+.. attribute:: MessageProperties.recipients
 
     This read-write attribute specifies a list of recipient names that can be
     associated with a message at the time of enqueuing the message. This allows a
