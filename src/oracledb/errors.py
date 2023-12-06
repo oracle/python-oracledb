@@ -269,6 +269,7 @@ ERR_INVALID_REF_CURSOR = 4025
 ERR_TNS_NAMES_FILE_MISSING = 4026
 ERR_NO_CONFIG_DIR = 4027
 ERR_INVALID_SERVER_TYPE = 4028
+ERR_TOO_MANY_BATCH_ERRORS = 4029
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -308,6 +309,7 @@ ERR_ORACLE_ERROR_XREF = {
     24459: ERR_POOL_NO_CONNECTION_AVAILABLE,
     24496: ERR_POOL_NO_CONNECTION_AVAILABLE,
     24338: ERR_INVALID_REF_CURSOR,
+    38902: ERR_TOO_MANY_BATCH_ERRORS,
 }
 
 # ODPI-C error number cross reference
@@ -552,6 +554,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_TNS_NAMES_FILE_MISSING: "file tnsnames.ora not found in {config_dir}",
     ERR_TOO_MANY_CURSORS_TO_CLOSE: (
         "internal error: attempt to close more than {num_cursors} cursors"
+    ),
+    ERR_TOO_MANY_BATCH_ERRORS: (
+        "the number of batch errors from executemany() exceeds 65535"
     ),
     ERR_UNEXPECTED_DATA: "unexpected data received: {data}",
     ERR_UNEXPECTED_END_OF_DATA: (

@@ -90,9 +90,9 @@ cdef class Message:
 
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
         cdef:
+            uint32_t num_bytes, i, offset, num_offsets
             _OracleErrorInfo info = self.error_info
-            uint16_t num_entries, error_code
-            uint32_t num_bytes, i, offset
+            uint16_t temp16, num_errors, error_code
             uint8_t first_byte
             int16_t error_pos
             str error_msg
@@ -122,11 +122,11 @@ cdef class Message:
         self.processed_error = True
 
         # batch error codes
-        buf.read_ub2(&num_entries)          # batch error codes array
-        if num_entries > 0:
+        buf.read_ub2(&num_errors)           # batch error codes array
+        if num_errors > 0:
             info.batcherrors = []
             buf.read_ub1(&first_byte)
-            for i in range(num_entries):
+            for i in range(num_errors):
                 if first_byte == TNS_LONG_LENGTH_INDICATOR:
                     buf.skip_ub4()          # chunk length ignored
                 buf.read_ub2(&error_code)
@@ -135,22 +135,25 @@ cdef class Message:
                 buf.skip_raw_bytes(1)       # ignore end marker
 
         # batch error offsets
-        buf.read_ub2(&num_entries)          # batch error row offset array
-        if num_entries > 0:
+        buf.read_ub4(&num_offsets)          # batch error row offset array
+        if num_offsets > 0:
+            if num_offsets > 65535:
+                errors._raise_err(errors.ERR_TOO_MANY_BATCH_ERRORS)
             buf.read_ub1(&first_byte)
-            for i in range(num_entries):
+            for i in range(num_offsets):
                 if first_byte == TNS_LONG_LENGTH_INDICATOR:
                     buf.skip_ub4()          # chunk length ignored
                 buf.read_ub4(&offset)
-                info.batcherrors[i].offset = offset
+                if i < num_errors:
+                    info.batcherrors[i].offset = offset
             if first_byte == TNS_LONG_LENGTH_INDICATOR:
                 buf.skip_raw_bytes(1)       # ignore end marker
 
         # batch error messages
-        buf.read_ub2(&num_entries)          # batch error messages array
-        if num_entries > 0:
+        buf.read_ub2(&temp16)               # batch error messages array
+        if temp16 > 0:
             buf.skip_raw_bytes(1)           # ignore packed size
-            for i in range(num_entries):
+            for i in range(temp16):
                 buf.skip_ub2()              # skip chunk length
                 info.batcherrors[i].message = \
                         buf.read_str(TNS_CS_IMPLICIT).rstrip()

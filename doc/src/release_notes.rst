@@ -68,6 +68,12 @@ Common Changes
     database
     (`issue 99 <https://github.com/oracle/python-oracledb/issues/99>`__).
 #)  Fixed bug with getting unknown attributes from DbObject instances.
+#)  Error ``DPY-4029: errors in array DML exceed 65535`` is now raised when the
+    number of batch errors exceeds 65535 when calling
+    :meth:`Cursor.executemany()` with the parameter ``batcherrors`` set to the
+    value ``True``. Note that in thick mode this error is not raised unless the
+    number of batch errors is a multiple of 65536; instead, the number of batch
+    errors returned is modulo 65536.
 #)  Errors that have entries in the
     :ref:`troubleshooting documentation <troubleshooting>` now have links to
     that documentation included in the message text.
