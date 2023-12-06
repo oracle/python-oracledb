@@ -36,6 +36,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug in return value of :meth:`SodaOperation.replaceOne()`.
+
 Common Changes
 ++++++++++++++
 

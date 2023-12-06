@@ -117,7 +117,8 @@ class TestCase(test_env.BaseTestCase):
         content = {"name": "John", "address": {"city": "Sydney"}}
         doc = coll.insertOneAndGet(content)
         new_content = {"name": "John", "address": {"city": "Melbourne"}}
-        coll.find().key(doc.key).replaceOne(new_content)
+        replaced = coll.find().key(doc.key).replaceOne(new_content)
+        self.assertTrue(replaced)
         self.conn.commit()
         doc = coll.find().key(doc.key).getOne().getContent()
         self.__normalize_docs([doc])

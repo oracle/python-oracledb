@@ -432,6 +432,7 @@ cdef class ThickSodaCollImpl(BaseSodaCollImpl):
             _raise_from_odpi()
         if return_doc:
             return output_doc_impl
+        return replaced
 
     def save(self, ThickSodaDocImpl doc_impl, str hint, bint return_doc):
         """
