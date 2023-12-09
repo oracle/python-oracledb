@@ -51,7 +51,7 @@ ConnectParams Methods
         externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
         edition=None, tag=None, matchanytag=None, config_dir=None, \
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, handle=None)
+        connection_id_prefix=None, ssl_context=None, handle=None)
 
     Sets the default values for one or more of the parameters of an empty
     ConnectParams object.  A default will be overriden when a connection string

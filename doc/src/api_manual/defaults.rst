@@ -57,10 +57,11 @@ Defaults Attributes
 
 .. attribute:: defaults.fetch_lobs
 
-    When the value of this attribute is True, then queries to LOB columns return
-    LOB locators. When the value of this attribute is False, then strings or bytes
-    are fetched. If LOBs are larger than 1 GB, then this attribute should be set to
-    True and the LOBs should be streamed.  See :ref:`lobdata`.
+    When the value of this attribute is True, then queries to LOB columns
+    return LOB locators. When the value of this attribute is False, then CLOBs
+    and NCLOBs are fetched as strings, and BLOBs are fetched as bytes. If LOBs
+    are larger than 1 GB, then this attribute should be set to True and the
+    LOBs should be streamed.  See :ref:`lobdata`.
 
     An output type handler such as the one previously required in cx_Oracle (see
     `return_lobs_as_strings.py <https://github.com/oracle/python-cx_Oracle/blob/main/samples/

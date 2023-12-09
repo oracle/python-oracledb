@@ -48,10 +48,11 @@ Some general tuning tips are:
   of rows (or for large data), or when using a slow network, then tune the
   Oracle Network Session Data Unit (SDU) and socket buffer sizes, see `Oracle
   Net Services: Best Practices for Database Performance and High Availability
-  <https://static.rainfocus.com/oracle/oow19/sess/1553616880266001WLIh/PF/OOW19_Net_CON4641_1569022126580001esUl.pdf>`__.
+  <https://static.rainfocus.com/oracle/oow19/sess/1553616880266001WLIh/PF/
+  OOW19_Net_CON4641_1569022126580001esUl.pdf>`__.
 
-* Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit` on
-  the last of a sequence of DML statements.
+* Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit`
+  on the last of a sequence of DML statements.
 
 .. _tuningfetch:
 
@@ -253,7 +254,8 @@ There are two cases that will benefit from setting ``prefetchrows`` to zero:
 * When querying a PL/SQL function that uses PIPE ROW to emit rows at
   intermittent intervals.  By default, several rows needs to be emitted by the
   function before python-oracledb can return them to the application.  Setting
-  ``prefetchrows`` to 0 helps give a consistent flow of data to the application.
+  ``prefetchrows`` to 0 helps give a consistent flow of data to the
+  application.
 
 Tuning Fetching from REF CURSORS
 --------------------------------
@@ -301,26 +303,33 @@ back.  This is a round-trip. Along with tuning an application's architecture
 and `tuning its SQL statements
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGSQL>`__, a general
 performance and scalability goal is to minimize `round-trips
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9B2F05F9-D841-4493-A42D-A7D89694A2D1>`__
-because they impact application performance and overall system scalability.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9B2F05F9-D841-
+4493-A42D-A7D89694A2D1>`__ because they impact application performance and
+overall system scalability.
 
 Some general tips for reducing round-trips are:
 
-* Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each query.
+* Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each
+  query.
 * Use :meth:`Cursor.executemany()` for optimal DML execution.
-* Only commit when necessary.  Use :attr:`Connection.autocommit` on the last statement of a transaction.
-* For connection pools, use a callback to set connection state, see :ref:`Session Callbacks for Setting Pooled Connection State <sessioncallback>`.
-* Make use of PL/SQL procedures which execute multiple SQL statements instead of executing them individually from python-oracledb.
+* Only commit when necessary.  Use :attr:`Connection.autocommit` on the last
+  statement of a transaction.
+* For connection pools, use a callback to set connection state, see
+  :ref:`Session Callbacks for Setting Pooled Connection State
+  <sessioncallback>`.
+* Make use of PL/SQL procedures which execute multiple SQL statements instead
+  of executing them individually from python-oracledb.
 * Use scalar types instead of Oracle Database object types.
 * Avoid overuse of :meth:`Connection.ping()`.
 * Avoid setting :attr:`ConnectionPool.ping_interval` to 0 or a small value.
-* When using :ref:`SODA <sodausermanual>`, use pooled connections and enable the :ref:`SODA metadata cache <sodametadatacache>`.
+* When using :ref:`SODA <sodausermanual>`, use pooled connections and enable
+  the :ref:`SODA metadata cache <sodametadatacache>`.
 
 Finding the Number of Round-Trips
 ----------------------------------
 
-Oracle's `Automatic Workload Repository
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+Oracle's `Automatic Workload Repository <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
 (AWR) reports show 'SQL*Net roundtrips to/from client' and are useful for
 finding the overall behavior of a system.
 
@@ -370,13 +379,15 @@ and after doing some work can be used for this:
 Statement Caching
 =================
 
-Python-oracledb's :meth:`Cursor.execute()` and :meth:`Cursor.executemany()` functions
-use the `Oracle Call Interface statement cache
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4947CAE8-1F00-4897-BB2B-7F921E495175>`__
-for efficient re-execution of statements.  Statement caching lets Oracle
-Database cursors be used without re-parsing the statement.  Statement caching
-also reduces metadata transfer costs between python-oracledb and the database.
-Performance and scalability are improved.
+Python-oracledb's :meth:`Cursor.execute()` and :meth:`Cursor.executemany()`
+methods use statement caching to make re-execution of statements efficient.
+Statement caching lets Oracle Database cursors be used without re-parsing the
+statement.  Statement caching also reduces metadata transfer costs between
+python-oracledb and the database. Performance and scalability are improved.
+
+The python-oracledb Thick mode uses `Oracle Call Interface statement cache
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4947CAE8-1F00-
+4897-BB2B-7F921E495175>`__, whereas the Thin mode uses its own implementation.
 
 Each standalone or pooled connection has its own cache of statements with a
 default size of 20. The default size of the statement cache can be changed
@@ -384,18 +395,19 @@ using the :attr:`defaults.stmtcachesize` attribute. The size can be set when
 creating connection pools or standalone connections. In general, set the
 statement cache size to the size of the working set of statements being
 executed by the application.  To manually tune the cache, monitor the general
-application load and the `Automatic Workload Repository
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
-(AWR) "bytes sent via SQL*Net to client" values.  The latter statistic should
-benefit from not shipping statement metadata to python-oracledb.  Adjust the
-statement cache size to your satisfaction. With Oracle Database 12c, or later,
-the statement cache size can be automatically tuned using an
-:ref:`oraaccess.xml <optclientfiles>` file.
+application load and the `Automatic Workload Repository <https://www.oracle.
+com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-
+EDEC145F7ACD>`__ (AWR) "bytes sent via SQL*Net to client" values.  The latter
+statistic should benefit from not shipping statement metadata to
+python-oracledb.  Adjust the statement cache size to your satisfaction. With
+Oracle Database 12c (or later), the statement cache size can be automatically
+tuned using an :ref:`oraaccess.xml <optclientfiles>` file.
 
 Setting the Statement Cache
 ---------------------------
 
-The statement cache size can be set globally with :attr:`defaults.stmtcachesize`:
+The statement cache size can be set globally with
+:attr:`defaults.stmtcachesize`:
 
 .. code-block:: python
 
@@ -403,20 +415,22 @@ The statement cache size can be set globally with :attr:`defaults.stmtcachesize`
 
     oracledb.defaults.stmtcachesize = 40
 
-The value can be overridden in an :meth:`oracledb.connect()` call, or when creating a pool
-with :meth:`oracledb.create_pool()`. For example:
+The value can be overridden in an :meth:`oracledb.connect()` call, or when
+creating a pool with :meth:`oracledb.create_pool()`. For example:
 
 .. code-block:: python
 
   oracledb.create_pool(user="scott", password=userpwd, dsn="dbhost.example.com/orclpb",
                        min=2, max=5, increment=1, stmtcachesize=50)
 
-When using Oracle Client 21 (or later), changing the cache size with :meth:`ConnectionPool.reconfigure()`
-does not immediately affect connections previously acquired and currently in use. When those connections
-are subsequently released to the pool and re-acquired, they will then use the new value.
-When using Oracle Client prior to version 21, changing the pool's statement cache size has no effect
-on connections that already exist in the pool but will affect new connections that are subsequently
-created, for example when the pool grows.
+When python-oracledb Thick mode uses Oracle Client 21 (or later), changing the
+cache size with :meth:`ConnectionPool.reconfigure()` does not immediately
+affect connections previously acquired and currently in use. When those
+connections are subsequently released to the pool and re-acquired, they will
+then use the new value. When the Thick mode uses Oracle Client prior to
+version 21, changing the pool's statement cache size has no effect on
+connections that already exist in the pool but will affect new connections
+that are subsequently created, for example when the pool grows.
 
 Tuning the Statement Cache
 --------------------------
@@ -426,8 +440,9 @@ statements being executed by the application. :ref:`SODA <sodausermanual>`
 internally makes SQL calls, so tuning the cache is also beneficial for SODA
 applications.
 
-With Oracle Client Libraries 12c, or later, the statement cache size can be automatically tuned
-with the Oracle Client Configuration oraaccess.xml file.
+In python-oracledb Thick mode with Oracle Client Libraries 12c (or later), the
+statement cache size can be automatically tuned with the Oracle Client
+Configuration :ref:`oraaccess.xml <optclientfiles>` file.
 
 For manual tuning use views like V$SYSSTAT:
 
@@ -435,12 +450,15 @@ For manual tuning use views like V$SYSSTAT:
 
     SELECT value FROM V$SYSSTAT WHERE name = 'parse count (total)'
 
-Find the value before and after running application load to give the number of statement parses
-during the load test. Alter the statement cache size and repeat the test until you find a minimal number of parses.
+Find the value before and after running application load to give the number of
+statement parses during the load test. Alter the statement cache size and
+repeat the test until you find a minimal number of parses.
 
-If you have Automatic Workload Repository (AWR) reports you can monitor general application load and
-the "bytes sent via SQL*Net to client" values. The latter statistic should benefit from not shipping
-statement metadata to python-oracledb. Adjust the statement cache size and re-run the test to find the best cache size.
+If you have Automatic Workload Repository (AWR) reports you can monitor
+general application load and the "bytes sent via SQL*Net to client" values.
+The latter statistic should benefit from not shipping statement metadata to
+python-oracledb. Adjust the statement cache size and re-run the test to find
+the best cache size.
 
 Disabling the Statement Cache
 -----------------------------
@@ -457,24 +475,27 @@ reused. For example if there are more distinct statements than cache
 slots, and the order of statement execution causes older statements to
 be flushed from the cache before the statements are re-executed.
 
-Disabling the statement cache may also be helpful in test and development environments.
-The statement cache can become invalid if connections remain open and database schema
-objects are recreated. This can also happen when a connection uses identical query text
-with different ``fetchAsString`` or ``fetchInfo`` data types. Applications can receive
-errors such as ORA-3106. After a statement execution error is returned once to the application,
-python-oracledb automatically drops that statement from the cache. This lets subsequent
-re-executions of the statement on that connection to succeed.
+Disabling the statement cache may also be helpful in test and development
+environments.  The statement cache can become invalid if connections remain
+open and database schema objects are recreated.  Applications can then receive
+errors such as ``ORA-3106``. However, after a statement execution error is
+returned once to the application, python-oracledb automatically drops that
+statement from the cache. This lets subsequent re-executions of the statement
+on that connection to succeed.
 
 When it is inconvenient to pass statement text through an application, the
 :meth:`Cursor.prepare()` call can be used to avoid statement re-parsing.
-If the ``cache_statement`` parameter in the :meth:`Cursor.prepare()` method is True and the statement cache size
-is greater than 0, then the statements will be added to the cache, if not already present.
-If the ``cache_statement`` parameter in the :meth:`Cursor.prepare()` method is False and the statement cache size
-is greater than 0, then the statement will be removed from the statement cache (if present)
-or will not be cached (if not present). The subsequent ``execute()`` calls use the value None instead of the SQL text.
+If the ``cache_statement`` parameter in the :meth:`Cursor.prepare()` method is
+True and the statement cache size is greater than 0, then the statements will
+be added to the cache, if not already present. If the ``cache_statement``
+parameter in the :meth:`Cursor.prepare()` method is False and the statement
+cache size is greater than 0, then the statement will be removed from the
+statement cache (if present) or will not be cached (if not present). The
+subsequent ``execute()`` calls use the value None instead of the SQL text.
 
-This feature can prevent a rarely executed statement from flushing a potential more frequently executed one from a full cache.
-For example, if a statement will only ever be executed once:
+This feature can prevent a rarely executed statement from flushing a potential
+more frequently executed one from a full cache. For example, if a statement
+will only ever be executed once:
 
 .. code-block:: python
 
@@ -498,24 +519,25 @@ Client Result Caching (CRC)
 ===========================
 
 Python-oracledb applications can use Oracle Database's `Client Result Cache
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-4C2D-9075-6F639F25425E>`__.
-The CRC enables client-side caching of SQL query (SELECT statement) results in
-client memory for immediate use when the same query is re-executed.  This is
-useful for reducing the cost of queries for small, mostly static, lookup tables,
-such as for postal codes.  CRC reduces network :ref:`round-trips <roundtrips>`,
-and also reduces database server CPU usage.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-
+4C2D-9075-6F639F25425E>`__.  The CRC enables client-side caching of SQL query
+(SELECT statement) results in client memory for immediate use when the same
+query is re-executed.  This is useful for reducing the cost of queries for
+small, mostly static, lookup tables, such as for postal codes.  CRC reduces
+network :ref:`round-trips <roundtrips>`, and also reduces database server CPU
+usage.
 
 .. note::
 
-  Client Result Caching is only supported in the python-oracledb Thick mode.
-  See :ref:`enablingthick`.
+    Client Result Caching is only supported in the python-oracledb Thick mode.
+    See :ref:`enablingthick`.
 
 The cache is at the application process level.  Access and invalidation is
 managed by the Oracle Client libraries.  This removes the need for extra
 application logic, or external utilities, to implement a cache.
 
-CRC can be enabled by setting the `database parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A9D4A5F5-B939-48FF-80AE-0228E7314C7D>`__
+CRC can be enabled by setting the `database parameters <https://www.oracle.com
+/pls/topic/lookup?ctx=dblatest&id=GUID-A9D4A5F5-B939-48FF-80AE-0228E7314C7D>`__
 ``CLIENT_RESULT_CACHE_SIZE`` and ``CLIENT_RESULT_CACHE_LAG``, and then
 restarting the database, for example:
 
@@ -527,11 +549,12 @@ restarting the database, for example:
 
 CRC can alternatively be configured in an :ref:`oraaccess.xml <optclientfiles>`
 or :ref:`sqlnet.ora <optnetfiles>` file on the Python host, see `Client
-Configuration Parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E63D75A1-FCAA-4A54-A3D2-B068442CE766>`__.
+Configuration Parameters <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
+&id=GUID-E63D75A1-FCAA-4A54-A3D2-B068442CE766>`__.
 
 Tables can then be created, or altered, so repeated queries use CRC.  This
-allows existing applications to use CRC without needing modification.  For example:
+allows existing applications to use CRC without needing modification.  For
+example:
 
 .. code-block:: sql
 

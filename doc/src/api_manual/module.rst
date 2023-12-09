@@ -48,7 +48,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -295,12 +295,24 @@ Oracledb Methods
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
     is only used in the python-oracledb Thin mode.
 
+    The ``ssl_context`` parameter is expected to be an `SSLContext object
+    <https://docs.python.org/3/library/ssl.html#ssl-contexts>`__ which is used
+    for connecting to the database using TLS.  This SSL context will be
+    modified to include the private key or any certificates found in a
+    separately supplied wallet.  This parameter should only be specified if
+    the default SSLContext object cannot be used.  This value is only used in
+    the python-oracledb Thin mode.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
     created should *never* be used after the source handle has been closed or
     destroyed. This value is only used in the python-oracledb Thick mode.  It
     should be used with extreme caution. The default value is 0.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` parameter was added.
 
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
@@ -314,7 +326,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -526,11 +538,22 @@ Oracledb Methods
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
     is only used in the python-oracledb Thin mode.
 
+    The ``ssl_context`` parameter is expected to be an `SSLContext object
+    <https://docs.python.org/3/library/ssl.html#ssl-contexts>`__ which is used
+    for connecting to the database using TLS.  This SSL context will be
+    modified to include the private key or any certificates found in a
+    separately supplied wallet.  This parameter should only be specified if
+    the default SSLContext object cannot be used.  This value is only used in
+    the python-oracledb Thin mode.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` parameter was added.
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
         params=None, min=1, max=2, increment=1, \
@@ -550,7 +573,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -844,12 +867,24 @@ Oracledb Methods
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
     is only used in the python-oracledb Thin mode.
 
+    The ``ssl_context`` parameter is expected to be an `SSLContext object
+    <https://docs.python.org/3/library/ssl.html#ssl-contexts>`__ which is used
+    for connecting to the database using TLS.  This SSL context will be
+    modified to include the private key or any certificates found in a
+    separately supplied wallet.  This parameter should only be specified if
+    the default SSLContext object cannot be used.  This value is only used in
+    the python-oracledb Thin mode.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
     created should *never* be used after the source handle has been closed or
     destroyed. This value is only used in the python-oracledb Thick mode. It
     should be used with extreme caution. The deault value is 0.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` parameter was added.
 
     In the python-oracledb Thick mode, connection pooling is handled by
     Oracle's `Session pooling <https://www.oracle.com/pls/topic/lookup?
@@ -979,7 +1014,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -1243,10 +1278,22 @@ Oracledb Methods
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.  This value
     is only used in the python-oracledb Thin mode.
 
+    The ``ssl_context`` parameter is expected to be an `SSLContext object
+    <https://docs.python.org/3/library/ssl.html#ssl-contexts>`__ which is used
+    for connecting to the database using TLS.  This SSL context will be
+    modified to include the private key or any certificates found in a
+    separately supplied wallet.  This parameter should only be specified if
+    the default SSLContext object cannot be used.  This value is only used in
+    the python-oracledb Thin mode.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` parameter was added.
 
 .. function:: Time(hour, minute, second)
 

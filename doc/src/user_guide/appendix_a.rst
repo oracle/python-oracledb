@@ -214,10 +214,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No - All NLS environment variables are ignored.  Use Python globalization support instead
       - Yes - NLS environment variables are respected except character set in NLS_LANG
       - Yes - NLS environment variables are respected except character set in NLS_LANG
-    * - Row prefetching on first query execute.(see :attr:`prefetchrows`)
-      - Yes
-      - Yes
-      - Yes
+    * - Row prefetching on first query execute (see :attr:`prefetchrows`)
+      - Yes - unless the row contains LOBs or similar types
+      - Yes - unless the row contains LOBs or similar types
+      - Yes - unless the row contains LOBs or similar types
     * - Array fetching for queries (see :attr:`arraysize`)
       - Yes
       - Yes
@@ -318,10 +318,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - LOB prefetching
-      - No
-      - No - does have LOB length prefetch
-      - No - does have LOB length prefetch
+    * - LOB length prefetching
+      - Yes
+      - Yes
+      - Yes
     * - LOB locator operations such as trim
       - Yes
       - Yes

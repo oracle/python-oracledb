@@ -581,6 +581,9 @@ Cursor Attributes
     The attribute is only used for tuning row fetches from the database.  It
     does not affect data inserts.
 
+    Queries that return LOBs and similar types will never prefetch rows, so the
+    ``prefetchrows`` value is ignored in those cases.
+
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
     .. note::

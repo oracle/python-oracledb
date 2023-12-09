@@ -315,7 +315,7 @@ class PoolParams(ConnectParams):
           using TLS.  This SSL context will be modified to include the private
           key or any certificates found in a separately supplied wallet. This
           parameter should only be specified if the default SSLContext object
-          cannot be used. (default: None)
+          cannot be used (default: None)
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
@@ -747,7 +747,7 @@ class PoolParams(ConnectParams):
           using TLS.  This SSL context will be modified to include the private
           key or any certificates found in a separately supplied wallet. This
           parameter should only be specified if the default SSLContext object
-          cannot be used.
+          cannot be used
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
