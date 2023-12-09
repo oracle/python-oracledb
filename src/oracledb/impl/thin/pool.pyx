@@ -143,8 +143,8 @@ cdef class ThinPoolImpl(BasePoolImpl):
                 wait = False
                 self._drop_conn_impls_helper(conn_impls_to_drop)
 
-            # if pool has closed, stop thread!
-            if not self._open:
+            # if pool has closed and no connections to drop, stop thread!
+            if not self._open and not self._conn_impls_to_drop:
                 break
 
             # otherwise, if nothing needed to be done, wait for notification

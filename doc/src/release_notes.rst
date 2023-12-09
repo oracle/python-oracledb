@@ -28,6 +28,8 @@ Thin Mode Changes
 #)  Added support for the ``FAILOVER`` clause in full connect descriptors.
 #)  A more meaningful error is raised when the wrong type of data is passed to
     :meth:`LOB.write()`.
+#)  Internal change to ensure that all connections in a pool have been closed
+    gracefully before the pool is closed.
 #)  Internal changes to improve handling of the network protocol between
     python-oracledb and Oracle Database.
 #)  Internal changes to improve handling of multiple address and description
