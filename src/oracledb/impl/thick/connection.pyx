@@ -270,6 +270,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             dpiConnCreateParams conn_params
             ConnectParamsImpl pool_params
             dpiAccessToken access_token
+            dpiVersionInfo version_info
             ConnectionParams params
             int status
 
@@ -387,8 +388,20 @@ cdef class ThickConnImpl(BaseConnImpl):
                                     params.password_len, params.dsn_ptr,
                                     params.dsn_len, &common_params,
                                     &conn_params, &self._handle)
+            if status == DPI_SUCCESS:
+                status = dpiConn_getServerVersion(self._handle, NULL, NULL,
+                                                  &version_info)
         if status < 0:
             _raise_from_odpi()
+        self.server_version = (
+            version_info.versionNum,
+            version_info.releaseNum,
+            version_info.updateNum,
+            version_info.portReleaseNum,
+            version_info.portUpdateNum
+        )
+        self.supports_bool = client_version_info.versionNum >= 23 \
+                and version_info.versionNum >= 23
 
         # determine if session callback should be invoked; this takes place if
         # the connection is newly created by the pool or if the requested tag
@@ -580,20 +593,6 @@ cdef class ThickConnImpl(BaseConnImpl):
             return ThickDbObjectTypeImpl._from_handle(self, handle)
         finally:
             dpiObjectType_release(handle)
-
-    def get_version(self):
-        cdef:
-            dpiVersionInfo version_info
-            int status
-        with nogil:
-            status = dpiConn_getServerVersion(self._handle, NULL, NULL,
-                                              &version_info)
-        if status < 0:
-            _raise_from_odpi()
-        return "%d.%d.%d.%d.%d" % \
-                (version_info.versionNum, version_info.releaseNum,
-                 version_info.updateNum, version_info.portReleaseNum,
-                 version_info.portUpdateNum)
 
     def set_action(self, str value):
         self._set_text_attr(dpiConn_setAction, value)

@@ -69,6 +69,8 @@ Common Changes
     and scale allow for it -- in the same way that numbers are fetched from the
     database
     (`issue 99 <https://github.com/oracle/python-oracledb/issues/99>`__).
+#)  Fixed bug with binding boolean values with Oracle Database 23c
+    (`issue 263 <https://github.com/oracle/python-oracledb/issues/263>`__).
 #)  Fixed bug with getting unknown attributes from DbObject instances.
 #)  Error ``DPY-4029: errors in array DML exceed 65535`` is now raised when the
     number of batch errors exceeds 65535 when calling

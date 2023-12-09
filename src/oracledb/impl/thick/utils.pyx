@@ -433,21 +433,15 @@ def clientversion():
     The five values are the major version, minor version, update number, patch
     number and port update number.
     """
-    cdef dpiVersionInfo info
-    global client_version
-    if client_version is None:
-        if driver_context == NULL:
-            errors._raise_err(errors.ERR_INIT_ORACLE_CLIENT_NOT_CALLED)
-        if dpiContext_getClientVersion(driver_context, &info) < 0:
-            _raise_from_odpi()
-        client_version = (
-            info.versionNum,
-            info.releaseNum,
-            info.updateNum,
-            info.portReleaseNum,
-            info.portUpdateNum
-        )
-    return client_version
+    if driver_context == NULL:
+        errors._raise_err(errors.ERR_INIT_ORACLE_CLIENT_NOT_CALLED)
+    return (
+        client_version_info.versionNum,
+        client_version_info.releaseNum,
+        client_version_info.updateNum,
+        client_version_info.portReleaseNum,
+        client_version_info.portUpdateNum
+    )
 
 
 def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
@@ -494,6 +488,9 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
                                        &params, &driver_context,
                                        &error_info) < 0:
             _raise_from_info(&error_info)
+        if dpiContext_getClientVersion(driver_context,
+                                       &client_version_info) < 0:
+            _raise_from_odpi()
         driver_context_params = params_tuple
 
 

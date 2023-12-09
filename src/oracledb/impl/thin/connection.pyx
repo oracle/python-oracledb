@@ -36,7 +36,6 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint32_t _statement_cache_size
         object _statement_cache_lock
         Protocol _protocol
-        str _server_version
         uint32_t _session_id
         uint32_t _serial_num
         str _action
@@ -352,9 +351,6 @@ cdef class ThinConnImpl(BaseConnImpl):
         cdef ThinDbObjectTypeCache cache = \
                 get_dbobject_type_cache(self._dbobject_type_cache_num)
         return cache.get_type(conn, name)
-
-    def get_version(self):
-        return self._server_version
 
     def ping(self):
         cdef Message message

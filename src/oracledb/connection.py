@@ -1081,7 +1081,7 @@ class Connection:
         """
         if self._version is None:
             self._verify_connected()
-            self._version = self._impl.get_version()
+            self._version = ".".join(str(c) for c in self._impl.server_version)
         return self._version
 
     def xid(

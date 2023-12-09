@@ -264,10 +264,6 @@ cdef class BaseConnImpl:
     def get_type(self, object conn, str name):
         pass
 
-    @utils.CheckImpls("getting the database version")
-    def get_version(self):
-        pass
-
     @utils.CheckImpls("pinging the database")
     def ping(self):
         pass

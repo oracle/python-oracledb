@@ -220,7 +220,9 @@ cdef class BaseVarImpl:
             dbtype = DB_TYPE_VARCHAR
             size = 1
         elif isinstance(value, PY_TYPE_BOOL):
-            dbtype = DB_TYPE_BOOLEAN if is_plsql else DB_TYPE_BINARY_INTEGER
+            dbtype = DB_TYPE_BOOLEAN \
+                    if self._conn_impl.supports_bool or is_plsql \
+                    else DB_TYPE_BINARY_INTEGER
         elif isinstance(value, str):
             size = <uint32_t> len(value)
             dbtype = DB_TYPE_VARCHAR

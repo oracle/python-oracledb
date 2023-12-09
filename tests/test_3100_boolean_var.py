@@ -106,6 +106,21 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertIsNone(result)
 
+    @unittest.skipUnless(
+        test_env.get_client_version() >= (23, 1), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (23, 1), "unsupported server"
+    )
+    def test_3109_bind_and_fetch_boolean_23c(self):
+        "3109 - test binding and fetching boolean with 23c"
+        for value in (True, False):
+            with self.subTest(value=value):
+                self.cursor.execute("select not :1 from dual", [value])
+                (fetched_value,) = self.cursor.fetchone()
+                self.assertIsInstance(fetched_value, bool)
+                self.assertEqual(fetched_value, not value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

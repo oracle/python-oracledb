@@ -1538,9 +1538,9 @@ cdef class AuthMessage(Message):
                     self.session_data.get("AUTH_SC_SERVICE_NAME")
             self.conn_impl._instance_name = \
                     self.session_data.get("AUTH_INSTANCENAME")
-
-            self.conn_impl._server_version = \
-                    "%d.%d.%d.%d.%d" % self._get_version_tuple(buf)
+            self.conn_impl.server_version = self._get_version_tuple(buf)
+            self.conn_impl.supports_bool = \
+                    buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1
 
     cdef int _set_params(self, ConnectParamsImpl params,
                          Description description) except -1:

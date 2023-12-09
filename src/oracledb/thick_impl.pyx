@@ -67,9 +67,9 @@ cdef type PY_TYPE_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 
 cdef dpiContext *driver_context = NULL
+cdef dpiVersionInfo client_version_info
 
 driver_context_params = None
-client_version = None
 
 include "impl/thick/buffer.pyx"
 include "impl/thick/connection.pyx"

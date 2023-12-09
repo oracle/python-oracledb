@@ -243,6 +243,8 @@ cdef class BaseConnImpl:
         public object outputtypehandler
         public bint autocommit
         public bint invoke_session_callback
+        readonly tuple server_version
+        readonly bint supports_bool
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok)
