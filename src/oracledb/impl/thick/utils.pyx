@@ -412,12 +412,7 @@ cdef int _raise_from_info(dpiErrorInfo *error_info) except -1:
     Raises an exception given a dpiErrorInfo structure that is already
     populated with error information.
     """
-    msg_bytes = error_info.message[:error_info.messageLength]
-    context = "%s: %s" % (error_info.fnName, error_info.action)
-    error = errors._Error(msg_bytes.decode(), context, code=error_info.code,
-                          offset=error_info.offset,
-                          isrecoverable=bool(error_info.isRecoverable),
-                          iswarning=error_info.isWarning)
+    error = _create_new_from_info(error_info)
     exc_type = get_exception_class(error_info.code)
     raise exc_type(error)
 
