@@ -13,6 +13,8 @@ oracledb 2.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for asyncio
+    (`issue 6 <https://github.com/oracle/python-oracledb/issues/6>`__).
 #)  Added support for an Oracle Database 23c JSON feature allowing for field
     names with more than 255 UTF-8 encoded bytes.
 #)  Added support for an Oracle Database 23c JSON feature improving JSON

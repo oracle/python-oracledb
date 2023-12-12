@@ -166,17 +166,33 @@ from .errors import _Error as _Error
 
 from .defaults import defaults as defaults
 
-from .connection import connect as connect, Connection as Connection
+from .connection import (
+    AsyncConnection as AsyncConnection,
+    connect as connect,
+    connect_async as connect_async,
+    Connection as Connection,
+)
 
-from .cursor import Cursor as Cursor
+from .cursor import (
+    AsyncCursor as AsyncCursor,
+    Cursor as Cursor,
+)
 
-from .pool import create_pool as create_pool, ConnectionPool as ConnectionPool
+from .pool import (
+    AsyncConnectionPool as AsyncConnectionPool,
+    ConnectionPool as ConnectionPool,
+    create_pool as create_pool,
+    create_pool_async as create_pool_async,
+)
 
 from .connect_params import ConnectParams as ConnectParams
 
 from .pool_params import PoolParams as PoolParams
 
-from .lob import LOB as LOB
+from .lob import (
+    LOB as LOB,
+    AsyncLOB as AsyncLOB,
+)
 
 from .dbobject import DbObject as DbObject, DbObjectType as DbObjectType
 

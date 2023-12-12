@@ -245,9 +245,9 @@ cdef class BaseVarImpl:
         elif isinstance(value, PY_TYPE_DB_OBJECT):
             dbtype = DB_TYPE_OBJECT
             objtype = value.type._impl
-        elif isinstance(value, PY_TYPE_LOB):
+        elif isinstance(value, (PY_TYPE_LOB, PY_TYPE_ASYNC_LOB)):
             dbtype = value.type
-        elif isinstance(value, PY_TYPE_CURSOR):
+        elif isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
             dbtype = DB_TYPE_CURSOR
         else:
             errors._raise_err(errors.ERR_PYTHON_VALUE_NOT_SUPPORTED,

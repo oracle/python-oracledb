@@ -41,9 +41,7 @@ from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
 
 
-class Cursor:
-    __module__ = MODULE_NAME
-
+class BaseCursor:
     def __init__(
         self,
         connection: "connection_module.Connection",
@@ -72,18 +70,10 @@ class Cursor:
         self._impl.close(in_del=True)
         self._impl = None
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        self._verify_fetch()
-        row = self._impl.fetch_next_row(self)
-        if row is not None:
-            return row
-        raise StopIteration
-
     def __repr__(self):
-        return f"<oracledb.Cursor on {self.connection!r}>"
+        typ = self.__class__
+        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        return f"<{cls_name} on {self.connection!r}>"
 
     def _call(
         self,
@@ -126,16 +116,7 @@ class Cursor:
         statement_parts.append(",".join(bind_names))
         statement_parts.append("); end;")
         statement = "".join(statement_parts)
-        self.execute(statement, bind_values)
-
-    def _get_oci_attr(self, attr_num: int, attr_type: int) -> Any:
-        """
-        Returns the value of the specified OCI attribute from the internal
-        handle. This is only supported in python-oracledb's thick mode and
-        should only be used as directed by Oracle.
-        """
-        self._verify_open()
-        return self._impl._get_oci_attr(attr_num, attr_type)
+        return self.execute(statement, bind_values)
 
     def _prepare(
         self, statement: str, tag: str = None, cache_statement: bool = True
@@ -153,14 +134,48 @@ class Cursor:
         self._impl.rowfactory = None
         self._fetch_infos = None
 
-    def _set_oci_attr(self, attr_num: int, attr_type: int, value: Any) -> None:
+    def _prepare_for_execute(self, statement, parameters, keyword_parameters):
         """
-        Sets the value of the specified OCI attribute on the internal handle.
-        This is only supported in python-oracledb's thick mode and should only
-        be used as directed by Oracle.
+        Internal method for preparing a statement for execution.
         """
+
+        # verify parameters
+        if statement is None and self.statement is None:
+            errors._raise_err(errors.ERR_NO_STATEMENT)
+        if keyword_parameters:
+            if parameters:
+                errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
+            parameters = keyword_parameters
+        elif parameters is not None and not isinstance(
+            parameters, (list, tuple, dict)
+        ):
+            errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         self._verify_open()
-        self._impl._set_oci_attr(attr_num, attr_type, value)
+        impl = self._impl
+        bind_vars = impl.bind_vars
+        bind_style = impl.bind_style
+        prepare_needed = statement and statement != self.statement
+        if (
+            not (prepare_needed and not self._set_input_sizes)
+            and bind_vars is not None
+            and parameters is not None
+        ):
+            if (
+                bind_style is dict
+                and not isinstance(parameters, dict)
+                or bind_style is not dict
+                and isinstance(parameters, dict)
+            ):
+                errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
+
+        # prepare statement, if necessary
+        if prepare_needed:
+            self._prepare(statement)
+
+        # perform bind and execute
+        self._set_input_sizes = False
+        if parameters is not None:
+            impl.bind_one(self, parameters)
 
     def _verify_fetch(self) -> None:
         """
@@ -263,66 +278,6 @@ class Cursor:
         self._verify_open()
         return self._impl.get_bind_vars()
 
-    def callfunc(
-        self,
-        name: str,
-        return_type: Any,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
-        *,
-        keywordParameters: dict = None,
-    ) -> Any:
-        """
-        Call a function with the given name. The return type is specified in
-        the same notation as is required by setinputsizes(). The sequence of
-        parameters must contain one entry for each parameter that the function
-        expects. Any keyword parameters will be included after the positional
-        parameters. The result of the call is the return value of the function.
-        """
-        var = self.var(return_type)
-        if keywordParameters is not None:
-            if keyword_parameters is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="keywordParameters",
-                    new_name="keyword_parameters",
-                )
-            keyword_parameters = keywordParameters
-        self._call(name, parameters, keyword_parameters, var)
-        return var.getvalue()
-
-    def callproc(
-        self,
-        name: str,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
-        *,
-        keywordParameters: dict = None,
-    ) -> list:
-        """
-        Call a procedure with the given name. The sequence of parameters must
-        contain one entry for each parameter that the procedure expects. The
-        result of the call is a modified copy of the input sequence. Input
-        parameters are left untouched; output and input/output parameters are
-        replaced with possibly new values. Keyword parameters will be included
-        after the positional parameters and are not returned as part of the
-        output sequence.
-        """
-        if keywordParameters is not None:
-            if keyword_parameters is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="keywordParameters",
-                    new_name="keyword_parameters",
-                )
-            keyword_parameters = keywordParameters
-        self._call(name, parameters, keyword_parameters)
-        if parameters is None:
-            return []
-        return [
-            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
-        ]
-
     def close(self) -> None:
         """
         Close the cursor now, rather than whenever __del__ is called. The
@@ -348,225 +303,6 @@ class Cursor:
                 FetchInfo._from_impl(i) for i in self._impl.fetch_info_impls
             ]
         return self._fetch_infos
-
-    def execute(
-        self,
-        statement: Union[str, None],
-        parameters: Union[list, tuple, dict] = None,
-        **keyword_parameters: Any,
-    ) -> Any:
-        """
-        Execute a statement against the database.
-
-        Parameters may be passed as a dictionary or sequence or as keyword
-        parameters. If the parameters are a dictionary, the values will be
-        bound by name and if the parameters are a sequence the values will be
-        bound by position. Note that if the values are bound by position, the
-        order of the variables is from left to right as they are encountered in
-        the statement and SQL statements are processed differently than PL/SQL
-        statements. For this reason, it is generally recommended to bind
-        parameters by name instead of by position.
-
-        Parameters passed as a dictionary are name and value pairs. The name
-        maps to the bind variable name used by the statement and the value maps
-        to the Python value you wish bound to that bind variable.
-
-        A reference to the statement will be retained by the cursor. If None or
-        the same string object is passed in again, the cursor will execute that
-        statement again without performing a prepare or rebinding and
-        redefining. This is most effective for algorithms where the same
-        statement is used, but different parameters are bound to it (many
-        times). Note that parameters that are not passed in during subsequent
-        executions will retain the value passed in during the last execution
-        that contained them.
-
-        For maximum efficiency when reusing an statement, it is best to use the
-        setinputsizes() method to specify the parameter types and sizes ahead
-        of time; in particular, None is assumed to be a string of length 1 so
-        any values that are later bound as numbers or dates will raise a
-        TypeError exception.
-
-        If the statement is a query, the cursor is returned as a convenience to
-        the caller (so it can be used directly as an iterator over the rows in
-        the cursor); otherwise, None is returned.
-        """
-
-        # verify parameters
-        if statement is None and self.statement is None:
-            errors._raise_err(errors.ERR_NO_STATEMENT)
-        if keyword_parameters:
-            if parameters:
-                errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
-            parameters = keyword_parameters
-        elif parameters is not None and not isinstance(
-            parameters, (list, tuple, dict)
-        ):
-            errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
-        self._verify_open()
-        impl = self._impl
-        bind_vars = impl.bind_vars
-        bind_style = impl.bind_style
-        prepare_needed = statement and statement != self.statement
-        if (
-            not (prepare_needed and not self._set_input_sizes)
-            and bind_vars is not None
-            and parameters is not None
-        ):
-            if (
-                bind_style is dict
-                and not isinstance(parameters, dict)
-                or bind_style is not dict
-                and isinstance(parameters, dict)
-            ):
-                errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
-
-        # prepare statement, if necessary
-        if prepare_needed:
-            self._prepare(statement)
-
-        # perform bind and execute
-        self._set_input_sizes = False
-        if parameters is not None:
-            impl.bind_one(self, parameters)
-        impl.warning = None
-        impl.execute(self)
-        if impl.fetch_vars is not None:
-            return self
-
-    def executemany(
-        self,
-        statement: Union[str, None],
-        parameters: Union[list, int],
-        batcherrors: bool = False,
-        arraydmlrowcounts: bool = False,
-    ) -> None:
-        """
-        Prepare a statement for execution against a database and then execute
-        it against all parameter mappings or sequences found in the sequence
-        parameters.
-
-        The statement is managed in the same way as the execute() method
-        manages it. If the size of the buffers allocated for any of the
-        parameters exceeds 2 GB and you are using the thick implementation, you
-        will receive the error “DPI-1015: array size of <n> is too large”,
-        where <n> varies with the size of each element being allocated in the
-        buffer. If you receive this error, decrease the number of elements in
-        the sequence parameters.
-
-        If there are no parameters, or parameters have previously been bound,
-        the number of iterations can be specified as an integer instead of
-        needing to provide a list of empty mappings or sequences.
-
-        When true, the batcherrors parameter enables batch error support within
-        Oracle and ensures that the call succeeds even if an exception takes
-        place in one or more of the sequence of parameters. The errors can then
-        be retrieved using getbatcherrors().
-
-        When true, the arraydmlrowcounts parameter enables DML row counts to be
-        retrieved from Oracle after the method has completed. The row counts
-        can then be retrieved using getarraydmlrowcounts().
-
-        Both the batcherrors parameter and the arraydmlrowcounts parameter can
-        only be true when executing an insert, update, delete or merge
-        statement; in all other cases an error will be raised.
-
-        For maximum efficiency, it is best to use the setinputsizes() method to
-        specify the parameter types and sizes ahead of time; in particular,
-        None is assumed to be a string of length 1 so any values that are later
-        bound as numbers or dates will raise a TypeError exception.
-        """
-        # verify parameters
-        if statement is None and self.statement is None:
-            errors._raise_err(errors.ERR_NO_STATEMENT)
-        if not isinstance(parameters, (list, int)):
-            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
-
-        # prepare statement, if necessary
-        self._verify_open()
-        if statement and statement != self.statement:
-            self._prepare(statement)
-
-        # perform bind and execute
-        self._set_input_sizes = False
-        if isinstance(parameters, int):
-            num_execs = parameters
-        else:
-            num_execs = len(parameters)
-            if num_execs > 0:
-                self._impl.bind_many(self, parameters)
-        self._impl.executemany(
-            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
-        )
-
-    def fetchall(self) -> list:
-        """
-        Fetch all (remaining) rows of a query result, returning them as a list
-        of tuples. An empty list is returned if no more rows are available.
-        Note that the cursor’s arraysize attribute can affect the performance
-        of this operation, as internally reads from the database are done in
-        batches corresponding to the arraysize.
-
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
-        """
-        self._verify_fetch()
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while True:
-            row = fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
-
-    def fetchmany(self, size: int = None, numRows: int = None) -> list:
-        """
-        Fetch the next set of rows of a query result, returning a list of
-        tuples. An empty list is returned if no more rows are available. Note
-        that the cursor’s arraysize attribute can affect the performance of
-        this operation.
-
-        The number of rows to fetch is specified by the parameter (the second
-        parameter is retained for backwards compatibility and should not be
-        used). If it is not given, the cursor’s arraysize attribute determines
-        the number of rows to be fetched. If the number of rows available to be
-        fetched is fewer than the amount requested, fewer rows will be
-        returned.
-
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
-        """
-        self._verify_fetch()
-        if size is None:
-            if numRows is not None:
-                size = numRows
-            else:
-                size = self._impl.arraysize
-        elif numRows is not None:
-            errors._raise_err(
-                errors.ERR_DUPLICATED_PARAMETER,
-                deprecated_name="numRows",
-                new_name="size",
-            )
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while len(result) < size:
-            row = fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
-
-    def fetchone(self) -> Any:
-        """
-        Fetch the next row of a query result set, returning a single tuple or
-        None when no more data is available.
-
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
-        """
-        self._verify_fetch()
-        return self._impl.fetch_next_row(self)
 
     @property
     def fetchvars(self) -> list:
@@ -658,16 +394,6 @@ class Cursor:
         self._verify_open()
         self._impl.outputtypehandler = value
 
-    def parse(self, statement: str) -> None:
-        """
-        This can be used to parse a statement without actually executing it
-        (this step is done automatically by Oracle when a statement is
-        executed).
-        """
-        self._verify_open()
-        self._prepare(statement)
-        self._impl.parse(self)
-
     @property
     def prefetchrows(self) -> int:
         """
@@ -730,23 +456,6 @@ class Cursor:
     def rowfactory(self, value: Callable) -> None:
         self._verify_open()
         self._impl.rowfactory = value
-
-    def scroll(self, value: int = 0, mode: str = "relative") -> None:
-        """
-        Scroll the cursor in the result set to a new position according to the
-        mode.
-
-        If mode is “relative” (the default value), the value is taken as an
-        offset to the current position in the result set. If set to “absolute”,
-        value states an absolute target position. If set to “first”, the cursor
-        is positioned at the first row and if set to “last”, the cursor is set
-        to the last row in the result set.
-
-        An error is raised if the mode is “relative” or “absolute” and the
-        scroll operation would position the cursor outside of the result set.
-        """
-        self._verify_open()
-        self._impl.scroll(self.connection, value, mode)
 
     @property
     def scrollable(self) -> bool:
@@ -894,3 +603,538 @@ class Cursor:
         """
         self._verify_open()
         return self._impl.warning
+
+
+class Cursor(BaseCursor):
+    __module__ = MODULE_NAME
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._verify_fetch()
+        row = self._impl.fetch_next_row(self)
+        if row is not None:
+            return row
+        raise StopIteration
+
+    def _get_oci_attr(self, attr_num: int, attr_type: int) -> Any:
+        """
+        Returns the value of the specified OCI attribute from the internal
+        handle. This is only supported in python-oracledb's thick mode and
+        should only be used as directed by Oracle.
+        """
+        self._verify_open()
+        return self._impl._get_oci_attr(attr_num, attr_type)
+
+    def _set_oci_attr(self, attr_num: int, attr_type: int, value: Any) -> None:
+        """
+        Sets the value of the specified OCI attribute on the internal handle.
+        This is only supported in python-oracledb's thick mode and should only
+        be used as directed by Oracle.
+        """
+        self._verify_open()
+        self._impl._set_oci_attr(attr_num, attr_type, value)
+
+    def callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+        *,
+        keywordParameters: dict = None,
+    ) -> Any:
+        """
+        Call a function with the given name. The return type is specified in
+        the same notation as is required by setinputsizes(). The sequence of
+        parameters must contain one entry for each parameter that the function
+        expects. Any keyword parameters will be included after the positional
+        parameters. The result of the call is the return value of the function.
+        """
+        var = self.var(return_type)
+        if keywordParameters is not None:
+            if keyword_parameters is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
+            keyword_parameters = keywordParameters
+        self._call(name, parameters, keyword_parameters, var)
+        return var.getvalue()
+
+    def callproc(
+        self,
+        name: str,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+        *,
+        keywordParameters: dict = None,
+    ) -> list:
+        """
+        Call a procedure with the given name. The sequence of parameters must
+        contain one entry for each parameter that the procedure expects. The
+        result of the call is a modified copy of the input sequence. Input
+        parameters are left untouched; output and input/output parameters are
+        replaced with possibly new values. Keyword parameters will be included
+        after the positional parameters and are not returned as part of the
+        output sequence.
+        """
+        if keywordParameters is not None:
+            if keyword_parameters is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
+            keyword_parameters = keywordParameters
+        self._call(name, parameters, keyword_parameters)
+        if parameters is None:
+            return []
+        return [
+            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
+        ]
+
+    def execute(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, tuple, dict] = None,
+        **keyword_parameters: Any,
+    ) -> Any:
+        """
+        Execute a statement against the database.
+
+        Parameters may be passed as a dictionary or sequence or as keyword
+        parameters. If the parameters are a dictionary, the values will be
+        bound by name and if the parameters are a sequence the values will be
+        bound by position. Note that if the values are bound by position, the
+        order of the variables is from left to right as they are encountered in
+        the statement and SQL statements are processed differently than PL/SQL
+        statements. For this reason, it is generally recommended to bind
+        parameters by name instead of by position.
+
+        Parameters passed as a dictionary are name and value pairs. The name
+        maps to the bind variable name used by the statement and the value maps
+        to the Python value you wish bound to that bind variable.
+
+        A reference to the statement will be retained by the cursor. If None or
+        the same string object is passed in again, the cursor will execute that
+        statement again without performing a prepare or rebinding and
+        redefining. This is most effective for algorithms where the same
+        statement is used, but different parameters are bound to it (many
+        times). Note that parameters that are not passed in during subsequent
+        executions will retain the value passed in during the last execution
+        that contained them.
+
+        For maximum efficiency when reusing an statement, it is best to use the
+        setinputsizes() method to specify the parameter types and sizes ahead
+        of time; in particular, None is assumed to be a string of length 1 so
+        any values that are later bound as numbers or dates will raise a
+        TypeError exception.
+
+        If the statement is a query, the cursor is returned as a convenience to
+        the caller (so it can be used directly as an iterator over the rows in
+        the cursor); otherwise, None is returned.
+        """
+        self._prepare_for_execute(statement, parameters, keyword_parameters)
+        impl = self._impl
+        impl.warning = None
+        impl.execute(self)
+        if impl.fetch_vars is not None:
+            return self
+
+    def executemany(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, int],
+        batcherrors: bool = False,
+        arraydmlrowcounts: bool = False,
+    ) -> None:
+        """
+        Prepare a statement for execution against a database and then execute
+        it against all parameter mappings or sequences found in the sequence
+        parameters.
+
+        The statement is managed in the same way as the execute() method
+        manages it. If the size of the buffers allocated for any of the
+        parameters exceeds 2 GB and you are using the thick implementation, you
+        will receive the error “DPI-1015: array size of <n> is too large”,
+        where <n> varies with the size of each element being allocated in the
+        buffer. If you receive this error, decrease the number of elements in
+        the sequence parameters.
+
+        If there are no parameters, or parameters have previously been bound,
+        the number of iterations can be specified as an integer instead of
+        needing to provide a list of empty mappings or sequences.
+
+        When true, the batcherrors parameter enables batch error support within
+        Oracle and ensures that the call succeeds even if an exception takes
+        place in one or more of the sequence of parameters. The errors can then
+        be retrieved using getbatcherrors().
+
+        When true, the arraydmlrowcounts parameter enables DML row counts to be
+        retrieved from Oracle after the method has completed. The row counts
+        can then be retrieved using getarraydmlrowcounts().
+
+        Both the batcherrors parameter and the arraydmlrowcounts parameter can
+        only be true when executing an insert, update, delete or merge
+        statement; in all other cases an error will be raised.
+
+        For maximum efficiency, it is best to use the setinputsizes() method to
+        specify the parameter types and sizes ahead of time; in particular,
+        None is assumed to be a string of length 1 so any values that are later
+        bound as numbers or dates will raise a TypeError exception.
+        """
+        # verify parameters
+        if statement is None and self.statement is None:
+            errors._raise_err(errors.ERR_NO_STATEMENT)
+        if not isinstance(parameters, (list, int)):
+            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
+
+        # prepare statement, if necessary
+        self._verify_open()
+        if statement and statement != self.statement:
+            self._prepare(statement)
+
+        # perform bind and execute
+        self._set_input_sizes = False
+        if isinstance(parameters, int):
+            num_execs = parameters
+        else:
+            num_execs = len(parameters)
+            if num_execs > 0:
+                self._impl.bind_many(self, parameters)
+        self._impl.warning = None
+        self._impl.executemany(
+            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+        )
+
+    def fetchall(self) -> list:
+        """
+        Fetch all (remaining) rows of a query result, returning them as a list
+        of tuples. An empty list is returned if no more rows are available.
+        Note that the cursor’s arraysize attribute can affect the performance
+        of this operation, as internally reads from the database are done in
+        batches corresponding to the arraysize.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        result = []
+        fetch_next_row = self._impl.fetch_next_row
+        while True:
+            row = fetch_next_row(self)
+            if row is None:
+                break
+            result.append(row)
+        return result
+
+    def fetchmany(self, size: int = None, numRows: int = None) -> list:
+        """
+        Fetch the next set of rows of a query result, returning a list of
+        tuples. An empty list is returned if no more rows are available. Note
+        that the cursor’s arraysize attribute can affect the performance of
+        this operation.
+
+        The number of rows to fetch is specified by the parameter (the second
+        parameter is retained for backwards compatibility and should not be
+        used). If it is not given, the cursor’s arraysize attribute determines
+        the number of rows to be fetched. If the number of rows available to be
+        fetched is fewer than the amount requested, fewer rows will be
+        returned.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        if size is None:
+            if numRows is not None:
+                size = numRows
+            else:
+                size = self._impl.arraysize
+        elif numRows is not None:
+            errors._raise_err(
+                errors.ERR_DUPLICATED_PARAMETER,
+                deprecated_name="numRows",
+                new_name="size",
+            )
+        result = []
+        fetch_next_row = self._impl.fetch_next_row
+        while len(result) < size:
+            row = fetch_next_row(self)
+            if row is None:
+                break
+            result.append(row)
+        return result
+
+    def fetchone(self) -> Any:
+        """
+        Fetch the next row of a query result set, returning a single tuple or
+        None when no more data is available.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        return self._impl.fetch_next_row(self)
+
+    def parse(self, statement: str) -> None:
+        """
+        This can be used to parse a statement without actually executing it
+        (this step is done automatically by Oracle when a statement is
+        executed).
+        """
+        self._verify_open()
+        self._prepare(statement)
+        self._impl.parse(self)
+
+    def scroll(self, value: int = 0, mode: str = "relative") -> None:
+        """
+        Scroll the cursor in the result set to a new position according to the
+        mode.
+
+        If mode is “relative” (the default value), the value is taken as an
+        offset to the current position in the result set. If set to “absolute”,
+        value states an absolute target position. If set to “first”, the cursor
+        is positioned at the first row and if set to “last”, the cursor is set
+        to the last row in the result set.
+
+        An error is raised if the mode is “relative” or “absolute” and the
+        scroll operation would position the cursor outside of the result set.
+        """
+        self._verify_open()
+        self._impl.scroll(self.connection, value, mode)
+
+
+class AsyncCursor(BaseCursor):
+    __module__ = MODULE_NAME
+
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        self._verify_fetch()
+        row = await self._impl.fetch_next_row(self)
+        if row is not None:
+            return row
+        raise StopAsyncIteration
+
+    async def callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> Any:
+        """
+        Call a function with the given name. The return type is specified in
+        the same notation as is required by setinputsizes(). The sequence of
+        parameters must contain one entry for each parameter that the function
+        expects. Any keyword parameters will be included after the positional
+        parameters. The result of the call is the return value of the function.
+        """
+        var = self.var(return_type)
+        await self._call(name, parameters, keyword_parameters, var)
+        return var.getvalue()
+
+    async def callproc(
+        self,
+        name: str,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> list:
+        """
+        Call a procedure with the given name. The sequence of parameters must
+        contain one entry for each parameter that the procedure expects. The
+        result of the call is a modified copy of the input sequence. Input
+        parameters are left untouched; output and input/output parameters are
+        replaced with possibly new values. Keyword parameters will be included
+        after the positional parameters and are not returned as part of the
+        output sequence.
+        """
+        await self._call(name, parameters, keyword_parameters)
+        if parameters is None:
+            return []
+        return [
+            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
+        ]
+
+    async def execute(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, tuple, dict] = None,
+        **keyword_parameters: Any,
+    ) -> None:
+        """
+        Execute a statement against the database.
+
+        Parameters may be passed as a dictionary or sequence or as keyword
+        parameters. If the parameters are a dictionary, the values will be
+        bound by name and if the parameters are a sequence the values will be
+        bound by position. Note that if the values are bound by position, the
+        order of the variables is from left to right as they are encountered in
+        the statement and SQL statements are processed differently than PL/SQL
+        statements. For this reason, it is generally recommended to bind
+        parameters by name instead of by position.
+
+        Parameters passed as a dictionary are name and value pairs. The name
+        maps to the bind variable name used by the statement and the value maps
+        to the Python value you wish bound to that bind variable.
+
+        A reference to the statement will be retained by the cursor. If None or
+        the same string object is passed in again, the cursor will execute that
+        statement again without performing a prepare or rebinding and
+        redefining. This is most effective for algorithms where the same
+        statement is used, but different parameters are bound to it (many
+        times). Note that parameters that are not passed in during subsequent
+        executions will retain the value passed in during the last execution
+        that contained them.
+
+        For maximum efficiency when reusing an statement, it is best to use the
+        setinputsizes() method to specify the parameter types and sizes ahead
+        of time; in particular, None is assumed to be a string of length 1 so
+        any values that are later bound as numbers or dates will raise a
+        TypeError exception.
+        """
+        self._prepare_for_execute(statement, parameters, keyword_parameters)
+        self._impl.warning = None
+        await self._impl.execute(self)
+
+    async def executemany(
+        self,
+        statement: Union[str, None],
+        parameters: Union[list, int],
+        batcherrors: bool = False,
+        arraydmlrowcounts: bool = False,
+    ) -> None:
+        """
+        Prepare a statement for execution against a database and then execute
+        it against all parameter mappings or sequences found in the sequence
+        parameters.
+
+        The statement is managed in the same way as the execute() method
+        manages it. If the size of the buffers allocated for any of the
+        parameters exceeds 2 GB and you are using the thick implementation, you
+        will receive the error “DPI-1015: array size of <n> is too large”,
+        where <n> varies with the size of each element being allocated in the
+        buffer. If you receive this error, decrease the number of elements in
+        the sequence parameters.
+
+        If there are no parameters, or parameters have previously been bound,
+        the number of iterations can be specified as an integer instead of
+        needing to provide a list of empty mappings or sequences.
+
+        When true, the batcherrors parameter enables batch error support within
+        Oracle and ensures that the call succeeds even if an exception takes
+        place in one or more of the sequence of parameters. The errors can then
+        be retrieved using getbatcherrors().
+
+        When true, the arraydmlrowcounts parameter enables DML row counts to be
+        retrieved from Oracle after the method has completed. The row counts
+        can then be retrieved using getarraydmlrowcounts().
+
+        Both the batcherrors parameter and the arraydmlrowcounts parameter can
+        only be true when executing an insert, update, delete or merge
+        statement; in all other cases an error will be raised.
+
+        For maximum efficiency, it is best to use the setinputsizes() method to
+        specify the parameter types and sizes ahead of time; in particular,
+        None is assumed to be a string of length 1 so any values that are later
+        bound as numbers or dates will raise a TypeError exception.
+        """
+        # verify parameters
+        if statement is None and self.statement is None:
+            errors._raise_err(errors.ERR_NO_STATEMENT)
+        if not isinstance(parameters, (list, int)):
+            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
+
+        # prepare statement, if necessary
+        self._verify_open()
+        if statement and statement != self.statement:
+            self._prepare(statement)
+
+        # perform bind and execute
+        self._set_input_sizes = False
+        if isinstance(parameters, int):
+            num_execs = parameters
+        else:
+            num_execs = len(parameters)
+            if num_execs > 0:
+                self._impl.bind_many(self, parameters)
+        self._impl.warning = None
+        await self._impl.executemany(
+            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+        )
+
+    async def fetchall(self) -> list:
+        """
+        Fetch all (remaining) rows of a query result, returning them as a list
+        of tuples. An empty list is returned if no more rows are available.
+        Note that the cursor’s arraysize attribute can affect the performance
+        of this operation, as internally reads from the database are done in
+        batches corresponding to the arraysize.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        result = []
+        fetch_next_row = self._impl.fetch_next_row
+        while True:
+            row = await fetch_next_row(self)
+            if row is None:
+                break
+            result.append(row)
+        return result
+
+    async def fetchmany(self, size: int = None) -> list:
+        """
+        Fetch the next set of rows of a query result, returning a list of
+        tuples. An empty list is returned if no more rows are available. Note
+        that the cursor’s arraysize attribute can affect the performance of
+        this operation.
+
+        The number of rows to fetch is specified by the parameter (the second
+        parameter is retained for backwards compatibility and should not be
+        used). If it is not given, the cursor’s arraysize attribute determines
+        the number of rows to be fetched. If the number of rows available to be
+        fetched is fewer than the amount requested, fewer rows will be
+        returned.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        if size is None:
+            size = self._impl.arraysize
+        result = []
+        fetch_next_row = self._impl.fetch_next_row
+        while len(result) < size:
+            row = await fetch_next_row(self)
+            if row is None:
+                break
+            result.append(row)
+        return result
+
+    async def fetchone(self) -> Any:
+        """
+        Fetch the next row of a query result set, returning a single tuple or
+        None when no more data is available.
+
+        An exception is raised if the previous call to execute() did not
+        produce any result set or no call was issued yet.
+        """
+        self._verify_fetch()
+        return await self._impl.fetch_next_row(self)
+
+    async def parse(self, statement: str) -> None:
+        """
+        This can be used to parse a statement without actually executing it
+        (this step is done automatically by Oracle when a statement is
+        executed).
+        """
+        self._verify_open()
+        self._prepare(statement)
+        await self._impl.parse(self)

@@ -102,7 +102,7 @@ def get_value(name, label, default_value=None, password=False):
     return value
 
 
-def get_admin_connection():
+def get_admin_connection(use_async=False):
     admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
     admin_password = get_value(
         "ADMIN_PASSWORD", f"Password for {admin_user}", password=True
@@ -111,12 +111,17 @@ def get_admin_connection():
     if admin_user and admin_user.upper() == "SYS":
         params = params.copy()
         params.set(mode=oracledb.AUTH_MODE_SYSDBA)
-    return oracledb.connect(
+    method = oracledb.connect_async if use_async else oracledb.connect
+    return method(
         dsn=get_connect_string(),
         params=params,
         user=admin_user,
         password=admin_password,
     )
+
+
+async def get_admin_connection_async(use_async=False):
+    return await get_admin_connection(use_async=True)
 
 
 def get_charset_ratios():
@@ -125,6 +130,25 @@ def get_charset_ratios():
         connection = get_connection()
         cursor = connection.cursor()
         cursor.execute(
+            """
+            select
+                cast('X' as varchar2(1)),
+                cast('Y' as nvarchar2(1))
+            from dual
+            """
+        )
+        varchar_column_info, nvarchar_column_info = cursor.description
+        value = (varchar_column_info[3], nvarchar_column_info[3])
+        PARAMETERS["CS_RATIO"] = value
+    return value
+
+
+async def get_charset_ratios_async():
+    value = PARAMETERS.get("CS_RATIO")
+    if value is None:
+        connection = await get_connection_async()
+        cursor = connection.cursor()
+        await cursor.execute(
             """
             select
                 cast('X' as varchar2(1)),
@@ -161,10 +185,15 @@ def get_connect_params():
     )
 
 
-def get_connection(dsn=None, **kwargs):
+def get_connection(dsn=None, use_async=False, **kwargs):
     if dsn is None:
         dsn = get_connect_string()
-    return oracledb.connect(dsn=dsn, params=get_connect_params(), **kwargs)
+    method = oracledb.connect_async if use_async else oracledb.connect
+    return method(dsn=dsn, params=get_connect_params(), **kwargs)
+
+
+def get_connection_async(dsn=None, **kwargs):
+    return get_connection(dsn, use_async=True, **kwargs)
 
 
 def get_connect_string():
@@ -188,10 +217,13 @@ def get_main_user():
     return get_value("MAIN_USER", "Main User Name", DEFAULT_MAIN_USER)
 
 
-def get_pool(**kwargs):
-    return oracledb.create_pool(
-        dsn=get_connect_string(), params=get_pool_params(), **kwargs
-    )
+def get_pool(use_async=False, **kwargs):
+    method = oracledb.create_pool_async if use_async else oracledb.create_pool
+    return method(dsn=get_connect_string(), params=get_pool_params(), **kwargs)
+
+
+def get_pool_async(**kwargs):
+    return get_pool(use_async=True, **kwargs)
 
 
 def get_pool_params():
@@ -232,6 +264,16 @@ def get_server_version():
     return value
 
 
+async def get_server_version_async():
+    name = "SERVER_VERSION"
+    value = PARAMETERS.get(name)
+    if value is None:
+        async with await get_connection_async() as conn:
+            value = tuple(int(s) for s in conn.version.split("."))[:2]
+            PARAMETERS[name] = value
+    return value
+
+
 def get_wallet_location():
     if get_is_thin():
         return get_value("WALLET_LOCATION", "Wallet Location")
@@ -259,6 +301,21 @@ def is_on_oracle_cloud(connection):
         """
     )
     (service_name,) = cursor.fetchone()
+    return service_name is not None
+
+
+async def is_on_oracle_cloud_async(connection):
+    server = await get_server_version_async()
+    if server < (18, 0):
+        return False
+    cursor = connection.cursor()
+    await cursor.execute(
+        """
+        select sys_context('userenv', 'cloud_service')
+        from dual
+        """
+    )
+    (service_name,) = await cursor.fetchone()
     return service_name is not None
 
 
@@ -335,30 +392,48 @@ class DefaultsContextManager:
 
 
 class SystemStatInfo:
+    get_sid_sql = "select sys_context('userenv', 'sid') from dual"
+    get_stat_sql = """
+          select ss.value
+          from v$sesstat ss, v$statname sn
+          where ss.sid = :sid
+              and ss.statistic# = sn.statistic#
+              and sn.name = :stat_name
+          """
     stat_name = None
 
-    def __init__(self, connection):
+    def _initialize(self, connection):
         self.prev_value = 0
         self.admin_conn = get_admin_connection()
         with connection.cursor() as cursor:
-            cursor.execute("select sys_context('userenv', 'sid') from dual")
+            cursor.execute(self.get_sid_sql)
             (self.sid,) = cursor.fetchone()
         self.get_value()
+
+    async def _initialize_async(self, connection):
+        self.prev_value = 0
+        self.admin_conn = await get_admin_connection_async()
+        with connection.cursor() as cursor:
+            await cursor.execute(self.get_sid_sql)
+            (self.sid,) = await cursor.fetchone()
+        await self.get_value_async()
 
     def get_value(self):
         with self.admin_conn.cursor() as cursor:
             cursor.execute(
-                """
-                select ss.value
-                from v$sesstat ss, v$statname sn
-                where ss.sid = :sid
-                    and ss.statistic# = sn.statistic#
-                    and sn.name = :stat_name
-                """,
-                sid=self.sid,
-                stat_name=self.stat_name,
+                self.get_stat_sql, sid=self.sid, stat_name=self.stat_name
             )
             (current_value,) = cursor.fetchone()
+            diff_value = current_value - self.prev_value
+            self.prev_value = current_value
+            return diff_value
+
+    async def get_value_async(self):
+        with self.admin_conn.cursor() as cursor:
+            await cursor.execute(
+                self.get_stat_sql, sid=self.sid, stat_name=self.stat_name
+            )
+            (current_value,) = await cursor.fetchone()
             diff_value = current_value - self.prev_value
             self.prev_value = current_value
             return diff_value
@@ -452,16 +527,73 @@ class BaseTestCase(unittest.TestCase):
             self.cursor.execute("alter session set time_zone = '+00:00'")
 
     def setup_parse_count_checker(self):
-        self.parse_count_info = ParseCountInfo(self.conn)
+        self.parse_count_info = ParseCountInfo()
+        self.parse_count_info._initialize(self.conn)
 
     def setup_round_trip_checker(self):
-        self.round_trip_info = RoundTripInfo(self.conn)
+        self.round_trip_info = RoundTripInfo()
+        self.round_trip_info._initialize(self.conn)
 
     def tearDown(self):
         if self.requires_connection:
             self.conn.close()
             del self.cursor
             del self.conn
+
+
+class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
+    requires_connection = True
+
+    async def assertParseCount(self, n):
+        self.assertEqual(await self.parse_count_info.get_value_async(), n)
+
+    async def assertRoundTrips(self, n):
+        self.assertEqual(await self.round_trip_info.get_value_async(), n)
+
+    async def asyncSetUp(self):
+        if self.requires_connection:
+            self.conn = await get_connection_async()
+            self.cursor = self.conn.cursor()
+            await self.cursor.execute("alter session set time_zone = '+00:00'")
+
+    async def asyncTearDown(self):
+        if self.requires_connection:
+            await self.conn.close()
+            del self.cursor
+            del self.conn
+
+    async def get_db_object_as_plain_object(self, obj):
+        if obj.type.iscollection:
+            element_values = []
+            for value in obj.aslist():
+                if isinstance(value, oracledb.DbObject):
+                    value = await self.get_db_object_as_plain_object(value)
+                elif isinstance(value, oracledb.AsyncLOB):
+                    value = await value.read()
+                element_values.append(value)
+            return element_values
+        attr_values = []
+        for attribute in obj.type.attributes:
+            value = getattr(obj, attribute.name)
+            if isinstance(value, oracledb.DbObject):
+                value = await self.get_db_object_as_plain_object(value)
+            elif isinstance(value, oracledb.AsyncLOB):
+                value = await value.read()
+            attr_values.append(value)
+        return tuple(attr_values)
+
+    async def is_on_oracle_cloud(self, connection=None):
+        if connection is None:
+            connection = self.conn
+        return await is_on_oracle_cloud_async(connection)
+
+    async def setup_parse_count_checker(self):
+        self.parse_count_info = ParseCountInfo()
+        await self.parse_count_info._initialize_async(self.conn)
+
+    async def setup_round_trip_checker(self):
+        self.round_trip_info = RoundTripInfo()
+        await self.round_trip_info._initialize_async(self.conn)
 
 
 # ensure that thick mode is enabled, if desired

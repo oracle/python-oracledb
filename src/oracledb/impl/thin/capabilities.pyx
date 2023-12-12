@@ -46,7 +46,7 @@ cdef class Capabilities:
     def __init__(self):
         self._init_compile_caps()
         self._init_runtime_caps()
-        self.sdu = 1024                 # initial value to use
+        self.sdu = 8192                 # initial value to use
 
     cdef void _adjust_for_protocol(self, uint16_t protocol_version,
                                    uint16_t protocol_options):

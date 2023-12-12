@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -103,57 +103,3 @@ def get_signature(private_key_str, text):
                                                      password=None)
     sig = private_key.sign(text.encode(), padding.PKCS1v15(), hashes.SHA256())
     return base64.b64encode(sig).decode()
-
-
-def get_ssl_socket(sock, ConnectParamsImpl params, Description description,
-                   Address address):
-    """
-    Returns a wrapped SSL socket given a socket and the parameters supplied by
-    the user.
-    """
-    ssl_context = params.ssl_context
-    if ssl_context is None:
-        ssl_context = ssl.create_default_context()
-
-    # if the platform is macOS, and one-way TLS or mTLS is being used, check
-    # if the certifi package is installed. If certifi is not installed, load
-    # the certificates from the macOS keychain in PEM format.
-    if sys.platform == "darwin" and certifi is None:
-        global macos_certs
-        if macos_certs is None:
-            certs = subprocess.run(["security", "find-certificate",
-                                    "-a", "-p"],
-                                    stdout=subprocess.PIPE).stdout
-            macos_certs = certs.decode("utf-8")
-        ssl_context.load_verify_locations(cadata=macos_certs)
-    if description.wallet_location is not None:
-        pem_file_name = os.path.join(description.wallet_location,
-                                     PEM_WALLET_FILE_NAME)
-        if not os.path.exists(pem_file_name):
-            errors._raise_err(errors.ERR_WALLET_FILE_MISSING,
-                              name=pem_file_name)
-        ssl_context.load_verify_locations(pem_file_name)
-        try:
-            ssl_context.load_cert_chain(pem_file_name,
-                                        password=params._get_wallet_password())
-        except ssl.SSLError:
-            pass
-    return perform_tls_negotiation(sock, ssl_context, description, address)
-
-
-def perform_tls_negotiation(sock, ssl_context, Description description,
-                            Address address):
-    """
-    Peforms TLS negotiation.
-    """
-    if description.ssl_server_dn_match \
-            and description.ssl_server_cert_dn is None:
-        sock = ssl_context.wrap_socket(sock, server_hostname=address.host)
-    else:
-        ssl_context.check_hostname = False
-        sock = ssl_context.wrap_socket(sock)
-    if description.ssl_server_dn_match \
-            and description.ssl_server_cert_dn is not None:
-        if not get_server_dn_matches(sock, description.ssl_server_cert_dn):
-            errors._raise_err(errors.ERR_INVALID_SERVER_CERT_DN)
-    return sock

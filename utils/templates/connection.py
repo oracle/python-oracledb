@@ -43,8 +43,8 @@ from . import constants, driver_mode, errors
 from . import base_impl, thick_impl, thin_impl
 from . import pool as pool_module
 from .connect_params import ConnectParams
-from .cursor import Cursor
-from .lob import LOB
+from .cursor import AsyncCursor, Cursor
+from .lob import AsyncLOB, LOB
 from .subscr import Subscription
 from .aq import Queue, MessageProperties
 from .soda import SodaDatabase
@@ -57,135 +57,21 @@ Xid = collections.namedtuple(
 )
 
 
-class Connection:
+class BaseConnection:
     __module__ = MODULE_NAME
 
-    def __init__(
-        self,
-        dsn: str = None,
-        *,
-        pool: "pool_module.ConnectionPool" = None,
-        params: ConnectParams = None,
-        **kwargs,
-    ) -> None:
-        """
-        Constructor for creating a connection to the database.
-
-        The dsn parameter (data source name) can be a string in the format
-        user/password@connect_string or can simply be the connect string (in
-        which case authentication credentials such as the username and password
-        need to be specified separately). See the documentation on connection
-        strings for more information.
-
-        The pool parameter is expected to be a pool object and the use of this
-        parameter is the equivalent of calling acquire() on the pool.
-
-        The params parameter is expected to be of type ConnectParams and
-        contains connection parameters that will be used when establishing the
-        connection. See the documentation on ConnectParams for more
-        information. If this parameter is not specified, the additional keyword
-        parameters will be used to create an instance of ConnectParams. If both
-        the params parameter and additional keyword parameters are specified,
-        the values in the keyword parameters have precedence. Note that if a
-        dsn is also supplied, then in the python-oracledb Thin mode, the values
-        of the parameters specified (if any) within the dsn will override the
-        values passed as additional keyword parameters, which themselves
-        override the values set in the params parameter object.
-        """
-
-        # if this variable is not present, exceptions raised during
-        # construction can result in cascading exceptions; the __repr__()
-        # method depends on this variable being present, too, so make it
-        # available first thing
+    def __init__(self):
         self._impl = None
-
-        # determine if thin mode is being used
-        with driver_mode.get_manager() as mode_mgr:
-            thin = mode_mgr.thin
-
-            # determine which connection parameters to use
-            if params is None:
-                params_impl = base_impl.ConnectParamsImpl()
-            elif not isinstance(params, ConnectParams):
-                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-            else:
-                params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs, thin)
-
-            # see if connection is being acquired from a pool
-            if pool is None:
-                pool_impl = None
-            else:
-                pool._verify_open()
-                pool_impl = pool._impl
-
-            # create thin or thick implementation object
-            if thin:
-                if pool is not None:
-                    impl = pool_impl.acquire(params_impl)
-                else:
-                    impl = thin_impl.ThinConnImpl(dsn, params_impl)
-                    impl.connect(params_impl)
-            else:
-                impl = thick_impl.ThickConnImpl(dsn, params_impl)
-                impl.connect(params_impl, pool_impl)
-            self._impl = impl
-            self._version = None
-
-            # invoke callback, if applicable
-            if (
-                impl.invoke_session_callback
-                and pool is not None
-                and pool.session_callback is not None
-                and callable(pool.session_callback)
-            ):
-                pool.session_callback(self, params_impl.tag)
-                impl.invoke_session_callback = False
-
-    def __del__(self):
-        if self._impl is not None:
-            self._impl.close(in_del=True)
-            self._impl = None
-
-    def __enter__(self):
-        self._verify_connected()
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        if self._impl is not None:
-            self._impl.close(in_del=True)
-            self._impl = None
+        self._version = None
 
     def __repr__(self):
-        typ = type(self)
+        typ = self.__class__
         cls_name = f"{typ.__module__}.{typ.__qualname__}"
         if self._impl is None:
             return f"<{cls_name} disconnected>"
         elif self.username is None:
             return f"<{cls_name} to externally identified user>"
         return f"<{cls_name} to {self.username}@{self.dsn}>"
-
-    def _get_oci_attr(
-        self, handle_type: int, attr_num: int, attr_type: int
-    ) -> Any:
-        """
-        Returns the value of the specified OCI attribute from the internal
-        handle. This is only supported in python-oracledb thick mode and should
-        only be used as directed by Oracle.
-        """
-        self._verify_connected()
-        return self._impl._get_oci_attr(handle_type, attr_num, attr_type)
-
-    def _set_oci_attr(
-        self, handle_type: int, attr_num: int, attr_type: int, value: Any
-    ) -> None:
-        """
-        Sets the value of the specified OCI attribute on the internal handle.
-        This is only supported in python-oracledb thick mode and should only
-        be used as directed by Oracle.
-        """
-        self._verify_connected()
-        self._impl._set_oci_attr(handle_type, attr_num, attr_type, value)
 
     def _verify_connected(self) -> None:
         """
@@ -194,14 +80,6 @@ class Connection:
         """
         if self._impl is None:
             errors._raise_err(errors.ERR_NOT_CONNECTED)
-
-    def _verify_xid(self, xid: Xid) -> None:
-        """
-        Verifies that the supplied xid is of the correct type.
-        """
-        if not isinstance(xid, Xid):
-            message = "expecting transaction id created with xid()"
-            raise TypeError(message)
 
     @property
     def action(self) -> None:
@@ -232,18 +110,6 @@ class Connection:
         self._verify_connected()
         self._impl.autocommit = value
 
-    def begin(
-        self,
-        format_id: int = -1,
-        transaction_id: str = "",
-        branch_id: str = "",
-    ) -> None:
-        """
-        Deprecated. Use tpc_begin() instead.
-        """
-        if format_id != -1:
-            self.tpc_begin(self.xid(format_id, transaction_id, branch_id))
-
     @property
     def call_timeout(self) -> int:
         """
@@ -259,31 +125,12 @@ class Connection:
         self._verify_connected()
         self._impl.set_call_timeout(value)
 
-    @property
-    def callTimeout(self) -> int:
-        """
-        Deprecated. Use property call_timeout instead.
-        """
-        return self.call_timeout
-
-    @callTimeout.setter
-    def callTimeout(self, value: int) -> None:
-        self._verify_connected()
-        self._impl.set_call_timeout(value)
-
     def cancel(self) -> None:
         """
         Break a long-running transaction.
         """
         self._verify_connected()
         self._impl.cancel()
-
-    def changepassword(self, old_password: str, new_password: str) -> None:
-        """
-        Changes the password for the user to which the connection is connected.
-        """
-        self._verify_connected()
-        self._impl.change_password(old_password, new_password)
 
     @property
     def client_identifier(self) -> None:
@@ -309,37 +156,6 @@ class Connection:
         self._verify_connected()
         self._impl.set_client_info(value)
 
-    def close(self) -> None:
-        """
-        Closes the connection and makes it unusable for further operations. An
-        Error exception will be raised if any operation is attempted with this
-        connection after this method completes successfully.
-        """
-        self._verify_connected()
-        self._impl.close()
-        self._impl = None
-
-    def commit(self) -> None:
-        """
-        Commits any pending transactions to the database.
-        """
-        self._verify_connected()
-        self._impl.commit()
-
-    def createlob(self, lob_type: DbType) -> LOB:
-        """
-        Create and return a new temporary LOB of the specified type.
-        """
-        self._verify_connected()
-        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
-            message = (
-                "parameter should be one of oracledb.DB_TYPE_CLOB, "
-                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
-            )
-            raise TypeError(message)
-        impl = self._impl.create_temp_lob_impl(lob_type)
-        return LOB._from_impl(impl)
-
     @property
     def current_schema(self) -> str:
         """
@@ -356,13 +172,6 @@ class Connection:
     def current_schema(self, value: str) -> None:
         self._verify_connected()
         self._impl.set_current_schema(value)
-
-    def cursor(self, scrollable: bool = False) -> Cursor:
-        """
-        Returns a cursor associated with the connection.
-        """
-        self._verify_connected()
-        return Cursor(self, scrollable)
 
     @property
     def dbop(self) -> None:
@@ -446,36 +255,6 @@ class Connection:
         self._verify_connected()
         self._impl.set_external_name(value)
 
-    def getSodaDatabase(self) -> SodaDatabase:
-        """
-        Return a SODA database object for performing all operations on Simple
-        Oracle Document Access (SODA).
-        """
-        self._verify_connected()
-        db_impl = self._impl.create_soda_database_impl(self)
-        return SodaDatabase._from_impl(self, db_impl)
-
-    def gettype(self, name: str) -> DbObjectType:
-        """
-        Return a type object given its name. This can then be used to create
-        objects which can be bound to cursors created by this connection.
-        """
-        self._verify_connected()
-        obj_type_impl = self._impl.get_type(self, name)
-        return DbObjectType._from_impl(obj_type_impl)
-
-    @property
-    def handle(self) -> int:
-        """
-        Returns the OCI service context handle for the connection. It is
-        primarily provided to facilitate testing the creation of a connection
-        using the OCI service context handle.
-
-        This property is only relevant to python-oracledb's thick mode.
-        """
-        self._verify_connected()
-        return self._impl.get_handle()
-
     @property
     def inputtypehandler(self) -> Callable:
         """
@@ -552,13 +331,6 @@ class Connection:
         return self._impl.get_ltxid()
 
     @property
-    def maxBytesPerCharacter(self) -> int:
-        """
-        Deprecated. Use the constant value 4 instead.
-        """
-        return 4
-
-    @property
     def max_open_cursors(self) -> int:
         """
         Specifies the maximum number of cursors that the database can have open
@@ -580,6 +352,336 @@ class Connection:
         """
         self._verify_connected()
         self._impl.set_module(value)
+
+    @property
+    def outputtypehandler(self) -> Callable:
+        """
+        Specifies a method called for each column that is going to be fetched
+        from any cursor associated with this connection. The method signature
+        is handler(cursor, name, defaultType, length, precision, scale) and the
+        return value is expected to be a variable object or None in which case
+        a default variable object will be created. If this attribute is None,
+        the default behavior will take place for all columns fetched from
+        cursors associated with this connection.
+        """
+        self._verify_connected()
+        return self._impl.outputtypehandler
+
+    @outputtypehandler.setter
+    def outputtypehandler(self, value: Callable) -> None:
+        self._verify_connected()
+        self._impl.outputtypehandler = value
+
+    @property
+    def service_name(self) -> str:
+        """
+        Specifies the name of the service that was used to connect to the
+        database.
+        """
+        self._verify_connected()
+        return self._impl.get_service_name()
+
+    @property
+    def stmtcachesize(self) -> int:
+        """
+        Specifies the size of the statement cache. This value can make a
+        significant difference in performance (up to 100x) if you have a small
+        number of statements that you execute repeatedly.
+        """
+        self._verify_connected()
+        return self._impl.get_stmt_cache_size()
+
+    @stmtcachesize.setter
+    def stmtcachesize(self, value: int) -> None:
+        self._verify_connected()
+        self._impl.set_stmt_cache_size(value)
+
+    @property
+    def transaction_in_progress(self) -> bool:
+        """
+        Specifies whether a transaction is currently in progress on the
+        database using this connection.
+        """
+        self._verify_connected()
+        return self._impl.get_transaction_in_progress()
+
+    @property
+    def username(self) -> str:
+        """
+        Returns the name of the user which established the connection to the
+        database.
+        """
+        self._verify_connected()
+        return self._impl.username
+
+    @property
+    def version(self) -> str:
+        """
+        Returns the version of the database to which the connection has been
+        established.
+        """
+        if self._version is None:
+            self._verify_connected()
+            self._version = ".".join(str(c) for c in self._impl.server_version)
+        return self._version
+
+    @property
+    def warning(self) -> errors._Error:
+        """
+        Returns any warning that was generated when the connection was created,
+        or the value None if no warning was generated. The value will be
+        cleared for pooled connections after they are returned to the pool.
+        """
+        self._verify_connected()
+        return self._impl.warning
+
+    def xid(
+        self,
+        format_id: int,
+        global_transaction_id: Union[bytes, str],
+        branch_qualifier: Union[bytes, str],
+    ) -> Xid:
+        """
+        Returns a global transaction identifier that can be used with the TPC
+        (two-phase commit) functions.
+
+        The format_id parameter should be a non-negative 32-bit integer. The
+        global_transaction_id and branch_qualifier parameters should be bytes
+        (or a string which will be UTF-8 encoded to bytes) of no more than 64
+        bytes.
+        """
+        return Xid(format_id, global_transaction_id, branch_qualifier)
+
+
+class Connection(BaseConnection):
+    __module__ = MODULE_NAME
+
+    def __init__(
+        self,
+        dsn: str = None,
+        *,
+        pool: "pool_module.ConnectionPool" = None,
+        params: ConnectParams = None,
+        **kwargs,
+    ) -> None:
+        """
+        Constructor for creating a connection to the database.
+
+        The dsn parameter (data source name) can be a string in the format
+        user/password@connect_string or can simply be the connect string (in
+        which case authentication credentials such as the username and password
+        need to be specified separately). See the documentation on connection
+        strings for more information.
+
+        The pool parameter is expected to be a pool object and the use of this
+        parameter is the equivalent of calling acquire() on the pool.
+
+        The params parameter is expected to be of type ConnectParams and
+        contains connection parameters that will be used when establishing the
+        connection. See the documentation on ConnectParams for more
+        information. If this parameter is not specified, the additional keyword
+        parameters will be used to create an instance of ConnectParams. If both
+        the params parameter and additional keyword parameters are specified,
+        the values in the keyword parameters have precedence. Note that if a
+        dsn is also supplied, then in the python-oracledb Thin mode, the values
+        of the parameters specified (if any) within the dsn will override the
+        values passed as additional keyword parameters, which themselves
+        override the values set in the params parameter object.
+        """
+
+        super().__init__()
+
+        # determine if thin mode is being used
+        with driver_mode.get_manager() as mode_mgr:
+            thin = mode_mgr.thin
+
+            # determine which connection parameters to use
+            if params is None:
+                params_impl = base_impl.ConnectParamsImpl()
+            elif not isinstance(params, ConnectParams):
+                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+            else:
+                params_impl = params._impl.copy()
+            dsn = params_impl.process_args(dsn, kwargs, thin)
+
+            # see if connection is being acquired from a pool
+            if pool is None:
+                pool_impl = None
+            else:
+                pool._verify_open()
+                pool_impl = pool._impl
+
+            # create thin or thick implementation object
+            if thin:
+                if pool is not None:
+                    impl = pool_impl.acquire(params_impl)
+                else:
+                    impl = thin_impl.ThinConnImpl(dsn, params_impl)
+                    impl.connect(params_impl)
+            else:
+                impl = thick_impl.ThickConnImpl(dsn, params_impl)
+                impl.connect(params_impl, pool_impl)
+            self._impl = impl
+
+            # invoke callback, if applicable
+            if (
+                impl.invoke_session_callback
+                and pool is not None
+                and pool.session_callback is not None
+                and callable(pool.session_callback)
+            ):
+                pool.session_callback(self, params_impl.tag)
+                impl.invoke_session_callback = False
+
+    def __del__(self):
+        if self._impl is not None:
+            self._impl.close(in_del=True)
+            self._impl = None
+
+    def __enter__(self):
+        self._verify_connected()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        if self._impl is not None:
+            self._impl.close(in_del=True)
+            self._impl = None
+
+    def _get_oci_attr(
+        self, handle_type: int, attr_num: int, attr_type: int
+    ) -> Any:
+        """
+        Returns the value of the specified OCI attribute from the internal
+        handle. This is only supported in python-oracledb thick mode and should
+        only be used as directed by Oracle.
+        """
+        self._verify_connected()
+        return self._impl._get_oci_attr(handle_type, attr_num, attr_type)
+
+    def _set_oci_attr(
+        self, handle_type: int, attr_num: int, attr_type: int, value: Any
+    ) -> None:
+        """
+        Sets the value of the specified OCI attribute on the internal handle.
+        This is only supported in python-oracledb thick mode and should only
+        be used as directed by Oracle.
+        """
+        self._verify_connected()
+        self._impl._set_oci_attr(handle_type, attr_num, attr_type, value)
+
+    def _verify_xid(self, xid: Xid) -> None:
+        """
+        Verifies that the supplied xid is of the correct type.
+        """
+        if not isinstance(xid, Xid):
+            message = "expecting transaction id created with xid()"
+            raise TypeError(message)
+
+    def begin(
+        self,
+        format_id: int = -1,
+        transaction_id: str = "",
+        branch_id: str = "",
+    ) -> None:
+        """
+        Deprecated. Use tpc_begin() instead.
+        """
+        if format_id != -1:
+            self.tpc_begin(self.xid(format_id, transaction_id, branch_id))
+
+    @property
+    def callTimeout(self) -> int:
+        """
+        Deprecated. Use property call_timeout instead.
+        """
+        return self.call_timeout
+
+    @callTimeout.setter
+    def callTimeout(self, value: int) -> None:
+        self._verify_connected()
+        self._impl.set_call_timeout(value)
+
+    def changepassword(self, old_password: str, new_password: str) -> None:
+        """
+        Changes the password for the user to which the connection is connected.
+        """
+        self._verify_connected()
+        self._impl.change_password(old_password, new_password)
+
+    def close(self) -> None:
+        """
+        Closes the connection and makes it unusable for further operations. An
+        Error exception will be raised if any operation is attempted with this
+        connection after this method completes successfully.
+        """
+        self._verify_connected()
+        self._impl.close()
+        self._impl = None
+
+    def commit(self) -> None:
+        """
+        Commits any pending transactions to the database.
+        """
+        self._verify_connected()
+        self._impl.commit()
+
+    def createlob(self, lob_type: DbType) -> LOB:
+        """
+        Create and return a new temporary LOB of the specified type.
+        """
+        self._verify_connected()
+        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
+            message = (
+                "parameter should be one of oracledb.DB_TYPE_CLOB, "
+                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
+            )
+            raise TypeError(message)
+        impl = self._impl.create_temp_lob_impl(lob_type)
+        return LOB._from_impl(impl)
+
+    def cursor(self, scrollable: bool = False) -> Cursor:
+        """
+        Returns a cursor associated with the connection.
+        """
+        self._verify_connected()
+        return Cursor(self, scrollable)
+
+    def getSodaDatabase(self) -> SodaDatabase:
+        """
+        Return a SODA database object for performing all operations on Simple
+        Oracle Document Access (SODA).
+        """
+        self._verify_connected()
+        db_impl = self._impl.create_soda_database_impl(self)
+        return SodaDatabase._from_impl(self, db_impl)
+
+    def gettype(self, name: str) -> DbObjectType:
+        """
+        Return a type object given its name. This can then be used to create
+        objects which can be bound to cursors created by this connection.
+        """
+        self._verify_connected()
+        obj_type_impl = self._impl.get_type(self, name)
+        return DbObjectType._from_impl(obj_type_impl)
+
+    @property
+    def handle(self) -> int:
+        """
+        Returns the OCI service context handle for the connection. It is
+        primarily provided to facilitate testing the creation of a connection
+        using the OCI service context handle.
+
+        This property is only relevant to python-oracledb's thick mode.
+        """
+        self._verify_connected()
+        return self._impl.get_handle()
+
+    @property
+    def maxBytesPerCharacter(self) -> int:
+        """
+        Deprecated. Use the constant value 4 instead.
+        """
+        return 4
 
     def msgproperties(
         self,
@@ -621,25 +723,6 @@ class Connection:
         use. This is always the value "UTF-8".
         """
         return "UTF-8"
-
-    @property
-    def outputtypehandler(self) -> Callable:
-        """
-        Specifies a method called for each column that is going to be fetched
-        from any cursor associated with this connection. The method signature
-        is handler(cursor, name, defaultType, length, precision, scale) and the
-        return value is expected to be a variable object or None in which case
-        a default variable object will be created. If this attribute is None,
-        the default behavior will take place for all columns fetched from
-        cursors associated with this connection.
-        """
-        self._verify_connected()
-        return self._impl.outputtypehandler
-
-    @outputtypehandler.setter
-    def outputtypehandler(self, value: Callable) -> None:
-        self._verify_connected()
-        self._impl.outputtypehandler = value
 
     def ping(self) -> None:
         """
@@ -710,15 +793,6 @@ class Connection:
         self._verify_connected()
         self._impl.rollback()
 
-    @property
-    def service_name(self) -> str:
-        """
-        Specifies the name of the service that was used to connect to the
-        database.
-        """
-        self._verify_connected()
-        return self._impl.get_service_name()
-
     def shutdown(self, mode: int = 0) -> None:
         """
         Shutdown the database. In order to do this the connection must be
@@ -742,21 +816,6 @@ class Connection:
         """
         self._verify_connected()
         self._impl.startup(force, restrict, pfile)
-
-    @property
-    def stmtcachesize(self) -> int:
-        """
-        Specifies the size of the statement cache. This value can make a
-        significant difference in performance (up to 100x) if you have a small
-        number of statements that you execute repeatedly.
-        """
-        self._verify_connected()
-        return self._impl.get_stmt_cache_size()
-
-    @stmtcachesize.setter
-    def stmtcachesize(self, value: int) -> None:
-        self._verify_connected()
-        self._impl.set_stmt_cache_size(value)
 
     def subscribe(
         self,
@@ -1041,15 +1100,6 @@ class Connection:
             self._verify_xid(xid)
         self._impl.tpc_rollback(xid)
 
-    @property
-    def transaction_in_progress(self) -> bool:
-        """
-        Specifies whether a transaction is currently in progress on the
-        database using this connection.
-        """
-        self._verify_connected()
-        return self._impl.get_transaction_in_progress()
-
     def unsubscribe(self, subscr: Subscription) -> None:
         """
         Unsubscribe from events in the database that were originally subscribed
@@ -1061,53 +1111,6 @@ class Connection:
         if not isinstance(subscr, Subscription):
             raise TypeError("expecting subscription")
         subscr._impl.unsubscribe(self._impl)
-
-    @property
-    def username(self) -> str:
-        """
-        Returns the name of the user which established the connection to the
-        database.
-        """
-        self._verify_connected()
-        return self._impl.username
-
-    @property
-    def version(self) -> str:
-        """
-        Returns the version of the database to which the connection has been
-        established.
-        """
-        if self._version is None:
-            self._verify_connected()
-            self._version = ".".join(str(c) for c in self._impl.server_version)
-        return self._version
-
-    @property
-    def warning(self) -> errors._Error:
-        """
-        Returns any warning that was generated when the connection was created,
-        or the value None if no warning was generated. The value will be
-        cleared for pooled connections after they are returned to the pool.
-        """
-        self._verify_connected()
-        return self._impl.warning
-
-    def xid(
-        self,
-        format_id: int,
-        global_transaction_id: Union[bytes, str],
-        branch_qualifier: Union[bytes, str],
-    ) -> Xid:
-        """
-        Returns a global transaction identifier that can be used with the TPC
-        (two-phase commit) functions.
-
-        The format_id parameter should be a non-negative 32-bit integer. The
-        global_transaction_id and branch_qualifier parameters should be bytes
-        (or a string which will be UTF-8 encoded to bytes) of no more than 64
-        bytes.
-        """
-        return Xid(format_id, global_transaction_id, branch_qualifier)
 
 
 def _connection_factory(f):
@@ -1164,6 +1167,375 @@ def connect(
 
     The conn_class parameter is expected to be Connection or a subclass of
     Connection.
+
+    The params parameter is expected to be of type ConnectParams and contains
+    connection parameters that will be used when establishing the connection.
+    See the documentation on ConnectParams for more information. If this
+    parameter is not specified, the additional keyword parameters will be used
+    to create an instance of ConnectParams. If both the params parameter and
+    additional keyword parameters are specified, the values in the keyword
+    parameters have precedence. Note that if a dsn is also supplied,
+    then in the python-oracledb Thin mode, the values of the parameters
+    specified (if any) within the dsn will override the values passed as
+    additional keyword parameters, which themselves override the values set in
+    the params parameter object.
+
+    The following parameters are all optional. A brief description of each
+    parameter follows:
+
+    # {{ args_help_with_defaults }}
+    """
+    pass
+
+
+class AsyncConnection(BaseConnection):
+    __module__ = MODULE_NAME
+
+    def __init__(
+        self,
+        dsn: str,
+        pool: pool_module.AsyncConnectionPool,
+        params: ConnectParams,
+        kwargs: dict,
+    ) -> None:
+        """
+        Constructor for asynchronous connection pool. Not intended to be used
+        directly but only indirectly through async_connect().
+        """
+        super().__init__()
+        self._connect_coroutine = self._connect(dsn, pool, params, kwargs)
+
+    def __await__(self):
+        coroutine = self._connect_coroutine
+        self._connect_coroutine = None
+        return coroutine.__await__()
+
+    async def __aenter__(self):
+        if self._connect_coroutine is not None:
+            await self._connect_coroutine
+        else:
+            self._verify_connected()
+        return self
+
+    async def __aexit__(self, *exc_info):
+        if self._impl is not None:
+            await self._impl.close()
+            self._impl = None
+
+    async def _connect(self, dsn, pool, params, kwargs):
+        """
+        Internal method for establishing a connection to the database using
+        asyncio.
+        """
+
+        # mandate that thin mode is required
+        with driver_mode.get_manager(requested_thin_mode=True):
+            # determine which connection parameters to use
+            if params is None:
+                params_impl = base_impl.ConnectParamsImpl()
+            elif not isinstance(params, ConnectParams):
+                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+            else:
+                params_impl = params._impl.copy()
+            dsn = params_impl.process_args(dsn, kwargs, thin=True)
+
+            # see if connection is being acquired from a pool
+            if pool is None:
+                pool_impl = None
+            elif not isinstance(pool, pool_module.AsyncConnectionPool):
+                message = (
+                    "pool must be an instance of "
+                    "oracledb.AsyncConnectionPool"
+                )
+                raise TypeError(message)
+            else:
+                pool._verify_open()
+                pool_impl = pool._impl
+
+            # create implementation object
+            if pool is not None:
+                impl = await pool_impl.acquire(params_impl)
+            else:
+                impl = thin_impl.AsyncThinConnImpl(dsn, params_impl)
+                await impl.connect(params_impl)
+            self._impl = impl
+
+            # invoke callback, if applicable
+            if (
+                impl.invoke_session_callback
+                and pool is not None
+                and pool.session_callback is not None
+                and callable(pool.session_callback)
+            ):
+                await pool.session_callback(self, params_impl.tag)
+                impl.invoke_session_callback = False
+
+        return self
+
+    def _verify_can_execute(
+        self, parameters: Any, keyword_parameters: Any
+    ) -> Any:
+        """
+        Verifies that the connection can be used to execute
+        Verifies that the connection is connected to the database. If it is
+        not, an exception is raised.
+        """
+        self._verify_connected()
+        if keyword_parameters:
+            if parameters:
+                errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
+            return keyword_parameters
+        elif parameters is not None and not isinstance(
+            parameters, (list, tuple, dict)
+        ):
+            errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
+        return parameters
+
+    async def callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> Any:
+        """
+        Call a PL/SQL function with the given name.
+
+        This is a shortcut for creating a cursor, calling the stored function
+        with the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            return await cursor.callfunc(
+                name, return_type, parameters, keyword_parameters
+            )
+
+    async def callproc(
+        self,
+        name: str,
+        parameters: Union[list, tuple] = None,
+        keyword_parameters: dict = None,
+    ) -> list:
+        """
+        Call a PL/SQL procedure with the given name.
+
+        This is a shortcut for creating a cursor, calling the stored procedure
+        with the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            return await cursor.callproc(name, parameters, keyword_parameters)
+
+    async def changepassword(
+        self, old_password: str, new_password: str
+    ) -> None:
+        """
+        Changes the password for the user to which the connection is connected.
+        """
+        self._verify_connected()
+        await self._impl.change_password(old_password, new_password)
+
+    async def close(self) -> None:
+        """
+        Closes the connection.
+        """
+        self._verify_connected()
+        await self._impl.close()
+        self._impl = None
+
+    async def commit(self) -> None:
+        """
+        Commits any pending transaction to the database.
+        """
+        self._verify_connected()
+        await self._impl.commit()
+
+    async def createlob(self, lob_type: DbType) -> LOB:
+        """
+        Create and return a new temporary LOB of the specified type.
+        """
+        self._verify_connected()
+        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
+            message = (
+                "parameter should be one of oracledb.DB_TYPE_CLOB, "
+                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
+            )
+            raise TypeError(message)
+        impl = await self._impl.create_temp_lob_impl(lob_type)
+        return AsyncLOB._from_impl(impl)
+
+    def cursor(self, scrollable: bool = False) -> AsyncCursor:
+        """
+        Returns a cursor associated with the connection.
+        """
+        self._verify_connected()
+        return AsyncCursor(self, scrollable)
+
+    async def execute(
+        self, statement: str, parameters: Union[list, tuple, dict] = None
+    ) -> None:
+        """
+        Execute a statement against the database.
+
+        This is a shortcut for creating a cursor, executing a statement with
+        the cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            await cursor.execute(statement, parameters)
+
+    async def executemany(
+        self, statement: Union[str, None], parameters: Union[list, int]
+    ) -> None:
+        """
+        Prepare a statement for execution against a database and then execute
+        it against all parameter mappings or sequences found in the sequence
+        parameters.
+
+        This is a shortcut for creating a cursor, calling executemany() on the
+        cursor and then closing the cursor.
+        """
+        with self.cursor() as cursor:
+            await cursor.executemany(statement, parameters)
+
+    async def fetchall(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        arraysize: int = None,
+        rowfactory: Callable = None,
+    ) -> list:
+        """
+        Executes a query and returns all of the rows. After the rows are
+        fetched, the cursor is closed.
+        """
+        with self.cursor() as cursor:
+            if arraysize is not None:
+                cursor.arraysize = arraysize
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchall()
+
+    async def fetchmany(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        num_rows: int = None,
+        rowfactory: Callable = None,
+    ) -> list:
+        """
+        Executes a query and returns up to the specified number of rows. After
+        the rows are fetched, the cursor is closed.
+        """
+        with self.cursor() as cursor:
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchmany(num_rows)
+
+    async def fetchone(
+        self,
+        statement: str,
+        parameters: Union[list, tuple, dict] = None,
+        rowfactory: Callable = None,
+    ) -> Any:
+        """
+        Executes a query and returns the first row of the result set if one
+        exists (or None if no rows exist). After the row is fetched the cursor
+        is closed.
+        """
+        with self.cursor() as cursor:
+            cursor.prefetchrows = cursor.arraysize = 2
+            await cursor.execute(statement, parameters)
+            cursor.rowfactory = rowfactory
+            return await cursor.fetchone()
+
+    async def gettype(self, name: str) -> DbObjectType:
+        """
+        Return a type object given its name. This can then be used to create
+        objects which can be bound to cursors created by this connection.
+        """
+        self._verify_connected()
+        obj_type_impl = await self._impl.get_type(self, name)
+        return DbObjectType._from_impl(obj_type_impl)
+
+    async def ping(self) -> None:
+        """
+        Pings the database to verify the connection is valid.
+        """
+        self._verify_connected()
+        await self._impl.ping()
+
+    async def rollback(self) -> None:
+        """
+        Rolls back any pending transaction.
+        """
+        self._verify_connected()
+        await self._impl.rollback()
+
+
+def _async_connection_factory(f):
+    """
+    Decorator which checks the validity of the supplied keyword parameters by
+    calling the original function (which does nothing), then creates and
+    returns an instance of the requested AsyncConnection class.
+    """
+
+    @functools.wraps(f)
+    def connect_async(
+        dsn: str = None,
+        *,
+        pool: "pool_module.AsyncConnectionPool" = None,
+        conn_class: Type[AsyncConnection] = AsyncConnection,
+        params: ConnectParams = None,
+        **kwargs,
+    ) -> AsyncConnection:
+        # check arguments
+        f(
+            dsn=dsn,
+            pool=pool,
+            conn_class=conn_class,
+            params=params,
+            **kwargs,
+        )
+        if not issubclass(conn_class, AsyncConnection):
+            errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+        if pool is not None and not isinstance(
+            pool, pool_module.AsyncConnectionPool
+        ):
+            message = (
+                "pool must be an instance of oracledb.AsyncConnectionPool"
+            )
+            raise TypeError(message)
+        if params is not None and not isinstance(params, ConnectParams):
+            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+
+        # build connection class and call the implementation connect to
+        # actually establish the connection
+        return conn_class(dsn, pool, params, kwargs)
+
+    return connect_async
+
+
+@_async_connection_factory
+def connect_async(
+    dsn: str = None,
+    *,
+    pool: "pool_module.AsyncConnectionPool" = None,
+    conn_class: Type[AsyncConnection] = AsyncConnection,
+    params: ConnectParams = None,
+    # {{ args_with_defaults }}
+) -> Connection:
+    """
+    Factory function which creates a connection to the database and returns it.
+
+    The dsn parameter (data source name) can be a string in the format
+    user/password@connect_string or can simply be the connect string (in
+    which case authentication credentials such as the username and password
+    need to be specified separately). See the documentation on connection
+    strings for more information.
+
+    The pool parameter is expected to be a pool object and the use of this
+    parameter is the equivalent of calling pool.acquire().
+
+    The conn_class parameter is expected to be AsyncConnection or a subclass of
+    AsyncConnection.
 
     The params parameter is expected to be of type ConnectParams and contains
     connection parameters that will be used when establishing the connection.

@@ -46,6 +46,16 @@ cdef struct Rowid:
     uint16_t slot_num
 
 @cython.final
+@cython.freelist(20)
+cdef class Packet:
+
+    cdef:
+        uint32_t packet_size
+        uint8_t packet_type
+        uint8_t packet_flags
+        bytes buf
+
+@cython.final
 cdef class ChunkedBytesBuffer:
 
     cdef:
@@ -168,40 +178,21 @@ cdef class ChunkedBytesBuffer:
 cdef class ReadBuffer(Buffer):
 
     cdef:
-        ssize_t _max_packet_size, _bytes_to_process
+        ssize_t _saved_packet_pos, _next_packet_pos, _saved_pos
         ChunkedBytesBuffer _chunked_bytes_buf
         bint _session_needs_to_be_closed
         const char_type _split_data[255]
-        ssize_t _packet_start_offset
+        Packet _current_packet
+        Transport _transport
+        list _saved_packets
         Capabilities _caps
-        object _socket
+        object _waiter
+        object _loop
 
-    def __cinit__(self, object sock, Capabilities caps):
-        self._socket = sock
+    def __cinit__(self, Transport transport, Capabilities caps):
+        self._transport = transport
         self._caps = caps
-        self._size_for_sdu()
         self._chunked_bytes_buf = ChunkedBytesBuffer()
-
-    cdef inline int _get_data_from_socket(self, object obj,
-                                          ssize_t bytes_requested,
-                                          ssize_t *bytes_read) except -1:
-        """
-        Simple function that performs a socket read while verifying that the
-        server has not reset the connection. If it has, the dead connection
-        error is returned instead.
-        """
-        try:
-            bytes_read[0] = self._socket.recv_into(obj, bytes_requested)
-        except ConnectionResetError as e:
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e), cause=e)
-        if bytes_read[0] == 0:
-            try:
-                self._socket.shutdown(socket.SHUT_RDWR)
-            except OSError:
-                pass
-            self._socket.close()
-            self._socket = None
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED)
 
     cdef int _get_int_length_and_sign(self, uint8_t *length,
                                       bint *is_negative,
@@ -235,15 +226,13 @@ cdef class ReadBuffer(Buffer):
         """
         cdef:
             ssize_t num_bytes_left, num_bytes_split, max_split_data
-            uint8_t packet_type, packet_flags
             const char_type *source_ptr
             char_type *dest_ptr
 
         # if no bytes are left in the buffer, a new packet needs to be fetched
         # before anything else can take place
         if self._pos == self._size:
-            self.receive_packet(&packet_type, &packet_flags)
-            self.skip_raw_bytes(2)          # skip data flags
+            self.wait_for_packets_sync()
 
         # if there is enough room in the buffer to satisfy the number of bytes
         # requested, return a pointer to the current location and advance the
@@ -277,9 +266,8 @@ cdef class ReadBuffer(Buffer):
         num_bytes -= num_bytes_left
         while num_bytes > 0:
 
-            # acquire new packet
-            self.receive_packet(&packet_type, &packet_flags)
-            self.skip_raw_bytes(2)          # skip data flags
+            # advance to next packet
+            self.wait_for_packets_sync()
 
             # copy data into the chunked buffer or split buffer, as appropriate
             source_ptr = &self._data[self._pos]
@@ -296,6 +284,44 @@ cdef class ReadBuffer(Buffer):
         # return the split buffer unconditionally; if performing a chunked read
         # the return value is ignored anyway
         return self._split_data
+
+    cdef int _process_control_packet(self, Packet packet) except -1:
+        """
+        Processes a control packet.
+        """
+        cdef:
+            uint16_t control_type
+            uint32_t error_num
+            Buffer buf
+        buf = Buffer.__new__(Buffer)
+        buf._populate_from_bytes(packet.buf)
+        buf.skip_raw_bytes(8)               # skip packet header
+        buf.read_uint16(&control_type)
+        if control_type == TNS_CONTROL_TYPE_RESET_OOB:
+            self._caps.supports_oob = False
+        elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
+            buf.skip_raw_bytes(4)           # skip first integer
+            buf.read_uint32(&error_num)
+            if error_num == TNS_ERR_SESSION_SHUTDOWN \
+                    or error_num == TNS_ERR_INBAND_MESSAGE:
+                self._session_needs_to_be_closed = True
+            else:
+                errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
+                                  err_num=error_num)
+
+    cdef int _process_packet(self, Packet packet,
+                             bint *notify_waiter) except -1:
+        """
+        Processes a packet. If the packet is a control packet it is processed
+        immediately and discarded; otherwise, it is added to the list of saved
+        packets for this response.
+        """
+        if packet.packet_type == TNS_PACKET_TYPE_CONTROL:
+            self._process_control_packet(packet)
+            notify_waiter[0] = False
+        else:
+            self._saved_packets.append(packet)
+            notify_waiter[0] = True
 
     cdef int _read_raw_bytes_and_length(self, const char_type **ptr,
                                         ssize_t *num_bytes) except -1:
@@ -316,100 +342,28 @@ cdef class ReadBuffer(Buffer):
             self._get_raw(temp_num_bytes, in_chunked_read=True)
         ptr[0] = self._chunked_bytes_buf.end_chunked_read()
 
-    cdef int _process_control_packet(self) except -1:
+    cdef int _start_packet(self) except -1:
         """
-        Process a control packed received in between data packets.
+        Starts a packet. This prepares the current packet for processing.
         """
-        cdef:
-            uint16_t control_type
-            uint32_t error_num
-        self.read_uint16(&control_type)
-        if control_type == TNS_CONTROL_TYPE_RESET_OOB:
-            self._caps.supports_oob = False
-        elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
-            self.skip_raw_bytes(4)           # skip first integer
-            self.read_uint32(&error_num)
-            if error_num == TNS_ERR_SESSION_SHUTDOWN \
-                    or error_num == TNS_ERR_INBAND_MESSAGE:
+        cdef uint16_t data_flags
+        self._current_packet = self._saved_packets[self._next_packet_pos]
+        self._next_packet_pos += 1
+        self._populate_from_bytes(self._current_packet.buf)
+        self._pos = PACKET_HEADER_SIZE
+        if self._current_packet.packet_type == TNS_PACKET_TYPE_DATA:
+            self.read_uint16(&data_flags)
+            if data_flags == TNS_DATA_FLAGS_EOF:
                 self._session_needs_to_be_closed = True
-            else:
-                errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
-                                  err_num=error_num)
 
-    cdef int _receive_packet_helper(self, uint8_t *packet_type,
-                                    uint8_t *packet_flags) except -1:
+    cdef int notify_packet_received(self) except -1:
         """
-        Receives a packet and updates the pointers appropriately. Note that
-        multiple packets may be received if they are small enough or a portion
-        of a second packet may be received so the buffer needs to be adjusted
-        as needed. This is also why room is available in the buffer for up to
-        two complete packets.
+        Notify the registered waiter that a packet has been received. This is
+        only used by the asyncio implementation.
         """
-        cdef:
-            ssize_t offset, bytes_to_read, bytes_read
-            uint32_t packet_size
-            uint16_t temp16
-
-        # if no bytes are left over from a previous read, perform a read of the
-        # maximum packet size and reset the offset to 0
-        if self._bytes_to_process == 0:
-            self._packet_start_offset = 0
-            self._pos = 0
-            self._get_data_from_socket(self._data_obj, self._max_packet_size,
-                                       &self._bytes_to_process)
-
-        # otherwise, set the offset to the end of the previous packet and
-        # ensure that there are at least enough bytes available to cover the
-        # contents of the packet header
-        else:
-            self._packet_start_offset = self._size
-            self._pos = self._size
-            if self._bytes_to_process < PACKET_HEADER_SIZE:
-                offset = self._size + self._bytes_to_process
-                bytes_to_read = PACKET_HEADER_SIZE - self._bytes_to_process
-                self._get_data_from_socket(self._data_view[offset:],
-                                           bytes_to_read, &bytes_read)
-                self._bytes_to_process += bytes_read
-
-        # determine the packet length and ensure that all of the bytes for the
-        # packet are available; note that as of version 12.2 the packet size is
-        # 32 bits in size instead of 16 bits, but this doesn't take effect
-        # until it is known that the server is capable of that as well
-        if self._caps.protocol_version >= TNS_VERSION_MIN_LARGE_SDU:
-            self._size += 4
-            self.read_uint32(&packet_size)
-        else:
-            self._size += 2
-            self.read_uint16(&temp16)
-            packet_size = temp16
-        while self._bytes_to_process < packet_size:
-            offset = self._packet_start_offset + self._bytes_to_process
-            bytes_to_read = packet_size - self._bytes_to_process
-            self._get_data_from_socket(self._data_view[offset:], bytes_to_read,
-                                       &bytes_read)
-            self._bytes_to_process += bytes_read
-
-        # process remainder of packet header and set size to the new packet
-        self._size = self._packet_start_offset + packet_size
-        self._bytes_to_process -= packet_size
-        if self._caps.protocol_version < TNS_VERSION_MIN_LARGE_SDU:
-            self.skip_raw_bytes(2)      # skip packet checksum
-        self.read_ub1(packet_type)
-        self.read_ub1(packet_flags)
-        self.skip_raw_bytes(2)          # header checksum
-
-        # display packet if requested
-        if DEBUG_PACKETS:
-            offset = self._packet_start_offset
-            _print_packet("Receiving packet:", self._socket.fileno(),
-                          self._data_view[offset:self._size])
-
-    cdef int _size_for_sdu(self) except -1:
-        """
-        Resizes the buffer based on the SDU size of the capabilities.
-        """
-        self._max_packet_size = self._caps.sdu
-        self._initialize(self._max_packet_size * 2)
+        if self._waiter is not None:
+            self._waiter.set_result(None)
+            self._waiter = None
 
     cdef object read_oson(self):
         """
@@ -431,7 +385,7 @@ cdef class ReadBuffer(Buffer):
             decoder = OsonDecoder.__new__(OsonDecoder)
             return decoder.decode(data)
 
-    cdef object read_lob_with_length(self, ThinConnImpl conn_impl,
+    cdef object read_lob_with_length(self, BaseThinConnImpl conn_impl,
                                      DbType dbtype):
         """
         Read a LOB locator from the buffer and return a LOB object containing
@@ -439,19 +393,23 @@ cdef class ReadBuffer(Buffer):
         """
         cdef:
             uint32_t chunk_size, num_bytes
-            ThinLobImpl lob_impl
+            BaseThinLobImpl lob_impl
             uint64_t size
             bytes locator
+            type cls
         self.read_ub4(&num_bytes)
         if num_bytes > 0:
             self.read_ub8(&size)
             self.read_ub4(&chunk_size)
             locator = self.read_bytes()
-            lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
+            lob_impl = conn_impl._create_lob_impl(dbtype, locator)
             lob_impl._size = size
             lob_impl._chunk_size = chunk_size
             lob_impl._has_metadata = True
-            return PY_TYPE_LOB._from_impl(lob_impl)
+            cls = PY_TYPE_ASYNC_LOB \
+                    if conn_impl._protocol._transport._is_async \
+                    else PY_TYPE_LOB
+            return cls._from_impl(lob_impl)
 
     cdef int read_rowid(self, Rowid *rowid) except -1:
         """
@@ -545,29 +503,44 @@ cdef class ReadBuffer(Buffer):
         Checks for a control packet or final close packet from the server.
         """
         cdef:
-            uint8_t packet_type, packet_flags
-            uint16_t data_flags
-        self._receive_packet_helper(&packet_type, &packet_flags)
-        if packet_type == TNS_PACKET_TYPE_CONTROL:
-            self._process_control_packet()
-        elif packet_type == TNS_PACKET_TYPE_DATA:
-            self.read_uint16(&data_flags)
-            if data_flags == TNS_DATA_FLAGS_EOF:
-                self._session_needs_to_be_closed = True
+            bint notify_waiter
+            Packet packet
+        packet = self._transport.read_packet()
+        self._process_packet(packet, &notify_waiter)
+        if notify_waiter:
+            self._start_packet()
 
-    cdef int receive_packet(self, uint8_t *packet_type,
-                            uint8_t *packet_flags) except -1:
+    cdef int reset_packets(self) except -1:
         """
-        Calls _receive_packet_helper() and checks the packet type. If a
-        control packet is received, it is processed and the next packet is
-        received.
+        Resets the list of saved packets and the saved position (called when a
+        request has been sent to the database and a response is expected).
         """
-        while True:
-            self._receive_packet_helper(packet_type, packet_flags)
-            if packet_type[0] == TNS_PACKET_TYPE_CONTROL:
-                self._process_control_packet()
-                continue
-            break
+        self._saved_packets = []
+        self._next_packet_pos = 0
+        self._saved_packet_pos = 0
+        self._saved_pos = 0
+
+    cdef int restore_point(self) except -1:
+        """
+        Restores the position in the packets to the last saved point. This is
+        needed by asyncio where an ansychronous wait for more packets is
+        required so the processing of the response must be restarted at a known
+        position.
+        """
+        if self._saved_packet_pos != self._next_packet_pos - 1:
+            self._current_packet = self._saved_packets[self._saved_packet_pos]
+            self._populate_from_bytes(self._current_packet.buf)
+            self._next_packet_pos = self._saved_packet_pos + 1
+        self._pos = self._saved_pos
+
+    cdef int save_point(self) except -1:
+        """
+        Saves the current position in the packets. This is needed by asyncio
+        where an asynchronous wait for more packets is required so the
+        processing of the response must be restarted at a known position.
+        """
+        self._saved_packet_pos = self._next_packet_pos - 1
+        self._saved_pos = self._pos
 
     cdef int skip_raw_bytes_chunked(self) except -1:
         """
@@ -588,6 +561,36 @@ cdef class ReadBuffer(Buffer):
                     break
                 self.skip_raw_bytes(temp_num_bytes)
 
+    async def wait_for_packets_async(self):
+        """
+        Wait for packets to arrive in response to the request that was sent to
+        the database (using asyncio).
+        """
+        if self._next_packet_pos >= len(self._saved_packets):
+            self._waiter = self._loop.create_future()
+            await self._waiter
+        self._start_packet()
+
+    cdef int wait_for_packets_sync(self) except -1:
+        """
+        Wait for packets to arrive in response to the request that was sent to
+        the database (synchronously). If no packets are available and we are
+        using asyncio, raise an exception so that processing can be restarted
+        once packets have arrived.
+        """
+        cdef:
+            bint notify_waiter
+            Packet packet
+        if self._next_packet_pos >= len(self._saved_packets):
+            if self._transport._is_async:
+                raise OutOfPackets()
+            while True:
+                packet = self._transport.read_packet()
+                self._process_packet(packet, &notify_waiter)
+                if notify_waiter:
+                    break
+        self._start_packet()
+
 
 @cython.final
 cdef class WriteBuffer(Buffer):
@@ -596,12 +599,12 @@ cdef class WriteBuffer(Buffer):
         uint8_t _packet_type
         uint8_t _packet_flags
         Capabilities _caps
-        object _socket
+        Transport _transport
         uint8_t _seq_num
         bint _packet_sent
 
-    def __cinit__(self, object sock, Capabilities caps):
-        self._socket = sock
+    def __cinit__(self, Transport transport, Capabilities caps):
+        self._transport = transport
         self._caps = caps
         self._size_for_sdu()
 
@@ -621,13 +624,7 @@ cdef class WriteBuffer(Buffer):
         self.write_uint8(self._packet_flags)
         self.write_uint16(0)
         self._pos = size
-        if DEBUG_PACKETS:
-            _print_packet("Sending packet:", self._socket.fileno(),
-                          self._data_view[:self._pos])
-        try:
-            self._socket.send(self._data_view[:self._pos])
-        except OSError as e:
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e))
+        self._transport.write_packet(self)
         self._packet_sent = True
         self._pos = PACKET_HEADER_SIZE
         if not final_packet:
@@ -679,7 +676,7 @@ cdef class WriteBuffer(Buffer):
         if packet_type == TNS_PACKET_TYPE_DATA:
             self.write_uint16(data_flags)
 
-    cdef int write_lob_with_length(self, ThinLobImpl lob_impl) except -1:
+    cdef int write_lob_with_length(self, BaseThinLobImpl lob_impl) except -1:
         """
         Writes a LOB locator to the buffer.
         """

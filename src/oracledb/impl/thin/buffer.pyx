@@ -639,17 +639,22 @@ cdef class Buffer:
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = <int32_t> unpack_uint32(ptr, byte_order)
 
-    cdef object read_lob(self, ThinConnImpl conn_impl, DbType dbtype):
+    cdef object read_lob(self, BaseThinConnImpl conn_impl, DbType dbtype):
         """
         Read a LOB locator from the buffer and return a LOB object containing
         it.
         """
         cdef:
-            ThinLobImpl lob_impl
+            BaseThinLobImpl lob_impl
             bytes locator
+            type cls
         locator = self.read_bytes()
-        lob_impl = ThinLobImpl._create(conn_impl, dbtype, locator)
-        return PY_TYPE_LOB._from_impl(lob_impl)
+        if locator is not None:
+            lob_impl = conn_impl._create_lob_impl(dbtype, locator)
+            cls = PY_TYPE_ASYNC_LOB \
+                    if conn_impl._protocol._transport._is_async \
+                    else PY_TYPE_LOB
+            return cls._from_impl(lob_impl)
 
     cdef object read_oracle_number(self, int preferred_num_type):
         """
@@ -839,7 +844,7 @@ cdef class Buffer:
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = unpack_uint32(ptr, byte_order)
 
-    cdef object read_xmltype(self, ThinConnImpl conn_impl):
+    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
         """
         Reads an XMLType value from the buffer and returns the string value.
         The XMLType object is a special DbObjectType and is handled separately
@@ -848,12 +853,13 @@ cdef class Buffer:
         cdef:
             uint8_t image_flags, image_version
             DbObjectPickleBuffer buf
-            ThinLobImpl lob_impl
+            BaseThinLobImpl lob_impl
             const char_type *ptr
             uint32_t num_bytes
             ssize_t bytes_left
             uint32_t xml_flag
             bytes packed_data
+            type cls
         self.read_ub4(&num_bytes)
         if num_bytes > 0:                   # type OID
             self.read_bytes()
@@ -880,9 +886,12 @@ cdef class Buffer:
             if xml_flag & TNS_XML_TYPE_STRING:
                 return ptr[:bytes_left].decode()
             elif xml_flag & TNS_XML_TYPE_LOB:
-                lob_impl = ThinLobImpl._create(conn_impl, DB_TYPE_CLOB,
-                                               ptr[:bytes_left])
-                return PY_TYPE_LOB._from_impl(lob_impl)
+                lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
+                                                      ptr[:bytes_left])
+                cls = PY_TYPE_ASYNC_LOB \
+                    if conn_impl._protocol._transport._is_async \
+                    else PY_TYPE_LOB
+                return cls._from_impl(lob_impl)
             errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
 
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
@@ -1080,7 +1089,7 @@ cdef class Buffer:
             self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))
 
-    cdef int write_lob(self, ThinLobImpl lob_impl) except -1:
+    cdef int write_lob(self, BaseThinLobImpl lob_impl) except -1:
         """
         Writes a LOB locator to the buffer.
         """

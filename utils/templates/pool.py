@@ -43,7 +43,7 @@ from . import errors
 from .pool_params import PoolParams
 
 
-class ConnectionPool:
+class BaseConnectionPool:
     __module__ = oracledb.__name__
 
     def __init__(
@@ -84,20 +84,17 @@ class ConnectionPool:
         with driver_mode.get_manager() as mode_mgr:
             thin = mode_mgr.thin
             dsn = params_impl.process_args(dsn, kwargs, thin)
-            self._connection_type = (
-                params_impl.connectiontype or connection_module.Connection
-            )
-            if thin:
+            self._set_connection_type(params_impl.connectiontype)
+            if issubclass(
+                self._connection_type, connection_module.AsyncConnection
+            ):
+                impl = thin_impl.AsyncThinPoolImpl(dsn, params_impl)
+            elif thin:
                 impl = thin_impl.ThinPoolImpl(dsn, params_impl)
             else:
                 impl = thick_impl.ThickPoolImpl(dsn, params_impl)
             self._impl = impl
             self.session_callback = params_impl.session_callback
-
-    def __del__(self):
-        if self._impl is not None:
-            self._impl.close(True)
-            self._impl = None
 
     def _verify_open(self) -> None:
         """
@@ -145,7 +142,9 @@ class ConnectionPool:
         bytes or dates.
         """
         self._verify_open()
-        return self._connection_type(
+
+        return self._connection_method(
+            conn_class=self._connection_type,
             user=user,
             password=password,
             cclass=cclass,
@@ -165,31 +164,6 @@ class ConnectionPool:
         """
         self._verify_open()
         return self._impl.get_busy_count()
-
-    def close(self, force: bool = False) -> None:
-        """
-        Close the pool now, rather than when the last reference to it is
-        released, which makes it unusable for further work.
-
-        If any connections have been acquired and not released back to the
-        pool, this method will fail unless the force parameter is set to True.
-        """
-        self._verify_open()
-        self._impl.close(force)
-        self._impl = None
-
-    def drop(self, connection: "connection_module.Connection") -> None:
-        """
-        Drop the connection from the pool, which is useful if the connection is
-        no longer usable (such as when the database session is killed).
-        """
-        self._verify_open()
-        if not isinstance(connection, connection_module.Connection):
-            message = "connection must be an instance of oracledb.Connection"
-            raise TypeError(message)
-        connection._verify_connected()
-        self._impl.drop(connection._impl)
-        connection._impl = None
 
     @property
     def dsn(self) -> str:
@@ -322,6 +296,149 @@ class ConnectionPool:
     def ping_interval(self, value: int) -> None:
         self._impl.set_ping_interval(value)
 
+    @property
+    def soda_metadata_cache(self) -> bool:
+        """
+        Specifies whether the SODA metadata cache is enabled or not. Enabling
+        the cache significantly improves the performance of methods
+        SodaDatabase.createCollection() (when not specifying a value for the
+        metadata parameter) and SodaDatabase.openCollection(). Note that the
+        cache can become out of date if changes to the metadata of cached
+        collections are made externally.
+        """
+        self._verify_open()
+        return self._impl.get_soda_metadata_cache()
+
+    @soda_metadata_cache.setter
+    def soda_metadata_cache(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            message = "soda_metadata_cache must be a boolean value."
+            raise TypeError(message)
+        self._verify_open()
+        self._impl.set_soda_metadata_cache(value)
+
+    @property
+    def stmtcachesize(self) -> int:
+        """
+        Specifies the size of the statement cache that will be used as the
+        starting point for any connections that are created by the pool. Once a
+        connection is created, that connection’s statement cache size can only
+        be changed by setting the stmtcachesize attribute on the connection
+        itself.
+        """
+        self._verify_open()
+        return self._impl.get_stmt_cache_size()
+
+    @stmtcachesize.setter
+    def stmtcachesize(self, value: int) -> None:
+        self._verify_open()
+        self._impl.set_stmt_cache_size(value)
+
+    @property
+    def thin(self) -> bool:
+        """
+        Returns a boolean indicating if the pool was created in
+        python-oracledb's thin mode (True) or thick mode (False).
+        """
+        self._verify_open()
+        return not isinstance(self._impl, thick_impl.ThickPoolImpl)
+
+    @property
+    def timeout(self) -> int:
+        """
+        Specifies the time (in seconds) after which idle connections will be
+        terminated in order to maintain an optimum number of open connections.
+        A value of 0 means that no idle connections are terminated. Note that
+        in thick mode with older Oracle Client libraries termination only
+        occurs when the pool is accessed.
+        """
+        self._verify_open()
+        return self._impl.get_timeout()
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        self._verify_open()
+        self._impl.set_timeout(value)
+
+    @property
+    def tnsentry(self) -> str:
+        """
+        Deprecated. Use dsn instead.
+        """
+        return self.dsn
+
+    @property
+    def username(self) -> str:
+        """
+        Returns the name of the user which was used to create the pool.
+        """
+        self._verify_open()
+        return self._impl.username
+
+    @property
+    def wait_timeout(self) -> int:
+        """
+        Specifies the time (in milliseconds) that the caller should wait for a
+        connection to become available in the pool before returning with an
+        error.  This value is only used if the getmode parameter used to create
+        the pool was POOL_GETMODE_TIMEDWAIT.
+        """
+        self._verify_open()
+        return self._impl.get_wait_timeout()
+
+    @wait_timeout.setter
+    def wait_timeout(self, value: int) -> None:
+        self._verify_open()
+        self._impl.set_wait_timeout(value)
+
+
+class ConnectionPool(BaseConnectionPool):
+    __module__ = oracledb.__name__
+
+    def __del__(self):
+        if self._impl is not None:
+            self._impl.close(True)
+            self._impl = None
+
+    def _set_connection_type(self, conn_class):
+        """
+        Called internally when the pool is created to ensure that the correct
+        connection class is used for all connections created by the pool.
+        """
+        if conn_class is None:
+            conn_class = connection_module.Connection
+        elif not issubclass(
+            conn_class, connection_module.Connection
+        ) or issubclass(connection_module.AsyncConnection):
+            errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+        self._connection_type = conn_class
+        self._connection_method = oracledb.connect
+
+    def close(self, force: bool = False) -> None:
+        """
+        Close the pool now, rather than when the last reference to it is
+        released, which makes it unusable for further work.
+
+        If any connections have been acquired and not released back to the
+        pool, this method will fail unless the force parameter is set to True.
+        """
+        self._verify_open()
+        self._impl.close(force)
+        self._impl = None
+
+    def drop(self, connection: "connection_module.Connection") -> None:
+        """
+        Drop the connection from the pool, which is useful if the connection is
+        no longer usable (such as when the database session is killed).
+        """
+        self._verify_open()
+        if not isinstance(connection, connection_module.Connection):
+            message = "connection must be an instance of oracledb.Connection"
+            raise TypeError(message)
+        connection._verify_connected()
+        self._impl.drop(connection._impl)
+        connection._impl = None
+
     def release(
         self, connection: "connection_module.Connection", tag: str = None
     ) -> None:
@@ -431,101 +548,6 @@ class ConnectionPool:
         if ping_interval is not None:
             self.ping_interval = ping_interval
 
-    @property
-    def soda_metadata_cache(self) -> bool:
-        """
-        Specifies whether the SODA metadata cache is enabled or not. Enabling
-        the cache significantly improves the performance of methods
-        SodaDatabase.createCollection() (when not specifying a value for the
-        metadata parameter) and SodaDatabase.openCollection(). Note that the
-        cache can become out of date if changes to the metadata of cached
-        collections are made externally.
-        """
-        self._verify_open()
-        return self._impl.get_soda_metadata_cache()
-
-    @soda_metadata_cache.setter
-    def soda_metadata_cache(self, value: bool) -> None:
-        if not isinstance(value, bool):
-            message = "soda_metadata_cache must be a boolean value."
-            raise TypeError(message)
-        self._verify_open()
-        self._impl.set_soda_metadata_cache(value)
-
-    @property
-    def stmtcachesize(self) -> int:
-        """
-        Specifies the size of the statement cache that will be used as the
-        starting point for any connections that are created by the pool. Once a
-        connection is created, that connection’s statement cache size can only
-        be changed by setting the stmtcachesize attribute on the connection
-        itself.
-        """
-        self._verify_open()
-        return self._impl.get_stmt_cache_size()
-
-    @stmtcachesize.setter
-    def stmtcachesize(self, value: int) -> None:
-        self._verify_open()
-        self._impl.set_stmt_cache_size(value)
-
-    @property
-    def thin(self) -> bool:
-        """
-        Returns a boolean indicating if the pool was created in
-        python-oracledb's thin mode (True) or thick mode (False).
-        """
-        self._verify_open()
-        return isinstance(self._impl, thin_impl.ThinPoolImpl)
-
-    @property
-    def timeout(self) -> int:
-        """
-        Specifies the time (in seconds) after which idle connections will be
-        terminated in order to maintain an optimum number of open connections.
-        A value of 0 means that no idle connections are terminated. Note that
-        in thick mode with older Oracle Client libraries termination only
-        occurs when the pool is accessed.
-        """
-        self._verify_open()
-        return self._impl.get_timeout()
-
-    @timeout.setter
-    def timeout(self, value: int) -> None:
-        self._verify_open()
-        self._impl.set_timeout(value)
-
-    @property
-    def tnsentry(self) -> str:
-        """
-        Deprecated. Use dsn instead.
-        """
-        return self.dsn
-
-    @property
-    def username(self) -> str:
-        """
-        Returns the name of the user which was used to create the pool.
-        """
-        self._verify_open()
-        return self._impl.username
-
-    @property
-    def wait_timeout(self) -> int:
-        """
-        Specifies the time (in milliseconds) that the caller should wait for a
-        connection to become available in the pool before returning with an
-        error.  This value is only used if the getmode parameter used to create
-        the pool was POOL_GETMODE_TIMEDWAIT.
-        """
-        self._verify_open()
-        return self._impl.get_wait_timeout()
-
-    @wait_timeout.setter
-    def wait_timeout(self, value: int) -> None:
-        self._verify_open()
-        self._impl.set_wait_timeout(value)
-
 
 def _pool_factory(f):
     """
@@ -571,6 +593,147 @@ def create_pool(
 
     The pool_class parameter is expected to be ConnectionPool or a subclass of
     ConnectionPool.
+
+    The params parameter is expected to be of type PoolParams and contains
+    parameters that are used to create the pool. See the documentation on
+    PoolParams for more information. If this parameter is not specified, the
+    additional keyword parameters will be used to create an instance of
+    PoolParams. If both the params parameter and additional keyword parameters
+    are specified, the values in the keyword parameters have precedence.
+    Note that if a dsn is also supplied, then in the python-oracledb Thin mode,
+    the values of the parameters specified (if any) within the dsn will
+    override the values passed as additional keyword parameters, which
+    themselves override the values set in the params parameter object.
+
+    The following parameters are all optional. A brief description of each
+    parameter follows:
+
+    # {{ args_help_with_defaults }}
+    """
+    pass
+
+
+class AsyncConnectionPool(BaseConnectionPool):
+    __module__ = oracledb.__name__
+
+    def _set_connection_type(self, conn_class):
+        """
+        Called internally when the pool is created to ensure that the correct
+        connection class is used for all connections created by the pool.
+        """
+        if conn_class is None:
+            conn_class = connection_module.AsyncConnection
+        elif not issubclass(conn_class, connection_module.AsyncConnection):
+            errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+        self._connection_type = conn_class
+        self._connection_method = oracledb.connect_async
+
+    async def close(self, force: bool = False) -> None:
+        """
+        Close the pool now, rather than when the last reference to it is
+        released, which makes it unusable for further work.
+
+        If any connections have been acquired and not released back to the
+        pool, this method will fail unless the force parameter is set to True.
+        """
+        self._verify_open()
+        await self._impl.close(force)
+        self._impl = None
+
+    async def drop(self, connection: "connection_module.Connection") -> None:
+        """
+        Drop the connection from the pool, which is useful if the connection is
+        no longer usable (such as when the database session is killed).
+        """
+        self._verify_open()
+        if not isinstance(connection, connection_module.AsyncConnection):
+            message = (
+                "connection must be an instance of oracledb.AsyncConnection"
+            )
+            raise TypeError(message)
+        connection._verify_connected()
+        await self._impl.drop(connection._impl)
+        connection._impl = None
+
+    async def release(
+        self, connection: "connection_module.AsyncConnection", tag: str = None
+    ) -> None:
+        """
+        Release the connection back to the pool now, rather than whenever
+        __del__ is called. The connection will be unusable from this point
+        forward; an Error exception will be raised if any operation is
+        attempted with the connection. Any cursors or LOBs created by the
+        connection will also be marked unusable and an Error exception will be
+        raised if any operation is attempted with them.
+
+        Internally, references to the connection are held by cursor objects,
+        LOB objects, etc. Once all of these references are released, the
+        connection itself will be released back to the pool automatically.
+        Either control references to these related objects carefully or
+        explicitly release connections back to the pool in order to ensure
+        sufficient resources are available.
+
+        If the tag is not None, it is expected to be a string with name=value
+        pairs like “k1=v1;k2=v2” and will override the value in the property
+        Connection.tag. If either Connection.tag or the tag parameter are not
+        None, the connection will be retagged when it is released back to the
+        pool.
+        """
+        self._verify_open()
+        if not isinstance(connection, connection_module.AsyncConnection):
+            message = (
+                "connection must be an instance of oracledb.AsyncConnection"
+            )
+            raise TypeError(message)
+        if tag is not None:
+            connection.tag = tag
+        await connection.close()
+
+
+def _async_pool_factory(f):
+    """
+    Decorator which checks the validity of the supplied keyword parameters by
+    calling the original function (which does nothing), then creates and
+    returns an instance of the requested ConnectionPool class. The base
+    ConnectionPool class constructor does not check the validity of the
+    supplied keyword parameters.
+    """
+
+    @functools.wraps(f)
+    def create_pool_async(
+        dsn: str = None,
+        *,
+        pool_class: Type[ConnectionPool] = AsyncConnectionPool,
+        params: PoolParams = None,
+        **kwargs,
+    ) -> AsyncConnectionPool:
+        f(dsn=dsn, pool_class=pool_class, params=params, **kwargs)
+        if not issubclass(pool_class, AsyncConnectionPool):
+            errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
+        return pool_class(dsn, params=params, **kwargs)
+
+    return create_pool_async
+
+
+@_async_pool_factory
+def create_pool_async(
+    dsn: str = None,
+    *,
+    pool_class: Type[ConnectionPool] = AsyncConnectionPool,
+    params: PoolParams = None,
+    # {{ args_with_defaults }}
+) -> AsyncConnectionPool:
+    """
+    Creates a connection pool with the supplied parameters and returns it.
+
+    The dsn parameter (data source name) can be a string in the format
+    user/password@connect_string or can simply be the connect string (in
+    which case authentication credentials such as the username and password
+    need to be specified separately). See the documentation on connection
+    strings for more information.
+
+    The pool_class parameter is expected to be AsyncConnectionPool or a
+    subclass of AsyncConnectionPool.
 
     The params parameter is expected to be of type PoolParams and contains
     parameters that are used to create the pool. See the documentation on

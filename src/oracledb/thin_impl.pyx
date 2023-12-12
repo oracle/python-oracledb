@@ -43,12 +43,15 @@ from libc.string cimport memcpy, memset
 from cpython cimport array
 
 import array
+import asyncio
 import base64
 import collections
 import datetime
 import decimal
 import getpass
 import hashlib
+import inspect
+import json
 import os
 import socket
 import re
@@ -94,6 +97,7 @@ cdef type PY_TYPE_DATETIME = datetime.datetime
 cdef type PY_TYPE_DECIMAL = decimal.Decimal
 cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_LOB
+cdef type PY_TYPE_ASYNC_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 
 # authorization modes
@@ -126,6 +130,7 @@ include "impl/thin/crypto.pyx"
 include "impl/thin/capabilities.pyx"
 include "impl/thin/cookie.pyx"
 include "impl/thin/buffer.pyx"
+include "impl/thin/transport.pyx"
 include "impl/thin/packet.pyx"
 include "impl/thin/data_types.pyx"
 include "impl/thin/messages.pyx"
@@ -135,6 +140,7 @@ include "impl/thin/statement.pyx"
 include "impl/thin/cursor.pyx"
 include "impl/thin/var.pyx"
 include "impl/thin/dbobject.pyx"
+include "impl/thin/dbobject_cache.pyx"
 include "impl/thin/oson.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"

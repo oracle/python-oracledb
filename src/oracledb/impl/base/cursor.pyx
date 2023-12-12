@@ -125,6 +125,18 @@ cdef class BaseCursorImpl:
             bind_var._set_by_value(conn, self, cursor, value, type_handler,
                                    row_num, num_rows, defer_type_assignment)
 
+    def _build_json_converter_fn(self):
+        """
+        Internal method for building a JSON converter function.
+        """
+        def converter(value):
+            if isinstance(value, PY_TYPE_LOB):
+                value = value.read()
+            if isinstance(value, bytes):
+                value = value.decode()
+            return json.loads(value)
+        return converter
+
     cdef int _close(self, bint in_del) except -1:
         """
         Internal method for closing the cursor.
@@ -196,13 +208,7 @@ cdef class BaseCursorImpl:
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
         elif fetch_info.is_json and db_type_num != DB_TYPE_NUM_JSON:
-            def converter(value):
-                if isinstance(value, PY_TYPE_LOB):
-                    value = value.read()
-                if isinstance(value, bytes):
-                    value = value.decode()
-                return json.loads(value)
-            var_impl.outconverter = converter
+            var_impl.outconverter = self._build_json_converter_fn()
         elif not defaults.fetch_lobs:
             if db_type_num == DB_TYPE_NUM_BLOB:
                 var_impl.dbtype = DB_TYPE_LONG_RAW

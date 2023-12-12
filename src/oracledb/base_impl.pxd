@@ -247,6 +247,7 @@ cdef class BaseConnImpl:
         public bint invoke_session_callback
         readonly tuple server_version
         readonly bint supports_bool
+        bint _allow_bind_str_to_lob
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok)

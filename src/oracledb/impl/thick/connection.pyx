@@ -275,6 +275,10 @@ cdef class ThickConnImpl(BaseConnImpl):
             ConnectionParams params
             int status
 
+        # specify that binding a string to a LOB value is possible in thick
+        # mode (will be removed in a future release)
+        self._allow_bind_str_to_lob = True
+
         # if the connection is part of the pool, get the pool creation params
         if pool_impl is not None:
             pool_params = pool_impl.connect_params
