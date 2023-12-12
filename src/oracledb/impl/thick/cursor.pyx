@@ -244,6 +244,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         """
         cdef:
             uint32_t mode, num_query_cols
+            dpiErrorInfo error_info
             uint64_t rowcount = 0
             int status
         if self.bind_vars is not None:
@@ -254,10 +255,14 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             mode = DPI_MODE_EXEC_DEFAULT
         with nogil:
             status = dpiStmt_execute(self._handle, mode, &num_query_cols)
-            if status == DPI_SUCCESS and not self._stmt_info.isPLSQL:
+            if status == DPI_SUCCESS:
+                dpiContext_getError(driver_context, &error_info)
+                if not self._stmt_info.isPLSQL:
                     status = dpiStmt_getRowCount(self._handle, &rowcount)
         if status < 0:
             _raise_from_odpi()
+        elif error_info.isWarning:
+            self.warning = _create_new_from_info(&error_info)
         self.rowcount = rowcount
         if num_query_cols > 0:
             self._perform_define(cursor, num_query_cols)
@@ -289,13 +294,14 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if num_execs_int > 0:
             with nogil:
                 status = dpiStmt_executeMany(self._handle, mode, num_execs_int)
-                if status < 0:
-                    dpiContext_getError(driver_context, &error_info)
+                dpiContext_getError(driver_context, &error_info)
                 if not self._stmt_info.isPLSQL:
                     dpiStmt_getRowCount(self._handle, &rowcount)
             self.rowcount = rowcount
             if status < 0:
                 _raise_from_info(&error_info)
+            elif error_info.isWarning:
+                self.warning = _create_new_from_info(&error_info)
             if self._stmt_info.isReturning or self._stmt_info.isPLSQL:
                 self._transform_binds()
 

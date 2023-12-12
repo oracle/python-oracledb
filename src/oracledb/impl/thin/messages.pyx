@@ -36,7 +36,6 @@ cdef class _OracleErrorInfo:
         uint16_t cursor_id
         uint16_t pos
         uint64_t rowcount
-        bint is_warning
         str message
         Rowid rowid
         list batcherrors
@@ -57,6 +56,7 @@ cdef class Message:
         bint processed_error
         bint resend
         bint retry
+        object warning
 
     cdef bint _has_more_data(self, ReadBuffer buf):
         return buf.bytes_left() > 0 and not self.flush_out_binds
@@ -93,7 +93,7 @@ cdef class Message:
             uint32_t num_bytes, i, offset, num_offsets
             _OracleErrorInfo info = self.error_info
             uint16_t temp16, num_errors, error_code
-            uint8_t first_byte
+            uint8_t first_byte, flags
             int16_t error_pos
             str error_msg
         buf.read_ub4(&self.call_status)     # end of call status
@@ -109,7 +109,9 @@ cdef class Message:
         buf.skip_ub1()                      # flags
         buf.skip_ub1()                      # user cursor options
         buf.skip_ub1()                      # UPI parameter
-        buf.skip_ub1()                      # warning flag
+        buf.read_ub1(&flags)
+        if flags & 0x20:
+            self.warning = errors._create_warning(errors.WRN_COMPILATION_ERROR)
         buf.read_rowid(&info.rowid)         # rowid
         buf.skip_ub4()                      # OS error
         buf.skip_ub1()                      # statement number
@@ -174,7 +176,6 @@ cdef class Message:
             if error_pos > 0:
                 info.pos = error_pos
             info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
-        info.is_warning = False
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -266,15 +267,15 @@ cdef class Message:
 
     cdef int _process_warning_info(self, ReadBuffer buf) except -1:
         cdef:
-            _OracleErrorInfo info = self.error_info
-            uint16_t num_bytes, temp16
-        buf.read_ub2(&temp16)               # error number
-        info.num = temp16
+            uint16_t num_bytes, error_num
+            str message
+        buf.read_ub2(&error_num)            # error number
         buf.read_ub2(&num_bytes)            # length of error message
         buf.skip_ub2()                      # flags
-        if info.num != 0 and num_bytes > 0:
-            info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
-        info.is_warning = True
+        if error_num != 0 and num_bytes > 0:
+            message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
+            self.warning = errors._Error(message, code=error_num,
+                                         iswarning=True)
 
     cdef int _write_function_code(self, WriteBuffer buf) except -1:
         buf.write_uint8(self.message_type)

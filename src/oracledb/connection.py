@@ -1084,6 +1084,16 @@ class Connection:
             self._version = ".".join(str(c) for c in self._impl.server_version)
         return self._version
 
+    @property
+    def warning(self) -> errors._Error:
+        """
+        Returns any warning that was generated when the connection was created,
+        or the value None if no warning was generated. The value will be
+        cleared for pooled connections after they are returned to the pool.
+        """
+        self._verify_connected()
+        return self._impl.warning
+
     def xid(
         self,
         format_id: int,

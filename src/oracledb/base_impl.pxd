@@ -242,6 +242,7 @@ cdef class BaseConnImpl:
         readonly str proxy_user
         public object inputtypehandler
         public object outputtypehandler
+        public object warning
         public bint autocommit
         public bint invoke_session_callback
         readonly tuple server_version
@@ -279,6 +280,7 @@ cdef class BaseCursorImpl:
         public list bind_vars
         public type bind_style
         public dict bind_vars_by_name
+        public object warning
         uint32_t _buffer_rowcount
         uint32_t _buffer_index
         uint32_t _fetch_array_size

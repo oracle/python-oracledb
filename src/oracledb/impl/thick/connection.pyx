@@ -271,6 +271,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             ConnectParamsImpl pool_params
             dpiAccessToken access_token
             dpiVersionInfo version_info
+            dpiErrorInfo error_info
             ConnectionParams params
             int status
 
@@ -388,10 +389,15 @@ cdef class ThickConnImpl(BaseConnImpl):
                                     params.password_len, params.dsn_ptr,
                                     params.dsn_len, &common_params,
                                     &conn_params, &self._handle)
-            if status == DPI_SUCCESS:
-                status = dpiConn_getServerVersion(self._handle, NULL, NULL,
-                                                  &version_info)
+            dpiContext_getError(driver_context, &error_info)
         if status < 0:
+            _raise_from_info(&error_info)
+        elif error_info.isWarning:
+            self.warning = _create_new_from_info(&error_info)
+        if conn_params.outNewSession and self.warning is None:
+            self.warning = pool_impl.warning
+        if dpiConn_getServerVersion(self._handle, NULL, NULL,
+                                    &version_info) < 0:
             _raise_from_odpi()
         self.server_version = (
             version_info.versionNum,

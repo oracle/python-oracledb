@@ -103,6 +103,60 @@ class TestCase(test_env.BaseTestCase):
         to_check = "Help: https://docs.oracle.com/error-help/db/ora-01476/"
         self.assertIn(to_check, error_obj.message)
 
+    def test_1704_warning_on_create_procedure(self):
+        "1704 - verify warning is generated when creating a procedure"
+        proc_name = "bad_proc_1704"
+        self.assertIsNone(self.cursor.warning)
+        self.cursor.execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null
+            end;
+            """
+        )
+        self.assertEqual(self.cursor.warning.full_code, "DPY-7000")
+        self.cursor.execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null;
+            end;
+            """
+        )
+        self.assertIsNone(self.cursor.warning)
+        self.cursor.execute(f"drop procedure {proc_name}")
+
+    def test_1705_warning_on_create_function(self):
+        "1705 - verify warning is generated when creating a function"
+        func_name = "bad_func_1705"
+        self.cursor.execute(
+            f"""
+            create or replace function {func_name}
+            return number as
+            begin
+                return null
+            end;
+            """
+        )
+        self.assertEqual(self.cursor.warning.full_code, "DPY-7000")
+        self.cursor.execute(f"drop function {func_name}")
+        self.assertIsNone(self.cursor.warning)
+
+    def test_1706_warning_on_create_type(self):
+        "1706 - verify warning is generated when creating a type"
+        type_name = "bad_type_1706"
+        self.cursor.execute(
+            f"""
+            create or replace type {type_name} as object (
+                x bad_type
+            );
+            """
+        )
+        self.assertEqual(self.cursor.warning.full_code, "DPY-7000")
+        self.cursor.execute(f"drop type {type_name}")
+        self.assertIsNone(self.cursor.warning)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

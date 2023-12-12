@@ -370,6 +370,7 @@ cdef class ThinPoolImpl(BasePoolImpl):
             else:
                 self._busy_conn_impls.remove(conn_impl)
             if is_open:
+                conn_impl.warning = None
                 self._free_used_conn_impls.append(conn_impl)
                 conn_impl._time_in_pool = time.monotonic()
             self._check_timeout()

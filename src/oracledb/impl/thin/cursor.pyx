@@ -130,6 +130,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         message = self._create_message(ExecuteMessage, cursor)
         message.num_execs = 1
         self._conn_impl._protocol._process_single_message(message)
+        self.warning = message.warning
         if self._statement._is_query:
             self.rowcount = 0
             if message.type_cache is not None:
@@ -166,6 +167,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             message.offset = 1
             message.num_execs = num_execs - 1
         self._conn_impl._protocol._process_single_message(message)
+        self.warning = message.warning
 
     def get_array_dml_row_counts(self):
         if self._dmlrowcounts is None:

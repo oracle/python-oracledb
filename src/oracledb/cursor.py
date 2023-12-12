@@ -428,6 +428,7 @@ class Cursor:
         self._set_input_sizes = False
         if parameters is not None:
             impl.bind_one(self, parameters)
+        impl.warning = None
         impl.execute(self)
         if impl.fetch_vars is not None:
             return self
@@ -882,3 +883,14 @@ class Cursor:
             bypass_decode,
             convert_nulls=convert_nulls,
         )
+
+    @property
+    def warning(self) -> Union[errors._Error, None]:
+        """
+        Returns any warning that was generated during the last call to
+        execute() or executemany(), or the value None if no warning was
+        generated. This value will be cleared on the next call to execute() or
+        executemany().
+        """
+        self._verify_open()
+        return self._impl.warning

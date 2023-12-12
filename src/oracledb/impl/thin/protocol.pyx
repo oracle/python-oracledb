@@ -269,6 +269,7 @@ cdef class Protocol:
 
         # mark protocol to indicate that connect is no longer in progress; this
         # allows the normal break/reset mechanism to fire
+        conn_impl.warning = auth_message.warning
         self._in_connect = False
 
     cdef int _connect_tcp(self, ConnectParamsImpl params,

@@ -39,6 +39,7 @@ cdef int _token_callback_handler(void *context,
 cdef class ThickPoolImpl(BasePoolImpl):
     cdef:
         dpiPool *_handle
+        object warning
 
     def __init__(self, str dsn, PoolParamsImpl params):
         cdef:
@@ -55,6 +56,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
             const char *token_ptr = NULL
             const char *private_key_ptr = NULL
             dpiAccessToken access_token
+            dpiErrorInfo error_info
             str token, private_key
             int status
 
@@ -144,8 +146,11 @@ cdef class ThickPoolImpl(BasePoolImpl):
                                     password_ptr, password_len, dsn_ptr,
                                     dsn_len, &common_params, &create_params,
                                     &self._handle)
+            dpiContext_getError(driver_context, &error_info)
         if status < 0:
-            _raise_from_odpi()
+            _raise_from_info(&error_info)
+        elif error_info.isWarning:
+            self.warning = _create_new_from_info(&error_info)
 
         name_bytes = create_params.outPoolName[:create_params.outPoolNameLength]
         self.name = name_bytes.decode()

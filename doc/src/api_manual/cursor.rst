@@ -634,3 +634,21 @@ Cursor Attributes
     .. note::
 
         The DB API definition does not define this attribute.
+
+.. attribute:: Cursor.warning
+
+    This read-only attribute provides an :ref:`oracledb._Error<exchandling>`
+    object giving information about any database warnings (such as PL/SQL
+    compilation warnings) that were generated during the last call to
+    :meth:`~Cursor.execute()` or :meth:`~Cursor.executemany()`. This value is
+    automatically cleared on the next call to :meth:`~Cursor.execute()` or
+    :meth:`~Cursor.executemany()`. If no warning was generated the value
+    ``None`` is returned.
+
+    See :ref:`plsqlwarning` for more information.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        The DB API definition does not define this attribute.

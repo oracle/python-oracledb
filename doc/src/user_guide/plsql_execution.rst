@@ -34,8 +34,8 @@ then the following Python code can be used to call it:
     cursor.callproc('myproc', [123, out_val])
     print(out_val.getvalue())        # will print 246
 
-Calling :meth:`Cursor.callproc()` actually generates an anonymous PL/SQL block
-as shown below, which is then executed:
+Calling :meth:`Cursor.callproc()` internally generates an :ref:`anonymous PL/SQL
+block <anonplsql>` and executes it.  This is equivalent to the application code:
 
 .. code-block:: python
 
@@ -113,6 +113,8 @@ The Python code that will call this procedure looks as follows:
 See :ref:`bind` for information on binding.
 
 
+.. _anonplsql:
+
 Anonymous PL/SQL Blocks
 -----------------------
 
@@ -134,34 +136,56 @@ Creating Stored Procedures and Packages
 ---------------------------------------
 
 To create PL/SQL stored procedures and packages, use :meth:`Cursor.execute()`
-with a SQL CREATE command.
+with a CREATE command. For example:
 
-Creation warning messages can be found from database views like USER_ERRORS.
+.. code-block:: python
 
-For example, creating a procedure with an error could be like:
+    cursor.execute("""
+            create or replace procedure myprocedure
+            (p_in in number, p_out out number) as
+            begin
+                p_out := p_in * 2;
+            end;""")
+
+.. _plsqlwarning:
+
+PL/SQL Compilation Warnings
++++++++++++++++++++++++++++
+
+When creating PL/SQL procedures and functions (or creating types) in
+python-oracledb, the statement might succeed without throwing an error, but
+there may be additional informational messages. (These messages are sometimes
+known in Oracle as "success with info" messages). If your application needs to
+show such messages, they must be explicitly looked for using
+:attr:`Cursor.warning`. A subsequent query from a table like ``USER_ERRORS``
+will show more details. For example:
 
 .. code-block:: python
 
     with connection.cursor() as cursor:
+
         cursor.execute("""
-                create or replace procedure badproc (a in number) as
-                begin
-                    WRONG WRONG WRONG
-                end;""")
-        cursor.execute("""
-                select line, position, text
-                from user_errors
-                where name = 'BADPROC' and type = 'PROCEDURE'
-                order by name, type, line, position""")
-        errors = cursor.fetchall()
-        if errors:
-            for info in errors:
+                    create or replace procedure badproc as
+                    begin
+                        WRONG WRONG WRONG
+                    end;""")
+
+        if cursor.warning.full_code == "DPY-7000":
+            print(cursor.warning)
+
+            # Get details
+            cursor.execute("""
+                    select line, position, text
+                    from user_errors
+                    where name = 'BADPROC' and type = 'PROCEDURE'
+                    order by name, type, line, position""")
+            for info in cursor:
                 print("Error at line {} position {}:\n{}".format(*info))
-        else:
-            print("Created successfully")
 
 The output would be::
 
+    DPY-7000: creation succeeded with compilation errors
+    Error at line 3 position 27:
     PLS-00103: Encountered the symbol "WRONG" when expecting one of the following:
 
        := . ( @ % ;

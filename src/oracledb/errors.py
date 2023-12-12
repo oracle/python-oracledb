@@ -134,6 +134,15 @@ def _get_error_text(error_num: int, **args) -> str:
     return f"{ERR_PREFIX}-{error_num:04}: {message}"
 
 
+def _create_warning(error_num: int, **args) -> _Error:
+    """
+    Returns a warning error object for the specified error number and supplied
+    arguments.
+    """
+    message = _get_error_text(error_num, **args)
+    return _Error(message, iswarning=True)
+
+
 def _raise_err(
     error_num: int,
     context_error_message: str = None,
@@ -291,6 +300,9 @@ ERR_INVALID_SID = 6003
 ERR_PROXY_FAILURE = 6004
 ERR_CONNECTION_FAILED = 6005
 
+# error numbers that result in Warning
+WRN_COMPILATION_ERROR = 7000
+
 # Oracle error number cross reference
 ERR_ORACLE_ERROR_XREF = {
     28: ERR_CONNECTION_CLOSED,
@@ -309,6 +321,7 @@ ERR_ORACLE_ERROR_XREF = {
     24459: ERR_POOL_NO_CONNECTION_AVAILABLE,
     24496: ERR_POOL_NO_CONNECTION_AVAILABLE,
     24338: ERR_INVALID_REF_CURSOR,
+    24344: WRN_COMPILATION_ERROR,
     38902: ERR_TOO_MANY_BATCH_ERRORS,
 }
 
@@ -331,6 +344,7 @@ ERR_EXCEPTION_TYPES = {
     4: exceptions.DatabaseError,
     5: exceptions.InternalError,
     6: exceptions.OperationalError,
+    7: exceptions.Warning,
 }
 
 # error messages that have a troubleshooting section available
@@ -610,4 +624,5 @@ ERR_MESSAGE_FORMATS = {
     ERR_WRONG_SCROLL_MODE: (
         "scroll mode must be relative, absolute, first or last"
     ),
+    WRN_COMPILATION_ERROR: "creation succeeded with compilation errors",
 }
