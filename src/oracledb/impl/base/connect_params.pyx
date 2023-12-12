@@ -65,6 +65,7 @@ _tnsnames_files = {}
 cdef str DEFAULT_PROTOCOL = "tcp"
 cdef uint32_t DEFAULT_PORT = 1521
 cdef double DEFAULT_TCP_CONNECT_TIMEOUT = 60
+cdef uint32_t DEFAULT_SDU = 8192
 
 
 cdef int _add_container(dict args, str name, object value) except -1:
@@ -790,6 +791,7 @@ cdef class Description(ConnectParamsNode):
         ConnectParamsNode.__init__(self, True)
         self.tcp_connect_timeout = DEFAULT_TCP_CONNECT_TIMEOUT
         self.ssl_server_dn_match = True
+        self.sdu = DEFAULT_SDU
 
     cdef str _build_duration_str(self, double value):
         """
@@ -830,6 +832,8 @@ cdef class Description(ConnectParamsNode):
         if self.tcp_connect_timeout != DEFAULT_TCP_CONNECT_TIMEOUT:
             temp = self._build_duration_str(self.tcp_connect_timeout)
             parts.append(f"(TRANSPORT_CONNECT_TIMEOUT={temp})")
+        if self.sdu != DEFAULT_SDU:
+            parts.append(f"(SDU={self.sdu})")
 
         # add address lists, but if the address list contains only a single
         # entry and that entry does not have a host, the other parts aren't
@@ -894,6 +898,7 @@ cdef class Description(ConnectParamsNode):
         description.source_route = self.source_route
         description.retry_count = self.retry_count
         description.retry_delay = self.retry_delay
+        description.sdu = self.sdu
         description.tcp_connect_timeout = self.tcp_connect_timeout
         description.ssl_server_dn_match = self.ssl_server_dn_match
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
@@ -925,6 +930,8 @@ cdef class Description(ConnectParamsNode):
         _set_bool_param(args, "source_route", &self.source_route)
         _set_uint_param(args, "retry_count", &self.retry_count)
         _set_uint_param(args, "retry_delay", &self.retry_delay)
+        _set_uint_param(args, "sdu", &self.sdu)
+        self.sdu = min(max(self.sdu, 512), 2097152)         # sanitize SDU
         _set_duration_param(args, "tcp_connect_timeout",
                             &self.tcp_connect_timeout)
 

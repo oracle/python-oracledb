@@ -1777,8 +1777,10 @@ cdef class ConnectMessage(Message):
         elif self.packet_type == TNS_PACKET_TYPE_ACCEPT:
             buf.read_uint16(&protocol_version)
             buf.read_uint16(&protocol_options)
+            buf.skip_raw_bytes(20)
+            buf.read_uint32(&buf._caps.sdu)
             if protocol_version >= TNS_VERSION_MIN_UUID:
-                buf.skip_raw_bytes(33)
+                buf.skip_raw_bytes(9)
                 db_uuid = buf.read_raw_bytes(16)[:16]
                 self.cookie = get_connection_cookie_by_uuid(db_uuid,
                                                             self.description)
@@ -1820,8 +1822,8 @@ cdef class ConnectMessage(Message):
         buf.write_uint16(TNS_VERSION_DESIRED)
         buf.write_uint16(TNS_VERSION_MINIMUM)
         buf.write_uint16(service_options)
-        buf.write_uint16(TNS_SDU)
-        buf.write_uint16(TNS_TDU)
+        buf.write_uint16(self.description.sdu)
+        buf.write_uint16(self.description.sdu)
         buf.write_uint16(TNS_PROTOCOL_CHARACTERISTICS)
         buf.write_uint16(0)                 # line turnaround
         buf.write_uint16(1)                 # value of 1
@@ -1833,8 +1835,8 @@ cdef class ConnectMessage(Message):
         buf.write_uint64(0)                 # obsolete
         buf.write_uint64(0)                 # obsolete
         buf.write_uint64(0)                 # obsolete
-        buf.write_uint32(TNS_SDU)           # SDU (large)
-        buf.write_uint32(TNS_TDU)           # TDU (large)
+        buf.write_uint32(self.description.sdu)      # SDU (large)
+        buf.write_uint32(self.description.sdu)      # TDU (large)
         buf.write_uint32(connect_flags_1)
         buf.write_uint32(connect_flags_2)
         if self.connect_string_len > TNS_MAX_CONNECT_DATA:

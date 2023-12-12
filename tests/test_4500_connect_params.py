@@ -739,6 +739,7 @@ class TestCase(test_env.BaseTestCase):
             ("debug_jdwp", "host=host;port=4538"),
             ("connection_id_prefix", "prefix4564"),
             ("ssl_context", None),
+            ("sdu", 16384),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

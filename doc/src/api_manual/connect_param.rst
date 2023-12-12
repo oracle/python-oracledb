@@ -51,7 +51,7 @@ ConnectParams Methods
         externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
         edition=None, tag=None, matchanytag=None, config_dir=None, \
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, handle=None)
+        connection_id_prefix=None, ssl_context=None, sdu=None, handle=None)
 
     Sets the default values for one or more of the parameters of an empty
     ConnectParams object.  A default will be overriden when a connection string
@@ -247,6 +247,22 @@ ConnectParams Attributes
     to wait before making a new connection attempt. The default value is 0.
 
     This attribute is supported in the python-oracledb Thin and Thick modes.
+
+.. attribute:: ConnectParams.sdu
+
+    This read-only attribute is an integer that returns the requested size of
+    the Session Data Unit (SDU), in bytes. The value tunes internal buffers
+    used for communication to the database. Bigger values can increase
+    throughput for large queries or bulk data loads, but at the cost of higher
+    memory use. The SDU size that will actually be used is negotiated down to
+    the lower of this value and the database network SDU configuration value.
+    See the `SQL*Net documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__ for more details.
+
+    This attribute is supported in the python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 2.0.0
 
 .. attribute:: ConnectParams.server_type
 

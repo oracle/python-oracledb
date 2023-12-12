@@ -41,10 +41,12 @@ cdef class Capabilities:
         uint32_t max_string_size
         bint supports_oob
         ssize_t oson_max_fname_size
+        uint32_t sdu
 
     def __init__(self):
         self._init_compile_caps()
         self._init_runtime_caps()
+        self.sdu = 1024                 # initial value to use
 
     cdef void _adjust_for_protocol(self, uint16_t protocol_version,
                                    uint16_t protocol_options):

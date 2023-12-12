@@ -134,6 +134,7 @@ cdef class Description(ConnectParamsNode):
         public uint32_t expire_time
         public uint32_t retry_count
         public uint32_t retry_delay
+        public uint32_t sdu
         public double tcp_connect_timeout
         public str service_name
         public str server_type

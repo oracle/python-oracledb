@@ -17,6 +17,9 @@ Thin Mode Changes
     names with more than 255 UTF-8 encoded bytes.
 #)  Added support for an Oracle Database 23c JSON feature improving JSON
     storage usage.
+#)  Added parameter :attr:`ConnectParams.sdu` for configuring the Session Data
+    Unit (SDU) size for sizing internal buffers used for tuning communication
+    with the database.
 #)  Fixed bug in detecting the current time zone
     (`issue 257 <https://github.com/oracle/python-oracledb/issues/257>`__).
 #)  Added connection establishment parameter :data:`ConnectParams.ssl_context`

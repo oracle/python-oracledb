@@ -93,6 +93,7 @@ class ConnectParams:
         debug_jdwp: str = None,
         connection_id_prefix: str = None,
         ssl_context: Any = None,
+        sdu: int = 8192,
         handle: int = 0,
         threaded: bool = True,
         encoding: str = None,
@@ -250,6 +251,13 @@ class ConnectParams:
           parameter should only be specified if the default SSLContext object
           cannot be used (default: None)
 
+        - sdu: the requested size of the Session Data Unit (SDU), in bytes. The
+          value tunes internal buffers used for communication to the database.
+          Bigger values can increase throughput for large queries or bulk data
+          loads, but at the cost of higher memory use. The SDU size that will
+          actually be used is negotiated down to the lower of this value and
+          the database network SDU configuration value (default: 8192)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -293,7 +301,8 @@ class ConnectParams:
             + f"supershardingkey={self.supershardingkey!r}, "
             + f"debug_jdwp={self.debug_jdwp!r}, "
             + f"connection_id_prefix={self.connection_id_prefix!r}, "
-            + f"ssl_context={self.ssl_context!r}"
+            + f"ssl_context={self.ssl_context!r}, "
+            + f"sdu={self.sdu!r}"
             + ")"
         )
 
@@ -508,6 +517,19 @@ class ConnectParams:
 
     @property
     @_description_attr
+    def sdu(self) -> Union[list, int]:
+        """
+        The requested size of the Session Data Unit (SDU), in bytes. The value
+        tunes internal buffers used for communication to the database. Bigger
+        values can increase throughput for large queries or bulk data loads,
+        but at the cost of higher memory use. The SDU size that will actually
+        be used is negotiated down to the lower of this value and the database
+        network SDU configuration value.
+        """
+        return self._impl.sdu
+
+    @property
+    @_description_attr
     def server_type(self) -> Union[list, str]:
         """
         The type of server connection that should be established. If specified,
@@ -699,6 +721,7 @@ class ConnectParams:
         debug_jdwp: str = None,
         connection_id_prefix: str = None,
         ssl_context: Any = None,
+        sdu: int = None,
         handle: int = None,
         threaded: bool = None,
         encoding: str = None,
@@ -846,6 +869,13 @@ class ConnectParams:
           key or any certificates found in a separately supplied wallet. This
           parameter should only be specified if the default SSLContext object
           cannot be used
+
+        - sdu: the requested size of the Session Data Unit (SDU), in bytes. The
+          value tunes internal buffers used for communication to the database.
+          Bigger values can increase throughput for large queries or bulk data
+          loads, but at the cost of higher memory use. The SDU size that will
+          actually be used is negotiated down to the lower of this value and
+          the database network SDU configuration value
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

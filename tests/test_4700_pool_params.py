@@ -113,6 +113,7 @@ class TestCase(test_env.BaseTestCase):
             ("debug_jdwp", "host=host;port=1523"),
             ("connection_id_prefix", "prefix4701"),
             ("ssl_context", None),
+            ("sdu", 16384),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

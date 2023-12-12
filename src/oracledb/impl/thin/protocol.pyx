@@ -68,7 +68,7 @@ cdef class Protocol:
                     print()
                 self._socket.send(b"!", socket.MSG_OOB)
             else:
-                buf = WriteBuffer(self._socket, TNS_SDU, self._caps)
+                buf = WriteBuffer(self._socket, self._caps)
                 self._send_marker(buf, TNS_MARKER_TYPE_INTERRUPT)
 
     cdef int _close(self, ThinConnImpl conn_impl) except -1:
@@ -183,6 +183,8 @@ cdef class Protocol:
                 connect_message = None
                 packet_flags = TNS_PACKET_FLAG_REDIRECT
             elif connect_message.packet_type == TNS_PACKET_TYPE_ACCEPT:
+                self._read_buf._size_for_sdu()
+                self._write_buf._size_for_sdu()
                 return connect_message.cookie
 
             # for TCPS connections, OOB processing is not supported; if the
@@ -490,5 +492,5 @@ cdef class Protocol:
 
     cdef int _set_socket(self, sock):
          self._socket = sock
-         self._read_buf = ReadBuffer(sock, TNS_SDU, self._caps)
-         self._write_buf = WriteBuffer(sock, TNS_SDU, self._caps)
+         self._read_buf = ReadBuffer(sock, self._caps)
+         self._write_buf = WriteBuffer(sock, self._caps)

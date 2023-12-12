@@ -164,11 +164,6 @@ attributes.
 The ``ENABLE=BROKEN`` connect descriptor option is not supported in
 python-oracledb Thin mode.  Use ``expire_time`` instead.
 
-The ``Session Data Unit (SDU)`` connect descriptor option that is used to tune
-network transfers is not supported in python-oracledb Thin mode. The value is
-hard-coded as 8 KB.  In python-oracledb Thick mode, the SDU connect descriptor
-option and equivalent ``sqlnet.ora`` setting are used.
-
 If a name is given as a connect string, then the python-oracledb Thin mode will
 consider it as a Net Service Name and not as the minimal Easy Connect string of
 a hostname.  The given connect string will be looked up in a ``tnsnames.ora``

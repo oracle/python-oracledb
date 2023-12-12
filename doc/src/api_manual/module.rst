@@ -48,7 +48,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -303,6 +303,17 @@ Oracledb Methods
     the default SSLContext object cannot be used.  This value is only used in
     the python-oracledb Thin mode.
 
+    The ``sdu`` parameter is expected to be an integer that returns the
+    requested size of the Session Data Unit (SDU), in bytes. The value tunes
+    internal buffers used for communication to the database. Bigger values can
+    increase throughput for large queries or bulk data loads, but at the cost
+    of higher memory use. The SDU size that will actually be used is
+    negotiated down to the lower of this value and the database network SDU
+    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
+    77949C8A2B04>`__ for more details. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 8192 bytes.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -312,7 +323,7 @@ Oracledb Methods
 
     .. versionchanged:: 2.0.0
 
-        The ``ssl_context`` parameter was added.
+        The ``ssl_context`` and ``sdu`` parameters were added.
 
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
@@ -326,7 +337,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -546,6 +557,17 @@ Oracledb Methods
     the default SSLContext object cannot be used.  This value is only used in
     the python-oracledb Thin mode.
 
+    The ``sdu`` parameter is expected to be an integer that returns the
+    requested size of the Session Data Unit (SDU), in bytes. The value tunes
+    internal buffers used for communication to the database. Bigger values can
+    increase throughput for large queries or bulk data loads, but at the cost
+    of higher memory use. The SDU size that will actually be used is
+    negotiated down to the lower of this value and the database network SDU
+    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
+    77949C8A2B04>`__ for more details. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 8192 bytes.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
@@ -553,7 +575,7 @@ Oracledb Methods
 
     .. versionchanged:: 2.0.0
 
-        The ``ssl_context`` parameter was added.
+        The ``ssl_context`` and ``sdu`` parameters were added.
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
         params=None, min=1, max=2, increment=1, \
@@ -573,7 +595,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -875,6 +897,17 @@ Oracledb Methods
     the default SSLContext object cannot be used.  This value is only used in
     the python-oracledb Thin mode.
 
+    The ``sdu`` parameter is expected to be an integer that returns the
+    requested size of the Session Data Unit (SDU), in bytes. The value tunes
+    internal buffers used for communication to the database. Bigger values can
+    increase throughput for large queries or bulk data loads, but at the cost
+    of higher memory use. The SDU size that will actually be used is
+    negotiated down to the lower of this value and the database network SDU
+    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
+    77949C8A2B04>`__ for more details. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 8192 bytes.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -882,16 +915,16 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode. It
     should be used with extreme caution. The default value is 0.
 
-    .. versionchanged:: 2.0.0
-
-        The ``ssl_context`` parameter was added.
-
     In the python-oracledb Thick mode, connection pooling is handled by
     Oracle's `Session pooling <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ technology.
     This allows python-oracledb applications to support features like
     `Application Continuity <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` and ``sdu`` parameters were added.
 
 
 .. function:: Cursor(connection)
@@ -1014,7 +1047,7 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -1286,6 +1319,17 @@ Oracledb Methods
     the default SSLContext object cannot be used.  This value is only used in
     the python-oracledb Thin mode.
 
+    The ``sdu`` parameter is expected to be an integer that returns the
+    requested size of the Session Data Unit (SDU), in bytes. The value tunes
+    internal buffers used for communication to the database. Bigger values can
+    increase throughput for large queries or bulk data loads, but at the cost
+    of higher memory use. The SDU size that will actually be used is
+    negotiated down to the lower of this value and the database network SDU
+    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
+    77949C8A2B04>`__ for more details. This value is used in both the
+    python-oracledb Thin and Thick modes. The default value is 8192 bytes.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
@@ -1293,7 +1337,7 @@ Oracledb Methods
 
     .. versionchanged:: 2.0.0
 
-        The ``ssl_context`` parameter was added.
+        The ``ssl_context`` and ``sdu`` parameters were added.
 
 .. function:: Time(hour, minute, second)
 

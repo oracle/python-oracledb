@@ -46,10 +46,19 @@ Some general tuning tips are:
 
 * Tune your network.  For example, when inserting or retrieving a large number
   of rows (or for large data), or when using a slow network, then tune the
-  Oracle Network Session Data Unit (SDU) and socket buffer sizes, see `Oracle
-  Net Services: Best Practices for Database Performance and High Availability
+  Oracle Network Session Data Unit (SDU) and socket buffer sizes, see
+  `Configuring Session Data Unit
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__
+  and `Oracle Net Services: Best Practices for Database Performance and High
+  Availability
   <https://static.rainfocus.com/oracle/oow19/sess/1553616880266001WLIh/PF/
   OOW19_Net_CON4641_1569022126580001esUl.pdf>`__.
+
+  In python-oracledb Thick mode the SDU size is configured in the
+  :ref:`optnetfiles`. In python-oracledb Thin mode, the SDU size can be passed
+  as a connection or pool creation parameter.  In both modes it may optionally
+  be set in the connection :ref:`Easy Connect string <easyconnect>` or
+  :ref:`connect descriptor <netservice>`.
 
 * Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit`
   on the last of a sequence of DML statements.

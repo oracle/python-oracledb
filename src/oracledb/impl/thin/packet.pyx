@@ -176,12 +176,10 @@ cdef class ReadBuffer(Buffer):
         Capabilities _caps
         object _socket
 
-    def __cinit__(self, object sock, ssize_t max_packet_size,
-                  Capabilities caps):
+    def __cinit__(self, object sock, Capabilities caps):
         self._socket = sock
         self._caps = caps
-        self._max_packet_size = max_packet_size
-        self._initialize(max_packet_size * 2)
+        self._size_for_sdu()
         self._chunked_bytes_buf = ChunkedBytesBuffer()
 
     cdef inline int _get_data_from_socket(self, object obj,
@@ -406,6 +404,13 @@ cdef class ReadBuffer(Buffer):
             _print_packet("Receiving packet:", self._socket.fileno(),
                           self._data_view[offset:self._size])
 
+    cdef int _size_for_sdu(self) except -1:
+        """
+        Resizes the buffer based on the SDU size of the capabilities.
+        """
+        self._max_packet_size = self._caps.sdu
+        self._initialize(self._max_packet_size * 2)
+
     cdef object read_oson(self):
         """
         Read an OSON value from the buffer and return the converted value. OSON
@@ -595,10 +600,10 @@ cdef class WriteBuffer(Buffer):
         uint8_t _seq_num
         bint _packet_sent
 
-    def __cinit__(self, object sock, ssize_t max_size, Capabilities caps):
+    def __cinit__(self, object sock, Capabilities caps):
         self._socket = sock
         self._caps = caps
-        self._initialize(max_size)
+        self._size_for_sdu()
 
     cdef int _send_packet(self, bint final_packet) except -1:
         """
@@ -627,6 +632,12 @@ cdef class WriteBuffer(Buffer):
         self._pos = PACKET_HEADER_SIZE
         if not final_packet:
             self.write_uint16(0)            # add data flags for next packet
+
+    cdef int _size_for_sdu(self) except -1:
+        """
+        Resizes the buffer based on the SDU size of the capabilities.
+        """
+        self._initialize(self._caps.sdu)
 
     cdef int _write_more_data(self, ssize_t num_bytes_available,
                               ssize_t num_bytes_wanted) except -1:

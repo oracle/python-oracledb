@@ -1178,6 +1178,7 @@ def connect(
     debug_jdwp: str = None,
     connection_id_prefix: str = None,
     ssl_context: Any = None,
+    sdu: int = 8192,
     handle: int = 0,
     threaded: bool = True,
     encoding: str = None,
@@ -1355,6 +1356,13 @@ def connect(
       or any certificates found in a separately supplied wallet. This parameter
       should only be specified if the default SSLContext object cannot be used
       (default: None)
+
+    - sdu: the requested size of the Session Data Unit (SDU), in bytes. The
+      value tunes internal buffers used for communication to the database.
+      Bigger values can increase throughput for large queries or bulk data
+      loads, but at the cost of higher memory use. The SDU size that will
+      actually be used is negotiated down to the lower of this value and the
+      database network SDU configuration value (default: 8192)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
