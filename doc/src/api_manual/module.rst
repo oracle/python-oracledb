@@ -880,7 +880,7 @@ Oracledb Methods
     PowerBuilder) which has already made the connection. The connection thus
     created should *never* be used after the source handle has been closed or
     destroyed. This value is only used in the python-oracledb Thick mode. It
-    should be used with extreme caution. The deault value is 0.
+    should be used with extreme caution. The default value is 0.
 
     .. versionchanged:: 2.0.0
 
