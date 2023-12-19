@@ -211,8 +211,7 @@ class TestCase(test_env.BaseTestCase):
         if lob_type == "BLOB":
             value = value.encode("ascii")
         db_type = getattr(oracledb, "DB_TYPE_" + lob_type)
-        lob = self.conn.createlob(db_type)
-        lob.write(value)
+        lob = self.conn.createlob(db_type, value)
         pickled_data = pickle.dumps(lob)
         unpickled_value = pickle.loads(pickled_data)
         self.assertEqual(unpickled_value, value)
@@ -224,8 +223,7 @@ class TestCase(test_env.BaseTestCase):
         if lob_type == "BLOB":
             value = value.encode("ascii")
         db_type = getattr(oracledb, f"DB_TYPE_{lob_type}")
-        lob = self.conn.createlob(db_type)
-        lob.write(value)
+        lob = self.conn.createlob(db_type, value)
         self.cursor.execute(
             f"""
             insert into Test{lob_type}s (IntCol, {lob_type}Col)
@@ -435,8 +433,7 @@ class TestCase(test_env.BaseTestCase):
             "𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
         )
         self.cursor.execute("delete from TestCLOBs")
-        lob = self.conn.createlob(oracledb.DB_TYPE_CLOB)
-        lob.write(supplemental_chars)
+        lob = self.conn.createlob(oracledb.DB_TYPE_CLOB, supplemental_chars)
         self.cursor.execute(
             """
             insert into TestCLOBs

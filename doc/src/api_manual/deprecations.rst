@@ -11,7 +11,7 @@ if applicable. The most recent deprecations are listed first.
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the desupported API name. The second column, Comments, includes information about when the API  desupported and what API to use, if applicable.
+    :summary: The first column, Name, displays the desupported feature. The second column, Comments, includes information about the desupport and what replacement to make, if applicable.
     :name: _desupported_2_0
 
     * - Name
@@ -49,10 +49,29 @@ if applicable. The most recent deprecations are listed first.
     * - ``SessionPool.tnsentry``
       - Replace with :attr:`ConnectionPool.dsn`
 
+.. list-table-with-summary:: Deprecated in python-oracledb 2.0
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :name: _deprecations_2_0
+
+    * - Name
+      - Comments
+    * - Calling :meth:`Variable.setvalue()` with a string value when the
+        variable type is one of :data:`oracledb.DB_TYPE_BLOB`,
+        :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB`.
+      - Call :meth:`Connection.createlob()` with the value instead and pass the
+        result to :meth:`Variable.setvalue()`.
+    * - Setting an attribute of type :data:`oracledb.DB_TYPE_BLOB`,
+        :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB` on a
+        database object to a string value.
+      - Call :meth:`Connection.createlob()` with the value instead and set the
+        attribute with the result.
+
 .. list-table-with-summary:: Deprecated in python-oracledb 1.4
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
     :name: _deprecations_1_4
 
     * - Name
@@ -163,9 +182,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.2
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column,
-     Comments, includes information about when the API was deprecated and what API to use,
-     if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
     :name: _deprecations_8_2
 
     * - Name
@@ -261,7 +278,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
     :name: _deprecations_8_0
 
     * - Name
@@ -303,7 +320,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 7.2
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
     :name: _deprecations_7_2
 
     * - Name
@@ -321,7 +338,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 6.4
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
     :name: _deprecations_6_4
 
     * - Name

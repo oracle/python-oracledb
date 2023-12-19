@@ -203,8 +203,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         if lob_type == "BLOB":
             value = value.encode("ascii")
         db_type = getattr(oracledb, f"DB_TYPE_{lob_type}")
-        lob = await self.conn.createlob(db_type)
-        await lob.write(value)
+        lob = await self.conn.createlob(db_type, value)
         await self.cursor.execute(
             f"""
             insert into Test{lob_type}s (IntCol, {lob_type}Col)
@@ -399,8 +398,9 @@ class TestCase(test_env.BaseAsyncTestCase):
             "𢵌 𢵧 𢺳 𣲷 𤓓 𤶸 𤷪 𥄫 𦉘 𦟌 𦧲 𦧺 𧨾 𨅝 𨈇 𨋢 𨳊 𨳍 𨳒 𩶘"
         )
         await self.cursor.execute("delete from TestCLOBs")
-        lob = await self.conn.createlob(oracledb.DB_TYPE_CLOB)
-        await lob.write(supplemental_chars)
+        lob = await self.conn.createlob(
+            oracledb.DB_TYPE_CLOB, supplemental_chars
+        )
         await self.cursor.execute(
             """
             insert into TestCLOBs

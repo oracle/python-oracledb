@@ -74,6 +74,8 @@ Common Changes
     associated with columns that are being fetched. SQL domains and annotations
     require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
     Client 23c is also required.
+#)  Added parameter ``data`` to :meth:`Connection.createlob()` to allow data to
+    be written at LOB creation time.
 #)  Added type :data:`~oracledb.DB_TYPE_XMLTYPE` to represent data of type
     ``SYS.XMLTYPE`` in the database. Previously the value of
     :data:`FetchInfo.type_code` for data of this type was

@@ -91,12 +91,19 @@ Connection Methods
 
     Commits any pending transactions to the database.
 
-.. method:: Connection.createlob(lob_type)
+.. method:: Connection.createlob(lob_type, data=None)
 
     Creates and returns a new temporary :ref:`LOB object <lobobj>` of the
     specified type. The ``lob_type`` parameter should be one of
     :data:`oracledb.DB_TYPE_CLOB`, :data:`oracledb.DB_TYPE_BLOB`, or
     :data:`oracledb.DB_TYPE_NCLOB`.
+
+    If data is supplied, it will be written to the temporary LOB before it is
+    returned.
+
+    .. versionchanged:: 2.0
+
+        The parameter ``data`` was added.
 
     .. note::
 

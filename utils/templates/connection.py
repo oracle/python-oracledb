@@ -617,7 +617,9 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._impl.commit()
 
-    def createlob(self, lob_type: DbType) -> LOB:
+    def createlob(
+        self, lob_type: DbType, data: Union[str, bytes] = None
+    ) -> LOB:
         """
         Create and return a new temporary LOB of the specified type.
         """
@@ -629,6 +631,8 @@ class Connection(BaseConnection):
             )
             raise TypeError(message)
         impl = self._impl.create_temp_lob_impl(lob_type)
+        if data:
+            impl.write(data, 1)
         return LOB._from_impl(impl)
 
     def cursor(self, scrollable: bool = False) -> Cursor:
@@ -1325,7 +1329,9 @@ class AsyncConnection(BaseConnection):
         self._verify_connected()
         await self._impl.commit()
 
-    async def createlob(self, lob_type: DbType) -> LOB:
+    async def createlob(
+        self, lob_type: DbType, data: Union[str, bytes] = None
+    ) -> AsyncLOB:
         """
         Create and return a new temporary LOB of the specified type.
         """
@@ -1337,6 +1343,8 @@ class AsyncConnection(BaseConnection):
             )
             raise TypeError(message)
         impl = await self._impl.create_temp_lob_impl(lob_type)
+        if data:
+            await impl.write(data, 1)
         return AsyncLOB._from_impl(impl)
 
     def cursor(self, scrollable: bool = False) -> AsyncCursor:
