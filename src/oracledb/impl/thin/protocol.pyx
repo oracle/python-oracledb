@@ -375,7 +375,8 @@ cdef class Protocol(BaseProtocol):
         except Exception as e:
             if not self._in_connect \
                     and self._write_buf._packet_sent \
-                    and self._read_buf._transport is not None:
+                    and self._read_buf._transport is not None \
+                    and self._read_buf._transport._transport is not None:
                 self._send_marker(self._write_buf, TNS_MARKER_TYPE_BREAK)
                 self._reset(message)
             raise
