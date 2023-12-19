@@ -987,6 +987,45 @@ class TestCase(test_env.BaseTestCase):
         }
         self.assertEqual(column_2.annotations, expected_annotations)
 
+    def test_4362_statement_after_execute(self):
+        "4362 - test getting statement after it was executed"
+        cursor = self.conn.cursor()
+        sql = "select 1 from dual"
+        cursor.execute(sql)
+        self.assertEqual(cursor.statement, sql)
+
+    def test_4363_cursor_fetchvars(self):
+        "4363 - test getting cursor fetchvars"
+        cursor = self.conn.cursor()
+        self.assertIsNone(cursor.fetchvars)
+
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute(
+            "insert into TestTempTable (IntCol, StringCol1) values (1, '12')",
+        )
+        cursor.execute("select IntCol, StringCol1 from TestTempTable")
+        cursor.fetchall()
+        self.assertEqual(len(cursor.fetchvars), 2)
+        self.assertEqual(cursor.fetchvars[0].getvalue(), 1)
+        self.assertEqual(cursor.fetchvars[1].getvalue(), "12")
+
+    def test_4364_fetchmany_with_cursor_arraysize(self):
+        "4364 - test fetchmany() with non-default cursor.arraysize"
+        self.cursor.arraysize = 20
+        values = [(i,) for i in range(30)]
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany(
+            "insert into TestTempTable (IntCol) values (:1)", values
+        )
+        self.cursor.execute("select IntCol from TestTempTable order by IntCol")
+        # fetch first 20 elements
+        fetched_values = self.cursor.fetchmany()
+        self.assertEqual(fetched_values, values[: self.cursor.arraysize])
+
+        # fetch missing elements
+        fetched_values = self.cursor.fetchmany()
+        self.assertEqual(fetched_values, values[self.cursor.arraysize :])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

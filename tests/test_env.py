@@ -70,6 +70,11 @@ import unittest
 
 import oracledb
 
+# Python 3.7 doesn't have support for testing asyncio so fake it to avoid the
+# entire test suite failing!
+if not hasattr(unittest, "IsolatedAsyncioTestCase"):
+    unittest.IsolatedAsyncioTestCase = object
+
 # default values
 DEFAULT_MAIN_USER = "pythontest"
 DEFAULT_PROXY_USER = "pythontestproxy"

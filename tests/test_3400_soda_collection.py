@@ -752,6 +752,92 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(mapped_coll.drop())
         self.assertFalse(original_coll.drop())
 
+    def test_3433_replace_one_returns(self):
+        "3433 - test that replaceOne() returns a correct boolean"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestReplaceDocReturns")
+        coll.find().remove()
+        doc = coll.insertOneAndGet({"address": {"city": "Sydney"}})
+
+        new_content = {"address": {"city": "Melbourne"}}
+        self.assertTrue(coll.find().key(doc.key).replaceOne(new_content))
+
+        unregistered_key = "DB4A2628F1E0985C891F3F4836"
+        self.assertFalse(
+            coll.find().key(unregistered_key).replaceOne(new_content)
+        )
+        self.conn.commit()
+        coll.drop()
+
+    def test_3434_replace_one_and_get_negative(self):
+        "3434 - replaceOne() and replaceOneAndGet() with invalid scenarios"
+        conn = test_env.get_connection()
+        soda_db = conn.getSodaDatabase()
+        coll = soda_db.createCollection("TestReplaceOneNegative")
+        coll.find().remove()
+        coll.insertMany([{"Wisdom": 1.7} for d in range(2)])
+        keys = [d.key for d in coll.find().getDocuments()]
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40734:",
+            coll.find().keys(keys).replaceOne,
+            {"data": "new"},
+        )
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-40734:",
+            coll.find().keys(keys).replaceOneAndGet,
+            {"data": "new"},
+        )
+
+    def test_3435_write_read_only_coll_negative(self):
+        "3435 - test writting a read-only collection"
+        soda_db = self.get_soda_database()
+        metadata = {
+            "readOnly": True,
+        }
+        coll = soda_db.createCollection("TestCollReadOnly", metadata)
+
+        methods = [
+            coll.insertOne,
+            coll.insertOneAndGet,
+            coll.insertMany,
+            coll.insertManyAndGet,
+            coll.save,
+            coll.saveAndGet,
+        ]
+        for method in methods:
+            with self.subTest(method=method):
+                self.assertRaisesRegex(
+                    oracledb.DatabaseError,
+                    "^ORA-40663:",
+                    method,
+                    {"Song 1": "No end"},
+                )
+
+    def test_3436_create_collection_same_metadata(self):
+        "3436 - createCollection() with the same name and metadata"
+        soda_db = self.get_soda_database()
+        coll_name = "TestCollSameMetadata"
+        coll1 = soda_db.createCollection(coll_name, {"readOnly": True})
+        coll2 = soda_db.createCollection(coll_name, {"readOnly": True})
+        self.assertTrue(coll1.drop())
+        self.assertFalse(coll2.drop())
+
+    def test_3437_create_collection_different_metadata(self):
+        "3437 - createCollection() with the same name but different metadata"
+        soda_db = self.get_soda_database()
+        coll_name = "TestCollDifferentMetadata"
+        coll = soda_db.createCollection(coll_name)
+        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40669:"):
+            soda_db.createCollection(coll_name, {"readOnly": False})
+        coll.drop()
+
+        coll = soda_db.createCollection(coll_name, {"readOnly": True})
+        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40669:"):
+            soda_db.createCollection(coll_name, {"readOnly": False})
+        coll.drop()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
