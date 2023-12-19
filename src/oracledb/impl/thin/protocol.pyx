@@ -745,11 +745,11 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         try:
             coroutine = self._process_message_helper(message)
             await asyncio.wait_for(coroutine, timeout_obj)
-        except TimeoutError:
+        except asyncio.TimeoutError:
             try:
                 coroutine = self._process_timeout_helper(message, timeout)
                 await asyncio.wait_for(coroutine, timeout_obj)
-            except TimeoutError:
+            except asyncio.TimeoutError:
                 self._force_close()
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED,
                                   "socket timed out while recovering from " \
@@ -770,9 +770,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             message.process(self._read_buf)
         if self._break_in_progress:
             try:
-                async with asyncio.timeout(timeout_obj):
-                    await self._receive_packet(message)
-            except TimeoutError:
+                coroutine = self._receive_packet(message)
+                await asyncio.wait_for(coroutine, timeout_obj)
+            except asyncio.TimeoutError:
                 self._force_close()
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED,
                                   "socket timed out while awaiting break " \
