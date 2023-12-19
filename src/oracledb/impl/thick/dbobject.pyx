@@ -287,6 +287,9 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
             _raise_from_odpi()
         impl.name = info.name[:info.nameLength].decode()
         impl.dbtype = DbType._from_num(info.typeInfo.oracleTypeNum)
+        impl.precision = info.typeInfo.precision
+        impl.scale = info.typeInfo.scale
+        impl.max_size = info.typeInfo.dbSizeInBytes
         impl._preferred_num_type = \
                 get_preferred_num_type(info.typeInfo.precision,
                                        info.typeInfo.scale)
@@ -338,6 +341,9 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
         if impl.is_collection:
             dbtype = DbType._from_num(info.elementTypeInfo.oracleTypeNum)
             impl.element_dbtype = dbtype
+            impl.element_precision = info.elementTypeInfo.precision
+            impl.element_scale = info.elementTypeInfo.scale
+            impl.element_max_size = info.elementTypeInfo.dbSizeInBytes
             impl._element_preferred_num_type = \
                 get_preferred_num_type(info.elementTypeInfo.precision,
                                        info.elementTypeInfo.scale)

@@ -282,9 +282,7 @@ class DbObjectType:
         """
         Returns the full name of the type.
         """
-        if self.package_name is not None:
-            return f"{self.schema}.{self.package_name}.{self.name}"
-        return f"{self.schema}.{self.name}"
+        return self._impl._get_fqn()
 
     @property
     def attributes(self) -> list:

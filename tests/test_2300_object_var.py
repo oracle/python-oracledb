@@ -730,6 +730,47 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             obj.MISSING
 
+    def test_2333_validate_string_attr(self):
+        "2333 - test validating a string attribute"
+        typ = self.conn.gettype("UDT_OBJECT")
+        obj = typ.newobject()
+        for attr_name, max_size in [
+            ("STRINGVALUE", 60),
+            ("FIXEDCHARVALUE", 10),
+            ("NSTRINGVALUE", 120),
+            ("NFIXEDCHARVALUE", 20),
+            ("RAWVALUE", 16),
+        ]:
+            with self.subTest(attr_name=attr_name, max_size=max_size):
+                value = "A" * max_size
+                setattr(obj, attr_name, value)
+                value += "X"
+                self.assertRaisesRegex(
+                    oracledb.ProgrammingError,
+                    "^DPY-2043:",
+                    setattr,
+                    obj,
+                    attr_name,
+                    value,
+                )
+
+    def test_2334_validate_string_element_value(self):
+        "2334 - test validating a string element value"
+        typ = self.conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
+        obj = typ.newobject()
+        obj.append("A" * 100)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError, "^DPY-2044:", obj.append, "A" * 101
+        )
+        obj.append("B" * 100)
+        self.assertRaisesRegex(
+            oracledb.ProgrammingError,
+            "^DPY-2044:",
+            obj.setelement,
+            2,
+            "C" * 101,
+        )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

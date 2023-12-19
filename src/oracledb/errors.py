@@ -225,6 +225,8 @@ ERR_INVALID_COLL_INDEX_SET = 2039
 ERR_EXECUTE_MODE_ONLY_FOR_DML = 2040
 ERR_MISSING_QUOTE_IN_STRING = 2041
 ERR_MISSING_QUOTE_IN_IDENTIFIER = 2042
+ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED = 2043
+ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED = 2044
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -386,6 +388,14 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_CONTENT_INVALID_AFTER_NUMBER: "invalid number (content after number)",
     ERR_CURSOR_NOT_OPEN: "cursor is not open",
+    ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED: (
+        "attribute {attr_name} of type {type_name} exceeds its maximum size "
+        "(actual: {actual_size}, maximum: {max_size})"
+    ),
+    ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED: (
+        "element {index} of type {type_name} exceeds its maximum size "
+        "(actual: {actual_size}, maximum: {max_size})"
+    ),
     ERR_DB_TYPE_NOT_SUPPORTED: 'database type "{name}" is not supported',
     ERR_DUPLICATED_PARAMETER: (
         '"{deprecated_name}" and "{new_name}" cannot be specified together'

@@ -386,8 +386,13 @@ cdef class BaseDbObjectTypeImpl:
         readonly dict attrs_by_name
         readonly DbType element_dbtype
         readonly BaseDbObjectTypeImpl element_objtype
+        readonly int8_t element_precision
+        readonly int8_t element_scale
+        readonly uint32_t element_max_size
         readonly BaseConnImpl _conn_impl
         int _element_preferred_num_type
+
+    cpdef str _get_fqn(self)
 
 
 cdef class BaseDbObjectAttrImpl:
@@ -395,12 +400,18 @@ cdef class BaseDbObjectAttrImpl:
         readonly str name
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype
+        readonly int8_t precision
+        readonly int8_t scale
+        readonly uint32_t max_size
         int _preferred_num_type
 
 
 cdef class BaseDbObjectImpl:
     cdef:
         readonly BaseDbObjectTypeImpl type
+
+    cdef int _check_max_size(self, object value, uint32_t max_size,
+                             ssize_t* actual_size, bint* violated) except -1
 
 
 cdef class BaseSodaDbImpl:

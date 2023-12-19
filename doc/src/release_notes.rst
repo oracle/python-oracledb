@@ -80,6 +80,10 @@ Common Changes
     :data:`~oracledb.DB_TYPE_LONG` in Thick mode and
     :data:`~oracledb.DB_TYPE_OBJECT` in Thin mode.
 #)  Attribute and element values of :ref:`Oracle Object <dbobject>` instances
+    that contain strings or bytes now have their maximum size constraints
+    checked. Errors ``DPY-2043`` (attributes) and ``DPY-2044`` (element values)
+    are now raised when constraints are violated.
+#)  Attribute and element values of :ref:`Oracle Object <dbobject>` instances
     that are numbers are now returned as integers if the precision and scale
     allow for it. This is the same way that numbers are fetched from the
     database

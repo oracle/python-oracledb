@@ -31,14 +31,39 @@
 
 cdef class BaseDbObjectImpl:
 
+    cdef int _check_max_size(self, object value, uint32_t max_size,
+                             ssize_t* actual_size, bint* violated) except -1:
+        """
+        Checks to see if the maximum size has been violated.
+        """
+        violated[0] = False
+        if max_size > 0:
+            if isinstance(value, str):
+                actual_size[0] = len((<str> value).encode())
+            else:
+                actual_size[0] = len(<bytes> value)
+            if actual_size[0] > max_size:
+                violated[0] = True
+
     def append(self, object value):
         """
         Appends a value to the collection after first checking to see if the
         value is acceptable.
         """
-        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        cdef:
+            BaseConnImpl conn_impl = self.type._conn_impl
+            ssize_t actual_size
+            bint violated
         value = conn_impl._check_value(self.type.element_dbtype,
                                        self.type.element_objtype, value, NULL)
+        self._check_max_size(value, self.type.element_max_size, &actual_size,
+                             &violated)
+        if violated:
+            errors._raise_err(errors.ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED,
+                              index=self.get_size(),
+                              type_name=self.type._get_fqn(),
+                              actual_size=actual_size,
+                              max_size=self.type.element_max_size)
         self.append_checked(value)
 
     @utils.CheckImpls("appending a value to a collection")
@@ -90,8 +115,17 @@ cdef class BaseDbObjectImpl:
         Sets the attribute value after first checking to see if the value is
         acceptable.
         """
-        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        cdef:
+            BaseConnImpl conn_impl = self.type._conn_impl
+            ssize_t actual_size
+            bint violated
         value = conn_impl._check_value(attr.dbtype, attr.objtype, value, NULL)
+        self._check_max_size(value, attr.max_size, &actual_size, &violated)
+        if violated:
+            errors._raise_err(errors.ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED,
+                              attr_name=attr.name,
+                              type_name=self.type._get_fqn(),
+                              actual_size=actual_size, max_size=attr.max_size)
         self.set_attr_value_checked(attr, value)
 
     @utils.CheckImpls("setting an attribute value")
@@ -103,9 +137,19 @@ cdef class BaseDbObjectImpl:
         Sets the element value after first checking to see if the value is
         acceptable.
         """
-        cdef BaseConnImpl conn_impl = self.type._conn_impl
+        cdef:
+            BaseConnImpl conn_impl = self.type._conn_impl
+            ssize_t actual_size
+            bint violated
         value = conn_impl._check_value(self.type.element_dbtype,
                                        self.type.element_objtype, value, NULL)
+        self._check_max_size(value, self.type.element_max_size, &actual_size,
+                             &violated)
+        if violated:
+            errors._raise_err(errors.ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED,
+                              index=index, type_name=self.type._get_fqn(),
+                              actual_size=actual_size,
+                              max_size=self.type.element_max_size)
         self.set_element_by_index_checked(index, value)
 
     @utils.CheckImpls("setting an element of a collection")
@@ -129,6 +173,14 @@ cdef class BaseDbObjectTypeImpl:
                     and other.schema == self.schema \
                     and other.name == self.name
         return NotImplemented
+
+    cpdef str _get_fqn(self):
+        """
+        Return the fully qualified name of the type.
+        """
+        if self.package_name is not None:
+            return f"{self.schema}.{self.package_name}.{self.name}"
+        return f"{self.schema}.{self.name}"
 
     @utils.CheckImpls("creating a new object")
     def create_new_object(self):

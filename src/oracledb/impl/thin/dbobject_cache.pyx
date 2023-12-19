@@ -234,7 +234,9 @@ cdef class BaseThinDbObjectTypeCache:
                 typ_impl.collection_flags = TNS_OBJ_HAS_INDEXES
             buf.skip_to(pos)
             typ_impl.element_dbtype = self._parse_tds_attr(
-                buf, &typ_impl._element_preferred_num_type
+                buf, &typ_impl.element_precision, &typ_impl.element_scale,
+                &typ_impl.element_max_size,
+                &typ_impl._element_preferred_num_type
             )
             if typ_impl.element_dbtype is DB_TYPE_CLOB:
                 return self._get_element_type_clob(typ_impl)
@@ -244,16 +246,22 @@ cdef class BaseThinDbObjectTypeCache:
         # handle objects with attributes
         else:
             for i, attr_impl in enumerate(typ_impl.attrs):
-                self._parse_tds_attr(buf, &attr_impl._preferred_num_type)
+                self._parse_tds_attr(buf, &attr_impl.precision,
+                                     &attr_impl.scale, &attr_impl.max_size,
+                                     &attr_impl._preferred_num_type)
 
-    cdef DbType _parse_tds_attr(self, TDSBuffer buf, int* preferred_num_type):
+    cdef DbType _parse_tds_attr(self, TDSBuffer buf, int8_t* precision,
+                                int8_t* scale, uint32_t *max_size,
+                                int* preferred_num_type):
         """
         Parses a TDS attribute from the buffer.
         """
         cdef:
             uint8_t attr_type, ora_type_num = 0, csfrm = 0
+            int8_t temp_precision, temp_scale
             int temp_preferred_num_type
-            int8_t precision, scale
+            uint32_t temp_max_size
+            uint16_t temp16
 
         # skip until a type code that is of interest
         while True:
@@ -266,14 +274,16 @@ cdef class BaseThinDbObjectTypeCache:
         # process the type code
         if attr_type == TNS_OBJ_TDS_TYPE_NUMBER:
             ora_type_num = TNS_DATA_TYPE_NUMBER
-            buf.read_sb1(&precision)
-            buf.read_sb1(&scale)
-            preferred_num_type[0] = get_preferred_num_type(precision, scale)
+            buf.read_sb1(precision)
+            buf.read_sb1(scale)
+            preferred_num_type[0] = \
+                    get_preferred_num_type(precision[0], scale[0])
         elif attr_type == TNS_OBJ_TDS_TYPE_FLOAT:
             ora_type_num = TNS_DATA_TYPE_NUMBER
             buf.skip_raw_bytes(1)           # precision
         elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
-            buf.skip_raw_bytes(2)           # maximum length
+            buf.read_uint16(&temp16)        # maximum length
+            max_size[0] = temp16
             buf.read_ub1(&csfrm)
             csfrm = csfrm & 0x7f
             buf.skip_raw_bytes(2)           # character set
@@ -282,7 +292,8 @@ cdef class BaseThinDbObjectTypeCache:
             else:
                 ora_type_num = TNS_DATA_TYPE_CHAR
         elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
-            buf.skip_raw_bytes(2)           # maximum length
+            buf.read_uint16(&temp16)        # maximum length
+            max_size[0] = temp16
             ora_type_num = TNS_DATA_TYPE_RAW
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:
             ora_type_num = TNS_DATA_TYPE_BINARY_FLOAT
@@ -311,7 +322,9 @@ cdef class BaseThinDbObjectTypeCache:
             buf.skip_raw_bytes(5)           # offset and code
         elif attr_type == TNS_OBJ_TDS_TYPE_START_EMBED_ADT:
             ora_type_num = TNS_DATA_TYPE_INT_NAMED
-            while self._parse_tds_attr(buf, &temp_preferred_num_type):
+            while self._parse_tds_attr(buf, &temp_precision, &temp_scale,
+                                       &temp_max_size,
+                                       &temp_preferred_num_type):
                 pass
         elif attr_type == TNS_OBJ_TDS_TYPE_END_EMBED_ADT:
             return None
