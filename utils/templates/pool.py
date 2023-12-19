@@ -409,7 +409,7 @@ class ConnectionPool(BaseConnectionPool):
             conn_class = connection_module.Connection
         elif not issubclass(
             conn_class, connection_module.Connection
-        ) or issubclass(connection_module.AsyncConnection):
+        ) or issubclass(conn_class, connection_module.AsyncConnection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
         self._connection_type = conn_class
         self._connection_method = oracledb.connect
