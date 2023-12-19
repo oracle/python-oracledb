@@ -7,8 +7,8 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 2.0.0 (TBD)
---------------------
+oracledb 2.0.0 (December 2023)
+------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
