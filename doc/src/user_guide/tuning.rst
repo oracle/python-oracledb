@@ -63,6 +63,10 @@ Some general tuning tips are:
 * Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit`
   on the last of a sequence of DML statements.
 
+* If Python's Global Interpreter Lock (GIL) is limiting
+  :ref:`concurrent program performance <asyncio>`, then explore using parallel
+  Python processes.
+
 .. _tuningfetch:
 
 Tuning Fetch Performance

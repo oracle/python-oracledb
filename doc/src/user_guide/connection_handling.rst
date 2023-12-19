@@ -16,6 +16,9 @@ Oracle Client libraries are used.  See :ref:`enablingthick`.  Both modes have
 comprehensive functionality supporting the Python Database API v2.0
 Specification.
 
+This chapter covers python-oracledb's synchronous programming model. For
+discussion of asynchronous programming, see :ref:`asyncio`.
+
 If you intend to use the Thick mode, then you *must* call
 :func:`~oracledb.init_oracle_client()` in the application before any standalone
 connection or pool is created.  The python-oracledb Thick mode loads Oracle

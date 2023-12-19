@@ -77,7 +77,6 @@ ConnectionPool Methods
     database shard to connect to. The key values can be strings, numbers, bytes
     or dates.
 
-
 .. method:: ConnectionPool.close(force=False)
 
     Closes the pool now, rather than when the last reference to it is
@@ -86,12 +85,10 @@ ConnectionPool Methods
     If any connections have been acquired and not released back to the pool,
     this method will fail unless the ``force`` parameter is set to True.
 
-
 .. method:: ConnectionPool.drop(connection)
 
     Drops the connection from the pool which is useful if the connection is no
     longer usable (such as when the session is killed).
-
 
 .. method:: ConnectionPool.reconfigure([min, max, increment, getmode, \
         timeout, wait_timeout, max_lifetime_session, max_sessions_per_shard, \
@@ -145,7 +142,6 @@ ConnectionPool Methods
 
     See :ref:`Connection Pool Reconfiguration <poolreconfiguration>`.
 
-
 .. method:: ConnectionPool.release(connection, tag=None)
 
     Releases the connection back to the pool now, rather than whenever __del__
@@ -168,7 +164,6 @@ ConnectionPool Methods
     parameter are not None, the connection will be retagged when it is released
     back to the pool.
 
-
 ConnectionPool Attributes
 =========================
 
@@ -177,12 +172,10 @@ ConnectionPool Attributes
     This read-only attribute returns the number of connections currently
     acquired.
 
-
 .. attribute:: ConnectionPool.dsn
 
     This read-only attribute returns the TNS entry of the database to which a
     connection has been established.
-
 
 .. attribute:: ConnectionPool.getmode
 
@@ -204,18 +197,15 @@ ConnectionPool Attributes
     different authentication can be used for each connection acquired from the
     pool.
 
-
 .. attribute:: ConnectionPool.increment
 
     This read-only attribute returns the number of connections that will be
     established when additional connections need to be created.
 
-
 .. attribute:: ConnectionPool.max
 
     This read-only attribute returns the maximum number of connections that the
     pool can control.
-
 
 .. attribute:: ConnectionPool.max_lifetime_session
 
@@ -238,24 +228,20 @@ ConnectionPool Attributes
     of sessions for each shard. This attribute is only available in Oracle
     Client 18.3 and higher.
 
-
 .. attribute:: ConnectionPool.min
 
     This read-only attribute returns the number of connections with which the
     connection pool was created and the minimum number of connections that will
     be controlled by the connection pool.
 
-
 .. attribute:: ConnectionPool.name
 
     This read-only attribute returns the name assigned to the pool by Oracle.
-
 
 .. attribute:: ConnectionPool.opened
 
     This read-only attribute returns the number of connections currently opened
     by the pool.
-
 
 .. attribute:: ConnectionPool.ping_interval
 
@@ -290,7 +276,6 @@ ConnectionPool Attributes
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
-
 .. attribute:: ConnectionPool.thin
 
     This attribute returns a boolean which indicates the python-oracledb mode
@@ -312,7 +297,6 @@ ConnectionPool Attributes
 
     This read-only attribute returns the name of the user which established the
     connection to the database.
-
 
 .. attribute:: ConnectionPool.wait_timeout
 

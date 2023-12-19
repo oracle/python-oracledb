@@ -53,7 +53,7 @@ async def init_session(connection, requested_tag):
 
 
 # The coroutine simply shows the session identifier/serial number of the
-# conneciton returned by the pool.acquire() call
+# connection returned by the pool.acquire() call
 async def query(pool):
     async with pool.acquire() as connection:
         await connection.callproc("dbms_session.sleep", [1])

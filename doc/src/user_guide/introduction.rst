@@ -8,6 +8,7 @@ The python-oracledb driver is a Python extension module that enables access to
 Oracle Database.  It has comprehensive functionality supporting the `Python
 Database API v2.0 Specification <https://www.python.org/dev/peps/pep-0249/>`__
 with a considerable number of additions and a couple of exclusions.
+Synchronous and :ref:`concurrent <asyncio>` coding styles are supported.
 
 The python-oracledb driver is the renamed, major version successor to
 `cx_Oracle 8.3 <https://oracle.github.io/python-cx_Oracle/>`__.  For upgrade

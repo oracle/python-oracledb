@@ -282,6 +282,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
+    * - Concurrent programming with asyncio (see :ref:`asyncio`)
+      - Yes
+      - No
+      - No
     * - End-to-end monitoring and tracing attributes (see :ref:`tracingsql`)
       - Yes
       - Yes
@@ -296,7 +300,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
     * - Two-phase Commit (TPC)
       - No
-      - Yes - improved support (see :ref:`tcp`)
+      - Yes - improved support. See :ref:`tcp`.
       - Yes - limited support
     * - REF CURSORs and Nested Cursors
       - Yes
@@ -326,62 +330,6 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - CHAR, VARCHAR2, NUMBER, FLOAT, DATE, and LONG data types
-      - Yes
-      - Yes
-      - Yes
-    * - BLOB and CLOB data types
-      - Yes
-      - Yes
-      - Yes
-    * - BINARY_DOUBLE and BINARY_FLOAT data types
-      - Yes
-      - Yes
-      - Yes
-    * - RAW and LONG RAW data types
-      - Yes
-      - Yes
-      - Yes
-    * - INTERVAL DAY TO SECOND data type (see :data:`~oracledb.DB_TYPE_INTERVAL_DS`)
-      - Yes
-      - Yes
-      - Yes
-    * - INTERVAL YEAR TO MONTH data type (see :data:`~oracledb.DB_TYPE_INTERVAL_YM`)
-      - No
-      - No
-      - No
-    * - Oracle 12c JSON
-      - Yes
-      - Yes
-      - Yes
-    * - Oracle 21c JSON data type (see :data:`~oracledb.DB_TYPE_JSON`)
-      - Yes
-      - Yes
-      - Yes
-    * - ROWID, UROWID data types
-      - Yes
-      - Yes
-      - Yes
-    * - TIMESTAMP, TIMESTAMP WITH TIME ZONE, TIMESTAMP WITH LOCAL TIME ZONE data types
-      - Yes
-      - Yes
-      - Yes
-    * - NCHAR, NVARCHAR2, NCLOB data types
-      - Yes
-      - Yes
-      - Yes
-    * - PL/SQL data types BOOLEAN, PLS_INTEGER and BINARY_INTEGER
-      - Yes
-      - Yes
-      - Yes
-    * - XMLType data type (see :ref:`xmldatatype`)
-      - Yes
-      - Yes - may need to fetch as CLOB
-      - Yes - may need to fetch as CLOB
-    * - BFILE data type (see :data:`~oracledb.DB_TYPE_BFILE`)
-      - No
-      - Yes
-      - Yes
 
 .. _supporteddbtypes:
 
@@ -402,198 +350,133 @@ values.
     :header-rows: 1
     :class: wy-table-responsive
     :align: center
-    :summary: The first column displays the database data type. The second column displays the python-oracledb constant Name. The third column indicates if the type is supported in python-oracledb.
+    :summary: The first column displays the database data type. The second column displays the python-oracledb constant Name. The third column contains notes.  The fourth column shows Python types that can be used.
 
     * - Oracle Database Type
       - python-oracledb Constant Name
-      - Supported in python-oracledb
+      - Notes
       - Supported Python Types
     * - VARCHAR2
-      - DB_TYPE_VARCHAR
-      - Yes
+      - :data:`~oracledb.DB_TYPE_VARCHAR`
+      -
       - bytes, str
     * - NVARCHAR2
-      - DB_TYPE_NVARCHAR
-      - Yes
+      - :data:`~oracledb.DB_TYPE_NVARCHAR`
+      -
       - bytes, str
     * - NUMBER, FLOAT
-      - DB_TYPE_NUMBER
-      - Yes
+      - :data:`~oracledb.DB_TYPE_NUMBER`
+      -
       - bool, int, float, decimal.Decimal
     * - DATE
-      - DB_TYPE_DATE
-      - Yes
+      - :data:`~oracledb.DB_TYPE_DATE`
+      -
       - datetime.date, datetime.datetime
-    * - BOOLEAN (PL/SQL)
-      - DB_TYPE_BOOLEAN
-      - Yes
-      - ANY (converted to bool)
+    * - BOOLEAN (PL/SQL and Oracle Database 23c SQL)
+      - :data:`~oracledb.DB_TYPE_BOOLEAN`
+      -
+      - Any type convertible to bool
     * - BINARY_DOUBLE
-      - DB_TYPE_BINARY_DOUBLE
-      - Yes
+      - :data:`~oracledb.DB_TYPE_BINARY_DOUBLE`
+      -
       - bool, int, float, decimal.Decimal
     * - BINARY_FLOAT
-      - DB_TYPE_BINARY_FLOAT
-      - Yes
+      - :data:`~oracledb.DB_TYPE_BINARY_FLOAT`
+      -
       - bool, int, float, decimal.Decimal
     * - TIMESTAMP
-      - DB_TYPE_TIMESTAMP
-      - Yes
+      - :data:`~oracledb.DB_TYPE_TIMESTAMP`
+      -
       - datetime.date, datetime.datetime
     * - TIMESTAMP WITH TIME ZONE
-      - DB_TYPE_TIMESTAMP_TZ
-      - Yes
+      - :data:`~oracledb.DB_TYPE_TIMESTAMP_TZ`
+      -
       - datetime.date, datetime.datetime
     * - TIMESTAMP WITH LOCAL TIME ZONE
-      - DB_TYPE_TIMESTAMP_LTZ
-      - Yes
+      - :data:`~oracledb.DB_TYPE_TIMESTAMP_LTZ`
+      -
       - datetime.date, datetime.datetime
     * - INTERVAL YEAR TO MONTH
-      - DB_TYPE_INTERVAL_YM
-      - Not supported in python-oracledb
-      - cannot be set
+      - :data:`~oracledb.DB_TYPE_INTERVAL_YM`
+      - Not supported in python-oracledb.
+      - Cannot be set
     * - INTERVAL DAY TO SECOND
-      - DB_TYPE_INTERVAL_DS
-      - Yes
+      - :data:`~oracledb.DB_TYPE_INTERVAL_DS`
+      -
       - datetime.timedelta
     * - RAW
-      - DB_TYPE_RAW
-      - Yes
+      - :data:`~oracledb.DB_TYPE_RAW`
+      -
       - bytes, str
     * - LONG
-      - DB_TYPE_LONG
-      - Yes
+      - :data:`~oracledb.DB_TYPE_LONG`
+      -
       - bytes, str
     * - LONG RAW
-      - DB_TYPE_LONG_RAW
-      - Yes
+      - :data:`~oracledb.DB_TYPE_LONG_RAW`
+      -
       - bytes, str
     * - ROWID
-      - DB_TYPE_ROWID
-      - Yes
+      - :data:`~oracledb.DB_TYPE_ROWID`
+      -
       - bytes, str
     * - UROWID
-      - DB_TYPE_ROWID, DB_TYPE_UROWID (only supported in python-oracledb Thin mode)
-      - Yes.  May show DB_TYPE_UROWID in metadata. See :ref:`Query Metadata Differences <querymetadatadiff>`.
+      - :data:`~oracledb.DB_TYPE_ROWID`, :data:`~oracledb.DB_TYPE_UROWID` (only supported in python-oracledb Thin mode)
+      - May show :data:`~oracledb.DB_TYPE_UROWID` in metadata. See :ref:`Query Metadata Differences <querymetadatadiff>`.
       - bytes, str
     * - CHAR
-      - DB_TYPE_CHAR
-      - Yes
+      - :data:`~oracledb.DB_TYPE_CHAR`
+      -
       - bytes, str
     * - BLOB
-      - DB_TYPE_BLOB
-      - Yes
-      - BLOB, bytes, str
+      - :data:`~oracledb.DB_TYPE_BLOB`
+      -
+      - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - CLOB
-      - DB_TYPE_CLOB
-      - Yes
-      - CLOB, bytes, str
+      - :data:`~oracledb.DB_TYPE_CLOB`
+      -
+      - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - NCHAR
-      - DB_TYPE_NCHAR
-      - Yes
+      - :data:`~oracledb.DB_TYPE_NCHAR`
+      -
       - bytes, str
     * - NCLOB
-      - DB_TYPE_NCLOB
-      - Yes
-      - NCLOB, bytes, str
+      - :data:`~oracledb.DB_TYPE_NCLOB`, :data:`~oracledb.DB_TYPE_LONG_NVARCHAR` (if fetching NCLOB as a string)
+      -
+      - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - BFILE
-      - DB_TYPE_BFILE
-      - Not supported in python-oracledb Thin mode
-      - cannot be set
+      - :data:`~oracledb.DB_TYPE_BFILE`
+      - Not supported in python-oracledb Thin mode.
+      - Cannot be set
     * - JSON
-      - DB_TYPE_JSON
-      - Yes
-      - ANY (converted)
+      - :data:`~oracledb.DB_TYPE_JSON`
+      -
+      - Any type convertible to Oracle JSON
     * - REF CURSOR (PL/SQL OR nested cursor)
-      - DB_TYPE_CURSOR
-      - Yes
-      - CURSOR
+      - :data:`~oracledb.DB_TYPE_CURSOR`
+      -
+      - :ref:`oracledb.Cursor <cursorobj>`
     * - PLS_INTEGER
-      - DB_TYPE_BINARY_INTEGER
-      - Yes
+      - :data:`~oracledb.DB_TYPE_BINARY_INTEGER`
+      -
       - bool, int, float, decimal.Decimal
     * - BINARY_INTEGER
-      - DB_TYPE_BINARY_INTEGER
-      - Yes
+      - :data:`~oracledb.DB_TYPE_BINARY_INTEGER`
+      -
       - bool, int, float, decimal.Decimal
     * - REF
       - n/a
       - Not supported in python-oracledb Thin mode
       - n/a
     * - XMLType
-      - DB_TYPE_XMLTYPE
-      - Yes. May need to use ``xmltype.getclobval()`` to fetch in python-oracledb Thick mode.
+      - :data:`~oracledb.DB_TYPE_XMLTYPE`
+      - May need to use ``xmltype.getclobval()`` to fetch in python-oracledb Thick mode. See :ref:`xmldatatype`
       - bytes, str
     * - User-defined types (object type, VARRAY, records, collections, SDO_*types)
-      - DB_TYPE_OBJECT
-      - Yes
+      - :data:`~oracledb.DB_TYPE_OBJECT`
+      -
       - OBJECT of specific type
 
 Binding of contiguous PL/SQL Index-by BINARY_INTEGER arrays of string, number, and date are
 supported in python-oracledb Thin and Thick modes. Use :meth:`Cursor.arrayvar()` to build
 these arrays.
-
-
-.. Python Types supported for each Oracle Database Type are shown below... list-table-with-summary::  Oracle Database Types Supported
-    :header-rows: 1
-    :align: center
-    :summary: The first column displays the Oracle Database type. The second column displays the Python types that are supported for each of the database types.
-
-    * - Oracle Database Type
-      - Python Types supported
-    * - DB_TYPE_BFILE
-      - cannot be set
-    * - DB_TYPE_BINARY_DOUBLE
-      - bool, int, float, decimal.Decimal
-    * - DB_TYPE_BINARY_FLOAT
-      - bool, int, float, decimal.Decimal
-    * - DB_TYPE_BINARY_INTEGER
-      - bool, int, float, decimal.Decimal
-    * - DB_TYPE_BLOB
-      - BLOB, bytes, str
-    * - DB_TYPE_BOOLEAN
-      - ANY (converted to bool)
-    * - DB_TYPE_CHAR
-      - bytes, str
-    * - DB_TYPE_CLOB
-      - CLOB, bytes, str
-    * - DB_TYPE_CURSOR
-      - CURSOR
-    * - DB_TYPE_DATE
-      - datetime.date, datetime.datetime
-    * - DB_TYPE_INTERVAL_DS
-      - datetime.timedelta
-    * - DB_TYPE_INTERVAL_YM
-      - cannot be set
-    * - DB_TYPE_JSON
-      - ANY (converted)
-    * - DB_TYPE_LONG
-      - bytes, str
-    * - DB_TYPE_LONG_NVARCHAR
-      - bytes, str
-    * - DB_TYPE_LONG_RAW
-      - bytes, str
-    * - DB_TYPE_NCHAR
-      - bytes, str
-    * - DB_TYPE_NCLOB
-      - NCLOB, bytes, str
-    * - DB_TYPE_NUMBER
-      - bool, int, float, decimal.Decimal
-    * - DB_TYPE_NVARCHAR
-      - bytes, str
-    * - DB_TYPE_OBJECT
-      - OBJECT of specific type
-    * - DB_TYPE_RAW
-      - bytes, str
-    * - DB_TYPE_ROWID
-      - bytes, str
-    * - DB_TYPE_TIMESTAMP
-      - datetime.date, datetime.datetime
-    * - DB_TYPE_TIMESTAMP_LTZ
-      - datetime.date, datetime.datetime
-    * - DB_TYPE_TIMESTAMP_TZ
-      - datetime.date, datetime.datetime
-    * - DB_TYPE_UROWID
-      - bytes, str
-    * - DB_TYPE_VARCHAR
-      - bytes, str

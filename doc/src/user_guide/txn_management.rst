@@ -7,11 +7,11 @@ Managing Transactions
 A database transaction is a grouping of SQL statements that make a logical data
 change to the database.
 
-When :meth:`Cursor.execute()` executes a SQL statement, a transaction is
-started or continued.  By default, python-oracledb does not commit this transaction
-to the database.  The methods :meth:`Connection.commit()` and
-:meth:`Connection.rollback()` methods can be used to explicitly commit
-or rollback a transaction:
+When :meth:`Cursor.execute()` or :meth:`Cursor.executemany()` executes a SQL
+statement, a transaction is started or continued.  By default, python-oracledb
+does not commit this transaction to the database.  The methods
+:meth:`Connection.commit()` and :meth:`Connection.rollback()` methods can be
+used to explicitly commit or rollback a transaction:
 
 .. code-block:: python
 

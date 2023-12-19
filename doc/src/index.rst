@@ -6,7 +6,8 @@ Python-oracledb is the new name for the Python `cx_Oracle driver
 an open source module that enables Python programs to access Oracle
 Database. It conforms to the `Python Database API v2.0 Specification
 <https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of
-additions and a couple of exclusions.
+additions and a couple of exclusions. Synchronous and
+:ref:`concurrent <asyncio>` coding styles are supported.
 
 This module is currently tested with Python 3.7, 3.8, 3.9, 3.10, 3.11 and 3.12
 against Oracle Database 23c, 21c, 19c, 18c, 12c, and 11gR2.
@@ -45,9 +46,10 @@ User Guide
     user_guide/two_phase_commit.rst
     user_guide/startup.rst
     user_guide/ha.rst
-    user_guide/tracing.rst
     user_guide/globalization.rst
+    user_guide/asyncio.rst
     user_guide/exception_handling.rst
+    user_guide/tracing.rst
     user_guide/troubleshooting.rst
     user_guide/appendix_a.rst
     user_guide/appendix_b.rst
@@ -74,6 +76,10 @@ API Manual
     api_manual/dbobject_type.rst
     api_manual/aq.rst
     api_manual/soda.rst
+    api_manual/async_connection.rst
+    api_manual/async_connection_pool.rst
+    api_manual/async_cursor.rst
+    api_manual/async_lob.rst
     api_manual/deprecations.rst
 
 .. toctree::

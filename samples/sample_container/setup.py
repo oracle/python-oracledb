@@ -29,7 +29,7 @@ for i in range(30):
         c = oracledb.connect(
             user="system",
             password=pw,
-            dsn="localhost/xepdb1",
+            dsn="localhost/freepdb1",
             tcp_connect_timeout=5,
         )
         break
@@ -63,7 +63,7 @@ cursor.execute("alter database mount")
 cursor.execute("alter database open")
 
 c = oracledb.connect(
-    user="sys", password=pw, dsn="localhost/xepdb1", mode=oracledb.SYSDBA
+    user="sys", password=pw, dsn="localhost/freepdb1", mode=oracledb.SYSDBA
 )
 cursor = c.cursor()
 cursor.callproc("dbms_connection_pool.start_pool")

@@ -24,7 +24,6 @@ Connection Methods
 
         This method is an extension to the DB API definition.
 
-
 .. method:: Connection.__exit__()
 
     The exit point for the connection as a context manager. This will close
@@ -33,7 +32,6 @@ Connection Methods
     .. note::
 
         This method is an extension to the DB API definition.
-
 
 .. method:: Connection.begin([formatId, transactionId, branchId])
 
@@ -61,7 +59,6 @@ Connection Methods
     .. note::
 
         This method is an extension to the DB API definition.
-
 
 .. method:: Connection.changepassword(oldpassword, newpassword)
 
@@ -126,7 +123,6 @@ Connection Methods
 
         This method is an extension to the DB API definition.
 
-
 .. method:: Connection.gettype(name)
 
     Returns a :ref:`type object <dbobjecttype>` given its name. This can then be
@@ -136,7 +132,6 @@ Connection Methods
     .. note::
 
         This method is an extension to the DB API definition.
-
 
 .. method:: Connection.is_healthy()
 
@@ -176,7 +171,6 @@ Connection Methods
 
         This method is an extension to the DB API definition.
 
-
 .. method:: Connection.prepare()
 
     Prepares the distributed (global) transaction for commit. Return a boolean
@@ -190,7 +184,6 @@ Connection Methods
     .. note::
 
         This method is an extension to the DB API definition.
-
 
 .. method:: Connection.queue(name, payload_type=None)
 
@@ -213,11 +206,9 @@ Connection Methods
 
         This method is an extension to the DB API definition.
 
-
 .. method:: Connection.rollback()
 
     Rolls back any pending transactions.
-
 
 .. method:: Connection.shutdown([mode])
 
@@ -556,7 +547,6 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
-
 .. attribute:: Connection.autocommit
 
     This read-write attribute determines whether autocommit mode is on or off.
@@ -595,7 +585,6 @@ Connection Attributes
     .. note::
 
         This attribute is an extension to the DB API definition.
-
 
 .. attribute:: Connection.clientinfo
 
@@ -646,7 +635,7 @@ Connection Attributes
 
     This write-only attribute sets the database operation that is to be
     monitored. This can be viewed in the ``DBOP_NAME`` column of the
-    ``V$SQL_MONITOR`` table.
+    ``v$sql_monitor`` table.
 
     .. note::
 
@@ -688,16 +677,15 @@ Connection Attributes
 
 .. attribute:: Connection.handle
 
-    This read-only attribute returns the Oracle Call Interface (OCI) service context handle for the
-    connection. It is primarily provided to facilitate testing the creation of
-    a connection using the OCI service context handle.
+    This read-only attribute returns the Oracle Call Interface (OCI) service
+    context handle for the connection. It is primarily provided to facilitate
+    testing the creation of a connection using the OCI service context handle.
 
     This property is only relevant in the python-oracledb Thick mode.
 
     .. note::
 
         This attribute is an extension to the DB API definition.
-
 
 .. attribute:: Connection.inputtypehandler
 
@@ -711,7 +699,6 @@ Connection Attributes
     .. note::
 
         This attribute is an extension to the DB API definition.
-
 
 .. attribute:: Connection.instance_name
 
@@ -759,7 +746,6 @@ Connection Attributes
     .. note::
 
         This attribute is an extension to the DB API definition.
-
 
 .. attribute:: Connection.module
 

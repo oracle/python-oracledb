@@ -348,8 +348,9 @@ to python-oracledb:
   See :ref:`Features Supported <featuresummary>` for details.
 
 - python-oracledb can be used in SQLAlchemy, Django, Pandas, and other
-  frameworks and Object-relational Mappers (ORMs). Until they add native
-  support, you can override the use of cx_Oracle with a few lines of code. See
+  frameworks and Object-relational Mappers (ORMs). To use python-oracledb in
+  versions of these libraries that don't have native support for the new name,
+  you can override the use of cx_Oracle with a few lines of code. See
   :ref:`frameworks`.
 
 - python-oracledb connection and pool creation calls require keyword arguments
@@ -675,9 +676,9 @@ Python Frameworks, SQL Generators, and ORMs
 The python-oracledb Thin mode features in the python-oracledb cover the needs
 of frameworks that depend upon the Python Database API.
 
-Until SQLAlchemy, Django, other frameworks, object-relational mappers (ORMs),
-and libraries add native support for python-oracledb, you can add temporary
-code like this to use python-oracledb in-place of cx_Oracle:
+For versions of SQLAlchemy, Django, other frameworks, object-relational mappers
+(ORMs), and libraries that don't have native support for python-oracledb, you
+can add temporary code like this to use python-oracledb in-place of cx_Oracle:
 
 .. code-block:: python
 
@@ -691,3 +692,7 @@ code like this to use python-oracledb in-place of cx_Oracle:
 
     The import of cx_Oracle occurs last. This code must be run before the
     library code does its own import of cx_Oracle.
+
+
+SQLAlchemy 2 and Django 5 have native support for python-oracledb so this code
+snippet is not needed in those versions.

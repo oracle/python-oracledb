@@ -165,12 +165,12 @@ will show more details. For example:
     with connection.cursor() as cursor:
 
         cursor.execute("""
-                    create or replace procedure badproc as
-                    begin
-                        WRONG WRONG WRONG
-                    end;""")
+                create or replace procedure badproc as
+                begin
+                    WRONG WRONG WRONG
+                end;""")
 
-        if cursor.warning.full_code == "DPY-7000":
+        if cursor.warning and cursor.warning.full_code == "DPY-7000":
             print(cursor.warning)
 
             # Get details
@@ -178,14 +178,14 @@ will show more details. For example:
                     select line, position, text
                     from user_errors
                     where name = 'BADPROC' and type = 'PROCEDURE'
-                    order by name, type, line, position""")
+                    order by line, position""")
             for info in cursor:
                 print("Error at line {} position {}:\n{}".format(*info))
 
 The output would be::
 
     DPY-7000: creation succeeded with compilation errors
-    Error at line 3 position 27:
+    Error at line 3 position 23:
     PLS-00103: Encountered the symbol "WRONG" when expecting one of the following:
 
        := . ( @ % ;

@@ -58,16 +58,16 @@ STMT_TYPE_SQLPLUS = 3  # Like SET or DESC
 
 # Simple regexps for statement type identification
 SQL_PATTERN = re.compile(
-    r"^(administer|alter|analyze|associate|audit|call|comment|commit|create"
+    "^(administer|alter|analyze|associate|audit|call|comment|commit|create"
     "|delete|disassociate|drop|explain|flashback|grant|insert|lock|merge"
     "|noaudit|purge|rename|revoke|rollback|savepoint|select|truncate|update"
-    "|with|set\s+constraint[s*]|set\s+role|set\s+transaction)(\s|$|;)",
+    r"|with|set\s+constraint[s*]|set\s+role|set\s+transaction)(\s|$|;)",
     re.IGNORECASE,
 )
 
 PLSQL_PATTERN = re.compile(
     r"^(begin|declare|create\s+or\s+replace|create\s+function"
-    "|create\s+procedure|create\s+package|create\s+type)(\s|$)",
+    r"|create\s+procedure|create\s+package|create\s+type)(\s|$)",
     re.IGNORECASE,
 )
 
@@ -83,7 +83,7 @@ SQLPLUS_PATTERN = re.compile(
     "|(repf(o?|oo?|oot?|oote?|ooter?))|(reph(e?|ea?|ead?|eade?|eader?))"
     "|(r(u?|un?))|(sav(e?))|set|(sho(w?))|shutdown|(spo(o?|ol?))|(sta(r?|rt?))"
     "|startup|store|(timi(n?|ng?))|(tti(t?|tl?|tle?))|(undef(i?|in?|ine?))"
-    "|(var(i?|ia?|iab?|iabl?|iable?))|whenever|xquery|--.*)(\s|$)",
+    r"|(var(i?|ia?|iab?|iabl?|iable?))|whenever|xquery|--.*)(\s|$)",
     re.IGNORECASE,
 )
 
@@ -161,10 +161,13 @@ def execute_db_statement(connection, statement, statement_type):
         with connection.cursor() as cursor:
             try:
                 cursor.execute(statement)
+                if cursor.warning:
+                    print(cursor.warning)
                 if statement_type == STMT_TYPE_SQL and QUERY_PATTERN.match(
                     statement
                 ):
                     fetch_rows(cursor)
+
             except oracledb.Error as e:
                 (error,) = e.args
                 print(statement)

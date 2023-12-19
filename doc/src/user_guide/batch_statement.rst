@@ -102,6 +102,11 @@ since numeric data is already stored efficiently.  Since python-oracledb
 allocates memory for each row based on the supplied values, do not oversize
 them.
 
+If the size of the buffers allocated for any of the parameters exceeds 2 GB,
+you will receive the error ``DPI-1015: array size of <n> is too large``, where
+<n> varies with the size of each element being allocated in the buffer. If you
+receive this error, decrease the number of elements in the sequence parameters.
+
 Batch Execution of PL/SQL
 =========================
 

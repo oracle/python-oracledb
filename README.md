@@ -8,6 +8,8 @@ The module conforms to the [Python Database API 2.0 specification][pep249] with
 a considerable number of additions and a couple of minor exclusions, see the
 [feature list][features].
 
+Synchronous and [concurrent][concurrent] coding styles are supported.
+
 ## Installation
 
 Run `python -m pip install oracledb`
@@ -95,3 +97,4 @@ See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and
 [samples]: https://github.com/oracle/python-oracledb/tree/main/samples
 [installation]: https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
 [features]: https://oracle.github.io/python-oracledb/#features
+[concurrent]: https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html
