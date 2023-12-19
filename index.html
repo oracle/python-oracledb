@@ -94,6 +94,15 @@ limitations under the License.
 
           </p>
 
+          <p>
+
+          Synchronous and concurrent <a
+          href="https://docs.python.org/3/library/asyncio.html" >asyncio</a>
+          coding styles are supported.
+
+          </p>
+
+
       </div> <!-- /about -->
 
       <div id="quickstart">
@@ -163,11 +172,10 @@ limitations under the License.
 
             <li>
 
-              <p><strong>Python versions 3.6 through 3.12</strong>.</p>
+              <p><strong>Python versions 3.7 through 3.12</strong>.</p>
 
               <p> Pre-built packages on <a
-              href="https://pypi.org/project/oracledb" >PyPI</a> are available for Windows Python 3.7 or later, for macOS
-              Python 3.7 or later, and for Linux Python 3.6 or later.</p>
+              href="https://pypi.org/project/oracledb" >PyPI</a> are available for Python 3.7 and later.</p>
 
               <p>Source code is also available.</p>
 
@@ -262,7 +270,11 @@ limitations under the License.
       >PyPI</a>.  No additional install is required - you just need an
       available Oracle Database.</p></li>
 
-      <li><p>Support for Python 3.6 and higher.</p></li>
+      <li><p>Support for Python 3.7 and higher. (Python-oracledb 1 can be used with Python 3.6).</p></li>
+
+      <li><p>Support for synchronous and concurrent <a
+      href="https://docs.python.org/3/library/asyncio.html" >asyncio</a> coding
+      styles.</p></li>
 
       <li><p>Connects to Oracle Database 11.2, 12, 18, 19, 21 or 23 on-premises
       or in the Cloud.</p></li>
@@ -346,7 +358,7 @@ limitations under the License.
 
       </ul>
 
-      <p>Some features above are only available in Thick mode.  See the user
+      <p>Not all features are available in both Thin and Thick modes.  See the user
       documentation <a
       href="https://python-oracledb.readthedocs.io/en/latest/user_guide/appendix_a.html"
       >Oracle Database Features Supported by python-oracledb</a> for more
