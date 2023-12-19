@@ -804,6 +804,20 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
+.. attribute:: Connection.sdu
+
+    This read-only attribute specifies the size of the Session Data Unit (SDU)
+    that is being used by the connection. The value will be the lesser of the
+    requested python-oracledb size and the maximum size allowed by the database
+    network configuration. It is available only in the python-oracledb Thin
+    mode.
+
+    .. versionadded:: 2.0.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
 .. attribute:: Connection.service_name
 
     This read-only attribute specifies the Oracle Database service name

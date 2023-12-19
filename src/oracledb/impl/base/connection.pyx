@@ -249,6 +249,10 @@ cdef class BaseConnImpl:
     def get_max_open_cursors(self):
         pass
 
+    @utils.CheckImpls("getting the session data unit (SDU)")
+    def get_sdu(self):
+        pass
+
     @utils.CheckImpls("getting the service name")
     def get_service_name(self):
         pass

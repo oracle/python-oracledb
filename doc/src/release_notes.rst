@@ -17,7 +17,8 @@ Thin Mode Changes
     (`issue 6 <https://github.com/oracle/python-oracledb/issues/6>`__).
 #)  Added parameter :attr:`ConnectParams.sdu` for configuring the Session Data
     Unit (SDU) size for sizing internal buffers used for tuning communication
-    with the database.
+    with the database. The connection property :attr:`Connection.sdu` was also
+    added.
 #)  Added parameter :data:`ConnectParams.ssl_context` to modify the SSL context
     used when connecting via TLS
     (`issue 259 <https://github.com/oracle/python-oracledb/issues/259>`__).

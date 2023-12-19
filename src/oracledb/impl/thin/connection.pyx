@@ -266,6 +266,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def get_max_open_cursors(self):
         return self._max_open_cursors
 
+    def get_sdu(self):
+        return self._protocol._caps.sdu
+
     def get_service_name(self):
         return self._service_name
 

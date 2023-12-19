@@ -367,6 +367,15 @@ class BaseConnection:
         self._impl.outputtypehandler = value
 
     @property
+    def sdu(self) -> int:
+        """
+        Specifies the size of the Session Data Unit (SDU) that is being used by
+        the connection.
+        """
+        self._verify_connected()
+        return self._impl.get_sdu()
+
+    @property
     def service_name(self) -> str:
         """
         Specifies the name of the service that was used to connect to the
