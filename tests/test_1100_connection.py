@@ -741,10 +741,6 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection()
         conn.callTimeout = 500
         self.assertEqual(conn.callTimeout, 500)
-        self.assertEqual(conn.encoding, "UTF-8")
-        self.assertEqual(conn.nencoding, "UTF-8")
-        self.assertEqual(conn.maxBytesPerCharacter, 4)
-        self.assertEqual(conn.tnsentry, conn.dsn)
 
     @unittest.skipIf(
         test_env.get_server_version() < (23, 0)

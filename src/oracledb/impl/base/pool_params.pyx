@@ -82,16 +82,12 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         _set_uint_param(args, "getmode", &self.getmode)
         _set_bool_param(args, "homogeneous", &self.homogeneous)
         _set_uint_param(args, "timeout", &self.timeout)
-        _set_uint_param_with_deprecated_name(args, "wait_timeout",
-                                             "waitTimeout", &self.wait_timeout)
-        _set_uint_param_with_deprecated_name(args, "max_lifetime_session",
-                                             "maxLifetimeSession",
-                                             &self.max_lifetime_session)
-        _set_obj_param_with_deprecated_name(args, "session_callback",
-                                            "sessionCallback", self)
-        _set_uint_param_with_deprecated_name(args, "max_sessions_per_shard",
-                                             "maxSessionsPerShard",
-                                             &self.max_sessions_per_shard)
+        _set_uint_param(args, "wait_timeout", &self.wait_timeout)
+        _set_uint_param(args, "max_lifetime_session",
+                        &self.max_lifetime_session)
+        self.session_callback = args.get("session_callback")
+        _set_uint_param(args, "max_sessions_per_shard",
+                        &self.max_sessions_per_shard)
         _set_bool_param(args, "soda_metadata_cache", &self.soda_metadata_cache)
         _set_int_param(args, "ping_interval", &self.ping_interval)
 

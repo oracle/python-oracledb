@@ -89,7 +89,7 @@ from cx_Oracle:
   can be used to encapsulate connection properties. See :ref:`usingconnparams`
   for more information.
 
-- The following parameters are deprecated and ignored:
+- The following parameters are desupported:
 
   - ``encoding`` and ``nencoding``: The encodings in use are always UTF-8.
 

@@ -635,13 +635,6 @@ def create_pool(
     ssl_context: Any = None,
     sdu: int = 8192,
     handle: int = 0,
-    threaded: bool = True,
-    encoding: str = None,
-    nencoding: str = None,
-    waitTimeout: int = None,
-    maxLifetimeSession: int = None,
-    maxSessionsPerShard: int = None,
-    sessionCallback: Callable = None,
 ) -> ConnectionPool:
     """
     Creates a connection pool with the supplied parameters and returns it.
@@ -1037,13 +1030,6 @@ def create_pool_async(
     ssl_context: Any = None,
     sdu: int = 8192,
     handle: int = 0,
-    threaded: bool = True,
-    encoding: str = None,
-    nencoding: str = None,
-    waitTimeout: int = None,
-    maxLifetimeSession: int = None,
-    maxSessionsPerShard: int = None,
-    sessionCallback: Callable = None,
 ) -> AsyncConnectionPool:
     """
     Creates a connection pool with the supplied parameters and returns it.

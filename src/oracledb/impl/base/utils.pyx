@@ -91,41 +91,6 @@ cdef int _set_uint_param(dict args, str name, uint32_t* out_val) except -1:
         out_val[0] = int(in_val)
 
 
-cdef int _set_uint_param_with_deprecated_name(dict args, str name,
-                                              str deprecated_name,
-                                              uint32_t* out_val) except -1:
-    """
-    Similar to _set_uint_param() but also checks to see if the deprecated
-    parameter name has been used.
-    """
-    in_val = args.get(name)
-    deprecated_val = args.get(deprecated_name)
-    if in_val is not None and deprecated_val is not None:
-        errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                          deprecated_name=deprecated_name, new_name=name)
-    elif in_val is not None:
-        out_val[0] = int(in_val)
-    elif deprecated_val is not None:
-        out_val[0] = int(deprecated_val)
-
-cdef int _set_obj_param_with_deprecated_name(dict args, str name,
-                                             str deprecated_name,
-                                             object target) except -1:
-    """
-    Sets an object parameter to the value provided in the dictionary. If a
-    value is specified it is set directly on the target.
-    """
-    in_val = args.get(name)
-    deprecated_val = args.get(deprecated_name)
-    if in_val is not None and deprecated_val is not None:
-        errors._raise_err(errors.ERR_DUPLICATED_PARAMETER,
-                          deprecated_name=deprecated_name, new_name=name)
-    elif in_val is not None:
-        setattr(target, name, in_val)
-    elif deprecated_val is not None:
-        setattr(target, name, deprecated_val)
-
-
 cdef int _set_protocol_param(dict args, str name, object target) except -1:
     """
     Sets a protocol parameter to the value provided in the dictionary. This

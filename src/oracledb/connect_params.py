@@ -95,9 +95,6 @@ class ConnectParams:
         ssl_context: Any = None,
         sdu: int = 8192,
         handle: int = 0,
-        threaded: bool = True,
-        encoding: str = None,
-        nencoding: str = None,
     ):
         """
         All parameters are optional. A brief description of each parameter
@@ -723,9 +720,6 @@ class ConnectParams:
         ssl_context: Any = None,
         sdu: int = None,
         handle: int = None,
-        threaded: bool = None,
-        encoding: str = None,
-        nencoding: str = None,
     ):
         """
         All parameters are optional. A brief description of each parameter

@@ -107,13 +107,6 @@ class PoolParams(ConnectParams):
         ssl_context: Any = None,
         sdu: int = 8192,
         handle: int = 0,
-        threaded: bool = True,
-        encoding: str = None,
-        nencoding: str = None,
-        waitTimeout: int = None,
-        maxLifetimeSession: int = None,
-        maxSessionsPerShard: int = None,
-        sessionCallback: Callable = None,
     ):
         """
         All parameters are optional. A brief description of each parameter
@@ -561,13 +554,6 @@ class PoolParams(ConnectParams):
         ssl_context: Any = None,
         sdu: int = None,
         handle: int = None,
-        threaded: bool = None,
-        encoding: str = None,
-        nencoding: str = None,
-        waitTimeout: int = None,
-        maxLifetimeSession: int = None,
-        maxSessionsPerShard: int = None,
-        sessionCallback: Callable = None,
     ):
         """
         All parameters are optional. A brief description of each parameter

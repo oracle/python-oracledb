@@ -11,13 +11,43 @@ if applicable. The most recent deprecations are listed first.
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated or desupported API name. The second column, Comments, includes information about when the API was deprecated or desupported and what API to use, if applicable.
-    :name: _deprecations_2_0
+    :summary: The first column, Name, displays the desupported API name. The second column, Comments, includes information about when the API  desupported and what API to use, if applicable.
+    :name: _desupported_2_0
 
     * - Name
       - Comments
     * - ``oracledb.__future__.old_json_col_as_obj``
-      - This attribute is desupported and does not need to be set to fetch VARCHAR2 and LOB columns that contain JSON data.
+      - VARCHAR2 and LOB columns created with the ``IS JSON`` check constraint
+        are now always fetched as JSON.  Use an :ref:`output type handler
+        <outputtypehandlers>` if the old behavior is required.
+    * - Parameters ``encoding`` and ``nencoding`` of :func:`oracledb.connect()`
+        and :func:`oracledb.create_pool()`, and the related attributes on the
+        objects created
+      - The driver encodings are always UTF-8. Remove uses of ``encoding`` and
+        ``nencoding`` from your code.
+    * - Parameter ``threaded`` of :func:`oracledb.connect()` and
+        :func:`oracledb.create_pool()`
+      - Threading is always used. Remove uses of ``threaded`` from your code.
+    * - Parameter ``waitTimeout`` of :func:`oracledb.create_pool()` and
+        ``oracledb.SessionPool()``
+      - Replace with parameter ``wait_timeout``
+    * - Parameter ``maxLifetimeSession`` of :func:`oracledb.create_pool()` and
+        ``oracledb.SessionPool()``
+      - Replace with parameter ``max_lifetime_session``
+    * - Parameter ``sessionCallback`` of :func:`oracledb.create_pool()` and
+        ``oracledb.SessionPool()``
+      - Replace with parameter ``session_callback``
+    * - Parameter ``maxSessionsPerShard`` of :func:`oracledb.create_pool()` and
+        ``oracledb.SessionPool()``
+      - Replace with parameter ``max_sessions_per_shard``
+    * - Attribute ``maxBytesPerCharacter`` of the :ref:`connection object
+        <connobj>`
+      - The driver encodings are always UTF-8 so this attribute can be replaced by
+        the constant value 4
+    * - ``Connection.tnsentry``
+      - Replace with :attr:`Connection.dsn`
+    * - ``SessionPool.tnsentry``
+      - Replace with :attr:`ConnectionPool.dsn`
 
 .. list-table-with-summary:: Deprecated in python-oracledb 1.4
     :header-rows: 1
@@ -173,7 +203,7 @@ python-oracledb are listed below:
     * - ``maxSessionsPerShard`` parameter to `cx_Oracle.SessionPool() <https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.SessionPool>`_
       - Replace with parameter name ``max_sessions_per_shard``
     * - ``SessionPool.tnsentry``
-      - Replace with `SessionPool.dsn <https://cx-oracle.readthedocs.io/en/latest/api_manual/session_pool.html#SessionPool.dsn>`_
+      - Replace with :attr:`ConnectionPool.dsn`
     * - ``payloadType`` parameter to `Connection.queue() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.queue>`_
       - Replace with parameter name ``payload_type`` if using keyword parameters.
     * - ``ipAddress`` parameter to `Connection.subscribe() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.subscribe>`_
@@ -189,7 +219,7 @@ python-oracledb are listed below:
     * - ``Connection.callTimeout``
       - Replace with `Connection.call_timeout <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.call_timeout>`_
     * - ``Connection.tnsentry``
-      - Replace with `Connection.dsn <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.dsn>`_
+      - Replace with :attr:`Connection.dsn`
     * - `keywordParameters` parameter to `Cursor.callfunc() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.callfunc>`_
       - Replace with parameter name ``keyword_parameters``
     * - ``keywordParameters`` parameter to `Cursor.callproc() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.callproc>`_

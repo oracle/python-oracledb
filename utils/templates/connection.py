@@ -234,14 +234,6 @@ class BaseConnection:
         return self._impl.get_edition()
 
     @property
-    def encoding(self) -> str:
-        """
-        Specifies the IANA character set name of the character set in use. This
-        is always the value "UTF-8".
-        """
-        return "UTF-8"
-
-    @property
     def external_name(self) -> str:
         """
         Specifies the external name that is used by the connection when logging
@@ -716,14 +708,6 @@ class Connection(BaseConnection):
             props.recipients = recipients
         return props
 
-    @property
-    def nencoding(self) -> str:
-        """
-        Specifies the IANA character set name of the national character set in
-        use. This is always the value "UTF-8".
-        """
-        return "UTF-8"
-
     def ping(self) -> None:
         """
         Pings the database to verify the connection is valid.
@@ -992,13 +976,6 @@ class Connection(BaseConnection):
         """
         self._verify_connected()
         return isinstance(self._impl, thin_impl.ThinConnImpl)
-
-    @property
-    def tnsentry(self) -> str:
-        """
-        Deprecated. Use dsn property instead.
-        """
-        return self.dsn
 
     def tpc_begin(
         self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0

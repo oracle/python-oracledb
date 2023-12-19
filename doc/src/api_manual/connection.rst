@@ -670,18 +670,6 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
-.. attribute:: Connection.encoding
-
-    This read-only attribute returns the IANA character set name of the
-    character set in use by the Oracle client for regular strings. The
-    encodings in use are always UTF-8.
-
-    .. deprecated:: cx_Oracle 8.2
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
 .. attribute:: Connection.external_name
 
     This read-write attribute specifies the external name that is used by the
@@ -753,21 +741,6 @@ Connection Attributes
         server and the client.
 
 
-.. attribute:: Connection.maxBytesPerCharacter
-
-    This deprecated, read-only attribute returns the value 4 since encodings
-    are always UTF-8.
-
-    Previously it returned the maximum number of bytes each character can use
-    for the client character set.
-
-    .. deprecated:: cx_Oracle 8.2
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-
 .. attribute:: Connection.max_open_cursors
 
     This read-only attribute specifies the maximum number of cursors that the
@@ -791,16 +764,6 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
-.. attribute:: Connection.nencoding
-
-    This read-only attribute returns the IANA character set name of the
-    national character set in use by the Oracle client. This is always the value "UTF-8".
-
-    .. deprecated:: cx_Oracle 8.2
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.outputtypehandler
 
@@ -881,19 +844,6 @@ Connection Attributes
 
     This read-only attribute returns a boolean indicating if the connection was established
     with the python-oracledb Thin mode (True) or python-oracledb Thick mode (False).
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-.. attribute:: Connection.tnsentry
-
-    This read-only attribute returns the TNS entry of the database to which a
-    connection has been established.
-
-    .. deprecated:: cx_Oracle 8.2
-
-    Use the attribute :attr:`~Connection.dsn` instead.
 
     .. note::
 

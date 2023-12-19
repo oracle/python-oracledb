@@ -307,15 +307,6 @@ ConnectionPool Attributes
     terminated. Note that in python-oracledb Thick mode with older Oracle
     Client Libraries, the termination only occurs when the pool is accessed.
 
-.. attribute:: ConnectionPool.tnsentry
-
-    This read-only attribute returns the TNS entry of the database to which a
-    connection has been established.
-
-    .. deprecated:: cx_Oracle 8.2
-
-    Use the attribute :attr:`~ConnectionPool.dsn` instead.
-
 
 .. attribute:: ConnectionPool.username
 

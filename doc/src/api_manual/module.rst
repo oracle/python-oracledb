@@ -1409,11 +1409,6 @@ General
     resource without wrapping it using a mutex semaphore to implement resource
     locking.
 
-    Note that in order to make use of multiple threads in a program which
-    intends to connect and disconnect in different threads, the ``threaded``
-    parameter to :meth:`connect()` must be True.
-
-
 .. data:: version
 .. data:: __version__
 

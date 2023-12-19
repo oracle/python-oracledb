@@ -578,53 +578,6 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 
-    def test_2416_deprecations(self):
-        "2416 - test to verify deprecations"
-        pool = test_env.get_pool()
-        self.assertEqual(pool.tnsentry, test_env.get_connect_string())
-        callback = "pkg_SessionCallback.TheCallback"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            test_env.get_pool,
-            min=1,
-            max=2,
-            increment=1,
-            wait_timeout=10,
-            waitTimeout=10,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            test_env.get_pool,
-            min=1,
-            max=2,
-            increment=1,
-            max_lifetime_session=20,
-            maxLifetimeSession=20,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            test_env.get_pool,
-            min=1,
-            max=2,
-            increment=1,
-            max_sessions_per_shard=1,
-            maxSessionsPerShard=1,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            test_env.get_pool,
-            min=2,
-            max=8,
-            increment=3,
-            getmode=oracledb.POOL_GETMODE_NOWAIT,
-            session_callback=callback,
-            sessionCallback=callback,
-        )
-
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support tagging yet"
     )
