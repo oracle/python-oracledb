@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1747,7 +1747,7 @@ def connect_async(
     ssl_context: Any = None,
     sdu: int = 8192,
     handle: int = 0,
-) -> Connection:
+) -> AsyncConnection:
     """
     Factory function which creates a connection to the database and returns it.
 

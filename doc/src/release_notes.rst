@@ -7,6 +7,15 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+oracledb 2.0.1 (TBD)
+--------------------
+
+Common Changes
+++++++++++++++
+
+#)  Corrected typing declarations.
+
+
 oracledb 2.0.0 (December 2023)
 ------------------------------
 
