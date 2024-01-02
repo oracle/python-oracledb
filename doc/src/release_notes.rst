@@ -19,6 +19,9 @@ Thin Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed regression which prevented a null value from being set on DbObject
+    attributes or used as elements of collections
+    (`issue 273 <https://github.com/oracle/python-oracledb/issues/273>`__).
 #)  Corrected typing declarations.
 
 

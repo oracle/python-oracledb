@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ cdef class BaseDbObjectImpl:
         Checks to see if the maximum size has been violated.
         """
         violated[0] = False
-        if max_size > 0:
+        if max_size > 0 and value is not None:
             if isinstance(value, str):
                 actual_size[0] = len((<str> value).encode())
             else:

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -770,6 +770,12 @@ class TestCase(test_env.BaseTestCase):
             2,
             "C" * 101,
         )
+
+    def test_2335_validate_string_attr_null(self):
+        "2335 - test validating a string attribute with null value"
+        typ = self.conn.gettype("UDT_OBJECT")
+        obj = typ.newobject()
+        obj.STRINGVALUE = None
 
 
 if __name__ == "__main__":
