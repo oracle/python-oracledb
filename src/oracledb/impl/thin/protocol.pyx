@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -485,6 +485,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
     def __init__(self):
         BaseProtocol.__init__(self)
         self._request_lock = asyncio.Lock()
+        self._transport._is_async = True
 
     async def _close(self, AsyncThinConnImpl conn_impl):
         """

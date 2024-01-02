@@ -10,6 +10,12 @@ For deprecations, see :ref:`Deprecations <deprecations>`.
 oracledb 2.0.1 (TBD)
 --------------------
 
+Thin Mode Changes
++++++++++++++++++
+
+#)  Added support for using alternative event loop implementations like uvloop
+    (`issue 276 <https://github.com/oracle/python-oracledb/issues/276>`__).
+
 Common Changes
 ++++++++++++++
 

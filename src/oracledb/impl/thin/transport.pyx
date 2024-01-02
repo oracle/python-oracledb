@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -284,7 +284,6 @@ cdef class Transport:
         Sets the transport from a socket.
         """
         cdef object sock
-        self._is_async = isinstance(transport, asyncio.Transport)
         if self._is_async:
             sock = transport.get_extra_info('socket')
         else:
