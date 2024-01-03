@@ -15,6 +15,10 @@ Thin Mode Changes
 
 #)  Added support for using alternative event loop implementations like uvloop
     (`issue 276 <https://github.com/oracle/python-oracledb/issues/276>`__).
+#)  Fixed bug with intermittent hang on some versions of Oracle Database when
+    using asyncio and the database raises an error and output variables are
+    present
+    (`issue 278 <https://github.com/oracle/python-oracledb/issues/278>`__).
 #)  Fixed bug when fetch variables contain output converters and a query is
     re-executed
     (`issue 271 <https://github.com/oracle/python-oracledb/issues/271>`__).
