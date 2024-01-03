@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -682,6 +682,44 @@ class TestCase(test_env.BaseTestCase):
             cursor.outputtypehandler = type_handler
             cursor.execute("select 1 from dual")
             self.assertEqual(cursor.fetchall(), [("1",)])
+
+    def test_3676_reexecute_no_rows(self):
+        "3676 - re-execute query with second fetch returning no rows"
+
+        self.cursor.execute("truncate table TestTempTable")
+        data = [(i + 1,) for i in range(5)]
+        self.cursor.executemany(
+            "insert into TestTempTable (IntCol) values (:1)", data
+        )
+        self.conn.commit()
+
+        def type_handler_1(cursor, metadata):
+            return cursor.var(
+                str,
+                arraysize=cursor.arraysize,
+                outconverter=lambda x: f"_{x}_",
+            )
+
+        def type_handler_2(cursor, metadata):
+            return cursor.var(
+                str,
+                arraysize=cursor.arraysize,
+                outconverter=lambda x: f"={x}=",
+            )
+
+        self.cursor.outputtypehandler = type_handler_1
+        self.cursor.arraysize = 6
+        self.cursor.prefetchrows = 6
+        sql = "select IntCol from TestTempTable where rownum <= :1"
+        self.cursor.execute(sql, [6])
+        expected_value = [(f"_{x}_",) for x, in data]
+        self.assertEqual(self.cursor.fetchall(), expected_value)
+
+        self.cursor.outputtypehandler = type_handler_2
+        self.cursor.prefetchrows = 2
+        self.cursor.arraysize = 2
+        self.cursor.execute(sql, [0])
+        self.assertEqual(self.cursor.fetchall(), [])
 
 
 if __name__ == "__main__":

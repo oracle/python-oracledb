@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -761,6 +761,7 @@ cdef class MessageWithData(Message):
         if self.error_info.num == TNS_ERR_NO_DATA_FOUND:
             self.error_info.num = 0
             cursor_impl._more_rows_to_fetch = False
+            cursor_impl._last_row_index = 0
             self.error_occurred = False
         elif self.error_info.num == TNS_ERR_ARRAY_DML_ERRORS:
             self.error_info.num = 0
