@@ -1195,7 +1195,7 @@ Oracledb Methods
     The ``user``, ``password``, and ``dsn`` parameters are the same as for
     :meth:`oracledb.connect_async()`.
 
-    The ``pool_class`` parameter is expected to be a
+    The ``pool_class`` parameter is expected to be an
     :ref:`AsyncConnectionPool Object <asyncconnpoolobj>` or a subclass of
     AsyncConnectionPool.
 
