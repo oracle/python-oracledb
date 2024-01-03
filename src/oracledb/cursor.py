@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -910,6 +910,15 @@ class Cursor(BaseCursor):
 
 class AsyncCursor(BaseCursor):
     __module__ = MODULE_NAME
+
+    async def __aenter__(self):
+        self._verify_open()
+        return self
+
+    async def __aexit__(self, *exc_info):
+        self._verify_open()
+        self._impl.close(in_del=True)
+        self._impl = None
 
     def __aiter__(self):
         return self

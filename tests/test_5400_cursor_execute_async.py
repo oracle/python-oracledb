@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -582,6 +582,16 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("select IntCol from TestObjects")
         (fetch_info,) = self.cursor.description
         self.assertEqual(fetch_info[1:3], (oracledb.DB_TYPE_NUMBER, 10))
+
+    async def test_5434_async_context_manager(self):
+        "5434 - test async context manager"
+        expected_value = test_env.get_main_user().upper()
+        with self.conn.cursor() as cursor:
+            await cursor.execute("select user from dual")
+            self.assertEqual(await cursor.fetchone(), (expected_value,))
+        async with self.conn.cursor() as cursor:
+            await cursor.execute("select user from dual")
+            self.assertEqual(await cursor.fetchone(), (expected_value,))
 
 
 if __name__ == "__main__":
