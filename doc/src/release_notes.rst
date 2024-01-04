@@ -32,6 +32,7 @@ Common Changes
     attributes or used as elements of collections
     (`issue 273 <https://github.com/oracle/python-oracledb/issues/273>`__).
 #)  Corrected typing declarations.
+#)  Bumped minimum requirement of Cython to 3.0.
 
 
 oracledb 2.0.0 (December 2023)
