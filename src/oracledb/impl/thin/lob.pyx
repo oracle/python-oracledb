@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -152,10 +152,10 @@ cdef class BaseThinLobImpl(BaseLobImpl):
                 raise TypeError(
                     "only strings can be written to CLOBs and NCLOBS"
                 )
-            message.data = value.encode(self._get_encoding())
+            message.data = (<str> value).encode(self._get_encoding())
         return message
 
-    cdef str _get_encoding(self):
+    cdef const char* _get_encoding(self):
         """
         Return the encoding used by the LOB.
         """

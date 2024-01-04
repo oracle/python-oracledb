@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -676,8 +676,8 @@ cdef enum:
     TNS_ENCODING_CONV_LENGTH = 0x02
 
 # character set strings
-cdef str TNS_ENCODING_UTF8 = "UTF-8"
-cdef str TNS_ENCODING_UTF16 = "UTF-16BE"
+cdef const char* TNS_ENCODING_UTF8 = "UTF-8"
+cdef const char* TNS_ENCODING_UTF16 = "UTF-16BE"
 
 # compile time capability indices
 cdef enum:

@@ -2208,9 +2208,9 @@ cdef class LobOpMessage(Message):
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
         cdef:
+            const char* encoding
             const char_type *ptr
             ssize_t num_bytes
-            str encoding
         if message_type == TNS_MSG_TYPE_LOB_DATA:
             buf.read_raw_bytes_and_length(&ptr, &num_bytes)
             if self.source_lob_impl.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:

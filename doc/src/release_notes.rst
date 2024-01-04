@@ -24,6 +24,7 @@ Thin Mode Changes
 #)  Fixed bug when fetch variables contain output converters and a query is
     re-executed
     (`issue 271 <https://github.com/oracle/python-oracledb/issues/271>`__).
+#)  Internal change to slightly improve performance of LOB reads and writes.
 
 Common Changes
 ++++++++++++++
