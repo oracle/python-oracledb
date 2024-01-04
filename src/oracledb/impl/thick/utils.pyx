@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -261,7 +261,8 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
                                ThickDbObjectTypeImpl obj_type_impl,
                                dpiDataBuffer *dbvalue,
                                int preferred_num_type=NUM_TYPE_FLOAT,
-                               bint bypass_decode=False):
+                               bint bypass_decode=False,
+                               const char* encoding_errors=NULL):
     cdef:
         uint32_t oracle_type = dbtype.num
         ThickDbObjectImpl obj_impl
@@ -282,7 +283,7 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
             or oracle_type == DPI_ORACLE_TYPE_LONG_NVARCHAR \
             or oracle_type == DPI_ORACLE_TYPE_XMLTYPE:
         as_bytes = &dbvalue.asBytes
-        return as_bytes.ptr[:as_bytes.length].decode()
+        return as_bytes.ptr[:as_bytes.length].decode("utf-8", encoding_errors)
     elif oracle_type == DPI_ORACLE_TYPE_NUMBER:
         as_bytes = &dbvalue.asBytes
         if preferred_num_type == NUM_TYPE_INT \

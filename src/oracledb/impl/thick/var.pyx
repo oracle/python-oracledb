@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -264,15 +264,21 @@ cdef class ThickVarImpl(BaseVarImpl):
         Transforms a single element from the value supplied by ODPI-C to its
         equivalent Python value.
         """
-        cdef object value
+        cdef:
+            const char *encoding_errors = NULL
+            bytes encoding_errors_bytes
+            object value
         data = &data[pos]
         if not data.isNull:
             if self._native_type_num == DPI_NATIVE_TYPE_STMT:
                 return self._get_cursor_value(&data.value)
+            if self.encoding_errors is not None:
+                encoding_errors_bytes = self.encoding_errors.encode()
+                encoding_errors = encoding_errors_bytes
             value = _convert_to_python(self._conn_impl, self.dbtype,
                                        self.objtype, &data.value,
                                        self._preferred_num_type,
-                                       self.bypass_decode)
+                                       self.bypass_decode, encoding_errors)
             if self.outconverter is not None:
                 value = self.outconverter(value)
             return value

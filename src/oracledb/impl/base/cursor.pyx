@@ -419,6 +419,7 @@ cdef class BaseCursorImpl:
         var_impl.inconverter = inconverter
         var_impl.outconverter = outconverter
         var_impl.bypass_decode = bypass_decode
+        var_impl.encoding_errors = encoding_errors
         var_impl.is_array = is_array
         var_impl.convert_nulls = convert_nulls
         var_impl._finalize_init()

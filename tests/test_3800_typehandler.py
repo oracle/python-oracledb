@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -280,6 +280,26 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.outputtypehandler = output_type_handler
         self.cursor.execute("select * from TestJson")
         self.assertEqual(self.cursor.fetchall(), data_to_insert)
+
+    def test_3807(self):
+        "3807 - output type handler for encoding errors"
+
+        def output_type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
+                return cursor.var(
+                    metadata.type_code,
+                    arraysize=cursor.arraysize,
+                    encoding_errors="replace",
+                )
+
+        self.cursor.outputtypehandler = output_type_handler
+        self.cursor.execute(
+            "select utl_raw.cast_to_varchar2('41ab42cd43ef') from dual"
+        )
+        (result,) = self.cursor.fetchone()
+        rc = chr(0xFFFD)
+        expected_result = f"A{rc}B{rc}C{rc}"
+        self.assertEqual(result, expected_result)
 
 
 if __name__ == "__main__":

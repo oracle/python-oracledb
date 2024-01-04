@@ -32,6 +32,10 @@ Common Changes
 #)  Fixed regression which prevented a null value from being set on DbObject
     attributes or used as elements of collections
     (`issue 273 <https://github.com/oracle/python-oracledb/issues/273>`__).
+#)  Fixed regression from cx_Oracle which ignored the value of the
+    ``encoding_errors`` parameter when creating variables by calling the method
+    :meth:`Cursor.var()`
+    (`issue 279 <https://github.com/oracle/python-oracledb/issues/279>`__).
 #)  Corrected typing declarations.
 #)  Bumped minimum requirement of Cython to 3.0.
 

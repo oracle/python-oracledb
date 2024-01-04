@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -765,7 +765,7 @@ cdef class Buffer:
         self._pos = end_pos + 1
         return self._data[start_pos:self._pos]
 
-    cdef object read_str(self, int csfrm):
+    cdef object read_str(self, int csfrm, const char* encoding_errors=NULL):
         """
         Reads bytes from the buffer and decodes them into a string following
         the supplied character set form.
@@ -776,8 +776,9 @@ cdef class Buffer:
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
             if csfrm == TNS_CS_IMPLICIT:
-                return ptr[:num_bytes].decode()
-            return ptr[:num_bytes].decode(TNS_ENCODING_UTF16)
+                return ptr[:num_bytes].decode(TNS_ENCODING_UTF8,
+                                              encoding_errors)
+            return ptr[:num_bytes].decode(TNS_ENCODING_UTF16, encoding_errors)
 
     cdef int read_ub1(self, uint8_t *value) except -1:
         """
