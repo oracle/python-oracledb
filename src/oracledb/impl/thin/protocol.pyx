@@ -384,7 +384,7 @@ cdef class Protocol(BaseProtocol):
             self._write_buf.start_request(TNS_PACKET_TYPE_DATA)
             self._write_buf.write_uint8(TNS_MSG_TYPE_FLUSH_OUT_BINDS)
             self._write_buf.end_request()
-            self._reset(message)
+            self._receive_packet(message)
             message.process(self._read_buf)
         if self._break_in_progress:
             try:
@@ -765,7 +765,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             self._write_buf.start_request(TNS_PACKET_TYPE_DATA)
             self._write_buf.write_uint8(TNS_MSG_TYPE_FLUSH_OUT_BINDS)
             self._write_buf.end_request()
-            await self._reset()
+            await self._receive_packet(message)
             message.process(self._read_buf)
         if self._break_in_progress:
             try:
