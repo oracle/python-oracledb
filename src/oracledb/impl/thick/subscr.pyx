@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,8 @@
 # thick_impl.pyx).
 #------------------------------------------------------------------------------
 
-cdef void _callback_handler(void* context, dpiSubscrMessage* message) with gil:
+cdef int _callback_handler(void* context,
+                           dpiSubscrMessage* message) except -1 with gil:
     cdef:
         object subscr = <object> context
         ThickSubscrImpl subscr_impl
@@ -156,7 +157,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
         params.name = name_buf.ptr
         params.nameLength = name_buf.length
         if self.callback is not None:
-            params.callback = _callback_handler
+            params.callback = <dpiSubscrCallback> _callback_handler
             params.callbackContext = <void*> subscr
         params.ipAddress = ip_address_buf.ptr
         params.ipAddressLength = ip_address_buf.length
