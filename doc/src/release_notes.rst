@@ -27,6 +27,8 @@ Thin Mode Changes
 #)  Fixed bug when fetch variables contain output converters and a query is
     re-executed
     (`issue 271 <https://github.com/oracle/python-oracledb/issues/271>`__).
+#)  Internal change to ensure that pools are closed gracefully when the main
+    thread terminates.
 #)  Internal change to slightly improve performance of LOB reads and writes.
 #)  Corrected typing declaration for :meth:`oracledb.connect_async()`.
 

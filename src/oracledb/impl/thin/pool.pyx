@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -442,8 +442,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         super().__init__(dsn, params)
         self._condition = threading.Condition()
         self._bg_task_condition = threading.Condition()
-        self._bg_task = threading.Thread(target=self._bg_task_func,
-                                         daemon=True)
+        self._bg_task = threading.Thread(target=self._bg_task_func)
         self._bg_task.start()
 
     def _bg_task_func(self):
@@ -458,6 +457,9 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             uint32_t open_count, num_to_create
             list conn_impls_to_drop
             bint wait
+
+        # add to the list of pools that require closing
+        pools_to_close.add(self)
 
         # create connections and close connections as needed
         while True:
@@ -498,6 +500,9 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             if wait:
                 with self._bg_task_condition:
                     self._bg_task_condition.wait()
+
+        # remove from the list of pools that require closing
+        pools_to_close.remove(self)
 
     cdef ThinConnImpl _create_conn_impl(self, ConnectParamsImpl params=None):
         """
@@ -638,11 +643,14 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
 
     def close(self, bint force):
         """
-        Internal method for closing the pool.
+        Internal method for closing the pool. Note that the thread to destroy
+        pools gracefully may have already run, so if the close has already
+        happened, nothing more needs to be done!
         """
-        with self._condition:
-            self._close_helper(force)
-        self._bg_task.join()
+        if self in pools_to_close:
+            with self._condition:
+                self._close_helper(force)
+            self._bg_task.join()
 
     def drop(self, ThinConnImpl conn_impl):
         """
@@ -883,3 +891,13 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             self._busy_conn_impls.remove(conn_impl)
             self._drop_conn_impl(conn_impl)
             self._condition.notify()
+
+# keep track of which pools need to be closed and ensure that they are closed
+# gracefully when the main thread finishes its work
+pools_to_close = set()
+def close_pools_gracefully():
+    cdef ThinPoolImpl pool_impl
+    threading.main_thread().join()          # wait for main thread to finish
+    for pool_impl in list(pools_to_close):
+        pool_impl.close(True)
+threading.Thread(target=close_pools_gracefully).start()
