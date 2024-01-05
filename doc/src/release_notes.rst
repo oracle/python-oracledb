@@ -17,6 +17,9 @@ Thin Mode Changes
     (`issue 276 <https://github.com/oracle/python-oracledb/issues/276>`__).
 #)  Added support for the asynchronous context manager protocol on the
     AsyncCursor class as a convenience.
+#)  Fixed regression when connecting to a database using listener redirects
+    with either a connection pool or using asyncio
+    (`issue 275 <https://github.com/oracle/python-oracledb/issues/275>`__).
 #)  Fixed bug with intermittent hang on some versions of Oracle Database when
     using asyncio and the database raises an error and output variables are
     present

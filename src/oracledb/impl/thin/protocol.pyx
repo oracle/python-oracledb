@@ -304,8 +304,12 @@ cdef class Protocol(BaseProtocol):
             self._process_message(auth_message)
 
         # mark protocol to indicate that connect is no longer in progress; this
-        # allows the normal break/reset mechanism to fire
+        # allows the normal break/reset mechanism to fire; also mark the
+        # session as not needing to be closed since for listener redirects
+        # the packet may indicate EOF for the initial connection that is
+        # established
         conn_impl.warning = auth_message.warning
+        self._read_buf._session_needs_to_be_closed = False
         self._in_connect = False
 
     cdef int _connect_tcp(self, ConnectParamsImpl params,
@@ -874,9 +878,12 @@ cdef class BaseAsyncProtocol(BaseProtocol):
     def connection_lost(self, exc):
         """
         Called when a connection has been lost. The presence of an exception
-        indicates an abornmal loss of the connection.
+        indicates an abornmal loss of the connection. If in the process of
+        establishing a connection, losing the connection is ignored since this
+        can happen normally when a listener redirect is encountered.
         """
-        self._transport = None
+        if not self._in_connect:
+            self._transport = None
 
     def data_received(self, data):
         """
