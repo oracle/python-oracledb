@@ -1804,7 +1804,8 @@ cdef class CommitMessage(Message):
 cdef class ConnectMessage(Message):
     cdef:
         bytes connect_string_bytes
-        uint16_t connect_string_len
+        uint16_t connect_string_len, redirect_data_len
+        bint read_redirect_data_len
         ConnectionCookie cookie
         Description description
         uint8_t packet_flags
@@ -1814,15 +1815,19 @@ cdef class ConnectMessage(Message):
 
     cdef int process(self, ReadBuffer buf) except -1:
         cdef:
-            uint16_t redirect_data_length, protocol_version, protocol_options
+            uint16_t protocol_version, protocol_options
             const char_type *redirect_data
             bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
-            buf.read_uint16(&redirect_data_length)
+            if not self.read_redirect_data_len:
+                buf.read_uint16(&self.redirect_data_len)
+                self.read_redirect_data_len = True
             buf.wait_for_packets_sync()
-            redirect_data = buf._get_raw(redirect_data_length)
-            self.redirect_data = \
-                    redirect_data[:redirect_data_length].decode()
+            redirect_data = buf._get_raw(self.redirect_data_len)
+            if self.redirect_data_len > 0:
+                self.redirect_data = \
+                        redirect_data[:self.redirect_data_len].decode()
+            self.read_redirect_data_len = False
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_ACCEPT:
             buf.read_uint16(&protocol_version)
             buf.read_uint16(&protocol_options)
