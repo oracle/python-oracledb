@@ -28,6 +28,7 @@ Thin Mode Changes
     re-executed
     (`issue 271 <https://github.com/oracle/python-oracledb/issues/271>`__).
 #)  Internal change to slightly improve performance of LOB reads and writes.
+#)  Corrected typing declaration for :meth:`oracledb.connect_async()`.
 
 Common Changes
 ++++++++++++++
@@ -39,7 +40,6 @@ Common Changes
     ``encoding_errors`` parameter when creating variables by calling the method
     :meth:`Cursor.var()`
     (`issue 279 <https://github.com/oracle/python-oracledb/issues/279>`__).
-#)  Corrected typing declarations.
 #)  Bumped minimum requirement of Cython to 3.0.
 
 
