@@ -44,22 +44,6 @@ cdef class Transport:
         bint _full_packet_size
         bint _is_async
 
-    cdef int _get_data(self, ReadBuffer buf, object obj,
-                       ssize_t bytes_requested, ssize_t *bytes_read) except -1:
-        """
-        Simple function that performs a socket read while verifying that the
-        server has not reset the connection. If it has, the dead connection
-        error is raised instead.
-        """
-        try:
-            bytes_read[0] = self._transport.recv_into(obj, bytes_requested)
-        except ConnectionResetError as e:
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e), cause=e)
-        if bytes_read[0] == 0:
-            self.disconnect()
-            buf._transport = None
-            errors._raise_err(errors.ERR_CONNECTION_CLOSED)
-
     cdef str _get_debugging_header(self, str operation):
         """
         Returns the header line used for debugging packets.
