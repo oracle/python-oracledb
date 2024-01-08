@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -382,14 +382,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5716_supplemental_characters(self):
         "5716 - test read/write temporary LOBs using supplemental characters"
-        await self.cursor.execute(
-            """
-            select value
-            from nls_database_parameters
-            where parameter = 'NLS_CHARACTERSET'
-            """
-        )
-        (charset,) = await self.cursor.fetchone()
+        charset = await test_env.get_charset_async()
         if charset != "AL32UTF8":
             self.skipTest("Database character set must be AL32UTF8")
         supplemental_chars = (

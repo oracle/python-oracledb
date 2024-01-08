@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -127,6 +127,40 @@ def get_admin_connection(use_async=False):
 
 async def get_admin_connection_async(use_async=False):
     return await get_admin_connection(use_async=True)
+
+
+def get_charset():
+    value = PARAMETERS.get("CHARSET")
+    if value is None:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    select value
+                    from nls_database_parameters
+                    where parameter = 'NLS_CHARACTERSET'
+                    """
+                )
+                (value,) = cursor.fetchone()
+                PARAMETERS["CHARSET"] = value
+    return value
+
+
+async def get_charset_async():
+    value = PARAMETERS.get("CHARSET")
+    if value is None:
+        async with get_connection_async() as conn:
+            with conn.cursor() as cursor:
+                await cursor.execute(
+                    """
+                    select value
+                    from nls_database_parameters
+                    where parameter = 'NLS_CHARACTERSET'
+                    """
+                )
+                (value,) = await cursor.fetchone()
+                PARAMETERS["CHARSET"] = value
+    return value
 
 
 def get_charset_ratios():

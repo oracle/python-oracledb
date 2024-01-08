@@ -284,6 +284,9 @@ class TestCase(test_env.BaseTestCase):
     def test_3807(self):
         "3807 - output type handler for encoding errors"
 
+        if test_env.get_charset() != "AL32UTF8":
+            self.skipTest("Database character set must be AL32UTF8")
+
         def output_type_handler(cursor, metadata):
             if metadata.type_code is oracledb.DB_TYPE_VARCHAR:
                 return cursor.var(
