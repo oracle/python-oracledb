@@ -109,43 +109,43 @@ used in :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
       - Used in Easy Connect Strings. It is same as ``MY_WALLET_DIRECTORY`` in a connect descriptor.
     * - MY_WALLET_DIRECTORY
       - wallet_location
-      -
+      - No relevant notes
     * - EXPIRE_TIME
       - expire_time
-      -
+      - No relevant notes
     * - HTTPS_PROXY
       - https_proxy
-      -
+      - No relevant notes
     * - HTTPS_PROXY_PORT
       - https_proxy_port
-      -
+      - No relevant notes
     * - RETRY_COUNT
       - retry_count
-      -
+      - No relevant notes
     * - RETRY_DELAY
       - retry_delay
-      -
+      - No relevant notes
     * - TRANSPORT_CONNECT_TIMEOUT
       - tcp_connect_timeout
-      -
+      - No relevant notes
     * - POOL_CONNECTION_CLASS
       - cclass
-      -
+      - No relevant notes
     * - POOL_PURITY
       - purity
-      -
+      - No relevant notes
     * - SERVICE_NAME
       - service_name
-      -
+      - No relevant notes
     * - SID
       - sid
-      -
+      - No relevant notes
     * - PORT
       - port
-      -
+      - No relevant notes
     * - PROTOCOL
       - protocol
-      -
+      - No relevant notes
 
 In python-oracledb Thin mode, using the ``POOL_CONNECTION_CLASS`` or
 ``POOL_PURITY`` parameters in a connection string is similar to setting the

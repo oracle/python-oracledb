@@ -358,43 +358,43 @@ values.
       - Supported Python Types
     * - VARCHAR2
       - :data:`~oracledb.DB_TYPE_VARCHAR`
-      -
+      - No relevant notes
       - bytes, str
     * - NVARCHAR2
       - :data:`~oracledb.DB_TYPE_NVARCHAR`
-      -
+      - No relevant notes
       - bytes, str
     * - NUMBER, FLOAT
       - :data:`~oracledb.DB_TYPE_NUMBER`
-      -
+      - No relevant notes
       - bool, int, float, decimal.Decimal
     * - DATE
       - :data:`~oracledb.DB_TYPE_DATE`
-      -
+      - No relevant notes
       - datetime.date, datetime.datetime
     * - BOOLEAN (PL/SQL and Oracle Database 23c SQL)
       - :data:`~oracledb.DB_TYPE_BOOLEAN`
-      -
+      - No relevant notes
       - Any type convertible to bool
     * - BINARY_DOUBLE
       - :data:`~oracledb.DB_TYPE_BINARY_DOUBLE`
-      -
+      - No relevant notes
       - bool, int, float, decimal.Decimal
     * - BINARY_FLOAT
       - :data:`~oracledb.DB_TYPE_BINARY_FLOAT`
-      -
+      - No relevant notes
       - bool, int, float, decimal.Decimal
     * - TIMESTAMP
       - :data:`~oracledb.DB_TYPE_TIMESTAMP`
-      -
+      - No relevant notes
       - datetime.date, datetime.datetime
     * - TIMESTAMP WITH TIME ZONE
       - :data:`~oracledb.DB_TYPE_TIMESTAMP_TZ`
-      -
+      - No relevant notes
       - datetime.date, datetime.datetime
     * - TIMESTAMP WITH LOCAL TIME ZONE
       - :data:`~oracledb.DB_TYPE_TIMESTAMP_LTZ`
-      -
+      - No relevant notes
       - datetime.date, datetime.datetime
     * - INTERVAL YEAR TO MONTH
       - :data:`~oracledb.DB_TYPE_INTERVAL_YM`
@@ -402,23 +402,23 @@ values.
       - Cannot be set
     * - INTERVAL DAY TO SECOND
       - :data:`~oracledb.DB_TYPE_INTERVAL_DS`
-      -
+      - No relevant notes
       - datetime.timedelta
     * - RAW
       - :data:`~oracledb.DB_TYPE_RAW`
-      -
+      - No relevant notes
       - bytes, str
     * - LONG
       - :data:`~oracledb.DB_TYPE_LONG`
-      -
+      - No relevant notes
       - bytes, str
     * - LONG RAW
       - :data:`~oracledb.DB_TYPE_LONG_RAW`
-      -
+      - No relevant notes
       - bytes, str
     * - ROWID
       - :data:`~oracledb.DB_TYPE_ROWID`
-      -
+      - No relevant notes
       - bytes, str
     * - UROWID
       - :data:`~oracledb.DB_TYPE_ROWID`, :data:`~oracledb.DB_TYPE_UROWID` (only supported in python-oracledb Thin mode)
@@ -426,23 +426,23 @@ values.
       - bytes, str
     * - CHAR
       - :data:`~oracledb.DB_TYPE_CHAR`
-      -
+      - No relevant notes
       - bytes, str
     * - BLOB
       - :data:`~oracledb.DB_TYPE_BLOB`
-      -
+      - No relevant notes
       - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - CLOB
       - :data:`~oracledb.DB_TYPE_CLOB`
-      -
+      - No relevant notes
       - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - NCHAR
       - :data:`~oracledb.DB_TYPE_NCHAR`
-      -
+      - No relevant notes
       - bytes, str
     * - NCLOB
       - :data:`~oracledb.DB_TYPE_NCLOB`, :data:`~oracledb.DB_TYPE_LONG_NVARCHAR` (if fetching NCLOB as a string)
-      -
+      - No relevant notes
       - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - BFILE
       - :data:`~oracledb.DB_TYPE_BFILE`
@@ -450,19 +450,19 @@ values.
       - Cannot be set
     * - JSON
       - :data:`~oracledb.DB_TYPE_JSON`
-      -
+      - No relevant notes
       - Any type convertible to Oracle JSON
     * - REF CURSOR (PL/SQL OR nested cursor)
       - :data:`~oracledb.DB_TYPE_CURSOR`
-      -
+      - No relevant notes
       - :ref:`oracledb.Cursor <cursorobj>`
     * - PLS_INTEGER
       - :data:`~oracledb.DB_TYPE_BINARY_INTEGER`
-      -
+      - No relevant notes
       - bool, int, float, decimal.Decimal
     * - BINARY_INTEGER
       - :data:`~oracledb.DB_TYPE_BINARY_INTEGER`
-      -
+      - No relevant notes
       - bool, int, float, decimal.Decimal
     * - REF
       - n/a
@@ -474,7 +474,7 @@ values.
       - bytes, str
     * - User-defined types (object type, VARRAY, records, collections, SDO_*types)
       - :data:`~oracledb.DB_TYPE_OBJECT`
-      -
+      - No relevant notes
       - OBJECT of specific type
 
 Binding of contiguous PL/SQL Index-by BINARY_INTEGER arrays of string, number, and date are
