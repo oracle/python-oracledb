@@ -7,36 +7,40 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 2.0.1 (TBD)
---------------------
+oracledb 2.0.1 (January 2024)
+-----------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for using alternative event loop implementations like uvloop
+#)  Added support for using alternative event loop implementations such as
+    uvloop with :ref:`asyncio <asyncio>`
     (`issue 276 <https://github.com/oracle/python-oracledb/issues/276>`__).
-#)  Added support for the asynchronous context manager protocol on the
-    AsyncCursor class as a convenience.
+#)  Added support for the `asynchronous context manager protocol
+    <https://docs.python.org/3/reference/datamodel.html?
+    highlight=aenter#asynchronous-context-managers>`__ on the
+    :ref:`AsyncCursor class <asynccursorobj>` as a convenience.
 #)  Fixed regression when connecting to a database using listener redirects
-    with either a connection pool or using asyncio
+    with either a :ref:`connection pool <connpooling>` or using
+    :ref:`asyncio <asyncio>`
     (`issue 275 <https://github.com/oracle/python-oracledb/issues/275>`__).
-#)  Fixed bug with intermittent hang on some versions of Oracle Database when
-    using asyncio and the database raises an error and output variables are
-    present
+#)  Fixed bug when an intermittent hang occurs on some versions of Oracle
+    Database while using :ref:`asyncio <asyncio>` and the database raises an
+    error and output variables are present
     (`issue 278 <https://github.com/oracle/python-oracledb/issues/278>`__).
 #)  Fixed bug when fetch variables contain output converters and a query is
     re-executed
     (`issue 271 <https://github.com/oracle/python-oracledb/issues/271>`__).
-#)  Internal change to ensure that pools are closed gracefully when the main
-    thread terminates.
-#)  Internal change to slightly improve performance of LOB reads and writes.
 #)  Corrected typing declaration for :meth:`oracledb.connect_async()`.
+#)  Internal change to ensure that connection pools are closed gracefully when
+    the main thread terminates.
+#)  Internal change to slightly improve performance of LOB reads and writes.
 
 Common Changes
 ++++++++++++++
 
-#)  Fixed regression which prevented a null value from being set on DbObject
-    attributes or used as elements of collections
+#)  Fixed regression which prevented a null value from being set on
+    :ref:`DbObject <dbobject>` attributes or used as elements of collections
     (`issue 273 <https://github.com/oracle/python-oracledb/issues/273>`__).
 #)  Fixed regression from cx_Oracle which ignored the value of the
     ``encoding_errors`` parameter when creating variables by calling the method
