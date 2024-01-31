@@ -16,6 +16,7 @@ Thin Mode Changes
 #)  Added support for writing UTF-8 encoded bytes to CLOB and NCLOB values and
     writing strings to BLOB values in order to be consistent with what is done
     for string variables.
+#)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
 
 Thick Mode Changes
 ++++++++++++++++++

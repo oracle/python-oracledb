@@ -89,6 +89,17 @@ cdef class BaseProtocol:
             self._write_buf._transport = None
             transport.disconnect()
 
+    cdef int _release_drcp_session(self, BaseThinConnImpl conn_impl,
+                                   uint32_t release_mode) except -1:
+        """
+        Release the session back to DRCP. Standalone sessions are marked for
+        deauthentication.
+        """
+        cdef SessionReleaseMessage message
+        message = conn_impl._create_message(SessionReleaseMessage)
+        message.release_mode = release_mode
+        message.send(self._write_buf)
+
     cdef int _send_marker(self, WriteBuffer buf, uint8_t marker_type):
         """
         Sends a marker of the specified type to the server.
@@ -444,17 +455,6 @@ cdef class Protocol(BaseProtocol):
             else:
                 ptr = buf.read_raw_bytes(refuse_message_len)
                 message.error_info.message = ptr[:refuse_message_len].decode()
-
-    cdef int _release_drcp_session(self, ThinConnImpl conn_impl,
-                                   uint32_t release_mode) except -1:
-        """
-        Release the session back to DRCP. Standalone sessions are marked for
-        deauthentication.
-        """
-        cdef SessionReleaseMessage message
-        message = conn_impl._create_message(SessionReleaseMessage)
-        message.release_mode = release_mode
-        message.send(self._write_buf)
 
     cdef int _reset(self, Message message) except -1:
         cdef uint8_t marker_type, packet_type
