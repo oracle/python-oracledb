@@ -71,6 +71,14 @@ FetchInfo Attributes
     ``oracledb.DB_TYPE_JSON`` as well as when an "IS JSON" constraint is
     enabled on LOB and VARCHAR2 columns.
 
+.. attribute:: FetchInfo.is_oson
+
+    This read-only attribute returns whether the column is known to contain
+    binary encoded OSON data. This will be ``True`` when an "IS JSON FORMAT
+    OSON" check constraint is enabled on BLOB columns.
+
+    .. versionadded:: 2.1.0
+
 .. attribute:: FetchInfo.name
 
     This read-only attribute returns the name of the column as mandated by the

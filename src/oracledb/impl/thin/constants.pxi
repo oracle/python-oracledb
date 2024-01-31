@@ -774,6 +774,7 @@ cdef enum:
 # UDS flags
 cdef enum:
     TNS_UDS_FLAGS_IS_JSON = 0x00000100
+    TNS_UDS_FLAGS_IS_OSON = 0x00000800
 
 # other constants
 cdef enum:

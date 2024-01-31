@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -163,6 +163,13 @@ class FetchInfo:
         Returns whether the column contains JSON.
         """
         return self._impl.is_json
+
+    @property
+    def is_oson(self) -> bool:
+        """
+        Returns whether the column contains OSON encoded bytes.
+        """
+        return self._impl.is_oson
 
     @property
     def name(self) -> str:

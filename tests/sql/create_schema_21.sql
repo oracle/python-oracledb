@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,6 +34,13 @@
 create table &main_user..TestJson (
     IntCol number(9) not null,
     JsonCol json not null
+)
+/
+
+create table &main_user..TestOsonCols (
+    IntCol                              number(9) not null,
+    OsonCol                             blob not null,
+    constraint TestOsonCols_ck_1 check (OsonCol is json format oson)
 )
 /
 

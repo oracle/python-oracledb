@@ -664,6 +664,7 @@ cdef class MessageWithData(Message):
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
         fetch_info.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
+        fetch_info.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:

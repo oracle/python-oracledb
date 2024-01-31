@@ -19,6 +19,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
+    has the check constraint "IS JSON FORMAT OSON" enabled.
+
 
 oracledb 2.0.1 (January 2024)
 -----------------------------
