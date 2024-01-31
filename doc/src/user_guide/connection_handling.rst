@@ -1019,7 +1019,7 @@ procedure. For example:
     connection = pool.acquire(tag="NLS_DATE_FORMAT=SIMPLE",
                               # DRCP options, if you are using DRCP
                               cclass='MYCLASS',
-                              purity=oracledb.ATTR_PURITY_SELF)
+                              purity=oracledb.PURITY_SELF)
 
 See `session_callback_plsql.py
 <https://github.com/oracle/python-oracledb/tree/main/
