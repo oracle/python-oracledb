@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -58,7 +58,7 @@ class TestCase(test_env.BaseTestCase):
                 expected_proxy_user and expected_proxy_user.upper(),
             )
 
-    def test_5000_pool_with_user_and_password_and_externalauth_enabled(self):
+    def test_5000(self):
         """
         5000 - test error on creating a pool with user and password specified
         and externalauth enabled
@@ -75,7 +75,7 @@ class TestCase(test_env.BaseTestCase):
             homogeneous=False,
         )
 
-    def test_5001_pool_with_no_password_and_externalauth_enabled(self):
+    def test_5001(self):
         """
         5001 - test error on creating a pool without password and with user
         specified and externalauth enabled
@@ -93,7 +93,7 @@ class TestCase(test_env.BaseTestCase):
             homogeneous=False,
         )
 
-    def test_5002_pool_with_no_user_and_externalauth_enabled(self):
+    def test_5002(self):
         """
         5002 - test error on creating a pool without user and with password
         specified and externalauth enabled
@@ -111,7 +111,7 @@ class TestCase(test_env.BaseTestCase):
             homogeneous=False,
         )
 
-    def test_5003_pool_with_user_and_password_and_externalauth_off(self):
+    def test_5003(self):
         """
         5003 - test creating a pool with user and password specified and
         externalauth set to False
@@ -127,7 +127,7 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire() as conn:
             self.__verify_connection(conn, test_env.get_main_user())
 
-    def test_5004_user_and_password_with_externalauth_enabled(self):
+    def test_5004(self):
         """
         5004 - test error when connecting with user and password specified
         and externalauth enabled
@@ -142,7 +142,7 @@ class TestCase(test_env.BaseTestCase):
             externalauth=True,
         )
 
-    def test_5005_no_user_with_externalauth_enabled(self):
+    def test_5005(self):
         """
         5005 - test error when connecting without username and with password
         specified and externalauth enabled
@@ -165,7 +165,7 @@ class TestCase(test_env.BaseTestCase):
             dsn=test_env.get_connect_string(),
         )
 
-    def test_5006_user_with_no_password_and_externalauth_enabled(self):
+    def test_5006(self):
         """
         5006 - test error when connecting without password and with user
         specified and externalauth enabled
@@ -188,7 +188,7 @@ class TestCase(test_env.BaseTestCase):
             dsn=test_env.get_connect_string(),
         )
 
-    def test_5007_external_authentication_with_invalid_proxy_user(self):
+    def test_5007(self):
         "5007 - test external authentication with invalid proxy user"
         self.assertRaisesRegex(
             oracledb.DatabaseError,
@@ -208,7 +208,7 @@ class TestCase(test_env.BaseTestCase):
             dsn=test_env.get_connect_string(),
         )
 
-    def test_5008_user_and_password_with_externalauth_off(self):
+    def test_5008(self):
         """
         5008 - test creating a connection with user and password specified and
         externalauth set to False
@@ -221,7 +221,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connection(conn, test_env.get_main_user())
 
-    def test_5009_external_authentication_with_externalauth_enabled(self):
+    def test_5009(self):
         """
         5009 - test creating standalone connection with externalauth set to
         True explicitly
@@ -231,7 +231,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connection(conn, test_env.get_external_user())
 
-    def test_5010_external_authentication_with_externalauth_not_set(self):
+    def test_5010(self):
         """
         5010 - test creating standalone connection with no user and password
         specified and externalauth not set
@@ -239,7 +239,7 @@ class TestCase(test_env.BaseTestCase):
         conn = oracledb.connect(dsn=test_env.get_connect_string())
         self.__verify_connection(conn, test_env.get_external_user())
 
-    def test_5011_pool_with_external_authentication(self):
+    def test_5011(self):
         "5011 - test creating a pool with external authentication"
         pool = oracledb.create_pool(
             dsn=test_env.get_connect_string(),
@@ -254,7 +254,7 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire() as conn:
             self.__verify_connection(conn, test_env.get_external_user())
 
-    def test_5012_pool_with_no_user_and_password_and_externalauth_not_set(
+    def test_5012(
         self,
     ):
         """
@@ -273,7 +273,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^ORA-24415:", pool.acquire
         )
 
-    def test_5013_pool_min_with_no_effect_under_external_authentication(self):
+    def test_5013(self):
         "5013 - test pool min is always 0 under external authentication"
         pool = oracledb.create_pool(
             dsn=test_env.get_connect_string(),
@@ -286,7 +286,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(pool.opened, 0)
 
-    def test_5014_pool_increment_with_no_effect_under_external_auth(self):
+    def test_5014(self):
         "5014 - test pool increment is always 1 under external authentication"
         pool = oracledb.create_pool(
             dsn=test_env.get_connect_string(),
@@ -304,7 +304,7 @@ class TestCase(test_env.BaseTestCase):
         conn1.close()
         conn2.close()
 
-    def test_5015_external_authentication_with_proxy(self):
+    def test_5015(self):
         "5015 - test external authentication with proxy"
         proxy_user = test_env.get_external_user()  # proxy user
         schema_user = test_env.get_main_user()  # schema user
@@ -319,7 +319,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connection(conn2, schema_user, proxy_user)
 
-    def test_5016_pool_external_authentication_with_proxy(self):
+    def test_5016(self):
         "5016 - test creating pool using external authentication with proxy"
         proxy_user = test_env.get_external_user()
         schema_user = test_env.get_main_user()

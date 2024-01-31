@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,7 +33,7 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_1600_insert(self):
+    def test_1600(self):
         "1600 - test insert (single row) with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         int_val = 5
@@ -54,7 +54,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(int_var.values, [[int_val]])
         self.assertEqual(str_var.values, [[str_val]])
 
-    def test_1601_insert_many(self):
+    def test_1601(self):
         "1601 - test insert (multiple rows) with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         int_values = [5, 8, 17, 24, 6]
@@ -74,7 +74,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(int_var.values, [[v] for v in int_values])
         self.assertEqual(str_var.values, [[v] for v in str_values])
 
-    def test_1602_insert_with_small_size(self):
+    def test_1602(self):
         "1602 - test insert with DML returning into too small a variable"
         self.cursor.execute("truncate table TestTempTable")
         int_val = 6
@@ -96,7 +96,7 @@ class TestCase(test_env.BaseTestCase):
             parameters,
         )
 
-    def test_1603_update_single_row(self):
+    def test_1603(self):
         "1603 - test update single row with DML returning"
         int_val = 7
         str_val = "The updated value of the string"
@@ -125,7 +125,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(int_var.values, [[int_val]])
         self.assertEqual(str_var.values, [[str_val]])
 
-    def test_1604_update_no_rows(self):
+    def test_1604(self):
         "1604 - test update no rows with DML returning"
         int_val = 8
         str_val = "The updated value of the string"
@@ -156,7 +156,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(int_var.getvalue(), [])
         self.assertEqual(str_var.getvalue(), [])
 
-    def test_1605_update_multiple_rows(self):
+    def test_1605(self):
         "1605 - test update multiple rows with DML returning"
         self.cursor.execute("truncate table TestTempTable")
         for i in (8, 9, 10):
@@ -189,7 +189,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(str_var.values, expected_values)
 
-    def test_1606_update_multiple_rows_executemany(self):
+    def test_1606(self):
         "1606 - test update multiple rows with DML returning (executemany)"
         data = [(i, f"The initial value of string {i}") for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
@@ -229,7 +229,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(str_var.values, expected_values)
 
-    def test_1607_insert_and_return_object(self):
+    def test_1607(self):
         "1607 - test inserting an object with DML returning"
         type_obj = self.conn.gettype("UDT_OBJECT")
         string_value = "The string that will be verified"
@@ -250,7 +250,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(result.STRINGVALUE, string_value)
         self.conn.rollback()
 
-    def test_1608_insert_and_return_rowid(self):
+    def test_1608(self):
         "1608 - test inserting a row and returning a rowid"
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(oracledb.ROWID)
@@ -273,7 +273,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [(278, "String 278")])
 
-    def test_1609_insert_with_ref_cursor(self):
+    def test_1609(self):
         "1609 - test inserting with a REF cursor and returning a rowid"
         self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(oracledb.ROWID)
@@ -307,7 +307,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(187, "String 7 (Modified)")]
         )
 
-    def test_1610_delete_returning_decreasing_rows_returned(self):
+    def test_1610(self):
         "1610 - test delete returning decreasing number of rows"
         data = [(i, f"Test String {i}") for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
@@ -333,7 +333,7 @@ class TestCase(test_env.BaseTestCase):
             results.append(int_var.getvalue())
         self.assertEqual(results, [[1, 2, 3, 4], [5, 6, 7], [8, 9]])
 
-    def test_1611_delete_returning_no_rows_after_many_rows(self):
+    def test_1611(self):
         "1611 - test delete returning no rows after returning many rows"
         data = [(i, f"Test String {i}") for i in range(1, 11)]
         self.cursor.execute("truncate table TestTempTable")
@@ -357,7 +357,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(None, [4, int_var])
         self.assertEqual(int_var.getvalue(), [])
 
-    def test_1612_insert_with_dml_returning_and_error(self):
+    def test_1612(self):
         "1612 - test DML returning when an error occurs"
         self.cursor.execute("truncate table TestTempTable")
         int_val = 7
@@ -379,7 +379,7 @@ class TestCase(test_env.BaseTestCase):
             parameters,
         )
 
-    def test_1613_insert_with_dml_returning_no_input_vars(self):
+    def test_1613(self):
         "1613 - test DML returning with no input variables, multiple iters"
         self.cursor.execute("truncate table TestTempTable")
         sql = """
@@ -392,7 +392,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, [var])
         self.assertEqual(var.getvalue(), [2])
 
-    def test_1614_parse_quoted_returning_bind(self):
+    def test_1614(self):
         "1614 - test DML returning with a quoted bind name"
         sql = """
                 insert into TestTempTable (IntCol, StringCol1)
@@ -402,7 +402,7 @@ class TestCase(test_env.BaseTestCase):
         expected_bind_names = ["INT_VAL", "STR_VAL", "_val1", "VaL_2"]
         self.assertEqual(self.cursor.bindnames(), expected_bind_names)
 
-    def test_1615_parse_invalid_returning_bind(self):
+    def test_1615(self):
         "1615 - test DML returning with an invalid bind name"
         sql = """
                 insert into TestTempTable (IntCol)
@@ -412,7 +412,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^ORA-01745:", self.cursor.parse, sql
         )
 
-    def test_1616_parse_non_ascii_returning_bind(self):
+    def test_1616(self):
         "1616 - test DML returning with a non-ascii bind name"
         sql = """
                 insert into TestTempTable (IntCol)
@@ -421,7 +421,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.prepare(sql)
         self.assertEqual(self.cursor.bindnames(), ["INT_VAL", "MÉIL"])
 
-    def test_1617_dml_returning_with_input_bind_vars(self):
+    def test_1617(self):
         "1617 - test DML returning with input bind variable data"
         self.cursor.execute("truncate table TestTempTable")
         out_var = self.cursor.var(int)
@@ -438,7 +438,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(out_var.getvalue(), [23])
 
-    def test_1618_dml_returning_with_lob_and_outconverter(self):
+    def test_1618(self):
         "1618 - test DML returning with LOBs and an output converter"
         self.cursor.execute("delete from TestCLOBs")
         out_var = self.cursor.var(
@@ -457,7 +457,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(out_var.getvalue(), [lob_value])
 
-    def test_1619_dml_returning_with_clob_converted_to_long(self):
+    def test_1619(self):
         "1619 - test DML returning with CLOB converted to LONG"
         self.cursor.execute("delete from TestCLOBs")
         out_var = self.cursor.var(oracledb.DB_TYPE_LONG)
@@ -475,7 +475,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(out_var.getvalue(), [lob_value])
 
-    def test_1620_dml_returning_with_index_organized_table(self):
+    def test_1620(self):
         "1620 - test dml returning with an index organized table"
         self.cursor.execute("truncate table TestUniversalRowids")
         rowid_var = self.cursor.var(oracledb.ROWID)
@@ -496,7 +496,7 @@ class TestCase(test_env.BaseTestCase):
         (row,) = self.cursor.fetchall()
         self.assertEqual(row, data[:3])
 
-    def test_1621_plsql_returning_rowids_with_index_organized_table(self):
+    def test_1621(self):
         "1621 - test plsql returning rowids with index organized table"
         self.cursor.execute("truncate table TestUniversalRowids")
         rowid_var = self.cursor.var(oracledb.ROWID)
@@ -522,7 +522,7 @@ class TestCase(test_env.BaseTestCase):
         (row,) = self.cursor.fetchall()
         self.assertEqual(row, data[:3])
 
-    def test_1622_parse_returning_clause_without_spaces(self):
+    def test_1622(self):
         "1622 - parse DML returning with no spaces"
         self.cursor.execute("truncate table TestTempTable")
         sql = (

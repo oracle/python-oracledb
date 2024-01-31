@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -72,7 +72,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await connection.close()
 
-    async def test_5500_pool_attributes(self):
+    async def test_5500(self):
         "5500 - test getting default pool parameters"
         pool = test_env.get_pool_async()
         self.assertEqual(pool.busy, 0)
@@ -89,7 +89,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(pool.timeout, 0)
         self.assertEqual(pool.username, test_env.get_main_user())
 
-    async def test_5501_pool_set_attr(self):
+    async def test_5501(self):
         "5501 - test setting pool attributes"
         pool = test_env.get_pool_async()
         test_values = [
@@ -107,7 +107,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                     TypeError, setattr, pool, attr_name, "invalid value"
                 )
 
-    async def test_5502_rollback_on_release(self):
+    async def test_5502(self):
         "5502 - connection rolls back before released back to the pool"
         pool = test_env.get_pool_async()
         conn = await pool.acquire()
@@ -124,14 +124,14 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(count, 0)
         await conn.close()
 
-    async def test_5503_multiple_coroutines(self):
+    async def test_5503(self):
         "5503 - test session pool with multiple coroutines"
         pool = test_env.get_pool_async(min=5, max=20, increment=2)
         coroutines = [self.__connect_and_drop(pool) for i in range(20)]
         await asyncio.gather(*coroutines)
         await pool.close()
 
-    async def test_5504_multiple_coroutines_with_exceptions(self):
+    async def test_5504(self):
         "5504 - test session pool with multiple coroutines (with errors)"
         pool = test_env.get_pool_async(min=5, max=20, increment=2)
         coroutines = [
@@ -140,7 +140,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await asyncio.gather(*coroutines)
         await pool.close()
 
-    async def test_5505_purity(self):
+    async def test_5505(self):
         "5505 - test session pool with various types of purity"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
 
@@ -177,7 +177,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         cursor.close()
         await pool.release(conn)
 
-    async def test_5506_close_and_drop_connection_from_pool(self):
+    async def test_5506(self):
         "5506 - test dropping/closing a connection from the pool"
         pool = test_env.get_pool_async(min=1, max=5, increment=2)
         conns1 = [await pool.acquire() for _ in range(2)]
@@ -196,7 +196,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(pool.opened, 3)
         await pool.close()
 
-    async def test_5507_create_new_pure_connection(self):
+    async def test_5507(self):
         "5507 - test to ensure pure connections are being created correctly"
         pool = test_env.get_pool_async(min=1, max=2, increment=1)
         conn1 = await pool.acquire()
@@ -209,32 +209,32 @@ class TestCase(test_env.BaseAsyncTestCase):
         await pool.release(conn3)
         await pool.close()
 
-    async def test_5508_pool_close_normal_no_connections(self):
+    async def test_5508(self):
         "5508 - test closing a pool normally with no connections checked out"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         await pool.close()
 
-    async def test_5509_pool_close_normal_with_connections(self):
+    async def test_5509(self):
         "5509 - test closing a pool normally with connections checked out"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         async with pool.acquire():
             with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1005:"):
                 await pool.close()
 
-    async def test_5510_pool_close_force(self):
+    async def test_5510(self):
         "5510 - test closing a pool forcibly"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         async with pool.acquire():
             await pool.close(force=True)
 
-    async def test_5511_exception_on_acquire_after_pool_closed(self):
+    async def test_5511(self):
         "5511 - using the pool after it is closed raises an exception"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         await pool.close()
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:"):
             await pool.acquire()
 
-    async def test_5512_pool_with_no_connections(self):
+    async def test_5512(self):
         "5512 - using the pool beyond max limit raises an error"
         pool = test_env.get_pool_async(min=1, max=2, increment=1)
         async with pool.acquire(), pool.acquire():
@@ -243,7 +243,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await pool.acquire()
         await pool.close()
 
-    async def test_5513_session_callback_for_new_connections(self):
+    async def test_5513(self):
         "5513 - callable session callback is executed for new connections"
 
         class Counter:
@@ -266,7 +266,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(Counter.num_calls, 2)
         await pool.close()
 
-    async def test_5514_drop_dead_connection_from_pool(self):
+    async def test_5514(self):
         "5514 - drop the pooled connection on receiving dead connection error"
         admin_conn = await test_env.get_admin_connection_async()
         pool = test_env.get_pool_async(min=2, max=2, increment=2)
@@ -311,7 +311,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(pool.opened, 2)
         await pool.close()
 
-    async def test_5515_acquire_connection_from_empty_pool(self):
+    async def test_5515(self):
         "5515 - acquire a connection from an empty pool (min=0)"
         pool = test_env.get_pool_async(min=0, max=2, increment=2)
         async with pool.acquire() as conn:
@@ -321,7 +321,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 self.assertEqual(result, test_env.get_main_user().upper())
         await pool.close()
 
-    async def test_5516_get_different_types_from_pooled_connections(self):
+    async def test_5516(self):
         "5516 - get different object types from different connections"
         pool = test_env.get_pool_async(min=1, max=2, increment=1)
         async with pool.acquire() as conn:
@@ -332,7 +332,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(typ.name, "UDT_OBJECTARRAY")
         await pool.close()
 
-    async def test_5517_proxy_user_in_create(self):
+    async def test_5517(self):
         "5517 - test creating a pool using a proxy user"
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         pool = test_env.get_pool_async(user=user_str)
@@ -343,7 +343,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await pool.close()
 
-    async def test_5518_conn_acquire_in_lifo(self):
+    async def test_5518(self):
         "5518 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool_async(min=5, max=10, increment=1)
         sql = "select sys_context('userenv', 'sid') from dual"
@@ -365,7 +365,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 self.assertEqual(sid, sids[0], "not LIFO")
         await pool.close()
 
-    async def test_5519_dynamic_pool_with_zero_increment(self):
+    async def test_5519(self):
         "5519 - verify that dynamic pool cannot have an increment of zero"
         pool = test_env.get_pool_async(min=1, max=3, increment=0)
         self.assertEqual(pool.increment, 1)
@@ -373,7 +373,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             pass
         await pool.close()
 
-    async def test_5520_static_pool_with_zero_increment(self):
+    async def test_5520(self):
         "5520 - verify that static pool can have an increment of zero"
         pool = test_env.get_pool_async(min=1, max=1, increment=0)
         self.assertEqual(pool.increment, 0)
@@ -381,7 +381,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             pass
         await pool.close()
 
-    async def test_5521_acquire_with_different_cclass(self):
+    async def test_5521(self):
         "5521 - verify that connection with different cclass is reused"
         cclass = "cclass2431"
         pool = test_env.get_pool_async(min=1, max=1)
@@ -417,12 +417,12 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(pool.opened, 1)
         await pool.close()
 
-    async def test_5522_pool_params_negative(self):
+    async def test_5522(self):
         "5522 - test creating a pool invalid params"
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2027:"):
             oracledb.create_pool_async(params="bad params")
 
-    async def test_5523_connection_release_and_drop_negative(self):
+    async def test_5523(self):
         "5523 - test releasing and dropping an invalid connection"
         pool = test_env.get_pool_async()
         with self.assertRaises(TypeError):
@@ -430,7 +430,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaises(TypeError):
             await pool.drop("invalid connection")
 
-    async def test_5524_invalid_pool_class(self):
+    async def test_5524(self):
         "5524 - test creating a pool with invalid pool_class"
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2026:"):
             oracledb.create_pool_async(pool_class=int)

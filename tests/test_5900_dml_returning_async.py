@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_5900_insert(self):
+    async def test_5900(self):
         "5900 - test insert (single row) with DML returning"
         await self.cursor.execute("truncate table TestTempTable")
         int_val = 5
@@ -58,7 +58,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(int_var.values, [[int_val]])
         self.assertEqual(str_var.values, [[str_val]])
 
-    async def test_5901_insert_many(self):
+    async def test_5901(self):
         "5901 - test insert (multiple rows) with DML returning"
         await self.cursor.execute("truncate table TestTempTable")
         int_values = [5, 8, 17, 24, 6]
@@ -78,7 +78,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(int_var.values, [[v] for v in int_values])
         self.assertEqual(str_var.values, [[v] for v in str_values])
 
-    async def test_5902_insert_with_small_size(self):
+    async def test_5902(self):
         "5902 - test insert with DML returning into too small a variable"
         await self.cursor.execute("truncate table TestTempTable")
         int_val = 6
@@ -100,7 +100,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 parameters,
             )
 
-    async def test_5903_update_single_row(self):
+    async def test_5903(self):
         "5903 - test update single row with DML returning"
         int_val = 7
         str_val = "The updated value of the string"
@@ -129,7 +129,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(int_var.values, [[int_val]])
         self.assertEqual(str_var.values, [[str_val]])
 
-    async def test_5904_update_no_rows(self):
+    async def test_5904(self):
         "5904 - test update no rows with DML returning"
         int_val = 8
         str_val = "The updated value of the string"
@@ -160,7 +160,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(int_var.getvalue(), [])
         self.assertEqual(str_var.getvalue(), [])
 
-    async def test_5905_update_multiple_rows(self):
+    async def test_5905(self):
         "5905 - test update multiple rows with DML returning"
         await self.cursor.execute("truncate table TestTempTable")
         for i in (8, 9, 10):
@@ -193,7 +193,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(str_var.values, expected_values)
 
-    async def test_5906_update_multiple_rows_executemany(self):
+    async def test_5906(self):
         "5906 - test update multiple rows with DML returning (executemany)"
         data = [(i, f"The initial value of string {i}") for i in range(1, 11)]
         await self.cursor.execute("truncate table TestTempTable")
@@ -233,7 +233,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(str_var.values, expected_values)
 
-    async def test_5907_insert_and_return_object(self):
+    async def test_5907(self):
         "5907 - test inserting an object with DML returning"
         type_obj = await self.conn.gettype("UDT_OBJECT")
         string_value = "The string that will be verified"
@@ -252,7 +252,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(result.STRINGVALUE, string_value)
         await self.conn.rollback()
 
-    async def test_5908_insert_and_return_rowid(self):
+    async def test_5908(self):
         "5908 - test inserting a row and returning a rowid"
         await self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(oracledb.ROWID)
@@ -275,7 +275,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), [(278, "String 278")])
 
-    async def test_5909_insert_with_ref_cursor(self):
+    async def test_5909(self):
         "5909 - test inserting with a REF cursor and returning a rowid"
         await self.cursor.execute("truncate table TestTempTable")
         var = self.cursor.var(oracledb.ROWID)
@@ -309,7 +309,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.fetchall(), [(187, "String 7 (Modified)")]
         )
 
-    async def test_5910_delete_returning_decreasing_rows_returned(self):
+    async def test_5910(self):
         "5910 - test delete returning decreasing number of rows"
         data = [(i, f"Test String {i}") for i in range(1, 11)]
         await self.cursor.execute("truncate table TestTempTable")
@@ -335,7 +335,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             results.append(int_var.getvalue())
         self.assertEqual(results, [[1, 2, 3, 4], [5, 6, 7], [8, 9]])
 
-    async def test_5911_delete_returning_no_rows_after_many_rows(self):
+    async def test_5911(self):
         "5911 - test delete returning no rows after returning many rows"
         data = [(i, f"Test String {i}") for i in range(1, 11)]
         await self.cursor.execute("truncate table TestTempTable")
@@ -359,7 +359,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(None, [4, int_var])
         self.assertEqual(int_var.getvalue(), [])
 
-    async def test_5912_insert_with_dml_returning_and_error(self):
+    async def test_5912(self):
         "5912 - test DML returning when an error occurs"
         await self.cursor.execute("truncate table TestTempTable")
         int_val = 7
@@ -376,7 +376,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-12899:"):
             await self.cursor.execute(sql, parameters)
 
-    async def test_5913_insert_with_dml_returning_no_input_vars(self):
+    async def test_5913(self):
         "5913 - test DML returning with no input variables, multiple iters"
         await self.cursor.execute("truncate table TestTempTable")
         sql = """
@@ -389,7 +389,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(sql, [var])
         self.assertEqual(var.getvalue(), [2])
 
-    async def test_5914_parse_quoted_returning_bind(self):
+    async def test_5914(self):
         "5914 - test DML returning with a quoted bind name"
         sql = """
                 insert into TestTempTable (IntCol, StringCol1)
@@ -399,7 +399,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_bind_names = ["INT_VAL", "STR_VAL", "_val1", "VaL_2"]
         self.assertEqual(self.cursor.bindnames(), expected_bind_names)
 
-    async def test_5915_parse_invalid_returning_bind(self):
+    async def test_5915(self):
         "5915 - test DML returning with an invalid bind name"
         sql = """
                 insert into TestTempTable (IntCol)
@@ -408,7 +408,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01745:"):
             await self.cursor.parse(sql)
 
-    async def test_5916_dml_returning_with_input_bind_vars(self):
+    async def test_5916(self):
         "5916 - test DML returning with input bind variable data"
         await self.cursor.execute("truncate table TestTempTable")
         out_var = self.cursor.var(int)
@@ -425,7 +425,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.conn.commit()
         self.assertEqual(out_var.getvalue(), [23])
 
-    async def test_5917_dml_returning_with_lob_and_outconverter(self):
+    async def test_5917(self):
         "5917 - test DML returning with LOBs and an output converter"
         await self.cursor.execute("truncate table TestCLOBs")
         out_var = self.cursor.var(
@@ -444,7 +444,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.conn.commit()
         self.assertEqual(out_var.getvalue(), [lob_value])
 
-    async def test_5918_dml_returning_with_clob_converted_to_long(self):
+    async def test_5918(self):
         "5918 - test DML returning with CLOB converted to LONG"
         await self.cursor.execute("truncate table TestCLOBs")
         out_var = self.cursor.var(oracledb.DB_TYPE_LONG)
@@ -462,7 +462,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.conn.commit()
         self.assertEqual(out_var.getvalue(), [lob_value])
 
-    async def test_5919_dml_returning_with_index_organized_table(self):
+    async def test_5919(self):
         "5919 - test dml returning with an index organized table"
         await self.cursor.execute("truncate table TestUniversalRowids")
         rowid_var = self.cursor.var(oracledb.ROWID)
@@ -483,7 +483,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (row,) = await self.cursor.fetchall()
         self.assertEqual(row, data[:3])
 
-    async def test_5920_plsql_returning_rowids_with_index_org_table(self):
+    async def test_5920(self):
         "5920 - test plsql returning rowids with index organized table"
         await self.cursor.execute("truncate table TestUniversalRowids")
         rowid_var = self.cursor.var(oracledb.ROWID)
@@ -509,7 +509,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (row,) = await self.cursor.fetchall()
         self.assertEqual(row, data[:3])
 
-    async def test_5921_parse_returning_clause_without_spaces(self):
+    async def test_5921(self):
         "5921 - parse DML returning with no spaces"
         await self.cursor.execute("truncate table TestTempTable")
         sql = (

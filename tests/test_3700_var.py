@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -61,7 +61,7 @@ class TestCase(test_env.BaseTestCase):
             (TypeError, oracledb.DatabaseError), var.setvalue, 0, value_to_set
         )
 
-    def test_3700_DB_TYPE_NUMBER(self):
+    def test_3700(self):
         "3700 - setting values on variables of type DB_TYPE_NUMBER"
         self._test_positive_set_and_get(int, 5, 5)
         self._test_positive_set_and_get(oracledb.DB_TYPE_NUMBER, 3.5, 3.5)
@@ -73,7 +73,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_NUMBER, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_NUMBER, "abc")
 
-    def test_3701_DB_TYPE_BINARY_INTEGER(self):
+    def test_3701(self):
         "3701 - setting values on variables of type DB_TYPE_BINARY_INTEGER"
         self._test_positive_set_and_get(oracledb.DB_TYPE_BINARY_INTEGER, 5, 5)
         self._test_positive_set_and_get(
@@ -93,7 +93,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_BINARY_INTEGER, "abc")
 
-    def test_3702_DB_TYPE_VARCHAR(self):
+    def test_3702(self):
         "3702 - setting values on variables of type DB_TYPE_VARCHAR"
         value = "A VARCHAR string"
         self._test_positive_set_and_get(oracledb.DB_TYPE_VARCHAR, value, value)
@@ -104,7 +104,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_VARCHAR, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_VARCHAR, 5)
 
-    def test_3703_DB_TYPE_NVARCHAR(self):
+    def test_3703(self):
         "3703 - setting values on variables of type DB_TYPE_NVARCHAR"
         value = "A NVARCHAR string"
         self._test_positive_set_and_get(
@@ -117,7 +117,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_NVARCHAR, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_NVARCHAR, 5)
 
-    def test_3704_DB_TYPE_CHAR(self):
+    def test_3704(self):
         "3704 - setting values on variables of type DB_TYPE_CHAR"
         value = "A CHAR string"
         self._test_positive_set_and_get(oracledb.DB_TYPE_CHAR, value, value)
@@ -128,7 +128,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_CHAR, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_CHAR, 5)
 
-    def test_3705_DB_TYPE_NCHAR(self):
+    def test_3705(self):
         "3705 - setting values on variables of type DB_TYPE_NCHAR"
         value = "A NCHAR string"
         self._test_positive_set_and_get(oracledb.DB_TYPE_NCHAR, value, value)
@@ -139,7 +139,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_NCHAR, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_NCHAR, 5)
 
-    def test_3706_DB_TYPE_LONG(self):
+    def test_3706(self):
         "3706 - setting values on variables of type DB_TYPE_LONG"
         value = "Long Data" * 15000
         self._test_positive_set_and_get(oracledb.DB_TYPE_LONG, value, value)
@@ -150,7 +150,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_LONG, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_LONG, 5)
 
-    def test_3707_DB_TYPE_RAW(self):
+    def test_3707(self):
         "3707 - setting values on variables of type DB_TYPE_RAW"
         value = b"Raw Data"
         self._test_positive_set_and_get(oracledb.DB_TYPE_RAW, value, value)
@@ -161,7 +161,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_RAW, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_RAW, 5)
 
-    def test_3708_DB_TYPE_LONG_RAW(self):
+    def test_3708(self):
         "3708 - setting values on variables of type DB_TYPE_LONG_RAW"
         value = b"Long Raw Data" * 15000
         self._test_positive_set_and_get(
@@ -174,7 +174,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_LONG_RAW, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_LONG_RAW, 5)
 
-    def test_3709_DB_TYPE_DATE(self):
+    def test_3709(self):
         "3709 - setting values on variables of type DB_TYPE_DATE"
         value = datetime.date(2017, 5, 6)
         self._test_positive_set_and_get(oracledb.DB_TYPE_DATE, value, value)
@@ -183,7 +183,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_DATE, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_DATE, 5)
 
-    def test_3710_DB_TYPE_TIMESTAMP(self):
+    def test_3710(self):
         "3710 - setting values on variables of type DB_TYPE_TIMESTAMP"
         value = datetime.date(2017, 5, 6)
         self._test_positive_set_and_get(
@@ -196,7 +196,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_TIMESTAMP, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_TIMESTAMP, 5)
 
-    def test_3711_DB_TYPE_TIMESTAMP_TZ(self):
+    def test_3711(self):
         "3711 - setting values on variables of type DB_TYPE_TIMESTAMP_TZ"
         value = datetime.date(2017, 5, 6)
         self._test_positive_set_and_get(
@@ -211,7 +211,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_TIMESTAMP_TZ, 5)
 
-    def test_3712_DB_TYPE_TIMESTAMP_LTZ(self):
+    def test_3712(self):
         "3712 - setting values on variables of type DB_TYPE_TIMESTAMP_LTZ"
         value = datetime.date(2017, 5, 6)
         self._test_positive_set_and_get(
@@ -226,7 +226,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_TIMESTAMP_LTZ, 5)
 
-    def test_3713_DB_TYPE_BLOB(self):
+    def test_3713(self):
         "3713 - setting values on variables of type DB_TYPE_BLOB"
         value = b"Short temp BLOB value"
         temp_blob = self.conn.createlob(oracledb.DB_TYPE_BLOB)
@@ -241,7 +241,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_BLOB, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_BLOB, 5)
 
-    def test_3714_DB_TYPE_CLOB(self):
+    def test_3714(self):
         "3714 - setting values on variables of type DB_TYPE_CLOB"
         value = "Short temp CLOB value"
         temp_clob = self.conn.createlob(oracledb.DB_TYPE_CLOB)
@@ -256,7 +256,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_CLOB, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_CLOB, 5)
 
-    def test_3715_DB_TYPE_NCLOB(self):
+    def test_3715(self):
         "3715 - setting values on variables of type DB_TYPE_NCLOB"
         value = "Short temp NCLOB value"
         temp_nclob = self.conn.createlob(oracledb.DB_TYPE_NCLOB)
@@ -271,7 +271,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_NCLOB, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_NCLOB, 5)
 
-    def test_3716_DB_TYPE_BINARY_FLOAT(self):
+    def test_3716(self):
         "3716 - setting values on variables of type DB_TYPE_BINARY_FLOAT"
         self._test_positive_set_and_get(oracledb.DB_TYPE_BINARY_FLOAT, 5, 5.0)
         self._test_positive_set_and_get(
@@ -291,7 +291,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_BINARY_FLOAT, "abc")
 
-    def test_3717_DB_TYPE_BINARY_DOUBLE(self):
+    def test_3717(self):
         "3717 - setting values on variables of type DB_TYPE_BINARY_DOUBLE"
         self._test_positive_set_and_get(oracledb.DB_TYPE_BINARY_DOUBLE, 5, 5.0)
         self._test_positive_set_and_get(
@@ -311,7 +311,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_BINARY_DOUBLE, "abc")
 
-    def test_3718_DB_TYPE_BOOLEAN(self):
+    def test_3718(self):
         "3718 - setting values on variables of type DB_TYPE_BOOLEAN"
         self._test_positive_set_and_get(oracledb.DB_TYPE_BOOLEAN, 5, True)
         self._test_positive_set_and_get(oracledb.DB_TYPE_BOOLEAN, 2.0, True)
@@ -323,7 +323,7 @@ class TestCase(test_env.BaseTestCase):
         self._test_positive_set_and_get(oracledb.DB_TYPE_BOOLEAN, 0, False)
         self._test_positive_set_and_get(oracledb.DB_TYPE_BOOLEAN, None, None)
 
-    def test_3719_DB_TYPE_INTERVAL_DS(self):
+    def test_3719(self):
         "3719 - setting values on variables of type DB_TYPE_INTERVAL_DS"
         value = datetime.timedelta(days=5, seconds=56000, microseconds=123780)
         self._test_positive_set_and_get(
@@ -334,12 +334,12 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_negative_set_and_get(oracledb.DB_TYPE_INTERVAL_DS, 5)
 
-    def test_3720_DB_TYPE_ROWID(self):
+    def test_3720(self):
         "3720 - setting values on variables of type DB_TYPE_ROWID"
         self._test_negative_set_and_get(oracledb.DB_TYPE_ROWID, 12345)
         self._test_negative_set_and_get(oracledb.DB_TYPE_ROWID, "523lkhlf")
 
-    def test_3721_DB_TYPE_OBJECT(self):
+    def test_3721(self):
         "3721 - setting values on variables of type DB_TYPE_OBJECT"
         obj_type = self.conn.gettype("UDT_OBJECT")
         obj = obj_type.newobject()
@@ -367,7 +367,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_server_version() < (21, 0), "unsupported server"
     )
-    def test_3722_DB_TYPE_JSON(self):
+    def test_3722(self):
         "3722 - setting values on variables of type DB_TYPE_JSON"
         json_data = [
             5,
@@ -410,12 +410,12 @@ class TestCase(test_env.BaseTestCase):
         )
         self._test_positive_set_and_get(oracledb.DB_TYPE_JSON, None, None)
 
-    def test_3723_DB_TYPE_CURSOR(self):
+    def test_3723(self):
         "3723 - test setting values on variables of type DB_TYPE_CURSOR"
         self._test_positive_set_and_get(oracledb.DB_TYPE_CURSOR, None, None)
         self._test_negative_set_and_get(oracledb.DB_TYPE_CURSOR, 5)
 
-    def test_3724_fetch_null_column(self):
+    def test_3724(self):
         "3724 - test fetching columns containing all null values"
         self.cursor.execute(
             """
@@ -432,12 +432,12 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         not test_env.get_is_thin(), "thick mode doesn't support DB_TYPE_UROWID"
     )
-    def test_3725_DB_TYPE_UROWID(self):
+    def test_3725(self):
         "3725 - setting values on variables of type DB_TYPE_UROWID"
         self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, 12345)
         self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, "523lkhlf")
 
-    def test_3726_getvalue_with_index(self):
+    def test_3726(self):
         "3726 - getting value with an specific index"
         var = self.cursor.var(oracledb.DB_TYPE_NUMBER, 1000, 2)
         var.setvalue(0, 10)
@@ -445,7 +445,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(var.getvalue(1))
         self.assertRaises(IndexError, var.getvalue, 4)
 
-    def test_3727_get_buffer_size(self):
+    def test_3727(self):
         "3727 - getting buffer_size attribute"
         test_values = [
             (oracledb.DB_TYPE_NUMBER, 200, 22),
@@ -458,21 +458,21 @@ class TestCase(test_env.BaseTestCase):
             var = self.cursor.var(typ, size)
             self.assertEqual(var.buffer_size, buffer_size)
 
-    def test_3728_actual_elements(self):
+    def test_3728(self):
         "3728 - getting actual elements"
         array_size = 8
         var = self.cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=array_size)
         self.assertEqual(var.actual_elements, array_size)
         self.assertEqual(var.actual_elements, var.num_elements)
 
-    def test_3729_deprecations(self):
+    def test_3729(self):
         "3729 - test deprecated attributes"
         var = self.cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=200)
         self.assertEqual(var.bufferSize, 22)
         self.assertEqual(var.actualElements, 200)
         self.assertEqual(var.numElements, 200)
 
-    def test_3730_convert_nulls(self):
+    def test_3730(self):
         "3730 - test calling of outconverter with null values"
 
         def type_handler(cursor, metadata):
@@ -504,7 +504,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_rows)
 
-    def test_3731_get_convert_nulls(self):
+    def test_3731(self):
         "3731 - test getting convert_nulls"
         for convert_nulls in [True, False]:
             simple_var = self.cursor.var(str, convert_nulls=convert_nulls)

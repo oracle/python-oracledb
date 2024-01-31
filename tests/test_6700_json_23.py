@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -63,14 +63,14 @@ class TestCase(test_env.BaseTestCase):
         (fetched_value,) = self.cursor.fetchone()
         self.assertEqual(fetched_value, value)
 
-    def test_6700_json_with_field_name_greater_than_255(self):
+    def test_6700(self):
         "6700 - fetch JSON with a field name greater than 255 bytes"
         fname_long = "A" * 256
         value = {}
         value[fname_long] = 6700
         self.__test_fetch_json(value)
 
-    def test_6701_json_with_field_name_greater_and_less_than_255(self):
+    def test_6701(self):
         "6701 - fetch JSON with field names greater and less than 255 bytes"
         fname_short = "short_name"
         fname_long = "A" * 256
@@ -79,7 +79,7 @@ class TestCase(test_env.BaseTestCase):
         value[fname_long] = 6701
         self.__test_fetch_json(value)
 
-    def test_6702_json_with_many_large_field_names(self):
+    def test_6702(self):
         "6702 - fetch JSON with many field names greater than 255 bytes"
         value = {}
         for i in range(26):
@@ -88,7 +88,7 @@ class TestCase(test_env.BaseTestCase):
                 value[fname] = 12.25
         self.__test_fetch_json(value)
 
-    def test_6703_json_with_many_field_names(self):
+    def test_6703(self):
         "6703 - fetch JSON with many field names (large and small)"
         value = {}
         for i in range(26):
@@ -99,7 +99,7 @@ class TestCase(test_env.BaseTestCase):
                 value[long_name] = 12.25
         self.__test_fetch_json(value)
 
-    def test_6704_json_with_many_short_field_names_one_long(self):
+    def test_6704(self):
         "6704 - fetch JSON with many field names (one large and many small)"
         value = {}
         long_name = "B" * 256
@@ -110,14 +110,14 @@ class TestCase(test_env.BaseTestCase):
                 value[short_name] = 8.625
         self.__test_fetch_json(value)
 
-    def test_6705_rt_json_with_field_name_greater_than_255(self):
+    def test_6705(self):
         "6705 - round trip JSON with a field name greater than 255 bytes"
         fname_long = "A" * 256
         value = {}
         value[fname_long] = 6705
         self.__test_round_trip_json(value)
 
-    def test_6706_rt_json_with_field_name_greater_and_less_than_255(self):
+    def test_6706(self):
         "6706 - round trip JSON with field names (small and large)"
         fname_short = "short_name"
         fname_long = "A" * 256
@@ -126,7 +126,7 @@ class TestCase(test_env.BaseTestCase):
         value[fname_long] = 6706
         self.__test_round_trip_json(value)
 
-    def test_6707_rt_json_with_many_large_field_names(self):
+    def test_6707(self):
         "6707 - round trip JSON with many field names greater than 255 bytes"
         value = {}
         for i in range(26):
@@ -135,7 +135,7 @@ class TestCase(test_env.BaseTestCase):
                 value[fname] = 12.25
         self.__test_round_trip_json(value)
 
-    def test_6708_rt_json_with_many_field_names(self):
+    def test_6708(self):
         "6708 - round trip JSON with many field names (large and small)"
         value = {}
         for i in range(26):
@@ -146,7 +146,7 @@ class TestCase(test_env.BaseTestCase):
                 value[long_name] = 12.25
         self.__test_round_trip_json(value)
 
-    def test_6709_rt_json_with_many_short_field_names_one_long(self):
+    def test_6709(self):
         "6709 - round trip JSON with many field names (1 large and many small)"
         value = {}
         long_name = "B" * 256
@@ -157,7 +157,7 @@ class TestCase(test_env.BaseTestCase):
                 value[short_name] = 8.625
         self.__test_round_trip_json(value)
 
-    def test_6710_fetch_json_with_rel_offsets(self):
+    def test_6710(self):
         "6710 - fetch JSON with relative offsets"
         value = {}
         fname_long = "C" * 256
@@ -166,14 +166,14 @@ class TestCase(test_env.BaseTestCase):
         value["str_list"] = ["string 1", "string 2"]
         self.__test_fetch_json(value, "TestCompressedJson")
 
-    def test_6711_fetch_json_with_rel_offsets_and_shared_fields(self):
+    def test_6711(self):
         "6711 - fetch JSON with relative offsets and shared fields and values"
         value = []
         for i in range(15):
             value.append(dict(a=6711, b="String Value"))
         self.__test_fetch_json(value, "TestCompressedJson")
 
-    def test_6712_fetch_json_with_rel_offsets_and_shared_fields(self):
+    def test_6712(self):
         "6712 - fetch JSON with relative offsets and shared fields, not values"
         value = []
         for i in range(15):

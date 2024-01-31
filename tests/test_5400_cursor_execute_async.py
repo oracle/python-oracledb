@@ -37,18 +37,18 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_5400_execute_no_args(self):
+    async def test_5400(self):
         "5400 - test executing a statement without any arguments"
         result = await self.cursor.execute("begin null; end;")
         self.assertIsNone(result)
 
-    async def test_5401_execute_no_statement_with_args(self):
+    async def test_5401(self):
         "5401 - test executing a None statement with bind variables"
         cursor = self.conn.cursor()
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):
             await cursor.execute(None, x=5)
 
-    async def test_5402_execute_empty_keyword_args(self):
+    async def test_5402(self):
         "5402 - test executing a statement with args and empty keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         args = [simple_var]
@@ -59,7 +59,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 25)
 
-    async def test_5403_execute_keyword_args(self):
+    async def test_5403(self):
         "5403 - test executing a statement with keyword arguments"
         simple_var = self.cursor.var(oracledb.NUMBER)
         result = await self.cursor.execute(
@@ -68,7 +68,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 5)
 
-    async def test_5404_execute_dictionary_arg(self):
+    async def test_5404(self):
         "5404 - test executing a statement with a dictionary argument"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
@@ -78,7 +78,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 10)
 
-    async def test_5405_execute_multiple_arg_types(self):
+    async def test_5405(self):
         "5405 - test executing a statement with both a dict and keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
@@ -87,27 +87,27 @@ class TestCase(test_env.BaseAsyncTestCase):
                 "begin :value := 15; end;", dict_arg, value=simple_var
             )
 
-    async def test_5406_execute_and_modify_array_size(self):
+    async def test_5406(self):
         "5406 - test executing a statement and then changing the array size"
         await self.cursor.execute("select IntCol from TestNumbers")
         self.cursor.arraysize = 5
         self.assertEqual(len(await self.cursor.fetchall()), 10)
 
-    async def test_5407_bad_execute(self):
+    async def test_5407(self):
         "5407 - test that subsequent executes succeed after bad execute"
         sql = "begin raise_application_error(-20000, 'this); end;"
         with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2041:"):
             await self.cursor.execute(sql)
         await self.cursor.execute("begin null; end;")
 
-    async def test_5408_fetch_after_bad_execute(self):
+    async def test_5408(self):
         "5408 - test that subsequent fetches fail after bad execute"
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00904:"):
             await self.cursor.execute("select y from dual")
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1003:"):
             await self.cursor.fetchall()
 
-    async def test_5409_execute_bind_names_with_incorrect_bind(self):
+    async def test_5409(self):
         "5409 - test executing a statement with an incorrect named bind"
         sql = "select * from TestStrings where IntCol = :value"
         with self.assertRaisesRegex(
@@ -115,7 +115,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await self.cursor.execute(sql, value2=3)
 
-    async def test_5410_execute_with_named_binds(self):
+    async def test_5410(self):
         "5410 - test executing a statement with named binds"
         await self.cursor.execute(
             """
@@ -128,7 +128,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(len(await self.cursor.fetchall()), 1)
 
-    async def test_5411_execute_bind_position_with_incorrect_bind(self):
+    async def test_5411(self):
         "5411 - test executing a statement with an incorrect positional bind"
         sql = """
                 select *
@@ -139,7 +139,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await self.cursor.execute(sql, [3])
 
-    async def test_5412_execute_with_positional_binds(self):
+    async def test_5412(self):
         "5412 - test executing a statement with positional binds"
         await self.cursor.execute(
             """
@@ -151,7 +151,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(len(await self.cursor.fetchall()), 1)
 
-    async def test_5413_execute_with_rebinding_bind_name(self):
+    async def test_5413(self):
         "5413 - test executing a statement after rebinding a named bind"
         statement = "begin :value := :value2 + 5; end;"
         simple_var = self.cursor.var(oracledb.NUMBER)
@@ -172,7 +172,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 15)
 
-    async def test_5414_bind_by_name_with_duplicates(self):
+    async def test_5414(self):
         "5414 - test executing a PL/SQL statement with duplicate binds"
         simple_var = self.cursor.var(oracledb.NUMBER)
         simple_var.setvalue(0, 5)
@@ -187,7 +187,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 10)
 
-    async def test_5415_positional_bind_with_duplicates(self):
+    async def test_5415(self):
         "5415 - test executing a PL/SQL statement with duplicate binds"
         simple_var = self.cursor.var(oracledb.NUMBER)
         simple_var.setvalue(0, 5)
@@ -196,7 +196,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(simple_var.getvalue(), 10)
 
-    async def test_5416_execute_with_incorrect_bind_values(self):
+    async def test_5416(self):
         "5416 - test executing a statement with an incorrect number of binds"
         statement = "begin :value := :value2 + 5; end;"
         var = self.cursor.var(oracledb.NUMBER)
@@ -216,7 +216,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 statement, value=var, value2=var, value3=var
             )
 
-    async def test_5417_change_in_size_on_successive_bind(self):
+    async def test_5417(self):
         "5417 - change in size on subsequent binds does not use optimised path"
         await self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test String #1"), (2, "ABC" * 100)]
@@ -234,7 +234,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), data)
 
-    async def test_5418_dml_can_use_optimised_path(self):
+    async def test_5418(self):
         "5418 - test that dml can use optimised path"
         data_to_insert = [(i + 1, f"Test String #{i + 1}") for i in range(3)]
         await self.cursor.execute("truncate table TestTempTable")
@@ -253,13 +253,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), data_to_insert)
 
-    async def test_5419_execute_with_invalid_parameters(self):
+    async def test_5419(self):
         "5419 - test calling execute() with invalid parameters"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2003:"):
             await self.cursor.execute(sql, "These are not valid parameters")
 
-    async def test_5420_execute_with_mixed_binds(self):
+    async def test_5420(self):
         "5420 - test calling execute() with mixed binds"
         await self.cursor.execute("truncate table TestTempTable")
         self.cursor.setinputsizes(None, None, str)
@@ -274,7 +274,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 data,
             )
 
-    async def test_5421_bind_by_name_with_double_quotes(self):
+    async def test_5421(self):
         "5421 - test binding by name with double quotes"
         data = {'"_value1"': 1, '"VaLue_2"': 2, '"3VALUE"': 3}
         await self.cursor.execute(
@@ -284,7 +284,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await self.cursor.fetchone()
         self.assertEqual(result, 6)
 
-    async def test_5422_resize_buffer(self):
+    async def test_5422(self):
         "5422 - test executing a statement with different input buffer sizes"
         sql = """
                 insert into TestTempTable (IntCol, StringCol1, StringCol2)
@@ -310,7 +310,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(sql, values3)
         self.assertEqual(ret_bind.values, [["3"]])
 
-    async def test_5423_rowfactory_callable(self):
+    async def test_5423(self):
         "5423 - test using rowfactory"
         await self.cursor.execute("truncate table TestTempTable")
         await self.cursor.execute(
@@ -335,7 +335,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             [{"INTCOL": 1, "STRINGCOL1": "Test 1"}],
         )
 
-    async def test_5424_rowfactory_execute_same_sql(self):
+    async def test_5424(self):
         "5424 - test executing same query after setting rowfactory"
         await self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test 1"), (2, "Test 2")]
@@ -359,7 +359,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         results2 = await self.cursor.fetchall()
         self.assertEqual(results1, results2)
 
-    async def test_5425_rowfactory_execute_different_sql(self):
+    async def test_5425(self):
         "5425 - test executing different query after setting rowfactory"
         await self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test 1"), (2, "Test 2")]
@@ -386,7 +386,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [(1, "String 1"), (2, "String 2"), (3, "String 3")]
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    async def test_5426_rowfactory_on_refcursor(self):
+    async def test_5426(self):
         "5426 - test setting rowfactory on a REF cursor"
         with self.conn.cursor() as cursor:
             sql_function = "pkg_TestRefCursors.TestReturnCursor"
@@ -401,7 +401,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             ]
             self.assertEqual(await ref_cursor.fetchall(), expected_value)
 
-    async def test_5427_subclassed_string(self):
+    async def test_5427(self):
         "5427 - test using a subclassed string as bind parameter keys"
 
         class my_str(str):
@@ -428,7 +428,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.fetchall(), [(5427, "5427 - String Value")]
         )
 
-    async def test_5428_sequence_of_params(self):
+    async def test_5428(self):
         "5428 - test using a sequence of parameters other than a list or tuple"
 
         class MySeq(collections.abc.Sequence):
@@ -460,7 +460,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    async def test_5429_output_type_handler_with_prefetch_gt_arraysize(self):
+    async def test_5429(self):
         "5429 - test an output type handler with prefetch > arraysize"
 
         def type_handler(cursor, metadata):
@@ -476,7 +476,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.fetchall(), [(1,), (2,), (3,), (4,), (5,)]
         )
 
-    async def test_5430_setinputsizes_no_binds(self):
+    async def test_5430(self):
         "5430 - test setinputsizes() but without binding"
         self.cursor.setinputsizes(None, int)
         sql = "select :1, : 2 from dual"
@@ -485,7 +485,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await self.cursor.execute(sql, [])
 
-    async def test_5431_fetch_info_attributes(self):
+    async def test_5431(self):
         "5431 - test getting FetchInfo attributes"
         type_obj = await self.conn.gettype("UDT_OBJECT")
         varchar_ratio, _ = await test_env.get_charset_ratios_async()
@@ -564,7 +564,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(fetch_info.type, typ)
             self.assertEqual(fetch_info.type_code, type_code)
 
-    async def test_5432_fetch_info_repr_str(self):
+    async def test_5432(self):
         "5432 - test FetchInfo repr() and str()"
         await self.cursor.execute("select IntCol from TestObjects")
         (fetch_info,) = self.cursor.description
@@ -577,13 +577,13 @@ class TestCase(test_env.BaseAsyncTestCase):
             "('INTCOL', <DbType DB_TYPE_NUMBER>, 10, None, 9, 0, False)",
         )
 
-    async def test_5433_fetch_info_slice(self):
+    async def test_5433(self):
         "5433 - test slicing FetchInfo"
         await self.cursor.execute("select IntCol from TestObjects")
         (fetch_info,) = self.cursor.description
         self.assertEqual(fetch_info[1:3], (oracledb.DB_TYPE_NUMBER, 10))
 
-    async def test_5434_async_context_manager(self):
+    async def test_5434(self):
         "5434 - test async context manager"
         expected_value = test_env.get_main_user().upper()
         with self.conn.cursor() as cursor:

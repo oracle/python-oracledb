@@ -247,7 +247,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 string = prev_char * 5 + char * 5
                 self.assertEqual(await lob.read(offset, 10), string)
 
-    async def test_5700_bind_lob_value(self):
+    async def test_5700(self):
         "5700 - test binding a LOB value directly"
         await self.cursor.execute("delete from TestCLOBs")
         await self.cursor.execute(
@@ -269,7 +269,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await self.conn.commit()
 
-    async def test_5701_blob_cursor_description(self):
+    async def test_5701(self):
         "5701 - test cursor description is accurate for BLOBs"
         await self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         expected_value = [
@@ -278,15 +278,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    async def test_5702_blob_indirect(self):
+    async def test_5702(self):
         "5703 - test binding and fetching BLOB data (indirectly)"
         await self.__perform_test("BLOB", oracledb.DB_TYPE_LONG_RAW)
 
-    async def test_5703_blob_operations(self):
+    async def test_5703(self):
         "5703 - test operations on BLOBs"
         await self.__test_lob_operations("BLOB")
 
-    async def test_5704_clob_cursor_description(self):
+    async def test_5704(self):
         "5704 - test cursor description is accurate for CLOBs"
         await self.cursor.execute("select IntCol, ClobCol from TestCLOBs")
         expected_value = [
@@ -295,32 +295,32 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    async def test_5705_clob_indirect(self):
+    async def test_5705(self):
         "5705 - test binding and fetching CLOB data (indirectly)"
         await self.__perform_test("CLOB", oracledb.DB_TYPE_LONG)
 
-    async def test_5706_clob_operations(self):
+    async def test_5706(self):
         "5706 - test operations on CLOBs"
         await self.__test_lob_operations("CLOB")
 
-    async def test_5707_create_temp_blob(self):
+    async def test_5707(self):
         "5707 - test creating a temporary BLOB"
         await self.__test_temporary_lob("BLOB")
 
-    async def test_5708_create_temp_clob(self):
+    async def test_5708(self):
         "5708 - test creating a temporary CLOB"
         await self.__test_temporary_lob("CLOB")
 
-    async def test_5709_create_temp_nclob(self):
+    async def test_5709(self):
         "5709 - test creating a temporary NCLOB"
         await self.__test_temporary_lob("NCLOB")
 
-    async def test_5710_multiple_fetch(self):
+    async def test_5710(self):
         "5710 - test retrieving data from a CLOB after multiple fetches"
         self.cursor.arraysize = 1
         await self.__perform_test("CLOB", oracledb.DB_TYPE_LONG)
 
-    async def test_5711_nclob_cursor_description(self):
+    async def test_5711(self):
         "5711 - test cursor description is accurate for NCLOBs"
         await self.cursor.execute("select IntCol, NClobCol from TestNCLOBs")
         expected_value = [
@@ -329,7 +329,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    async def test_5712_nclob_non_ascii_chars(self):
+    async def test_5712(self):
         "5712 - test binding and fetching NCLOB data (with non-ASCII chars)"
         value = "\u03b4\u4e2a"
         await self.cursor.execute("delete from TestNCLOBs")
@@ -353,15 +353,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         (nclob,) = await self.cursor.fetchone()
         self.assertEqual(await nclob.read(), value + value)
 
-    async def test_5713_nclob_indirect(self):
+    async def test_5713(self):
         "5713 - test binding and fetching NCLOB data (indirectly)"
         await self.__perform_test("NCLOB", oracledb.DB_TYPE_LONG)
 
-    async def test_5714_nclob_operations(self):
+    async def test_5714(self):
         "5714 - test operations on NCLOBs"
         await self.__test_lob_operations("NCLOB")
 
-    async def test_5715_temporary_lobs(self):
+    async def test_5715(self):
         "5715 - test temporary LOBs"
         await self.cursor.execute(
             "select sys_context('USERENV', 'SID') from dual"
@@ -380,7 +380,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         temp_lobs = await self.__get_temp_lobs(sid)
         self.assertEqual(temp_lobs, 0)
 
-    async def test_5716_supplemental_characters(self):
+    async def test_5716(self):
         "5716 - test read/write temporary LOBs using supplemental characters"
         charset = await test_env.get_charset_async()
         if charset != "AL32UTF8":
@@ -407,31 +407,31 @@ class TestCase(test_env.BaseAsyncTestCase):
         (lob,) = await self.cursor.fetchone()
         self.assertEqual(await lob.read(), supplemental_chars)
 
-    async def test_5717_fetch_blob_as_bytes(self):
+    async def test_5717(self):
         "5727 - test fetching BLOB as bytes"
         await self.__test_fetch_lobs_direct("BLOB")
 
-    async def test_5718_fetch_clob_as_str(self):
+    async def test_5718(self):
         "5718 - test fetching CLOB as str"
         await self.__test_fetch_lobs_direct("CLOB")
 
-    async def test_5719_fetch_nclob_as_str(self):
+    async def test_5719(self):
         "5719 - test fetching NCLOB as str"
         await self.__test_fetch_lobs_direct("NCLOB")
 
-    async def test_5720_bind_order_blob(self):
+    async def test_5720(self):
         "5720 - test bind ordering with BLOB"
         await self.__test_bind_ordering("BLOB")
 
-    async def test_5721_bind_order_clob(self):
+    async def test_5721(self):
         "5721 - test bind ordering with CLOB"
         await self.__test_bind_ordering("CLOB")
 
-    async def test_5722_bind_order_nclob(self):
+    async def test_5722(self):
         "5722 - test bind ordering with NCLOB"
         await self.__test_bind_ordering("NCLOB")
 
-    async def test_5723_create_lob_with_invalid_type(self):
+    async def test_5723(self):
         "5723 - test creating a lob with an invalid type"
         with self.assertRaises(TypeError):
             await self.conn.createlob(oracledb.DB_TYPE_NUMBER)

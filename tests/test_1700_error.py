@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,7 +34,7 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_1700_parse_error(self):
+    def test_1700(self):
         "1700 - test parse error returns offset correctly"
         with self.assertRaises(oracledb.Error) as cm:
             self.cursor.execute("begin t_Missing := 5; end;")
@@ -42,7 +42,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(error_obj.full_code, "ORA-06550")
         self.assertEqual(error_obj.offset, 6)
 
-    def test_1701_pickle_error(self):
+    def test_1701(self):
         "1701 - test picking/unpickling an error object"
         with self.assertRaises(oracledb.Error) as cm:
             self.cursor.execute(
@@ -66,7 +66,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(new_error_obj.context, error_obj.context)
         self.assertEqual(new_error_obj.isrecoverable, error_obj.isrecoverable)
 
-    def test_1702_error_full_code(self):
+    def test_1702(self):
         "1702 - test generation of full_code for ORA, DPI and DPY errors"
         cursor = self.conn.cursor()
         with self.assertRaises(oracledb.Error) as cm:
@@ -94,7 +94,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "unsupported client"
     )
-    def test_1703_error_help_url(self):
+    def test_1703(self):
         "1703 - test generation of error help portal URL"
         cursor = self.conn.cursor()
         with self.assertRaises(oracledb.Error) as cm:
@@ -103,7 +103,7 @@ class TestCase(test_env.BaseTestCase):
         to_check = "Help: https://docs.oracle.com/error-help/db/ora-01476/"
         self.assertIn(to_check, error_obj.message)
 
-    def test_1704_warning_on_create_procedure(self):
+    def test_1704(self):
         "1704 - verify warning is generated when creating a procedure"
         proc_name = "bad_proc_1704"
         self.assertIsNone(self.cursor.warning)
@@ -127,7 +127,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(self.cursor.warning)
         self.cursor.execute(f"drop procedure {proc_name}")
 
-    def test_1705_warning_on_create_function(self):
+    def test_1705(self):
         "1705 - verify warning is generated when creating a function"
         func_name = "bad_func_1705"
         self.cursor.execute(
@@ -143,7 +143,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(f"drop function {func_name}")
         self.assertIsNone(self.cursor.warning)
 
-    def test_1706_warning_on_create_type(self):
+    def test_1706(self):
         "1706 - verify warning is generated when creating a type"
         type_name = "bad_type_1706"
         self.cursor.execute(
@@ -156,6 +156,31 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.warning.full_code, "DPY-7000")
         self.cursor.execute(f"drop type {type_name}")
         self.assertIsNone(self.cursor.warning)
+
+    def test_1707(self):
+        "1707 - verify warning is generated with executemany()"
+        proc_name = "bad_proc_1707"
+        self.assertIsNone(self.cursor.warning)
+        self.cursor.executemany(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null
+            end;
+            """,
+            1,
+        )
+        self.assertEqual(self.cursor.warning.full_code, "DPY-7000")
+        self.cursor.execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null;
+            end;
+            """
+        )
+        self.assertIsNone(self.cursor.warning)
+        self.cursor.execute(f"drop procedure {proc_name}")
 
 
 if __name__ == "__main__":

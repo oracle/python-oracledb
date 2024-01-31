@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -85,7 +85,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3000_dml_subscription(self):
+    def test_3000(self):
         "3000 - test subscription for insert, update, delete and truncate"
 
         # skip if running on the Oracle Cloud, which does not support
@@ -172,7 +172,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(str(sub), expected)
 
-    def test_3001_deprecations(self):
+    def test_3001(self):
         "3001 - test to verify deprecations"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
@@ -213,7 +213,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3002_aq_subscription(self):
+    def test_3002(self):
         "3002 - test subscription for AQ"
 
         # create queue and clear it of all messages
@@ -243,7 +243,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3003_registerquery_returns(self):
+    def test_3003(self):
         "3003 - test verifying what registerquery returns"
         data = DMLSubscriptionData(5)
         qos_constants = [
@@ -270,7 +270,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3004_repr(self):
+    def test_3004(self):
         "3004 - test Subscription repr()"
         data = DMLSubscriptionData(5)
         with test_env.get_connection(events=True) as conn:
@@ -281,7 +281,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3005_registerquery_negative(self):
+    def test_3005(self):
         "3005 - test registerquery with invalid parameters"
         data = DMLSubscriptionData(5)
         conn = test_env.get_connection(events=True)
@@ -309,7 +309,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3006_attributes(self):
+    def test_3006(self):
         "3006 - test getting subscription attributes"
         data = DMLSubscriptionData(1)
         conn = test_env.get_connection(events=True)
@@ -337,7 +337,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3007_query_message_table_attributes(self):
+    def test_3007(self):
         "3007 - test getting Message, MessageQuery, MessageTable attributes"
         condition = threading.Condition()
         conn = test_env.get_connection(events=True)
@@ -385,7 +385,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3008_unsubscribe_negative(self):
+    def test_3008(self):
         "3008 - test unsubscribe with invalid parameter"
         conn = test_env.get_connection(events=True)
         self.assertRaises(TypeError, conn.unsubscribe, "not a sub object")
@@ -398,7 +398,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3010_registerquery_with_active_txn(self):
+    def test_3010(self):
         "3010 - test registerquery in the middle of an active transaction"
         connection = test_env.get_connection(events=True)
         cursor = connection.cursor()
@@ -418,7 +418,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
     )
-    def test_3011_registerquery_with_aq_sub(self):
+    def test_3011(self):
         "3011 - test registerquery with aq subscription"
         connection = test_env.get_connection(events=True)
         sub = connection.subscribe(

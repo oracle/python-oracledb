@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -54,7 +54,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(object_value, expected_obj_value)
         self.assertEqual(array_value, expected_array_value)
 
-    async def test_5600_bind_object_in(self):
+    async def test_5600(self):
         "5600 - test binding an object (IN)"
         type_obj = await self.conn.gettype("UDT_OBJECT")
         obj = type_obj.newobject()
@@ -96,7 +96,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(result, expected_value)
 
-    async def test_5601_copy_object(self):
+    async def test_5601(self):
         "5601 - test copying an object"
         type_obj = await self.conn.gettype("UDT_OBJECT")
         obj = type_obj()
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(obj.DATEVALUE, copied_obj.DATEVALUE)
         self.assertEqual(obj.TIMESTAMPVALUE, copied_obj.TIMESTAMPVALUE)
 
-    async def test_5602_fetch_data(self):
+    async def test_5602(self):
         "5602 - test fetching objects"
         await self.cursor.execute(
             """
@@ -198,7 +198,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await self.__test_data(3, expected_value, None)
 
-    async def test_5603_get_object_type(self):
+    async def test_5603(self):
         "5603 - test getting object type"
         type_obj = await self.conn.gettype("UDT_OBJECT")
         self.assertFalse(type_obj.iscollection)
@@ -261,7 +261,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(sub_object_array_type.iscollection, True)
         self.assertEqual(sub_object_array_type.attributes, [])
 
-    async def test_5604_object_type(self):
+    async def test_5604(self):
         "5604 - test object type data"
         await self.cursor.execute(
             """
@@ -276,7 +276,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(obj.type.name, "UDT_OBJECT")
         self.assertEqual(obj.type.attributes[0].name, "NUMBERVALUE")
 
-    async def test_5605_round_trip_object(self):
+    async def test_5605(self):
         "5605 - test inserting and then querying object with all data types"
         await self.cursor.execute("truncate table TestClobs")
         await self.cursor.execute("truncate table TestNClobs")
@@ -420,14 +420,14 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.__test_data(5, expected_value, None)
         await self.conn.rollback()
 
-    async def test_5606_invalid_type_object(self):
+    async def test_5606(self):
         "5606 - test trying to find an object type that does not exist"
         with self.assertRaises(TypeError):
             await self.conn.gettype(2)
         with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2035:"):
             await self.conn.gettype("A TYPE THAT DOES NOT EXIST")
 
-    async def test_5607_appending_wrong_object_type(self):
+    async def test_5607(self):
         "5607 - test appending an object of the wrong type to a collection"
         collection_obj_type = await self.conn.gettype("UDT_OBJECTARRAY")
         collection_obj = collection_obj_type.newobject()
@@ -440,7 +440,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             array_obj,
         )
 
-    async def test_5608_referencing_sub_obj(self):
+    async def test_5608(self):
         "5608 - test that referencing a sub object affects the parent object"
         obj_type = await self.conn.gettype("UDT_OBJECT")
         sub_obj_type = await self.conn.gettype("UDT_SUBOBJECT")
@@ -451,7 +451,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(obj.SUBOBJECTVALUE.SUBNUMBERVALUE, 5)
         self.assertEqual(obj.SUBOBJECTVALUE.SUBSTRINGVALUE, "Substring")
 
-    async def test_5609_access_sub_object_parent_object_destroyed(self):
+    async def test_5609(self):
         "5609 - test accessing sub object after parent object destroyed"
         obj_type = await self.conn.gettype("UDT_OBJECT")
         sub_obj_type = await self.conn.gettype("UDT_SUBOBJECT")
@@ -471,7 +471,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             [(2, "AB"), (3, "CDE")],
         )
 
-    async def test_5610_setting_attr_wrong_object_type(self):
+    async def test_5610(self):
         "5610 - test assigning an object of wrong type to an object attribute"
         obj_type = await self.conn.gettype("UDT_OBJECT")
         obj = obj_type.newobject()
@@ -486,7 +486,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             wrong_obj,
         )
 
-    async def test_5611_setting_var_wrong_object_type(self):
+    async def test_5611(self):
         "5611 - test setting value of object variable to wrong object type"
         obj_type = await self.conn.gettype("UDT_OBJECT")
         wrong_obj_type = await self.conn.gettype("UDT_OBJECTARRAY")
@@ -496,7 +496,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             oracledb.ProgrammingError, "^DPY-2008:", var.setvalue, 0, wrong_obj
         )
 
-    async def test_5612_trim_collection_list(self):
+    async def test_5612(self):
         "5612 - test trimming a number of elements from a collection"
         sub_obj_type = await self.conn.gettype("UDT_SUBOBJECT")
         array_type = await self.conn.gettype("UDT_OBJECTARRAY")
@@ -527,7 +527,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.get_db_object_as_plain_object(array_obj), []
         )
 
-    async def test_5613_sql_type_metadata(self):
+    async def test_5613(self):
         "5613 - test the metadata of a SQL type"
         user = test_env.get_main_user()
         typ = await self.conn.gettype("UDT_OBJECTARRAY")
@@ -538,7 +538,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(typ.element_type.name, "UDT_SUBOBJECT")
         self.assertIsNone(typ.element_type.package_name)
 
-    async def test_5614_plsql_type_metadata(self):
+    async def test_5614(self):
         "5614 - test the metadata of a PL/SQL type"
         user = test_env.get_main_user()
         typ = await self.conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
@@ -547,7 +547,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(typ.package_name, "PKG_TESTSTRINGARRAYS")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_VARCHAR)
 
-    async def test_5615_large_collection(self):
+    async def test_5615(self):
         "5615 - test collection with thousands of entries"
         typ = await self.conn.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
         obj = typ.newobject()

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -73,14 +73,14 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    def test_2200_bind_boolean(self):
+    def test_2200(self):
         "2200 - test binding in a boolean"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.GetStringRep", str, [True]
         )
         self.assertEqual(result, "TRUE")
 
-    def test_2201_bind_boolean_as_number(self):
+    def test_2201(self):
         "2201 - test binding in a boolean as a number"
         var = self.cursor.var(oracledb.NUMBER)
         var.setvalue(0, True)
@@ -92,7 +92,7 @@ class TestCase(test_env.BaseTestCase):
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, 0)
 
-    def test_2202_bind_decimal(self):
+    def test_2202(self):
         "2202 - test binding in a decimal.Decimal"
         self.cursor.execute(
             """
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    def test_2203_bind_float(self):
+    def test_2203(self):
         "2203 - test binding in a float"
         self.cursor.execute(
             """
@@ -127,7 +127,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    def test_2204_bind_integer(self):
+    def test_2204(self):
         "2204 - test binding in an integer"
         self.cursor.execute(
             "select * from TestNumbers where IntCol = :value",
@@ -135,7 +135,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[2]])
 
-    def test_2205_bind_large_long_as_oracle_number(self):
+    def test_2205(self):
         "2205 - test binding in a large long integer as Oracle number"
         in_val = 6088343244
         value_var = self.cursor.var(oracledb.NUMBER)
@@ -150,14 +150,14 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(value_var.getvalue(), in_val + 5)
 
-    def test_2206_bind_large_long_as_integer(self):
+    def test_2206(self):
         "2206 - test binding in a large long integer as Python integer"
         long_value = -9999999999999999999
         self.cursor.execute("select :value from dual", value=long_value)
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, long_value)
 
-    def test_2207_bind_integer_after_string(self):
+    def test_2207(self):
         "2207 - test binding in an integer after setting input sizes to string"
         self.cursor.setinputsizes(value=15)
         self.cursor.execute(
@@ -166,7 +166,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[3]])
 
-    def test_2208_bind_decimal_after_number(self):
+    def test_2208(self):
         "2208 - test binding in a decimal after setting input sizes to number"
         cursor = self.conn.cursor()
         value = decimal.Decimal("319438950232418390.273596")
@@ -176,7 +176,7 @@ class TestCase(test_env.BaseTestCase):
         (out_value,) = cursor.fetchone()
         self.assertEqual(out_value, value)
 
-    def test_2209_bind_null(self):
+    def test_2209(self):
         "2209 - test binding in a null"
         self.cursor.execute(
             "select * from TestNumbers where IntCol = :value",
@@ -184,7 +184,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2210_bind_number_array_direct(self):
+    def test_2210(self):
         "2210 - test binding in a number array"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = [r[2] for r in self.raw_data]
@@ -201,7 +201,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, start_value=10, array=array)
         self.assertEqual(return_value.getvalue(), 115.0)
 
-    def test_2211_bind_number_array_by_sizes(self):
+    def test_2211(self):
         "2211 - test binding in a number array (with setinputsizes)"
         return_value = self.cursor.var(oracledb.NUMBER)
         self.cursor.setinputsizes(array=[oracledb.NUMBER, 10])
@@ -219,7 +219,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 74.75)
 
-    def test_2212_bind_number_array_by_var(self):
+    def test_2212(self):
         "2212 - test binding in a number array (with arrayvar)"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = self.cursor.arrayvar(
@@ -238,7 +238,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 75.75)
 
-    def test_2213_bind_zero_length_number_array_by_var(self):
+    def test_2213(self):
         "2213 - test binding in a zero length number array (with arrayvar)"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = self.cursor.arrayvar(oracledb.NUMBER, 0)
@@ -256,7 +256,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(return_value.getvalue(), 8.0)
         self.assertEqual(array.getvalue(), [])
 
-    def test_2214_bind_in_out_number_array_by_var(self):
+    def test_2214(self):
         "2214 - test binding in/out a number array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.NUMBER, 10)
         original_data = [r[2] for r in self.raw_data]
@@ -275,7 +275,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2215_bind_out_number_array_by_var(self):
+    def test_2215(self):
         "2215 - test binding out a Number array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.NUMBER, 6)
         expected_data = [i * 100 for i in range(1, 7)]
@@ -290,7 +290,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2216_bind_out_set_input_sizes(self):
+    def test_2216(self):
         "2216 - test binding out with set input sizes defined"
         bind_vars = self.cursor.setinputsizes(value=oracledb.NUMBER)
         self.cursor.execute(
@@ -302,7 +302,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), 5)
 
-    def test_2217_bind_in_out_set_input_sizes(self):
+    def test_2217(self):
         "2217 - test binding in/out with set input sizes defined"
         bind_vars = self.cursor.setinputsizes(value=oracledb.NUMBER)
         self.cursor.execute(
@@ -315,7 +315,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), 6.25)
 
-    def test_2218_bind_out_var(self):
+    def test_2218(self):
         "2218 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.NUMBER)
         self.cursor.execute(
@@ -328,7 +328,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), 5)
 
-    def test_2219_bind_in_out_var_direct_set(self):
+    def test_2219(self):
         "2219 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.NUMBER)
         var.setvalue(0, 2.25)
@@ -342,7 +342,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), 7.25)
 
-    def test_2220_cursor_description(self):
+    def test_2220(self):
         "2220 - test cursor description is accurate"
         self.cursor.execute("select * from TestNumbers")
         expected_value = [
@@ -363,13 +363,13 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2221_fetchall(self):
+    def test_2221(self):
         "2221 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestNumbers order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2222_fetchmany(self):
+    def test_2222(self):
         "2222 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestNumbers order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
@@ -378,7 +378,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_2223_fetchone(self):
+    def test_2223(self):
         "2223 - test that fetching a single row returns the correct results"
         self.cursor.execute(
             """
@@ -392,7 +392,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertIsNone(self.cursor.fetchone())
 
-    def test_2224_return_as_long(self):
+    def test_2224(self):
         "2224 - test that fetching a long integer returns such in Python"
         self.cursor.execute(
             """
@@ -404,20 +404,20 @@ class TestCase(test_env.BaseTestCase):
         (col,) = self.cursor.fetchone()
         self.assertEqual(col, 25004854810776297743)
 
-    def test_2225_return_constant_float(self):
+    def test_2225(self):
         "2225 - test fetching a floating point number returns such in Python"
         self.cursor.execute("select 1.25 from dual")
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, 1.25)
 
-    def test_2226_return_constant_integer(self):
+    def test_2226(self):
         "2226 - test that fetching an integer returns such in Python"
         self.cursor.execute("select 148 from dual")
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, 148)
         self.assertIsInstance(result, int, "integer not returned")
 
-    def test_2227_acceptable_boundary_numbers(self):
+    def test_2227(self):
         "2227 - test that acceptable boundary numbers are handled properly"
         in_values = [
             decimal.Decimal("9.99999999999999e+125"),
@@ -438,7 +438,7 @@ class TestCase(test_env.BaseTestCase):
             (result,) = self.cursor.fetchone()
             self.assertEqual(result, out_value)
 
-    def test_2228_unacceptable_boundary_numbers(self):
+    def test_2228(self):
         "2228 - test that unacceptable boundary numbers are rejected"
         in_values = [
             1e126,
@@ -475,7 +475,7 @@ class TestCase(test_env.BaseTestCase):
                 [in_value],
             )
 
-    def test_2229_return_float_from_division(self):
+    def test_2229(self):
         "2229 - test that fetching the result of division returns a float"
         self.cursor.execute(
             """
@@ -488,7 +488,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(result, 1.0 / 7.0)
         self.assertIsInstance(result, float, "float not returned")
 
-    def test_2230_string_format(self):
+    def test_2230(self):
         "2230 - test that string format is returned properly"
         var = self.cursor.var(oracledb.NUMBER)
         self.assertIs(var.type, oracledb.DB_TYPE_NUMBER)
@@ -500,7 +500,7 @@ class TestCase(test_env.BaseTestCase):
             str(var), "<oracledb.Var of type DB_TYPE_NUMBER with value 4.5>"
         )
 
-    def test_2231_bind_binary_double(self):
+    def test_2231(self):
         "2231 - test that binding binary double is possible"
         statement = "select :1 from dual"
         self.cursor.setinputsizes(oracledb.DB_TYPE_BINARY_DOUBLE)
@@ -525,7 +525,7 @@ class TestCase(test_env.BaseTestCase):
         (value,) = self.cursor.fetchone()
         self.assertEqual(str(value), str(float("NaN")))
 
-    def test_2232_fetch_binary_int(self):
+    def test_2232(self):
         "2232 - test fetching numbers as binary integers"
         self.cursor.outputtypehandler = self.output_type_handler_binary_int
         for value in (1, 2**31, 2**63 - 1, -1, -(2**31), -(2**63) + 1):
@@ -533,7 +533,7 @@ class TestCase(test_env.BaseTestCase):
             (fetched_value,) = self.cursor.fetchone()
             self.assertEqual(value, fetched_value)
 
-    def test_2233_out_bind_binary_int(self):
+    def test_2233(self):
         "2233 - test binding native integer as an out bind"
         simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
         self.cursor.execute("begin :value := 2.9; end;", [simple_var])
@@ -543,7 +543,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("begin :value := 1.5; end;", [simple_var])
         self.assertEqual(simple_var.getvalue(), 1)
 
-    def test_2234_in_bind_binary_int(self):
+    def test_2234(self):
         "2234 - test binding in a native integer"
         statement = "begin :value := :value + 2.5; end;"
         simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
@@ -555,14 +555,14 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, [simple_var])
         self.assertEqual(simple_var.getvalue(), -2)
 
-    def test_2235_setting_decimal_value_binary_int(self):
+    def test_2235(self):
         "2235 - test setting decimal value for binary int"
         simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
         simple_var.setvalue(0, 2.5)
         self.cursor.execute("begin :value := :value + 2.5; end;", [simple_var])
         self.assertEqual(simple_var.getvalue(), 4)
 
-    def test_2236_out_bind_binary_int_with_large_value(self):
+    def test_2236(self):
         "2236 - bind a large value to binary int"
         simple_var = self.cursor.var(oracledb.DB_TYPE_BINARY_INTEGER)
         self.cursor.execute(
@@ -575,14 +575,14 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(simple_var.getvalue(), -(2**31) - 1)
 
-    def test_2237_fetch_number_with_lobs_default_false(self):
+    def test_2237(self):
         "2237 - fetch a number with oracledb.defaults.fetch_lobs = False"
         with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute("select 1 from dual")
             (result,) = self.cursor.fetchone()
             self.assertIsInstance(result, int)
 
-    def test_2238_fetch_small_constant_with_decimal_point(self):
+    def test_2238(self):
         "2238 - fetch a small constant with a decimal point"
         self.cursor.outputtypehandler = self.output_type_handler_str
         self.cursor.execute("select 3 / 2 from dual")

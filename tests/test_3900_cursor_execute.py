@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,19 +33,19 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_3900_execute_no_args(self):
+    def test_3900(self):
         "3900 - test executing a statement without any arguments"
         result = self.cursor.execute("begin null; end;")
         self.assertIsNone(result)
 
-    def test_3901_execute_no_statement_with_args(self):
+    def test_3901(self):
         "3901 - test executing a None statement with bind variables"
         cursor = self.conn.cursor()
         self.assertRaisesRegex(
             oracledb.ProgrammingError, "^DPY-2001:", cursor.execute, None, x=5
         )
 
-    def test_3902_execute_empty_keyword_args(self):
+    def test_3902(self):
         "3902 - test executing a statement with args and empty keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         args = [simple_var]
@@ -54,7 +54,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 25)
 
-    def test_3903_execute_keyword_args(self):
+    def test_3903(self):
         "3903 - test executing a statement with keyword arguments"
         simple_var = self.cursor.var(oracledb.NUMBER)
         result = self.cursor.execute(
@@ -63,7 +63,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 5)
 
-    def test_3904_execute_dictionary_arg(self):
+    def test_3904(self):
         "3904 - test executing a statement with a dictionary argument"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
@@ -71,7 +71,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 10)
 
-    def test_3905_execute_multiple_arg_types(self):
+    def test_3905(self):
         "3905 - test executing a statement with both a dict and keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
@@ -84,13 +84,13 @@ class TestCase(test_env.BaseTestCase):
             value=simple_var,
         )
 
-    def test_3906_execute_and_modify_array_size(self):
+    def test_3906(self):
         "3906 - test executing a statement and then changing the array size"
         self.cursor.execute("select IntCol from TestNumbers")
         self.cursor.arraysize = 20
         self.assertEqual(len(self.cursor.fetchall()), 10)
 
-    def test_3907_bad_execute(self):
+    def test_3907(self):
         "3907 - test that subsequent executes succeed after bad execute"
         sql = "begin raise_application_error(-20000, 'this); end;"
         self.assertRaisesRegex(
@@ -98,7 +98,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.cursor.execute("begin null; end;")
 
-    def test_3908_fetch_after_bad_execute(self):
+    def test_3908(self):
         "3908 - test that subsequent fetches fail after bad execute"
         self.assertRaisesRegex(
             oracledb.DatabaseError,
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.InterfaceError, "^DPY-1003:", self.cursor.fetchall
         )
 
-    def test_3909_execute_bind_names_with_incorrect_bind(self):
+    def test_3909(self):
         "3909 - test executing a statement with an incorrect named bind"
         sql = "select * from TestStrings where IntCol = :value"
         self.assertRaisesRegex(
@@ -121,7 +121,7 @@ class TestCase(test_env.BaseTestCase):
             value2=3,
         )
 
-    def test_3910_execute_with_named_binds(self):
+    def test_3910(self):
         "3910 - test executing a statement with named binds"
         result = self.cursor.execute(
             """
@@ -134,7 +134,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(len(result.fetchall()), 1)
 
-    def test_3911_execute_bind_position_with_incorrect_bind(self):
+    def test_3911(self):
         "3911 - test executing a statement with an incorrect positional bind"
         sql = """
                 select *
@@ -148,7 +148,7 @@ class TestCase(test_env.BaseTestCase):
             [3],
         )
 
-    def test_3912_execute_with_positional_binds(self):
+    def test_3912(self):
         "3912 - test executing a statement with positional binds"
         result = self.cursor.execute(
             """
@@ -160,7 +160,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(len(result.fetchall()), 1)
 
-    def test_3913_execute_with_rebinding_bind_name(self):
+    def test_3913(self):
         "3913 - test executing a statement after rebinding a named bind"
         statement = "begin :value := :value2 + 5; end;"
         simple_var = self.cursor.var(oracledb.NUMBER)
@@ -181,7 +181,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 15)
 
-    def test_3914_bind_by_name_with_duplicates(self):
+    def test_3914(self):
         "3914 - test executing a PL/SQL statement with duplicate binds"
         simple_var = self.cursor.var(oracledb.NUMBER)
         simple_var.setvalue(0, 5)
@@ -196,14 +196,14 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(result)
         self.assertEqual(simple_var.getvalue(), 10)
 
-    def test_3915_positional_bind_with_duplicates(self):
+    def test_3915(self):
         "3915 - test executing a PL/SQL statement with duplicate binds"
         simple_var = self.cursor.var(oracledb.NUMBER)
         simple_var.setvalue(0, 5)
         self.cursor.execute("begin :value := :value + 5; end;", [simple_var])
         self.assertEqual(simple_var.getvalue(), 10)
 
-    def test_3916_execute_with_incorrect_bind_values(self):
+    def test_3916(self):
         "3916 - test executing a statement with an incorrect number of binds"
         statement = "begin :value := :value2 + 5; end;"
         var = self.cursor.var(oracledb.NUMBER)
@@ -231,7 +231,7 @@ class TestCase(test_env.BaseTestCase):
             value3=var,
         )
 
-    def test_3917_change_in_size_on_successive_bind(self):
+    def test_3917(self):
         "3917 - change in size on subsequent binds does not use optimised path"
         self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test String #1"), (2, "ABC" * 100)]
@@ -247,7 +247,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(self.cursor.fetchall(), data)
 
-    def test_3918_dml_can_use_optimised_path(self):
+    def test_3918(self):
         "3918 - test that dml can use optimised path"
         data_to_insert = [(i + 1, f"Test String #{i + 1}") for i in range(3)]
         self.cursor.execute("truncate table TestTempTable")
@@ -266,7 +266,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), data_to_insert)
 
-    def test_3919_execute_with_invalid_parameters(self):
+    def test_3919(self):
         "3919 - test calling execute() with invalid parameters"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         self.assertRaisesRegex(
@@ -277,7 +277,7 @@ class TestCase(test_env.BaseTestCase):
             "These are not valid parameters",
         )
 
-    def test_3920_execute_with_mixed_binds(self):
+    def test_3920(self):
         "3920 - test calling execute() with mixed binds"
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.setinputsizes(None, None, str)
@@ -294,7 +294,7 @@ class TestCase(test_env.BaseTestCase):
             data,
         )
 
-    def test_3921_bind_by_name_with_double_quotes(self):
+    def test_3921(self):
         "3921 - test binding by name with double quotes"
         data = {'"_value1"': 1, '"VaLue_2"': 2, '"3VALUE"': 3}
         self.cursor.execute(
@@ -304,7 +304,7 @@ class TestCase(test_env.BaseTestCase):
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, 6)
 
-    def test_3922_resize_buffer(self):
+    def test_3922(self):
         "3922 - test executing a statement with different input buffer sizes"
         sql = """
                 insert into TestTempTable (IntCol, StringCol1, StringCol2)
@@ -330,7 +330,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, values3)
         self.assertEqual(ret_bind.values, [["3"]])
 
-    def test_3923_rowfactory_callable(self):
+    def test_3923(self):
         "3923 - test using rowfactory"
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.execute(
@@ -352,7 +352,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [{"INTCOL": 1, "STRINGCOL1": "Test 1"}]
         )
 
-    def test_3924_rowfactory_execute_same_sql(self):
+    def test_3924(self):
         "3924 - test executing same query after setting rowfactory"
         self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test 1"), (2, "Test 2")]
@@ -372,7 +372,7 @@ class TestCase(test_env.BaseTestCase):
         results2 = self.cursor.fetchall()
         self.assertEqual(results1, results2)
 
-    def test_3925_rowfactory_execute_different_sql(self):
+    def test_3925(self):
         "3925 - test executing different query after setting rowfactory"
         self.cursor.execute("truncate table TestTempTable")
         data = [(1, "Test 1"), (2, "Test 2")]
@@ -397,7 +397,7 @@ class TestCase(test_env.BaseTestCase):
         expected_data = [(1, "String 1"), (2, "String 2"), (3, "String 3")]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    def test_3926_rowfactory_on_refcursor(self):
+    def test_3926(self):
         "3926 - test setting rowfactory on a REF cursor"
         with self.conn.cursor() as cursor:
             sql_function = "pkg_TestRefCursors.TestReturnCursor"
@@ -412,7 +412,7 @@ class TestCase(test_env.BaseTestCase):
             ]
             self.assertEqual(ref_cursor.fetchall(), expected_value)
 
-    def test_3927_subclassed_string(self):
+    def test_3927(self):
         "3927 - test using a subclassed string as bind parameter keys"
 
         class my_str(str):
@@ -437,7 +437,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(3927, "3927 - String Value")]
         )
 
-    def test_3928_sequence_of_params(self):
+    def test_3928(self):
         "3928 - test using a sequence of parameters other than a list or tuple"
 
         class MySeq(collections.abc.Sequence):
@@ -469,7 +469,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    def test_3929_output_type_handler_with_prefetch_gt_arraysize(self):
+    def test_3929(self):
         "3929 - test an output type handler with prefetch > arraysize"
 
         def type_handler(cursor, metadata):
@@ -483,7 +483,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(1,), (2,), (3,), (4,), (5,)]
         )
 
-    def test_3930_setinputsizes_no_binds(self):
+    def test_3930(self):
         "3930 - test setinputsizes() but without binding"
         self.cursor.setinputsizes(None, int)
         sql = "select :1, : 2 from dual"
@@ -495,7 +495,7 @@ class TestCase(test_env.BaseTestCase):
             [],
         )
 
-    def test_3931_fetch_info_attributes(self):
+    def test_3931(self):
         "3931 - test getting FetchInfo attributes"
         type_obj = self.conn.gettype("UDT_OBJECT")
         varchar_ratio, _ = test_env.get_charset_ratios()
@@ -574,7 +574,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(fetch_info.type, typ)
             self.assertEqual(fetch_info.type_code, type_code)
 
-    def test_3932_fetch_info_repr_str(self):
+    def test_3932(self):
         "3932 - test FetchInfo repr() and str()"
         self.cursor.execute("select IntCol from TestObjects")
         (fetch_info,) = self.cursor.description
@@ -587,7 +587,7 @@ class TestCase(test_env.BaseTestCase):
             "('INTCOL', <DbType DB_TYPE_NUMBER>, 10, None, 9, 0, False)",
         )
 
-    def test_3933_fetch_info_slice(self):
+    def test_3933(self):
         "3933 - test slicing FetchInfo"
         self.cursor.execute("select IntCol from TestObjects")
         (fetch_info,) = self.cursor.description

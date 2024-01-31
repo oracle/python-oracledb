@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -53,16 +53,16 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute(sql, val=rowid)
             self.assertEqual(self.cursor.fetchall(), [(int_val,)])
 
-    def test_2900_select_rowids_regular(self):
+    def test_2900(self):
         "2900 - test selecting all rowids from a regular table"
         self.__test_select_rowids("TestNumbers")
 
-    def test_2901_select_rowids_index_organised(self):
+    def test_2901(self):
         "2901 - test selecting all rowids from an index organised table"
         self.__populate_test_universal_rowids()
         self.__test_select_rowids("TestUniversalRowids")
 
-    def test_2902_insert_invalid_rowid(self):
+    def test_2902(self):
         "2902 - test inserting an invalid rowid"
         sql = "insert into TestRowids (IntCol, RowidCol) values (1, :rid)"
         self.assertRaisesRegex(
@@ -80,7 +80,7 @@ class TestCase(test_env.BaseTestCase):
             rid="523lkhlf",
         )
 
-    def test_2903_select_rowids_as_urowids(self):
+    def test_2903(self):
         "2903 - test selecting regular rowids stored in a urowid column"
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute(
@@ -99,7 +99,7 @@ class TestCase(test_env.BaseTestCase):
             )
             self.assertEqual(self.cursor.fetchall(), [(int_val,)])
 
-    def test_2904_select_rowids_as_rowids(self):
+    def test_2904(self):
         "2904 - test selecting regular rowids stored in a rowid column"
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute(
@@ -122,7 +122,7 @@ class TestCase(test_env.BaseTestCase):
             )
             self.assertEqual(self.cursor.fetchall(), [(int_val,)])
 
-    def test_2905_test_bind_and_insert_rowid(self):
+    def test_2905(self):
         "2905 - binding and inserting a rowid"
         self.cursor.execute("truncate table TestRowids")
         insert_data = [
@@ -174,7 +174,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         not test_env.get_is_thin(), "thick mode doesn't support DB_TYPE_UROWID"
     )
-    def test_2906_test_bind_and_insert_rowid_as_urowid(self):
+    def test_2906(self):
         "2906 - binding and inserting a rowid as urowid"
         self.cursor.execute("truncate table TestRowids")
         insert_data = [
@@ -227,7 +227,7 @@ class TestCase(test_env.BaseTestCase):
             (3, "String #3", datetime.datetime(2017, 4, 6)),
         )
 
-    def test_2907_test_fetch_null_rowids(self):
+    def test_2907(self):
         "2907 - fetching a null rowid"
         self.cursor.execute("truncate table TestRowids")
         self.cursor.execute("insert into TestRowids (IntCol) values (1)")

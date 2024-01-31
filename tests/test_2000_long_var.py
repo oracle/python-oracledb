@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -74,11 +74,11 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(len(fetched_value), integer_value * 25000)
             self.assertEqual(fetched_value, expected_value)
 
-    def test_2000_longs(self):
+    def test_2000(self):
         "2000 - test binding and fetching long data"
         self.__perform_test(oracledb.DB_TYPE_LONG)
 
-    def test_2001_long_with_execute_many(self):
+    def test_2001(self):
         "2001 - test binding long data with executemany()"
         data = []
         self.cursor.execute("truncate table TestLongs")
@@ -91,11 +91,11 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestLongs order by IntCol")
         self.assertEqual(self.cursor.fetchall(), data)
 
-    def test_2002_long_raws(self):
+    def test_2002(self):
         "2002 - test binding and fetching long raw data"
         self.__perform_test(oracledb.DB_TYPE_LONG_RAW)
 
-    def test_2003_long_cursor_description(self):
+    def test_2003(self):
         "2003 - test cursor description is accurate for longs"
         self.cursor.execute("select * from TestLongs")
         expected_value = [
@@ -104,7 +104,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2004_long_raw_cursor_description(self):
+    def test_2004(self):
         "2004 - test cursor description is accurate for long raws"
         self.cursor.execute("select * from TestLongRaws")
         expected_value = [
@@ -122,7 +122,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.description, expected_value)
 
     @unittest.skipIf(test_env.get_is_thin(), "not relevant for thin mode")
-    def test_2005_array_size_too_large(self):
+    def test_2005(self):
         "2005 - test array size too large generates an exception"
         self.cursor.arraysize = 268435456
         self.assertRaisesRegex(

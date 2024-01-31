@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -68,7 +68,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await cursor.fetchone()
         self.assertEqual(result, value, f"{attr_name} value mismatch")
 
-    async def test_5300_simple_connection(self):
+    async def test_5300(self):
         "5300 - simple connection to database"
         conn = await test_env.get_connection_async()
         self.assertEqual(
@@ -78,7 +78,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             conn.dsn, test_env.get_connect_string(), "dsn differs"
         )
 
-    async def test_5303_attributes(self):
+    async def test_5303(self):
         "5303 - test connection end-to-end tracing attributes"
         conn = await test_env.get_connection_async()
         if not await self.is_on_oracle_cloud(conn):
@@ -103,7 +103,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await self.__verify_attributes(conn, "client_identifier", None, sql)
 
-    async def test_5304_autocommit(self):
+    async def test_5304(self):
         "5304 - test use of autocommit"
         conn = await test_env.get_connection_async()
         cursor = conn.cursor()
@@ -120,7 +120,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await other_cursor.fetchall(), [(1,), (2,)])
 
-    async def test_5305_bad_connect_string(self):
+    async def test_5305(self):
         "5305 - connection to database with bad connect string"
         with self.assertRaisesRegex(
             oracledb.DatabaseError,
@@ -146,14 +146,14 @@ class TestCase(test_env.BaseAsyncTestCase):
                 + test_env.get_main_password()
             )
 
-    async def test_5306_bad_password(self):
+    async def test_5306(self):
         "5306 - connection to database with bad password"
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01017:"):
             await test_env.get_connection_async(
                 password=test_env.get_main_password() + "X",
             )
 
-    async def test_5307_change_password(self):
+    async def test_5307(self):
         "5307 - test changing password"
         conn = await test_env.get_connection_async()
         if await self.is_on_oracle_cloud(conn):
@@ -166,7 +166,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         conn = await test_env.get_connection_async(password=new_password)
         await conn.changepassword(new_password, test_env.get_main_password())
 
-    async def test_5308_change_password_negative(self):
+    async def test_5308(self):
         "5308 - test changing password to an invalid value"
         conn = await test_env.get_connection_async()
         if await self.is_on_oracle_cloud(conn):
@@ -183,7 +183,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await conn.changepassword("incorrect old password", new_password)
 
-    async def test_5309_parse_password(self):
+    async def test_5309(self):
         "5309 - test connecting with password containing / and @ symbols"
         conn = await test_env.get_connection_async()
         if await self.is_on_oracle_cloud(conn):
@@ -203,19 +203,19 @@ class TestCase(test_env.BaseAsyncTestCase):
                 new_password, test_env.get_main_password()
             )
 
-    async def test_5310_exception_on_close(self):
+    async def test_5310(self):
         "5310 - confirm an exception is raised after closing a connection"
         conn = await test_env.get_connection_async()
         await conn.close()
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1001:"):
             await conn.rollback()
 
-    async def test_5312_version(self):
+    async def test_5312(self):
         "5312 - connection version is a string"
         conn = await test_env.get_connection_async()
         self.assertIsInstance(conn.version, str)
 
-    async def test_5313_rollback_on_close(self):
+    async def test_5313(self):
         "5313 - connection rolls back before close"
         conn = await test_env.get_connection_async()
         cursor = conn.cursor()
@@ -231,12 +231,12 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await cursor.fetchone()
         self.assertEqual(count, 0)
 
-    async def test_5315_threading(self):
+    async def test_5315(self):
         "5315 - multiple connections to database with multiple threads"
         coroutines = [self.__connect_and_drop() for i in range(20)]
         await asyncio.gather(*coroutines)
 
-    async def test_5316_string_format(self):
+    async def test_5316(self):
         "5316 - test string format of connection"
         conn = await test_env.get_connection_async()
         expected_value = "<oracledb.AsyncConnection to %s@%s>" % (
@@ -245,7 +245,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(str(conn), expected_value)
 
-    async def test_5317_ctx_mgr_close(self):
+    async def test_5317(self):
         "5317 - test context manager - close"
         async with test_env.get_connection_async() as conn:
             cursor = conn.cursor()
@@ -265,7 +265,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await cursor.fetchone()
         self.assertEqual(count, 1)
 
-    async def test_5318_connection_attributes(self):
+    async def test_5318(self):
         "5318 - test connection attribute values"
         conn = await test_env.get_connection_async()
         if test_env.get_client_version() >= (12, 1):
@@ -283,7 +283,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
         self.assertRaises(TypeError, conn.stmtcachesize, "value")
 
-    async def test_5319_closed_connection_attributes(self):
+    async def test_5319(self):
         "5319 - test closed connection attribute values"
         conn = await test_env.get_connection_async()
         await conn.close()
@@ -301,20 +301,20 @@ class TestCase(test_env.BaseAsyncTestCase):
                 oracledb.InterfaceError, "^DPY-1001:", getattr, conn, name
             )
 
-    async def test_5320_ping(self):
+    async def test_5320(self):
         "5320 - test connection ping makes a round trip"
         self.conn = await test_env.get_connection_async()
         await self.setup_round_trip_checker()
         await self.conn.ping()
         await self.assertRoundTrips(1)
 
-    async def test_5325_threading_single_connection(self):
+    async def test_5325(self):
         "5325 - single connection to database with multiple threads"
         async with test_env.get_connection_async() as conn:
             coroutines = [self.__verify_fetched_data(conn) for i in range(3)]
             await asyncio.gather(*coroutines)
 
-    async def test_5326_cancel(self):
+    async def test_5326(self):
         "5326 - test connection cancel"
         conn = await test_env.get_connection_async()
         sleep_proc_name = test_env.get_sleep_proc_name()
@@ -335,7 +335,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             (user,) = await cursor.fetchone()
             self.assertEqual(user, test_env.get_main_user().upper())
 
-    async def test_5327_change_password_during_connect(self):
+    async def test_5327(self):
         "5327 - test changing password during connect"
         conn = await test_env.get_connection_async()
         if await self.is_on_oracle_cloud(conn):
@@ -348,7 +348,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         conn = await test_env.get_connection_async(password=new_password)
         await conn.changepassword(new_password, test_env.get_main_password())
 
-    async def test_5328_autocommit_during_reexecute(self):
+    async def test_5328(self):
         "5328 - test use of autocommit during reexecute"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         data_to_insert = [(1, "Test String #1"), (2, "Test String #2")]
@@ -369,7 +369,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await other_cursor.fetchall(), data_to_insert)
 
-    async def test_5329_current_schema(self):
+    async def test_5329(self):
         "5329 - test current_schema is set properly"
         conn = await test_env.get_connection_async()
         self.assertIsNone(conn.current_schema)
@@ -389,7 +389,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await cursor.fetchone()
         self.assertEqual(result, user)
 
-    async def test_5330_dbms_output(self):
+    async def test_5330(self):
         "5330 - test dbms_output package"
         conn = await test_env.get_connection_async()
         cursor = conn.cursor()
@@ -401,7 +401,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await cursor.callproc("dbms_output.get_line", (string_var, number_var))
         self.assertEqual(string_var.getvalue(), test_string)
 
-    async def test_5331_calltimeout(self):
+    async def test_5331(self):
         "5331 - test connection call_timeout"
         conn = await test_env.get_connection_async()
         conn.call_timeout = 500  # milliseconds
@@ -412,28 +412,24 @@ class TestCase(test_env.BaseAsyncTestCase):
             with conn.cursor() as cursor:
                 await cursor.callproc(test_env.get_sleep_proc_name(), [2])
 
-    async def test_5332_connection_repr(self):
+    async def test_5332(self):
         "5332 - test Connection repr()"
 
         class MyConnection(oracledb.AsyncConnection):
             pass
 
         conn = await test_env.get_connection_async(conn_class=MyConnection)
+        qual_name = conn.__class__.__qualname__
         expected_value = (
-            f"<{__name__}.TestCase.test_5332_connection_repr."
-            f"<locals>.MyConnection to {conn.username}@"
-            f"{conn.dsn}>"
+            f"<{__name__}.{qual_name} to {conn.username}@{conn.dsn}>"
         )
         self.assertEqual(repr(conn), expected_value)
 
         await conn.close()
-        expected_value = (
-            f"<{__name__}.TestCase.test_5332_connection_repr."
-            "<locals>.MyConnection disconnected>"
-        )
+        expected_value = f"<{__name__}.{qual_name} disconnected>"
         self.assertEqual(repr(conn), expected_value)
 
-    async def test_5333_get_write_only_attributes(self):
+    async def test_5333(self):
         "5333 - test getting write-only attributes"
         conn = await test_env.get_connection_async()
         with self.assertRaises(AttributeError):
@@ -449,7 +445,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaises(AttributeError):
             conn.client_identifier
 
-    async def test_5334_invalid_params(self):
+    async def test_5334(self):
         "5334 - test error for invalid type for params and pool"
         pool = test_env.get_pool_async()
         await pool.close()
@@ -462,7 +458,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2025:"):
             await oracledb.connect_async(params={"number": 7})
 
-    async def test_5335_instance_name(self):
+    async def test_5335(self):
         "5335 - test connection instance name"
         conn = await test_env.get_connection_async()
         cursor = conn.cursor()
@@ -479,7 +475,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         test_env.get_server_version() < (23, 0),
         "unsupported server",
     )
-    async def test_5337_max_length_password(self):
+    async def test_5337(self):
         "5337 - test maximum allowed length for password"
         conn = await test_env.get_connection_async()
         if await self.is_on_oracle_cloud(conn):

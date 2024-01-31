@@ -268,7 +268,7 @@ class TestCase(test_env.BaseTestCase):
                 string = prev_char * 5 + char * 5
                 self.assertEqual(lob.read(offset, 10), string)
 
-    def test_1900_bind_lob_value(self):
+    def test_1900(self):
         "1900 - test binding a LOB value directly"
         self.cursor.execute("delete from TestCLOBs")
         self.cursor.execute(
@@ -290,7 +290,7 @@ class TestCase(test_env.BaseTestCase):
             value=lob,
         )
 
-    def test_1901_blob_cursor_description(self):
+    def test_1901(self):
         "1901 - test cursor description is accurate for BLOBs"
         self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         expected_value = [
@@ -299,19 +299,19 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1902_blob_direct(self):
+    def test_1902(self):
         "1902 - test binding and fetching BLOB data (directly)"
         self.__perform_test("BLOB", oracledb.DB_TYPE_BLOB)
 
-    def test_1903_blob_indirect(self):
+    def test_1903(self):
         "1903 - test binding and fetching BLOB data (indirectly)"
         self.__perform_test("BLOB", oracledb.DB_TYPE_LONG_RAW)
 
-    def test_1904_blob_operations(self):
+    def test_1904(self):
         "1904 - test operations on BLOBs"
         self.__test_lob_operations("BLOB")
 
-    def test_1905_clob_cursor_description(self):
+    def test_1905(self):
         "1905 - test cursor description is accurate for CLOBs"
         self.cursor.execute("select IntCol, ClobCol from TestCLOBs")
         expected_value = [
@@ -320,36 +320,36 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1906_clob_direct(self):
+    def test_1906(self):
         "1906 - test binding and fetching CLOB data (directly)"
         self.__perform_test("CLOB", oracledb.DB_TYPE_CLOB)
 
-    def test_1907_clob_indirect(self):
+    def test_1907(self):
         "1907 - test binding and fetching CLOB data (indirectly)"
         self.__perform_test("CLOB", oracledb.DB_TYPE_LONG)
 
-    def test_1908_clob_operations(self):
+    def test_1908(self):
         "1908 - test operations on CLOBs"
         self.__test_lob_operations("CLOB")
 
-    def test_1909_create_temp_blob(self):
+    def test_1909(self):
         "1909 - test creating a temporary BLOB"
         self.__test_temporary_lob("BLOB")
 
-    def test_1910_create_temp_clob(self):
+    def test_1910(self):
         "1910 - test creating a temporary CLOB"
         self.__test_temporary_lob("CLOB")
 
-    def test_1911_create_temp_nclob(self):
+    def test_1911(self):
         "1911 - test creating a temporary NCLOB"
         self.__test_temporary_lob("NCLOB")
 
-    def test_1912_multiple_fetch(self):
+    def test_1912(self):
         "1912 - test retrieving data from a CLOB after multiple fetches"
         self.cursor.arraysize = 1
         self.__perform_test("CLOB", oracledb.DB_TYPE_CLOB)
 
-    def test_1913_nclob_cursor_description(self):
+    def test_1913(self):
         "1913 - test cursor description is accurate for NCLOBs"
         self.cursor.execute("select IntCol, NClobCol from TestNCLOBs")
         expected_value = [
@@ -358,11 +358,11 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1914_nclob_direct(self):
+    def test_1914(self):
         "1914 - test binding and fetching NCLOB data (directly)"
         self.__perform_test("NCLOB", oracledb.DB_TYPE_NCLOB)
 
-    def test_1915_nclob_non_ascii_chars(self):
+    def test_1915(self):
         "1915 - test binding and fetching NCLOB data (with non-ASCII chars)"
         value = "\u03b4\u4e2a"
         self.cursor.execute("delete from TestNCLOBs")
@@ -385,15 +385,15 @@ class TestCase(test_env.BaseTestCase):
         (nclob,) = self.cursor.fetchone()
         self.assertEqual(nclob.read(), value + value)
 
-    def test_1916_nclob_indirect(self):
+    def test_1916(self):
         "1916 - test binding and fetching NCLOB data (indirectly)"
         self.__perform_test("NCLOB", oracledb.DB_TYPE_LONG)
 
-    def test_1917_nclob_operations(self):
+    def test_1917(self):
         "1917 - test operations on NCLOBs"
         self.__test_lob_operations("NCLOB")
 
-    def test_1918_temporary_lobs(self):
+    def test_1918(self):
         "1918 - test temporary LOBs"
         self.cursor.execute("select sys_context('USERENV', 'SID') from dual")
         (sid,) = self.cursor.fetchone()
@@ -410,12 +410,12 @@ class TestCase(test_env.BaseTestCase):
         temp_lobs = self.__get_temp_lobs(sid)
         self.assertEqual(temp_lobs, 0)
 
-    def test_1919_assign_string_beyond_array_size(self):
+    def test_1919(self):
         "1919 - test assign string to NCLOB beyond array size"
         nclobVar = self.cursor.var(oracledb.DB_TYPE_NCLOB)
         self.assertRaises(IndexError, nclobVar.setvalue, 1, "test char")
 
-    def test_1920_supplemental_characters(self):
+    def test_1920(self):
         "1920 - test read/write temporary LOBs using supplemental characters"
         if test_env.get_charset() != "AL32UTF8":
             self.skipTest("Database character set must be AL32UTF8")
@@ -439,7 +439,7 @@ class TestCase(test_env.BaseTestCase):
         (lob,) = self.cursor.fetchone()
         self.assertEqual(lob.read(), supplemental_chars)
 
-    def test_1921_plsql_auto_conversion_clob(self):
+    def test_1921(self):
         "1921 - test automatic conversion to CLOB for PL/SQL"
         var = self.cursor.var(str, outconverter=lambda v: v[-15:])
         var.setvalue(0, "A" * 50000)
@@ -457,7 +457,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "A" * 10 + "B" * 5)
 
-    def test_1922_plsql_auto_conversion_nclob(self):
+    def test_1922(self):
         "1922 - test automatic conversion to NCLOB for PL/SQL"
         var = self.cursor.var(
             oracledb.DB_TYPE_NCHAR, outconverter=lambda v: v[-12:]
@@ -477,7 +477,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "N" * 5 + "P" * 7)
 
-    def test_1923_plsql_auto_conversion_blob(self):
+    def test_1923(self):
         "1923 - test automatic conversion to BLOB for PL/SQL"
         var = self.cursor.var(bytes, outconverter=lambda v: v[-14:])
         var.setvalue(0, b"L" * 52345)
@@ -495,43 +495,43 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), b"L" * 8 + b"Q" * 6)
 
-    def test_1924_pickle_blob(self):
+    def test_1924(self):
         "1924 - test pickling of BLOB"
         self.__test_pickle("BLOB")
 
-    def test_1925_pickle_clob(self):
+    def test_1925(self):
         "1925 - test pickling of CLOB"
         self.__test_pickle("CLOB")
 
-    def test_1926_pickle_nclob(self):
+    def test_1926(self):
         "1925 - test pickling of NCLOB"
         self.__test_pickle("NCLOB")
 
-    def test_1927_fetch_blob_as_bytes(self):
+    def test_1927(self):
         "1927 - test fetching BLOB as bytes"
         self.__test_fetch_lobs_direct("BLOB")
 
-    def test_1928_fetch_clob_as_str(self):
+    def test_1928(self):
         "1928 - test fetching CLOB as str"
         self.__test_fetch_lobs_direct("CLOB")
 
-    def test_1929_fetch_nclob_as_str(self):
+    def test_1929(self):
         "1929 - test fetching NCLOB as str"
         self.__test_fetch_lobs_direct("NCLOB")
 
-    def test_1930_bind_order_blob(self):
+    def test_1930(self):
         "1930 - test bind ordering with BLOB"
         self.__test_bind_ordering("BLOB")
 
-    def test_1931_bind_order_clob(self):
+    def test_1931(self):
         "1931 - test bind ordering with CLOB"
         self.__test_bind_ordering("CLOB")
 
-    def test_1932_bind_order_nclob(self):
+    def test_1932(self):
         "1932 - test bind ordering with NCLOB"
         self.__test_bind_ordering("NCLOB")
 
-    def test_1933_create_lob_with_invalid_type(self):
+    def test_1933(self):
         "1933 - test creating a lob with an invalid type"
         self.assertRaises(
             TypeError, self.conn.createlob, oracledb.DB_TYPE_NUMBER

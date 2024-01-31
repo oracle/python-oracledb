@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,7 +36,7 @@ import test_env
     test_env.get_is_thin(), "thin mode doesn't support two-phase commit yet"
 )
 class TestCase(test_env.BaseTestCase):
-    def test_4400_tpc_with_rolback(self):
+    def test_4400(self):
         "4400 - test begin, prepare, roll back global transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(3900, "txn3900", "branchId")
@@ -55,7 +55,7 @@ class TestCase(test_env.BaseTestCase):
         (count,) = self.cursor.fetchone()
         self.assertEqual(count, 0)
 
-    def test_4401_tpc_with_commit(self):
+    def test_4401(self):
         "4401 - test begin, prepare, commit global transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(3901, "txn3901", "branchId")
@@ -71,7 +71,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(self.cursor.fetchall(), [(1, "tesName")])
 
-    def test_4402_tpc_multiple_transactions(self):
+    def test_4402(self):
         "4402 - test multiple global transactions on the same connection"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3902, "txn3902", "branch1")
@@ -104,7 +104,7 @@ class TestCase(test_env.BaseTestCase):
         expected_rows = [(1, "tesName"), (2, "tesName")]
         self.assertEqual(self.cursor.fetchall(), expected_rows)
 
-    def test_4403_rollback_with_xid(self):
+    def test_4403(self):
         "4403 - test rollback with parameter xid"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3901, "txn3901", "branch1")
@@ -132,7 +132,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [(1, "tesName")])
 
-    def test_4404_tpc_begin_resume(self):
+    def test_4404(self):
         "4404 - test resuming a transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3939, "txn3939", "branch39")
@@ -155,7 +155,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(res, data)
             self.conn.tpc_rollback(xid)
 
-    def test_4405_tpc_begin_promote(self):
+    def test_4405(self):
         "4405 - test promoting a local transaction to a tpc transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(3941, "txn3941", "branch41")
@@ -173,7 +173,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(res, values)
         self.conn.tpc_rollback(xid)
 
-    def test_4406_tpc_end_with_xid(self):
+    def test_4406(self):
         "4406 - test ending a transaction with parameter xid"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(4406, "txn4406a", "branch3")
@@ -202,7 +202,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.tpc_rollback(xid1)
         self.conn.tpc_rollback(xid2)
 
-    def test_4407_tpc_recover(self):
+    def test_4407(self):
         "4407 - test tpc_recover()"
         self.cursor.execute("truncate table TestTempTable")
         n_xids = 10
@@ -236,7 +236,7 @@ class TestCase(test_env.BaseTestCase):
         recovers = self.conn.tpc_recover()
         self.assertEqual(len(recovers), 0)
 
-    def test_4408_tpc_recover_read_only(self):
+    def test_4408(self):
         "4408 - test tpc_recover() with read-only transaction"
         self.cursor.execute("truncate table TestTempTable")
         for i in range(4):
@@ -247,7 +247,7 @@ class TestCase(test_env.BaseTestCase):
         recovers = self.conn.tpc_recover()
         self.assertEqual(len(recovers), 0)
 
-    def test_4409_tpc_commit_one_phase(self):
+    def test_4409(self):
         "4409 - test tpc_commit() with one_phase parameter"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4409, "txn4409", "branch1")
@@ -264,7 +264,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.tpc_commit(xid, one_phase=True)
         self.assertEqual(self.cursor.fetchall(), [values])
 
-    def test_4410_tpc_commit_one_phase_negative(self):
+    def test_4410(self):
         "4410 - test negative cases for tpc_commit()"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4410, "txn4410", "branch1")
@@ -289,7 +289,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.conn.tpc_rollback(xid)
 
-    def test_4411_tpc_begin_negative(self):
+    def test_4411(self):
         "4411 - test starting an already created transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4411, "txn4411", "branch1")
@@ -319,7 +319,7 @@ class TestCase(test_env.BaseTestCase):
             )
         self.conn.tpc_rollback(xid)
 
-    def test_4412_resuming_prepared_txn_negative(self):
+    def test_4412(self):
         "4412 - test resuming a prepared transaction"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4412, "txn4412", "branch1")
@@ -333,7 +333,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.TPC_BEGIN_RESUME,
         )
 
-    def test_4413_tpc_begin_end_params_negative(self):
+    def test_4413(self):
         "4413 - test tpc_begin and tpc_end with invalid parameters"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4413, "txn4413", "branch1")
@@ -349,7 +349,7 @@ class TestCase(test_env.BaseTestCase):
             )
         self.conn.tpc_rollback(xid)
 
-    def test_4414_implicit_commit_negative(self):
+    def test_4414(self):
         "4414 - test commiting transaction without tpc_commit"
         xid = self.conn.xid(4414, "txn4409", "branch1")
         self.conn.tpc_begin(xid)
@@ -360,7 +360,7 @@ class TestCase(test_env.BaseTestCase):
             "truncate table TestTempTable",
         )
 
-    def test_4415_commit_is_not_needed(self):
+    def test_4415(self):
         "4415 - test tpc_commit when a commit is not needed"
         xid = self.conn.xid(4416, "txn4416", "branch1")
         self.conn.tpc_begin(xid)
@@ -371,7 +371,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^ORA-24756:", self.conn.tpc_commit, xid
         )
 
-    def test_4416_transaction_in_progress(self):
+    def test_4416(self):
         "4416 - test transaction_in_progress"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4415, "txn4415", "branch1")

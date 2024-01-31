@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,27 +35,27 @@ import test_env
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
 
-    def test_1000_date_from_ticks(self):
+    def test_1000(self):
         "1000 - test DateFromTicks()"
         today = datetime.datetime.today()
         timestamp = today.timestamp()
         date = oracledb.DateFromTicks(int(timestamp))
         self.assertEqual(date, today.date())
 
-    def test_1001_future_obj(self):
+    def test_1001(self):
         "1001 - test management of __future__ object"
         self.assertIsNone(oracledb.__future__.dummy)
         oracledb.__future__.dummy = "Unimportant"
         self.assertIsNone(oracledb.__future__.dummy)
 
-    def test_1002_timestamp_from_ticks(self):
+    def test_1002(self):
         "1002 - test TimestampFromTicks()"
         timestamp = datetime.datetime.today().timestamp()
         today = datetime.datetime.fromtimestamp(timestamp)
         date = oracledb.TimestampFromTicks(timestamp)
         self.assertEqual(date, today)
 
-    def test_1003_unsupported_functions(self):
+    def test_1003(self):
         "1003 - test unsupported time functions"
         self.assertRaisesRegex(
             oracledb.NotSupportedError, "^DPY-3000:", oracledb.Time, 12, 0, 0
@@ -67,7 +67,7 @@ class TestCase(test_env.BaseTestCase):
             100,
         )
 
-    def test_1004_makedsn(self):
+    def test_1004(self):
         "1004 - test makedsn() with valid arguments"
         format_string = (
             "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)"
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseTestCase):
         result = oracledb.makedsn(*args)
         self.assertEqual(result, format_string % args)
 
-    def test_1005_makedsn_invalid_args(self):
+    def test_1005(self):
         "1005 - test makedsn() with invalid arguments"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
@@ -127,7 +127,7 @@ class TestCase(test_env.BaseTestCase):
             super_sharding_key="(invalid)",
         )
 
-    def test_1006_aliases(self):
+    def test_1006(self):
         "1006 - test aliases match"
 
         # database type aliases

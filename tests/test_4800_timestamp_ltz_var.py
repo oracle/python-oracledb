@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    def test_4800_bind_timestamp(self):
+    def test_4800(self):
         "4800 - test binding in a timestamp"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_4801_bind_null(self):
+    def test_4801(self):
         "4801 - test binding in a null"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(
@@ -90,7 +90,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_4802_bind_out_set_input_sizes(self):
+    def test_4802(self):
         "4802 - test binding out with set input sizes defined"
         bv = self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(
@@ -102,7 +102,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bv["value"].getvalue(), datetime.datetime(2022, 6, 3))
 
-    def test_4803_bind_in_out_set_input_sizes(self):
+    def test_4803(self):
         "4803 - test binding in/out with set input sizes defined"
         bv = self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(
@@ -117,7 +117,7 @@ class TestCase(test_env.BaseTestCase):
             bv["value"].getvalue(), datetime.datetime(2022, 5, 15, 18, 0, 0)
         )
 
-    def test_4804_bind_out_var(self):
+    def test_4804(self):
         "4804 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(
@@ -132,7 +132,7 @@ class TestCase(test_env.BaseTestCase):
             var.getvalue(), datetime.datetime(2022, 6, 1, 15, 38, 12)
         )
 
-    def test_4805_bind_in_out_var_direct_set(self):
+    def test_4805(self):
         "4805 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_TIMESTAMP_LTZ)
         var.setvalue(0, datetime.datetime(2022, 5, 30, 6, 0, 0))
@@ -148,7 +148,7 @@ class TestCase(test_env.BaseTestCase):
             var.getvalue(), datetime.datetime(2022, 6, 4, 12, 0, 0)
         )
 
-    def test_4806_cursor_description(self):
+    def test_4806(self):
         "4806 - test cursor description is accurate"
         self.cursor.execute("select * from TestTimestampLTZs")
         expected_value = [
@@ -174,13 +174,13 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_4807_fetchall(self):
+    def test_4807(self):
         "4807 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestTimestampLTZs order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_4808_fetchmany(self):
+    def test_4808(self):
         "4808 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestTimestampLTZs order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
@@ -189,7 +189,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_4809_fetchone(self):
+    def test_4809(self):
         "4809 - test that fetching a single row returns the correct results"
         self.cursor.execute(
             """
@@ -203,7 +203,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertEqual(self.cursor.fetchone(), None)
 
-    def test_4810_bind_timestamp_with_zero_fseconds(self):
+    def test_4810(self):
         "4810 - test binding a timestamp with zero fractional seconds"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_LTZ)
         self.cursor.execute(

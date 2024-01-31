@@ -57,14 +57,14 @@ class TestCase(test_env.BaseTestCase):
                 str, arraysize=cursor.arraysize, bypass_decode=True
             )
 
-    def test_2500_array_with_increased_size(self):
+    def test_2500(self):
         "2500 - test creating array var and then increasing the internal size"
         val = ["12345678901234567890"] * 3
         var = self.cursor.arrayvar(str, len(val), 4)
         var.setvalue(0, val)
         self.assertEqual(var.getvalue(), val)
 
-    def test_2501_bind_string(self):
+    def test_2501(self):
         "2501 - test binding in a string"
         self.cursor.execute(
             "select * from TestStrings where StringCol = :value",
@@ -72,7 +72,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_2502_bind_different_var(self):
+    def test_2502(self):
         "2502 - test binding a different variable on second execution"
         retval_1 = self.cursor.var(oracledb.STRING, 30)
         retval_2 = self.cursor.var(oracledb.STRING, 30)
@@ -81,12 +81,12 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("begin :retval := 'Called'; end;", retval=retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
-    def test_2503_exceeds_num_elements(self):
+    def test_2503(self):
         "2503 - test exceeding the number of elements returns IndexError"
         var = self.cursor.var(str)
         self.assertRaises(IndexError, var.getvalue, 1)
 
-    def test_2504_bind_string_after_number(self):
+    def test_2504(self):
         "2504 - test binding in a string after setting input sizes to a number"
         self.cursor.setinputsizes(value=oracledb.NUMBER)
         self.cursor.execute(
@@ -95,7 +95,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[6]])
 
-    def test_2505_bind_string_array_direct(self):
+    def test_2505(self):
         "2505 - test binding in a string array"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = [r[1] for r in self.raw_data]
@@ -112,7 +112,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, integer_value=8, array=array)
         self.assertEqual(return_value.getvalue(), 163)
 
-    def test_2506_bind_string_array_by_sizes(self):
+    def test_2506(self):
         "2506 - test binding in a string array (with setinputsizes)"
         return_value = self.cursor.var(oracledb.NUMBER)
         self.cursor.setinputsizes(array=[oracledb.STRING, 10])
@@ -130,7 +130,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 87)
 
-    def test_2507_bind_string_array_by_var(self):
+    def test_2507(self):
         "2507 - test binding in a string array (with arrayvar)"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = self.cursor.arrayvar(oracledb.STRING, 10, 20)
@@ -148,7 +148,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 88)
 
-    def test_2508_bind_in_out_string_array_by_var(self):
+    def test_2508(self):
         "2508 - test binding in/out a string array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.STRING, 10, 100)
         original_data = [r[1] for r in self.raw_data]
@@ -169,7 +169,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2509_bind_out_string_array_by_var(self):
+    def test_2509(self):
         "2509 - test binding out a string array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.STRING, 6, 100)
         expected_data = [f"Test out element # {i}" for i in range(1, 7)]
@@ -184,7 +184,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2510_bind_raw(self):
+    def test_2510(self):
         "2510 - test binding in a raw"
         self.cursor.setinputsizes(value=oracledb.BINARY)
         self.cursor.execute(
@@ -193,7 +193,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[4]])
 
-    def test_2511_bind_and_fetch_rowid(self):
+    def test_2511(self):
         "2511 - test binding (and fetching) a rowid"
         self.cursor.execute("select rowid from TestStrings where IntCol = 3")
         (rowid,) = self.cursor.fetchone()
@@ -203,7 +203,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[3]])
 
-    def test_2513_bind_null(self):
+    def test_2513(self):
         "2513 - test binding in a null"
         self.cursor.execute(
             "select * from TestStrings where StringCol = :value",
@@ -211,7 +211,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2514_bind_out_set_input_sizes_by_type(self):
+    def test_2514(self):
         "2514 - test binding out with set input sizes defined (by type)"
         bind_vars = self.cursor.setinputsizes(value=oracledb.STRING)
         self.cursor.execute(
@@ -223,7 +223,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), "TSI")
 
-    def test_2515_bind_out_set_input_sizes_by_integer(self):
+    def test_2515(self):
         "2515 - test binding out with set input sizes defined (by integer)"
         bind_vars = self.cursor.setinputsizes(value=30)
         self.cursor.execute(
@@ -235,7 +235,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), "TSI (I)")
 
-    def test_2516_bind_in_out_set_input_sizes_by_type(self):
+    def test_2516(self):
         "2516 - test binding in/out with set input sizes defined (by type)"
         bind_vars = self.cursor.setinputsizes(value=oracledb.STRING)
         self.cursor.execute(
@@ -248,7 +248,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), "InVal TSI")
 
-    def test_2517_bind_in_out_set_input_sizes_by_integer(self):
+    def test_2517(self):
         "2517 - test binding in/out with set input sizes defined (by integer)"
         bind_vars = self.cursor.setinputsizes(value=30)
         self.cursor.execute(
@@ -261,7 +261,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), "InVal TSI (I)")
 
-    def test_2518_bind_out_var(self):
+    def test_2518(self):
         "2518 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.STRING)
         self.cursor.execute(
@@ -274,7 +274,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "TSI (VAR)")
 
-    def test_2519_bind_in_out_var_direct_set(self):
+    def test_2519(self):
         "2519 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.STRING)
         var.setvalue(0, "InVal")
@@ -288,7 +288,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "InVal TSI (VAR)")
 
-    def test_2520_bind_long_string(self):
+    def test_2520(self):
         "2520 - test that binding a long string succeeds"
         self.cursor.setinputsizes(big_string=oracledb.DB_TYPE_LONG)
         self.cursor.execute(
@@ -302,7 +302,7 @@ class TestCase(test_env.BaseTestCase):
             big_string="X" * 10000,
         )
 
-    def test_2521_bind_long_string_after_setting_size(self):
+    def test_2521(self):
         "2521 - test that setinputsizes() returns a long variable"
         var = self.cursor.setinputsizes(test=90000)["test"]
         in_string = "1234567890" * 9000
@@ -314,7 +314,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(in_string, out_string, msg)
 
-    def test_2522_cursor_description(self):
+    def test_2522(self):
         "2522 - test cursor description is accurate"
         self.cursor.execute("select * from TestStrings")
         varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
@@ -351,13 +351,13 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2523_fetchall(self):
+    def test_2523(self):
         "2523 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2524_fetchmany(self):
+    def test_2524(self):
         "2524 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestStrings order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
@@ -366,7 +366,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_2525_fetchone(self):
+    def test_2525(self):
         "2525 - test that fetching a single row returns the correct results"
         self.cursor.execute(
             """
@@ -380,7 +380,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertIsNone(self.cursor.fetchone())
 
-    def test_2526_supplemental_characters(self):
+    def test_2526(self):
         "2526 - test binding and fetching supplemental charcters"
         if test_env.get_charset() != "AL32UTF8":
             self.skipTest("Database character set must be AL32UTF8")
@@ -404,7 +404,7 @@ class TestCase(test_env.BaseTestCase):
         (value,) = self.cursor.fetchone()
         self.assertEqual(value, supplemental_chars)
 
-    def test_2527_bind_twice_with_large_string_second(self):
+    def test_2527(self):
         "2527 - test binding twice with a larger string the second time"
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -424,7 +424,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(1, short_string), (2, long_string)]
         )
 
-    def test_2528_issue_50(self):
+    def test_2528(self):
         "2528 - test issue 50 - avoid error ORA-24816"
         cursor = self.conn.cursor()
         try:
@@ -463,7 +463,7 @@ class TestCase(test_env.BaseTestCase):
         )
         cursor.execute("drop table issue_50 purge")
 
-    def test_2529_set_rowid_to_string(self):
+    def test_2529(self):
         "2529 - test assigning a string to rowid"
         var = self.cursor.var(oracledb.ROWID)
         self.assertRaisesRegex(
@@ -474,7 +474,7 @@ class TestCase(test_env.BaseTestCase):
             "ABDHRYTHFJGKDKKDH",
         )
 
-    def test_2530_short_xml_as_string(self):
+    def test_2530(self):
         "2530 - test fetching XMLType (< 1K) as a string"
         self.cursor.execute(
             """
@@ -490,7 +490,7 @@ class TestCase(test_env.BaseTestCase):
             [("XML", oracledb.DB_TYPE_XMLTYPE, None, None, None, None, True)],
         )
 
-    def test_2531_long_xml_as_string(self):
+    def test_2531(self):
         "2531 - test inserting and fetching XMLType (1K) as a string"
         self.cursor.execute("truncate table TestTempXML")
         chars = string.ascii_uppercase + string.ascii_lowercase
@@ -508,7 +508,7 @@ class TestCase(test_env.BaseTestCase):
         (actual_value,) = self.cursor.fetchone()
         self.assertEqual(actual_value.strip(), xml_string)
 
-    def test_2532_fetch_null_values(self):
+    def test_2532(self):
         "2532 - fetching null and not null values can use optimised path"
         sql = """
                 select * from TestStrings
@@ -520,7 +520,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, start_value=8, end_value=10)
         self.assertEqual(self.cursor.fetchall(), self.raw_data[7:10])
 
-    def test_2533_bypass_decode(self):
+    def test_2533(self):
         "2533 - test bypass string decode"
         self.cursor.execute("truncate table TestTempTable")
         string_val = "I bought a cafetière on the Champs-Élysées"
@@ -542,7 +542,7 @@ class TestCase(test_env.BaseTestCase):
         not test_env.get_is_thin(),
         "thick mode doesn't support fetching XMLType > VARCHAR2",
     )
-    def test_2534_very_long_xml_as_string(self):
+    def test_2534(self):
         "2534 - test inserting and fetching XMLType (32K) as a string"
         self.cursor.execute("truncate table TestTempXML")
         chars = string.ascii_uppercase + string.ascii_lowercase

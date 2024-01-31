@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -84,7 +84,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(out_var.values, [[value] for value in data])
 
-    def test_3500_insert_and_fetch_single_json(self):
+    def test_3500(self):
         "3500 - insert and fetch single row with JSON"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -95,7 +95,7 @@ class TestCase(test_env.BaseTestCase):
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, self.json_data)
 
-    def test_3501_execute_with_dml_returning(self):
+    def test_3501(self):
         "3501 - inserting single rows with JSON and DML returning"
         json_val = self.json_data[11]
         self.cursor.execute("delete from TestJson")
@@ -111,7 +111,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(json_out.getvalue(0), [json_val])
 
-    def test_3502_insert_and_fetch_multiple_json(self):
+    def test_3502(self):
         "3502 - insert and fetch multiple rows with JSON"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -120,7 +120,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestJson")
         self.assertEqual(self.cursor.fetchall(), data)
 
-    def test_3503_executemany_with_dml_returning(self):
+    def test_3503(self):
         "3503 - inserting multiple rows with JSON and DML returning"
         self.cursor.execute("delete from TestJson")
         int_values = [i for i in range(len(self.json_data))]
@@ -143,12 +143,12 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(out_int_var.values, [[v] for v in int_values])
         self.assertEqual(out_json_var.values, [[v] for v in self.json_data])
 
-    def test_3504_boolean(self):
+    def test_3504(self):
         "3504 - test binding boolean values as scalar JSON values"
         data = [True, False, True, True, False, True]
         self.__bind_scalar_as_json(data)
 
-    def test_3505_strings_and_bytes(self):
+    def test_3505(self):
         "3505 - test binding strings/bytes values as scalar JSON values"
         data = [
             "String 1",
@@ -160,7 +160,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.__bind_scalar_as_json(data)
 
-    def test_3506_datetime(self):
+    def test_3506(self):
         "3506 - test binding dates/intervals as scalar JSON values"
         data = [
             datetime.datetime.today(),
@@ -173,7 +173,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.__bind_scalar_as_json(data)
 
-    def test_3507_bind_number(self):
+    def test_3507(self):
         "3507 - test binding number in json values"
         data = [
             0,
@@ -187,7 +187,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.__bind_scalar_as_json(data)
 
-    def test_3508_unsupported_python_type_bind(self):
+    def test_3508(self):
         "3508 - test binding unsupported python type with JSON"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -200,7 +200,7 @@ class TestCase(test_env.BaseTestCase):
             [1, list],
         )
 
-    def test_3509_unsupported_python_type_fetch(self):
+    def test_3509(self):
         "3509 - test fetching an unsupported python type with JSON"
         self.cursor.prefetchrows = 0
         self.cursor.execute(
@@ -210,7 +210,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.NotSupportedError, "^DPY-3007:", self.cursor.fetchone
         )
 
-    def test_3510_fetch_all_supported_types(self):
+    def test_3510(self):
         "3510 - fetch all supported types"
         sql = """
             select json('{
@@ -266,7 +266,7 @@ class TestCase(test_env.BaseTestCase):
         (actual_data,) = self.cursor.fetchone()
         self.assertEqual(actual_data, expected_data)
 
-    def test_3511_update_json(self):
+    def test_3511(self):
         "3511 - test inserting and updating JSON"
         self.cursor.execute("delete from TestJSON")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -285,7 +285,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), data)
 
-    def test_3512_json_query(self):
+    def test_3512(self):
         "3512 - test fetching json with json_query"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -305,7 +305,7 @@ class TestCase(test_env.BaseTestCase):
             result = [r for r, in self.cursor if r is not None]
             self.assertEqual(len(result), num_rows)
 
-    def test_3513_json_exists(self):
+    def test_3513(self):
         "3513 - test fetching json with json_exists"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -325,7 +325,7 @@ class TestCase(test_env.BaseTestCase):
             (count,) = self.cursor.fetchone()
             self.assertEqual(count, num_rows)
 
-    def test_3514_select_json(self):
+    def test_3514(self):
         "3514 - test selecting json data"
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -348,7 +348,7 @@ class TestCase(test_env.BaseTestCase):
         data = [r for r, in self.cursor]
         self.assertEqual(data, expected_data)
 
-    def test_3515_json_serialize(self):
+    def test_3515(self):
         "3515 - test fetching json with json_serialize"
         self.cursor.execute("delete from TestJson")
         data = [{"a": 12.5}, {"b": True}, {"c": None}]

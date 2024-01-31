@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -118,7 +118,7 @@ class TestCase(test_env.BaseTestCase):
         setattr(obj, attrName, value)
         self.assertEqual(getattr(obj, attrName), value)
 
-    def test_2700_deq_empty(self):
+    def test_2700(self):
         "2700 - test dequeuing an empty queue"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -127,7 +127,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertIsNone(props)
 
-    def test_2701_deq_enq(self):
+    def test_2701(self):
         "2701 - test enqueuing and dequeuing multiple messages"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -152,7 +152,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(results, self.book_data)
 
-    def test_2702_deq_mode_remove_no_data(self):
+    def test_2702(self):
         "2702 - test dequeuing with DEQ_REMOVE_NODATA option"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -168,7 +168,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNotNone(props)
         self.assertIsNone(props.payload.TITLE)
 
-    def test_2703_deq_options(self):
+    def test_2703(self):
         "2703 - test getting/setting dequeue options attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -186,7 +186,7 @@ class TestCase(test_env.BaseTestCase):
         self.__verify_attr(options, "wait", 1287)
         self.__verify_attr(options, "msgid", b"mID")
 
-    def test_2704_deq_with_wait(self):
+    def test_2704(self):
         "2704 - test waiting for dequeue"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -205,7 +205,7 @@ class TestCase(test_env.BaseTestCase):
         thread.join()
         self.assertEqual(results, [(title, authors, price)])
 
-    def test_2705_enq_options(self):
+    def test_2705(self):
         "2705 - test getting/setting enqueue options attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -213,7 +213,7 @@ class TestCase(test_env.BaseTestCase):
         options = queue.enqoptions
         self.__verify_attr(options, "visibility", oracledb.ENQ_IMMEDIATE)
 
-    def test_2706_errors_for_invalid_values(self):
+    def test_2706(self):
         "2706 - test errors for invalid values for enqueue"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -221,7 +221,7 @@ class TestCase(test_env.BaseTestCase):
         book = queue.payload_type.newobject()
         self.assertRaises(TypeError, queue.enqone, book)
 
-    def test_2707_msg_props(self):
+    def test_2707(self):
         "2707 - test getting/setting message properties attributes"
         props = self.conn.msgproperties()
         self.__verify_attr(props, "correlation", "TEST_CORRELATION")
@@ -233,7 +233,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(props.state, oracledb.MSG_READY)
         self.assertEqual(props.deliverymode, 0)
 
-    def test_2708_visibility_mode_commit(self):
+    def test_2708(self):
         "2708 - test enqueue visibility option - ENQ_ON_COMMIT"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -255,7 +255,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertIsNotNone(props)
 
-    def test_2709_visibility_mode_immediate(self):
+    def test_2709(self):
         "2709 - test enqueue visibility option - ENQ_IMMEDIATE"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -278,7 +278,7 @@ class TestCase(test_env.BaseTestCase):
         other_conn.commit()
         self.assertEqual(results, self.book_data[0])
 
-    def test_2710_delivery_mode_same_buffered(self):
+    def test_2710(self):
         "2710 - test enqueue/dequeue delivery modes identical - buffered"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -303,7 +303,7 @@ class TestCase(test_env.BaseTestCase):
         other_conn.commit()
         self.assertEqual(results, self.book_data[0])
 
-    def test_2711_delivery_mode_same_persistent(self):
+    def test_2711(self):
         "2711 - test enqueue/dequeue delivery modes identical - persistent"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -328,7 +328,7 @@ class TestCase(test_env.BaseTestCase):
         other_conn.commit()
         self.assertEqual(results, self.book_data[0])
 
-    def test_2712_delivery_mode_same_persistent_buffered(self):
+    def test_2712(self):
         "2712 - test enqueue/dequeue delivery modes the same"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -353,7 +353,7 @@ class TestCase(test_env.BaseTestCase):
         other_conn.commit()
         self.assertEqual(results, self.book_data[0])
 
-    def test_2713_delivery_mode_different(self):
+    def test_2713(self):
         "2713 - test enqueue/dequeue delivery modes different"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -375,7 +375,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertIsNone(props)
 
-    def test_2714_dequeue_transformation(self):
+    def test_2714(self):
         "2714 - test dequeue transformation"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -399,7 +399,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
 
-    def test_2715_enqueue_transformation(self):
+    def test_2715(self):
         "2715 - test enqueue transformation"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -428,7 +428,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
 
-    def test_2716_payloadType_deprecation(self):
+    def test_2716(self):
         "2716 - test to verify payloadType is deprecated"
         books_type = self.conn.gettype(self.book_type_name)
         queue = self.conn.queue(self.book_queue_name, payloadType=books_type)
@@ -443,7 +443,7 @@ class TestCase(test_env.BaseTestCase):
             payloadType=books_type,
         )
 
-    def test_2717_message_with_no_payload(self):
+    def test_2717(self):
         "2717 - test error for message with no payload"
         books_type = self.conn.gettype(self.book_type_name)
         queue = self.conn.queue(self.book_queue_name, books_type)
@@ -452,7 +452,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.ProgrammingError, "^DPY-2000:", queue.enqone, props
         )
 
-    def test_2718_verify_msgid(self):
+    def test_2718(self):
         "2718 - verify that the msgid property is returned correctly"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -468,7 +468,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.msgid, actual_msgid)
 
-    def test_2719_recipients_list(self):
+    def test_2719(self):
         "2719 - verify use of recipients property"
         books_type = self.conn.gettype(self.book_type_name)
         book = books_type.newobject()
@@ -491,7 +491,7 @@ class TestCase(test_env.BaseTestCase):
         props1 = queue.deqone()
         self.assertIsNone(props1)
 
-    def test_2720_aq_message_attributes(self):
+    def test_2720(self):
         "2720 - verify attributes of AQ message which spawned notification"
         if self.is_on_oracle_cloud(self.conn):
             self.skipTest("AQ notification not supported on the cloud")
@@ -529,7 +529,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
 
-    def test_2721_json_enq_deq(self):
+    def test_2721(self):
         "2721 - test enqueuing and dequeuing JSON payloads"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
         self.assertEqual(queue.payload_type, "JSON")
@@ -547,7 +547,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(results, self.json_data)
 
-    def test_2722_no_json_payload(self):
+    def test_2722(self):
         "2722 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
         string_message = "This is a string message"
@@ -556,7 +556,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^DPI-1071:", queue.enqone, props
         )
 
-    def test_2723_enqtime(self):
+    def test_2723(self):
         "2723 - test message props enqtime"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -571,7 +571,7 @@ class TestCase(test_env.BaseTestCase):
         (end_date,) = self.cursor.fetchone()
         self.assertTrue(start_date <= props.enqtime <= end_date)
 
-    def test_2724_msgproperties_constructor(self):
+    def test_2724(self):
         "2724 - test message props declared attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -589,20 +589,20 @@ class TestCase(test_env.BaseTestCase):
         for attr_name in values:
             self.assertEqual(getattr(props, attr_name), values[attr_name])
 
-    def test_2725_payload_type_negative(self):
+    def test_2725(self):
         "2725 - test error for invalid type for payload_type"
         self.assertRaises(
             TypeError, self.conn.queue, "THE QUEUE", payload_type=4
         )
 
-    def test_2726_set_payload_bytes(self):
+    def test_2726(self):
         "2726 - test setting bytes to payload"
         props = self.conn.msgproperties()
         bytes_val = b"Hello there"
         props.payload = bytes_val
         self.assertEqual(props.payload, bytes_val)
 
-    def test_2727_queue_attributes(self):
+    def test_2727(self):
         "2727 - test getting queue attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -610,7 +610,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(queue.name, self.book_queue_name)
         self.assertEqual(queue.connection, self.conn)
 
-    def test_2728_get_write_only_attributes(self):
+    def test_2728(self):
         "2728 - test getting write-only attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -620,7 +620,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             queue.deqoptions.deliverymode
 
-    def test_2729_correlation(self):
+    def test_2729(self):
         "2729 - test correlation deqoption"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -648,7 +648,7 @@ class TestCase(test_env.BaseTestCase):
         correlated_messages = queue.deqmany(num_messages + 1)
         self.assertEqual(len(correlated_messages), num_messages)
 
-    def test_2730_correlation_with_pattern(self):
+    def test_2730(self):
         "2730 - test correlation deqoption with pattern-matching characters"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -665,7 +665,7 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         self.assertEqual(len(messages), 2)
 
-    def test_2731_condition_and_priority(self):
+    def test_2731(self):
         "2731 - test condition deqoption with priority"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
@@ -692,7 +692,7 @@ class TestCase(test_env.BaseTestCase):
             data = book.TITLE, book.AUTHORS, book.PRICE
             self.assertEqual(data, self.book_data[ix])
 
-    def test_2732_mode_deq_remove_nodata(self):
+    def test_2732(self):
         "2732 - test mode deqoption with DEQ_REMOVE_NODATA"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,13 +37,13 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_6200_callproc(self):
+    async def test_6200(self):
         "6200 - test executing a stored procedure"
         var = self.cursor.var(oracledb.NUMBER)
         results = await self.cursor.callproc("proc_Test", ("hi", 5, var))
         self.assertEqual(results, ["hi", 10, 2.0])
 
-    async def test_6201_callproc_all_keywords(self):
+    async def test_6201(self):
         "6201 - test executing a stored procedure with all args keyword args"
         inout_value = self.cursor.var(oracledb.NUMBER)
         inout_value.setvalue(0, 5)
@@ -56,7 +56,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(inout_value.getvalue(), 10)
         self.assertEqual(out_value.getvalue(), 2.0)
 
-    async def test_6202_callproc_only_last_keyword(self):
+    async def test_6202(self):
         "6202 - test executing a stored procedure with last arg as keyword arg"
         out_value = self.cursor.var(oracledb.NUMBER)
         kwargs = dict(a_OutValue=out_value)
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(results, ["hi", 10])
         self.assertEqual(out_value.getvalue(), 2.0)
 
-    async def test_6203_callproc_repeated_keyword_parameters(self):
+    async def test_6203(self):
         "6203 - test executing a stored procedure, repeated keyword arg"
         kwargs = dict(
             a_InValue="hi", a_OutValue=self.cursor.var(oracledb.NUMBER)
@@ -72,26 +72,26 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:"):
             await self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
 
-    async def test_6204_callproc_no_args(self):
+    async def test_6204(self):
         "6204 - test executing a stored procedure without any arguments"
         results = await self.cursor.callproc("proc_TestNoArgs")
         self.assertEqual(results, [])
 
-    async def test_6205_callfunc(self):
+    async def test_6205(self):
         "6205 - test executing a stored function"
         results = await self.cursor.callfunc(
             "func_Test", oracledb.NUMBER, ("hi", 5)
         )
         self.assertEqual(results, 7)
 
-    async def test_6206_callfunc_no_args(self):
+    async def test_6206(self):
         "6206 - test executing a stored function without any arguments"
         results = await self.cursor.callfunc(
             "func_TestNoArgs", oracledb.NUMBER
         )
         self.assertEqual(results, 712)
 
-    async def test_6207_callfunc_negative(self):
+    async def test_6207(self):
         "6207 - test executing a stored function with wrong parameters"
         func_name = "func_Test"
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2007:"):
@@ -109,7 +109,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2012:"):
             await self.cursor.callfunc(func_name, oracledb.NUMBER, 5)
 
-    async def test_6208_keyword_args_with_invalid_type(self):
+    async def test_6208(self):
         "6208 - test error for keyword args with invalid type"
         kwargs = [5]
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2013:"):

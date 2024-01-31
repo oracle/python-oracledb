@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,6 +28,7 @@
 
 import os
 import tempfile
+import random
 
 import oracledb
 import test_env
@@ -50,7 +51,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(getattr(params, name), value)
         self.assertEqual(getattr(copied_params, name), orig_value)
 
-    def test_4500_simple_easy_connect_with_port(self):
+    def test_4500(self):
         "4500 - test simple EasyConnect string parsing with port specified"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host:1578/my_service_name")
@@ -58,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1578)
         self.assertEqual(params.service_name, "my_service_name")
 
-    def test_4501_simple_easy_connect_without_port(self):
+    def test_4501(self):
         "4501 - test simple Easy Connect string parsing with no port specified"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host2/my_service_name2")
@@ -66,7 +67,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1521)
         self.assertEqual(params.service_name, "my_service_name2")
 
-    def test_4502_simple_easy_connect_with_server_type(self):
+    def test_4502(self):
         "4502 - test simple EasyConnect string parsing with DRCP enabled"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host3.org/my_service_name3:pooled")
@@ -76,7 +77,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string("my_host3/my_service_name3:ShArEd")
         self.assertEqual(params.server_type, "shared")
 
-    def test_4503_simple_connect_descriptor(self):
+    def test_4503(self):
         "4503 - test simple name-value pair format connect string"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4)(PORT=1589))
@@ -87,7 +88,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1589)
         self.assertEqual(params.service_name, "my_service_name4")
 
-    def test_4504_search_tnsnames(self):
+    def test_4504(self):
         "4504 - test simple tnsnames entry"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host5)(PORT=1624))
@@ -103,7 +104,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1624)
         self.assertEqual(params.service_name, "my_service_name5")
 
-    def test_4505_easy_connect_with_protocol(self):
+    def test_4505(self):
         "4505 - test EasyConnect with protocol"
         params = oracledb.ConnectParams()
         params.parse_connect_string("tcps://my_host6/my_service_name6")
@@ -111,7 +112,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "my_service_name6")
         self.assertEqual(params.protocol, "tcps")
 
-    def test_4506_easy_connect_with_invalid_protocol(self):
+    def test_4506(self):
         "4506 - test EasyConnect with invalid protocol"
         params = oracledb.ConnectParams()
         self.assertRaisesRegex(
@@ -121,7 +122,7 @@ class TestCase(test_env.BaseTestCase):
             "invalid_proto://my_host7/my_service_name7",
         )
 
-    def test_4507_exception_on_ipc_protocol(self):
+    def test_4507(self):
         "4507 - confirm an exception is raised if using ipc protocol"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=my_view8))
@@ -134,7 +135,7 @@ class TestCase(test_env.BaseTestCase):
             connect_string,
         )
 
-    def test_4508_retry_count_and_delay(self):
+    def test_4508(self):
         "4508 - connect descriptor with retry count and retry delay"
         connect_string = """
             (DESCRIPTION=(RETRY_COUNT=6)(RETRY_DELAY=5)
@@ -145,7 +146,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.retry_count, 6)
         self.assertEqual(params.retry_delay, 5)
 
-    def test_4509_connect_descriptor_expire_time(self):
+    def test_4509(self):
         "4509 - connect descriptor with expire_time setting"
         connect_string = """
             (DESCRIPTION=(EXPIRE_TIME=12)
@@ -156,7 +157,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string(connect_string)
         self.assertEqual(params.expire_time, 12)
 
-    def test_4510_pool_parameters(self):
+    def test_4510(self):
         "4510 - connect descriptor with pool parameters"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
@@ -170,7 +171,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string(connect_string)
         self.assertEqual(params.purity, oracledb.PURITY_NEW)
 
-    def test_4511_invalid_pool_purity(self):
+    def test_4511(self):
         "4511 - connect descriptor with invalid pool purity"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host13)(PORT=695))
@@ -184,7 +185,7 @@ class TestCase(test_env.BaseTestCase):
             connect_string,
         )
 
-    def test_4512_tcp_connect_timeout(self):
+    def test_4512(self):
         "4512 - connect descriptor with transport connect timeout values"
         connect_string = """
             (DESCRIPTION=(TRANSPORT_CONNECT_TIMEOUT=500 ms)
@@ -203,7 +204,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string(connect_string)
         self.assertEqual(params.tcp_connect_timeout, 34)
 
-    def test_4513_easy_connect_without_service_name(self):
+    def test_4513(self):
         "4513 - test EasyConnect string parsing with no service name specified"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host15:1578/")
@@ -211,7 +212,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1578)
         self.assertEqual(params.service_name, "")
 
-    def test_4514_missing_entry_in_tnsnames(self):
+    def test_4514(self):
         "4514 - test missing entry in tnsnames"
         with tempfile.TemporaryDirectory() as temp_dir:
             params = oracledb.ConnectParams(config_dir=temp_dir)
@@ -225,7 +226,7 @@ class TestCase(test_env.BaseTestCase):
                 "tns_alias",
             )
 
-    def test_4515_easy_connect_with_port_missing(self):
+    def test_4515(self):
         "4515 - test EasyConnect string parsing with port value missing"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host17:/my_service_name17")
@@ -233,7 +234,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1521)
         self.assertEqual(params.service_name, "my_service_name17")
 
-    def test_4516_invalid_number_in_connect_string(self):
+    def test_4516(self):
         "4516 - test connect descriptor with invalid number"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -247,7 +248,7 @@ class TestCase(test_env.BaseTestCase):
             connect_string,
         )
 
-    def test_4517_security_options(self):
+    def test_4517(self):
         "4517 - test connect descriptor with security options"
         options = [
             ("CN=unknown19a", "/tmp/wallet_loc19a", "On", True),
@@ -270,7 +271,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.wallet_location, wallet_loc)
             self.assertEqual(params.ssl_server_dn_match, match_value)
 
-    def test_4518_easy_connect_security_options(self):
+    def test_4518(self):
         "4518 - test easy connect string with security options"
         options = [
             ("CN=unknown20a", "/tmp/wallet_loc20a", "On", True),
@@ -293,7 +294,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.ssl_server_dn_match, match_value)
             self.assertEqual(params.wallet_location, wallet_loc)
 
-    def test_4519_easy_connect_description_options(self):
+    def test_4519(self):
         "4519 - test easy connect string with description options"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -308,7 +309,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.retry_count, 12)
         self.assertEqual(params.tcp_connect_timeout, 2.5)
 
-    def test_4520_easy_connect_invalid_parameters(self):
+    def test_4520(self):
         "4520 - test easy connect string with invalid parameters"
         params = oracledb.ConnectParams()
         connect_string_prefix = "my_host22/my_server_name22?"
@@ -321,7 +322,7 @@ class TestCase(test_env.BaseTestCase):
                 connect_string_prefix + suffix,
             )
 
-    def test_4521_connect_string_with_newlines_and_spaces(self):
+    def test_4521(self):
         "4521 - test connect string containing spaces and newlines"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -334,7 +335,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "my_service_name23")
         self.assertEqual(params.wallet_location, "my wallet dir 23")
 
-    def test_4522_missing_tnsnames(self):
+    def test_4522(self):
         "4522 - test missing tnsnames.ora in configuration directory"
         with tempfile.TemporaryDirectory() as temp_dir:
             params = oracledb.ConnectParams(config_dir=temp_dir)
@@ -345,7 +346,7 @@ class TestCase(test_env.BaseTestCase):
                 "tns_alias",
             )
 
-    def test_4523_missing_config_dir(self):
+    def test_4523(self):
         "4523 - test missing configuration directory"
         params = oracledb.ConnectParams(config_dir="/missing")
         self.assertRaisesRegex(
@@ -355,7 +356,7 @@ class TestCase(test_env.BaseTestCase):
             "tns_alias",
         )
 
-    def test_4524_invalid_entries_in_tnsnames(self):
+    def test_4524(self):
         "4524 - test tnsnames.ora with invalid entries"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host24)(PORT=1148))
@@ -373,7 +374,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1148)
         self.assertEqual(params.service_name, "my_service_name24")
 
-    def test_4525_single_address_list(self):
+    def test_4525(self):
         "4525 - test connect string with an address list"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -390,7 +391,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.retry_count, 5)
         self.assertEqual(params.retry_delay, 2)
 
-    def test_4526_multiple_address_lists(self):
+    def test_4526(self):
         "4526 - test connect string with multiple address lists"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -411,7 +412,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.retry_count, 5)
         self.assertEqual(params.retry_delay, 2)
 
-    def test_4527_multiple_descriptions(self):
+    def test_4527(self):
         "4527 - test connect string with multiple descriptions"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -453,7 +454,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.retry_count, [1, 2])
         self.assertEqual(params.retry_delay, [1, 3])
 
-    def test_4528_https_proxy(self):
+    def test_4528(self):
         "4528 - test connect strings with https_proxy defined"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -471,7 +472,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.https_proxy, "proxy_4528b")
         self.assertEqual(params.https_proxy_port, 9528)
 
-    def test_4529_server_type(self):
+    def test_4529(self):
         "4529 - test connect strings with server_type defined"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -488,7 +489,7 @@ class TestCase(test_env.BaseTestCase):
             connect_string,
         )
 
-    def test_4530_writable_params(self):
+    def test_4530(self):
         "4530 - test writable parameters"
         self.__test_writable_parameter("appcontext", [("a", "b", "c")])
         self.__test_writable_parameter("config_dir", "config_dir_4530")
@@ -506,7 +507,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("user", "USER_1")
         self.__test_writable_parameter("proxy_user", "PROXY_USER_1")
 
-    def test_4531_build_connect_string_with_tcp_connect_timeout(self):
+    def test_4531(self):
         "4531 - test building connect string with TCP connect timeout"
         host = "my_host4531"
         service_name = "my_service4531"
@@ -531,7 +532,7 @@ class TestCase(test_env.BaseTestCase):
             )
             self.assertEqual(params.get_connect_string(), connect_string)
 
-    def test_4532_multiple_alias_entry_tnsnames(self):
+    def test_4532(self):
         "4532 - test tnsnames.ora with multiple aliases on one line"
         connect_string = """
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host32)(PORT=1132))
@@ -548,7 +549,7 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(params.port, 1132)
                 self.assertEqual(params.service_name, "my_service_name32")
 
-    def test_4533_easy_connect_with_pool_parameters(self):
+    def test_4533(self):
         "4533 - test EasyConnect with pool parameters"
         options = [
             ("cclass_33a", "self", oracledb.PURITY_SELF),
@@ -568,7 +569,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.cclass, cclass)
             self.assertEqual(params.purity, purity_int)
 
-    def test_4534_connect_descriptor_small_container_first(self):
+    def test_4534(self):
         "4534 - test connect descriptor with different containers (small 1st)"
         connect_string = """
             (DESCRIPTION=
@@ -582,7 +583,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, ["host1", "host2a", "host2b", "host3"])
 
-    def test_4535_connect_descriptor_small_container_second(self):
+    def test_4535(self):
         "4535 - test connect descriptor with different containers (small 2nd)"
         connect_string = """
             (DESCRIPTION=
@@ -600,7 +601,7 @@ class TestCase(test_env.BaseTestCase):
             params.host, ["host1a", "host1b", "host2", "host3a", "host3b"]
         )
 
-    def test_4536_build_connect_string_with_source_route(self):
+    def test_4536(self):
         "4536 - test building connect string with source route designation"
         options = [
             ("on", True),
@@ -630,14 +631,14 @@ class TestCase(test_env.BaseTestCase):
             )
             self.assertEqual(params.get_connect_string(), connect_string)
 
-    def test_4537_no_connect_string(self):
+    def test_4537(self):
         "4537 - test connect parameters which generate no connect string"
         params = oracledb.ConnectParams()
         self.assertEqual(params.get_connect_string(), None)
         params.set(mode=oracledb.SYSDBA)
         self.assertEqual(params.get_connect_string(), None)
 
-    def test_4538_dsn_with_credentials_and_connect_string(self):
+    def test_4538(self):
         "4538 - test parsing a DSN with credentials and a connect string"
         params = oracledb.ConnectParams()
         dsn = "my_user4538/my_password4538@localhost:1525/my_service_name"
@@ -646,7 +647,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(password, "my_password4538")
         self.assertEqual(dsn, "localhost:1525/my_service_name")
 
-    def test_4539_dsn_with_only_credentials(self):
+    def test_4539(self):
         "4539 - test parsing a DSN with only credentials"
         params = oracledb.ConnectParams()
         dsn = "my_user4539/my_password4539"
@@ -655,7 +656,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(password, "my_password4539")
         self.assertEqual(dsn, None)
 
-    def test_4560_dsn_with_empty_credentials(self):
+    def test_4560(self):
         "4560 - test parsing a DSN with empty credentials"
         for dsn in ("", "/"):
             params = oracledb.ConnectParams()
@@ -664,7 +665,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(password, None)
             self.assertEqual(dsn, None)
 
-    def test_4561_dsn_with_no_credentials(self):
+    def test_4561(self):
         "4561 - test parsing a DSN with no credentials"
         dsn_in = "my_alias_4561"
         params = oracledb.ConnectParams()
@@ -673,7 +674,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(password, None)
         self.assertEqual(dsn_out, dsn_in)
 
-    def test_4562_connection_id_prefix(self):
+    def test_4562(self):
         "4529 - test connect strings with connection_id_prefix defined"
         params = oracledb.ConnectParams()
         connect_string = """
@@ -688,7 +689,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string("my_host4562b/my_service_name_4562b")
         self.assertEqual(params.connection_id_prefix, "prefix4562b")
 
-    def test_4563_override_parameters(self):
+    def test_4563(self):
         "4563 - test overriding parameters with parse_connection_string"
         params = oracledb.ConnectParams()
         params.parse_connect_string("my_host:3578/my_service_name")
@@ -702,7 +703,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "new_service_name")
         self.assertEqual(params.port, 3578)
 
-    def test_4564_repr(self):
+    def test_4564(self):
         "4564 - test ConnectParams repr()"
         values = [
             ("user", "USER_1"),
@@ -745,6 +746,23 @@ class TestCase(test_env.BaseTestCase):
         parts = [f"{name}={value!r}" for name, value in values]
         expected_value = f"ConnectParams({', '.join(parts)})"
         self.assertEqual(repr(params), expected_value)
+
+    def test_4565(self):
+        "4565 - connect descriptor with SDU"
+        connect_string = """
+            (DESCRIPTION=(SDU=65535)(ADDRESS=(PROTOCOL=TCP)
+            (HOST=my_host1)(PORT=1589)))"""
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.sdu, 65535)
+
+    def test_4566(self):
+        "4566 - test that SDU is set correctly with invalid sizes"
+        params = oracledb.ConnectParams()
+        params.set(sdu=random.randint(0, 511))
+        self.assertEqual(params.sdu, 512)
+        params.set(sdu=2097153)
+        self.assertEqual(params.sdu, 2097152)
 
 
 if __name__ == "__main__":

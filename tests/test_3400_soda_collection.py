@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -52,7 +52,7 @@ class TestCase(test_env.BaseTestCase):
         self.__normalize_docs([content])
         self.assertEqual(content, expected_content)
 
-    def test_3400_invalid_json(self):
+    def test_3400(self):
         "3400 - test inserting invalid JSON value into SODA collection"
         invalid_json = "{testKey:testValue}"
         soda_db = self.conn.getSodaDatabase()
@@ -66,7 +66,7 @@ class TestCase(test_env.BaseTestCase):
         )
         coll.drop()
 
-    def test_3401_insert_documents(self):
+    def test_3401(self):
         "3401 - test inserting documents into a SODA collection"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestInsertDocs")
@@ -89,7 +89,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc, value)
         coll.drop()
 
-    def test_3402_skip_documents(self):
+    def test_3402(self):
         "3402 - test skipping documents in a SODA collection"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestSkipDocs")
@@ -109,7 +109,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_skip(coll, 4, None)
         self.__test_skip(coll, 125, None)
 
-    def test_3403_replace_document(self):
+    def test_3403(self):
         "3403 - test replace documents in SODA collection"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestReplaceDoc")
@@ -125,7 +125,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(doc, new_content)
         coll.drop()
 
-    def test_3404_search_documents_with_content(self):
+    def test_3404(self):
         "3404 - test search documents with different QBEs"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestSearchDocContent")
@@ -194,7 +194,7 @@ class TestCase(test_env.BaseTestCase):
             )
         coll.drop()
 
-    def test_3405_document_remove(self):
+    def test_3405(self):
         "3405 - test removing documents"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestRemoveDocs")
@@ -223,7 +223,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         coll.drop()
 
-    def test_3406_create_and_drop_index(self):
+    def test_3406(self):
         "3406 - test create and drop Index"
         index_name = "TestIndexes_ix_1"
         index_spec = {
@@ -246,7 +246,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertFalse(coll.dropIndex(index_name))
         coll.drop()
 
-    def test_3407_get_documents(self):
+    def test_3407(self):
         "3407 - test getting documents from Collection"
         self.conn.autocommit = True
         soda_db = self.conn.getSodaDatabase()
@@ -266,7 +266,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
-    def test_3408_cursor(self):
+    def test_3408(self):
         "3408 - test fetching documents from a cursor"
         self.conn.autocommit = True
         soda_db = self.conn.getSodaDatabase()
@@ -282,7 +282,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(fetched_keys, inserted_keys)
         coll.drop()
 
-    def test_3409_multiple_document_remove(self):
+    def test_3409(self):
         "3409 - test removing multiple documents using multiple keys"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestRemoveMultipleDocs")
@@ -303,7 +303,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         coll.drop()
 
-    def test_3410_document_version(self):
+    def test_3410(self):
         "3410 - test using version to get documents and remove them"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestDocumentVersion")
@@ -329,7 +329,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         coll.drop()
 
-    def test_3411_get_cursor(self):
+    def test_3411(self):
         "3411 - test keys with GetCursor"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestKeysWithGetCursor")
@@ -349,7 +349,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         coll.drop()
 
-    def test_3412_created_on(self):
+    def test_3412(self):
         "3412 - test createdOn attribute of Document"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("CreatedOn")
@@ -361,7 +361,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_client_version() < (20, 1), "unsupported client"
     )
-    def test_3413_soda_truncate(self):
+    def test_3413(self):
         "3413 - test Soda truncate"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("TestTruncateDocs")
@@ -380,7 +380,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(coll.find().count(), 0)
         coll.drop()
 
-    def test_3414_soda_hint(self):
+    def test_3414(self):
         "3414 - verify hints are reflected in the executed SQL statement"
         soda_db = self.conn.getSodaDatabase()
         cursor = self.conn.cursor()
@@ -414,7 +414,7 @@ class TestCase(test_env.BaseTestCase):
         (result,) = cursor.fetchone()
         self.assertIn("NO_MONITOR", result.read())
 
-    def test_3415_soda_hint_with_invalid_type(self):
+    def test_3415(self):
         "3415 - test error for invalid type for soda hint"
         soda_db = self.conn.getSodaDatabase()
         coll = soda_db.createCollection("InvalidSodaHint")
@@ -432,7 +432,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertRaises(TypeError, coll.find().hint, 2)
 
-    def test_3416_collection_name_and_metadata(self):
+    def test_3416(self):
         "3416 - test name and metadata attribute"
         soda_db = self.conn.getSodaDatabase()
         collection_name = "TestCollectionMetadata"
@@ -441,7 +441,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(coll.metadata["tableName"], collection_name)
         coll.drop()
 
-    def test_3417_insert_many(self):
+    def test_3417(self):
         "3417 - test insertMany"
         soda_db = self.get_soda_database(minclient=(18, 5))
         coll = soda_db.createCollection("TestInsertMany")
@@ -462,7 +462,7 @@ class TestCase(test_env.BaseTestCase):
         )
         coll.drop()
 
-    def test_3418_save(self):
+    def test_3418(self):
         "3418 - test save"
         soda_db = self.get_soda_database(minclient=(19, 9))
         coll = soda_db.createCollection("TestSodaSave")
@@ -483,7 +483,7 @@ class TestCase(test_env.BaseTestCase):
             )
         coll.drop()
 
-    def test_3419_save_and_get_with_hint(self):
+    def test_3419(self):
         "3419 - test saveAndGet with hint"
         soda_db = self.get_soda_database(minclient=(19, 11))
         cursor = self.conn.cursor()
@@ -511,7 +511,7 @@ class TestCase(test_env.BaseTestCase):
             (result,) = cursor.fetchone()
             self.assertIn(hint, result.read())
 
-    def test_3420_save_and_get(self):
+    def test_3420(self):
         "3420 - test saveAndGet"
         soda_db = self.get_soda_database(minclient=(19, 9))
         coll = soda_db.createCollection("TestSodaSaveAndGet")
@@ -533,7 +533,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc.getContent(), fetched_doc.getContent())
         coll.drop()
 
-    def test_3421_insert_many_and_get(self):
+    def test_3421(self):
         "3421 - test insert many and get"
         soda_db = self.get_soda_database(minclient=(18, 5))
         for name in soda_db.getCollectionNames():
@@ -555,7 +555,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(doc, expected_doc.getContent())
         coll.drop()
 
-    def test_3422_close_cursor(self):
+    def test_3422(self):
         "3422 - close document cursor and confirm exception is raised"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestCloseSodaDocCursor")
@@ -569,7 +569,7 @@ class TestCase(test_env.BaseTestCase):
         )
         coll.drop()
 
-    def test_3423_limit(self):
+    def test_3423(self):
         "3423 - test limit to get specific amount of documents"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestSodaLimit")
@@ -582,7 +582,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(len(docs), 3)
         coll.drop()
 
-    def test_3424_count_negative(self):
+    def test_3424(self):
         "3424 - get count exceptions when using limit and skip"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestSodaCountExceptions")
@@ -597,7 +597,7 @@ class TestCase(test_env.BaseTestCase):
         )
         coll.drop()
 
-    def test_3425_map_mode(self):
+    def test_3425(self):
         "3425 - test mapMode parameter"
         soda_db = self.get_soda_database()
         data = [{"price": 4900}, {"price": 8}]
@@ -621,7 +621,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(original_coll.drop())
         self.assertFalse(mapped_coll.drop())
 
-    def test_3426_map_mode_negative(self):
+    def test_3426(self):
         "3426 - test mapping a new collection from an non-existent table"
         soda_db = self.get_soda_database()
         self.assertRaisesRegex(
@@ -632,7 +632,7 @@ class TestCase(test_env.BaseTestCase):
             mapMode=True,
         )
 
-    def test_3427_negative(self):
+    def test_3427(self):
         "3427 - test negative cases for SodaOperation methods"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestSodaOperationNegative")
@@ -644,7 +644,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, coll.find().version, 1971)
         self.assertRaises(TypeError, coll.find().limit, "a word")
 
-    def test_3428_fetch_array_size(self):
+    def test_3428(self):
         "3428 - test fetchArraySize"
         soda_db = self.get_soda_database(minclient=(19, 5))
         coll = soda_db.createCollection("TestSodaFetchArraySize")
@@ -690,7 +690,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, coll.find().fetchArraySize, -1)
         coll.drop()
 
-    def test_3429_getting_indexes(self):
+    def test_3429(self):
         "3429 - test getting indexes on a collection"
         soda_db = self.get_soda_database(minclient=(19, 13))
         coll = soda_db.createCollection("TestSodaListIndexes")
@@ -722,7 +722,7 @@ class TestCase(test_env.BaseTestCase):
             indexes[1]["fields"][0]["path"], "address.postal_code"
         )
 
-    def test_3430_lock_documents(self):
+    def test_3430(self):
         "3430 - test locking documents on fetch"
         soda_db = self.get_soda_database(minclient=(19, 11))
         coll = soda_db.createCollection("TestSodaLockDocs")
@@ -735,7 +735,7 @@ class TestCase(test_env.BaseTestCase):
         coll.insertMany(values_to_insert)
         coll.find().lock().getDocuments()
 
-    def test_3431_drop(self):
+    def test_3431(self):
         "3431 - test that drop returns the correct boolean"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestDropCollection")
@@ -744,7 +744,7 @@ class TestCase(test_env.BaseTestCase):
         # the collection has already been dropped
         self.assertFalse(coll.drop())
 
-    def test_3432_drop_empty_mapped_collection(self):
+    def test_3432(self):
         "3432 - test drop with an empty mapped collection"
         soda_db = self.get_soda_database()
         original_coll = soda_db.createCollection("TestDropMapMode")
@@ -752,7 +752,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(mapped_coll.drop())
         self.assertFalse(original_coll.drop())
 
-    def test_3433_replace_one_returns(self):
+    def test_3433(self):
         "3433 - test that replaceOne() returns a correct boolean"
         soda_db = self.get_soda_database()
         coll = soda_db.createCollection("TestReplaceDocReturns")
@@ -769,7 +769,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         coll.drop()
 
-    def test_3434_replace_one_and_get_negative(self):
+    def test_3434(self):
         "3434 - replaceOne() and replaceOneAndGet() with invalid scenarios"
         conn = test_env.get_connection()
         soda_db = conn.getSodaDatabase()
@@ -790,7 +790,7 @@ class TestCase(test_env.BaseTestCase):
             {"data": "new"},
         )
 
-    def test_3435_write_read_only_coll_negative(self):
+    def test_3435(self):
         "3435 - test writting a read-only collection"
         soda_db = self.get_soda_database()
         metadata = {
@@ -815,7 +815,7 @@ class TestCase(test_env.BaseTestCase):
                     {"Song 1": "No end"},
                 )
 
-    def test_3436_create_collection_same_metadata(self):
+    def test_3436(self):
         "3436 - createCollection() with the same name and metadata"
         soda_db = self.get_soda_database()
         coll_name = "TestCollSameMetadata"
@@ -824,7 +824,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(coll1.drop())
         self.assertFalse(coll2.drop())
 
-    def test_3437_create_collection_different_metadata(self):
+    def test_3437(self):
         "3437 - createCollection() with the same name but different metadata"
         soda_db = self.get_soda_database()
         coll_name = "TestCollDifferentMetadata"

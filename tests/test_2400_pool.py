@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -160,7 +160,7 @@ class TestCase(test_env.BaseTestCase):
             expected_proxy_user and expected_proxy_user.upper(),
         )
 
-    def test_2400_pool_attributes(self):
+    def test_2400(self):
         "2400 - test getting default pool parameters"
         pool = test_env.get_pool()
         self.assertEqual(pool.busy, 0)
@@ -194,7 +194,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
-    def test_2401_proxy_auth(self):
+    def test_2401(self):
         "2401 - test that proxy authentication is possible"
         pool = test_env.get_pool(
             min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_WAIT
@@ -224,7 +224,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(user, test_env.get_proxy_user().upper())
         conn.close()
 
-    def test_2402_pool_set_attr(self):
+    def test_2402(self):
         "2402 - test setting pool attributes"
         pool = test_env.get_pool()
         test_values = [
@@ -261,7 +261,7 @@ class TestCase(test_env.BaseTestCase):
                 TypeError, setattr, pool, "soda_metadata_cache", 22
             )
 
-    def test_2403_rollback_on_release(self):
+    def test_2403(self):
         "2403 - connection rolls back before released back to the pool"
         pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_WAIT)
         conn = pool.acquire()
@@ -278,7 +278,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(count, 0)
         conn.close()
 
-    def test_2404_threading(self):
+    def test_2404(self):
         "2404 - test session pool with multiple threads"
         self.pool = test_env.get_pool(
             min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
@@ -291,7 +291,7 @@ class TestCase(test_env.BaseTestCase):
         for thread in threads:
             thread.join()
 
-    def test_2405_threading_with_errors(self):
+    def test_2405(self):
         "2405 - test session pool with multiple threads (with errors)"
         self.pool = test_env.get_pool(
             min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
@@ -304,7 +304,7 @@ class TestCase(test_env.BaseTestCase):
         for thread in threads:
             thread.join()
 
-    def test_2406_purity(self):
+    def test_2406(self):
         "2406 - test session pool with various types of purity"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -342,7 +342,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
-    def test_2407_heterogeneous(self):
+    def test_2407(self):
         "2407 - test heterogeneous pool with user and password specified"
         pool = test_env.get_pool(
             min=2,
@@ -377,7 +377,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
-    def test_2408_heterogenous_without_user(self):
+    def test_2408(self):
         "2408 - test heterogeneous pool without user and password specified"
         pool = test_env.get_pool(
             user="",
@@ -407,7 +407,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
-    def test_2409_heterogeneous_wrong_password(self):
+    def test_2409(self):
         "2409 - test heterogeneous pool with wrong password specified"
         pool = test_env.get_pool(
             min=2,
@@ -427,7 +427,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support tagging yet"
     )
-    def test_2410_tagging_session(self):
+    def test_2410(self):
         "2410 - test tagging a session"
         pool = test_env.get_pool(
             min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_NOWAIT
@@ -456,7 +456,7 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_is_thin(),
         "thin mode doesn't support session callbacks yet",
     )
-    def test_2411_plsql_session_callbacks(self):
+    def test_2411(self):
         "2411 - test PL/SQL session callbacks"
         if test_env.get_client_version() < (12, 2):
             self.skipTest("PL/SQL session callbacks not supported before 12.2")
@@ -508,7 +508,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support tagging yet"
     )
-    def test_2412_tagging_invalid_key(self):
+    def test_2412(self):
         "2412 - testTagging with Invalid key"
         pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
         conn = pool.acquire()
@@ -522,7 +522,7 @@ class TestCase(test_env.BaseTestCase):
                 tag="INVALID_TAG",
             )
 
-    def test_2413_close_and_drop_connection_from_pool(self):
+    def test_2413(self):
         "2413 - test dropping/closing a connection from the pool"
         pool = test_env.get_pool(min=1, max=5, increment=2)
         conns1 = [pool.acquire() for _ in range(2)]
@@ -540,7 +540,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.busy, 0)
         self.assertEqual(pool.opened, 3)
 
-    def test_2414_create_new_pure_connection(self):
+    def test_2414(self):
         "2414 - test to ensure pure connections are being created correctly"
         pool = test_env.get_pool(
             min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -558,7 +558,7 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_is_thin(),
         "thin mode doesn't support all the pool params yet",
     )
-    def test_2415_test_reconfigure_pool_with_missing_values(self):
+    def test_2415(self):
         "2415 - test the reconfigure values are changed and rest unchanged"
         self.__perform_reconfigure_test("min", 5)
         self.__perform_reconfigure_test("max", 20)
@@ -581,7 +581,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support tagging yet"
     )
-    def test_2417_callable_session_callbacks(self):
+    def test_2417(self):
         "2417 - test that session callbacks are being called correctly"
         pool = test_env.get_pool(
             min=2,
@@ -635,14 +635,14 @@ class TestCase(test_env.BaseTestCase):
             (result,) = cursor.fetchone()
             self.assertTrue(self.session_called)
 
-    def test_2418_pool_close_normal_no_connections(self):
+    def test_2418(self):
         "2418 - test closing a pool normally with no connections checked out"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
         )
         pool.close()
 
-    def test_2419_pool_close_normal_with_connections(self):
+    def test_2419(self):
         "2419 - test closing a pool normally with connections checked out"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -652,7 +652,7 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.InterfaceError, "^DPY-1005:", pool.close
             )
 
-    def test_2420_pool_close_force(self):
+    def test_2420(self):
         "2420 - test closing a pool forcibly"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -660,7 +660,7 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire():
             pool.close(force=True)
 
-    def test_2421_exception_on_acquire_after_pool_closed(self):
+    def test_2421(self):
         "2421 - using the pool after it is closed raises an exception"
         pool = test_env.get_pool(
             min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -670,7 +670,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.InterfaceError, "^DPY-1002:", pool.acquire
         )
 
-    def test_2422_pool_with_no_connections(self):
+    def test_2422(self):
         "2422 - using the pool beyond max limit raises an error"
         pool = test_env.get_pool(
             min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -681,7 +681,7 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.DatabaseError, "^DPY-4005:", pool.acquire
             )
 
-    def test_2423_session_callback_for_new_connections(self):
+    def test_2423(self):
         "2423 - callable session callback is executed for new connections"
 
         class Counter:
@@ -703,7 +703,7 @@ class TestCase(test_env.BaseTestCase):
             pass
         self.assertEqual(Counter.num_calls, 2)
 
-    def test_2424_drop_dead_connection_from_pool(self):
+    def test_2424(self):
         "2424 - drop the pooled connection on receiving dead connection error"
         admin_conn = test_env.get_admin_connection()
         pool = test_env.get_pool(min=2, max=2, increment=2)
@@ -749,7 +749,7 @@ class TestCase(test_env.BaseTestCase):
             conn.close()
         self.assertEqual(pool.opened, 2)
 
-    def test_2425_acquire_connection_from_empty_pool(self):
+    def test_2425(self):
         "2425 - acquire a connection from an empty pool (min=0)"
         pool = test_env.get_pool(min=0, max=2, increment=2)
         with pool.acquire() as conn:
@@ -758,7 +758,7 @@ class TestCase(test_env.BaseTestCase):
                 (result,) = cursor.fetchone()
                 self.assertEqual(result, test_env.get_main_user().upper())
 
-    def test_2426_get_different_types_from_pooled_connections(self):
+    def test_2426(self):
         "2426 - get different object types from different connections"
         pool = test_env.get_pool(min=1, max=2, increment=1)
         with pool.acquire() as conn:
@@ -768,7 +768,7 @@ class TestCase(test_env.BaseTestCase):
             typ = conn.gettype("UDT_OBJECTARRAY")
             self.assertEqual(typ.name, "UDT_OBJECTARRAY")
 
-    def test_2427_proxy_user_in_create(self):
+    def test_2427(self):
         "2427 - test creating a pool using a proxy user"
         user_str = f"{test_env.get_main_user()}[{test_env.get_proxy_user()}]"
         pool = test_env.get_pool(user=user_str)
@@ -776,7 +776,7 @@ class TestCase(test_env.BaseTestCase):
             pool.acquire(), test_env.get_proxy_user(), test_env.get_main_user()
         )
 
-    def test_2428_conn_acquire_in_lifo(self):
+    def test_2428(self):
         "2428 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool(
             min=5, max=10, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -793,21 +793,21 @@ class TestCase(test_env.BaseTestCase):
         sid = conn.cursor().execute(sql).fetchone()[0]
         self.assertEqual(sid, sids[0], "not LIFO")
 
-    def test_2429_dynamic_pool_with_zero_increment(self):
+    def test_2429(self):
         "2429 - verify that dynamic pool cannot have an increment of zero"
         pool = test_env.get_pool(min=1, max=3, increment=0)
         self.assertEqual(pool.increment, 1)
         with pool.acquire(), pool.acquire():
             pass
 
-    def test_2430_static_pool_with_zero_increment(self):
+    def test_2430(self):
         "2430 - verify that static pool can have an increment of zero"
         pool = test_env.get_pool(min=1, max=1, increment=0)
         self.assertEqual(pool.increment, 0)
         with pool.acquire():
             pass
 
-    def test_2431_acquire_with_different_cclass(self):
+    def test_2431(self):
         "2431 - verify that connection with different cclass is reused"
         cclass = "cclass2431"
         pool = test_env.get_pool(min=1, max=1)
@@ -842,7 +842,7 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(next_sid_serial, sid_serial)
         self.assertEqual(pool.opened, 1)
 
-    def test_2432_pool_params_negative(self):
+    def test_2432(self):
         "2432 - test creating a pool invalid params"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
@@ -851,13 +851,13 @@ class TestCase(test_env.BaseTestCase):
             params="bad params",
         )
 
-    def test_2433_connection_release_and_drop_negative(self):
+    def test_2433(self):
         "2433 - test releasing and dropping an invalid connection"
         pool = test_env.get_pool()
         self.assertRaises(TypeError, pool.release, ["invalid connection"])
         self.assertRaises(TypeError, pool.drop, ["invalid connection"])
 
-    def test_2434_invalid_pool_class(self):
+    def test_2434(self):
         "2434 - test creating a pool with invalid pool_class"
         self.assertRaisesRegex(
             oracledb.ProgrammingError,
@@ -866,7 +866,7 @@ class TestCase(test_env.BaseTestCase):
             pool_class=int,
         )
 
-    def test_2435_pool_with_connectiontype(self):
+    def test_2435(self):
         "2435 - test creating a pool with a subclassed connection type"
 
         class MyConnection(oracledb.Connection):

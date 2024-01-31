@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -47,7 +47,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(getattr(params, name), value)
         self.assertEqual(getattr(copied_params, name), orig_value)
 
-    def test_4700_writable_params(self):
+    def test_4700(self):
         "4700 - test writable parameters"
         self.__test_writable_parameter("min", 8)
         self.__test_writable_parameter("max", 12)
@@ -63,7 +63,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("soda_metadata_cache", True)
         self.__test_writable_parameter("ping_interval", 20)
 
-    def test_4701_repr(self):
+    def test_4701(self):
         "4701 - test PoolParams repr()"
         values = [
             ("min", 3),

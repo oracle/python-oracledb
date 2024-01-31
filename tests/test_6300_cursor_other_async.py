@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,7 +36,7 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_6300_prepare(self):
+    async def test_6300(self):
         "6300 - test preparing a statement and executing it multiple times"
         cursor = self.conn.cursor()
         self.assertEqual(cursor.statement, None)
@@ -52,13 +52,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         await cursor.execute("begin :value2 := 3; end;", value2=var)
         self.assertEqual(var.getvalue(), 3)
 
-    async def test_6301_exception_on_close(self):
+    async def test_6301(self):
         "6301 - confirm an exception is raised after closing a cursor"
         self.cursor.close()
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:"):
             await self.cursor.execute("select 1 from dual")
 
-    async def test_6302_iterators(self):
+    async def test_6302(self):
         "6302 - test iterators"
         await self.cursor.execute(
             """
@@ -71,7 +71,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         rows = [v async for v, in self.cursor]
         self.assertEqual(rows, [1, 2, 3])
 
-    async def test_6303_iterators_interrupted(self):
+    async def test_6303(self):
         "6303 - test iterators (with intermediate execute)"
         await self.cursor.execute("truncate table TestTempTable")
         await self.cursor.execute(
@@ -90,13 +90,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1003:"):
             await test_iter.__anext__()
 
-    async def test_6304_set_input_sizes_no_parameters(self):
+    async def test_6304(self):
         "6304 - test setting input sizes without any parameters"
         self.cursor.setinputsizes()
         await self.cursor.execute("select :val from dual", val="Test Value")
         self.assertEqual(await self.cursor.fetchall(), [("Test Value",)])
 
-    async def test_6305_set_input_sizes_empty_dict(self):
+    async def test_6305(self):
         "6305 - test setting input sizes with an empty dictionary"
         empty_dict = {}
         self.cursor.prepare("select 236 from dual")
@@ -104,7 +104,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(None, empty_dict)
         self.assertEqual(await self.cursor.fetchall(), [(236,)])
 
-    async def test_6306_set_input_sizes_empty_list(self):
+    async def test_6306(self):
         "6306 - test setting input sizes with an empty list"
         empty_list = []
         self.cursor.prepare("select 239 from dual")
@@ -112,7 +112,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(None, empty_list)
         self.assertEqual(await self.cursor.fetchall(), [(239,)])
 
-    async def test_6307_set_input_sizes_by_position(self):
+    async def test_6307(self):
         "6307 - test setting input sizes with positional args"
         var = self.cursor.var(oracledb.STRING, 100)
         self.cursor.setinputsizes(None, 5, None, 10, None, oracledb.NUMBER)
@@ -126,7 +126,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(var.getvalue(), "test_5_second_37")
 
-    async def test_6308_parse_query(self):
+    async def test_6308(self):
         "6308 - test parsing query statements"
         sql = "select LongIntCol from TestNumbers where IntCol = :val"
         await self.cursor.parse(sql)
@@ -136,7 +136,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             [("LONGINTCOL", oracledb.DB_TYPE_NUMBER, 17, None, 16, 0, 0)],
         )
 
-    async def test_6309_boolean_without_plsql(self):
+    async def test_6309(self):
         "6309 - test binding boolean data without the use of PL/SQL"
         await self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -148,7 +148,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_value = [(0, "Value should be 0"), (1, "Value should be 1")]
         self.assertEqual(await self.cursor.fetchall(), expected_value)
 
-    async def test_6310_as_context_manager(self):
+    async def test_6310(self):
         "6310 - test using a cursor as a context manager"
         with self.cursor as cursor:
             await cursor.execute("truncate table TestTempTable")
@@ -158,14 +158,14 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:"):
             self.cursor.close()
 
-    async def test_6311_query_row_count(self):
+    async def test_6311(self):
         "6311 - test that rowcount attribute is reset to zero on query execute"
         for num in [0, 1, 1, 0]:
             await self.cursor.execute("select * from dual where 1 = :s", [num])
             await self.cursor.fetchone()
             self.assertEqual(self.cursor.rowcount, num)
 
-    async def test_6312_var_type_with_object_type(self):
+    async def test_6312(self):
         "6312 - test that an object type can be used as type in cursor.var()"
         obj_type = await self.conn.gettype("UDT_OBJECT")
         var = self.cursor.var(obj_type)
@@ -179,7 +179,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         exp = "udt_Object(28, 'Bind obj out', null, null, null, null, null)"
         self.assertEqual(result, exp)
 
-    async def test_6313_fetch_xmltype(self):
+    async def test_6313(self):
         "6313 - test that fetching an XMLType returns a string"
         int_val = 5
         label = "IntCol"
@@ -195,7 +195,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await self.cursor.fetchone()
         self.assertEqual(result, expected_result)
 
-    async def test_6314_lastrowid(self):
+    async def test_6314(self):
         "6314 - test last rowid"
 
         # no statement executed: no rowid
@@ -261,7 +261,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         row = await self.cursor.fetchone()
         self.assertEqual(row[0], "Row %s" % rows[-3])
 
-    async def test_6315_prefetchrows(self):
+    async def test_6315(self):
         "6315 - test prefetch rows"
         await self.setup_round_trip_checker()
 
@@ -313,7 +313,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.fetchall()
             await self.assertRoundTrips(2)
 
-    async def test_6316_existing_cursor_prefetchrows(self):
+    async def test_6316(self):
         "6316 - test prefetch rows using existing cursor"
         await self.setup_round_trip_checker()
 
@@ -334,35 +334,35 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.fetchall()
             await self.assertRoundTrips(7)
 
-    async def test_6317_parse_plsql(self):
+    async def test_6317(self):
         "6317 - test parsing plsql statements"
         sql = "begin :value := 5; end;"
         await self.cursor.parse(sql)
         self.assertEqual(self.cursor.statement, sql)
         self.assertIsNone(self.cursor.description)
 
-    async def test_6318_parse_ddl(self):
+    async def test_6318(self):
         "6318 - test parsing ddl statements"
         sql = "truncate table TestTempTable"
         await self.cursor.parse(sql)
         self.assertEqual(self.cursor.statement, sql)
         self.assertIsNone(self.cursor.description)
 
-    async def test_6319_parse_dml(self):
+    async def test_6319(self):
         "6319 - test parsing dml statements"
         sql = "insert into TestTempTable (IntCol) values (1)"
         await self.cursor.parse(sql)
         self.assertEqual(self.cursor.statement, sql)
         self.assertIsNone(self.cursor.description)
 
-    async def test_6320_bind_by_name_with_leading_colon(self):
+    async def test_6320(self):
         "6320 - test binding by name with leading colon"
         params = {":arg1": 5}
         await self.cursor.execute("select :arg1 from dual", params)
         (result,) = await self.cursor.fetchone()
         self.assertEqual(result, params[":arg1"])
 
-    async def test_6321_bind_out_mixed_null_not_null(self):
+    async def test_6321(self):
         "6321 - test binding mixed null and not null values in a PL/SQL block"
         out_vars = [self.cursor.var(str) for i in range(4)]
         await self.cursor.execute(
@@ -379,7 +379,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         values = [var.getvalue() for var in out_vars]
         self.assertEqual(values, [None, "Value 1", None, "Value 2"])
 
-    async def test_6322_exclude_from_stmt_cache(self):
+    async def test_6322(self):
         "6322 - test excluding statement from statement cache"
         num_iters = 10
         sql = "select user from dual"
@@ -399,7 +399,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await cursor.execute(None)
         await self.assertParseCount(num_iters - 1)
 
-    async def test_6323_repeated_ddl(self):
+    async def test_6323(self):
         "6323 - test repeated DDL"
         await self.cursor.execute("truncate table TestTempTable")
         await self.cursor.execute(
@@ -410,19 +410,19 @@ class TestCase(test_env.BaseAsyncTestCase):
             "insert into TestTempTable (IntCol) values (1)"
         )
 
-    async def test_6324_sql_with_non_ascii_chars(self):
+    async def test_6324(self):
         "6324 - test executing SQL with non-ASCII characters"
         await self.cursor.execute("select 'FÖÖ' from dual")
         (result,) = await self.cursor.fetchone()
         self.assertIn(result, ("FÖÖ", "F¿¿"))
 
-    async def test_6325_unquoted_binds_case_sensitivity(self):
+    async def test_6325(self):
         "6325 - test case sensitivity of unquoted bind names"
         await self.cursor.execute("select :test from dual", {"TEST": "a"})
         (result,) = await self.cursor.fetchone()
         self.assertEqual(result, "a")
 
-    async def test_6326_quoted_binds_case_sensitivity(self):
+    async def test_6326(self):
         "6326 - test case sensitivity of quoted bind names"
         with self.assertRaisesRegex(
             oracledb.DatabaseError, "^ORA-01036:|^DPY-4008:"
@@ -431,13 +431,13 @@ class TestCase(test_env.BaseAsyncTestCase):
                 'select :"test" from dual', {'"TEST"': "a"}
             )
 
-    async def test_6327_reserved_keyword_as_bind_name(self):
+    async def test_6327(self):
         "6327 - test using a reserved keywords as a bind name"
         sql = "select :ROWID from dual"
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01745:"):
             await self.cursor.parse(sql)
 
-    async def test_6328_arraysize_lt_prefetchrows(self):
+    async def test_6328(self):
         "6328 - test array size less than prefetch rows"
         for i in range(2):
             with self.conn.cursor() as cursor:
@@ -447,7 +447,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 )
                 self.assertEqual(await cursor.fetchall(), [(1,), (2,)])
 
-    async def test_6329_reexecute_query_with_blob_as_bytes(self):
+    async def test_6329(self):
         "6329 - test re-executing a query with blob as bytes"
 
         def type_handler(cursor, metadata):
@@ -472,7 +472,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("select IntCol, BlobCol from TestBLOBs")
         self.assertEqual(await self.cursor.fetchall(), [(1, blob_data)])
 
-    async def test_6330_reexecute_after_error(self):
+    async def test_6330(self):
         "6330 - test re-executing a statement after raising an error"
         sql = "select * from TestFakeTable"
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00942:"):
@@ -486,7 +486,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01400:"):
             await self.cursor.execute(sql)
 
-    async def test_6331_variable_not_in_select_list(self):
+    async def test_6331(self):
         "6331 - test executing a statement that raises ORA-01007"
         with self.conn.cursor() as cursor:
             await cursor.execute(
@@ -515,7 +515,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute("select * from ora_1007")
             self.assertEqual(await cursor.fetchone(), (1, "Another String"))
 
-    async def test_6332_update_empty_row(self):
+    async def test_6332(self):
         "6332 - test updating an empty row"
         int_var = self.cursor.var(int)
         await self.cursor.execute("truncate table TestTempTable")
@@ -531,7 +531,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(int_var.values, [None])
 
-    async def test_6333_fetch_duplicate_data_twice(self):
+    async def test_6333(self):
         "6333 - fetch duplicate data from query in statement cache"
         sql = """
                 select 'A', 'B', 'C' from dual
@@ -549,7 +549,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute(sql)
             self.assertEqual(await cursor.fetchall(), expected_data)
 
-    async def test_6334_fetch_duplicate_data_with_out_converter(self):
+    async def test_6334(self):
         "6334 - fetch duplicate data with outconverter"
 
         def out_converter(value):
@@ -575,7 +575,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [("A", 2, 3)] * 3
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    async def test_6335_kill_conn_with_open_cursor(self):
+    async def test_6335(self):
         "4535 - kill connection with open cursor"
         admin_conn = await test_env.get_admin_connection_async()
         conn = await test_env.get_connection_async()
@@ -597,7 +597,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
-    async def test_6336_kill_conn_in_context_manager(self):
+    async def test_6336(self):
         "6336 - kill connection in cursor context manager"
         admin_conn = await test_env.get_admin_connection_async()
         conn = await test_env.get_connection_async()
@@ -620,7 +620,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await cursor.execute("select user from dual")
             self.assertEqual(conn.is_healthy(), False)
 
-    async def test_6337_fetchmany(self):
+    async def test_6337(self):
         "6337 - fetchmany() with and without parameters"
         sql_part = "select user from dual"
         sql = " union all ".join([sql_part] * 10)
@@ -634,7 +634,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(len(rows), 2)
             await cursor.execute(sql)
 
-    async def test_6338_rowcount_after_close(self):
+    async def test_6338(self):
         "6338 - access cursor.rowcount after closing cursor"
         with self.conn.cursor() as cursor:
             await cursor.execute("select user from dual")
@@ -642,7 +642,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(cursor.rowcount, 1)
         self.assertEqual(cursor.rowcount, -1)
 
-    async def test_6339_change_of_bind_type_with_define(self):
+    async def test_6339(self):
         "6339 - changing bind type with define needed"
         await self.cursor.execute("truncate table TestClobs")
         row_for_1 = (1, "Short value 1")
@@ -661,7 +661,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.execute(sql, int_col=1)
             self.assertEqual(await self.cursor.fetchone(), row_for_1)
 
-    async def test_6340_multiple_parse(self):
+    async def test_6340(self):
         "6340 - test calling cursor.parse() twice with the same statement"
         await self.cursor.execute("truncate table TestTempTable")
         data = (4363, "Value for test 4363")
@@ -674,7 +674,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.parse(sql)
             await self.cursor.execute(sql, ("Updated value", data[0]))
 
-    async def test_6341_add_column_to_cached_query(self):
+    async def test_6341(self):
         "6341 - test addition of column to cached query"
         table_name = "test_4365"
         try:
@@ -701,7 +701,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(f"select * from {table_name}")
         self.assertEqual(await self.cursor.fetchall(), [data])
 
-    async def test_6342_plsql_with_executemany_and_increasing_sizes(self):
+    async def test_6342(self):
         "6342 - test executemany() with PL/SQL and increasing data lengths"
         sql = "begin :1 := length(:2); end;"
         var = self.cursor.var(int, arraysize=3)
@@ -718,7 +718,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(var.values, [4, 3, 3])
 
-    async def test_6343_cursor_rowcount_for_queries(self):
+    async def test_6343(self):
         "6343 - test cursor.rowcount values for queries"
         max_rows = 93
         self.cursor.arraysize = 10
@@ -738,7 +738,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.fetchall()
         self.assertEqual(self.cursor.rowcount, max_rows)
 
-    async def test_6344_bind_order_for_plsql(self):
+    async def test_6344(self):
         "6344 - test bind order for PL/SQL"
         await self.cursor.execute("truncate table TestClobs")
         sql = """
@@ -760,7 +760,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             )
             self.assertEqual(await self.cursor.fetchall(), rows)
 
-    async def test_6345_rebuild_table_with_lob_in_cached_query(self):
+    async def test_6345(self):
         "6345 - test rebuild of table with LOB in cached query (as string)"
         table_name = "test_4370"
         drop_sql = f"drop table {table_name} purge"
@@ -789,7 +789,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.execute(query_sql)
             self.assertEqual(await self.cursor.fetchall(), data)
 
-    async def test_6346_rebuild_table_with_lob_in_cached_query(self):
+    async def test_6346(self):
         "6346 - test rebuild of table with LOB in cached query (as LOB)"
         table_name = "test_4371"
         drop_sql = f"drop table {table_name} purge"
@@ -828,7 +828,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     @unittest.skipIf(
         test_env.get_server_version() < (23, 1), "unsupported database"
     )
-    async def test_6347_fetch_domain_and_annotations(self):
+    async def test_6347(self):
         "6347 - fetch table with domain and annotations"
         await self.cursor.execute(
             "select * from TableWithDomainAndAnnotations"

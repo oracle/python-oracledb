@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,24 +48,24 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(result, expected_result)
 
-    def test_3100_bind_false(self):
+    def test_3100(self):
         "3100 - test binding in a False value"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.GetStringRep", str, [False]
         )
         self.assertEqual(result, "FALSE")
 
-    def test_3101_bind_float_as_boolean(self):
+    def test_3101(self):
         "3101 - test binding in a float as a boolean"
         self.__test_bind_value_as_boolean(0.0)
         self.__test_bind_value_as_boolean(1.0)
 
-    def test_3102_bind_integer_as_boolean(self):
+    def test_3102(self):
         "3102 - test binding in an integer as a boolean"
         self.__test_bind_value_as_boolean(0)
         self.__test_bind_value_as_boolean(1)
 
-    def test_3103_bind_null(self):
+    def test_3103(self):
         "3103 - test binding in a null value"
         self.cursor.setinputsizes(None, bool)
         result = self.cursor.callfunc(
@@ -73,33 +73,33 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(result, "NULL")
 
-    def test_3104_bind_out_false(self):
+    def test_3104(self):
         "3104 - test binding out a boolean value (False)"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.IsLessThan10", oracledb.DB_TYPE_BOOLEAN, [15]
         )
         self.assertFalse(result)
 
-    def test_3105_bind_out_true(self):
+    def test_3105(self):
         "3105 - test binding out a boolean value (True)"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.IsLessThan10", bool, [5]
         )
         self.assertTrue(result)
 
-    def test_3106_bind_string_as_boolean(self):
+    def test_3106(self):
         "3106 - test binding in a string as a boolean"
         self.__test_bind_value_as_boolean("")
         self.__test_bind_value_as_boolean("0")
 
-    def test_3107_bind_true(self):
+    def test_3107(self):
         "3107 - test binding in a True value"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.GetStringRep", str, [True]
         )
         self.assertEqual(result, "TRUE")
 
-    def test_3108_bind_out_null(self):
+    def test_3108(self):
         "3108 - test binding out a boolean value (None)"
         result = self.cursor.callfunc(
             "pkg_TestBooleans.TestOutValueNull", bool
@@ -112,7 +112,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipUnless(
         test_env.get_server_version() >= (23, 1), "unsupported server"
     )
-    def test_3109_bind_and_fetch_boolean_23c(self):
+    def test_3109(self):
         "3109 - test binding and fetching boolean with 23c"
         for value in (True, False):
             with self.subTest(value=value):

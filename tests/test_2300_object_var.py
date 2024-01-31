@@ -51,7 +51,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(object_value, expected_obj_value)
         self.assertEqual(array_value, expected_array_value)
 
-    def test_2300_bind_null_in(self):
+    def test_2300(self):
         "2300 - test binding a null value (IN)"
         var = self.cursor.var(oracledb.DB_TYPE_OBJECT, typename="UDT_OBJECT")
         result = self.cursor.callfunc(
@@ -59,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(result, "null")
 
-    def test_2301_bind_object_in(self):
+    def test_2301(self):
         "2301 - test binding an object (IN)"
         type_obj = self.conn.gettype("UDT_OBJECT")
         obj = type_obj.newobject()
@@ -101,7 +101,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(result, expected_value)
 
-    def test_2302_copy_object(self):
+    def test_2302(self):
         "2302 - test copying an object"
         type_obj = self.conn.gettype("UDT_OBJECT")
         obj = type_obj()
@@ -115,13 +115,13 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(obj.DATEVALUE, copied_obj.DATEVALUE)
         self.assertEqual(obj.TIMESTAMPVALUE, copied_obj.TIMESTAMPVALUE)
 
-    def test_2303_empty_collection_as_list(self):
+    def test_2303(self):
         "2303 - test getting an empty collection as a list"
         type_obj = self.conn.gettype("UDT_ARRAY")
         obj = type_obj.newobject()
         self.assertEqual(obj.aslist(), [])
 
-    def test_2304_fetch_data(self):
+    def test_2304(self):
         "2304 - test fetching objects"
         self.cursor.execute(
             """
@@ -209,7 +209,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__test_data(3, expected_value, None)
 
-    def test_2305_get_object_type(self):
+    def test_2305(self):
         "2305 - test getting object type"
         type_obj = self.conn.gettype("UDT_OBJECT")
         self.assertFalse(type_obj.iscollection)
@@ -272,7 +272,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(sub_object_array_type.iscollection, True)
         self.assertEqual(sub_object_array_type.attributes, [])
 
-    def test_2306_object_type(self):
+    def test_2306(self):
         "2306 - test object type data"
         self.cursor.execute(
             """
@@ -287,7 +287,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(obj.type.name, "UDT_OBJECT")
         self.assertEqual(obj.type.attributes[0].name, "NUMBERVALUE")
 
-    def test_2307_round_trip_object(self):
+    def test_2307(self):
         "2307 - test inserting and then querying object with all data types"
         self.cursor.execute("delete from TestClobs")
         self.cursor.execute("delete from TestNClobs")
@@ -427,7 +427,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_data(5, expected_value, None)
         self.conn.rollback()
 
-    def test_2308_invalid_type_object(self):
+    def test_2308(self):
         "2308 - test trying to find an object type that does not exist"
         self.assertRaises(TypeError, self.conn.gettype, 2)
         self.assertRaisesRegex(
@@ -437,7 +437,7 @@ class TestCase(test_env.BaseTestCase):
             "A TYPE THAT DOES NOT EXIST",
         )
 
-    def test_2309_appending_wrong_object_type(self):
+    def test_2309(self):
         "2309 - test appending an object of the wrong type to a collection"
         collection_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         collection_obj = collection_obj_type.newobject()
@@ -450,7 +450,7 @@ class TestCase(test_env.BaseTestCase):
             array_obj,
         )
 
-    def test_2310_referencing_sub_obj(self):
+    def test_2310(self):
         "2310 - test that referencing a sub object affects the parent object"
         obj_type = self.conn.gettype("UDT_OBJECT")
         sub_obj_type = self.conn.gettype("UDT_SUBOBJECT")
@@ -461,7 +461,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(obj.SUBOBJECTVALUE.SUBNUMBERVALUE, 5)
         self.assertEqual(obj.SUBOBJECTVALUE.SUBSTRINGVALUE, "Substring")
 
-    def test_2311_access_sub_object_parent_object_destroyed(self):
+    def test_2311(self):
         "2311 - test accessing sub object after parent object destroyed"
         obj_type = self.conn.gettype("UDT_OBJECT")
         sub_obj_type = self.conn.gettype("UDT_SUBOBJECT")
@@ -481,7 +481,7 @@ class TestCase(test_env.BaseTestCase):
             [(2, "AB"), (3, "CDE")],
         )
 
-    def test_2312_setting_attr_wrong_object_type(self):
+    def test_2312(self):
         "2312 - test assigning an object of wrong type to an object attribute"
         obj_type = self.conn.gettype("UDT_OBJECT")
         obj = obj_type.newobject()
@@ -496,7 +496,7 @@ class TestCase(test_env.BaseTestCase):
             wrong_obj,
         )
 
-    def test_2313_setting_var_wrong_object_type(self):
+    def test_2313(self):
         "2313 - test setting value of object variable to wrong object type"
         wrong_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
@@ -505,7 +505,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.ProgrammingError, "^DPY-2008:", var.setvalue, 0, wrong_obj
         )
 
-    def test_2314_string_format(self):
+    def test_2314(self):
         "2314 - test object string format"
         obj_type = self.conn.gettype("UDT_OBJECT")
         user = test_env.get_main_user()
@@ -516,7 +516,7 @@ class TestCase(test_env.BaseTestCase):
             str(obj_type.attributes[0]), "<oracledb.DbObjectAttr NUMBERVALUE>"
         )
 
-    def test_2315_trim_collection_list(self):
+    def test_2315(self):
         "2315 - test Trim number of elements from collection"
         sub_obj_type = self.conn.gettype("UDT_SUBOBJECT")
         array_type = self.conn.gettype("UDT_OBJECTARRAY")
@@ -543,7 +543,7 @@ class TestCase(test_env.BaseTestCase):
         array_obj.trim(2)
         self.assertEqual(self.get_db_object_as_plain_object(array_obj), [])
 
-    def test_2316_sql_type_metadata(self):
+    def test_2316(self):
         "2316 - test the metadata of a SQL type"
         user = test_env.get_main_user()
         typ = self.conn.gettype("UDT_OBJECTARRAY")
@@ -554,7 +554,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(typ.element_type.name, "UDT_SUBOBJECT")
         self.assertIsNone(typ.element_type.package_name)
 
-    def test_2317_plsql_type_metadata(self):
+    def test_2317(self):
         "2317 - test the metadata of a PL/SQL type"
         user = test_env.get_main_user()
         typ = self.conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
@@ -563,7 +563,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(typ.package_name, "PKG_TESTSTRINGARRAYS")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_VARCHAR)
 
-    def test_2318_negative_create_object_var_no_type_name(self):
+    def test_2318(self):
         "2318 - test creating an object variable without a type name"
         self.assertRaisesRegex(
             oracledb.DatabaseError,
@@ -572,13 +572,13 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DB_TYPE_OBJECT,
         )
 
-    def test_2319_collection_as_dictionary(self):
+    def test_2319(self):
         "2319 - test getting an empty collection as a dictionary"
         type_obj = self.conn.gettype("UDT_ARRAY")
         obj = type_obj.newobject()
         self.assertEqual(obj.asdict(), {})
 
-    def test_2320_exists_in_collection(self):
+    def test_2320(self):
         "2320 - test if an element exists in a collection"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
@@ -587,7 +587,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertTrue(array_obj.exists(0))
         self.assertFalse(array_obj.exists(1))
 
-    def test_2321_first_and_last_indexes(self):
+    def test_2321(self):
         "2321 - test first and last methods"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
@@ -598,7 +598,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(array_obj.first(), 0)
         self.assertEqual(array_obj.last(), 6)
 
-    def test_2322_size(self):
+    def test_2322(self):
         "2322 - test getting the size of a collections"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
@@ -607,7 +607,7 @@ class TestCase(test_env.BaseTestCase):
             array_obj.append(i)
         self.assertEqual(array_obj.size(), 5)
 
-    def test_2323_prev_next(self):
+    def test_2323(self):
         "2323 - test prev and next methods"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
@@ -620,7 +620,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(array_obj.next(0), 1)
         self.assertIsNone(array_obj.next(1))
 
-    def test_2324_set_get_element(self):
+    def test_2324(self):
         "2324 - test setting and getting elements from a collection"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
@@ -638,7 +638,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^DPY-2039:", array_obj.setelement, 3, 4
         )
 
-    def test_2325_add_too_many_elements_to_collection(self):
+    def test_2325(self):
         "2325 - test appending too many elements to a collection"
         array_type = self.conn.gettype("UDT_ARRAY")
         numbers = [i for i in range(11)]
@@ -658,7 +658,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^DPY-2039:", array_obj.append, numbers[10]
         )
 
-    def test_2326_test_unconstrained_table(self):
+    def test_2326(self):
         "2326 - test appending elements to an unconstrained table"
         data = [1, 3, 6, 10, 15, 21]
         typ = self.conn.gettype("UDT_UNCONSTRAINEDTABLE")
@@ -667,7 +667,7 @@ class TestCase(test_env.BaseTestCase):
         (output_obj,) = self.cursor.fetchone()
         self.assertEqual(output_obj.aslist(), data)
 
-    def test_2327_large_collection(self):
+    def test_2327(self):
         "2327 - test collection with thousands of entries"
         typ = self.conn.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
         obj = typ.newobject()
@@ -685,7 +685,7 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_is_thin(),
         "thin mode doesn't have any unknown types currently",
     )
-    def test_2328_unknown_type_attribute(self):
+    def test_2328(self):
         "2328 - test object with unknown type in one of its attributes"
         typ = self.conn.gettype("UDT_UNKNOWNATTRIBUTETYPE")
         self.assertEqual(typ.attributes[1].type, oracledb.DB_TYPE_UNKNOWN)
@@ -694,12 +694,12 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_is_thin(),
         "thin mode doesn't have any unknown types currently",
     )
-    def test_2329_unknown_type_element(self):
+    def test_2329(self):
         "2329 - test object with unknown type as the element type"
         typ = self.conn.gettype("UDT_UNKNOWNELEMENTTYPE")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_UNKNOWN)
 
-    def test_2330_repr(self):
+    def test_2330(self):
         "2330 - test DB Object repr()"
         typ = self.conn.gettype("UDT_ARRAY")
         obj = typ.newobject()
@@ -707,7 +707,7 @@ class TestCase(test_env.BaseTestCase):
         expected_str = f"^<oracledb.DbObject {fqn} at 0x.+>$"
         self.assertRegex(repr(obj), expected_str)
 
-    def test_2331_new_object_negative(self):
+    def test_2331(self):
         "2331 - test creating an object with invalid data type"
         type_obj = self.conn.gettype("UDT_ARRAY")
         self.assertRaisesRegex(
@@ -723,14 +723,14 @@ class TestCase(test_env.BaseTestCase):
             [71, "not a number"],
         )
 
-    def test_2332_validate_invalid_attr_name(self):
+    def test_2332(self):
         "2332 - test getting an invalid attribute name from an object"
         typ = self.conn.gettype("UDT_OBJECT")
         obj = typ.newobject()
         with self.assertRaises(AttributeError):
             obj.MISSING
 
-    def test_2333_validate_string_attr(self):
+    def test_2333(self):
         "2333 - test validating a string attribute"
         typ = self.conn.gettype("UDT_OBJECT")
         obj = typ.newobject()
@@ -754,7 +754,7 @@ class TestCase(test_env.BaseTestCase):
                     value,
                 )
 
-    def test_2334_validate_string_element_value(self):
+    def test_2334(self):
         "2334 - test validating a string element value"
         typ = self.conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typ.newobject()
@@ -771,7 +771,7 @@ class TestCase(test_env.BaseTestCase):
             "C" * 101,
         )
 
-    def test_2335_validate_string_attr_null(self):
+    def test_2335(self):
         "2335 - test validating a string attribute with null value"
         typ = self.conn.gettype("UDT_OBJECT")
         obj = typ.newobject()

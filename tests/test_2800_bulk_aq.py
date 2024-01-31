@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -78,7 +78,7 @@ class TestCase(test_env.BaseTestCase):
                     results.append(message.payload.decode())
             conn.commit()
 
-    def test_2800_enq_and_deq(self):
+    def test_2800(self):
         "2800 - test bulk enqueue and dequeue"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         messages = [
@@ -90,7 +90,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(data, RAW_PAYLOAD_DATA)
 
-    def test_2801_dequeue_empty(self):
+    def test_2801(self):
         "2801 - test empty bulk dequeue"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
@@ -98,7 +98,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(messages, [])
 
-    def test_2802_deq_with_wait(self):
+    def test_2802(self):
         "2802 - test bulk dequeue with wait"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         results = []
@@ -112,7 +112,7 @@ class TestCase(test_env.BaseTestCase):
         thread.join()
         self.assertEqual(results, RAW_PAYLOAD_DATA)
 
-    def test_2803_enq_and_deq_multiple_times(self):
+    def test_2803(self):
         "2803 - test enqueue and dequeue multiple times"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         data_to_enqueue = RAW_PAYLOAD_DATA
@@ -131,7 +131,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(all_data, RAW_PAYLOAD_DATA)
 
-    def test_2804_enq_and_deq_visibility(self):
+    def test_2804(self):
         "2804 - test visibility option for enqueue and dequeue"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
 
@@ -161,7 +161,7 @@ class TestCase(test_env.BaseTestCase):
         messages = other_queue.deqmany(5)
         self.assertEqual(len(messages), 0)
 
-    def test_2805_messages_with_no_payload(self):
+    def test_2805(self):
         "2805 - test error for messages with no payload"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         messages = [self.conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
@@ -169,7 +169,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.ProgrammingError, "^DPY-2000:", queue.enqmany, messages
         )
 
-    def test_2806_verify_msgid(self):
+    def test_2806(self):
         "2806 - verify that the msgid property is returned correctly"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         messages = [
@@ -184,7 +184,7 @@ class TestCase(test_env.BaseTestCase):
         msgids = set(message.msgid for message in messages)
         self.assertEqual(msgids, actual_msgids)
 
-    def test_2807_json_enq_deq(self):
+    def test_2807(self):
         "4800 - test enqueuing and dequeuing JSON message"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = [
@@ -197,7 +197,7 @@ class TestCase(test_env.BaseTestCase):
         actual_data = [message.payload for message in messages]
         self.assertEqual(actual_data, JSON_DATA_PAYLOAD)
 
-    def test_2808_no_json_payload(self):
+    def test_2808(self):
         "2808 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = self.conn.msgproperties(payload="string message")
@@ -205,7 +205,7 @@ class TestCase(test_env.BaseTestCase):
             oracledb.DatabaseError, "^DPI-1071:", queue.enqmany, [props, props]
         )
 
-    def test_2809_errors_for_invalid_values(self):
+    def test_2809(self):
         "2809 - test errors for invalid values for enqmany and deqmany"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = self.conn.msgproperties(payload="string message")

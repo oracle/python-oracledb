@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,28 +33,28 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_6600_defaults_arraysize(self):
+    def test_6600(self):
         "6600 - test setting defaults.arraysize"
         with test_env.DefaultsContextManager("arraysize", 50):
             conn = test_env.get_connection()
             cursor = conn.cursor()
             self.assertEqual(cursor.arraysize, oracledb.defaults.arraysize)
 
-    def test_6601_defaults_fetch_decimals(self):
+    def test_6601(self):
         "6601 - test getting decimals with defaults.fetch_decimals=True"
         with test_env.DefaultsContextManager("fetch_decimals", True):
             self.cursor.execute("select 9 from dual")
             (result,) = self.cursor.fetchone()
             self.assertIsInstance(result, decimal.Decimal)
 
-    def test_6602_defaults_fetch_lobs(self):
+    def test_6602(self):
         "6602 - test getting string lob with defaults.fetch_lobs=False"
         with test_env.DefaultsContextManager("fetch_lobs", False):
             self.cursor.execute("select to_clob('Hello world') from dual")
             (result,) = self.cursor.fetchone()
             self.assertIsInstance(result, str)
 
-    def test_6603_defaults_prefetchrows(self):
+    def test_6603(self):
         "6603 - test setting defaults.prefetchrows"
         with test_env.DefaultsContextManager("prefetchrows", 20):
             conn = test_env.get_connection()
@@ -63,7 +63,7 @@ class TestCase(test_env.BaseTestCase):
                 cursor.prefetchrows, oracledb.defaults.prefetchrows
             )
 
-    def test_6604_defaults_stmtcachesize_pool(self):
+    def test_6604(self):
         "6604 - test setting defaults.stmtcachesize (pool)"
         with test_env.DefaultsContextManager("stmtcachesize", 40):
             pool = test_env.get_pool()
@@ -75,7 +75,7 @@ class TestCase(test_env.BaseTestCase):
                 conn.stmtcachesize, oracledb.defaults.stmtcachesize
             )
 
-    def test_6605_defaults_stmtcachesize_standalone_conn(self):
+    def test_6605(self):
         "6605 - test setting defaults.stmtcachesize (standalone connection)"
         with test_env.DefaultsContextManager("stmtcachesize", 50):
             conn = test_env.get_connection()
@@ -83,7 +83,7 @@ class TestCase(test_env.BaseTestCase):
                 conn.stmtcachesize, oracledb.defaults.stmtcachesize
             )
 
-    def test_6606_defaults_fetch_lobs_bind_out(self):
+    def test_6606(self):
         "6606 - fetch_lobs does not affect LOBS returned as OUT binds"
         with test_env.DefaultsContextManager("fetch_lobs", False):
             var = self.cursor.var(oracledb.DB_TYPE_CLOB)

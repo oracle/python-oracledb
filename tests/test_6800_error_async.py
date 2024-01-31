@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_6800_parse_error(self):
+    async def test_6800(self):
         "6800 - test parse error returns offset correctly"
         with self.assertRaises(oracledb.Error) as cm:
             await self.cursor.execute("begin t_Missing := 5; end;")
@@ -45,7 +45,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(error_obj.full_code, "ORA-06550")
         self.assertEqual(error_obj.offset, 6)
 
-    async def test_6801_pickle_error(self):
+    async def test_6801(self):
         "6801 - test picking/unpickling an error object"
         with self.assertRaises(oracledb.Error) as cm:
             await self.cursor.execute(
@@ -69,7 +69,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(new_error_obj.context, error_obj.context)
         self.assertEqual(new_error_obj.isrecoverable, error_obj.isrecoverable)
 
-    async def test_6802_error_full_code(self):
+    async def test_6802(self):
         "6802 - test generation of full_code for ORA, DPI and DPY errors"
         cursor = self.conn.cursor()
         with self.assertRaises(oracledb.Error) as cm:
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (error_obj,) = cm.exception.args
         self.assertEqual(error_obj.full_code, "DPY-2001")
 
-    async def test_6803_error_help_url(self):
+    async def test_6803(self):
         "6803 - test generation of error help portal URL"
         cursor = self.conn.cursor()
         with self.assertRaises(oracledb.Error) as cm:
@@ -86,7 +86,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         to_check = "Help: https://docs.oracle.com/error-help/db/ora-01476/"
         self.assertIn(to_check, error_obj.message)
 
-    async def test_6804_warning_on_create_procedure(self):
+    async def test_6804(self):
         "6804 - verify warning is generated when creating a procedure"
         proc_name = "bad_proc_1704"
         self.assertIsNone(self.cursor.warning)
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertIsNone(self.cursor.warning)
         await self.cursor.execute(f"drop procedure {proc_name}")
 
-    async def test_6805_warning_on_create_function(self):
+    async def test_6805(self):
         "6805 - verify warning is generated when creating a function"
         func_name = "bad_func_1705"
         await self.cursor.execute(
@@ -126,7 +126,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(f"drop function {func_name}")
         self.assertIsNone(self.cursor.warning)
 
-    async def test_6806_warning_on_create_type(self):
+    async def test_6806(self):
         "6806 - verify warning is generated when creating a type"
         type_name = "bad_type_1706"
         await self.cursor.execute(

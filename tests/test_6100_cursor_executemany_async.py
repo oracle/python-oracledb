@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_6100_executemany_by_name(self):
+    async def test_6100(self):
         "6100 - test executing a statement multiple times (named args)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [{"value": n} for n in range(250)]
@@ -51,7 +51,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    async def test_6101_executemany_by_position(self):
+    async def test_6101(self):
         "6101 - test executing a statement multiple times (positional args)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [[n] for n in range(230)]
@@ -65,7 +65,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    async def test_6102_executemany_with_prepare(self):
+    async def test_6102(self):
         "6102 - test executing a statement multiple times (with prepare)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [[n] for n in range(225)]
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    async def test_6103_executemany_with_rebind(self):
+    async def test_6103(self):
         "6103 - test executing a statement multiple times (with rebind)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [[n] for n in range(235)]
@@ -90,21 +90,21 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await self.cursor.fetchone()
         self.assertEqual(count, len(rows))
 
-    async def test_6104_executemany_with_input_sizes_wrong(self):
+    async def test_6104(self):
         "6104 - test executing multiple times (with input sizes wrong)"
         cursor = self.conn.cursor()
         cursor.setinputsizes(oracledb.NUMBER)
         data = [[decimal.Decimal("25.8")], [decimal.Decimal("30.0")]]
         await cursor.executemany("declare t number; begin t := :1; end;", data)
 
-    async def test_6105_executemany_with_multiple_batches(self):
+    async def test_6105(self):
         "6105 - test executing multiple times (with multiple batches)"
         await self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         await self.cursor.executemany(sql, [(1, None), (2, None)])
         await self.cursor.executemany(sql, [(3, None), (4, "Testing")])
 
-    async def test_6106_executemany_numeric(self):
+    async def test_6106(self):
         "6106 - test executemany() with various numeric types"
         await self.cursor.execute("truncate table TestTempTable")
         data = [
@@ -123,7 +123,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), data)
 
-    async def test_6107_executemany_with_resize(self):
+    async def test_6107(self):
         "6107 - test executing a statement multiple times (with resize)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [
@@ -144,7 +144,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), rows)
 
-    async def test_6108_executemany_with_exception(self):
+    async def test_6108(self):
         "6108 - test executing a statement multiple times (with exception)"
         await self.cursor.execute("truncate table TestTempTable")
         rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
@@ -153,7 +153,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.executemany(statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
-    async def test_6109_executemany_with_invalid_parameters(self):
+    async def test_6109(self):
         "6109 - test calling executemany() with invalid parameters"
         sql = """
                 insert into TestTempTable (IntCol, StringCol1)
@@ -161,7 +161,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
             await self.cursor.executemany(sql, "Not valid parameters")
 
-    async def test_6110_executemany_no_parameters(self):
+    async def test_6110(self):
         "6110 - test calling executemany() without any bind parameters"
         num_rows = 5
         await self.cursor.execute("truncate table TestTempTable")
@@ -184,7 +184,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (count,) = await self.cursor.fetchone()
         self.assertEqual(count, num_rows)
 
-    async def test_6111_executemany_bound_earlier(self):
+    async def test_6111(self):
         "6111 - test calling executemany() with binds performed earlier"
         num_rows = 9
         await self.cursor.execute("truncate table TestTempTable")
@@ -211,7 +211,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [1, 3, 6, 10, 15, 21, 28, 36, 45]
         self.assertEqual(var.values, expected_data)
 
-    async def test_6112_executemany_with_plsql_binds(self):
+    async def test_6112(self):
         "6112 - test executing plsql statements multiple times (with binds)"
         var = self.cursor.var(int, arraysize=5)
         self.cursor.setinputsizes(var)
@@ -222,24 +222,24 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(var.values, exepected_data)
 
-    async def test_6113_executemany_with_incorrect_params(self):
+    async def test_6113(self):
         "6113 - test executemany with incorrect parameters"
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
             await self.cursor.executemany("select :1 from dual", [1])
 
-    async def test_6114_executemany_with_mixed_binds_pos_first(self):
+    async def test_6114(self):
         "6114 - test executemany with mixed binds (pos first)"
         rows = [["test"], {"value": 1}]
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
             await self.cursor.executemany("select :1 from dual", rows)
 
-    async def test_6115_executemany_with_mixed_binds_name_first(self):
+    async def test_6115(self):
         "6115 - test executemany with mixed binds (name first)"
         rows = [{"value": 1}, ["test"]]
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
             await self.cursor.executemany("select :value from dual", rows)
 
-    async def test_6116_executemany_plsql_dml_returning(self):
+    async def test_6116(self):
         "6116 - test executemany() with a pl/sql statement with dml returning"
         num_rows = 5
         await self.cursor.execute("truncate table TestTempTable")
@@ -262,7 +262,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(out_var.values, [1, 2, 3, 4, 5])
 
-    async def test_6117_executemany_pl_sql_with_in_and_out_binds(self):
+    async def test_6117(self):
         "6117 - test executemany() with pl/sql in binds and out binds"
         await self.cursor.execute("truncate table TestTempTable")
         values = [5, 8, 17, 24, 6]
@@ -281,7 +281,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(out_bind.values, values)
 
-    async def test_6118_executemany_pl_sql_out_bind(self):
+    async def test_6118(self):
         "6118 - test executemany() with pl/sql outbinds"
         await self.cursor.execute("truncate table TestTempTable")
         out_bind = self.cursor.var(oracledb.NUMBER, arraysize=5)
@@ -289,7 +289,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.executemany("begin :out_var := 5; end;", 5)
         self.assertEqual(out_bind.values, [5, 5, 5, 5, 5])
 
-    async def test_6119_re_executemany_pl_sql_with_in_and_out_binds(self):
+    async def test_6119(self):
         "6119 - test re-executemany() with pl/sql in binds and out binds"
         values = [5, 8, 17, 24, 6]
         data = [(i, f"Test {i}") for i in values]
@@ -309,14 +309,14 @@ class TestCase(test_env.BaseAsyncTestCase):
             )
             self.assertEqual(out_bind.values, values)
 
-    async def test_6120_executemany_with_plsql_single_row(self):
+    async def test_6120(self):
         "6120 - test PL/SQL statement with single row bind"
         value = 4020
         var = self.cursor.var(int)
         await self.cursor.executemany("begin :1 := :2; end;", [[var, value]])
         self.assertEqual(var.values, [value])
 
-    async def test_6121_defer_type_assignment(self):
+    async def test_6121(self):
         "6121 - test deferral of type assignment"
         await self.cursor.execute("truncate table TestTempTable")
         data = [(1, None), (2, 25)]
@@ -338,7 +338,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await self.cursor.fetchall(), data)
 
-    async def test_6122_plsql_large_number_of_binds(self):
+    async def test_6122(self):
         "6122 - test PL/SQL with a lerge number of binds"
         parts = []
         bind_names = []
@@ -372,7 +372,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(var.values, expected_values)
             init_val += 6
 
-    async def test_6123_execute_no_statement(self):
+    async def test_6123(self):
         "6123 - test executing no statement"
         cursor = self.conn.cursor()
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):

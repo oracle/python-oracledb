@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,7 +31,7 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_1300_bind_cursor(self):
+    def test_1300(self):
         "1300 - test binding in a cursor"
         cursor = self.conn.cursor()
         self.assertIsNone(cursor.description)
@@ -58,7 +58,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [("X",)])
 
-    def test_1301_bind_cursor_in_package(self):
+    def test_1301(self):
         "1301 - test binding in a cursor from a package"
         cursor = self.conn.cursor()
         self.assertIsNone(cursor.description)
@@ -79,7 +79,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(cursor.fetchall(), [(1, "String 1"), (2, "String 2")])
 
-    def test_1302_bind_self(self):
+    def test_1302(self):
         "1302 - test that binding the cursor itself is not supported"
         cursor = self.conn.cursor()
         sql = """
@@ -95,7 +95,7 @@ class TestCase(test_env.BaseTestCase):
             pcursor=cursor,
         )
 
-    def test_1303_execute_after_close(self):
+    def test_1303(self):
         "1303 - test returning a ref cursor after closing it"
         out_cursor = self.conn.cursor()
         sql = """
@@ -113,7 +113,7 @@ class TestCase(test_env.BaseTestCase):
         rows2 = out_cursor.fetchall()
         self.assertEqual(rows, rows2)
 
-    def test_1304_fetch_cursor(self):
+    def test_1304(self):
         "1304 - test fetching a cursor"
         self.cursor.execute(
             """
@@ -140,7 +140,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(number, i)
             self.assertEqual(cursor.fetchall(), [(i + 1,)])
 
-    def test_1305_ref_cursor_binds(self):
+    def test_1305(self):
         "1305 - test that ref cursor binds cannot use optimised path"
         ref_cursor = self.conn.cursor()
         sql = """
@@ -164,7 +164,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(ref_cursor.fetchall(), expected_value)
 
-    def test_1306_refcursor_round_trips(self):
+    def test_1306(self):
         "1306 - test round trips using a REF cursor"
         self.setup_round_trip_checker()
 
@@ -199,7 +199,7 @@ class TestCase(test_env.BaseTestCase):
             refcursor.fetchall()
             self.assertRoundTrips(6)
 
-    def test_1307_refcursor_execute_different_sql(self):
+    def test_1307(self):
         "1307 - test executing different SQL after getting a REF cursor"
         with self.conn.cursor() as cursor:
             refcursor = self.conn.cursor()
@@ -208,7 +208,7 @@ class TestCase(test_env.BaseTestCase):
             refcursor.execute("begin :1 := 15; end;", [var])
             self.assertEqual(var.getvalue(), 15)
 
-    def test_1308_function_with_ref_cursor_return(self):
+    def test_1308(self):
         "1308 - test calling a function that returns a REF cursor"
         with self.conn.cursor() as cursor:
             ref_cursor = cursor.callfunc(
@@ -220,7 +220,7 @@ class TestCase(test_env.BaseTestCase):
                 ref_cursor.fetchall(), [(1, "String 1"), (2, "String 2")]
             )
 
-    def test_1309_output_type_handler_with_ref_cursor(self):
+    def test_1309(self):
         "1309 - test using an output type handler with a REF cursor"
 
         def type_handler(cursor, metadata):
@@ -236,7 +236,7 @@ class TestCase(test_env.BaseTestCase):
         ref_cursor = var.getvalue()
         self.assertEqual(ref_cursor.fetchall(), [(string_val,)])
 
-    def test_1310_unassigned_ref_cursor(self):
+    def test_1310(self):
         "1310 - bind a REF cursor but never open it"
         ref_cursor_var = self.cursor.var(oracledb.DB_TYPE_CURSOR)
         self.cursor.execute(
@@ -257,7 +257,7 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.DatabaseError, "^DPY-4025:", ref_cursor.fetchall
             )
 
-    def test_1311_fetch_cursor_uses_custom_class(self):
+    def test_1311(self):
         "1311 - test fetching a cursor with a custom class"
 
         class Counter:
@@ -285,7 +285,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.fetchall()
         self.assertEqual(Counter.num_cursors_created, 3)
 
-    def test_1312_fetch_nested_cursors_for_complex_sql(self):
+    def test_1312(self):
         "1312 - test that nested cursors are fetched correctly"
         sql = """
             select
@@ -341,7 +341,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
-    def test_1313_fetch_nested_cursors_with_more_cols_than_parent(self):
+    def test_1313(self):
         "1313 - test fetching nested cursors with more columns than parent"
         sql = """
             select
@@ -373,7 +373,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
-    def test_1314_reuse_closed_ref_cursor_with_different_sql(self):
+    def test_1314(self):
         "1314 - test reusing a closed ref cursor for executing different sql"
         sql = "select 13141, 'String 13141' from dual"
         ref_cursor = self.conn.cursor()
@@ -390,7 +390,7 @@ class TestCase(test_env.BaseTestCase):
             ],
         )
 
-    def test_1315_reuse_closed_ref_cursor_with_same_sql(self):
+    def test_1315(self):
         "1315 - test reusing a closed ref cursor for executing same sql"
         sql = "select 1315, 'String 1315' from dual"
         ref_cursor = self.conn.cursor()

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,13 +32,13 @@ import test_env
 
 
 class TestCase(test_env.BaseTestCase):
-    def test_4100_callproc(self):
+    def test_4100(self):
         "4100 - test executing a stored procedure"
         var = self.cursor.var(oracledb.NUMBER)
         results = self.cursor.callproc("proc_Test", ("hi", 5, var))
         self.assertEqual(results, ["hi", 10, 2.0])
 
-    def test_4101_callproc_all_keywords(self):
+    def test_4101(self):
         "4101 - test executing a stored procedure with all args keyword args"
         inout_value = self.cursor.var(oracledb.NUMBER)
         inout_value.setvalue(0, 5)
@@ -51,7 +51,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(inout_value.getvalue(), 10)
         self.assertEqual(out_value.getvalue(), 2.0)
 
-    def test_4102_callproc_only_last_keyword(self):
+    def test_4102(self):
         "4102 - test executing a stored procedure with last arg as keyword arg"
         out_value = self.cursor.var(oracledb.NUMBER)
         kwargs = dict(a_OutValue=out_value)
@@ -59,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(results, ["hi", 10])
         self.assertEqual(out_value.getvalue(), 2.0)
 
-    def test_4103_callproc_repeated_keyword_parameters(self):
+    def test_4103(self):
         "4103 - test executing a stored procedure, repeated keyword arg"
         kwargs = dict(
             a_InValue="hi", a_OutValue=self.cursor.var(oracledb.NUMBER)
@@ -73,22 +73,22 @@ class TestCase(test_env.BaseTestCase):
             kwargs,
         )
 
-    def test_4104_callproc_no_args(self):
+    def test_4104(self):
         "4104 - test executing a stored procedure without any arguments"
         results = self.cursor.callproc("proc_TestNoArgs")
         self.assertEqual(results, [])
 
-    def test_4105_callfunc(self):
+    def test_4105(self):
         "4105 - test executing a stored function"
         results = self.cursor.callfunc("func_Test", oracledb.NUMBER, ("hi", 5))
         self.assertEqual(results, 7)
 
-    def test_4106_callfunc_no_args(self):
+    def test_4106(self):
         "4106 - test executing a stored function without any arguments"
         results = self.cursor.callfunc("func_TestNoArgs", oracledb.NUMBER)
         self.assertEqual(results, 712)
 
-    def test_4107_callfunc_negative(self):
+    def test_4107(self):
         "4107 - test executing a stored function with wrong parameters"
         func_name = "func_Test"
         self.assertRaisesRegex(
@@ -140,7 +140,7 @@ class TestCase(test_env.BaseTestCase):
             5,
         )
 
-    def test_4108_keywordParameters_deprecation(self):
+    def test_4108(self):
         "4108 - test to verify keywordParameters is deprecated"
         out_value = self.cursor.var(oracledb.NUMBER)
         kwargs = dict(a_OutValue=out_value)
@@ -167,7 +167,7 @@ class TestCase(test_env.BaseTestCase):
             keywordParameters=kwargs,
         )
 
-    def test_4109_keyword_args_with_invalid_type(self):
+    def test_4109(self):
         "4109 - test error for keyword args with invalid type"
         kwargs = [5]
         self.assertRaisesRegex(

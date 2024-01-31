@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,7 +36,7 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_5800_bind_cursor(self):
+    async def test_5800(self):
         "5800 - test binding in a cursor"
         cursor = self.conn.cursor()
         self.assertIsNone(cursor.description)
@@ -63,7 +63,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(cursor.description, expected_value)
         self.assertEqual(await cursor.fetchall(), [("X",)])
 
-    async def test_5801_bind_cursor_in_package(self):
+    async def test_5801(self):
         "5801 - test binding in a cursor from a package"
         cursor = self.conn.cursor()
         self.assertIsNone(cursor.description)
@@ -88,7 +88,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.fetchall(), [(1, "String 1"), (2, "String 2")]
         )
 
-    async def test_5802_bind_self(self):
+    async def test_5802(self):
         "5802 - test that binding the cursor itself is not supported"
         cursor = self.conn.cursor()
         sql = """
@@ -99,7 +99,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3009:"):
             await cursor.execute(sql, pcursor=cursor)
 
-    async def test_5803_execute_after_close(self):
+    async def test_5803(self):
         "5803 - test returning a ref cursor after closing it"
         out_cursor = self.conn.cursor()
         sql = """
@@ -117,7 +117,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         rows2 = await out_cursor.fetchall()
         self.assertEqual(rows, rows2)
 
-    async def test_5804_fetch_cursor(self):
+    async def test_5804(self):
         "5804 - test fetching a cursor"
         await self.cursor.execute(
             """
@@ -144,7 +144,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(number, i)
             self.assertEqual(await cursor.fetchall(), [(i + 1,)])
 
-    async def test_5805_ref_cursor_binds(self):
+    async def test_5805(self):
         "5805 - test that ref cursor binds cannot use optimised path"
         ref_cursor = self.conn.cursor()
         sql = """
@@ -168,7 +168,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(await ref_cursor.fetchall(), expected_value)
 
-    async def test_5806_refcursor_round_trips(self):
+    async def test_5806(self):
         "5806 - test round trips using a REF cursor"
         await self.setup_round_trip_checker()
 
@@ -203,7 +203,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await refcursor.fetchall()
             await self.assertRoundTrips(6)
 
-    async def test_5807_refcursor_execute_different_sql(self):
+    async def test_5807(self):
         "5807 - test executing different SQL after getting a REF cursor"
         with self.conn.cursor() as cursor:
             refcursor = self.conn.cursor()
@@ -212,7 +212,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await refcursor.execute("begin :1 := 15; end;", [var])
             self.assertEqual(var.getvalue(), 15)
 
-    async def test_5808_function_with_ref_cursor_return(self):
+    async def test_5808(self):
         "5808 - test calling a function that returns a REF cursor"
         with self.conn.cursor() as cursor:
             ref_cursor = await cursor.callfunc(
@@ -224,7 +224,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await ref_cursor.fetchall(), [(1, "String 1"), (2, "String 2")]
             )
 
-    async def test_5809_output_type_handler_with_ref_cursor(self):
+    async def test_5809(self):
         "5809 - test using an output type handler with a REF cursor"
 
         def type_handler(cursor, metadata):
@@ -240,7 +240,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ref_cursor = var.getvalue()
         self.assertEqual(await ref_cursor.fetchall(), [(string_val,)])
 
-    async def test_5810_unassigned_ref_cursor(self):
+    async def test_5810(self):
         "5810 - bind a REF cursor but never open it"
         ref_cursor_var = self.cursor.var(oracledb.DB_TYPE_CURSOR)
         await self.cursor.execute(
@@ -260,7 +260,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4025:"):
                 await ref_cursor.fetchall()
 
-    async def test_5811_fetch_cursor_uses_custom_class(self):
+    async def test_5811(self):
         "5811 - test fetching a cursor with a custom class"
 
         class Counter:
@@ -288,7 +288,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await cursor.fetchall()
         self.assertEqual(Counter.num_cursors_created, 3)
 
-    async def test_5812_fetch_nested_cursors_for_complex_sql(self):
+    async def test_5812(self):
         "5812 - test that nested cursors are fetched correctly"
         sql = """
             select
@@ -344,7 +344,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
-    async def test_5813_fetch_nested_cursors_with_more_cols_than_parent(self):
+    async def test_5813(self):
         "5813 - test fetching nested cursors with more columns than parent"
         sql = """
             select
@@ -376,7 +376,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         self.assertEqual(rows, expected_value)
 
-    async def test_5814_reuse_closed_ref_cursor_with_different_sql(self):
+    async def test_5814(self):
         "5814 - test reusing a closed ref cursor for executing different sql"
         sql = "select 58141, 'String 58141' from dual"
         ref_cursor = self.conn.cursor()
@@ -393,7 +393,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             ],
         )
 
-    async def test_5815_reuse_closed_ref_cursor_with_same_sql(self):
+    async def test_5815(self):
         "5815 - test reusing a closed ref cursor for executing same sql"
         sql = "select 5815, 'String 5815' from dual"
         ref_cursor = self.conn.cursor()

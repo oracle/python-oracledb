@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -54,7 +54,7 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    def test_1800_bind_interval(self):
+    def test_1800(self):
         "1800 - test binding in an interval"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
         value = datetime.timedelta(days=5, hours=5, minutes=10, seconds=15)
@@ -64,7 +64,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_1801_bind_null(self):
+    def test_1801(self):
         "1801 - test binding in a null"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
         self.cursor.execute(
@@ -73,7 +73,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_1802_bind_out_set_input_sizes(self):
+    def test_1802(self):
         "1802 - test binding out with set input sizes defined"
         bind_vars = self.cursor.setinputsizes(
             value=oracledb.DB_TYPE_INTERVAL_DS
@@ -90,7 +90,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), expected_value)
 
-    def test_1803_bind_in_out_set_input_sizes(self):
+    def test_1803(self):
         "1803 - test binding in/out with set input sizes defined"
         bind_vars = self.cursor.setinputsizes(
             value=oracledb.DB_TYPE_INTERVAL_DS
@@ -106,7 +106,7 @@ class TestCase(test_env.BaseTestCase):
         expected_value = datetime.timedelta(days=10, hours=10, minutes=45)
         self.assertEqual(bind_vars["value"].getvalue(), expected_value)
 
-    def test_1804_bind_in_out_fractional_second(self):
+    def test_1804(self):
         "1804 - test binding in/out with set input sizes defined"
         bind_vars = self.cursor.setinputsizes(
             value=oracledb.DB_TYPE_INTERVAL_DS
@@ -124,7 +124,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), expected_value)
 
-    def test_1805_bind_out_var(self):
+    def test_1805(self):
         "1805 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_INTERVAL_DS)
         self.cursor.execute(
@@ -140,7 +140,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), expected_value)
 
-    def test_1806_bind_in_out_var_direct_set(self):
+    def test_1806(self):
         "1806 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_INTERVAL_DS)
         var.setvalue(0, datetime.timedelta(days=1, minutes=50))
@@ -155,7 +155,7 @@ class TestCase(test_env.BaseTestCase):
         expected_value = datetime.timedelta(days=9, hours=6, minutes=5)
         self.assertEqual(var.getvalue(), expected_value)
 
-    def test_1807_cursor_description(self):
+    def test_1807(self):
         "1807 - test cursor description is accurate"
         self.cursor.execute("select * from TestIntervals")
         expected_value = [
@@ -181,13 +181,13 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_1808_fetchall(self):
+    def test_1808(self):
         "1808 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_1809_fetchmany(self):
+    def test_1809(self):
         "1809 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestIntervals order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
@@ -196,7 +196,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_1810_fetchone(self):
+    def test_1810(self):
         "1810 - test that fetching a single row returns the correct results"
         self.cursor.execute(
             """
@@ -210,14 +210,14 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertIsNone(self.cursor.fetchone())
 
-    def test_1811_bind_and_fetch_negative_interval(self):
+    def test_1811(self):
         "1811 - test binding and fetching a negative interval"
         value = datetime.timedelta(days=-1, seconds=86314, microseconds=431152)
         self.cursor.execute("select :1 from dual", [value])
         (result,) = self.cursor.fetchone()
         self.assertEqual(result, value)
 
-    def test_1812_unsupported_year_to_month_interval(self):
+    def test_1812(self):
         "1812 - test year to month interval not supported"
         statement = "select INTERVAL '10-2' YEAR TO MONTH from dual"
         self.assertRaisesRegex(

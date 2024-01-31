@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -46,7 +46,7 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    def test_2100_unicode_length(self):
+    def test_2100(self):
         "2100 - test value length"
         return_value = self.cursor.var(int)
         self.cursor.execute(
@@ -60,7 +60,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 7)
 
-    def test_2101_bind_unicode(self):
+    def test_2101(self):
         "2101 - test binding in a unicode"
         self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(
@@ -69,7 +69,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
-    def test_2102_bind_different_var(self):
+    def test_2102(self):
         "2102 - test binding a different variable on second execution"
         retval_1 = self.cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
         retval_2 = self.cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
@@ -80,7 +80,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("begin :retval := 'Called'; end;", retval=retval_2)
         self.assertEqual(retval_2.getvalue(), "Called")
 
-    def test_2103_bind_unicode_after_number(self):
+    def test_2103(self):
         "2103 - test binding in a string after setting input sizes to a number"
         unicode_val = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
         unicode_val.setvalue(0, "Unicode \u3042 6")
@@ -91,7 +91,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[6]])
 
-    def test_2104_bind_unicode_array_direct(self):
+    def test_2104(self):
         "2104 - test binding in a unicode array"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = [r[1] for r in self.raw_data]
@@ -110,7 +110,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(statement, integer_value=8, array=array_var)
         self.assertEqual(return_value.getvalue(), 208)
 
-    def test_2105_bind_unicode_array_by_sizes(self):
+    def test_2105(self):
         "2105 - test binding in a unicode array (with setinputsizes)"
         return_value = self.cursor.var(oracledb.NUMBER)
         self.cursor.setinputsizes(array=[oracledb.DB_TYPE_NVARCHAR, 10])
@@ -128,7 +128,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 117)
 
-    def test_2106_bind_unicode_array_by_var(self):
+    def test_2106(self):
         "2106 - test binding in a unicode array (with arrayvar)"
         return_value = self.cursor.var(oracledb.NUMBER)
         array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 20)
@@ -146,7 +146,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(return_value.getvalue(), 118)
 
-    def test_2107_bind_in_out_unicode_array_by_var(self):
+    def test_2107(self):
         "2107 - test binding in/out a unicode array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 100)
         original_data = [r[1] for r in self.raw_data]
@@ -166,7 +166,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2108_bind_out_unicode_array_by_var(self):
+    def test_2108(self):
         "2108 - test binding out a unicode array (with arrayvar)"
         array = self.cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 6, 100)
         fmt = "Test out element \u3042 # %d"
@@ -182,7 +182,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(array.getvalue(), expected_data)
 
-    def test_2109_bind_null(self):
+    def test_2109(self):
         "2109 - test binding in a null"
         self.cursor.execute(
             "select * from TestUnicodes where UnicodeCol = :value",
@@ -190,7 +190,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2110_bind_out_set_input_sizes_by_type(self):
+    def test_2110(self):
         "2110 - test binding out with set input sizes defined (by type)"
         bind_vars = self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(
@@ -202,7 +202,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(bind_vars["value"].getvalue(), "TSI \u3042")
 
-    def test_2111_bind_in_out_set_input_sizes_by_type(self):
+    def test_2111(self):
         "2111 - test binding in/out with set input sizes defined (by type)"
         bind_vars = self.cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(
@@ -217,7 +217,7 @@ class TestCase(test_env.BaseTestCase):
             bind_vars["value"].getvalue(), "InVal \u3041 TSI \u3042"
         )
 
-    def test_2112_bind_out_var(self):
+    def test_2112(self):
         "2112 - test binding out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
         self.cursor.execute(
@@ -230,7 +230,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "TSI (VAR) \u3042")
 
-    def test_2113_bind_in_out_var_direct_set(self):
+    def test_2113(self):
         "2113 - test binding in/out with cursor.var() method"
         var = self.cursor.var(oracledb.DB_TYPE_NVARCHAR)
         var.setvalue(0, "InVal \u3041")
@@ -244,7 +244,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(var.getvalue(), "InVal \u3041 TSI (VAR) \u3042")
 
-    def test_2114_cursor_description(self):
+    def test_2114(self):
         "2114 - test cursor description is accurate"
         self.cursor.execute("select * from TestUnicodes")
         varchar_ratio, nvarchar_ratio = test_env.get_charset_ratios()
@@ -280,13 +280,13 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    def test_2115_fetchall(self):
+    def test_2115(self):
         "2115 - test that fetching all of the data returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
         self.assertEqual(self.cursor.fetchall(), self.raw_data)
         self.assertEqual(self.cursor.fetchall(), [])
 
-    def test_2116_fetchmany(self):
+    def test_2116(self):
         "2116 - test that fetching data in chunks returns the correct results"
         self.cursor.execute("select * From TestUnicodes order by IntCol")
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[0:3])
@@ -295,7 +295,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchmany(3), self.raw_data[9:])
         self.assertEqual(self.cursor.fetchmany(3), [])
 
-    def test_2117_fetchone(self):
+    def test_2117(self):
         "2117 - test that fetching a single row returns the correct results"
         self.cursor.execute(
             """
