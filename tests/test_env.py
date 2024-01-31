@@ -241,6 +241,21 @@ def get_connect_string():
     )
 
 
+def get_is_drcp():
+    value = PARAMETERS.get("IS_DRCP")
+    if value is None:
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(get_connect_string())
+        server_type = params.server_type
+        value = (
+            server_type == "pooled"
+            or isinstance(server_type, list)
+            and "pooled" in server_type
+        )
+        PARAMETERS["IS_DRCP"] = value
+    return value
+
+
 def get_is_thin():
     driver_mode = get_value("DRIVER_MODE", "Driver mode (thin|thick)", "thin")
     return driver_mode == "thin"

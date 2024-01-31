@@ -153,6 +153,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 password=test_env.get_main_password() + "X",
             )
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5307(self):
         "5307 - test changing password"
         conn = await test_env.get_connection_async()
@@ -166,6 +167,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         conn = await test_env.get_connection_async(password=new_password)
         await conn.changepassword(new_password, test_env.get_main_password())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5308(self):
         "5308 - test changing password to an invalid value"
         conn = await test_env.get_connection_async()
@@ -183,6 +185,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await conn.changepassword("incorrect old password", new_password)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5309(self):
         "5309 - test connecting with password containing / and @ symbols"
         conn = await test_env.get_connection_async()
@@ -335,6 +338,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             (user,) = await cursor.fetchone()
             self.assertEqual(user, test_env.get_main_user().upper())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5327(self):
         "5327 - test changing password during connect"
         conn = await test_env.get_connection_async()
@@ -471,6 +475,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         (instance_name,) = await cursor.fetchone()
         self.assertEqual(conn.instance_name.upper(), instance_name)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
         test_env.get_server_version() < (23, 0),
         "unsupported server",

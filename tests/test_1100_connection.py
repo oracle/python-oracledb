@@ -193,6 +193,7 @@ class TestCase(test_env.BaseTestCase):
             password=test_env.get_main_password() + "X",
         )
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1107(self):
         "1107 - test changing password"
         conn = test_env.get_connection()
@@ -206,6 +207,7 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection(password=new_password)
         conn.changepassword(new_password, test_env.get_main_password())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1108(self):
         "1108 - test changing password to an invalid value"
         conn = test_env.get_connection()
@@ -227,6 +229,7 @@ class TestCase(test_env.BaseTestCase):
             new_password,
         )
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1109(self):
         "1109 - test connecting with password containing / and @ symbols"
         conn = test_env.get_connection()
@@ -585,6 +588,7 @@ class TestCase(test_env.BaseTestCase):
             (user,) = cursor.fetchone()
             self.assertEqual(user, test_env.get_main_user().upper())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1127(self):
         "1127 - test changing password during connect"
         conn = test_env.get_connection()
@@ -738,6 +742,7 @@ class TestCase(test_env.BaseTestCase):
         conn.callTimeout = 500
         self.assertEqual(conn.callTimeout, 500)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
         test_env.get_server_version() < (23, 0)
         or test_env.get_client_version() < (23, 0),

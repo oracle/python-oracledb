@@ -690,6 +690,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(self.cursor.bindvars.get("a"))
         self.assertIsInstance(self.cursor.bindvars["b"], oracledb.Var)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_4347(self):
         "4547 - kill connection with open cursor"
         admin_conn = test_env.get_admin_connection()
@@ -716,6 +717,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertFalse(conn.is_healthy())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_4348(self):
         "4348 - kill connection in cursor context manager"
         admin_conn = test_env.get_admin_connection()

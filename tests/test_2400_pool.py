@@ -304,6 +304,7 @@ class TestCase(test_env.BaseTestCase):
         for thread in threads:
             thread.join()
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_2406(self):
         "2406 - test session pool with various types of purity"
         pool = test_env.get_pool(
@@ -703,6 +704,7 @@ class TestCase(test_env.BaseTestCase):
             pass
         self.assertEqual(Counter.num_calls, 2)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_2424(self):
         "2424 - drop the pooled connection on receiving dead connection error"
         admin_conn = test_env.get_admin_connection()
@@ -776,6 +778,7 @@ class TestCase(test_env.BaseTestCase):
             pool.acquire(), test_env.get_proxy_user(), test_env.get_main_user()
         )
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_2428(self):
         "2428 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool(

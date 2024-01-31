@@ -575,6 +575,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [("A", 2, 3)] * 3
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_6335(self):
         "4535 - kill connection with open cursor"
         admin_conn = await test_env.get_admin_connection_async()
@@ -597,6 +598,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_6336(self):
         "6336 - kill connection in cursor context manager"
         admin_conn = await test_env.get_admin_connection_async()

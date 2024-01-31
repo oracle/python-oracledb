@@ -140,6 +140,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await asyncio.gather(*coroutines)
         await pool.close()
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5505(self):
         "5505 - test session pool with various types of purity"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
@@ -266,6 +267,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(Counter.num_calls, 2)
         await pool.close()
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5514(self):
         "5514 - drop the pooled connection on receiving dead connection error"
         admin_conn = await test_env.get_admin_connection_async()
@@ -343,6 +345,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await pool.close()
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5518(self):
         "5518 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool_async(min=5, max=10, increment=1)
