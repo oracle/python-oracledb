@@ -59,7 +59,7 @@ ConnectionPool Methods
     the connection class for Database Resident Connection Pooling (DRCP).
 
     The ``purity`` parameter is expected to be one of
-    :data:`~oracledb.PURITY_NEW`, :data:`~oracledb.PURITY_ANY`, or
+    :data:`~oracledb.PURITY_NEW`, :data:`~oracledb.PURITY_SELF`, or
     :data:`~oracledb.PURITY_DEFAULT`.
 
     The ``tag`` parameter, if specified, is expected to be a string with

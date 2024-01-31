@@ -480,7 +480,7 @@ Statement caching can be disabled by setting the cache size to 0:
 
 .. code-block:: python
 
-    oracledb.stmtCacheSize = 0
+    oracledb.defaults.stmtcachesize = 0
 
 Disabling the cache may be beneficial when the quantity or order of statements
 causes cache entries to be flushed before they get a chance to be
@@ -520,7 +520,7 @@ Alternatively,
 .. code-block:: python
 
     sql = "select user from dual"
-    cursor.prepare(sql, cache_statement=Fasle)
+    cursor.prepare(sql, cache_statement=False)
     cursor.execute(sql)
 
 Statements passed to :meth:`~Cursor.prepare()` are also stored in the statement
