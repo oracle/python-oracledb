@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -859,8 +859,10 @@ cdef class Description(ConnectParamsNode):
         else:
             if self.cclass is not None:
                 temp_parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
-            if self.purity != 0:
-                temp_parts.append(f"(POOL_PURITY={self.purity})")
+            if self.purity == PURITY_SELF:
+                temp_parts.append(f"(POOL_PURITY=SELF)")
+            elif self.purity == PURITY_NEW:
+                temp_parts.append(f"(POOL_PURITY=NEW)")
         if self.connection_id is not None:
             temp_parts.append(f"(CONNECTION_ID={self.connection_id})")
         if temp_parts:

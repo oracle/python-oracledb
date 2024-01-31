@@ -30,6 +30,8 @@ Common Changes
     is made to perform an operation on a LOB using a closed connection.
     Previously Thin mode would raise an ``AttributeError`` exception and Thick
     mode would raise ``DPI-1040: LOB was already closed``.
+#)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
+    the connection parameter ``purity`` has been specified.
 
 
 oracledb 2.0.1 (January 2024)

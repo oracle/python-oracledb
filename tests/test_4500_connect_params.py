@@ -158,18 +158,23 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.expire_time, 12)
 
     def test_4510(self):
-        "4510 - connect descriptor with pool parameters"
-        connect_string = """
-            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name12)
-            (POOL_CONNECTION_CLASS=cclass_12)(POOL_PURITY=SELF)))"""
-        params = oracledb.ConnectParams()
-        params.parse_connect_string(connect_string)
-        self.assertEqual(params.cclass, "cclass_12")
-        self.assertEqual(params.purity, oracledb.PURITY_SELF)
-        connect_string = connect_string.replace("SELF", "NEW")
-        params.parse_connect_string(connect_string)
-        self.assertEqual(params.purity, oracledb.PURITY_NEW)
+        "4510 - connect descriptor with purity parameters"
+        for purity_str in ("SELF", "NEW"):
+            purity = getattr(oracledb, f"PURITY_{purity_str}")
+            cclass = f"cclass_4510_{purity_str}"
+            connect_string = f"""
+                (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
+                (CONNECT_DATA=(SERVICE_NAME=service_4510)
+                (POOL_CONNECTION_CLASS={cclass})(POOL_PURITY={purity_str})))"""
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            self.assertEqual(params.cclass, cclass)
+            self.assertEqual(params.purity, purity)
+            gen_connect_string = params.get_connect_string()
+            gen_params = oracledb.ConnectParams()
+            gen_params.parse_connect_string(gen_connect_string)
+            self.assertEqual(gen_params.cclass, cclass)
+            self.assertEqual(gen_params.purity, purity)
 
     def test_4511(self):
         "4511 - connect descriptor with invalid pool purity"
