@@ -68,6 +68,8 @@ cdef class Message:
         to avoid overhead using the constructor, a special hook method is used
         instead.
         """
+        if conn_impl._protocol._transport is None:
+            errors._raise_err(errors.ERR_NOT_CONNECTED)
         self.conn_impl = conn_impl
         self.message_type = TNS_MSG_TYPE_FUNCTION
         self.error_info = _OracleErrorInfo.__new__(_OracleErrorInfo)
@@ -782,8 +784,7 @@ cdef class MessageWithData(Message):
             cursor_impl._statement._cursor_id = 0
             cursor_impl._statement._executed = False
         elif self.error_info.num != 0 and self.error_info.cursor_id != 0:
-            exc_type = get_exception_class(self.error_info.num)
-            if exc_type is not exceptions.IntegrityError:
+            if self.error_info.num not in errors.ERR_INTEGRITY_ERROR_CODES:
                 conn_impl._add_cursor_to_close(cursor_impl._statement)
                 cursor_impl._statement._cursor_id = 0
 

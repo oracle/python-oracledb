@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,7 +45,7 @@ from .defaults import defaults
 
 from . import __version__ as VERSION
 
-from .base_impl cimport get_exception_class, get_preferred_num_type
+from .base_impl cimport get_preferred_num_type
 from .base_impl cimport BaseConnImpl, BaseCursorImpl, BaseVarImpl, DbType
 from .base_impl cimport BaseDbObjectTypeImpl, BaseDbObjectAttrImpl
 from .base_impl cimport BaseDbObjectImpl, BaseLobImpl, BasePoolImpl

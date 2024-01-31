@@ -25,6 +25,10 @@ Common Changes
 
 #)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
     has the check constraint "IS JSON FORMAT OSON" enabled.
+#)  Error ``DPY-1001: not connected to database`` is now raised when an attempt
+    is made to perform an operation on a LOB using a closed connection.
+    Previously Thin mode would raise an ``AttributeError`` exception and Thick
+    mode would raise ``DPI-1040: LOB was already closed``.
 
 
 oracledb 2.0.1 (January 2024)

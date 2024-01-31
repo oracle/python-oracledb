@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -73,74 +73,6 @@ cdef type PY_TYPE_FETCHINFO
 cdef uint32_t PURITY_NEW = constants.PURITY_NEW
 cdef uint32_t PURITY_SELF = constants.PURITY_SELF
 cdef uint32_t PURITY_DEFAULT = constants.PURITY_DEFAULT
-
-cdef int32_t* INTEGRITY_ERROR_CODES = [
-        1,          # unique constraint violated
-        1400,       # cannot insert NULL
-        1438,       # value larger than specified precision
-        2290,       # check constraint violated
-        2291,       # integrity constraint violated - parent key not found
-        2292,       # integrity constraint violated - child record found
-        21525,      # attribute or collection element violated its constraints
-        40479,      # internal JSON serializer error
-        0
-]
-
-cdef int32_t* INTERFACE_ERROR_CODES = [
-        24422,
-        0
-]
-
-cdef int32_t* OPERATIONAL_ERROR_CODES = [
-        22,         # invalid session ID; access denied
-        378,        # buffer pools cannot be created as specified
-        600,        # internal error code
-        602,        # internal programming exception
-        603,        # ORACLE server session terminated by fatal error
-        604,        # error occurred at recursive SQL level
-        609,        # could not attach to incoming connection
-        1012,       # not logged on
-        1013,       # user requested cancel of current operation
-        1033,       # ORACLE initialization or shutdown in progress
-        1034,       # ORACLE not available
-        1041,       # internal error. hostdef extension doesn't exist
-        1043,       # user side memory corruption
-        1089,       # immediate shutdown or close in progress
-        1090,       # shutdown in progress - connection is not permitted
-        1092,       # ORACLE instance terminated. Disconnection forced
-        3111,       # break received on communication channel
-        3113,       # end-of-file on communication channel
-        3114,       # not connected to ORACLE
-        3122,       # attempt to close ORACLE-side window on user side
-        3135,       # connection lost contact
-        12153,      # TNS:not connected
-        12203,      # TNS:unable to connect to destination
-        12500,      # TNS:listener failed to start a dedicated server process
-        12571,      # TNS:packet writer failure
-        27146,      # post/wait initialization failed
-        28511,      # lost RPC connection to heterogeneous remote agent
-        0
-]
-
-
-cdef int is_code_in_array(int32_t code, int32_t *ptr):
-    cdef int ix = 0
-    while ptr[ix] != 0:
-        if ptr[ix] == code:
-            return 1
-        ix += 1
-    return 0
-
-
-cdef object get_exception_class(int32_t code):
-    if is_code_in_array(code, INTEGRITY_ERROR_CODES):
-        return exceptions.IntegrityError
-    if is_code_in_array(code, OPERATIONAL_ERROR_CODES):
-        return exceptions.OperationalError
-    if is_code_in_array(code, INTERFACE_ERROR_CODES):
-        return exceptions.InterfaceError
-    return exceptions.DatabaseError
-
 
 cdef int get_preferred_num_type(int16_t precision, int8_t scale):
     if scale == 0 or (scale == -127 and precision == 0):

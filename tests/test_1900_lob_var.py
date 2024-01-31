@@ -553,6 +553,24 @@ class TestCase(test_env.BaseTestCase):
                 lob.write(additional_data, len(initial_data) + 1)
                 self.assertEqual(lob.read(), expected_result)
 
+    def test_1935(self):
+        "1935 - test reading and writing a LOB with a closed connection"
+        types = [
+            oracledb.DB_TYPE_BLOB,
+            oracledb.DB_TYPE_CLOB,
+            oracledb.DB_TYPE_NCLOB,
+        ]
+        for typ in types:
+            conn = test_env.get_connection()
+            lob = conn.createlob(typ, "Temp LOB")
+            conn.close()
+            self.assertRaisesRegex(
+                oracledb.InterfaceError, "^DPY-1001:", lob.read
+            )
+            self.assertRaisesRegex(
+                oracledb.InterfaceError, "^DPY-1001:", lob.write, "x"
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

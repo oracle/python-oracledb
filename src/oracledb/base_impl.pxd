@@ -496,5 +496,4 @@ cdef class BindVar:
                            uint32_t row_num, uint32_t num_elements,
                            bint defer_type_assignment) except -1
 
-cdef object get_exception_class(int32_t code)
 cdef int get_preferred_num_type(int16_t precision, int8_t scale)

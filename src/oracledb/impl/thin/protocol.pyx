@@ -415,8 +415,7 @@ cdef class Protocol(BaseProtocol):
             # longer usable
             if error.is_session_dead:
                 self._force_close()
-            exc_type = get_exception_class(message.error_info.num)
-            raise exc_type(error)
+            raise error.exc_type(error)
 
     cdef int _process_single_message(self, Message message) except -1:
         """
@@ -795,8 +794,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             # longer usable
             if error.is_session_dead:
                 self._force_close()
-            exc_type = get_exception_class(message.error_info.num)
-            raise exc_type(error)
+            raise error.exc_type(error)
 
     async def _process_message_helper(self, Message message):
         """

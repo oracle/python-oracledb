@@ -414,8 +414,7 @@ cdef int _raise_from_info(dpiErrorInfo *error_info) except -1:
     populated with error information.
     """
     error = _create_new_from_info(error_info)
-    exc_type = get_exception_class(error_info.code)
-    raise exc_type(error)
+    raise error.exc_type(error)
 
 
 cdef int _raise_from_odpi() except -1:
