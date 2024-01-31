@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -314,7 +314,7 @@ cdef class BaseThinDbObjectTypeCache:
             ora_type_num = TNS_DATA_TYPE_BOOLEAN
         elif attr_type == TNS_OBJ_TDS_TYPE_CLOB:
             ora_type_num = TNS_DATA_TYPE_CLOB
-            csfrm = TNS_CS_IMPLICIT
+            csfrm = CS_FORM_IMPLICIT
         elif attr_type == TNS_OBJ_TDS_TYPE_BLOB:
             ora_type_num = TNS_DATA_TYPE_BLOB
         elif attr_type == TNS_OBJ_TDS_TYPE_OBJ:

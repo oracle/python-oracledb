@@ -34,6 +34,8 @@
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 
+ctypedef unsigned char char_type
+
 cdef enum:
     NUM_TYPE_FLOAT = 0
     NUM_TYPE_INT = 1
@@ -72,6 +74,20 @@ cdef enum:
     DB_TYPE_NUM_VARCHAR = 2001
     DB_TYPE_NUM_XMLTYPE = 2032
 
+cdef enum:
+    CS_FORM_IMPLICIT = 1
+    CS_FORM_NCHAR = 2
+
+cdef enum:
+    BYTE_ORDER_LSB = 1
+    BYTE_ORDER_MSB = 2
+
+cdef enum:
+    TNS_LONG_LENGTH_INDICATOR = 254
+    TNS_NULL_LENGTH_INDICATOR = 255
+
+cdef const char* ENCODING_UTF8
+cdef const char* ENCODING_UTF16
 
 cdef class ApiType:
     cdef:
@@ -97,6 +113,164 @@ cdef class DbType:
 
     @staticmethod
     cdef DbType _from_ora_type_and_csfrm(uint8_t ora_type_num, uint8_t csfrm)
+
+
+cdef class Buffer:
+    cdef:
+        ssize_t _max_size, _size, _pos
+        char_type[:] _data_view
+        char_type *_data
+        bytearray _data_obj
+
+    cdef int _get_int_length_and_sign(self, uint8_t *length,
+                                      bint *is_negative,
+                                      uint8_t max_length) except -1
+    cdef const char_type* _get_raw(self, ssize_t num_bytes) except NULL
+    cdef int _initialize(self, ssize_t max_size=*) except -1
+    cdef int _populate_from_bytes(self, bytes data) except -1
+    cdef int _read_raw_bytes_and_length(self, const char_type **ptr,
+                                        ssize_t *num_bytes) except -1
+    cdef int _resize(self, ssize_t new_max_size) except -1
+    cdef int _skip_int(self, uint8_t max_length, bint *is_negative) except -1
+    cdef uint64_t _unpack_int(self, const char_type *ptr, uint8_t length)
+    cdef int _write_more_data(self, ssize_t num_bytes_available,
+                              ssize_t num_bytes_wanted) except -1
+    cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
+                                         ssize_t num_bytes) except -1
+    cdef inline ssize_t bytes_left(self)
+    cdef object parse_binary_double(self, const uint8_t* ptr)
+    cdef object parse_binary_float(self, const uint8_t* ptr)
+    cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes)
+    cdef object parse_interval_ds(self, const uint8_t* ptr)
+    cdef object parse_oracle_number(self, const uint8_t* ptr,
+                                    ssize_t num_bytes, int preferred_num_type)
+    cdef object read_binary_double(self)
+    cdef object read_binary_float(self)
+    cdef object read_binary_integer(self)
+    cdef object read_bool(self)
+    cdef object read_bytes(self)
+    cdef object read_date(self)
+    cdef object read_interval_ds(self)
+    cdef int read_int32(self, int32_t *value, int byte_order=*) except -1
+    cdef object read_oracle_number(self, int preferred_num_type)
+    cdef inline const char_type* read_raw_bytes(self,
+                                                ssize_t num_bytes) except NULL
+    cdef int read_raw_bytes_and_length(self, const char_type **ptr,
+                                       ssize_t *num_bytes) except -1
+    cdef int read_sb1(self, int8_t *value) except -1
+    cdef int read_sb2(self, int16_t *value) except -1
+    cdef int read_sb4(self, int32_t *value) except -1
+    cdef int read_sb8(self, int64_t *value) except -1
+    cdef bytes read_null_terminated_bytes(self)
+    cdef object read_str(self, int csfrm, const char* encoding_errors=*)
+    cdef int read_ub1(self, uint8_t *value) except -1
+    cdef int read_ub2(self, uint16_t *value) except -1
+    cdef int read_ub4(self, uint32_t *value) except -1
+    cdef int read_ub8(self, uint64_t *value) except -1
+    cdef int read_uint16(self, uint16_t *value, int byte_order=*) except -1
+    cdef int read_uint32(self, uint32_t *value, int byte_order=*) except -1
+    cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1
+    cdef inline int skip_sb4(self) except -1
+    cdef inline void skip_to(self, ssize_t pos)
+    cdef inline int skip_ub1(self) except -1
+    cdef inline int skip_ub2(self) except -1
+    cdef inline int skip_ub4(self) except -1
+    cdef inline int skip_ub8(self) except -1
+    cdef int write_binary_double(self, double value) except -1
+    cdef int write_binary_float(self, float value) except -1
+    cdef int write_bool(self, bint value) except -1
+    cdef int write_bytes(self, bytes value) except -1
+    cdef int write_bytes_with_length(self, bytes value) except -1
+    cdef int write_interval_ds(self, object value,
+                               bint write_length=*) except -1
+    cdef int write_oracle_date(self, object value, uint8_t length,
+                               bint write_length=*) except -1
+    cdef int write_oracle_number(self, bytes num_bytes) except -1
+    cdef int write_raw(self, const char_type *data, ssize_t length) except -1
+    cdef int write_str(self, str value) except -1
+    cdef int write_uint8(self, uint8_t value) except -1
+    cdef int write_uint16(self, uint16_t value, int byte_order=*) except -1
+    cdef int write_uint32(self, uint32_t value, int byte_order=*) except -1
+    cdef int write_uint64(self, uint64_t value, byte_order=*) except -1
+    cdef int write_ub2(self, uint16_t value) except -1
+    cdef int write_ub4(self, uint32_t value) except -1
+    cdef int write_ub8(self, uint64_t value) except -1
+
+
+cdef class GrowableBuffer(Buffer):
+
+    cdef int _reserve_space(self, ssize_t num_bytes) except -1
+    cdef int _write_more_data(self, ssize_t num_bytes_available,
+                              ssize_t num_bytes_wanted) except -1
+
+
+cdef class OsonDecoder(Buffer):
+
+    cdef:
+        uint16_t primary_flags, secondary_flags
+        ssize_t field_id_length
+        ssize_t tree_seg_pos
+        list field_names
+        uint8_t version
+        bint relative_offsets
+
+    cdef object _decode_container_node(self, uint8_t node_type)
+    cdef object _decode_node(self)
+    cdef list _get_long_field_names(self, uint32_t num_fields,
+                                    ssize_t offsets_size,
+                                    uint32_t field_names_seg_size)
+    cdef int _get_num_children(self, uint8_t node_type, uint32_t* num_children,
+                               bint* is_shared) except -1
+    cdef int _get_offset(self, uint8_t node_type, uint32_t* offset) except -1
+    cdef list _get_short_field_names(self, uint32_t num_fields,
+                                     ssize_t offsets_size,
+                                     uint32_t field_names_seg_size)
+    cdef object decode(self, bytes data)
+
+
+cdef class OsonFieldName:
+
+    cdef:
+        str name
+        bytes name_bytes
+        ssize_t name_bytes_len
+        uint32_t hash_id
+        uint32_t offset
+        uint32_t field_id
+
+    cdef int _calc_hash_id(self) except -1
+    @staticmethod
+    cdef OsonFieldName create(str name, ssize_t max_fname_size)
+
+
+cdef class OsonFieldNamesSegment(GrowableBuffer):
+
+    cdef:
+        uint32_t num_field_names
+        list field_names
+
+    cdef int add_name(self, OsonFieldName field_name) except -1
+    @staticmethod
+    cdef OsonFieldNamesSegment create()
+    cdef int process_field_names(self, ssize_t field_id_offset) except -1
+
+
+cdef class OsonEncoder(GrowableBuffer):
+
+    cdef:
+        OsonFieldNamesSegment short_fnames_seg
+        OsonFieldNamesSegment long_fnames_seg
+        uint32_t num_field_names
+        ssize_t max_fname_size
+        dict field_names_dict
+        uint8_t field_id_size
+
+    cdef int _add_field_name(self, str name) except -1
+    cdef int _determine_flags(self, object value, uint16_t *flags) except -1
+    cdef int _examine_node(self, object value) except -1
+    cdef int _write_extended_header(self) except -1
+    cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1
+    cdef int encode(self, object value, ssize_t max_fname_size) except -1
 
 
 cdef class ConnectParamsNode:
@@ -247,6 +421,7 @@ cdef class BaseConnImpl:
         public bint invoke_session_callback
         readonly tuple server_version
         readonly bint supports_bool
+        ssize_t _oson_max_fname_size
         bint _allow_bind_str_to_lob
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
@@ -497,3 +672,8 @@ cdef class BindVar:
                            bint defer_type_assignment) except -1
 
 cdef int get_preferred_num_type(int16_t precision, int8_t scale)
+cdef void pack_uint16(char_type *buf, uint16_t x, int order)
+cdef void pack_uint32(char_type *buf, uint32_t x, int order)
+cdef void pack_uint64(char_type *buf, uint64_t x, int order)
+cdef uint16_t unpack_uint16(const char_type *buf, int order)
+cdef uint32_t unpack_uint32(const char_type *buf, int order)

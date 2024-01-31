@@ -654,6 +654,20 @@ class Connection(BaseConnection):
         self._verify_connected()
         return Cursor(self, scrollable)
 
+    def decode_oson(self, data):
+        """
+        Decode OSON-encoded bytes and return the object encoded in those bytes.
+        """
+        self._verify_connected()
+        return self._impl.decode_oson(data)
+
+    def encode_oson(self, value):
+        """
+        Return OSON-encoded bytes encoded from the supplied object.
+        """
+        self._verify_connected()
+        return self._impl.encode_oson(value)
+
     def getSodaDatabase(self) -> SodaDatabase:
         """
         Return a SODA database object for performing all operations on Simple

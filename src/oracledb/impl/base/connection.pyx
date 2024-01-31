@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,6 +35,7 @@ cdef class BaseConnImpl:
         self.dsn = dsn
         self.username = params.user
         self.proxy_user = params.proxy_user
+        self._oson_max_fname_size = 255
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok):
@@ -167,6 +168,21 @@ cdef class BaseConnImpl:
     @utils.CheckImpls("changing a password")
     def change_password(self, old_password, new_password):
         pass
+
+    def decode_oson(self, bytes data):
+        """
+        Decode OSON encoded bytes and return the object encoded in them.
+        """
+        cdef OsonDecoder decoder = OsonDecoder.__new__(OsonDecoder)
+        return decoder.decode(data)
+
+    def encode_oson(self, object value):
+        """
+        Return OSON encoded bytes encoded from the supplied object.
+        """
+        cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
+        encoder.encode(value, self._oson_max_fname_size)
+        return encoder._data[:encoder._pos]
 
     @utils.CheckImpls("checking if the connection is healthy")
     def get_is_healthy(self):

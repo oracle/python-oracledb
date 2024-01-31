@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -26,19 +26,11 @@
 # json.pyx
 #
 # Cython file defining the classes and methods used for encoding and decoding
-# OSON (Oracle's extensions to JSON) (embedded in thin_impl.pyx).
+# OSON (Oracle's extensions to JSON) (embedded in base_impl.pyx).
 #------------------------------------------------------------------------------
 
 @cython.final
 cdef class OsonDecoder(Buffer):
-
-    cdef:
-        uint16_t primary_flags, secondary_flags
-        ssize_t field_id_length
-        ssize_t tree_seg_pos
-        list field_names
-        uint8_t version
-        bint relative_offsets
 
     cdef object _decode_container_node(self, uint8_t node_type):
         """
@@ -430,14 +422,6 @@ cdef class OsonDecoder(Buffer):
 @cython.final
 cdef class OsonFieldName:
 
-    cdef:
-        str name
-        bytes name_bytes
-        ssize_t name_bytes_len
-        uint32_t hash_id
-        uint32_t offset
-        uint32_t field_id
-
     cdef int _calc_hash_id(self) except -1:
         """
         Calculates the hash id to use for the field name. This is based on
@@ -475,10 +459,6 @@ cdef class OsonFieldName:
 
 @cython.final
 cdef class OsonFieldNamesSegment(GrowableBuffer):
-
-    cdef:
-        uint32_t num_field_names
-        list field_names
 
     cdef int add_name(self, OsonFieldName field_name) except -1:
         """
@@ -675,14 +655,6 @@ cdef class OsonTreeSegment(GrowableBuffer):
 
 @cython.final
 cdef class OsonEncoder(GrowableBuffer):
-
-    cdef:
-        OsonFieldNamesSegment short_fnames_seg
-        OsonFieldNamesSegment long_fnames_seg
-        uint32_t num_field_names
-        ssize_t max_fname_size
-        dict field_names_dict
-        uint8_t field_id_size
 
     cdef int _add_field_name(self, str name) except -1:
         """

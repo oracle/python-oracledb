@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -40,7 +40,6 @@ cdef class Capabilities:
         bytearray runtime_caps
         uint32_t max_string_size
         bint supports_oob
-        ssize_t oson_max_fname_size
         uint32_t sdu
 
     def __init__(self):
@@ -58,9 +57,6 @@ cdef class Capabilities:
         if server_caps[TNS_CCAP_FIELD_VERSION] < self.ttc_field_version:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
-        self.oson_max_fname_size = 65535 \
-                if self.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1 \
-                else 255
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):

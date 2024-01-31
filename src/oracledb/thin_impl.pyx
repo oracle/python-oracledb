@@ -38,7 +38,6 @@ cimport cpython.ref
 
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
-from libc.stdint cimport UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX
 from libc.string cimport memcpy, memset
 from cpython cimport array
 
@@ -77,17 +76,52 @@ from . import __version__ as VERSION
 from . import constants, errors, exceptions
 from .defaults import defaults
 
-from .base_impl cimport NUM_TYPE_FLOAT, NUM_TYPE_INT, NUM_TYPE_DECIMAL
-from .base_impl cimport NUM_TYPE_STR
-from .base_impl cimport BaseConnImpl, BaseCursorImpl, BaseVarImpl, DbType
-from .base_impl cimport BaseLobImpl, BasePoolImpl, FetchInfoImpl
-from .base_impl cimport Address, AddressList, Description, DescriptionList
-from .base_impl cimport ConnectParamsImpl, PoolParamsImpl, BaseDbObjectAttrImpl
-from .base_impl cimport BaseDbObjectImpl, BaseDbObjectTypeImpl
-from .base_impl cimport get_preferred_num_type
-from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB
-from .base_impl import DB_TYPE_BINARY_INTEGER, DB_TYPE_CURSOR, DB_TYPE_OBJECT
-from .base_impl import DB_TYPE_XMLTYPE
+from .base_impl cimport (
+    Address,
+    AddressList,
+    BaseConnImpl,
+    BaseCursorImpl,
+    BaseDbObjectAttrImpl,
+    BaseDbObjectImpl,
+    BaseDbObjectTypeImpl,
+    BaseLobImpl,
+    BasePoolImpl,
+    BaseVarImpl,
+    Buffer,
+    BYTE_ORDER_LSB,
+    BYTE_ORDER_MSB,
+    ConnectParamsImpl,
+    CS_FORM_IMPLICIT,
+    CS_FORM_NCHAR,
+    DbType,
+    Description,
+    DescriptionList,
+    ENCODING_UTF8,
+    ENCODING_UTF16,
+    FetchInfoImpl,
+    PoolParamsImpl,
+    get_preferred_num_type,
+    GrowableBuffer,
+    NUM_TYPE_FLOAT,
+    NUM_TYPE_INT,
+    NUM_TYPE_DECIMAL,
+    NUM_TYPE_STR,
+    OsonDecoder,
+    OsonEncoder,
+    unpack_uint16,
+    unpack_uint32,
+    TNS_LONG_LENGTH_INDICATOR,
+    TNS_NULL_LENGTH_INDICATOR,
+)
+from .base_impl import (
+    DB_TYPE_BLOB,
+    DB_TYPE_CLOB,
+    DB_TYPE_NCLOB,
+    DB_TYPE_BINARY_INTEGER,
+    DB_TYPE_CURSOR,
+    DB_TYPE_OBJECT,
+    DB_TYPE_XMLTYPE,
+)
 
 ctypedef unsigned char char_type
 
@@ -129,7 +163,6 @@ include "impl/thin/utils.pyx"
 include "impl/thin/crypto.pyx"
 include "impl/thin/capabilities.pyx"
 include "impl/thin/cookie.pyx"
-include "impl/thin/buffer.pyx"
 include "impl/thin/transport.pyx"
 include "impl/thin/packet.pyx"
 include "impl/thin/data_types.pyx"
@@ -142,7 +175,6 @@ include "impl/thin/cursor.pyx"
 include "impl/thin/var.pyx"
 include "impl/thin/dbobject.pyx"
 include "impl/thin/dbobject_cache.pyx"
-include "impl/thin/oson.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
 include "impl/thin/conversions.pyx"

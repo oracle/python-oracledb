@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -55,7 +55,7 @@ cdef class ThinVarImpl(BaseVarImpl):
             if self.dbtype._ora_type_num == TNS_DATA_TYPE_RAW \
                     or self.dbtype._ora_type_num == TNS_DATA_TYPE_LONG_RAW:
                 self.dbtype = DB_TYPE_BLOB
-            elif self.dbtype._csfrm == TNS_CS_NCHAR:
+            elif self.dbtype._csfrm == CS_FORM_NCHAR:
                 self.dbtype = DB_TYPE_NCLOB
             else:
                 self.dbtype = DB_TYPE_CLOB

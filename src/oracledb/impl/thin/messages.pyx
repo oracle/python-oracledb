@@ -155,7 +155,7 @@ cdef class Message:
             for i in range(temp16):
                 buf.skip_ub2()              # skip chunk length
                 info.batcherrors[i].message = \
-                        buf.read_str(TNS_CS_IMPLICIT).rstrip()
+                        buf.read_str(CS_FORM_IMPLICIT).rstrip()
                 info.batcherrors[i]._make_adjustments()
                 buf.skip_raw_bytes(2)       # ignore end marker
 
@@ -172,7 +172,7 @@ cdef class Message:
             self.error_occurred = True
             if error_pos > 0:
                 info.pos = error_pos
-            info.message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
+            info.message = buf.read_str(CS_FORM_IMPLICIT).rstrip()
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -270,7 +270,7 @@ cdef class Message:
         buf.read_ub2(&num_bytes)            # length of error message
         buf.skip_ub2()                      # flags
         if error_num != 0 and num_bytes > 0:
-            message = buf.read_str(TNS_CS_IMPLICIT).rstrip()
+            message = buf.read_str(CS_FORM_IMPLICIT).rstrip()
             self.warning = errors._Error(message, code=error_num,
                                          iswarning=True)
 
@@ -527,7 +527,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
                 or ora_type_num == TNS_DATA_TYPE_LONG:
-            if csfrm == TNS_CS_NCHAR:
+            if csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()
             if var_impl.encoding_errors is not None:
                 encoding_errors_bytes = var_impl.encoding_errors.encode()
@@ -545,7 +545,7 @@ cdef class MessageWithData(Message):
             column_value = buf.read_date()
         elif ora_type_num == TNS_DATA_TYPE_ROWID:
             if not self.in_fetch:
-                column_value = buf.read_str(TNS_CS_IMPLICIT)
+                column_value = buf.read_str(CS_FORM_IMPLICIT)
             else:
                 buf.read_ub1(&num_bytes)
                 if num_bytes == 0 or num_bytes == TNS_NULL_LENGTH_INDICATOR:
@@ -555,7 +555,7 @@ cdef class MessageWithData(Message):
                     column_value = _encode_rowid(&rowid)
         elif ora_type_num == TNS_DATA_TYPE_UROWID:
             if not self.in_fetch:
-                column_value = buf.read_str(TNS_CS_IMPLICIT)
+                column_value = buf.read_str(CS_FORM_IMPLICIT)
             else:
                 column_value = buf.read_urowid()
         elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
@@ -656,13 +656,13 @@ cdef class MessageWithData(Message):
         buf.skip_ub1()                      # v7 length of name
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            fetch_info.name = buf.read_str(TNS_CS_IMPLICIT)
+            fetch_info.name = buf.read_str(CS_FORM_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            schema = buf.read_str(TNS_CS_IMPLICIT)
+            schema = buf.read_str(CS_FORM_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            name = buf.read_str(TNS_CS_IMPLICIT)
+            name = buf.read_str(CS_FORM_IMPLICIT)
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
         fetch_info.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
@@ -670,10 +670,10 @@ cdef class MessageWithData(Message):
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                fetch_info.domain_schema = buf.read_str(TNS_CS_IMPLICIT)
+                fetch_info.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                fetch_info.domain_name = buf.read_str(TNS_CS_IMPLICIT)
+                fetch_info.domain_name = buf.read_str(CS_FORM_IMPLICIT)
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
             buf.read_ub4(&num_annotations)
             if num_annotations > 0:
@@ -683,10 +683,10 @@ cdef class MessageWithData(Message):
                 buf.skip_ub1()
                 for i in range(num_annotations):
                     buf.skip_ub4()          # length of key
-                    key = buf.read_str(TNS_CS_IMPLICIT)
+                    key = buf.read_str(CS_FORM_IMPLICIT)
                     buf.read_ub4(&num_bytes)
                     if num_bytes > 0:
-                        value = buf.read_str(TNS_CS_IMPLICIT)
+                        value = buf.read_str(CS_FORM_IMPLICIT)
                     else:
                         value = ""
                     fetch_info.annotations[key] = value
@@ -1020,11 +1020,11 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
                 or ora_type_num == TNS_DATA_TYPE_CHAR \
                 or ora_type_num == TNS_DATA_TYPE_LONG:
-            if var_impl.dbtype._csfrm == TNS_CS_IMPLICIT:
+            if var_impl.dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
                 buf._caps._check_ncharset_id()
-                temp_bytes = (<str> value).encode(TNS_ENCODING_UTF16)
+                temp_bytes = (<str> value).encode(ENCODING_UTF16)
             buf.write_bytes_with_length(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_RAW \
                 or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
@@ -1069,7 +1069,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             buf.write_dbobject(value._impl)
         elif ora_type_num == TNS_DATA_TYPE_JSON:
-            buf.write_oson(value)
+            buf.write_oson(value, self.conn_impl._oson_max_fname_size)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)
@@ -1551,10 +1551,10 @@ cdef class AuthMessage(Message):
         buf.read_ub2(&num_params)
         for i in range(num_params):
             buf.skip_ub4()
-            key = buf.read_str(TNS_CS_IMPLICIT)
+            key = buf.read_str(CS_FORM_IMPLICIT)
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                value = buf.read_str(TNS_CS_IMPLICIT)
+                value = buf.read_str(CS_FORM_IMPLICIT)
             else:
                 value = ""
             if key == "AUTH_VFR_DATA":
@@ -2288,7 +2288,7 @@ cdef class LobOpMessage(Message):
         if self.dest_lob_impl is not None:
             buf.write_bytes(self.dest_lob_impl._locator)
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
-            if self.source_lob_impl.dbtype._csfrm == TNS_CS_NCHAR:
+            if self.source_lob_impl.dbtype._csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()
                 buf.write_ub4(TNS_CHARSET_UTF16)
             else:
@@ -2371,6 +2371,8 @@ cdef class ProtocolMessage(Message):
         if self.server_compile_caps is not None:
             temp_array = bytearray(self.server_compile_caps)
             caps._adjust_for_server_compile_caps(temp_array)
+            if caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
+                self.conn_impl._oson_max_fname_size = 65535
         self.server_runtime_caps = buf.read_bytes()
         if self.server_runtime_caps is not None:
             temp_array = bytearray(self.server_runtime_caps)

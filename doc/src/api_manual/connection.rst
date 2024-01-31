@@ -110,6 +110,22 @@ Connection Methods
 
     Returns a new :ref:`cursor object <cursorobj>` using the connection.
 
+.. method:: Connection.decode_oson(data)
+
+    Decodes OSON-encoded bytes and returns the object encoded in those bytes.
+    This is useful for fetching columns which have the check constraint
+    ``IS JSON FORMAT OSON`` enabled.
+
+    .. versionadded:: 2.1.0
+
+.. method:: Connection.encode_oson(value)
+
+    Encodes a Python value into OSON-encoded bytes and returns them. This is
+    useful for inserting into columns which have the check constraint
+    ``IS JSON FORMAT OSON`` enabled.
+
+    .. versionadded:: 2.1.0
+
 .. method:: Connection.getSodaDatabase()
 
     Returns a :ref:`SodaDatabase <sodadb>` object for Simple Oracle Document

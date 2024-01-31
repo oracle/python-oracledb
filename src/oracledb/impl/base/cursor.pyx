@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -156,6 +156,7 @@ cdef class BaseCursorImpl:
         """
         cdef:
             object var, pub_fetch_info
+            BaseConnImpl conn_impl
             BaseVarImpl var_impl
             uint32_t db_type_num
 
@@ -207,6 +208,10 @@ cdef class BaseCursorImpl:
             elif var_impl.scale == 0 \
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
+        elif fetch_info.is_oson:
+            conn_impl = self._get_conn_impl()
+            var_impl.dbtype = DB_TYPE_LONG_RAW
+            var_impl.outconverter = conn_impl.decode_oson
         elif fetch_info.is_json and db_type_num != DB_TYPE_NUM_JSON:
             var_impl.outconverter = self._build_json_converter_fn()
         elif not defaults.fetch_lobs:

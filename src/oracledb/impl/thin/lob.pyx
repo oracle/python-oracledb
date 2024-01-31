@@ -159,11 +159,11 @@ cdef class BaseThinLobImpl(BaseLobImpl):
         """
         Return the encoding used by the LOB.
         """
-        if self.dbtype._csfrm == TNS_CS_NCHAR \
+        if self.dbtype._csfrm == CS_FORM_NCHAR \
                 or self._locator[TNS_LOB_LOC_OFFSET_FLAG_3] & \
                 TNS_LOB_LOC_FLAGS_VAR_LENGTH_CHARSET:
-            return TNS_ENCODING_UTF16
-        return TNS_ENCODING_UTF8
+            return ENCODING_UTF16
+        return ENCODING_UTF8
 
     def free_lob(self):
         """

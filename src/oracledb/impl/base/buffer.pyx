@@ -25,17 +25,12 @@
 #------------------------------------------------------------------------------
 # buffer.pyx
 #
-# Cython file defining the low-level read and write methods for packed data
-# (packet data or database object pickled data).
+# Cython file defining the low-level read and write methods for packed data.
 #------------------------------------------------------------------------------
 
 cdef enum:
     NUMBER_AS_TEXT_CHARS = 172
     NUMBER_MAX_DIGITS = 40
-
-cdef enum:
-    BYTE_ORDER_LSB = 1
-    BYTE_ORDER_MSB = 2
 
 cdef int MACHINE_BYTE_ORDER = BYTE_ORDER_MSB \
         if sys.byteorder == "big" else BYTE_ORDER_LSB
@@ -122,12 +117,6 @@ cdef inline uint32_t unpack_uint32(const char_type *buf, int order):
 
 cdef class Buffer:
 
-    cdef:
-        ssize_t _max_size, _size, _pos
-        char_type[:] _data_view
-        char_type *_data
-        bytearray _data_obj
-
     cdef int _get_int_length_and_sign(self, uint8_t *length,
                                       bint *is_negative,
                                       uint8_t max_length) except -1:
@@ -167,7 +156,7 @@ cdef class Buffer:
         self._pos += num_bytes
         return ptr
 
-    cdef int _initialize(self, ssize_t max_size) except -1:
+    cdef int _initialize(self, ssize_t max_size = TNS_CHUNK_SIZE) except -1:
         """
         Initialize the buffer with an empty bytearray of the specified size.
         """
@@ -588,36 +577,6 @@ cdef class Buffer:
         if ptr != NULL:
             return self.parse_date(ptr, num_bytes)
 
-    cdef ThinDbObjectImpl read_dbobject(self, BaseDbObjectTypeImpl typ_impl):
-        """
-        Read a database object from the buffer and return a DbObject object
-        containing it.
-        it.
-        """
-        cdef:
-            bytes oid = None, toid = None
-            ThinDbObjectImpl obj_impl
-            uint32_t num_bytes
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # type OID
-            toid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # OID
-            oid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # snapshot
-            self.read_bytes()
-        self.skip_ub2()                     # version
-        self.read_ub4(&num_bytes)           # length of data
-        self.skip_ub2()                     # flags
-        if num_bytes > 0:
-            obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
-            obj_impl.type = typ_impl
-            obj_impl.toid = toid
-            obj_impl.oid = oid
-            obj_impl.packed_data = self.read_bytes()
-            return obj_impl
-
     cdef object read_interval_ds(self):
         """
         Read an interval day to second value from the buffer and return the
@@ -631,30 +590,13 @@ cdef class Buffer:
             return self.parse_interval_ds(ptr)
 
     cdef int read_int32(self, int32_t *value,
-                         int byte_order=BYTE_ORDER_MSB) except -1:
+                        int byte_order=BYTE_ORDER_MSB) except -1:
         """
         Read a signed 32-bit integer from the buffer in the specified byte
         order.
         """
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = <int32_t> unpack_uint32(ptr, byte_order)
-
-    cdef object read_lob(self, BaseThinConnImpl conn_impl, DbType dbtype):
-        """
-        Read a LOB locator from the buffer and return a LOB object containing
-        it.
-        """
-        cdef:
-            BaseThinLobImpl lob_impl
-            bytes locator
-            type cls
-        locator = self.read_bytes()
-        if locator is not None:
-            lob_impl = conn_impl._create_lob_impl(dbtype, locator)
-            cls = PY_TYPE_ASYNC_LOB \
-                    if conn_impl._protocol._transport._is_async \
-                    else PY_TYPE_LOB
-            return cls._from_impl(lob_impl)
 
     cdef object read_oracle_number(self, int preferred_num_type):
         """
@@ -775,10 +717,9 @@ cdef class Buffer:
             ssize_t num_bytes
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
-            if csfrm == TNS_CS_IMPLICIT:
-                return ptr[:num_bytes].decode(TNS_ENCODING_UTF8,
-                                              encoding_errors)
-            return ptr[:num_bytes].decode(TNS_ENCODING_UTF16, encoding_errors)
+            if csfrm == CS_FORM_IMPLICIT:
+                return ptr[:num_bytes].decode(ENCODING_UTF8, encoding_errors)
+            return ptr[:num_bytes].decode(ENCODING_UTF16, encoding_errors)
 
     cdef int read_ub1(self, uint8_t *value) except -1:
         """
@@ -844,56 +785,6 @@ cdef class Buffer:
         """
         cdef const char_type *ptr = self._get_raw(4)
         value[0] = unpack_uint32(ptr, byte_order)
-
-    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
-        """
-        Reads an XMLType value from the buffer and returns the string value.
-        The XMLType object is a special DbObjectType and is handled separately
-        since the structure is a bit different.
-        """
-        cdef:
-            uint8_t image_flags, image_version
-            DbObjectPickleBuffer buf
-            BaseThinLobImpl lob_impl
-            const char_type *ptr
-            uint32_t num_bytes
-            ssize_t bytes_left
-            uint32_t xml_flag
-            bytes packed_data
-            type cls
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # type OID
-            self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # OID
-            self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # snapshot
-            self.read_bytes()
-        self.skip_ub2()                     # version
-        self.read_ub4(&num_bytes)           # length of data
-        self.skip_ub2()                     # flags
-        if num_bytes > 0:
-            packed_data = self.read_bytes()
-            buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
-            buf._populate_from_bytes(packed_data)
-            buf.read_header(&image_flags, &image_version)
-            buf.skip_raw_bytes(1)           # XML version
-            buf.read_uint32(&xml_flag)
-            if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
-                buf.skip_raw_bytes(4)
-            bytes_left = buf.bytes_left()
-            ptr = buf.read_raw_bytes(bytes_left)
-            if xml_flag & TNS_XML_TYPE_STRING:
-                return ptr[:bytes_left].decode()
-            elif xml_flag & TNS_XML_TYPE_LOB:
-                lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
-                                                      ptr[:bytes_left])
-                cls = PY_TYPE_ASYNC_LOB \
-                    if conn_impl._protocol._transport._is_async \
-                    else PY_TYPE_LOB
-                return cls._from_impl(lob_impl)
-            errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
 
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """
@@ -1016,7 +907,7 @@ cdef class Buffer:
         self.write_uint8(4)
         self.write_raw(buf, 4)
 
-    cdef int write_bool(self, bint value):
+    cdef int write_bool(self, bint value) except -1:
         """
         Writes a boolean value to the buffer.
         """
@@ -1046,28 +937,6 @@ cdef class Buffer:
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
         self._write_raw_bytes_and_length(ptr, value_len)
 
-    cdef object write_dbobject(self, ThinDbObjectImpl obj_impl):
-        """
-        Writes a database object to the buffer.
-        """
-        cdef:
-            ThinDbObjectTypeImpl typ_impl = obj_impl.type
-            uint32_t num_bytes
-            bytes packed_data
-        self.write_ub4(len(obj_impl.toid))
-        self.write_bytes_with_length(obj_impl.toid)
-        if obj_impl.oid is None:
-            self.write_ub4(0)
-        else:
-            self.write_ub4(len(obj_impl.oid))
-            self.write_bytes_with_length(obj_impl.oid)
-        self.write_ub4(0)                   # snapshot
-        self.write_ub4(0)                   # version
-        packed_data = obj_impl._get_packed_data()
-        self.write_ub4(len(packed_data))
-        self.write_ub4(obj_impl.flags)      # flags
-        self.write_bytes_with_length(packed_data)
-
     cdef int write_interval_ds(self, object value,
                                bint write_length=True) except -1:
         """
@@ -1089,12 +958,6 @@ cdef class Buffer:
         if write_length:
             self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))
-
-    cdef int write_lob(self, BaseThinLobImpl lob_impl) except -1:
-        """
-        Writes a LOB locator to the buffer.
-        """
-        self.write_bytes_with_length(lob_impl._locator)
 
     cdef int write_oracle_date(self, object value, uint8_t length,
                                bint write_length=True) except -1:
@@ -1274,27 +1137,6 @@ cdef class Buffer:
         # than the maximum allowable
         if append_sentinel:
             self.write_uint8(102)
-
-    cdef int write_qlocator(self, uint64_t data_length) except -1:
-        """
-        Writes a QLocator. QLocators are always 40 bytes in length.
-        """
-        self.write_ub4(40)                  # QLocator length
-        self.write_uint8(40)                # chunk length
-        self.write_uint16(38)               # QLocator length less 2 bytes
-        self.write_uint16(TNS_LOB_QLOCATOR_VERSION)
-        self.write_uint8(TNS_LOB_LOC_FLAGS_VALUE_BASED | \
-                         TNS_LOB_LOC_FLAGS_BLOB | \
-                         TNS_LOB_LOC_FLAGS_ABSTRACT)
-        self.write_uint8(TNS_LOB_LOC_FLAGS_INIT)
-        self.write_uint16(0)                # additional flags
-        self.write_uint16(1)                # byt1
-        self.write_uint64(data_length)
-        self.write_uint16(0)                # unused
-        self.write_uint16(0)                # csid
-        self.write_uint16(0)                # unused
-        self.write_uint64(0)                # unused
-        self.write_uint64(0)                # unused
 
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
         """

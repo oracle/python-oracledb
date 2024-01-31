@@ -45,6 +45,33 @@ class TestCase(test_env.BaseTestCase):
         self.assertFalse(int_col_metadata.is_oson)
         self.assertTrue(oson_col_metadata.is_oson)
 
+    def test_6901(self):
+        "6901 - test simple query of OSON encoded bytes"
+        self.cursor.execute("delete from TestOsonCols")
+        self.cursor.execute(
+            """
+                insert into TestOsonCols (IntCol, OsonCol)
+                values (1, '{"id": 6901, "value" : "string 6901"}')"""
+        )
+        self.conn.commit()
+        self.cursor.execute("select OsonCol from TestOsonCols")
+        (oson_val,) = self.cursor.fetchone()
+        expected_val = dict(id=6901, value="string 6901")
+        self.assertEqual(oson_val, expected_val)
+
+    def test_6902(self):
+        "6902 - test round trip of OSON encoded bytes"
+        value = dict(id=6902, value="string 6902")
+        self.cursor.execute("delete from TestOsonCols")
+        encoded_oson = self.conn.encode_oson(value)
+        self.cursor.execute(
+            "insert into TestOsonCols values (1, :data)", [encoded_oson]
+        )
+        self.conn.commit()
+        self.cursor.execute("select OsonCol from TestOsonCols")
+        (oson_val,) = self.cursor.fetchone()
+        self.assertEqual(oson_val, value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

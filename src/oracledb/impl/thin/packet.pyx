@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -365,6 +365,36 @@ cdef class ReadBuffer(Buffer):
             self._waiter.set_result(None)
             self._waiter = None
 
+    cdef ThinDbObjectImpl read_dbobject(self, BaseDbObjectTypeImpl typ_impl):
+        """
+        Read a database object from the buffer and return a DbObject object
+        containing it.
+        it.
+        """
+        cdef:
+            bytes oid = None, toid = None
+            ThinDbObjectImpl obj_impl
+            uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # type OID
+            toid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # OID
+            oid = self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # snapshot
+            self.read_bytes()
+        self.skip_ub2()                     # version
+        self.read_ub4(&num_bytes)           # length of data
+        self.skip_ub2()                     # flags
+        if num_bytes > 0:
+            obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
+            obj_impl.type = typ_impl
+            obj_impl.toid = toid
+            obj_impl.oid = oid
+            obj_impl.packed_data = self.read_bytes()
+            return obj_impl
+
     cdef object read_oson(self):
         """
         Read an OSON value from the buffer and return the converted value. OSON
@@ -497,6 +527,56 @@ cdef class ReadBuffer(Buffer):
             input_len -= 3
 
         return bytes(output_value).decode()
+
+    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
+        """
+        Reads an XMLType value from the buffer and returns the string value.
+        The XMLType object is a special DbObjectType and is handled separately
+        since the structure is a bit different.
+        """
+        cdef:
+            uint8_t image_flags, image_version
+            DbObjectPickleBuffer buf
+            BaseThinLobImpl lob_impl
+            const char_type *ptr
+            uint32_t num_bytes
+            ssize_t bytes_left
+            uint32_t xml_flag
+            bytes packed_data
+            type cls
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # type OID
+            self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # OID
+            self.read_bytes()
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:                   # snapshot
+            self.read_bytes()
+        self.skip_ub2()                     # version
+        self.read_ub4(&num_bytes)           # length of data
+        self.skip_ub2()                     # flags
+        if num_bytes > 0:
+            packed_data = self.read_bytes()
+            buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
+            buf._populate_from_bytes(packed_data)
+            buf.read_header(&image_flags, &image_version)
+            buf.skip_raw_bytes(1)           # XML version
+            buf.read_uint32(&xml_flag)
+            if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
+                buf.skip_raw_bytes(4)
+            bytes_left = buf.bytes_left()
+            ptr = buf.read_raw_bytes(bytes_left)
+            if xml_flag & TNS_XML_TYPE_STRING:
+                return ptr[:bytes_left].decode()
+            elif xml_flag & TNS_XML_TYPE_LOB:
+                lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
+                                                      ptr[:bytes_left])
+                cls = PY_TYPE_ASYNC_LOB \
+                    if conn_impl._protocol._transport._is_async \
+                    else PY_TYPE_LOB
+                return cls._from_impl(lob_impl)
+            errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
 
     cdef int check_control_packet(self) except -1:
         """
@@ -676,20 +756,63 @@ cdef class WriteBuffer(Buffer):
         if packet_type == TNS_PACKET_TYPE_DATA:
             self.write_uint16(data_flags)
 
+    cdef object write_dbobject(self, ThinDbObjectImpl obj_impl):
+        """
+        Writes a database object to the buffer.
+        """
+        cdef:
+            ThinDbObjectTypeImpl typ_impl = obj_impl.type
+            uint32_t num_bytes
+            bytes packed_data
+        self.write_ub4(len(obj_impl.toid))
+        self.write_bytes_with_length(obj_impl.toid)
+        if obj_impl.oid is None:
+            self.write_ub4(0)
+        else:
+            self.write_ub4(len(obj_impl.oid))
+            self.write_bytes_with_length(obj_impl.oid)
+        self.write_ub4(0)                   # snapshot
+        self.write_ub4(0)                   # version
+        packed_data = obj_impl._get_packed_data()
+        self.write_ub4(len(packed_data))
+        self.write_ub4(obj_impl.flags)      # flags
+        self.write_bytes_with_length(packed_data)
+
     cdef int write_lob_with_length(self, BaseThinLobImpl lob_impl) except -1:
         """
         Writes a LOB locator to the buffer.
         """
         self.write_ub4(len(lob_impl._locator))
-        return self.write_lob(lob_impl)
+        self.write_bytes_with_length(lob_impl._locator)
 
-    cdef object write_oson(self, value):
+    cdef int write_qlocator(self, uint64_t data_length) except -1:
+        """
+        Writes a QLocator. QLocators are always 40 bytes in length.
+        """
+        self.write_ub4(40)                  # QLocator length
+        self.write_uint8(40)                # chunk length
+        self.write_uint16(38)               # QLocator length less 2 bytes
+        self.write_uint16(TNS_LOB_QLOCATOR_VERSION)
+        self.write_uint8(TNS_LOB_LOC_FLAGS_VALUE_BASED | \
+                         TNS_LOB_LOC_FLAGS_BLOB | \
+                         TNS_LOB_LOC_FLAGS_ABSTRACT)
+        self.write_uint8(TNS_LOB_LOC_FLAGS_INIT)
+        self.write_uint16(0)                # additional flags
+        self.write_uint16(1)                # byt1
+        self.write_uint64(data_length)
+        self.write_uint16(0)                # unused
+        self.write_uint16(0)                # csid
+        self.write_uint16(0)                # unused
+        self.write_uint64(0)                # unused
+        self.write_uint64(0)                # unused
+
+    cdef object write_oson(self, value, ssize_t max_fname_size):
         """
         Encodes the given value to OSON and then writes that to the buffer.
         it.
         """
         cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
-        encoder.encode(value, self._caps.oson_max_fname_size)
+        encoder.encode(value, max_fname_size)
         self.write_qlocator(encoder._pos)
         self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 

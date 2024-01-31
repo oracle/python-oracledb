@@ -25,6 +25,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added methods :meth:`Connection.decode_oson()` and
+    :meth:`Connection.encode_oson()` to support fetching and inserting into
+    columns which have the check constraint ``IS JSON FORMAT OSON`` enabled.
 #)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
     has the check constraint "IS JSON FORMAT OSON" enabled.
 #)  Error ``DPY-1001: not connected to database`` is now raised when an attempt

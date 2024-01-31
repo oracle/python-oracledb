@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -174,7 +174,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         if self.packed_data is not None:
             return self.packed_data
         buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
-        buf._initialize(TNS_CHUNK_SIZE)
+        buf._initialize()
         buf.write_header(self)
         self._pack_data(buf)
         size = buf._pos
@@ -221,6 +221,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         cdef:
             uint8_t ora_type_num = dbtype._ora_type_num
             ThinDbObjectImpl obj_impl
+            BaseThinLobImpl lob_impl
             bytes temp_bytes
         if value is None:
             if objtype is not None and not objtype.is_collection:
@@ -228,10 +229,10 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             else:
                 buf.write_uint8(TNS_NULL_LENGTH_INDICATOR)
         elif ora_type_num in (TNS_DATA_TYPE_CHAR, TNS_DATA_TYPE_VARCHAR):
-            if dbtype._csfrm == TNS_CS_IMPLICIT:
+            if dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
-                temp_bytes = (<str> value).encode(TNS_ENCODING_UTF16)
+                temp_bytes = (<str> value).encode(ENCODING_UTF16)
             buf.write_bytes_with_length(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_NUMBER:
             temp_bytes = (<str> cpython.PyObject_Str(value)).encode()
@@ -253,7 +254,8 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                               TNS_DATA_TYPE_TIMESTAMP_LTZ):
             buf.write_oracle_date(value, dbtype._buffer_size_factor)
         elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
-            buf.write_lob(value._impl)
+            lob_impl = <BaseThinLobImpl> value._impl
+            buf.write_bytes_with_length(lob_impl._locator)
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             obj_impl = value._impl
             if self.type.is_collection or obj_impl.type.is_collection:
@@ -329,13 +331,16 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             uint8_t csfrm = dbtype._csfrm
             BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
+            BaseThinLobImpl lob_impl
+            bytes locator
             bint is_null
+            type cls
         if ora_type_num == TNS_DATA_TYPE_NUMBER:
             return buf.read_oracle_number(preferred_num_type)
         elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
             return buf.read_binary_integer()
         elif ora_type_num in (TNS_DATA_TYPE_VARCHAR, TNS_DATA_TYPE_CHAR):
-            if csfrm == TNS_CS_NCHAR:
+            if csfrm == CS_FORM_NCHAR:
                 conn_impl = self.type._conn_impl
                 conn_impl._protocol._caps._check_ncharset_id()
             return buf.read_str(csfrm)
@@ -351,7 +356,14 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             return buf.read_date()
         elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
             conn_impl = self.type._conn_impl
-            return buf.read_lob(conn_impl, dbtype)
+            locator = buf.read_bytes()
+            if locator is None:
+                return None
+            lob_impl = conn_impl._create_lob_impl(dbtype, locator)
+            cls = PY_TYPE_ASYNC_LOB \
+                    if conn_impl._protocol._transport._is_async \
+                    else PY_TYPE_LOB
+            return cls._from_impl(lob_impl)
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
             return buf.read_bool()
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:

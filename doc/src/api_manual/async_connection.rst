@@ -85,6 +85,22 @@ AsyncConnection Methods
 
     A synchronous method that returns a cursor associated with the connection.
 
+.. method:: AsyncConnection.decode_oson(data)
+
+    A synchronous method that decodes OSON-encoded bytes and returns the object
+    encoded in those bytes.  This is useful for fetching columns which have the
+    check constraint ``IS JSON FORMAT OSON`` enabled.
+
+    .. versionadded:: 2.1.0
+
+.. method:: AsyncConnection.encode_oson(value)
+
+    A synchronous method that encodes a Python value into OSON-encoded bytes
+    and returns them. This is useful for inserting into columns which have the
+    check constraint ``IS JSON FORMAT OSON`` enabled.
+
+    .. versionadded:: 2.1.0
+
 .. method:: AsyncConnection.execute(statement, parameters=[])
 
     Executes a statement against the database.
