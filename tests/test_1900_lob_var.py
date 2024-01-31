@@ -537,6 +537,22 @@ class TestCase(test_env.BaseTestCase):
             TypeError, self.conn.createlob, oracledb.DB_TYPE_NUMBER
         )
 
+    def test_1934(self):
+        "1934 - test creation of temporary LOBs with varying data"
+        cases = [
+            (oracledb.DB_TYPE_BLOB, b"test_1934A", b"!", b"test_1934A!"),
+            (oracledb.DB_TYPE_BLOB, "test_1934B", "!", b"test_1934B!"),
+            (oracledb.DB_TYPE_CLOB, b"test_1934C", b"!", "test_1934C!"),
+            (oracledb.DB_TYPE_CLOB, "test_1934D", "!", "test_1934D!"),
+            (oracledb.DB_TYPE_NCLOB, b"test_1934E", b"!", "test_1934E!"),
+            (oracledb.DB_TYPE_NCLOB, "test_1934F", "!", "test_1934F!"),
+        ]
+        for typ, initial_data, additional_data, expected_result in cases:
+            with self.subTest():
+                lob = self.conn.createlob(typ, initial_data)
+                lob.write(additional_data, len(initial_data) + 1)
+                self.assertEqual(lob.read(), expected_result)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -640,9 +640,10 @@ class Connection(BaseConnection):
             )
             raise TypeError(message)
         impl = self._impl.create_temp_lob_impl(lob_type)
+        lob = LOB._from_impl(impl)
         if data:
-            impl.write(data, 1)
-        return LOB._from_impl(impl)
+            lob.write(data)
+        return lob
 
     def cursor(self, scrollable: bool = False) -> Cursor:
         """
@@ -1352,9 +1353,10 @@ class AsyncConnection(BaseConnection):
             )
             raise TypeError(message)
         impl = await self._impl.create_temp_lob_impl(lob_type)
+        lob = AsyncLOB._from_impl(impl)
         if data:
-            await impl.write(data, 1)
-        return AsyncLOB._from_impl(impl)
+            await lob.write(data)
+        return lob
 
     def cursor(self, scrollable: bool = False) -> AsyncCursor:
         """

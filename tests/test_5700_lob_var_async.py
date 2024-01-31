@@ -436,6 +436,22 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaises(TypeError):
             await self.conn.createlob(oracledb.DB_TYPE_NUMBER)
 
+    async def test_5724(self):
+        "5724 - test creation of temporary LOBs with varying data"
+        cases = [
+            (oracledb.DB_TYPE_BLOB, b"test_5724A", b"!", b"test_5724A!"),
+            (oracledb.DB_TYPE_BLOB, "test_5724B", "!", b"test_5724B!"),
+            (oracledb.DB_TYPE_CLOB, b"test_5724C", b"!", "test_5724C!"),
+            (oracledb.DB_TYPE_CLOB, "test_5724D", "!", "test_5724D!"),
+            (oracledb.DB_TYPE_NCLOB, b"test_5724E", b"!", "test_5724E!"),
+            (oracledb.DB_TYPE_NCLOB, "test_5724F", "!", "test_5724F!"),
+        ]
+        for typ, initial_data, additional_data, expected_result in cases:
+            with self.subTest():
+                lob = await self.conn.createlob(typ, initial_data)
+                await lob.write(additional_data, len(initial_data) + 1)
+                self.assertEqual(await lob.read(), expected_result)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

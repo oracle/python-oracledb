@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -30,6 +30,7 @@
 
 from typing import Any, Union
 
+from .base_impl import DB_TYPE_BLOB
 from . import __name__ as MODULE_NAME
 from . import errors
 
@@ -39,6 +40,25 @@ class BaseLOB:
 
     def __del__(self):
         self._impl.free_lob()
+
+    def _check_value_to_write(self, value):
+        """
+        Check the value to write and return the actual value to write.
+        Character LOBs must write strings but can accept UTF-8 encoded bytes
+        (which will be decoded to strings). Binary LOBs must write bytes but
+        can accept strings (which will be encoded in UTF-8).
+        """
+        if self.type is DB_TYPE_BLOB:
+            if isinstance(value, str):
+                return value.encode()
+            elif isinstance(value, bytes):
+                return value
+        else:
+            if isinstance(value, str):
+                return value
+            elif isinstance(value, bytes):
+                return value.decode()
+        raise TypeError("expecting string or bytes")
 
     @classmethod
     def _from_impl(cls, impl):
@@ -169,7 +189,7 @@ class LOB(BaseLOB):
         Note that if you want to make the LOB value smaller, you must use the
         trim() function.
         """
-        self._impl.write(data, offset)
+        self._impl.write(self._check_value_to_write(data), offset)
 
 
 class AsyncLOB(BaseLOB):
@@ -282,4 +302,4 @@ class AsyncLOB(BaseLOB):
         Note that if you want to make the LOB value smaller, you must use the
         trim() function.
         """
-        await self._impl.write(data, offset)
+        await self._impl.write(self._check_value_to_write(data), offset)
