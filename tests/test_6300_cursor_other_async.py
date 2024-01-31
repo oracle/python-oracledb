@@ -397,7 +397,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             with self.conn.cursor() as cursor:
                 cursor.prepare(sql, cache_statement=False)
                 await cursor.execute(None)
-        await self.assertParseCount(num_iters - 1)
+        await self.assertParseCount(num_iters)
 
     async def test_6323(self):
         "6323 - test repeated DDL"

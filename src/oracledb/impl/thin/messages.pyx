@@ -254,7 +254,7 @@ cdef class Message:
             buf.read_ub4(&flags)            # session flags
             if flags & TNS_SESSGET_SESSION_CHANGED:
                 if self.conn_impl._drcp_establish_session:
-                    self.conn_impl._reset_statement_cache()
+                    self.conn_impl._statement_cache.clear_open_cursors()
             self.conn_impl._drcp_establish_session = False
             buf.skip_ub4()                  # session id
             buf.skip_ub2()                  # serial number
@@ -368,7 +368,7 @@ cdef class MessageWithData(Message):
         if cursor is None:
             cursor = self.cursor.connection.cursor()
         cursor_impl = cursor._impl
-        cursor_impl._statement = Statement()
+        cursor_impl._statement = self.conn_impl._get_statement()
         cursor_impl._more_rows_to_fetch = True
         cursor_impl._statement._is_query = True
         self._process_describe_info(buf, cursor, cursor_impl)
@@ -780,13 +780,10 @@ cdef class MessageWithData(Message):
                 and self.error_info.num in (TNS_ERR_VAR_NOT_IN_SELECT_LIST,
                                             TNS_ERR_INCONSISTENT_DATA_TYPES):
             self.retry = True
-            conn_impl._add_cursor_to_close(cursor_impl._statement)
-            cursor_impl._statement._cursor_id = 0
-            cursor_impl._statement._executed = False
+            conn_impl._statement_cache.clear_cursor(cursor_impl._statement)
         elif self.error_info.num != 0 and self.error_info.cursor_id != 0:
             if self.error_info.num not in errors.ERR_INTEGRITY_ERROR_CODES:
-                conn_impl._add_cursor_to_close(cursor_impl._statement)
-                cursor_impl._statement._cursor_id = 0
+                conn_impl._statement_cache.clear_cursor(cursor_impl._statement)
 
     cdef int _process_implicit_result(self, ReadBuffer buf) except -1:
         cdef:
@@ -1051,7 +1048,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == TNS_DATA_TYPE_CURSOR:
             cursor_impl = value._impl
             if cursor_impl._statement is None:
-                cursor_impl._statement = Statement()
+                cursor_impl._statement = self.conn_impl._get_statement()
             if cursor_impl._statement._cursor_id == 0:
                 buf.write_uint8(1)
                 buf.write_uint8(0)
@@ -1115,16 +1112,9 @@ cdef class MessageWithData(Message):
                                                var_impl._values[pos + offset])
 
     cdef int _write_close_cursors_piggyback(self, WriteBuffer buf) except -1:
-        cdef:
-            unsigned int *cursor_ids
-            ssize_t i
         self._write_piggyback_code(buf, TNS_FUNC_CLOSE_CURSORS)
         buf.write_uint8(1)                  # pointer
-        buf.write_ub4(self.conn_impl._num_cursors_to_close)
-        cursor_ids = self.conn_impl._cursors_to_close.data.as_uints
-        for i in range(self.conn_impl._num_cursors_to_close):
-            buf.write_ub4(cursor_ids[i])
-        self.conn_impl._num_cursors_to_close = 0
+        self.conn_impl._statement_cache.write_cursors_to_close(buf)
 
     cdef int _write_current_schema_piggyback(self, WriteBuffer buf) except -1:
         cdef bytes schema_bytes
@@ -1299,7 +1289,7 @@ cdef class MessageWithData(Message):
     cdef int _write_piggybacks(self, WriteBuffer buf) except -1:
         if self.conn_impl._current_schema_modified:
             self._write_current_schema_piggyback(buf)
-        if self.conn_impl._num_cursors_to_close > 0 \
+        if self.conn_impl._statement_cache._num_cursors_to_close > 0 \
                 and not self.conn_impl._drcp_establish_session:
             self._write_close_cursors_piggyback(buf)
         if self.conn_impl._action_modified \

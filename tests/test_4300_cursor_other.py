@@ -503,7 +503,9 @@ class TestCase(test_env.BaseTestCase):
             with self.conn.cursor() as cursor:
                 cursor.prepare(sql, cache_statement=False)
                 cursor.execute(None)
-        self.assertParseCount(num_iters - 1)
+        if not self.conn.thin:
+            num_iters -= 1
+        self.assertParseCount(num_iters)
 
     def test_4334(self):
         "4334 - test repeated DDL"

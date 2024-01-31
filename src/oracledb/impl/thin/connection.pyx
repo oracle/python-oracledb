@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,10 +32,8 @@
 cdef class BaseThinConnImpl(BaseConnImpl):
 
     cdef:
-        object _statement_cache
+        StatementCache _statement_cache
         BaseProtocol _protocol
-        uint32_t _statement_cache_size
-        object _statement_cache_lock
         uint32_t _session_id
         uint32_t _serial_num
         str _action
@@ -60,8 +58,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         str _internal_name
         str _external_name
         str _service_name
-        array.array _cursors_to_close
-        ssize_t _num_cursors_to_close
         bint _drcp_enabled
         bint _drcp_establish_session
         double _time_in_pool
@@ -78,22 +74,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         if not HAS_CRYPTOGRAPHY:
             errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
         BaseConnImpl.__init__(self, dsn, params)
-
-    cdef int _add_cursor_to_close(self, Statement stmt) except -1:
-        if self._num_cursors_to_close == TNS_MAX_CURSORS_TO_CLOSE:
-            errors._raise_err(errors.ERR_TOO_MANY_CURSORS_TO_CLOSE,
-                              num_cursors=TNS_MAX_CURSORS_TO_CLOSE)
-        self._cursors_to_close[self._num_cursors_to_close] = stmt._cursor_id
-        self._num_cursors_to_close += 1
-
-    cdef int _adjust_statement_cache(self) except -1:
-        cdef Statement stmt
-        while len(self._statement_cache) > self._statement_cache_size:
-            stmt = <Statement> self._statement_cache.popitem(last=False)[1]
-            if stmt._in_use:
-                stmt._return_to_cache = False
-            elif stmt._cursor_id != 0:
-                self._add_cursor_to_close(stmt)
 
     cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
                                           bytes locator=None):
@@ -127,39 +107,15 @@ cdef class BaseThinConnImpl(BaseConnImpl):
             self._dbobject_type_cache_num = 0
         self._protocol._force_close()
 
-    cdef Statement _get_statement(self, str sql, bint cache_statement):
+    cdef Statement _get_statement(self, str sql = None,
+                                  bint cache_statement = False):
         """
         Get a statement from the statement cache, or prepare a new statement
-        for use. If a statement is already in use a copy will be made and
-        returned (and will not be returned to the cache). If a statement is
-        being executed for the first time after releasing a DRCP session, a
-        copy will also be made (and will not be returned to the cache) since it
-        is unknown at this point whether the original session or a new session
-        is going to be used.
+        for use.
         """
-        cdef Statement statement
-        with self._statement_cache_lock:
-            statement = self._statement_cache.get(sql)
-            if statement is None:
-                statement = Statement()
-                statement._prepare(sql)
-                if cache_statement and not self._drcp_establish_session \
-                        and not statement._is_ddl \
-                        and self._statement_cache_size > 0:
-                    statement._return_to_cache = True
-                    self._statement_cache[sql] = statement
-                    self._adjust_statement_cache()
-            elif statement._in_use or not cache_statement \
-                    or self._drcp_establish_session:
-                if not cache_statement:
-                    del self._statement_cache[sql]
-                    statement._return_to_cache = False
-                if statement._in_use or self._drcp_establish_session:
-                    statement = statement.copy()
-            else:
-                self._statement_cache.move_to_end(sql)
-            statement._in_use = True
-            return statement
+        if self._drcp_establish_session:
+            cache_statement = False
+        return self._statement_cache.get_statement(sql, cache_statement)
 
     cdef int _post_connect_phase_one(self, Description description,
                                      ConnectParamsImpl params) except -1:
@@ -181,12 +137,10 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         Called after the connection has been fully established to perform
         common tasks.
         """
-        self._statement_cache = collections.OrderedDict()
-        self._statement_cache_size = params.stmtcachesize
-        self._statement_cache_lock = threading.Lock()
+        self._statement_cache = StatementCache.__new__(StatementCache)
+        self._statement_cache.initialize(params.stmtcachesize,
+                                         self._max_open_cursors)
         self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
-        self._cursors_to_close = array.array('I')
-        array.resize(self._cursors_to_close, TNS_MAX_CURSORS_TO_CLOSE)
         self.invoke_session_callback = True
 
     cdef int _pre_connect(self, ConnectParamsImpl params) except -1:
@@ -196,37 +150,11 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         params._check_credentials()
         self._connection_id = base64.b64encode(secrets.token_bytes(16)).decode()
 
-    cdef int _reset_statement_cache(self) except -1:
-        """
-        Reset the statement cache. This clears all statements and the list of
-        cursors that need to be cleared.
-        """
-        with self._statement_cache_lock:
-            self._statement_cache.clear()
-            self._num_cursors_to_close = 0
-
     cdef int _return_statement(self, Statement statement) except -1:
         """
-        Return the statement to the statement cache, if applicable. If the
-        statement must not be returned to the statement cache, add the cursor
-        id to the list of cursor ids to close on the next round trip to the
-        database. Clear all bind variables and fetch variables in order to
-        ensure that unnecessary references are not retained.
+        Return the statement to the statement cache, if applicable.
         """
-        cdef:
-            ThinVarImpl var_impl
-            BindInfo bind_info
-        if statement._bind_info_list is not None:
-            for bind_info in statement._bind_info_list:
-                bind_info._bind_var_impl = None
-        if statement._fetch_var_impls is not None:
-            for var_impl in statement._fetch_var_impls:
-                var_impl._values = [None] * var_impl.num_elements
-        with self._statement_cache_lock:
-            if statement._return_to_cache:
-                statement._in_use = False
-            elif statement._cursor_id != 0:
-                self._add_cursor_to_close(statement)
+        self._statement_cache.return_statement(statement)
 
     def cancel(self):
         self._protocol._break_external()
@@ -273,7 +201,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         return self._service_name
 
     def get_stmt_cache_size(self):
-        return self._statement_cache_size
+        return self._statement_cache._max_size
 
     def get_transaction_in_progress(self):
         return self._protocol._txn_in_progress
@@ -327,8 +255,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         self._action_modified = True
 
     def set_stmt_cache_size(self, uint32_t value):
-        self._statement_cache_size = value
-        self._adjust_statement_cache()
+        self._statement_cache.resize(value)
 
 
 cdef class ThinConnImpl(BaseThinConnImpl):
