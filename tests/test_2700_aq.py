@@ -713,6 +713,15 @@ class TestCase(test_env.BaseTestCase):
             self.assertIsNone(message.payload.AUTHORS)
             self.assertIsNone(message.payload.PRICE)
 
+    def test_2733(self):
+        "2733 - test payload_type returns the correct value"
+        books_type = self.conn.gettype(self.book_type_name)
+        queue = self.conn.queue(self.book_queue_name, books_type)
+        self.assertEqual(queue.payload_type, books_type)
+
+        queue = self.conn.queue("TEST_RAW_QUEUE")
+        self.assertIsNone(queue.payload_type)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
