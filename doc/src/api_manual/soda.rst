@@ -629,7 +629,7 @@ SodaOperation Methods
 
     Specifies the number of documents that match the other criteria that will
     be skipped. This method is only usable for read operations such as
-    :meth:`~SodaOperation.getCursor()` and
+    :meth:`~SodaOperation.getOne()`, :meth:`~SodaOperation.getCursor()`, and
     :meth:`~SodaOperation.getDocuments()`. For write operations, any value set
     using this method is ignored.
 

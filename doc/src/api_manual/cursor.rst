@@ -290,7 +290,8 @@ Cursor Methods
     .. note::
 
         You can parse any DML or DDL statement. DDL statements are executed
-        immediately and an implied commit takes place.
+        immediately and an implied commit takes place. You can also parse
+        PL/SQL statements.
 
 .. method:: Cursor.prepare(statement, tag, cache_statement=True)
 

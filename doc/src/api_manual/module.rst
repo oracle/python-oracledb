@@ -1154,7 +1154,7 @@ Oracledb Methods
 
 .. function:: create_pool_async(dsn=None, pool_class=oracledb.AsyncConnectionPool, \
         params=None, min=1, max=2, increment=1, \
-        connectiontype=oracledb.Connection, \
+        connectiontype=oracledb.AsyncConnection, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
         max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
