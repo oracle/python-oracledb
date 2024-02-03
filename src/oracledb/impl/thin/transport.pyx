@@ -203,6 +203,18 @@ cdef class Transport:
                     self._print_packet("Receiving packet", packet.buf)
                 return packet
 
+    cdef tuple get_host_info(self):
+        """
+        Return a 2-tuple supplying the host and port to which the transport is
+        connected.
+        """
+        cdef object sock
+        if self._is_async:
+            sock = self._transport.get_extra_info('socket')
+        else:
+            sock = self._transport
+        return sock.getpeername()[:2]
+
     cdef int has_data_ready(self, bint *data_ready) except -1:
         """
         Returns true if data is ready to be read on the transport.

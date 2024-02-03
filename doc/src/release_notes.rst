@@ -17,6 +17,8 @@ Thin Mode Changes
     writing strings to BLOB values in order to be consistent with what is done
     for string variables.
 #)  Fixed potential cursor issues when using DRCP.
+#)  Fixed regression when using IAM token authentication
+    (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
 #)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
 
 Thick Mode Changes
