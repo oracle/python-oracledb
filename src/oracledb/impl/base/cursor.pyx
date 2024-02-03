@@ -208,7 +208,7 @@ cdef class BaseCursorImpl:
             elif var_impl.scale == 0 \
                     or (var_impl.scale == -127 and var_impl.precision == 0):
                 var_impl._preferred_num_type = NUM_TYPE_INT
-        elif fetch_info.is_oson:
+        elif fetch_info.is_oson and db_type_num != DB_TYPE_NUM_JSON:
             conn_impl = self._get_conn_impl()
             var_impl.dbtype = DB_TYPE_LONG_RAW
             var_impl.outconverter = conn_impl.decode_oson
