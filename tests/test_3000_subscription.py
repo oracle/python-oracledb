@@ -434,6 +434,54 @@ class TestCase(test_env.BaseTestCase):
         )
         connection.unsubscribe(sub)
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    )
+    def test_3013(self):
+        "3013 - test subscription with SUBSCR_QOS_DEREG_NFY deregisters"
+        if self.is_on_oracle_cloud():
+            self.skipTest("AQ notification not supported on the cloud")
+
+        def callback(message):
+            self.assertFalse(message.registered)
+            with condition:
+                condition.notify()
+
+        condition = threading.Condition()
+        self.cursor.execute("truncate table TestTempTable")
+        conn = test_env.get_connection(events=True)
+        cursor = conn.cursor()
+        sub = conn.subscribe(
+            callback=callback, qos=oracledb.SUBSCR_QOS_DEREG_NFY, timeout=2
+        )
+        sub.registerquery("select * from TestTempTable")
+        cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'test')
+            """
+        )
+        conn.commit()
+        with condition:
+            self.assertTrue(condition.wait(5))
+        conn.unsubscribe(sub)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    )
+    def test_3014(self):
+        "3014 - test adding a consumer to a single consumer queue (negative)"
+        conn = test_env.get_connection(events=True)
+        single_consumer_queue = "TEST_RAW_QUEUE"
+        self.assertRaisesRegex(
+            oracledb.DatabaseError,
+            "^ORA-25256:",
+            conn.subscribe,
+            callback=lambda x: None,
+            namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+            name=f"{single_consumer_queue}:SUBSCRIBER",
+        )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
