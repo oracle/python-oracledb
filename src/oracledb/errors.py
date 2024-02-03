@@ -234,6 +234,7 @@ ERR_MISSING_QUOTE_IN_STRING = 2041
 ERR_MISSING_QUOTE_IN_IDENTIFIER = 2042
 ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED = 2043
 ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED = 2044
+ERR_INVALID_ARRAYSIZE = 2045
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -498,6 +499,7 @@ ERR_MESSAGE_FORMATS = {
         "string (for OAuth) or a 2-tuple containing the token and private "
         "key strings (for IAM)"
     ),
+    ERR_INVALID_ARRAYSIZE: "arraysize must be an integer greater than zero",
     ERR_INVALID_BIND_NAME: (
         'no bind placeholder named ":{name}" was found in the SQL text'
     ),

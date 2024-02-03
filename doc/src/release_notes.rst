@@ -30,6 +30,11 @@ Common Changes
     columns which have the check constraint ``IS JSON FORMAT OSON`` enabled.
 #)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
     has the check constraint "IS JSON FORMAT OSON" enabled.
+#)  Error ``DPY-2045: arraysize must be an integer greater than zero`` is now
+    raised when an invalid value is specified for the attribute
+    :data:`Cursor.arraysize`. Previously a variety of errors (``TypeError``,
+    ``OverflowError`` or ``ORA-03147: missing mandatory TTC field``) were
+    raised.
 #)  Error ``DPY-1001: not connected to database`` is now raised when an attempt
     is made to perform an operation on a LOB using a closed connection.
     Previously Thin mode would raise an ``AttributeError`` exception and Thick

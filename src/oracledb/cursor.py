@@ -215,6 +215,8 @@ class BaseCursor:
     @arraysize.setter
     def arraysize(self, value: int) -> None:
         self._verify_open()
+        if not isinstance(value, int) or value <= 0:
+            errors._raise_err(errors.ERR_INVALID_ARRAYSIZE)
         self._impl.arraysize = value
 
     def arrayvar(

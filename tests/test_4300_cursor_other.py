@@ -1030,6 +1030,15 @@ class TestCase(test_env.BaseTestCase):
         fetched_values = self.cursor.fetchmany()
         self.assertEqual(fetched_values, values[self.cursor.arraysize :])
 
+    def test_4365(self):
+        "4365 - negative tests for cursor.arraysize"
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+            self.cursor.arraysize = 0
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+            self.cursor.arraysize = -1
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+            self.cursor.arraysize = "not valid"
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
