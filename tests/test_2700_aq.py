@@ -407,9 +407,9 @@ class TestCase(test_env.BaseTestCase):
         book = queue.payload_type.newobject()
         book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
         expected_price = book.PRICE + 5
-        queue.enqoptions.transformation = (
-            transformation_str
-        ) = f"{self.conn.username}.transform1"
+        queue.enqoptions.transformation = transformation_str = (
+            f"{self.conn.username}.transform1"
+        )
         queue.enqoptions.transformation = transformation_str
         if test_env.get_client_version() >= (23, 1):
             self.assertEqual(
