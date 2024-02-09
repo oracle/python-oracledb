@@ -1574,7 +1574,7 @@ cdef class AuthMessage(Message):
             self.conn_impl._db_name = \
                     self.session_data.get("AUTH_SC_DBUNIQUE_NAME")
             self.conn_impl._max_open_cursors = \
-                    int(self.session_data.get("AUTH_MAX_OPEN_CURSORS"))
+                    int(self.session_data.get("AUTH_MAX_OPEN_CURSORS", 0))
             self.conn_impl._service_name = \
                     self.session_data.get("AUTH_SC_SERVICE_NAME")
             self.conn_impl._instance_name = \

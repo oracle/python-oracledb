@@ -22,6 +22,8 @@ Thin Mode Changes
 #)  Fixed potential cursor issues when using DRCP.
 #)  Fixed regression when using IAM token authentication
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
+#)  Fixed bug connecting to databases that are only mounted and not opened
+    (`issue 294 <https://github.com/oracle/python-oracledb/issues/294>`__).
 #)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
 #)  Fixed bug in identifying bind variables in SQL statements containing a
     single line comment at the end of the statement.
