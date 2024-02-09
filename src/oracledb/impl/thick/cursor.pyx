@@ -65,7 +65,6 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         cdef ThickVarImpl var_impl = ThickVarImpl.__new__(ThickVarImpl)
         var_impl._conn = conn
         var_impl._conn_impl = self._conn_impl
-        var_impl._buf = StringBuffer.__new__(StringBuffer)
         return var_impl
 
     cdef int _define_var(self, object conn, object cursor, object type_handler,
@@ -89,7 +88,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if dpiStmt_getQueryInfo(self._handle, pos + 1, &query_info) < 0:
             _raise_from_odpi()
         type_info = &query_info.typeInfo
-        fetch_info = FetchInfoImpl()
+        fetch_info = FetchInfoImpl.__new__(FetchInfoImpl)
         fetch_info.dbtype = DbType._from_num(type_info.oracleTypeNum)
         if fetch_info.dbtype.num == DPI_ORACLE_TYPE_INTERVAL_YM:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
@@ -126,10 +125,9 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             fetch_info.objtype = typ_impl
 
         # create variable and call define in ODPI-C
-        self._create_fetch_var(conn, cursor, type_handler, uses_fetch_info,
-                               pos, fetch_info)
-        var_impl = self.fetch_var_impls[pos]
-        var_impl._create_handle()
+        var_impl = <ThickVarImpl> self._create_fetch_var(
+            conn, cursor, type_handler, uses_fetch_info, pos, fetch_info
+        )
         if dpiStmt_define(self._handle, pos + 1, var_impl._handle) < 0:
             _raise_from_odpi()
 
@@ -208,6 +206,49 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         conn = cursor.connection
         for i in range(num_query_cols):
             self._define_var(conn, cursor, type_handler, uses_fetch_info, i)
+
+    cdef int _prepare(self, str statement, str tag,
+                      bint cache_statement) except -1:
+        """
+        Internal method used for preparing statements for execution.
+        """
+        cdef:
+            uint32_t statement_bytes_length, tag_bytes_length = 0
+            ThickConnImpl conn_impl = self._conn_impl
+            bytes statement_bytes, tag_bytes
+            const char *tag_ptr = NULL
+            const char *statement_ptr
+            int status
+        BaseCursorImpl._prepare(self, statement, tag, cache_statement)
+        statement_bytes = statement.encode()
+        statement_ptr = <const char*> statement_bytes
+        statement_bytes_length = <uint32_t> len(statement_bytes)
+        if tag is not None:
+            self._tag = tag
+            tag_bytes = tag.encode()
+            tag_bytes_length = <uint32_t> len(tag_bytes)
+            tag_ptr = <const char*> tag_bytes
+        with nogil:
+            if self._handle != NULL:
+                dpiStmt_release(self._handle)
+                self._handle = NULL
+            status = dpiConn_prepareStmt(conn_impl._handle, self.scrollable,
+                                         statement_ptr, statement_bytes_length,
+                                         tag_ptr, tag_bytes_length,
+                                         &self._handle)
+            if status == DPI_SUCCESS and not cache_statement:
+                status = dpiStmt_deleteFromCache(self._handle)
+            if status == DPI_SUCCESS:
+                status = dpiStmt_getInfo(self._handle, &self._stmt_info)
+            if status == DPI_SUCCESS and self._stmt_info.isQuery:
+                status = dpiStmt_setFetchArraySize(self._handle,
+                                                   self.arraysize)
+                if status == DPI_SUCCESS \
+                        and self.prefetchrows != DPI_DEFAULT_PREFETCH_ROWS:
+                    status = dpiStmt_setPrefetchRows(self._handle,
+                                                     self.prefetchrows)
+        if status < 0:
+            _raise_from_odpi()
 
     def _set_oci_attr(self, uint32_t attr_num, uint32_t attr_type,
                       object value):
@@ -452,48 +493,6 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             _raise_from_odpi()
         if num_query_cols > 0:
             self._perform_define(cursor, num_query_cols)
-
-    def prepare(self, str statement, str tag, bint cache_statement):
-        """
-        Internal method used for preparing statements for execution.
-        """
-        cdef:
-            uint32_t statement_bytes_length, tag_bytes_length = 0
-            ThickConnImpl conn_impl = self._conn_impl
-            bytes statement_bytes, tag_bytes
-            const char *tag_ptr = NULL
-            const char *statement_ptr
-            int status
-        self.statement = statement
-        statement_bytes = statement.encode()
-        statement_ptr = <const char*> statement_bytes
-        statement_bytes_length = <uint32_t> len(statement_bytes)
-        if tag is not None:
-            self._tag = tag
-            tag_bytes = tag.encode()
-            tag_bytes_length = <uint32_t> len(tag_bytes)
-            tag_ptr = <const char*> tag_bytes
-        with nogil:
-            if self._handle != NULL:
-                dpiStmt_release(self._handle)
-                self._handle = NULL
-            status = dpiConn_prepareStmt(conn_impl._handle, self.scrollable,
-                                         statement_ptr, statement_bytes_length,
-                                         tag_ptr, tag_bytes_length,
-                                         &self._handle)
-            if status == DPI_SUCCESS and not cache_statement:
-                status = dpiStmt_deleteFromCache(self._handle)
-            if status == DPI_SUCCESS:
-                status = dpiStmt_getInfo(self._handle, &self._stmt_info)
-            if status == DPI_SUCCESS and self._stmt_info.isQuery:
-                status = dpiStmt_setFetchArraySize(self._handle,
-                                                   self.arraysize)
-                if status == DPI_SUCCESS \
-                        and self.prefetchrows != DPI_DEFAULT_PREFETCH_ROWS:
-                    status = dpiStmt_setPrefetchRows(self._handle,
-                                                     self.prefetchrows)
-        if status < 0:
-            _raise_from_odpi()
 
     def scroll(self, object conn, int32_t offset, object mode):
         cdef:

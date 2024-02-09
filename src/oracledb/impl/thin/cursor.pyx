@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -69,10 +69,10 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef int _create_fetch_var(self, object conn, object cursor,
-                               object type_handler, bint uses_fetch_info,
-                               ssize_t pos,
-                               FetchInfoImpl fetch_info) except -1:
+    cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
+                                       object type_handler,
+                                       bint uses_fetch_info, ssize_t pos,
+                                       FetchInfoImpl fetch_info):
         """
         Internal method that creates a fetch variable. A check is made after
         the variable is created to determine if a conversion is required and
@@ -81,9 +81,9 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         cdef:
             ThinDbObjectTypeImpl typ_impl
             ThinVarImpl var_impl
-        BaseCursorImpl._create_fetch_var(self, conn, cursor, type_handler,
-                                         uses_fetch_info, pos, fetch_info)
-        var_impl = self.fetch_var_impls[pos]
+        var_impl = <ThinVarImpl> BaseCursorImpl._create_fetch_var(
+            self, conn, cursor, type_handler, uses_fetch_info, pos, fetch_info
+        )
         if var_impl.dbtype._ora_type_num != fetch_info.dbtype._ora_type_num:
             conversion_helper(var_impl, fetch_info)
         elif var_impl.objtype is not None:
@@ -101,6 +101,22 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
 
     cdef bint _is_plsql(self):
         return self._statement._is_plsql
+
+    cdef int _prepare(self, str statement, str tag,
+                      bint cache_statement) except -1:
+        """
+        Internal method for preparing a statement for execution.
+        """
+        BaseCursorImpl._prepare(self, statement, tag, cache_statement)
+        if self._statement is not None:
+            self._conn_impl._return_statement(self._statement)
+            self._statement = None
+        self._statement = self._conn_impl._get_statement(statement.strip(),
+                                                         cache_statement)
+        self.fetch_info_impls = self._statement._fetch_info_impls
+        self.fetch_vars = self._statement._fetch_vars
+        self.fetch_var_impls = self._statement._fetch_var_impls
+        self._num_columns = self._statement._num_columns
 
     cdef int _preprocess_execute(self, object conn) except -1:
         cdef BindInfo bind_info
@@ -134,17 +150,6 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
     def is_query(self, connection):
         return self.fetch_vars is not None
 
-    def prepare(self, str sql, str tag, bint cache_statement):
-        self.statement = sql
-        if self._statement is not None:
-            self._conn_impl._return_statement(self._statement)
-            self._statement = None
-        self._statement = self._conn_impl._get_statement(sql.strip(),
-                                                         cache_statement)
-        self.fetch_info_impls = self._statement._fetch_info_impls
-        self.fetch_vars = self._statement._fetch_vars
-        self.fetch_var_impls = self._statement._fetch_var_impls
-        self._num_columns = self._statement._num_columns
 
 
 cdef class ThinCursorImpl(BaseThinCursorImpl):

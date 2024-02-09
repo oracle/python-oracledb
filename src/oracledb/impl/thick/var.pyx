@@ -34,7 +34,6 @@ cdef class ThickVarImpl(BaseVarImpl):
         dpiVar *_handle
         dpiData *_data
         StringBuffer _buf
-        uint32_t _native_type_num
         bint _get_returned_data
         object _conn
 
@@ -50,7 +49,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiDataBuffer *dbvalue
             const char *name_ptr
             bytes name_bytes
-        if self._native_type_num == DPI_NATIVE_TYPE_STMT:
+        if self.dbtype.num == DB_TYPE_NUM_CURSOR:
             for i in range(self.num_elements):
                 if self._data[i].isNull:
                     continue
@@ -83,11 +82,10 @@ cdef class ThickVarImpl(BaseVarImpl):
         if self.objtype is not None:
              obj_type_impl = <ThickDbObjectTypeImpl> self.objtype
              obj_type_handle = obj_type_impl._handle
-        self._native_type_num = _get_native_type_num(self.dbtype)
         if dpiConn_newVar(conn_impl._handle, self.dbtype.num,
-                          self._native_type_num, self.num_elements, self.size,
-                          0, self.is_array, obj_type_handle, &self._handle,
-                          &self._data) < 0:
+                          self.dbtype._native_num, self.num_elements,
+                          self.size, 0, self.is_array, obj_type_handle,
+                          &self._handle, &self._data) < 0:
              _raise_from_odpi()
 
     cdef int _finalize_init(self) except -1:
@@ -142,7 +140,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiStmtInfo stmt_info
             uint32_t i
         BaseVarImpl._on_reset_bind(self, num_rows)
-        if self._native_type_num == DPI_NATIVE_TYPE_STMT:
+        if self.dbtype.num == DB_TYPE_NUM_CURSOR:
             for i in range(self.num_elements):
                 if self._data[i].isNull:
                     continue
@@ -200,7 +198,7 @@ cdef class ThickVarImpl(BaseVarImpl):
                 _raise_from_odpi()
             cursor_impl._handle = data.value.asStmt
         cursor_impl._fixup_ref_cursor = True
-        cursor.statement = None
+        cursor_impl.statement = None
 
     cdef int _set_num_elements_in_array(self, uint32_t num_elements) except -1:
         """
@@ -224,16 +222,18 @@ cdef class ThickVarImpl(BaseVarImpl):
         data = &self._data[pos]
         data.isNull = (value is None)
         if not data.isNull:
-            if self._native_type_num == DPI_NATIVE_TYPE_STMT:
+            if self.dbtype.num == DB_TYPE_NUM_CURSOR:
                 self._set_cursor_value(value, pos)
             else:
-                needs_set = self._native_type_num == DPI_NATIVE_TYPE_BYTES \
-                        or (self._native_type_num == DPI_NATIVE_TYPE_LOB and \
-                                not isinstance(value, PY_TYPE_LOB))
+                needs_set = self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
+                        or (self.dbtype._native_num == DPI_NATIVE_TYPE_LOB \
+                                and not isinstance(value, PY_TYPE_LOB))
                 if needs_set:
                     dbvalue = &temp_dbvalue
                 else:
                     dbvalue = &data.value
+                if self._buf is None:
+                    self._buf = StringBuffer.__new__(StringBuffer)
                 _convert_from_python(value, self.dbtype, self.objtype, dbvalue,
                                      self._buf, self, pos)
                 if needs_set:
@@ -270,7 +270,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             object value
         data = &data[pos]
         if not data.isNull:
-            if self._native_type_num == DPI_NATIVE_TYPE_STMT:
+            if self.dbtype.num == DB_TYPE_NUM_CURSOR:
                 return self._get_cursor_value(&data.value)
             if self.encoding_errors is not None:
                 encoding_errors_bytes = self.encoding_errors.encode()

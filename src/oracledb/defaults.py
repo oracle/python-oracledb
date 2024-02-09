@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,8 +29,7 @@
 # the module.
 # -----------------------------------------------------------------------------
 
-import os
-
+from . import base_impl
 from . import __name__ as MODULE_NAME
 
 
@@ -42,12 +41,76 @@ class Defaults:
     __module__ = MODULE_NAME
 
     def __init__(self) -> None:
-        self.arraysize = 100
-        self.stmtcachesize = 20
-        self.config_dir = os.environ.get("TNS_ADMIN")
-        self.fetch_lobs = True
-        self.fetch_decimals = False
-        self.prefetchrows = 2
+        self._impl = base_impl.DEFAULTS
+
+    @property
+    def arraysize(self) -> int:
+        """
+        Specifies the default arraysize to use when cursors are created.
+        """
+        return self._impl.arraysize
+
+    @arraysize.setter
+    def arraysize(self, value: int):
+        self._impl.arraysize = value
+
+    @property
+    def config_dir(self) -> str:
+        """
+        Specifies the directory to search for tnsnames.ora.
+        """
+        return self._impl.config_dir
+
+    @config_dir.setter
+    def config_dir(self, value: str):
+        self._impl.config_dir = value
+
+    @property
+    def fetch_lobs(self) -> bool:
+        """
+        Specifies whether queries that contain LOBs should return LOB objects
+        or their contents instead.
+        """
+        return self._impl.fetch_lobs
+
+    @fetch_lobs.setter
+    def fetch_lobs(self, value: str):
+        self._impl.fetch_lobs = value
+
+    @property
+    def fetch_decimals(self) -> bool:
+        """
+        Specifies whether queries that contain numbers should return
+        decimal.Decimal objects or floating point numbers.
+        """
+        return self._impl.fetch_decimals
+
+    @fetch_decimals.setter
+    def fetch_decimals(self, value: str):
+        self._impl.fetch_decimals = value
+
+    @property
+    def prefetchrows(self) -> int:
+        """
+        Specifies the default number of rows to prefetch when cursors are
+        executed.
+        """
+        return self._impl.prefetchrows
+
+    @prefetchrows.setter
+    def prefetchrows(self, value: int):
+        self._impl.prefetchrows = value
+
+    @property
+    def stmtcachesize(self) -> int:
+        """
+        Specifies the default size of the statement cache.
+        """
+        return self._impl.stmtcachesize
+
+    @stmtcachesize.setter
+    def stmtcachesize(self, value: int):
+        self._impl.stmtcachesize = value
 
 
 defaults = Defaults()

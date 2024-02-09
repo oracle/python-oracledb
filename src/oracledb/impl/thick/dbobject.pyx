@@ -62,7 +62,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         self._convert_from_python(value, objtype.element_dbtype,
                                   objtype.element_objtype, &data, buf)
         if dpiObject_appendElement(self._handle,
-                                   objtype._element_native_type_num,
+                                   objtype.element_dbtype._native_num,
                                    &data) < 0:
             _raise_from_odpi()
 
@@ -103,13 +103,13 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             char number_as_string_buffer[200]
             ThickDbObjectTypeImpl type_impl
             dpiData data
-        if attr._native_type_num == DPI_NATIVE_TYPE_BYTES \
+        if attr.dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
                 and attr.dbtype.num == DPI_ORACLE_TYPE_NUMBER:
             data.value.asBytes.ptr = number_as_string_buffer
             data.value.asBytes.length = sizeof(number_as_string_buffer)
             data.value.asBytes.encoding = NULL
         if dpiObject_getAttributeValue(self._handle, attr._handle,
-                                       attr._native_type_num, &data) < 0:
+                                       attr.dbtype._native_num, &data) < 0:
             _raise_from_odpi()
         if data.isNull:
             return None
@@ -132,13 +132,13 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             ThickDbObjectTypeImpl objtype
             dpiData data
         objtype = self.type
-        if objtype._element_native_type_num == DPI_NATIVE_TYPE_BYTES \
+        if objtype.element_dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
                 and objtype.element_dbtype.num == DPI_ORACLE_TYPE_NUMBER:
             data.value.asBytes.ptr = number_as_string_buffer
             data.value.asBytes.length = sizeof(number_as_string_buffer)
             data.value.asBytes.encoding = NULL
         if dpiObject_getElementValueByIndex(self._handle, index,
-                                            objtype._element_native_type_num,
+                                            objtype.element_dbtype._native_num,
                                             &data) < 0:
             _raise_from_odpi()
         if data.isNull:
@@ -225,7 +225,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             dpiData data
         self._convert_from_python(value, attr.dbtype, attr.objtype, &data,
                                   buf)
-        native_type_num = attr._native_type_num
+        native_type_num = attr.dbtype._native_num
         if native_type_num == DPI_NATIVE_TYPE_LOB \
                 and not isinstance(value, PY_TYPE_LOB):
             native_type_num = DPI_NATIVE_TYPE_BYTES
@@ -246,7 +246,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         objtype = self.type
         self._convert_from_python(value, objtype.element_dbtype,
                                   objtype.element_objtype, &data, buf)
-        native_type_num = objtype._element_native_type_num
+        native_type_num = objtype.element_dbtype._native_num
         if native_type_num == DPI_NATIVE_TYPE_LOB \
                 and not isinstance(value, PY_TYPE_LOB):
             native_typeNum = DPI_NATIVE_TYPE_BYTES
@@ -265,7 +265,6 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
 cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
     cdef:
         dpiObjectAttr *_handle
-        uint32_t _native_type_num
 
     def __dealloc__(self):
         if self._handle != NULL:
@@ -297,14 +296,12 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
             typ_handle = info.typeInfo.objectType
             impl.objtype = ThickDbObjectTypeImpl._from_handle(conn_impl,
                                                               typ_handle)
-        impl._native_type_num = _get_native_type_num(impl.dbtype)
         return impl
 
 
 cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
     cdef:
         dpiObjectType *_handle
-        uint32_t _element_native_type_num
 
     def __dealloc__(self):
         if self._handle != NULL:
@@ -351,8 +348,6 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
                 handle = info.elementTypeInfo.objectType
                 temp = ThickDbObjectTypeImpl._from_handle(conn_impl, handle)
                 impl.element_objtype = temp
-            impl._element_native_type_num = \
-                    _get_native_type_num(impl.element_dbtype)
         impl.attrs_by_name = {}
         impl.attrs = [None] * info.numAttributes
         try:

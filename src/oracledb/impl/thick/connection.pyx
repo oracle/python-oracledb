@@ -146,6 +146,12 @@ cdef class ThickConnImpl(BaseConnImpl):
         if self._handle != NULL:
             dpiConn_release(self._handle)
 
+    cdef BaseCursorImpl _create_cursor_impl(self):
+        """
+        Internal method for creating an empty cursor implementation object.
+        """
+        return ThickCursorImpl.__new__(ThickCursorImpl, self)
+
     def _get_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type):
         """
@@ -428,9 +434,6 @@ cdef class ThickConnImpl(BaseConnImpl):
         # set tag property, if applicable
         if conn_params.outTagLength > 0:
             self.tag = conn_params.outTag[:conn_params.outTagLength].decode()
-
-    def create_cursor_impl(self):
-        return ThickCursorImpl.__new__(ThickCursorImpl, self)
 
     def create_msg_props_impl(self):
         cdef ThickMsgPropsImpl impl

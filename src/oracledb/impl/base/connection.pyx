@@ -151,6 +151,12 @@ cdef class BaseConnImpl:
                           py_type_name=type(value).__name__,
                           db_type_name=dbtype.name)
 
+    cdef BaseCursorImpl _create_cursor_impl(self):
+        """
+        Internal method for creating an empty cursor implementation object.
+        """
+        raise NotImplementedError()
+
     @utils.CheckImpls("getting a connection OCI attribute")
     def _get_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type):
@@ -196,9 +202,15 @@ cdef class BaseConnImpl:
     def commit(self):
         pass
 
-    @utils.CheckImpls("creating a cursor")
-    def create_cursor_impl(self):
-        pass
+    def create_cursor_impl(self, bint scrollable):
+        """
+        Create the cursor implementation object.
+        """
+        cdef BaseCursorImpl cursor_impl = self._create_cursor_impl()
+        cursor_impl.scrollable = scrollable
+        cursor_impl.arraysize = C_DEFAULTS.arraysize
+        cursor_impl.prefetchrows = C_DEFAULTS.prefetchrows
+        return cursor_impl
 
     @utils.CheckImpls("creating a queue")
     def create_queue_impl(self):

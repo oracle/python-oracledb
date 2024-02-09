@@ -29,6 +29,7 @@
 # base_impl.pyx).
 #------------------------------------------------------------------------------
 
+@cython.freelist(20)
 cdef class BaseVarImpl:
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor,

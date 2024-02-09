@@ -43,6 +43,9 @@ cdef enum:
     NUM_TYPE_STR = 3
 
 cdef enum:
+    DB_TYPE_NUM_MIN = 2000
+    DB_TYPE_NUM_MAX = 2032
+
     DB_TYPE_NUM_BFILE = 2020
     DB_TYPE_NUM_BINARY_DOUBLE = 2008
     DB_TYPE_NUM_BINARY_FLOAT = 2007
@@ -75,6 +78,21 @@ cdef enum:
     DB_TYPE_NUM_XMLTYPE = 2032
 
 cdef enum:
+    NATIVE_TYPE_NUM_BOOLEAN = 3011
+    NATIVE_TYPE_NUM_BYTES = 3004
+    NATIVE_TYPE_NUM_DOUBLE = 3003
+    NATIVE_TYPE_NUM_FLOAT = 3002
+    NATIVE_TYPE_NUM_INTERVAL_DS = 3006
+    NATIVE_TYPE_NUM_INTERVAL_YM = 3007
+    NATIVE_TYPE_NUM_INT64 = 3000
+    NATIVE_TYPE_NUM_JSON = 3013
+    NATIVE_TYPE_NUM_LOB = 3008
+    NATIVE_TYPE_NUM_OBJECT = 3009
+    NATIVE_TYPE_NUM_ROWID = 3012
+    NATIVE_TYPE_NUM_STMT = 3010
+    NATIVE_TYPE_NUM_TIMESTAMP = 3005
+
+cdef enum:
     CS_FORM_IMPLICIT = 1
     CS_FORM_NCHAR = 2
 
@@ -100,6 +118,7 @@ cdef class DbType:
         readonly uint32_t num
         readonly str name
         readonly uint32_t default_size
+        uint32_t _native_num
         uint32_t _buffer_size_factor
         str _ora_name
         uint8_t _ora_type_num
@@ -113,6 +132,18 @@ cdef class DbType:
 
     @staticmethod
     cdef DbType _from_ora_type_and_csfrm(uint8_t ora_type_num, uint8_t csfrm)
+
+
+cdef class DefaultsImpl:
+    cdef:
+        public uint32_t arraysize
+        public str config_dir
+        public bint fetch_lobs
+        public bint fetch_decimals
+        public uint32_t prefetchrows
+        public uint32_t stmtcachesize
+
+cdef DefaultsImpl C_DEFAULTS
 
 
 cdef class Buffer:
@@ -426,6 +457,7 @@ cdef class BaseConnImpl:
 
     cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
                              object value, bint* is_ok)
+    cdef BaseCursorImpl _create_cursor_impl(self)
 
 
 cdef class BasePoolImpl:
@@ -450,6 +482,7 @@ cdef class BaseCursorImpl:
         public object outputtypehandler
         public object rowfactory
         public bint scrollable
+        public bint set_input_sizes
         public list fetch_info_impls
         public list fetch_vars
         public list fetch_var_impls
@@ -474,9 +507,10 @@ cdef class BaseCursorImpl:
                                       uint32_t row_num,
                                       bint defer_type_assignment) except -1
     cdef int _close(self, bint in_del) except -1
-    cdef int _create_fetch_var(self, object conn, object cursor,
-                               object type_handler, bint uses_fetch_info,
-                               ssize_t pos, FetchInfoImpl fetch_info) except -1
+    cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
+                                       object type_handler, bint
+                                       uses_fetch_info, ssize_t pos,
+                                       FetchInfoImpl fetch_info)
     cdef object _create_row(self)
     cdef BaseVarImpl _create_var_impl(self, object conn)
     cdef int _fetch_rows(self, object cursor) except -1
@@ -486,8 +520,11 @@ cdef class BaseCursorImpl:
     cdef int _init_fetch_vars(self, uint32_t num_columns) except -1
     cdef bint _is_plsql(self)
     cdef int _perform_binds(self, object conn, uint32_t num_execs) except -1
+    cdef int _prepare(self, str statement, str tag,
+                      bint cache_statement) except -1
     cdef int _reset_bind_vars(self, uint32_t num_rows) except -1
     cdef int _verify_var(self, object var) except -1
+    cdef int bind_one(self, object cursor, object parameters) except -1
 
 
 cdef class FetchInfoImpl:

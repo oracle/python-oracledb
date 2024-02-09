@@ -41,20 +41,39 @@ cydatetime.import_datetime()
 
 from . import constants, driver_mode, errors, exceptions
 from .subscr import Message, MessageQuery, MessageRow, MessageTable
-from .defaults import defaults
 
 from . import __version__ as VERSION
 
-from .base_impl cimport get_preferred_num_type
-from .base_impl cimport BaseConnImpl, BaseCursorImpl, BaseVarImpl, DbType
-from .base_impl cimport BaseDbObjectTypeImpl, BaseDbObjectAttrImpl
-from .base_impl cimport BaseDbObjectImpl, BaseLobImpl, BasePoolImpl
-from .base_impl cimport BaseSodaDbImpl, BaseSodaCollImpl, BaseSodaDocImpl
-from .base_impl cimport BaseSodaDocCursorImpl, BaseQueueImpl
-from .base_impl cimport BaseDeqOptionsImpl, BaseEnqOptionsImpl
-from .base_impl cimport BaseMsgPropsImpl, BaseSubscrImpl, BindVar
-from .base_impl cimport ConnectParamsImpl, PoolParamsImpl, FetchInfoImpl
-from .base_impl cimport NUM_TYPE_FLOAT, NUM_TYPE_INT, NUM_TYPE_DECIMAL
+from .base_impl cimport (
+    BaseConnImpl,
+    BaseCursorImpl,
+    BaseDbObjectImpl,
+    BaseDbObjectAttrImpl,
+    BaseDbObjectTypeImpl,
+    BaseDeqOptionsImpl,
+    BaseEnqOptionsImpl,
+    BaseLobImpl,
+    BaseMsgPropsImpl,
+    BasePoolImpl,
+    BaseQueueImpl,
+    BaseSodaCollImpl,
+    BaseSodaDbImpl,
+    BaseSodaDocImpl,
+    BaseSodaDocCursorImpl,
+    BaseSubscrImpl,
+    BaseVarImpl,
+    BindVar,
+    C_DEFAULTS,
+    ConnectParamsImpl,
+    DbType,
+    DB_TYPE_NUM_CURSOR,
+    FetchInfoImpl,
+    PoolParamsImpl,
+    get_preferred_num_type,
+    NUM_TYPE_FLOAT,
+    NUM_TYPE_INT,
+    NUM_TYPE_DECIMAL,
+)
 from libc.string cimport memchr, memset
 
 include "impl/thick/odpi.pxd"

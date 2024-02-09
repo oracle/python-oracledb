@@ -337,6 +337,12 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
+    cdef BaseCursorImpl _create_cursor_impl(self):
+        """
+        Internal method for creating an empty cursor implementation object.
+        """
+        return ThinCursorImpl.__new__(ThinCursorImpl, self)
+
     def change_password(self, str old_password, str new_password):
         cdef:
             Protocol protocol = <Protocol> self._protocol
@@ -373,9 +379,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             self._force_close()
             raise
 
-    def create_cursor_impl(self):
-        return ThinCursorImpl.__new__(ThinCursorImpl, self)
-
     def create_temp_lob_impl(self, DbType dbtype):
         cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)
         lob_impl.create_temp()
@@ -410,6 +413,12 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
     def __init__(self, str dsn, ConnectParamsImpl params):
         BaseThinConnImpl.__init__(self, dsn, params)
         self._protocol = AsyncProtocol()
+
+    cdef BaseCursorImpl _create_cursor_impl(self):
+        """
+        Internal method for creating an empty cursor implementation object.
+        """
+        return AsyncThinCursorImpl.__new__(AsyncThinCursorImpl, self)
 
     async def _connect_with_address(self, Address address,
                                     Description description,
@@ -529,9 +538,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         except:
             self._force_close()
             raise
-
-    def create_cursor_impl(self):
-        return AsyncThinCursorImpl.__new__(AsyncThinCursorImpl, self)
 
     async def create_temp_lob_impl(self, DbType dbtype):
         cdef AsyncThinLobImpl lob_impl = self._create_lob_impl(dbtype)

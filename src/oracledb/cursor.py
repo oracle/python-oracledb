@@ -34,7 +34,6 @@ from typing import Any, Union, Callable
 from . import __name__ as MODULE_NAME
 from . import errors
 from . import connection as connection_module
-from .defaults import defaults
 from .fetch_info import FetchInfo
 from .var import Var
 from .base_impl import DbType, DB_TYPE_OBJECT
@@ -42,20 +41,15 @@ from .dbobject import DbObjectType
 
 
 class BaseCursor:
+    _impl = None
+
     def __init__(
         self,
         connection: "connection_module.Connection",
         scrollable: bool = False,
     ) -> None:
-        self._impl = None
         self.connection = connection
-        self.statement = None
-        self._set_input_sizes = False
-        self._impl = connection._impl.create_cursor_impl()
-        self._impl.scrollable = scrollable
-        self._impl.arraysize = defaults.arraysize
-        self._impl.prefetchrows = defaults.prefetchrows
-        self._fetch_infos = None
+        self._impl = connection._impl.create_cursor_impl(scrollable)
 
     def __del__(self):
         if self._impl is not None:
@@ -124,58 +118,16 @@ class BaseCursor:
         """
         Internal method used for preparing a statement for execution.
         """
-        self._impl.fetch_vars = None
-        if not self._set_input_sizes:
-            self._impl.bind_vars = None
-            self._impl.bind_vars_by_name = None
-            self._impl.bind_style = None
         self._impl.prepare(statement, tag, cache_statement)
-        self.statement = statement
-        self._impl.rowfactory = None
-        self._fetch_infos = None
 
     def _prepare_for_execute(self, statement, parameters, keyword_parameters):
         """
         Internal method for preparing a statement for execution.
         """
-
-        # verify parameters
-        if statement is None and self.statement is None:
-            errors._raise_err(errors.ERR_NO_STATEMENT)
-        if keyword_parameters:
-            if parameters:
-                errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
-            parameters = keyword_parameters
-        elif parameters is not None and not isinstance(
-            parameters, (list, tuple, dict)
-        ):
-            errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         self._verify_open()
-        impl = self._impl
-        bind_vars = impl.bind_vars
-        bind_style = impl.bind_style
-        prepare_needed = statement and statement != self.statement
-        if (
-            not (prepare_needed and not self._set_input_sizes)
-            and bind_vars is not None
-            and parameters is not None
-        ):
-            if (
-                bind_style is dict
-                and not isinstance(parameters, dict)
-                or bind_style is not dict
-                and isinstance(parameters, dict)
-            ):
-                errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
-
-        # prepare statement, if necessary
-        if prepare_needed:
-            self._prepare(statement)
-
-        # perform bind and execute
-        self._set_input_sizes = False
-        if parameters is not None:
-            impl.bind_one(self, parameters)
+        self._impl._prepare_for_execute(
+            self, statement, parameters, keyword_parameters
+        )
 
     def _verify_fetch(self) -> None:
         """
@@ -265,7 +217,7 @@ class BaseCursor:
         that a statement must have been prepared first.
         """
         self._verify_open()
-        if self.statement is None:
+        if self._impl.statement is None:
             errors._raise_err(errors.ERR_NO_STATEMENT_PREPARED)
         return self._impl.get_bind_names()
 
@@ -300,11 +252,10 @@ class BaseCursor:
         cursor has not had an operation invoked via the execute() method yet.
         """
         self._verify_open()
-        if self._fetch_infos is None and self._impl.is_query(self):
-            self._fetch_infos = [
+        if self._impl.is_query(self):
+            return [
                 FetchInfo._from_impl(i) for i in self._impl.fetch_info_impls
             ]
-        return self._fetch_infos
 
     @property
     def fetchvars(self) -> list:
@@ -314,7 +265,7 @@ class BaseCursor:
         attribute. In particular, elements should not be removed or replaced.
         """
         self._verify_open()
-        return self._impl.fetch_vars
+        return self._impl.get_fetch_vars()
 
     def getarraydmlrowcounts(self) -> list:
         """
@@ -491,9 +442,7 @@ class BaseCursor:
             errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
         elif args or kwargs:
             self._verify_open()
-            self._impl.setinputsizes(self.connection, args, kwargs)
-            self._set_input_sizes = True
-            return self._impl.get_bind_vars()
+            return self._impl.setinputsizes(self.connection, args, kwargs)
         return []
 
     def setoutputsize(self, size: int, column: int = 0) -> None:
@@ -502,6 +451,14 @@ class BaseCursor:
         python-oracledb does not require it so this method does nothing.
         """
         pass
+
+    @property
+    def statement(self) -> Union[str, None]:
+        """
+        Returns the statement associated with the cursor, if one is present.
+        """
+        if self._impl is not None:
+            return self._impl.statement
 
     def var(
         self,
@@ -741,7 +698,6 @@ class Cursor(BaseCursor):
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
         impl = self._impl
-        impl.warning = None
         impl.execute(self)
         if impl.fetch_vars is not None:
             return self
@@ -789,18 +745,18 @@ class Cursor(BaseCursor):
         bound as numbers or dates will raise a TypeError exception.
         """
         # verify parameters
-        if statement is None and self.statement is None:
+        if statement is None and self._impl.statement is None:
             errors._raise_err(errors.ERR_NO_STATEMENT)
         if not isinstance(parameters, (list, int)):
             errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
 
         # prepare statement, if necessary
         self._verify_open()
-        if statement and statement != self.statement:
+        if statement and statement != self._impl.statement:
             self._prepare(statement)
 
         # perform bind and execute
-        self._set_input_sizes = False
+        self._impl.set_input_sizes = False
         if isinstance(parameters, int):
             num_execs = parameters
         else:
@@ -1010,7 +966,6 @@ class AsyncCursor(BaseCursor):
         TypeError exception.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
-        self._impl.warning = None
         await self._impl.execute(self)
 
     async def executemany(
@@ -1056,18 +1011,18 @@ class AsyncCursor(BaseCursor):
         bound as numbers or dates will raise a TypeError exception.
         """
         # verify parameters
-        if statement is None and self.statement is None:
+        if statement is None and self._impl.statement is None:
             errors._raise_err(errors.ERR_NO_STATEMENT)
         if not isinstance(parameters, (list, int)):
             errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
 
         # prepare statement, if necessary
         self._verify_open()
-        if statement and statement != self.statement:
+        if statement and statement != self._impl.statement:
             self._prepare(statement)
 
         # perform bind and execute
-        self._set_input_sizes = False
+        self._impl.set_input_sizes = False
         if isinstance(parameters, int):
             num_execs = parameters
         else:

@@ -344,38 +344,6 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
         return _convert_from_json_node(json_node)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
-cdef uint32_t _get_native_type_num(DbType dbtype):
-    cdef uint32_t oracle_type_num = dbtype.num
-    if oracle_type_num == DPI_ORACLE_TYPE_NATIVE_FLOAT:
-        return DPI_NATIVE_TYPE_FLOAT
-    elif oracle_type_num == DPI_ORACLE_TYPE_NATIVE_DOUBLE:
-        return DPI_NATIVE_TYPE_DOUBLE
-    elif oracle_type_num == DPI_ORACLE_TYPE_BOOLEAN:
-        return DPI_NATIVE_TYPE_BOOLEAN
-    elif oracle_type_num == DPI_ORACLE_TYPE_CLOB \
-            or oracle_type_num == DPI_ORACLE_TYPE_NCLOB \
-            or oracle_type_num == DPI_ORACLE_TYPE_BLOB \
-            or oracle_type_num == DPI_ORACLE_TYPE_BFILE:
-        return DPI_NATIVE_TYPE_LOB
-    elif oracle_type_num == DPI_ORACLE_TYPE_DATE \
-            or oracle_type_num == DPI_ORACLE_TYPE_TIMESTAMP \
-            or oracle_type_num == DPI_ORACLE_TYPE_TIMESTAMP_LTZ \
-            or oracle_type_num == DPI_ORACLE_TYPE_TIMESTAMP_TZ:
-        return DPI_NATIVE_TYPE_TIMESTAMP
-    elif oracle_type_num == DPI_ORACLE_TYPE_STMT:
-        return DPI_NATIVE_TYPE_STMT
-    elif oracle_type_num == DPI_ORACLE_TYPE_NATIVE_INT:
-        return DPI_NATIVE_TYPE_INT64
-    elif oracle_type_num == DPI_ORACLE_TYPE_OBJECT:
-        return DPI_NATIVE_TYPE_OBJECT
-    elif oracle_type_num == DPI_ORACLE_TYPE_ROWID:
-        return DPI_NATIVE_TYPE_ROWID
-    elif oracle_type_num == DPI_ORACLE_TYPE_INTERVAL_DS:
-        return DPI_NATIVE_TYPE_INTERVAL_DS
-    elif oracle_type_num == DPI_ORACLE_TYPE_JSON:
-        return DPI_NATIVE_TYPE_JSON
-    return DPI_NATIVE_TYPE_BYTES
-
 cdef list _string_list_to_python(dpiStringList *str_list):
     """
     Converts the contents of dpiStringList to a Python list of strings.
@@ -468,7 +436,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         encoding_bytes = constants.ENCODING.encode()
         params.defaultEncoding = encoding_bytes
         if config_dir is None:
-            config_dir = defaults.config_dir
+            config_dir = C_DEFAULTS.config_dir
         if lib_dir is not None:
             lib_dir_bytes = lib_dir.encode()
             params.oracleClientLibDir = lib_dir_bytes

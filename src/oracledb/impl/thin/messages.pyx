@@ -1055,7 +1055,7 @@ cdef class MessageWithData(Message):
             else:
                 buf.write_ub4(1)
                 buf.write_ub4(cursor_impl._statement._cursor_id)
-            value.statement = None
+            cursor_impl.statement = None
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
             buf.write_bool(value)
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:

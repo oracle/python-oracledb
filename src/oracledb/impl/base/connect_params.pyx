@@ -128,8 +128,8 @@ cdef class ConnectParamsImpl:
 
     def __init__(self):
         cdef AddressList address_list
-        self.stmtcachesize = defaults.stmtcachesize
-        self.config_dir = defaults.config_dir
+        self.stmtcachesize = C_DEFAULTS.stmtcachesize
+        self.config_dir = C_DEFAULTS.config_dir
         self._default_description = Description()
         self._default_address = Address()
         self.description_list = DescriptionList()
