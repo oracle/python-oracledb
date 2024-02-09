@@ -113,9 +113,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         Get a statement from the statement cache, or prepare a new statement
         for use.
         """
-        if self._drcp_establish_session:
-            cache_statement = False
-        return self._statement_cache.get_statement(sql, cache_statement)
+        return self._statement_cache.get_statement(
+            sql, cache_statement, self._drcp_establish_session
+        )
 
     cdef int _post_connect_phase_one(self, Description description,
                                      ConnectParamsImpl params) except -1:

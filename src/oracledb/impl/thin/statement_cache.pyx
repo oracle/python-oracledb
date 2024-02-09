@@ -92,7 +92,8 @@ cdef class StatementCache:
             self._open_cursors = new_open_cursors
             self._num_cursors_to_close = 0
 
-    cdef Statement get_statement(self, str sql, bint cache_statement):
+    cdef Statement get_statement(self, str sql, bint cache_statement,
+                                 bint force_new):
         """
         Get a statement from the statement cache, or prepare a new statement
         for use. If a statement is already in use or the statement is not
@@ -112,9 +113,15 @@ cdef class StatementCache:
                     self._cached_statements[sql] = stmt
                     self._adjust_cache()
                 self._open_cursors.add(stmt)
-            elif stmt._in_use or not cache_statement:
+            elif force_new or stmt._in_use:
+                if not cache_statement:
+                    self._add_cursor_to_close(stmt)
+                    del self._cached_statements[sql]
                 stmt = stmt.copy()
                 self._open_cursors.add(stmt)
+            elif not cache_statement:
+                del self._cached_statements[sql]
+                stmt._return_to_cache = False
             else:
                 self._cached_statements.move_to_end(sql)
         stmt._in_use = True
