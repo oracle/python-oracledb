@@ -821,12 +821,6 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = [(n, await c.read()) async for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
-    async def XXXtest_6360_fetch_json_columns(self):
-        "6360 - fetch JSON columns as Python objects"
-        expected_data = (1, [1, 2, 3], [4, 5, 6], [7, 8, 9])
-        self.cursor.execute("select * from TestJsonCols")
-        self.assertEqual(self.cursor.fetchone(), expected_data)
-
     @unittest.skipIf(
         test_env.get_server_version() < (23, 1), "unsupported database"
     )
