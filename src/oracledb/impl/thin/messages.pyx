@@ -1798,7 +1798,6 @@ cdef class ConnectMessage(Message):
         bytes connect_string_bytes
         uint16_t connect_string_len, redirect_data_len
         bint read_redirect_data_len
-        ConnectionCookie cookie
         Description description
         uint8_t packet_flags
         str redirect_data
@@ -1809,6 +1808,7 @@ cdef class ConnectMessage(Message):
         cdef:
             uint16_t protocol_version, protocol_options
             const char_type *redirect_data
+            uint32_t flags
             bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             if not self.read_redirect_data_len:
@@ -1825,11 +1825,11 @@ cdef class ConnectMessage(Message):
             buf.read_uint16(&protocol_options)
             buf.skip_raw_bytes(20)
             buf.read_uint32(&buf._caps.sdu)
-            if protocol_version >= TNS_VERSION_MIN_UUID:
-                buf.skip_raw_bytes(9)
-                db_uuid = buf.read_raw_bytes(16)[:16]
-                self.cookie = get_connection_cookie_by_uuid(db_uuid,
-                                                            self.description)
+            if protocol_version >= TNS_VERSION_MIN_OOB_CHECK:
+                buf.skip_raw_bytes(5)
+                buf.read_uint32(&flags)
+                if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
+                    buf._caps.supports_fast_auth = True
             buf._caps._adjust_for_protocol(protocol_version, protocol_options)
             buf._transport._full_packet_size = True
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
@@ -2345,9 +2345,7 @@ cdef class ProtocolMessage(Message):
 
     cdef int _process_protocol_info(self, ReadBuffer buf) except -1:
         """
-        Processes the response to the protocol request and stores the
-        information that is used to identify the server in a connection cookie
-        (which is used in 23c and higher to optimize the connection packets).
+        Processes the response to the protocol request.
         """
         cdef:
             uint16_t num_elem, fdo_length
@@ -2380,12 +2378,12 @@ cdef class ProtocolMessage(Message):
 
 
 @cython.final
-cdef class ConnectionCookieMessage(Message):
+cdef class FastAuthMessage(Message):
     cdef:
         DataTypesMessage data_types_message
         ProtocolMessage protocol_message
         AuthMessage auth_message
-        ConnectionCookie cookie
+        bint renegotiate
 
     cdef bint _has_more_data(self, ReadBuffer buf):
         return not self.end_of_request
@@ -2396,8 +2394,7 @@ cdef class ConnectionCookieMessage(Message):
         Processes the messages returned from the server response.
         """
         if message_type == TNS_MSG_TYPE_RENEGOTIATE:
-            self.cookie.populated = False
-            self.end_of_request = True
+            self.renegotiate = True
         elif message_type == TNS_MSG_TYPE_PROTOCOL:
             ProtocolMessage._process_message(self.protocol_message, buf,
                                              message_type)
@@ -2410,21 +2407,24 @@ cdef class ConnectionCookieMessage(Message):
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """
-        Writes the message to the buffer. This includes not just the cookie but
-        also the protocol, data types and auth message information as well!
+        Writes the message to the buffer. This includes not just this message
+        but also the protocol, data types and auth messages. This reduces the
+        number of round-trips to the database and thereby increases
+        performance.
         """
+        buf.write_uint8(TNS_MSG_TYPE_FAST_AUTH)
+        buf.write_uint8(1)                  # fast auth version
+        buf.write_uint8(TNS_SERVER_CONVERTS_CHARS)  # flag 1
+        buf.write_uint8(0)                  # flag 2
         ProtocolMessage._write_message(self.protocol_message, buf)
-        buf.write_uint8(TNS_MSG_TYPE_COOKIE)
-        buf.write_uint8(1)                  # cookie version
-        buf.write_uint8(self.cookie.protocol_version)
-        buf.write_uint16(self.cookie.charset_id, BYTE_ORDER_LSB)
-        buf.write_uint8(self.cookie.flags)
-        buf.write_uint16(self.cookie.ncharset_id, BYTE_ORDER_LSB)
-        buf.write_bytes_with_length(self.cookie.server_banner)
-        buf.write_bytes_with_length(self.cookie.compile_caps)
-        buf.write_bytes_with_length(self.cookie.runtime_caps)
+        buf.write_uint16(0)                 # server charset (unused)
+        buf.write_uint8(0)                  # server charset flag (unused)
+        buf.write_uint16(0)                 # server ncharset (unused)
+        buf._caps.ttc_field_version = TNS_CCAP_FIELD_VERSION_19_1_EXT_1
+        buf.write_uint8(buf._caps.ttc_field_version)
         DataTypesMessage._write_message(self.data_types_message, buf)
         AuthMessage._write_message(self.auth_message, buf)
+        buf._caps.ttc_field_version = TNS_CCAP_FIELD_VERSION_MAX
 
 
 @cython.final

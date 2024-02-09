@@ -169,12 +169,11 @@ cdef class Protocol(BaseProtocol):
                     self._process_message(message)
                 self._final_close(self._write_buf)
 
-    cdef ConnectionCookie _connect_phase_one(self,
-                                             ThinConnImpl conn_impl,
-                                             ConnectParamsImpl params,
-                                             Description description,
-                                             Address address,
-                                             str connect_string):
+    cdef int _connect_phase_one(self, ThinConnImpl conn_impl,
+                                ConnectParamsImpl params,
+                                Description description,
+                                Address address,
+                                str connect_string) except -1:
         """
         Method for performing the required steps for establishing a connection
         within the scope of a retry. If the listener refuses the connection, a
@@ -235,7 +234,7 @@ cdef class Protocol(BaseProtocol):
             elif packet_type == TNS_PACKET_TYPE_ACCEPT:
                 self._transport._max_packet_size = self._caps.sdu
                 self._write_buf._size_for_sdu()
-                return connect_message.cookie
+                break
 
             # for TCPS connections, OOB processing is not supported; if the
             # packet flags indicate that TLS renegotiation is required, this is
@@ -247,7 +246,6 @@ cdef class Protocol(BaseProtocol):
                     self._transport.renegotiate_tls(description)
 
     cdef int _connect_phase_two(self, ThinConnImpl conn_impl,
-                                ConnectionCookie cookie,
                                 Description description,
                                 ConnectParamsImpl params) except -1:
         """"
@@ -256,11 +254,10 @@ cdef class Protocol(BaseProtocol):
         an exception will be raised.
         """
         cdef:
-            ConnectionCookieMessage cookie_message
             DataTypesMessage data_types_message
+            FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
             AuthMessage auth_message
-            bint sent_cookie = False
 
         # check if the protocol version supported by the database is high
         # enough; if not, reject the connection immediately
@@ -280,34 +277,20 @@ cdef class Protocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23c, a cookie can be sent along with the protocol, data
-        # types and authorization messages without waiting for the server to
-        # respond to each of the messages in turn
-        if cookie is not None and cookie.populated:
-            cookie_message = conn_impl._create_message(ConnectionCookieMessage)
-            cookie_message.cookie = cookie
-            cookie_message.protocol_message = protocol_message
-            cookie_message.data_types_message = data_types_message
-            cookie_message.auth_message = auth_message
-            self._process_message(cookie_message)
-            sent_cookie = True
+        # starting in 23c, fast authentication is possible; see if the server
+        # supports it
+        if self._caps.supports_fast_auth:
+            fast_auth_message = conn_impl._create_message(FastAuthMessage)
+            fast_auth_message.protocol_message = protocol_message
+            fast_auth_message.data_types_message = data_types_message
+            fast_auth_message.auth_message = auth_message
+            self._process_message(fast_auth_message)
+
+        # otherwise, do the normal authentication
         else:
             self._process_message(protocol_message)
-
-        # if database is not 23c or later, or renegotiation has been requested,
-        # use the regular approach for the remaining messages
-        if not sent_cookie or not cookie.populated:
             self._process_message(data_types_message)
             self._process_message(auth_message)
-            if cookie is not None and not cookie.populated:
-                cookie.protocol_version = protocol_message.server_version
-                cookie.server_banner = protocol_message.server_banner
-                cookie.charset_id = self._caps.charset_id
-                cookie.ncharset_id = self._caps.ncharset_id
-                cookie.flags = protocol_message.server_flags
-                cookie.compile_caps = protocol_message.server_compile_caps
-                cookie.runtime_caps = protocol_message.server_runtime_caps
-                cookie.populated = True
 
         # send authorization message a second time, if needed, to respond to
         # the challenge sent by the server
@@ -605,7 +588,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 connect_message = None
                 packet_flags = TNS_PACKET_FLAG_REDIRECT
             elif packet_type == TNS_PACKET_TYPE_ACCEPT:
-                return connect_message.cookie
+                self._transport._max_packet_size = self._caps.sdu
+                self._write_buf._size_for_sdu()
+                break
 
             # for TCPS connections, OOB processing is not supported; if the
             # packet flags indicate that TLS renegotiation is required, this is
@@ -619,7 +604,6 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                                                               description)
 
     async def _connect_phase_two(self, AsyncThinConnImpl conn_impl,
-                                 ConnectionCookie cookie,
                                  Description description,
                                  ConnectParamsImpl params):
         """"
@@ -628,11 +612,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         an exception will be raised.
         """
         cdef:
-            ConnectionCookieMessage cookie_message
             DataTypesMessage data_types_message
+            FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
             AuthMessage auth_message
-            bint sent_cookie = False
 
         # check if the protocol version supported by the database is high
         # enough; if not, reject the connection immediately
@@ -645,34 +628,20 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23c, a cookie can be sent along with the protocol, data
-        # types and authorization messages without waiting for the server to
-        # respond to each of the messages in turn
-        if cookie is not None and cookie.populated:
-            cookie_message = conn_impl._create_message(ConnectionCookieMessage)
-            cookie_message.cookie = cookie
-            cookie_message.protocol_message = protocol_message
-            cookie_message.data_types_message = data_types_message
-            cookie_message.auth_message = auth_message
-            await self._process_message(cookie_message)
-            sent_cookie = True
+        # starting in 23c, fast authentication is possible; see if the server
+        # supports it
+        if self._caps.supports_fast_auth:
+            fast_auth_message = conn_impl._create_message(FastAuthMessage)
+            fast_auth_message.protocol_message = protocol_message
+            fast_auth_message.data_types_message = data_types_message
+            fast_auth_message.auth_message = auth_message
+            await self._process_message(fast_auth_message)
+
+        # otherwise, do the normal authentication
         else:
             await self._process_message(protocol_message)
-
-        # if database is not 23c or later, or renegotiation has been requested,
-        # use the regular approach for the remaining messages
-        if not sent_cookie or not cookie.populated:
             await self._process_message(data_types_message)
             await self._process_message(auth_message)
-            if cookie is not None and not cookie.populated:
-                cookie.protocol_version = protocol_message.server_version
-                cookie.server_banner = protocol_message.server_banner
-                cookie.charset_id = self._caps.charset_id
-                cookie.ncharset_id = self._caps.ncharset_id
-                cookie.flags = protocol_message.server_flags
-                cookie.compile_caps = protocol_message.server_compile_caps
-                cookie.runtime_caps = protocol_message.server_runtime_caps
-                cookie.populated = True
 
         # send authorization message a second time, if needed, to respond to
         # the challenge sent by the server

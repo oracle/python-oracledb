@@ -410,7 +410,7 @@ cdef enum:
     TNS_MSG_TYPE_ONEWAY_FN = 26
     TNS_MSG_TYPE_IMPLICIT_RESULTSET = 27
     TNS_MSG_TYPE_RENEGOTIATE = 28
-    TNS_MSG_TYPE_COOKIE = 30
+    TNS_MSG_TYPE_FAST_AUTH = 34
 
 # parameter keyword numbers
 cdef enum:
@@ -724,6 +724,10 @@ cdef enum:
     TNS_UDS_FLAGS_IS_JSON = 0x00000100
     TNS_UDS_FLAGS_IS_OSON = 0x00000800
 
+# accept flags
+cdef enum:
+    TNS_ACCEPT_FLAG_FAST_AUTH = 0x10000000
+
 # other constants
 cdef enum:
     TNS_ESCAPE_CHAR = 253
@@ -734,6 +738,7 @@ cdef enum:
     TNS_TXN_IN_PROGRESS = 0x00000002
     TNS_MAX_CONNECT_DATA = 230
     TNS_MAX_UROWID_LENGTH = 5267
+    TNS_SERVER_CONVERTS_CHARS = 0x01
     TNS_JSON_MAX_LENGTH = 32 * 1024 * 1024
 
 # base 64 encoding alphabet

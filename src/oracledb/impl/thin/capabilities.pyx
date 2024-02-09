@@ -39,6 +39,7 @@ cdef class Capabilities:
         bytearray compile_caps
         bytearray runtime_caps
         uint32_t max_string_size
+        bint supports_fast_auth
         bint supports_oob
         uint32_t sdu
 

@@ -273,12 +273,10 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         Internal method used for connecting with the given description and
         address.
         """
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            ConnectionCookie cookie
+        cdef Protocol protocol = <Protocol> self._protocol
         try:
-            cookie = protocol._connect_phase_one(self, params, description,
-                                                 address, connect_string)
+            protocol._connect_phase_one(self, params, description,
+                                        address, connect_string)
         except (exceptions.DatabaseError, socket.gaierror,
                 ConnectionRefusedError) as e:
             if raise_exception:
@@ -289,7 +287,7 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
                               connection_id=description.connection_id)
         self._post_connect_phase_one(description, params)
-        protocol._connect_phase_two(self, cookie, description, params)
+        protocol._connect_phase_two(self, description, params)
 
     cdef int _connect_with_description(self, Description description,
                                        ConnectParamsImpl params,
@@ -424,11 +422,9 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         """
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            ConnectionCookie cookie
         try:
-            cookie = await protocol._connect_phase_one(self, params,
-                                                       description, address,
-                                                       connect_string)
+            await protocol._connect_phase_one(self, params, description,
+                                              address, connect_string)
         except (exceptions.DatabaseError, socket.gaierror,
                 ConnectionRefusedError) as e:
             if raise_exception:
@@ -439,8 +435,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
                               connection_id=description.connection_id)
         self._post_connect_phase_one(description, params)
-        await self._protocol._connect_phase_two(self, cookie, description,
-                                                params)
+        await self._protocol._connect_phase_two(self, description, params)
 
     async def _connect_with_description(self, Description description,
                                         ConnectParamsImpl params,
