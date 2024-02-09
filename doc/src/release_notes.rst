@@ -20,6 +20,8 @@ Thin Mode Changes
 #)  Fixed regression when using IAM token authentication
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
 #)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
+#)  Fixed bug in identifying bind variables in SQL statements containing a
+    single line comment at the end of the statement.
 
 Thick Mode Changes
 ++++++++++++++++++

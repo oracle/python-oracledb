@@ -200,10 +200,10 @@ cdef class Parser:
     cdef int _parse_single_line_comment(self) except -1:
         """
         Single line comments consist of two dashes and all characters up to the
-        next line break. This method is called when the first dash is detected
-        and checks for the subsequent dash. If found, the single line comment
-        is traversed and the current position is updated; otherwise, the
-        current position is left untouched.
+        next line break (or the end of the data). This method is called when
+        the first dash is detected and checks for the subsequent dash. If
+        found, the single line comment is traversed and the current position is
+        updated; otherwise, the current position is left untouched.
         """
         cdef:
             ssize_t pos = self.pos + 1
@@ -213,12 +213,12 @@ cdef class Parser:
             ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
             if not in_comment:
                 if ch != '-':
-                    break
+                    return 0
                 in_comment = True
             elif cpython.Py_UNICODE_ISLINEBREAK(ch):
-                self.pos = pos
                 break
             pos += 1
+        self.pos = pos
 
     cdef int parse(self, Statement stmt) except -1:
         """

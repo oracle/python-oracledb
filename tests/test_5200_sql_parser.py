@@ -36,7 +36,7 @@ class TestCase(test_env.BaseTestCase):
         "5200 - single line comment"
         self.cursor.prepare(
             "--begin :value2 := :a + :b + :c +:a +3; end;\n"
-            "begin :value2 := :a + :c +3; end;"
+            "begin :value2 := :a + :c +3; end; -- not a :bind_variable"
         )
         self.assertEqual(self.cursor.bindnames(), ["VALUE2", "A", "C"])
 
