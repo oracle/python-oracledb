@@ -48,6 +48,8 @@ Common Changes
     mode would raise ``DPI-1040: LOB was already closed``.
 #)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
     the connection parameter ``purity`` has been specified.
+#)  Connection parameters that are strings now treat an empty string in the
+    same way as the value ``None``.
 
 
 oracledb 2.0.1 (January 2024)

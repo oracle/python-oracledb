@@ -163,7 +163,7 @@ cdef int _set_str_param(dict args, str name, object target) except -1:
     Python objects).
     """
     in_val = args.get(name)
-    if in_val is not None:
+    if in_val:
         setattr(target, name, str(in_val))
 
 

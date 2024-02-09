@@ -215,7 +215,7 @@ class TestCase(test_env.BaseTestCase):
         params.parse_connect_string("my_host15:1578/")
         self.assertEqual(params.host, "my_host15")
         self.assertEqual(params.port, 1578)
-        self.assertEqual(params.service_name, "")
+        self.assertEqual(params.service_name, None)
 
     def test_4514(self):
         "4514 - test missing entry in tnsnames"
@@ -768,6 +768,13 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.sdu, 512)
         params.set(sdu=2097153)
         self.assertEqual(params.sdu, 2097152)
+
+    def test_4567(self):
+        "4567 - test empty connection class"
+        params = oracledb.ConnectParams()
+        self.assertEqual(params.cclass, None)
+        params.set(cclass="")
+        self.assertEqual(params.cclass, None)
 
 
 if __name__ == "__main__":
