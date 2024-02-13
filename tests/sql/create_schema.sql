@@ -56,7 +56,8 @@ grant
     create view,
     select any dictionary,
     change notification,
-    unlimited tablespace
+    unlimited tablespace,
+    ctxapp
 to &main_user
 /
 

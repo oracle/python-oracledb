@@ -394,7 +394,7 @@ class TestCase(test_env.BaseTestCase):
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
         transformation_str = f"{self.conn.username}.transform2"
         queue.deqoptions.transformation = transformation_str
-        self.assertEqual(queue.deqOptions.transformation, transformation_str)
+        self.assertEqual(queue.deqoptions.transformation, transformation_str)
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
@@ -721,6 +721,20 @@ class TestCase(test_env.BaseTestCase):
 
         queue = self.conn.queue("TEST_RAW_QUEUE")
         self.assertIsNone(queue.payload_type)
+
+    def test_2734(self):
+        "2734 - test deprecated attributes (enqOptions, deqOptions)"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        self.assertEqual(queue.enqOptions, queue.enqoptions)
+        self.assertEqual(queue.deqOptions, queue.deqoptions)
+
+    def test_2735(self):
+        "2735 - test deprecated AQ methods (enqOne, deqOne)"
+        value = b"Test 2734"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        queue.enqOne(self.conn.msgproperties(value))
+        props = queue.deqOne()
+        self.assertEqual(props.payload, value)
 
 
 if __name__ == "__main__":

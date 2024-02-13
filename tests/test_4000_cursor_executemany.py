@@ -145,13 +145,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
         statement = "insert into TestTempTable (IntCol) values (:value)"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-00001:",
-            self.cursor.executemany,
-            statement,
-            rows,
-        )
+        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00001:"):
+            self.cursor.executemany(statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
     def test_4009(self):
@@ -228,13 +223,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4013(self):
         "4013 - test executemany with incorrect parameters"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2004:",
-            self.cursor.executemany,
-            "select :1 from dual",
-            [1],
-        )
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
+            self.cursor.executemany("select :1 from dual", [1])
 
     def test_4014(self):
         "4014 - test executemany with mixed binds (pos first)"
@@ -250,13 +240,8 @@ class TestCase(test_env.BaseTestCase):
     def test_4015(self):
         "4015 - test executemany with mixed binds (name first)"
         rows = [{"value": 1}, ["test"]]
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2006:",
-            self.cursor.executemany,
-            "select :value from dual",
-            rows,
-        )
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
+            self.cursor.executemany("select :value from dual", rows)
 
     def test_4016(self):
         "4016 - test executemany() with a pl/sql statement with dml returning"
@@ -394,13 +379,38 @@ class TestCase(test_env.BaseTestCase):
     def test_4023(self):
         "3901 - test executing a None statement"
         cursor = self.conn.cursor()
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2001:",
-            cursor.executemany,
-            None,
-            [1, 2],
-        )
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):
+            cursor.executemany(None, [1, 2])
+
+    def test_4024(self):
+        """
+        4024 - test executemany with number of iterations
+        (previous bind values)
+        """
+        data = [(2,), (3,), (4,)]
+        for num_iterations in range(1, len(data) + 1):
+            self.cursor.execute("truncate table TestLongs")
+            self.cursor.executemany(
+                "insert into TestLongs (IntCol) values (:1)", data
+            )
+            self.cursor.executemany(None, num_iterations)
+            self.cursor.execute("select IntCol from TestLongs")
+            expected_value = data + data[:num_iterations]
+            self.assertEqual(self.cursor.fetchall(), expected_value)
+
+    def test_4025(self):
+        "4025 - test executemany with empty lists and number of iterations"
+        values = [[] for _ in range(5)]
+        for num_iterations in (4, 6):
+            self.cursor.execute("truncate table TestLongs")
+            self.cursor.executemany(
+                "insert into TestLongs (IntCol) values (67)",
+                values,
+            )
+            self.cursor.executemany(None, num_iterations)
+            self.cursor.execute("select IntCol from TestLongs")
+            expected_value = [(67,)] * (len(values) + num_iterations)
+            self.assertEqual(self.cursor.fetchall(), expected_value)
 
 
 if __name__ == "__main__":

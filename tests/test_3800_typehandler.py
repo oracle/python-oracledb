@@ -85,13 +85,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         building = Building(1, "The First Building", 5)
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3002:",
-            self.cursor.execute,
-            sql,
-            [building.building_id, building],
-        )
+        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+            self.cursor.execute(sql, [building.building_id, building])
 
     def test_3801(self):
         "3801 - not callable input type handler"
@@ -100,12 +95,8 @@ class TestCase(test_env.BaseTestCase):
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         self.cursor.inputtypehandler = 5
         self.assertEqual(self.cursor.inputtypehandler, 5)
-        self.assertRaises(
-            TypeError,
-            self.cursor.execute,
-            sql,
-            (building.building_id, building),
-        )
+        with self.assertRaises(TypeError):
+            self.cursor.execute(sql, (building.building_id, building))
 
     def test_3802(self):
         "3802 - binding unsupported python object with input type handler"
@@ -146,13 +137,11 @@ class TestCase(test_env.BaseTestCase):
             cursor_one.fetchall(),
             [(building_one.building_id, building_one.to_json())],
         )
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3002:",
-            cursor_two.execute,
-            sql,
-            (building_two.building_id, building_two),
-        )
+        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+            cursor_two.execute(
+                sql,
+                (building_two.building_id, building_two),
+            )
 
         cursor_two.outputtypehandler = self.output_type_handler
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
@@ -166,24 +155,22 @@ class TestCase(test_env.BaseTestCase):
         building_one = Building(1, "The First Building", 5)
         building_two = Building(2, "The Second Building", 87)
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        connection = test_env.get_connection()
-        connection.inputtypehandler = self.input_type_handler
-        self.assertEqual(connection.inputtypehandler, self.input_type_handler)
+        conn = test_env.get_connection()
+        conn.inputtypehandler = self.input_type_handler
+        self.assertEqual(conn.inputtypehandler, self.input_type_handler)
 
-        cursor_one = connection.cursor()
-        cursor_two = connection.cursor()
+        cursor_one = conn.cursor()
+        cursor_two = conn.cursor()
         cursor_one.execute(sql, [building_one.building_id, building_one])
         cursor_two.execute(sql, [building_two.building_id, building_two])
-        connection.commit()
+        conn.commit()
 
         expected_data = [
             (building_one.building_id, building_one),
             (building_two.building_id, building_two),
         ]
-        connection.outputtypehandler = self.output_type_handler
-        self.assertEqual(
-            connection.outputtypehandler, self.output_type_handler
-        )
+        conn.outputtypehandler = self.output_type_handler
+        self.assertEqual(conn.outputtypehandler, self.output_type_handler)
         cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(
             cursor_one.fetchvars[1].outconverter, Building.from_json
@@ -193,13 +180,8 @@ class TestCase(test_env.BaseTestCase):
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(cursor_two.fetchall(), expected_data)
         other_cursor = self.conn.cursor()
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3002:",
-            other_cursor.execute,
-            sql,
-            (building_one.building_id, building_one),
-        )
+        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+            other_cursor.execute(sql, (building_one.building_id, building_one))
 
     def test_3805(self):
         "3805 - output type handler with outconvert and null values"

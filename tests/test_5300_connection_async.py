@@ -502,6 +502,57 @@ class TestCase(test_env.BaseAsyncTestCase):
         ):
             await conn.changepassword(original_password, new_password_1025)
 
+    async def test_5338(self):
+        "5338 - test getting db_name"
+        conn = await test_env.get_connection_async()
+        cursor = conn.cursor()
+        await cursor.execute("select name from V$DATABASE")
+        (db_name,) = await cursor.fetchone()
+        self.assertEqual(conn.db_name.upper(), db_name.upper())
+
+    async def test_5339(self):
+        "5339 - test getting max_open_cursors"
+        conn = await test_env.get_connection_async()
+        cursor = conn.cursor()
+        await cursor.execute(
+            "select value from V$PARAMETER where name='open_cursors'"
+        )
+        (max_open_cursors,) = await cursor.fetchone()
+        self.assertEqual(conn.max_open_cursors, int(max_open_cursors))
+
+    async def test_5340(self):
+        "5340 - test getting service_name"
+        conn = await test_env.get_connection_async()
+        cursor = conn.cursor()
+        await cursor.execute(
+            "select sys_context('userenv', 'service_name') from dual"
+        )
+        (service_name,) = await cursor.fetchone()
+        self.assertEqual(conn.service_name, service_name)
+
+    async def test_5341(self):
+        "5341 - test transaction_in_progress"
+        conn = await test_env.get_connection_async()
+        self.assertFalse(conn.transaction_in_progress)
+
+        cursor = conn.cursor()
+        await cursor.execute("truncate table TestTempTable")
+        self.assertFalse(conn.transaction_in_progress)
+
+        await cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        self.assertTrue(conn.transaction_in_progress)
+
+        await conn.commit()
+        self.assertFalse(conn.transaction_in_progress)
+
+    async def test_5342(self):
+        "5342 - test getting db_domain"
+        conn = await test_env.get_connection_async()
+        (db_domain,) = await conn.fetchone(
+            "select value from V$PARAMETER where name='db_domain'"
+        )
+        self.assertEqual(conn.db_domain, db_domain)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

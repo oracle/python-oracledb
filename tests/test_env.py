@@ -558,6 +558,7 @@ class BaseTestCase(unittest.TestCase):
         minclient=(18, 3),
         minserver=(18, 0),
         message="not supported with this client/server combination",
+        drop_collections=True,
     ):
         client = get_client_version()
         if client < minclient:
@@ -567,7 +568,11 @@ class BaseTestCase(unittest.TestCase):
             self.skipTest(message)
         if server > (20, 1) and client < (20, 1):
             self.skipTest(message)
-        return self.conn.getSodaDatabase()
+        soda_db = self.conn.getSodaDatabase()
+        if drop_collections:
+            for name in soda_db.getCollectionNames():
+                soda_db.openCollection(name).drop()
+        return soda_db
 
     def is_on_oracle_cloud(self, connection=None):
         if connection is None:

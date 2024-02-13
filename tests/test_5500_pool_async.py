@@ -438,6 +438,25 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2026:"):
             oracledb.create_pool_async(pool_class=int)
 
+    async def test_5525(self):
+        "5525 - test creating a pool with a subclassed connection type"
+
+        class MyConnection(oracledb.AsyncConnection):
+            pass
+
+        pool = test_env.get_pool_async(connectiontype=MyConnection)
+        async with pool.acquire() as conn:
+            self.assertIsInstance(conn, MyConnection)
+
+    async def test_5526(self):
+        "5526 - test creating a pool with a subclassed pool type"
+
+        class MyPool(oracledb.AsyncConnectionPool):
+            pass
+
+        pool = test_env.get_pool_async(pool_class=MyPool)
+        self.assertIsInstance(pool, MyPool)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

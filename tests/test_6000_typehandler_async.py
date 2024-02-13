@@ -164,24 +164,22 @@ class TestCase(test_env.BaseAsyncTestCase):
         building_one = Building(1, "The First Building", 5)
         building_two = Building(2, "The Second Building", 87)
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        connection = await test_env.get_connection_async()
-        connection.inputtypehandler = self.input_type_handler
-        self.assertEqual(connection.inputtypehandler, self.input_type_handler)
+        conn = await test_env.get_connection_async()
+        conn.inputtypehandler = self.input_type_handler
+        self.assertEqual(conn.inputtypehandler, self.input_type_handler)
 
-        cursor_one = connection.cursor()
-        cursor_two = connection.cursor()
+        cursor_one = conn.cursor()
+        cursor_two = conn.cursor()
         await cursor_one.execute(sql, [building_one.building_id, building_one])
         await cursor_two.execute(sql, [building_two.building_id, building_two])
-        await connection.commit()
+        await conn.commit()
 
         expected_data = [
             (building_one.building_id, building_one),
             (building_two.building_id, building_two),
         ]
-        connection.outputtypehandler = self.output_type_handler
-        self.assertEqual(
-            connection.outputtypehandler, self.output_type_handler
-        )
+        conn.outputtypehandler = self.output_type_handler
+        self.assertEqual(conn.outputtypehandler, self.output_type_handler)
         await cursor_one.execute(
             "select IntCol, StringCol1 from TestTempTable"
         )

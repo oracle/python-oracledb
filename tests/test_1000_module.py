@@ -27,6 +27,7 @@
 """
 
 import datetime
+import unittest
 
 import oracledb
 import test_env
@@ -186,6 +187,12 @@ class TestCase(test_env.BaseTestCase):
             oracledb.SUBSCR_PROTO_OCI, oracledb.SUBSCR_PROTO_CALLBACK
         )
         self.assertIs(oracledb.version, oracledb.__version__)
+
+    @unittest.skipUnless(test_env.get_is_thin(), "not relevant for thick mode")
+    def test_1007(self):
+        "1007 - test clientversion() fails without init_oracle_client()"
+        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2021:"):
+            oracledb.clientversion()
 
 
 if __name__ == "__main__":

@@ -879,6 +879,15 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire() as conn:
             self.assertIsInstance(conn, MyConnection)
 
+    def test_2436(self):
+        "2436 - test creating a pool with a subclassed pool type"
+
+        class MyPool(oracledb.ConnectionPool):
+            pass
+
+        pool = test_env.get_pool(pool_class=MyPool)
+        self.assertIsInstance(pool, MyPool)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

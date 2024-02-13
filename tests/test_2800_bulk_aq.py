@@ -213,6 +213,15 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, queue.enqmany, ["Not", "msgproperties"])
         self.assertRaises(TypeError, queue.deqmany, "5")
 
+    def test_2810(self):
+        "2810 - test deprecated AQ methods (enqMany, deqMany)"
+        queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
+        data = [b"labrador", b"schnauzer", b"shih tzu"]
+        queue.enqMany([self.conn.msgproperties(d) for d in data])
+        props = queue.deqMany(len(data) + 1)
+        dequeued_data = [p.payload for p in props]
+        self.assertEqual(dequeued_data, data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

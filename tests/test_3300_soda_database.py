@@ -37,10 +37,6 @@ import test_env
     test_env.skip_soda_tests(), "unsupported client/server combination"
 )
 class TestCase(test_env.BaseTestCase):
-    def __drop_existing_collections(self, soda_db):
-        for name in soda_db.getCollectionNames():
-            soda_db.openCollection(name).drop()
-
     def __verify_doc(
         self,
         doc,
@@ -63,7 +59,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3300(self):
         "3300 - test creating documents with JSON data"
-        soda_db = self.conn.getSodaDatabase()
+        soda_db = self.get_soda_database()
         val = {"testKey1": "testValue1", "testKey2": "testValue2"}
         str_val = json.dumps(val)
         bytes_val = str_val.encode()
@@ -78,7 +74,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3301(self):
         "3301 - test creating documents with raw data"
-        soda_db = self.conn.getSodaDatabase()
+        soda_db = self.get_soda_database()
         val = b"<html/>"
         key = "MyRawKey"
         media_type = "text/html"
@@ -91,8 +87,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3302(self):
         "3302 - test getting collection names from the database"
-        soda_db = self.conn.getSodaDatabase()
-        self.__drop_existing_collections(soda_db)
+        soda_db = self.get_soda_database()
         self.assertEqual(soda_db.getCollectionNames(), [])
         names = ["zCol", "dCol", "sCol", "aCol", "gCol"]
         sorted_names = list(sorted(names))
@@ -109,25 +104,26 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3303(self):
         "3303 - test opening a collection"
-        soda_db = self.conn.getSodaDatabase()
-        self.__drop_existing_collections(soda_db)
+        soda_db = self.get_soda_database()
         coll = soda_db.openCollection("CollectionThatDoesNotExist")
         self.assertIsNone(coll)
         created_coll = soda_db.createCollection("TestOpenCollection")
         coll = soda_db.openCollection(created_coll.name)
         self.assertEqual(coll.name, created_coll.name)
-        coll.drop()
 
     def test_3304(self):
         "3304 - test SodaDatabase repr() and str()"
-        conn = test_env.get_connection()
-        soda_db = conn.getSodaDatabase()
-        self.assertEqual(repr(soda_db), f"<oracledb.SodaDatabase on {conn}>")
-        self.assertEqual(str(soda_db), f"<oracledb.SodaDatabase on {conn}>")
+        soda_db = self.get_soda_database()
+        self.assertEqual(
+            repr(soda_db), f"<oracledb.SodaDatabase on {self.conn}>"
+        )
+        self.assertEqual(
+            str(soda_db), f"<oracledb.SodaDatabase on {self.conn}>"
+        )
 
     def test_3305(self):
         "3305 - test negative cases for SODA database methods"
-        soda_db = self.conn.getSodaDatabase()
+        soda_db = self.get_soda_database()
         self.assertRaises(TypeError, soda_db.createCollection)
         self.assertRaises(TypeError, soda_db.createCollection, 1)
         self.assertRaisesRegex(
