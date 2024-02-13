@@ -391,8 +391,38 @@ cdef class BaseCursorImpl:
         if parameters is not None:
             self.bind_one(cursor, parameters)
 
-        # clear any warning
+        # clear any warning and reset rowcount
         self.warning = None
+        self.rowcount = 0
+
+    def _prepare_for_executemany(self, object cursor, str statement,
+                                 object parameters):
+        """
+        Internal method for preparing a statement for execution multiple times.
+        """
+
+        # prepare statement, if necessary
+        if statement is None and self.statement is None:
+            errors._raise_err(errors.ERR_NO_STATEMENT)
+        elif statement is not None and statement != self.statement:
+            self._prepare(statement, None, True)
+
+        # perform bind, if applicable
+        self.set_input_sizes = False
+        if isinstance(parameters, int):
+            num_execs = parameters
+        elif isinstance(parameters, list):
+            num_execs = len(parameters)
+            if parameters:
+                self.bind_many(cursor, parameters)
+        else:
+            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
+
+        # clear any warning and reset rowcount
+        self.warning = None
+        self.rowcount = 0
+
+        return num_execs
 
     cdef int _reset_bind_vars(self, uint32_t num_rows) except -1:
         """
@@ -427,7 +457,7 @@ cdef class BaseCursorImpl:
                               var_arraysize=var.num_elements,
                               required_arraysize=self.arraysize)
 
-    def bind_many(self, object cursor, list parameters):
+    cdef int bind_many(self, object cursor, list parameters) except -1:
         """
         Internal method used for binding multiple rows of data.
         """

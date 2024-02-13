@@ -178,7 +178,6 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         protocol._process_single_message(message)
         self.warning = message.warning
         if self._statement._is_query:
-            self.rowcount = 0
             if message.type_cache is not None:
                 message.type_cache.populate_partial_types(conn)
 
@@ -262,7 +261,6 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         await protocol._process_single_message(message)
         self.warning = message.warning
         if self._statement._is_query:
-            self.rowcount = 0
             if message.type_cache is not None:
                 await message.type_cache.populate_partial_types(conn)
 

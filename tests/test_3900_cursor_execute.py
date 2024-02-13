@@ -593,6 +593,16 @@ class TestCase(test_env.BaseTestCase):
         (fetch_info,) = self.cursor.description
         self.assertEqual(fetch_info[1:3], (oracledb.DB_TYPE_NUMBER, 10))
 
+    def test_3934(self):
+        "3934 - test rowcount is zero for PL/SQL"
+        self.cursor.execute("begin null; end;")
+        self.assertEqual(self.cursor.rowcount, 0)
+        self.cursor.execute("select user from dual")
+        self.cursor.fetchall()
+        self.assertEqual(self.cursor.rowcount, 1)
+        self.cursor.execute("begin null; end;")
+        self.assertEqual(self.cursor.rowcount, 0)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

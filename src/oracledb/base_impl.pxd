@@ -526,6 +526,7 @@ cdef class BaseCursorImpl:
                       bint cache_statement) except -1
     cdef int _reset_bind_vars(self, uint32_t num_rows) except -1
     cdef int _verify_var(self, object var) except -1
+    cdef int bind_many(self, object cursor, list parameters) except -1
     cdef int bind_one(self, object cursor, object parameters) except -1
 
 

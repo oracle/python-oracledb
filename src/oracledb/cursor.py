@@ -744,26 +744,10 @@ class Cursor(BaseCursor):
         None is assumed to be a string of length 1 so any values that are later
         bound as numbers or dates will raise a TypeError exception.
         """
-        # verify parameters
-        if statement is None and self._impl.statement is None:
-            errors._raise_err(errors.ERR_NO_STATEMENT)
-        if not isinstance(parameters, (list, int)):
-            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
-
-        # prepare statement, if necessary
         self._verify_open()
-        if statement and statement != self._impl.statement:
-            self._prepare(statement)
-
-        # perform bind and execute
-        self._impl.set_input_sizes = False
-        if isinstance(parameters, int):
-            num_execs = parameters
-        else:
-            num_execs = len(parameters)
-            if num_execs > 0:
-                self._impl.bind_many(self, parameters)
-        self._impl.warning = None
+        num_execs = self._impl._prepare_for_executemany(
+            self, statement, parameters
+        )
         self._impl.executemany(
             self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
         )
@@ -1010,26 +994,10 @@ class AsyncCursor(BaseCursor):
         None is assumed to be a string of length 1 so any values that are later
         bound as numbers or dates will raise a TypeError exception.
         """
-        # verify parameters
-        if statement is None and self._impl.statement is None:
-            errors._raise_err(errors.ERR_NO_STATEMENT)
-        if not isinstance(parameters, (list, int)):
-            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
-
-        # prepare statement, if necessary
         self._verify_open()
-        if statement and statement != self._impl.statement:
-            self._prepare(statement)
-
-        # perform bind and execute
-        self._impl.set_input_sizes = False
-        if isinstance(parameters, int):
-            num_execs = parameters
-        else:
-            num_execs = len(parameters)
-            if num_execs > 0:
-                self._impl.bind_many(self, parameters)
-        self._impl.warning = None
+        num_execs = self._impl._prepare_for_executemany(
+            self, statement, parameters
+        )
         await self._impl.executemany(
             self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
         )

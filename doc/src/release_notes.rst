@@ -53,6 +53,8 @@ Common Changes
     mode would raise ``DPI-1040: LOB was already closed``.
 #)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
     the connection parameter ``purity`` has been specified.
+#)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
+    circumstances.
 #)  Connection parameters that are strings now treat an empty string in the
     same way as the value ``None``.
 
