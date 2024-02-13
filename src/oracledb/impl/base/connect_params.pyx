@@ -350,32 +350,7 @@ cdef class ConnectParamsImpl:
         # otherwise, see if the connect string is an EasyConnect string
         m = re.search(EASY_CONNECT_PATTERN, connect_string)
         if m is not None:
-
-            # build up arguments
-            args = m.groupdict()
-            connect_string = connect_string[m.end():]
-            params_pos = connect_string.find("?")
-            if params_pos >= 0:
-                params = connect_string[params_pos + 1:]
-                for part in params.split("&"):
-                    name, value = [s.strip() for s in part.split("=", 1)]
-                    name = name.lower()
-                    name = ALTERNATIVE_PARAM_NAMES.get(name, name)
-                    if value.startswith('"') and value.endswith('"'):
-                        value = value[1:-1]
-                    args[name] = value
-
-            # create description list
-            address = self._default_address.copy()
-            address.set_from_args(args)
-            description = self._default_description.copy()
-            description.set_from_connect_data_args(args)
-            description.set_from_description_args(args)
-            description.set_from_security_args(args)
-            description.children = [AddressList()]
-            description.children[0].children.append(address)
-            self.description_list = DescriptionList()
-            self.description_list.children.append(description)
+            self._parse_easy_connect_string(connect_string, m)
 
         # otherwise, see if the name is a connect alias in a tnsnames.ora
         # configuration file
@@ -386,8 +361,50 @@ cdef class ConnectParamsImpl:
             if connect_string is None:
                 errors._raise_err(errors.ERR_TNS_ENTRY_NOT_FOUND, name=name,
                                   file_name=tnsnames_file.file_name)
-            _parse_connect_descriptor(connect_string, args)
-            self._process_connect_descriptor(args)
+            m = re.search(EASY_CONNECT_PATTERN, connect_string)
+            if m is not None:
+                self._parse_easy_connect_string(connect_string, m)
+            else:
+                _parse_connect_descriptor(connect_string, args)
+                self._process_connect_descriptor(args)
+
+    cdef int _parse_easy_connect_string(self, str connect_string,
+                                        object match) except -1:
+        """
+        Internal method for parsing an Easy Connect string.
+        """
+        cdef:
+            str params, part, name, value, s
+            Description description
+            ssize_t params_pos
+            Address address
+            dict args
+
+        # determine arguments
+        args = match.groupdict()
+        connect_string = connect_string[match.end():]
+        params_pos = connect_string.find("?")
+        if params_pos >= 0:
+            params = connect_string[params_pos + 1:]
+            for part in params.split("&"):
+                name, value = [s.strip() for s in part.split("=", 1)]
+                name = name.lower()
+                name = ALTERNATIVE_PARAM_NAMES.get(name, name)
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                args[name] = value
+
+        # create description list
+        address = self._default_address.copy()
+        address.set_from_args(args)
+        description = self._default_description.copy()
+        description.set_from_connect_data_args(args)
+        description.set_from_description_args(args)
+        description.set_from_security_args(args)
+        description.children = [AddressList()]
+        description.children[0].children.append(address)
+        self.description_list = DescriptionList()
+        self.description_list.children.append(description)
 
     cdef int _process_connect_descriptor(self, dict args) except -1:
         """

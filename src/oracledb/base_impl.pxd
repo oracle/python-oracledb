@@ -414,6 +414,8 @@ cdef class ConnectParamsImpl:
     cdef object _get_token_expires(self, str token)
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
+    cdef int _parse_easy_connect_string(self, str connect_string,
+                                        object match) except -1
     cdef int _process_connect_descriptor(self, dict args) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1

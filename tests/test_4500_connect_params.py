@@ -776,6 +776,38 @@ class TestCase(test_env.BaseTestCase):
         params.set(cclass="")
         self.assertEqual(params.cclass, None)
 
+    def test_4568(self):
+        "4568 - test easy connect string with protocol specified"
+        protocol = "tcp"
+        host = "my_host_4568"
+        port = 1668
+        service_name = "my_service_4568"
+        connect_string = f"{protocol}://{host}:{port}/{service_name}"
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.protocol, protocol)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.port, port)
+        self.assertEqual(params.service_name, service_name)
+
+    def test_4569(self):
+        "4569 - test easy connect string in tnsnames.ora"
+        alias_name = "tns_alias_4569"
+        host = "my_host4569"
+        port = 1568
+        service_name = "my_service_name_4569"
+        connect_string = f"tcp://{host}:{port}/{service_name}"
+        alias = f"{alias_name} = {connect_string}"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                f.write(alias)
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            params.parse_connect_string(alias_name)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.port, port)
+        self.assertEqual(params.service_name, service_name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
