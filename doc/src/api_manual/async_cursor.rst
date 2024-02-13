@@ -464,10 +464,10 @@ AsyncCursor Attributes
 .. attribute:: AsyncCursor.rowcount
 
     This read-only attribute specifies the number of rows that have currently
-    been fetched from the cursor (for select statements), that have been
+    been fetched from the cursor (for select statements) or that have been
     affected by the operation (for insert, update, delete and merge
-    statements), or the number of successful executions of the statement
-    (for PL/SQL statements).
+    statements). For all other statements the value is always zero. If the
+    cursor or connection is closed, the value returned is -1.
 
 .. attribute:: AsyncCursor.rowfactory
 
