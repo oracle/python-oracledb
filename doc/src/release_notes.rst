@@ -28,6 +28,7 @@ Thin Mode Changes
 #)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
 #)  Fixed bug in identifying bind variables in SQL statements containing a
     single line comment at the end of the statement.
+#)  Fixed bug in determining the list of attributes for PL/SQL collections.
 
 Thick Mode Changes
 ++++++++++++++++++

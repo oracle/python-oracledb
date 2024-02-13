@@ -553,6 +553,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(typ.element_type.schema, user.upper())
         self.assertEqual(typ.element_type.name, "UDT_SUBOBJECT")
         self.assertIsNone(typ.element_type.package_name)
+        self.assertEqual(typ.attributes, [])
+        self.assertTrue(typ.iscollection)
 
     def test_2317(self):
         "2317 - test the metadata of a PL/SQL type"
@@ -562,6 +564,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(typ.name, "UDT_STRINGLIST")
         self.assertEqual(typ.package_name, "PKG_TESTSTRINGARRAYS")
         self.assertEqual(typ.element_type, oracledb.DB_TYPE_VARCHAR)
+        self.assertEqual(typ.attributes, [])
+        self.assertTrue(typ.iscollection)
 
     def test_2318(self):
         "2318 - test creating an object variable without a type name"

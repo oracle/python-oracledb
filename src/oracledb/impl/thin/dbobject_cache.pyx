@@ -356,6 +356,8 @@ cdef class BaseThinDbObjectTypeCache:
                 attr_type_owner, attr_type_package, attr_type_oid, \
                 attr_instantiable, attr_super_type_owner, \
                 attr_super_type_name in attrs:
+            if attr_name is None:
+                continue
             attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
             attr_impl.name = attr_name
             if attr_type_owner is not None:
