@@ -30,6 +30,8 @@ Thin Mode Changes
     single line comment at the end of the statement.
 #)  Fixed bug in determining the list of attributes for PL/SQL collections.
 #)  Fixed bug in calculating the :data:`Connection.thin` attribute.
+#)  Fixed bug in processing metadata that spans multiple packets when using
+    :ref:`asyncio <asyncio>`.
 
 Thick Mode Changes
 ++++++++++++++++++

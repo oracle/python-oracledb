@@ -459,7 +459,7 @@ cdef class MessageWithData(Message):
         # if no fetch variables exist, nothing further to do at this point; the
         # processing that follows will take the metadata returned by the server
         # and use it to create new fetch variables
-        if cursor_impl.fetch_var_impls is None:
+        if statement._fetch_var_impls is None:
             return 0
 
         # if the type handler set on the cursor or connection does not match
@@ -717,7 +717,7 @@ cdef class MessageWithData(Message):
             str message
         buf.skip_ub4()                      # max row size
         buf.read_ub4(&cursor_impl._num_columns)
-        prev_fetch_var_impls = cursor_impl.fetch_var_impls
+        prev_fetch_var_impls = stmt._fetch_var_impls
         cursor_impl._init_fetch_vars(cursor_impl._num_columns)
         if cursor_impl._num_columns > 0:
             buf.skip_ub1()

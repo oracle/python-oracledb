@@ -593,6 +593,15 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute("select user from dual")
             self.assertEqual(await cursor.fetchone(), (expected_value,))
 
+    async def test_5435(self):
+        "5435 - test metadata requiring multiple packets"
+        values = [f"Test value 5435 - {i}" for i in range(1, 301)]
+        columns = ", ".join(f"'{v}'" for v in values)
+        query = f"select {columns} from dual"
+        await self.cursor.execute(query)
+        row = await self.cursor.fetchone()
+        self.assertEqual(row, tuple(values))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
