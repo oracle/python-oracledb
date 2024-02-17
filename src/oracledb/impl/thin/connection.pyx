@@ -74,6 +74,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         if not HAS_CRYPTOGRAPHY:
             errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
         BaseConnImpl.__init__(self, dsn, params)
+        self.thin = True
 
     cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
                                           bytes locator=None):

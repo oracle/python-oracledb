@@ -398,6 +398,15 @@ class BaseConnection:
         self._impl.set_stmt_cache_size(value)
 
     @property
+    def thin(self) -> bool:
+        """
+        Returns a boolean indicating if the connection was established in
+        python-oracledb's thin mode (True) or thick mode (False).
+        """
+        self._verify_connected()
+        return self._impl.thin
+
+    @property
     def transaction_in_progress(self) -> bool:
         """
         Specifies whether a transaction is currently in progress on the
@@ -995,15 +1004,6 @@ class Connection(BaseConnection):
     def tag(self, value: str) -> None:
         self._verify_connected()
         self._impl.tag = value
-
-    @property
-    def thin(self) -> bool:
-        """
-        Returns a boolean indicating if the connection was established in
-        python-oracledb's thin mode (True) or thick mode (False).
-        """
-        self._verify_connected()
-        return isinstance(self._impl, thin_impl.ThinConnImpl)
 
     def tpc_begin(
         self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0

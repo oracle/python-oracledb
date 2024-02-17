@@ -77,6 +77,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(
             conn.dsn, test_env.get_connect_string(), "dsn differs"
         )
+        self.assertEqual(conn.thin, test_env.get_is_thin())
 
     async def test_5303(self):
         "5303 - test connection end-to-end tracing attributes"

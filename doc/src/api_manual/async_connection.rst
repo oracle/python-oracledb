@@ -334,6 +334,12 @@ AsyncConnection Attributes
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
+.. attribute:: AsyncConnection.thin
+
+    This read-only attribute returns a boolean indicating if the connection was
+    established with the python-oracledb Thin mode (True) or python-oracledb
+    Thick mode (False).
+
 .. attribute:: AsyncConnection.transaction_in_progress
 
     This read-only attribute specifies whether a transaction is currently in

@@ -73,6 +73,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(
             conn.dsn, test_env.get_connect_string(), "dsn differs"
         )
+        self.assertEqual(conn.thin, test_env.get_is_thin())
 
     @unittest.skipIf(
         test_env.get_is_thin(),

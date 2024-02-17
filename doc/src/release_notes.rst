@@ -29,6 +29,7 @@ Thin Mode Changes
 #)  Fixed bug in identifying bind variables in SQL statements containing a
     single line comment at the end of the statement.
 #)  Fixed bug in determining the list of attributes for PL/SQL collections.
+#)  Fixed bug in calculating the :data:`Connection.thin` attribute.
 
 Thick Mode Changes
 ++++++++++++++++++

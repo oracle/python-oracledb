@@ -444,6 +444,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
 
 cdef class BaseConnImpl:
     cdef:
+        readonly bint thin
         readonly str username
         readonly str dsn
         readonly str proxy_user
