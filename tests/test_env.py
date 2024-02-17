@@ -206,7 +206,7 @@ def get_client_version():
     value = PARAMETERS.get(name)
     if value is None:
         if get_is_thin():
-            value = (23, 2)
+            value = (23, 4)
         else:
             value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
@@ -501,11 +501,44 @@ class ParseCountInfo(SystemStatInfo):
     stat_name = "parse count (total)"
 
 
+class FullCodeErrorContextManager:
+
+    def __init__(self, full_codes):
+        self.full_codes = full_codes
+        if len(full_codes) == 1:
+            self.message_fragment = f'Error "{full_codes[0]}"'
+        else:
+            message_fragment = ", ".join(f'"{s}"' for s in full_codes[:-1])
+            message_fragment += f' or "{full_codes[-1]}"'
+            self.message_fragment = f"One of the errors {message_fragment}"
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is None:
+            raise AssertionError(f"{self.message_fragment} was not raised.")
+        if not issubclass(exc_type, oracledb.Error):
+            return False
+        if issubclass(exc_type, oracledb.Error):
+            error_obj = exc_value.args[0]
+            if error_obj.full_code not in self.full_codes:
+                message = (
+                    f"{self.message_fragment} should have been raised but "
+                    f'"{error_obj.full_code}" was raised instead.'
+                )
+                raise AssertionError(message)
+        return True
+
+
 class BaseTestCase(unittest.TestCase):
     requires_connection = True
 
     def assertParseCount(self, n):
         self.assertEqual(self.parse_count_info.get_value(), n)
+
+    def assertRaisesFullCode(self, *full_codes):
+        return FullCodeErrorContextManager(full_codes)
 
     def assertRoundTrips(self, n):
         self.assertEqual(self.round_trip_info.get_value(), n)

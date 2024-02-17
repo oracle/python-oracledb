@@ -58,15 +58,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1003(self):
         "1003 - test unsupported time functions"
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError, "^DPY-3000:", oracledb.Time, 12, 0, 0
-        )
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3000:",
-            oracledb.TimeFromTicks,
-            100,
-        )
+        with self.assertRaisesFullCode("DPY-3000"):
+            oracledb.Time(12, 0, 0)
+        with self.assertRaisesFullCode("DPY-3000"):
+            oracledb.TimeFromTicks(100)
 
     def test_1004(self):
         "1004 - test makedsn() with valid arguments"
@@ -80,53 +75,20 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1005(self):
         "1005 - test makedsn() with invalid arguments"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="(invalid)",
-            port=1521,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="host",
-            port=1521,
-            sid="(invalid)",
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="host",
-            port=1521,
-            service_name="(invalid)",
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="host",
-            port=1521,
-            region="(invalid)",
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="host",
-            port=1521,
-            sharding_key="(invalid)",
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2020:",
-            oracledb.makedsn,
-            host="host",
-            port=1521,
-            super_sharding_key="(invalid)",
-        )
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(host="(invalid)", port=1521)
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(host="host", port=1521, sid="(invalid)")
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(host="host", port=1521, service_name="(invalid)")
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(host="host", port=1521, region="(invalid)")
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(host="host", port=1521, sharding_key="(invalid)")
+        with self.assertRaisesFullCode("DPY-2020"):
+            oracledb.makedsn(
+                host="host", port=1521, super_sharding_key="(invalid)"
+            )
 
     def test_1006(self):
         "1006 - test aliases match"
@@ -191,7 +153,7 @@ class TestCase(test_env.BaseTestCase):
     @unittest.skipUnless(test_env.get_is_thin(), "not relevant for thick mode")
     def test_1007(self):
         "1007 - test clientversion() fails without init_oracle_client()"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2021:"):
+        with self.assertRaisesFullCode("DPY-2021"):
             oracledb.clientversion()
 
 

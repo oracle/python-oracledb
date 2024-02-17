@@ -799,6 +799,99 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40669:"):
             soda_db.createCollection(coll_name, {"readOnly": False})
 
+    def test_3438(self):
+        "3438 - test getDataGuide() with an index with data-guide support"
+        self.conn = test_env.get_connection()
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaDataGuideEnabled")
+        data = [
+            {
+                "team": "backend",
+                "created_in": 2001,
+                "members": [{"developer": "Joseph"}, {"tester": "Mark"}],
+            },
+            {"team": "frontend", "area": "user interface"},
+        ]
+        coll.insertMany(data)
+        self.conn.commit()
+        index = {
+            "name": "ix_3438",
+            "dataguide": "on",
+        }
+        coll.createIndex(index)
+
+        data_guide = coll.getDataGuide().getContent()
+
+        client_version = test_env.get_client_version()
+        server_version = test_env.get_server_version()
+        if client_version >= (23, 1) and server_version >= (23, 1):
+            id_metadata = {
+                "type": "binary",
+                "o:length": 32,
+                "o:preferred_column_name": "DATA$_id",
+            }
+            self.assertEqual(data_guide["properties"]["_id"], id_metadata)
+
+        values = [
+            ("team", "string", 8),
+            ("created_in", "number", 4),
+            ("area", "string", 16),
+        ]
+        for name, typ, length in values:
+            self.assertEqual(data_guide["properties"][name]["type"], typ)
+            self.assertEqual(
+                data_guide["properties"][name]["o:length"], length
+            )
+            self.assertRegex(
+                data_guide["properties"][name]["o:preferred_column_name"],
+                f"(JSON_DOCUMENT|DATA)\${name}",
+            )
+        self.assertEqual(data_guide["properties"]["members"]["type"], "array")
+
+        members_values = [
+            ("tester", "string", 4),
+            ("developer", "string", 8),
+        ]
+        for name, typ, length in members_values:
+            members_items = data_guide["properties"]["members"]["items"]
+            self.assertEqual(members_items["properties"][name]["type"], typ)
+            self.assertEqual(
+                members_items["properties"][name]["o:length"], length
+            )
+            self.assertRegex(
+                members_items["properties"][name]["o:preferred_column_name"],
+                f"(JSON_DOCUMENT|DATA)\${name}",
+            )
+
+    def test_3439(self):
+        "3439 - test getDataGuide() with an index without data-guide support"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaDataGuideDisabled")
+
+        coll.insertOne({"data": "test_3439"})
+        self.conn.commit()
+        index = {
+            "name": "ix-3439",
+            "dataguide": "off",
+        }
+        coll.createIndex(index)
+        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40582:"):
+            coll.getDataGuide()
+
+    def test_3440(self):
+        "3440 - test getDataGuide() with an empty collection"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestDataGuideWithEmptyColl")
+        coll.createIndex({"name": "ix_3440", "dataguide": "on"})
+        self.assertIsNone(coll.getDataGuide())
+
+    def test_3441(self):
+        "3441 - test getDataGuide() without a json search index"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestSodaDataGuideWithoutIndex")
+        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-40582:"):
+            coll.getDataGuide()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

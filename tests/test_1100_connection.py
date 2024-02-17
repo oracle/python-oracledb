@@ -157,41 +157,39 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1105(self):
         "1105 - connection to database with bad connect string"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4000:|^DPY-4026:|^DPY-4027:|ORA-12154:",
-            oracledb.connect,
-            test_env.get_main_user(),
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4000:|^DPY-4001:",
-            oracledb.connect,
-            test_env.get_main_user() + "@" + test_env.get_connect_string(),
-        )
+        with self.assertRaisesFullCode(
+            "DPY-4000", "DPY-4026", "DPY-4027", "ORA-12154"
+        ):
+            oracledb.connect(test_env.get_main_user())
+        with self.assertRaisesFullCode("DPY-4000", "DPY-4001"):
+            dsn = (
+                test_env.get_main_user() + "@" + test_env.get_connect_string()
+            )
+            oracledb.connect(dsn)
         errors = (
-            "^DPY-4000:|^DPY-4001:|^DPY-4017:|^ORA-12154:|^ORA-12521:|"
-            "^ORA-12262:"
+            "DPY-4000",
+            "DPY-4001",
+            "DPY-4017",
+            "ORA-12154",
+            "ORA-12521",
+            "ORA-12262",
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            errors,
-            oracledb.connect,
-            test_env.get_main_user()
-            + "@"
-            + test_env.get_connect_string()
-            + "/"
-            + test_env.get_main_password(),
-        )
+        with self.assertRaisesFullCode(*errors):
+            dsn = (
+                test_env.get_main_user()
+                + "@"
+                + test_env.get_connect_string()
+                + "/"
+                + test_env.get_main_password()
+            )
+            oracledb.connect(dsn)
 
     def test_1106(self):
         "1106 - connection to database with bad password"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:",
-            test_env.get_connection,
-            password=test_env.get_main_password() + "X",
-        )
+        with self.assertRaisesFullCode("ORA-01017"):
+            test_env.get_connection(
+                password=test_env.get_main_password() + "X"
+            )
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1107(self):
@@ -214,20 +212,10 @@ class TestCase(test_env.BaseTestCase):
         if self.is_on_oracle_cloud(conn):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
         new_password = "1" * 1500
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:|^ORA-00988:",
-            conn.changepassword,
-            test_env.get_main_password(),
-            new_password,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:|^ORA-28008:|^ORA-00988:",
-            conn.changepassword,
-            "incorrect old password",
-            new_password,
-        )
+        with self.assertRaisesFullCode("ORA-01017", "ORA-00988"):
+            conn.changepassword(test_env.get_main_password(), new_password)
+        with self.assertRaisesFullCode("ORA-01017", "ORA-00988", "ORA-28008"):
+            conn.changepassword("incorrect old password", new_password)
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     def test_1109(self):
@@ -252,9 +240,8 @@ class TestCase(test_env.BaseTestCase):
         "1110 - confirm an exception is raised after closing a connection"
         conn = test_env.get_connection()
         conn.close()
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1001:", conn.rollback
-        )
+        with self.assertRaisesFullCode("DPY-1001"):
+            conn.rollback()
 
     @unittest.skipIf(test_env.get_is_thin(), "not relevant for thin mode")
     def test_1111(self):
@@ -277,9 +264,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(fetched_int_value, int_value)
 
         cursor.close()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1034:", conn2.close
-        )
+        with self.assertRaisesFullCode("DPI-1034"):
+            conn2.close()
         conn.close()
 
     def test_1112(self):
@@ -343,9 +329,8 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("insert into TestTempTable (IntCol) values (1)")
             conn.commit()
             cursor.execute("insert into TestTempTable (IntCol) values (2)")
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1001:", conn.ping
-        )
+        with self.assertRaisesFullCode("DPY-1001"):
+            conn.ping()
         conn = test_env.get_connection()
         cursor = conn.cursor()
         cursor.execute("select count(*) from TestTempTable")
@@ -384,9 +369,8 @@ class TestCase(test_env.BaseTestCase):
         if test_env.get_client_version() >= (12, 1):
             attr_names.append("ltxid")
         for name in attr_names:
-            self.assertRaisesRegex(
-                oracledb.InterfaceError, "^DPY-1001:", getattr, conn, name
-            )
+            with self.assertRaisesFullCode("DPY-1001"):
+                getattr(conn, name)
 
     def test_1120(self):
         "1120 - test connection ping makes a round trip"
@@ -544,9 +528,8 @@ class TestCase(test_env.BaseTestCase):
 
         id_ = random.randint(0, 2**128)
         xid = (0x1234, "%032x" % id_, "%032x" % 9)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24776:", conn.begin, *xid
-        )
+        with self.assertRaisesFullCode("ORA-24776"):
+            conn.begin(*xid)
 
     def test_1125(self):
         "1125 - single connection to database with multiple threads"
@@ -660,13 +643,8 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection()
         conn.call_timeout = 500  # milliseconds
         self.assertEqual(conn.call_timeout, 500)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4011:|^DPY-4024:",
-            conn.cursor().callproc,
-            test_env.get_sleep_proc_name(),
-            [2],
-        )
+        with self.assertRaisesFullCode("DPY-4011", "DPY-4024"):
+            conn.cursor().callproc(test_env.get_sleep_proc_name(), [2])
 
     def test_1132(self):
         "1132 - test Connection repr()"
@@ -705,23 +683,15 @@ class TestCase(test_env.BaseTestCase):
         "1134 - test error for invalid type for params and pool"
         pool = test_env.get_pool()
         pool.close()
-        self.assertRaisesRegex(
-            oracledb.InterfaceError,
-            "^DPY-1002:",
-            test_env.get_connection,
-            pool=pool,
-        )
+        with self.assertRaisesFullCode("DPY-1002"):
+            test_env.get_connection(pool=pool)
         self.assertRaises(
             TypeError,
             test_env.get_connection,
             pool="This isn't an instance of a pool",
         )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2025:",
-            oracledb.connect,
-            params={"number": 7},
-        )
+        with self.assertRaisesFullCode("DPY-2025"):
+            oracledb.connect(params={"number": 7})
 
     def test_1135(self):
         "1135 - test connection instance name"
@@ -765,13 +735,8 @@ class TestCase(test_env.BaseTestCase):
         conn.changepassword(new_password_1024, original_password)
 
         new_password_1025 = "a" * 1025
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-28218:|^ORA-00972",
-            conn.changepassword,
-            original_password,
-            new_password_1025,
-        )
+        with self.assertRaisesFullCode("ORA-28218", "ORA-00972"):
+            conn.changepassword(original_password, new_password_1025)
 
     def test_1138(self):
         "1138 - test getting db_name"
@@ -830,6 +795,16 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection(proxy_user=proxy_user)
         self.assertEqual(conn.username, test_env.get_main_user())
         self.assertEqual(conn.proxy_user, proxy_user)
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(), "thick mode doesn't support SDU yet"
+    )
+    def test_1144(self):
+        "1144 - test connection.sdu"
+        conn = test_env.get_connection()
+        sdu = random.randint(512, conn.sdu)
+        conn = test_env.get_connection(sdu=sdu)
+        self.assertEqual(conn.sdu, sdu)
 
 
 if __name__ == "__main__":
