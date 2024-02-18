@@ -32,6 +32,10 @@ Thin Mode Changes
 #)  Fixed bug in calculating the :data:`Connection.thin` attribute.
 #)  Fixed bug in processing metadata that spans multiple packets when using
     :ref:`asyncio <asyncio>`.
+#)  Fixed bug when connecting to a database using listener redirects when using
+    :ref:`asyncio <asyncio>`
+    (`issue 285 <https://github.com/oracle/python-oracledb/issues/285>`__).
+
 
 Thick Mode Changes
 ++++++++++++++++++

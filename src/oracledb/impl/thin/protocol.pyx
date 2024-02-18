@@ -89,6 +89,20 @@ cdef class BaseProtocol:
             self._write_buf._transport = None
             transport.disconnect()
 
+    cdef int _post_connect(self, BaseThinConnImpl conn_impl,
+                           AuthMessage auth_message) except -1:
+        """"
+        Performs activities after the connection has completed. The protocol
+        must be marked to indicate that the connect is no longer in progress,
+        which allows the normal break/reset mechanism to fire. The session must
+        also be marked as not needing to be closed since for listener redirects
+        the packet may indicate EOF for the initial connection that is
+        established.
+        """
+        conn_impl.warning = auth_message.warning
+        self._read_buf._session_needs_to_be_closed = False
+        self._in_connect = False
+
     cdef int _release_drcp_session(self, BaseThinConnImpl conn_impl,
                                    uint32_t release_mode) except -1:
         """
@@ -297,14 +311,8 @@ cdef class Protocol(BaseProtocol):
         if auth_message.resend:
             self._process_message(auth_message)
 
-        # mark protocol to indicate that connect is no longer in progress; this
-        # allows the normal break/reset mechanism to fire; also mark the
-        # session as not needing to be closed since for listener redirects
-        # the packet may indicate EOF for the initial connection that is
-        # established
-        conn_impl.warning = auth_message.warning
-        self._read_buf._session_needs_to_be_closed = False
-        self._in_connect = False
+        # perform post connect activities
+        self._post_connect(conn_impl, auth_message)
 
     cdef int _connect_tcp(self, ConnectParamsImpl params,
                           Description description, Address address, str host,
@@ -648,10 +656,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         if auth_message.resend:
             await self._process_message(auth_message)
 
-        # mark protocol to indicate that connect is no longer in progress; this
-        # allows the normal break/reset mechanism to fire
-        conn_impl.warning = auth_message.warning
-        self._in_connect = False
+        # perform post connect activities
+        self._post_connect(conn_impl, auth_message)
+
 
     async def _connect_tcp(self, ConnectParamsImpl params,
                            Description description, Address address, str host,
