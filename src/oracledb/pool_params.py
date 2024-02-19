@@ -122,8 +122,8 @@ class PoolParams(ConnectParams):
           whenever a new connection needs to be created (default: 1)
 
         - connectiontype: the class of the connection that should be returned
-          during calls to pool.acquire(). It must be Connection or a subclass
-          of Connection (default: None)
+          during calls to pool.acquire(). It must be oracledb.Connection or a
+          subclass of oracledb.Connection (default: None)
 
         - getmode: how pool.acquire() will behave. One of the constants
           oracledb.POOL_GETMODE_WAIT, oracledb.POOL_GETMODE_NOWAIT,
@@ -383,7 +383,8 @@ class PoolParams(ConnectParams):
     def connectiontype(self) -> Type["oracledb.Connection"]:
         """
         The class of the connection that should be returned during calls to
-        pool.acquire(). It must be Connection or a subclass of Connection.
+        pool.acquire(). It must be oracledb.Connection or a subclass of
+        oracledb.Connection.
         """
         return self._impl.connectiontype
 
@@ -567,8 +568,8 @@ class PoolParams(ConnectParams):
           whenever a new connection needs to be created
 
         - connectiontype: the class of the connection that should be returned
-          during calls to pool.acquire(). It must be Connection or a subclass
-          of Connection
+          during calls to pool.acquire(). It must be oracledb.Connection or a
+          subclass of oracledb.Connection
 
         - getmode: how pool.acquire() will behave. One of the constants
           oracledb.POOL_GETMODE_WAIT, oracledb.POOL_GETMODE_NOWAIT,

@@ -672,8 +672,8 @@ def create_pool(
       whenever a new connection needs to be created (default: 1)
 
     - connectiontype: the class of the connection that should be returned
-      during calls to pool.acquire(). It must be Connection or a subclass of
-      Connection (default: None)
+      during calls to pool.acquire(). It must be oracledb.Connection or a
+      subclass of oracledb.Connection (default: None)
 
     - getmode: how pool.acquire() will behave. One of the constants
       oracledb.POOL_GETMODE_WAIT, oracledb.POOL_GETMODE_NOWAIT,
@@ -980,7 +980,7 @@ def create_pool_async(
     min: int = 1,
     max: int = 2,
     increment: int = 1,
-    connectiontype: Type["oracledb.Connection"] = None,
+    connectiontype: Type["oracledb.AsyncConnection"] = None,
     getmode: int = oracledb.POOL_GETMODE_WAIT,
     homogeneous: bool = True,
     timeout: int = 0,
@@ -1067,8 +1067,8 @@ def create_pool_async(
       whenever a new connection needs to be created (default: 1)
 
     - connectiontype: the class of the connection that should be returned
-      during calls to pool.acquire(). It must be Connection or a subclass of
-      Connection (default: None)
+      during calls to pool.acquire(). It must be oracledb.AsyncConnection or a
+      subclass of oracledb.AsyncConnection (default: None)
 
     - getmode: how pool.acquire() will behave. One of the constants
       oracledb.POOL_GETMODE_WAIT, oracledb.POOL_GETMODE_NOWAIT,

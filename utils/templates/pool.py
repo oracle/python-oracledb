@@ -721,7 +721,7 @@ def create_pool_async(
     *,
     pool_class: Type[ConnectionPool] = AsyncConnectionPool,
     params: PoolParams = None,
-    # {{ args_with_defaults }}
+    # {{ async_args_with_defaults }}
 ) -> AsyncConnectionPool:
     """
     Creates a connection pool with the supplied parameters and returns it.
@@ -749,6 +749,6 @@ def create_pool_async(
     The following parameters are all optional. A brief description of each
     parameter follows:
 
-    # {{ args_help_with_defaults }}
+    # {{ async_args_help_with_defaults }}
     """
     pass

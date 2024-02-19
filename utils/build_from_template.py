@@ -31,10 +31,14 @@
 #
 #   # {{ args_help_with_defaults }}
 #       is replaced by the arguments help string with field defaults
+#   # {{ async_args_help_with_defaults }}
+#       is replaced by the arguments help string with field defaults (async)
 #   # {{ args_help_without_defaults }}
 #       is replaced by the arguments help string without field defaults
 #   # {{ args_with_defaults }}
 #       is replaced by the arguments with field defaults included
+#   # {{ async_args_with_defaults }}
+#       is replaced by the arguments with field defaults included (async)
 #   # {{ generated_notice }}
 #       is replaced by a notice that the file is generated and should not be
 #       modified directly
@@ -71,6 +75,18 @@ class Field:
     pool_only: bool = False
     description: str = ""
     decorator: str = None
+
+    @property
+    def async_description(self):
+        return self.description.replace(
+            "oracledb.Connection", "oracledb.AsyncConnection"
+        )
+
+    @property
+    def async_typ(self):
+        return self.typ.replace(
+            "oracledb.Connection", "oracledb.AsyncConnection"
+        )
 
 
 # parse command line
@@ -174,6 +190,36 @@ def args_with_defaults_content(indent):
     return args_joiner.join(args)
 
 
+def async_args_help_with_defaults_content(indent):
+    """
+    Generates the content for the async_args_help_with_defaults template tag.
+    """
+    raw_descriptions = [
+        f"- {f.name}: {f.async_description} (default: {f.default})"
+        for f in fields
+        if f.description
+    ]
+    descriptions = [
+        textwrap.fill(
+            d,
+            initial_indent=indent,
+            subsequent_indent=indent + "  ",
+            width=TEXT_WIDTH,
+        )
+        for d in raw_descriptions
+    ]
+    return "\n\n".join(descriptions).strip()
+
+
+def async_args_with_defaults_content(indent):
+    """
+    Generates the content for the async_args_with_defaults template tag.
+    """
+    args_joiner = "\n" + indent
+    args = [f"{f.name}: {f.async_typ} = {f.default}," for f in fields]
+    return args_joiner.join(args)
+
+
 def generated_notice_content(indent):
     """
     Generates the content for the generated_notice template tag.
@@ -270,8 +316,12 @@ def params_setter_args_content(indent):
 
 # replace generated_notice template tag
 replace_tag("args_help_with_defaults", args_help_with_defaults_content)
+replace_tag(
+    "async_args_help_with_defaults", async_args_help_with_defaults_content
+)
 replace_tag("args_help_without_defaults", args_help_without_defaults_content)
 replace_tag("args_with_defaults", args_with_defaults_content)
+replace_tag("async_args_with_defaults", async_args_with_defaults_content)
 replace_tag("generated_notice", generated_notice_content)
 replace_tag("params_constructor_args", params_constructor_args_content)
 replace_tag("params_properties", params_properties_content)
