@@ -337,11 +337,14 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             with nogil:
                 status = dpiStmt_executeMany(self._handle, mode, num_execs_int)
                 dpiContext_getError(driver_context, &error_info)
-                if not self._stmt_info.isPLSQL:
-                    dpiStmt_getRowCount(self._handle, &rowcount)
-            self.rowcount = rowcount
+                dpiStmt_getRowCount(self._handle, &rowcount)
+            if not self._stmt_info.isPLSQL:
+                self.rowcount = rowcount
             if status < 0:
-                _raise_from_info(&error_info)
+                error = _create_new_from_info(&error_info)
+                if self._stmt_info.isPLSQL and error_info.offset == 0:
+                    error.offset = rowcount
+                raise error.exc_type(error)
             elif error_info.isWarning:
                 self.warning = _create_new_from_info(&error_info)
             if self._stmt_info.isReturning or self._stmt_info.isPLSQL:

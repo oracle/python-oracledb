@@ -34,7 +34,7 @@ cdef class _OracleErrorInfo:
     cdef:
         uint32_t num
         uint16_t cursor_id
-        uint16_t pos
+        uint64_t pos
         uint64_t rowcount
         str message
         Rowid rowid
@@ -2160,6 +2160,8 @@ cdef class ExecuteMessage(MessageWithData):
         """
         cdef Statement stmt = self.cursor_impl._statement
         MessageWithData.process(self, buf)
+        if self.error_occurred and self.error_info.pos == 0 and stmt._is_plsql:
+            self.error_info.pos = self.error_info.rowcount + self.offset
         if not self.parse_only:
             stmt._executed = True
         if stmt._requires_define and stmt._sql is not None:

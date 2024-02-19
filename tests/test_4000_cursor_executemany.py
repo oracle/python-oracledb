@@ -412,6 +412,23 @@ class TestCase(test_env.BaseTestCase):
             expected_value = [(67,)] * (len(values) + num_iterations)
             self.assertEqual(self.cursor.fetchall(), expected_value)
 
+    def test_4026(self):
+        "4026 - test executemany error offset returned correctly"
+        data = [(i,) for i in range(1, 11)]
+        with self.assertRaises(oracledb.Error) as cm:
+            self.cursor.executemany(
+                """
+                declare
+                    t_Value     number;
+                begin
+                    t_Value := 10 / (4 - :1);
+                end;
+                """,
+                data,
+            )
+        (error_obj,) = cm.exception.args
+        self.assertEqual(error_obj.offset, 3)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
