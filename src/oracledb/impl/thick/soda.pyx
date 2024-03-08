@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -74,7 +74,8 @@ cdef class ThickSodaDbImpl(BaseSodaDbImpl):
 
     def create_document(self, bytes content, str key, str media_type):
         """
-        Internal method for creating a document.
+        Internal method for creating a document containing binary or encoded
+        text data.
         """
         cdef:
             StringBuffer media_type_buf = StringBuffer()
@@ -90,6 +91,24 @@ cdef class ThickSodaDbImpl(BaseSodaDbImpl):
                                     media_type_buf.ptr, media_type_buf.length,
                                     DPI_SODA_FLAGS_DEFAULT,
                                     &doc_impl._handle) < 0:
+            _raise_from_odpi()
+        return doc_impl
+
+    def create_json_document(self, object content, str key):
+        """
+        Internal method for creating a document containing JSON.
+        """
+        cdef:
+            StringBuffer key_buf = StringBuffer()
+            JsonBuffer json_buf = JsonBuffer()
+            ThickSodaDocImpl doc_impl
+        key_buf.set_value(key)
+        json_buf.from_object(content)
+        doc_impl = ThickSodaDocImpl.__new__(ThickSodaDocImpl)
+        if dpiSodaDb_createJsonDocument(self._handle, key_buf.ptr,
+                                        key_buf.length, &json_buf._top_node,
+                                        DPI_SODA_FLAGS_DEFAULT,
+                                        &doc_impl._handle) < 0:
             _raise_from_odpi()
         return doc_impl
 
@@ -163,7 +182,7 @@ cdef class ThickSodaCollImpl(BaseSodaCollImpl):
         Internal method for populating the SODA operations structure with the
         information provided by the user.
         """
-        if dpiContext_initSodaOperOptions(driver_context, options) < 0:
+        if dpiContext_initSodaOperOptions(driver_info.context, options) < 0:
             _raise_from_odpi()
         options.hint = ptr
         options.hintLength = length
@@ -489,20 +508,29 @@ cdef class ThickSodaDocImpl(BaseSodaDocImpl):
         Internal method for returning the content of the document.
         """
         cdef:
-            bytes out_content = None
+            object out_content = None
             str out_encoding = None
             const char *encoding
             uint32_t content_len
             const char *content
-        if dpiSodaDoc_getContent(self._handle, &content, &content_len,
-                                 &encoding) < 0:
+            dpiJson *json
+            bint is_json
+        if dpiSodaDoc_getIsJson(self._handle, &is_json) < 0:
             _raise_from_odpi()
-        if content != NULL:
-            out_content = content[:content_len]
-        if encoding != NULL:
-            out_encoding = encoding.decode()
+        if is_json:
+            if dpiSodaDoc_getJsonContent(self._handle, &json) < 0:
+                _raise_from_odpi()
+            out_content = _convert_json_to_python(json)
         else:
-            out_encoding = "UTF-8"
+            if dpiSodaDoc_getContent(self._handle, &content, &content_len,
+                                    &encoding) < 0:
+                _raise_from_odpi()
+            if content != NULL:
+                out_content = content[:content_len]
+            if encoding != NULL:
+                out_encoding = encoding.decode()
+            else:
+                out_encoding = "UTF-8"
         return (out_content, out_encoding)
 
     def get_created_on(self):
@@ -637,7 +665,7 @@ cdef class ThickSodaOpImpl:
             uint32_t i
         impl._buffers = []
         options = &impl._options
-        if dpiContext_initSodaOperOptions(driver_context, options) < 0:
+        if dpiContext_initSodaOperOptions(driver_info.context, options) < 0:
             _raise_from_odpi()
         if op._keys:
             options.numKeys = <uint32_t> len(op._keys)

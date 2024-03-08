@@ -657,6 +657,7 @@ cdef class BaseDbObjectImpl:
 
 cdef class BaseSodaDbImpl:
     cdef:
+        public bint supports_json
         object _conn
 
 

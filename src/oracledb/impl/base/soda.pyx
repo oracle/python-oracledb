@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,8 +35,12 @@ cdef class BaseSodaDbImpl:
     def create_collection(self, str name, str metadata, bint map_mode):
         pass
 
-    @utils.CheckImpls("creating a SODA document")
+    @utils.CheckImpls("creating a SODA binary/text document")
     def create_document(self, bytes content, str key, str media_type):
+        pass
+
+    @utils.CheckImpls("creating a SODA JSON document")
+    def create_json_document(self, object content, str key):
         pass
 
     @utils.CheckImpls("getting a list of SODA collection names")

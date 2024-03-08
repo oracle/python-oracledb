@@ -46,16 +46,22 @@ class SodaDatabase:
         db._impl = impl
         return db
 
-    def _get_content_bytes(self, content: Any) -> bytes:
+    def _create_doc_impl(
+        self, content: Any, key: str = None, media_type: str = None
+    ) -> "SodaDocument":
         """
-        Internal method used for returning the bytes to store in document
-        content.
+        Internal method used for creating a document implementation object with
+        the given content, key and media type.
         """
         if isinstance(content, str):
-            return content.encode()
+            content_bytes = content.encode()
         elif isinstance(content, bytes):
-            return content
-        return json.dumps(content).encode()
+            content_bytes = content
+        elif self._impl.supports_json:
+            return self._impl.create_json_document(content, key)
+        else:
+            content_bytes = json.dumps(content).encode()
+        return self._impl.create_document(content_bytes, key, media_type)
 
     def createCollection(
         self,
@@ -116,8 +122,7 @@ class SodaDatabase:
         content for this document is non-JSON. Using a standard MIME type for
         this value is recommended but any string will be accepted.
         """
-        content_bytes = self._get_content_bytes(content)
-        doc_impl = self._impl.create_document(content_bytes, key, mediaType)
+        doc_impl = self._create_doc_impl(content, key, mediaType)
         return SodaDocument._from_impl(doc_impl)
 
     def getCollectionNames(
@@ -158,8 +163,7 @@ class SodaCollection:
     def _process_doc_arg(self, arg):
         if isinstance(arg, SodaDocument):
             return arg._impl
-        content_bytes = self._db._get_content_bytes(arg)
-        return self._db._impl.create_document(content_bytes, None, None)
+        return self._db._create_doc_impl(arg)
 
     def createIndex(self, spec: Union[dict, str]) -> None:
         """
@@ -369,18 +373,21 @@ class SodaDocument:
         exception if this is not the case. If there is no content, however,
         None will be returned.
         """
-        content_bytes, encoding = self._impl.get_content()
-        if self.mediaType == "application/json":
-            return json.loads(content_bytes.decode(encoding))
-        return content_bytes
+        content, encoding = self._impl.get_content()
+        if isinstance(content, bytes) and self.mediaType == "application/json":
+            return json.loads(content.decode(encoding))
+        return content
 
     def getContentAsBytes(self) -> bytes:
         """
         Returns the content of the document as a bytes object. If there is no
         content, however, None will be returned.
         """
-        content_bytes, encoding = self._impl.get_content()
-        return content_bytes
+        content, encoding = self._impl.get_content()
+        if isinstance(content, bytes):
+            return content
+        elif content is not None:
+            return str(content).encode()
 
     def getContentAsString(self) -> str:
         """
@@ -388,8 +395,11 @@ class SodaDocument:
         encoding is not known, UTF-8 will be used. If there is no content,
         however, None will be returned.
         """
-        content_bytes, encoding = self._impl.get_content()
-        return content_bytes.decode(encoding)
+        content, encoding = self._impl.get_content()
+        if isinstance(content, bytes):
+            return content.decode(encoding)
+        elif content is not None:
+            return str(content)
 
     @property
     def key(self) -> str:

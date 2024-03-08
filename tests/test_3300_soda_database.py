@@ -26,10 +26,11 @@
 3300 - Module for testing Simple Oracle Document Access (SODA) Database
 """
 
+import datetime
+import decimal
 import json
 import unittest
 
-import oracledb
 import test_env
 
 
@@ -40,13 +41,13 @@ class TestCase(test_env.BaseTestCase):
     def __verify_doc(
         self,
         doc,
-        raw_content,
+        bytes_content,
         str_content=None,
         content=None,
         key=None,
         media_type="application/json",
     ):
-        self.assertEqual(doc.getContentAsBytes(), raw_content)
+        self.assertEqual(doc.getContentAsBytes(), bytes_content)
         if str_content is not None:
             self.assertEqual(doc.getContentAsString(), str_content)
         if content is not None:
@@ -61,16 +62,21 @@ class TestCase(test_env.BaseTestCase):
         "3300 - test creating documents with JSON data"
         soda_db = self.get_soda_database()
         val = {"testKey1": "testValue1", "testKey2": "testValue2"}
-        str_val = json.dumps(val)
+        if test_env.get_client_version() < (23, 4):
+            str_val = json.dumps(val)
+        else:
+            str_val = str(val)
         bytes_val = str_val.encode()
         key = "MyKey"
         media_type = "text/plain"
         doc = soda_db.createDocument(val)
         self.__verify_doc(doc, bytes_val, str_val, val)
+        str_val = json.dumps(val)
+        bytes_val = str_val.encode()
         doc = soda_db.createDocument(str_val, key)
         self.__verify_doc(doc, bytes_val, str_val, val, key)
         doc = soda_db.createDocument(bytes_val, key, media_type)
-        self.__verify_doc(doc, bytes_val, str_val, val, key, media_type)
+        self.__verify_doc(doc, bytes_val, str_val, bytes_val, key, media_type)
 
     def test_3301(self):
         "3301 - test creating documents with raw data"
@@ -131,6 +137,22 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("ORA-40675"):
             soda_db.createCollection("CollMetadata", 7)
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4), "unsupported data types"
+    )
+    def test_3306(self):
+        "3306 - test creating documents with JSON data using extended types"
+        soda_db = self.get_soda_database()
+        val = {
+            "testKey1": "testValue1",
+            "testKey2": decimal.Decimal("12.78"),
+            "testKey3": datetime.datetime(2023, 7, 3, 11, 10, 24),
+        }
+        doc = soda_db.createDocument(val)
+        str_val = str(val)
+        bytes_val = str_val.encode()
+        self.__verify_doc(doc, bytes_val, str_val, val)
 
 
 if __name__ == "__main__":

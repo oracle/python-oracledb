@@ -146,7 +146,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
             int status
         name_buf.set_value(self.name)
         ip_address_buf.set_value(self.ip_address)
-        if dpiContext_initSubscrCreateParams(driver_context, &params) < 0:
+        if dpiContext_initSubscrCreateParams(driver_info.context, &params) < 0:
             _raise_from_odpi()
         params.subscrNamespace = self.namespace
         params.protocol = self.protocol

@@ -344,7 +344,7 @@ cdef class ThickConnImpl(BaseConnImpl):
                 params.private_key_len = <uint32_t> len(params.private_key)
 
         # set up common creation parameters
-        if dpiContext_initCommonCreateParams(driver_context,
+        if dpiContext_initCommonCreateParams(driver_info.context,
                                              &common_params) < 0:
             _raise_from_odpi()
         common_params.createMode |= DPI_MODE_CREATE_THREADED
@@ -361,7 +361,8 @@ cdef class ThickConnImpl(BaseConnImpl):
             common_params.accessToken = &access_token
 
         # set up connection specific creation parameters
-        if dpiContext_initConnCreateParams(driver_context, &conn_params) < 0:
+        if dpiContext_initConnCreateParams(driver_info.context,
+                                           &conn_params) < 0:
             _raise_from_odpi()
         if params.username_len == 0 and params.password_len == 0:
             conn_params.externalAuth = 1
@@ -394,12 +395,12 @@ cdef class ThickConnImpl(BaseConnImpl):
 
         # perform connection
         with nogil:
-            status = dpiConn_create(driver_context, params.username_ptr,
+            status = dpiConn_create(driver_info.context, params.username_ptr,
                                     params.username_len, params.password_ptr,
                                     params.password_len, params.dsn_ptr,
                                     params.dsn_len, &common_params,
                                     &conn_params, &self._handle)
-            dpiContext_getError(driver_context, &error_info)
+            dpiContext_getError(driver_info.context, &error_info)
         if status < 0:
             _raise_from_info(&error_info)
         elif error_info.isWarning:
@@ -416,7 +417,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             version_info.portReleaseNum,
             version_info.portUpdateNum
         )
-        if client_version_info.versionNum >= 23 \
+        if driver_info.client_version_info.versionNum >= 23 \
                 and version_info.versionNum >= 23:
             self.supports_bool = True
             self._oson_max_fname_size = 65535
@@ -448,6 +449,7 @@ cdef class ThickConnImpl(BaseConnImpl):
 
     def create_soda_database_impl(self, conn):
         cdef ThickSodaDbImpl impl = ThickSodaDbImpl.__new__(ThickSodaDbImpl)
+        impl.supports_json = driver_info.soda_use_json_desc
         impl._conn = conn
         if dpiConn_getSodaDb(self._handle, &impl._handle) < 0:
             _raise_from_odpi()

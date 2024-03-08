@@ -219,6 +219,16 @@ cdef int _convert_from_python(object value, DbType dbtype,
         errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
 
+cdef object _convert_json_to_python(dpiJson *json):
+    """
+    Converts a dpiJson value to its Python equivalent.
+    """
+    cdef dpiJsonNode *json_node
+    if dpiJson_getValue(json, DPI_JSON_OPT_NUMBER_AS_STRING, &json_node) < 0:
+        _raise_from_odpi()
+    return _convert_from_json_node(json_node)
+
+
 cdef object _convert_oci_attr_to_python(uint32_t attr_type,
                                         dpiDataBuffer *value,
                                         uint32_t value_len):
@@ -289,7 +299,6 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
         uint32_t oracle_type = dbtype.num
         ThickDbObjectImpl obj_impl
         dpiTimestamp *as_timestamp
-        dpiJsonNode *json_node
         ThickLobImpl lob_impl
         uint32_t rowid_length
         dpiBytes *as_bytes
@@ -360,10 +369,7 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
         return cydatetime.timedelta_new(dbvalue.asIntervalDS.days, seconds,
                                         dbvalue.asIntervalDS.fseconds // 1000)
     elif oracle_type == DPI_ORACLE_TYPE_JSON:
-        if dpiJson_getValue(dbvalue.asJson, DPI_JSON_OPT_NUMBER_AS_STRING,
-                            &json_node) < 0:
-            _raise_from_odpi()
-        return _convert_from_json_node(json_node)
+        return _convert_json_to_python(dbvalue.asJson)
     elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
         return _convert_vector_to_python(dbvalue.asVector)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
@@ -405,7 +411,7 @@ cdef list _string_list_to_python(dpiStringList *str_list):
             cpython.PyList_SET_ITEM(result, i, temp)
         return result
     finally:
-        if dpiContext_freeStringList(driver_context, str_list) < 0:
+        if dpiContext_freeStringList(driver_info.context, str_list) < 0:
             _raise_from_odpi()
 
 cdef object _create_new_from_info(dpiErrorInfo *error_info):
@@ -436,7 +442,7 @@ cdef int _raise_from_odpi() except -1:
     ODPI-C (a return code of -1 has been received).
     """
     cdef dpiErrorInfo error_info
-    dpiContext_getError(driver_context, &error_info)
+    dpiContext_getError(driver_info.context, &error_info)
     _raise_from_info(&error_info)
 
 
@@ -446,14 +452,14 @@ def clientversion():
     The five values are the major version, minor version, update number, patch
     number and port update number.
     """
-    if driver_context == NULL:
+    if driver_info.context == NULL:
         errors._raise_err(errors.ERR_INIT_ORACLE_CLIENT_NOT_CALLED)
     return (
-        client_version_info.versionNum,
-        client_version_info.releaseNum,
-        client_version_info.updateNum,
-        client_version_info.portReleaseNum,
-        client_version_info.portUpdateNum
+        driver_info.client_version_info.versionNum,
+        driver_info.client_version_info.releaseNum,
+        driver_info.client_version_info.updateNum,
+        driver_info.client_version_info.portReleaseNum,
+        driver_info.client_version_info.portUpdateNum
     )
 
 
@@ -472,7 +478,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         bytes encoding_bytes
     global driver_context_params
     params_tuple = (lib_dir, config_dir, error_url, driver_name)
-    if driver_context != NULL:
+    if driver_info.context != NULL:
         if params_tuple != driver_context_params:
             errors._raise_err(errors.ERR_LIBRARY_ALREADY_INITIALIZED)
         return
@@ -480,6 +486,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         memset(&params, 0, sizeof(dpiContextCreateParams))
         encoding_bytes = constants.ENCODING.encode()
         params.defaultEncoding = encoding_bytes
+        params.sodaUseJsonDesc = driver_info.soda_use_json_desc
         if config_dir is None:
             config_dir = C_DEFAULTS.config_dir
         if lib_dir is not None:
@@ -498,13 +505,14 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
             error_url_bytes = constants.INSTALLATION_URL.encode()
         params.loadErrorUrl = error_url_bytes
         if dpiContext_createWithParams(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
-                                       &params, &driver_context,
+                                       &params, &driver_info.context,
                                        &error_info) < 0:
             _raise_from_info(&error_info)
-        if dpiContext_getClientVersion(driver_context,
-                                       &client_version_info) < 0:
+        if dpiContext_getClientVersion(driver_info.context,
+                                       &driver_info.client_version_info) < 0:
             _raise_from_odpi()
         driver_context_params = params_tuple
+        driver_info.soda_use_json_desc = params.sodaUseJsonDesc
 
 
 def init_thick_impl(package):

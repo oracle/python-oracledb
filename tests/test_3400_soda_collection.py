@@ -26,6 +26,8 @@
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
+import datetime
+import decimal
 import json
 import unittest
 
@@ -950,25 +952,46 @@ class TestCase(test_env.BaseTestCase):
             fetched_doc = coll.find().getDocuments()[0]
             self.assertEqual(fetched_doc.mediaType, media_type)
             if media_type == "application/json":
-                expected_content = value
-                expected_str = json.dumps(value)
-                expected_bytes = expected_str.encode()
+                self.assertEqual(fetched_doc.getContent(), value)
+                self.assertEqual(
+                    json.loads(fetched_doc.getContentAsString()), value
+                )
+                self.assertEqual(
+                    json.loads(fetched_doc.getContentAsBytes().decode()), value
+                )
             elif media_type == "text/plain":
-                expected_content = expected_bytes = value.encode()
-                expected_str = value
+                self.assertEqual(fetched_doc.getContent(), value.encode())
+                self.assertEqual(fetched_doc.getContentAsString(), value)
+                self.assertEqual(
+                    fetched_doc.getContentAsBytes(), value.encode()
+                )
             else:
-                expected_content = expected_bytes = value
-                expected_str = None
-            self.assertEqual(fetched_doc.getContent(), expected_content)
-            self.assertEqual(fetched_doc.getContentAsBytes(), expected_bytes)
-            if expected_str is None:
+                self.assertEqual(fetched_doc.getContent(), value)
+                self.assertEqual(fetched_doc.getContentAsBytes(), value)
                 self.assertRaises(
                     UnicodeDecodeError, fetched_doc.getContentAsString
                 )
-            else:
-                self.assertEqual(
-                    fetched_doc.getContentAsString(), expected_str
-                )
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4), "unsupported data types"
+    )
+    def test_3445(self):
+        "3445 - test fetching documents with JSON data using extended types"
+        soda_db = self.get_soda_database()
+        val = {
+            "testKey1": "testValue1",
+            "testKey2": decimal.Decimal("12.78"),
+            "testKey3": datetime.datetime(2023, 7, 3, 11, 10, 24),
+        }
+        doc = soda_db.createDocument(val)
+        self.assertEqual(doc.getContent(), val)
+        coll = soda_db.createCollection("TestJSONExtendedTypes")
+        coll.insertOne(doc)
+        fetched_doc = coll.find().getDocuments()[0]
+        fetched_content = fetched_doc.getContent()
+        self.__normalize_docs([fetched_content])
+        self.assertEqual(fetched_content, val)
+        self.assertEqual(doc.getContent(), val)
 
 
 if __name__ == "__main__":

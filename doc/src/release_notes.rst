@@ -48,6 +48,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added support for internal use of JSON in SODA with Oracle Client 23. This
+    allows for seamless transfer of extended data types.
 #)  Fixed bug when calling :meth:`SodaDoc.getContent()` for SODA documents
     that do not contain JSON.
 #)  Errors ``DPY-4011: the database or network closed the connection`` and

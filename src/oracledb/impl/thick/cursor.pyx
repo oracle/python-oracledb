@@ -302,7 +302,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         with nogil:
             status = dpiStmt_execute(self._handle, mode, &num_query_cols)
             if status == DPI_SUCCESS:
-                dpiContext_getError(driver_context, &error_info)
+                dpiContext_getError(driver_info.context, &error_info)
                 if not self._stmt_info.isPLSQL:
                     status = dpiStmt_getRowCount(self._handle, &rowcount)
         if status < 0:
@@ -340,7 +340,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if num_execs_int > 0:
             with nogil:
                 status = dpiStmt_executeMany(self._handle, mode, num_execs_int)
-                dpiContext_getError(driver_context, &error_info)
+                dpiContext_getError(driver_info.context, &error_info)
                 dpiStmt_getRowCount(self._handle, &rowcount)
             if not self._stmt_info.isPLSQL:
                 self.rowcount = rowcount

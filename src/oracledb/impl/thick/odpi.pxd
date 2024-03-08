@@ -341,6 +341,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         const char *loadErrorUrl
         const char *oracleClientLibDir
         const char *oracleClientConfigDir
+        bint sodaUseJsonDesc
 
     ctypedef union dpiDataBuffer:
         bint asBoolean
@@ -843,6 +844,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiJson_getValue(dpiJson *json, uint32_t options,
             dpiJsonNode **topNode) nogil
 
+    int dpiJson_release(dpiJson *json) nogil
+
     int dpiJson_setValue(dpiJson *json, dpiJsonNode *topNode)
 
     int dpiLob_addRef(dpiLob *lob) nogil
@@ -1142,6 +1145,10 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             const char *mediaType, uint32_t mediaTypeLength, uint32_t flags,
             dpiSodaDoc **doc) nogil
 
+    int dpiSodaDb_createJsonDocument(dpiSodaDb *db, const char *key,
+            uint32_t keyLength, const dpiJsonNode *content, uint32_t flags,
+            dpiSodaDoc **doc) nogil
+
     int dpiSodaDb_getCollectionNames(dpiSodaDb *db,
             const char *startName, uint32_t startNameLength, uint32_t limit,
             uint32_t flags, dpiStringList *names) nogil
@@ -1156,6 +1163,10 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     int dpiSodaDoc_getCreatedOn(dpiSodaDoc *doc, const char **value,
             uint32_t *valueLength) nogil
+
+    int dpiSodaDoc_getIsJson(dpiSodaDoc *doc, bint *isJson) nogil
+
+    int dpiSodaDoc_getJsonContent(dpiSodaDoc *doc, dpiJson **value) nogil
 
     int dpiSodaDoc_getKey(dpiSodaDoc *doc, const char **value,
             uint32_t *valueLength) nogil

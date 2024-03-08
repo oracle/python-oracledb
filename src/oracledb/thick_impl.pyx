@@ -89,8 +89,13 @@ cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 
-cdef dpiContext *driver_context = NULL
-cdef dpiVersionInfo client_version_info
+cdef struct DriverInfo:
+    dpiContext *context
+    dpiVersionInfo client_version_info
+    bint soda_use_json_desc
+
+cdef DriverInfo driver_info = \
+        DriverInfo(NULL, dpiVersionInfo(0, 0, 0, 0, 0, 0), True)
 
 driver_context_params = None
 

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -83,7 +83,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
                 private_key_len = <uint32_t> len(private_key_bytes)
 
         # set up common creation parameters
-        if dpiContext_initCommonCreateParams(driver_context,
+        if dpiContext_initCommonCreateParams(driver_info.context,
                                              &common_params) < 0:
             _raise_from_odpi()
         common_params.createMode |= DPI_MODE_CREATE_THREADED
@@ -101,7 +101,8 @@ cdef class ThickPoolImpl(BasePoolImpl):
             common_params.accessToken = &access_token
 
         # set up pool creation parameters
-        if dpiContext_initPoolCreateParams(driver_context, &create_params) < 0:
+        if dpiContext_initPoolCreateParams(driver_info.context,
+                                           &create_params) < 0:
             _raise_from_odpi()
         create_params.minSessions = self.min
         create_params.maxSessions = self.max
@@ -142,11 +143,11 @@ cdef class ThickPoolImpl(BasePoolImpl):
 
         # create pool
         with nogil:
-            status = dpiPool_create(driver_context, user_ptr, user_len,
+            status = dpiPool_create(driver_info.context, user_ptr, user_len,
                                     password_ptr, password_len, dsn_ptr,
                                     dsn_len, &common_params, &create_params,
                                     &self._handle)
-            dpiContext_getError(driver_context, &error_info)
+            dpiContext_getError(driver_info.context, &error_info)
         if status < 0:
             _raise_from_info(&error_info)
         elif error_info.isWarning:
