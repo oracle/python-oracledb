@@ -75,7 +75,11 @@ class _Error:
                 # add Oracle Database Error Help Portal URL for database error
                 # messages, but only in thin mode since this is done
                 # automatically in thick mode with Oracle Client 23c and higher
-                if self.code != 0 and is_thin_mode():
+                if (
+                    self.code != 0
+                    and (self.code < 20000 or self.code >= 21000)
+                    and is_thin_mode()
+                ):
                     self.message = (
                         self.message
                         + "\n"

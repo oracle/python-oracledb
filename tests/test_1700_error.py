@@ -182,6 +182,22 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(self.cursor.warning)
         self.cursor.execute(f"drop procedure {proc_name}")
 
+    def test_1708(self):
+        "1708 - user defined errors do not generate error help portal URL"
+        for code in (20000, 20500, 20999):
+            with self.assertRaises(oracledb.Error) as cm:
+                self.cursor.execute(
+                    f"""
+                    begin
+                        raise_application_error(-{code}, 'User defined error');
+                    end;
+                    """
+                )
+            error_obj = cm.exception.args[0]
+            self.assertEqual(error_obj.code, code)
+            self.assertEqual(error_obj.full_code, f"ORA-{code}")
+            self.assertTrue("Help:" not in error_obj.message)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

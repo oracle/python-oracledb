@@ -20,6 +20,8 @@ Thin Mode Changes
 #)  Added support for writing UTF-8 encoded bytes to CLOB and NCLOB values and
     writing strings to BLOB values in order to be consistent with what is done
     for string variables.
+#)  User defined errors raised by the database no longer display an error help
+    portal URL.
 #)  Fixed potential cursor issues when using DRCP.
 #)  Fixed regression when using IAM token authentication
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
