@@ -97,6 +97,8 @@ Common Changes
     parameters if they were not included in the parameters. This also affected
     calls to :meth:`oracledb.connect()` and :meth:`oracledb.create_pool()` that
     made use of the DSN with credentials format.
+#)  The error ``DPY-2047: LOB amount must be greater than zero`` is now raised
+    when the amount parameter to :meth:`LOB.read()` is zero or negative.
 #)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
     circumstances.
 #)  Connection parameters that are strings now treat an empty string in the

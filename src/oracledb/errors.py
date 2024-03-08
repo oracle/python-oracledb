@@ -240,6 +240,7 @@ ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED = 2043
 ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED = 2044
 ERR_INVALID_ARRAYSIZE = 2045
 ERR_CURSOR_HAS_BEEN_CLOSED = 2046
+ERR_INVALID_LOB_AMOUNT = 2047
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -520,6 +521,7 @@ ERR_MESSAGE_FORMATS = {
         "given index {index} must be in the range of {min_index} to "
         "{max_index}"
     ),
+    ERR_INVALID_LOB_AMOUNT: "LOB amount must be greater than zero",
     ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
     ERR_INVALID_MAKEDSN_ARG: '"{name}" argument contains invalid values',
     ERR_INVALID_NUMBER: "invalid number",

@@ -145,6 +145,8 @@ class LOB(BaseLOB):
                 amount = amount - offset + 1
             else:
                 amount = 1
+        elif amount <= 0:
+            errors._raise_err(errors.ERR_INVALID_LOB_AMOUNT)
         if offset <= 0:
             errors._raise_err(errors.ERR_INVALID_LOB_OFFSET)
         return self._impl.read(offset, amount)

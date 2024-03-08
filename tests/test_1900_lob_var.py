@@ -181,6 +181,10 @@ class TestCase(test_env.BaseTestCase):
             lob.read(0)
         with self.assertRaisesFullCode("DPY-2030"):
             lob.read(-25)
+        with self.assertRaisesFullCode("DPY-2047"):
+            lob.read(amount=0)
+        with self.assertRaisesFullCode("DPY-2047"):
+            lob.read(amount=-5)
         self.assertEqual(lob.read(), long_string + write_value)
         lob.write(write_value, 1)
         self.assertEqual(
