@@ -633,6 +633,7 @@ def create_pool(
     connection_id_prefix: str = None,
     ssl_context: Any = None,
     sdu: int = 8192,
+    pool_boundary: str = None,
     handle: int = 0,
 ) -> ConnectionPool:
     """
@@ -861,6 +862,10 @@ def create_pool(
       actually be used is negotiated down to the lower of this value and the
       database network SDU configuration value (default: 8192)
 
+    - pool_boundary: one of the values "statement" or "transaction" indicating
+      when pooled DRCP connections can be returned to the pool. This requires
+      the use of DRCP with Oracle Database 23.4 or higher (default: None)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1080,6 +1085,7 @@ def create_pool_async(
     connection_id_prefix: str = None,
     ssl_context: Any = None,
     sdu: int = 8192,
+    pool_boundary: str = None,
     handle: int = 0,
 ) -> AsyncConnectionPool:
     """
@@ -1307,6 +1313,10 @@ def create_pool_async(
       loads, but at the cost of higher memory use. The SDU size that will
       actually be used is negotiated down to the lower of this value and the
       database network SDU configuration value (default: 8192)
+
+    - pool_boundary: one of the values "statement" or "transaction" indicating
+      when pooled DRCP connections can be returned to the pool. This requires
+      the use of DRCP with Oracle Database 23.4 or higher (default: None)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

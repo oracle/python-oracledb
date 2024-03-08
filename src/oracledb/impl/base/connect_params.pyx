@@ -871,6 +871,8 @@ cdef class Description(ConnectParamsNode):
             temp_parts.append(f"(SID={self.sid})")
         if self.server_type is not None:
             temp_parts.append(f"(SERVER={self.server_type})")
+        if self.pool_boundary is not None:
+            temp_parts.append(f"(POOL_BOUNDARY={self.pool_boundary})")
         if cid is not None:
             temp_parts.append(f"(CID={cid})")
         else:
@@ -935,6 +937,7 @@ cdef class Description(ConnectParamsNode):
         _set_server_type_param(args, "server_type", self)
         _set_str_param(args, "cclass", self)
         _set_purity_param(args, "purity", &self.purity)
+        _set_pool_boundary_param(args, "pool_boundary", self)
         _set_str_param(args, "connection_id_prefix", self)
 
     def set_from_description_args(self, dict args):

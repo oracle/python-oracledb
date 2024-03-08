@@ -428,3 +428,16 @@ cdef class Statement:
             bind_info.scale = var_impl.scale
             self._binds_changed = True
         bind_info._bind_var_impl = var_impl
+
+    cdef int clear_all_state(self) except -1:
+        """
+        Clears all state associated with the cursor.
+        """
+        self._fetch_vars = None
+        self._fetch_info_impls = None
+        self._fetch_var_impls = None
+        self._executed = False
+        self._binds_changed = False
+        self._requires_define = False
+        self._no_prefetch = False
+        self._cursor_id = 0

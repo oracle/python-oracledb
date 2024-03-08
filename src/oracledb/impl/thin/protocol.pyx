@@ -125,6 +125,15 @@ cdef class BaseProtocol:
         buf.write_uint8(marker_type)
         buf.end_request()
 
+    cdef int _process_call_status(self, BaseThinConnImpl conn_impl,
+                                  uint32_t call_status) except -1:
+        """
+        Processes the call status flags returned by the server.
+        """
+        self._txn_in_progress = call_status & TNS_EOCS_FLAGS_TXN_IN_PROGRESS
+        if call_status & TNS_EOCS_FLAGS_SESS_RELEASE:
+            conn_impl._statement_cache.clear_open_cursors()
+
 
 cdef class Protocol(BaseProtocol):
 
@@ -404,7 +413,7 @@ cdef class Protocol(BaseProtocol):
                                   "response from server")
             message.process(self._read_buf)
             self._break_in_progress = False
-        self._txn_in_progress = message.call_status & TNS_TXN_IN_PROGRESS
+        self._process_call_status(message.conn_impl, message.call_status)
         if message.error_occurred:
             if message.retry:
                 message.error_occurred = False
@@ -757,7 +766,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                                   "response from server")
             message.process(self._read_buf)
             self._break_in_progress = False
-        self._txn_in_progress = message.call_status & TNS_TXN_IN_PROGRESS
+        self._process_call_status(message.conn_impl, message.call_status)
         if message.error_occurred:
             if message.retry:
                 message.error_occurred = False

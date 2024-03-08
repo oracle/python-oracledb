@@ -298,6 +298,10 @@ class TestCase(test_env.BaseAsyncTestCase):
             coroutines = [self.__verify_fetched_data(conn) for i in range(3)]
             await asyncio.gather(*coroutines)
 
+    @unittest.skipIf(
+        test_env.get_is_implicit_pooling(),
+        "sessions can change with implicit pooling",
+    )
     async def test_5326(self):
         "5326 - test connection cancel"
         conn = await test_env.get_connection_async()

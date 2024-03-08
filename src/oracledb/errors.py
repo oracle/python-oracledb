@@ -239,6 +239,7 @@ ERR_MISSING_QUOTE_IN_IDENTIFIER = 2042
 ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED = 2043
 ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED = 2044
 ERR_INVALID_ARRAYSIZE = 2045
+ERR_CURSOR_HAS_BEEN_CLOSED = 2046
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -293,6 +294,7 @@ ERR_TNS_NAMES_FILE_MISSING = 4026
 ERR_NO_CONFIG_DIR = 4027
 ERR_INVALID_SERVER_TYPE = 4028
 ERR_TOO_MANY_BATCH_ERRORS = 4029
+ERR_INVALID_POOL_BOUNDARY = 4030
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -448,6 +450,7 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_CONTENT_INVALID_AFTER_NUMBER: "invalid number (content after number)",
     ERR_CURSOR_NOT_OPEN: "cursor is not open",
+    ERR_CURSOR_HAS_BEEN_CLOSED: "cursor has been closed by the database",
     ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED: (
         "attribute {attr_name} of type {type_name} exceeds its maximum size "
         "(actual: {actual_size}, maximum: {max_size})"
@@ -520,6 +523,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_NUMBER: "invalid number",
     ERR_INVALID_OBJECT_TYPE_NAME: 'invalid object type name: "{name}"',
     ERR_INVALID_OCI_ATTR_TYPE: "invalid OCI attribute type {attr_type}",
+    ERR_INVALID_POOL_BOUNDARY: "invalid DRCP pool boundary {boundary}",
     ERR_INVALID_POOL_CLASS: "invalid connection pool class",
     ERR_INVALID_POOL_PARAMS: "invalid pool params",
     ERR_INVALID_POOL_PURITY: "invalid DRCP purity {purity}",

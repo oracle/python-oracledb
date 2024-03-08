@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -89,6 +89,23 @@ cdef int _set_uint_param(dict args, str name, uint32_t* out_val) except -1:
     in_val = args.get(name)
     if in_val is not None:
         out_val[0] = int(in_val)
+
+
+cdef int _set_pool_boundary_param(dict args, str name,
+                                  object target) except -1:
+    """
+    Sets a pool boundary parameter to the value specified. This must be one of
+    the values "statement" or "transaction". If it is not one of these values
+    an error is raised. If a value is specified and meets the criteria it is
+    set directly on the target (since strings are treated as Python objects).
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        in_val = in_val.lower()
+        if in_val not in ("statement", "transaction"):
+            errors._raise_err(errors.ERR_INVALID_POOL_BOUNDARY,
+                              boundary=in_val)
+        setattr(target, name, in_val)
 
 
 cdef int _set_protocol_param(dict args, str name, object target) except -1:

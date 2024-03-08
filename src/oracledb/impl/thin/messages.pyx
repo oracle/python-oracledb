@@ -2183,6 +2183,8 @@ cdef class FetchMessage(MessageWithData):
     cdef int _write_message(self, WriteBuffer buf) except -1:
         self.cursor_impl._fetch_array_size = self.cursor_impl.arraysize
         self._write_function_code(buf)
+        if self.cursor_impl._statement._cursor_id == 0:
+            errors._raise_err(errors.ERR_CURSOR_HAS_BEEN_CLOSED)
         buf.write_ub4(self.cursor_impl._statement._cursor_id)
         buf.write_ub4(self.cursor_impl._fetch_array_size)
 

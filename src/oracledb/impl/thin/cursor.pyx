@@ -204,15 +204,18 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         # if a PL/SQL statement requires a full execute, perform only a single
         # iteration in order to allow the determination of input/output binds
         # to be completed; after that, an execution of the remaining iterations
-        # can be performed
+        # can be performed (but only if the cursor remains intact)
         if stmt._is_plsql and (stmt._cursor_id == 0 or stmt._binds_changed):
             message.num_execs = 1
+            while num_execs > 0:
+                num_execs -= 1
+                protocol._process_single_message(message)
+                message.offset += 1
+                if stmt._cursor_id != 0:
+                    break
+        if num_execs > 0:
+            message.num_execs = num_execs
             protocol._process_single_message(message)
-            if num_execs == 1:
-                return
-            message.offset = 1
-            message.num_execs = num_execs - 1
-        protocol._process_single_message(message)
         self.warning = message.warning
 
     def parse(self, cursor):
@@ -289,15 +292,18 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         # if a PL/SQL statement requires a full execute, perform only a single
         # iteration in order to allow the determination of input/output binds
         # to be completed; after that, an execution of the remaining iterations
-        # can be performed
+        # can be performed (but only if the cursor remains intact)
         if stmt._is_plsql and (stmt._cursor_id == 0 or stmt._binds_changed):
             message.num_execs = 1
+            while num_execs > 0:
+                num_execs -= 1
+                await protocol._process_single_message(message)
+                message.offset += 1
+                if stmt._cursor_id != 0:
+                    break
+        if num_execs > 0:
+            message.num_execs = num_execs
             await protocol._process_single_message(message)
-            if num_execs == 1:
-                return
-            message.offset = 1
-            message.num_execs = num_execs - 1
-        await protocol._process_single_message(message)
         self.warning = message.warning
 
     async def fetch_next_row(self, cursor):

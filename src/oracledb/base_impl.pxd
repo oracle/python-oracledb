@@ -346,6 +346,7 @@ cdef class Description(ConnectParamsNode):
         public str sid
         public str cclass
         public str connection_id_prefix
+        public str pool_boundary
         public uint32_t purity
         public bint ssl_server_dn_match
         public str ssl_server_cert_dn

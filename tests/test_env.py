@@ -256,6 +256,24 @@ def get_is_drcp():
     return value
 
 
+def get_is_implicit_pooling():
+    value = PARAMETERS.get("IS_IMPLICIT_POOLING")
+    if value is None:
+        if not get_is_drcp():
+            value = False
+        else:
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(get_connect_string())
+            pool_boundary = params.pool_boundary
+            value = (
+                pool_boundary is not None
+                or isinstance(pool_boundary, list)
+                and [s for s in pool_boundary if s]
+            )
+        PARAMETERS["IS_IMPLICIT_POOLING"] = value
+    return value
+
+
 def get_is_thin():
     driver_mode = get_value("DRIVER_MODE", "Driver mode (thin|thick)", "thin")
     return driver_mode == "thin"
@@ -619,10 +637,14 @@ class BaseTestCase(unittest.TestCase):
             self.cursor.execute("alter session set time_zone = '+00:00'")
 
     def setup_parse_count_checker(self):
+        if get_is_implicit_pooling():
+            self.skipTest("sessions can change with implicit pooling")
         self.parse_count_info = ParseCountInfo()
         self.parse_count_info._initialize(self.conn)
 
     def setup_round_trip_checker(self):
+        if get_is_implicit_pooling():
+            self.skipTest("sessions can change with implicit pooling")
         self.round_trip_info = RoundTripInfo()
         self.round_trip_info._initialize(self.conn)
 
@@ -683,10 +705,14 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
         return await is_on_oracle_cloud_async(connection)
 
     async def setup_parse_count_checker(self):
+        if get_is_implicit_pooling():
+            self.skipTest("sessions can change with implicit pooling")
         self.parse_count_info = ParseCountInfo()
         await self.parse_count_info._initialize_async(self.conn)
 
     async def setup_round_trip_checker(self):
+        if get_is_implicit_pooling():
+            self.skipTest("sessions can change with implicit pooling")
         self.round_trip_info = RoundTripInfo()
         await self.round_trip_info._initialize_async(self.conn)
 

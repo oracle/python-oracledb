@@ -27,6 +27,7 @@
 """
 
 import pickle
+import unittest
 
 import oracledb
 import test_env
@@ -386,6 +387,10 @@ class TestCase(test_env.BaseTestCase):
         "1917 - test operations on NCLOBs"
         self.__test_lob_operations("NCLOB")
 
+    @unittest.skipIf(
+        test_env.get_is_implicit_pooling(),
+        "sessions can change with implicit pooling",
+    )
     def test_1918(self):
         "1918 - test temporary LOBs"
         self.cursor.execute("select sys_context('USERENV', 'SID') from dual")

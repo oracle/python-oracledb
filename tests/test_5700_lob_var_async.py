@@ -361,6 +361,10 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5714 - test operations on NCLOBs"
         await self.__test_lob_operations("NCLOB")
 
+    @unittest.skipIf(
+        test_env.get_is_implicit_pooling(),
+        "sessions can change with implicit pooling",
+    )
     async def test_5715(self):
         "5715 - test temporary LOBs"
         await self.cursor.execute(

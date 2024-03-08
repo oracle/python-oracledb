@@ -84,6 +84,8 @@ cdef class Capabilities:
                 TNS_CCAP_O5LOGON | TNS_CCAP_O5LOGON_NP | \
                 TNS_CCAP_O7LOGON | TNS_CCAP_O8LOGON_LONG_IDENTIFIER | \
                 TNS_CCAP_O9LOGON_LONG_PASSWORD
+        self.compile_caps[TNS_CCAP_FEATURE_BACKPORT] = \
+                TNS_CCAP_CTB_IMPLICIT_POOL
         self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
         self.compile_caps[TNS_CCAP_SERVER_DEFINE_CONV] = 1
         self.compile_caps[TNS_CCAP_TTC1] = \

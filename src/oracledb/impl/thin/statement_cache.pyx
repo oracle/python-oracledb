@@ -86,8 +86,8 @@ cdef class StatementCache:
             Statement stmt
         with self._lock:
             for stmt in self._open_cursors:
-                stmt._cursor_id = 0
-                if stmt._in_use:
+                stmt.clear_all_state()
+                if stmt._in_use or stmt._return_to_cache:
                     new_open_cursors.add(stmt)
             self._open_cursors = new_open_cursors
             self._num_cursors_to_close = 0

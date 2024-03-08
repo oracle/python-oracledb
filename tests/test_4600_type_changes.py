@@ -41,6 +41,8 @@ class TestCase(test_env.BaseTestCase):
         query_value_2,
         table_name="dual",
     ):
+        if test_env.get_is_implicit_pooling():
+            self.skipTest("sessions can change with implicit pooling")
         self.cursor.execute(
             f"""
             create or replace view TestTypesChanged as

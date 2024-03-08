@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -94,6 +94,7 @@ class ConnectParams:
         connection_id_prefix: str = None,
         ssl_context: Any = None,
         sdu: int = 8192,
+        pool_boundary: str = None,
         handle: int = 0,
     ):
         """
@@ -255,6 +256,11 @@ class ConnectParams:
           actually be used is negotiated down to the lower of this value and
           the database network SDU configuration value (default: 8192)
 
+        - pool_boundary: one of the values "statement" or "transaction"
+          indicating when pooled DRCP connections can be returned to the pool.
+          This requires the use of DRCP with Oracle Database 23.4 or higher
+          (default: None)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -299,7 +305,8 @@ class ConnectParams:
             + f"debug_jdwp={self.debug_jdwp!r}, "
             + f"connection_id_prefix={self.connection_id_prefix!r}, "
             + f"ssl_context={self.ssl_context!r}, "
-            + f"sdu={self.sdu!r}"
+            + f"sdu={self.sdu!r}, "
+            + f"pool_boundary={self.pool_boundary!r}"
             + ")"
         )
 
@@ -460,6 +467,16 @@ class ConnectParams:
         Authorization mode to use. For example oracledb.AUTH_MODE_SYSDBA.
         """
         return self._impl.mode
+
+    @property
+    @_description_attr
+    def pool_boundary(self) -> Union[list, str]:
+        """
+        One of the values "statement" or "transaction" indicating when pooled
+        DRCP connections can be returned to the pool. This requires the use of
+        DRCP with Oracle Database 23.4 or higher.
+        """
+        return self._impl.pool_boundary
 
     @property
     @_address_attr
@@ -719,6 +736,7 @@ class ConnectParams:
         connection_id_prefix: str = None,
         ssl_context: Any = None,
         sdu: int = None,
+        pool_boundary: str = None,
         handle: int = None,
     ):
         """
@@ -870,6 +888,10 @@ class ConnectParams:
           loads, but at the cost of higher memory use. The SDU size that will
           actually be used is negotiated down to the lower of this value and
           the database network SDU configuration value
+
+        - pool_boundary: one of the values "statement" or "transaction"
+          indicating when pooled DRCP connections can be returned to the pool.
+          This requires the use of DRCP with Oracle Database 23.4 or higher
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
