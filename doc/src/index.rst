@@ -65,7 +65,7 @@ API Manual
     api_manual/module.rst
     api_manual/defaults.rst
     api_manual/connection.rst
-    api_manual/connect_param.rst
+    api_manual/connect_params.rst
     api_manual/connection_pool.rst
     api_manual/pool_params.rst
     api_manual/cursor.rst

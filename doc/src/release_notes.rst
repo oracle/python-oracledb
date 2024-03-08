@@ -13,35 +13,46 @@ oracledb 2.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for Oracle Database 23c feature: implicit pooling with DRCP.
-#)  Added support for Oracle Database 23c feature that can improve the
-    performance of connection creation by reducing the number of round trips
-    required for all connections created.
-#)  Added support for Oracle Database 23c feature: use of TCP fast open for
-    clients connecting from within the OCI Cloud network.
-#)  Added support for Easy Connect strings found in tnsnames.ora files.
+#)  Oracle Database 23c feature support:
+
+    - Added support for
+      :ref:`implicit connection pooling with DRCP and PRCP <implicitconnpool>`,
+      enabled by the new ``pool_boundary`` parameter to
+      :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+      :meth:`oracledb.create_pool()` and :meth:`oracledb.create_pool_async()`.
+    - Improved the performance of connection creation by reducing the number of
+      round trips required for all connections.
+    - Added support for TCP fast open for applications connecting from within
+      the OCI Cloud network to Oracle Autonomous Database Serverless (ADB-S),
+      enabled by the new ``use_tcp_fast_open`` parameter to
+      :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+      :meth:`oracledb.create_pool()` and :meth:`oracledb.create_pool_async()`.
+
+#)  :ref:`asyncio <asyncio>` changes:
+
+    - Support for asyncio is no longer considered a pre-release.
+    - Internal change to improve handling of packets.
+    - Fixed bug when using :ref:`DRCP <drcp>`.
+    - Fixed bug in processing metadata that spans multiple packets.
+    - Fixed bug when connecting to a database using listener redirects
+      (`issue 285 <https://github.com/oracle/python-oracledb/issues/285>`__).
+
+#)  Added support for Easy Connect strings found in
+    :ref:`tnsnames.ora <optnetfiles>` files.
 #)  Added support for writing UTF-8 encoded bytes to CLOB and NCLOB values and
     writing strings to BLOB values in order to be consistent with what is done
     for string variables.
 #)  User-defined errors raised by the database no longer display an error help
     portal URL.
-#)  Improved handling of packets with :ref:`asyncio <asyncio>` for recent
-    database versions.
 #)  Fixed potential cursor issues when using :ref:`drcp`.
 #)  Fixed regression when using :ref:`IAM token authentication <iamauth>`
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
 #)  Fixed bug connecting to databases that are only mounted and not opened
     (`issue 294 <https://github.com/oracle/python-oracledb/issues/294>`__).
-#)  Fixed bug when using :ref:`DRCP <drcp>` with :ref:`asyncio <asyncio>`.
 #)  Fixed bug in identifying bind variables in SQL statements containing a
     single line comment at the end of the statement.
 #)  Fixed bug in determining the list of attributes for PL/SQL collections.
 #)  Fixed bug in calculating the :data:`Connection.thin` attribute.
-#)  Fixed bug in processing metadata that spans multiple packets when using
-    :ref:`asyncio <asyncio>`.
-#)  Fixed bug when connecting to a database using listener redirects when using
-    :ref:`asyncio <asyncio>`
-    (`issue 285 <https://github.com/oracle/python-oracledb/issues/285>`__).
 #)  Fixed type declaration for the ``connectiontype`` parameter to
     :meth:`oracledb.create_pool_async()` and the return value of
     :meth:`AsyncConnectionPool.acquire()`.
@@ -62,15 +73,15 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added a boolean property :data:`FetchInfo.is_oson` which is set when a
+    column has the check constraint ``IS JSON FORMAT OSON`` enabled.
 #)  Added methods :meth:`Connection.decode_oson()` and
     :meth:`Connection.encode_oson()` to support fetching and inserting into
     columns which have the check constraint ``IS JSON FORMAT OSON`` enabled.
-#)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
-    has the check constraint "IS JSON FORMAT OSON" enabled.
 #)  Added class :ref:`oracledb.JsonId <jsonid>` to represent JSON ID values
-    returned by SODA in Oracle Database 23.4 and higher in the ``_id``
+    returned by SODA in Oracle Database 23.4 and later in the ``_id``
     attribute of documents stored in native collections.
-#)  Added support for columns of type vector (currently requires access to a
+#)  Added support for columns of type VECTOR (currently requires access to a
     limited availability release of the database).
 #)  Errors raised when calling :meth:`Cursor.executemany()` with PL/SQL now
     have the :data:`oracledb._Error.offset` attribute populated with the last
@@ -78,7 +89,7 @@ Common Changes
     (`issue 283 <https://github.com/oracle/python-oracledb/issues/283>`__).
 #)  A number of performance improvements were made.
 #)  Error ``DPY-2045: arraysize must be an integer greater than zero`` is now
-    raised when an invalid value is specified for the attribute
+    raised when an invalid value is used for the attribute
     :data:`Cursor.arraysize`. Previously, a variety of errors (``TypeError``,
     ``OverflowError`` or ``ORA-03147: missing mandatory TTC field``) were
     raised.
@@ -101,7 +112,8 @@ Common Changes
     calls to :meth:`oracledb.connect()` and :meth:`oracledb.create_pool()` that
     made use of the DSN with credentials format.
 #)  The error ``DPY-2047: LOB amount must be greater than zero`` is now raised
-    when the amount parameter to :meth:`LOB.read()` is zero or negative.
+    when the ``amount`` parameter in :meth:`LOB.read()` is set to zero or
+    negative.
 #)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
     circumstances.
 #)  Connection parameters that are strings now treat an empty string in the

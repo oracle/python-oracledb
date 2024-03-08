@@ -326,9 +326,10 @@ class PoolParams(ConnectParams):
           (default: None)
 
         - use_tcp_fast_open: boolean indicating whether to use TCP fast open.
-          This is an ADB-S specific property for clients connecting from within
-          OCI Cloud network. Please refer to the ADB-S documentation for more
-          information (default: False)
+          This is an Oracle Autonomous Database Serverless (ADB-S) specific
+          property for clients connecting from within OCI Cloud network. Please
+          refer to the ADB-S documentation for more information (default:
+          False)
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
@@ -774,9 +775,9 @@ class PoolParams(ConnectParams):
           This requires the use of DRCP with Oracle Database 23.4 or higher
 
         - use_tcp_fast_open: boolean indicating whether to use TCP fast open.
-          This is an ADB-S specific property for clients connecting from within
-          OCI Cloud network. Please refer to the ADB-S documentation for more
-          information
+          This is an Oracle Autonomous Database Serverless (ADB-S) specific
+          property for clients connecting from within OCI Cloud network. Please
+          refer to the ADB-S documentation for more information
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

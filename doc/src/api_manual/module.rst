@@ -48,7 +48,8 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -315,6 +316,29 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
+    called.  This parameter requires the use of DRCP or PRCP with Oracle
+    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    information.  This value is used in both the python-oracledb Thin and
+    Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the
+    database after a connection has been established.  This feature is only
+    available with certain versions of ADB-S.  This value is used in both
+    python-oracledb Thin and Thick modes.  The default value is False.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -323,9 +347,17 @@ Oracledb Methods
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
     .. versionchanged:: 2.0.0
 
         The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: connect_async(dsn=None, pool=None, conn_class=None, params=None, \
         user=None, proxy_user=None, password=None, newpassword=None, \
@@ -340,18 +372,13 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
     and can be specified as keyword parameters.  See
     :ref:`standaloneconnection` information about connections.
-
-    .. note::
-
-        The asyncio support in python-oracledb 2.0.0 is a pre-release and may
-        change in the next version. This method can only be used in
-        python-oracledb Thin mode.
 
     .. versionadded:: 2.0.0
 
@@ -545,7 +572,42 @@ Oracledb Methods
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`AsyncConnection.commit()` or
+    :meth:`AsyncConnection.rollback()` are called.  This parameter requires
+    the use of DRCP or PRCP with Oracle Database 23c (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the
+    database after a connection has been established.  This feature is only
+    available with certain versions of ADB-S.  This value is used in both
+    python-oracledb Thin and Thick modes.  The default value is False.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
@@ -559,7 +621,8 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -790,14 +853,45 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
+    called.  This parameter requires the use of DRCP or PRCP with Oracle
+    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    information.  This value is used in both  the python-oracledb Thin and
+    Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the
+    database after a connection has been established.  This feature is only
+    available with certain versions of ADB-S.  This value is used in both
+    python-oracledb Thin and Thick modes.  The default value is False.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
     .. versionchanged:: 2.0.0
 
         The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
         params=None, min=1, max=2, increment=1, \
@@ -817,7 +911,8 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1133,6 +1228,29 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
+    called.  This parameter requires the use of DRCP or PRCP with Oracle
+    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    information.  This value is used in both the python-oracledb Thin and
+    Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the database
+    after a connection has been established.  This feature is only available
+    with certain versions of ADB-S.  This value is used in both python-oracledb
+    Thin and Thick modes.  The default value is False.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1148,9 +1266,17 @@ Oracledb Methods
     `Application Continuity <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
 
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
     .. versionchanged:: 2.0.0
 
         The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: create_pool_async(dsn=None, pool_class=oracledb.AsyncConnectionPool, \
         params=None, min=1, max=2, increment=1, \
@@ -1170,18 +1296,13 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
     ``create_pool_async()`` is a synchronous method. See
     :ref:`Connection pooling <asyncconnpool>` for more information.
-
-    .. note::
-
-        The asyncio support in python-oracledb 2.0.0 is a pre-release and may
-        change in the next version. This method can only used in
-        python-oracledb Thin mode.
 
     .. versionadded:: 2.0.0
 
@@ -1422,7 +1543,42 @@ Oracledb Methods
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`AsyncConnection.commit()` or
+    :meth:`AsyncConnection.rollback()` are called.  This parameter requires
+    the use of DRCP or PRCP with Oracle Database 23c (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the database
+    after a connection has been established.  This feature is only available
+    with certain versions of ADB-S.  This value is used in both python-oracledb
+    Thin and Thick modes.  The default value is False.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
+    .. versionchanged:: 2.0.0
+
+        The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: Cursor(connection)
 
@@ -1544,7 +1700,8 @@ Oracledb Methods
         edition=None, tag=None, matchanytag=False, \
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=8192, handle=0)
+        connection_id_prefix=None, ssl_context=None, sdu=8192, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -1827,14 +1984,45 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
+    The ``pool_boundary`` parameter is expected to be one of the strings
+    "statement" or "transaction" which indicates when pooled DRCP or PRCP
+    connections can be returned to the pool.  If the value is "statement",
+    then pooled DRCP or PRCP connections are implicitly released back to the
+    DRCP or PRCP pool when the connection is stateless (that is, there are no
+    active cursors, active transactions, temporary tables, or temporary LOBs).
+    If the value is "transaction", then pooled DRCP or PRCP connections are
+    implicitly released back to the DRCP or PRCP pool when either one of the
+    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
+    called.  This parameter requires the use of DRCP or PRCP with Oracle
+    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    information.  This value is used in both the python-oracledb Thin and
+    Thick modes.
+
+    The ``use_tcp_fast_open`` parameter is expected to be a boolean which
+    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
+    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
+    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
+    specific feature that can reduce the latency in round-trips to the database
+    after a connection has been established.  This feature is only available
+    with certain versions of ADB-S.  This value is used in both python-oracledb
+    Thin and Thick modes.  The default value is False.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.1.0
+
+        The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
+
     .. versionchanged:: 2.0.0
 
         The ``ssl_context`` and ``sdu`` parameters were added.
+
+    .. versionchanged:: 1.4.0
+
+        The ``connection_id_prefix`` parameter was added.
 
 .. function:: Time(hour, minute, second)
 
@@ -1870,17 +2058,20 @@ Oracledb Methods
 
 .. _jsonid:
 
-oracledb.JsonId Class
+Oracledb JsonId Class
 =====================
 
-Objects of this class are returned by SODA in Oracle Database 23.4 and higher
-in the ``_id`` attribute of documents stored in native collections. It is a
-subclass of the ``bytes`` class.
+Objects of this class are returned by :ref:`SODA <soda>` in the ``_id``
+attribute of documents stored in native collections when using Oracle Database
+23.4 (and later). It is a subclass of the `bytes <https://docs.python.org/3/
+library/stdtypes.html#bytes>`__ class.
+
+.. versionadded:: 2.1.0
 
 
 .. _futureobj:
 
-Oracledb.__future__ Object
+Oracledb __future__ Object
 ==========================
 
 Special object that contains attributes which control the behavior of
@@ -3211,7 +3402,7 @@ See :ref:`exception` for usage information.
 
 .. _exchandling:
 
-Oracledb._Error Objects
+Oracledb _Error Objects
 =======================
 
 See :ref:`exception` for usage information.

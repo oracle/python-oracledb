@@ -12,11 +12,6 @@ See :ref:`lobdata` for more information about using LOBs.
 
 .. note::
 
-    The Asynchronous I/O (asyncio) support in python-oracledb 2.0.0 is a
-    pre-release and may change in the next version.
-
-.. note::
-
     AsyncLOB objects are only supported in the python-oracledb Thin mode.
 
 .. _asynclobmeth:

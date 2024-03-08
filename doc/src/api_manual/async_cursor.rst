@@ -12,11 +12,6 @@ with ``await``. This object is an extension to the DB API.
 
 .. note::
 
-    The Asynchronous I/O (asyncio) support in python-oracledb 2.0.0 is a
-    pre-release and may change in the next version.
-
-.. note::
-
     AsyncCursor objects are only supported in the python-oracledb Thin mode.
 
 .. _asynccursormeth:

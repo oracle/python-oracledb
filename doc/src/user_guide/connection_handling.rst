@@ -562,7 +562,10 @@ large number of users who do database work for short periods of time but have
 relatively long periods when the connections are not needed.  The high
 availability features of pools also make small pools useful for applications
 that want a few connections available for infrequent use and requires them to
-be immediately usable when acquired.
+be immediately usable when acquired.  Applications that would benefit from
+connection pooling but are too difficult to modify from the use of
+:ref:`standalone connections <standaloneconnection>` can take advantage of
+:ref:`implicitconnpool`.
 
 In python-oracledb Thick mode, the pool implementation uses Oracle's `session
 pool technology <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
@@ -1480,6 +1483,127 @@ set ``cclass``.
 When connecting to Oracle Autonomous Database on shared infrastructure (ADB-S),
 the ``V$CPOOL_CONN_INFO`` view can be used to track the number of connection
 hits and misses to show the pool efficiency.
+
+.. _implicitconnpool:
+
+Implicit Connection Pooling with DRCP and PRCP
+----------------------------------------------
+
+Starting from Oracle Database 23c, Python applications that use
+:ref:`DRCP <drcp>` and Oracle Connection Manager in Traffic Director Mode's
+(CMAN-TDM) pooling capability `Proxy Resident Connection Pooling (PRCP)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
+4F14-AF9B-BCC87C982DA8>`__ can enable `implicit connection pooling <https://
+www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A9D74994-D81A-47BF-BAF2-
+E4E1A354CA99>`__ with DRCP and PRCP.  For more information on PRCP, see the
+Oracle technical brief `CMAN-TDM — An Oracle Database connection proxy for
+scalable and highly available applications <https://download.oracle.com/
+ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_apps.pdf>`__.
+
+With implicit connection pooling, applications do not need to explicitly close
+or release a connection to return the connection back to the DRCP or PRCP pool.
+Applications that do not use client-side connection pooling can take advantage
+of the implicit connection pooling feature with either Thin or Thick mode.
+Thick mode requires Oracle 23c Client libraries for implicit connection
+pooling support.  Thin mode works with implicit connection pooling from
+python-oracledb 2.1 onwards.
+
+Implicit connection pooling uses two types of boundary values to determine
+when connections should be released back to the DRCP or PRCP pool.  The
+boundary value can be specified in the ``pool_boundary`` parameter as detailed
+:ref:`below <useimplicitconnpool>`.  The two boundary values which can be
+specified in the ``pool_boundary`` parameter are:
+
+- *statement*: If this boundary is specified, then the connection is released
+  back to the DRCP or PRCP connection pool when the connection is implicitly
+  stateless.  A connection is implicitly stateless when there are no active
+  cursors in the connection (that is, all the rows of the cursors have been
+  internally fetched), no active transactions, no temporary tables, and no
+  temporary LOBs.
+
+- *transaction*: If this boundary is specified, then the connection is released
+  back to the DRCP or PRCP connection pool when either one of the methods
+  :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
+  called. It is recommended to not set the :attr:`Connection.autocommit`
+  attribute to *true* when using implicit connection pooling.  If you do set
+  this attribute, then you will be unable to:
+
+  - Fetch any data that requires multiple :ref:`round-trips <roundtrips>` to
+    the database
+  - Run queries that fetch :ref:`LOB <lobdata>` and :ref:`JSON <jsondatatype>`
+    data
+
+.. _useimplicitconnpool:
+
+To use implicit connection pooling in python-oracledb:
+
+1. Enable the DRCP pool in the database. For example in SQL*Plus:
+
+   ``SQL> EXECUTE DBMS_CONNECTION_POOL.START_POOL();``
+
+2. Specify to use a pooled server in:
+
+   - The ``dsn`` parameter of :meth:`oracledb.connect()` or
+     :meth:`oracledb.create_pool()`. For example with the
+     :ref:`Easy Connect syntax <easyconnect>`:
+
+     .. code-block:: python
+
+        pool = oracledb.create_pool(user="hr", password=userpwd,
+                                    dsn="dbhost.example.com/orclpdb:pooled",
+                                    min=2, max=5, increment=1,
+                                    cclass="MYAPP")
+
+   - Or in the :ref:`connect descriptor <netservice>` used in an Oracle
+     Network configuration file such as :ref:`tnsnames.ora <optnetfiles>` by
+     adding ``(SERVER=POOLED)``. For example::
+
+        customerpool = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)
+              (HOST=dbhost.example.com)
+              (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=CUSTOMER)
+              (SERVER=POOLED)))
+
+   - Or in the ``server_type`` parameter during
+     :meth:`standalone connection creation <oracledb.connect>`
+     or :meth:`connection pool creation <oracledb.create_pool>`.  For example:
+
+     .. code-block:: python
+
+        pool = oracledb.create_pool(user="hr", password=userpwd,
+                                    host="dbhost.example.com", service_name="orclpdb",
+                                    min=2, max=5, increment=1, server_type="pooled",
+                                    cclass="MYAPP")
+
+3. Set the pool boundary to either *statement* or *transaction* in:
+
+   - The :ref:`Easy Connect string <easyconnect>`. For example, to use the
+     statement boundary::
+
+        dsn = "localhost:1521/orclpdb:pooled?pool_boundary=statement"
+
+   - Or the ``CONNECT_DATA`` section of the
+     :ref:`Connect Descriptor string <netservice>`. For example, to use
+     the transaction boundary::
+
+        tnsalias = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=mymachine.example.com)
+                    (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)
+                    (SERVER=POOLED)(POOL_BOUNDARY=TRANSACTION)))
+
+   - Or the ``pool_boundary`` parameter in :meth:`oracledb.connect()` or
+     :meth:`oracledb.create_pool()`
+
+.. note::
+
+    - Implicit connection pooling is disabled if the application sets the
+      ``pool_boundary`` attribute to *transaction* or *statement* but
+      does not specify to use a pooled server.
+
+    - For all the ``POOL_BOUNDARY`` options, the default purity is set to
+      *SELF*. You can specify the purity using the ``POOL_PURITY`` parameter
+      in the connection string to override the default purity value.
+
+Note that it is recommended to use python-oracledb's local :ref:`connpooling`
+over implicit connection pooling.
 
 .. _proxyauth:
 

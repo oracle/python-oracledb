@@ -364,8 +364,9 @@ previously set a type handler on a cursor, you can remove it with:
 
 Other examples of output handlers are shown in :ref:`numberprecision`,
 :ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as
-`samples/type_handlers.py
-<https://github.com/oracle/python-oracledb/blob/main/samples/type_handlers.py>`__
+`samples/type_handlers_json_strings.py
+<https://github.com/oracle/python-oracledb/blob/main/samples/type_handlers_
+json_strings.py>`__.
 
 .. _outconverters:
 

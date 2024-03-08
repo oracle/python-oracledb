@@ -77,8 +77,8 @@ minutes to the database to keep connections 'alive'::
 Fast Application Notification (FAN)
 -----------------------------------
 
-Users of `Oracle Database FAN
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-F3FBE48B-468B-4393-8B0C-D5C8E0E4374D>`__
+Users of `Oracle Database FAN <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-EB0E1525-D3B3-469C-BE22-A569C76864A6>`__
 must connect to a FAN-enabled database service.  The application should have
 ``events`` set to `True` when connecting.  This value can also be changed via
 :ref:`Oracle Client Configuration <optclientfiles>`.

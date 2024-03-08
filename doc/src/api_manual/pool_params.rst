@@ -46,9 +46,14 @@ PoolParams Methods
         externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
         edition=None, tag=None, matchanytag=None, config_dir=None, \
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=None, handle=None)
+        connection_id_prefix=None, ssl_context=None, sdu=None, \
+        pool_boundary=None, use_tcp_fast_open=False, handle=None)
 
   Sets one or more of the parameters.
+
+  .. versionchanged:: 2.1.0
+
+    The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
 
 .. _poolparamsattr:
 

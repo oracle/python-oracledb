@@ -1395,9 +1395,9 @@ def connect(
       the use of DRCP with Oracle Database 23.4 or higher (default: None)
 
     - use_tcp_fast_open: boolean indicating whether to use TCP fast open. This
-      is an ADB-S specific property for clients connecting from within OCI
-      Cloud network. Please refer to the ADB-S documentation for more
-      information (default: False)
+      is an Oracle Autonomous Database Serverless (ADB-S) specific property for
+      clients connecting from within OCI Cloud network. Please refer to the
+      ADB-S documentation for more information (default: False)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
@@ -1971,9 +1971,9 @@ def connect_async(
       the use of DRCP with Oracle Database 23.4 or higher (default: None)
 
     - use_tcp_fast_open: boolean indicating whether to use TCP fast open. This
-      is an ADB-S specific property for clients connecting from within OCI
-      Cloud network. Please refer to the ADB-S documentation for more
-      information (default: False)
+      is an Oracle Autonomous Database Serverless (ADB-S) specific property for
+      clients connecting from within OCI Cloud network. Please refer to the
+      ADB-S documentation for more information (default: False)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

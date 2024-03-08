@@ -13,11 +13,6 @@ with the ``async`` and ``await`` syntax. See Python's `Developing with asyncio
 <https://docs.python.org/3/library/asyncio-dev.html>`__ documentation for
 useful tips.
 
-.. note::
-
-    The asyncio support in python-oracledb 2.0.0 is a pre-release and may
-    change in the next version.
-
 The python-oracledb asynchronous API is a part of the standard python-oracledb
 module. All the synchronous methods that require a round-trip to the database
 now have corresponding asynchronous counterparts. You can choose whether to

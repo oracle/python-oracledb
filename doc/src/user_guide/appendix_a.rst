@@ -158,6 +158,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
+    * - Oracle Database 23c Implicit Connection Pooling with DRCP and PRCP (see :ref:`implicitconnpool`)
+      - Yes
+      - Yes
+      - No
     * - Multitenant Databases
       - Yes
       - Yes
