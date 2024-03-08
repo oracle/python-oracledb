@@ -556,13 +556,15 @@ class TestCase(test_env.BaseTestCase):
             self.book_queue_name, self.book_type_name
         )
         book = queue.payload_type.newobject()
-        self.cursor.execute("select sysdate from dual")
+        self.cursor.execute("select current_timestamp from dual")
         (start_date,) = self.cursor.fetchone()
+        start_date = start_date.replace(microsecond=0)
         props = self.conn.msgproperties(payload=book)
         queue.enqone(props)
         props = queue.deqone()
-        self.cursor.execute("select sysdate from dual")
+        self.cursor.execute("select current_timestamp from dual")
         (end_date,) = self.cursor.fetchone()
+        end_date = end_date.replace(microsecond=0)
         self.assertTrue(start_date <= props.enqtime <= end_date)
 
     def test_2724(self):
