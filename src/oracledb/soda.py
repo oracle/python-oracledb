@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -369,7 +369,10 @@ class SodaDocument:
         exception if this is not the case. If there is no content, however,
         None will be returned.
         """
-        return json.loads(self.getContentAsString())
+        content_bytes, encoding = self._impl.get_content()
+        if self.mediaType == "application/json":
+            return json.loads(content_bytes.decode(encoding))
+        return content_bytes
 
     def getContentAsBytes(self) -> bytes:
         """

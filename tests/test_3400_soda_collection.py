@@ -26,6 +26,7 @@
 3400 - Module for testing Simple Oracle Document Access (SODA) Collections
 """
 
+import json
 import unittest
 
 import test_env
@@ -932,6 +933,42 @@ class TestCase(test_env.BaseTestCase):
             soda_db.createCollection(
                 "TestSodaMapNonExistent", metadata=metadata, mapMode=True
             )
+
+    def test_3444(self):
+        "3444 - test collections with mixture of media types"
+        soda_db = self.get_soda_database()
+        metadata = dict(mediaTypeColumn=dict(name="media_type"))
+        coll = soda_db.createCollection("TestMixedMedia", metadata=metadata)
+        test_data = [
+            (dict(name="George", age=28), "application/json"),
+            ("Sample Text", "text/plain"),
+            (b"\x57\x25\xfe\x34\x56", "application/octet-stream"),
+        ]
+        for value, media_type in test_data:
+            coll.find().remove()
+            coll.insertOne(soda_db.createDocument(value, mediaType=media_type))
+            fetched_doc = coll.find().getDocuments()[0]
+            self.assertEqual(fetched_doc.mediaType, media_type)
+            if media_type == "application/json":
+                expected_content = value
+                expected_str = json.dumps(value)
+                expected_bytes = expected_str.encode()
+            elif media_type == "text/plain":
+                expected_content = expected_bytes = value.encode()
+                expected_str = value
+            else:
+                expected_content = expected_bytes = value
+                expected_str = None
+            self.assertEqual(fetched_doc.getContent(), expected_content)
+            self.assertEqual(fetched_doc.getContentAsBytes(), expected_bytes)
+            if expected_str is None:
+                self.assertRaises(
+                    UnicodeDecodeError, fetched_doc.getContentAsString
+                )
+            else:
+                self.assertEqual(
+                    fetched_doc.getContentAsString(), expected_str
+                )
 
 
 if __name__ == "__main__":

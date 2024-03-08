@@ -48,6 +48,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug when calling :meth:`SodaDoc.getContent()` for SODA documents
+    that do not contain JSON.
 #)  Errors ``DPY-4011: the database or network closed the connection`` and
     ``DPY-4024: call timeout of {timeout} ms exceeded`` now retain the original
     error message raised by the Oracle Client library.
