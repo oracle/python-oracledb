@@ -27,6 +27,7 @@
 """
 
 import os
+import ssl
 import tempfile
 import random
 
@@ -791,6 +792,30 @@ class TestCase(test_env.BaseTestCase):
                 "my_host8/my_service_name8:pooled?pool_boundary=not_valid"
             )
             params.parse_connect_string(connect_string)
+
+    def test_4571(self):
+        "4571 - calling set() doesn't clear object parameters"
+        sharding_key = [1, 2, 3]
+        super_sharding_key = [4, 5, 6]
+        app_context = [("NAMESPACE", "KEY", "VALUE")]
+        ssl_context = ssl.create_default_context()
+        params = oracledb.ConnectParams(
+            shardingkey=sharding_key,
+            supershardingkey=super_sharding_key,
+            appcontext=app_context,
+            ssl_context=ssl_context,
+        )
+        self.assertEqual(params.appcontext, app_context)
+        self.assertEqual(params.shardingkey, sharding_key)
+        self.assertEqual(params.supershardingkey, super_sharding_key)
+        self.assertEqual(params.ssl_context, ssl_context)
+        user = "user_4571"
+        params.set(user=user)
+        self.assertEqual(params.user, user)
+        self.assertEqual(params.appcontext, app_context)
+        self.assertEqual(params.shardingkey, sharding_key)
+        self.assertEqual(params.supershardingkey, super_sharding_key)
+        self.assertEqual(params.ssl_context, ssl_context)
 
 
 if __name__ == "__main__":

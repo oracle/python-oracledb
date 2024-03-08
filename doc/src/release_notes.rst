@@ -91,6 +91,11 @@ Common Changes
     ``DPI-1040: LOB was already closed``.
 #)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
     the connection parameter ``purity`` has been specified.
+#)  Fixed bug in :meth:`ConnectParams.set()` that would clear the
+    ``ssl_context``, ``appcontext``, ``shardingkey`` and ``supershardingkey``
+    parameters if they were not included in the parameters. This also affected
+    calls to :meth:`oracledb.connect()` and :meth:`oracledb.create_pool()` that
+    made use of the DSN with credentials format.
 #)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
     circumstances.
 #)  Connection parameters that are strings now treat an empty string in the

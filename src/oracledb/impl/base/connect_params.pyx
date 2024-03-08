@@ -144,7 +144,7 @@ cdef class ConnectParamsImpl:
         Sets the property values based on the supplied arguments. All values
         not supplied will be left unchanged.
         """
-        self._external_handle = args.get("handle", 0)
+        self._external_handle = args.get("handle", self._external_handle)
         _set_str_param(args, "user", self)
         _set_str_param(args, "proxy_user", self)
         if self.proxy_user is None and self.user is not None:
@@ -159,12 +159,12 @@ cdef class ConnectParamsImpl:
         _set_bool_param(args, "matchanytag", &self.matchanytag)
         _set_uint_param(args, "stmtcachesize", &self.stmtcachesize)
         _set_bool_param(args, "disable_oob", &self.disable_oob)
-        self.ssl_context = args.get("ssl_context")
+        _set_obj_param(args, "ssl_context", self)
         _set_str_param(args, "debug_jdwp", self)
         _set_str_param(args, "config_dir", self)
-        self.appcontext = args.get("appcontext")
-        self.shardingkey = args.get("shardingkey")
-        self.supershardingkey = args.get("supershardingkey")
+        _set_obj_param(args, "appcontext", self)
+        _set_obj_param(args, "shardingkey", self)
+        _set_obj_param(args, "supershardingkey", self)
         self._default_description.set_from_connect_data_args(args)
         self._default_description.set_from_description_args(args)
         self._default_description.set_from_security_args(args)

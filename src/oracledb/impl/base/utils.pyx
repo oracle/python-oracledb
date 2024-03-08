@@ -91,6 +91,16 @@ cdef int _set_uint_param(dict args, str name, uint32_t* out_val) except -1:
         out_val[0] = int(in_val)
 
 
+cdef int _set_obj_param(dict args, str name, object target) except -1:
+    """
+    Sets an object parameter to the value provided in the dictionary, if a
+    value is provided. This value is then set directly on the target.
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        setattr(target, name, in_val)
+
+
 cdef int _set_pool_boundary_param(dict args, str name,
                                   object target) except -1:
     """
