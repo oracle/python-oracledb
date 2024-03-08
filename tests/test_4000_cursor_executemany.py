@@ -429,6 +429,24 @@ class TestCase(test_env.BaseTestCase):
         (error_obj,) = cm.exception.args
         self.assertEqual(error_obj.offset, 3)
 
+    def test_4027(self):
+        "4027 - test executemany with number of iterations too small"
+        data = [[1], [2], [3]]
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.executemany(
+            """
+            declare
+                t_Value         number;
+            begin
+                t_Value := :1;
+            end;
+            """,
+            data,
+        )
+        self.cursor.executemany(None, 2)
+        with self.assertRaisesFullCode("DPY-2016"):
+            self.cursor.executemany(None, 4)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

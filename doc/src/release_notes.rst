@@ -66,6 +66,11 @@ Common Changes
     :data:`Cursor.arraysize`. Previously a variety of errors (``TypeError``,
     ``OverflowError`` or ``ORA-03147: missing mandatory TTC field``) were
     raised.
+#)  Error ``DPY-2016: variable array size of %d is too small (should be at
+    least %d)`` is now raised when :meth:`Cursor.executemany()` is called with
+    an integer number of iterations that is too large for the existing bind
+    variables. Previously thin mode raised ``IndexError`` and thick mode raised
+    ``DPI-1018: array size of %d is too small``.
 #)  Error ``DPY-1001: not connected to database`` is now raised when an attempt
     is made to perform an operation on a LOB using a closed connection.
     Previously Thin mode would raise an ``AttributeError`` exception and Thick

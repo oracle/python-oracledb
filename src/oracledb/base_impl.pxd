@@ -509,6 +509,7 @@ cdef class BaseCursorImpl:
                                       object params, uint32_t num_rows,
                                       uint32_t row_num,
                                       bint defer_type_assignment) except -1
+    cdef int _check_binds(self, uint32_t num_execs) except -1
     cdef int _close(self, bint in_del) except -1
     cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
                                        object type_handler, bint

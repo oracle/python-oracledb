@@ -139,6 +139,20 @@ cdef class BaseCursorImpl:
             return json.loads(value)
         return converter
 
+    cdef int _check_binds(self, uint32_t num_execs) except -1:
+        """
+        Checks that all binds are capable of handling the number of executions
+        provided.
+        """
+        cdef BindVar bind_var
+        for bind_var in self.bind_vars:
+            if bind_var is None or bind_var.var_impl is None:
+                continue
+            if bind_var.var_impl.num_elements < num_execs:
+                errors._raise_err(errors.ERR_INCORRECT_VAR_ARRAYSIZE,
+                                  var_arraysize=bind_var.var_impl.num_elements,
+                                  required_arraysize=num_execs)
+
     cdef int _close(self, bint in_del) except -1:
         """
         Internal method for closing the cursor.
@@ -411,6 +425,8 @@ cdef class BaseCursorImpl:
         self.set_input_sizes = False
         if isinstance(parameters, int):
             num_execs = parameters
+            if self.bind_vars is not None:
+                self._check_binds(num_execs)
         elif isinstance(parameters, list):
             num_execs = len(parameters)
             if parameters:
