@@ -45,6 +45,7 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
         int32_t seconds
         DbType dbtype
         uint32_t i
+        bytes temp
         str key
     if node.nativeTypeNum == DPI_NATIVE_TYPE_NULL:
         return None
@@ -93,6 +94,9 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
         as_bytes = &node.value.asBytes
         vector_decoder = VectorDecoder.__new__(VectorDecoder)
         return vector_decoder.decode(as_bytes.ptr[:as_bytes.length])
+    elif node.oracleTypeNum == DPI_ORACLE_TYPE_JSON_ID:
+        temp = node.value.asBytes.ptr[:node.value.asBytes.length]
+        return PY_TYPE_JSON_ID(temp)
     dbtype = DbType._from_num(node.oracleTypeNum)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
@@ -487,6 +491,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         encoding_bytes = constants.ENCODING.encode()
         params.defaultEncoding = encoding_bytes
         params.sodaUseJsonDesc = driver_info.soda_use_json_desc
+        params.useJsonId = True
         if config_dir is None:
             config_dir = C_DEFAULTS.config_dir
         if lib_dir is not None:
@@ -520,6 +525,7 @@ def init_thick_impl(package):
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_DB_OBJECT, PY_TYPE_LOB
+    global PY_TYPE_DB_OBJECT, PY_TYPE_JSON_ID, PY_TYPE_LOB
     PY_TYPE_DB_OBJECT = package.DbObject
+    PY_TYPE_JSON_ID = package.JsonId
     PY_TYPE_LOB = package.LOB

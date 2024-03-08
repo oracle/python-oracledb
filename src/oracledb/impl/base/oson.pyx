@@ -163,7 +163,7 @@ cdef class OsonDecoder(Buffer):
         elif node_type == TNS_JSON_TYPE_ID:
             self.read_ub1(&temp8)
             ptr = self._get_raw(temp8)
-            return ptr[:temp8]
+            return PY_TYPE_JSON_ID(ptr[:temp8])
         elif node_type == TNS_JSON_TYPE_BINARY_LENGTH_UINT16:
             self.read_uint16(&temp16)
             ptr = self._get_raw(temp16)
@@ -611,7 +611,10 @@ cdef class OsonTreeSegment(GrowableBuffer):
         # handle bytes
         elif isinstance(value, bytes):
             value_len = len(<bytes> value)
-            if value_len < 65536:
+            if isinstance(value, PY_TYPE_JSON_ID):
+                self.write_uint8(TNS_JSON_TYPE_ID)
+                self.write_uint8(<uint8_t> value_len)
+            elif value_len < 65536:
                 self.write_uint8(TNS_JSON_TYPE_BINARY_LENGTH_UINT16)
                 self.write_uint16(<uint16_t> value_len)
             else:

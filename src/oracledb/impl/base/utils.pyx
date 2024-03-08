@@ -201,12 +201,13 @@ def init_base_impl(package):
     """
     global PY_TYPE_ASYNC_CURSOR, PY_TYPE_ASYNC_LOB, PY_TYPE_CURSOR
     global PY_TYPE_DB_OBJECT, PY_TYPE_DB_OBJECT_TYPE, PY_TYPE_LOB, PY_TYPE_VAR
-    global PY_TYPE_FETCHINFO
+    global PY_TYPE_FETCHINFO, PY_TYPE_JSON_ID
     PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
     PY_TYPE_CURSOR = package.Cursor
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
+    PY_TYPE_JSON_ID = package.JsonId
     PY_TYPE_FETCHINFO = package.FetchInfo
     PY_TYPE_LOB = package.LOB
     PY_TYPE_VAR = package.Var

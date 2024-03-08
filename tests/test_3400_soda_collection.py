@@ -31,6 +31,7 @@ import decimal
 import json
 import unittest
 
+import oracledb
 import test_env
 
 
@@ -822,10 +823,10 @@ class TestCase(test_env.BaseTestCase):
 
         client_version = test_env.get_client_version()
         server_version = test_env.get_server_version()
-        if client_version >= (23, 1) and server_version >= (23, 1):
+        if client_version >= (23, 4) and server_version >= (23, 4):
             id_metadata = {
-                "type": "binary",
-                "o:length": 32,
+                "type": "id",
+                "o:length": 24,
                 "o:preferred_column_name": "DATA$_id",
             }
             self.assertEqual(data_guide["properties"]["_id"], id_metadata)
@@ -973,7 +974,9 @@ class TestCase(test_env.BaseTestCase):
                 )
 
     @unittest.skipIf(
-        test_env.get_client_version() < (23, 4), "unsupported data types"
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "unsupported data types",
     )
     def test_3445(self):
         "3445 - test fetching documents with JSON data using extended types"
@@ -992,6 +995,36 @@ class TestCase(test_env.BaseTestCase):
         self.__normalize_docs([fetched_content])
         self.assertEqual(fetched_content, val)
         self.assertEqual(doc.getContent(), val)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "unsupported data types",
+    )
+    def test_3446(self):
+        "3446 - test round-trip of JsonId"
+        soda_db = self.get_soda_database()
+        coll = soda_db.createCollection("TestJsonId")
+        val = {
+            "key1": 5,
+            "key2": "A string",
+            "key3": b"Raw data",
+            "key4": datetime.datetime(2024, 3, 2, 10, 1, 36),
+        }
+        doc = soda_db.createDocument(val)
+        coll.insertOne(doc)
+        self.conn.commit()
+        fetched_doc = coll.find().getDocuments()[0]
+        fetched_content = fetched_doc.getContent()
+        self.assertIs(type(fetched_content["_id"]), oracledb.JsonId)
+        updated_val = val.copy()
+        updated_val["key1"] = 25
+        content = fetched_content.copy()
+        content["key1"] = updated_val["key1"]
+        updated_doc = soda_db.createDocument(content)
+        coll.find().key(fetched_doc.key).replaceOne(updated_doc)
+        fetched_doc = coll.find().getDocuments()[0]
+        self.assertEqual(fetched_doc.getContent(), content)
 
 
 if __name__ == "__main__":

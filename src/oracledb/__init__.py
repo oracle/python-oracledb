@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -269,6 +269,11 @@ from .constructors import (
 from .future import (
     future as __future__,  # noqa: F401
 )
+
+
+class JsonId(bytes):
+    pass
+
 
 package = sys.modules[__name__]
 base_impl.init_base_impl(package)

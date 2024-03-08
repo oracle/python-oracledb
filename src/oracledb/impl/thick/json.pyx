@@ -108,7 +108,9 @@ cdef class JsonBuffer:
             self._add_buf(value, &node.value.asBytes.ptr,
                           &node.value.asBytes.length)
         elif isinstance(value, bytes):
-            node.oracleTypeNum = DPI_ORACLE_TYPE_RAW
+            node.oracleTypeNum = DPI_ORACLE_TYPE_JSON_ID \
+                    if isinstance(value, PY_TYPE_JSON_ID) \
+                    else DPI_ORACLE_TYPE_RAW
             node.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
             self._add_buf(value, &node.value.asBytes.ptr,
                           &node.value.asBytes.length)

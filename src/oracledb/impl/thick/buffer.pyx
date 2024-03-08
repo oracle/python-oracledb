@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,7 +48,7 @@ cdef class StringBuffer:
             self.obj = (<str> value).encode()
             self.size_in_chars = <uint32_t> len(<str> value)
         elif isinstance(value, bytes):
-            self.obj = value
+            self.obj = <bytes> value
             self.size_in_chars = <uint32_t> len(<bytes> value)
         else:
             raise TypeError("expecting string or bytes")

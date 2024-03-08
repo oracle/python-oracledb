@@ -1867,6 +1867,17 @@ Oracledb Methods
     (number of seconds since the epoch; see the documentation of the standard
     Python time module for details).
 
+
+.. _jsonid:
+
+oracledb.JsonId Class
+=====================
+
+Objects of this class are returned by SODA in Oracle Database 23.4 and higher
+in the ``_id`` attribute of documents stored in native collections. It is a
+subclass of the ``bytes`` class.
+
+
 .. _futureobj:
 
 Oracledb.__future__ Object

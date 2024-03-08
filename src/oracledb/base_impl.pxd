@@ -45,7 +45,7 @@ cdef enum:
 
 cdef enum:
     DB_TYPE_NUM_MIN = 2000
-    DB_TYPE_NUM_MAX = 2033
+    DB_TYPE_NUM_MAX = 2034
 
     DB_TYPE_NUM_BFILE = 2020
     DB_TYPE_NUM_BINARY_DOUBLE = 2008

@@ -67,6 +67,9 @@ Common Changes
     columns which have the check constraint ``IS JSON FORMAT OSON`` enabled.
 #)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
     has the check constraint "IS JSON FORMAT OSON" enabled.
+#)  Added class :ref:`oracledb.JsonId <jsonid>` to represent JSON ID values
+    returned by SODA in Oracle Database 23.4 and higher in the ``_id``
+    attribute of documents stored in native collections.
 #)  Added support for columns of type vector (currently requires access to a
     limited availability release of the database).
 #)  Errors raised when calling :meth:`Cursor.executemany()` with PL/SQL now

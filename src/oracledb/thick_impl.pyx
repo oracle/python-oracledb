@@ -85,6 +85,7 @@ include "impl/thick/odpi.pxd"
 cdef type PY_TYPE_DATE = datetime.date
 cdef type PY_TYPE_DATETIME = datetime.datetime
 cdef type PY_TYPE_DECIMAL = decimal.Decimal
+cdef type PY_TYPE_JSON_ID
 cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta

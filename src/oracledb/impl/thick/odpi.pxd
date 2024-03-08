@@ -111,6 +111,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_ORACLE_TYPE_INTERVAL_YM
         DPI_ORACLE_TYPE_JSON
         DPI_ORACLE_TYPE_JSON_ARRAY
+        DPI_ORACLE_TYPE_JSON_ID
         DPI_ORACLE_TYPE_JSON_OBJECT
         DPI_ORACLE_TYPE_LONG_NVARCHAR
         DPI_ORACLE_TYPE_LONG_RAW
@@ -342,6 +343,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         const char *oracleClientLibDir
         const char *oracleClientConfigDir
         bint sodaUseJsonDesc
+        bint useJsonId
 
     ctypedef union dpiDataBuffer:
         bint asBoolean
