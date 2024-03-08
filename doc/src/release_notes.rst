@@ -20,14 +20,14 @@ Thin Mode Changes
 #)  Added support for writing UTF-8 encoded bytes to CLOB and NCLOB values and
     writing strings to BLOB values in order to be consistent with what is done
     for string variables.
-#)  User defined errors raised by the database no longer display an error help
+#)  User-defined errors raised by the database no longer display an error help
     portal URL.
-#)  Fixed potential cursor issues when using DRCP.
-#)  Fixed regression when using IAM token authentication
+#)  Fixed potential cursor issues when using :ref:`drcp`.
+#)  Fixed regression when using :ref:`IAM token authentication <iamauth>`
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
 #)  Fixed bug connecting to databases that are only mounted and not opened
     (`issue 294 <https://github.com/oracle/python-oracledb/issues/294>`__).
-#)  Fixed bug when using DRCP with :ref:`asyncio <asyncio>`.
+#)  Fixed bug when using :ref:`DRCP <drcp>` with :ref:`asyncio <asyncio>`.
 #)  Fixed bug in identifying bind variables in SQL statements containing a
     single line comment at the end of the statement.
 #)  Fixed bug in determining the list of attributes for PL/SQL collections.
@@ -37,7 +37,7 @@ Thin Mode Changes
 #)  Fixed bug when connecting to a database using listener redirects when using
     :ref:`asyncio <asyncio>`
     (`issue 285 <https://github.com/oracle/python-oracledb/issues/285>`__).
-#)  Fixed type declaration for the `connectiontype` parameter to
+#)  Fixed type declaration for the ``connectiontype`` parameter to
     :meth:`oracledb.create_pool_async()`.
 
 
@@ -63,18 +63,20 @@ Common Changes
 #)  A number of performance improvements were made.
 #)  Error ``DPY-2045: arraysize must be an integer greater than zero`` is now
     raised when an invalid value is specified for the attribute
-    :data:`Cursor.arraysize`. Previously a variety of errors (``TypeError``,
+    :data:`Cursor.arraysize`. Previously, a variety of errors (``TypeError``,
     ``OverflowError`` or ``ORA-03147: missing mandatory TTC field``) were
     raised.
 #)  Error ``DPY-2016: variable array size of %d is too small (should be at
     least %d)`` is now raised when :meth:`Cursor.executemany()` is called with
     an integer number of iterations that is too large for the existing bind
-    variables. Previously thin mode raised ``IndexError`` and thick mode raised
+    variables. Previously, the python-oracledb Thin mode raised ``IndexError``
+    and python-oracledb Thick mode raised
     ``DPI-1018: array size of %d is too small``.
 #)  Error ``DPY-1001: not connected to database`` is now raised when an attempt
     is made to perform an operation on a LOB using a closed connection.
-    Previously Thin mode would raise an ``AttributeError`` exception and Thick
-    mode would raise ``DPI-1040: LOB was already closed``.
+    Previously, the python-oracledb Thin mode raised an ``AttributeError``
+    exception and python-oracledb Thick mode raised
+    ``DPI-1040: LOB was already closed``.
 #)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
     the connection parameter ``purity`` has been specified.
 #)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
