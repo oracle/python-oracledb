@@ -95,6 +95,7 @@ class ConnectParams:
         ssl_context: Any = None,
         sdu: int = 8192,
         pool_boundary: str = None,
+        use_tcp_fast_open: bool = False,
         handle: int = 0,
     ):
         """
@@ -261,6 +262,11 @@ class ConnectParams:
           This requires the use of DRCP with Oracle Database 23.4 or higher
           (default: None)
 
+        - use_tcp_fast_open: boolean indicating whether to use TCP fast open.
+          This is an ADB-S specific property for clients connecting from within
+          OCI Cloud network. Please refer to the ADB-S documentation for more
+          information (default: False)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -306,7 +312,8 @@ class ConnectParams:
             + f"connection_id_prefix={self.connection_id_prefix!r}, "
             + f"ssl_context={self.ssl_context!r}, "
             + f"sdu={self.sdu!r}, "
-            + f"pool_boundary={self.pool_boundary!r}"
+            + f"pool_boundary={self.pool_boundary!r}, "
+            + f"use_tcp_fast_open={self.use_tcp_fast_open!r}"
             + ")"
         )
 
@@ -650,6 +657,16 @@ class ConnectParams:
 
     @property
     @_description_attr
+    def use_tcp_fast_open(self) -> Union[list, bool]:
+        """
+        Boolean indicating whether to use TCP fast open. This is an ADB-S
+        specific property for clients connecting from within OCI Cloud network.
+        Please refer to the ADB-S documentation for more information.
+        """
+        return self._impl.use_tcp_fast_open
+
+    @property
+    @_description_attr
     def wallet_location(self) -> Union[list, str]:
         """
         The directory where the wallet can be found. In thin mode this must be
@@ -737,6 +754,7 @@ class ConnectParams:
         ssl_context: Any = None,
         sdu: int = None,
         pool_boundary: str = None,
+        use_tcp_fast_open: bool = None,
         handle: int = None,
     ):
         """
@@ -892,6 +910,11 @@ class ConnectParams:
         - pool_boundary: one of the values "statement" or "transaction"
           indicating when pooled DRCP connections can be returned to the pool.
           This requires the use of DRCP with Oracle Database 23.4 or higher
+
+        - use_tcp_fast_open: boolean indicating whether to use TCP fast open.
+          This is an ADB-S specific property for clients connecting from within
+          OCI Cloud network. Please refer to the ADB-S documentation for more
+          information
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

@@ -713,6 +713,7 @@ class TestCase(test_env.BaseTestCase):
             ("ssl_context", None),
             ("sdu", 16384),
             ("pool_boundary", "statement"),
+            ("use_tcp_fast_open", True),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

@@ -17,6 +17,8 @@ Thin Mode Changes
 #)  Added support for Oracle Database 23c feature that can improve the
     performance of connection creation by reducing the number of round trips
     required for all connections created.
+#)  Added support for Oracle Database 23c feature: use of TCP fast open for
+    clients connecting from within the OCI Cloud network.
 #)  Added support for Easy Connect strings found in tnsnames.ora files.
 #)  Added support for writing UTF-8 encoded bytes to CLOB and NCLOB values and
     writing strings to BLOB values in order to be consistent with what is done

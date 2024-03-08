@@ -871,6 +871,8 @@ cdef class Description(ConnectParamsNode):
             temp_parts.append(f"(SID={self.sid})")
         if self.server_type is not None:
             temp_parts.append(f"(SERVER={self.server_type})")
+        if self.use_tcp_fast_open:
+            temp_parts.append("(USE_TCP_FAST_OPEN=ON)")
         if self.pool_boundary is not None:
             temp_parts.append(f"(POOL_BOUNDARY={self.pool_boundary})")
         if cid is not None:
@@ -925,6 +927,7 @@ cdef class Description(ConnectParamsNode):
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
         description.wallet_location = self.wallet_location
         description.connection_id_prefix = self.connection_id_prefix
+        description.use_tcp_fast_open = self.use_tcp_fast_open
         return description
 
     def set_from_connect_data_args(self, dict args):
@@ -939,6 +942,7 @@ cdef class Description(ConnectParamsNode):
         _set_purity_param(args, "purity", &self.purity)
         _set_pool_boundary_param(args, "pool_boundary", self)
         _set_str_param(args, "connection_id_prefix", self)
+        _set_bool_param(args, "use_tcp_fast_open", &self.use_tcp_fast_open)
 
     def set_from_description_args(self, dict args):
         """

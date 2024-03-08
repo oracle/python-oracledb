@@ -115,6 +115,7 @@ class TestCase(test_env.BaseTestCase):
             ("ssl_context", None),
             ("sdu", 16384),
             ("pool_boundary", "transaction"),
+            ("use_tcp_fast_open", True),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

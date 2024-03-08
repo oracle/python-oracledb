@@ -349,6 +349,7 @@ cdef class Description(ConnectParamsNode):
         public str pool_boundary
         public uint32_t purity
         public bint ssl_server_dn_match
+        public bint use_tcp_fast_open
         public str ssl_server_cert_dn
         public str wallet_location
         str connection_id

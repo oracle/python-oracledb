@@ -218,7 +218,8 @@ cdef class Protocol(BaseProtocol):
         # establish initial TCP connection and get initial connect string
         host = address.host
         port = address.port
-        self._connect_tcp(params, description, address, host, port)
+        self._connect_tcp(params, description, address, host, port,
+                          connect_string)
 
         # send connect message and process response; this may request the
         # message to be resent multiple times; if a redirect packet is
@@ -251,7 +252,8 @@ cdef class Protocol(BaseProtocol):
                 host = temp_address.host
                 port = temp_address.port
                 connect_string = redirect_data[pos + 1:]
-                self._connect_tcp(params, description, address, host, port)
+                self._connect_tcp(params, description, address, host, port,
+                                  connect_string)
                 connect_message = None
                 packet_flags = TNS_PACKET_FLAG_REDIRECT
             elif packet_type == TNS_PACKET_TYPE_ACCEPT:
@@ -325,7 +327,7 @@ cdef class Protocol(BaseProtocol):
 
     cdef int _connect_tcp(self, ConnectParamsImpl params,
                           Description description, Address address, str host,
-                          int port) except -1:
+                          int port, str connect_string) except -1:
         """
         Creates a socket on which to communicate using the provided parameters.
         If a proxy is configured, a connection to the proxy is established and
@@ -347,7 +349,12 @@ cdef class Protocol(BaseProtocol):
             if not use_tcps and (params._token is not None
                     or params.access_token_callback is not None):
                 errors._raise_err(errors.ERR_ACCESS_TOKEN_REQUIRES_TCPS)
-        sock = socket.create_connection(connect_info, timeout)
+        if description.use_tcp_fast_open:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.sendto(connect_string.encode(), socket.MSG_FASTOPEN,
+                        connect_info)
+        else:
+            sock = socket.create_connection(connect_info, timeout)
 
         # complete connection through proxy, if applicable
         if use_proxy:

@@ -1198,6 +1198,7 @@ def connect(
     ssl_context: Any = None,
     sdu: int = 8192,
     pool_boundary: str = None,
+    use_tcp_fast_open: bool = False,
     handle: int = 0,
 ) -> Connection:
     """
@@ -1383,6 +1384,11 @@ def connect(
     - pool_boundary: one of the values "statement" or "transaction" indicating
       when pooled DRCP connections can be returned to the pool. This requires
       the use of DRCP with Oracle Database 23.4 or higher (default: None)
+
+    - use_tcp_fast_open: boolean indicating whether to use TCP fast open. This
+      is an ADB-S specific property for clients connecting from within OCI
+      Cloud network. Please refer to the ADB-S documentation for more
+      information (default: False)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
@@ -1768,6 +1774,7 @@ def connect_async(
     ssl_context: Any = None,
     sdu: int = 8192,
     pool_boundary: str = None,
+    use_tcp_fast_open: bool = False,
     handle: int = 0,
 ) -> AsyncConnection:
     """
@@ -1953,6 +1960,11 @@ def connect_async(
     - pool_boundary: one of the values "statement" or "transaction" indicating
       when pooled DRCP connections can be returned to the pool. This requires
       the use of DRCP with Oracle Database 23.4 or higher (default: None)
+
+    - use_tcp_fast_open: boolean indicating whether to use TCP fast open. This
+      is an ADB-S specific property for clients connecting from within OCI
+      Cloud network. Please refer to the ADB-S documentation for more
+      information (default: False)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
