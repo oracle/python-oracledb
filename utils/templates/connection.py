@@ -523,6 +523,15 @@ class Connection(BaseConnection):
 
             # create thin or thick implementation object
             if thin:
+                if (
+                    params_impl.shardingkey is not None
+                    or params_impl.supershardingkey is not None
+                ):
+                    errors._raise_err(
+                        errors.ERR_FEATURE_NOT_SUPPORTED,
+                        feature="sharding",
+                        driver_type="thick",
+                    )
                 if pool is not None:
                     impl = pool_impl.acquire(params_impl)
                 else:

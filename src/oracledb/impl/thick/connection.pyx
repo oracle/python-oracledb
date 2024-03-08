@@ -64,7 +64,7 @@ cdef class ConnectionParams:
         uint32_t private_key_len
 
         uint32_t num_app_context
-        list app_context_bytes
+        list bytes_references
         dpiAppContext *app_context
 
         uint32_t num_sharding_key_columns
@@ -84,9 +84,62 @@ cdef class ConnectionParams:
                                   uint32_t *length) except -1:
         cdef bytes temp
         temp = value.encode()
-        self.app_context_bytes.append(temp)
+        self.bytes_references.append(temp)
         ptr[0] = temp
         length[0] = <uint32_t> len(temp)
+
+    cdef int _process_sharding_value(self, object value,
+                                     dpiShardingKeyColumn *column) except -1:
+        """
+        Process a sharding column value and place it in the format required by
+        ODPI-C.
+        """
+        cdef:
+            dpiTimestamp* timestamp
+            bytes temp
+        if isinstance(value, str):
+            temp = value.encode()
+            self.bytes_references.append(temp)
+            column.oracleTypeNum = DPI_ORACLE_TYPE_VARCHAR
+            column.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
+            column.value.asBytes.ptr = temp
+            column.value.asBytes.length = <uint32_t> len(temp)
+        elif isinstance(value, (int, float, PY_TYPE_DECIMAL)):
+            temp = str(value).encode()
+            self.bytes_references.append(temp)
+            column.oracleTypeNum = DPI_ORACLE_TYPE_NUMBER
+            column.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
+            column.value.asBytes.ptr = temp
+            column.value.asBytes.length = <uint32_t> len(temp)
+        elif isinstance(value, bytes):
+            self.bytes_references.append(value)
+            column.oracleTypeNum = DPI_ORACLE_TYPE_RAW
+            column.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
+            column.value.asBytes.ptr = <bytes> value
+            column.value.asBytes.length = <uint32_t> len(value)
+        elif isinstance(value, PY_TYPE_DATETIME):
+            column.oracleTypeNum = DPI_ORACLE_TYPE_DATE
+            column.nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP
+            timestamp = &column.value.asTimestamp
+            memset(timestamp, 0, sizeof(dpiTimestamp))
+            timestamp.year = cydatetime.datetime_year(value)
+            timestamp.month = cydatetime.datetime_month(value)
+            timestamp.day = cydatetime.datetime_day(value)
+            timestamp.hour = cydatetime.datetime_hour(value)
+            timestamp.minute = cydatetime.datetime_minute(value)
+            timestamp.second = cydatetime.datetime_second(value)
+            timestamp.fsecond = cydatetime.datetime_microsecond(value) * 1000
+        elif isinstance(value, PY_TYPE_DATE):
+            column.oracleTypeNum = DPI_ORACLE_TYPE_DATE
+            column.nativeTypeNum = DPI_NATIVE_TYPE_TIMESTAMP
+            timestamp = &column.value.asTimestamp
+            memset(timestamp, 0, sizeof(dpiTimestamp))
+            timestamp.year = cydatetime.date_year(value)
+            timestamp.month = cydatetime.date_month(value)
+            timestamp.day = cydatetime.date_day(value)
+        else:
+            errors._raise_err(errors.ERR_PYTHON_VALUE_NOT_SUPPORTED,
+                              type_name=type(value).__name__)
 
     cdef process_appcontext(self, list entries):
         cdef:
@@ -95,7 +148,8 @@ cdef class ConnectionParams:
             ssize_t num_bytes
             bytes temp
             uint32_t i
-        self.app_context_bytes = []
+        if self.bytes_references is None:
+            self.bytes_references = []
         self.num_app_context = <uint32_t> len(entries)
         num_bytes = self.num_app_context * sizeof(dpiAppContext)
         self.app_context = <dpiAppContext*> cpython.PyMem_Malloc(num_bytes)
@@ -108,6 +162,29 @@ cdef class ConnectionParams:
                                       &entry.namespaceNameLength)
             self._process_context_str(name, &entry.name, &entry.nameLength)
             self._process_context_str(value, &entry.value, &entry.valueLength)
+
+    cdef int process_sharding_key(self, list entries, bint is_super) except -1:
+        """
+        Process the (super) sharding key and place it in the format required by
+        ODPI-C.
+        """
+        cdef:
+            dpiShardingKeyColumn *columns
+            uint32_t num_columns
+            ssize_t num_bytes, i
+        if self.bytes_references is None:
+            self.bytes_references = []
+        num_columns = <uint32_t> len(entries)
+        num_bytes = num_columns * sizeof(dpiShardingKeyColumn)
+        columns = <dpiShardingKeyColumn*> cpython.PyMem_Malloc(num_bytes)
+        if is_super:
+            self.super_sharding_key_columns = columns
+            self.num_super_sharding_key_columns = num_columns
+        else:
+            self.sharding_key_columns = columns
+            self.num_sharding_key_columns = num_columns
+        for i, entry in enumerate(entries):
+            self._process_sharding_value(entry, &columns[i])
 
 
 @cython.freelist(8)
@@ -331,6 +408,10 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.tag_len = <uint32_t> len(params.tag)
         if user_params.appcontext:
             params.process_appcontext(user_params.appcontext)
+        if user_params.shardingkey:
+            params.process_sharding_key(user_params.shardingkey, False)
+        if user_params.supershardingkey:
+            params.process_sharding_key(user_params.supershardingkey, True)
         if user_params._token is not None \
                 or user_params.access_token_callback is not None:
             token = user_params._get_token()
@@ -377,6 +458,14 @@ cdef class ThickConnImpl(BaseConnImpl):
         if user_params.appcontext:
             conn_params.appContext = params.app_context
             conn_params.numAppContext = params.num_app_context
+        if user_params.shardingkey:
+            conn_params.shardingKeyColumns = params.sharding_key_columns
+            conn_params.numShardingKeyColumns = params.num_sharding_key_columns
+        if user_params.supershardingkey:
+            conn_params.superShardingKeyColumns = \
+                    params.super_sharding_key_columns
+            conn_params.numSuperShardingKeyColumns = \
+                    params.num_super_sharding_key_columns
         if user_params.tag is not None:
             conn_params.tag = params.tag_ptr
             conn_params.tagLength = params.tag_len
@@ -405,7 +494,8 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_info(&error_info)
         elif error_info.isWarning:
             self.warning = _create_new_from_info(&error_info)
-        if conn_params.outNewSession and self.warning is None:
+        if conn_params.outNewSession and pool_impl is not None \
+                and self.warning is None:
             self.warning = pool_impl.warning
         if dpiConn_getServerVersion(self._handle, NULL, NULL,
                                     &version_info) < 0:
