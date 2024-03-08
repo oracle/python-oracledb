@@ -41,9 +41,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3901(self):
         "3901 - test executing a None statement with bind variables"
         cursor = self.conn.cursor()
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2001:", cursor.execute, None, x=5
-        )
+        with self.assertRaisesFullCode("DPY-2001"):
+            cursor.execute(None, x=5)
 
     def test_3902(self):
         "3902 - test executing a statement with args and empty keyword args"
@@ -75,14 +74,10 @@ class TestCase(test_env.BaseTestCase):
         "3905 - test executing a statement with both a dict and keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2005:",
-            self.cursor.execute,
-            "begin :value := 15; end;",
-            dict_arg,
-            value=simple_var,
-        )
+        with self.assertRaisesFullCode("DPY-2005"):
+            self.cursor.execute(
+                "begin :value := 15; end;", dict_arg, value=simple_var
+            )
 
     def test_3906(self):
         "3906 - test executing a statement and then changing the array size"
@@ -93,33 +88,22 @@ class TestCase(test_env.BaseTestCase):
     def test_3907(self):
         "3907 - test that subsequent executes succeed after bad execute"
         sql = "begin raise_application_error(-20000, 'this); end;"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2041:", self.cursor.execute, sql
-        )
+        with self.assertRaisesFullCode("DPY-2041"):
+            self.cursor.execute(sql)
         self.cursor.execute("begin null; end;")
 
     def test_3908(self):
         "3908 - test that subsequent fetches fail after bad execute"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-00904:",
-            self.cursor.execute,
-            "select y from dual",
-        )
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1003:", self.cursor.fetchall
-        )
+        with self.assertRaisesFullCode("ORA-00904"):
+            self.cursor.execute("select y from dual")
+        with self.assertRaisesFullCode("DPY-1003"):
+            self.cursor.fetchall()
 
     def test_3909(self):
         "3909 - test executing a statement with an incorrect named bind"
         sql = "select * from TestStrings where IntCol = :value"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4008:|^ORA-01036:",
-            self.cursor.execute,
-            sql,
-            value2=3,
-        )
+        with self.assertRaisesFullCode("DPY-4008", "ORA-01036"):
+            self.cursor.execute(sql, value2=3)
 
     def test_3910(self):
         "3910 - test executing a statement with named binds"
@@ -140,13 +124,8 @@ class TestCase(test_env.BaseTestCase):
                 select *
                 from TestNumbers
                 where IntCol = :value and LongIntCol = :value2"""
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4009:|^ORA-01008:",
-            self.cursor.execute,
-            sql,
-            [3],
-        )
+        with self.assertRaisesFullCode("DPY-4009", "ORA-01008"):
+            self.cursor.execute(sql, [3])
 
     def test_3912(self):
         "3912 - test executing a statement with positional binds"
@@ -208,28 +187,12 @@ class TestCase(test_env.BaseTestCase):
         statement = "begin :value := :value2 + 5; end;"
         var = self.cursor.var(oracledb.NUMBER)
         var.setvalue(0, 5)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4010:|^ORA-01008:",
-            self.cursor.execute,
-            statement,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4010:|^ORA-01008:",
-            self.cursor.execute,
-            statement,
-            value=var,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4008:|^ORA-01036:",
-            self.cursor.execute,
-            statement,
-            value=var,
-            value2=var,
-            value3=var,
-        )
+        with self.assertRaisesFullCode("DPY-4010", "ORA-01008"):
+            self.cursor.execute(statement)
+        with self.assertRaisesFullCode("DPY-4010", "ORA-01008"):
+            self.cursor.execute(statement, value=var)
+        with self.assertRaisesFullCode("DPY-4008", "ORA-01036"):
+            self.cursor.execute(statement, value=var, value2=var, value3=var)
 
     def test_3917(self):
         "3917 - change in size on subsequent binds does not use optimised path"
@@ -269,30 +232,23 @@ class TestCase(test_env.BaseTestCase):
     def test_3919(self):
         "3919 - test calling execute() with invalid parameters"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2003:",
-            self.cursor.execute,
-            sql,
-            "These are not valid parameters",
-        )
+        with self.assertRaisesFullCode("DPY-2003"):
+            self.cursor.execute(sql, "These are not valid parameters")
 
     def test_3920(self):
         "3920 - test calling execute() with mixed binds"
         self.cursor.execute("truncate table TestTempTable")
         self.cursor.setinputsizes(None, None, str)
         data = dict(val1=1, val2="Test String 1")
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2006:",
-            self.cursor.execute,
-            """
-            insert into TestTempTable (IntCol, StringCol1)
-            values (:1, :2)
-            returning StringCol1 into :out_var
-            """,
-            data,
-        )
+        with self.assertRaisesFullCode("DPY-2006"):
+            self.cursor.execute(
+                """
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:1, :2)
+                returning StringCol1 into :out_var
+                """,
+                data,
+            )
 
     def test_3921(self):
         "3921 - test binding by name with double quotes"
@@ -487,13 +443,8 @@ class TestCase(test_env.BaseTestCase):
         "3930 - test setinputsizes() but without binding"
         self.cursor.setinputsizes(None, int)
         sql = "select :1, : 2 from dual"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01008:|^DPY-4010:",
-            self.cursor.execute,
-            sql,
-            [],
-        )
+        with self.assertRaisesFullCode("ORA-01008", "DPY-4010"):
+            self.cursor.execute(sql, [])
 
     def test_3931(self):
         "3931 - test getting FetchInfo attributes"

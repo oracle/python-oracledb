@@ -49,7 +49,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def __connect_and_generate_error(self, pool):
         async with pool.acquire() as conn:
             cursor = conn.cursor()
-            with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01476:"):
+            with self.assertRaisesFullCode("ORA-01476"):
                 await cursor.execute("select 1 / 0 from dual")
 
     async def __verify_connection(
@@ -219,7 +219,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5509 - test closing a pool normally with connections checked out"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         async with pool.acquire():
-            with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1005:"):
+            with self.assertRaisesFullCode("DPY-1005"):
                 await pool.close()
 
     async def test_5510(self):
@@ -232,7 +232,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5511 - using the pool after it is closed raises an exception"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
         await pool.close()
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:"):
+        with self.assertRaisesFullCode("DPY-1002"):
             await pool.acquire()
 
     async def test_5512(self):
@@ -240,7 +240,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         pool = test_env.get_pool_async(min=1, max=2, increment=1)
         async with pool.acquire(), pool.acquire():
             pool.getmode = oracledb.POOL_GETMODE_NOWAIT
-            with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4005:"):
+            with self.assertRaisesFullCode("DPY-4005"):
                 await pool.acquire()
         await pool.close()
 
@@ -295,9 +295,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         # release all such connections
         for conn in [await pool.acquire() for i in range(2)]:
             with conn.cursor() as cursor:
-                with self.assertRaisesRegex(
-                    oracledb.DatabaseError, "^DPY-4011:"
-                ):
+                with self.assertRaisesFullCode("DPY-4011"):
                     await cursor.execute("select user from dual")
             await conn.close()
         self.assertEqual(pool.opened, 0)
@@ -422,7 +420,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5522(self):
         "5522 - test creating a pool invalid params"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2027:"):
+        with self.assertRaisesFullCode("DPY-2027"):
             oracledb.create_pool_async(params="bad params")
 
     async def test_5523(self):
@@ -435,7 +433,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5524(self):
         "5524 - test creating a pool with invalid pool_class"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2026:"):
+        with self.assertRaisesFullCode("DPY-2026"):
             oracledb.create_pool_async(pool_class=int)
 
     async def test_5525(self):

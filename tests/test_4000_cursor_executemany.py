@@ -145,7 +145,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
         statement = "insert into TestTempTable (IntCol) values (:value)"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00001:"):
+        with self.assertRaisesFullCode("ORA-00001"):
             self.cursor.executemany(statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
@@ -154,13 +154,8 @@ class TestCase(test_env.BaseTestCase):
         sql = """
                 insert into TestTempTable (IntCol, StringCol1)
                 values (:1, :2)"""
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2004:",
-            self.cursor.executemany,
-            sql,
-            "These are not valid parameters",
-        )
+        with self.assertRaisesFullCode("DPY-2004"):
+            self.cursor.executemany(sql, "These are not valid parameters")
 
     def test_4010(self):
         "4010 - test calling executemany() without any bind parameters"
@@ -223,24 +218,19 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4013(self):
         "4013 - test executemany with incorrect parameters"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
+        with self.assertRaisesFullCode("DPY-2004"):
             self.cursor.executemany("select :1 from dual", [1])
 
     def test_4014(self):
         "4014 - test executemany with mixed binds (pos first)"
         rows = [["test"], {"value": 1}]
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2006:",
-            self.cursor.executemany,
-            "select :1 from dual",
-            rows,
-        )
+        with self.assertRaisesFullCode("DPY-2006"):
+            self.cursor.executemany("select :1 from dual", rows)
 
     def test_4015(self):
         "4015 - test executemany with mixed binds (name first)"
         rows = [{"value": 1}, ["test"]]
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
+        with self.assertRaisesFullCode("DPY-2006"):
             self.cursor.executemany("select :value from dual", rows)
 
     def test_4016(self):
@@ -299,7 +289,7 @@ class TestCase(test_env.BaseTestCase):
         data = [(i, f"Test {i}") for i in values]
         for i in range(2):
             self.cursor.execute("truncate table TestTempTable")
-            out_bind = self.cursor.var(oracledb.NUMBER, arraysize=5)
+            out_bind = self.cursor.var(oracledb.NUMBER, arraysize=len(values))
             self.cursor.setinputsizes(None, None, out_bind)
             self.cursor.executemany(
                 """
@@ -379,8 +369,8 @@ class TestCase(test_env.BaseTestCase):
     def test_4023(self):
         "3901 - test executing a None statement"
         cursor = self.conn.cursor()
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):
-            cursor.executemany(None, [1, 2])
+        with self.assertRaisesFullCode("DPY-2001"):
+            cursor.executemany(None, [(1,), (2,)])
 
     def test_4024(self):
         """

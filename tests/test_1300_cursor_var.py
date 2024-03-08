@@ -87,13 +87,8 @@ class TestCase(test_env.BaseTestCase):
                     open :pcursor for
                         select 1 from dual;
                 end;"""
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3009:",
-            cursor.execute,
-            sql,
-            pcursor=cursor,
-        )
+        with self.assertRaisesFullCode("DPY-3009"):
+            cursor.execute(sql, pcursor=cursor)
 
     def test_1303(self):
         "1303 - test returning a ref cursor after closing it"
@@ -253,9 +248,8 @@ class TestCase(test_env.BaseTestCase):
         )
         ref_cursor = ref_cursor_var.getvalue()
         if ref_cursor is not None:
-            self.assertRaisesRegex(
-                oracledb.DatabaseError, "^DPY-4025:", ref_cursor.fetchall
-            )
+            with self.assertRaisesFullCode("DPY-4025"):
+                ref_cursor.fetchall()
 
     def test_1311(self):
         "1311 - test fetching a cursor with a custom class"

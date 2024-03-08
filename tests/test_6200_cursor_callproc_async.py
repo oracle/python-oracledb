@@ -69,7 +69,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         kwargs = dict(
             a_InValue="hi", a_OutValue=self.cursor.var(oracledb.NUMBER)
         )
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:"):
+        with self.assertRaisesFullCode("ORA-06550"):
             await self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
 
     async def test_6204(self):
@@ -94,27 +94,27 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_6207(self):
         "6207 - test executing a stored function with wrong parameters"
         func_name = "func_Test"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2007:"):
+        with self.assertRaisesFullCode("DPY-2007"):
             await self.cursor.callfunc(oracledb.NUMBER, func_name, ("hi", 5))
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:"):
+        with self.assertRaisesFullCode("ORA-06550"):
             await self.cursor.callfunc(
                 func_name, oracledb.NUMBER, ("hi", 5, 7)
             )
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2012:"):
+        with self.assertRaisesFullCode("DPY-2012"):
             await self.cursor.callfunc(func_name, oracledb.NUMBER, "hi", 7)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06502:"):
+        with self.assertRaisesFullCode("ORA-06502"):
             await self.cursor.callfunc(func_name, oracledb.NUMBER, [5, "hi"])
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-06550:"):
+        with self.assertRaisesFullCode("ORA-06550"):
             await self.cursor.callfunc(func_name, oracledb.NUMBER)
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2012:"):
+        with self.assertRaisesFullCode("DPY-2012"):
             await self.cursor.callfunc(func_name, oracledb.NUMBER, 5)
 
     async def test_6208(self):
         "6208 - test error for keyword args with invalid type"
         kwargs = [5]
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2013:"):
+        with self.assertRaisesFullCode("DPY-2013"):
             await self.cursor.callproc("proc_Test", [], kwargs)
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2013:"):
+        with self.assertRaisesFullCode("DPY-2013"):
             await self.cursor.callfunc(
                 "func_Test", oracledb.NUMBER, [], kwargs
             )

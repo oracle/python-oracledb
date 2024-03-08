@@ -88,9 +88,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         parameters = dict(
             int_val=int_val, str_val=str_val, int_var=int_var, str_var=str_var
         )
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4002:|^DPI-1037:"
-        ):
+        with self.assertRaisesFullCode("DPY-4002", "DPI-1037"):
             await self.cursor.execute(
                 """
                 insert into TestTempTable (IntCol, StringCol1)
@@ -373,7 +371,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         parameters = dict(
             int_val=int_val, str_val=str_val, int_var=int_var, str_var=str_var
         )
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-12899:"):
+        with self.assertRaisesFullCode("ORA-12899"):
             await self.cursor.execute(sql, parameters)
 
     async def test_5913(self):
@@ -405,7 +403,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 insert into TestTempTable (IntCol)
                 values (:int_val)
                 returning IntCol, StringCol1 into :ROWID"""
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01745:"):
+        with self.assertRaisesFullCode("ORA-01745"):
             await self.cursor.parse(sql)
 
     async def test_5916(self):

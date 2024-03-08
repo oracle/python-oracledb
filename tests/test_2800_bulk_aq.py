@@ -165,9 +165,8 @@ class TestCase(test_env.BaseTestCase):
         "2805 - test error for messages with no payload"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
         messages = [self.conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2000:", queue.enqmany, messages
-        )
+        with self.assertRaisesFullCode("DPY-2000"):
+            queue.enqmany(messages)
 
     def test_2806(self):
         "2806 - verify that the msgid property is returned correctly"
@@ -201,9 +200,8 @@ class TestCase(test_env.BaseTestCase):
         "2808 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = self.conn.msgproperties(payload="string message")
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1071:", queue.enqmany, [props, props]
-        )
+        with self.assertRaisesFullCode("DPI-1071"):
+            queue.enqmany([props, props])
 
     def test_2809(self):
         "2809 - test errors for invalid values for enqmany and deqmany"

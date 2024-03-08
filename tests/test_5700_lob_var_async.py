@@ -166,19 +166,19 @@ class TestCase(test_env.BaseAsyncTestCase):
         (lob,) = await self.cursor.fetchone()
         self.assertFalse(await lob.isopen())
         await lob.open()
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-22293:"):
+        with self.assertRaisesFullCode("ORA-22293"):
             await lob.open()
         self.assertTrue(await lob.isopen())
         await lob.close()
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-22289:"):
+        with self.assertRaisesFullCode("ORA-22289"):
             await lob.close()
         self.assertFalse(await lob.isopen())
         self.assertEqual(await lob.size(), 75000)
         await lob.write(write_value, 75001)
         self.assertEqual(await lob.size(), 75000 + len(write_value))
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2030:"):
+        with self.assertRaisesFullCode("DPY-2030"):
             await lob.read(0)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2030:"):
+        with self.assertRaisesFullCode("DPY-2030"):
             await lob.read(-25)
         self.assertEqual(await lob.read(), long_string + write_value)
         await lob.write(write_value, 1)

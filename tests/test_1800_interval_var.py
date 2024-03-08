@@ -220,12 +220,8 @@ class TestCase(test_env.BaseTestCase):
     def test_1812(self):
         "1812 - test year to month interval not supported"
         statement = "select INTERVAL '10-2' YEAR TO MONTH from dual"
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3007:",
-            self.cursor.execute,
-            statement,
-        )
+        with self.assertRaisesFullCode("DPY-3007"):
+            self.cursor.execute(statement)
 
 
 if __name__ == "__main__":

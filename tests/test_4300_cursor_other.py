@@ -53,12 +53,8 @@ class TestCase(test_env.BaseTestCase):
     def test_4301(self):
         "4301 - confirm an exception is raised after closing a cursor"
         self.cursor.close()
-        self.assertRaisesRegex(
-            oracledb.InterfaceError,
-            "^DPY-1006:",
-            self.cursor.execute,
-            "select 1 from dual",
-        )
+        with self.assertRaisesFullCode("DPY-1006"):
+            self.cursor.execute("select 1 from dual")
 
     def test_4302(self):
         "4302 - test iterators"
@@ -87,16 +83,14 @@ class TestCase(test_env.BaseTestCase):
         test_iter = iter(self.cursor)
         (value,) = next(test_iter)
         self.cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1003:", next, test_iter
-        )
+        with self.assertRaisesFullCode("DPY-1003"):
+            next(test_iter)
 
     def test_4304(self):
         "4304 - test that bindnames() works correctly."
         cursor = self.conn.cursor()
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2002:", cursor.bindnames
-        )
+        with self.assertRaisesFullCode("DPY-2002"):
+            cursor.bindnames()
         cursor.prepare("begin null; end;")
         self.assertEqual(cursor.bindnames(), [])
         cursor.prepare("begin :retval := :inval + 5; end;")
@@ -122,19 +116,10 @@ class TestCase(test_env.BaseTestCase):
     def test_4305(self):
         "4305 - test cursor.setinputsizes() with invalid parameters"
         val = decimal.Decimal(5)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2005:",
-            self.cursor.setinputsizes,
-            val,
-            x=val,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2007:",
-            self.cursor.setinputsizes,
-            val,
-        )
+        with self.assertRaisesFullCode("DPY-2005"):
+            self.cursor.setinputsizes(val, x=val)
+        with self.assertRaisesFullCode("DPY-2007"):
+            self.cursor.setinputsizes(val)
 
     def test_4306(self):
         "4306 - test setting input sizes without any parameters"
@@ -194,15 +179,13 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4313(self):
         "4313 - test cursor.var() with invalid parameters"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2007:", self.cursor.var, 5
-        )
+        with self.assertRaisesFullCode("DPY-2007"):
+            self.cursor.var(5)
 
     def test_4314(self):
         "4314 - test cursor.arrayvar() with invalid parameters"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2007:", self.cursor.arrayvar, 5, 1
-        )
+        with self.assertRaisesFullCode("DPY-2007"):
+            self.cursor.arrayvar(5, 1)
 
     def test_4315(self):
         "4315 - test binding boolean data without the use of PL/SQL"
@@ -223,9 +206,8 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("select count(*) from TestTempTable")
             (count,) = cursor.fetchone()
             self.assertEqual(count, 0)
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1006:", self.cursor.close
-        )
+        with self.assertRaisesFullCode("DPY-1006"):
+            self.cursor.close()
 
     def test_4317(self):
         "4317 - test that rowcount attribute is reset to zero on query execute"
@@ -426,40 +408,26 @@ class TestCase(test_env.BaseTestCase):
     def test_4327(self):
         "4327 - test to verify encodingErrors is deprecated"
         errors = "strict"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.cursor.var,
-            oracledb.NUMBER,
-            encoding_errors=errors,
-            encodingErrors=errors,
-        )
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.cursor.var(
+                oracledb.NUMBER, encoding_errors=errors, encodingErrors=errors
+            )
 
     def test_4328(self):
         "4328 - test arrays of arrays not supported"
         simple_var = self.cursor.arrayvar(oracledb.NUMBER, 3)
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3005:",
-            simple_var.setvalue,
-            1,
-            [1, 2, 3],
-        )
+        with self.assertRaisesFullCode("DPY-3005"):
+            simple_var.setvalue(1, [1, 2, 3])
 
     def test_4329(self):
         "4329 - test cursor.setinputsizes() with invalid list parameters"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2011:",
-            self.cursor.setinputsizes,
-            [int, 2, 10],
-        )
+        with self.assertRaisesFullCode("DPY-2011"):
+            self.cursor.setinputsizes([int, 2, 10])
 
     def test_4330(self):
         "4330 - test unsupported python type on cursor"
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError, "^DPY-3003:", self.cursor.var, list
-        )
+        with self.assertRaisesFullCode("DPY-3003"):
+            self.cursor.var(list)
 
     def test_4331(self):
         "4331 - test binding by name with leading colon"
@@ -526,20 +494,14 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4337(self):
         "4337 - test case sensitivity of quoted bind names"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01036:|^DPY-4008:",
-            self.cursor.execute,
-            'select :"test" from dual',
-            {'"TEST"': "a"},
-        )
+        with self.assertRaisesFullCode("ORA-01036", "DPY-4008"):
+            self.cursor.execute('select :"test" from dual', {'"TEST"': "a"})
 
     def test_4338(self):
         "4338 - test using a reserved keywords as a bind name"
         sql = "select :ROWID from dual"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01745:", self.cursor.parse, sql
-        )
+        with self.assertRaisesFullCode("ORA-01745"):
+            self.cursor.parse(sql)
 
     def test_4339(self):
         "4339 - test array size less than prefetch rows"
@@ -577,20 +539,16 @@ class TestCase(test_env.BaseTestCase):
     def test_4341(self):
         "4341 - test re-executing a statement after raising an error"
         sql = "select * from TestFakeTable"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-00942:", self.cursor.execute, sql
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-00942:", self.cursor.execute, sql
-        )
+        with self.assertRaisesFullCode("ORA-00942"):
+            self.cursor.execute(sql)
+        with self.assertRaisesFullCode("ORA-00942"):
+            self.cursor.execute(sql)
 
         sql = "insert into TestStrings (StringCol) values (NULL)"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01400:", self.cursor.execute, sql
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01400:", self.cursor.execute, sql
-        )
+        with self.assertRaisesFullCode("ORA-01400"):
+            self.cursor.execute(sql)
+        with self.assertRaisesFullCode("ORA-01400"):
+            self.cursor.execute(sql)
 
     def test_4342(self):
         "4342 - test executing a statement that raises ORA-01007"
@@ -709,12 +667,8 @@ class TestCase(test_env.BaseTestCase):
         with admin_conn.cursor() as admin_cursor:
             sql = f"alter system kill session '{sid},{serial}'"
             admin_cursor.execute(sql)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4011:",
-            cursor.execute,
-            "select user from dual",
-        )
+        with self.assertRaisesFullCode("DPY-4011"):
+            cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
@@ -737,12 +691,8 @@ class TestCase(test_env.BaseTestCase):
                 admin_cursor.execute(
                     f"alter system kill session '{sid},{serial}'"
                 )
-            self.assertRaisesRegex(
-                oracledb.DatabaseError,
-                "^DPY-4011:",
-                cursor.execute,
-                "select user from dual",
-            )
+            with self.assertRaisesFullCode("DPY-4011"):
+                cursor.execute("select user from dual")
             self.assertEqual(conn.is_healthy(), False)
 
     def test_4349(self):
@@ -761,13 +711,8 @@ class TestCase(test_env.BaseTestCase):
             rows = cursor.fetchmany(numRows=4)
             self.assertEqual(len(rows), 4)
             cursor.execute(sql)
-            self.assertRaisesRegex(
-                oracledb.DatabaseError,
-                "^DPY-2014:",
-                cursor.fetchmany,
-                size=2,
-                numRows=4,
-            )
+            with self.assertRaisesFullCode("DPY-2014"):
+                cursor.fetchmany(size=2, numRows=4)
 
     def test_4350(self):
         "4350 - access cursor.rowcount after closing cursor"
@@ -831,13 +776,8 @@ class TestCase(test_env.BaseTestCase):
     def test_4354(self):
         "4354 - test population of array var with too many elements"
         var = self.cursor.arrayvar(int, 3)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2016:",
-            var.setvalue,
-            0,
-            [1, 2, 3, 4],
-        )
+        with self.assertRaisesFullCode("DPY-2016"):
+            var.setvalue(0, [1, 2, 3, 4])
 
     def test_4355(self):
         "4355 - test executemany() with PL/SQL and increasing data lengths"
@@ -1030,11 +970,11 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4365(self):
         "4365 - negative tests for cursor.arraysize"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+        with self.assertRaisesFullCode("DPY-2045"):
             self.cursor.arraysize = 0
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+        with self.assertRaisesFullCode("DPY-2045"):
             self.cursor.arraysize = -1
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2045:"):
+        with self.assertRaisesFullCode("DPY-2045"):
             self.cursor.arraysize = "not valid"
 
 

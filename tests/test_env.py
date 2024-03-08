@@ -639,6 +639,9 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
     async def assertParseCount(self, n):
         self.assertEqual(await self.parse_count_info.get_value_async(), n)
 
+    def assertRaisesFullCode(self, *full_codes):
+        return FullCodeErrorContextManager(full_codes)
+
     async def assertRoundTrips(self, n):
         self.assertEqual(await self.round_trip_info.get_value_async(), n)
 

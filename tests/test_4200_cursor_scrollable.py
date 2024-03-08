@@ -52,9 +52,8 @@ class TestCase(test_env.BaseTestCase):
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1027:", cursor.scroll, 12, "absolute"
-        )
+        with self.assertRaisesFullCode("DPI-1027"):
+            cursor.scroll(12, "absolute")
 
     def test_4202(self):
         "4202 - test scrolling absolute (when in buffers)"
@@ -119,18 +118,16 @@ class TestCase(test_env.BaseTestCase):
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1027:", cursor.scroll, 15
-        )
+        with self.assertRaisesFullCode("DPI-1027"):
+            cursor.scroll(15)
 
     def test_4208(self):
         "4208 - test scrolling relative yields exception (before result set)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1027:", cursor.scroll, -5
-        )
+        with self.assertRaisesFullCode("DPI-1027"):
+            cursor.scroll(-5)
 
     def test_4209(self):
         "4209 - test scrolling relative (when in buffers)"
@@ -168,13 +165,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(cursor.fetchall(), [])
         cursor.scroll(mode="first")
         self.assertEqual(cursor.fetchall(), [])
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1027:",
-            cursor.scroll,
-            1,
-            mode="absolute",
-        )
+        with self.assertRaisesFullCode("DPI-1027"):
+            cursor.scroll(1, mode="absolute")
 
     def test_4212(self):
         "4212 - test scrolling with differing array and fetch array sizes"
@@ -216,12 +208,8 @@ class TestCase(test_env.BaseTestCase):
         cursor.arraysize = self.cursor.arraysize
         cursor.execute("select NumberCol from TestNumbers order by IntCol")
         cursor.fetchmany()
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2009:",
-            cursor.scroll,
-            mode="middle",
-        )
+        with self.assertRaisesFullCode("DPY-2009"):
+            cursor.scroll(mode="middle")
 
 
 if __name__ == "__main__":

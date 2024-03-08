@@ -174,41 +174,18 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3001(self):
         "3001 - test to verify deprecations"
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.subscribe,
-            ip_address="www.oracle.in",
-            ipAddress="www.oracle.in",
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.subscribe,
-            grouping_class=1,
-            groupingClass=1,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.subscribe,
-            grouping_value=3,
-            groupingValue=3,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.subscribe,
-            grouping_type=2,
-            groupingType=2,
-        )
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.subscribe,
-            client_initiated=True,
-            clientInitiated=True,
-        )
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.subscribe(
+                ip_address="www.oracle.in", ipAddress="www.oracle.in"
+            )
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.subscribe(grouping_class=1, groupingClass=1)
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.subscribe(grouping_value=3, groupingValue=3)
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.subscribe(grouping_type=2, groupingType=2)
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.subscribe(client_initiated=True, clientInitiated=True)
 
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
@@ -292,18 +269,10 @@ class TestCase(test_env.BaseTestCase):
             "select * from TestTempTable",
             "invalid args",
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-00942",
-            sub.registerquery,
-            "select * from Nonexistent",
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1013:",
-            sub.registerquery,
-            "insert into TestTempTable (IntCol) values (1)",
-        )
+        with self.assertRaisesFullCode("ORA-00942"):
+            sub.registerquery("select * from Nonexistent")
+        with self.assertRaisesFullCode("DPI-1013"):
+            sub.registerquery("insert into TestTempTable (IntCol) values (1)")
         conn.unsubscribe(sub)
 
     @unittest.skipIf(
@@ -391,9 +360,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertRaises(TypeError, conn.unsubscribe, "not a sub object")
         sub = conn.subscribe(callback=lambda x: f"Message: {x}")
         conn.unsubscribe(sub)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1002", conn.unsubscribe, sub
-        )
+        with self.assertRaisesFullCode("DPI-1002"):
+            conn.unsubscribe(sub)
 
     @unittest.skipIf(
         test_env.get_client_version() < (23, 1), "crashes in older clients"
@@ -407,12 +375,8 @@ class TestCase(test_env.BaseTestCase):
             "insert into TestTempTable (IntCol, StringCol1) values (1, 'test')"
         )
         sub = connection.subscribe(callback=lambda x: f"Msg: {x}")
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-29975:",
-            sub.registerquery,
-            "select * from TestTempTable",
-        )
+        with self.assertRaisesFullCode("ORA-29975"):
+            sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
 
     @unittest.skipIf(
@@ -426,12 +390,8 @@ class TestCase(test_env.BaseTestCase):
             namespace=oracledb.SUBSCR_NAMESPACE_AQ,
             name="TEST_RAW_QUEUE",
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-24315:",
-            sub.registerquery,
-            "select * from TestTempTable",
-        )
+        with self.assertRaisesFullCode("ORA-24315"):
+            sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
 
     @unittest.skipIf(
@@ -473,14 +433,12 @@ class TestCase(test_env.BaseTestCase):
         "3014 - test adding a consumer to a single consumer queue (negative)"
         conn = test_env.get_connection(events=True)
         single_consumer_queue = "TEST_RAW_QUEUE"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-25256:",
-            conn.subscribe,
-            callback=lambda x: None,
-            namespace=oracledb.SUBSCR_NAMESPACE_AQ,
-            name=f"{single_consumer_queue}:SUBSCRIBER",
-        )
+        with self.assertRaisesFullCode("ORA-25256"):
+            conn.subscribe(
+                callback=lambda x: None,
+                namespace=oracledb.SUBSCR_NAMESPACE_AQ,
+                name=f"{single_consumer_queue}:SUBSCRIBER",
+            )
 
 
 if __name__ == "__main__":

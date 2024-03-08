@@ -96,7 +96,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                     open :pcursor for
                         select 1 from dual;
                 end;"""
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3009:"):
+        with self.assertRaisesFullCode("DPY-3009"):
             await cursor.execute(sql, pcursor=cursor)
 
     async def test_5803(self):
@@ -257,7 +257,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         ref_cursor = ref_cursor_var.getvalue()
         if ref_cursor is not None:
-            with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4025:"):
+            with self.assertRaisesFullCode("DPY-4025"):
                 await ref_cursor.fetchall()
 
     async def test_5811(self):

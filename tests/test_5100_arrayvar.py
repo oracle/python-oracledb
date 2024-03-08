@@ -75,31 +75,20 @@ class TestCase(test_env.BaseTestCase):
 
     def test_5104(self):
         "5104 - declaring an array variable with an incorrect Python type"
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3013:",
-            self.cursor.arrayvar,
-            oracledb.DB_TYPE_NUMBER,
-            [3, "ab"],
-        )
+        with self.assertRaisesFullCode("DPY-3013"):
+            self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, [3, "ab"])
 
     def test_5105(self):
         "5105 - adding more elements than declared to an array variable"
         var = self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2016",
-            var.setvalue,
-            0,
-            [i for i in range(5)],
-        )
+        with self.assertRaisesFullCode("DPY-2016"):
+            var.setvalue(0, [i for i in range(5)])
 
     def test_5106(self):
         "5106 - creating an invalid array of arrays"
         var = self.cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError, "^DPY-3005", var.setvalue, 1, [1, 2]
-        )
+        with self.assertRaisesFullCode("DPY-3005"):
+            var.setvalue(1, [1, 2])
 
 
 if __name__ == "__main__":

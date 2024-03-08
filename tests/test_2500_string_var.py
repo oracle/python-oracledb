@@ -466,13 +466,8 @@ class TestCase(test_env.BaseTestCase):
     def test_2529(self):
         "2529 - test assigning a string to rowid"
         var = self.cursor.var(oracledb.ROWID)
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3004:",
-            var.setvalue,
-            0,
-            "ABDHRYTHFJGKDKKDH",
-        )
+        with self.assertRaisesFullCode("DPY-3004"):
+            var.setvalue(0, "ABDHRYTHFJGKDKKDH")
 
     def test_2530(self):
         "2530 - test fetching XMLType (< 1K) as a string"

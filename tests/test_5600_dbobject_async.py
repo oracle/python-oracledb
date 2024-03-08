@@ -424,7 +424,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5606 - test trying to find an object type that does not exist"
         with self.assertRaises(TypeError):
             await self.conn.gettype(2)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2035:"):
+        with self.assertRaisesFullCode("DPY-2035"):
             await self.conn.gettype("A TYPE THAT DOES NOT EXIST")
 
     async def test_5607(self):
@@ -433,12 +433,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         collection_obj = collection_obj_type.newobject()
         array_obj_type = await self.conn.gettype("UDT_ARRAY")
         array_obj = array_obj_type.newobject()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-2008:",
-            collection_obj.append,
-            array_obj,
-        )
+        with self.assertRaisesFullCode("DPY-2008"):
+            collection_obj.append(array_obj)
 
     async def test_5608(self):
         "5608 - test that referencing a sub object affects the parent object"
@@ -477,14 +473,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         obj = obj_type.newobject()
         wrong_obj_type = await self.conn.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-2008:",
-            setattr,
-            obj,
-            "SUBOBJECTVALUE",
-            wrong_obj,
-        )
+        with self.assertRaisesFullCode("DPY-2008"):
+            setattr(obj, "SUBOBJECTVALUE", wrong_obj)
 
     async def test_5611(self):
         "5611 - test setting value of object variable to wrong object type"
@@ -492,9 +482,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         wrong_obj_type = await self.conn.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
         var = self.cursor.var(obj_type)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2008:", var.setvalue, 0, wrong_obj
-        )
+        with self.assertRaisesFullCode("DPY-2008"):
+            var.setvalue(0, wrong_obj)
 
     async def test_5612(self):
         "5612 - test trimming a number of elements from a collection"

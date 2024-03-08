@@ -161,27 +161,10 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode(
             "DPY-4000", "DPY-4026", "DPY-4027", "ORA-12154"
         ):
-            oracledb.connect(test_env.get_main_user())
+            oracledb.connect("not a valid connect string!!")
         with self.assertRaisesFullCode("DPY-4000", "DPY-4001"):
             dsn = (
                 test_env.get_main_user() + "@" + test_env.get_connect_string()
-            )
-            oracledb.connect(dsn)
-        errors = (
-            "DPY-4000",
-            "DPY-4001",
-            "DPY-4017",
-            "ORA-12154",
-            "ORA-12521",
-            "ORA-12262",
-        )
-        with self.assertRaisesFullCode(*errors):
-            dsn = (
-                test_env.get_main_user()
-                + "@"
-                + test_env.get_connect_string()
-                + "/"
-                + test_env.get_main_password()
             )
             oracledb.connect(dsn)
 

@@ -85,7 +85,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         building = Building(1, "The First Building", 5)
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+        with self.assertRaisesFullCode("DPY-3002"):
             self.cursor.execute(sql, [building.building_id, building])
 
     def test_3801(self):
@@ -137,7 +137,7 @@ class TestCase(test_env.BaseTestCase):
             cursor_one.fetchall(),
             [(building_one.building_id, building_one.to_json())],
         )
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+        with self.assertRaisesFullCode("DPY-3002"):
             cursor_two.execute(
                 sql,
                 (building_two.building_id, building_two),
@@ -180,7 +180,7 @@ class TestCase(test_env.BaseTestCase):
         cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
         self.assertEqual(cursor_two.fetchall(), expected_data)
         other_cursor = self.conn.cursor()
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3002:"):
+        with self.assertRaisesFullCode("DPY-3002"):
             other_cursor.execute(sql, (building_one.building_id, building_one))
 
     def test_3805(self):

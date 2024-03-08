@@ -491,15 +491,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3650(self):
         "3650 - output type handler: from NUMBER to DATE is invalid"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4007:|^ORA-00932:",
-            self.__test_type_handler,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_DATE,
-            3,
-            3,
-        )
+        with self.assertRaisesFullCode("DPY-4007", "ORA-00932"):
+            self.__test_type_handler(
+                oracledb.DB_TYPE_NUMBER, oracledb.DB_TYPE_DATE, 3, 3
+            )
 
     def test_3651(self):
         "3651 - output type handler: from CLOB to CHAR"
@@ -622,13 +617,8 @@ class TestCase(test_env.BaseTestCase):
         cursor = self.conn.cursor()
         cursor.arraysize = 100
         cursor.outputtypehandler = type_handler
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2016:",
-            cursor.execute,
-            "select :1 from dual",
-            [5],
-        )
+        with self.assertRaisesFullCode("DPY-2016"):
+            cursor.execute("select :1 from dual", [5])
 
     def test_3672(self):
         "3672 - execute raises an error if a var is not returned"
@@ -638,13 +628,8 @@ class TestCase(test_env.BaseTestCase):
 
         cursor = self.conn.cursor()
         cursor.outputtypehandler = type_handler
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2015:",
-            cursor.execute,
-            "select :1 from dual",
-            [5],
-        )
+        with self.assertRaisesFullCode("DPY-2015"):
+            cursor.execute("select :1 from dual", [5])
 
     def test_3673(self):
         "3673 - output type handler: from NUMBER to decimal.Decimal"

@@ -123,33 +123,18 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5305(self):
         "5305 - connection to database with bad connect string"
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4000:|^DPY-4026:|^DPY-4027:|ORA-12154:",
+        with self.assertRaisesFullCode(
+            "DPY-4000", "DPY-4026", "DPY-4027", "ORA-12154"
         ):
-            await oracledb.connect_async(test_env.get_main_user())
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4000:|^DPY-4001:"
-        ):
+            await oracledb.connect_async("not a valid connect string!!")
+        with self.assertRaisesFullCode("DPY-4000", "DPY-4001"):
             await oracledb.connect(
                 test_env.get_main_user() + "@" + test_env.get_connect_string()
-            )
-        errors = (
-            "^DPY-4000:|^DPY-4001:|^DPY-4017:|^ORA-12154:|^ORA-12521:|"
-            "^ORA-12262:"
-        )
-        with self.assertRaisesRegex(oracledb.DatabaseError, errors):
-            await oracledb.connect(
-                test_env.get_main_user()
-                + "@"
-                + test_env.get_connect_string()
-                + "/"
-                + test_env.get_main_password()
             )
 
     async def test_5306(self):
         "5306 - connection to database with bad password"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01017:"):
+        with self.assertRaisesFullCode("ORA-01017"):
             await test_env.get_connection_async(
                 password=test_env.get_main_password() + "X",
             )
@@ -175,15 +160,11 @@ class TestCase(test_env.BaseAsyncTestCase):
         if await self.is_on_oracle_cloud(conn):
             self.skipTest("passwords on Oracle Cloud are strictly controlled")
         new_password = "1" * 1500
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01017:|^ORA-00988:"
-        ):
+        with self.assertRaisesFullCode("ORA-01017", "ORA-00988"):
             await conn.changepassword(
                 test_env.get_main_password(), new_password
             )
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01017:|^ORA-28008:|^ORA-00988:"
-        ):
+        with self.assertRaisesFullCode("ORA-01017", "ORA-28008", "ORA-00988"):
             await conn.changepassword("incorrect old password", new_password)
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
@@ -211,7 +192,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5310 - confirm an exception is raised after closing a connection"
         conn = await test_env.get_connection_async()
         await conn.close()
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1001:"):
+        with self.assertRaisesFullCode("DPY-1001"):
             await conn.rollback()
 
     async def test_5312(self):
@@ -261,7 +242,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute(
                 "insert into TestTempTable (IntCol) values (2)"
             )
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1001:"):
+        with self.assertRaisesFullCode("DPY-1001"):
             await conn.ping()
         conn = await test_env.get_connection_async()
         cursor = conn.cursor()
@@ -301,9 +282,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         if test_env.get_client_version() >= (12, 1):
             attr_names.append("ltxid")
         for name in attr_names:
-            self.assertRaisesRegex(
-                oracledb.InterfaceError, "^DPY-1001:", getattr, conn, name
-            )
+            with self.assertRaisesFullCode("DPY-1001"):
+                getattr(conn, name)
 
     async def test_5320(self):
         "5320 - test connection ping makes a round trip"
@@ -411,9 +391,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         conn = await test_env.get_connection_async()
         conn.call_timeout = 500  # milliseconds
         self.assertEqual(conn.call_timeout, 500)
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4011:|^DPY-4024:"
-        ):
+        with self.assertRaisesFullCode("DPY-4011", "DPY-4024"):
             with conn.cursor() as cursor:
                 await cursor.callproc(test_env.get_sleep_proc_name(), [2])
 
@@ -454,13 +432,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5334 - test error for invalid type for params and pool"
         pool = test_env.get_pool_async()
         await pool.close()
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1002:"):
+        with self.assertRaisesFullCode("DPY-1002"):
             await test_env.get_connection_async(pool=pool)
         with self.assertRaises(TypeError):
             await test_env.get_connection_async(
                 pool="This isn't an instance of a pool"
             )
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2025:"):
+        with self.assertRaisesFullCode("DPY-2025"):
             await oracledb.connect_async(params={"number": 7})
 
     async def test_5335(self):
@@ -498,9 +476,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await conn.changepassword(new_password_1024, original_password)
 
         new_password_1025 = "a" * 1025
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-28218:|^ORA-00972"
-        ):
+        with self.assertRaisesFullCode("ORA-28218", "ORA-00972"):
             await conn.changepassword(original_password, new_password_1025)
 
     async def test_5338(self):

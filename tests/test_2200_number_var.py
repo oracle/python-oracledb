@@ -440,40 +440,21 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2228(self):
         "2228 - test that unacceptable boundary numbers are rejected"
-        in_values = [
-            1e126,
-            -1e126,
-            float("inf"),
-            float("-inf"),
-            float("NaN"),
-            decimal.Decimal("1e126"),
-            decimal.Decimal("-1e126"),
-            decimal.Decimal("inf"),
-            decimal.Decimal("-inf"),
-            decimal.Decimal("NaN"),
+        test_values = [
+            (1e126, "DPY-4003"),
+            (-1e126, "DPY-4003"),
+            (float("inf"), "DPY-4004"),
+            (float("-inf"), "DPY-4004"),
+            (float("NaN"), "DPY-4004"),
+            (decimal.Decimal("1e126"), "DPY-4003"),
+            (decimal.Decimal("-1e126"), "DPY-4003"),
+            (decimal.Decimal("inf"), "DPY-4004"),
+            (decimal.Decimal("-inf"), "DPY-4004"),
+            (decimal.Decimal("NaN"), "DPY-4004"),
         ]
-        no_rep_err = "^DPY-4003:"
-        invalid_err = "^DPY-4004:"
-        expected_errors = [
-            no_rep_err,
-            no_rep_err,
-            invalid_err,
-            invalid_err,
-            invalid_err,
-            no_rep_err,
-            no_rep_err,
-            invalid_err,
-            invalid_err,
-            invalid_err,
-        ]
-        for in_value, error in zip(in_values, expected_errors):
-            self.assertRaisesRegex(
-                oracledb.DatabaseError,
-                error,
-                self.cursor.execute,
-                "select :1 from dual",
-                [in_value],
-            )
+        for value, error in test_values:
+            with self.assertRaisesFullCode(error):
+                self.cursor.execute("select :1 from dual", [value])
 
     def test_2229(self):
         "2229 - test that fetching the result of division returns a float"

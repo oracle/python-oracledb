@@ -121,9 +121,8 @@ class TestCase(test_env.BaseTestCase):
             self.conn.tpc_end()
         self.conn.tpc_rollback(xid1)
 
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24756", self.conn.tpc_prepare, xid1
-        )
+        with self.assertRaisesFullCode("ORA-24756"):
+            self.conn.tpc_prepare(xid1)
         needs_commit = self.conn.tpc_prepare(xid2)
         if needs_commit:
             self.conn.tpc_commit(xid2)
@@ -164,9 +163,8 @@ class TestCase(test_env.BaseTestCase):
             "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
             values,
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24776", self.conn.tpc_begin, xid
-        )
+        with self.assertRaisesFullCode("ORA-24776"):
+            self.conn.tpc_begin(xid)
         self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_PROMOTE)
         self.cursor.execute("select IntCol, StringCol1 from TestTempTable")
         (res,) = self.cursor.fetchall()
@@ -186,9 +184,8 @@ class TestCase(test_env.BaseTestCase):
             """
         )
         self.conn.tpc_begin(xid2)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24758:", self.conn.tpc_end, xid1
-        )
+        with self.assertRaisesFullCode("ORA-24758"):
+            self.conn.tpc_end(xid1)
         self.cursor.execute(
             """
             insert into TestTempTable (IntCol, StringCol1)
@@ -196,9 +193,8 @@ class TestCase(test_env.BaseTestCase):
             """
         )
         self.conn.tpc_end(xid2)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-25352:", self.conn.tpc_end, xid1
-        )
+        with self.assertRaisesFullCode("ORA-25352"):
+            self.conn.tpc_end(xid1)
         self.conn.tpc_rollback(xid1)
         self.conn.tpc_rollback(xid2)
 
@@ -277,16 +273,10 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertRaises(TypeError, self.conn.tpc_commit, "invalid xid")
         self.conn.tpc_prepare(xid)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-02053:",
-            self.conn.tpc_commit,
-            xid,
-            one_phase=True,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24756:", self.conn.tpc_commit, xid
-        )
+        with self.assertRaisesFullCode("ORA-02053"):
+            self.conn.tpc_commit(xid, one_phase=True)
+        with self.assertRaisesFullCode("ORA-24756"):
+            self.conn.tpc_commit(xid)
         self.conn.tpc_rollback(xid)
 
     def test_4411(self):
@@ -294,29 +284,14 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4411, "txn4411", "branch1")
         self.conn.tpc_begin(xid)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-24757:",
-            self.conn.tpc_begin,
-            xid,
-            oracledb.TPC_BEGIN_NEW,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-24797:",
-            self.conn.tpc_begin,
-            xid,
-            oracledb.TPC_BEGIN_PROMOTE,
-        )
+        with self.assertRaisesFullCode("ORA-24757"):
+            self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_NEW)
+        with self.assertRaisesFullCode("ORA-24797"):
+            self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_PROMOTE)
         self.conn.tpc_end()
         for flag in [oracledb.TPC_BEGIN_NEW, oracledb.TPC_BEGIN_PROMOTE]:
-            self.assertRaisesRegex(
-                oracledb.DatabaseError,
-                "^ORA-24757:",
-                self.conn.tpc_begin,
-                xid,
-                flag,
-            )
+            with self.assertRaisesFullCode("ORA-24757"):
+                self.conn.tpc_begin(xid, flag)
         self.conn.tpc_rollback(xid)
 
     def test_4412(self):
@@ -325,40 +300,30 @@ class TestCase(test_env.BaseTestCase):
         xid = self.conn.xid(4412, "txn4412", "branch1")
         self.conn.tpc_begin(xid)
         self.conn.tpc_prepare(xid)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-24756",
-            self.conn.tpc_begin,
-            xid,
-            oracledb.TPC_BEGIN_RESUME,
-        )
+        with self.assertRaisesFullCode("ORA-24756"):
+            self.conn.tpc_begin(xid, oracledb.TPC_BEGIN_RESUME)
 
     def test_4413(self):
         "4413 - test tpc_begin and tpc_end with invalid parameters"
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4413, "txn4413", "branch1")
         test_values = [
-            (self.conn.tpc_begin, "^ORA-24759:"),
-            (self.conn.tpc_end, "^DPI-1002:"),
+            (self.conn.tpc_begin, "ORA-24759"),
+            (self.conn.tpc_end, "DPI-1002"),
         ]
         for tpc_function, error_code in test_values:
             self.assertRaises(TypeError, tpc_function, "invalid xid")
             self.assertRaises(TypeError, tpc_function, xid, "invalid flag")
-            self.assertRaisesRegex(
-                oracledb.DatabaseError, error_code, tpc_function, xid, 70
-            )
+            with self.assertRaisesFullCode(error_code):
+                tpc_function(xid, 70)
         self.conn.tpc_rollback(xid)
 
     def test_4414(self):
         "4414 - test commiting transaction without tpc_commit"
         xid = self.conn.xid(4414, "txn4409", "branch1")
         self.conn.tpc_begin(xid)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-02089",
-            self.cursor.execute,
-            "truncate table TestTempTable",
-        )
+        with self.assertRaisesFullCode("ORA-02089"):
+            self.cursor.execute("truncate table TestTempTable")
 
     def test_4415(self):
         "4415 - test tpc_commit when a commit is not needed"
@@ -367,9 +332,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestTempTable")
         self.conn.tpc_end(xid)
         self.conn.tpc_prepare(xid)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24756:", self.conn.tpc_commit, xid
-        )
+        with self.assertRaisesFullCode("ORA-24756"):
+            self.conn.tpc_commit(xid)
 
     def test_4416(self):
         "4416 - test transaction_in_progress"

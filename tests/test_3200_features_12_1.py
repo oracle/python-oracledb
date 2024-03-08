@@ -43,18 +43,12 @@ class TestCase(test_env.BaseTestCase):
         rows = [(1, "First"), (2, "Second")]
         sql = "insert into TestArrayDML (IntCol, StringCol) values (:1, :2)"
         self.cursor.executemany(sql, rows, arraydmlrowcounts=False)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4006:",
-            self.cursor.getarraydmlrowcounts,
-        )
+        with self.assertRaisesFullCode("DPY-4006"):
+            self.cursor.getarraydmlrowcounts()
         rows = [(3, "Third"), (4, "Fourth")]
         self.cursor.executemany(sql, rows)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4006:",
-            self.cursor.getarraydmlrowcounts,
-        )
+        with self.assertRaisesFullCode("DPY-4006"):
+            self.cursor.getarraydmlrowcounts()
 
     def test_3201(self):
         "3201 - test executing with arraydmlrowcounts mode enabled"
@@ -329,14 +323,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestArrayDML")
         rows = [(1, "First"), (2, "Second"), (2, "Third"), (4, "Fourth")]
         sql = "insert into TestArrayDML (IntCol,StringCol) values (:1,:2)"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-00001:",
-            self.cursor.executemany,
-            sql,
-            rows,
-            arraydmlrowcounts=True,
-        )
+        with self.assertRaisesFullCode("ORA-00001"):
+            self.cursor.executemany(sql, rows, arraydmlrowcounts=True)
         self.assertEqual(self.cursor.getarraydmlrowcounts(), [1, 1])
 
     def test_3218(self):
@@ -434,9 +422,8 @@ class TestCase(test_env.BaseTestCase):
     def test_3221(self):
         "3221 - test getimplicitresults() without executing a statement"
         cursor = self.conn.cursor()
-        self.assertRaisesRegex(
-            oracledb.InterfaceError, "^DPY-1004:", cursor.getimplicitresults
-        )
+        with self.assertRaisesFullCode("DPY-1004"):
+            cursor.getimplicitresults()
 
     def test_3222(self):
         "3222 - test executing insert with multiple distinct batch errors"
@@ -470,14 +457,8 @@ class TestCase(test_env.BaseTestCase):
         rows = [(1, "First", 100), (2, "Second", 200), (2, "Third", 300)]
         sql = """insert into TestArrayDML (IntCol, StringCol, IntCol2)
                  values (:1, :2, :3)"""
-        self.assertRaisesRegex(
-            oracledb.IntegrityError,
-            "^ORA-00001:",
-            self.cursor.executemany,
-            sql,
-            rows,
-            batcherrors=False,
-        )
+        with self.assertRaisesFullCode("ORA-00001"):
+            self.cursor.executemany(sql, rows, batcherrors=False)
 
     def test_3224(self):
         "3224 - test executing in succession with batch error"
@@ -606,25 +587,15 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3230(self):
         "3230 - enabling batcherrors parameter with PL/SQL"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-2040:",
-            self.cursor.executemany,
-            "begin null; end;",
-            30,
-            batcherrors=True,
-        )
+        with self.assertRaisesFullCode("DPY-2040"):
+            self.cursor.executemany("begin null; end;", 30, batcherrors=True)
 
     def test_3231(self):
-        "3230 - enabling arraydmlrowcountsbatcherrors parameter with PL/SQL"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-2040:",
-            self.cursor.executemany,
-            "begin null; end;",
-            31,
-            arraydmlrowcounts=True,
-        )
+        "3231 - enabling arraydmlrowcountsbatcherrors parameter with PL/SQL"
+        with self.assertRaisesFullCode("DPY-2040"):
+            self.cursor.executemany(
+                "begin null; end;", 31, arraydmlrowcounts=True
+            )
 
 
 if __name__ == "__main__":

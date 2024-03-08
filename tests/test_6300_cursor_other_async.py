@@ -55,7 +55,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_6301(self):
         "6301 - confirm an exception is raised after closing a cursor"
         self.cursor.close()
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:"):
+        with self.assertRaisesFullCode("DPY-1006"):
             await self.cursor.execute("select 1 from dual")
 
     async def test_6302(self):
@@ -87,7 +87,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(
             "insert into TestTempTable (IntCol) values (1)"
         )
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1003:"):
+        with self.assertRaisesFullCode("DPY-1003"):
             await test_iter.__anext__()
 
     async def test_6304(self):
@@ -155,7 +155,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await cursor.execute("select count(*) from TestTempTable")
             (count,) = await cursor.fetchone()
             self.assertEqual(count, 0)
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1006:"):
+        with self.assertRaisesFullCode("DPY-1006"):
             self.cursor.close()
 
     async def test_6311(self):
@@ -424,9 +424,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_6326(self):
         "6326 - test case sensitivity of quoted bind names"
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01036:|^DPY-4008:"
-        ):
+        with self.assertRaisesFullCode("ORA-01036", "DPY-4008"):
             await self.cursor.execute(
                 'select :"test" from dual', {'"TEST"': "a"}
             )
@@ -434,7 +432,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_6327(self):
         "6327 - test using a reserved keywords as a bind name"
         sql = "select :ROWID from dual"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01745:"):
+        with self.assertRaisesFullCode("ORA-01745"):
             await self.cursor.parse(sql)
 
     async def test_6328(self):
@@ -475,15 +473,15 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_6330(self):
         "6330 - test re-executing a statement after raising an error"
         sql = "select * from TestFakeTable"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00942:"):
+        with self.assertRaisesFullCode("ORA-00942"):
             await self.cursor.execute(sql)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00942:"):
+        with self.assertRaisesFullCode("ORA-00942"):
             await self.cursor.execute(sql)
 
         sql = "insert into TestStrings (StringCol) values (NULL)"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01400:"):
+        with self.assertRaisesFullCode("ORA-01400"):
             await self.cursor.execute(sql)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-01400:"):
+        with self.assertRaisesFullCode("ORA-01400"):
             await self.cursor.execute(sql)
 
     async def test_6331(self):
@@ -594,7 +592,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with admin_conn.cursor() as admin_cursor:
             sql = f"alter system kill session '{sid},{serial}'"
             await admin_cursor.execute(sql)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4011:"):
+        with self.assertRaisesFullCode("DPY-4011"):
             await cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
@@ -618,7 +616,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await admin_cursor.execute(
                     f"alter system kill session '{sid},{serial}'"
                 )
-            with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-4011:"):
+            with self.assertRaisesFullCode("DPY-4011"):
                 await cursor.execute("select user from dual")
             self.assertEqual(conn.is_healthy(), False)
 

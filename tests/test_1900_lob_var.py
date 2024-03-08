@@ -164,24 +164,22 @@ class TestCase(test_env.BaseTestCase):
         (lob,) = self.cursor.fetchone()
         self.assertFalse(lob.isopen())
         lob.open()
-        self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-22293:", lob.open)
+        with self.assertRaisesFullCode("ORA-22293"):
+            lob.open()
         self.assertTrue(lob.isopen())
         lob.close()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-22289:", lob.close
-        )
+        with self.assertRaisesFullCode("ORA-22289"):
+            lob.close()
         self.assertFalse(lob.isopen())
         self.assertEqual(lob.size(), 75000)
         lob.write(write_value, 75001)
         self.assertRaises(TypeError, lob.write, 1000, 1)
         self.assertRaises(TypeError, lob.write, "data", "1")
         self.assertEqual(lob.size(), 75000 + len(write_value))
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2030:", lob.read, 0
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2030:", lob.read, -25
-        )
+        with self.assertRaisesFullCode("DPY-2030"):
+            lob.read(0)
+        with self.assertRaisesFullCode("DPY-2030"):
+            lob.read(-25)
         self.assertEqual(lob.read(), long_string + write_value)
         lob.write(write_value, 1)
         self.assertEqual(
@@ -191,13 +189,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(lob.size(), 25000)
         lob.trim(newSize=10000)
         self.assertEqual(lob.size(), 10000)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-2014:",
-            lob.trim,
-            new_size=50,
-            newSize=60,
-        )
+        with self.assertRaisesFullCode("DPY-2014"):
+            lob.trim(new_size=50, newSize=60)
         self.assertRaises(TypeError, lob.trim, new_size="10000")
         self.assertRaises(TypeError, lob.trim, newSize="10000")
         lob.trim(new_size=40)
@@ -564,12 +557,10 @@ class TestCase(test_env.BaseTestCase):
             conn = test_env.get_connection()
             lob = conn.createlob(typ, "Temp LOB")
             conn.close()
-            self.assertRaisesRegex(
-                oracledb.InterfaceError, "^DPY-1001:", lob.read
-            )
-            self.assertRaisesRegex(
-                oracledb.InterfaceError, "^DPY-1001:", lob.write, "x"
-            )
+            with self.assertRaisesFullCode("DPY-1001"):
+                lob.read()
+            with self.assertRaisesFullCode("DPY-1001"):
+                lob.write("x")
 
 
 if __name__ == "__main__":

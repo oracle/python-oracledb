@@ -430,7 +430,7 @@ class TestCase(test_env.BaseTestCase):
     def test_2308(self):
         "2308 - test trying to find an object type that does not exist"
         self.assertRaises(TypeError, self.conn.gettype, 2)
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2035:"):
+        with self.assertRaisesFullCode("DPY-2035"):
             self.conn.gettype("A TYPE THAT DOES NOT EXIST")
 
     def test_2309(self):
@@ -439,7 +439,7 @@ class TestCase(test_env.BaseTestCase):
         collection_obj = collection_obj_type.newobject()
         array_obj_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_obj_type.newobject()
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2008:"):
+        with self.assertRaisesFullCode("DPY-2008"):
             collection_obj.append(array_obj)
 
     def test_2310(self):
@@ -479,7 +479,7 @@ class TestCase(test_env.BaseTestCase):
         obj = obj_type.newobject()
         wrong_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2008:"):
+        with self.assertRaisesFullCode("DPY-2008"):
             setattr(obj, "SUBOBJECTVALUE", wrong_obj)
 
     def test_2313(self):
@@ -487,9 +487,8 @@ class TestCase(test_env.BaseTestCase):
         wrong_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         wrong_obj = wrong_obj_type.newobject()
         var = self.cursor.var(oracledb.DB_TYPE_OBJECT, typename="UDT_OBJECT")
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2008:", var.setvalue, 0, wrong_obj
-        )
+        with self.assertRaisesFullCode("DPY-2008"):
+            var.setvalue(0, wrong_obj)
 
     def test_2314(self):
         "2314 - test object string format"
@@ -555,7 +554,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_2318(self):
         "2318 - test creating an object variable without a type name"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2037:"):
+        with self.assertRaisesFullCode("DPY-2037"):
             self.cursor.var(oracledb.DB_TYPE_OBJECT)
 
     def test_2319(self):
@@ -610,39 +609,33 @@ class TestCase(test_env.BaseTestCase):
         "2324 - test setting and getting elements from a collection"
         array_type = self.conn.gettype("UDT_ARRAY")
         array_obj = array_type.newobject()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2038:", array_obj.getelement, 0
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2039:", array_obj.setelement, 0, 7
-        )
+        with self.assertRaisesFullCode("DPY-2038"):
+            array_obj.getelement(0)
+        with self.assertRaisesFullCode("DPY-2039"):
+            array_obj.setelement(0, 7)
         array_obj.append(7)
         self.assertEqual(array_obj.getelement(0), 7)
         array_obj.setelement(0, 10)
         self.assertEqual(array_obj.getelement(0), 10)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2039:", array_obj.setelement, 3, 4
-        )
+        with self.assertRaisesFullCode("DPY-2039"):
+            array_obj.setelement(3, 4)
 
     def test_2325(self):
         "2325 - test appending too many elements to a collection"
         array_type = self.conn.gettype("UDT_ARRAY")
         numbers = [i for i in range(11)]
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2039:", array_type.newobject, numbers
-        )
+        with self.assertRaisesFullCode("DPY-2039"):
+            array_type.newobject(numbers)
 
         array_obj = array_type.newobject()
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2039:", array_obj.extend, numbers
-        )
+        with self.assertRaisesFullCode("DPY-2039"):
+            array_obj.extend(numbers)
 
         array_obj = array_type.newobject()
         for elem in numbers[:10]:
             array_obj.append(elem)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-2039:", array_obj.append, numbers[10]
-        )
+        with self.assertRaisesFullCode("DPY-2039"):
+            array_obj.append(numbers[10])
 
     def test_2326(self):
         "2326 - test appending elements to an unconstrained table"
@@ -703,9 +696,9 @@ class TestCase(test_env.BaseTestCase):
     def test_2331(self):
         "2331 - test creating an object with invalid data type"
         type_obj = self.conn.gettype("UDT_ARRAY")
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3013:"):
+        with self.assertRaisesFullCode("DPY-3013"):
             type_obj.newobject([490, "not a number"])
-        with self.assertRaisesRegex(oracledb.NotSupportedError, "^DPY-3013:"):
+        with self.assertRaisesFullCode("DPY-3013"):
             type_obj([71, "not a number"])
 
     def test_2332(self):
@@ -730,9 +723,7 @@ class TestCase(test_env.BaseTestCase):
                 value = "A" * max_size
                 setattr(obj, attr_name, value)
                 value += "X"
-                with self.assertRaisesRegex(
-                    oracledb.ProgrammingError, "^DPY-2043:"
-                ):
+                with self.assertRaisesFullCode("DPY-2043"):
                     setattr(obj, attr_name, value)
 
     def test_2334(self):
@@ -740,11 +731,10 @@ class TestCase(test_env.BaseTestCase):
         typ = self.conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
         obj = typ.newobject()
         obj.append("A" * 100)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2044:", obj.append, "A" * 101
-        )
+        with self.assertRaisesFullCode("DPY-2044"):
+            obj.append("A" * 101)
         obj.append("B" * 100)
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2044:"):
+        with self.assertRaisesFullCode("DPY-2044"):
             obj.setelement(2, "C" * 101)
 
     def test_2335(self):
@@ -756,9 +746,9 @@ class TestCase(test_env.BaseTestCase):
     def test_2336(self):
         "2336 - test initializing (with a sequence) a non collection obj"
         obj_type = self.conn.gettype("UDT_OBJECT")
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2036:"):
+        with self.assertRaisesFullCode("DPY-2036"):
             obj_type.newobject([1, 2])
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2036:"):
+        with self.assertRaisesFullCode("DPY-2036"):
             obj_type([3, 4])
 
 

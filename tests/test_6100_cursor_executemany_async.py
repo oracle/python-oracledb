@@ -149,7 +149,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("truncate table TestTempTable")
         rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
         statement = "insert into TestTempTable (IntCol) values (:value)"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00001:"):
+        with self.assertRaisesFullCode("ORA-00001"):
             await self.cursor.executemany(statement, rows)
         self.assertEqual(self.cursor.rowcount, 3)
 
@@ -158,7 +158,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         sql = """
                 insert into TestTempTable (IntCol, StringCol1)
                 values (:1, :2)"""
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
+        with self.assertRaisesFullCode("DPY-2004"):
             await self.cursor.executemany(sql, "Not valid parameters")
 
     async def test_6110(self):
@@ -224,19 +224,19 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_6113(self):
         "6113 - test executemany with incorrect parameters"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2004:"):
+        with self.assertRaisesFullCode("DPY-2004"):
             await self.cursor.executemany("select :1 from dual", [1])
 
     async def test_6114(self):
         "6114 - test executemany with mixed binds (pos first)"
         rows = [["test"], {"value": 1}]
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
+        with self.assertRaisesFullCode("DPY-2006"):
             await self.cursor.executemany("select :1 from dual", rows)
 
     async def test_6115(self):
         "6115 - test executemany with mixed binds (name first)"
         rows = [{"value": 1}, ["test"]]
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
+        with self.assertRaisesFullCode("DPY-2006"):
             await self.cursor.executemany("select :value from dual", rows)
 
     async def test_6116(self):
@@ -375,7 +375,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_6123(self):
         "6123 - test executing no statement"
         cursor = self.conn.cursor()
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):
+        with self.assertRaisesFullCode("DPY-2001"):
             await cursor.executemany(None, [1, 2])
 
 

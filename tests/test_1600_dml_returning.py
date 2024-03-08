@@ -84,17 +84,15 @@ class TestCase(test_env.BaseTestCase):
         parameters = dict(
             int_val=int_val, str_val=str_val, int_var=int_var, str_var=str_var
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4002:|^DPI-1037:",
-            self.cursor.execute,
-            """
-            insert into TestTempTable (IntCol, StringCol1)
-            values (:int_val, :str_val)
-            returning IntCol, StringCol1 into :int_var, :str_var
-            """,
-            parameters,
-        )
+        with self.assertRaisesFullCode("DPY-4002", "DPI-1037"):
+            self.cursor.execute(
+                """
+                insert into TestTempTable (IntCol, StringCol1)
+                values (:int_val, :str_val)
+                returning IntCol, StringCol1 into :int_var, :str_var
+                """,
+                parameters,
+            )
 
     def test_1603(self):
         "1603 - test update single row with DML returning"
@@ -371,13 +369,8 @@ class TestCase(test_env.BaseTestCase):
         parameters = dict(
             int_val=int_val, str_val=str_val, int_var=int_var, str_var=str_var
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-12899:",
-            self.cursor.execute,
-            sql,
-            parameters,
-        )
+        with self.assertRaisesFullCode("ORA-12899"):
+            self.cursor.execute(sql, parameters)
 
     def test_1613(self):
         "1613 - test DML returning with no input variables, multiple iters"
@@ -408,9 +401,8 @@ class TestCase(test_env.BaseTestCase):
                 insert into TestTempTable (IntCol)
                 values (:int_val)
                 returning IntCol, StringCol1 into :ROWID"""
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01745:", self.cursor.parse, sql
-        )
+        with self.assertRaisesFullCode("ORA-01745"):
+            self.cursor.parse(sql)
 
     def test_1616(self):
         "1616 - test DML returning with a non-ascii bind name"

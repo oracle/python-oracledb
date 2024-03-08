@@ -65,20 +65,10 @@ class TestCase(test_env.BaseTestCase):
     def test_2902(self):
         "2902 - test inserting an invalid rowid"
         sql = "insert into TestRowids (IntCol, RowidCol) values (1, :rid)"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-00932:",
-            self.cursor.execute,
-            sql,
-            rid=12345,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01410:",
-            self.cursor.execute,
-            sql,
-            rid="523lkhlf",
-        )
+        with self.assertRaisesFullCode("ORA-00932"):
+            self.cursor.execute(sql, rid=12345)
+        with self.assertRaisesFullCode("ORA-01410"):
+            self.cursor.execute(sql, rid="523lkhlf")
 
     def test_2903(self):
         "2903 - test selecting regular rowids stored in a urowid column"

@@ -126,19 +126,10 @@ class TestCase(test_env.BaseTestCase):
         soda_db = self.get_soda_database()
         self.assertRaises(TypeError, soda_db.createCollection)
         self.assertRaises(TypeError, soda_db.createCollection, 1)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-40658:",
-            soda_db.createCollection,
-            None,
-        )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-40675:",
-            soda_db.createCollection,
-            "CollMetadata",
-            7,
-        )
+        with self.assertRaisesFullCode("ORA-40658"):
+            soda_db.createCollection(None)
+        with self.assertRaisesFullCode("ORA-40675"):
+            soda_db.createCollection("CollMetadata", 7)
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
 
 

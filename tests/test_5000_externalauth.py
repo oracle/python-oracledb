@@ -63,53 +63,47 @@ class TestCase(test_env.BaseTestCase):
         5000 - test error on creating a pool with user and password specified
         and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1032:",
-            test_env.get_pool,
-            min=1,
-            max=2,
-            increment=1,
-            getmode=oracledb.POOL_GETMODE_WAIT,
-            externalauth=True,
-            homogeneous=False,
-        )
+        with self.assertRaisesFullCode("DPI-1032"):
+            test_env.get_pool(
+                min=1,
+                max=2,
+                increment=1,
+                getmode=oracledb.POOL_GETMODE_WAIT,
+                externalauth=True,
+                homogeneous=False,
+            )
 
     def test_5001(self):
         """
         5001 - test error on creating a pool without password and with user
         specified and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1032:",
-            oracledb.create_pool,
-            user=test_env.get_main_user(),
-            min=1,
-            max=2,
-            increment=1,
-            getmode=oracledb.POOL_GETMODE_WAIT,
-            externalauth=True,
-            homogeneous=False,
-        )
+        with self.assertRaisesFullCode("DPI-1032"):
+            oracledb.create_pool(
+                user=test_env.get_main_user(),
+                min=1,
+                max=2,
+                increment=1,
+                getmode=oracledb.POOL_GETMODE_WAIT,
+                externalauth=True,
+                homogeneous=False,
+            )
 
     def test_5002(self):
         """
         5002 - test error on creating a pool without user and with password
         specified and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1032:",
-            oracledb.create_pool,
-            password=test_env.get_main_password(),
-            min=1,
-            max=2,
-            increment=1,
-            getmode=oracledb.POOL_GETMODE_WAIT,
-            externalauth=True,
-            homogeneous=False,
-        )
+        with self.assertRaisesFullCode("DPI-1032"):
+            oracledb.create_pool(
+                password=test_env.get_main_password(),
+                min=1,
+                max=2,
+                increment=1,
+                getmode=oracledb.POOL_GETMODE_WAIT,
+                externalauth=True,
+                homogeneous=False,
+            )
 
     def test_5003(self):
         """
@@ -132,81 +126,66 @@ class TestCase(test_env.BaseTestCase):
         5004 - test error when connecting with user and password specified
         and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1032:",
-            oracledb.connect,
-            user=test_env.get_main_user(),
-            password=test_env.get_main_password(),
-            dsn=test_env.get_connect_string(),
-            externalauth=True,
-        )
+        with self.assertRaisesFullCode("DPI-1032"):
+            oracledb.connect(
+                user=test_env.get_main_user(),
+                password=test_env.get_main_password(),
+                dsn=test_env.get_connect_string(),
+                externalauth=True,
+            )
 
     def test_5005(self):
         """
         5005 - test error when connecting without username and with password
         specified and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1032:",
-            oracledb.connect,
-            password=test_env.get_main_password(),
-            dsn=test_env.get_connect_string(),
-            externalauth=True,
-        )
+        with self.assertRaisesFullCode("DPI-1032"):
+            oracledb.connect(
+                password=test_env.get_main_password(),
+                dsn=test_env.get_connect_string(),
+                externalauth=True,
+            )
 
         # by default externalauth is False
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:",
-            oracledb.connect,
-            password=test_env.get_main_password(),
-            dsn=test_env.get_connect_string(),
-        )
+        with self.assertRaisesFullCode("ORA-01017"):
+            oracledb.connect(
+                password=test_env.get_main_password(),
+                dsn=test_env.get_connect_string(),
+            )
 
     def test_5006(self):
         """
         5006 - test error when connecting without password and with user
         specified and externalauth enabled
         """
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:",
-            oracledb.connect,
-            user="[invalid_user]",
-            dsn=test_env.get_connect_string(),
-            externalauth=True,
-        )
+        with self.assertRaisesFullCode("ORA-01017"):
+            oracledb.connect(
+                user="[invalid_user]",
+                dsn=test_env.get_connect_string(),
+                externalauth=True,
+            )
 
         # by default externalauth is False
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^ORA-01017:",
-            oracledb.connect,
-            user="[invalid_user]",
-            dsn=test_env.get_connect_string(),
-        )
+        with self.assertRaisesFullCode("ORA-01017"):
+            oracledb.connect(
+                user="[invalid_user]", dsn=test_env.get_connect_string()
+            )
 
     def test_5007(self):
         "5007 - test external authentication with invalid proxy user"
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPI-1069:",
-            oracledb.connect,
-            user=test_env.get_main_user(),
-            dsn=test_env.get_connect_string(),
-            externalauth=True,
-        )
+        with self.assertRaisesFullCode("DPI-1069"):
+            oracledb.connect(
+                user=test_env.get_main_user(),
+                dsn=test_env.get_connect_string(),
+                externalauth=True,
+            )
 
         # by default externalauth is False
-        self.assertRaisesRegex(
-            oracledb.DatabaseError,
-            "^DPY-4001:",
-            oracledb.connect,
-            user=test_env.get_main_user(),
-            dsn=test_env.get_connect_string(),
-        )
+        with self.assertRaisesFullCode("DPY-4001"):
+            oracledb.connect(
+                user=test_env.get_main_user(),
+                dsn=test_env.get_connect_string(),
+            )
 
     def test_5008(self):
         """
@@ -269,9 +248,8 @@ class TestCase(test_env.BaseTestCase):
             getmode=oracledb.POOL_GETMODE_WAIT,
             homogeneous=False,
         )
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-24415:", pool.acquire
-        )
+        with self.assertRaisesFullCode("ORA-24415"):
+            pool.acquire()
 
     def test_5013(self):
         "5013 - test pool min is always 0 under external authentication"

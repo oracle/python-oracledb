@@ -45,7 +45,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_5401(self):
         "5401 - test executing a None statement with bind variables"
         cursor = self.conn.cursor()
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2001:"):
+        with self.assertRaisesFullCode("DPY-2001"):
             await cursor.execute(None, x=5)
 
     async def test_5402(self):
@@ -82,7 +82,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5405 - test executing a statement with both a dict and keyword args"
         simple_var = self.cursor.var(oracledb.NUMBER)
         dict_arg = dict(value=simple_var)
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2005:"):
+        with self.assertRaisesFullCode("DPY-2005"):
             await self.cursor.execute(
                 "begin :value := 15; end;", dict_arg, value=simple_var
             )
@@ -96,23 +96,21 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_5407(self):
         "5407 - test that subsequent executes succeed after bad execute"
         sql = "begin raise_application_error(-20000, 'this); end;"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^DPY-2041:"):
+        with self.assertRaisesFullCode("DPY-2041"):
             await self.cursor.execute(sql)
         await self.cursor.execute("begin null; end;")
 
     async def test_5408(self):
         "5408 - test that subsequent fetches fail after bad execute"
-        with self.assertRaisesRegex(oracledb.DatabaseError, "^ORA-00904:"):
+        with self.assertRaisesFullCode("ORA-00904"):
             await self.cursor.execute("select y from dual")
-        with self.assertRaisesRegex(oracledb.InterfaceError, "^DPY-1003:"):
+        with self.assertRaisesFullCode("DPY-1003"):
             await self.cursor.fetchall()
 
     async def test_5409(self):
         "5409 - test executing a statement with an incorrect named bind"
         sql = "select * from TestStrings where IntCol = :value"
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4008:|^ORA-01036:"
-        ):
+        with self.assertRaisesFullCode("DPY-4008", "ORA-01036"):
             await self.cursor.execute(sql, value2=3)
 
     async def test_5410(self):
@@ -134,9 +132,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 select *
                 from TestNumbers
                 where IntCol = :value and LongIntCol = :value2"""
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4009:|^ORA-01008:"
-        ):
+        with self.assertRaisesFullCode("DPY-4009", "ORA-01008"):
             await self.cursor.execute(sql, [3])
 
     async def test_5412(self):
@@ -201,17 +197,11 @@ class TestCase(test_env.BaseAsyncTestCase):
         statement = "begin :value := :value2 + 5; end;"
         var = self.cursor.var(oracledb.NUMBER)
         var.setvalue(0, 5)
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4010:|^ORA-01008:"
-        ):
+        with self.assertRaisesFullCode("DPY-4010", "ORA-01008"):
             await self.cursor.execute(statement)
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4010:|^ORA-01008:"
-        ):
+        with self.assertRaisesFullCode("DPY-4010", "ORA-01008"):
             await self.cursor.execute(statement, value=var)
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPY-4008:|^ORA-01036:"
-        ):
+        with self.assertRaisesFullCode("DPY-4008", "ORA-01036"):
             await self.cursor.execute(
                 statement, value=var, value2=var, value3=var
             )
@@ -256,7 +246,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_5419(self):
         "5419 - test calling execute() with invalid parameters"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2003:"):
+        with self.assertRaisesFullCode("DPY-2003"):
             await self.cursor.execute(sql, "These are not valid parameters")
 
     async def test_5420(self):
@@ -264,7 +254,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("truncate table TestTempTable")
         self.cursor.setinputsizes(None, None, str)
         data = dict(val1=1, val2="Test String 1")
-        with self.assertRaisesRegex(oracledb.ProgrammingError, "^DPY-2006:"):
+        with self.assertRaisesFullCode("DPY-2006"):
             await self.cursor.execute(
                 """
                 insert into TestTempTable (IntCol, StringCol1)
@@ -480,9 +470,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5430 - test setinputsizes() but without binding"
         self.cursor.setinputsizes(None, int)
         sql = "select :1, : 2 from dual"
-        with self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-01008:|^DPY-4010:"
-        ):
+
+        with self.assertRaisesFullCode("ORA-01008", "DPY-4010"):
             await self.cursor.execute(sql, [])
 
     async def test_5431(self):

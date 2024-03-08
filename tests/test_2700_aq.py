@@ -434,23 +434,18 @@ class TestCase(test_env.BaseTestCase):
         queue = self.conn.queue(self.book_queue_name, payloadType=books_type)
         self.assertEqual(queue.payload_type, books_type)
         self.assertEqual(queue.payloadType, books_type)
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError,
-            "^DPY-2014:",
-            self.conn.queue,
-            self.book_queue_name,
-            books_type,
-            payloadType=books_type,
-        )
+        with self.assertRaisesFullCode("DPY-2014"):
+            self.conn.queue(
+                self.book_queue_name, books_type, payloadType=books_type
+            )
 
     def test_2717(self):
         "2717 - test error for message with no payload"
         books_type = self.conn.gettype(self.book_type_name)
         queue = self.conn.queue(self.book_queue_name, books_type)
         props = self.conn.msgproperties()
-        self.assertRaisesRegex(
-            oracledb.ProgrammingError, "^DPY-2000:", queue.enqone, props
-        )
+        with self.assertRaisesFullCode("DPY-2000"):
+            queue.enqone(props)
 
     def test_2718(self):
         "2718 - verify that the msgid property is returned correctly"
@@ -552,9 +547,8 @@ class TestCase(test_env.BaseTestCase):
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
         string_message = "This is a string message"
         props = self.conn.msgproperties(payload=string_message)
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^DPI-1071:", queue.enqone, props
-        )
+        with self.assertRaisesFullCode("DPI-1071"):
+            queue.enqone(props)
 
     def test_2723(self):
         "2723 - test message props enqtime"
@@ -641,9 +635,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(len(correlated_messages), num_messages)
 
         queue.deqoptions.correlation = correlations[1]
-        self.assertRaisesRegex(
-            oracledb.DatabaseError, "^ORA-25241:", queue.deqone
-        )
+        with self.assertRaisesFullCode("ORA-25241"):
+            queue.deqone()
         queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
         correlated_messages = queue.deqmany(num_messages + 1)
         self.assertEqual(len(correlated_messages), num_messages)

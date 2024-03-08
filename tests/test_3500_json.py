@@ -192,13 +192,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("delete from TestJson")
         self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
         insert_sql = "insert into TestJson values (:1, :2)"
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError,
-            "^DPY-3003:",
-            self.cursor.execute,
-            insert_sql,
-            [1, list],
-        )
+        with self.assertRaisesFullCode("DPY-3003"):
+            self.cursor.execute(insert_sql, [1, list])
 
     def test_3509(self):
         "3509 - test fetching an unsupported python type with JSON"
@@ -206,9 +201,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(
             "select json(json_scalar(to_yminterval('8-04'))) from dual"
         )
-        self.assertRaisesRegex(
-            oracledb.NotSupportedError, "^DPY-3007:", self.cursor.fetchone
-        )
+        with self.assertRaisesFullCode("DPY-3007"):
+            self.cursor.fetchone()
 
     def test_3510(self):
         "3510 - fetch all supported types"
