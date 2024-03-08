@@ -41,6 +41,7 @@ cdef class Capabilities:
         uint32_t max_string_size
         bint supports_fast_auth
         bint supports_oob
+        bint supports_end_of_request
         uint32_t sdu
 
     def __init__(self):
@@ -58,6 +59,9 @@ cdef class Capabilities:
         if server_caps[TNS_CCAP_FIELD_VERSION] < self.ttc_field_version:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
+        if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_19_1 \
+                or not server_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
+            self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_REQUEST
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
@@ -74,6 +78,15 @@ cdef class Capabilities:
         if self.ncharset_id != TNS_CHARSET_UTF16:
             errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
                               charset_id=self.ncharset_id)
+
+    cdef void _check_supports_end_of_request(self):
+        """
+        Checks whether the end of request flag is sent and sets a boolean to
+        avoid calculating it each time.
+        """
+        if self.ttc_field_version >= TNS_CCAP_FIELD_VERSION_19_1 \
+                and self.compile_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
+            self.supports_end_of_request = True
 
     @cython.boundscheck(False)
     cdef void _init_compile_caps(self):
@@ -109,7 +122,8 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_TTC2] = TNS_CCAP_ZLNP
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX
-        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION
+        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION | \
+                TNS_CCAP_END_OF_REQUEST
         self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT
 
     @cython.boundscheck(False)

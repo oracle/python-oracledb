@@ -55,6 +55,15 @@ cdef class Packet:
         uint8_t packet_flags
         bytes buf
 
+    cdef inline bint has_end_of_request(self):
+        """
+        Returns a boolean indicating if the end of request byte is found at the
+        end of the packet.
+        """
+        cdef char *ptr = cpython.PyBytes_AS_STRING(self.buf)
+        return ptr[self.packet_size - 1] == TNS_MSG_TYPE_END_OF_REQUEST
+
+
 @cython.final
 cdef class ChunkedBytesBuffer:
 
@@ -186,6 +195,7 @@ cdef class ReadBuffer(Buffer):
         Transport _transport
         list _saved_packets
         Capabilities _caps
+        bint _in_request
         object _waiter
         object _loop
 
@@ -314,14 +324,20 @@ cdef class ReadBuffer(Buffer):
         """
         Processes a packet. If the packet is a control packet it is processed
         immediately and discarded; otherwise, it is added to the list of saved
-        packets for this response.
+        packets for this response. If the protocol supports sending the end of
+        request notification we wait for that message type to be returned at
+        the end of the packet.
         """
         if packet.packet_type == TNS_PACKET_TYPE_CONTROL:
             self._process_control_packet(packet)
             notify_waiter[0] = False
         else:
             self._saved_packets.append(packet)
-            notify_waiter[0] = True
+            notify_waiter[0] = \
+                    packet.packet_type != TNS_PACKET_TYPE_DATA \
+                    or not self._in_request \
+                    or not self._caps.supports_end_of_request \
+                    or packet.has_end_of_request()
 
     cdef int _read_raw_bytes_and_length(self, const char_type **ptr,
                                         ssize_t *num_bytes) except -1:

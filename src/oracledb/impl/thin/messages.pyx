@@ -51,7 +51,6 @@ cdef class Message:
         uint16_t end_to_end_seq_num
         bint error_occurred
         bint flush_out_binds
-        bint end_of_request
         bint resend
         bint retry
         object warning
@@ -118,7 +117,7 @@ cdef class Message:
         buf.read_ub4(&num_bytes)            # oerrdd (logical rowid)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()
-        self.end_of_request = True
+        buf._in_request = False
 
         # batch error codes
         buf.read_ub2(&num_errors)           # batch error codes array
@@ -187,6 +186,8 @@ cdef class Message:
             self._process_return_parameters(buf)
         elif message_type == TNS_MSG_TYPE_SERVER_SIDE_PIGGYBACK:
             self._process_server_side_piggyback(buf)
+        elif message_type == TNS_MSG_TYPE_END_OF_REQUEST:
+            buf._in_request = False
         else:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,
                               message_type=message_type,
@@ -301,7 +302,7 @@ cdef class Message:
     cdef int process(self, ReadBuffer buf) except -1:
         cdef uint8_t message_type
         self.flush_out_binds = False
-        self.end_of_request = False
+        buf._in_request = True
         self._preprocess()
         while self._has_more_data(buf):
             buf.save_point()
@@ -391,7 +392,7 @@ cdef class MessageWithData(Message):
         memcpy(<void*> self.bit_vector, ptr, num_bytes)
 
     cdef bint _has_more_data(self, ReadBuffer buf):
-        return not self.end_of_request and not self.flush_out_binds
+        return buf._in_request and not self.flush_out_binds
 
     cdef bint _is_duplicate_data(self, uint32_t column_num):
         """
@@ -1918,6 +1919,7 @@ cdef class DataTypesMessage(Message):
             buf.read_uint16(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
+        buf._caps._check_supports_end_of_request()
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
@@ -2215,7 +2217,7 @@ cdef class LobOpMessage(Message):
         object data
 
     cdef bint _has_more_data(self, ReadBuffer buf):
-        return not self.end_of_request
+        return buf._in_request
 
     cdef int _initialize_hook(self) except -1:
         """
@@ -2402,7 +2404,7 @@ cdef class FastAuthMessage(Message):
         bint renegotiate
 
     cdef bint _has_more_data(self, ReadBuffer buf):
-        return not self.end_of_request
+        return buf._in_request
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -2419,7 +2421,7 @@ cdef class FastAuthMessage(Message):
                                               message_type)
         else:
             AuthMessage._process_message(self.auth_message, buf, message_type)
-            self.end_of_request = True
+            buf._in_request = False
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """

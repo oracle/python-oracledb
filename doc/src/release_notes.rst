@@ -25,6 +25,8 @@ Thin Mode Changes
     for string variables.
 #)  User-defined errors raised by the database no longer display an error help
     portal URL.
+#)  Improved handling of packets with :ref:`asyncio <asyncio>` for recent
+    database versions.
 #)  Fixed potential cursor issues when using :ref:`drcp`.
 #)  Fixed regression when using :ref:`IAM token authentication <iamauth>`
     (`issue 288 <https://github.com/oracle/python-oracledb/issues/288>`__).
