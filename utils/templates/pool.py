@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -102,59 +102,6 @@ class BaseConnectionPool:
         """
         if self._impl is None:
             errors._raise_err(errors.ERR_POOL_NOT_OPEN)
-
-    def acquire(
-        self,
-        user: str = None,
-        password: str = None,
-        cclass: str = None,
-        purity: int = oracledb.PURITY_DEFAULT,
-        tag: str = None,
-        matchanytag: bool = False,
-        shardingkey: list = None,
-        supershardingkey: list = None,
-    ) -> "connection_module.Connection":
-        """
-        Acquire a connection from the pool and return it.
-
-        If the pool is homogeneous, the user and password parameters cannot be
-        specified. If they are, an exception will be raised.
-
-        The cclass parameter, if specified, should be a string corresponding to
-        the connection class for database resident connection pooling (DRCP).
-
-        The purity parameter is expected to be one of PURITY_DEFAULT,
-        PURITY_NEW, or PURITY_SELF.
-
-        The tag parameter, if specified, is expected to be a string with
-        name=value pairs like “k1=v1;k2=v2” and will limit the connections that
-        can be returned from a pool unless the matchanytag parameter is
-        set to True. In that case connections with the specified tag will be
-        preferred over others, but if no such connections are available a
-        connection with a different tag may be returned instead. In any case,
-        untagged connections will always be returned if no connections with the
-        specified tag are available. Connections are tagged when they are
-        released back to the pool.
-
-        The shardingkey and supershardingkey parameters, if specified, are
-        expected to be a sequence of values which will be used to identify the
-        database shard to connect to. The key values can be strings, numbers,
-        bytes or dates.
-        """
-        self._verify_open()
-
-        return self._connection_method(
-            conn_class=self._connection_type,
-            user=user,
-            password=password,
-            cclass=cclass,
-            purity=purity,
-            tag=tag,
-            matchanytag=matchanytag,
-            shardingkey=shardingkey,
-            supershardingkey=supershardingkey,
-            pool=self,
-        )
 
     @property
     def busy(self) -> int:
@@ -412,7 +359,59 @@ class ConnectionPool(BaseConnectionPool):
         ) or issubclass(conn_class, connection_module.AsyncConnection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
         self._connection_type = conn_class
-        self._connection_method = oracledb.connect
+
+    def acquire(
+        self,
+        user: str = None,
+        password: str = None,
+        cclass: str = None,
+        purity: int = oracledb.PURITY_DEFAULT,
+        tag: str = None,
+        matchanytag: bool = False,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+    ) -> "connection_module.Connection":
+        """
+        Acquire a connection from the pool and return it.
+
+        If the pool is homogeneous, the user and password parameters cannot be
+        specified. If they are, an exception will be raised.
+
+        The cclass parameter, if specified, should be a string corresponding to
+        the connection class for database resident connection pooling (DRCP).
+
+        The purity parameter is expected to be one of PURITY_DEFAULT,
+        PURITY_NEW, or PURITY_SELF.
+
+        The tag parameter, if specified, is expected to be a string with
+        name=value pairs like “k1=v1;k2=v2” and will limit the connections that
+        can be returned from a pool unless the matchanytag parameter is
+        set to True. In that case connections with the specified tag will be
+        preferred over others, but if no such connections are available a
+        connection with a different tag may be returned instead. In any case,
+        untagged connections will always be returned if no connections with the
+        specified tag are available. Connections are tagged when they are
+        released back to the pool.
+
+        The shardingkey and supershardingkey parameters, if specified, are
+        expected to be a sequence of values which will be used to identify the
+        database shard to connect to. The key values can be strings, numbers,
+        bytes or dates.
+        """
+        self._verify_open()
+
+        return oracledb.connect(
+            conn_class=self._connection_type,
+            user=user,
+            password=password,
+            cclass=cclass,
+            purity=purity,
+            tag=tag,
+            matchanytag=matchanytag,
+            shardingkey=shardingkey,
+            supershardingkey=supershardingkey,
+            pool=self,
+        )
 
     def close(self, force: bool = False) -> None:
         """
@@ -626,7 +625,59 @@ class AsyncConnectionPool(BaseConnectionPool):
         elif not issubclass(conn_class, connection_module.AsyncConnection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
         self._connection_type = conn_class
-        self._connection_method = oracledb.connect_async
+
+    def acquire(
+        self,
+        user: str = None,
+        password: str = None,
+        cclass: str = None,
+        purity: int = oracledb.PURITY_DEFAULT,
+        tag: str = None,
+        matchanytag: bool = False,
+        shardingkey: list = None,
+        supershardingkey: list = None,
+    ) -> "connection_module.AsyncConnection":
+        """
+        Acquire a connection from the pool and return it.
+
+        If the pool is homogeneous, the user and password parameters cannot be
+        specified. If they are, an exception will be raised.
+
+        The cclass parameter, if specified, should be a string corresponding to
+        the connection class for database resident connection pooling (DRCP).
+
+        The purity parameter is expected to be one of PURITY_DEFAULT,
+        PURITY_NEW, or PURITY_SELF.
+
+        The tag parameter, if specified, is expected to be a string with
+        name=value pairs like “k1=v1;k2=v2” and will limit the connections that
+        can be returned from a pool unless the matchanytag parameter is
+        set to True. In that case connections with the specified tag will be
+        preferred over others, but if no such connections are available a
+        connection with a different tag may be returned instead. In any case,
+        untagged connections will always be returned if no connections with the
+        specified tag are available. Connections are tagged when they are
+        released back to the pool.
+
+        The shardingkey and supershardingkey parameters, if specified, are
+        expected to be a sequence of values which will be used to identify the
+        database shard to connect to. The key values can be strings, numbers,
+        bytes or dates.
+        """
+        self._verify_open()
+
+        return oracledb.connect_async(
+            conn_class=self._connection_type,
+            user=user,
+            password=password,
+            cclass=cclass,
+            purity=purity,
+            tag=tag,
+            matchanytag=matchanytag,
+            shardingkey=shardingkey,
+            supershardingkey=supershardingkey,
+            pool=self,
+        )
 
     async def close(self, force: bool = False) -> None:
         """
