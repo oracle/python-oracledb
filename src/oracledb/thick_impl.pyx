@@ -33,7 +33,9 @@
 cimport cython
 cimport cpython
 cimport cpython.datetime as cydatetime
+from cpython cimport array
 
+import array
 import datetime
 import decimal
 
@@ -73,8 +75,10 @@ from .base_impl cimport (
     NUM_TYPE_FLOAT,
     NUM_TYPE_INT,
     NUM_TYPE_DECIMAL,
+    VectorDecoder,
+    VectorEncoder,
 )
-from libc.string cimport memchr, memset
+from libc.string cimport memchr, memcpy, memset
 
 include "impl/thick/odpi.pxd"
 

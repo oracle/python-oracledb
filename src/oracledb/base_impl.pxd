@@ -33,6 +33,7 @@
 
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
+from cpython cimport array
 
 ctypedef unsigned char char_type
 
@@ -44,7 +45,7 @@ cdef enum:
 
 cdef enum:
     DB_TYPE_NUM_MIN = 2000
-    DB_TYPE_NUM_MAX = 2032
+    DB_TYPE_NUM_MAX = 2033
 
     DB_TYPE_NUM_BFILE = 2020
     DB_TYPE_NUM_BINARY_DOUBLE = 2008
@@ -75,6 +76,7 @@ cdef enum:
     DB_TYPE_NUM_UNKNOWN = 0
     DB_TYPE_NUM_UROWID = 2030
     DB_TYPE_NUM_VARCHAR = 2001
+    DB_TYPE_NUM_VECTOR = 2033
     DB_TYPE_NUM_XMLTYPE = 2032
 
 cdef enum:
@@ -91,6 +93,7 @@ cdef enum:
     NATIVE_TYPE_NUM_ROWID = 3012
     NATIVE_TYPE_NUM_STMT = 3010
     NATIVE_TYPE_NUM_TIMESTAMP = 3005
+    NATIVE_TYPE_NUM_VECTOR = 3017
 
 cdef enum:
     CS_FORM_IMPLICIT = 1
@@ -169,8 +172,10 @@ cdef class Buffer:
     cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
                                          ssize_t num_bytes) except -1
     cdef inline ssize_t bytes_left(self)
-    cdef object parse_binary_double(self, const uint8_t* ptr)
-    cdef object parse_binary_float(self, const uint8_t* ptr)
+    cdef int parse_binary_double(self, const uint8_t* ptr,
+                                 double *double_ptr) except -1
+    cdef int parse_binary_float(self, const uint8_t* ptr,
+                                float *float_ptr) except -1
     cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes)
     cdef object parse_interval_ds(self, const uint8_t* ptr)
     cdef object parse_oracle_number(self, const uint8_t* ptr,
@@ -207,8 +212,10 @@ cdef class Buffer:
     cdef inline int skip_ub2(self) except -1
     cdef inline int skip_ub4(self) except -1
     cdef inline int skip_ub8(self) except -1
-    cdef int write_binary_double(self, double value) except -1
-    cdef int write_binary_float(self, float value) except -1
+    cdef int write_binary_double(self, double value,
+                                 bint write_length=*) except -1
+    cdef int write_binary_float(self, float value,
+                                bint write_length=*) except -1
     cdef int write_bool(self, bint value) except -1
     cdef int write_bytes(self, bytes value) except -1
     cdef int write_bytes_with_length(self, bytes value) except -1
@@ -302,6 +309,16 @@ cdef class OsonEncoder(GrowableBuffer):
     cdef int _write_extended_header(self) except -1
     cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1
     cdef int encode(self, object value, ssize_t max_fname_size) except -1
+
+
+cdef class VectorDecoder(Buffer):
+
+    cdef object decode(self, bytes data)
+
+
+cdef class VectorEncoder(GrowableBuffer):
+
+    cdef int encode(self, array.array value) except -1
 
 
 cdef class ConnectParamsNode:
@@ -549,6 +566,9 @@ cdef class FetchInfoImpl:
         readonly str domain_schema
         readonly str domain_name
         readonly dict annotations
+        readonly uint32_t vector_dimensions
+        readonly uint8_t vector_format
+        readonly uint8_t vector_flags
 
 
 cdef class BaseVarImpl:

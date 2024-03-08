@@ -109,6 +109,8 @@ from .base_impl cimport (
     OsonEncoder,
     unpack_uint16,
     unpack_uint32,
+    VectorDecoder,
+    VectorEncoder,
     TNS_LONG_LENGTH_INDICATOR,
     TNS_NULL_LENGTH_INDICATOR,
 )

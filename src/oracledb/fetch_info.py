@@ -32,6 +32,7 @@
 from typing import Union
 
 from . import __name__ as MODULE_NAME
+from . import constants
 from .dbobject import DbObjectType
 from .base_impl import (
     DbType,
@@ -43,6 +44,7 @@ from .base_impl import (
     DB_TYPE_BINARY_DOUBLE,
     DB_TYPE_BINARY_INTEGER,
     DB_TYPE_NUMBER,
+    DB_TYPE_VECTOR,
 )
 
 
@@ -220,3 +222,28 @@ class FetchInfo:
         Returns the type of the column.
         """
         return self._impl.dbtype
+
+    @property
+    def vector_dimensions(self) -> [int, None]:
+        """
+        Returns the number of dimensions required by vector columns. If the
+        column is not a vector column or allows for any number of dimensions,
+        the value returned is None.
+        """
+        if self._impl.dbtype is DB_TYPE_VECTOR:
+            flags = self._impl.vector_flags
+            if not (flags & constants.VECTOR_META_FLAG_FLEXIBLE_DIM):
+                return self._impl.vector_dimensions
+
+    @property
+    def vector_format(self) -> [int, None]:
+        """
+        Returns the storage type required by vector columns. If the column is
+        not a vector column or allows for any type of storage, the value
+        returned is None.
+        """
+        if (
+            self._impl.dbtype is DB_TYPE_VECTOR
+            and self._impl.vector_format != 0
+        ):
+            return self._impl.vector_format

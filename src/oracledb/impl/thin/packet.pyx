@@ -528,6 +528,27 @@ cdef class ReadBuffer(Buffer):
 
         return bytes(output_value).decode()
 
+    cdef object read_vector(self):
+        """
+        Read a VECTOR value from the buffer and return the converted value.
+        VECTOR is sent as a LOB value with all of the data prefetched. Since
+        the LOB locator is not required it is simply discarded.
+        it.
+        """
+        cdef:
+            VectorDecoder decoder
+            uint32_t num_bytes
+            bytes data
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            self.skip_ub8()             # size (unused)
+            self.skip_ub4()             # chunk size (unused)
+            data = self.read_bytes()
+            self.read_bytes()           # LOB locator (unused)
+            if data:
+                decoder = VectorDecoder.__new__(VectorDecoder)
+                return decoder.decode(data)
+
     cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
         """
         Reads an XMLType value from the buffer and returns the string value.
@@ -821,3 +842,12 @@ cdef class WriteBuffer(Buffer):
         if self._seq_num == 0:
             self._seq_num = 1
         self.write_uint8(self._seq_num)
+
+    cdef object write_vector(self, value):
+        """
+        Encodes the given value to VECTOR and then writes that to the buffer.
+        """
+        cdef VectorEncoder encoder = VectorEncoder.__new__(VectorEncoder)
+        encoder.encode(value)
+        self.write_qlocator(encoder._pos)
+        self._write_raw_bytes_and_length(encoder._data, encoder._pos)

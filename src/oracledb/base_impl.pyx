@@ -39,6 +39,9 @@ from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 from libc.stdint cimport UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX
 from libc.string cimport memcpy
+from cpython cimport array
+
+import array
 
 import base64
 import datetime
@@ -71,9 +74,15 @@ cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO
 
+# purity values
 cdef uint32_t PURITY_NEW = constants.PURITY_NEW
 cdef uint32_t PURITY_SELF = constants.PURITY_SELF
 cdef uint32_t PURITY_DEFAULT = constants.PURITY_DEFAULT
+
+# vector types
+cdef uint8_t VECTOR_FORMAT_FLOAT32 = constants.VECTOR_FORMAT_FLOAT32
+cdef uint8_t VECTOR_FORMAT_FLOAT64 = constants.VECTOR_FORMAT_FLOAT64
+cdef uint8_t VECTOR_FORMAT_INT8 = constants.VECTOR_FORMAT_INT8
 
 cdef const char* ENCODING_UTF8 = "UTF-8"
 cdef const char* ENCODING_UTF16 = "UTF-16BE"
@@ -89,6 +98,7 @@ include "impl/base/defaults.pyx"
 include "impl/base/utils.pyx"
 include "impl/base/buffer.pyx"
 include "impl/base/oson.pyx"
+include "impl/base/vector.pyx"
 include "impl/base/connect_params.pyx"
 include "impl/base/pool_params.pyx"
 include "impl/base/connection.pyx"

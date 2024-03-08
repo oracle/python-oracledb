@@ -97,6 +97,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_NATIVE_TYPE_ROWID
         DPI_NATIVE_TYPE_STMT
         DPI_NATIVE_TYPE_TIMESTAMP
+        DPI_NATIVE_TYPE_VECTOR
 
     # Oracle types
     enum:
@@ -130,6 +131,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_ORACLE_TYPE_TIMESTAMP_LTZ
         DPI_ORACLE_TYPE_TIMESTAMP_TZ
         DPI_ORACLE_TYPE_VARCHAR
+        DPI_ORACLE_TYPE_VECTOR
         DPI_ORACLE_TYPE_XMLTYPE
 
     # SODA flags
@@ -151,6 +153,12 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_MODE_FETCH_LAST
         DPI_MODE_FETCH_ABSOLUTE
         DPI_MODE_FETCH_RELATIVE
+
+    # vector formats
+    enum:
+        DPI_VECTOR_FORMAT_FLOAT32
+        DPI_VECTOR_FORMAT_FLOAT64
+        DPI_VECTOR_FORMAT_INT8
 
     # subscription constants
     uint32_t DPI_SUBSCR_QOS_QUERY
@@ -219,6 +227,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         pass
 
     ctypedef struct dpiVar:
+        pass
+
+    ctypedef struct dpiVector:
         pass
 
     # function pointer types
@@ -353,6 +364,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         dpiObject *asObject
         dpiStmt *asStmt
         dpiRowid *asRowid
+        dpiVector *asVector
 
     ctypedef struct dpiData:
         bint isNull
@@ -377,6 +389,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t numAnnotations
         dpiAnnotation *annotations
         bint isOson
+        uint32_t vectorDimensions
+        uint8_t vectorFormat
+        uint8_t vectorFlags
 
     ctypedef struct dpiAccessToken:
         const char *token
@@ -532,6 +547,18 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         dpiSubscrMessageRow *rows
         uint32_t numRows
 
+    ctypedef union dpiVectorDimensionBuffer:
+        void* asPtr
+        int8_t* asInt8
+        float* asFloat
+        double* asDouble
+
+    ctypedef struct dpiVectorInfo:
+        uint8_t format
+        uint32_t numDimensions
+        uint8_t dimensionSize
+        dpiVectorDimensionBuffer dimensions
+
     ctypedef struct dpiVersionInfo:
         int versionNum
         int releaseNum
@@ -641,6 +668,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             uint32_t nativeTypeNum, uint32_t maxArraySize, uint32_t size,
             int sizeIsBytes, bint isArray, dpiObjectType *objType, dpiVar **var,
             dpiData **data) nogil
+
+    int dpiConn_newVector(dpiConn *conn, dpiVectorInfo *info,
+            dpiVector **vector) nogil
 
     int dpiConn_ping(dpiConn *conn) nogil
 
@@ -1240,3 +1270,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiVar_setFromObject(dpiVar *var, uint32_t pos, dpiObject *obj) nogil
 
     int dpiVar_setFromStmt(dpiVar *var, uint32_t pos, dpiStmt *stmt) nogil
+
+    int dpiVector_getValue(dpiVector *vector, dpiVectorInfo *info) nogil
+
+    int dpiVector_setValue(dpiVector *vector, dpiVectorInfo *info) nogil

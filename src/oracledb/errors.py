@@ -264,6 +264,8 @@ ERR_OSON_NODE_TYPE_NOT_SUPPORTED = 3019
 ERR_OSON_FIELD_NAME_LIMITATION = 3020
 ERR_OSON_VERSION_NOT_SUPPORTED = 3021
 ERR_NAMED_TIMEZONE_NOT_SUPPORTED = 3022
+ERR_VECTOR_VERSION_NOT_SUPPORTED = 3023
+ERR_VECTOR_FORMAT_NOT_SUPPORTED = 3024
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -675,6 +677,12 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNSUPPORTED_VERIFIER_TYPE: (
         "password verifier type 0x{verifier_type:x} is not supported by "
         "python-oracledb in thin mode"
+    ),
+    ERR_VECTOR_FORMAT_NOT_SUPPORTED: (
+        "VECTOR type {vector_format} is not supported"
+    ),
+    ERR_VECTOR_VERSION_NOT_SUPPORTED: (
+        "VECTOR version {version} is not supported"
     ),
     ERR_WALLET_FILE_MISSING: "wallet file {name} was not found",
     ERR_WRONG_ARRAY_DEFINITION: (

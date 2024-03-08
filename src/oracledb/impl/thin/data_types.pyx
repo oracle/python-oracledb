@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,7 +34,7 @@ ctypedef struct DataType:
     uint16_t conv_data_type
     uint16_t representation
 
-cdef DataType[315] DATA_TYPES = [
+cdef DataType[316] DATA_TYPES = [
     [TNS_DATA_TYPE_VARCHAR, TNS_DATA_TYPE_VARCHAR, TNS_TYPE_REP_UNIVERSAL],
     [TNS_DATA_TYPE_NUMBER, TNS_DATA_TYPE_NUMBER, TNS_TYPE_REP_ORACLE],
     [TNS_DATA_TYPE_LONG, TNS_DATA_TYPE_LONG, TNS_TYPE_REP_UNIVERSAL],
@@ -355,5 +355,6 @@ cdef DataType[315] DATA_TYPES = [
     [TNS_DATA_TYPE_TNP, TNS_DATA_TYPE_TNP, TNS_TYPE_REP_UNIVERSAL],
     [TNS_DATA_TYPE_OER, TNS_DATA_TYPE_OER, TNS_TYPE_REP_UNIVERSAL],
     [TNS_DATA_TYPE_OAC, TNS_DATA_TYPE_OAC, TNS_TYPE_REP_UNIVERSAL],
+    [TNS_DATA_TYPE_VECTOR, TNS_DATA_TYPE_VECTOR, TNS_TYPE_REP_UNIVERSAL],
     [0, 0, 0]
 ]

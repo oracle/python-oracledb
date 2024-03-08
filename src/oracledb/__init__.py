@@ -147,6 +147,10 @@ from .constants import (
     # flags for tpc_end()
     TPC_END_NORMAL as TPC_END_NORMAL,
     TPC_END_SUSPEND as TPC_END_SUSPEND,
+    # vector types
+    VECTOR_FORMAT_FLOAT32 as VECTOR_FORMAT_FLOAT32,
+    VECTOR_FORMAT_FLOAT64 as VECTOR_FORMAT_FLOAT64,
+    VECTOR_FORMAT_INT8 as VECTOR_FORMAT_INT8,
 )
 
 from .exceptions import (
@@ -237,6 +241,7 @@ from .base_impl import (
     DB_TYPE_UNKNOWN as DB_TYPE_UNKNOWN,
     DB_TYPE_UROWID as DB_TYPE_UROWID,
     DB_TYPE_VARCHAR as DB_TYPE_VARCHAR,
+    DB_TYPE_VECTOR as DB_TYPE_VECTOR,
     DB_TYPE_XMLTYPE as DB_TYPE_XMLTYPE,
     # API types
     BINARY as BINARY,

@@ -276,7 +276,8 @@ cdef class Buffer:
         """
         return self._size - self._pos
 
-    cdef object parse_binary_double(self, const uint8_t* ptr):
+    cdef int parse_binary_double(self, const uint8_t* ptr,
+                                 double *double_ptr) except -1:
         """
         Read a binary double value from the buffer and return the corresponding
         Python object representing that value.
@@ -284,7 +285,6 @@ cdef class Buffer:
         cdef:
             uint8_t b0, b1, b2, b3, b4, b5, b6, b7
             uint64_t high_bits, low_bits, all_bits
-            double *double_ptr
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -307,10 +307,10 @@ cdef class Buffer:
         high_bits = b0 << 24 | b1 << 16 | b2 << 8 | b3
         low_bits = b4 << 24 | b5 << 16 | b6 << 8 | b7
         all_bits = high_bits << 32 | (low_bits & <uint64_t> 0xffffffff)
-        double_ptr = <double*> &all_bits
-        return double_ptr[0]
+        memcpy(double_ptr, &all_bits, 8)
 
-    cdef object parse_binary_float(self, const uint8_t* ptr):
+    cdef int parse_binary_float(self, const uint8_t* ptr,
+                                float *float_ptr) except -1:
         """
         Parse a binary float value from the buffer and return the corresponding
         Python object representing that value.
@@ -318,7 +318,6 @@ cdef class Buffer:
         cdef:
             uint8_t b0, b1, b2, b3
             uint64_t all_bits
-            float *float_ptr
         b0 = ptr[0]
         b1 = ptr[1]
         b2 = ptr[2]
@@ -331,8 +330,7 @@ cdef class Buffer:
             b2 = ~b2
             b3 = ~b3
         all_bits = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
-        float_ptr = <float*> &all_bits
-        return float_ptr[0]
+        memcpy(float_ptr, &all_bits, 4)
 
     cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes):
         """
@@ -512,9 +510,11 @@ cdef class Buffer:
         cdef:
             const uint8_t *ptr
             ssize_t num_bytes
+            double value
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
-            return self.parse_binary_double(ptr)
+            self.parse_binary_double(ptr, &value)
+            return value
 
     cdef object read_binary_float(self):
         """
@@ -524,9 +524,11 @@ cdef class Buffer:
         cdef:
             const uint8_t *ptr
             ssize_t num_bytes
+            float value
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
-            return self.parse_binary_float(ptr)
+            self.parse_binary_float(ptr, &value)
+            return value
 
     cdef object read_binary_integer(self):
         """
@@ -835,7 +837,8 @@ cdef class Buffer:
         """
         return self._skip_int(8, NULL)
 
-    cdef int write_binary_double(self, double value) except -1:
+    cdef int write_binary_double(self, double value,
+                                 bint write_length=True) except -1:
         """
         Writes a double value to the buffer in Oracle canonical double floating
         point format.
@@ -874,10 +877,12 @@ cdef class Buffer:
         buf[5] = b5
         buf[6] = b6
         buf[7] = b7
-        self.write_uint8(8)
+        if write_length:
+            self.write_uint8(8)
         self.write_raw(buf, 8)
 
-    cdef int write_binary_float(self, float value) except -1:
+    cdef int write_binary_float(self, float value,
+                                bint write_length=True) except -1:
         """
         Writes a float value to the buffer in Oracle canonical floating point
         format.
@@ -904,7 +909,8 @@ cdef class Buffer:
         buf[1] = b1
         buf[2] = b2
         buf[3] = b3
-        self.write_uint8(4)
+        if write_length:
+            self.write_uint8(4)
         self.write_raw(buf, 4)
 
     cdef int write_bool(self, bint value) except -1:

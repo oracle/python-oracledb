@@ -582,6 +582,8 @@ cdef class MessageWithData(Message):
                                                     var_impl.dbtype)
         elif ora_type_num == TNS_DATA_TYPE_JSON:
             column_value = buf.read_oson()
+        elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+            column_value = buf.read_vector()
         elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
             typ_impl = var_impl.objtype
             if typ_impl is None:
@@ -692,6 +694,10 @@ cdef class MessageWithData(Message):
                     fetch_info.annotations[key] = value
                     buf.skip_ub4()          # flags
                 buf.skip_ub4()              # flags
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_4:
+            buf.read_ub4(&fetch_info.vector_dimensions)
+            buf.read_ub1(&fetch_info.vector_format)
+            buf.read_ub1(&fetch_info.vector_flags)
         if data_type == TNS_DATA_TYPE_INT_NAMED:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num
@@ -731,7 +737,8 @@ cdef class MessageWithData(Message):
             if not stmt._no_prefetch and \
                     fetch_info.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
                                                         TNS_DATA_TYPE_CLOB,
-                                                        TNS_DATA_TYPE_JSON):
+                                                        TNS_DATA_TYPE_JSON,
+                                                        TNS_DATA_TYPE_VECTOR):
                 stmt._requires_define = True
                 stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
@@ -962,6 +969,9 @@ cdef class MessageWithData(Message):
             elif ora_type_num == TNS_DATA_TYPE_JSON:
                 cont_flag = TNS_LOB_PREFETCH_FLAG
                 buffer_size = lob_prefetch_length = TNS_JSON_MAX_LENGTH
+            elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+                cont_flag = TNS_LOB_PREFETCH_FLAG
+                buffer_size = lob_prefetch_length = TNS_VECTOR_MAX_LENGTH
             buf.write_uint8(ora_type_num)
             buf.write_uint8(flag)
             # precision and scale are always written as zero as the server
@@ -1070,6 +1080,8 @@ cdef class MessageWithData(Message):
             buf.write_dbobject(value._impl)
         elif ora_type_num == TNS_DATA_TYPE_JSON:
             buf.write_oson(value, self.conn_impl._oson_max_fname_size)
+        elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+            buf.write_vector(value)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name=var_impl.dbtype.name)

@@ -110,6 +110,7 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX
         self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION
+        self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT
 
     @cython.boundscheck(False)
     cdef void _init_runtime_caps(self):

@@ -28,8 +28,13 @@
 # Cython file for utility functions (embedded in thick_impl.pyx).
 #------------------------------------------------------------------------------
 
+cdef array.array float_template = array.array('f')
+cdef array.array double_template = array.array('d')
+cdef array.array int8_template = array.array('b')
+
 cdef object _convert_from_json_node(dpiJsonNode *node):
     cdef:
+        VectorDecoder vector_decoder
         dpiTimestamp *as_timestamp
         dpiIntervalDS *as_interval
         dpiJsonArray *array
@@ -84,6 +89,10 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
         for i in range(array.numElements):
             list_value[i] = _convert_from_json_node(&array.elements[i])
         return list_value
+    elif node.oracleTypeNum == DPI_ORACLE_TYPE_VECTOR:
+        as_bytes = &node.value.asBytes
+        vector_decoder = VectorDecoder.__new__(VectorDecoder)
+        return vector_decoder.decode(as_bytes.ptr[:as_bytes.length])
     dbtype = DbType._from_num(node.oracleTypeNum)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
@@ -96,10 +105,12 @@ cdef int _convert_from_python(object value, DbType dbtype,
     cdef:
         uint32_t oracle_type = dbtype.num
         ThickDbObjectImpl obj_impl
+        dpiVectorInfo vector_info
         dpiTimestamp *timestamp
         ThickLobImpl lob_impl
         int seconds, status
         JsonBuffer json_buf
+        dpiVector *vector
     if oracle_type == DPI_ORACLE_TYPE_NUMBER:
         if isinstance(value, bool):
             if value:
@@ -192,6 +203,17 @@ cdef int _convert_from_python(object value, DbType dbtype,
         json_buf = JsonBuffer()
         json_buf.from_object(value)
         if dpiJson_setValue(dbvalue.asJson, &json_buf._top_node) < 0:
+            _raise_from_odpi()
+    elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
+        if value.typecode == 'd':
+            vector_info.format = DPI_VECTOR_FORMAT_FLOAT64
+        elif value.typecode == 'f':
+            vector_info.format = DPI_VECTOR_FORMAT_FLOAT32
+        else:
+            vector_info.format = DPI_VECTOR_FORMAT_INT8
+        vector_info.numDimensions = <uint32_t> len(value)
+        vector_info.dimensions.asPtr = (<array.array> value).data.as_voidptr
+        if dpiVector_setValue(dbvalue.asVector, &vector_info) < 0:
             _raise_from_odpi()
     else:
         errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
@@ -342,7 +364,30 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
                             &json_node) < 0:
             _raise_from_odpi()
         return _convert_from_json_node(json_node)
+    elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
+        return _convert_vector_to_python(dbvalue.asVector)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
+
+
+cdef object _convert_vector_to_python(dpiVector *vector):
+    """
+    Converts a vector to a Python array.
+    """
+    cdef:
+        dpiVectorInfo vector_info
+        array.array result
+    if dpiVector_getValue(vector, &vector_info) < 0:
+        _raise_from_odpi()
+    if vector_info.format == DPI_VECTOR_FORMAT_FLOAT32:
+        result = array.clone(float_template, vector_info.numDimensions, False)
+    elif vector_info.format == DPI_VECTOR_FORMAT_FLOAT64:
+        result = array.clone(double_template, vector_info.numDimensions, False)
+    elif vector_info.format == DPI_VECTOR_FORMAT_INT8:
+        result = array.clone(int8_template, vector_info.numDimensions, False)
+    memcpy(result.data.as_voidptr, vector_info.dimensions.asPtr,
+            vector_info.numDimensions * vector_info.dimensionSize)
+    return result
+
 
 cdef list _string_list_to_python(dpiStringList *str_list):
     """

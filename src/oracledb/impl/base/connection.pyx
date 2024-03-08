@@ -136,6 +136,12 @@ cdef class BaseConnImpl:
             return bool(value)
         elif db_type_num == DB_TYPE_NUM_JSON:
             return value
+        elif db_type_num == DB_TYPE_NUM_VECTOR:
+            if isinstance(value, list):
+                return array.array('d', value)
+            elif isinstance(value, array.array) \
+                    and value.typecode in ('f', 'd', 'b'):
+                return value
         else:
             if is_ok != NULL:
                 is_ok[0] = False

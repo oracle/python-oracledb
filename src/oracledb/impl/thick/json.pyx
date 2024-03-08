@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -91,6 +91,7 @@ cdef class JsonBuffer:
 
     cdef int _populate_node(self, dpiJsonNode *node, object value) except -1:
         cdef:
+            VectorEncoder vector_encoder
             dpiTimestamp *timestamp
             dpiIntervalDS *interval
             int seconds
@@ -156,6 +157,13 @@ cdef class JsonBuffer:
             interval.minutes = seconds // 60
             interval.seconds = seconds % 60
             interval.fseconds = cydatetime.timedelta_microseconds(value) * 1000
+        elif isinstance(value, array.array):
+            node.oracleTypeNum = DPI_ORACLE_TYPE_VECTOR
+            node.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
+            vector_encoder = VectorEncoder.__new__(VectorEncoder)
+            vector_encoder.encode(value)
+            self._add_buf(vector_encoder._data[:vector_encoder._pos],
+                          &node.value.asBytes.ptr, &node.value.asBytes.length)
         else:
             errors._raise_err(errors.ERR_PYTHON_TYPE_NOT_SUPPORTED,
                               typ=type(value))

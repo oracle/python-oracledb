@@ -190,6 +190,8 @@ DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID",
 DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
                          NATIVE_TYPE_NUM_BYTES, 1, 4000, csfrm=1,
                          buffer_size_factor=4)
+DB_TYPE_VECTOR = DbType(DB_TYPE_NUM_VECTOR, "DB_TYPE_VECTOR", "VECTOR",
+                        NATIVE_TYPE_NUM_VECTOR, 127)
 DB_TYPE_XMLTYPE = DbType(DB_TYPE_NUM_XMLTYPE, "DB_TYPE_XMLTYPE", "XMLTYPE",
                          NATIVE_TYPE_NUM_BYTES, 109, csfrm=1,
                          buffer_size_factor=2147483647)

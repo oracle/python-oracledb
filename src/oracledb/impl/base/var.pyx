@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -250,6 +250,8 @@ cdef class BaseVarImpl:
             dbtype = value.type
         elif isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
             dbtype = DB_TYPE_CURSOR
+        elif isinstance(value, array.array):
+            dbtype = DB_TYPE_VECTOR
         else:
             errors._raise_err(errors.ERR_PYTHON_VALUE_NOT_SUPPORTED,
                               type_name=type(value).__name__)

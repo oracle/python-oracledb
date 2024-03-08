@@ -99,8 +99,11 @@ cdef class OsonDecoder(Buffer):
         Parses a node from the tree segment and returns the Python equivalent.
         """
         cdef:
+            VectorDecoder vector_decoder
             uint8_t node_type, temp8
             const char_type* ptr
+            double double_value
+            float float_value
             uint16_t temp16
             uint32_t temp32
 
@@ -129,10 +132,12 @@ cdef class OsonDecoder(Buffer):
             return self.parse_date(ptr, 13)
         elif node_type == TNS_JSON_TYPE_BINARY_FLOAT:
             ptr = self._get_raw(4)
-            return self.parse_binary_float(ptr)
+            self.parse_binary_float(ptr, &float_value)
+            return float_value
         elif node_type == TNS_JSON_TYPE_BINARY_DOUBLE:
             ptr = self._get_raw(8)
-            return self.parse_binary_double(ptr)
+            self.parse_binary_double(ptr, &double_value)
+            return double_value
         elif node_type == TNS_JSON_TYPE_INTERVAL_DS:
             ptr = self._get_raw(11)
             return self.parse_interval_ds(ptr)
@@ -167,6 +172,15 @@ cdef class OsonDecoder(Buffer):
             self.read_uint32(&temp32)
             ptr = self._get_raw(temp32)
             return ptr[:temp32]
+
+        # handle extended types
+        elif node_type == TNS_JSON_TYPE_EXTENDED:
+            self.read_ub1(&node_type)
+            if node_type == TNS_JSON_TYPE_VECTOR:
+                self.read_uint32(&temp32)
+                ptr = self._get_raw(temp32)
+                vector_decoder = VectorDecoder.__new__(VectorDecoder)
+                return vector_decoder.decode(ptr[:temp32])
 
         # handle number/decimal with length stored inside the node itself
         if (node_type & 0xf0) in (0x20, 0x60):
@@ -573,6 +587,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
         Encode a value (node) in the OSON tree segment.
         """
         cdef:
+            VectorEncoder vector_encoder
             uint32_t value_len
             bytes value_bytes
 
@@ -646,6 +661,15 @@ cdef class OsonTreeSegment(GrowableBuffer):
         # handle dictionaries
         elif isinstance(value, dict):
             self.encode_object(value, encoder)
+
+        # handle arrays (vectors)
+        elif isinstance(value, array.array):
+            self.write_uint8(TNS_JSON_TYPE_EXTENDED)
+            self.write_uint8(TNS_JSON_TYPE_VECTOR)
+            vector_encoder = VectorEncoder.__new__(VectorEncoder)
+            vector_encoder.encode(value)
+            self.write_uint32(vector_encoder._pos)
+            self.write_raw(vector_encoder._data, vector_encoder._pos)
 
         # other types are not supported
         else:

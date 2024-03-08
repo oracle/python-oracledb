@@ -123,6 +123,10 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             typ_impl = ThickDbObjectTypeImpl._from_handle(self._conn_impl,
                                                           type_info.objectType)
             fetch_info.objtype = typ_impl
+        if fetch_info.dbtype.num == DPI_ORACLE_TYPE_VECTOR:
+            fetch_info.vector_dimensions = type_info.vectorDimensions
+            fetch_info.vector_format = type_info.vectorFormat
+            fetch_info.vector_flags = type_info.vectorFlags
 
         # create variable and call define in ODPI-C
         var_impl = <ThickVarImpl> self._create_fetch_var(

@@ -62,6 +62,8 @@ Common Changes
     columns which have the check constraint ``IS JSON FORMAT OSON`` enabled.
 #)  Added boolean property :data:`FetchInfo.is_oson` which is set when a column
     has the check constraint "IS JSON FORMAT OSON" enabled.
+#)  Added support for columns of type vector (currently requires access to a
+    limited availability release of the database).
 #)  Errors raised when calling :meth:`Cursor.executemany()` with PL/SQL now
     have the :data:`oracledb._Error.offset` attribute populated with the last
     iteration that succeeded
