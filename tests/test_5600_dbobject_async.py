@@ -550,6 +550,38 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(result, 7146445847327)
 
+    async def test_5616(self):
+        "5616 - test %ROWTYPE with all types"
+        sub_obj_type = await self.conn.gettype("UDT_SUBOBJECT")
+        sub_arr_type = await self.conn.gettype("UDT_OBJECTARRAY")
+        expected_attrs = [
+            ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER),
+            ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR),
+            ("FIXEDCHARVALUE", oracledb.DB_TYPE_CHAR),
+            ("NSTRINGVALUE", oracledb.DB_TYPE_NVARCHAR),
+            ("NFIXEDCHARVALUE", oracledb.DB_TYPE_NCHAR),
+            ("RAWVALUE", oracledb.DB_TYPE_RAW),
+            ("INTVALUE", oracledb.DB_TYPE_NUMBER),
+            ("SMALLINTVALUE", oracledb.DB_TYPE_NUMBER),
+            ("REALVALUE", oracledb.DB_TYPE_NUMBER),
+            ("DOUBLEPRECISIONVALUE", oracledb.DB_TYPE_NUMBER),
+            ("FLOATVALUE", oracledb.DB_TYPE_NUMBER),
+            ("BINARYFLOATVALUE", oracledb.DB_TYPE_BINARY_FLOAT),
+            ("BINARYDOUBLEVALUE", oracledb.DB_TYPE_BINARY_DOUBLE),
+            ("DATEVALUE", oracledb.DB_TYPE_DATE),
+            ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP),
+            ("TIMESTAMPTZVALUE", oracledb.DB_TYPE_TIMESTAMP_TZ),
+            ("TIMESTAMPLTZVALUE", oracledb.DB_TYPE_TIMESTAMP_LTZ),
+            ("CLOBVALUE", oracledb.DB_TYPE_CLOB),
+            ("NCLOBVALUE", oracledb.DB_TYPE_NCLOB),
+            ("BLOBVALUE", oracledb.DB_TYPE_BLOB),
+            ("SUBOBJECTVALUE", sub_obj_type),
+            ("SUBOBJECTARRAY", sub_arr_type),
+        ]
+        obj_type = await self.conn.gettype("TESTALLTYPES%ROWTYPE")
+        actual_attrs = [(a.name, a.type) for a in obj_type.attributes]
+        self.assertEqual(actual_attrs, expected_attrs)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

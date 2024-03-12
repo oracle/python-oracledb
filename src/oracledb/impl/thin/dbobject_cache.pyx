@@ -67,6 +67,24 @@ cdef str DBO_CACHE_SQL_GET_METADATA_FOR_NAME = """
             end if;
         end;"""
 
+cdef str DBO_CACHE_SQL_GET_COLUMNS = """
+        select
+            column_name,
+            data_type,
+            data_type_owner,
+            case
+                when data_type in
+                        ('CHAR', 'NCHAR', 'VARCHAR2', 'NVARCHAR2', 'RAW')
+                    then data_length
+                else 0
+            end,
+            nvl(data_precision, 0),
+            nvl(data_scale, 0)
+        from all_tab_columns
+        where owner = :owner
+          and table_name = substr(:name, 1, length(:name) - 8)
+        order by column_id"""
+
 cdef str DBO_CACHE_SQL_GET_ELEM_TYPE_WITH_PACKAGE = """
         select elem_type_name
         from all_plsql_coll_types
@@ -113,17 +131,17 @@ cdef class ThinDbObjectTypeSuperCache:
 cdef class BaseThinDbObjectTypeCache:
 
     cdef:
+        object meta_cursor, columns_cursor, attrs_ref_cursor_var, version_var
         object return_value_var, full_name_var, oid_var, tds_var
-        object meta_cursor, attrs_ref_cursor_var, version_var
         object schema_var, package_name_var, name_var
         BaseThinConnImpl conn_impl
         dict types_by_oid
         dict types_by_name
         list partial_types
 
-    cdef int _clear_meta_cursor(self) except -1:
+    cdef int _clear_cursors(self) except -1:
         """
-        Clears the cursor used for searching metadata. This is needed when
+        Clears the cursors used for searching metadata. This is needed when
         returning a connection to the pool since user-level objects are
         retained.
         """
@@ -139,6 +157,9 @@ cdef class BaseThinDbObjectTypeCache:
             self.schema_var = None
             self.package_name_var = None
             self.name_var = None
+        if self.columns_cursor is not None:
+            self.columns_cursor.close()
+            self.columns_cursor = None
 
     cdef str _get_full_name(self, ThinDbObjectTypeImpl typ_impl):
         """
@@ -162,6 +183,17 @@ cdef class BaseThinDbObjectTypeCache:
         self.types_by_name = {}
         self.partial_types = []
         self.conn_impl = conn_impl
+
+    cdef int _init_columns_cursor(self, object conn) except -1:
+        """
+        Initializes the cursor that fetches the columns for a table or view.
+        The input values come from the meta cursor that has been initialized
+        and executed earlier.
+        """
+        cursor = conn.cursor()
+        cursor.setinputsizes(owner=self.schema_var, name=self.name_var)
+        cursor.prepare(DBO_CACHE_SQL_GET_COLUMNS)
+        self.columns_cursor = cursor
 
     cdef int _init_meta_cursor(self, object conn) except -1:
         """
@@ -338,8 +370,9 @@ cdef class BaseThinDbObjectTypeCache:
         Populate the type information given the name of the type.
         """
         cdef:
+            ssize_t start_pos, end_pos, name_length
             ThinDbObjectAttrImpl attr_impl
-            ssize_t pos, name_length
+            str data_type
         typ_impl.version = self.version_var.getvalue()
         if typ_impl.oid is None:
             typ_impl.oid = self.oid_var.getvalue()
@@ -352,25 +385,52 @@ cdef class BaseThinDbObjectTypeCache:
                     (typ_impl.schema == "SYS" and typ_impl.name == "XMLTYPE")
         typ_impl.attrs = []
         typ_impl.attrs_by_name = {}
-        for cursor_version, attr_name, attr_num, attr_type_name, \
-                attr_type_owner, attr_type_package, attr_type_oid, \
-                attr_instantiable, attr_super_type_owner, \
-                attr_super_type_name in attrs:
-            if attr_name is None:
-                continue
-            attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
-            attr_impl.name = attr_name
-            if attr_type_owner is not None:
-                attr_impl.dbtype = DB_TYPE_OBJECT
-                attr_impl.objtype = self.get_type_for_info(attr_type_oid,
-                                                           attr_type_owner,
-                                                           attr_type_package,
-                                                           attr_type_name)
-            else:
-                attr_impl.dbtype = DbType._from_ora_name(attr_type_name)
-            typ_impl.attrs.append(attr_impl)
-            typ_impl.attrs_by_name[attr_name] = attr_impl
-        return self._parse_tds(typ_impl, self.tds_var.getvalue())
+        if typ_impl.is_row_type:
+            for name, data_type, data_type_owner, max_size, precision, \
+                    scale in attrs:
+                attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
+                attr_impl.name = name
+                if data_type_owner is not None:
+                    attr_impl.dbtype = DB_TYPE_OBJECT
+                    attr_impl.objtype = self.get_type_for_info(None,
+                                                               data_type_owner,
+                                                               None,
+                                                               data_type)
+                else:
+                    start_pos = data_type.find("(")
+                    if start_pos > 0:
+                        end_pos = data_type.find(")")
+                        if end_pos > start_pos:
+                            data_type = data_type[:start_pos] + \
+                                    data_type[end_pos + 1:]
+                    attr_impl.dbtype = DbType._from_ora_name(data_type)
+                    attr_impl.max_size = max_size
+                    attr_impl.precision = precision
+                    attr_impl.scale = scale
+                typ_impl.attrs.append(attr_impl)
+                typ_impl.attrs_by_name[name] = attr_impl
+        else:
+            for cursor_version, attr_name, attr_num, attr_type_name, \
+                    attr_type_owner, attr_type_package, attr_type_oid, \
+                    attr_instantiable, attr_super_type_owner, \
+                    attr_super_type_name in attrs:
+                if attr_name is None:
+                    continue
+                attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
+                attr_impl.name = attr_name
+                if attr_type_owner is not None:
+                    attr_impl.dbtype = DB_TYPE_OBJECT
+                    attr_impl.objtype = self.get_type_for_info(
+                        attr_type_oid,
+                        attr_type_owner,
+                        attr_type_package,
+                        attr_type_name
+                    )
+                else:
+                    attr_impl.dbtype = DbType._from_ora_name(attr_type_name)
+                typ_impl.attrs.append(attr_impl)
+                typ_impl.attrs_by_name[attr_name] = attr_impl
+            return self._parse_tds(typ_impl, self.tds_var.getvalue())
 
     cdef ThinDbObjectTypeImpl get_type_for_info(self, bytes oid, str schema,
                                                 str package_name, str name):
@@ -452,7 +512,8 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         typ_impl.element_objtype = self.get_type_for_info(None, schema,
                                                           package_name, name)
 
-    cdef list _lookup_type(self, object conn, str name):
+    cdef list _lookup_type(self, object conn, str name,
+                           ThinDbObjectTypeImpl typ_impl):
         """
         Lookup the type given its name and return the list of attributes for
         further processing. The metadata cursor execution will populate the
@@ -464,8 +525,15 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         self.meta_cursor.execute(None)
         if self.return_value_var.getvalue() != 0:
             errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME, name=name)
-        attrs_rc = self.attrs_ref_cursor_var.getvalue()
-        return attrs_rc.fetchall()
+        if name.endswith("%ROWTYPE"):
+            typ_impl.is_row_type = True
+            if self.columns_cursor is None:
+                self._init_columns_cursor(conn)
+            self.columns_cursor.execute(None)
+            return self.columns_cursor.fetchall()
+        else:
+            attrs_rc = self.attrs_ref_cursor_var.getvalue()
+            return attrs_rc.fetchall()
 
     cdef ThinDbObjectTypeImpl get_type(self, object conn, str name):
         """
@@ -473,15 +541,17 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         searched and if it is not found, the database is searched and the
         result stored in the cache.
         """
-        cdef ThinDbObjectTypeImpl typ_impl
+        cdef:
+            ThinDbObjectTypeImpl typ_impl
+            bint is_rowtype
         typ_impl = self.types_by_name.get(name)
         if typ_impl is None:
-            attrs = self._lookup_type(conn, name)
             typ_impl = ThinDbObjectTypeImpl.__new__(ThinDbObjectTypeImpl)
             typ_impl._conn_impl = self.conn_impl
+            attrs = self._lookup_type(conn, name, typ_impl)
+            self._populate_type_info(name, attrs, typ_impl)
             self.types_by_oid[typ_impl.oid] = typ_impl
             self.types_by_name[name] = typ_impl
-            self._populate_type_info(name, attrs, typ_impl)
             self.populate_partial_types(conn)
         return typ_impl
 
@@ -499,7 +569,7 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         while self.partial_types:
             typ_impl = self.partial_types.pop()
             full_name = self._get_full_name(typ_impl)
-            attrs = self._lookup_type(conn, full_name)
+            attrs = self._lookup_type(conn, full_name, typ_impl)
             self._populate_type_info(full_name, attrs, typ_impl)
 
 
@@ -549,7 +619,8 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         typ_impl.element_objtype = self.get_type_for_info(None, schema,
                                                           package_name, name)
 
-    async def _lookup_type(self, object conn, str name):
+    async def _lookup_type(self, object conn, str name,
+                           ThinDbObjectTypeImpl typ_impl):
         """
         Lookup the type given its name and return the list of attributes for
         further processing. The metadata cursor execution will populate the
@@ -561,8 +632,15 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         await self.meta_cursor.execute(None)
         if self.return_value_var.getvalue() != 0:
             errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME, name=name)
-        attrs_rc = self.attrs_ref_cursor_var.getvalue()
-        return await attrs_rc.fetchall()
+        if name.endswith("%ROWTYPE"):
+            typ_impl.is_row_type = True
+            if self.columns_cursor is None:
+                self._init_columns_cursor(conn)
+            await self.columns_cursor.execute(None)
+            return await self.columns_cursor.fetchall()
+        else:
+            attrs_rc = self.attrs_ref_cursor_var.getvalue()
+            return await attrs_rc.fetchall()
 
     async def get_type(self, object conn, str name):
         """
@@ -573,14 +651,14 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         cdef ThinDbObjectTypeImpl typ_impl
         typ_impl = self.types_by_name.get(name)
         if typ_impl is None:
-            attrs = await self._lookup_type(conn, name)
             typ_impl = ThinDbObjectTypeImpl.__new__(ThinDbObjectTypeImpl)
             typ_impl._conn_impl = self.conn_impl
-            self.types_by_oid[typ_impl.oid] = typ_impl
-            self.types_by_name[name] = typ_impl
+            attrs = await self._lookup_type(conn, name, typ_impl)
             coroutine = self._populate_type_info(name, attrs, typ_impl)
             if coroutine is not None:
                 await coroutine
+            self.types_by_oid[typ_impl.oid] = typ_impl
+            self.types_by_name[name] = typ_impl
             await self.populate_partial_types(conn)
         return typ_impl
 
@@ -598,7 +676,7 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         while self.partial_types:
             typ_impl = self.partial_types.pop()
             full_name = self._get_full_name(typ_impl)
-            attrs = await self._lookup_type(conn, full_name)
+            attrs = await self._lookup_type(conn, full_name, typ_impl)
             coroutine = self._populate_type_info(full_name, attrs, typ_impl)
             if coroutine is not None:
                 await coroutine

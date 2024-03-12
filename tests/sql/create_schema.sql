@@ -318,6 +318,32 @@ create table &main_user..TestJsonCols (
 )
 /
 
+create table &main_user..TestAllTypes (
+    NumberValue                         number,
+    StringValue                         varchar2(60),
+    FixedCharValue                      char(10),
+    NStringValue                        nvarchar2(60),
+    NFixedCharValue                     nchar(10),
+    RawValue                            raw(16),
+    IntValue                            integer,
+    SmallIntValue                       smallint,
+    RealValue                           real,
+    DoublePrecisionValue                double precision,
+    FloatValue                          float,
+    BinaryFloatValue                    binary_float,
+    BinaryDoubleValue                   binary_double,
+    DateValue                           date,
+    TimestampValue                      timestamp,
+    TimestampTZValue                    timestamp with time zone,
+    TimestampLTZValue                   timestamp with local time zone,
+    CLOBValue                           clob,
+    NCLOBValue                          nclob,
+    BLOBValue                           blob,
+    SubObjectValue                      &main_user..udt_SubObject,
+    SubObjectArray                      &main_user..udt_ObjectArray
+)
+/
+
 create table &main_user..PlsqlSessionCallbacks (
     RequestedTag          varchar2(250),
     ActualTag             varchar2(250),

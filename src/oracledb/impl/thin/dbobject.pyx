@@ -575,6 +575,7 @@ cdef class ThinDbObjectTypeImpl(BaseDbObjectTypeImpl):
     cdef:
         uint8_t collection_type, collection_flags, version
         uint32_t max_num_elements
+        bint is_row_type
         bint is_xml_type
         bytes oid
 

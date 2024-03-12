@@ -292,7 +292,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         if conn_impl._dbobject_type_cache_num > 0:
             cache_num = conn_impl._dbobject_type_cache_num
             type_cache = get_dbobject_type_cache(cache_num)
-            type_cache._clear_meta_cursor()
+            type_cache._clear_cursors()
         if conn_impl._is_pool_extra:
             self._extra_conn_impls.remove(conn_impl)
             conn_impl._is_pool_extra = False

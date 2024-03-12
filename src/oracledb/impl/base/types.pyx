@@ -178,12 +178,13 @@ DB_TYPE_TIMESTAMP = DbType(DB_TYPE_NUM_TIMESTAMP, "DB_TYPE_TIMESTAMP",
                            buffer_size_factor=11)
 DB_TYPE_TIMESTAMP_LTZ = DbType(DB_TYPE_NUM_TIMESTAMP_LTZ,
                                "DB_TYPE_TIMESTAMP_LTZ",
-                               "TIMESTAMP WITH LOCAL TZ",
+                               "TIMESTAMP WITH LOCAL TIME ZONE",
                                NATIVE_TYPE_NUM_TIMESTAMP, 231,
                                buffer_size_factor=11)
 DB_TYPE_TIMESTAMP_TZ = DbType(DB_TYPE_NUM_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
-                              "TIMESTAMP WITH TZ", NATIVE_TYPE_NUM_TIMESTAMP,
-                              181, buffer_size_factor=13)
+                              "TIMESTAMP WITH TIME ZONE",
+                              NATIVE_TYPE_NUM_TIMESTAMP, 181,
+                              buffer_size_factor=13)
 DB_TYPE_UNKNOWN = DbType(DB_TYPE_NUM_UNKNOWN, "DB_TYPE_UNKNOWN", "UNKNOWN")
 DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID",
                         NATIVE_TYPE_NUM_BYTES, 208)
@@ -205,6 +206,8 @@ db_type_by_ora_name["PL/SQL BINARY INTEGER"] = DB_TYPE_BINARY_INTEGER
 db_type_by_ora_name["PL/SQL PLS INTEGER"] = DB_TYPE_BINARY_INTEGER
 db_type_by_ora_name["REAL"] = DB_TYPE_NUMBER
 db_type_by_ora_name["SMALLINT"] = DB_TYPE_NUMBER
+db_type_by_ora_name["TIMESTAMP WITH TZ"] = DB_TYPE_TIMESTAMP_TZ
+db_type_by_ora_name["TIMESTAMP WITH LOCAL TZ"] = DB_TYPE_TIMESTAMP_LTZ
 
 # DB API types
 BINARY = ApiType("BINARY", DB_TYPE_RAW, DB_TYPE_LONG_RAW)
