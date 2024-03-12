@@ -1835,6 +1835,10 @@ cdef class ConnectMessage(Message):
             self.read_redirect_data_len = False
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_ACCEPT:
             buf.read_uint16(&protocol_version)
+            # check if the protocol version supported by the database is high
+            # enough; if not, reject the connection immediately
+            if protocol_version < TNS_VERSION_MIN_ACCEPTED:
+                errors._raise_err(errors.ERR_SERVER_VERSION_NOT_SUPPORTED)
             buf.read_uint16(&protocol_options)
             buf.skip_raw_bytes(20)
             buf.read_uint32(&buf._caps.sdu)

@@ -13,6 +13,9 @@ oracledb 2.1.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Restored error message raised when attempting to connect to an 11g
+    database.
+
 Thick Mode Changes
 ++++++++++++++++++
 
