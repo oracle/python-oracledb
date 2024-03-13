@@ -13,11 +13,11 @@ oracledb 2.1.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fix bug when calling `~Connection.gettype()` with an object type name
-    containing ``%ROWTYPE``
+#)  Fixed bug when calling :meth:`~Connection.gettype()` with an object type
+    name containing ``%ROWTYPE``
     (`issue 304 <https://github.com/oracle/python-oracledb/issues/304>`__).
-#)  Restored error message raised when attempting to connect to an 11g
-    database.
+#)  Restored error message raised when attempting to connect to Oracle Database
+    11g.
 
 Thick Mode Changes
 ++++++++++++++++++
