@@ -79,15 +79,6 @@ cdef class Capabilities:
             errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
                               charset_id=self.ncharset_id)
 
-    cdef void _check_supports_end_of_request(self):
-        """
-        Checks whether the end of request flag is sent and sets a boolean to
-        avoid calculating it each time.
-        """
-        if self.ttc_field_version >= TNS_CCAP_FIELD_VERSION_19_1 \
-                and self.compile_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
-            self.supports_end_of_request = True
-
     @cython.boundscheck(False)
     cdef void _init_compile_caps(self):
         self.ttc_field_version = TNS_CCAP_FIELD_VERSION_MAX

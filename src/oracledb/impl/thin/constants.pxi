@@ -47,6 +47,7 @@ cdef enum:
 
 # data flags
 cdef enum:
+    TNS_DATA_FLAGS_END_OF_REQUEST = 0x2000
     TNS_DATA_FLAGS_EOF = 0x0040
 
 # marker types
@@ -740,6 +741,7 @@ cdef enum:
 # accept flags
 cdef enum:
     TNS_ACCEPT_FLAG_FAST_AUTH = 0x10000000
+    TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST = 0x02000000
 
 # other constants
 cdef enum:
