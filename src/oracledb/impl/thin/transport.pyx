@@ -59,6 +59,13 @@ cdef class Transport:
             f"{operation} [op {self._op_num}] on socket {self._transport_num}"
         )
 
+    cdef int _print_output(self, str text) except -1:
+        """
+        Prints and flushes the text to stdout to ensure that multiple
+        threads don't lose output due to buffering.
+        """
+        print(text + "\n", flush=True)
+
     cdef int _print_packet(self, str operation, object data) except -1:
         """
         Print the packet content in a format suitable for debugging.
@@ -89,8 +96,7 @@ cdef class Transport:
                 f'|{"".join(printable_values)}|'
             )
             offset += 8
-        output_lines.append("")
-        print("\n".join(output_lines))
+        self._print_output("\n".join(output_lines))
 
     cdef int disconnect(self) except -1:
         """
@@ -98,7 +104,9 @@ cdef class Transport:
         """
         if self._transport is not None:
             if DEBUG_PACKETS:
-                print(self._get_debugging_header("Disconnecting transport"))
+                self._print_output(
+                    self._get_debugging_header("Disconnecting transport")
+                )
             self._transport.close()
             self._transport = None
 
@@ -268,8 +276,9 @@ cdef class Transport:
         Sends an out-of-band break on the transport.
         """
         if DEBUG_PACKETS:
-            print(self._get_debugging_header("Sending out of band break"))
-            print()
+            self._print_output(
+                self._get_debugging_header("Sending out of band break")
+            )
         self._transport.send(b"!", socket.MSG_OOB)
 
     cdef int set_from_socket(self, object transport,
