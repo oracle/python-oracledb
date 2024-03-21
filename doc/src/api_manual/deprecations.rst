@@ -1,17 +1,19 @@
 .. _deprecations:
 
-************
-Deprecations
-************
+***********************************
+Deprecated and Desupported Features
+***********************************
 
-The following tables contain all of the deprecations in the python-oracledb API,
-when they were first deprecated and a comment on what should be used instead,
-if applicable. The most recent deprecations are listed first.
+The following tables contain the deprecated and desupported features of the
+python-oracledb API, and the replacement to be used instead, if applicable.
+The desupported API feature is a previous deprecation that has been removed
+and is no longer available in python-oracledb. The most recent deprecated and
+desupported features are listed first.
 
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the desupported feature. The second column, Comments, includes information about the desupport and what replacement to make, if applicable.
+    :summary: The first column, Name, displays the desupported feature. The second column, Comments, includes information about the desupport and the replacement to use, if applicable.
     :name: _desupported_2_0
 
     * - Name
@@ -52,7 +54,7 @@ if applicable. The most recent deprecations are listed first.
 .. list-table-with-summary:: Deprecated in python-oracledb 2.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_2_0
 
     * - Name
@@ -71,7 +73,7 @@ if applicable. The most recent deprecations are listed first.
 .. list-table-with-summary:: Deprecated in python-oracledb 1.4
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_1_4
 
     * - Name
@@ -84,17 +86,17 @@ if applicable. The most recent deprecations are listed first.
 .. list-table-with-summary:: Deprecated in python-oracledb 1.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated API name. The second column, Comments, includes information about when the API was deprecated and what API to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_1
 
     * - Name
       - Comments
-    * - `SessionPool class <https://cx-oracle.readthedocs.io/en/latest/api_manual/session_pool.html#sessionpool-object>`_ and use of `cx_Oracle.SessionPool() <https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.SessionPool>`_.
+    * - `SessionPool class <https://cx-oracle.readthedocs.io/en/latest/api_manual/session_pool.html#sessionpool-object>`_ and use of `cx_Oracle.SessionPool() <https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.SessionPool>`_
       - Replace by the equivalent :ref:`ConnectionPool Class <connpool>`. Use the new method :meth:`oracledb.create_pool()` to create connection pools.
     * - :meth:`Connection.begin()`
-      - Replace by the new :ref:`tcp` functionality.
+      - Replace by the new :ref:`Two-Phase Commits (TPC) <tcp>` functionality.
     * - :meth:`Connection.prepare()`
-      - Replace by the new :ref:`tcp` functionality.
+      - Replace by the new :ref:`Two-Phase Commits (TPC) <tcp>` functionality.
     * - Parameters ``encoding`` and ``nencoding`` of the :func:`oracledb.connect()`, :func:`oracledb.create_pool()` and ``oracledb.SessionPool()`` methods
       - The encodings in use are always UTF-8.
     * - Parameter ``threaded`` of the :meth:`oracledb.connect()` method
@@ -157,32 +159,33 @@ of python-oracledb.
 Some of the previous deprecations that have been removed and are not available in
 python-oracledb are listed below:
 
-- The previously deprecated function `Cursor.fetchraw() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.fetchraw>`__ has been removed in
-  python-oracledb. Use one of the other fetch methods such as :meth:`Cursor.fetchmany()`
-  instead.
+.. list-table-with-summary:: Desupported in python-oracledb 1.0
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the desupported feature. The second column, Comments, includes information about the desupport and the replacement to use, if applicable.
+    :name: _desupported_1
 
-- The previously deprecated function `Cursor.executemanyprepared() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.executemanyprepared>`__ has been removed
-  in python-oracledb. Use :meth:`Cursor.executemany()` instead.
-
-- The previously deprecated function `Cursor.rowcount() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.rowcount>`__ has been removed
-  in python-oracledb. Use :meth:`Cursor.executemany()` instead.
-
-- The previously deprecated Advanced Queuing (AQ) API has been removed in
-  python-oracledb.  Use the new AQ API instead.  AQ is only available in the
-  python-oracledb Thick mode.
-
-  - Replace `Connection.deq() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.deq>`__ with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`.
-
-  - Replace `Connection.deqoptions() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.deqoptions>`__  with :meth:`Queue.deqoptions()`.
-
-  - Replace `Connection.enq() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.enq>`__ with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`.
-
-  - Replace `Connection.enqoptions() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.enqoptions>`__ with :meth:`Queue.enqoptions()`.
+    * - Name
+      - Comments
+    * - `Cursor.fetchraw() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.fetchraw>`__
+      - Use one of the other fetch methods such as :meth:`Cursor.fetchmany()` instead.
+    * - `Cursor.executemanyprepared() <https://cx-oracle.readthedocs.io/en/latest/api_manual/cursor.html#Cursor.executemanyprepared>`__
+      - Use :meth:`Cursor.executemany()` instead.
+    * - Previously deprecated Advanced Queuing (AQ) API
+      - Use the new :ref:`AQ API <aq>` instead.  AQ is only available in the python-oracledb Thick mode.
+    * - `Connection.deq() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.deq>`__
+      - Replace with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`
+    * - `Connection.deqoptions() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.deqoptions>`__
+      - Replace with :attr:`Queue.deqoptions`
+    * - `Connection.enq() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.enq>`__
+      - Replace with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
+    * - `Connection.enqoptions() <https://cx-oracle.readthedocs.io/en/latest/api_manual/connection.html#Connection.enqoptions>`__
+      - Replace with :attr:`Queue.enqoptions`
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.2
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_8_2
 
     * - Name
@@ -278,7 +281,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.0
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_8_0
 
     * - Name
@@ -320,7 +323,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 7.2
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_7_2
 
     * - Name
@@ -338,7 +341,7 @@ python-oracledb are listed below:
 .. list-table-with-summary:: Deprecated in cx_Oracle 6.4
     :header-rows: 1
     :class: wy-table-responsive
-    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecatation and what replacement to use, if applicable.
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
     :name: _deprecations_6_4
 
     * - Name
