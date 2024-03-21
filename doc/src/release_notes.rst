@@ -7,8 +7,8 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 2.1.1 (TBD)
---------------------
+oracledb 2.1.1 (March 2024)
+---------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -22,11 +22,12 @@ Thin Mode Changes
     before and after the RETURNING clause in a
     :ref:`DML RETURNING statement <dml-returning-bind>`. Previously, various
     internal errors were raised.
-#)  Tightened up code looking for the end of a database request.
-#)  Packet output is now immediately flushed in order to avoid losing output
-    due to buffering when multiple threads are running.
-#)  Restored error message raised when attempting to connect to Oracle Database
-    11g.
+#)  Restored the error message raised when attempting to connect to Oracle
+    Database 11g.
+#)  Internal change: tightened up code looking for the end of a database
+    request.
+#)  Internal change: packet output is now immediately flushed in order to avoid
+    losing output due to buffering when multiple threads are running.
 
 Thick Mode Changes
 ++++++++++++++++++
