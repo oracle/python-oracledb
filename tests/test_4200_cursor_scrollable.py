@@ -28,7 +28,6 @@
 
 import unittest
 
-import oracledb
 import test_env
 
 
