@@ -353,11 +353,16 @@ cdef class Statement:
         Add bind information to the statement by examining the passed SQL for
         bind variable names.
         """
-        cdef BindInfo info
+        cdef BindInfo info, orig_info
         if not self._is_plsql or name not in self._bind_info_dict:
             info = BindInfo(name, self._is_returning)
             self._bind_info_list.append(info)
             if info._bind_name in self._bind_info_dict:
+                if self._is_returning:
+                    orig_info = self._bind_info_dict[info._bind_name][-1]
+                    if not orig_info._is_return_bind:
+                        errors._raise_err(errors.ERR_DML_RETURNING_DUP_BINDS,
+                                          name=info._bind_name)
                 self._bind_info_dict[info._bind_name].append(info)
             else:
                 self._bind_info_dict[info._bind_name] = [info]

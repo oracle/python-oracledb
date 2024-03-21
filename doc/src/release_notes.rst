@@ -16,6 +16,12 @@ Thin Mode Changes
 #)  Fixed bug when calling :meth:`~Connection.gettype()` with an object type
     name containing ``%ROWTYPE``
     (`issue 304 <https://github.com/oracle/python-oracledb/issues/304>`__).
+#)  Error ``DPY-2048: the bind variable placeholder ":{name}" cannot be used
+    both before and after the RETURNING clause in a DML RETURNING statement``
+    is now raised when the same bind variable placeholder name is used both
+    before and after the RETURNING clause in a
+    :ref:`DML RETURNING statement <dml-returning-bind>`. Previously, various
+    internal errors were raised.
 #)  Tightened up code looking for the end of a database request.
 #)  Packet output is now immediately flushed in order to avoid losing output
     due to buffering when multiple threads are running.

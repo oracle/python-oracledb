@@ -291,6 +291,8 @@ UROWID can be bound with type :attr:`oracledb.DB_TYPE_ROWID`.
 See :ref:`querymetadatadiff`.
 
 
+.. _dml-returning-bind:
+
 DML RETURNING Bind Variables
 ============================
 
@@ -315,9 +317,28 @@ In the above example, since the WHERE clause matches only one row, the output
 contains a single item in the list. If the WHERE clause matched multiple rows,
 the output would contain as many items as there were rows that were updated.
 
-No duplicate binds are allowed in a DML statement with a RETURNING clause, and
-no duplication is allowed between bind variables in the DML section and the
-RETURNING section of the statement.
+The same bind variable placeholder name cannot be used both before and after
+the RETURNING clause. For example, if the ``:dept_name`` bind variable is used
+both before and after the RETURNING clause:
+
+.. code-block:: python
+
+    # a variable cannot be used for both input and output in a DML returning
+    # statement
+    dept_name_var = cursor.var(str)
+    dept_name_var.setvalue(0, 'Input Department')
+    cursor.execute("""
+            update departments set
+                department_name = :dept_name || ' EXTRA TEXT'
+            returning department_name into :dept_name""",
+            dept_name=dept_name_var)
+
+The above example will not update the bind variable as expected, but no error
+will be raised if you are using python-oracledb Thick mode. With
+python-oracledb Thin mode, the above example returns the following error::
+
+    DPY-2048: the bind variable placeholder ":dept_name" cannot be used
+    both before and after the RETURNING clause in a DML RETURNING statement
 
 
 LOB Bind Variables

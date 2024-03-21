@@ -241,6 +241,7 @@ ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED = 2044
 ERR_INVALID_ARRAYSIZE = 2045
 ERR_CURSOR_HAS_BEEN_CLOSED = 2046
 ERR_INVALID_LOB_AMOUNT = 2047
+ERR_DML_RETURNING_DUP_BINDS = 2048
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -463,6 +464,10 @@ ERR_MESSAGE_FORMATS = {
         "(actual: {actual_size}, maximum: {max_size})"
     ),
     ERR_DB_TYPE_NOT_SUPPORTED: 'database type "{name}" is not supported',
+    ERR_DML_RETURNING_DUP_BINDS: (
+        'the bind variable placeholder ":{name}" cannot be used both before '
+        "and after the RETURNING clause in a DML RETURNING statement"
+    ),
     ERR_DUPLICATED_PARAMETER: (
         '"{deprecated_name}" and "{new_name}" cannot be specified together'
     ),

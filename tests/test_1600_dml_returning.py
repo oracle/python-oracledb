@@ -27,6 +27,7 @@
 """
 
 import datetime
+import unittest
 
 import oracledb
 import test_env
@@ -524,6 +525,20 @@ class TestCase(test_env.BaseTestCase):
         out_val = self.cursor.var(int, arraysize=5)
         self.cursor.execute(sql, in_val=25, out_val=out_val)
         self.assertEqual(out_val.getvalue(), [25])
+
+    @unittest.skipUnless(test_env.get_is_thin(), "cannot be checked")
+    def test_1623(self):
+        "1623 - execute DML returning with duplicated binds"
+        self.cursor.execute("truncate table TestTempTable")
+        str_val = self.cursor.var(str)
+        str_val.setvalue(0, "Test Data")
+        sql = """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:id_val, :str_val || ' (Additional String)')
+            returning StringCol1 into :str_val
+        """
+        with self.assertRaisesFullCode("DPY-2048"):
+            self.cursor.execute(sql, id_val=1, str_val=str_val)
 
 
 if __name__ == "__main__":
