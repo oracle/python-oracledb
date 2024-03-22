@@ -582,6 +582,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         actual_attrs = [(a.name, a.type) for a in obj_type.attributes]
         self.assertEqual(actual_attrs, expected_attrs)
 
+    async def test_5617(self):
+        "5617 - test collection iteration"
+        await self.cursor.execute("select udt_array(5, 10, 15) from dual")
+        (obj,) = await self.cursor.fetchone()
+        result = [i for i in obj]
+        self.assertEqual(result, [5, 10, 15])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

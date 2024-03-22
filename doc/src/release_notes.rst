@@ -19,6 +19,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
+    are collections
+    (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).
+
 
 oracledb 2.1.1 (March 2024)
 ---------------------------

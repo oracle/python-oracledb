@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,6 +45,13 @@ class DbObject:
         except KeyError:
             return super().__getattribute__(name)
         return self._impl.get_attr_value(attr_impl)
+
+    def __iter__(self):
+        self._ensure_is_collection()
+        ix = self._impl.get_first_index()
+        while ix is not None:
+            yield self._impl.get_element_by_index(ix)
+            ix = self._impl.get_next_index(ix)
 
     def __repr__(self):
         return (
@@ -103,13 +110,7 @@ class DbObject:
         """
         Return a list of each of the collection’s elements in index order.
         """
-        self._ensure_is_collection()
-        result = []
-        ix = self._impl.get_first_index()
-        while ix is not None:
-            result.append(self._impl.get_element_by_index(ix))
-            ix = self._impl.get_next_index(ix)
-        return result
+        return list(self)
 
     def copy(self) -> "DbObject":
         """
