@@ -2056,6 +2056,20 @@ Oracledb Methods
     Python time module for details).
 
 
+.. _interval_ym:
+
+Oracledb IntervalYM Class
+=========================
+
+Objects of this class are returned for columns of type INTERVAL YEAR TO MONTH
+and can be passed to variables of type :data:`oracledb.DB_TYPE_INTERVAL_YM`
+The class is a `collections.namedtuple()
+<https://docs.python.org/3/library/collections.html#collections.namedtuple>`__
+class with two integer attributes, ``years`` and ``months``.
+
+.. versionadded:: 2.2.0
+
+
 .. _jsonid:
 
 Oracledb JsonId Class
@@ -3012,8 +3026,7 @@ Also see the table :ref:`supporteddbtypes`.
 .. data:: DB_TYPE_INTERVAL_YM
 
     Describes columns, attributes or array elements in a database that are of
-    type INTERVAL YEAR TO MONTH. This database type is not currently supported
-    by python-oracledb.
+    type INTERVAL YEAR TO MONTH.
 
 
 .. data:: DB_TYPE_JSON

@@ -143,7 +143,8 @@ DB_TYPE_INTERVAL_DS = DbType(DB_TYPE_NUM_INTERVAL_DS, "DB_TYPE_INTERVAL_DS",
                              buffer_size_factor=11)
 DB_TYPE_INTERVAL_YM = DbType(DB_TYPE_NUM_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
                              "INTERVAL YEAR TO MONTH",
-                             NATIVE_TYPE_NUM_INTERVAL_YM, 182)
+                             NATIVE_TYPE_NUM_INTERVAL_YM, 182,
+                             buffer_size_factor=5)
 DB_TYPE_JSON = DbType(DB_TYPE_NUM_JSON, "DB_TYPE_JSON", "JSON",
                       NATIVE_TYPE_NUM_JSON, 119)
 DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", "LONG",

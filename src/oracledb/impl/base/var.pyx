@@ -252,6 +252,8 @@ cdef class BaseVarImpl:
             dbtype = DB_TYPE_CURSOR
         elif isinstance(value, array.array):
             dbtype = DB_TYPE_VECTOR
+        elif isinstance(value, PY_TYPE_INTERVAL_YM):
+            dbtype = DB_TYPE_INTERVAL_YM
         else:
             errors._raise_err(errors.ERR_PYTHON_VALUE_NOT_SUPPORTED,
                               type_name=type(value).__name__)

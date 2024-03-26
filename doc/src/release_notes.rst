@@ -19,6 +19,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for database type :data:`oracledb.DB_TYPE_INTERVAL_YM` which
+    is represented in Python by instances of the new
+    :ref:`oracledb.IntervalYM <interval_ym>` class
+    (`issue 310 <https://github.com/oracle/python-oracledb/issues/310>`__).
 #)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
     are collections
     (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).

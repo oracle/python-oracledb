@@ -70,6 +70,7 @@ cdef type PY_TYPE_DECIMAL = decimal.Decimal
 cdef type PY_TYPE_DB_OBJECT
 cdef type PY_TYPE_DB_OBJECT_TYPE
 cdef type PY_TYPE_JSON_ID
+cdef type PY_TYPE_INTERVAL_YM
 cdef type PY_TYPE_LOB
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR

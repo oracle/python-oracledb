@@ -286,6 +286,13 @@ create table &main_user..TestIntervals (
 )
 /
 
+create table &main_user..TestIntervalYMs (
+    IntCol                              number(9) not null,
+    IntervalCol                         interval year to month not null,
+    NullableCol                         interval year to month
+)
+/
+
 create table &main_user..TestUniversalRowids (
     IntCol                              number(9) not null,
     StringCol                           varchar2(250) not null,
@@ -520,6 +527,16 @@ begin
                 decode(mod(i, 2), 0, to_dsinterval(null),
                 to_dsinterval(to_char(i + 5) || ' ' || to_char(i + 2) || ':' ||
                 to_char(i * 2 + 5) || ':' || to_char(i * 3 + 5))));
+    end loop;
+end;
+/
+
+begin
+    for i in 1..10 loop
+        insert into &main_user..TestIntervalYMs
+        values (i, to_yminterval(to_char(i - 5) || '-' || to_char(i)),
+                decode(mod(i, 2), 0, to_yminterval(null),
+                to_yminterval(to_char(i + 5) || '-' || to_char(i + 2))));
     end loop;
 end;
 /

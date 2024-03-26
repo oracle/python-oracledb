@@ -374,6 +374,16 @@ cdef class Buffer:
         total_seconds = hours * 60 * 60 + minutes * 60 + seconds
         return cydatetime.timedelta_new(days, total_seconds, fseconds // 1000)
 
+    cdef object parse_interval_ym(self, const uint8_t* ptr):
+        """
+        Read an interval year to month value from the buffer and return the
+        corresponding Python object representing that value.
+        """
+        cdef int32_t years, months
+        years = unpack_uint32(ptr, BYTE_ORDER_MSB) - TNS_DURATION_MID
+        months = ptr[4] - TNS_DURATION_OFFSET
+        return PY_TYPE_INTERVAL_YM(years, months)
+
     cdef object parse_oracle_number(self, const uint8_t* ptr,
                                     ssize_t num_bytes, int preferred_num_type):
         """
@@ -590,6 +600,18 @@ cdef class Buffer:
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
             return self.parse_interval_ds(ptr)
+
+    cdef object read_interval_ym(self):
+        """
+        Read an interval year to month value from the buffer and return the
+        corresponding Python object representing that value.
+        """
+        cdef:
+            const uint8_t *ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        if ptr != NULL:
+            return self.parse_interval_ym(ptr)
 
     cdef int read_int32(self, int32_t *value,
                         int byte_order=BYTE_ORDER_MSB) except -1:
@@ -961,6 +983,23 @@ cdef class Buffer:
         buf[6] = (seconds % 60) + TNS_DURATION_OFFSET
         fseconds = cydatetime.timedelta_microseconds(value) * 1000
         pack_uint32(&buf[7], fseconds + TNS_DURATION_MID, BYTE_ORDER_MSB)
+        if write_length:
+            self.write_uint8(sizeof(buf))
+        self.write_raw(buf, sizeof(buf))
+
+    cdef int write_interval_ym(self, object value,
+                               bint write_length=True) except -1:
+        """
+        Writes an interval to the buffer in Oracle Interval Day To Second
+        format.
+        """
+        cdef:
+            int32_t years, months
+            char_type buf[5]
+        years = (<tuple> value)[0]
+        months = (<tuple> value)[1]
+        pack_uint32(buf, years + TNS_DURATION_MID, BYTE_ORDER_MSB)
+        buf[4] = months + TNS_DURATION_OFFSET
         if write_length:
             self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))

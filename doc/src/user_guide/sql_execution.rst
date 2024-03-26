@@ -223,6 +223,9 @@ Python object that is returned by default. Python types can be changed with
     * - INTERVAL DAY TO SECOND
       - :attr:`oracledb.DB_TYPE_INTERVAL_DS`
       - datetime.timedelta
+    * - INTERVAL YEAR TO MONTH
+      - :data:`oracledb.DB_TYPE_INTERVAL_YM`
+      - :ref:`oracledb.IntervalYM <interval_ym>`
     * - JSON
       - :attr:`oracledb.DB_TYPE_JSON`
       - dict, list or a scalar value [4]_

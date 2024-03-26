@@ -402,8 +402,8 @@ values.
       - datetime.date, datetime.datetime
     * - INTERVAL YEAR TO MONTH
       - :data:`~oracledb.DB_TYPE_INTERVAL_YM`
-      - Not supported in python-oracledb.
-      - Cannot be set
+      - No relevant notes
+      - :ref:`oracledb.IntervalYM <interval_ym>`
     * - INTERVAL DAY TO SECOND
       - :data:`~oracledb.DB_TYPE_INTERVAL_DS`
       - No relevant notes

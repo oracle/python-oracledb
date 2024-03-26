@@ -142,6 +142,9 @@ cdef class BaseConnImpl:
             elif isinstance(value, array.array) \
                     and value.typecode in ('f', 'd', 'b'):
                 return value
+        elif db_type_num == DB_TYPE_NUM_INTERVAL_YM:
+            if isinstance(value, PY_TYPE_INTERVAL_YM):
+                return value
         else:
             if is_ok != NULL:
                 is_ok[0] = False

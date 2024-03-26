@@ -219,6 +219,9 @@ cdef int _convert_from_python(object value, DbType dbtype,
         vector_info.dimensions.asPtr = (<array.array> value).data.as_voidptr
         if dpiVector_setValue(dbvalue.asVector, &vector_info) < 0:
             _raise_from_odpi()
+    elif oracle_type == DPI_ORACLE_TYPE_INTERVAL_YM:
+        dbvalue.asIntervalYM.years = (<tuple> value)[0]
+        dbvalue.asIntervalYM.months = (<tuple> value)[1]
     else:
         errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
@@ -376,6 +379,9 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
         return _convert_json_to_python(dbvalue.asJson)
     elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
         return _convert_vector_to_python(dbvalue.asVector)
+    elif oracle_type == DPI_ORACLE_TYPE_INTERVAL_YM:
+        return PY_TYPE_INTERVAL_YM(dbvalue.asIntervalYM.years,
+                                   dbvalue.asIntervalYM.months)
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
 
@@ -525,7 +531,8 @@ def init_thick_impl(package):
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_DB_OBJECT, PY_TYPE_JSON_ID, PY_TYPE_LOB
+    global PY_TYPE_DB_OBJECT, PY_TYPE_JSON_ID, PY_TYPE_LOB, PY_TYPE_INTERVAL_YM
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_JSON_ID = package.JsonId
+    PY_TYPE_INTERVAL_YM = package.IntervalYM
     PY_TYPE_LOB = package.LOB

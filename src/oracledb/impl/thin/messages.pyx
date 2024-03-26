@@ -578,6 +578,8 @@ cdef class MessageWithData(Message):
             column_value = buf.read_bool()
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
             column_value = buf.read_interval_ds()
+        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
+            column_value = buf.read_interval_ym()
         elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     var_impl.dbtype)
@@ -1071,6 +1073,8 @@ cdef class MessageWithData(Message):
             buf.write_bool(value)
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
             buf.write_interval_ds(value)
+        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
+            buf.write_interval_ym(value)
         elif ora_type_num == TNS_DATA_TYPE_CLOB \
                 or ora_type_num == TNS_DATA_TYPE_BLOB:
             buf.write_lob_with_length(value._impl)

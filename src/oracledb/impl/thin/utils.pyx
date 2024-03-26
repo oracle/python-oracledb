@@ -114,6 +114,8 @@ def init_thin_impl(package):
     is to avoid circular imports and eliminate the need for global lookups.
     """
     global PY_TYPE_DB_OBJECT, PY_TYPE_LOB, PY_TYPE_ASYNC_LOB
+    global PY_TYPE_INTERVAL_YM
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_LOB = package.LOB
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
+    PY_TYPE_INTERVAL_YM = package.IntervalYM

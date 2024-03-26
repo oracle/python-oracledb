@@ -28,6 +28,7 @@
 # Package initialization module.
 # -----------------------------------------------------------------------------
 
+import collections
 import sys
 import warnings
 
@@ -269,6 +270,9 @@ from .constructors import (
 from .future import (
     future as __future__,  # noqa: F401
 )
+
+
+IntervalYM = collections.namedtuple("IntervalYM", ["years", "months"])
 
 
 class JsonId(bytes):

@@ -178,6 +178,7 @@ cdef class Buffer:
                                 float *float_ptr) except -1
     cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes)
     cdef object parse_interval_ds(self, const uint8_t* ptr)
+    cdef object parse_interval_ym(self, const uint8_t* ptr)
     cdef object parse_oracle_number(self, const uint8_t* ptr,
                                     ssize_t num_bytes, int preferred_num_type)
     cdef object read_binary_double(self)
@@ -187,6 +188,7 @@ cdef class Buffer:
     cdef object read_bytes(self)
     cdef object read_date(self)
     cdef object read_interval_ds(self)
+    cdef object read_interval_ym(self)
     cdef int read_int32(self, int32_t *value, int byte_order=*) except -1
     cdef object read_oracle_number(self, int preferred_num_type)
     cdef inline const char_type* read_raw_bytes(self,
@@ -220,6 +222,8 @@ cdef class Buffer:
     cdef int write_bytes(self, bytes value) except -1
     cdef int write_bytes_with_length(self, bytes value) except -1
     cdef int write_interval_ds(self, object value,
+                               bint write_length=*) except -1
+    cdef int write_interval_ym(self, object value,
                                bint write_length=*) except -1
     cdef int write_oracle_date(self, object value, uint8_t length,
                                bint write_length=*) except -1
