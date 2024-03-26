@@ -217,6 +217,7 @@ class TestCase(test_env.BaseTestCase):
                 f.write("# no entries")
             with self.assertRaisesFullCode("DPY-4000"):
                 params.parse_connect_string("tns_alias")
+            self.assertEqual(params.get_network_service_names(), [])
 
     def test_4515(self):
         "4515 - test EasyConnect string parsing with port value missing"
@@ -325,6 +326,8 @@ class TestCase(test_env.BaseTestCase):
             params = oracledb.ConnectParams(config_dir=temp_dir)
             with self.assertRaisesFullCode("DPY-4026"):
                 params.parse_connect_string("tns_alias")
+            with self.assertRaisesFullCode("DPY-4026"):
+                params.get_network_service_names()
 
     def test_4523(self):
         "4523 - test missing configuration directory"
@@ -520,6 +523,10 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(params.host, "my_host32")
                 self.assertEqual(params.port, 1132)
                 self.assertEqual(params.service_name, "my_service_name32")
+            self.assertEqual(
+                params.get_network_service_names(),
+                ["TNS_ALIAS32A", "TNS_ALIAS32B"],
+            )
 
     def test_4533(self):
         "4533 - test EasyConnect with pool parameters"
@@ -773,6 +780,9 @@ class TestCase(test_env.BaseTestCase):
                 f.write(alias)
             params = oracledb.ConnectParams(config_dir=temp_dir)
             params.parse_connect_string(alias_name)
+            self.assertEqual(
+                params.get_network_service_names(), [alias_name.upper()]
+            )
         self.assertEqual(params.host, host)
         self.assertEqual(params.port, port)
         self.assertEqual(params.service_name, service_name)

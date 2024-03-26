@@ -691,6 +691,14 @@ class ConnectParams:
         """
         return self._impl.get_connect_string()
 
+    def get_network_service_names(self) -> list:
+        """
+        Returns a list of the network service names found in the tnsnames.ora
+        file found in the configuration directory associated with the
+        parameters. If no such file exists, an error is raised.
+        """
+        return self._impl.get_network_service_names()
+
     def parse_connect_string(self, connect_string: str) -> None:
         """
         Parses the connect string into its components and stores the

@@ -24,6 +24,13 @@ ConnectParams Methods
 
     Returns the connection string associated with the ConnectParams instance.
 
+.. method:: ConnectParams.get_network_service_names()
+
+    Returns a list of the network service names found in the
+    :ref:`tnsnames.ora <optnetfiles>` file which is inside the directory
+    that can be identified by the attribute :attr:`~ConnectParams.config_dir`.
+    If a tnsnames.ora file does not exist, then an exception is raised.
+
 .. method:: ConnectParams.parse_connect_string(connect_string)
 
     Parses the connect string into its components and stores the parameters.

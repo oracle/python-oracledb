@@ -561,6 +561,16 @@ cdef class ConnectParamsImpl:
             return f"{self.user}[{self.proxy_user}]"
         return self.user
 
+    def get_network_service_names(self):
+        """
+        Returns a list of the network service names found in the tnsnames.ora
+        file found in the configuration directory associated with the
+        parameters. If no such file exists, an error is raised.
+        """
+        cdef TnsnamesFile tnsnames_file
+        tnsnames_file = self._get_tnsnames_file()
+        return list(tnsnames_file.entries.keys())
+
     def parse_connect_string(self, str connect_string):
         """
         Internal method for parsing the connect string.

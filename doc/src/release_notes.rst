@@ -23,6 +23,10 @@ Common Changes
     is represented in Python by instances of the new
     :ref:`oracledb.IntervalYM <interval_ym>` class
     (`issue 310 <https://github.com/oracle/python-oracledb/issues/310>`__).
+#)  Added support for getting a list of the network service names found in a
+    :ref:`tnsnames.ora <optnetfiles>` file by adding the method
+    :meth:`ConnectParams.get_network_service_names()`
+    (`issue 313 <https://github.com/oracle/python-oracledb/issues/313>`__).
 #)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
     are collections
     (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).
