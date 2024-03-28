@@ -788,23 +788,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, service_name)
 
     def test_4570(self):
-        "4570 - test connect string with invalid pool boundary"
-        params = oracledb.ConnectParams()
-        with self.assertRaisesFullCode("DPY-4030"):
-            connect_string = (
-                "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=my_host8)"
-                "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=my_service_name8)"
-                "(SERVER=pooled)(POOL_BOUNDARY=not_valid)))"
-            )
-            params.parse_connect_string(connect_string)
-        with self.assertRaisesFullCode("DPY-4030"):
-            connect_string = (
-                "my_host8/my_service_name8:pooled?pool_boundary=not_valid"
-            )
-            params.parse_connect_string(connect_string)
-
-    def test_4571(self):
-        "4571 - calling set() doesn't clear object parameters"
+        "4570 - calling set() doesn't clear object parameters"
         sharding_key = [1, 2, 3]
         super_sharding_key = [4, 5, 6]
         app_context = [("NAMESPACE", "KEY", "VALUE")]

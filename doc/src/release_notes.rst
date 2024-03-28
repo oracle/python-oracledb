@@ -30,6 +30,10 @@ Common Changes
 #)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
     are collections
     (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).
+#)  Error ``ORA-24545: invalid value of POOL_BOUNDARY specified in connect
+    string`` is now raised consistently for both Thick and Thin modes.
+    Previously, Thin mode was raising the error
+    ``DPY-4030: invalid DRCP pool boundary {boundary}``.
 
 
 oracledb 2.1.1 (March 2024)

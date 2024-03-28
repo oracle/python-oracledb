@@ -950,7 +950,7 @@ cdef class Description(ConnectParamsNode):
         _set_server_type_param(args, "server_type", self)
         _set_str_param(args, "cclass", self)
         _set_purity_param(args, "purity", &self.purity)
-        _set_pool_boundary_param(args, "pool_boundary", self)
+        _set_str_param(args, "pool_boundary", self)
         _set_str_param(args, "connection_id_prefix", self)
         _set_bool_param(args, "use_tcp_fast_open", &self.use_tcp_fast_open)
 
