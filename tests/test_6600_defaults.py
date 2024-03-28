@@ -27,6 +27,7 @@
 """
 
 import decimal
+import tempfile
 
 import oracledb
 import test_env
@@ -92,6 +93,14 @@ class TestCase(test_env.BaseTestCase):
                 value=var,
             )
             self.assertIsInstance(var.getvalue(), oracledb.LOB)
+
+    def test_6607(self):
+        "6607 - test setting defaults.config_dir"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with test_env.DefaultsContextManager("config_dir", temp_dir):
+                self.assertEqual(oracledb.defaults.config_dir, temp_dir)
+                params = oracledb.ConnectParams()
+                self.assertEqual(params.config_dir, temp_dir)
 
 
 if __name__ == "__main__":
