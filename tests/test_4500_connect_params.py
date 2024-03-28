@@ -811,6 +811,24 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.supershardingkey, super_sharding_key)
         self.assertEqual(params.ssl_context, ssl_context)
 
+    def test_4571(self):
+        "4571 - parse connect descriptor with / character in tnsnames.ora"
+        connect_string = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host)(PORT=4571))
+            (CONNECT_DATA=(SERVICE_NAME=my_service_name))
+            (SECURITY=(MY_WALLET_DIRECTORY=/some/dir)))"""
+        network_service_name = "alias_4571"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                f.write(f"{network_service_name} = {connect_string}")
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            params.parse_connect_string(network_service_name)
+        self.assertEqual(params.host, "my_host")
+        self.assertEqual(params.port, 4571)
+        self.assertEqual(params.service_name, "my_service_name")
+        self.assertEqual(params.wallet_location, "/some/dir")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

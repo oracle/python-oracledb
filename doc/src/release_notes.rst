@@ -34,6 +34,8 @@ Common Changes
     string`` is now raised consistently for both Thick and Thin modes.
     Previously, Thin mode was raising the error
     ``DPY-4030: invalid DRCP pool boundary {boundary}``.
+#)  Tightened definition of easy connect string regular expression to avoid
+    parsing errors with connect descriptors containing the ``/`` character.
 
 
 oracledb 2.1.1 (March 2024)
