@@ -776,7 +776,7 @@ cdef class MessageWithData(Message):
         cursor_impl._batcherrors = self.error_info.batcherrors
         if self.batcherrors and cursor_impl._batcherrors is None:
             cursor_impl._batcherrors = []
-        if self.error_info.num == TNS_ERR_NO_DATA_FOUND:
+        if self.error_info.num == TNS_ERR_NO_DATA_FOUND and self.in_fetch:
             self.error_info.num = 0
             cursor_impl._more_rows_to_fetch = False
             cursor_impl._last_row_index = 0

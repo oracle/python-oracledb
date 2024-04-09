@@ -591,6 +591,11 @@ class TestCase(test_env.BaseAsyncTestCase):
         row = await self.cursor.fetchone()
         self.assertEqual(row, tuple(values))
 
+    async def test_5436(self):
+        "5436 - test raising no_data_found in PL/SQL"
+        with self.assertRaisesFullCode("ORA-01403"):
+            await self.cursor.execute("begin raise no_data_found; end;")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
