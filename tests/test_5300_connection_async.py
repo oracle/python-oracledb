@@ -534,6 +534,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(conn.db_domain, db_domain)
 
+    async def test_5343(self):
+        "5343 - test connection with invalid conn_class"
+        with self.assertRaisesFullCode("DPY-2023"):
+            await test_env.get_connection_async(
+                conn_class=oracledb.ConnectionPool
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

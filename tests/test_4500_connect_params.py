@@ -829,6 +829,22 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "my_service_name")
         self.assertEqual(params.wallet_location, "/some/dir")
 
+    def test_4572(self):
+        "4572 - test that use_tcp_fast_open is set correctly"
+        params = oracledb.ConnectParams()
+        params.set(use_tcp_fast_open=True)
+        self.assertTrue(params.use_tcp_fast_open)
+        params.set(use_tcp_fast_open=False)
+        self.assertFalse(params.use_tcp_fast_open)
+        params.set(use_tcp_fast_open="True")
+        self.assertTrue(params.use_tcp_fast_open)
+        params.set(use_tcp_fast_open="False")
+        self.assertFalse(params.use_tcp_fast_open)
+        params.set(use_tcp_fast_open=None)
+        self.assertFalse(params.use_tcp_fast_open)
+        params.set(use_tcp_fast_open=1)
+        self.assertTrue(params.use_tcp_fast_open)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

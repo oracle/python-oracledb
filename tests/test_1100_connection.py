@@ -790,6 +790,11 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection(sdu=sdu)
         self.assertEqual(conn.sdu, sdu)
 
+    def test_1145(self):
+        "1145 - test connection with invalid conn_class"
+        with self.assertRaisesFullCode("DPY-2023"):
+            test_env.get_connection(conn_class=oracledb.ConnectionPool)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
