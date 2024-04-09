@@ -315,7 +315,9 @@ id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ syntax allows the use of
 multiple hosts or ports, along with optional entries for the wallet location,
 the distinguished name of the database server, and even allows some network
 configuration options be set. This means that a :ref:`sqlnet.ora <optnetfiles>`
-file is not needed for some common connection scenarios.
+file is not needed for some common connection scenarios. See Oracle's
+`Technical Paper on Easy Connect Plus Syntax <https://download.oracle.com/
+ocomdocs/global/Oracle-Net-Easy-Connect-Plus.pdf>`__ for more information.
 
 In python-oracledb Thin mode, any unknown Easy Connect options are ignored and
 are not passed to the database.  See :ref:`Connection String Differences
@@ -543,6 +545,29 @@ the username, password and connection string from a DSN:
     (un,pw,cs) = cp.parse_dsn_with_credentials("scott/tiger@localhost/orclpdb")
 
 Empty values are returned as ``None``.
+
+The :meth:`ConnectParams.get_network_service_names()` can be used to get a
+list of the network service names that are defined in the
+:ref:`tnsnames.ora <optnetfiles>` file. The directory that contains the
+tnsnames.ora file can be specified in the :attr:`~ConnectParams.config_dir`
+attribute.
+
+.. code-block:: python
+
+    cp = oracledb.ConnectParams(host="my_host", port=my_port, dsn="orclpdb",
+                                config_dir="/opt/oracle/config")
+    cp.get_network_service_names()
+
+If the :meth:`ConnectParams.get_network_service_names()` method is called but
+a tnsnames.ora file does not exist, then an error such as the following is
+returned::
+
+    DPY-4026: file tnsnames.ora not found in /opt/oracle/config
+
+If :attr:`~ConnectParams.config_dir` is not specified, then the following
+error is returned::
+
+    DPY-4027: no configuration directory to search for tnsnames.ora
 
 When creating a standalone connection or connection pool the equivalent
 internal extraction is done automatically when a value is passed to the ``dsn``
