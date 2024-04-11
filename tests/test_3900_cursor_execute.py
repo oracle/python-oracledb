@@ -554,6 +554,11 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("begin null; end;")
         self.assertEqual(self.cursor.rowcount, 0)
 
+    def test_3935(self):
+        "3935 - test raising no_data_found in PL/SQL"
+        with self.assertRaisesFullCode("ORA-01403"):
+            self.cursor.execute("begin raise no_data_found; end;")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

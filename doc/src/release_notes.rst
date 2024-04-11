@@ -13,6 +13,10 @@ oracledb 2.1.2 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug that prevented error ``ORA-01403: no data found`` from being
+    raised when executing a PL/SQL block
+    (`issue 321 <https://github.com/oracle/python-oracledb/issues/321>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
