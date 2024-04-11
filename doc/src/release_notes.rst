@@ -7,6 +7,10 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
+Release changes are listed as affecting Thin Mode (the default runtime behavior
+of python-oracledb), as affecting the optional :ref:`Thick Mode
+<enablingthick>`, or as affecting 'Common' for changes that impact both modes.
+
 oracledb 2.2.0 (TBD)
 --------------------
 
@@ -61,7 +65,7 @@ Thin Mode Changes
     Database 11g.
 #)  Internal change: tightened up code looking for the end of a database
     request.
-#)  Internal change: packet output is now immediately flushed in order to avoid
+#)  Network packet output is now immediately flushed in order to avoid
     losing output due to buffering when multiple threads are running.
 
 Thick Mode Changes
@@ -86,7 +90,7 @@ Thin Mode Changes
       :meth:`oracledb.create_pool()` and :meth:`oracledb.create_pool_async()`.
     - Improved the performance of connection creation by reducing the number of
       round trips required for all connections.
-    - Added support for TCP fast open for applications connecting from within
+    - Added support for TCP Fast Open for applications connecting from within
       the OCI Cloud network to Oracle Autonomous Database Serverless (ADB-S),
       enabled by the new ``use_tcp_fast_open`` parameter to
       :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
@@ -97,7 +101,7 @@ Thin Mode Changes
     - Support for asyncio is no longer considered a pre-release.
     - Internal change to improve handling of packets.
     - Fixed bug when using :ref:`DRCP <drcp>`.
-    - Fixed bug in processing metadata that spans multiple packets.
+    - Fixed bug in processing metadata that spans multiple network packets.
     - Fixed bug when connecting to a database using listener redirects
       (`issue 285 <https://github.com/oracle/python-oracledb/issues/285>`__).
 
@@ -129,7 +133,7 @@ Thick Mode Changes
     allows for seamless transfer of extended data types.
 #)  Fixed bug when calling :meth:`SodaDoc.getContent()` for SODA documents
     that do not contain JSON.
-#)  Corrected support for sharding.
+#)  Corrected support for Oracle Sharding.
 #)  Errors ``DPY-4011: the database or network closed the connection`` and
     ``DPY-4024: call timeout of {timeout} ms exceeded`` now retain the original
     error message raised by the Oracle Client library.
