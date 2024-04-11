@@ -51,7 +51,7 @@ CONTAINER_PARAM_NAMES = set((
 # regular expression used for determining if a connect string refers to an Easy
 # Connect string or not
 EASY_CONNECT_PATTERN = \
-        "((?P<protocol>\w+)://)?(?P<host>[^:/]+)(:(?P<port>\d+)?)?/" \
+        "^((?P<protocol>\w+)://)?(?P<host>[\w\d.-]+)(:(?P<port>\d+)?)?/" \
         "(?P<service_name>[^:?]*)(:(?P<server_type>\w+))?"
 
 # dictionary of tnsnames.ora files, indexed by the directory in which the file

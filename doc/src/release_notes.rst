@@ -19,6 +19,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed the internal regular expression used for parsing :ref:`Easy Connect
+    <easyconnect>` strings to avoid errors with connection string arguments
+    containing the ``/`` character.
+
 
 oracledb 2.1.1 (March 2024)
 ---------------------------
