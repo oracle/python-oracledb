@@ -7,8 +7,8 @@ python-oracledb Release Notes
 
 For deprecations, see :ref:`Deprecations <deprecations>`.
 
-oracledb 2.1.2 (TBD)
---------------------
+oracledb 2.1.2 (April 2024)
+---------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -16,9 +16,6 @@ Thin Mode Changes
 #)  Fixed bug that prevented error ``ORA-01403: no data found`` from being
     raised when executing a PL/SQL block
     (`issue 321 <https://github.com/oracle/python-oracledb/issues/321>`__).
-
-Thick Mode Changes
-++++++++++++++++++
 
 Common Changes
 ++++++++++++++
@@ -49,12 +46,6 @@ Thin Mode Changes
     request.
 #)  Internal change: packet output is now immediately flushed in order to avoid
     losing output due to buffering when multiple threads are running.
-
-Thick Mode Changes
-++++++++++++++++++
-
-Common Changes
-++++++++++++++
 
 
 oracledb 2.1.0 (March 2024)
