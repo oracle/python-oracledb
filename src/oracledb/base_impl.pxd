@@ -384,13 +384,6 @@ cdef class DescriptionList(ConnectParamsNode):
     cdef str build_connect_string(self)
 
 
-cdef class TnsnamesFile:
-    cdef:
-        str file_name
-        int mtime
-        dict entries
-
-
 cdef class ConnectParamsImpl:
     cdef:
         public str config_dir
@@ -432,7 +425,6 @@ cdef class ConnectParamsImpl:
     cdef bytearray _get_obfuscator(self, str secret_value)
     cdef bytes _get_password(self)
     cdef str _get_private_key(self)
-    cdef TnsnamesFile _get_tnsnames_file(self)
     cdef str _get_token(self)
     cdef object _get_token_expires(self, str token)
     cdef str _get_wallet_password(self)

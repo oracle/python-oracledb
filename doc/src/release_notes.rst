@@ -30,6 +30,9 @@ Common Changes
     is represented in Python by instances of the new
     :ref:`oracledb.IntervalYM <interval_ym>` class
     (`issue 310 <https://github.com/oracle/python-oracledb/issues/310>`__).
+#)  Added support for processing :ref:`tnsnames.ora files <optnetfiles>`
+    containing ``IFILE`` directives
+    (`issue 311 <https://github.com/oracle/python-oracledb/issues/311>`__).
 #)  Added support for getting a list of the network service names found in a
     :ref:`tnsnames.ora <optnetfiles>` file by adding the method
     :meth:`ConnectParams.get_network_service_names()`
@@ -37,6 +40,9 @@ Common Changes
 #)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
     are collections
     (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).
+#)  Error ``DPY-4032: invalid network service definition detected at line
+    {line_no} of file '{file_name}'`` is now raised when an invalid network
+    service definition is found in a :ref:`tnsnames.ora <optnetfiles>` file.
 #)  Error ``ORA-24545: invalid value of POOL_BOUNDARY specified in connect
     string`` is now raised consistently for both Thick and Thin modes.
     Previously, Thin mode was raising the error

@@ -250,32 +250,6 @@ cdef class ConnectParamsImpl:
             return self._xor_bytes(self._private_key,
                                    self._private_key_obfuscator).decode()
 
-    cdef TnsnamesFile _get_tnsnames_file(self):
-        """
-        Return a tnsnames file, if one is present, or None if one is not. If
-        the file was previously loaded, the modification time is checked and,
-        if unchanged, the previous file is returned.
-        """
-        cdef TnsnamesFile tnsnames_file
-        if self.config_dir is None:
-            errors._raise_err(errors.ERR_NO_CONFIG_DIR)
-        file_name = os.path.join(self.config_dir, "tnsnames.ora")
-        tnsnames_file = _tnsnames_files.get(self.config_dir)
-        try:
-            stat_info = os.stat(file_name)
-        except:
-            if tnsnames_file is not None:
-                del _tnsnames_files[self.config_dir]
-            errors._raise_err(errors.ERR_TNS_NAMES_FILE_MISSING,
-                              config_dir=self.config_dir)
-        if tnsnames_file is not None \
-                and tnsnames_file.mtime == stat_info.st_mtime:
-            return tnsnames_file
-        tnsnames_file = TnsnamesFile(file_name, stat_info.st_mtime)
-        tnsnames_file.read()
-        _tnsnames_files[self.config_dir] = tnsnames_file
-        return tnsnames_file
-
     cdef str _get_token(self):
         """
         Returns the token, after removing the obfuscation.
@@ -336,6 +310,7 @@ cdef class ConnectParamsImpl:
         """
         cdef:
             TnsnamesFile tnsnames_file
+            TnsnamesFileReader reader
             Description description
             Address address
             dict args = {}
@@ -355,7 +330,8 @@ cdef class ConnectParamsImpl:
         # otherwise, see if the name is a connect alias in a tnsnames.ora
         # configuration file
         else:
-            tnsnames_file = self._get_tnsnames_file()
+            reader = TnsnamesFileReader()
+            tnsnames_file = reader.read_tnsnames(self.config_dir)
             name = connect_string
             connect_string = tnsnames_file.entries.get(name.upper())
             if connect_string is None:
@@ -567,8 +543,10 @@ cdef class ConnectParamsImpl:
         file found in the configuration directory associated with the
         parameters. If no such file exists, an error is raised.
         """
-        cdef TnsnamesFile tnsnames_file
-        tnsnames_file = self._get_tnsnames_file()
+        cdef:
+            TnsnamesFileReader reader = TnsnamesFileReader()
+            TnsnamesFile tnsnames_file
+        tnsnames_file = reader.read_tnsnames(self.config_dir)
         return list(tnsnames_file.entries.keys())
 
     def parse_connect_string(self, str connect_string):
@@ -1015,22 +993,118 @@ cdef class DescriptionList(ConnectParamsNode):
 cdef class TnsnamesFile:
     """
     Internal class used to parse and retain connect descriptor entries found in
-    a tnsnames.ora file.
+    a tnsnames.ora file or any included file.
     """
+    cdef:
+        str file_name
+        int mtime
+        dict entries
+        set included_files
 
-    def __init__(self, str file_name, int mtime):
+    def __init__(self, str file_name):
         self.file_name = file_name
-        self.mtime = mtime
-        self.entries = {}
+        self.clear()
+        self._get_mtime(&self.mtime)
 
-    def read(self):
+    cdef int _get_mtime(self, int* mtime) except -1:
         """
-        Read and parse the file and retain the connect descriptors found inside
-        the file.
+        Returns the modification time of the file or throws an exception if the
+        file cannot be found.
         """
-        with open(self.file_name) as f:
+        try:
+            mtime[0] = os.stat(self.file_name).st_mtime
+        except Exception as e:
+            errors._raise_err(errors.ERR_MISSING_FILE, str(e),
+                              file_name=self.file_name)
+
+    cdef int clear(self) except -1:
+        """
+        Clear all entries in the file.
+        """
+        self.entries = {}
+        self.included_files = set()
+
+    def is_current(self):
+        """
+        Returns a boolean indicating if the contents are current or not.
+        """
+        cdef:
+            TnsnamesFile included_file
+            int mtime
+        self._get_mtime(&mtime)
+        if mtime != self.mtime:
+            return False
+        for included_file in self.included_files:
+            if not included_file.is_current():
+                return False
+        return True
+
+
+
+cdef class TnsnamesFileReader:
+    """
+    Internal class used to read a tnsnames.ora file and all of its included
+    files.
+    """
+    cdef:
+        TnsnamesFile primary_file
+        list files_in_progress
+        dict entries
+
+    cdef int _add_entry(self, TnsnamesFile tnsnames_file, str name,
+                        str value) except -1:
+        """
+        Adds an entry to the file, verifying that the name has not been
+        duplicated. An entry is always made in the primary file as well.
+        """
+        cdef TnsnamesFile orig_file
+        if name in self.entries and value != self.primary_file.entries[name]:
+            orig_file = self.entries[name]
+            errors._raise_err(errors.ERR_NETWORK_SERVICE_NAME_DIFFERS,
+                              network_service_name=name,
+                              new_file_name=tnsnames_file.file_name,
+                              orig_file_name=orig_file.file_name)
+        self.entries[name] = tnsnames_file
+        self.primary_file.entries[name] = value
+        if tnsnames_file is not self.primary_file:
+            tnsnames_file.entries[name] = value
+
+    cdef TnsnamesFile _get_file(self, file_name):
+        """
+        Get the file from the cache or read it from the file system.
+        """
+        cdef TnsnamesFile tnsnames_file
+        if file_name in self.files_in_progress:
+            errors._raise_err(errors.ERR_IFILE_CYCLE_DETECTED,
+                              including_file_name=self.files_in_progress[-1],
+                              included_file_name=file_name)
+        tnsnames_file = _tnsnames_files.get(file_name)
+        if tnsnames_file is None:
+            tnsnames_file = TnsnamesFile(file_name)
+        else:
+            if tnsnames_file.is_current():
+                return tnsnames_file
+            del _tnsnames_files[file_name]
+        if self.primary_file is None:
+            self.primary_file = tnsnames_file
+        self.files_in_progress.append(file_name)
+        self._read_file(tnsnames_file)
+        _tnsnames_files[file_name] = tnsnames_file
+        self.files_in_progress.pop()
+        return tnsnames_file
+
+    cdef int _read_file(self, TnsnamesFile tnsnames_file) except -1:
+        """
+        Reads the file and parses the contents.
+        """
+        cdef:
+            TnsnamesFile included_file
+            int line_no = 0
+        tnsnames_file.clear()
+        with open(tnsnames_file.file_name) as f:
             entry_names = None
             for line in f:
+                line_no += 1
                 line = line.strip()
                 pos = line.find("#")
                 if pos >= 0:
@@ -1040,8 +1114,20 @@ cdef class TnsnamesFile:
                 if entry_names is None:
                     pos = line.find("=")
                     if pos < 0:
+                        errors._raise_err(
+                            errors.ERR_NETWORK_SERVICE_NAME_INVALID,
+                            line_no=line_no,
+                            file_name=tnsnames_file.file_name)
+                    name = line[:pos].strip().upper()
+                    if name == "IFILE":
+                        file_name = line[pos + 1:].strip()
+                        if not os.path.isabs(file_name):
+                            dir_name = os.path.dirname(tnsnames_file.file_name)
+                            file_name = os.path.join(dir_name, file_name)
+                        included_file = self._get_file(file_name)
+                        tnsnames_file.included_files.add(included_file)
                         continue
-                    entry_names = [s.strip() for s in line[:pos].split(",")]
+                    entry_names = [s.strip() for s in name.split(",")]
                     entry_lines = []
                     num_parens = 0
                     line = line[pos+1:].strip()
@@ -1051,5 +1137,18 @@ cdef class TnsnamesFile:
                 if entry_lines and num_parens <= 0:
                     descriptor = "".join(entry_lines)
                     for name in entry_names:
-                        self.entries[name.upper()] = descriptor
+                        self._add_entry(tnsnames_file, name, descriptor)
                     entry_names = None
+
+    cdef TnsnamesFile read_tnsnames(self, str dir_name):
+        """
+        Read the tnsnames.ora file found in the given directory or raise an
+        exception if no such file can be found.
+        """
+        self.primary_file = None
+        self.files_in_progress = []
+        self.entries = {}
+        if dir_name is None:
+            errors._raise_err(errors.ERR_NO_CONFIG_DIR)
+        file_name = os.path.join(dir_name, "tnsnames.ora")
+        return self._get_file(file_name)

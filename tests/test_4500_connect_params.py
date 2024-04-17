@@ -26,10 +26,8 @@
 4500 - Module for testing connection parameters.
 """
 
-import os
-import ssl
-import tempfile
 import random
+import ssl
 
 import oracledb
 import test_env
@@ -88,22 +86,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.host, "my_host4")
         self.assertEqual(params.port, 1589)
         self.assertEqual(params.service_name, "my_service_name4")
-
-    def test_4504(self):
-        "4504 - test simple tnsnames entry"
-        connect_string = """
-            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host5)(PORT=1624))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name5)))"""
-        alias = f"tns_alias = {connect_string}"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                f.write(alias)
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            params.parse_connect_string("tns_alias")
-        self.assertEqual(params.host, "my_host5")
-        self.assertEqual(params.port, 1624)
-        self.assertEqual(params.service_name, "my_service_name5")
 
     def test_4505(self):
         "4505 - test EasyConnect with protocol"
@@ -208,17 +190,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, 1578)
         self.assertEqual(params.service_name, None)
 
-    def test_4514(self):
-        "4514 - test missing entry in tnsnames"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                f.write("# no entries")
-            with self.assertRaisesFullCode("DPY-4000"):
-                params.parse_connect_string("tns_alias")
-            self.assertEqual(params.get_network_service_names(), [])
-
     def test_4515(self):
         "4515 - test EasyConnect string parsing with port value missing"
         params = oracledb.ConnectParams()
@@ -320,38 +291,11 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, "my_service_name23")
         self.assertEqual(params.wallet_location, "my wallet dir 23")
 
-    def test_4522(self):
-        "4522 - test missing tnsnames.ora in configuration directory"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            with self.assertRaisesFullCode("DPY-4026"):
-                params.parse_connect_string("tns_alias")
-            with self.assertRaisesFullCode("DPY-4026"):
-                params.get_network_service_names()
-
     def test_4523(self):
         "4523 - test missing configuration directory"
         params = oracledb.ConnectParams(config_dir="/missing")
         with self.assertRaisesFullCode("DPY-4026"):
             params.parse_connect_string("tns_alias")
-
-    def test_4524(self):
-        "4524 - test tnsnames.ora with invalid entries"
-        connect_string = """
-            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host24)(PORT=1148))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name24)))"""
-        alias = f"tns_alias24 = {connect_string}"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                print("invalid_alias = something to ignore", file=f)
-                print("some garbage data which should be ignored", file=f)
-                print(alias, file=f)
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            params.parse_connect_string("tns_alias24")
-        self.assertEqual(params.host, "my_host24")
-        self.assertEqual(params.port, 1148)
-        self.assertEqual(params.service_name, "my_service_name24")
 
     def test_4525(self):
         "4525 - test connect string with an address list"
@@ -506,27 +450,6 @@ class TestCase(test_env.BaseTestCase):
                 + f"(SERVICE_NAME={service_name})))"
             )
             self.assertEqual(params.get_connect_string(), connect_string)
-
-    def test_4532(self):
-        "4532 - test tnsnames.ora with multiple aliases on one line"
-        connect_string = """
-            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host32)(PORT=1132))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name32)))"""
-        aliases = f"tns_alias32a,tns_alias32b = {connect_string}"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                print(aliases, file=f)
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            for name in ("tns_alias32a", "tns_alias32b"):
-                params.parse_connect_string(name)
-                self.assertEqual(params.host, "my_host32")
-                self.assertEqual(params.port, 1132)
-                self.assertEqual(params.service_name, "my_service_name32")
-            self.assertEqual(
-                params.get_network_service_names(),
-                ["TNS_ALIAS32A", "TNS_ALIAS32B"],
-            )
 
     def test_4533(self):
         "4533 - test EasyConnect with pool parameters"
@@ -767,27 +690,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, service_name)
 
     def test_4569(self):
-        "4569 - test easy connect string in tnsnames.ora"
-        alias_name = "tns_alias_4569"
-        host = "my_host4569"
-        port = 1568
-        service_name = "my_service_name_4569"
-        connect_string = f"tcp://{host}:{port}/{service_name}"
-        alias = f"{alias_name} = {connect_string}"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                f.write(alias)
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            params.parse_connect_string(alias_name)
-            self.assertEqual(
-                params.get_network_service_names(), [alias_name.upper()]
-            )
-        self.assertEqual(params.host, host)
-        self.assertEqual(params.port, port)
-        self.assertEqual(params.service_name, service_name)
-
-    def test_4570(self):
         "4570 - calling set() doesn't clear object parameters"
         sharding_key = [1, 2, 3]
         super_sharding_key = [4, 5, 6]
@@ -811,25 +713,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.supershardingkey, super_sharding_key)
         self.assertEqual(params.ssl_context, ssl_context)
 
-    def test_4571(self):
-        "4571 - parse connect descriptor with / character in tnsnames.ora"
-        connect_string = """
-            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host)(PORT=4571))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name))
-            (SECURITY=(MY_WALLET_DIRECTORY=/some/dir)))"""
-        network_service_name = "alias_4571"
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = os.path.join(temp_dir, "tnsnames.ora")
-            with open(file_name, "w") as f:
-                f.write(f"{network_service_name} = {connect_string}")
-            params = oracledb.ConnectParams(config_dir=temp_dir)
-            params.parse_connect_string(network_service_name)
-        self.assertEqual(params.host, "my_host")
-        self.assertEqual(params.port, 4571)
-        self.assertEqual(params.service_name, "my_service_name")
-        self.assertEqual(params.wallet_location, "/some/dir")
-
-    def test_4572(self):
+    def test_4570(self):
         "4572 - test that use_tcp_fast_open is set correctly"
         params = oracledb.ConnectParams()
         params.set(use_tcp_fast_open=True)

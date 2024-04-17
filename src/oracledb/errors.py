@@ -294,10 +294,13 @@ ERR_INVALID_PROTOCOL = 4021
 ERR_INVALID_POOL_PURITY = 4022
 ERR_CALL_TIMEOUT_EXCEEDED = 4024
 ERR_INVALID_REF_CURSOR = 4025
-ERR_TNS_NAMES_FILE_MISSING = 4026
+ERR_MISSING_FILE = 4026
 ERR_NO_CONFIG_DIR = 4027
 ERR_INVALID_SERVER_TYPE = 4028
 ERR_TOO_MANY_BATCH_ERRORS = 4029
+ERR_IFILE_CYCLE_DETECTED = 4030
+ERR_NETWORK_SERVICE_NAME_DIFFERS = 4031
+ERR_NETWORK_SERVICE_NAME_INVALID = 4032
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -489,6 +492,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_HTTPS_PROXY_REQUIRES_TCPS: (
         "https_proxy requires use of the tcps protocol"
     ),
+    ERR_IFILE_CYCLE_DETECTED: (
+        "file '{including_file_name}' includes file '{included_file_name}', "
+        "which forms a cycle"
+    ),
     ERR_INCONSISTENT_DATATYPES: (
         "cannot convert from data type {input_type} to {output_type}"
     ),
@@ -572,6 +579,7 @@ ERR_MESSAGE_FORMATS = {
         'a bind variable replacement value for placeholder ":{name}" was '
         "not provided"
     ),
+    ERR_MISSING_FILE: "file '{file_name}' is missing or unreadable",
     ERR_MISSING_QUOTE_IN_IDENTIFIER: 'missing ending quote (") in identifier',
     ERR_MISSING_QUOTE_IN_STRING: "missing ending quote (') in string",
     ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR: (
@@ -589,6 +597,15 @@ ERR_MESSAGE_FORMATS = {
     ERR_NCHAR_CS_NOT_SUPPORTED: (
         "national character set id {charset_id} is not supported by "
         "python-oracledb in thin mode"
+    ),
+    ERR_NETWORK_SERVICE_NAME_DIFFERS: (
+        "connect string for network service name '{network_service_name}' "
+        "found in file '{new_file_name}' differs from the same entry in "
+        "'{orig_file_name}'"
+    ),
+    ERR_NETWORK_SERVICE_NAME_INVALID: (
+        "invalid network service definition detected at line {line_no} of "
+        "file '{file_name}'"
     ),
     ERR_NO_CONFIG_DIR: "no configuration directory to search for tnsnames.ora",
     ERR_NO_CREDENTIALS: "no credentials specified",
@@ -647,7 +664,6 @@ ERR_MESSAGE_FORMATS = {
         "Oracle Database does not support time only variables"
     ),
     ERR_TNS_ENTRY_NOT_FOUND: 'unable to find "{name}" in {file_name}',
-    ERR_TNS_NAMES_FILE_MISSING: "file tnsnames.ora not found in {config_dir}",
     ERR_TOO_MANY_CURSORS_TO_CLOSE: (
         "internal error: attempt to close more than {num_cursors} cursors"
     ),
