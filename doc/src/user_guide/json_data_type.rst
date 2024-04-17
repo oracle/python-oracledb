@@ -194,10 +194,10 @@ needed but there is no direct mapping from Python.
     * - n/a
       - DATE
       - json_scalar(to_date('2020-03-10', 'YYYY-MM-DD'))
-    * - n/a
+    * - :ref:`oracledb.IntervalYM <interval_ym>`
       - INTERVAL YEAR TO MONTH
       - json_scalar(to_yminterval('+5-9'))
-    * - n/a
+    * - datetime.timedelta
       - INTERVAL DAY TO SECOND
       - json_scalar(to_dsinterval('P25DT8H25M'))
     * - n/a
@@ -262,7 +262,7 @@ attribute mapping occurs:
     * - TIMESTAMP
       - datetime.datetime
     * - INTERVAL YEAR TO MONTH
-      - not supported
+      - :ref:`oracledb.IntervalYM <interval_ym>`
     * - INTERVAL DAY TO SECOND
       - datetime.timedelta
     * - BINARY_DOUBLE
