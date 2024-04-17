@@ -326,6 +326,9 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection()
         if test_env.get_client_version() >= (12, 1):
             self.assertEqual(conn.ltxid, b"")
+        self.assertFalse(conn.autocommit)
+        conn.autocommit = True
+        self.assertTrue(conn.autocommit)
         self.assertIsNone(conn.current_schema)
         conn.current_schema = "test_schema"
         self.assertEqual(conn.current_schema, "test_schema")

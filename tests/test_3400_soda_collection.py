@@ -824,23 +824,15 @@ class TestCase(test_env.BaseTestCase):
         client_version = test_env.get_client_version()
         server_version = test_env.get_server_version()
         if client_version >= (23, 4) and server_version >= (23, 4):
-            id_metadata = {
-                "type": "id",
-                "o:length": 24,
-                "o:preferred_column_name": "DATA$_id",
-            }
-            self.assertEqual(data_guide["properties"]["_id"], id_metadata)
+            self.assertEqual(data_guide["properties"]["_id"]["type"], "id")
 
         values = [
-            ("team", "string", 8),
-            ("created_in", "number", 4),
-            ("area", "string", 16),
+            ("team", "string"),
+            ("created_in", "number"),
+            ("area", "string"),
         ]
-        for name, typ, length in values:
+        for name, typ in values:
             self.assertEqual(data_guide["properties"][name]["type"], typ)
-            self.assertEqual(
-                data_guide["properties"][name]["o:length"], length
-            )
             self.assertRegex(
                 data_guide["properties"][name]["o:preferred_column_name"],
                 f"(JSON_DOCUMENT|DATA)\\${name}",

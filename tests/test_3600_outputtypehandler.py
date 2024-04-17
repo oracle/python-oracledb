@@ -41,6 +41,7 @@ class TestCase(test_env.BaseTestCase):
             return cursor.var(output_type, arraysize=cursor.arraysize)
 
         self.cursor.outputtypehandler = type_handler
+        self.assertEqual(self.cursor.outputtypehandler, type_handler)
         var = self.cursor.var(input_type)
         var.setvalue(0, in_value)
         self.cursor.execute("select :1 from dual", [var])

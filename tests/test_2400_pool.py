@@ -161,6 +161,7 @@ class TestCase(test_env.BaseTestCase):
         pool = test_env.get_pool()
         self.assertEqual(pool.busy, 0)
         self.assertEqual(pool.dsn, test_env.get_connect_string())
+        self.assertEqual(pool.tnsentry, pool.dsn)
         if test_env.get_client_version() >= (12, 2):
             self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT)
         self.assertTrue(pool.homogeneous)
@@ -174,7 +175,9 @@ class TestCase(test_env.BaseTestCase):
         ):
             self.assertEqual(pool.max_sessions_per_shard, 0)
         self.assertEqual(pool.min, 1)
-        if not test_env.get_is_thin():
+        if test_env.get_is_thin():
+            self.assertIsNone(pool.name)
+        else:
             self.assertRegex(pool.name, "^OCI:SP:.+")
         self.assertEqual(pool.ping_interval, 60)
         self.assertEqual(pool.stmtcachesize, oracledb.defaults.stmtcachesize)
@@ -826,7 +829,6 @@ class TestCase(test_env.BaseTestCase):
     def test_2432(self):
         "2432 - test creating a pool invalid params"
         with self.assertRaisesFullCode("DPY-2027"):
-
             oracledb.create_pool(params="bad params")
 
     def test_2433(self):
@@ -858,6 +860,13 @@ class TestCase(test_env.BaseTestCase):
 
         pool = test_env.get_pool(pool_class=MyPool)
         self.assertIsInstance(pool, MyPool)
+
+    def test_2437(self):
+        "2437 - test connectiontype with an invalid connection class"
+        with self.assertRaisesFullCode("DPY-2023"):
+            test_env.get_pool(connectiontype=oracledb.AsyncConnection)
+        with self.assertRaisesFullCode("DPY-2023"):
+            test_env.get_pool(connectiontype=int)
 
 
 if __name__ == "__main__":

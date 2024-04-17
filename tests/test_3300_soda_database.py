@@ -154,6 +154,115 @@ class TestCase(test_env.BaseTestCase):
         bytes_val = str_val.encode()
         self.__verify_doc(doc, bytes_val, str_val, val)
 
+    def test_3307(self):
+        "3307 - test creating documents with int scalar value"
+        soda_db = self.conn.getSodaDatabase()
+        val = 144
+        str_val = "144"
+        bytes_val = b"144"
+        key = "MyKey"
+        media_type = "application/json"
+        doc = soda_db.createDocument(val)
+        self.__verify_doc(doc, bytes_val, str_val, val)
+        doc = soda_db.createDocument(val, key)
+        self.__verify_doc(doc, bytes_val, str_val, val, key)
+        doc = soda_db.createDocument(val, key, media_type)
+        self.__verify_doc(doc, bytes_val, str_val, val, key, media_type)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "data types serialized differently",
+    )
+    def test_3308(self):
+        "3308 - test creating documents with float scalar value"
+        soda_db = self.conn.getSodaDatabase()
+        val = 12.2
+        str_val = "12.2"
+        bytes_val = b"12.2"
+        decimal_val = decimal.Decimal(str_val)
+        key = "MyKey"
+        media_type = "application/json"
+        doc = soda_db.createDocument(val)
+        self.__verify_doc(doc, bytes_val, str_val, decimal_val)
+        doc = soda_db.createDocument(val, key)
+        self.__verify_doc(doc, bytes_val, str_val, decimal_val, key)
+        doc = soda_db.createDocument(val, key, media_type)
+        self.__verify_doc(
+            doc, bytes_val, str_val, decimal_val, key, media_type
+        )
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "unsupported data types",
+    )
+    def test_3309(self):
+        "3309 - test creating documents with a list"
+        soda_db = self.conn.getSodaDatabase()
+        val = [12, "str", b"bytes", [1], {"dict": "3"}]
+        decimal_val = [
+            decimal.Decimal("12"),
+            "str",
+            b"bytes",
+            [decimal.Decimal("1")],
+            {"dict": "3"},
+        ]
+        str_val = (
+            "[Decimal('12'), 'str', b'bytes', [Decimal('1')], {'dict': '3'}]"
+        )
+        bytes_val = (
+            b"[Decimal('12'), 'str', b'bytes', [Decimal('1')], {'dict': '3'}]"
+        )
+        key = "MyKey"
+        media_type = "application/json"
+        doc = soda_db.createDocument(val)
+        self.__verify_doc(doc, bytes_val, str_val, decimal_val)
+        doc = soda_db.createDocument(val, key)
+        self.__verify_doc(doc, bytes_val, str_val, decimal_val, key)
+        doc = soda_db.createDocument(val, key, media_type)
+        self.__verify_doc(
+            doc, bytes_val, str_val, decimal_val, key, media_type
+        )
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "data types serialized differently",
+    )
+    def test_3310(self):
+        "3310 - test creating documents with a boolean scalar value"
+        soda_db = self.conn.getSodaDatabase()
+        test_values = [(True, "True", b"True"), (False, "False", b"False")]
+        key = "MyKey"
+        media_type = "application/json"
+        for val, str_val, bytes_val in test_values:
+            doc = soda_db.createDocument(val)
+            self.__verify_doc(doc, bytes_val, str_val, val)
+            doc = soda_db.createDocument(val, key)
+            self.__verify_doc(doc, bytes_val, str_val, val, key)
+            doc = soda_db.createDocument(val, key, media_type)
+            self.__verify_doc(doc, bytes_val, str_val, val, key, media_type)
+
+    @unittest.skipIf(
+        test_env.get_client_version() < (23, 4)
+        and test_env.get_server_version() < (23, 4),
+        "data types serialized differently",
+    )
+    def test_3311(self):
+        "3311 - test creating documents with unsupported types"
+        soda_db = self.conn.getSodaDatabase()
+        values = [
+            tuple([144, 2]),
+            set("144"),
+            bytearray("omg", "utf-8"),
+            complex(2j),
+            range(4),
+        ]
+        for value in values:
+            with self.assertRaisesFullCode("DPY-3003"):
+                soda_db.createDocument(value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

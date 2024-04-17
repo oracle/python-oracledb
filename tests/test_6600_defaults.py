@@ -102,6 +102,14 @@ class TestCase(test_env.BaseTestCase):
                 params = oracledb.ConnectParams()
                 self.assertEqual(params.config_dir, temp_dir)
 
+    def test_6608(self):
+        "6608 - test setting defaults.stmtcachesize (ConnectParams)"
+        with test_env.DefaultsContextManager("stmtcachesize", 50):
+            params = oracledb.ConnectParams()
+            self.assertEqual(
+                params.stmtcachesize, oracledb.defaults.stmtcachesize
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
