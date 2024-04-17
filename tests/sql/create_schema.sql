@@ -347,7 +347,8 @@ create table &main_user..TestAllTypes (
     NCLOBValue                          nclob,
     BLOBValue                           blob,
     SubObjectValue                      &main_user..udt_SubObject,
-    SubObjectArray                      &main_user..udt_ObjectArray
+    SubObjectArray                      &main_user..udt_ObjectArray,
+    InvisibleValue                      number invisible
 )
 /
 

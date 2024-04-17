@@ -17,6 +17,9 @@ oracledb 2.2.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug in handling invisible columns with object type names containing
+    ``%ROWTYPE``
+    (`issue 325 <https://github.com/oracle/python-oracledb/issues/325>`__).
 #)  Internal change: further efforts to tighten code looking for the end of a
     database request made to Oracle Database 23c.
 

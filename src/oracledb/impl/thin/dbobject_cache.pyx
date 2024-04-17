@@ -80,9 +80,10 @@ cdef str DBO_CACHE_SQL_GET_COLUMNS = """
             end,
             nvl(data_precision, 0),
             nvl(data_scale, 0)
-        from all_tab_columns
+        from all_tab_cols
         where owner = :owner
           and table_name = substr(:name, 1, length(:name) - 8)
+          and hidden_column != 'YES'
         order by column_id"""
 
 cdef str DBO_CACHE_SQL_GET_ELEM_TYPE_WITH_PACKAGE = """
