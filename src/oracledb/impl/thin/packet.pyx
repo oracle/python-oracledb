@@ -66,7 +66,12 @@ cdef class Packet:
         ptr = cpython.PyBytes_AS_STRING(self.buf)
         flags = unpack_uint16(<const char_type*> &ptr[PACKET_HEADER_SIZE],
                               BYTE_ORDER_MSB)
-        return flags & TNS_DATA_FLAGS_END_OF_REQUEST
+        if flags & TNS_DATA_FLAGS_END_OF_REQUEST:
+            return True
+        if self.packet_size == PACKET_HEADER_SIZE + 3 \
+                and ptr[PACKET_HEADER_SIZE + 2] == TNS_MSG_TYPE_END_OF_REQUEST:
+            return True
+        return False
 
 
 @cython.final
@@ -200,7 +205,7 @@ cdef class ReadBuffer(Buffer):
         Transport _transport
         list _saved_packets
         Capabilities _caps
-        bint _in_request
+        bint _check_request_boundary
         object _waiter
         object _loop
 
@@ -340,8 +345,7 @@ cdef class ReadBuffer(Buffer):
             self._saved_packets.append(packet)
             notify_waiter[0] = \
                     packet.packet_type != TNS_PACKET_TYPE_DATA \
-                    or not self._in_request \
-                    or not self._caps.supports_end_of_request \
+                    or not self._check_request_boundary \
                     or packet.has_end_of_request()
 
     cdef int _read_raw_bytes_and_length(self, const char_type **ptr,

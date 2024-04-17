@@ -374,7 +374,7 @@ cdef class Protocol(BaseProtocol):
         try:
             self._read_buf.reset_packets()
             message.send(self._write_buf)
-            self._receive_packet(message)
+            self._receive_packet(message, check_request_boundary=True)
             message.process(self._read_buf)
         except socket.timeout:
             try:
@@ -440,12 +440,16 @@ cdef class Protocol(BaseProtocol):
                 self._process_message(message)
         message.postprocess()
 
-    cdef int _receive_packet(self, Message message) except -1:
+    cdef int _receive_packet(self, Message message,
+                             bint check_request_boundary=False) except -1:
         cdef:
             ReadBuffer buf = self._read_buf
             uint16_t refuse_message_len
             const char_type* ptr
+        buf._check_request_boundary = \
+                check_request_boundary and self._caps.supports_end_of_request
         buf.wait_for_packets_sync()
+        buf._check_request_boundary = False
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
             self._reset(message)
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
@@ -784,7 +788,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         self._read_buf.reset_packets()
         message.send(self._write_buf)
-        await self._receive_packet(message)
+        await self._receive_packet(message, check_request_boundary=True)
         while True:
             try:
                 message.process(self._read_buf)
@@ -812,12 +816,16 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         self._break_in_progress = False
         errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED, timeout=timeout)
 
-    async def _receive_packet(self, Message message):
+    async def _receive_packet(self, Message message,
+                              bint check_request_boundary=False):
         cdef:
             ReadBuffer buf = self._read_buf
             uint16_t refuse_message_len
             const char_type* ptr
+        buf._check_request_boundary = \
+                check_request_boundary and self._caps.supports_end_of_request
         await buf.wait_for_packets_async()
+        buf._check_request_boundary = False
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
             await self._reset()
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
@@ -842,7 +850,6 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 if marker_type == TNS_MARKER_TYPE_RESET:
                     break
             await self._read_buf.wait_for_packets_async()
-
 
         # send reset marker and then read error packet; first skip as many
         # marker packets as may be sent by the server; if the server doesn't

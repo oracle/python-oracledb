@@ -49,14 +49,12 @@ cdef class Message:
         uint8_t function_code
         uint32_t call_status
         uint16_t end_to_end_seq_num
+        bint end_of_response
         bint error_occurred
         bint flush_out_binds
         bint resend
         bint retry
         object warning
-
-    cdef bint _has_more_data(self, ReadBuffer buf):
-        return buf.bytes_left() > 0 and not self.flush_out_binds
 
     cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
         """
@@ -117,7 +115,6 @@ cdef class Message:
         buf.read_ub4(&num_bytes)            # oerrdd (logical rowid)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()
-        buf._in_request = False
 
         # batch error codes
         buf.read_ub2(&num_errors)           # batch error codes array
@@ -173,6 +170,9 @@ cdef class Message:
                 info.pos = error_pos
             info.message = buf.read_str(CS_FORM_IMPLICIT).rstrip()
 
+        # an error message always marks the end of a response!
+        self.end_of_response = True
+
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
         if message_type == TNS_MSG_TYPE_ERROR:
@@ -187,7 +187,7 @@ cdef class Message:
         elif message_type == TNS_MSG_TYPE_SERVER_SIDE_PIGGYBACK:
             self._process_server_side_piggyback(buf)
         elif message_type == TNS_MSG_TYPE_END_OF_REQUEST:
-            buf._in_request = False
+            self.end_of_response = True
         else:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,
                               message_type=message_type,
@@ -301,10 +301,10 @@ cdef class Message:
 
     cdef int process(self, ReadBuffer buf) except -1:
         cdef uint8_t message_type
+        self.end_of_response = False
         self.flush_out_binds = False
-        buf._in_request = True
         self._preprocess()
-        while self._has_more_data(buf):
+        while not self.end_of_response:
             buf.save_point()
             buf.read_ub1(&message_type)
             self._process_message(buf, message_type)
@@ -390,9 +390,6 @@ cdef class MessageWithData(Message):
             array.resize(self.bit_vector_buf, num_bytes)
         self.bit_vector = <const char_type*> self.bit_vector_buf.data.as_chars
         memcpy(<void*> self.bit_vector, ptr, num_bytes)
-
-    cdef bint _has_more_data(self, ReadBuffer buf):
-        return buf._in_request and not self.flush_out_binds
 
     cdef bint _is_duplicate_data(self, uint32_t column_num):
         """
@@ -848,6 +845,7 @@ cdef class MessageWithData(Message):
             self._process_row_data(buf)
         elif message_type == TNS_MSG_TYPE_FLUSH_OUT_BINDS:
             self.flush_out_binds = True
+            self.end_of_response = True
         elif message_type == TNS_MSG_TYPE_DESCRIBE_INFO:
             buf.skip_raw_bytes_chunked()
             self._process_describe_info(buf, self.cursor, self.cursor_impl)
@@ -1929,6 +1927,7 @@ cdef class DataTypesMessage(Message):
             buf.read_uint16(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
+        self.end_of_response = True
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
@@ -2225,9 +2224,6 @@ cdef class LobOpMessage(Message):
         bint bool_flag
         object data
 
-    cdef bint _has_more_data(self, ReadBuffer buf):
-        return buf._in_request
-
     cdef int _initialize_hook(self) except -1:
         """
         Perform initialization.
@@ -2367,6 +2363,7 @@ cdef class ProtocolMessage(Message):
                               uint8_t message_type) except -1:
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             self._process_protocol_info(buf)
+            self.end_of_response = True
         else:
             Message._process_message(self, buf, message_type)
 
@@ -2410,27 +2407,23 @@ cdef class FastAuthMessage(Message):
         DataTypesMessage data_types_message
         ProtocolMessage protocol_message
         AuthMessage auth_message
-        bint renegotiate
-
-    cdef bint _has_more_data(self, ReadBuffer buf):
-        return buf._in_request
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
         """
         Processes the messages returned from the server response.
         """
-        if message_type == TNS_MSG_TYPE_RENEGOTIATE:
-            self.renegotiate = True
-        elif message_type == TNS_MSG_TYPE_PROTOCOL:
+        if message_type == TNS_MSG_TYPE_PROTOCOL:
             ProtocolMessage._process_message(self.protocol_message, buf,
                                              message_type)
+            self.end_of_response = False
         elif message_type == TNS_MSG_TYPE_DATA_TYPES:
             DataTypesMessage._process_message(self.data_types_message, buf,
                                               message_type)
+            self.end_of_response = False
         else:
             AuthMessage._process_message(self.auth_message, buf, message_type)
-            buf._in_request = False
+            self.end_of_response = True
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """
