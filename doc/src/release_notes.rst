@@ -43,6 +43,11 @@ Common Changes
 #)  Added support for iterating over :ref:`DbObject <dbobject>` instances that
     are collections
     (`issue 314 <https://github.com/oracle/python-oracledb/issues/314>`__).
+#)  Error ``DPY-4031: connect string for network service name
+    '{network_service_name}' found in file '{new_file_name}' differs from
+    the same entry in '{orig_file_name}'`` is now raised when parsing
+    :ref:`tnsnames.ora <optnetfiles>` files that contain a network service name
+    defined more than once but with different connect strings.
 #)  Error ``DPY-4032: invalid network service definition detected at line
     {line_no} of file '{file_name}'`` is now raised when an invalid network
     service definition is found in a :ref:`tnsnames.ora <optnetfiles>` file.
