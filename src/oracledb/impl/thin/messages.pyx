@@ -170,8 +170,10 @@ cdef class Message:
                 info.pos = error_pos
             info.message = buf.read_str(CS_FORM_IMPLICIT).rstrip()
 
-        # an error message always marks the end of a response!
-        self.end_of_response = True
+        # an error message marks the end of a response if no explicit end of
+        # response is available
+        if not buf._caps.supports_end_of_request:
+            self.end_of_response = True
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -182,6 +184,8 @@ cdef class Message:
         elif message_type == TNS_MSG_TYPE_STATUS:
             buf.read_ub4(&self.call_status)
             buf.read_ub2(&self.end_to_end_seq_num)
+            if not buf._caps.supports_end_of_request:
+                self.end_of_response = True
         elif message_type == TNS_MSG_TYPE_PARAMETER:
             self._process_return_parameters(buf)
         elif message_type == TNS_MSG_TYPE_SERVER_SIDE_PIGGYBACK:
@@ -1927,7 +1931,8 @@ cdef class DataTypesMessage(Message):
             buf.read_uint16(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
-        self.end_of_response = True
+        if not buf._caps.supports_end_of_request:
+            self.end_of_response = True
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
@@ -2363,7 +2368,8 @@ cdef class ProtocolMessage(Message):
                               uint8_t message_type) except -1:
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             self._process_protocol_info(buf)
-            self.end_of_response = True
+            if not buf._caps.supports_end_of_request:
+                self.end_of_response = True
         else:
             Message._process_message(self, buf, message_type)
 
@@ -2416,14 +2422,12 @@ cdef class FastAuthMessage(Message):
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             ProtocolMessage._process_message(self.protocol_message, buf,
                                              message_type)
-            self.end_of_response = False
         elif message_type == TNS_MSG_TYPE_DATA_TYPES:
             DataTypesMessage._process_message(self.data_types_message, buf,
                                               message_type)
-            self.end_of_response = False
         else:
             AuthMessage._process_message(self.auth_message, buf, message_type)
-            self.end_of_response = True
+            self.end_of_response = self.auth_message.end_of_response
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """

@@ -59,7 +59,7 @@ cdef class Capabilities:
         if server_caps[TNS_CCAP_FIELD_VERSION] < self.ttc_field_version:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
-        if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_19_1 \
+        if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_23_4 \
                 or not server_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
             self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_REQUEST
 
