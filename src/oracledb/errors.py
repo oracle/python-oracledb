@@ -299,8 +299,6 @@ ERR_NO_CONFIG_DIR = 4027
 ERR_INVALID_SERVER_TYPE = 4028
 ERR_TOO_MANY_BATCH_ERRORS = 4029
 ERR_IFILE_CYCLE_DETECTED = 4030
-ERR_NETWORK_SERVICE_NAME_DIFFERS = 4031
-ERR_NETWORK_SERVICE_NAME_INVALID = 4032
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -597,15 +595,6 @@ ERR_MESSAGE_FORMATS = {
     ERR_NCHAR_CS_NOT_SUPPORTED: (
         "national character set id {charset_id} is not supported by "
         "python-oracledb in thin mode"
-    ),
-    ERR_NETWORK_SERVICE_NAME_DIFFERS: (
-        "connect string for network service name '{network_service_name}' "
-        "found in file '{new_file_name}' differs from the same entry in "
-        "'{orig_file_name}'"
-    ),
-    ERR_NETWORK_SERVICE_NAME_INVALID: (
-        "invalid network service definition detected at line {line_no} of "
-        "file '{file_name}'"
     ),
     ERR_NO_CONFIG_DIR: "no configuration directory to search for tnsnames.ora",
     ERR_NO_CREDENTIALS: "no credentials specified",

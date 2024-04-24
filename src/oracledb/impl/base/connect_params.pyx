@@ -1058,13 +1058,6 @@ cdef class TnsnamesFileReader:
         duplicated. An entry is always made in the primary file as well.
         """
         cdef TnsnamesFile orig_file
-        if name in self.entries and value != self.primary_file.entries[name]:
-            orig_file = self.entries[name]
-            errors._raise_err(errors.ERR_NETWORK_SERVICE_NAME_DIFFERS,
-                              network_service_name=name,
-                              new_file_name=tnsnames_file.file_name,
-                              orig_file_name=orig_file.file_name)
-        self.entries[name] = tnsnames_file
         self.primary_file.entries[name] = value
         if tnsnames_file is not self.primary_file:
             tnsnames_file.entries[name] = value
@@ -1114,10 +1107,7 @@ cdef class TnsnamesFileReader:
                 if entry_names is None:
                     pos = line.find("=")
                     if pos < 0:
-                        errors._raise_err(
-                            errors.ERR_NETWORK_SERVICE_NAME_INVALID,
-                            line_no=line_no,
-                            file_name=tnsnames_file.file_name)
+                        continue
                     name = line[:pos].strip().upper()
                     if name == "IFILE":
                         file_name = line[pos + 1:].strip()
@@ -1147,7 +1137,6 @@ cdef class TnsnamesFileReader:
         """
         self.primary_file = None
         self.files_in_progress = []
-        self.entries = {}
         if dir_name is None:
             errors._raise_err(errors.ERR_NO_CONFIG_DIR)
         file_name = os.path.join(dir_name, "tnsnames.ora")

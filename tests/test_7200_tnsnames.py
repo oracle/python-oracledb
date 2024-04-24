@@ -90,8 +90,10 @@ class TestCase(test_env.BaseTestCase):
                 f.write("some garbage data which is not a valid entry\n")
                 f.write(f"{network_service_name} = {connect_string}\n")
             params = oracledb.ConnectParams(config_dir=temp_dir)
-            with self.assertRaisesFullCode("DPY-4032"):
-                params.parse_connect_string(network_service_name)
+            params.parse_connect_string(network_service_name)
+            self.assertEqual(params.host, host)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.service_name, service_name)
 
     def test_7204(self):
         "7204 - test tnsnames.ora with multiple aliases on one line"
@@ -308,20 +310,25 @@ class TestCase(test_env.BaseTestCase):
 
     def test_7213(self):
         "7213 - duplicate entry in same file, but different connect strings"
-        host = "host_7213"
+        host_a = "host_7213a"
         port = 7213
-        service_name = "service_7213"
-        connect_string = f"{host}:{port}/{service_name}"
+        service_name_a = "service_7213a"
+        host_b = "host_7213b"
+        service_name_b = "service_7213b"
+        connect_string_a = f"{host_a}:{port}/{service_name_a}"
+        connect_string_b = f"{host_b}:{port}/{service_name_b}"
         network_service_name = "nsn_7213"
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = os.path.join(temp_dir, "tnsnames.ora")
             with open(file_name, "w") as f:
-                f.write(f"{network_service_name} = {connect_string}\n")
+                f.write(f"{network_service_name} = {connect_string_a}\n")
                 f.write("some_other_nsn = some_host/some_service\n")
-                f.write(f"{network_service_name} = x{connect_string}\n")
+                f.write(f"{network_service_name} = {connect_string_b}\n")
             params = oracledb.ConnectParams(config_dir=temp_dir)
-            with self.assertRaisesFullCode("DPY-4031"):
-                params.parse_connect_string(network_service_name)
+            params.parse_connect_string(network_service_name)
+            self.assertEqual(params.host, host_b)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.service_name, service_name_b)
 
     def test_7214(self):
         "7214 - duplicate entry in other file, but identical connect strings"
@@ -346,24 +353,29 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.service_name, service_name)
 
     def test_7215(self):
-        "7215 - duplicate entry in other file, but identical connect strings"
-        host = "host_7215"
+        "7215 - duplicate entry in other file, but different connect strings"
+        host_a = "host_7215a"
         port = 7215
-        service_name = "service_7215"
-        connect_string = f"{host}:{port}/{service_name}"
+        service_name_a = "service_7215a"
+        host_b = "host_7215b"
+        service_name_b = "service_7215b"
+        connect_string_a = f"{host_a}:{port}/{service_name_a}"
+        connect_string_b = f"{host_b}:{port}/{service_name_b}"
         network_service_name = "nsn_7215"
         include_name = "inc_7215.ora"
         with tempfile.TemporaryDirectory() as temp_dir:
             file_name = os.path.join(temp_dir, "tnsnames.ora")
             include_file_name = os.path.join(temp_dir, include_name)
             with open(file_name, "w") as f:
-                f.write(f"{network_service_name} = {connect_string}\n")
+                f.write(f"{network_service_name} = {connect_string_a}\n")
                 f.write(f"IFILE = {include_name}")
             with open(include_file_name, "w") as f:
-                f.write(f"{network_service_name} = x{connect_string}\n")
+                f.write(f"{network_service_name} = {connect_string_b}\n")
             params = oracledb.ConnectParams(config_dir=temp_dir)
-            with self.assertRaisesFullCode("DPY-4031"):
-                params.parse_connect_string(network_service_name)
+            params.parse_connect_string(network_service_name)
+            self.assertEqual(params.host, host_b)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.service_name, service_name_b)
 
     def test_7216(self):
         "7216 - test missing IFILE in tnsnames.ora"
