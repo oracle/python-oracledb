@@ -61,7 +61,7 @@ AsyncLOB Methods
     characters are in the LOB, the offset and amount will have to be chosen
     carefully to avoid splitting a character.
 
-.. method:: AsyncLOB.setfilename(dirAlias, name)
+.. method:: AsyncLOB.setfilename(dir_alias, name)
 
     Sets the directory alias and name of the BFILE type LOB.
 

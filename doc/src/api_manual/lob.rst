@@ -57,7 +57,7 @@ LOB Methods
     characters are in the LOB, the offset and amount will have to be chosen
     carefully to avoid splitting a character.
 
-.. method:: LOB.setfilename(dirAlias, name)
+.. method:: LOB.setfilename(dir_alias, name)
 
     Sets the directory alias and name of the BFILE type LOB.
 

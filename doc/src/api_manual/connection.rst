@@ -106,7 +106,7 @@ Connection Methods
 
         This method is an extension to the DB API definition.
 
-.. method:: Connection.cursor()
+.. method:: Connection.cursor(scrollable=False)
 
     Returns a new :ref:`cursor object <cursorobj>` using the connection.
 
