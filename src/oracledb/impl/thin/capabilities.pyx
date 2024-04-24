@@ -62,6 +62,7 @@ cdef class Capabilities:
         if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_23_4 \
                 or not server_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
             self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_REQUEST
+            self.supports_end_of_request = False
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
