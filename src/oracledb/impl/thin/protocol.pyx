@@ -157,7 +157,8 @@ cdef class Protocol(BaseProtocol):
         with self._request_lock:
 
             # if a read failed on the socket earlier, clear the socket
-            if self._read_buf._transport is None:
+            if self._read_buf._transport is None \
+                    or self._read_buf._transport._transport is None:
                 self._transport = None
 
             # if the session was marked as needing to be closed, force it

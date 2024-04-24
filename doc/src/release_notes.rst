@@ -20,6 +20,8 @@ Thin Mode Changes
 #)  Fixed bug in handling invisible columns with object type names containing
     ``%ROWTYPE``
     (`issue 325 <https://github.com/oracle/python-oracledb/issues/325>`__).
+#)  Fixed bug that would cause an internal error to be raised when attempting
+    to close a connection that has been forcibly closed by the database.
 #)  Internal change: further efforts to tighten code looking for the end of a
     database request made to Oracle Database 23c.
 
