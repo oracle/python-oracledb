@@ -75,6 +75,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(conn.thin, test_env.get_is_thin())
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
         test_env.get_is_thin(),
         "thin mode doesn't support application context yet",

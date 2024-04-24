@@ -336,6 +336,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.close()
         pool.release(conn)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
@@ -371,6 +372,7 @@ class TestCase(test_env.BaseTestCase):
         )
         conn.close()
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
         test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
     )
