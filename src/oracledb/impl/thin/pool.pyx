@@ -256,7 +256,6 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         Called when a new connection is created on acquire with the lock held.
         """
         if orig_conn_impl is not None:
-            self._busy_conn_impls.remove(orig_conn_impl)
             self._busy_conn_impls.append(new_conn_impl)
         else:
             new_conn_impl._is_pool_extra = True
@@ -621,7 +620,6 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                     temp_conn_impl = None
                     break
                 temp_conn_impl = <ThinConnImpl> result
-                self._busy_conn_impls.append(temp_conn_impl)
                 if must_reconnect:
                     break
 
@@ -630,9 +628,11 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             if requires_ping:
                 try:
                     temp_conn_impl.ping()
-                except exceptions.DatabaseError:
+                except exceptions.Error:
                     temp_conn_impl._force_close()
             if temp_conn_impl._protocol._transport is not None:
+                with self._condition:
+                    self._busy_conn_impls.append(temp_conn_impl)
                 return temp_conn_impl
 
         # a new connection needs to be created
@@ -710,7 +710,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                     temp_conn_impl = None
                     break
                 temp_conn_impl = <AsyncThinConnImpl> result
-                self._busy_conn_impls.append(temp_conn_impl)
                 if must_reconnect:
                     break
 
@@ -719,9 +718,11 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             if requires_ping:
                 try:
                     await temp_conn_impl.ping()
-                except exceptions.DatabaseError:
+                except exceptions.Error:
                     temp_conn_impl._force_close()
             if temp_conn_impl._protocol._transport is not None:
+                async with self._condition:
+                    self._busy_conn_impls.append(temp_conn_impl)
                 return temp_conn_impl
 
         # a new connection needs to be created
