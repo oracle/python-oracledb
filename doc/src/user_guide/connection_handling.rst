@@ -1511,33 +1511,40 @@ hits and misses to show the pool efficiency.
 
 .. _implicitconnpool:
 
-Implicit Connection Pooling with DRCP and PRCP
-----------------------------------------------
+Implicit Connection Pooling
+===========================
 
-Starting from Oracle Database 23ai, Python applications that use
-:ref:`DRCP <drcp>` and Oracle Connection Manager in Traffic Director Mode's
-(CMAN-TDM) pooling capability `Proxy Resident Connection Pooling (PRCP)
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
-4F14-AF9B-BCC87C982DA8>`__ can enable `implicit connection pooling <https://
+`Implicit connection pooling <https://
 www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A9D74994-D81A-47BF-BAF2-
-E4E1A354CA99>`__ with DRCP and PRCP.  For more information on PRCP, see the
-Oracle technical brief `CMAN-TDM — An Oracle Database connection proxy for
-scalable and highly available applications <https://download.oracle.com/
-ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_apps.pdf>`__.
+E4E1A354CA99>`__ is useful for applications that cause excess database server
+load due to the number of :ref:`standalone connections <standaloneconnection>`
+opened.  When these applications cannot be rewritten to use
+:ref:`python-oracledb connection pooling <connpooling>`, then implicit
+connection pooling may be an option to reduce the load on the database system.
 
-With implicit connection pooling, applications do not need to explicitly close
-or release a connection to return the connection back to the DRCP or PRCP pool.
-Applications that do not use client-side connection pooling can take advantage
-of the implicit connection pooling feature with either Thin or Thick mode.
-Thick mode requires Oracle 23ai Client libraries for implicit connection
-pooling support.  Thin mode works with implicit connection pooling from
-python-oracledb 2.1 onwards.
+Implicit connection pooling allows application connections to share pooled
+servers in :ref:`DRCP <drcp>` or Oracle Connection Manager in Traffic Director
+Mode's (CMAN-TDM) `Proxy Resident Connection Pooling (PRCP)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
+4F14-AF9B-BCC87C982DA8>`__.  Applications do not need to be modified.  The
+feature can be enabled by altering the application's :ref:`connection string
+<connstr>`.  Applications do not need to explicitly acquire, or release,
+connections to be able use a DRCP or PRCP pool.
 
-Implicit connection pooling uses two types of boundary values to determine
-when connections should be released back to the DRCP or PRCP pool.  The
-boundary value can be specified in the ``pool_boundary`` parameter as detailed
-:ref:`below <useimplicitconnpool>`.  The two boundary values which can be
-specified in the ``pool_boundary`` parameter are:
+Implicit connection pooling is available in python-oracledb Thin and
+:ref:`Thick <enablingthick>` modes.  It requires Oracle Database
+23ai. Python-oracledb Thick mode additionally requires Oracle Client 23ai
+libraries.
+
+With implicit connection pooling, connections are internally acquired from the
+DRCP or PRCP pool when they are actually used by the application to do database
+work.  They are internally released back to pool when not in use.  This may
+occur between the application's explicit :meth:`oracledb.connect()` call and
+:meth:`Connection.close()` (or the application's equivalent connection release
+at end-of-scope).
+
+The internal connection release can be controlled by setting a value in the
+``pool_boundary`` parameter.  The value can be either:
 
 - *statement*: If this boundary is specified, then the connection is released
   back to the DRCP or PRCP connection pool when the connection is implicitly
@@ -1560,11 +1567,11 @@ specified in the ``pool_boundary`` parameter are:
 
 .. _useimplicitconnpool:
 
-To use implicit connection pooling in python-oracledb:
+To use implicit connection pooling in python-oracledb with DRCP:
 
-1. Enable the DRCP pool in the database. For example in SQL*Plus:
+1. Enable DRCP in the database. For example in SQL*Plus::
 
-   ``SQL> EXECUTE DBMS_CONNECTION_POOL.START_POOL();``
+       SQL> EXECUTE DBMS_CONNECTION_POOL.START_POOL()
 
 2. Specify to use a pooled server in:
 
@@ -1602,13 +1609,13 @@ To use implicit connection pooling in python-oracledb:
 3. Set the pool boundary to either *statement* or *transaction* in:
 
    - The :ref:`Easy Connect string <easyconnect>`. For example, to use the
-     statement boundary::
+     *statement* boundary::
 
         dsn = "localhost:1521/orclpdb:pooled?pool_boundary=statement"
 
    - Or the ``CONNECT_DATA`` section of the
      :ref:`Connect Descriptor string <netservice>`. For example, to use
-     the transaction boundary::
+     the *transaction* boundary::
 
         tnsalias = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=mymachine.example.com)
                     (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)
@@ -1627,8 +1634,22 @@ To use implicit connection pooling in python-oracledb:
       *SELF*. You can specify the purity using the ``POOL_PURITY`` parameter
       in the connection string to override the default purity value.
 
-Note that it is recommended to use python-oracledb's local :ref:`connpooling`
-over implicit connection pooling.
+Similar steps can be used with PRCP.  For general information on PRCP, see the
+technical brief `CMAN-TDM — An Oracle Database connection proxy for scalable
+and highly available applications <https://download.oracle.com/
+ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_apps.pdf>`__.
+
+It is recommended to use python-oracledb's local :ref:`connpooling` where
+possible instead of implicit connection pooling.  This gives multi-user
+applications more control over pooled server reuse.
+
+You should thoroughly test your application when using implicit connection
+pooling to ensure that the internal reuse of database servers does not cause
+any problems. For example, the connection `session id and serial number
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9F0DCAEA-A67E
+-4183-89E7-B1555DC591CE>`__ may vary throughout the lifetime of the
+application connection as different servers may be used at different times.
+
 
 .. _proxyauth:
 
