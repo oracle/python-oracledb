@@ -113,7 +113,7 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_server_version() >= (23, 1), "unsupported server"
     )
     def test_3109(self):
-        "3109 - test binding and fetching boolean with 23c"
+        "3109 - test binding and fetching boolean with 23ai"
         for value in (True, False):
             with self.subTest(value=value):
                 self.cursor.execute("select not :1 from dual", [value])

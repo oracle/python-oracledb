@@ -27,7 +27,7 @@
  *
  * Performs the actual work of creating and populating the schemas with the
  * database objects used by the python-oracledb test suite that require Oracle
- * Database 23c or higher. It is executed by the Python script
+ * Database 23ai or higher. It is executed by the Python script
  * create_schema.py.
  *---------------------------------------------------------------------------*/
 

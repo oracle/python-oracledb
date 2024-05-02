@@ -25,7 +25,7 @@
 # -----------------------------------------------------------------------------
 # vector.py
 #
-# Demonstrates how to use the Oracle Database 23c VECTOR data type.
+# Demonstrates how to use the Oracle Database 23ai VECTOR data type.
 # -----------------------------------------------------------------------------
 
 import array

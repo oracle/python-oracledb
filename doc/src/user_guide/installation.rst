@@ -240,7 +240,7 @@ Oracle Client libraries installed.  Oracle Client versions 21, 19, 18, 12 and
   or "Basic Light" package for your operating system architecture.
 
 - Alternatively, use the client libraries already available in a locally
-  installed database such as the free `Oracle Database 23c Free
+  installed database such as the free `Oracle Database 23ai Free
   <https://www.oracle.com/database/free/>`__ release.
 
 To use python-oracledb in Thick mode you must call

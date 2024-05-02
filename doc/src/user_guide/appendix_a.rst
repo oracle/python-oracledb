@@ -158,7 +158,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 23c Implicit Connection Pooling with DRCP and PRCP (see :ref:`implicitconnpool`)
+    * - Oracle Database 23ai Implicit Connection Pooling with DRCP and PRCP (see :ref:`implicitconnpool`)
       - Yes
       - Yes
       - No
@@ -376,7 +376,7 @@ values.
       - :data:`~oracledb.DB_TYPE_DATE`
       - No relevant notes
       - datetime.date, datetime.datetime
-    * - BOOLEAN (PL/SQL and Oracle Database 23c SQL)
+    * - BOOLEAN (PL/SQL and Oracle Database 23ai SQL)
       - :data:`~oracledb.DB_TYPE_BOOLEAN`
       - No relevant notes
       - Any type convertible to bool

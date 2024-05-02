@@ -27,8 +27,8 @@ FetchInfo Attributes
     <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
     annotations_clause.html#GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__
     associated with the fetched column. If there are no annotations, the value
-    ``None`` is returned. Annotations require Oracle Database 23c. If using
-    python-oracledb Thick mode, Oracle Client 23c is also required.
+    ``None`` is returned. Annotations require Oracle Database 23ai. If using
+    python-oracledb Thick mode, Oracle Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 
@@ -43,8 +43,8 @@ FetchInfo Attributes
     <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
     create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
     associated with the fetched column. If there is no SQL domain, the value
-    ``None`` is returned. SQL domains require Oracle Database 23c. If using
-    python-oracledb Thick mode, Oracle Client 23c is also required.
+    ``None`` is returned. SQL domains require Oracle Database 23ai. If using
+    python-oracledb Thick mode, Oracle Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 
@@ -54,8 +54,8 @@ FetchInfo Attributes
     <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
     create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
     associated with the fetched column. If there is no SQL domain, the value
-    ``None`` is returned. SQL domains require Oracle Database 23c. If using
-    python-oracledb Thick mode, Oracle Client 23c is also required.
+    ``None`` is returned. SQL domains require Oracle Database 23ai. If using
+    python-oracledb Thick mode, Oracle Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 

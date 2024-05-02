@@ -26,7 +26,7 @@ Thin Mode Changes
 #)  Fixed bug that would cause an internal error to be raised when attempting
     to close a connection that has been forcibly closed by the database.
 #)  Internal change: further efforts to tighten code looking for the end of a
-    database request made to Oracle Database 23c.
+    database request made to Oracle Database 23ai.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -102,7 +102,7 @@ oracledb 2.1.0 (March 2024)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Oracle Database 23c feature support:
+#)  Oracle Database 23ai feature support:
 
     - Added support for
       :ref:`implicit connection pooling with DRCP and PRCP <implicitconnpool>`,
@@ -266,7 +266,7 @@ Thin Mode Changes
 #)  Added parameter :data:`ConnectParams.ssl_context` to modify the SSL context
     used when connecting via TLS
     (`issue 259 <https://github.com/oracle/python-oracledb/issues/259>`__).
-#)  Added support for an Oracle Database 23c JSON feature allowing field names
+#)  Added support for an Oracle Database 23ai JSON feature allowing field names
     with more than 255 UTF-8 encoded bytes.
 #)  Added support for the ``FAILOVER`` clause in full connect descriptors.
 #)  Fixed bug in detecting the current time zone
@@ -277,7 +277,7 @@ Thin Mode Changes
     multiple line comments with multiple asterisks before the closing slash.
 #)  A more meaningful error is raised when the wrong type of data is passed to
     :meth:`LOB.write()`.
-#)  Internal change to support an Oracle Database 23c JSON feature improving
+#)  Internal change to support an Oracle Database 23ai JSON feature improving
     JSON storage usage.
 #)  Internal change to ensure that all connections in a pool have been closed
     gracefully before the pool is closed.
@@ -317,8 +317,8 @@ Common Changes
     oracle-database/23/sqlrf/annotations_clause.html#
     GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__
     associated with columns that are being fetched. SQL domains and annotations
-    require Oracle Database 23c. If using python-oracledb Thick mode, Oracle
-    Client 23c is also required.
+    require Oracle Database 23ai. If using python-oracledb Thick mode, Oracle
+    Client 23ai is also required.
 #)  Added parameter ``data`` to :meth:`Connection.createlob()` to allow data to
     be written at LOB creation time.
 #)  Added type :data:`~oracledb.DB_TYPE_XMLTYPE` to represent data of type
@@ -338,7 +338,7 @@ Common Changes
 #)  Errors that have entries in the
     :ref:`troubleshooting documentation <troubleshooting>` now have links to
     that documentation shown in the message text.
-#)  Fixed bug with binding boolean values with Oracle Database 23c
+#)  Fixed bug with binding boolean values with Oracle Database 23ai
     (`issue 263 <https://github.com/oracle/python-oracledb/issues/263>`__).
 #)  Fixed bug with getting unknown attributes from :ref:`Oracle Object
     <dbobject>` instances.
@@ -408,7 +408,7 @@ oracledb 1.4.0 (August 2023)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for an Oracle Database 23c feature that can improve the
+#)  Added support for an Oracle Database 23ai feature that can improve the
     performance of connection creation by reducing the number of round trips
     required to create the second and subsequent connections to the same
     database.
@@ -422,13 +422,13 @@ Thin Mode Changes
     created. The default connection class will be of the form ``DPY:`` followed
     by a 16-byte unique identifier converted to base64 encoding.
 #)  Changed internal connection feature negotiation for more accurate Oracle
-    Database 23c support.
+    Database 23ai support.
 #)  Added support for sending a generated connection identifier to the
     database used for tracing. An application specific prefix is prepended to
     this value if specified via a new ``connection_id_prefix`` parameter when
     creating standalone connections or connection pools.
 #)  Added URL to the Oracle Database Error Help Portal in Oracle Database
-    error messages similar to when Thick mode uses Oracle Client 23c.
+    error messages similar to when Thick mode uses Oracle Client 23ai.
 #)  Added support for the ``ORA_SDTZ`` environment variable used to set the
     session time zone used by the database.
 #)  Fixed bug when a dynamically sized connection pool is created with an
@@ -501,7 +501,7 @@ Common Changes
     same value as the SQL expression
     ``sys_context('userenv', 'instance_name')``.
 #)  Added support for relational queries on the underlying tables of SODA
-    collections created in Oracle Database 23c if they contain JSON documents
+    collections created in Oracle Database 23ai if they contain JSON documents
     with embedded OIDs.
 #)  Automatically retry a query if the error ``ORA-00932: inconsistent data
     types`` is raised (which can occur if a table or view is recreated with a
@@ -533,7 +533,7 @@ Thin Mode Changes
 #)  Fixed bug which could cause a redirect loop with improperly configured
     listener redirects.
 #)  Fixed bug when executing PL/SQL with a large number of binds.
-#)  Fixed bug when using DRCP with Oracle Database 23c.
+#)  Fixed bug when using DRCP with Oracle Database 23ai.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -561,7 +561,7 @@ Thin Mode Changes
 
 #)  Improved performance of regular expressions used for parsing SQL
     (`issue 172 <https://github.com/oracle/python-oracledb/issues/172>`__).
-#)  Fixed bug with Oracle Database 23c when SQL is executed after first being
+#)  Fixed bug with Oracle Database 23ai when SQL is executed after first being
     parsed.
 #)  Fixed bug when :data:`ConnectionPool.timeout` is not `None` when creating a
     connection pool

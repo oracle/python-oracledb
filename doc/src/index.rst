@@ -10,7 +10,7 @@ additions and a couple of exclusions. Synchronous and
 :ref:`concurrent <asyncio>` coding styles are supported.
 
 This module is currently tested with Python 3.7, 3.8, 3.9, 3.10, 3.11 and 3.12
-against Oracle Database 23c, 21c, 19c, 18c, 12c, and 11gR2.
+against Oracle Database 23ai, 21c, 19c, 18c, 12c, and 11gR2.
 
 **python-oracledb** is distributed under an open-source
 :ref:`license <license>`. Changes in python-oracledb releases can be found in

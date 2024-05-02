@@ -326,7 +326,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
     called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    Database 23ai (or later).  See :ref:`implicitconnpool` for more
     information.  This value is used in both the python-oracledb Thin and
     Thick modes.
 
@@ -582,7 +582,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`AsyncConnection.commit()` or
     :meth:`AsyncConnection.rollback()` are called.  This parameter requires
-    the use of DRCP or PRCP with Oracle Database 23c (or later).  See
+    the use of DRCP or PRCP with Oracle Database 23ai (or later).  See
     :ref:`implicitconnpool` for more information.  This value is used in both
     the python-oracledb Thin and Thick modes.
 
@@ -863,7 +863,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
     called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    Database 23ai (or later).  See :ref:`implicitconnpool` for more
     information.  This value is used in both  the python-oracledb Thin and
     Thick modes.
 
@@ -1238,7 +1238,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
     called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    Database 23ai (or later).  See :ref:`implicitconnpool` for more
     information.  This value is used in both the python-oracledb Thin and
     Thick modes.
 
@@ -1553,7 +1553,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`AsyncConnection.commit()` or
     :meth:`AsyncConnection.rollback()` are called.  This parameter requires
-    the use of DRCP or PRCP with Oracle Database 23c (or later).  See
+    the use of DRCP or PRCP with Oracle Database 23ai (or later).  See
     :ref:`implicitconnpool` for more information.  This value is used in both
     the python-oracledb Thin and Thick modes.
 
@@ -1994,7 +1994,7 @@ Oracledb Methods
     implicitly released back to the DRCP or PRCP pool when either one of the
     methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
     called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23c (or later).  See :ref:`implicitconnpool` for more
+    Database 23ai (or later).  See :ref:`implicitconnpool` for more
     information.  This value is used in both the python-oracledb Thin and
     Thick modes.
 

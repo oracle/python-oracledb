@@ -41,7 +41,7 @@ import test_env
 class TestCase(test_env.BaseTestCase):
     def __normalize_docs(self, docs):
         """
-        Remove the embedded OID added in Oracle Database 23c, if found, in
+        Remove the embedded OID added in Oracle Database 23ai, if found, in
         order to ease comparison.
         """
         for doc in docs:
@@ -440,7 +440,7 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(
         test_env.get_client_version() > (23, 0),
-        "save() is not implemented in Oracle Database 23c",
+        "save() is not implemented in Oracle Database 23ai",
     )
     def test_3418(self):
         "3418 - test save"
@@ -464,7 +464,7 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(
         test_env.get_client_version() > (23, 0),
-        "save() is not implemented in Oracle Database 23c",
+        "save() is not implemented in Oracle Database 23ai",
     )
     def test_3419(self):
         "3419 - test saveAndGet with hint"
@@ -495,7 +495,7 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(
         test_env.get_client_version() > (23, 0),
-        "save() is not implemented in Oracle Database 23c",
+        "save() is not implemented in Oracle Database 23ai",
     )
     def test_3420(self):
         "3420 - test saveAndGet"

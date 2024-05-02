@@ -298,7 +298,7 @@ cdef class Protocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23c, fast authentication is possible; see if the server
+        # starting in 23ai, fast authentication is possible; see if the server
         # supports it
         if self._caps.supports_fast_auth:
             fast_auth_message = conn_impl._create_message(FastAuthMessage)
@@ -647,7 +647,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23c, fast authentication is possible; see if the server
+        # starting in 23ai, fast authentication is possible; see if the server
         # supports it
         if self._caps.supports_fast_auth:
             fast_auth_message = conn_impl._create_message(FastAuthMessage)

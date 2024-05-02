@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # vector_string.py
 #
-# Demonstrates how to use the Oracle Database 23c VECTOR data type
-# when using python-oracledb thick mode with pre-23c Oracle Client libraries.
+# Demonstrates how to use the Oracle Database 23ai VECTOR data type
+# when using python-oracledb thick mode with pre-23ai Oracle Client libraries.
 # See vector.py for a more efficient example for other deployments.
 # -----------------------------------------------------------------------------
 
