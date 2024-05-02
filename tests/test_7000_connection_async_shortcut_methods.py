@@ -36,8 +36,8 @@ import test_env
     test_env.get_is_thin(), "asyncio not supported in thick mode"
 )
 class TestCase(test_env.BaseAsyncTestCase):
-    async def test_7700(self):
-        "7700 - test execute() and fetchall()"
+    async def test_7000(self):
+        "7000 - test execute() and fetchall()"
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.execute(
             "insert into TestTempTable (IntCol) values (:1)", [77]
@@ -52,8 +52,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, [(15,), (77,)])
 
-    async def test_7701(self):
-        "7701 - test executemany()"
+    async def test_7001(self):
+        "7001 - test executemany()"
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
             "insert into TestTempTable (IntCol) values (:1)", [(2,), (3,)]
@@ -68,8 +68,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, [(2,), (3,), (4,), (5,)])
 
-    async def test_7702(self):
-        "7702 - test fetchall() with arraysize"
+    async def test_7002(self):
+        "7002 - test fetchall() with arraysize"
         await self.conn.execute("truncate table TestTempTable")
         data = [(1,), (2,), (3,), (4,)]
         await self.conn.executemany(
@@ -92,13 +92,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(res, data)
         await self.assertRoundTrips(2)
 
-    async def test_7703(self):
-        "7703 - test fetchall() with rowfactory"
+    async def test_7003(self):
+        "7003 - test fetchall() with rowfactory"
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.execute(
             """
             insert into TestTempTable (IntCol, StringCol1)
-            values (1, 'test_7703')
+            values (1, 'test_7003')
             """
         )
         await self.conn.commit()
@@ -112,11 +112,11 @@ class TestCase(test_env.BaseAsyncTestCase):
             "select IntCol, StringCol1 from TestTempTable",
             rowfactory=rowfactory,
         )
-        expected_value = [{"INTCOL": 1, "STRINGCOL1": "test_7703"}]
+        expected_value = [{"INTCOL": 1, "STRINGCOL1": "test_7003"}]
         self.assertEqual(res, expected_value)
 
-    async def test_7704(self):
-        "7704 - test fetchone()"
+    async def test_7004(self):
+        "7004 - test fetchone()"
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
             "insert into TestTempTable (IntCol) values (:1)", [(9,), (10,)]
@@ -134,8 +134,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         res = await self.conn.fetchone("select :val from dual", {"val": 5})
         self.assertEqual(res, (5,))
 
-    async def test_7705(self):
-        "7705 - test fetchone() with rowfactory"
+    async def test_7005(self):
+        "7005 - test fetchone() with rowfactory"
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
             """
@@ -157,8 +157,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, {"INT": 3, "STRING": "Mac"})
 
-    async def test_7706(self):
-        "7706 - test fetchmany()"
+    async def test_7006(self):
+        "7006 - test fetchmany()"
         data = [(i,) for i in range(10)]
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
@@ -176,8 +176,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         res = await self.conn.fetchmany("select :val from dual", {"val": 366})
         self.assertEqual(res, [(366,)])
 
-    async def test_7707(self):
-        "7707 - test fetchmany() with num_rows"
+    async def test_7007(self):
+        "7007 - test fetchmany() with num_rows"
         data = [(i,) for i in range(10)]
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
@@ -190,8 +190,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, data[:num_rows])
 
-    async def test_7708(self):
-        "7708 - test fetchmany() with rowfactory and num_rows"
+    async def test_7008(self):
+        "7008 - test fetchmany() with rowfactory and num_rows"
         conn = await test_env.get_connection_async()
         await conn.execute("truncate table TestTempTable")
         await conn.executemany(
@@ -225,8 +225,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, [{"INT": 4, "STRING": "Monday"}])
 
-    async def test_7709(self):
-        "7709 - test callfunc()"
+    async def test_7009(self):
+        "7009 - test callfunc()"
         # parameters
         res = await self.conn.callfunc(
             "func_Test", oracledb.NUMBER, ("Yes", 7)
@@ -247,14 +247,14 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(res, 30)
 
-    async def test_7710(self):
-        "7710 - test callproc() with parameters"
+    async def test_7010(self):
+        "7010 - test callproc() with parameters"
         var = self.cursor.var(oracledb.NUMBER)
         results = await self.conn.callproc("proc_Test", ("hi", 5, var))
         self.assertEqual(results, ["hi", 10, 2.0])
 
-    async def test_7711(self):
-        "7711 - test callproc() with keyword_parameters"
+    async def test_7011(self):
+        "7011 - test callproc() with keyword_parameters"
         in_out_value = self.cursor.var(oracledb.NUMBER)
         in_out_value.setvalue(0, 7)
         out_value = self.cursor.var(oracledb.NUMBER)
@@ -266,8 +266,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(in_out_value.getvalue(), 35)
         self.assertEqual(out_value.getvalue(), 5)
 
-    async def test_7712(self):
-        "7712 - test callproc() with parameters and keyword_parameters"
+    async def test_7012(self):
+        "7012 - test callproc() with parameters and keyword_parameters"
         in_out_value = self.cursor.var(oracledb.NUMBER)
         in_out_value.setvalue(0, 8)
         out_value = self.cursor.var(oracledb.NUMBER)
@@ -277,8 +277,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(in_out_value.getvalue(), 80)
         self.assertEqual(out_value.getvalue(), 10)
 
-    async def test_7713(self):
-        "7713 - test fetchmany() num_rows with 0 and negative values"
+    async def test_7013(self):
+        "7013 - test fetchmany() num_rows with 0 and negative values"
         data = [(i,) for i in range(10)]
         await self.conn.execute("truncate table TestTempTable")
         await self.conn.executemany(
@@ -292,8 +292,8 @@ class TestCase(test_env.BaseAsyncTestCase):
             )
             self.assertEqual(res, [])
 
-    async def test_7714(self):
-        "7714 - test shortcut methods with transaction_in_progress"
+    async def test_7014(self):
+        "7014 - test shortcut methods with transaction_in_progress"
         await self.conn.execute("truncate table TestTempTable")
         self.assertFalse(self.conn.transaction_in_progress)
         await self.conn.execute(

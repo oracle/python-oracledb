@@ -70,56 +70,70 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5300(self):
         "5300 - simple connection to database"
-        conn = await test_env.get_connection_async()
-        self.assertEqual(
-            conn.username, test_env.get_main_user(), "user name differs"
-        )
-        self.assertEqual(
-            conn.dsn, test_env.get_connect_string(), "dsn differs"
-        )
-        self.assertEqual(conn.thin, test_env.get_is_thin())
+        async with test_env.get_connection_async() as conn:
+            self.assertEqual(
+                conn.username, test_env.get_main_user(), "user name differs"
+            )
+            self.assertEqual(
+                conn.dsn, test_env.get_connect_string(), "dsn differs"
+            )
+            self.assertEqual(conn.thin, test_env.get_is_thin())
 
     async def test_5303(self):
         "5303 - test connection end-to-end tracing attributes"
-        conn = await test_env.get_connection_async()
-        if not await self.is_on_oracle_cloud(conn):
-            sql = """select dbop_name from v$sql_monitor
-                     where sid = sys_context('userenv', 'sid')
-                     and status = 'EXECUTING'"""
-            await self.__verify_attributes(conn, "dbop", "oracledb_dbop", sql)
-        sql = "select sys_context('userenv', 'action') from dual"
-        await self.__verify_attributes(conn, "action", "oracledb_Action", sql)
-        await self.__verify_attributes(conn, "action", None, sql)
-        sql = "select sys_context('userenv', 'module') from dual"
-        await self.__verify_attributes(conn, "module", "oracledb_Module", sql)
-        await self.__verify_attributes(conn, "module", None, sql)
-        sql = "select sys_context('userenv', 'client_info') from dual"
-        await self.__verify_attributes(
-            conn, "clientinfo", "oracledb_cinfo", sql
-        )
-        await self.__verify_attributes(conn, "clientinfo", None, sql)
-        sql = "select sys_context('userenv', 'client_identifier') from dual"
-        await self.__verify_attributes(
-            conn, "client_identifier", "oracledb_cid", sql
-        )
-        await self.__verify_attributes(conn, "client_identifier", None, sql)
+        async with test_env.get_connection_async() as conn:
+            if not await self.is_on_oracle_cloud(conn):
+                sql = """select dbop_name from v$sql_monitor
+                         where sid = sys_context('userenv', 'sid')
+                         and status = 'EXECUTING'"""
+                await self.__verify_attributes(
+                    conn, "dbop", "oracledb_dbop", sql
+                )
+            sql = "select sys_context('userenv', 'action') from dual"
+            await self.__verify_attributes(
+                conn, "action", "oracledb_Action", sql
+            )
+            await self.__verify_attributes(conn, "action", None, sql)
+            sql = "select sys_context('userenv', 'module') from dual"
+            await self.__verify_attributes(
+                conn, "module", "oracledb_Module", sql
+            )
+            await self.__verify_attributes(conn, "module", None, sql)
+            sql = "select sys_context('userenv', 'client_info') from dual"
+            await self.__verify_attributes(
+                conn, "clientinfo", "oracledb_cinfo", sql
+            )
+            await self.__verify_attributes(conn, "clientinfo", None, sql)
+            sql = (
+                "select sys_context('userenv', 'client_identifier') from dual"
+            )
+            await self.__verify_attributes(
+                conn, "client_identifier", "oracledb_cid", sql
+            )
+            await self.__verify_attributes(
+                conn, "client_identifier", None, sql
+            )
 
     async def test_5304(self):
         "5304 - test use of autocommit"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        other_conn = await test_env.get_connection_async()
-        other_cursor = other_conn.cursor()
-        await cursor.execute("truncate table TestTempTable")
-        await cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        await other_cursor.execute("select IntCol from TestTempTable")
-        self.assertEqual(await other_cursor.fetchall(), [])
-        conn.autocommit = True
-        await cursor.execute("insert into TestTempTable (IntCol) values (2)")
-        await other_cursor.execute(
-            "select IntCol from TestTempTable order by IntCol"
-        )
-        self.assertEqual(await other_cursor.fetchall(), [(1,), (2,)])
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            other_conn = await test_env.get_connection_async()
+            other_cursor = other_conn.cursor()
+            await cursor.execute("truncate table TestTempTable")
+            await cursor.execute(
+                "insert into TestTempTable (IntCol) values (1)"
+            )
+            await other_cursor.execute("select IntCol from TestTempTable")
+            self.assertEqual(await other_cursor.fetchall(), [])
+            conn.autocommit = True
+            await cursor.execute(
+                "insert into TestTempTable (IntCol) values (2)"
+            )
+            await other_cursor.execute(
+                "select IntCol from TestTempTable order by IntCol"
+            )
+            self.assertEqual(await other_cursor.fetchall(), [(1,), (2,)])
 
     async def test_5305(self):
         "5305 - connection to database with bad connect string"
@@ -142,79 +156,98 @@ class TestCase(test_env.BaseAsyncTestCase):
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5307(self):
         "5307 - test changing password"
-        conn = await test_env.get_connection_async()
-        if await self.is_on_oracle_cloud(conn):
-            self.skipTest("passwords on Oracle Cloud are strictly controlled")
-        sys_random = random.SystemRandom()
-        new_password = "".join(
-            sys_random.choice(string.ascii_letters) for i in range(20)
-        )
-        await conn.changepassword(test_env.get_main_password(), new_password)
-        conn = await test_env.get_connection_async(password=new_password)
-        await conn.changepassword(new_password, test_env.get_main_password())
-
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    async def test_5308(self):
-        "5308 - test changing password to an invalid value"
-        conn = await test_env.get_connection_async()
-        if await self.is_on_oracle_cloud(conn):
-            self.skipTest("passwords on Oracle Cloud are strictly controlled")
-        new_password = "1" * 1500
-        with self.assertRaisesFullCode("ORA-01017", "ORA-00988"):
+        async with test_env.get_connection_async() as conn:
+            if await self.is_on_oracle_cloud(conn):
+                self.skipTest(
+                    "passwords on Oracle Cloud are strictly controlled"
+                )
+            sys_random = random.SystemRandom()
+            new_password = "".join(
+                sys_random.choice(string.ascii_letters) for i in range(20)
+            )
             await conn.changepassword(
                 test_env.get_main_password(), new_password
             )
-        with self.assertRaisesFullCode("ORA-01017", "ORA-28008", "ORA-00988"):
-            await conn.changepassword("incorrect old password", new_password)
-
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    async def test_5309(self):
-        "5309 - test connecting with password containing / and @ symbols"
-        conn = await test_env.get_connection_async()
-        if await self.is_on_oracle_cloud(conn):
-            self.skipTest("passwords on Oracle Cloud are strictly controlled")
-        sys_random = random.SystemRandom()
-        chars = list(
-            sys_random.choice(string.ascii_letters) for i in range(20)
-        )
-        chars[4] = "/"
-        chars[8] = "@"
-        new_password = "".join(chars)
-        await conn.changepassword(test_env.get_main_password(), new_password)
-        try:
-            await test_env.get_connection_async(password=new_password)
-        finally:
+            conn = await test_env.get_connection_async(password=new_password)
             await conn.changepassword(
                 new_password, test_env.get_main_password()
             )
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    async def test_5308(self):
+        "5308 - test changing password to an invalid value"
+        async with test_env.get_connection_async() as conn:
+            if await self.is_on_oracle_cloud(conn):
+                self.skipTest(
+                    "passwords on Oracle Cloud are strictly controlled"
+                )
+            new_password = "1" * 1500
+            with self.assertRaisesFullCode("ORA-01017", "ORA-00988"):
+                await conn.changepassword(
+                    test_env.get_main_password(), new_password
+                )
+            with self.assertRaisesFullCode(
+                "ORA-01017", "ORA-28008", "ORA-00988"
+            ):
+                await conn.changepassword(
+                    "incorrect old password", new_password
+                )
+
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    async def test_5309(self):
+        "5309 - test connecting with password containing / and @ symbols"
+        async with test_env.get_connection_async() as conn:
+            if await self.is_on_oracle_cloud(conn):
+                self.skipTest(
+                    "passwords on Oracle Cloud are strictly controlled"
+                )
+            sys_random = random.SystemRandom()
+            chars = list(
+                sys_random.choice(string.ascii_letters) for i in range(20)
+            )
+            chars[4] = "/"
+            chars[8] = "@"
+            new_password = "".join(chars)
+            await conn.changepassword(
+                test_env.get_main_password(), new_password
+            )
+            try:
+                async with test_env.get_connection_async(
+                    password=new_password
+                ):
+                    pass
+            finally:
+                await conn.changepassword(
+                    new_password, test_env.get_main_password()
+                )
+
     async def test_5310(self):
         "5310 - confirm an exception is raised after closing a connection"
-        conn = await test_env.get_connection_async()
-        await conn.close()
-        with self.assertRaisesFullCode("DPY-1001"):
-            await conn.rollback()
+        async with await test_env.get_connection_async() as conn:
+            await conn.close()
+            with self.assertRaisesFullCode("DPY-1001"):
+                await conn.rollback()
 
     async def test_5312(self):
         "5312 - connection version is a string"
-        conn = await test_env.get_connection_async()
-        self.assertIsInstance(conn.version, str)
+        async with test_env.get_connection_async() as conn:
+            self.assertIsInstance(conn.version, str)
 
     async def test_5313(self):
         "5313 - connection rolls back before close"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        await cursor.execute("truncate table TestTempTable")
-        other_conn = await test_env.get_connection_async()
-        other_cursor = other_conn.cursor()
-        await other_cursor.execute(
-            "insert into TestTempTable (IntCol) values (1)"
-        )
-        other_cursor.close()
-        await other_conn.close()
-        await cursor.execute("select count(*) from TestTempTable")
-        (count,) = await cursor.fetchone()
-        self.assertEqual(count, 0)
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute("truncate table TestTempTable")
+            other_conn = await test_env.get_connection_async()
+            other_cursor = other_conn.cursor()
+            await other_cursor.execute(
+                "insert into TestTempTable (IntCol) values (1)"
+            )
+            other_cursor.close()
+            await other_conn.close()
+            await cursor.execute("select count(*) from TestTempTable")
+            (count,) = await cursor.fetchone()
+            self.assertEqual(count, 0)
 
     async def test_5315(self):
         "5315 - multiple connections to database with multiple threads"
@@ -223,12 +256,12 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5316(self):
         "5316 - test string format of connection"
-        conn = await test_env.get_connection_async()
-        expected_value = "<oracledb.AsyncConnection to %s@%s>" % (
-            test_env.get_main_user(),
-            test_env.get_connect_string(),
-        )
-        self.assertEqual(str(conn), expected_value)
+        async with test_env.get_connection_async() as conn:
+            expected_value = "<oracledb.AsyncConnection to %s@%s>" % (
+                test_env.get_main_user(),
+                test_env.get_connect_string(),
+            )
+            self.assertEqual(str(conn), expected_value)
 
     async def test_5317(self):
         "5317 - test context manager - close"
@@ -252,21 +285,21 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5318(self):
         "5318 - test connection attribute values"
-        conn = await test_env.get_connection_async()
-        if test_env.get_client_version() >= (12, 1):
-            self.assertEqual(conn.ltxid, b"")
-        self.assertIsNone(conn.current_schema)
-        conn.current_schema = "test_schema"
-        self.assertEqual(conn.current_schema, "test_schema")
-        self.assertIsNone(conn.edition)
-        conn.external_name = "test_external"
-        self.assertEqual(conn.external_name, "test_external")
-        conn.internal_name = "test_internal"
-        self.assertEqual(conn.internal_name, "test_internal")
-        conn.stmtcachesize = 30
-        self.assertEqual(conn.stmtcachesize, 30)
-        self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
-        self.assertRaises(TypeError, conn.stmtcachesize, "value")
+        async with test_env.get_connection_async() as conn:
+            if test_env.get_client_version() >= (12, 1):
+                self.assertEqual(conn.ltxid, b"")
+            self.assertIsNone(conn.current_schema)
+            conn.current_schema = "test_schema"
+            self.assertEqual(conn.current_schema, "test_schema")
+            self.assertIsNone(conn.edition)
+            conn.external_name = "test_external"
+            self.assertEqual(conn.external_name, "test_external")
+            conn.internal_name = "test_internal"
+            self.assertEqual(conn.internal_name, "test_internal")
+            conn.stmtcachesize = 30
+            self.assertEqual(conn.stmtcachesize, 30)
+            self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
+            self.assertRaises(TypeError, conn.stmtcachesize, "value")
 
     async def test_5319(self):
         "5319 - test closed connection attribute values"
@@ -287,10 +320,11 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5320(self):
         "5320 - test connection ping makes a round trip"
-        self.conn = await test_env.get_connection_async()
-        await self.setup_round_trip_checker()
-        await self.conn.ping()
-        await self.assertRoundTrips(1)
+        self.conn = test_env.get_connection_async()
+        async with self.conn:
+            await self.setup_round_trip_checker()
+            await self.conn.ping()
+            await self.assertRoundTrips(1)
 
     async def test_5325(self):
         "5325 - single connection to database with multiple threads"
@@ -304,100 +338,110 @@ class TestCase(test_env.BaseAsyncTestCase):
     )
     async def test_5326(self):
         "5326 - test connection cancel"
-        conn = await test_env.get_connection_async()
-        sleep_proc_name = test_env.get_sleep_proc_name()
+        async with test_env.get_connection_async() as conn:
+            sleep_proc_name = test_env.get_sleep_proc_name()
 
-        async def perform_cancel():
-            await asyncio.sleep(0.1)
-            conn.cancel()
+            async def perform_cancel():
+                await asyncio.sleep(0.1)
+                conn.cancel()
 
-        async def perform_work():
-            with self.assertRaises(oracledb.OperationalError):
-                with conn.cursor() as cursor:
-                    await cursor.callproc(sleep_proc_name, [2])
+            async def perform_work():
+                with self.assertRaises(oracledb.OperationalError):
+                    with conn.cursor() as cursor:
+                        await cursor.callproc(sleep_proc_name, [2])
 
-        await asyncio.gather(perform_work(), perform_cancel())
+            await asyncio.gather(perform_work(), perform_cancel())
 
-        with conn.cursor() as cursor:
-            await cursor.execute("select user from dual")
-            (user,) = await cursor.fetchone()
-            self.assertEqual(user, test_env.get_main_user().upper())
+            with conn.cursor() as cursor:
+                await cursor.execute("select user from dual")
+                (user,) = await cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_5327(self):
         "5327 - test changing password during connect"
-        conn = await test_env.get_connection_async()
-        if await self.is_on_oracle_cloud(conn):
-            self.skipTest("passwords on Oracle Cloud are strictly controlled")
-        sys_random = random.SystemRandom()
-        new_password = "".join(
-            sys_random.choice(string.ascii_letters) for i in range(20)
-        )
-        conn = await test_env.get_connection_async(newpassword=new_password)
-        conn = await test_env.get_connection_async(password=new_password)
-        await conn.changepassword(new_password, test_env.get_main_password())
+        async with test_env.get_connection_async() as conn:
+            if await self.is_on_oracle_cloud(conn):
+                self.skipTest(
+                    "passwords on Oracle Cloud are strictly controlled"
+                )
+            sys_random = random.SystemRandom()
+            new_password = "".join(
+                sys_random.choice(string.ascii_letters) for i in range(20)
+            )
+            conn = await test_env.get_connection_async(
+                newpassword=new_password
+            )
+            conn = await test_env.get_connection_async(password=new_password)
+            await conn.changepassword(
+                new_password, test_env.get_main_password()
+            )
 
     async def test_5328(self):
         "5328 - test use of autocommit during reexecute"
         sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
         data_to_insert = [(1, "Test String #1"), (2, "Test String #2")]
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        other_conn = await test_env.get_connection_async()
-        other_cursor = other_conn.cursor()
-        await cursor.execute("truncate table TestTempTable")
-        await cursor.execute(sql, data_to_insert[0])
-        await other_cursor.execute(
-            "select IntCol, StringCol1 from TestTempTable"
-        )
-        self.assertEqual(await other_cursor.fetchall(), [])
-        conn.autocommit = True
-        await cursor.execute(sql, data_to_insert[1])
-        await other_cursor.execute(
-            "select IntCol, StringCol1 from TestTempTable"
-        )
-        self.assertEqual(await other_cursor.fetchall(), data_to_insert)
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            other_conn = await test_env.get_connection_async()
+            other_cursor = other_conn.cursor()
+            await cursor.execute("truncate table TestTempTable")
+            await cursor.execute(sql, data_to_insert[0])
+            await other_cursor.execute(
+                "select IntCol, StringCol1 from TestTempTable"
+            )
+            self.assertEqual(await other_cursor.fetchall(), [])
+            conn.autocommit = True
+            await cursor.execute(sql, data_to_insert[1])
+            await other_cursor.execute(
+                "select IntCol, StringCol1 from TestTempTable"
+            )
+            self.assertEqual(await other_cursor.fetchall(), data_to_insert)
 
     async def test_5329(self):
         "5329 - test current_schema is set properly"
-        conn = await test_env.get_connection_async()
-        self.assertIsNone(conn.current_schema)
+        async with test_env.get_connection_async() as conn:
+            self.assertIsNone(conn.current_schema)
 
-        user = test_env.get_main_user().upper()
-        proxy_user = test_env.get_proxy_user().upper()
-        cursor = conn.cursor()
-        await cursor.execute(f"alter session set current_schema={proxy_user}")
-        self.assertEqual(conn.current_schema, proxy_user)
+            user = test_env.get_main_user().upper()
+            proxy_user = test_env.get_proxy_user().upper()
+            cursor = conn.cursor()
+            await cursor.execute(
+                f"alter session set current_schema={proxy_user}"
+            )
+            self.assertEqual(conn.current_schema, proxy_user)
 
-        conn.current_schema = user
-        self.assertEqual(conn.current_schema, user)
+            conn.current_schema = user
+            self.assertEqual(conn.current_schema, user)
 
-        await cursor.execute(
-            "select sys_context('userenv', 'current_schema') from dual"
-        )
-        (result,) = await cursor.fetchone()
-        self.assertEqual(result, user)
+            await cursor.execute(
+                "select sys_context('userenv', 'current_schema') from dual"
+            )
+            (result,) = await cursor.fetchone()
+            self.assertEqual(result, user)
 
     async def test_5330(self):
         "5330 - test dbms_output package"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        test_string = "Testing DBMS_OUTPUT package"
-        await cursor.callproc("dbms_output.enable")
-        await cursor.callproc("dbms_output.put_line", [test_string])
-        string_var = cursor.var(str)
-        number_var = cursor.var(int)
-        await cursor.callproc("dbms_output.get_line", (string_var, number_var))
-        self.assertEqual(string_var.getvalue(), test_string)
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            test_string = "Testing DBMS_OUTPUT package"
+            await cursor.callproc("dbms_output.enable")
+            await cursor.callproc("dbms_output.put_line", [test_string])
+            string_var = cursor.var(str)
+            number_var = cursor.var(int)
+            await cursor.callproc(
+                "dbms_output.get_line", (string_var, number_var)
+            )
+            self.assertEqual(string_var.getvalue(), test_string)
 
     async def test_5331(self):
         "5331 - test connection call_timeout"
-        conn = await test_env.get_connection_async()
-        conn.call_timeout = 500  # milliseconds
-        self.assertEqual(conn.call_timeout, 500)
-        with self.assertRaisesFullCode("DPY-4011", "DPY-4024"):
-            with conn.cursor() as cursor:
-                await cursor.callproc(test_env.get_sleep_proc_name(), [2])
+        async with test_env.get_connection_async() as conn:
+            conn.call_timeout = 500  # milliseconds
+            self.assertEqual(conn.call_timeout, 500)
+            with self.assertRaisesFullCode("DPY-4011", "DPY-4024"):
+                with conn.cursor() as cursor:
+                    await cursor.callproc(test_env.get_sleep_proc_name(), [2])
 
     async def test_5332(self):
         "5332 - test Connection repr()"
@@ -418,19 +462,19 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5333(self):
         "5333 - test getting write-only attributes"
-        conn = await test_env.get_connection_async()
-        with self.assertRaises(AttributeError):
-            conn.action
-        with self.assertRaises(AttributeError):
-            conn.dbop
-        with self.assertRaises(AttributeError):
-            conn.clientinfo
-        with self.assertRaises(AttributeError):
-            conn.econtext_id
-        with self.assertRaises(AttributeError):
-            conn.module
-        with self.assertRaises(AttributeError):
-            conn.client_identifier
+        async with test_env.get_connection_async() as conn:
+            with self.assertRaises(AttributeError):
+                conn.action
+            with self.assertRaises(AttributeError):
+                conn.dbop
+            with self.assertRaises(AttributeError):
+                conn.clientinfo
+            with self.assertRaises(AttributeError):
+                conn.econtext_id
+            with self.assertRaises(AttributeError):
+                conn.module
+            with self.assertRaises(AttributeError):
+                conn.client_identifier
 
     async def test_5334(self):
         "5334 - test error for invalid type for params and pool"
@@ -447,16 +491,16 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_5335(self):
         "5335 - test connection instance name"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        await cursor.execute(
-            """
-            select upper(sys_context('userenv', 'instance_name'))
-            from dual
-            """
-        )
-        (instance_name,) = await cursor.fetchone()
-        self.assertEqual(conn.instance_name.upper(), instance_name)
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(
+                """
+                select upper(sys_context('userenv', 'instance_name'))
+                from dual
+                """
+            )
+            (instance_name,) = await cursor.fetchone()
+            self.assertEqual(conn.instance_name.upper(), instance_name)
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     @unittest.skipIf(
@@ -465,74 +509,82 @@ class TestCase(test_env.BaseAsyncTestCase):
     )
     async def test_5337(self):
         "5337 - test maximum allowed length for password"
-        conn = await test_env.get_connection_async()
-        if await self.is_on_oracle_cloud(conn):
-            self.skipTest("passwords on Oracle Cloud are strictly controlled")
+        async with test_env.get_connection_async() as conn:
+            if await self.is_on_oracle_cloud(conn):
+                self.skipTest(
+                    "passwords on Oracle Cloud are strictly controlled"
+                )
 
-        original_password = test_env.get_main_password()
-        new_password_32 = "a" * 32
-        await conn.changepassword(original_password, new_password_32)
-        conn = await test_env.get_connection_async(password=new_password_32)
+            original_password = test_env.get_main_password()
+            new_password_32 = "a" * 32
+            await conn.changepassword(original_password, new_password_32)
+            conn = await test_env.get_connection_async(
+                password=new_password_32
+            )
 
-        new_password_1024 = "a" * 1024
-        await conn.changepassword(new_password_32, new_password_1024)
-        conn = await test_env.get_connection_async(password=new_password_1024)
-        await conn.changepassword(new_password_1024, original_password)
+            new_password_1024 = "a" * 1024
+            await conn.changepassword(new_password_32, new_password_1024)
+            conn = await test_env.get_connection_async(
+                password=new_password_1024
+            )
+            await conn.changepassword(new_password_1024, original_password)
 
-        new_password_1025 = "a" * 1025
-        with self.assertRaisesFullCode("ORA-28218", "ORA-00972"):
-            await conn.changepassword(original_password, new_password_1025)
+            new_password_1025 = "a" * 1025
+            with self.assertRaisesFullCode("ORA-28218", "ORA-00972"):
+                await conn.changepassword(original_password, new_password_1025)
 
     async def test_5338(self):
         "5338 - test getting db_name"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        await cursor.execute("select name from V$DATABASE")
-        (db_name,) = await cursor.fetchone()
-        self.assertEqual(conn.db_name.upper(), db_name.upper())
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute("select name from V$DATABASE")
+            (db_name,) = await cursor.fetchone()
+            self.assertEqual(conn.db_name.upper(), db_name.upper())
 
     async def test_5339(self):
         "5339 - test getting max_open_cursors"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        await cursor.execute(
-            "select value from V$PARAMETER where name='open_cursors'"
-        )
-        (max_open_cursors,) = await cursor.fetchone()
-        self.assertEqual(conn.max_open_cursors, int(max_open_cursors))
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(
+                "select value from V$PARAMETER where name='open_cursors'"
+            )
+            (max_open_cursors,) = await cursor.fetchone()
+            self.assertEqual(conn.max_open_cursors, int(max_open_cursors))
 
     async def test_5340(self):
         "5340 - test getting service_name"
-        conn = await test_env.get_connection_async()
-        cursor = conn.cursor()
-        await cursor.execute(
-            "select sys_context('userenv', 'service_name') from dual"
-        )
-        (service_name,) = await cursor.fetchone()
-        self.assertEqual(conn.service_name, service_name)
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(
+                "select sys_context('userenv', 'service_name') from dual"
+            )
+            (service_name,) = await cursor.fetchone()
+            self.assertEqual(conn.service_name, service_name)
 
     async def test_5341(self):
         "5341 - test transaction_in_progress"
-        conn = await test_env.get_connection_async()
-        self.assertFalse(conn.transaction_in_progress)
+        async with test_env.get_connection_async() as conn:
+            self.assertFalse(conn.transaction_in_progress)
 
-        cursor = conn.cursor()
-        await cursor.execute("truncate table TestTempTable")
-        self.assertFalse(conn.transaction_in_progress)
+            cursor = conn.cursor()
+            await cursor.execute("truncate table TestTempTable")
+            self.assertFalse(conn.transaction_in_progress)
 
-        await cursor.execute("insert into TestTempTable (IntCol) values (1)")
-        self.assertTrue(conn.transaction_in_progress)
+            await cursor.execute(
+                "insert into TestTempTable (IntCol) values (1)"
+            )
+            self.assertTrue(conn.transaction_in_progress)
 
-        await conn.commit()
-        self.assertFalse(conn.transaction_in_progress)
+            await conn.commit()
+            self.assertFalse(conn.transaction_in_progress)
 
     async def test_5342(self):
         "5342 - test getting db_domain"
-        conn = await test_env.get_connection_async()
-        (db_domain,) = await conn.fetchone(
-            "select value from V$PARAMETER where name='db_domain'"
-        )
-        self.assertEqual(conn.db_domain, db_domain)
+        async with test_env.get_connection_async() as conn:
+            (db_domain,) = await conn.fetchone(
+                "select value from V$PARAMETER where name='db_domain'"
+            )
+            self.assertEqual(conn.db_domain, db_domain)
 
     async def test_5343(self):
         "5343 - test connection with invalid conn_class"

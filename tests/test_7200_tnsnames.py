@@ -213,10 +213,9 @@ class TestCase(test_env.BaseTestCase):
         network_service_name_a = "nsn_7208a"
         network_service_name_b = "nsn_7208b"
         include_file_name = "inc_7208.ora"
-        with (
-            tempfile.TemporaryDirectory() as primary_temp_dir,
-            tempfile.TemporaryDirectory() as included_temp_dir,
-        ):
+        dir_1 = tempfile.TemporaryDirectory()
+        dir_2 = tempfile.TemporaryDirectory()
+        with dir_1 as primary_temp_dir, dir_2 as included_temp_dir:
             file_name = os.path.join(included_temp_dir, include_file_name)
             with open(file_name, "w") as f:
                 f.write(f"{network_service_name_b} = {connect_string_b}")
