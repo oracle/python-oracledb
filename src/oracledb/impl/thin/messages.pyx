@@ -1827,7 +1827,7 @@ cdef class ConnectMessage(Message):
         cdef:
             uint16_t protocol_version, protocol_options
             const char_type *redirect_data
-            uint32_t flags
+            uint32_t flags = 0
             bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             if not self.read_redirect_data_len:
@@ -1851,11 +1851,8 @@ cdef class ConnectMessage(Message):
             if protocol_version >= TNS_VERSION_MIN_OOB_CHECK:
                 buf.skip_raw_bytes(5)
                 buf.read_uint32(&flags)
-                if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
-                    buf._caps.supports_fast_auth = True
-                if flags & TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST:
-                    buf._caps.supports_end_of_request = True
-            buf._caps._adjust_for_protocol(protocol_version, protocol_options)
+            buf._caps._adjust_for_protocol(protocol_version, protocol_options,
+                                           flags)
             buf._transport._full_packet_size = True
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message

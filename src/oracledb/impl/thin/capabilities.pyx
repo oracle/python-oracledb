@@ -50,9 +50,19 @@ cdef class Capabilities:
         self.sdu = 8192                 # initial value to use
 
     cdef void _adjust_for_protocol(self, uint16_t protocol_version,
-                                   uint16_t protocol_options):
+                                   uint16_t protocol_options, uint32_t flags):
+        """
+        Adjust the capabilities of the protocol based on the server's response
+        to the initial connection request.
+        """
         self.protocol_version = protocol_version
         self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
+        if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
+            self.supports_fast_auth = True
+        if protocol_version >= TNS_VERSION_MIN_END_OF_RESPONSE \
+                and flags & TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST:
+            self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_REQUEST
+            self.supports_end_of_request = True
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_compile_caps(self, bytearray server_caps):
@@ -60,7 +70,7 @@ cdef class Capabilities:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
         if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_23_4 \
-                or not server_caps[TNS_CCAP_TTC4] & TNS_CCAP_END_OF_REQUEST:
+                and self.supports_end_of_request:
             self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_REQUEST
             self.supports_end_of_request = False
 
@@ -114,8 +124,7 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_TTC2] = TNS_CCAP_ZLNP
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX
-        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION | \
-                TNS_CCAP_END_OF_REQUEST
+        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION
         self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT
 
     @cython.boundscheck(False)

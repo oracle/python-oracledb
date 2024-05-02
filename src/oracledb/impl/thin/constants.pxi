@@ -571,7 +571,7 @@ cdef enum:
     TNS_VERSION_MIN_ACCEPTED = 315      # 12.1
     TNS_VERSION_MIN_LARGE_SDU = 315
     TNS_VERSION_MIN_OOB_CHECK = 318
-    TNS_VERSION_MIN_UUID = 319
+    TNS_VERSION_MIN_END_OF_RESPONSE = 319
 
 # control packet types
 cdef enum:
