@@ -600,7 +600,6 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                 # if a connection is available from a previous iteration of the
                 # loop, drop it from the pool
                 if temp_conn_impl is not None:
-                    self._busy_conn_impls.remove(temp_conn_impl)
                     self._drop_conn_impl(temp_conn_impl)
 
                 # get a connection from the pool; if one is not immediately
@@ -691,7 +690,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                 # if a connection is available from a previous iteration of the
                 # loop, drop it from the pool
                 if temp_conn_impl is not None:
-                    self._busy_conn_impls.remove(temp_conn_impl)
                     self._drop_conn_impl(temp_conn_impl)
 
                 # get a connection from the pool; if one is not immediately
