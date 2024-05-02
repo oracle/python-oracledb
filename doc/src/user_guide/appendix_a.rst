@@ -480,6 +480,10 @@ values.
       - :data:`~oracledb.DB_TYPE_OBJECT`
       - No relevant notes
       - OBJECT of specific type
+    * - VECTOR
+      - :data:`~oracledb.DB_TYPE_VECTOR`
+      - No relevant notes
+      -
 
 Binding of contiguous PL/SQL Index-by BINARY_INTEGER arrays of string, number, and date are
 supported in python-oracledb Thin and Thick modes. Use :meth:`Cursor.arrayvar()` to build

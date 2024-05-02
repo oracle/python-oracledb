@@ -3147,6 +3147,14 @@ Also see the table :ref:`supporteddbtypes`.
     type VARCHAR2. It will compare equal to the DB API type :data:`STRING`.
 
 
+.. data:: DB_TYPE_VECTOR
+
+    Describes columns, attributes or array elements in a database that are of
+    type VECTOR.
+
+    .. versionadded:: 2.2.0
+
+
 .. data:: DB_TYPE_XMLTYPE
 
     Describes columns, attributes or array elements in a database that are of

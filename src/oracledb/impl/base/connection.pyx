@@ -138,9 +138,13 @@ cdef class BaseConnImpl:
             return value
         elif db_type_num == DB_TYPE_NUM_VECTOR:
             if isinstance(value, list):
+                if len(value) == 0:
+                    errors._raise_err(errors.ERR_INVALID_VECTOR)
                 return array.array('d', value)
             elif isinstance(value, array.array) \
                     and value.typecode in ('f', 'd', 'b'):
+                if len(value) == 0:
+                    errors._raise_err(errors.ERR_INVALID_VECTOR)
                 return value
         elif db_type_num == DB_TYPE_NUM_INTERVAL_YM:
             if isinstance(value, PY_TYPE_INTERVAL_YM):

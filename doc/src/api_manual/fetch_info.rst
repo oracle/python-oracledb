@@ -112,3 +112,19 @@ FetchInfo Attributes
     This read-only attribute returns the type of the column as mandated by the
     Python Database API. The type will be one of the :ref:`database type
     constants <dbtypes>` defined at the module level.
+
+.. attribute:: FetchInfo.vector_dimensions
+
+    This read-only attribute returns the number of dimensions required by
+    vector columns. If the column is not a vector column or allows for any
+    number of dimensions, the value returned is ``None``.
+
+    .. versionadded:: 2.2.0
+
+.. attribute:: FetchInfo.vector_type
+
+    This read-only attribute returns the storage type required by vector
+    columns. If the column is not a vector column or allows for any
+    type of storage, the value returned is ``None``.
+
+    .. versionadded:: 2.2.0

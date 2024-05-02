@@ -524,6 +524,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(fetch_info.scale, scale)
             self.assertEqual(fetch_info.type, typ)
             self.assertEqual(fetch_info.type_code, type_code)
+            self.assertIsNone(fetch_info.vector_dimensions)
+            self.assertIsNone(fetch_info.vector_format)
 
     def test_3932(self):
         "3932 - test FetchInfo repr() and str()"

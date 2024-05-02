@@ -41,14 +41,14 @@ cdef class VectorDecoder(Buffer):
         Returns a Python object corresponding to the encoded VECTOR bytes.
         """
         cdef:
-            uint8_t magic_byte, version, vector_format, element_size = 0, temp8
+            uint8_t magic_byte, version, vector_format, element_size = 0
             double *double_buf = NULL
             int8_t *int8_buf = NULL
             uint32_t num_elements, i
             float *float_buf = NULL
-            uint16_t flags, temp16
             const char_type* ptr
             array.array result
+            uint16_t flags
             object value
 
         # populate the buffer with the data
@@ -65,14 +65,7 @@ cdef class VectorDecoder(Buffer):
                               version=version)
         self.read_uint16(&flags)
         self.read_ub1(&vector_format)
-        if flags & TNS_VECTOR_FLAG_DIM_UINT8:
-            self.read_ub1(&temp8)
-            num_elements = temp8
-        elif flags & TNS_VECTOR_FLAG_DIM_UINT32:
-            self.read_uint32(&num_elements)
-        else:
-            self.read_uint16(&temp16)
-            num_elements = temp16
+        self.read_uint32(&num_elements)
         if vector_format == VECTOR_FORMAT_FLOAT32:
             result = array.clone(float_template, num_elements, False)
             float_buf = result.data.as_floats
@@ -112,10 +105,8 @@ cdef class VectorEncoder(GrowableBuffer):
         Encodes the given value to the internal VECTOR format.
         """
         cdef:
-            uint32_t num_elements, i
-            uint16_t flags = \
-                    TNS_VECTOR_FLAG_NORM | TNS_VECTOR_FLAG_NORM_RESERVED
             double *double_ptr = NULL
+            uint32_t num_elements, i
             float *float_ptr = NULL
             int8_t *int8_ptr = NULL
             uint8_t vector_format
@@ -132,27 +123,14 @@ cdef class VectorEncoder(GrowableBuffer):
             vector_format = VECTOR_FORMAT_INT8
             int8_ptr = value.data.as_schars
 
-        # determine the flags to use
-        num_elements = <uint32_t> len(value)
-        if num_elements < 256:
-            flags |= TNS_VECTOR_FLAG_DIM_UINT8
-        elif num_elements > 65535:
-            flags |= TNS_VECTOR_FLAG_DIM_UINT32
-
         # write header
+        num_elements = <uint32_t> len(value)
         self.write_uint8(TNS_VECTOR_MAGIC_BYTE)
         self.write_uint8(TNS_VECTOR_VERSION)
-        self.write_uint16(flags)
+        self.write_uint16(TNS_VECTOR_FLAG_NORM | TNS_VECTOR_FLAG_NORM_RESERVED)
         self.write_uint8(vector_format)
-        if num_elements < 256:
-            self.write_uint8(<uint8_t> num_elements)
-        elif num_elements < 65536:
-            self.write_uint16(<uint16_t> num_elements)
-        else:
-            self.write_uint32(num_elements)
-
-        # reserve space for the norm (always an 8-byte floating point number)
-        self._reserve_space(8)
+        self.write_uint32(num_elements)
+        self._reserve_space(8)              # reserve space for norm
 
         # write elements
         if vector_format == VECTOR_FORMAT_INT8:
