@@ -28,9 +28,6 @@ Thin Mode Changes
 #)  Internal change: further efforts to tighten code looking for the end of a
     database request made to Oracle Database 23ai.
 
-Thick Mode Changes
-++++++++++++++++++
-
 Common Changes
 ++++++++++++++
 
