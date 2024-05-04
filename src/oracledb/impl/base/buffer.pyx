@@ -638,8 +638,7 @@ cdef class Buffer:
         if ptr != NULL:
             return self.parse_oracle_number(ptr, num_bytes, preferred_num_type)
 
-    cdef inline const char_type* read_raw_bytes(self,
-                                                ssize_t num_bytes) except NULL:
+    cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL:
         """
         Returns a pointer to a contiguous buffer containing the specified
         number of bytes found in the buffer.

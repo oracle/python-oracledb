@@ -388,7 +388,7 @@ cdef class MessageWithData(Message):
         copied. An array is stored and a pointer to the underlying memory is
         used for performance reasons.
         """
-        cdef const char_type *ptr = buf._get_raw(num_bytes)
+        cdef const char_type *ptr = buf.read_raw_bytes(num_bytes)
         if self.bit_vector_buf is None:
             self.bit_vector_buf = array.array('B')
             array.resize(self.bit_vector_buf, num_bytes)
@@ -1834,7 +1834,7 @@ cdef class ConnectMessage(Message):
                 buf.read_uint16(&self.redirect_data_len)
                 self.read_redirect_data_len = True
             buf.wait_for_packets_sync()
-            redirect_data = buf._get_raw(self.redirect_data_len)
+            redirect_data = buf.read_raw_bytes(self.redirect_data_len)
             if self.redirect_data_len > 0:
                 self.redirect_data = \
                         redirect_data[:self.redirect_data_len].decode()
