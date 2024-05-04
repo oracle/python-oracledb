@@ -189,6 +189,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(await lob.size(), 25000)
         await lob.trim(newSize=10000)
         self.assertEqual(await lob.size(), 10000)
+        with self.assertRaisesFullCode("DPY-2014"):
+            await lob.trim(new_size=50, newSize=60)
         with self.assertRaises(TypeError):
             await lob.trim(new_size="10000")
         await lob.trim(new_size=40)

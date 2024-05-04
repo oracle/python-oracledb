@@ -1018,6 +1018,29 @@ class TestCase(test_env.BaseTestCase):
         fetched_doc = coll.find().getDocuments()[0]
         self.assertEqual(fetched_doc.getContent(), content)
 
+    def test_3447(self):
+        "3447 - test getting documents with client-assigned keys"
+        soda_db = self.conn.getSodaDatabase()
+        metadata = {"keyColumn": {"assignmentMethod": "client"}}
+        coll = soda_db.createCollection(
+            "TestSearchByClientAssignedKeys", metadata
+        )
+        test_values = [
+            ("doc1", {"name": "Help others", "files": []}),
+            ("doc2", {"name": "Family", "files": ["kids.txt"]}),
+            ("doc3", {"name": "Our pets", "files": ["dogs.pdf"]}),
+        ]
+        docs = [soda_db.createDocument(d, k) for k, d in test_values]
+        coll.insertMany(docs)
+
+        for key, data in test_values:
+            (fetched_doc,) = coll.find().key(key).getDocuments()
+            self.assertEqual(fetched_doc.getContent(), data)
+
+        keys = [key for key, _ in test_values]
+        fetched_docs = coll.find().keys(keys).getDocuments()
+        self.assertEqual(len(fetched_docs), 3)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
