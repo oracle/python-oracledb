@@ -33,28 +33,6 @@ apilevel = "2.0"
 threadsafety = 2
 paramstyle = "named"
 
-# authentication modes
-AUTH_MODE_DEFAULT = 0
-AUTH_MODE_PRELIM = 0x00000008
-AUTH_MODE_SYSASM = 0x00008000
-AUTH_MODE_SYSBKP = 0x00020000
-AUTH_MODE_SYSDBA = 0x00000002
-AUTH_MODE_SYSDGD = 0x00040000
-AUTH_MODE_SYSKMT = 0x00080000
-AUTH_MODE_SYSOPER = 0x00000004
-AUTH_MODE_SYSRAC = 0x00100000
-
-# pool "get" modes
-POOL_GETMODE_WAIT = 0
-POOL_GETMODE_NOWAIT = 1
-POOL_GETMODE_FORCEGET = 2
-POOL_GETMODE_TIMEDWAIT = 3
-
-# purity values
-PURITY_DEFAULT = 0
-PURITY_NEW = 1
-PURITY_SELF = 2
-
 # AQ delivery modes
 MSG_BUFFERED = 2
 MSG_PERSISTENT = 1
@@ -155,18 +133,5 @@ TPC_BEGIN_RESUME = 0x00000004
 TPC_END_NORMAL = 0
 TPC_END_SUSPEND = 0x00100000
 
-# vector types
-VECTOR_FORMAT_FLOAT32 = 2
-VECTOR_FORMAT_FLOAT64 = 3
-VECTOR_FORMAT_INT8 = 4
-
 # vector metadata flags
 VECTOR_META_FLAG_FLEXIBLE_DIM = 0x01
-
-# basic configuration constants
-DRIVER_NAME = "python-oracledb"
-INSTALLATION_URL = (
-    "https://python-oracledb.readthedocs.io/en/"
-    "latest/user_guide/initialization.html"
-)
-ENCODING = "UTF-8"

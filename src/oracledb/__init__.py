@@ -40,13 +40,47 @@ if sys.version_info[:2] < (3, 8):
     )
     warnings.warn(message)
 
-from .version import __version__ as __version__
+from . import base_impl, thick_impl, thin_impl
 
-from .constants import (
-    # mandated DB API constants
-    apilevel as apilevel,
-    threadsafety as threadsafety,
-    paramstyle as paramstyle,
+from .base_impl import (
+    # database types
+    DB_TYPE_BFILE as DB_TYPE_BFILE,
+    DB_TYPE_BINARY_DOUBLE as DB_TYPE_BINARY_DOUBLE,
+    DB_TYPE_BINARY_FLOAT as DB_TYPE_BINARY_FLOAT,
+    DB_TYPE_BINARY_INTEGER as DB_TYPE_BINARY_INTEGER,
+    DB_TYPE_BLOB as DB_TYPE_BLOB,
+    DB_TYPE_BOOLEAN as DB_TYPE_BOOLEAN,
+    DB_TYPE_CHAR as DB_TYPE_CHAR,
+    DB_TYPE_CLOB as DB_TYPE_CLOB,
+    DB_TYPE_CURSOR as DB_TYPE_CURSOR,
+    DB_TYPE_DATE as DB_TYPE_DATE,
+    DB_TYPE_INTERVAL_DS as DB_TYPE_INTERVAL_DS,
+    DB_TYPE_INTERVAL_YM as DB_TYPE_INTERVAL_YM,
+    DB_TYPE_JSON as DB_TYPE_JSON,
+    DB_TYPE_LONG as DB_TYPE_LONG,
+    DB_TYPE_LONG_NVARCHAR as DB_TYPE_LONG_NVARCHAR,
+    DB_TYPE_LONG_RAW as DB_TYPE_LONG_RAW,
+    DB_TYPE_NCHAR as DB_TYPE_NCHAR,
+    DB_TYPE_NCLOB as DB_TYPE_NCLOB,
+    DB_TYPE_NUMBER as DB_TYPE_NUMBER,
+    DB_TYPE_NVARCHAR as DB_TYPE_NVARCHAR,
+    DB_TYPE_OBJECT as DB_TYPE_OBJECT,
+    DB_TYPE_RAW as DB_TYPE_RAW,
+    DB_TYPE_ROWID as DB_TYPE_ROWID,
+    DB_TYPE_TIMESTAMP as DB_TYPE_TIMESTAMP,
+    DB_TYPE_TIMESTAMP_LTZ as DB_TYPE_TIMESTAMP_LTZ,
+    DB_TYPE_TIMESTAMP_TZ as DB_TYPE_TIMESTAMP_TZ,
+    DB_TYPE_UNKNOWN as DB_TYPE_UNKNOWN,
+    DB_TYPE_UROWID as DB_TYPE_UROWID,
+    DB_TYPE_VARCHAR as DB_TYPE_VARCHAR,
+    DB_TYPE_VECTOR as DB_TYPE_VECTOR,
+    DB_TYPE_XMLTYPE as DB_TYPE_XMLTYPE,
+    # API types
+    BINARY as BINARY,
+    DATETIME as DATETIME,
+    NUMBER as NUMBER,
+    ROWID as ROWID,
+    STRING as STRING,
     # authentication modes
     AUTH_MODE_DEFAULT as AUTH_MODE_DEFAULT,
     AUTH_MODE_PRELIM as AUTH_MODE_PRELIM,
@@ -66,6 +100,19 @@ from .constants import (
     PURITY_DEFAULT as PURITY_DEFAULT,
     PURITY_NEW as PURITY_NEW,
     PURITY_SELF as PURITY_SELF,
+    # vector formats
+    VECTOR_FORMAT_FLOAT32 as VECTOR_FORMAT_FLOAT32,
+    VECTOR_FORMAT_FLOAT64 as VECTOR_FORMAT_FLOAT64,
+    VECTOR_FORMAT_INT8 as VECTOR_FORMAT_INT8,
+)
+
+from .version import __version__ as __version__
+
+from .constants import (
+    # mandated DB API constants
+    apilevel as apilevel,
+    threadsafety as threadsafety,
+    paramstyle as paramstyle,
     # AQ delivery modes
     MSG_BUFFERED as MSG_BUFFERED,
     MSG_PERSISTENT as MSG_PERSISTENT,
@@ -148,10 +195,6 @@ from .constants import (
     # flags for tpc_end()
     TPC_END_NORMAL as TPC_END_NORMAL,
     TPC_END_SUSPEND as TPC_END_SUSPEND,
-    # vector types
-    VECTOR_FORMAT_FLOAT32 as VECTOR_FORMAT_FLOAT32,
-    VECTOR_FORMAT_FLOAT64 as VECTOR_FORMAT_FLOAT64,
-    VECTOR_FORMAT_INT8 as VECTOR_FORMAT_INT8,
 )
 
 from .exceptions import (
@@ -190,6 +233,13 @@ from .pool import (
     create_pool_async as create_pool_async,
 )
 
+from .subscr import (
+    Message as Message,
+    MessageQuery as MessageQuery,
+    MessageRow as MessageRow,
+    MessageTable as MessageTable,
+)
+
 from .connect_params import ConnectParams as ConnectParams
 
 from .pool_params import PoolParams as PoolParams
@@ -208,49 +258,6 @@ from .var import Var as Var
 from .dsn import makedsn as makedsn
 
 from .driver_mode import is_thin_mode as is_thin_mode
-
-from . import base_impl, thick_impl, thin_impl
-
-from .base_impl import (
-    # database types
-    DB_TYPE_BFILE as DB_TYPE_BFILE,
-    DB_TYPE_BINARY_DOUBLE as DB_TYPE_BINARY_DOUBLE,
-    DB_TYPE_BINARY_FLOAT as DB_TYPE_BINARY_FLOAT,
-    DB_TYPE_BINARY_INTEGER as DB_TYPE_BINARY_INTEGER,
-    DB_TYPE_BLOB as DB_TYPE_BLOB,
-    DB_TYPE_BOOLEAN as DB_TYPE_BOOLEAN,
-    DB_TYPE_CHAR as DB_TYPE_CHAR,
-    DB_TYPE_CLOB as DB_TYPE_CLOB,
-    DB_TYPE_CURSOR as DB_TYPE_CURSOR,
-    DB_TYPE_DATE as DB_TYPE_DATE,
-    DB_TYPE_INTERVAL_DS as DB_TYPE_INTERVAL_DS,
-    DB_TYPE_INTERVAL_YM as DB_TYPE_INTERVAL_YM,
-    DB_TYPE_JSON as DB_TYPE_JSON,
-    DB_TYPE_LONG as DB_TYPE_LONG,
-    DB_TYPE_LONG_NVARCHAR as DB_TYPE_LONG_NVARCHAR,
-    DB_TYPE_LONG_RAW as DB_TYPE_LONG_RAW,
-    DB_TYPE_NCHAR as DB_TYPE_NCHAR,
-    DB_TYPE_NCLOB as DB_TYPE_NCLOB,
-    DB_TYPE_NUMBER as DB_TYPE_NUMBER,
-    DB_TYPE_NVARCHAR as DB_TYPE_NVARCHAR,
-    DB_TYPE_OBJECT as DB_TYPE_OBJECT,
-    DB_TYPE_RAW as DB_TYPE_RAW,
-    DB_TYPE_ROWID as DB_TYPE_ROWID,
-    DB_TYPE_TIMESTAMP as DB_TYPE_TIMESTAMP,
-    DB_TYPE_TIMESTAMP_LTZ as DB_TYPE_TIMESTAMP_LTZ,
-    DB_TYPE_TIMESTAMP_TZ as DB_TYPE_TIMESTAMP_TZ,
-    DB_TYPE_UNKNOWN as DB_TYPE_UNKNOWN,
-    DB_TYPE_UROWID as DB_TYPE_UROWID,
-    DB_TYPE_VARCHAR as DB_TYPE_VARCHAR,
-    DB_TYPE_VECTOR as DB_TYPE_VECTOR,
-    DB_TYPE_XMLTYPE as DB_TYPE_XMLTYPE,
-    # API types
-    BINARY as BINARY,
-    DATETIME as DATETIME,
-    NUMBER as NUMBER,
-    ROWID as ROWID,
-    STRING as STRING,
-)
 
 from .thick_impl import (
     clientversion as clientversion,

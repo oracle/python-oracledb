@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,36 +27,6 @@
 #
 # Contains utility classes and methods.
 # -----------------------------------------------------------------------------
-
-from . import errors
-
-
-class CheckImpls:
-    """
-    Decorator class which is used on the base implementation method and checks
-    to see which implementation is currently being used (and therefore has no
-    support for the method). An exception is raised letting the user know which
-    implementation does support the method. Currently there are only two
-    implementations (thick and thin) so the assumption is made that the
-    implementation not currently running does support the method.
-    """
-
-    def __init__(self, feature):
-        self.feature = feature
-
-    def __call__(self, f):
-        feature = self.feature
-
-        def wrapped_f(self, *args, **kwargs):
-            class_name = type(self).__name__
-            driver_type = "thin" if class_name.startswith("Thick") else "thick"
-            errors._raise_err(
-                errors.ERR_FEATURE_NOT_SUPPORTED,
-                feature=feature,
-                driver_type=driver_type,
-            )
-
-        return wrapped_f
 
 
 def params_initer(f):

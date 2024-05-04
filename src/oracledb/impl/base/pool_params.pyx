@@ -36,7 +36,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.min = 1
         self.max = 2
         self.increment = 1
-        self.getmode = constants.POOL_GETMODE_WAIT
+        self.getmode = POOL_GETMODE_WAIT
         self.homogeneous = True
         self.ping_interval = 60
 

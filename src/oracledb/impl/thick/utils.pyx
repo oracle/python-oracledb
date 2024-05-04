@@ -485,7 +485,6 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         bytes lib_dir_bytes, config_dir_bytes, driver_name_bytes
         dpiContextCreateParams params
         dpiErrorInfo error_info
-        bytes encoding_bytes
     global driver_context_params
     params_tuple = (lib_dir, config_dir, error_url, driver_name)
     if driver_info.context != NULL:
@@ -494,8 +493,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         return
     with driver_mode.get_manager(requested_thin_mode=False) as mode_mgr:
         memset(&params, 0, sizeof(dpiContextCreateParams))
-        encoding_bytes = constants.ENCODING.encode()
-        params.defaultEncoding = encoding_bytes
+        params.defaultEncoding = ENCODING_UTF8
         params.sodaUseJsonDesc = driver_info.soda_use_json_desc
         params.useJsonId = True
         if config_dir is None:
@@ -507,13 +505,13 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
             config_dir_bytes = config_dir.encode()
             params.oracleClientConfigDir = config_dir_bytes
         if driver_name is None:
-            driver_name = f"{constants.DRIVER_NAME} thk : {VERSION}"
+            driver_name = f"{DRIVER_NAME} thk : {DRIVER_VERSION}"
         driver_name_bytes = driver_name.encode()[:30]
         params.defaultDriverName = driver_name_bytes
         if error_url is not None:
             error_url_bytes = error_url.encode()
         else:
-            error_url_bytes = constants.INSTALLATION_URL.encode()
+            error_url_bytes = DRIVER_INSTALLATION_URL.encode()
         params.loadErrorUrl = error_url_bytes
         if dpiContext_createWithParams(DPI_MAJOR_VERSION, DPI_MINOR_VERSION,
                                        &params, &driver_info.context,
@@ -531,8 +529,7 @@ def init_thick_impl(package):
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_DB_OBJECT, PY_TYPE_JSON_ID, PY_TYPE_LOB, PY_TYPE_INTERVAL_YM
-    PY_TYPE_DB_OBJECT = package.DbObject
-    PY_TYPE_JSON_ID = package.JsonId
-    PY_TYPE_INTERVAL_YM = package.IntervalYM
-    PY_TYPE_LOB = package.LOB
+    global driver_mode, errors, exceptions
+    driver_mode = package.driver_mode
+    errors = package.errors
+    exceptions = package.exceptions

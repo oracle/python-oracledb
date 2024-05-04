@@ -58,8 +58,7 @@ cydatetime.import_datetime()
 
 include "impl/base/types.pyx"
 
-from . import constants, errors, exceptions, utils
-
+# Python types used by the driver
 cdef type PY_TYPE_ASYNC_CURSOR
 cdef type PY_TYPE_ASYNC_LOB
 cdef type PY_TYPE_BOOL = bool
@@ -76,16 +75,11 @@ cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO
 
-# purity values
-cdef uint32_t PURITY_NEW = constants.PURITY_NEW
-cdef uint32_t PURITY_SELF = constants.PURITY_SELF
-cdef uint32_t PURITY_DEFAULT = constants.PURITY_DEFAULT
-
-# vector types
-cdef uint8_t VECTOR_FORMAT_FLOAT32 = constants.VECTOR_FORMAT_FLOAT32
-cdef uint8_t VECTOR_FORMAT_FLOAT64 = constants.VECTOR_FORMAT_FLOAT64
-cdef uint8_t VECTOR_FORMAT_INT8 = constants.VECTOR_FORMAT_INT8
-
+cdef const char* DRIVER_NAME = "python-oracledb"
+cdef const char* DRIVER_VERSION
+cdef const char* DRIVER_INSTALLATION_URL = \
+        "https://python-oracledb.readthedocs.io/en/" \
+        "latest/user_guide/initialization.html"
 cdef const char* ENCODING_UTF8 = "UTF-8"
 cdef const char* ENCODING_UTF16 = "UTF-16BE"
 

@@ -1758,9 +1758,9 @@ cdef class AuthMessage(Message):
                                       self.encoded_newpassword)
             if not self.change_password:
                 self._write_key_value(buf, "SESSION_CLIENT_CHARSET", "873")
-                driver_name = f"{constants.DRIVER_NAME} thn : {VERSION}"
+                driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
                 self._write_key_value(buf, "SESSION_CLIENT_DRIVER_NAME",
-                                    driver_name)
+                                      driver_name)
                 self._write_key_value(buf, "SESSION_CLIENT_VERSION",
                                     str(_connect_constants.full_version_num))
                 self._write_key_value(buf, "AUTH_ALTER_SESSION",
@@ -2358,7 +2358,7 @@ cdef class ProtocolMessage(Message):
         buf.write_uint8(TNS_MSG_TYPE_PROTOCOL)
         buf.write_uint8(6)                  # protocol version (8.1 and higher)
         buf.write_uint8(0)                  # "array" terminator
-        buf.write_str(constants.DRIVER_NAME)
+        buf.write_str(DRIVER_NAME)
         buf.write_uint8(0)                  # NULL terminator
 
     cdef int _process_message(self, ReadBuffer buf,

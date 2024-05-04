@@ -27,6 +27,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Internal changes to ensure that no circular imports occur.
+
 
 oracledb 2.2.0 (May 2024)
 -------------------------

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,200 +31,155 @@
 
 cdef class BaseQueueImpl:
 
-    @utils.CheckImpls("dequeuing multiple messages")
     def deq_many(self, uint32_t max_num_messages):
-        pass
+        errors._raise_not_supported("dequeuing multiple messages")
 
-    @utils.CheckImpls("dequeuing a single message")
     def deq_one(self):
-        pass
+        errors._raise_not_supported("dequeuing a single message")
 
-    @utils.CheckImpls("enqueueing multiple messages")
     def enq_many(self, list props_impls):
-        pass
+        errors._raise_not_supported("enqueueing multiple messages")
 
-    @utils.CheckImpls("enqueuing a single message")
     def enq_one(self, BaseMsgPropsImpl props_impl):
-        pass
+        errors._raise_not_supported("enqueuing a single message")
 
-    @utils.CheckImpls("initializing a queue")
     def initialize(self, BaseConnImpl conn_impl, str name,
                    BaseDbObjectImpl payload_type, bint is_json):
-        pass
+        errors._raise_not_supported("initializing a queue")
 
 
 cdef class BaseDeqOptionsImpl:
 
-    @utils.CheckImpls("getting the condition")
     def get_condition(self):
-        pass
+        errors._raise_not_supported("getting the condition")
 
-    @utils.CheckImpls("getting the consumer name")
     def get_consumer_name(self):
-        pass
+        errors._raise_not_supported("getting the consumer name")
 
-    @utils.CheckImpls("getting the correlation")
     def get_correlation(self):
-        pass
+        errors._raise_not_supported("getting the correlation")
 
-    @utils.CheckImpls("getting the message id")
     def get_message_id(self):
-        pass
+        errors._raise_not_supported("getting the message id")
 
-    @utils.CheckImpls("getting the mode")
     def get_mode(self):
-        pass
+        errors._raise_not_supported("getting the mode")
 
-    @utils.CheckImpls("getting the navigation")
     def get_navigation(self):
-        pass
+        errors._raise_not_supported("getting the navigation")
 
-    @utils.CheckImpls("getting the transformation")
     def get_transformation(self):
-        pass
+        errors._raise_not_supported("getting the transformation")
 
-    @utils.CheckImpls("getting the visibility")
     def get_visibility(self):
-        pass
+        errors._raise_not_supported("getting the visibility")
 
-    @utils.CheckImpls("getting the wait time")
     def get_wait(self):
-        pass
+        errors._raise_not_supported("getting the wait time")
 
-    @utils.CheckImpls("setting the condition")
     def set_condition(self, str value):
-        pass
+        errors._raise_not_supported("setting the condition")
 
-    @utils.CheckImpls("setting the consumer name")
     def set_consumer_name(self, str value):
-        pass
+        errors._raise_not_supported("setting the consumer name")
 
-    @utils.CheckImpls("setting the correlation")
     def set_correlation(self, str value):
-        pass
+        errors._raise_not_supported("setting the correlation")
 
-    @utils.CheckImpls("setting the delivery mode")
     def set_delivery_mode(self, uint16_t value):
-        pass
+        errors._raise_not_supported("setting the delivery mode")
 
-    @utils.CheckImpls("setting the mode")
     def set_mode(self, uint32_t value):
-        pass
+        errors._raise_not_supported("setting the mode")
 
-    @utils.CheckImpls("setting the message id")
     def set_message_id(self, bytes value):
-        pass
+        errors._raise_not_supported("setting the message id")
 
-    @utils.CheckImpls("setting the navigation")
     def set_navigation(self, uint32_t value):
-        pass
+        errors._raise_not_supported("setting the navigation")
 
-    @utils.CheckImpls("setting the transformation")
     def set_transformation(self, str value):
-        pass
+        errors._raise_not_supported("setting the transformation")
 
-    @utils.CheckImpls("setting the visibility")
     def set_visibility(self, uint32_t value):
-        pass
+        errors._raise_not_supported("setting the visibility")
 
-    @utils.CheckImpls("setting the wait time")
     def set_wait(self, uint32_t value):
-        pass
+        errors._raise_not_supported("setting the wait time")
 
 
 cdef class BaseEnqOptionsImpl:
 
-    @utils.CheckImpls("getting the transformation")
     def get_transformation(self):
-        pass
+        errors._raise_not_supported("getting the transformation")
 
-    @utils.CheckImpls("getting the visibility")
     def get_visibility(self):
-        pass
+        errors._raise_not_supported("getting the visibility")
 
-    @utils.CheckImpls("setting the delivery mode")
     def set_delivery_mode(self, uint16_t value):
-        pass
+        errors._raise_not_supported("setting the delivery mode")
 
-    @utils.CheckImpls("setting the transformation")
     def set_transformation(self, str value):
-        pass
+        errors._raise_not_supported("setting the transformation")
 
-    @utils.CheckImpls("setting the visibility")
     def set_visibility(self, uint32_t value):
-        pass
+        errors._raise_not_supported("setting the visibility")
 
 
 cdef class BaseMsgPropsImpl:
 
-    @utils.CheckImpls("getting the number of attempts")
     def get_num_attempts(self):
-        pass
+        errors._raise_not_supported("getting the number of attempts")
 
-    @utils.CheckImpls("getting the correlation")
     def get_correlation(self):
-        pass
+        errors._raise_not_supported("getting the correlation")
 
-    @utils.CheckImpls("getting the delay")
     def get_delay(self):
-        pass
+        errors._raise_not_supported("getting the delay")
 
-    @utils.CheckImpls("getting the delivery mode")
     def get_delivery_mode(self):
-        pass
+        errors._raise_not_supported("getting the delivery mode")
 
-    @utils.CheckImpls("getting the enqueue time")
     def get_enq_time(self):
-        pass
+        errors._raise_not_supported("getting the enqueue time")
 
-    @utils.CheckImpls("getting the name of the exception queue")
     def get_exception_queue(self):
-        pass
+        errors._raise_not_supported("getting the name of the exception queue")
 
-    @utils.CheckImpls("getting the expiration")
     def get_expiration(self):
-        pass
+        errors._raise_not_supported("getting the expiration")
 
-    @utils.CheckImpls("getting the message id")
     def get_message_id(self):
-        pass
+        errors._raise_not_supported("getting the message id")
 
-    @utils.CheckImpls("getting the priority")
     def get_priority(self):
-        pass
+        errors._raise_not_supported("getting the priority")
 
-    @utils.CheckImpls("getting the message state")
     def get_state(self):
-        pass
+        errors._raise_not_supported("getting the message state")
 
-    @utils.CheckImpls("setting the correlation")
     def set_correlation(self, str value):
-        pass
+        errors._raise_not_supported("setting the correlation")
 
-    @utils.CheckImpls("setting the delay")
     def set_delay(self, int32_t value):
-        pass
+        errors._raise_not_supported("setting the delay")
 
-    @utils.CheckImpls("setting the name of the exception queue")
     def set_exception_queue(self, str value):
-        pass
+        errors._raise_not_supported("setting the name of the exception queue")
 
-    @utils.CheckImpls("setting the expiration")
     def set_expiration(self, int32_t value):
-        pass
+        errors._raise_not_supported("setting the expiration")
 
-    @utils.CheckImpls("setting the payload from bytes")
     def set_payload_bytes(self, bytes value):
-        pass
+        errors._raise_not_supported("setting the payload from bytes")
 
-    @utils.CheckImpls("setting the payload from a database object")
     def set_payload_object(self, BaseDbObjectImpl value):
-        pass
+        errors._raise_not_supported(
+            "setting the payload from a database object"
+        )
 
-    @utils.CheckImpls("setting the priority")
     def set_priority(self, int32_t value):
-        pass
+        errors._raise_not_supported("setting the priority")
 
-    @utils.CheckImpls("setting recipients list")
     def set_recipients(self, list value):
-        pass
+        errors._raise_not_supported("setting recipients list")

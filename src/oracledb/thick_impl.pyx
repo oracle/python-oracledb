@@ -41,11 +41,6 @@ import decimal
 
 cydatetime.import_datetime()
 
-from . import constants, driver_mode, errors, exceptions
-from .subscr import Message, MessageQuery, MessageRow, MessageTable
-
-from . import __version__ as VERSION
-
 from .base_impl cimport (
     BaseConnImpl,
     BaseCursorImpl,
@@ -69,6 +64,23 @@ from .base_impl cimport (
     ConnectParamsImpl,
     DbType,
     DB_TYPE_NUM_CURSOR,
+    DRIVER_NAME,
+    DRIVER_VERSION,
+    DRIVER_INSTALLATION_URL,
+    ENCODING_UTF8,
+    PURITY_DEFAULT,
+    PY_TYPE_DATE,
+    PY_TYPE_DATETIME,
+    PY_TYPE_DB_OBJECT,
+    PY_TYPE_DECIMAL,
+    PY_TYPE_JSON_ID,
+    PY_TYPE_INTERVAL_YM,
+    PY_TYPE_LOB,
+    PY_TYPE_MESSAGE,
+    PY_TYPE_MESSAGE_QUERY,
+    PY_TYPE_MESSAGE_ROW,
+    PY_TYPE_MESSAGE_TABLE,
+    PY_TYPE_TIMEDELTA,
     FetchInfoImpl,
     PoolParamsImpl,
     get_preferred_num_type,
@@ -81,15 +93,6 @@ from .base_impl cimport (
 from libc.string cimport memchr, memcpy, memset
 
 include "impl/thick/odpi.pxd"
-
-cdef type PY_TYPE_DATE = datetime.date
-cdef type PY_TYPE_DATETIME = datetime.datetime
-cdef type PY_TYPE_DECIMAL = decimal.Decimal
-cdef type PY_TYPE_JSON_ID
-cdef type PY_TYPE_INTERVAL_YM
-cdef type PY_TYPE_DB_OBJECT
-cdef type PY_TYPE_LOB
-cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 
 cdef struct DriverInfo:
     dpiContext *context

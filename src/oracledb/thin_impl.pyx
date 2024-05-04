@@ -71,13 +71,18 @@ macos_certs = None
 
 cydatetime.import_datetime()
 
-from . import __version__ as VERSION
-
-from . import constants, errors, exceptions
-
 from .base_impl cimport (
     Address,
     AddressList,
+    AUTH_MODE_DEFAULT,
+    AUTH_MODE_PRELIM,
+    AUTH_MODE_SYSASM,
+    AUTH_MODE_SYSBKP,
+    AUTH_MODE_SYSDBA,
+    AUTH_MODE_SYSDGD,
+    AUTH_MODE_SYSKMT,
+    AUTH_MODE_SYSOPER,
+    AUTH_MODE_SYSRAC,
     BaseConnImpl,
     BaseCursorImpl,
     BaseDbObjectAttrImpl,
@@ -95,10 +100,11 @@ from .base_impl cimport (
     DbType,
     Description,
     DescriptionList,
+    DRIVER_NAME,
+    DRIVER_VERSION,
     ENCODING_UTF8,
     ENCODING_UTF16,
     FetchInfoImpl,
-    PoolParamsImpl,
     get_preferred_num_type,
     GrowableBuffer,
     NUM_TYPE_FLOAT,
@@ -107,13 +113,30 @@ from .base_impl cimport (
     NUM_TYPE_STR,
     OsonDecoder,
     OsonEncoder,
+    POOL_GETMODE_FORCEGET,
+    POOL_GETMODE_NOWAIT,
+    POOL_GETMODE_TIMEDWAIT,
+    POOL_GETMODE_WAIT,
+    PoolParamsImpl,
+    PURITY_DEFAULT,
+    PURITY_NEW,
+    PURITY_SELF,
+    PY_TYPE_ASYNC_LOB,
+    PY_TYPE_DATE,
+    PY_TYPE_DATETIME,
+    PY_TYPE_DB_OBJECT,
+    PY_TYPE_DECIMAL,
+    PY_TYPE_INTERVAL_YM,
+    PY_TYPE_LOB,
+    PY_TYPE_TIMEDELTA,
+    TNS_LONG_LENGTH_INDICATOR,
+    TNS_NULL_LENGTH_INDICATOR,
     unpack_uint16,
     unpack_uint32,
     VectorDecoder,
     VectorEncoder,
-    TNS_LONG_LENGTH_INDICATOR,
-    TNS_NULL_LENGTH_INDICATOR,
 )
+
 from .base_impl import (
     DB_TYPE_BLOB,
     DB_TYPE_CLOB,
@@ -125,37 +148,6 @@ from .base_impl import (
 )
 
 ctypedef unsigned char char_type
-
-# Python types
-cdef type PY_TYPE_DATE = datetime.date
-cdef type PY_TYPE_DATETIME = datetime.datetime
-cdef type PY_TYPE_DECIMAL = decimal.Decimal
-cdef type PY_TYPE_DB_OBJECT
-cdef type PY_TYPE_INTERVAL_YM
-cdef type PY_TYPE_LOB
-cdef type PY_TYPE_ASYNC_LOB
-cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
-
-# authorization modes
-cdef uint32_t AUTH_MODE_DEFAULT = constants.AUTH_MODE_DEFAULT
-cdef uint32_t AUTH_MODE_SYSASM = constants.AUTH_MODE_SYSASM
-cdef uint32_t AUTH_MODE_SYSBKP = constants.AUTH_MODE_SYSBKP
-cdef uint32_t AUTH_MODE_SYSDBA = constants.AUTH_MODE_SYSDBA
-cdef uint32_t AUTH_MODE_SYSDGD = constants.AUTH_MODE_SYSDGD
-cdef uint32_t AUTH_MODE_SYSKMT = constants.AUTH_MODE_SYSKMT
-cdef uint32_t AUTH_MODE_SYSOPER = constants.AUTH_MODE_SYSOPER
-cdef uint32_t AUTH_MODE_SYSRAC = constants.AUTH_MODE_SYSRAC
-
-# purity values
-cdef uint8_t PURITY_DEFAULT = constants.PURITY_DEFAULT
-cdef uint8_t PURITY_NEW = constants.PURITY_NEW
-cdef uint8_t PURITY_SELF = constants.PURITY_SELF
-
-# pool get modes
-cdef uint32_t POOL_GETMODE_FORCEGET = constants.POOL_GETMODE_FORCEGET
-cdef uint32_t POOL_GETMODE_NOWAIT = constants.POOL_GETMODE_NOWAIT
-cdef uint32_t POOL_GETMODE_WAIT = constants.POOL_GETMODE_WAIT
-cdef uint32_t POOL_GETMODE_TIMEDWAIT = constants.POOL_GETMODE_TIMEDWAIT
 
 # flag whether the cryptography package exists
 cdef bint HAS_CRYPTOGRAPHY = True

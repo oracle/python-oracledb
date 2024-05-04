@@ -31,119 +31,118 @@
 
 cdef class BaseSodaDbImpl:
 
-    @utils.CheckImpls("creating a SODA collection")
     def create_collection(self, str name, str metadata, bint map_mode):
-        pass
+        errors._raise_not_supported("creating a SODA collection")
 
-    @utils.CheckImpls("creating a SODA binary/text document")
     def create_document(self, bytes content, str key, str media_type):
-        pass
+        errors._raise_not_supported("creating a SODA binary/text document")
 
-    @utils.CheckImpls("creating a SODA JSON document")
     def create_json_document(self, object content, str key):
-        pass
+        errors._raise_not_supported("creating a SODA JSON document")
 
-    @utils.CheckImpls("getting a list of SODA collection names")
     def get_collection_names(self, str start_name, uint32_t limit):
-        pass
+        errors._raise_not_supported("getting a list of SODA collection names")
 
-    @utils.CheckImpls("opening a SODA collection")
     def open_collection(self, str name):
-        pass
+        errors._raise_not_supported("opening a SODA collection")
 
 
 cdef class BaseSodaCollImpl:
 
-    @utils.CheckImpls("creating an index on a SODA collection")
     def create_index(self, str spec):
-        pass
+        errors._raise_not_supported("creating an index on a SODA collection")
 
-    @utils.CheckImpls("dropping a SODA collection")
     def drop(self):
-        pass
+        errors._raise_not_supported("dropping a SODA collection")
 
-    @utils.CheckImpls("dropping an index on a SODA collection")
     def drop_index(self, str name, bint force):
-        pass
+        errors._raise_not_supported("dropping an index on a SODA collection")
 
-    @utils.CheckImpls("getting the count of documents in a SODA collection")
     def get_count(self, object op):
-        pass
+        errors._raise_not_supported(
+            "getting the count of documents in a SODA collection"
+        )
 
-    @utils.CheckImpls("getting a cursor for documents in a SODA collection")
     def get_cursor(self, object op):
-        pass
+        errors._raise_not_supported(
+            "getting a cursor for documents in a SODA collection"
+        )
 
-    @utils.CheckImpls("getting the data guide for a SODA collection")
     def get_data_guide(self):
-        pass
+        errors._raise_not_supported(
+            "getting the data guide for a SODA collection"
+        )
 
-    @utils.CheckImpls("getting the metadata of a SODA collection")
     def get_metadata(self):
-        pass
+        errors._raise_not_supported(
+            "getting the metadata of a SODA collection"
+        )
 
-    @utils.CheckImpls("getting a document from a SODA collection")
     def get_one(self, object op):
-        pass
+        errors._raise_not_supported(
+            "getting a document from a SODA collection"
+        )
 
-    @utils.CheckImpls("inserting multiple documents into a SODA collection")
     def insert_many(self, list documents, str hint, bint return_docs):
-        pass
+        errors._raise_not_supported(
+            "inserting multiple documents into a SODA collection"
+        )
 
-    @utils.CheckImpls("inserting a single document into a SODA collection")
     def insert_one(self, BaseSodaDocImpl doc, str hint, bint return_doc):
-        pass
+        errors._raise_not_supported(
+            "inserting a single document into a SODA collection"
+        )
 
-    @utils.CheckImpls("removing documents from a SODA collection")
     def remove(self, object op):
-        pass
+        errors._raise_not_supported(
+            "removing documents from a SODA collection"
+        )
 
-    @utils.CheckImpls("replacing a document in a SODA collection")
     def replace_one(self, BaseSodaDocImpl doc_impl, bint return_doc):
-        pass
+        errors._raise_not_supported(
+            "replacing a document in a SODA collection"
+        )
 
-    @utils.CheckImpls("saving a document in a SODA collection")
     def save(self, BaseSodaDocImpl doc, str hint, bint return_doc):
-        pass
+        errors._raise_not_supported("saving a document in a SODA collection")
 
-    @utils.CheckImpls("truncating a SODA collection")
     def truncate(self):
-        pass
+        errors._raise_not_supported("truncating a SODA collection")
 
 
 cdef class BaseSodaDocImpl:
 
-    @utils.CheckImpls("getting the content of a SODA document")
     def get_content(self):
-        pass
+        errors._raise_not_supported("getting the content of a SODA document")
 
-    @utils.CheckImpls("getting the created on date of a SODA document")
     def get_created_on(self):
-        pass
+        errors._raise_not_supported(
+            "getting the created on date of a SODA document"
+        )
 
-    @utils.CheckImpls("getting the key of a SODA document")
     def get_key(self):
-        pass
+        errors._raise_not_supported("getting the key of a SODA document")
 
-    @utils.CheckImpls("getting the last modified date of a SODA document")
     def get_last_modified(self):
-        pass
+        errors._raise_not_supported(
+            "getting the last modified date of a SODA document"
+        )
 
-    @utils.CheckImpls("getting the media type of a SODA document")
     def get_media_type(self):
-        pass
+        errors._raise_not_supported(
+            "getting the media type of a SODA document"
+        )
 
-    @utils.CheckImpls("getting the version of a SODA document")
     def get_version(self):
-        pass
+        errors._raise_not_supported("getting the version of a SODA document")
 
 
 cdef class BaseSodaDocCursorImpl:
 
-    @utils.CheckImpls("closing a SODA document cursor")
     def close(self):
-        pass
+        errors._raise_not_supported("closing a SODA document cursor")
 
-    @utils.CheckImpls("getting the next document from a SODA document cursor")
     def get_next_doc(self):
-        pass
+        errors._raise_not_supported(
+            "getting the next document from a SODA document cursor"
+        )

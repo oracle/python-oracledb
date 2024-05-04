@@ -182,16 +182,33 @@ def init_base_impl(package):
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_ASYNC_CURSOR, PY_TYPE_ASYNC_LOB, PY_TYPE_CURSOR
-    global PY_TYPE_DB_OBJECT, PY_TYPE_DB_OBJECT_TYPE, PY_TYPE_LOB, PY_TYPE_VAR
-    global PY_TYPE_FETCHINFO, PY_TYPE_JSON_ID, PY_TYPE_INTERVAL_YM
+    global \
+        errors, \
+        exceptions, \
+        utils, \
+        DRIVER_VERSION, \
+        PY_TYPE_ASYNC_CURSOR, \
+        PY_TYPE_ASYNC_LOB, \
+        PY_TYPE_CURSOR, \
+        PY_TYPE_DB_OBJECT, \
+        PY_TYPE_DB_OBJECT_TYPE, \
+        PY_TYPE_FETCHINFO, \
+        PY_TYPE_INTERVAL_YM, \
+        PY_TYPE_JSON_ID, \
+        PY_TYPE_LOB, \
+        PY_TYPE_VAR
+
+    errors = package.errors
+    exceptions = package.exceptions
+    utils = package.utils
+    DRIVER_VERSION = package.__version__
     PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
     PY_TYPE_CURSOR = package.Cursor
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
-    PY_TYPE_JSON_ID = package.JsonId
     PY_TYPE_FETCHINFO = package.FetchInfo
     PY_TYPE_INTERVAL_YM = package.IntervalYM
+    PY_TYPE_JSON_ID = package.JsonId
     PY_TYPE_LOB = package.LOB
     PY_TYPE_VAR = package.Var

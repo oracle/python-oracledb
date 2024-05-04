@@ -298,9 +298,8 @@ cdef class BaseCursorImpl:
         conn_impl = self._get_conn_impl()
         return conn_impl.inputtypehandler
 
-    @utils.CheckImpls("getting a cursor OCI attribute")
     def _get_oci_attr(self, uint32_t attr_num, uint32_t attr_type):
-        pass
+        errors._raise_not_supported("getting a cursor OCI attribute")
 
     cdef object _get_output_type_handler(self, bint *uses_fetch_info):
         """
@@ -456,10 +455,9 @@ cdef class BaseCursorImpl:
                     bind_var.var_impl._on_reset_bind(num_rows)
                 bind_var.has_value = False
 
-    @utils.CheckImpls("setting a cursor OCI attribute")
     def _set_oci_attr(self, uint32_t attr_num, uint32_t attr_type,
                       object value):
-        pass
+        errors._raise_not_supported("setting a cursor OCI attribute")
 
     cdef int _verify_var(self, object var) except -1:
         """
@@ -534,13 +532,11 @@ cdef class BaseCursorImpl:
         var_impl._finalize_init()
         return PY_TYPE_VAR._from_impl(var_impl)
 
-    @utils.CheckImpls("executing a statement")
     def execute(self, cursor):
-        pass
+        errors._raise_not_supported("executing a statement")
 
-    @utils.CheckImpls("executing a statement in batch")
     def executemany(self, cursor, num_execs, batcherrors, arraydmlrowcounts):
-        pass
+        errors._raise_not_supported("executing a statement in batch")
 
     def fetch_next_row(self, cursor):
         """
@@ -551,17 +547,14 @@ cdef class BaseCursorImpl:
         if self._buffer_rowcount > 0:
             return self._create_row()
 
-    @utils.CheckImpls("getting a list of array DML row counts")
     def get_array_dml_row_counts(self):
-        pass
+        errors._raise_not_supported("getting a list of array DML row counts")
 
-    @utils.CheckImpls("getting a list of batch errors")
     def get_batch_errors(self):
-        pass
+        errors._raise_not_supported("getting a list of batch errors")
 
-    @utils.CheckImpls("getting a list of bind variable names")
     def get_bind_names(self):
-        pass
+        errors._raise_not_supported("getting a list of bind variable names")
 
     def get_bind_vars(self):
         """
@@ -597,21 +590,21 @@ cdef class BaseCursorImpl:
                     self.fetch_vars[i] = PY_TYPE_VAR._from_impl(var_impl)
         return self.fetch_vars
 
-    @utils.CheckImpls("getting implicit results from PL/SQL")
     def get_implicit_results(self, connection):
-        pass
+        errors._raise_not_supported("getting implicit results from PL/SQL")
 
-    @utils.CheckImpls("getting the rowid of the row last modified")
     def get_lastrowid(self):
-        pass
+        errors._raise_not_supported(
+            "getting the rowid of the row last modified"
+        )
 
-    @utils.CheckImpls("determining if the cursor last executed a query")
     def is_query(self, cursor):
-        pass
+        errors._raise_not_supported(
+            "determining if the cursor last executed a query"
+        )
 
-    @utils.CheckImpls("parsing a statement without executing it")
     def parse(self, cursor):
-        pass
+        errors._raise_not_supported("parsing a statement without executing it")
 
     def prepare(self, str statement, str tag, bint cache_statement):
         """
@@ -619,12 +612,11 @@ cdef class BaseCursorImpl:
         """
         self._prepare(statement, tag, cache_statement)
 
-    @utils.CheckImpls("scrolling a scrollable cursor")
     def scroll(self, conn, value, mode):
         """
         Scrolls a scrollable cursor.
         """
-        pass
+        errors._raise_not_supported("scrolling a scrollable cursor")
 
     def setinputsizes(self, object conn, tuple args, dict kwargs):
         """

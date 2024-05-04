@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,54 +31,47 @@
 
 cdef class BaseLobImpl:
 
-    @utils.CheckImpls("closing a LOB")
     def close(self):
-        pass
+        errors._raise_not_supported("closing a LOB")
 
-    @utils.CheckImpls("checking if a BFILE exists")
     def file_exists(self):
-        pass
+        errors._raise_not_supported("checking if a BFILE exists")
 
-    @utils.CheckImpls("freeing the lob object")
     def free_lob(self):
-        pass
+        errors._raise_not_supported("freeing the lob object")
 
-    @utils.CheckImpls("getting the chunk size of a LOB")
     def get_chunk_size(self):
-        pass
+        errors._raise_not_supported("getting the chunk size of a LOB")
 
-    @utils.CheckImpls("getting the file name and directory alias of a BFILE")
     def get_file_name(self):
-        pass
+        errors._raise_not_supported(
+            "getting the file name and directory alias of a BFILE"
+        )
 
-    @utils.CheckImpls("getting whether a LOB is open or not")
     def get_is_open(self):
-        pass
+        errors._raise_not_supported("getting whether a LOB is open or not")
 
-    @utils.CheckImpls("getting the maximum amount that can be read from a LOB")
     def get_max_amount(self):
-        pass
+        errors._raise_not_supported(
+            "getting the maximum amount that can be read from a LOB"
+        )
 
-    @utils.CheckImpls("getting the size of a LOB")
     def get_size(self):
-        pass
+        errors._raise_not_supported("getting the size of a LOB")
 
-    @utils.CheckImpls("opening a LOB")
     def open(self):
-        pass
+        errors._raise_not_supported("opening a LOB")
 
-    @utils.CheckImpls("reading data from a LOB")
     def read(self, uint64_t offset, uint64_t amount):
-        pass
+        errors._raise_not_supported("reading data from a LOB")
 
-    @utils.CheckImpls("setting the file name an directory alias of a BFILE")
     def set_file_name(self, str dir_alias, str name):
-        pass
+        errors._raise_not_supported(
+            "setting the file name an directory alias of a BFILE"
+        )
 
-    @utils.CheckImpls("trimming a LOB")
     def trim(self, uint64_t new_size):
-        pass
+        errors._raise_not_supported("trimming a LOB")
 
-    @utils.CheckImpls("writing data to a LOB")
     def write(self, object value, uint64_t offset):
-        pass
+        errors._raise_not_supported("writing data to a LOB")

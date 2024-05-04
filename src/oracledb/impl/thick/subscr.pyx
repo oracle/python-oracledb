@@ -39,7 +39,7 @@ cdef int _callback_handler(void* context,
         _raise_from_info(message.errorInfo)
     else:
         subscr_impl = subscr._impl
-        py_message = Message(subscr)
+        py_message = PY_TYPE_MESSAGE(subscr)
         subscr_impl._populate_message(message, py_message)
         subscr.callback(py_message)
 
@@ -54,7 +54,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
 
     cdef object _create_message_query(self, dpiSubscrMessageQuery* query):
         cdef:
-            object py_query = MessageQuery()
+            object py_query = PY_TYPE_MESSAGE_QUERY()
             uint32_t i
             list temp
         py_query._id = query.id
@@ -65,14 +65,14 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
         return py_query
 
     cdef object _create_message_row(self, dpiSubscrMessageRow* row):
-        cdef object py_row = MessageRow()
+        cdef object py_row = PY_TYPE_MESSAGE_ROW()
         py_row._operation = row.operation
         py_row._rowid = row.rowid[:row.rowidLength].decode()
         return py_row
 
     cdef object _create_message_table(self, dpiSubscrMessageTable* table):
         cdef:
-            object py_table = MessageTable()
+            object py_table = PY_TYPE_MESSAGE_TABLE()
             uint32_t i
             list temp
         py_table._operation = table.operation

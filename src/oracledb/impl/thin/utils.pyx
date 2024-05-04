@@ -46,7 +46,7 @@ class ConnectConstants:
         self.sanitized_machine_name = self._sanitize(self.machine_name)
         self.sanitized_user_name = self._sanitize(self.user_name)
         pattern = r"(?P<major_num>\d+)\.(?P<minor_num>\d+)\.(?P<patch_num>\d+)"
-        match_dict = re.match(pattern, VERSION)
+        match_dict = re.match(pattern, DRIVER_VERSION)
         major_num = int(match_dict["major_num"])
         minor_num = int(match_dict["minor_num"])
         patch_num = int(match_dict["patch_num"])
@@ -59,8 +59,6 @@ class ConnectConstants:
         with "?". These are invalid characters within connect data.
         """
         return value.replace("(", "?").replace(")", "?").replace("=", "?")
-
-_connect_constants = ConnectConstants()
 
 cdef int _convert_base64(char_type *buf, long value, int size, int offset):
     """
@@ -113,9 +111,7 @@ def init_thin_impl(package):
     Initializes globals after the package has been completely initialized. This
     is to avoid circular imports and eliminate the need for global lookups.
     """
-    global PY_TYPE_DB_OBJECT, PY_TYPE_LOB, PY_TYPE_ASYNC_LOB
-    global PY_TYPE_INTERVAL_YM
-    PY_TYPE_DB_OBJECT = package.DbObject
-    PY_TYPE_LOB = package.LOB
-    PY_TYPE_ASYNC_LOB = package.AsyncLOB
-    PY_TYPE_INTERVAL_YM = package.IntervalYM
+    global _connect_constants, errors, exceptions
+    _connect_constants = ConnectConstants()
+    errors = package.errors
+    exceptions = package.exceptions

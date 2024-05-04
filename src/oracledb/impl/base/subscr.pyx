@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,17 +31,14 @@
 
 cdef class BaseSubscrImpl:
 
-    @utils.CheckImpls("registering a query on a subscription")
     def register_query(self, str sql, object args):
-        pass
+        errors._raise_not_supported("registering a query on a subscription")
 
-    @utils.CheckImpls("creating a subscription")
     def subscribe(self, object subscr, BaseConnImpl conn_impl):
-        pass
+        errors._raise_not_supported("creating a subscription")
 
-    @utils.CheckImpls("destroying a subscription")
     def unsubscribe(self, BaseConnImpl conn_impl):
-        pass
+        errors._raise_not_supported("destroying a subscription")
 
 
 cdef class Message:

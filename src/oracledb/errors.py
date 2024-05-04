@@ -182,6 +182,18 @@ def _raise_err(
     raise error.exc_type(error) from cause
 
 
+def _raise_not_supported(feature: str) -> None:
+    """
+    Raises an exception that the specified feature is not supported. This is
+    used as the default implementation of all functions for the implementation
+    objects.
+    """
+    driver_type = "thick" if is_thin_mode() else "thin"
+    _raise_err(
+        ERR_FEATURE_NOT_SUPPORTED, feature=feature, driver_type=driver_type
+    )
+
+
 # prefix used for all error messages
 ERR_PREFIX = "DPY"
 

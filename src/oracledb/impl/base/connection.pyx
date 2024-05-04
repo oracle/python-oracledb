@@ -170,23 +170,19 @@ cdef class BaseConnImpl:
         """
         raise NotImplementedError()
 
-    @utils.CheckImpls("getting a connection OCI attribute")
     def _get_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type):
-        pass
+        errors._raise_not_supported("getting a connection OCI attribute")
 
-    @utils.CheckImpls("setting a connection OCI attribute")
     def _set_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type, object value):
-        pass
+        errors._raise_not_supported("setting a connection OCI attribute")
 
-    @utils.CheckImpls("aborting a currently executing statement")
     def cancel(self):
-        pass
+        errors._raise_not_supported("aborting a currently executing statement")
 
-    @utils.CheckImpls("changing a password")
     def change_password(self, old_password, new_password):
-        pass
+        errors._raise_not_supported("changing a password")
 
     def decode_oson(self, bytes data):
         """
@@ -203,17 +199,14 @@ cdef class BaseConnImpl:
         encoder.encode(value, self._oson_max_fname_size)
         return encoder._data[:encoder._pos]
 
-    @utils.CheckImpls("checking if the connection is healthy")
     def get_is_healthy(self):
-        pass
+        errors._raise_not_supported("checking if the connection is healthy")
 
-    @utils.CheckImpls("closing a connection")
     def close(self, in_del=False):
-        pass
+        errors._raise_not_supported("closing a connection")
 
-    @utils.CheckImpls("committing a transaction")
     def commit(self):
-        pass
+        errors._raise_not_supported("committing a transaction")
 
     def create_cursor_impl(self, bint scrollable):
         """
@@ -225,171 +218,144 @@ cdef class BaseConnImpl:
         cursor_impl.prefetchrows = C_DEFAULTS.prefetchrows
         return cursor_impl
 
-    @utils.CheckImpls("creating a queue")
     def create_queue_impl(self):
-        pass
+        errors._raise_not_supported("creating a queue")
 
-    @utils.CheckImpls("creating a SODA database object")
     def create_soda_database_impl(self, conn):
-        pass
+        errors._raise_not_supported("creating a SODA database object")
 
-    @utils.CheckImpls("creating a subscription")
     def create_subscr_impl(self, object conn, object callback,
                            uint32_t namespace, str name, uint32_t protocol,
                            str ip_address, uint32_t port, uint32_t timeout,
                            uint32_t operations, uint32_t qos,
                            uint8_t grouping_class, uint32_t grouping_value,
                            uint8_t grouping_type, bint client_initiated):
-        pass
+        errors._raise_not_supported("creating a subscription")
 
-    @utils.CheckImpls("creating a temporary LOB")
     def create_temp_lob_impl(self, DbType dbtype):
-        pass
+        errors._raise_not_supported("creating a temporary LOB")
 
-    @utils.CheckImpls("getting the call timeout")
     def get_call_timeout(self):
-        pass
+        errors._raise_not_supported("getting the call timeout")
 
-    @utils.CheckImpls("getting the current schema")
     def get_current_schema(self):
-        pass
+        errors._raise_not_supported("getting the current schema")
 
-    @utils.CheckImpls("getting the database domain name")
     def get_db_domain(self):
-        pass
+        errors._raise_not_supported("getting the database domain name")
 
-    @utils.CheckImpls("getting the database name")
     def get_db_name(self):
-        pass
+        errors._raise_not_supported("getting the database name")
 
-    @utils.CheckImpls("getting the edition")
     def get_edition(self):
-        pass
+        errors._raise_not_supported("getting the edition")
 
-    @utils.CheckImpls("getting the external name")
     def get_external_name(self):
-        pass
+        errors._raise_not_supported("getting the external name")
 
-    @utils.CheckImpls("getting the OCI service context handle")
     def get_handle(self):
-        pass
+        errors._raise_not_supported("getting the OCI service context handle")
 
-    @utils.CheckImpls("getting the instance name")
     def get_instance_name(self):
-        pass
+        errors._raise_not_supported("getting the instance name")
 
-    @utils.CheckImpls("getting the internal name")
     def get_internal_name(self):
-        pass
+        errors._raise_not_supported("getting the internal name")
 
-    @utils.CheckImpls("getting the logical transaction id")
     def get_ltxid(self):
-        pass
+        errors._raise_not_supported("getting the logical transaction id")
 
-    @utils.CheckImpls("getting the maximum number of open cursors")
     def get_max_open_cursors(self):
-        pass
+        errors._raise_not_supported(
+            "getting the maximum number of open cursors"
+        )
 
-    @utils.CheckImpls("getting the session data unit (SDU)")
     def get_sdu(self):
-        pass
+        errors._raise_not_supported("getting the session data unit (SDU)")
 
-    @utils.CheckImpls("getting the service name")
     def get_service_name(self):
-        pass
+        errors._raise_not_supported("getting the service name")
 
-    @utils.CheckImpls("getting the statement cache size")
     def get_stmt_cache_size(self):
-        pass
+        errors._raise_not_supported("getting the statement cache size")
 
-    @utils.CheckImpls("getting if a transaction is in progress")
     def get_transaction_in_progress(self):
-        pass
+        errors._raise_not_supported("getting if a transaction is in progress")
 
-    @utils.CheckImpls("getting an object type")
     def get_type(self, object conn, str name):
-        pass
+        errors._raise_not_supported("getting an object type")
 
-    @utils.CheckImpls("pinging the database")
     def ping(self):
-        pass
+        errors._raise_not_supported("pinging the database")
 
-    @utils.CheckImpls("rolling back a transaction")
     def rollback(self):
-        pass
+        errors._raise_not_supported("rolling back a transaction")
 
-    @utils.CheckImpls("setting the action")
     def set_action(self, value):
-        pass
+        errors._raise_not_supported("setting the action")
 
-    @utils.CheckImpls("setting the call timeout")
     def set_call_timeout(self, value):
-        pass
+        errors._raise_not_supported("setting the call timeout")
 
-    @utils.CheckImpls("setting the client identifier")
     def set_client_identifier(self, value):
-        pass
+        errors._raise_not_supported("setting the client identifier")
 
-    @utils.CheckImpls("setting the client info")
     def set_client_info(self, value):
-        pass
+        errors._raise_not_supported("setting the client info")
 
-    @utils.CheckImpls("setting the current schema")
     def set_current_schema(self, value):
-        pass
+        errors._raise_not_supported("setting the current schema")
 
-    @utils.CheckImpls("setting the database operation")
     def set_dbop(self, value):
-        pass
+        errors._raise_not_supported("setting the database operation")
 
-    @utils.CheckImpls("setting the execution context id")
     def set_econtext_id(self, value):
-        pass
+        errors._raise_not_supported("setting the execution context id")
 
-    @utils.CheckImpls("setting the external name")
     def set_external_name(self, value):
-        pass
+        errors._raise_not_supported("setting the external name")
 
-    @utils.CheckImpls("setting the internal name")
     def set_internal_name(self, value):
-        pass
+        errors._raise_not_supported("setting the internal name")
 
-    @utils.CheckImpls("setting the module")
     def set_module(self, value):
-        pass
+        errors._raise_not_supported("setting the module")
 
-    @utils.CheckImpls("setting the statement cache size")
     def set_stmt_cache_size(self, value):
-        pass
+        errors._raise_not_supported("setting the statement cache size")
 
-    @utils.CheckImpls("shutting down the database")
     def shutdown(self, uint32_t mode):
-        pass
+        errors._raise_not_supported("shutting down the database")
 
-    @utils.CheckImpls("starting up the database")
     def startup(self, bint force, bint restrict, str pfile):
-        pass
+        errors._raise_not_supported("starting up the database")
 
-    @utils.CheckImpls("starting a TPC (two-phase commit) transaction")
     def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
-        pass
+        errors._raise_not_supported(
+            "starting a TPC (two-phase commit) transaction"
+        )
 
-    @utils.CheckImpls("committing a TPC (two-phase commit) transaction")
     def tpc_commit(self, xid, bint one_phase):
-        pass
+        errors._raise_not_supported(
+            "committing a TPC (two-phase commit) transaction"
+        )
 
-    @utils.CheckImpls("ending a TPC (two-phase commit) transaction")
     def tpc_end(self, xid, uint32_t flags):
-        pass
+        errors._raise_not_supported(
+            "ending a TPC (two-phase commit) transaction"
+        )
 
-    @utils.CheckImpls("forgetting a TPC (two-phase commit) transaction")
     def tpc_forget(self, xid):
-        pass
+        errors._raise_not_supported(
+            "forgetting a TPC (two-phase commit) transaction"
+        )
 
-    @utils.CheckImpls("preparing a TPC (two-phase commit) transaction")
     def tpc_prepare(self, xid):
-        pass
+        errors._raise_not_supported(
+            "preparing a TPC (two-phase commit) transaction"
+        )
 
-    @utils.CheckImpls("rolling back a TPC (two-phase commit) transaction")
     def tpc_rollback(self, xid):
-        pass
+        errors._raise_not_supported(
+            "rolling back a TPC (two-phase commit) transaction"
+        )

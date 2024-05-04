@@ -477,7 +477,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         common_params.stmtCacheSize = user_params.stmtcachesize
         conn_params.authMode = user_params.mode
         conn_params.matchAnyTag = user_params.matchanytag
-        if user_params._default_description.purity != constants.PURITY_DEFAULT:
+        if user_params._default_description.purity != PURITY_DEFAULT:
             conn_params.purity = user_params._default_description.purity
         elif pool_impl is not None:
             conn_params.purity = pool_params._default_description.purity

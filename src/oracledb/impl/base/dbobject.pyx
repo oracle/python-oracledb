@@ -66,49 +66,42 @@ cdef class BaseDbObjectImpl:
                               max_size=self.type.element_max_size)
         self.append_checked(value)
 
-    @utils.CheckImpls("appending a value to a collection")
     def append_checked(self, object value):
-        pass
+        errors._raise_not_supported("appending a value to a collection")
 
-    @utils.CheckImpls("creating a copy of an object")
     def copy(self):
-        pass
+        errors._raise_not_supported("creating a copy of an object")
 
-    @utils.CheckImpls("deleting an element in a collection")
     def delete_by_index(self, int32_t index):
-        pass
+        errors._raise_not_supported("deleting an element in a collection")
 
-    @utils.CheckImpls("determining if an entry exists in a collection")
     def exists_by_index(self, int32_t index):
-        pass
+        errors._raise_not_supported(
+            "determining if an entry exists in a collection"
+        )
 
-    @utils.CheckImpls("getting an attribute value")
     def get_attr_value(self, BaseDbObjectAttrImpl attr):
-        pass
+        errors._raise_not_supported("getting an attribute value")
 
-    @utils.CheckImpls("getting an element of a collection")
     def get_element_by_index(self, int32_t index):
-        pass
+        errors._raise_not_supported("getting an element of a collection")
 
-    @utils.CheckImpls("getting the first index of a collection")
     def get_first_index(self):
-        pass
+        errors._raise_not_supported("getting the first index of a collection")
 
-    @utils.CheckImpls("getting the last index of a collection")
     def get_last_index(self):
-        pass
+        errors._raise_not_supported("getting the last index of a collection")
 
-    @utils.CheckImpls("getting the next index of a collection")
     def get_next_index(self, int32_t index):
-        pass
+        errors._raise_not_supported("getting the next index of a collection")
 
-    @utils.CheckImpls("getting the previous index of a collection")
     def get_prev_index(self, int32_t index):
-        pass
+        errors._raise_not_supported(
+            "getting the previous index of a collection"
+        )
 
-    @utils.CheckImpls("getting the size of a collection")
     def get_size(self):
-        pass
+        errors._raise_not_supported("getting the size of a collection")
 
     def set_attr_value(self, BaseDbObjectAttrImpl attr, object value):
         """
@@ -128,9 +121,8 @@ cdef class BaseDbObjectImpl:
                               actual_size=actual_size, max_size=attr.max_size)
         self.set_attr_value_checked(attr, value)
 
-    @utils.CheckImpls("setting an attribute value")
     def set_attr_value_checked(self, BaseDbObjectAttrImpl attr, object value):
-        pass
+        errors._raise_not_supported("setting an attribute value")
 
     def set_element_by_index(self, int32_t index, object value):
         """
@@ -152,13 +144,11 @@ cdef class BaseDbObjectImpl:
                               max_size=self.type.element_max_size)
         self.set_element_by_index_checked(index, value)
 
-    @utils.CheckImpls("setting an element of a collection")
     def set_element_by_index_checked(self, int32_t index, object value):
-        pass
+        errors._raise_not_supported("setting an element of a collection")
 
-    @utils.CheckImpls("trimming elements from a collection")
     def trim(self, int32_t num_to_trim):
-        pass
+        errors._raise_not_supported("trimming elements from a collection")
 
 
 cdef class BaseDbObjectAttrImpl:
@@ -182,6 +172,5 @@ cdef class BaseDbObjectTypeImpl:
             return f"{self.schema}.{self.package_name}.{self.name}"
         return f"{self.schema}.{self.name}"
 
-    @utils.CheckImpls("creating a new object")
     def create_new_object(self):
-        pass
+        errors._raise_not_supported("creating a new object")
