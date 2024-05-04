@@ -132,13 +132,17 @@ cdef class StatementCache:
         """
         Initialize the statement cache.
         """
-        self._max_size = max_size
-        self._max_cursors = max_cursors
+        if max_cursors == 0:
+            self._max_size = 0
+            self._max_cursors = 1
+        else:
+            self._max_size = max_size
+            self._max_cursors = max_cursors
         self._cached_statements = collections.OrderedDict()
         self._lock = threading.Lock()
         self._open_cursors = set()
         self._cursors_to_close = array.array('I')
-        array.resize(self._cursors_to_close, max_cursors)
+        array.resize(self._cursors_to_close, self._max_cursors)
         self._num_cursors_to_close = 0
 
     cdef int resize(self, uint32_t new_size) except -1:

@@ -17,6 +17,8 @@ oracledb 2.3.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug in statement cache when the maximum number of cursors is unknown
+    due to the database not being open.
 #)  Fixed bug in handling redirect data with small SDU sizes.
 
 Thick Mode Changes
