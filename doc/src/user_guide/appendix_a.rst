@@ -302,9 +302,9 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Two-phase Commit (TPC)
-      - No
-      - Yes - improved support. See :ref:`tpc`.
+    * - Two-phase Commit (TPC) (see :ref:`tpc`)
+      - Yes
+      - Yes - improved support
       - Yes - limited support
     * - REF CURSORs and Nested Cursors
       - Yes

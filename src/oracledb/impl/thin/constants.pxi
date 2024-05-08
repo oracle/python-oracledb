@@ -608,6 +608,8 @@ cdef enum:
     TNS_FUNC_SESSION_GET = 162
     TNS_FUNC_SESSION_RELEASE = 163
     TNS_FUNC_SET_SCHEMA = 152
+    TNS_FUNC_TPC_TXN_SWITCH = 103
+    TNS_FUNC_TPC_TXN_CHANGE_STATE = 104
 
 # TTC authentication modes
 cdef enum:
@@ -742,6 +744,27 @@ cdef enum:
 cdef enum:
     TNS_ACCEPT_FLAG_FAST_AUTH = 0x10000000
     TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST = 0x02000000
+
+# transaction switching op codes
+cdef enum:
+    TNS_TPC_TXN_START = 0x01
+    TNS_TPC_TXN_DETACH = 0x02
+
+# transaction change state op codes
+cdef enum:
+    TNS_TPC_TXN_COMMIT = 0x01
+    TNS_TPC_TXN_ABORT = 0x02
+    TNS_TPC_TXN_PREPARE = 0x03
+    TNS_TPC_TXN_FORGET = 0x04
+
+# transaction states
+cdef enum:
+    TNS_TPC_TXN_STATE_PREPARE = 0
+    TNS_TPC_TXN_STATE_REQUIRES_COMMIT = 1
+    TNS_TPC_TXN_STATE_COMMITTED = 2
+    TNS_TPC_TXN_STATE_ABORTED = 3
+    TNS_TPC_TXN_STATE_READ_ONLY = 4
+    TNS_TPC_TXN_STATE_FORGOTTEN = 5
 
 # other constants
 cdef enum:

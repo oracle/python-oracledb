@@ -166,6 +166,178 @@ AsyncConnection Methods
 
     Rolls back any pending transaction.
 
+.. method:: AsyncConnection.tpc_begin(xid, flags, timeout)
+
+    Begins a Two-Phase Commit (TPC) on a global transaction using the specified
+    transaction identifier (xid).
+
+    The ``xid`` parameter should be an object returned by the
+    :meth:`~Connection.xid()` method.
+
+    The ``flags`` parameter is one of the constants
+    :data:`oracledb.TPC_BEGIN_JOIN`, :data:`oracledb.TPC_BEGIN_NEW`,
+    :data:`oracledb.TPC_BEGIN_PROMOTE`, or :data:`oracledb.TPC_BEGIN_RESUME`.
+    The default is :data:`oracledb.TPC_BEGIN_NEW`.
+
+    The ``timeout`` parameter is the number of seconds to wait for a
+    transaction to become available for resumption when
+    :data:`~oracledb.TPC_BEGIN_RESUME` is specified in the ``flags`` parameter.
+    When :data:`~oracledb.TPC_BEGIN_NEW` is specified in the ``flags``
+    parameter, the ``timeout`` parameter indicates the number of seconds the
+    transaction can be inactive before it is automatically terminated by the
+    system. A transaction is inactive between the time it is detached with
+    :meth:`AsyncConnection.tpc_end()` and the time it is resumed with
+    :meth:`AsyncConnection.tpc_begin()`.The default is 0 seconds.
+
+    The following code sample demonstrates the ``tpc_begin()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_begin(xid=x, flags=oracledb.TPC_BEGIN_NEW, timeout=30)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_commit(xid, one_phase)
+
+    Commits a global transaction. When called with no arguments, this method
+    commits a transaction previously prepared with
+    :meth:`~AsyncConnection.tpc_begin()` and optionally prepared with
+    :meth:`~AsyncConnection.tpc_prepare()`. If
+    :meth:`~AsyncConnection.tpc_prepare()` is not called, a single phase commit
+    is performed. A transaction manager may choose to do this if only a single
+    resource is participating in the global transaction.
+
+    If an ``xid`` parameter is passed, then an object should be returned by the
+    :meth:`~Connection.xid()` function. This form should be called outside of a
+    transaction and is intended for use in recovery.
+
+    The ``one_phase`` parameter is a boolean identifying whether to perform a
+    one-phase or two-phase commit. If ``one_phase`` parameter is True, a
+    single-phase commit is performed.  The default value is False. This
+    parameter is only examined if a value is provided for the ``xid``
+    parameter. Otherwise, the driver already knows whether
+    :meth:`~AsyncConnection.tpc_prepare()` was called for the transaction and
+    whether a one-phase or two-phase commit is required.
+
+    The following code sample demonstrates the ``tpc_commit()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_commit(xid=x, one_phase=False)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_end(xid, flags)
+
+    Ends or suspends work on a global transaction. This function is only
+    intended for use by transaction managers.
+
+    If an ``xid`` parameter is passed, then an object should be returned by the
+    :meth:`~Connection.xid()` function. If no xid parameter is passed, then the
+    transaction identifier used by the previous :meth:`~Connection.tpc_begin()`
+    is used.
+
+    The ``flags`` parameter is one of the constants
+    :data:`oracledb.TPC_END_NORMAL` or :data:`oracledb.TPC_END_SUSPEND`. The
+    default is :data:`oracledb.TPC_END_NORMAL`.
+
+    If the flag is :data:`oracledb.TPC_END_SUSPEND` then the transaction may be
+    resumed later by calling :meth:`AsyncConnection.tpc_begin()` with the flag
+    :data:`oracledb.TPC_BEGIN_RESUME`.
+
+    The following code sample demonstrates the ``tpc_end()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_end(xid=x, flags=oracledb.TPC_END_NORMAL)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_forget(xid)
+
+    Causes the database to forget a heuristically completed TPC transaction.
+    This function is only intended to be called by transaction managers.
+
+    The ``xid`` parameter is mandatory and should be an object should be
+    returned by the :meth:`~Connection.xid()` function.
+
+    The following code sample demonstrates the ``tpc_forget()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_forget(xid=x)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_prepare(xid)
+
+    Prepares a two-phase transaction for commit. After this function is called,
+    no further activity should take place on this connection until either
+    :meth:`~AsyncConnection.tpc_commit()` or
+    :meth:`~AsyncConnection.tpc_rollback()` have been called.
+
+    Returns a boolean indicating whether a commit is needed or not. If you
+    attempt to commit when not needed, then it results in the error
+    ``ORA-24756: transaction does not exist``.
+
+    If an ``xid`` parameter is passed, then an object should be returned by the
+    :meth:`~Connection.xid()` function. If an xid parameter is not passed, then
+    the transaction identifier used by the previous
+    :meth:`~AsyncConnection.tpc_begin()` is used.
+
+    The following code sample demonstrates the ``tpc_prepare()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_prepare(xid=x)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_recover()
+
+    Returns a list of pending transaction identifiers that require recovery.
+    Objects of type ``Xid`` (as returned by the :meth:`~Connection.xid()`
+    function) are returned and these can be passed to
+    :meth:`~AsyncConnection.tpc_commit()` or
+    :meth:`~AsyncConnection.tpc_rollback()` as needed.
+
+    This function queries the view ``DBA_PENDING_TRANSACTIONS`` and requires
+    ``SELECT`` privilege on that view.
+
+    The following code sample demonstrates the ``tpc_recover()`` function::
+
+        await connection.tpc_recover()
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
+.. method:: AsyncConnection.tpc_rollback(xid)
+
+    Rolls back a global transaction.
+
+    If an ``xid`` parameter is not passed, then it rolls back the transaction
+    that was previously started with :meth:`~AsyncConnection.tpc_begin()`.
+
+    If an ``xid`` parameter is passed, then an object should be returned by
+    :meth:`~Connection.xid()` and the specified transaction is rolled back.
+    This form should be called outside of a transaction and is intended for use
+    in recovery.
+
+    The following code sample demonstrates the ``tpc_rollback()`` function::
+
+        x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
+        await connection.tpc_rollback(xid=x)
+
+    See :ref:`tpc` for information on TPC.
+
+    .. versionadded:: 2.3.0
+
 .. _asynconnattr:
 
 AsyncConnection Attributes

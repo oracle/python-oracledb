@@ -20,6 +20,7 @@ Thin Mode Changes
 #)  Fixed bug in statement cache when the maximum number of cursors is unknown
     due to the database not being open.
 #)  Fixed bug in handling redirect data with small SDU sizes.
+#)  Added support for :ref:`two-phase commits <tpc>`.
 #)  Internal change: adjust handling of break/reset to avoid potential hangs in
     some configurations.
 
@@ -29,6 +30,13 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Error ``DPY-2049: invalid flags for tpc_begin()`` is now raised when
+    invalid flags are passed to :meth:`Connection.tpc_begin()`.  Previously,
+    ``TypeError`` or ``ORA-24759: invalid transaction start flags``
+    was raised instead.
+#)  Error ``DPY-2050: invalid flags for tpc_end()`` is now raised when invalid
+    flags are passed to :meth:`Connection.tpc_end()`. Previously, ``TypeError``
+    or ``DPI-1002: invalid OCI handle`` was raised instead.
 #)  Internal changes to ensure that no circular imports occur.
 
 

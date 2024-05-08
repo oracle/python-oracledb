@@ -255,6 +255,8 @@ ERR_INVALID_ARRAYSIZE = 2045
 ERR_CURSOR_HAS_BEEN_CLOSED = 2046
 ERR_INVALID_LOB_AMOUNT = 2047
 ERR_DML_RETURNING_DUP_BINDS = 2048
+ERR_INVALID_TPC_BEGIN_FLAGS = 2049
+ERR_INVALID_TPC_END_FLAGS = 2050
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -325,6 +327,7 @@ ERR_UNEXPECTED_END_OF_DATA = 5006
 ERR_UNEXPECTED_XML_TYPE = 5007
 ERR_TOO_MANY_CURSORS_TO_CLOSE = 5008
 ERR_UNKNOWN_SERVER_PIGGYBACK = 5009
+ERR_UNKNOWN_TRANSACTION_STATE = 5010
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -569,6 +572,8 @@ ERR_MESSAGE_FORMATS = {
         'SID "{sid}" is not registered with the listener at host "{host}" '
         "port {port}. (Similar to ORA-12505)"
     ),
+    ERR_INVALID_TPC_BEGIN_FLAGS: "invalid flags for tpc_begin()",
+    ERR_INVALID_TPC_END_FLAGS: "invalid flags for tpc_end()",
     ERR_INVALID_VECTOR: "vector cannot contain zero dimensions",
     ERR_KEYWORD_ARGS_MUST_BE_DICT: (
         '"keyword_parameters" argument must be a dict'
@@ -690,6 +695,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNEXPECTED_XML_TYPE: "unexpected XMLType with flag {flag}",
     ERR_UNKNOWN_SERVER_PIGGYBACK: (
         "internal error: unknown server side piggyback opcode {opcode}"
+    ),
+    ERR_UNKNOWN_TRANSACTION_STATE: (
+        "internal error: unknown transaction state {state}"
     ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"

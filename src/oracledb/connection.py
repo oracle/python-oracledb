@@ -83,6 +83,14 @@ class BaseConnection:
         if self._impl is None:
             errors._raise_err(errors.ERR_NOT_CONNECTED)
 
+    def _verify_xid(self, xid: Xid) -> None:
+        """
+        Verifies that the supplied xid is of the correct type.
+        """
+        if not isinstance(xid, Xid):
+            message = "expecting transaction id created with xid()"
+            raise TypeError(message)
+
     @property
     def action(self) -> None:
         raise AttributeError("action is not readable")
@@ -590,14 +598,6 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._impl._set_oci_attr(handle_type, attr_num, attr_type, value)
 
-    def _verify_xid(self, xid: Xid) -> None:
-        """
-        Verifies that the supplied xid is of the correct type.
-        """
-        if not isinstance(xid, Xid):
-            message = "expecting transaction id created with xid()"
-            raise TypeError(message)
-
     def begin(
         self,
         format_id: int = -1,
@@ -1026,6 +1026,13 @@ class Connection(BaseConnection):
         """
         self._verify_connected()
         self._verify_xid(xid)
+        if flags not in (
+            constants.TPC_BEGIN_NEW,
+            constants.TPC_BEGIN_JOIN,
+            constants.TPC_BEGIN_RESUME,
+            constants.TPC_BEGIN_PROMOTE,
+        ):
+            errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
         self._impl.tpc_begin(xid, flags, timeout)
 
     def tpc_commit(self, xid: Xid = None, one_phase: bool = False) -> None:
@@ -1057,6 +1064,8 @@ class Connection(BaseConnection):
         self._verify_connected()
         if xid is not None:
             self._verify_xid(xid)
+        if flags not in (constants.TPC_END_NORMAL, constants.TPC_END_SUSPEND):
+            errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
         self._impl.tpc_end(xid, flags)
 
     def tpc_forget(self, xid: Xid) -> None:
@@ -1691,6 +1700,117 @@ class AsyncConnection(BaseConnection):
         """
         self._verify_connected()
         await self._impl.rollback()
+
+    async def tpc_begin(
+        self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0
+    ) -> None:
+        """
+        Begins a TPC (two-phase commit) transaction with the given transaction
+        id. This method should be called outside of a transaction (i.e. nothing
+        may have executed since the last commit() or rollback() was performed).
+        """
+        self._verify_connected()
+        self._verify_xid(xid)
+        if flags not in (
+            constants.TPC_BEGIN_NEW,
+            constants.TPC_BEGIN_JOIN,
+            constants.TPC_BEGIN_RESUME,
+            constants.TPC_BEGIN_PROMOTE,
+        ):
+            errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
+        await self._impl.tpc_begin(xid, flags, timeout)
+
+    async def tpc_commit(
+        self, xid: Xid = None, one_phase: bool = False
+    ) -> None:
+        """
+        Prepare the global transaction for commit. Return a boolean indicating
+        if a transaction was actually prepared in order to avoid the error
+        ORA-24756 (transaction does not exist).
+
+        When called with no arguments, commits a transaction previously
+        prepared with tpc_prepare(). If tpc_prepare() is not called, a single
+        phase commit is performed. A transaction manager may choose to do this
+        if only a single resource is participating in the global transaction.
+
+        When called with a transaction id, the database commits the given
+        transaction. This form should be called outside of a transaction and is
+        intended for use in recovery.
+        """
+        self._verify_connected()
+        if xid is not None:
+            self._verify_xid(xid)
+        await self._impl.tpc_commit(xid, one_phase)
+
+    async def tpc_end(
+        self, xid: Xid = None, flags: int = constants.TPC_END_NORMAL
+    ) -> None:
+        """
+        Ends (detaches from) a TPC (two-phase commit) transaction.
+        """
+        self._verify_connected()
+        if xid is not None:
+            self._verify_xid(xid)
+        if flags not in (constants.TPC_END_NORMAL, constants.TPC_END_SUSPEND):
+            errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
+        await self._impl.tpc_end(xid, flags)
+
+    async def tpc_forget(self, xid: Xid) -> None:
+        """
+        Forgets a TPC (two-phase commit) transaction.
+        """
+        self._verify_connected()
+        self._verify_xid(xid)
+        await self._impl.tpc_forget(xid)
+
+    async def tpc_prepare(self, xid: Xid = None) -> bool:
+        """
+        Prepares a global transaction for commit. After calling this function,
+        no further activity should take place on this connection until either
+        tpc_commit() or tpc_rollback() have been called.
+
+        A boolean is returned indicating whether a commit is needed or not. If
+        a commit is performed when one is not needed the error ORA-24756:
+        transaction does not exist is raised.
+        """
+        self._verify_connected()
+        if xid is not None:
+            self._verify_xid(xid)
+        return await self._impl.tpc_prepare(xid)
+
+    async def tpc_recover(self) -> list:
+        """
+        Returns a list of pending transaction ids suitable for use with
+        tpc_commit() or tpc_rollback().
+
+        This function requires select privilege on the view
+        DBA_PENDING_TRANSACTIONS.
+        """
+        with self.cursor() as cursor:
+            cursor.rowfactory = Xid
+            await cursor.execute(
+                """
+                    select
+                        formatid,
+                        globalid,
+                        branchid
+                    from dba_pending_transactions"""
+            )
+            return await cursor.fetchall()
+
+    async def tpc_rollback(self, xid: Xid = None) -> None:
+        """
+        When called with no arguments, rolls back the transaction previously
+        started with tpc_begin().
+
+        When called with a transaction id, the database rolls back the given
+        transaction. This form should be called outside of a transaction and is
+        intended for use in recovery.
+        """
+        self._verify_connected()
+        if xid is not None:
+            self._verify_xid(xid)
+        await self._impl.tpc_rollback(xid)
 
 
 def _async_connection_factory(f):

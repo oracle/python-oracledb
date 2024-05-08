@@ -10,11 +10,6 @@ The python-oracledb functions :meth:`~Connection.tpc_begin()` and
 oracle-database/21/admin/distributed-transactions-concepts.html#GUID-8152084F-4760-4B89-
 A91C-9A84F81C23D1>`_ in the Oracle Database documentation.
 
-.. note::
-
-    The two-phase commit (TPC) functionality is only supported in the
-    python-oracledb Thick mode.  See :ref:`enablingthick`.
-
 The method :meth:`Connection.tpc_begin()` can be used to start a TPC
 transaction.
 
@@ -81,8 +76,6 @@ The following example shows how to perform an application level two-phase commit
 
     import oracledb
 
-    oracledb.init_oracle_client()
-
     # connect to first database and begin transaction
     conn1 = oracledb.connect(DSN1)
     xid1 = conn1.xid(1000, "txn1", "branch1")
@@ -111,8 +104,6 @@ The following example shows how to perform recovery.
 .. code-block:: python
 
     import oracledb
-
-    oracledb.init_oracle_client()
 
     with oracledb.connect(DSN, mode=oracledb.SYSDBA) as conn:
         for xid in conn.tpc_recover():

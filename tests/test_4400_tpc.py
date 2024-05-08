@@ -26,15 +26,10 @@
 4400 - Module for testing TPC (two-phase commit) transactions.
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipIf(
-    test_env.get_is_thin(), "thin mode doesn't support two-phase commit yet"
-)
 class TestCase(test_env.BaseTestCase):
     def test_4400(self):
         "4400 - test begin, prepare, roll back global transaction"
@@ -277,7 +272,6 @@ class TestCase(test_env.BaseTestCase):
             self.conn.tpc_commit(xid, one_phase=True)
         with self.assertRaisesFullCode("ORA-24756"):
             self.conn.tpc_commit(xid)
-        self.conn.tpc_rollback(xid)
 
     def test_4411(self):
         "4411 - test starting an already created transaction"
@@ -308,15 +302,15 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4413, "txn4413", "branch1")
         test_values = [
-            (self.conn.tpc_begin, "ORA-24759"),
-            (self.conn.tpc_end, "DPI-1002"),
+            (self.conn.tpc_begin, "DPY-2049"),
+            (self.conn.tpc_end, "DPY-2050"),
         ]
         for tpc_function, error_code in test_values:
             self.assertRaises(TypeError, tpc_function, "invalid xid")
-            self.assertRaises(TypeError, tpc_function, xid, "invalid flag")
+            with self.assertRaisesFullCode(error_code):
+                tpc_function(xid, "invalid flag")
             with self.assertRaisesFullCode(error_code):
                 tpc_function(xid, 70)
-        self.conn.tpc_rollback(xid)
 
     def test_4414(self):
         "4414 - test commiting transaction without tpc_commit"

@@ -171,8 +171,12 @@ cdef class Protocol(BaseProtocol):
             # applicable
             if self._transport is not None:
                 if self._txn_in_progress:
-                    message = conn_impl._create_message(RollbackMessage)
+                    if conn_impl._transaction_context is not None:
+                        message = conn_impl._create_tpc_rollback_message()
+                    else:
+                        message = conn_impl._create_message(RollbackMessage)
                     self._process_message(message)
+                    conn_impl._transaction_context = None
                 if conn_impl._drcp_enabled:
                     self._release_drcp_session(conn_impl, release_mode)
                     conn_impl._drcp_establish_session = True

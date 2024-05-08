@@ -69,12 +69,25 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bytes _combo_key
         str _connection_id
         bint _is_pool_extra
+        bytes _transaction_context
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:
             errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
         BaseConnImpl.__init__(self, dsn, params)
         self.thin = True
+
+    cdef int _check_tpc_commit_state(self, uint32_t state,
+                                     bint one_phase) except -1:
+        """
+        Check the state returned by the tpc_commit() call.
+        """
+        if one_phase and state not in (TNS_TPC_TXN_STATE_READ_ONLY,
+                                       TNS_TPC_TXN_STATE_COMMITTED) \
+                or not one_phase and state != TNS_TPC_TXN_STATE_FORGOTTEN:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                              state=state)
+        self._transaction_context = None
 
     cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
                                           bytes locator=None):
@@ -99,6 +112,35 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         cdef Message message
         message = typ.__new__(typ)
         message._initialize(self)
+        return message
+
+    cdef TransactionChangeStateMessage _create_tpc_commit_message(
+            self, object xid, bint one_phase
+    ):
+        """
+        Creates a two-phase commit message suitable for committing a
+        transaction.
+        """
+        cdef TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_COMMIT
+        message.state = TNS_TPC_TXN_STATE_READ_ONLY if one_phase \
+                else TNS_TPC_TXN_STATE_COMMITTED
+        message.xid = xid
+        message.context = self._transaction_context
+        return message
+
+    cdef Message _create_tpc_rollback_message(self, object xid=None):
+        """
+        Creates a two-phase commit rollback message suitable for use in both
+        the close() method and explicitly by the user.
+        """
+        cdef TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_ABORT
+        message.state = TNS_TPC_TXN_STATE_ABORTED
+        message.xid = xid
+        message.context = self._transaction_context
         return message
 
     cdef int _force_close(self) except -1:
@@ -408,6 +450,65 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         self._protocol._transport.set_timeout(value / 1000)
         self._call_timeout = value
 
+    def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_START
+        message.xid = xid
+        message.flags = flags
+        message.timeout = timeout
+        protocol._process_single_message(message)
+        self._transaction_context = message.context
+
+    def tpc_commit(self, xid, bint one_phase):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_tpc_commit_message(xid, one_phase)
+        protocol._process_single_message(message)
+        self._check_tpc_commit_state(message.state, one_phase)
+
+    def tpc_end(self, xid, uint32_t flags):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.xid = xid
+        message.context = self._transaction_context
+        message.flags = flags
+        protocol._process_single_message(message)
+        self._transaction_context = None
+
+    def tpc_prepare(self, xid):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_PREPARE
+        message.xid = xid
+        message.context = self._transaction_context
+        protocol._process_single_message(message)
+        if message.state == TNS_TPC_TXN_STATE_REQUIRES_COMMIT:
+            return True
+        elif message.state == TNS_TPC_TXN_STATE_READ_ONLY:
+            return False
+        errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                          state=message.state)
+
+    def tpc_rollback(self, xid):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_tpc_rollback_message(xid)
+        protocol._process_single_message(message)
+        if message.state != TNS_TPC_TXN_STATE_ABORTED:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                              state=message.state)
+        self._transaction_context = None
+
 
 cdef class AsyncThinConnImpl(BaseThinConnImpl):
 
@@ -569,3 +670,62 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
 
     def set_call_timeout(self, uint32_t value):
         self._call_timeout = value
+
+    async def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_START
+        message.xid = xid
+        message.flags = flags
+        message.timeout = timeout
+        await protocol._process_single_message(message)
+        self._transaction_context = message.context
+
+    async def tpc_commit(self, xid, bint one_phase):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_tpc_commit_message(xid, one_phase)
+        await protocol._process_single_message(message)
+        self._check_tpc_commit_state(message.state, one_phase)
+
+    async def tpc_end(self, xid, uint32_t flags):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.xid = xid
+        message.context = self._transaction_context
+        message.flags = flags
+        await protocol._process_single_message(message)
+        self._transaction_context = None
+
+    async def tpc_prepare(self, xid):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_PREPARE
+        message.xid = xid
+        message.context = self._transaction_context
+        await protocol._process_single_message(message)
+        if message.state == TNS_TPC_TXN_STATE_REQUIRES_COMMIT:
+            return True
+        elif message.state == TNS_TPC_TXN_STATE_READ_ONLY:
+            return False
+        errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                          state=message.state)
+
+    async def tpc_rollback(self, xid):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionChangeStateMessage message
+        message = self._create_tpc_rollback_message(xid)
+        await protocol._process_single_message(message)
+        if message.state != TNS_TPC_TXN_STATE_ABORTED:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                              state=message.state)
+        self._transaction_context = None
