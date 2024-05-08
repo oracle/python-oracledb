@@ -221,6 +221,7 @@ def get_connect_params():
         config_dir=wallet_location,
         wallet_location=wallet_location,
         wallet_password=get_wallet_password(),
+        disable_oob=True,
     )
 
 
