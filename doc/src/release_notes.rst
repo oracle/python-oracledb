@@ -20,6 +20,8 @@ Thin Mode Changes
 #)  Fixed bug in statement cache when the maximum number of cursors is unknown
     due to the database not being open.
 #)  Fixed bug in handling redirect data with small SDU sizes.
+#)  Internal change: adjust handling of break/reset to avoid potential hangs in
+    some configurations.
 
 Thick Mode Changes
 ++++++++++++++++++

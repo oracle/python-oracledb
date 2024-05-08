@@ -466,7 +466,10 @@ cdef class Protocol(BaseProtocol):
     cdef int _reset(self, Message message) except -1:
         cdef uint8_t marker_type, packet_type
 
-        # read and discard all packets until a marker packet is received
+        # send reset marker
+        self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+
+        # read and discard all packets until a reset marker is received
         while True:
             packet_type = self._read_buf._current_packet.packet_type
             if packet_type == TNS_PACKET_TYPE_MARKER:
@@ -476,12 +479,11 @@ cdef class Protocol(BaseProtocol):
                     break
             self._read_buf.wait_for_packets_sync()
 
-        # send reset marker and then read error packet; first skip as many
-        # marker packets as may be sent by the server; if the server doesn't
-        # handle out-of-band breaks properly, some quit immediately and others
-        # send multiple reset markers (this addresses both situations without
-        # resulting in strange errors)
-        self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+        # read error packet; first skip as many marker packets as may be sent
+        # by the server; if the server doesn't handle out-of-band breaks
+        # properly, some quit immediately and others send multiple reset
+        # markers (this addresses both situations without resulting in strange
+        # errors)
         while packet_type == TNS_PACKET_TYPE_MARKER:
             self._read_buf.wait_for_packets_sync()
             packet_type = self._read_buf._current_packet.packet_type
@@ -842,7 +844,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
     async def _reset(self):
         cdef uint8_t marker_type, packet_type
 
-        # read and discard all packets until a marker packet is received
+        # send reset marker
+        self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+
+        # read and discard all packets until a reset marker is received
         while True:
             packet_type = self._read_buf._current_packet.packet_type
             if packet_type == TNS_PACKET_TYPE_MARKER:
@@ -852,12 +857,11 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                     break
             await self._read_buf.wait_for_packets_async()
 
-        # send reset marker and then read error packet; first skip as many
-        # marker packets as may be sent by the server; if the server doesn't
-        # handle out-of-band breaks properly, some quit immediately and others
-        # send multiple reset markers (this addresses both situations without
-        # resulting in strange errors)
-        self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+        # read error packet; first skip as many marker packets as may be sent
+        # by the server; if the server doesn't handle out-of-band breaks
+        # properly, some quit immediately and others send multiple reset
+        # markers (this addresses both situations without resulting in strange
+        # errors)
         while packet_type == TNS_PACKET_TYPE_MARKER:
             await self._read_buf.wait_for_packets_async()
             packet_type = self._read_buf._current_packet.packet_type
