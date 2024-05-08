@@ -67,7 +67,7 @@ PoolParams Attributes
   Connection or a subclass of Connection. This attribute is of type
   Type["oracledb.connection"].  The default value is ``oracledb.Connection``.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.getmode
 
@@ -78,7 +78,7 @@ PoolParams Attributes
   or :data:`oracledb.POOL_GETMODE_TIMEDWAIT`.  The default value is
   :data:`oracledb.POOL_GETMODE_WAIT`.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.homogeneous
 
@@ -86,7 +86,7 @@ PoolParams Attributes
   are :ref:`homogeneous <connpooltypes>` (same user) or heterogeneous (multiple
   users).  The default value is True.
 
-  This attribute is only supported in the python-oracledb Thick mode. The
+  This attribute is only supported in python-oracledb Thick mode. The
   python-oracledb Thin mode supports only homogeneous modes.
 
 .. attribute:: PoolParams.increment
@@ -95,21 +95,21 @@ PoolParams Attributes
   be added to the pool whenever a new connection needs to be created. The
   default value is 1.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.min
 
   This read-only attribute is an integer that specifies the minimum number of
   connections that the pool should contain. The default value is 1.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.max
 
   This read-only attribute specifies the maximum number of connections that
   the pool should contain. The default value is 2.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.max_lifetime_session
 
@@ -118,7 +118,7 @@ PoolParams Attributes
   attribute is 0, then the connections may remain in the pool indefinitely.
   The default value is 0 seconds.
 
-  This attribute is only supported in the python-oracledb Thick mode.
+  This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: PoolParams.max_sessions_per_shard
 
@@ -126,7 +126,7 @@ PoolParams Attributes
   connections that may be associated with a particular shard. The default value
   is 0.
 
-  This attribute is only supported in the python-oracledb Thick mode.
+  This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: PoolParams.ping_interval
 
@@ -139,7 +139,7 @@ PoolParams Attributes
   value, then the ping functionality will be disabled. The default value is 60
   seconds.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.session_callback
 
@@ -147,14 +147,14 @@ PoolParams Attributes
   a connection is returned from the pool for the first time, or when the
   connection tag differs from the one requested.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.soda_metadata_cache
 
   This read-only attribute is a boolean that indicates whether
   SODA metadata cache should be enabled or not. The default value is False.
 
-  This attribute is only supported in the python-oracledb Thick mode.
+  This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: PoolParams.timeout
 
@@ -163,7 +163,7 @@ PoolParams Attributes
   terminated. If the value of this attribute is 0, then the connections are
   never terminated. The default value is 0 seconds.
 
-  This attribute is only supported in the python-oracledb Thick mode.
+  This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: PoolParams.wait_timeout
 
@@ -172,4 +172,4 @@ PoolParams Attributes
   from the pool with :attr:`~PoolParams.getmode` set to
   :data:`~oracledb.POOLGETMODE_TIMEDWAIT`. The default value is 0 milliseconds.
 
-  This attribute is supported in the python-oracledb Thin and Thick modes.
+  This attribute is supported in both python-oracledb Thin and Thick modes.

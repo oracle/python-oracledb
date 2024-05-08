@@ -91,14 +91,14 @@ ConnectParams Attributes
     used by the connection. It is a list of 3-tuples that includes the
     namespace, name, and value.  Each entry in the tuple is a string.
 
-    This attribute is only supported in the python-oracledb Thick mode.
+    This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.cclass
 
     This read-only attribute is a string that specifies the connection class
     to use for Database Resident Connection Pooling (DRCP).
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.config_dir
 
@@ -106,10 +106,10 @@ ConnectParams Attributes
     the configuration files such as tnsnames.ora are found. The default is the
     value of :attr:`defaults.config_dir`.
 
-    This attribute is only supported in the python-oracledb Thin mode.
+    This attribute is only supported in python-oracledb Thin mode.
 
-    For the python-oracledb Thick mode, use the ``config_dir`` parameter of
-    :func:`oracledb.init_oracle_client`.
+    For python-oracledb Thick mode, use the ``config_dir`` parameter of
+    :meth:`oracledb.init_oracle_client()`.
 
 .. attribute:: ConnectParams.connection_id_prefix
 
@@ -117,6 +117,8 @@ ConnectParams Attributes
     generated ``connection_id`` that is sent to the database for
     `tracing <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-B0FC69F9-2EBC-44E8-ACB2-62FBA14ABD5C>`__.
+
+    This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 1.4.0
 
@@ -128,8 +130,9 @@ ConnectParams Attributes
     PL/SQL code invoked by the python-oracledb driver. The default value is the
     value of the environment variable ``ORA_DEBUG_JDWP``.
 
-    This attribute is only supported in the python-oracledb Thin mode. For
-    the python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment
+    This attribute is only supported in python-oracledb Thin mode.
+
+    For python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment
     variable which has the same syntax. See :ref:`applntracing` for more
     information.
 
@@ -139,9 +142,9 @@ ConnectParams Attributes
     breaks should be disabled. The default value is False. Note that this value
     has no effect on Windows, which does not support this functionality.
 
-    This attribute is only supported in the python-oracledb Thin mode.
+    This attribute is only supported in python-oracledb Thin mode.
 
-    For the python-oracledb Thick mode, set the equivalent option in a
+    For python-oracledb Thick mode, set the equivalent option in a
     ``sqlnet.ora`` file.
 
 .. attribute:: ConnectParams.edition
@@ -150,7 +153,7 @@ ConnectParams Attributes
     for the connection. This attribute cannot be used simultaneously with the
     :attr:`ConnectParams.cclass` attribute.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.events
 
@@ -160,7 +163,7 @@ ConnectParams Attributes
     This attribute is needed for continuous query notification (CQN) and high
     availability event notifications. The default value is False.
 
-    This attribute is only supported in the python-oracledb Thick mode.
+    This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.expire_time
 
@@ -170,7 +173,7 @@ ConnectParams Attributes
     The default value is 0. If this attribute is set to a value greater than
     zero, it enables keepalive.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.externalauth
 
@@ -182,42 +185,42 @@ ConnectParams Attributes
     are not used, you can optionally set the ``externalauth`` attribute to
     True, which may aid code auditing.
 
-    This attribute is only supported in the python-oracledb Thick mode.
+    This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.host
 
     This read-only attribute is a string that returns the name or IP address of
     the machine hosting the database.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.https_proxy
 
     This read-only attribute is a string that returns the name or IP address of
     a proxy host that is to be used for tunneling secure connections.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.https_proxy_port
 
     This read-only attribute is an integer that returns the port to be used to
     communicate with the proxy host. The default value is 0.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.matchanytag
 
     This read-only attribute is a boolean that specifies whether any tag can be
     used when acquiring a connection from the pool. The default value is False.
 
-    This attribute is only supported in the python-oracledb Thick mode.
+    This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.mode
 
     This read-only attribute is an integer that specifies the authorization mode
     to use. The default value is :data:`~oracledb.AUTH_MODE_DEFAULT`.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.pool_boundary
 
@@ -233,7 +236,7 @@ ConnectParams Attributes
     This attribute requires the use of DRCP or PRCP with Oracle Database 23ai
     (or later). See :ref:`implicitconnpool` for more information.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionadded:: 2.1.0
 
@@ -242,7 +245,7 @@ ConnectParams Attributes
     This read-only attribute is an integer that returns the port number on
     which the database listener is listening. The default value is 1521.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.protocol
 
@@ -250,7 +253,7 @@ ConnectParams Attributes
     network traffic or encrypted network traffic (TLS) is used and it can have
     the value "tcp" or "tcps". The default value is "tcp".
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.proxy_user
 
@@ -258,8 +261,7 @@ ConnectParams Attributes
     user to connect to.  If this value is not specified, then it will be parsed
     out of the user if the user attribute is in the form "user[proxy_user]".
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
-
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.purity
 
@@ -269,7 +271,7 @@ ConnectParams Attributes
     pooled connection will use :attr:`oracledb.PURITY_SELF`. The default value
     is :data:`~oracledb.PURITY_DEFAULT`.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.retry_count
 
@@ -277,14 +279,14 @@ ConnectParams Attributes
     that a connection attempt should be retried before the attempt is
     terminated. The default value is 0.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.retry_delay
 
     This read-only attribute is an integer that returns the number of seconds
     to wait before making a new connection attempt. The default value is 0.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.sdu
 
@@ -298,7 +300,7 @@ ConnectParams Attributes
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__ for more details.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionadded:: 2.0.0
 
@@ -308,28 +310,28 @@ ConnectParams Attributes
     connection that should be established. If specified, it should be one of
     `dedicated`, `shared`, or `pooled`.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.service_name
 
     This read-only attribute is a string that returns the service name of the
     database.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.shardingkey
 
     This read-only attribute is a list that specifies a sequence of strings,
     numbers, bytes, or dates that identify the database shard to connect to.
 
-    This attribute is only supported in the python-oracledb Thick mode.
+    This attribute is only supported in python-oracledb Thick mode.
 
 .. attribute:: ConnectParams.sid
 
     This read-only attribute is a string that returns the SID of the database.
     It is recommended to use the :attr:`ConnectParams.service_name` instead.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.ssl_context
 
@@ -340,7 +342,7 @@ ConnectParams Attributes
     supplied wallet. This parameter should only be specified if the default
     SSLContext object cannot be used.
 
-    This attribute is only supported in the python-oracledb Thin mode.
+    This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 2.0.0
 
@@ -353,7 +355,7 @@ ConnectParams Attributes
     This value is ignored if the :attr:`~ConnectParams.ssl_server_dn_match`
     attribute is not set to the value `True`.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.ssl_server_dn_match
 
@@ -365,7 +367,7 @@ ConnectParams Attributes
     Note that if the :attr:`~ConnectParams.ssl_server_cert_dn` attribute is not
     specified, then host name matching is performed instead.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.stmtcachesize
 
@@ -373,7 +375,7 @@ ConnectParams Attributes
     the statement cache.  The default is the value of
     :attr:`defaults.stmtcachesize`.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.supershardingkey
 
@@ -395,7 +397,7 @@ ConnectParams Attributes
     seconds to wait for a connection to be established to the database host.
     The default value is 60.0.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.use_tcp_fast_open
 
@@ -407,7 +409,7 @@ ConnectParams Attributes
     after a connection has been established. This feature is only available
     with certain versions of ADB-S. The default value is False.
 
-    This attribute is used in both python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionadded:: 2.1.0
 
@@ -416,7 +418,7 @@ ConnectParams Attributes
     This read-only attribute is a string that specifies the name of the user to
     connect to.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.wallet_location
 
@@ -427,4 +429,4 @@ ConnectParams Attributes
     the PEM-encoded wallet file, ewallet.pem. In python-oracledb Thick mode,
     this attribute is the directory containing the file, cwallet.sso.
 
-    This attribute is supported in the python-oracledb Thin and Thick modes.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
