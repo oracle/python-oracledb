@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2024 Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -50,9 +50,10 @@ if sample_env.get_server_version() < (23, 4):
 
 # this script works with thin mode, or with thick mode using Oracle Client 23.4
 # or later
-if not connection.thin:
+if not connection.thin and oracledb.clientversion()[:2] < (23, 4):
     sys.exit(
-        "This example requires python-oracledb thin mode. Try vector_string.py"
+        "This example requires python-oracledb thin mode, or Oracle Client"
+        " 23.4 or later"
     )
 
 with connection.cursor() as cursor:
