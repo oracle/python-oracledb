@@ -1045,7 +1045,7 @@ oracledb 1.0.0 (May 2022)
     errors when calling :meth:`ConnectionPool.acquire()` during pool growth.
 #)  Connection pools in python-oracledb Thin mode support all :ref:`connection
     mode privileges <connection-authorization-modes>`.
-#)  Added new :ref:`Two-phase commit <tcp>` functionality.
+#)  Added new :ref:`Two-phase commit <tpc>` functionality.
 #)  Added :meth:`Connection.is_healthy()` to do a local check of a connection's
     health.
 #)  Added a boolean parameter ``cache_statement`` to :meth:`Cursor.prepare()`,

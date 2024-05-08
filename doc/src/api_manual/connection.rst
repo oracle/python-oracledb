@@ -394,7 +394,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_begin(xid=x, flags=oracledb.TPC_BEGIN_NEW, timeout=30)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_commit(xid, one_phase)
 
@@ -420,7 +420,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_commit(xid=x, one_phase=False)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_end(xid, flags)
 
@@ -443,7 +443,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_end(xid=x, flags=oracledb.TPC_END_NORMAL)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_forget(xid)
 
@@ -458,7 +458,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_forget(xid=x)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_prepare(xid)
 
@@ -480,7 +480,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_prepare(xid=x)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_recover()
 
@@ -497,7 +497,7 @@ Connection Methods
         connection.tpc_recover()
 
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.tpc_rollback(xid)
 
@@ -515,7 +515,7 @@ Connection Methods
         x = connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
         connection.tpc_rollback(xid=x)
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. method:: Connection.unsubscribe(subscr)
 
@@ -546,7 +546,7 @@ Connection Methods
 
         connection.xid(format_id=1, global_transaction_id="tx1", branch_qualifier="br1")
 
-    See :ref:`tcp` for information on TPC.
+    See :ref:`tpc` for information on TPC.
 
 .. _connattrs:
 

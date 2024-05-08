@@ -94,9 +94,9 @@ desupported features are listed first.
     * - `SessionPool class <https://cx-oracle.readthedocs.io/en/latest/api_manual/session_pool.html#sessionpool-object>`_ and use of `cx_Oracle.SessionPool() <https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.SessionPool>`_
       - Replace by the equivalent :ref:`ConnectionPool Class <connpool>`. Use the new method :meth:`oracledb.create_pool()` to create connection pools.
     * - :meth:`Connection.begin()`
-      - Replace by the new :ref:`Two-Phase Commits (TPC) <tcp>` functionality.
+      - Replace by the new :ref:`Two-Phase Commits (TPC) <tpc>` functionality.
     * - :meth:`Connection.prepare()`
-      - Replace by the new :ref:`Two-Phase Commits (TPC) <tcp>` functionality.
+      - Replace by the new :ref:`Two-Phase Commits (TPC) <tpc>` functionality.
     * - Parameters ``encoding`` and ``nencoding`` of the :func:`oracledb.connect()`, :func:`oracledb.create_pool()` and ``oracledb.SessionPool()`` methods
       - The encodings in use are always UTF-8.
     * - Parameter ``threaded`` of the :meth:`oracledb.connect()` method

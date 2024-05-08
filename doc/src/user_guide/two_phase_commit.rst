@@ -1,4 +1,4 @@
-.. _tcp:
+.. _tpc:
 
 *****************************
 Using Two-Phase Commits (TPC)
