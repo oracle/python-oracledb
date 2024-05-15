@@ -76,7 +76,7 @@ This prints an output such as::
 
 The :ref:`FetchInfo <fetchinfoobj>` object that is returned as part of the
 fetched metadata contains attributes :attr:`FetchInfo.vector_dimensions` and
-:attr:`FetchInfo.vector_type` which return the number of dimensions of the
+:attr:`FetchInfo.vector_format` which return the number of dimensions of the
 vector column and the storage format of each dimension value in the vector
 column respectively.
 

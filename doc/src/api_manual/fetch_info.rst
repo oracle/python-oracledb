@@ -121,10 +121,15 @@ FetchInfo Attributes
 
     .. versionadded:: 2.2.0
 
-.. attribute:: FetchInfo.vector_type
+.. attribute:: FetchInfo.vector_format
 
-    This read-only attribute returns the storage type required by vector
-    columns. If the column is not a vector column or allows for any
-    type of storage, the value returned is ``None``.
+    This read-only attribute returns the storage format used by vector
+    columns. The value of this attribute can be
+    :data:`oracledb.VECTOR_FORMAT_INT8`,
+    :data:`oracledb.VECTOR_FORMAT_FLOAT32`, or
+    :data:`oracledb.VECTOR_FORMAT_FLOAT64` which represents 8-bit signed
+    integer, 32-bit floating-point number, and 64-bit floating point number
+    respectively. If the column is not a vector column or allows for any type
+    of storage, the value returned is ``None``.
 
     .. versionadded:: 2.2.0
