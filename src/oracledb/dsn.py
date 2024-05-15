@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -58,12 +58,12 @@ def makedsn(
     """
     connect_data_parts = []
     _check_arg("host", host)
-    if sid is not None:
-        _check_arg("sid", sid)
-        connect_data_parts.append(f"(SID={sid})")
     if service_name is not None:
         _check_arg("service_name", service_name)
         connect_data_parts.append(f"(SERVICE_NAME={service_name})")
+    elif sid is not None:
+        _check_arg("sid", sid)
+        connect_data_parts.append(f"(SID={sid})")
     if region is not None:
         _check_arg("region", region)
         connect_data_parts.append(f"(REGION={region})")

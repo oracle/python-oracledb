@@ -37,6 +37,9 @@ Common Changes
 #)  Error ``DPY-2050: invalid flags for tpc_end()`` is now raised when invalid
     flags are passed to :meth:`Connection.tpc_end()`. Previously, ``TypeError``
     or ``DPI-1002: invalid OCI handle`` was raised instead.
+#)  If both the ``sid`` and ``service_name`` parameters are specified to
+    :meth:`oracledb.makedsn()`, now only the ``service_name`` parameter is
+    used and the ``sid`` parameter is ignored.
 #)  Internal changes to ensure that no circular imports occur.
 
 
