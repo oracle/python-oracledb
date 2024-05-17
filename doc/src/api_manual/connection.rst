@@ -712,6 +712,8 @@ Connection Attributes
     a default variable object will be created. If this attribute is None, the
     default behavior will take place for all values bound to statements.
 
+    See :ref:`inputtypehandlers`.
+
     .. note::
 
         This attribute is an extension to the DB API definition.

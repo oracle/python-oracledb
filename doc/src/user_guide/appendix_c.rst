@@ -673,12 +673,12 @@ Another method that can be used to check which driver is in use is to query
 Python Frameworks, SQL Generators, and ORMs
 -------------------------------------------
 
-The python-oracledb Thin mode features in the python-oracledb cover the needs
-of frameworks that depend upon the Python Database API.
+Python-oracledb's Thin and :ref:`Thick <enablingthick>` modes cover the feature
+needs of frameworks that depend upon the Python Database API.
 
 For versions of SQLAlchemy, Django, other frameworks, object-relational mappers
 (ORMs), and libraries that don't have native support for python-oracledb, you
-can add temporary code like this to use python-oracledb in-place of cx_Oracle:
+can add code like this to use python-oracledb in-place of cx_Oracle:
 
 .. code-block:: python
 
@@ -693,6 +693,8 @@ can add temporary code like this to use python-oracledb in-place of cx_Oracle:
     The import of cx_Oracle occurs last. This code must be run before the
     library code does its own import of cx_Oracle.
 
-
 SQLAlchemy 2 and Django 5 have native support for python-oracledb so this code
 snippet is not needed in those versions.
+
+To use Thick mode, an additional call to :meth:`~oracledb.init_oracle_client()`
+is needed, see :ref:`enablingthick`.

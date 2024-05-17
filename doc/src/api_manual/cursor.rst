@@ -524,6 +524,8 @@ Cursor Attributes
     created. If this attribute is None, the default behavior will take place
     for all values bound to the statements.
 
+    See :ref:`inputtypehandlers`.
+
     .. note::
 
         This attribute is an extension to the DB API definition.

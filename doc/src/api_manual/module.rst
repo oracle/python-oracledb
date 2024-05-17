@@ -3351,17 +3351,17 @@ attribute.
 
 .. data:: VECTOR_FORMAT_FLOAT32
 
-    This constant is used to represent the storage format of vector columns
+    This constant is used to represent the storage format of VECTOR columns
     using 32-bit floating point numbers.
 
 .. data:: VECTOR_FORMAT_FLOAT64
 
-    This constant is used to represent the storage format of vector columns
+    This constant is used to represent the storage format of VECTOR columns
     using 64-bit floating point numbers.
 
 .. data:: VECTOR_FORMAT_INT8
 
-    This constant is used to represent the storage format of vector columns
+    This constant is used to represent the storage format of VECTOR columns
     using 8-bit signed integers.
 
 .. _exceptions:
