@@ -738,11 +738,10 @@ cdef class MessageWithData(Message):
             if prev_fetch_var_impls is not None \
                     and i < len(prev_fetch_var_impls):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
-            if not stmt._no_prefetch and \
-                    fetch_info.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                                        TNS_DATA_TYPE_CLOB,
-                                                        TNS_DATA_TYPE_JSON,
-                                                        TNS_DATA_TYPE_VECTOR):
+            if fetch_info.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
+                                                   TNS_DATA_TYPE_CLOB,
+                                                   TNS_DATA_TYPE_JSON,
+                                                   TNS_DATA_TYPE_VECTOR):
                 stmt._requires_define = True
                 stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
@@ -773,6 +772,8 @@ cdef class MessageWithData(Message):
             cursor_impl._statement._cursor_id = self.error_info.cursor_id
         if not cursor_impl._statement._is_plsql and not self.in_fetch:
             cursor_impl.rowcount = self.error_info.rowcount
+        elif self.in_fetch and self.row_index > 0:
+            cursor_impl._statement._requires_define = False
         cursor_impl._lastrowid = self.error_info.rowid
         cursor_impl._batcherrors = self.error_info.batcherrors
         if self.batcherrors and cursor_impl._batcherrors is None:
@@ -781,6 +782,7 @@ cdef class MessageWithData(Message):
             self.error_info.num = 0
             cursor_impl._more_rows_to_fetch = False
             cursor_impl._last_row_index = 0
+            cursor_impl._statement._requires_define = False
             self.error_occurred = False
         elif self.error_info.num == TNS_ERR_ARRAY_DML_ERRORS:
             self.error_info.num = 0

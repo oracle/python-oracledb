@@ -844,6 +844,20 @@ class TestCase(test_env.BaseAsyncTestCase):
         }
         self.assertEqual(column_2.annotations, expected_annotations)
 
+    async def test_6348(self):
+        "6348 - test fetching LOBs after an error"
+        sql = """
+            select
+                to_clob(:val),
+                1 / (dbms_lob.getlength(to_clob(:val)) - 1)
+            from dual"""
+        with self.assertRaisesFullCode("ORA-01476"):
+            await self.cursor.execute(sql, val="a")
+        await self.cursor.execute(sql, val="bb")
+        lob, num_val = await self.cursor.fetchone()
+        self.assertEqual(await lob.read(), "bb")
+        self.assertEqual(num_val, 1)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
