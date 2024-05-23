@@ -879,6 +879,23 @@ commands::
     python setup.py build
     python setup.py install
 
+.. _whlpkg:
+
+To create a package suitable for installing on other computers, run the
+following commands::
+
+    git clone --recurse-submodules https://github.com/oracle/python-oracledb.git
+    cd python-oracledb
+    python -m pip install build
+    python -m build
+
+A wheel package (.whl) is created in the ``dist`` subdirectory, for example
+dist/oracledb-2.2.0-cp312-cp312-macosx_10_9_universal2.whl. You can copy this
+wheel package to other computers which have the same architecture and Python
+version. To install the wheel, run::
+
+    python -m pip install oracledb-2.2.0-cp312-cp312-macosx_10_9_universal2.whl
+
 If you do not have access to system directories, the ``--user`` option can be
 used to install into a local directory::
 
@@ -900,6 +917,9 @@ Python-oracledb source code is mirrored from GitHub to `opensource.oracle.com
     python setup.py build
     python setup.py install
 
+You can also create a package suitable for installing on other computers as
+detailed in this :ref:`section <whlpkg>`.
+
 Install Using Source from PyPI
 ------------------------------
 
@@ -914,3 +934,6 @@ If you do not have access to system directories, the ``--user`` option can be
 used to install into a local directory::
 
     python setup.py install --user
+
+You can also create a package suitable for installing on other computers as
+detailed in this :ref:`section <whlpkg>`.

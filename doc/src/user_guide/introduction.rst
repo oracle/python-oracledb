@@ -100,10 +100,13 @@ The python-oracledb feature highlights are:
 
     *   Easy installation from PyPI
     *   Support for multiple Oracle Database versions
-    *   Supports the `Python Database API v2.0 Specification <https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of additions and a couple of exclusions.    *   Works with common frameworks and ORMs
+    *   Supports the `Python Database API v2.0 Specification <https://www.
+        python.org/dev/peps/pep-0249/>`__ with a considerable number of
+        additions and a couple of exclusions
+    *   Works with common frameworks and ORMs
     *   Execution of SQL and PL/SQL statements
-    *   Extensive Oracle data type support, including JSON, large objects (``CLOB`` and
-        ``BLOB``) and binding of SQL objects
+    *   Extensive Oracle data type support, including JSON, large objects
+        (``CLOB`` and ``BLOB``) and binding of SQL objects
     *   Connection management, including connection pooling
     *   Oracle Database High Availability features
     *   Full use of Oracle Network Service infrastructure, including encrypted

@@ -154,6 +154,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes - needs a PEM format wallet (see :ref:`createpem`)
       - Yes
       - Yes
+    * - Secure External Password Store (SEPS) wallet (e.g. wallets created by mkstore)
+      - No
+      - Yes
+      - Yes
     * - Oracle Database Dedicated Servers, Shared Servers and Database Resident Connection Pooling (DRCP)
       - Yes
       - Yes
