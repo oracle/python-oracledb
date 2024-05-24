@@ -22,6 +22,9 @@ Thin Mode Changes
     (`issue 336 <https://github.com/oracle/python-oracledb/issues/336>`__).
 #)  Fixed bug when fetching LOBs after an exception has been raised
     (`issue 338 <https://github.com/oracle/python-oracledb/issues/338>`__).
+#)  Fixed bug when a connect descriptor is used that doesn't define any
+    addresses
+    (`issue 339 <https://github.com/oracle/python-oracledb/issues/339>`__).
 #)  Fixed bug in statement cache when the maximum number of cursors is unknown
     due to the database not being open.
 #)  Fixed bug in handling redirect data with small SDU sizes.

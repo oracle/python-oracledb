@@ -381,6 +381,7 @@ cdef class Description(ConnectParamsNode):
 cdef class DescriptionList(ConnectParamsNode):
 
     cdef str build_connect_string(self)
+    cdef list get_addresses(self)
 
 
 cdef class ConnectParamsImpl:
@@ -430,7 +431,8 @@ cdef class ConnectParamsImpl:
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _parse_easy_connect_string(self, str connect_string,
                                         object match) except -1
-    cdef int _process_connect_descriptor(self, dict args) except -1
+    cdef int _process_connect_descriptor(self, str connecte_string,
+                                         dict args) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1
     cdef int _set_new_password(self, str password) except -1

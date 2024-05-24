@@ -729,6 +729,34 @@ class TestCase(test_env.BaseTestCase):
         params.set(use_tcp_fast_open=1)
         self.assertTrue(params.use_tcp_fast_open)
 
+    def test_4546(self):
+        "4546 - test connect descriptor without addresses defined"
+        params = oracledb.ConnectParams()
+        host = "host_4546"
+        port = 4546
+        service_name = "service_name_4546"
+        ok_container_names = ("DESCRIPTION", "ADDRESS")
+        options = [
+            ("DESRIPTION", "ADDRESS"),
+            ok_container_names,
+            ("DESCRIPTION", "ADRESS"),
+        ]
+        for option in options:
+            desc_name, addr_name = option
+            connect_string = (
+                f"({desc_name}=({addr_name}=(PROTOCOL=TCP)(HOST={host})"
+                f"(PORT={port}))(CONNECT_DATA=(SERVICE_NAME={service_name})))"
+            )
+            params = oracledb.ConnectParams()
+            if option == ok_container_names:
+                params.parse_connect_string(connect_string)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+            else:
+                with self.assertRaisesFullCode("DPY-2049"):
+                    params.parse_connect_string(connect_string)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
