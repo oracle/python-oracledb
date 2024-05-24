@@ -977,6 +977,20 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2045"):
             self.cursor.arraysize = "not valid"
 
+    def test_4366(self):
+        "4366 - test fetching LOBs after an error"
+        sql = """
+            select
+                to_clob(:val),
+                1 / (dbms_lob.getlength(to_clob(:val)) - 1)
+            from dual"""
+        with self.assertRaisesFullCode("ORA-01476"):
+            self.cursor.execute(sql, val="a")
+        self.cursor.execute(sql, val="bb")
+        lob, num_val = self.cursor.fetchone()
+        self.assertEqual(lob.read(), "bb")
+        self.assertEqual(num_val, 1)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
