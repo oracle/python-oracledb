@@ -17,17 +17,7 @@ oracledb 2.3.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
-    of type ``SYS.XMLTYPE``
-    (`issue 336 <https://github.com/oracle/python-oracledb/issues/336>`__).
-#)  Fixed bug when fetching LOBs after an exception has been raised
-    (`issue 338 <https://github.com/oracle/python-oracledb/issues/338>`__).
-#)  Fixed bug in statement cache when the maximum number of cursors is unknown
-    due to the database not being open.
-#)  Fixed bug in handling redirect data with small SDU sizes.
 #)  Added support for :ref:`two-phase commits <tpc>`.
-#)  Internal change: adjust handling of break/reset to avoid potential hangs in
-    some configurations.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -46,6 +36,24 @@ Common Changes
     :meth:`oracledb.makedsn()`, now only the ``service_name`` parameter is
     used and the ``sid`` parameter is ignored.
 #)  Internal changes to ensure that no circular imports occur.
+
+
+oracledb 2.2.1 (May 2024)
+-------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
+    of type ``SYS.XMLTYPE``
+    (`issue 336 <https://github.com/oracle/python-oracledb/issues/336>`__).
+#)  Fixed bug when fetching LOBs after an exception has been raised
+    (`issue 338 <https://github.com/oracle/python-oracledb/issues/338>`__).
+#)  Fixed bug in statement cache when the maximum number of cursors is unknown
+    due to the database not being open.
+#)  Fixed bug in handling redirect data with small SDU sizes.
+#)  Adjusted handling of internal break/reset mechanism in order to avoid
+    potential hangs in some configurations under some circumstances.
 
 
 oracledb 2.2.0 (May 2024)
