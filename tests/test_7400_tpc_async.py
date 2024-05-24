@@ -316,8 +316,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(7413, "txn7413", "branch1")
         test_values = [
-            (self.conn.tpc_begin, "DPY-2049"),
-            (self.conn.tpc_end, "DPY-2050"),
+            (self.conn.tpc_begin, "DPY-2050"),
+            (self.conn.tpc_end, "DPY-2051"),
         ]
         for tpc_function, error_code in test_values:
             with self.assertRaises(TypeError):

@@ -302,8 +302,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestTempTable")
         xid = self.conn.xid(4413, "txn4413", "branch1")
         test_values = [
-            (self.conn.tpc_begin, "DPY-2049"),
-            (self.conn.tpc_end, "DPY-2050"),
+            (self.conn.tpc_begin, "DPY-2050"),
+            (self.conn.tpc_end, "DPY-2051"),
         ]
         for tpc_function, error_code in test_values:
             self.assertRaises(TypeError, tpc_function, "invalid xid")

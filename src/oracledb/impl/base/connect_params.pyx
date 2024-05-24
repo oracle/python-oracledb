@@ -320,7 +320,7 @@ cdef class ConnectParamsImpl:
         # to be a full connect descriptor
         if connect_string.startswith("("):
             _parse_connect_descriptor(connect_string, args)
-            return self._process_connect_descriptor(args)
+            return self._process_connect_descriptor(connect_string, args)
 
         # otherwise, see if the connect string is an EasyConnect string
         m = re.search(EASY_CONNECT_PATTERN, connect_string)
@@ -342,7 +342,7 @@ cdef class ConnectParamsImpl:
                 self._parse_easy_connect_string(connect_string, m)
             else:
                 _parse_connect_descriptor(connect_string, args)
-                self._process_connect_descriptor(args)
+                self._process_connect_descriptor(connect_string, args)
 
     cdef int _parse_easy_connect_string(self, str connect_string,
                                         object match) except -1:
@@ -382,26 +382,28 @@ cdef class ConnectParamsImpl:
         self.description_list = DescriptionList()
         self.description_list.children.append(description)
 
-    cdef int _process_connect_descriptor(self, dict args) except -1:
+    cdef int _process_connect_descriptor(self, str connect_string,
+                                         dict args) except -1:
         """
         Internal method used for processing the parsed connect descriptor into
         the set of DescriptionList, Description, AddressList and Address
         container objects.
         """
         cdef:
+            DescriptionList description_list
             AddressList address_list
             Description description
             Address address
-        self.description_list = DescriptionList()
+        description_list = DescriptionList()
         list_args = args.get("description_list")
         if list_args is not None:
-            self.description_list.set_from_args(list_args)
+            description_list.set_from_args(list_args)
         else:
             list_args = args
         for desc_args in list_args.get("description", [list_args]):
             description = self._default_description.copy()
             description.set_from_description_args(desc_args)
-            self.description_list.children.append(description)
+            description_list.children.append(description)
             sub_args = desc_args.get("connect_data")
             if sub_args is not None:
                 description.set_from_connect_data_args(sub_args)
@@ -416,6 +418,10 @@ cdef class ConnectParamsImpl:
                     address = self._default_address.copy()
                     address.set_from_args(addr_args)
                     address_list.children.append(address)
+        if not description_list.get_addresses():
+            errors._raise_err(errors.ERR_MISSING_ADDRESS,
+                              connect_string=connect_string)
+        self.description_list = description_list
 
     cdef int _set_access_token(self, object val, int error_num) except -1:
         """
@@ -513,13 +519,7 @@ cdef class ConnectParamsImpl:
         """
         Return a list of the stored addresses.
         """
-        cdef:
-            AddressList addr_list
-            Description desc
-            Address addr
-        return [addr for desc in self.description_list.children \
-                for addr_list in desc.children \
-                for addr in addr_list.children]
+        return self.description_list.get_addresses()
 
     def get_connect_string(self):
         """
@@ -979,6 +979,18 @@ cdef class DescriptionList(ConnectParamsNode):
         if len(parts) == 1:
             return parts[0]
         return f'(DESCIPTION_LIST={"".join(parts)})'
+
+    cdef list get_addresses(self):
+        """
+        Return a list of the stored addresses.
+        """
+        cdef:
+            AddressList addr_list
+            Description desc
+            Address addr
+        return [addr for desc in self.children \
+                for addr_list in desc.children \
+                for addr in addr_list.children]
 
     def set_from_args(self, dict args):
         """

@@ -255,8 +255,9 @@ ERR_INVALID_ARRAYSIZE = 2045
 ERR_CURSOR_HAS_BEEN_CLOSED = 2046
 ERR_INVALID_LOB_AMOUNT = 2047
 ERR_DML_RETURNING_DUP_BINDS = 2048
-ERR_INVALID_TPC_BEGIN_FLAGS = 2049
-ERR_INVALID_TPC_END_FLAGS = 2050
+ERR_MISSING_ADDRESS = 2049
+ERR_INVALID_TPC_BEGIN_FLAGS = 2050
+ERR_INVALID_TPC_END_FLAGS = 2051
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -592,6 +593,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_MESSAGE_TYPE_UNKNOWN: (
         "internal error: unknown protocol message type {message_type} "
         "at position {position}"
+    ),
+    ERR_MISSING_ADDRESS: (
+        "no addresses are defined in connect descriptor: {connect_string}"
     ),
     ERR_MISSING_BIND_VALUE: (
         'a bind variable replacement value for placeholder ":{name}" was '
