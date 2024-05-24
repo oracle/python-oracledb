@@ -17,6 +17,8 @@ oracledb 2.2.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug in handling redirect data with small SDU sizes.
+
 Thick Mode Changes
 ++++++++++++++++++
 

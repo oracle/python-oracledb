@@ -191,8 +191,7 @@ cdef class Buffer:
     cdef object read_interval_ym(self)
     cdef int read_int32(self, int32_t *value, int byte_order=*) except -1
     cdef object read_oracle_number(self, int preferred_num_type)
-    cdef inline const char_type* read_raw_bytes(self,
-                                                ssize_t num_bytes) except NULL
+    cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
                                        ssize_t *num_bytes) except -1
     cdef int read_sb1(self, int8_t *value) except -1

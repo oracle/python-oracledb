@@ -466,6 +466,14 @@ cdef class ReadBuffer(Buffer):
                     else PY_TYPE_LOB
             return cls._from_impl(lob_impl)
 
+    cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL:
+        """
+        Read the specified number of bytes from the packet and return them.
+        """
+        self._chunked_bytes_buf.start_chunked_read()
+        self._get_raw(num_bytes, in_chunked_read=True)
+        return self._chunked_bytes_buf.end_chunked_read()
+
     cdef int read_rowid(self, Rowid *rowid) except -1:
         """
         Reads a rowid from the buffer and populates the rowid structure.
