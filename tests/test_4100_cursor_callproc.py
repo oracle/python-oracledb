@@ -126,6 +126,24 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2013"):
             self.cursor.callfunc("func_Test", oracledb.NUMBER, [], kwargs)
 
+    def test_4110(self):
+        "4110 - test to verify that deprecated keywordParameters works"
+        extra_amount = self.cursor.var(oracledb.DB_TYPE_NUMBER)
+        extra_amount.setvalue(0, 5)
+        kwargs = dict(a_ExtraAmount=extra_amount, a_String="hi")
+        results = self.cursor.callfunc(
+            "func_Test", oracledb.DB_TYPE_NUMBER, keywordParameters=kwargs
+        )
+        self.assertEqual(results, 7)
+
+        out_value = self.cursor.var(oracledb.DB_TYPE_NUMBER)
+        kwargs = dict(a_OutValue=out_value)
+        results = self.cursor.callproc(
+            "proc_Test", ("hi", 5), keywordParameters=kwargs
+        )
+        self.assertEqual(results, ["hi", 10])
+        self.assertEqual(out_value.getvalue(), 2.0)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

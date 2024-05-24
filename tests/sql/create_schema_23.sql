@@ -71,3 +71,10 @@ create table &main_user..TestCompressedJson (
 json (JsonCol)
 store as (compress high)
 /
+
+create table &main_user..TestBooleans (
+    IntCol                  number(9) not null,
+    BooleanCol1             boolean not null,
+    BooleanCol2             boolean
+)
+/

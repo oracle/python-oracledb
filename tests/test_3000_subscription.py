@@ -300,6 +300,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(sub.connection, conn)
         cursor.execute("select REGID from USER_CHANGE_NOTIFICATION_REGS")
         self.assertEqual(sub.id, cursor.fetchone()[0])
+        self.assertEqual(sub.ipAddress, sub.ip_address)
         conn.unsubscribe(sub)
         conn.close()
 

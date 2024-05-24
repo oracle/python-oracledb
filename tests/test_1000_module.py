@@ -65,13 +65,32 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1004(self):
         "1004 - test makedsn() with valid arguments"
-        format_string = (
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)"
-            "(HOST=%s)(PORT=%d))(CONNECT_DATA=(SID=%s)))"
-        )
-        args = ("hostname", 1521, "TEST")
-        result = oracledb.makedsn(*args)
-        self.assertEqual(result, format_string % args)
+        for name, value in [
+            ("SID", "sid_1004"),
+            ("SERVICE_NAME", "my_service_1004"),
+        ]:
+            host = "host_1004"
+            port = 1004
+            region = "US WEST"
+            sharding_key = "ShardKey"
+            super_sharding_key = "SuperShardKey"
+            args = (
+                host,
+                port,
+                value if name == "SID" else None,
+                value if name == "SERVICE_NAME" else None,
+                region,
+                sharding_key,
+                super_sharding_key,
+            )
+            result = oracledb.makedsn(*args)
+            expected_value = (
+                f"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={host})"
+                f"(PORT={port}))(CONNECT_DATA=({name}={value})"
+                f"(REGION={region})(SHARDING_KEY={sharding_key})"
+                f"(SUPER_SHARDING_KEY={super_sharding_key})))"
+            )
+            self.assertEqual(result, expected_value)
 
     def test_1005(self):
         "1005 - test makedsn() with invalid arguments"

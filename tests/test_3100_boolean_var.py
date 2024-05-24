@@ -121,6 +121,46 @@ class TestCase(test_env.BaseTestCase):
                 self.assertIsInstance(fetched_value, bool)
                 self.assertEqual(fetched_value, not value)
 
+    @unittest.skipUnless(
+        test_env.get_client_version() >= (23, 1), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (23, 1), "unsupported server"
+    )
+    def test_3110(self):
+        "3110 - test binding and fetching string literals that represent True"
+        self.cursor.execute("truncate table TestBooleans")
+        true_values = ["true", "yes", "on", "1", "t", "y"]
+        self.cursor.executemany(
+            "insert into TestBooleans values (:1, :2, :3)",
+            [(i, v, v) for i, v in enumerate(true_values)],
+        )
+        self.cursor.execute(
+            "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
+        )
+        expected_values = [(True, True) for _ in true_values]
+        self.assertEqual(self.cursor.fetchall(), expected_values)
+
+    @unittest.skipUnless(
+        test_env.get_client_version() >= (23, 1), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (23, 1), "unsupported server"
+    )
+    def test_3111(self):
+        "3111 - test binding and fetching string literals that represent False"
+        self.cursor.execute("truncate table TestBooleans")
+        false_values = ["false", "no", "off", "0", "f", "n"]
+        self.cursor.executemany(
+            "insert into TestBooleans values (:1, :2, :3)",
+            [(i, v, v) for i, v in enumerate(false_values)],
+        )
+        self.cursor.execute(
+            "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
+        )
+        expected_value = [(False, False) for _ in range(len(false_values))]
+        self.assertEqual(self.cursor.fetchall(), expected_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
