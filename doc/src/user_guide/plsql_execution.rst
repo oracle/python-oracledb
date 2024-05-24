@@ -266,7 +266,9 @@ Implicit results
 Implicit results permit a Python program to consume cursors returned by a
 PL/SQL block without the requirement to use OUT REF CURSOR parameters. The
 method :meth:`Cursor.getimplicitresults()` can be used for this purpose. It
-requires both the Oracle Client and Oracle Database to be 12.1 or higher.
+needs Oracle Database 12.1 (or later). For python-oracledb
+:ref:`Thick <enablingthick>` mode, Oracle Client 12.1 (or later) is
+additionally required.
 
 An example using implicit results is as shown:
 
