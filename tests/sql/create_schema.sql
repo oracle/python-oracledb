@@ -135,13 +135,14 @@ create or replace type &main_user..udt_Book as object (
 );
 /
 
-create or replace type &main_user..udt_UnknownAttributeType as object (
+create or replace type &main_user..udt_ObjectWithXmlType as object (
     NumberValue                         number(9),
-    XMLValue                            sys.xmltype
+    XMLValue                            sys.xmltype,
+    StringValue                         varchar2(60)
 );
 /
 
-create or replace type &main_user..udt_UnknownElementType
+create or replace type &main_user..udt_XmlTypeArray
 as table of sys.xmltype;
 /
 

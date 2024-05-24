@@ -589,15 +589,8 @@ cdef class ReadBuffer(Buffer):
         since the structure is a bit different.
         """
         cdef:
-            uint8_t image_flags, image_version
             DbObjectPickleBuffer buf
-            BaseThinLobImpl lob_impl
-            const char_type *ptr
             uint32_t num_bytes
-            ssize_t bytes_left
-            uint32_t xml_flag
-            bytes packed_data
-            type cls
         self.read_ub4(&num_bytes)
         if num_bytes > 0:                   # type OID
             self.read_bytes()
@@ -611,26 +604,9 @@ cdef class ReadBuffer(Buffer):
         self.read_ub4(&num_bytes)           # length of data
         self.skip_ub2()                     # flags
         if num_bytes > 0:
-            packed_data = self.read_bytes()
             buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
-            buf._populate_from_bytes(packed_data)
-            buf.read_header(&image_flags, &image_version)
-            buf.skip_raw_bytes(1)           # XML version
-            buf.read_uint32(&xml_flag)
-            if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
-                buf.skip_raw_bytes(4)
-            bytes_left = buf.bytes_left()
-            ptr = buf.read_raw_bytes(bytes_left)
-            if xml_flag & TNS_XML_TYPE_STRING:
-                return ptr[:bytes_left].decode()
-            elif xml_flag & TNS_XML_TYPE_LOB:
-                lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
-                                                      ptr[:bytes_left])
-                cls = PY_TYPE_ASYNC_LOB \
-                    if conn_impl._protocol._transport._is_async \
-                    else PY_TYPE_LOB
-                return cls._from_impl(lob_impl)
-            errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
+            buf._populate_from_bytes(self.read_bytes())
+            return buf.read_xmltype(conn_impl)
 
     cdef int check_control_packet(self) except -1:
         """

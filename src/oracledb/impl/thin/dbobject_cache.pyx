@@ -365,6 +365,40 @@ cdef class BaseThinDbObjectTypeCache:
             errors._raise_err(errors.ERR_TDS_TYPE_NOT_SUPPORTED, num=attr_type)
         return DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
 
+    cdef int _create_attr(self, ThinDbObjectTypeImpl typ_impl, str name,
+                          str type_name, str type_owner,
+                          str type_package_name=None, bytes oid=None,
+                          int8_t precision=0, int8_t scale=0,
+                          uint32_t max_size=0) except -1:
+        """
+        Creates an attribute from the supplied information and adds it to the
+        list of attributes for the type.
+        """
+        cdef:
+            ThinDbObjectTypeImpl attr_typ_impl
+            ThinDbObjectAttrImpl attr_impl
+        attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
+        attr_impl.name = name
+        if type_owner is not None:
+            attr_typ_impl = self.get_type_for_info(oid, type_owner,
+                                                   type_package_name,
+                                                   type_name)
+            if attr_typ_impl.is_xml_type:
+                attr_impl.dbtype = DB_TYPE_XMLTYPE
+            else:
+                attr_impl.dbtype = DB_TYPE_OBJECT
+                attr_impl.objtype = attr_typ_impl
+        else:
+            attr_impl.dbtype = DbType._from_ora_name(type_name)
+            attr_impl.max_size = max_size
+            if precision != 0 or scale != 0:
+                attr_impl.precision = precision
+                attr_impl.scale = scale
+                attr_impl._preferred_num_type = \
+                        get_preferred_num_type(precision, scale)
+        typ_impl.attrs.append(attr_impl)
+        typ_impl.attrs_by_name[name] = attr_impl
+
     cdef object _populate_type_info(self, str name, object attrs,
                                     ThinDbObjectTypeImpl typ_impl):
         """
@@ -389,27 +423,15 @@ cdef class BaseThinDbObjectTypeCache:
         if typ_impl.is_row_type:
             for name, data_type, data_type_owner, max_size, precision, \
                     scale in attrs:
-                attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
-                attr_impl.name = name
-                if data_type_owner is not None:
-                    attr_impl.dbtype = DB_TYPE_OBJECT
-                    attr_impl.objtype = self.get_type_for_info(None,
-                                                               data_type_owner,
-                                                               None,
-                                                               data_type)
-                else:
+                if data_type_owner is None:
                     start_pos = data_type.find("(")
                     if start_pos > 0:
                         end_pos = data_type.find(")")
                         if end_pos > start_pos:
                             data_type = data_type[:start_pos] + \
                                     data_type[end_pos + 1:]
-                    attr_impl.dbtype = DbType._from_ora_name(data_type)
-                    attr_impl.max_size = max_size
-                    attr_impl.precision = precision
-                    attr_impl.scale = scale
-                typ_impl.attrs.append(attr_impl)
-                typ_impl.attrs_by_name[name] = attr_impl
+                self._create_attr(typ_impl, name, data_type, data_type_owner,
+                                  None, None, precision, scale, max_size)
         else:
             for cursor_version, attr_name, attr_num, attr_type_name, \
                     attr_type_owner, attr_type_package, attr_type_oid, \
@@ -417,20 +439,9 @@ cdef class BaseThinDbObjectTypeCache:
                     attr_super_type_name in attrs:
                 if attr_name is None:
                     continue
-                attr_impl = ThinDbObjectAttrImpl.__new__(ThinDbObjectAttrImpl)
-                attr_impl.name = attr_name
-                if attr_type_owner is not None:
-                    attr_impl.dbtype = DB_TYPE_OBJECT
-                    attr_impl.objtype = self.get_type_for_info(
-                        attr_type_oid,
-                        attr_type_owner,
-                        attr_type_package,
-                        attr_type_name
-                    )
-                else:
-                    attr_impl.dbtype = DbType._from_ora_name(attr_type_name)
-                typ_impl.attrs.append(attr_impl)
-                typ_impl.attrs_by_name[attr_name] = attr_impl
+                self._create_attr(typ_impl, attr_name, attr_type_name,
+                                  attr_type_owner, attr_type_package,
+                                  attr_type_oid)
             return self._parse_tds(typ_impl, self.tds_var.getvalue())
 
     cdef ThinDbObjectTypeImpl get_type_for_info(self, bytes oid, str schema,

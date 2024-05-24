@@ -94,6 +94,36 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         else:
             length[0] = short_length
 
+    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
+        """
+        Reads an XML type from the buffer. This is similar to reading a
+        database object but with specialized processing.
+        """
+        cdef:
+            uint8_t image_flags, image_version
+            BaseThinLobImpl lob_impl
+            const char_type *ptr
+            ssize_t bytes_left
+            uint32_t xml_flag
+            type cls
+        self.read_header(&image_flags, &image_version)
+        self.skip_raw_bytes(1)              # XML version
+        self.read_uint32(&xml_flag)
+        if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
+            self.skip_raw_bytes(4)
+        bytes_left = self.bytes_left()
+        ptr = self.read_raw_bytes(bytes_left)
+        if xml_flag & TNS_XML_TYPE_STRING:
+            return ptr[:bytes_left].decode()
+        elif xml_flag & TNS_XML_TYPE_LOB:
+            lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
+                                                  ptr[:bytes_left])
+            cls = PY_TYPE_ASYNC_LOB \
+                if conn_impl._protocol._transport._is_async \
+                else PY_TYPE_LOB
+            return cls._from_impl(lob_impl)
+        errors._raise_err(errors.ERR_UNEXPECTED_XML_TYPE, flag=xml_flag)
+
     cdef int skip_length(self) except -1:
         """
         Skips the length instead of reading it from the buffer.
@@ -329,6 +359,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         cdef:
             uint8_t ora_type_num = dbtype._ora_type_num
             uint8_t csfrm = dbtype._csfrm
+            DbObjectPickleBuffer xml_buf
             BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
@@ -370,6 +401,10 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             buf.get_is_atomic_null(&is_null)
             if is_null:
                 return None
+            if objtype is None:
+                xml_buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
+                xml_buf._populate_from_bytes(buf.read_bytes())
+                return xml_buf.read_xmltype(self.type._conn_impl)
             obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
             obj_impl.type = objtype
             if objtype.is_collection or self.type.is_collection:
