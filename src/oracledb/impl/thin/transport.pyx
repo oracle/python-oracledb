@@ -249,7 +249,9 @@ cdef class Transport:
         """
         Renegotiate TLS on the socket.
         """
-        sock = socket.socket(fileno=self._transport.detach())
+        orig_sock = self._transport
+        sock = socket.socket(family=orig_sock.family, type=orig_sock.type,
+                             proto=orig_sock.proto, fileno=orig_sock.detach())
         self.negotiate_tls(sock, description)
 
     async def negotiate_tls_async(self, BaseAsyncProtocol protocol,
