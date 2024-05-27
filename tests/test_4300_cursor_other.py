@@ -986,6 +986,7 @@ class TestCase(test_env.BaseTestCase):
             from dual"""
         with self.assertRaisesFullCode("ORA-01476"):
             self.cursor.execute(sql, val="a")
+            self.cursor.fetchall()
         self.cursor.execute(sql, val="bb")
         lob, num_val = self.cursor.fetchone()
         self.assertEqual(lob.read(), "bb")
