@@ -174,8 +174,9 @@ limitations under the License.
 
               <p><strong>Python versions 3.7 through 3.12</strong>.</p>
 
-              <p> Pre-built packages on <a
-              href="https://pypi.org/project/oracledb" >PyPI</a> are available for Python 3.7 and later.</p>
+              <p> Pre-built packages are available on <a
+              href="https://pypi.org/project/oracledb" >PyPI</a> and other
+              repositories.</p>
 
               <p>Source code is also available.</p>
 
@@ -189,9 +190,10 @@ limitations under the License.
               'Thin' driver which connects directly to Oracle Database.  This
               mode does not need Oracle Client libraries.</p>
 
-              <p><strong>Thick mode</strong>: Some advanced Oracle Database
-              functionality is currently only available via Oracle Client
-              libraries.  You can install these libraries using the free <a
+              <p><strong>Thick mode</strong>: An optional mode enabled by
+              loading Oracle Client libraries at runtime. This adds some
+              advanced Oracle Database functionality.  You can install Oracle
+              Client libraries using the free <a
               href="https://www.oracle.com/database/technologies/instant-client.html"
               >Oracle Instant Client</a> packages. Python-oracledb works with
               Oracle Client libraries 11.2 through 23.  See <a
@@ -267,10 +269,11 @@ limitations under the License.
       <ul>
 
       <li><p>Easily installed from <a href="https://pypi.org/project/oracledb"
-      >PyPI</a>.  No additional install is required - you just need an
-      available Oracle Database.</p></li>
+      >PyPI</a> or other repositories.  No additional install is required -
+      you just need an available Oracle Database.</p></li>
 
-      <li><p>Support for Python 3.7 and higher. (Python-oracledb 1 can be used with Python 3.6).</p></li>
+      <li><p>Support for Python 3.7 and higher. (Python-oracledb 1.x can be
+      used with Python 3.6).</p></li>
 
       <li><p>Support for synchronous and concurrent <a
       href="https://docs.python.org/3/library/asyncio.html" >asyncio</a> coding
@@ -291,13 +294,11 @@ limitations under the License.
       <li><p>Full use of Oracle Network Service infrastructure, including
       encrypted network traffic and security features.</p></li>
 
-      <li><p>Extensive Oracle data type support, including large object
-      support (CLOB and BLOB).</p></li>
+      <li><p>Extensive Oracle data type support, including VECTOR, JSON and
+      large object support (CLOB and BLOB).</p></li>
 
       <li><p>Direct binding to SQL objects.  One great use case is binding
       Python objects to Oracle Spatial SDO objects.</p></li>
-
-      <li><p>JSON data type support.</p></li>
 
       <li><p>SODA (Simple Oracle Document Access).</p></li>
 
@@ -310,8 +311,8 @@ limitations under the License.
 
       <li><p>REF CURSOR support.</p></li>
 
-      <li><p>Support for scrollable cursors. Go back and forth through your
-      query results.</p></li>
+      <li><p>Scrollable cursors. Go back and forth through your query
+      results.</p></li>
 
       <li><p>Fetch PL/SQL Implicit Results. Easily return query results from
       PL/SQL.</p></li>
@@ -321,14 +322,14 @@ limitations under the License.
       <li><p>Client Result Caching.  Improve performance of frequently
       executed look-up statements.</p></li>
 
-      <li><p>Support for Advanced Queuing. Use database notifications to
-      build micro-service applications.</p></li>
+      <li><p>Advanced Queuing. Use database notifications to build
+      micro-service applications.</p></li>
 
       <li><p>Continuous Query Notification (CQN).  Get notified when data
       changes.</p></li>
 
-      <li><p>Support for Edition Based Redefinition.  Easily switch
-      applications to use updated PL/SQL logic.</p></li>
+      <li><p>Edition Based Redefinition.  Easily switch applications to use
+      updated PL/SQL logic.</p></li>
 
       <li><p>Support for setting application context during the creation of
       a connection, making application metadata more accessible to the
@@ -340,7 +341,8 @@ limitations under the License.
 
       <li><p>Session Pooling, with tagging and session state fix-up callback.</p></li>
 
-      <li><p>Database Resident Connection Pooling (DRCP).</p></li>
+      <li><p>Database Resident Connection Pooling (DRCP). Optimize Oracle
+      Database resource usage for distributed applications.</p></li>
 
       <li><p>Privileged Connections.</p></li>
 
@@ -348,13 +350,14 @@ limitations under the License.
 
       <li><p>Token Authentication.</p></li>
 
-      <li><p>Database startup and shutdown.</p></li>
+      <li><p>Oracle Database startup and shutdown.</p></li>
 
-      <li><p>Oracle Sharding connectivity.</p></li>
+      <li><p>Oracle Globally Distributed Database (formerly called Oracle
+      Sharding) connectivity.</p></li>
 
       <li><p>Oracle Database High Availability Features, such as in-band and
       FAN notifications, Application Continuity, Transparent Application
-      Continuity and Transaction Guard support.</p></li>
+      Continuity, and Transaction Guard support.</p></li>
 
       </ul>
 
