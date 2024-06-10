@@ -18,6 +18,12 @@ Thin Mode Changes
 +++++++++++++++++
 
 #)  Added support for :ref:`two-phase commits <tpc>`.
+#)  When calling :meth:`ConnectionPool.acquire()` or
+    :meth:`AsyncConnectionPool.acquire()`, the connection pool ``mode``
+    :data:`oracledb.POOL_GETMODE_TIMEDWAIT` now always honors the
+    ``wait_timeout`` value and the connection request will not additionally be
+    delayed by any internal network ping to the database (`issue 330
+    <https://github.com/oracle/python-oracledb/issues/330>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -25,6 +31,14 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added parameter `ping_timeout` to methods :meth:`oracledb.create_pool()`
+    and :meth:`oracledb.create_pool_async()` with a default value of 5000
+    milliseconds. This limits the amount of time that a call to
+    :meth:`~ConnectionPool.acquire()` will wait for a connection to respond to
+    any internal ping to the database before the connection is considered
+    unusable and a different connection is returned to the application.
+    Previously, a fixed timeout of 5000 milliseconds was used in Thick mode and
+    no explicit timeout was used in Thin mode.
 #)  Added support for maintainers to specify optional compilation arguments
     when building python-oracledb. A new environment variable
     ``PYO_COMPILE_ARGS`` can be set :ref:`before building <installsrc>`.
@@ -38,6 +52,13 @@ Common Changes
 #)  Error ``DPY-2050: invalid flags for tpc_end()`` is now raised when invalid
     flags are passed to :meth:`Connection.tpc_end()`. Previously, ``TypeError``
     or ``DPI-1002: invalid OCI handle`` was raised instead.
+#)  Error ``DPY-4005: timed out waiting for the connection pool to return a
+    connection`` is now raised consistently when using get mode
+    :data:`oracledb.POOL_GETMODE_TIMEDWAIT` and the timeout expires.
+    Previously ``asyncio.TimeoutError`` was being raised when using
+    :ref:`asyncio <asyncio>` and ``ORA-24457: OCISessionGet() could not find a
+    free session in the specified timeout period`` was being raised in thick
+    mode.
 #)  If both the ``sid`` and ``service_name`` parameters are specified to
     :meth:`oracledb.makedsn()`, now only the ``service_name`` parameter is
     used and the ``sid`` parameter is ignored.

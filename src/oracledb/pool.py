@@ -594,6 +594,7 @@ def create_pool(
     max_sessions_per_shard: int = 0,
     soda_metadata_cache: bool = False,
     ping_interval: int = 60,
+    ping_timeout: int = 5000,
     user: str = None,
     proxy_user: str = None,
     password: str = None,
@@ -712,6 +713,11 @@ def create_pool(
       connection is not alive a replacement connection will be returned by
       pool.acquire(). If ping_interval is a negative value the ping
       functionality will be disabled (default: 60)
+
+    - ping_timeout: maximum length of time (in milliseconds) to wait for a
+      connection in the pool to respond to an internal ping to the database
+      before being discarded and replaced during a call to acquire() (default:
+      5000)
 
     - user: the name of the user to connect to (default: None)
 
@@ -1052,6 +1058,7 @@ def create_pool_async(
     max_sessions_per_shard: int = 0,
     soda_metadata_cache: bool = False,
     ping_interval: int = 60,
+    ping_timeout: int = 5000,
     user: str = None,
     proxy_user: str = None,
     password: str = None,
@@ -1170,6 +1177,11 @@ def create_pool_async(
       connection is not alive a replacement connection will be returned by
       pool.acquire(). If ping_interval is a negative value the ping
       functionality will be disabled (default: 60)
+
+    - ping_timeout: maximum length of time (in milliseconds) to wait for a
+      connection in the pool to respond to an internal ping to the database
+      before being discarded and replaced during a call to acquire() (default:
+      5000)
 
     - user: the name of the user to connect to (default: None)
 

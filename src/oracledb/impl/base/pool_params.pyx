@@ -39,6 +39,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.getmode = POOL_GETMODE_WAIT
         self.homogeneous = True
         self.ping_interval = 60
+        self.ping_timeout = 5000
 
     cdef int _copy(self, ConnectParamsImpl other_params) except -1:
         """
@@ -59,6 +60,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.max_sessions_per_shard = pool_params.max_sessions_per_shard
         self.soda_metadata_cache = pool_params.soda_metadata_cache
         self.ping_interval = pool_params.ping_interval
+        self.ping_timeout = pool_params.ping_timeout
 
     def copy(self):
         """
@@ -90,6 +92,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
                         &self.max_sessions_per_shard)
         _set_bool_param(args, "soda_metadata_cache", &self.soda_metadata_cache)
         _set_int_param(args, "ping_interval", &self.ping_interval)
+        _set_uint_param(args, "ping_timeout", &self.ping_timeout)
 
         # if the pool is dynamically sized (min != max) then ensure that the
         # increment value is non-zero (as otherwise the pool would never grow!)

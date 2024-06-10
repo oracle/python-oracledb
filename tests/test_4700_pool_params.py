@@ -62,6 +62,7 @@ class TestCase(test_env.BaseTestCase):
         self.__test_writable_parameter("max_sessions_per_shard", 5)
         self.__test_writable_parameter("soda_metadata_cache", True)
         self.__test_writable_parameter("ping_interval", 20)
+        self.__test_writable_parameter("ping_timeout", 3000)
 
     def test_4701(self):
         "4701 - test PoolParams repr()"
@@ -79,6 +80,7 @@ class TestCase(test_env.BaseTestCase):
             ("max_sessions_per_shard", 4),
             ("soda_metadata_cache", False),
             ("ping_interval", 50),
+            ("ping_timeout", 2500),
             ("user", test_env.get_main_user()),
             ("proxy_user", test_env.get_proxy_user()),
             ("host", "my_host1"),

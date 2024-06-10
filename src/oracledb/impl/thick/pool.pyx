@@ -123,6 +123,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
         create_params.maxSessionsPerShard = params.max_sessions_per_shard
         create_params.maxLifetimeSession = params.max_lifetime_session
         create_params.pingInterval = params.ping_interval
+        create_params.pingTimeout = params.ping_timeout
         common_params.stmtCacheSize = params.stmtcachesize
         common_params.sodaMetadataCache = params.soda_metadata_cache
         create_params.externalAuth = params.externalauth

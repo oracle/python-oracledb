@@ -870,6 +870,28 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool(connectiontype=int)
 
+    @unittest.skipIf(
+        test_env.get_server_version() < (12, 2), "not supported on this server"
+    )
+    @unittest.skipIf(
+        test_env.get_client_version() < (12, 2), "not supported on this client"
+    )
+    def test_2438(self):
+        "2438 - ensure that timed wait times out with appropriate exception"
+        pool = test_env.get_pool(
+            getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=1
+        )
+        with self.assertRaisesFullCode("DPY-4005"):
+            pool.acquire()
+
+    def test_2439(self):
+        "2439 - ensure call timeout is reset on connections returned by pool"
+        pool = test_env.get_pool(ping_timeout=1000, ping_interval=0)
+        with pool.acquire() as conn:
+            self.assertEqual(conn.call_timeout, 0)
+        with pool.acquire() as conn:
+            self.assertEqual(conn.call_timeout, 0)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

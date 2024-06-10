@@ -507,6 +507,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         public uint32_t max_sessions_per_shard
         public bint soda_metadata_cache
         public int ping_interval
+        public uint32_t ping_timeout
 
 
 cdef class BaseConnImpl:

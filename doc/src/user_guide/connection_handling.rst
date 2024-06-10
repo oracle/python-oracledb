@@ -755,10 +755,14 @@ terminated by the DBA, or reached a database resource manager quota limit.  To
 help in those cases, :meth:`~ConnectionPool.acquire()` will also do a full
 :ref:`round-trip <roundtrips>` database ping similar to
 :meth:`Connection.ping()` when it is about to return a connection that was idle
-in the pool (i.e. not currently acquired by the application) for
+in the pool (i.e. not acquired by the application) for
 :data:`ConnectionPool.ping_interval` seconds.  If the ping fails, the
 connection will be discarded and another one obtained before
-:meth:`~ConnectionPool.acquire()` returns to the application.
+:meth:`~ConnectionPool.acquire()` returns to the application.  The
+``ping_timeout`` parameter to :meth:`oracledb.create_pool()` limits the amount
+of time that any internal ping is allowed to take. If it is exceeded, perhaps
+due to a network hang, the connection is considered unusable and a different
+connection is returned to the application.
 
 Because this full ping is time based and may not occur for each
 :meth:`~ConnectionPool.acquire()`, the application may still get an unusable
@@ -772,7 +776,20 @@ Thick mode, Oracle Database features like :ref:`Application Continuity
 
 You can explicitly initiate a full round-trip ping at any time with
 :meth:`Connection.ping()` to check connection liveness but the overuse will
-impact performance and scalability.
+impact performance and scalability.  To avoid pings hanging due to network
+errors, use :attr:`Connection.call_timeout` to limit the amount of time
+:meth:`~Connection.ping()` is allowed to take.
+
+The :meth:`Connection.is_healthy()` method is an alternative to
+:meth:`Connection.ping()`.  It has lower overheads and may suit some uses, but
+it does not perform a full connection check.
+
+If the ``getmode`` parameter in :meth:`oracledb.create_pool()` is set to
+:data:`oracledb.POOL_GETMODE_TIMEDWAIT`, then the maxium amount of time an
+:meth:`~ConnectionPool.acquire()` call will wait to get a connection from the
+pool is limited by the value of the :data:`ConnectionPool.wait_timeout`
+parameter.  A call that cannot be immediately satisfied will wait no longer
+than ``wait_timeout`` regardless of the value of ``ping_timeout``.
 
 Ensure that the :ref:`firewall <hanetwork>`, `resource manager
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__

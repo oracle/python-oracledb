@@ -899,9 +899,9 @@ Oracledb Methods
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
         max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
-        user=None, proxy_user=None, password=None, newpassword=None, \
-        wallet_password=None, access_token=None, host=None, port=1521, \
-        protocol="tcp", https_proxy=None, https_proxy_port=0, \
+        ping_timeout=5000, user=None, proxy_user=None, password=None, \
+        newpassword=None, wallet_password=None, access_token=None, host=None, \
+        port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
         retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
@@ -1020,6 +1020,14 @@ Oracledb Methods
     returned by :meth:`~ConnectionPool.acquire()`. If ``ping_interval`` is a
     negative value, then the ping functionality will be disabled. The default
     value is 60 seconds.
+
+    The ``ping_timeout`` parameter is the maximum length of time (in
+    milliseconds) that :meth:`ConnectionPool.acquire()` waits for a connection
+    to respond to any internal ping to the database. If the ping does not
+    respond within the specified time, then the connection is destroyed and
+    :meth:`~ConnectionPool.acquire()` returns a different connection. This
+    value is used in both the python-oracledb Thin and Thick modes. The default
+    value is 5000 milliseconds.
 
     The ``proxy_user`` parameter is expected to be a string which indicates the
     name of the proxy user to connect to. If this value is not specified, it
@@ -1266,6 +1274,10 @@ Oracledb Methods
     `Application Continuity <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
 
+    .. versionchanged:: 2.3.0
+
+        The ``ping_timeout`` parameter was added.
+
     .. versionchanged:: 2.1.0
 
         The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
@@ -1284,9 +1296,9 @@ Oracledb Methods
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
         max_sessions_per_shard=0, soda_metadata_cache=False, ping_interval=60, \
-        user=None, proxy_user=None, password=None, newpassword=None, \
-        wallet_password=None, access_token=None, host=None, port=1521, \
-        protocol="tcp", https_proxy=None, https_proxy_port=0, \
+        ping_timeout=5000, user=None, proxy_user=None, password=None, \
+        newpassword=None, wallet_password=None, access_token=None, host=None, \
+        port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
         retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
@@ -1390,6 +1402,14 @@ Oracledb Methods
     will be returned by :meth:`~AsyncConnectionPool.acquire()`. If
     ``ping_interval`` is a negative value, then the ping functionality will be
     disabled. The default value is 60 seconds.
+
+    The ``ping_timeout`` parameter is the maximum length of time (in
+    milliseconds) that :meth:`AsyncConnectionPool.acquire()` waits for a
+    connection to respond to any internal ping to the database. If the ping
+    does not respond within the specified time, then the connection is
+    destroyed and :meth:`~AsyncConnectionPool.acquire()` returns a different
+    connection. This value is used in both the python-oracledb Thin and Thick
+    modes. The default value is 5000 milliseconds.
 
     The ``proxy_user`` parameter is expected to be a string which indicates the
     name of the proxy user to connect to. If this value is not specified, it
@@ -1568,6 +1588,10 @@ Oracledb Methods
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
+    .. versionchanged:: 2.3.0
+
+        The ``ping_timeout`` parameter was added.
+
     .. versionchanged:: 2.1.0
 
         The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
@@ -1688,12 +1712,13 @@ Oracledb Methods
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
         max_sessions_per_shard=0, soda_metadata_cache=False, \
-        ping_interval=60, user=None, proxy_user=Nonde, password=None, \
-        newpassword=None, wallet_password=None, access_token=None, host=None, \
-        port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        ping_interval=60, ping_timeout=5000, user=None, proxy_user=Nonde, \
+        password=None, newpassword=None, wallet_password=None, \
+        access_token=None, host=None, port=1521, protocol="tcp", \
+        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
+        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
+        expire_time=0, retry_count=0, retry_delay=0, \
+        tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -1768,6 +1793,14 @@ Oracledb Methods
     returned by :meth:`ConnectionPool.acquire()`. If ping_interval is a
     negative value, then the ping functionality will be disabled. The default
     value is 60 seconds.
+
+    The ``ping_timeout`` parameter is the maximum length of time (in
+    milliseconds) that :meth:`ConnectionPool.acquire()` waits for a connection
+    to respond to any internal ping to the database. If the ping does not
+    respond within the specified time, then the connection is destroyed and
+    :meth:`~ConnectionPool.acquire()` returns a different connection. This
+    value is used in both the python-oracledb Thin and Thick modes. The default
+    value is 5000 milliseconds.
 
     The ``user`` parameter is expected to be a string which indicates the name
     of the user to connect to. This value is used in both the python-oracledb
@@ -2011,6 +2044,10 @@ Oracledb Methods
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.3.0
+
+        The ``ping_timeout`` parameter was added.
 
     .. versionchanged:: 2.1.0
 

@@ -88,6 +88,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(pool.thin, True)
         self.assertEqual(pool.timeout, 0)
         self.assertEqual(pool.username, test_env.get_main_user())
+        await pool.close()
 
     async def test_5501(self):
         "5501 - test setting pool attributes"
@@ -106,6 +107,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 self.assertRaises(
                     TypeError, setattr, pool, attr_name, "invalid value"
                 )
+        await pool.close()
 
     async def test_5502(self):
         "5502 - connection rolls back before released back to the pool"
@@ -430,6 +432,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             await pool.release("invalid connection")
         with self.assertRaises(TypeError):
             await pool.drop("invalid connection")
+        await pool.close()
 
     async def test_5524(self):
         "5524 - test creating a pool with invalid pool_class"
@@ -454,6 +457,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
         pool = test_env.get_pool_async(pool_class=MyPool)
         self.assertIsInstance(pool, MyPool)
+        await pool.close()
 
     async def test_5527(self):
         "5527 - test connectiontype with an invalid connection class"
@@ -461,6 +465,25 @@ class TestCase(test_env.BaseAsyncTestCase):
             test_env.get_pool_async(connectiontype=oracledb.Connection)
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool_async(connectiontype=int)
+
+    @unittest.skipIf(
+        test_env.get_server_version() < (12, 2), "not supported on this server"
+    )
+    async def test_5528(self):
+        "5528 - ensure that timed wait times out with appropriate exception"
+        pool = test_env.get_pool_async(
+            getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=1
+        )
+        with self.assertRaisesFullCode("DPY-4005"):
+            await pool.acquire()
+
+    async def test_5529(self):
+        "5529 - ensure call timeout is reset on connections returned by pool"
+        pool = test_env.get_pool_async(ping_timeout=1000, ping_interval=0)
+        async with pool.acquire() as conn:
+            self.assertEqual(conn.call_timeout, 0)
+        async with pool.acquire() as conn:
+            self.assertEqual(conn.call_timeout, 0)
 
 
 if __name__ == "__main__":

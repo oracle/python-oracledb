@@ -67,6 +67,7 @@ class PoolParams(ConnectParams):
         max_sessions_per_shard: int = 0,
         soda_metadata_cache: bool = False,
         ping_interval: int = 60,
+        ping_timeout: int = 5000,
         user: str = None,
         proxy_user: str = None,
         password: str = None,
@@ -164,6 +165,11 @@ class PoolParams(ConnectParams):
           connection is not alive a replacement connection will be returned by
           pool.acquire(). If ping_interval is a negative value the ping
           functionality will be disabled (default: 60)
+
+        - ping_timeout: maximum length of time (in milliseconds) to wait for a
+          connection in the pool to respond to an internal ping to the database
+          before being discarded and replaced during a call to acquire()
+          (default: 5000)
 
         - user: the name of the user to connect to (default: None)
 
@@ -354,6 +360,7 @@ class PoolParams(ConnectParams):
             + f"max_sessions_per_shard={self.max_sessions_per_shard!r}, "
             + f"soda_metadata_cache={self.soda_metadata_cache!r}, "
             + f"ping_interval={self.ping_interval!r}, "
+            + f"ping_timeout={self.ping_timeout!r}, "
             + f"user={self.user!r}, "
             + f"proxy_user={self.proxy_user!r}, "
             + f"host={self.host!r}, "
@@ -471,6 +478,15 @@ class PoolParams(ConnectParams):
         return self._impl.ping_interval
 
     @property
+    def ping_timeout(self) -> int:
+        """
+        Maximum length of time (in milliseconds) to wait for a connection in
+        the pool to respond to an internal ping to the database before being
+        discarded and replaced during a call to acquire().
+        """
+        return self._impl.ping_timeout
+
+    @property
     def session_callback(self) -> Callable:
         """
         A callable that is invoked when a connection is returned from the pool
@@ -530,6 +546,7 @@ class PoolParams(ConnectParams):
         max_sessions_per_shard: int = None,
         soda_metadata_cache: bool = None,
         ping_interval: int = None,
+        ping_timeout: int = None,
         user: str = None,
         proxy_user: str = None,
         password: str = None,
@@ -623,6 +640,10 @@ class PoolParams(ConnectParams):
           connection is not alive a replacement connection will be returned by
           pool.acquire(). If ping_interval is a negative value the ping
           functionality will be disabled
+
+        - ping_timeout: maximum length of time (in milliseconds) to wait for a
+          connection in the pool to respond to an internal ping to the database
+          before being discarded and replaced during a call to acquire()
 
         - user: the name of the user to connect to
 

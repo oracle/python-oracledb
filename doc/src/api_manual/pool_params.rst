@@ -36,20 +36,25 @@ PoolParams Methods
         connectiontype=None, getmode=None, homogeneous=None, timeout=None, \
         wait_timeout=None, max_lifetime_session=None, session_callback=None, \
         max_sessions_per_shard=None, soda_metadata_cache=None, \
-        ping_interval=None, user=None, proxy_user=None, password=None, \
-        newpassword=None, wallet_password=None, access_token=None, host=None, \
-        port=None, protocol=None, https_proxy=None, https_proxy_port=None, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=None, expire_time=None, retry_count=None, retry_delay=None, \
-        tcp_connect_timeout=None, ssl_server_dn_match=None, \
-        ssl_server_cert_dn=None, wallet_location=None, events=None, \
-        externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
-        edition=None, tag=None, matchanytag=None, config_dir=None, \
-        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
-        connection_id_prefix=None, ssl_context=None, sdu=None, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=None)
+        ping_interval=None, ping_timeout=None, user=None, proxy_user=None, \
+        password=None, newpassword=None, wallet_password=None, \
+        access_token=None, host=None, port=None, protocol=None, \
+        https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
+        server_type=None, cclass=None, purity=None, expire_time=None, \
+        retry_count=None, retry_delay=None, tcp_connect_timeout=None, \
+        ssl_server_dn_match=None, ssl_server_cert_dn=None, \
+        wallet_location=None, events=None, externalauth=None, mode=None, \
+        disable_oob=None, stmtcachesize=None, edition=None, tag=None, \
+        matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
+        supershardingkey=[], debug_jdwp=None, connection_id_prefix=None, \
+        ssl_context=None, sdu=None, pool_boundary=None, \
+        use_tcp_fast_open=False, handle=None)
 
   Sets one or more of the parameters.
+
+  .. versionchanged:: 2.3.0
+
+    The ``ping_timeout`` parameter was added.
 
   .. versionchanged:: 2.1.0
 
@@ -140,6 +145,19 @@ PoolParams Attributes
   seconds.
 
   This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. attribute:: PoolParams.ping_timeout
+
+  This read-only attribute is an integer that specifies the maximum length of
+  time (in milliseconds) that :meth:`ConnectionPool.acquire()` waits for a
+  connection to respond to any internal ping to the database. If the ping does
+  not respond within the specified time, then the connection is destroyed and
+  :meth:`~ConnectionPool.acquire()` returns a different connection. The default
+  value is 5000 milliseconds.
+
+  This attribute is supported in both python-oracledb Thin and Thick modes.
+
+  .. versionadded:: 2.3.0
 
 .. attribute:: PoolParams.session_callback
 
