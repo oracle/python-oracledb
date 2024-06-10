@@ -30,7 +30,7 @@
 
 from typing import Any, Union
 
-from .base_impl import DB_TYPE_BLOB
+from .base_impl import DB_TYPE_BFILE, DB_TYPE_BLOB
 from . import __name__ as MODULE_NAME
 from . import errors
 
@@ -40,6 +40,10 @@ class BaseLOB:
 
     def __del__(self):
         self._impl.free_lob()
+
+    def _check_not_bfile(self):
+        if self._impl.dbtype is DB_TYPE_BFILE:
+            errors._raise_err(errors.ERR_OPERATION_NOT_SUPPORTED_ON_BFILE)
 
     def _check_value_to_write(self, value):
         """
@@ -65,6 +69,19 @@ class BaseLOB:
         lob = cls.__new__(cls)
         lob._impl = impl
         return lob
+
+    def getfilename(self) -> tuple:
+        """
+        Return a two-tuple consisting of the directory alias and file name for
+        a BFILE type LOB.
+        """
+        return self._impl.get_file_name()
+
+    def setfilename(self, dir_alias: str, name: str) -> None:
+        """
+        Set the directory alias and name of a BFILE type LOB.
+        """
+        self._impl.set_file_name(dir_alias, name)
 
     @property
     def type(self) -> Any:
@@ -104,14 +121,8 @@ class LOB(BaseLOB):
         Return the chunk size for the LOB. Reading and writing to the LOB in
         chunks of multiples of this size will improve performance.
         """
+        self._check_not_bfile()
         return self._impl.get_chunk_size()
-
-    def getfilename(self) -> tuple:
-        """
-        Return a two-tuple consisting of the directory alias and file name for
-        a BFILE type LOB.
-        """
-        return self._impl.get_file_name()
 
     def isopen(self) -> bool:
         """
@@ -151,12 +162,6 @@ class LOB(BaseLOB):
             errors._raise_err(errors.ERR_INVALID_LOB_OFFSET)
         return self._impl.read(offset, amount)
 
-    def setfilename(self, dir_alias: str, name: str) -> None:
-        """
-        Set the directory alias and name of a BFILE type LOB.
-        """
-        self._impl.set_file_name(dir_alias, name)
-
     def size(self) -> int:
         """
         Returns the size of the data in the LOB. For BLOB and BFILE type LOBs
@@ -171,6 +176,7 @@ class LOB(BaseLOB):
         Trim the LOB to the new size (the second parameter is deprecated and
         should not be used).
         """
+        self._check_not_bfile()
         if newSize is not None:
             if new_size != 0:
                 errors._raise_err(
@@ -191,6 +197,7 @@ class LOB(BaseLOB):
         Note that if you want to make the LOB value smaller, you must use the
         trim() function.
         """
+        self._check_not_bfile()
         self._impl.write(self._check_value_to_write(data), offset)
 
 
@@ -217,14 +224,8 @@ class AsyncLOB(BaseLOB):
         Return the chunk size for the LOB. Reading and writing to the LOB in
         chunks of multiples of this size will improve performance.
         """
+        self._check_not_bfile()
         return await self._impl.get_chunk_size()
-
-    async def getfilename(self) -> tuple:
-        """
-        Return a two-tuple consisting of the directory alias and file name for
-        a BFILE type LOB.
-        """
-        return await self._impl.get_file_name()
 
     async def isopen(self) -> bool:
         """
@@ -264,12 +265,6 @@ class AsyncLOB(BaseLOB):
             errors._raise_err(errors.ERR_INVALID_LOB_OFFSET)
         return await self._impl.read(offset, amount)
 
-    async def setfilename(self, dir_alias: str, name: str) -> None:
-        """
-        Set the directory alias and name of a BFILE type LOB.
-        """
-        await self._impl.set_file_name(dir_alias, name)
-
     async def size(self) -> int:
         """
         Returns the size of the data in the LOB. For BLOB and BFILE type LOBs
@@ -284,6 +279,7 @@ class AsyncLOB(BaseLOB):
         Trim the LOB to the new size (the second parameter is deprecated and
         should not be used).
         """
+        self._check_not_bfile()
         if newSize is not None:
             if new_size != 0:
                 errors._raise_err(
@@ -304,4 +300,5 @@ class AsyncLOB(BaseLOB):
         Note that if you want to make the LOB value smaller, you must use the
         trim() function.
         """
+        self._check_not_bfile()
         await self._impl.write(self._check_value_to_write(data), offset)

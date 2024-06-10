@@ -528,6 +528,10 @@ cdef enum:
     TNS_LOB_OP_CLOSE = 0x10000
     TNS_LOB_OP_IS_OPEN = 0x11000
     TNS_LOB_OP_ARRAY = 0x80000
+    TNS_LOB_OP_FILE_EXISTS = 0x0800
+    TNS_LOB_OP_FILE_OPEN = 0x0100
+    TNS_LOB_OP_FILE_CLOSE = 0x0200
+    TNS_LOB_OP_FILE_ISOPEN = 0x0400
 
 # LOB locator constants
 cdef enum:
@@ -535,6 +539,7 @@ cdef enum:
     TNS_LOB_LOC_OFFSET_FLAG_3 = 6
     TNS_LOB_LOC_OFFSET_FLAG_4 = 7
     TNS_LOB_QLOCATOR_VERSION = 4
+    TNS_LOB_LOC_FIXED_OFFSET = 16
 
 # LOB locator flags (byte 1)
 cdef enum:
@@ -554,6 +559,7 @@ cdef enum:
 # other LOB constants
 cdef enum:
     TNS_LOB_OPEN_READ_WRITE = 2
+    TNS_LOB_OPEN_READ_ONLY = 11
     TNS_LOB_PREFETCH_FLAG = 0x2000000
 
 # end-to-end metrics

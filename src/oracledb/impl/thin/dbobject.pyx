@@ -385,7 +385,9 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                               TNS_DATA_TYPE_TIMESTAMP_LTZ,
                               TNS_DATA_TYPE_TIMESTAMP_TZ):
             return buf.read_date()
-        elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
+        elif ora_type_num in (TNS_DATA_TYPE_CLOB,
+                              TNS_DATA_TYPE_BLOB,
+                              TNS_DATA_TYPE_BFILE):
             conn_impl = self.type._conn_impl
             locator = buf.read_bytes()
             if locator is None:

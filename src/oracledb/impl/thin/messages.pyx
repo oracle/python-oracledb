@@ -581,7 +581,9 @@ cdef class MessageWithData(Message):
             column_value = buf.read_interval_ds()
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
             column_value = buf.read_interval_ym()
-        elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
+        elif ora_type_num in (TNS_DATA_TYPE_CLOB,
+                              TNS_DATA_TYPE_BLOB,
+                              TNS_DATA_TYPE_BFILE):
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     var_impl.dbtype)
         elif ora_type_num == TNS_DATA_TYPE_JSON:
@@ -971,7 +973,8 @@ cdef class MessageWithData(Message):
                 flag |= TNS_BIND_ARRAY
             cont_flag = 0
             lob_prefetch_length = 0
-            if ora_type_num in (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_CLOB):
+            if ora_type_num in (TNS_DATA_TYPE_BLOB,
+                                TNS_DATA_TYPE_CLOB):
                 cont_flag = TNS_LOB_PREFETCH_FLAG
             elif ora_type_num == TNS_DATA_TYPE_JSON:
                 cont_flag = TNS_LOB_PREFETCH_FLAG
@@ -1079,8 +1082,11 @@ cdef class MessageWithData(Message):
             buf.write_interval_ds(value)
         elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
             buf.write_interval_ym(value)
-        elif ora_type_num == TNS_DATA_TYPE_CLOB \
-                or ora_type_num == TNS_DATA_TYPE_BLOB:
+        elif ora_type_num in (
+                TNS_DATA_TYPE_BLOB,
+                TNS_DATA_TYPE_CLOB,
+                TNS_DATA_TYPE_BFILE
+            ):
             buf.write_lob_with_length(value._impl)
         elif ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
             temp_bytes = (<str> value).encode()
@@ -2242,7 +2248,8 @@ cdef class LobOpMessage(Message):
             ssize_t num_bytes
         if message_type == TNS_MSG_TYPE_LOB_DATA:
             buf.read_raw_bytes_and_length(&ptr, &num_bytes)
-            if self.source_lob_impl.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
+            if self.source_lob_impl.dbtype._ora_type_num in \
+                    (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_BFILE):
                 self.data = ptr[:num_bytes]
             else:
                 encoding = self.source_lob_impl._get_encoding()
@@ -2268,7 +2275,9 @@ cdef class LobOpMessage(Message):
             buf.skip_raw_bytes(3)           # skip trailing flags, amount
         elif self.send_amount:
             buf.read_sb8(&self.amount)
-        if self.operation == TNS_LOB_OP_IS_OPEN:
+        if self.operation in (TNS_LOB_OP_IS_OPEN,
+                              TNS_LOB_OP_FILE_EXISTS,
+                              TNS_LOB_OP_FILE_ISOPEN):
             buf.read_ub1(&temp8)
             self.bool_flag = temp8 > 0
 
@@ -2294,8 +2303,10 @@ cdef class LobOpMessage(Message):
         else:
             buf.write_uint8(0)              # pointer (character set)
         buf.write_uint8(0)                  # pointer (short amount)
-        if self.operation == TNS_LOB_OP_CREATE_TEMP \
-                or self.operation == TNS_LOB_OP_IS_OPEN:
+        if self.operation in (TNS_LOB_OP_CREATE_TEMP,
+                              TNS_LOB_OP_IS_OPEN,
+                              TNS_LOB_OP_FILE_EXISTS,
+                              TNS_LOB_OP_FILE_ISOPEN):
             buf.write_uint8(1)              # pointer (NULL LOB)
         else:
             buf.write_uint8(0)              # pointer (NULL LOB)

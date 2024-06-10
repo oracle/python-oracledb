@@ -135,6 +135,7 @@ from .base_impl cimport (
     unpack_uint32,
     VectorDecoder,
     VectorEncoder,
+    pack_uint16,
 )
 
 from .base_impl import (

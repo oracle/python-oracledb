@@ -110,7 +110,7 @@ cdef class DbType:
 
 # database types
 DB_TYPE_BFILE = DbType(DB_TYPE_NUM_BFILE, "DB_TYPE_BFILE", "BFILE",
-                       NATIVE_TYPE_NUM_LOB, 114)
+                       NATIVE_TYPE_NUM_LOB, 114, buffer_size_factor=4000)
 DB_TYPE_BINARY_DOUBLE = DbType(DB_TYPE_NUM_BINARY_DOUBLE,
                                "DB_TYPE_BINARY_DOUBLE", "BINARY_DOUBLE",
                                NATIVE_TYPE_NUM_DOUBLE, 101,

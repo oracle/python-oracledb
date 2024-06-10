@@ -18,6 +18,7 @@ Thin Mode Changes
 +++++++++++++++++
 
 #)  Added support for :ref:`two-phase commits <tpc>`.
+#)  Added support for data of type :data:`~oracledb.DB_TYPE_BFILE`.
 #)  When calling :meth:`ConnectionPool.acquire()` or
     :meth:`AsyncConnectionPool.acquire()`, the connection pool ``mode``
     :data:`oracledb.POOL_GETMODE_TIMEDWAIT` now always honors the
@@ -55,6 +56,10 @@ Common Changes
 #)  Error ``DPY-2050: invalid flags for tpc_end()`` is now raised when invalid
     flags are passed to :meth:`Connection.tpc_end()`. Previously, ``TypeError``
     or ``DPI-1002: invalid OCI handle`` was raised instead.
+#)  Error ``DPY-3025: operation is not supported on BFILE LOBs`` is now raised
+    when operations are attempted on BFILE LOBs that are not permitted.
+    Previously, ``ORA-22275: invalid LOB locator specified`` was raised
+    instead.
 #)  Error ``DPY-4005: timed out waiting for the connection pool to return a
     connection`` is now raised consistently when using get mode
     :data:`oracledb.POOL_GETMODE_TIMEDWAIT` and the timeout expires.

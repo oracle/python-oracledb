@@ -95,7 +95,8 @@ cdef class BaseConnImpl:
                 return value
         elif db_type_num in (DB_TYPE_NUM_CLOB,
                              DB_TYPE_NUM_NCLOB,
-                             DB_TYPE_NUM_BLOB):
+                             DB_TYPE_NUM_BLOB,
+                             DB_TYPE_NUM_BFILE):
             if isinstance(value, (PY_TYPE_LOB, PY_TYPE_ASYNC_LOB)):
                 lob_impl = value._impl
                 if lob_impl.dbtype is not dbtype:
@@ -107,6 +108,7 @@ cdef class BaseConnImpl:
                                       expected_type_name=dbtype.name)
                 return value
             elif self._allow_bind_str_to_lob \
+                    and db_type_num != DB_TYPE_NUM_BFILE \
                     and isinstance(value, (bytes, str)):
                 if db_type_num == DB_TYPE_NUM_BLOB:
                     if isinstance(value, str):

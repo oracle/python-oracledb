@@ -211,6 +211,12 @@ create table &main_user..TestBLOBs (
 )
 /
 
+create table &main_user..TestBfiles (
+    IntCol                              number(9) not null,
+    BfileCol                            bfile not null
+)
+/
+
 create table &main_user..TestXML (
     IntCol                              number(9) not null,
     XMLCol                              xmltype not null

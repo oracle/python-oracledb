@@ -454,7 +454,7 @@ values.
       - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - BFILE
       - :data:`~oracledb.DB_TYPE_BFILE`
-      - Not supported in python-oracledb Thin mode.
+      - No relevant notes
       - Cannot be set
     * - JSON
       - :data:`~oracledb.DB_TYPE_JSON`

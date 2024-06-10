@@ -5,10 +5,11 @@ Using CLOB and BLOB Data
 ************************
 
 Oracle Database uses :ref:`LOB objects <lobobj>` to store large data such as text, images,
-videos, and other multimedia formats.  The maximum size of a LOB is limited to
+videos, and other multimedia formats.  The maximum size of a LOB (large object) is limited to
 the size of the tablespace storing it.
 
-There are four types of LOB (large object):
+There are `four types of LOBs <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-0A692C1B-1C95-4121-8F95-25BE465B87F6>`__:
 
     * BLOB - Binary Large Object, used for storing binary data. python-oracledb uses
       the type :attr:`oracledb.DB_TYPE_BLOB`.
@@ -18,9 +19,12 @@ There are four types of LOB (large object):
     * NCLOB - National Character Large Object, used for string strings in the
       national character set format. python-oracledb uses the type
       :attr:`oracledb.DB_TYPE_NCLOB`.
-    * BFILE - External Binary File, used for referencing a file stored on the
-      host operating system outside of the database. python-oracledb uses the type
-      :attr:`oracledb.DB_TYPE_BFILE`.
+    * BFILE - External Binary File, used
+      for referencing a file stored on the host operating system outside of
+      the database. python-oracledb uses the type
+      :attr:`oracledb.DB_TYPE_BFILE`. See `BFILEs <https://www.oracle.com/pls/
+      topic/lookup?ctx=dblatest&id=GUID-D4642C92-F343-4700-9F1F-
+      486F82249FB8>`__ for more information.
 
 LOBs can be streamed to, and from, Oracle Database.
 

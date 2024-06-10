@@ -190,7 +190,8 @@ cdef int _convert_from_python(object value, DbType dbtype,
             dbvalue.asObject = obj_impl._handle
     elif oracle_type == DPI_ORACLE_TYPE_CLOB \
             or oracle_type == DPI_ORACLE_TYPE_BLOB \
-            or oracle_type == DPI_ORACLE_TYPE_NCLOB:
+            or oracle_type == DPI_ORACLE_TYPE_NCLOB \
+            or oracle_type == DPI_ORACLE_TYPE_BFILE:
         if isinstance(value, PY_TYPE_LOB):
             lob_impl = value._impl
             if var_impl is not None:

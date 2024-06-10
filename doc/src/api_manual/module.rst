@@ -3016,10 +3016,6 @@ Also see the table :ref:`supporteddbtypes`.
     Describes columns, attributes or array elements in a database that are of
     type BFILE. It will compare equal to the DB API type :data:`BINARY`.
 
-    .. note::
-
-        DB_TYPE_BFILE database type is only supported in the python-oracledb
-        Thick mode.  See :ref:`enablingthick`.
 
 .. data:: DB_TYPE_BINARY_DOUBLE
 
