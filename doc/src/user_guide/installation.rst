@@ -853,6 +853,8 @@ To use python-oracledb without the cryptography package:
 - Add a call to :meth:`oracledb.init_oracle_client()` in your application, see
   :ref:`enablingthick`.
 
+.. _installsrc:
+
 Installing from Source Code
 ===========================
 
@@ -865,6 +867,16 @@ code:
   before building python-oracledb. For example install with ``pip``.
 
 - C Compiler: A C99 compiler is needed.
+
+**Optional Compilation Arguments**
+
+Before building python-oracledb, the optional environment variable
+``PYO_COMPILE_ARGS`` can be set to change the compilation arguments.  For
+example, to build stripped binaries on Linux, first set::
+
+    export PYO_COMPILE_ARGS='-g0'
+
+After this, one of the following installation methods can be used.
 
 .. _installgh:
 
@@ -879,7 +891,19 @@ commands::
     python setup.py build
     python setup.py install
 
+If you do not have access to system directories, the ``--user`` option can be
+used to install into a local directory::
+
+    python setup.py install --user
+
+Note that if you download a source zip file directly from GitHub then you will
+also need to download an `ODPI-C <https://github.com/oracle/odpi>`__ source zip
+file and put the extracted contents inside the "odpi" subdirectory, for example
+in "python-oracledb-main/src/oracledb/impl/thick/odpi".
+
 .. _whlpkg:
+
+**Creating a package for installation**
 
 To create a package suitable for installing on other computers, run the
 following commands::
@@ -896,15 +920,6 @@ version. To install the wheel, run::
 
     python -m pip install oracledb-2.2.0-cp312-cp312-macosx_10_9_universal2.whl
 
-If you do not have access to system directories, the ``--user`` option can be
-used to install into a local directory::
-
-    python setup.py install --user
-
-Note that if you download a source zip file directly from GitHub then you will
-also need to download an `ODPI-C <https://github.com/oracle/odpi>`__ source zip
-file and put the extracted contents inside the "odpi" subdirectory, for example
-in "python-oracledb-main/src/oracledb/impl/thick/odpi".
 
 Install Using opensource.oracle.com
 -----------------------------------

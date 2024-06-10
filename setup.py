@@ -76,7 +76,7 @@ thin_depends.append(base_pxd)
 #  - add argument required for cross-compilation for both x86_64 and arm64
 #    architectures if the python interpreter is a universal2 version.
 
-extra_compile_args = []
+extra_compile_args = os.environ.get("PYO_COMPILE_ARGS", "").split()
 if sys.platform == "darwin":
     extra_compile_args.extend(["-mmacosx-version-min=10.9"])
     if "universal2" in sysconfig.get_platform():

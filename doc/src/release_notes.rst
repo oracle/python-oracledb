@@ -25,6 +25,12 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for maintainers to specify optional compilation arguments
+    when building python-oracledb. A new environment variable
+    ``PYO_COMPILE_ARGS`` can be set :ref:`before building <installsrc>`.
+#)  Python wheel package binaries for Linux on `PyPI
+    <https://pypi.org/project/oracledb/>`__ are now stripped to reduce their
+    size.
 #)  Error ``DPY-2049: invalid flags for tpc_begin()`` is now raised when
     invalid flags are passed to :meth:`Connection.tpc_begin()`.  Previously,
     ``TypeError`` or ``ORA-24759: invalid transaction start flags``
