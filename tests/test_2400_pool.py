@@ -202,7 +202,6 @@ class TestCase(test_env.BaseTestCase):
             pool.homogeneous, "homogeneous should be True by default"
         )
         with self.assertRaisesFullCode("DPI-1012"):
-
             pool.acquire(user="missing_proxyuser")
         pool = test_env.get_pool(
             min=2,
@@ -891,6 +890,11 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(conn.call_timeout, 0)
         with pool.acquire() as conn:
             self.assertEqual(conn.call_timeout, 0)
+
+    def test_2440(self):
+        "2440 - test connection with an invalid pool"
+        with self.assertRaises(TypeError):
+            oracledb.connect(pool="not a pool object")
 
 
 if __name__ == "__main__":

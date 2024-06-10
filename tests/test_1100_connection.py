@@ -342,6 +342,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.stmtcachesize, 30)
         self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
         self.assertRaises(TypeError, conn.stmtcachesize, "value")
+        self.assertIsNone(conn.warning)
 
     def test_1119(self):
         "1119 - test closed connection attribute values"
@@ -353,6 +354,7 @@ class TestCase(test_env.BaseTestCase):
             "external_name",
             "internal_name",
             "stmtcachesize",
+            "warning",
         ]
         if test_env.get_client_version() >= (12, 1):
             attr_names.append("ltxid")
