@@ -1726,7 +1726,7 @@ Oracledb Methods
 
     .. deprecated:: python-oracledb 1.0
 
-    Use :ref:`ConnectParams class <connparam>` instead.
+    Use the :meth:`oracledb.ConnectParams()` method instead.
 
     .. note::
 
