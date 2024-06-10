@@ -260,7 +260,7 @@ cdef class ThinLobImpl(BaseThinLobImpl):
 
     def trim(self, uint64_t new_size):
         """
-        Internal method for trimming the data in the LOB to the new size
+        Internal method for trimming the data in the LOB to the new size.
         """
         self._process_message(self._create_trim_message(new_size))
         self._has_metadata = False
