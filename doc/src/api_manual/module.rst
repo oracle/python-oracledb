@@ -41,7 +41,7 @@ Oracledb Methods
         protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -193,12 +193,12 @@ Oracledb Methods
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. This
     value is used in both the python-oracledb Thin and Thick modes. The default
-    value is 0.
+    value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
     connection to the database host. This value is used in both the
-    python-oracledb Thin and Thick modes. The default value is 60.0.
+    python-oracledb Thin and Thick modes. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -347,6 +347,12 @@ Oracledb Methods
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.3.0
+
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds.
+
     .. versionchanged:: 2.1.0
 
         The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
@@ -365,7 +371,7 @@ Oracledb Methods
         protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -490,11 +496,11 @@ Oracledb Methods
 
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. The
-    default value is 0.
+    default value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
-    connection to the database host. The default value is 60.0.
+    connection to the database host. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -597,6 +603,12 @@ Oracledb Methods
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
+    .. versionchanged:: 2.3.0
+
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds.
+
     .. versionchanged:: 2.1.0
 
         The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
@@ -614,7 +626,7 @@ Oracledb Methods
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -730,12 +742,12 @@ Oracledb Methods
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. This
     value is used in both the python-oracledb Thin and Thick modes. The default
-    value is 0.
+    value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
     connection to the database host. This value is used in both the
-    python-oracledb Thin and Thick modes. The default value is 60.0.
+    python-oracledb Thin and Thick modes. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -881,6 +893,12 @@ Oracledb Methods
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.3.0
+
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds.
+
     .. versionchanged:: 2.1.0
 
         The ``pool_boundary`` and ``use_tcp_fast_open`` parameters were added.
@@ -904,7 +922,7 @@ Oracledb Methods
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -1117,12 +1135,12 @@ Oracledb Methods
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. This
     value is used in both the python-oracledb Thin and Thick modes. The default
-    value is 0.
+    value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
     connection to the database host. This value is used in both the
-    python-oracledb Thin and Thick modes. The default value is 60.0.
+    python-oracledb Thin and Thick modes. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -1276,7 +1294,10 @@ Oracledb Methods
 
     .. versionchanged:: 2.3.0
 
-        The ``ping_timeout`` parameter was added.
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ping_timeout`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -1301,7 +1322,7 @@ Oracledb Methods
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=0, tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -1481,11 +1502,11 @@ Oracledb Methods
 
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. The
-    default value is 0.
+    default value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
-    connection to the database host. The default value is 60.0.
+    connection to the database host. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -1590,7 +1611,10 @@ Oracledb Methods
 
     .. versionchanged:: 2.3.0
 
-        The ``ping_timeout`` parameter was added.
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ping_timeout`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -1717,8 +1741,8 @@ Oracledb Methods
         access_token=None, host=None, port=1521, protocol="tcp", \
         https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
         server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
-        expire_time=0, retry_count=0, retry_delay=0, \
-        tcp_connect_timeout=60.0, ssl_server_dn_match=True, \
+        expire_time=0, retry_count=0, retry_delay=1, \
+        tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -1898,12 +1922,12 @@ Oracledb Methods
     The ``retry_delay`` parameter is expected to be an integer that identifies
     the number of seconds to wait before making a new connection attempt. This
     value is used in both the python-oracledb Thin and Thick modes. The default
-    value is 0.
+    value is 1.
 
     The ``tcp_connect_timeout`` parameter is expected to be a float that
     indicates the maximum number of seconds to wait for establishing a
     connection to the database host. This value is used in both the
-    python-oracledb Thin and Thick modes. The default value is 60.0.
+    python-oracledb Thin and Thick modes. The default value is 20.0.
 
     The ``ssl_server_dn_match`` parameter is expected to be a boolean that
     indicates whether the server certificate distinguished name (DN) should be
@@ -2047,7 +2071,10 @@ Oracledb Methods
 
     .. versionchanged:: 2.3.0
 
-        The ``ping_timeout`` parameter was added.
+        The default value of the ``retry_delay`` parameter was changed from 0
+        seconds to 1 second. The default value of the ``tcp_connect_timeout``
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ping_timeout`` parameter was added.
 
     .. versionchanged:: 2.1.0
 

@@ -613,8 +613,8 @@ def create_pool(
     purity: int = oracledb.PURITY_DEFAULT,
     expire_time: int = 0,
     retry_count: int = 0,
-    retry_delay: int = 0,
-    tcp_connect_timeout: float = 60.0,
+    retry_delay: int = 1,
+    tcp_connect_timeout: float = 20.0,
     ssl_server_dn_match: bool = True,
     ssl_server_cert_dn: str = None,
     wallet_location: str = None,
@@ -783,10 +783,10 @@ def create_pool(
       retried before the attempt is terminated (default: 0)
 
     - retry_delay: the number of seconds to wait before making a new connection
-      attempt (default: 0)
+      attempt (default: 1)
 
     - tcp_connect_timeout: a float indicating the maximum number of seconds to
-      wait for establishing a connection to the database host (default: 60.0)
+      wait for establishing a connection to the database host (default: 20.0)
 
     - ssl_server_dn_match: boolean indicating whether the server certificate
       distinguished name (DN) should be matched in addition to the regular
@@ -1077,8 +1077,8 @@ def create_pool_async(
     purity: int = oracledb.PURITY_DEFAULT,
     expire_time: int = 0,
     retry_count: int = 0,
-    retry_delay: int = 0,
-    tcp_connect_timeout: float = 60.0,
+    retry_delay: int = 1,
+    tcp_connect_timeout: float = 20.0,
     ssl_server_dn_match: bool = True,
     ssl_server_cert_dn: str = None,
     wallet_location: str = None,
@@ -1247,10 +1247,10 @@ def create_pool_async(
       retried before the attempt is terminated (default: 0)
 
     - retry_delay: the number of seconds to wait before making a new connection
-      attempt (default: 0)
+      attempt (default: 1)
 
     - tcp_connect_timeout: a float indicating the maximum number of seconds to
-      wait for establishing a connection to the database host (default: 60.0)
+      wait for establishing a connection to the database host (default: 20.0)
 
     - ssl_server_dn_match: boolean indicating whether the server certificate
       distinguished name (DN) should be matched in addition to the regular

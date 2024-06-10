@@ -284,9 +284,14 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.retry_delay
 
     This read-only attribute is an integer that returns the number of seconds
-    to wait before making a new connection attempt. The default value is 0.
+    to wait before making a new connection attempt. The default value is 1.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionchaged:: 2.3.0
+
+        The default value of this attribute was changed from 0 seconds to 1
+        second.
 
 .. attribute:: ConnectParams.sdu
 
@@ -395,9 +400,14 @@ ConnectParams Attributes
 
     This read-only attribute is a float that indicates the maximum number of
     seconds to wait for a connection to be established to the database host.
-    The default value is 60.0.
+    The default value is 20.0.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionchanged:: 2.3.0
+
+        The default value of this attribute was changed from 60.0 seconds to
+        20.0 seconds.
 
 .. attribute:: ConnectParams.use_tcp_fast_open
 
