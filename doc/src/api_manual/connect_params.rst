@@ -288,7 +288,7 @@ ConnectParams Attributes
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
-    .. versionchaged:: 2.3.0
+    .. versionchanged:: 2.3.0
 
         The default value of this attribute was changed from 0 seconds to 1
         second.
