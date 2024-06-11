@@ -1100,7 +1100,6 @@ class Connection(BaseConnection):
         DBA_PENDING_TRANSACTIONS.
         """
         with self.cursor() as cursor:
-            cursor.rowfactory = Xid
             cursor.execute(
                 """
                     select
@@ -1109,6 +1108,7 @@ class Connection(BaseConnection):
                         branchid
                     from dba_pending_transactions"""
             )
+            cursor.rowfactory = Xid
             return cursor.fetchall()
 
     def tpc_rollback(self, xid: Xid = None) -> None:

@@ -70,6 +70,8 @@ Common Changes
 #)  If both the ``sid`` and ``service_name`` parameters are specified to
     :meth:`oracledb.makedsn()`, now only the ``service_name`` parameter is
     used and the ``sid`` parameter is ignored.
+#)  Fixed bug in :meth:`Connection.tpc_recover()` where the returned items were
+    not of the type returned by :meth:`Connection.xid()` as documented.
 #)  Internal changes to ensure that no circular imports occur.
 
 
