@@ -214,15 +214,13 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from DBA_PENDING_TRANSACTIONS")
         self.assertEqual(self.cursor.fetchall(), recovers)
 
-        for format_id, txn, branch in recovers:
-            if format_id % 2 == 0:
-                xid = self.conn.xid(format_id, txn, branch)
+        for xid in recovers:
+            if xid.format_id % 2 == 0:
                 self.conn.tpc_commit(xid)
         recovers = self.conn.tpc_recover()
         self.assertEqual(len(recovers), n_xids // 2)
 
-        for format_id, txn, branch in recovers:
-            xid = self.conn.xid(format_id, txn, branch)
+        for xid in recovers:
             self.conn.tpc_rollback(xid)
         recovers = self.conn.tpc_recover()
         self.assertEqual(len(recovers), 0)
