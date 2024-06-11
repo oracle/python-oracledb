@@ -2528,14 +2528,12 @@ cdef class TransactionChangeStateMessage(Message):
         # acquire data to send to the server
         if self.xid is not None:
             format_id = self.xid[0]
-            if isinstance(self.xid[1], bytes):
-                global_transaction_id = self.xid[1]
-            else:
-                global_transaction_id = self.xid[1].encode()
-            if isinstance(self.xid[2], bytes):
-                branch_qualifier = self.xid[2]
-            else:
-                branch_qualifier = self.xid[2].encode()
+            global_transaction_id = self.xid[1] \
+                    if isinstance(self.xid[1], bytes) \
+                    else self.xid[1].encode()
+            branch_qualifier = self.xid[2] \
+                    if isinstance(self.xid[2], bytes) \
+                    else self.xid[2].encode()
             xid_bytes = global_transaction_id + branch_qualifier
             xid_bytes += bytes(128 - len(xid_bytes))
 
@@ -2609,8 +2607,12 @@ cdef class TransactionSwitchMessage(Message):
         # acquire data to send to the server
         if self.xid is not None:
             format_id = self.xid[0]
-            global_transaction_id = self.xid[1].encode()
-            branch_qualifier = self.xid[2].encode()
+            global_transaction_id = self.xid[1] \
+                    if isinstance(self.xid[1], bytes) \
+                    else self.xid[1].encode()
+            branch_qualifier = self.xid[2] \
+                    if isinstance(self.xid[2], bytes) \
+                    else self.xid[2].encode()
             xid_bytes = global_transaction_id + branch_qualifier
             xid_bytes += bytes(128 - len(xid_bytes))
         if self.conn_impl._internal_name is not None:

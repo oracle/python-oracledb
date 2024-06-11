@@ -34,7 +34,7 @@ class TestCase(test_env.BaseTestCase):
     def test_4400(self):
         "4400 - test begin, prepare, roll back global transaction"
         self.cursor.execute("truncate table TestTempTable")
-        xid = self.conn.xid(3900, "txn3900", "branchId")
+        xid = self.conn.xid(3900, b"txn3900", b"branchId")
         self.conn.tpc_begin(xid)
         self.assertEqual(self.conn.tpc_prepare(), False)
         self.conn.tpc_begin(xid)
@@ -70,7 +70,7 @@ class TestCase(test_env.BaseTestCase):
         "4402 - test multiple global transactions on the same connection"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3902, "txn3902", "branch1")
-        xid2 = self.conn.xid(3902, "txn3902", "branch2")
+        xid2 = self.conn.xid(3902, b"txn3902", b"branch2")
         self.conn.tpc_begin(xid1)
         self.cursor.execute(
             """
@@ -102,7 +102,7 @@ class TestCase(test_env.BaseTestCase):
     def test_4403(self):
         "4403 - test rollback with parameter xid"
         self.cursor.execute("truncate table TestTempTable")
-        xid1 = self.conn.xid(3901, "txn3901", "branch1")
+        xid1 = self.conn.xid(3901, b"txn3901", b"branch1")
         xid2 = self.conn.xid(3902, "txn3902", "branch2")
         for count, xid in enumerate([xid1, xid2]):
             self.conn.tpc_begin(xid)
@@ -170,7 +170,7 @@ class TestCase(test_env.BaseTestCase):
         "4406 - test ending a transaction with parameter xid"
         self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(4406, "txn4406a", "branch3")
-        xid2 = self.conn.xid(4406, "txn4406b", "branch4")
+        xid2 = self.conn.xid(4406, b"txn4406b", b"branch4")
         self.conn.tpc_begin(xid1)
         self.cursor.execute(
             """
