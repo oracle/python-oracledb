@@ -1583,7 +1583,6 @@ class AsyncConnection(BaseConnection):
         DBA_PENDING_TRANSACTIONS.
         """
         with self.cursor() as cursor:
-            cursor.rowfactory = Xid
             await cursor.execute(
                 """
                     select
@@ -1592,6 +1591,7 @@ class AsyncConnection(BaseConnection):
                         branchid
                     from dba_pending_transactions"""
             )
+            cursor.rowfactory = Xid
             return await cursor.fetchall()
 
     async def tpc_rollback(self, xid: Xid = None) -> None:

@@ -39,7 +39,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_7400(self):
         "7400 - test begin, prepare, roll back global transaction"
         await self.cursor.execute("truncate table TestTempTable")
-        xid = self.conn.xid(3900, "txn3900", "branchId")
+        xid = self.conn.xid(3900, b"txn3900", b"branchId")
         await self.conn.tpc_begin(xid)
         self.assertEqual(await self.conn.tpc_prepare(), False)
         await self.conn.tpc_begin(xid)
@@ -77,7 +77,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "7402 - test multiple global transactions on the same connection"
         await self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(3902, "txn3902", "branch1")
-        xid2 = self.conn.xid(3902, "txn3902", "branch2")
+        xid2 = self.conn.xid(3902, b"txn3902", b"branch2")
         await self.conn.tpc_begin(xid1)
         await self.cursor.execute(
             """
@@ -109,7 +109,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_7403(self):
         "7403 - test rollback with parameter xid"
         await self.cursor.execute("truncate table TestTempTable")
-        xid1 = self.conn.xid(3901, "txn3901", "branch1")
+        xid1 = self.conn.xid(3901, b"txn3901", b"branch1")
         xid2 = self.conn.xid(3902, "txn3902", "branch2")
         for count, xid in enumerate([xid1, xid2]):
             await self.conn.tpc_begin(xid)
@@ -181,7 +181,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "7406 - test ending a transaction with parameter xid"
         await self.cursor.execute("truncate table TestTempTable")
         xid1 = self.conn.xid(7406, "txn7406a", "branch3")
-        xid2 = self.conn.xid(7406, "txn7406b", "branch4")
+        xid2 = self.conn.xid(7406, b"txn7406b", b"branch4")
         await self.conn.tpc_begin(xid1)
         await self.cursor.execute(
             """
@@ -225,15 +225,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("select * from DBA_PENDING_TRANSACTIONS")
         self.assertEqual(await self.cursor.fetchall(), recovers)
 
-        for format_id, txn, branch in recovers:
-            if format_id % 2 == 0:
-                xid = self.conn.xid(format_id, txn, branch)
+        for xid in recovers:
+            if xid.format_id % 2 == 0:
                 await self.conn.tpc_commit(xid)
         recovers = await self.conn.tpc_recover()
         self.assertEqual(len(recovers), n_xids // 2)
 
-        for format_id, txn, branch in recovers:
-            xid = self.conn.xid(format_id, txn, branch)
+        for xid in recovers:
             await self.conn.tpc_rollback(xid)
         recovers = await self.conn.tpc_recover()
         self.assertEqual(len(recovers), 0)
