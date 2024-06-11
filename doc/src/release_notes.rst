@@ -18,7 +18,7 @@ Thin Mode Changes
 +++++++++++++++++
 
 #)  Added support for :ref:`two-phase commits <tpc>`.
-#)  Added support for data of type :data:`~oracledb.DB_TYPE_BFILE`.
+#)  Added support for columns of type BFILE.
 #)  When calling :meth:`ConnectionPool.acquire()` or
     :meth:`AsyncConnectionPool.acquire()`, the connection pool ``mode``
     :data:`oracledb.POOL_GETMODE_TIMEDWAIT` now always honors the
@@ -115,7 +115,8 @@ Thin Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Added support for columns of type :ref:`VECTOR <vectors>`.
+#)  Added support for Oracle Database 23ai columns of type :ref:`VECTOR
+    <vectors>`.
 #)  Added support for columns of type INTERVAL YEAR TO MONTH which can be
     represented in Python by instances of the new
     :ref:`oracledb.IntervalYM <interval_ym>` class
@@ -251,8 +252,8 @@ Common Changes
 #)  Added class :ref:`oracledb.JsonId <jsonid>` to represent JSON ID values
     returned by SODA in Oracle Database 23.4 and later in the ``_id``
     attribute of documents stored in native collections.
-#)  Added support for columns of type VECTOR (currently requires access to a
-    limited availability release of the database).
+#)  Added support for columns of type VECTOR usable with a limited
+    availability release of Oracle Database 23.
 #)  Errors raised when calling :meth:`Cursor.executemany()` with PL/SQL now
     have the :data:`oracledb._Error.offset` attribute populated with the last
     iteration that succeeded

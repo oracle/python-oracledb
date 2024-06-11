@@ -4,12 +4,13 @@
 Using Vector Data
 *****************
 
-Oracle Database 23ai introduced a new data type VECTOR for artificial
-intelligence and machine learning search operations. The vector data type
-is a homogeneous array of 8-bit signed integers, 32-bit floating-point
-numbers, or 64-bit floating-point numbers. With the vector data type, you
-can define the number of dimensions for the data and the storage format
-for each dimension value in the vector.
+Oracle Database 23ai introduced a new data type `VECTOR
+<https://docs.oracle.com/en/database/oracle/oracle-database/23/vecse/overview-ai-vector-search.html>`__
+for artificial intelligence and machine learning search operations. The VECTOR
+data type is a homogeneous array of 8-bit signed integers, 32-bit
+floating-point numbers, or 64-bit floating-point numbers. With the VECTOR data
+type, you can define the number of dimensions for the data and the storage
+format for each dimension value in the vector.
 
 To create a table with three columns for vector data, for example:
 
