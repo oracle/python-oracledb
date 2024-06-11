@@ -597,6 +597,78 @@ class TestCase(test_env.BaseTestCase):
                 "begin null; end;", 31, arraydmlrowcounts=True
             )
 
+    def test_3232(self):
+        "3232 - fetch implicit cursors after closing connection"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            declare
+                c1 sys_refcursor;
+                c2 sys_refcursor;
+            begin
+                open c1 for
+                    select NullableCol
+                    from TestNumbers;
+
+                dbms_sql.return_result(c1);
+
+                open c2 for
+                    select NullableCol
+                    from TestNumbers;
+
+                dbms_sql.return_result(c2);
+            end;
+            """
+        )
+        cursor1, cursor2 = cursor.getimplicitresults()
+        conn.close()
+        with self.assertRaisesFullCode("DPY-1001"):
+            cursor1.fetchall()
+        with self.assertRaisesFullCode("DPY-1001"):
+            cursor2.fetchall()
+
+    def test_3233(self):
+        "3233 - fetch implicit cursors after closing parent cursor"
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            declare
+                c1 sys_refcursor;
+                c2 sys_refcursor;
+            begin
+                open c1 for
+                    select NullableCol
+                    from TestNumbers
+                    where IntCol between 3 and 5;
+
+                dbms_sql.return_result(c1);
+
+                open c2 for
+                    select NullableCol
+                    from TestNumbers
+                    where IntCol between 7 and 10;
+
+                dbms_sql.return_result(c2);
+            end;
+            """
+        )
+        cursor1, cursor2 = cursor.getimplicitresults()
+        cursor.close()
+        if self.conn.thin:
+            self.assertEqual(
+                [n for n, in cursor1], [2924207, None, 59797108943]
+            )
+            self.assertEqual(
+                [n for n, in cursor2],
+                [1222791080775407, None, 25004854810776297743, None],
+            )
+        else:
+            with self.assertRaisesFullCode("DPI-1039"):
+                cursor1.fetchall()
+            with self.assertRaisesFullCode("DPI-1039"):
+                cursor1.fetchall()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
