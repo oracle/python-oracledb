@@ -26,6 +26,7 @@
 6000 - Module for testing the input and output type handlers with asyncio.
 """
 
+import datetime
 import json
 import unittest
 
@@ -257,6 +258,42 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.cursor.outputtypehandler = output_type_handler
         await self.cursor.execute("select * from TestJson")
         self.assertEqual(await self.cursor.fetchall(), data_to_insert)
+
+    async def test_6007(self):
+        "6007 - output type handler with object implementing __call__()"
+
+        class TimestampOutputTypeHandler:
+
+            def __init__(self, unit="s"):
+                if unit == "ms":
+                    self.factor = 1000
+                else:
+                    self.factor = 1
+
+            def converter(self, d):
+                return int(d.timestamp() * self.factor)
+
+            def __call__(self, cursor, metadata):
+                if metadata.type_code is oracledb.DB_TYPE_TIMESTAMP:
+                    return cursor.var(
+                        metadata.type_code,
+                        arraysize=cursor.arraysize,
+                        outconverter=self.converter,
+                    )
+
+        d = datetime.datetime.today()
+        with self.conn.cursor() as cursor:
+            cursor.outputtypehandler = TimestampOutputTypeHandler("ms")
+            cursor.setinputsizes(oracledb.DB_TYPE_TIMESTAMP)
+            await cursor.execute("select :d from dual", [d])
+            (result,) = await cursor.fetchone()
+            self.assertEqual(result, int(d.timestamp() * 1000))
+        with self.conn.cursor() as cursor:
+            cursor.outputtypehandler = TimestampOutputTypeHandler("s")
+            cursor.setinputsizes(oracledb.DB_TYPE_TIMESTAMP)
+            await cursor.execute("select :d from dual", [d])
+            (result,) = await cursor.fetchone()
+            self.assertEqual(result, int(d.timestamp()))
 
 
 if __name__ == "__main__":

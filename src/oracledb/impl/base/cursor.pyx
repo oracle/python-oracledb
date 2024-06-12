@@ -316,11 +316,11 @@ cdef class BaseCursorImpl:
             conn_impl = self._get_conn_impl()
             type_handler = conn_impl.outputtypehandler
         if type_handler is not None:
-            uses_fetch_info[0] = \
-                    (inspect.isfunction(type_handler) and \
-                    type_handler.__code__.co_argcount == 2) or \
-                    (inspect.ismethod(type_handler) and \
-                    type_handler.__code__.co_argcount == 3)
+            try:
+                sig = inspect.signature(type_handler)
+                uses_fetch_info[0] = (len(sig.parameters) == 2)
+            except (ValueError, TypeError):
+                uses_fetch_info[0] = False
         return type_handler
 
     cdef int _init_fetch_vars(self, uint32_t num_columns) except -1:

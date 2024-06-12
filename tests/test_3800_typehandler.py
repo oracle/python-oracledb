@@ -26,6 +26,7 @@
 3800 - Module for testing the input and output type handlers.
 """
 
+import datetime
 import json
 import unittest
 
@@ -285,6 +286,42 @@ class TestCase(test_env.BaseTestCase):
         rc = chr(0xFFFD)
         expected_result = f"A{rc}B{rc}C{rc}"
         self.assertEqual(result, expected_result)
+
+    def test_3808(self):
+        "3808 - output type handler with object implementing __call__()"
+
+        class TimestampOutputTypeHandler:
+
+            def __init__(self, unit="s"):
+                if unit == "ms":
+                    self.factor = 1000
+                else:
+                    self.factor = 1
+
+            def converter(self, d):
+                return int(d.timestamp() * self.factor)
+
+            def __call__(self, cursor, metadata):
+                if metadata.type_code is oracledb.DB_TYPE_TIMESTAMP:
+                    return cursor.var(
+                        metadata.type_code,
+                        arraysize=cursor.arraysize,
+                        outconverter=self.converter,
+                    )
+
+        d = datetime.datetime.today()
+        with self.conn.cursor() as cursor:
+            cursor.outputtypehandler = TimestampOutputTypeHandler("ms")
+            cursor.setinputsizes(oracledb.DB_TYPE_TIMESTAMP)
+            cursor.execute("select :d from dual", [d])
+            (result,) = cursor.fetchone()
+            self.assertEqual(result, int(d.timestamp() * 1000))
+        with self.conn.cursor() as cursor:
+            cursor.outputtypehandler = TimestampOutputTypeHandler("s")
+            cursor.setinputsizes(oracledb.DB_TYPE_TIMESTAMP)
+            cursor.execute("select :d from dual", [d])
+            (result,) = cursor.fetchone()
+            self.assertEqual(result, int(d.timestamp()))
 
 
 if __name__ == "__main__":

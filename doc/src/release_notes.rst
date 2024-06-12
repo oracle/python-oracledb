@@ -46,6 +46,8 @@ Common Changes
 #)  Added support for maintainers to specify optional compilation arguments
     when building python-oracledb. A new environment variable
     ``PYO_COMPILE_ARGS`` can be set :ref:`before building <installsrc>`.
+#)  Improved detection of the signature used by output type handlers, in
+    particular those that that make use of ``__call__()``.
 #)  Python wheel package binaries for Linux on `PyPI
     <https://pypi.org/project/oracledb/>`__ are now stripped to reduce their
     size.
