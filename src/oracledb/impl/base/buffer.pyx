@@ -341,7 +341,7 @@ cdef class Buffer:
             int8_t tz_hour = 0, tz_minute = 0
             uint32_t fsecond = 0
             int32_t seconds
-            uint16_t year
+            int16_t year
         year = (ptr[0] - 100) * 100 + ptr[1] - 100
         if num_bytes >= 11:
             fsecond = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) // 1000

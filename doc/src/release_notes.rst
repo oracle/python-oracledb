@@ -25,6 +25,9 @@ Thin Mode Changes
     ``wait_timeout`` value and the connection request will not additionally be
     delayed by any internal network ping to the database (`issue 330
     <https://github.com/oracle/python-oracledb/issues/330>`__).
+#)  Fixed bug in fetching dates with years less than 0
+    (`issue 345 <https://github.com/oracle/python-oracledb/issues/345>`__).
+
 
 Thick Mode Changes
 ++++++++++++++++++

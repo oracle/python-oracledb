@@ -297,6 +297,14 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(self.cursor.fetchone(), self.data_by_key[4])
         self.assertIsNone(self.cursor.fetchone())
 
+    def test_1418(self):
+        "1418 - test fetching a date with year < 0"
+        with self.assertRaises(ValueError):
+            self.cursor.execute(
+                "select to_date('-4712-01-01', 'SYYYY-MM-DD') from dual"
+            )
+            self.cursor.fetchone()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
