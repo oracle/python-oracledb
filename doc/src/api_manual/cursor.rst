@@ -263,19 +263,20 @@ Cursor Methods
     available from a PL/SQL block or procedure without the use of OUT ref
     cursor parameters. The PL/SQL block or procedure opens the cursors and
     marks them for return to the client using the procedure
-    dbms_sql.return_result. Cursors returned in this fashion should not be
-    closed. They will be closed automatically by the parent cursor when it is
-    closed. Closing the parent cursor will invalidate the cursors returned by
-    this method.
+    dbms_sql.return_result. In python-oracledb Thick mode, closing the parent
+    cursor will result in the automatic closure of the implicit result set
+    cursors. See :ref:`implicitresults`.
+
+    This method is only available for Oracle Database 12.1 (or later). For
+    python-oracledb :ref:`Thick <enablingthick>` mode, Oracle Client 12.1 (or
+    later) is additionally required.
 
     .. note::
 
-        The DB API definition does not define this method and it is only
-        available for Oracle Database 12.1 (both client and server must be at
-        this level or higher). It is most like the DB API method nextset(), but
-        unlike that method (which requires that the next result set overwrite
-        the current result set), this method returns cursors which can be
-        fetched independently of each other.
+        The DB API definition does not define this method. It is most like the
+        DB API method nextset(), but unlike that method (which requires that
+        the next result set overwrite the current result set), this method
+        returns cursors which can be fetched independently of each other.
 
 .. method:: Cursor.parse(statement)
 

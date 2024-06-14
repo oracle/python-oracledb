@@ -304,6 +304,22 @@ and UROWID database types. In python-oracledb Thick and Thin modes, comparison w
 the type ``oracledb.ROWID`` (defined in the Python DB API) will match both ROWID and
 UROWID database types.
 
+.. _implicitresultsdiff:
+
+Implicit Results in Thin and Thick Modes
+========================================
+
+In python-oracledb Thick mode, the parent cursor that is used to get the
+:ref:`implicit results <implicitresults>` must remain open until all of the
+implicit result sets have been fetched or until the application no longer
+requires them. Closing the parent cursor before all the implicit result sets
+have been fetched will result in the automatic closure of the implicit result
+set cursors.
+
+In python-oracledb Thin mode, there is no requirement to leave the parent
+cursor open when fetching implicit result sets. The parent cursor and implicit
+cursors are independently handled in Thin mode.
+
 .. _stmtcaching:
 
 Statement Caching in Thin and Thick Modes

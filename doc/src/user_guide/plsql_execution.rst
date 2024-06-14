@@ -260,7 +260,9 @@ which may be much slower:
             break
         print(text_var.getvalue())
 
-Implicit results
+.. _implicitresults:
+
+Implicit Results
 ----------------
 
 Implicit results permit a Python program to consume cursors returned by a
@@ -296,6 +298,18 @@ Data from both the result sets are returned::
     (2, 'Julia')
     (1000, 1, 'BOOKS')
     (2000, 2, 'FURNITURE')
+
+When using python-oracledb Thick mode, you must leave the parent cursor open
+until all of the implicit result sets have been fetched or until your
+application no longer requires them. Closing the parent cursor before
+fetching all of the implicit result sets will result in the closure of the
+implicit result set cursors. If you try to fetch from an implicit result set
+after its parent cursor is closed, the following error will be thrown::
+
+    DPI-1039: statement was already closed
+
+Note that the requirement mentioned above is not applicable for
+python-oracledb Thin mode. See :ref:`implicitresultsdiff`.
 
 .. _ebr:
 

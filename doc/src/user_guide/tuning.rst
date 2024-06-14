@@ -259,10 +259,15 @@ Avoiding Premature Prefetching
 
 There are two cases that will benefit from setting ``prefetchrows`` to zero:
 
-* When passing REF CURSORS *into* PL/SQL packages.  Setting ``prefetchrows`` to
-  0 can stop rows being prematurely (and silently) fetched into the
-  python-oracledb internal buffer, making those rows unavailable to the PL/SQL
-  code that receives the REF CURSOR.
+* When passing a python-oracledb cursor *into* PL/SQL.  Setting
+  ``prefetchrows`` to 0 can stop rows being prematurely (and silently) fetched
+  into the python-oracledb internal buffer, making those rows unavailable to
+  the PL/SQL REF CURSOR parameter::
+
+    refcursor = connection.cursor()
+    refcursor.prefetchrows = 0
+    refcursor.execute("select ...")
+    cursor.callproc("myproc", [refcursor])
 
 * When querying a PL/SQL function that uses PIPE ROW to emit rows at
   intermittent intervals.  By default, several rows needs to be emitted by the
