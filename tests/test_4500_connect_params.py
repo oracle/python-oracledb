@@ -441,6 +441,7 @@ class TestCase(test_env.BaseTestCase):
                 host=host,
                 service_name=service_name,
                 tcp_connect_timeout=in_val,
+                retry_delay=0,
             )
             tcp_timeout_val = f"(TRANSPORT_CONNECT_TIMEOUT={out_val})"
             connect_string = (
@@ -517,6 +518,7 @@ class TestCase(test_env.BaseTestCase):
         for in_val, has_section in options:
             connect_string = f"""
                 (DESCRIPTION=
+                    (RETRY_DELAY=0)
                     (SOURCE_ROUTE={in_val})
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))
                     (ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522))

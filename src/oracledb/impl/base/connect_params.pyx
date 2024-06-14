@@ -64,7 +64,8 @@ _tnsnames_files = {}
 # internal default values
 cdef str DEFAULT_PROTOCOL = "tcp"
 cdef uint32_t DEFAULT_PORT = 1521
-cdef double DEFAULT_TCP_CONNECT_TIMEOUT = 60
+cdef double DEFAULT_TCP_CONNECT_TIMEOUT = 20
+cdef uint32_t DEFAULT_RETRY_DELAY = 1
 cdef uint32_t DEFAULT_SDU = 8192
 
 
@@ -795,6 +796,7 @@ cdef class Description(ConnectParamsNode):
     def __init__(self):
         ConnectParamsNode.__init__(self, True)
         self.tcp_connect_timeout = DEFAULT_TCP_CONNECT_TIMEOUT
+        self.retry_delay = DEFAULT_RETRY_DELAY
         self.ssl_server_dn_match = True
         self.sdu = DEFAULT_SDU
 
