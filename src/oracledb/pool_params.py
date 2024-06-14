@@ -58,7 +58,7 @@ class PoolParams(ConnectParams):
         max: int = 2,
         increment: int = 1,
         connectiontype: Type["oracledb.Connection"] = None,
-        getmode: int = oracledb.POOL_GETMODE_WAIT,
+        getmode: oracledb.PoolGetMode = oracledb.POOL_GETMODE_WAIT,
         homogeneous: bool = True,
         timeout: int = 0,
         wait_timeout: int = 0,
@@ -83,7 +83,7 @@ class PoolParams(ConnectParams):
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
-        purity: int = oracledb.PURITY_DEFAULT,
+        purity: oracledb.Purity = oracledb.PURITY_DEFAULT,
         expire_time: int = 0,
         retry_count: int = 0,
         retry_delay: int = 1,
@@ -93,7 +93,7 @@ class PoolParams(ConnectParams):
         wallet_location: str = None,
         events: bool = False,
         externalauth: bool = False,
-        mode: int = oracledb.AUTH_MODE_DEFAULT,
+        mode: oracledb.AuthMode = oracledb.AUTH_MODE_DEFAULT,
         disable_oob: bool = False,
         stmtcachesize: int = oracledb.defaults.stmtcachesize,
         edition: str = None,
@@ -411,13 +411,13 @@ class PoolParams(ConnectParams):
         return self._impl.connectiontype
 
     @property
-    def getmode(self) -> int:
+    def getmode(self) -> oracledb.PoolGetMode:
         """
         How pool.acquire() will behave. One of the constants
         oracledb.POOL_GETMODE_WAIT, oracledb.POOL_GETMODE_NOWAIT,
         oracledb.POOL_GETMODE_FORCEGET, or oracledb.POOL_GETMODE_TIMEDWAIT.
         """
-        return self._impl.getmode
+        return oracledb.PoolGetMode(self._impl.getmode)
 
     @property
     def homogeneous(self) -> bool:
@@ -537,7 +537,7 @@ class PoolParams(ConnectParams):
         max: int = None,
         increment: int = None,
         connectiontype: Type["oracledb.Connection"] = None,
-        getmode: int = None,
+        getmode: oracledb.PoolGetMode = None,
         homogeneous: bool = None,
         timeout: int = None,
         wait_timeout: int = None,
@@ -562,7 +562,7 @@ class PoolParams(ConnectParams):
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
-        purity: int = None,
+        purity: oracledb.Purity = None,
         expire_time: int = None,
         retry_count: int = None,
         retry_delay: int = None,
@@ -572,7 +572,7 @@ class PoolParams(ConnectParams):
         wallet_location: str = None,
         events: bool = None,
         externalauth: bool = None,
-        mode: int = None,
+        mode: oracledb.AuthMode = None,
         disable_oob: bool = None,
         stmtcachesize: int = None,
         edition: str = None,

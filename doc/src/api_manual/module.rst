@@ -2430,16 +2430,25 @@ constants used in advanced queuing.
 Connection Authorization Modes
 ------------------------------
 
-These constants are extensions to the DB API definition and have deprecated the
-`authorization modes <https://cx-oracle.readthedocs.io/en/latest/api_manual/
-module.html#connection-authorization-modes>`_ used in cx_Oracle 8.3. They are
-possible values for the ``mode`` parameter of the :meth:`connect()` method.
+These constants belong to the enumeration called ``AuthMode``. The constants
+listed below are extensions to the DB API definition and have
+deprecated the `authorization modes <https://cx-oracle.readthedocs.io/en/
+latest/api_manual/module.html#connection-authorization-modes>`_ used in
+cx_Oracle 8.3. They are possible values for the ``mode`` parameter of the
+:meth:`connect()` method.
 
+.. versionchanged:: 2.3.0
+
+    The integer constants for the connection authorization modes were replaced
+    with the enumeration ``AuthMode``.
 
 .. data:: AUTH_MODE_DEFAULT
 
     This constant is used to specify that default authentication is to take
     place. This is the default value if no mode is passed at all.
+
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.DEFAULT``.
 
     .. note::
 
@@ -2455,6 +2464,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
     This constant is used to specify that preliminary authentication is to be
     used. This is needed for performing database startup and shutdown.
 
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.PRELIM``.
+
     .. note::
 
         This constant can only be used in the python-oracledb Thick mode for
@@ -2466,6 +2478,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 .. data:: AUTH_MODE_SYSASM
 
     This constant is used to specify that SYSASM access is to be acquired.
+
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSASM``.
 
     .. note::
 
@@ -2480,6 +2495,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 
     This constant is used to specify that SYSBACKUP access is to be acquired.
 
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSBKP``.
+
     .. note::
 
         This constant can be used for standalone and pooled connections in the
@@ -2492,6 +2510,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 .. data:: AUTH_MODE_SYSDBA
 
     This constant is used to specify that SYSDBA access is to be acquired.
+
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSDBA``.
 
     .. note::
 
@@ -2506,6 +2527,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 
     This constant is used to specify that SYSDG access is to be acquired.
 
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSDGD``.
+
     .. note::
 
         This constant can be used for standalone and pooled connections in the
@@ -2518,6 +2542,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 .. data:: AUTH_MODE_SYSKMT
 
     This constant is used to specify that SYSKM access is to be acquired.
+
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSKMT``.
 
     .. note::
 
@@ -2532,6 +2559,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 
     This constant is used to specify that SYSOPER access is to be acquired.
 
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSOPER``.
+
     .. note::
 
         This constant can be used for standalone and pooled connections in the
@@ -2544,6 +2574,9 @@ possible values for the ``mode`` parameter of the :meth:`connect()` method.
 .. data:: AUTH_MODE_SYSRAC
 
     This constant is used to specify that SYSRAC access is to be acquired.
+
+    This enumerated value can also be identified by
+    ``oracledb.AuthMode.SYSRAC``.
 
     .. note::
 
@@ -2714,17 +2747,25 @@ also used by the :attr:`MessageTable.operation` or
 Connection Pool Get Modes
 -------------------------
 
-These constants are extensions to the DB API definition and have deprecated the
+These constants belong to the enumeration called ``PoolGetMode``. The constants
+listed below are extensions to the DB API definition and have deprecated the
 `Session Pool Get Modes <https://cx-oracle.readthedocs.io/en/latest/api_manual/
 module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
 8.3.  They are possible values for the ``getmode`` parameter of the
 :meth:`oracledb.create_pool()` method.
 
+.. versionchanged:: 2.3.0
+
+    The integer constants for the connection pool get modes were replaced
+    with the enumeration ``PoolGetMode``.
 
 .. data:: POOL_GETMODE_FORCEGET
 
     This constant is used to specify that a new connection will be returned if
     there are no free sessions available in the pool.
+
+    This enumerated value can also be identified by
+    ``oracledb.PoolGetMode.FORCEGET``.
 
     .. note::
 
@@ -2736,6 +2777,9 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
 
     This constant is used to specify that an exception should be raised if
     there are no free sessions available in the pool.
+
+    This enumerated value can also be identified by
+    ``oracledb.PoolGetMode.NOWAIT``.
 
     .. note::
 
@@ -2749,6 +2793,9 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
     session is available if there are no free sessions available in the pool.
     This is the default value.
 
+    This enumerated value can also be identified by
+    ``oracledb.PoolGetMode.WAIT``.
+
     .. note::
 
         This constant deprecates the ``SPOOL_ATTRVAL_WAIT`` constant that was
@@ -2761,6 +2808,9 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
     of time (defined by the ``wait_timeout`` parameter) for a session to become
     available before returning with an error.
 
+    This enumerated value can also be identified by
+    ``oracledb.PoolGetMode.TIMEDWAIT``.
+
     .. note::
 
         This constant deprecates the ``SPOOL_ATTRVAL_TIMEDWAIT`` constant that
@@ -2771,17 +2821,26 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
 Connection Pool Purity Constants
 --------------------------------
 
-These constants are extensions to the DB API definition and have deprecated the
+These constants belong to the enumeration called ``Purity``. The constants
+listed below are extensions to the DB API definition and have deprecated the
 `Session Pool Purity <https://cx-oracle.readthedocs.io/en/latest/api_manual/
 module.html#session-pool-purity>`_ constants that were used in cx_Oracle 8.3.
 They are possible values for the ``purity`` parameter of the :meth:`connect()`
 method, which is used in Database Resident Connection Pooling (DRCP).
+
+.. versionchanged:: 2.3.0
+
+    The integer constants for the connection pool get modes were replaced
+    with the enumeration ``Purity``.
 
 .. data:: PURITY_DEFAULT
 
     This constant is used to specify that the purity of the session is the
     default value identified by Oracle (see Oracle's documentation for more
     information). This is the default value.
+
+    This enumerated value can also be identified by
+    ``oracledb.Purity.DEFAULT``.
 
     .. note::
 
@@ -2793,6 +2852,8 @@ method, which is used in Database Resident Connection Pooling (DRCP).
     This constant is used to specify that the session acquired from the pool
     should be new and not have any prior session state.
 
+    This enumerated value can also be identified by ``oracledb.Purity.NEW``.
+
     .. note::
 
         This constant deprecates the ``ATTR_PURITY_NEW`` constant that was used
@@ -2803,6 +2864,8 @@ method, which is used in Database Resident Connection Pooling (DRCP).
 
     This constant is used to specify that the session acquired from the pool
     need not be new and may have prior session state.
+
+    This enumerated value can also be identified by ``oracledb.Purity.SELF``.
 
     .. note::
 
@@ -3404,25 +3467,39 @@ below.
 Vector Format Constants
 -----------------------
 
-These constants are possible values for the :attr:`FetchInfo.vector_format`
-attribute.
+These constants belong to the enumeration called ``VectorFormat`` and are
+possible values for the :attr:`FetchInfo.vector_format` attribute.
 
 .. versionadded:: 2.2.0
+
+.. versionchanged:: 2.3.0
+
+    The integer constants for the vector format constants were replaced with
+    the enumeration ``VectorFormat``.
 
 .. data:: VECTOR_FORMAT_FLOAT32
 
     This constant is used to represent the storage format of VECTOR columns
     using 32-bit floating point numbers.
 
+    This enumerated value can also be identified by
+    ``oracledb.VectorFormat.FLOAT32``.
+
 .. data:: VECTOR_FORMAT_FLOAT64
 
     This constant is used to represent the storage format of VECTOR columns
     using 64-bit floating point numbers.
 
+    This enumerated value can also be identified by
+    ``oracledb.VectorFormat.FLOAT64``.
+
 .. data:: VECTOR_FORMAT_INT8
 
     This constant is used to represent the storage format of VECTOR columns
     using 8-bit signed integers.
+
+    This enumerated value can also be identified by
+    ``oracledb.VectorFormat.INT8``.
 
 .. _exceptions:
 

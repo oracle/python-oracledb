@@ -286,6 +286,10 @@ class TestCase(test_env.BaseTestCase):
             for i in self.cursor.description
         ]
         self.assertEqual(values, expected_values)
+        self.assertIs(
+            self.cursor.description[3].vector_format,
+            oracledb.VectorFormat.INT8,
+        )
 
     def test_6413(self):
         "6413 - insert an int8 vector into an int8 column"

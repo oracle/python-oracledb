@@ -31,6 +31,8 @@
 
 from typing import Union
 
+import oracledb
+
 from . import __name__ as MODULE_NAME
 from . import constants
 from .dbobject import DbObjectType
@@ -236,7 +238,7 @@ class FetchInfo:
                 return self._impl.vector_dimensions
 
     @property
-    def vector_format(self) -> [int, None]:
+    def vector_format(self) -> [oracledb.VectorFormat, None]:
         """
         Returns the storage type required by vector columns. If the column is
         not a vector column or allows for any type of storage, the value
@@ -246,4 +248,4 @@ class FetchInfo:
             self._impl.dbtype is DB_TYPE_VECTOR
             and self._impl.vector_format != 0
         ):
-            return self._impl.vector_format
+            return oracledb.VectorFormat(self._impl.vector_format)

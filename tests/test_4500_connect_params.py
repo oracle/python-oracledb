@@ -136,22 +136,24 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4509(self):
         "4509 - connect descriptor with purity parameters"
-        for purity_str in ("SELF", "NEW"):
-            purity = getattr(oracledb, f"PURITY_{purity_str}")
-            cclass = f"cclass_4510_{purity_str}"
+        for purity in oracledb.Purity:
+            if purity is oracledb.Purity.DEFAULT:
+                continue
+            cclass = f"cclass_4510_{purity.name}"
             connect_string = f"""
                 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
                 (CONNECT_DATA=(SERVICE_NAME=service_4510)
-                (POOL_CONNECTION_CLASS={cclass})(POOL_PURITY={purity_str})))"""
+                (POOL_CONNECTION_CLASS={cclass})
+                (POOL_PURITY={purity.name})))"""
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
             self.assertEqual(params.cclass, cclass)
-            self.assertEqual(params.purity, purity)
+            self.assertIs(params.purity, purity)
             gen_connect_string = params.get_connect_string()
             gen_params = oracledb.ConnectParams()
             gen_params.parse_connect_string(gen_connect_string)
             self.assertEqual(gen_params.cclass, cclass)
-            self.assertEqual(gen_params.purity, purity)
+            self.assertIs(gen_params.purity, purity)
 
     def test_4510(self):
         "4510 - connect descriptor with invalid pool purity"
@@ -652,6 +654,8 @@ class TestCase(test_env.BaseTestCase):
         parts = [f"{name}={value!r}" for name, value in values]
         expected_value = f"ConnectParams({', '.join(parts)})"
         self.assertEqual(repr(params), expected_value)
+        self.assertIs(params.purity, oracledb.Purity.SELF)
+        self.assertIs(params.mode, oracledb.AuthMode.SYSDBA)
 
     def test_4540(self):
         "4540 - connect descriptor with SDU"

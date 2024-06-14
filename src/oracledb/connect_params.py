@@ -70,7 +70,7 @@ class ConnectParams:
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
-        purity: int = oracledb.PURITY_DEFAULT,
+        purity: oracledb.Purity = oracledb.PURITY_DEFAULT,
         expire_time: int = 0,
         retry_count: int = 0,
         retry_delay: int = 1,
@@ -80,7 +80,7 @@ class ConnectParams:
         wallet_location: str = None,
         events: bool = False,
         externalauth: bool = False,
-        mode: int = oracledb.AUTH_MODE_DEFAULT,
+        mode: oracledb.AuthMode = oracledb.AUTH_MODE_DEFAULT,
         disable_oob: bool = False,
         stmtcachesize: int = oracledb.defaults.stmtcachesize,
         edition: str = None,
@@ -318,31 +318,15 @@ class ConnectParams:
             + ")"
         )
 
-    def _address_attr(f):
+    def _flatten_value(f):
         """
-        Helper function used to get address level attributes.
-        """
-
-        @functools.wraps(f)
-        def wrapped(self):
-            values = [
-                getattr(a, f.__name__) for a in self._impl._get_addresses()
-            ]
-            return values if len(values) > 1 else values[0]
-
-        return wrapped
-
-    def _description_attr(f):
-        """
-        Helper function used to get description level attributes.
+        Helper function used to flatten arrays of values if they only contain a
+        single item.
         """
 
         @functools.wraps(f)
         def wrapped(self):
-            values = [
-                getattr(d, f.__name__)
-                for d in self._impl.description_list.children
-            ]
+            values = f(self)
             return values if len(values) > 1 else values[0]
 
         return wrapped
@@ -357,13 +341,13 @@ class ConnectParams:
         return self._impl.appcontext
 
     @property
-    @_description_attr
+    @_flatten_value
     def cclass(self) -> Union[list, str]:
         """
         Connection class to use for Database Resident Connection Pooling
         (DRCP).
         """
-        return self._impl.cclass
+        return [d.cclass for d in self._impl.description_list.children]
 
     @property
     def config_dir(self) -> str:
@@ -375,13 +359,16 @@ class ConnectParams:
         return self._impl.config_dir
 
     @property
-    @_description_attr
+    @_flatten_value
     def connection_id_prefix(self) -> Union[list, str]:
         """
         An application specific prefix that is added to the connection
         identifier used for tracing.
         """
-        return self._impl.connection_id_prefix
+        return [
+            d.connection_id_prefix
+            for d in self._impl.description_list.children
+        ]
 
     @property
     def debug_jdwp(self) -> str:
@@ -419,14 +406,14 @@ class ConnectParams:
         return self._impl.events
 
     @property
-    @_description_attr
+    @_flatten_value
     def expire_time(self) -> Union[list, int]:
         """
         An integer indicating the number of minutes between the sending of
         keepalive probes. If this parameter is set to a value greater than zero
         it enables keepalive.
         """
-        return self._impl.expire_time
+        return [d.expire_time for d in self._impl.description_list.children]
 
     @property
     def externalauth(self) -> bool:
@@ -436,30 +423,30 @@ class ConnectParams:
         return self._impl.externalauth
 
     @property
-    @_address_attr
+    @_flatten_value
     def host(self) -> Union[list, str]:
         """
         The name or IP address of the machine hosting the database or the
         database listener.
         """
-        return self._impl.host
+        return [a.host for a in self._impl._get_addresses()]
 
     @property
-    @_address_attr
+    @_flatten_value
     def https_proxy(self) -> Union[list, str]:
         """
         The name or IP address of a proxy host to use for tunneling secure
         connections.
         """
-        return self._impl.https_proxy
+        return [a.https_proxy for a in self._impl._get_addresses()]
 
     @property
-    @_address_attr
+    @_flatten_value
     def https_proxy_port(self) -> Union[list, int]:
         """
         The port on which to communicate with the proxy host.
         """
-        return self._impl.https_proxy_port
+        return [a.https_proxy_port for a in self._impl._get_addresses()]
 
     @property
     def matchanytag(self) -> bool:
@@ -470,38 +457,38 @@ class ConnectParams:
         return self._impl.matchanytag
 
     @property
-    def mode(self) -> int:
+    def mode(self) -> oracledb.AuthMode:
         """
         Authorization mode to use. For example oracledb.AUTH_MODE_SYSDBA.
         """
-        return self._impl.mode
+        return oracledb.AuthMode(self._impl.mode)
 
     @property
-    @_description_attr
+    @_flatten_value
     def pool_boundary(self) -> Union[list, str]:
         """
         One of the values "statement" or "transaction" indicating when pooled
         DRCP connections can be returned to the pool. This requires the use of
         DRCP with Oracle Database 23.4 or higher.
         """
-        return self._impl.pool_boundary
+        return [d.pool_boundary for d in self._impl.description_list.children]
 
     @property
-    @_address_attr
+    @_flatten_value
     def port(self) -> Union[list, int]:
         """
         The port number on which the database listener is listening.
         """
-        return self._impl.port
+        return [a.port for a in self._impl._get_addresses()]
 
     @property
-    @_address_attr
+    @_flatten_value
     def protocol(self) -> Union[list, str]:
         """
         One of the strings "tcp" or "tcps" indicating whether to use
         unencrypted network traffic or encrypted network traffic (TLS).
         """
-        return self._impl.protocol
+        return [a.protocol for a in self._impl._get_addresses()]
 
     @property
     def proxy_user(self) -> str:
@@ -513,32 +500,35 @@ class ConnectParams:
         return self._impl.proxy_user
 
     @property
-    @_description_attr
-    def purity(self) -> Union[list, int]:
+    @_flatten_value
+    def purity(self) -> Union[list, oracledb.Purity]:
         """
         Purity to use for Database Resident Connection Pooling (DRCP).
         """
-        return self._impl.purity
+        return [
+            oracledb.Purity(d.purity)
+            for d in self._impl.description_list.children
+        ]
 
     @property
-    @_description_attr
+    @_flatten_value
     def retry_count(self) -> Union[list, int]:
         """
         The number of times that a connection attempt should be retried before
         the attempt is terminated.
         """
-        return self._impl.retry_count
+        return [d.retry_count for d in self._impl.description_list.children]
 
     @property
-    @_description_attr
+    @_flatten_value
     def retry_delay(self) -> Union[list, int]:
         """
         The number of seconds to wait before making a new connection attempt.
         """
-        return self._impl.retry_delay
+        return [d.retry_delay for d in self._impl.description_list.children]
 
     @property
-    @_description_attr
+    @_flatten_value
     def sdu(self) -> Union[list, int]:
         """
         The requested size of the Session Data Unit (SDU), in bytes. The value
@@ -548,24 +538,24 @@ class ConnectParams:
         be used is negotiated down to the lower of this value and the database
         network SDU configuration value.
         """
-        return self._impl.sdu
+        return [d.sdu for d in self._impl.description_list.children]
 
     @property
-    @_description_attr
+    @_flatten_value
     def server_type(self) -> Union[list, str]:
         """
         The type of server connection that should be established. If specified,
         it should be one of "dedicated", "shared" or "pooled".
         """
-        return self._impl.server_type
+        return [d.server_type for d in self._impl.description_list.children]
 
     @property
-    @_description_attr
+    @_flatten_value
     def service_name(self) -> Union[list, str]:
         """
         The service name of the database.
         """
-        return self._impl.service_name
+        return [d.service_name for d in self._impl.description_list.children]
 
     @property
     def shardingkey(self) -> list:
@@ -576,13 +566,13 @@ class ConnectParams:
         return self._impl.shardingkey
 
     @property
-    @_description_attr
+    @_flatten_value
     def sid(self) -> Union[list, str]:
         """
         The system identifier (SID) of the database. Note using a service_name
         instead is recommended.
         """
-        return self._impl.sid
+        return [d.sid for d in self._impl.description_list.children]
 
     @property
     def ssl_context(self) -> Any:
@@ -596,7 +586,7 @@ class ConnectParams:
         return self._impl.ssl_context
 
     @property
-    @_description_attr
+    @_flatten_value
     def ssl_server_cert_dn(self) -> Union[list, str]:
         """
         The distinguished name (DN) which should be matched with the server.
@@ -604,10 +594,12 @@ class ConnectParams:
         to the value True. If specified this value is used for any verfication.
         Otherwise the hostname will be used..
         """
-        return self._impl.ssl_server_cert_dn
+        return [
+            d.ssl_server_cert_dn for d in self._impl.description_list.children
+        ]
 
     @property
-    @_description_attr
+    @_flatten_value
     def ssl_server_dn_match(self) -> Union[list, bool]:
         """
         Boolean indicating whether the server certificate distinguished name
@@ -615,7 +607,9 @@ class ConnectParams:
         verification that is performed. Note that if the ssl_server_cert_dn
         parameter is not privided, host name matching is performed instead.
         """
-        return self._impl.ssl_server_dn_match
+        return [
+            d.ssl_server_dn_match for d in self._impl.description_list.children
+        ]
 
     @property
     def stmtcachesize(self) -> int:
@@ -641,13 +635,15 @@ class ConnectParams:
         return self._impl.tag
 
     @property
-    @_description_attr
+    @_flatten_value
     def tcp_connect_timeout(self) -> Union[list, float]:
         """
         A float indicating the maximum number of seconds to wait for
         establishing a connection to the database host.
         """
-        return self._impl.tcp_connect_timeout
+        return [
+            d.tcp_connect_timeout for d in self._impl.description_list.children
+        ]
 
     @property
     def user(self) -> str:
@@ -657,7 +653,7 @@ class ConnectParams:
         return self._impl.user
 
     @property
-    @_description_attr
+    @_flatten_value
     def use_tcp_fast_open(self) -> Union[list, bool]:
         """
         Boolean indicating whether to use TCP fast open. This is an Oracle
@@ -665,17 +661,21 @@ class ConnectParams:
         connecting from within OCI Cloud network. Please refer to the ADB-S
         documentation for more information.
         """
-        return self._impl.use_tcp_fast_open
+        return [
+            d.use_tcp_fast_open for d in self._impl.description_list.children
+        ]
 
     @property
-    @_description_attr
+    @_flatten_value
     def wallet_location(self) -> Union[list, str]:
         """
         The directory where the wallet can be found. In thin mode this must be
         the directory containing the PEM-encoded wallet file ewallet.pem. In
         thick mode this must be the directory containing the file cwallet.sso.
         """
-        return self._impl.wallet_location
+        return [
+            d.wallet_location for d in self._impl.description_list.children
+        ]
 
     def copy(self) -> "ConnectParams":
         """
@@ -739,7 +739,7 @@ class ConnectParams:
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
-        purity: int = None,
+        purity: oracledb.Purity = None,
         expire_time: int = None,
         retry_count: int = None,
         retry_delay: int = None,
@@ -749,7 +749,7 @@ class ConnectParams:
         wallet_location: str = None,
         events: bool = None,
         externalauth: bool = None,
-        mode: int = None,
+        mode: oracledb.AuthMode = None,
         disable_oob: bool = None,
         stmtcachesize: int = None,
         edition: str = None,

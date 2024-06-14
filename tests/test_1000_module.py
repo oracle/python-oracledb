@@ -175,6 +175,46 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2021"):
             oracledb.clientversion()
 
+    def test_1008(self):
+        "1008 - test enumeration aliases match"
+
+        # authentication mode enumeration
+        self.assertIs(oracledb.AUTH_MODE_DEFAULT, oracledb.AuthMode.DEFAULT)
+        self.assertIs(oracledb.AUTH_MODE_PRELIM, oracledb.AuthMode.PRELIM)
+        self.assertIs(oracledb.AUTH_MODE_SYSASM, oracledb.AuthMode.SYSASM)
+        self.assertIs(oracledb.AUTH_MODE_SYSBKP, oracledb.AuthMode.SYSBKP)
+        self.assertIs(oracledb.AUTH_MODE_SYSDBA, oracledb.AuthMode.SYSDBA)
+        self.assertIs(oracledb.AUTH_MODE_SYSDGD, oracledb.AuthMode.SYSDGD)
+        self.assertIs(oracledb.AUTH_MODE_SYSKMT, oracledb.AuthMode.SYSKMT)
+        self.assertIs(oracledb.AUTH_MODE_SYSOPER, oracledb.AuthMode.SYSOPER)
+        self.assertIs(oracledb.AUTH_MODE_SYSRAC, oracledb.AuthMode.SYSRAC)
+
+        # pool "get" mode enumeration
+        self.assertIs(
+            oracledb.POOL_GETMODE_FORCEGET, oracledb.PoolGetMode.FORCEGET
+        )
+        self.assertIs(oracledb.POOL_GETMODE_WAIT, oracledb.PoolGetMode.WAIT)
+        self.assertIs(
+            oracledb.POOL_GETMODE_NOWAIT, oracledb.PoolGetMode.NOWAIT
+        )
+        self.assertIs(
+            oracledb.POOL_GETMODE_TIMEDWAIT, oracledb.PoolGetMode.TIMEDWAIT
+        )
+
+        # purity enumeration
+        self.assertIs(oracledb.PURITY_DEFAULT, oracledb.Purity.DEFAULT)
+        self.assertIs(oracledb.PURITY_NEW, oracledb.Purity.NEW)
+        self.assertIs(oracledb.PURITY_SELF, oracledb.Purity.SELF)
+
+        # vector format enumeration
+        self.assertIs(
+            oracledb.VECTOR_FORMAT_FLOAT32, oracledb.VectorFormat.FLOAT32
+        )
+        self.assertIs(
+            oracledb.VECTOR_FORMAT_FLOAT64, oracledb.VectorFormat.FLOAT64
+        )
+        self.assertIs(oracledb.VECTOR_FORMAT_INT8, oracledb.VectorFormat.INT8)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

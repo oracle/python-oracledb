@@ -63,31 +63,15 @@ class ConnectParams:
 
     # {{ params_repr }}
 
-    def _address_attr(f):
+    def _flatten_value(f):
         """
-        Helper function used to get address level attributes.
-        """
-
-        @functools.wraps(f)
-        def wrapped(self):
-            values = [
-                getattr(a, f.__name__) for a in self._impl._get_addresses()
-            ]
-            return values if len(values) > 1 else values[0]
-
-        return wrapped
-
-    def _description_attr(f):
-        """
-        Helper function used to get description level attributes.
+        Helper function used to flatten arrays of values if they only contain a
+        single item.
         """
 
         @functools.wraps(f)
         def wrapped(self):
-            values = [
-                getattr(d, f.__name__)
-                for d in self._impl.description_list.children
-            ]
+            values = f(self)
             return values if len(values) > 1 else values[0]
 
         return wrapped

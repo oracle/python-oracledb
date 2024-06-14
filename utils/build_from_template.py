@@ -60,6 +60,7 @@ import argparse
 import configparser
 import dataclasses
 import os
+import subprocess
 import sys
 import textwrap
 
@@ -74,7 +75,7 @@ class Field:
     hidden: bool = False
     pool_only: bool = False
     description: str = ""
-    decorator: str = None
+    source: str = None
 
     @property
     def async_description(self):
@@ -119,7 +120,7 @@ for section in config.sections():
     field.hidden = config.getboolean(section, "hidden", fallback=False)
     field.pool_only = config.getboolean(section, "pool_only", fallback=False)
     field.description = config.get(section, "description", fallback="").strip()
-    field.decorator = config.get(section, "decorator", fallback="")
+    field.source = config.get(section, "source", fallback=None)
     if not field.pool_only or pool_only:
         fields.append(field)
 
@@ -264,18 +265,41 @@ def params_properties_content(indent):
             width=TEXT_WIDTH - len(indent),
         )
         return_type = (
-            f"Union[list, {field.typ}]" if field.decorator else field.typ
+            f"Union[list, {field.typ}]" if field.source else field.typ
         )
 
+        if field.source is None:
+            source = "self._impl"
+        else:
+            source = field.source[0]
+        fragment = f"{source}.{field.name}"
+        if field.typ.startswith("oracledb"):
+            fragment = f"{field.typ}({fragment})"
+        if field.source is None:
+            body_lines = [f"    return {fragment}"]
+        elif field.source == "address":
+            body_lines = [
+                "    return [",
+                "        " + fragment,
+                "        for a in self._impl._get_addresses()",
+                "    ]",
+            ]
+        else:
+            body_lines = [
+                "    return [",
+                "        " + fragment,
+                "        for d in self._impl.description_list.children" "]",
+            ]
         body_lines = (
             [
                 "@property",
-                f"@{field.decorator}" if field.decorator else "",
+                "@_flatten_value" if field.source is not None else "",
                 f"def {field.name}(self) -> {return_type}:",
                 '    """',
             ]
             + doc_string.splitlines()
-            + ['    """', f"    return self._impl.{field.name}"]
+            + ['    """']
+            + body_lines
         )
         joiner = "\n" + indent
         functions.append(joiner.join(s for s in body_lines if s))
@@ -330,3 +354,4 @@ replace_tag("params_setter_args", params_setter_args_content)
 
 # write the final code to the target location
 open(target_name, "w").write(code)
+subprocess.call([sys.executable, "-m", "black", target_name])

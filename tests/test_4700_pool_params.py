@@ -123,6 +123,7 @@ class TestCase(test_env.BaseTestCase):
         parts = [f"{name}={value!r}" for name, value in values]
         expected_value = f"PoolParams({', '.join(parts)})"
         self.assertEqual(repr(params), expected_value)
+        self.assertIs(params.getmode, oracledb.PoolGetMode.WAIT)
 
 
 if __name__ == "__main__":

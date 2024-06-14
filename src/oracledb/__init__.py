@@ -81,7 +81,11 @@ from .base_impl import (
     NUMBER as NUMBER,
     ROWID as ROWID,
     STRING as STRING,
+)
+
+from .enums import (
     # authentication modes
+    AuthMode as AuthMode,
     AUTH_MODE_DEFAULT as AUTH_MODE_DEFAULT,
     AUTH_MODE_PRELIM as AUTH_MODE_PRELIM,
     AUTH_MODE_SYSASM as AUTH_MODE_SYSASM,
@@ -92,15 +96,18 @@ from .base_impl import (
     AUTH_MODE_SYSOPER as AUTH_MODE_SYSOPER,
     AUTH_MODE_SYSRAC as AUTH_MODE_SYSRAC,
     # pool "get" modes
+    PoolGetMode as PoolGetMode,
     POOL_GETMODE_WAIT as POOL_GETMODE_WAIT,
     POOL_GETMODE_NOWAIT as POOL_GETMODE_NOWAIT,
     POOL_GETMODE_FORCEGET as POOL_GETMODE_FORCEGET,
     POOL_GETMODE_TIMEDWAIT as POOL_GETMODE_TIMEDWAIT,
     # purity values
+    Purity as Purity,
     PURITY_DEFAULT as PURITY_DEFAULT,
     PURITY_NEW as PURITY_NEW,
     PURITY_SELF as PURITY_SELF,
     # vector formats
+    VectorFormat as VectorFormat,
     VECTOR_FORMAT_FLOAT32 as VECTOR_FORMAT_FLOAT32,
     VECTOR_FORMAT_FLOAT64 as VECTOR_FORMAT_FLOAT64,
     VECTOR_FORMAT_INT8 as VECTOR_FORMAT_INT8,
