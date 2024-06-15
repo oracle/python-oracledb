@@ -32,6 +32,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Eliminated memory leak when dequeing messages with JSON payloads
+    (`issue 346 <https://github.com/oracle/python-oracledb/issues/346>`__).
+
 Common Changes
 ++++++++++++++
 
