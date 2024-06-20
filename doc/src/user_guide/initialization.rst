@@ -546,11 +546,13 @@ contains only the most commonly used time zones.  By default, the larger
 ``timezlrg_n.dat`` file is used.  If you want to use the smaller ``timezone_n.dat``
 file, then set the ``ORA_TZFILE`` environment variable to the name of the file
 without any directory prefix. For example ``export ORA_TZFILE=timezone_32.dat``.
-With Oracle Instant Client 12.2 or later, you can also use an external time zone
-file.  Create a subdirectory ``oracore/zoneinfo`` under the Instant Client
-directory, and move the file into it.  Then set ``ORA_TZFILE`` to the file name,
-without any directory prefix.  The ``genezi -v`` utility will show the time zone
-file in use.
+From Oracle Instant Client 12.2, you can also use an external time zone file.
+Create a subdirectory ``oracore/zoneinfo`` under the Instant Client directory,
+and move the file into it.  Then set ``ORA_TZFILE`` to the file name, without
+any directory prefix.  The ``genezi -v`` utility will show the time zone file
+in use. With Oracle Instant Client 19.18 (or later), you can alternatively
+place the external time zone file in any directory and then set the
+``ORA_TZFILE`` environment variable to the absolute path of the file.
 
 If python-oracledb Thick mode is using Oracle Client libraries from an Oracle
 Database or full Oracle Client software installation (such as installed with
