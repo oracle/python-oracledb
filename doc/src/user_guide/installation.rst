@@ -157,15 +157,15 @@ To use python-oracledb, you need:
   cryptography package is not available, you can still install python-oracledb
   but can only use it in Thick mode, see :ref:`nocrypto`.
 
-- Optionally, Oracle Client libraries can be installed to enable some additional
-  advanced functionality. These can be from the free `Oracle Instant Client
-  <https://www.oracle.com/database/technologies/instant-client.html>`__, from a
-  full Oracle Client installation (such as installed by Oracle's GUI
-  installer), or from those included in Oracle Database if
-  Python is on the same machine as the database.  Oracle Client libraries
-  versions 23, 21, 19, 18, 12, and 11.2 are supported where available on Linux,
-  Windows and macOS (Intel x86).  Oracle's standard client-server version
-  interoperability allows connection to both older and newer databases.
+- Optionally, Oracle Client libraries can be installed to enable some
+  additional advanced functionality. These can be from the free `Oracle Instant
+  Client <https://www.oracle.com/database/technologies/instant-client.html>`__,
+  from a full Oracle Client installation (such as installed by Oracle's GUI
+  installer), or from those included in Oracle Database if Python is on the
+  same machine as the database.  Oracle Client libraries versions 23, 21, 19,
+  18, 12, and 11.2 are supported where available on Linux, Windows and macOS.
+  Oracle's standard client-server version interoperability allows connection to
+  both older and newer databases.
 
 - An Oracle Database either local or remote, on-premises or in the Cloud.
 
@@ -701,8 +701,8 @@ Installing python-oracledb on macOS
 ===================================
 
 Python-oracledb is available as a Universal binary for Python 3.8, or later, on
-Apple Intel and Apple Silicon (M1, M2, M3) architectures.  A binary is also
-available for Python 3.7 on Apple Intel.
+Apple macOS Intel x86-64 and Apple macOS ARM64 (M1, M2, M3) architectures.  A
+binary is also available for Python 3.7 on Apple Intel x86-64.
 
 Install python-oracledb
 -----------------------
@@ -741,38 +741,66 @@ Optionally Install Oracle Client
 By default, python-oracledb runs in a Thin mode which connects directly to
 Oracle Database so no further installation steps are required.  However, to use
 additional features available in :ref:`Thick mode <featuresummary>` you need
-Oracle Client libraries installed.  Note that to use Thick mode on Apple
-Silicon (M1, M2, M3) you will need to use Rosetta with Python 64-bit Intel and
-the Instant Client (Intel x86) libraries.
+Oracle Client libraries installed.
 
-Manual Installation
-+++++++++++++++++++
+You can get the libraries from either the Oracle Instant Client **Basic** or
+**Basic Light** package.  The steps below show installing **Basic**.
 
-* Download the **Basic** 64-bit DMG from `Oracle
-  <https://www.oracle.com/database/technologies/instant-client/macos-intel-x86-downloads.html>`__.
+Instant Client Scripted Installation on macOS ARM64
++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-* Using Finder, double-click the DMG to mount it.
+Instant Client installation can be scripted. Open a terminal window and run:
 
-* Open a terminal window and run the install script in the mounted package, for example:
+.. code-block:: shell
 
-  .. code-block:: shell
+    cd $HOME/Downloads
+    curl -O https://download.oracle.com/otn_software/mac/instantclient/233023/instantclient-basic-macos.arm64-23.3.0.23.09.dmg
+    hdiutil mount instantclient-basic-macos.arm64-23.3.0.23.09.dmg
+    /Volumes/instantclient-basic-macos.arm64-23.3.0.23.09/install_ic.sh
+    hdiutil unmount /Volumes/instantclient-basic-macos.arm64-23.3.0.23.09
 
-    /Volumes/instantclient-basic-macos.x64-19.16.0.0.0dbru/install_ic.sh
-
-  This copies the contents to ``$HOME/Downloads/instantclient_19_16``.
-  Applications may not have access to the ``Downloads`` directory, so you
-  should move Instant Client somewhere convenient.
-
-* Using Finder, eject the mounted Instant Client package.
+Note you should use the latest DMG available.
 
 If you have multiple Instant Client DMG packages mounted, you only need to run
 ``install_ic.sh`` once.  It will copy all mounted Instant Client DMG packages at
 the same time.
 
-Scripted Installation
-+++++++++++++++++++++
+The Instant Client directory will be like
+``$HOME/Downloads/instantclient_23_3``.  Applications may not have access to
+the ``Downloads`` directory, so you should move Instant Client somewhere
+convenient.
 
-Instant Client installation can alternatively be scripted, for example:
+Instant Client Manual Installation on macOS ARM64
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* Download the latest Instant Client **Basic** ARM64 package DMG from `Oracle
+  <https://www.oracle.com/database/technologies/instant-client/macos-arm64-
+  downloads.html>`__.
+
+* Using Finder, double-click the DMG to mount it.
+
+* Open a terminal window and run the install script in the mounted package,
+  for example if you downloaded version 23.3:
+
+  .. code-block:: shell
+
+    /Volumes/instantclient-basic-macos.arm64-23.3.0.23.09/install_ic.sh
+
+  The Instant Client directory will be like
+  ``$HOME/Downloads/instantclient_23_3``.  Applications may not have access to
+  the ``Downloads`` directory, so you should move Instant Client somewhere
+  convenient.
+
+* Using Finder, eject the mounted Instant Client package.
+
+If you have multiple Instant Client DMG packages mounted, you only need to run
+``install_ic.sh`` once.  It will copy all mounted Instant Client DMG packages
+at the same time.
+
+Instant Client Scripted Installation on macOS Intel x86-64
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Instant Client installation can be scripted. Open a terminal window and run:
 
 .. code-block:: shell
 
@@ -782,12 +810,46 @@ Instant Client installation can alternatively be scripted, for example:
     /Volumes/instantclient-basic-macos.x64-19.16.0.0.0dbru/install_ic.sh
     hdiutil unmount /Volumes/instantclient-basic-macos.x64-19.16.0.0.0dbru
 
+Note you should use the latest DMG available.
+
+If you have multiple Instant Client DMG packages mounted, you only need to run
+``install_ic.sh`` once.  It will copy all mounted Instant Client DMG packages at
+the same time.
+
 The Instant Client directory will be ``$HOME/Downloads/instantclient_19_16``.
 Applications may not have access to the ``Downloads`` directory, so you should
 move Instant Client somewhere convenient.
 
+Instant Client Manual Installation on macOS Intel x86-64
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* Download the latest Instant Client **Basic** Intel 64-bit package DMG from
+  `Oracle <https://www.oracle.com/database/technologies/instant-client/macos-
+  intel-x86-downloads.html>`__.
+
+* Using Finder, double-click the DMG to mount it.
+
+* Open a terminal window and run the install script in the mounted package, for example:
+
+  .. code-block:: shell
+
+    /Volumes/instantclient-basic-macos.x64-19.16.0.0.0dbru/install_ic.sh
+
+  The Instant Client directory will be ``$HOME/Downloads/instantclient_19_16``.
+  Applications may not have access to the ``Downloads`` directory, so you
+  should move Instant Client somewhere convenient.
+
+* Using Finder, eject the mounted Instant Client package.
+
+If you have multiple Instant Client DMG packages mounted, you only need to run
+``install_ic.sh`` once.  It will copy all mounted Instant Client DMG packages at
+the same time.
+
 Configure Oracle Instant Client
 -------------------------------
+
+Your application must load the installed Oracle Instant Client libraries. It
+can optionally indicate external configuration files.
 
 1. Call :meth:`oracledb.init_oracle_client()` in your application:
 
@@ -795,7 +857,7 @@ Configure Oracle Instant Client
 
         import oracledb
 
-        oracledb.init_oracle_client(lib_dir="/Users/your_username/Downloads/instantclient_19_16")
+        oracledb.init_oracle_client(lib_dir="/Users/your_username/Downloads/instantclient_23_3")
 
 2. If you use optional Oracle configuration files such as ``tnsnames.ora``,
    ``sqlnet.ora``, or ``oraaccess.xml`` with Oracle Instant Client, then put the
@@ -806,14 +868,14 @@ Configure Oracle Instant Client
 
        import oracledb
 
-       oracledb.init_oracle_client(lib_dir="/Users/your_username/Downloads/instantclient_19_16",
+       oracledb.init_oracle_client(lib_dir="/Users/your_username/Downloads/instantclient_23_3",
                                    config_dir="/Users/your_username/oracle/your_config_dir")
 
    Or set the environment variable ``TNS_ADMIN`` to that directory name.
 
    Alternatively, put the files in the ``network/admin`` subdirectory of Oracle
    Instant Client, for example in
-   ``/Users/your_username/Downloads/instantclient_19_16/network/admin``.  This is the
+   ``/Users/your_username/Downloads/instantclient_23_3/network/admin``.  This is the
    default Oracle configuration directory for executables linked with this
    Instant Client.
 

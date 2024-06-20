@@ -48,7 +48,7 @@ Common Changes
 #)  The default value of the ``tcp_connect_timeout`` parameter was changed
     from 60 seconds to 20 seconds. The default value of the
     ``retry_delay`` parameter was changed from 0 seconds to 1 second.
-#)  Added parameter `ping_timeout` to methods :meth:`oracledb.create_pool()`
+#)  Added parameter ``ping_timeout`` to methods :meth:`oracledb.create_pool()`
     and :meth:`oracledb.create_pool_async()` with a default value of 5000
     milliseconds. This limits the amount of time that a call to
     :meth:`~ConnectionPool.acquire()` will wait for a connection to respond to
