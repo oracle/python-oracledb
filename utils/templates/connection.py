@@ -33,6 +33,7 @@
 
 import collections
 import functools
+import ssl
 
 import oracledb
 

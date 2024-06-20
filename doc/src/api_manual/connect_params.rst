@@ -59,10 +59,15 @@ ConnectParams Methods
         edition=None, tag=None, matchanytag=None, config_dir=None, \
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=None, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=None)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=None)
 
     Sets the values for one or more of the parameters of a ConnectParams
     object.
+
+    .. versionchanged:: 2.3.0
+
+        The ``ssl_version`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -370,6 +375,17 @@ ConnectParams Attributes
     specified, then host name matching is performed instead.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. attribute:: ConnectParams.ssl_version
+
+    This read-only attribute is one of the constants "ssl.TLSVersion.TLSv1_2"
+    or "ssl.TLSVersion.TLSv1_3" which identifies the TLS protocol version
+    used.  These constants are defined in the Python `ssl <https://docs.python.
+    org/3/library/ssl.html>`__ module.
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 2.3.0
 
 .. attribute:: ConnectParams.stmtcachesize
 

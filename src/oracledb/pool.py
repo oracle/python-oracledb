@@ -34,6 +34,7 @@
 # -----------------------------------------------------------------------------
 
 import functools
+import ssl
 from typing import Callable, Type, Union, Any
 
 import oracledb
@@ -636,6 +637,7 @@ def create_pool(
     sdu: int = 8192,
     pool_boundary: str = None,
     use_tcp_fast_open: bool = False,
+    ssl_version: ssl.TLSVersion = None,
     handle: int = 0,
 ) -> ConnectionPool:
     """
@@ -878,6 +880,10 @@ def create_pool(
       clients connecting from within OCI Cloud network. Please refer to the
       ADB-S documentation for more information (default: False)
 
+    - ssl_version: one of the values ssl.TLSVersion.TLSv1_2 or
+      ssl.TLSVersion.TLSv1_3 indicating which TLS version to use (default:
+      None)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1100,6 +1106,7 @@ def create_pool_async(
     sdu: int = 8192,
     pool_boundary: str = None,
     use_tcp_fast_open: bool = False,
+    ssl_version: ssl.TLSVersion = None,
     handle: int = 0,
 ) -> AsyncConnectionPool:
     """
@@ -1341,6 +1348,10 @@ def create_pool_async(
       is an Oracle Autonomous Database Serverless (ADB-S) specific property for
       clients connecting from within OCI Cloud network. Please refer to the
       ADB-S documentation for more information (default: False)
+
+    - ssl_version: one of the values ssl.TLSVersion.TLSv1_2 or
+      ssl.TLSVersion.TLSv1_3 indicating which TLS version to use (default:
+      None)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

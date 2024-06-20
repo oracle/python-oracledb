@@ -26,6 +26,8 @@
 4700 - Module for testing pool parameters.
 """
 
+import ssl
+
 import oracledb
 import test_env
 
@@ -118,6 +120,7 @@ class TestCase(test_env.BaseTestCase):
             ("sdu", 16384),
             ("pool_boundary", "transaction"),
             ("use_tcp_fast_open", True),
+            ("ssl_version", ssl.TLSVersion.TLSv1_2),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

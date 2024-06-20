@@ -317,6 +317,7 @@ ERR_INVALID_SERVER_TYPE = 4028
 ERR_TOO_MANY_BATCH_ERRORS = 4029
 ERR_IFILE_CYCLE_DETECTED = 4030
 ERR_INVALID_VECTOR = 4031
+ERR_INVALID_SSL_VERSION = 4032
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -575,6 +576,7 @@ ERR_MESSAGE_FORMATS = {
         'SID "{sid}" is not registered with the listener at host "{host}" '
         "port {port}. (Similar to ORA-12505)"
     ),
+    ERR_INVALID_SSL_VERSION: 'invalid value for ssl_version: "{ssl_version}"',
     ERR_INVALID_TPC_BEGIN_FLAGS: "invalid flags for tpc_begin()",
     ERR_INVALID_TPC_END_FLAGS: "invalid flags for tpc_end()",
     ERR_INVALID_VECTOR: "vector cannot contain zero dimensions",

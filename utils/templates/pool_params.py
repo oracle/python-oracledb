@@ -31,6 +31,7 @@
 # # {{ generated_notice }}
 # -----------------------------------------------------------------------------
 
+import ssl
 from typing import Callable, Type, Union, Any
 
 import oracledb

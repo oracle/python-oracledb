@@ -51,6 +51,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         object _bg_task_condition
         object _condition
         object _timeout_task
+        object _ssl_session
         bint _force_get
         bint _open
 
@@ -240,6 +241,19 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 self._free_used_conn_impls.append(request.conn_impl)
         self._requests.remove(request)
         self._condition.notify_all()
+
+    cdef int _pre_connect(self, BaseThinConnImpl conn_impl,
+                          ConnectParamsImpl params) except -1:
+        """
+        Called before the connection is connected. The connection class and
+        pool attributes are updated and the TLS session is stored on the
+        transport for reuse.
+        """
+        if params is not None:
+            conn_impl._cclass = params._default_description.cclass
+        else:
+            conn_impl._cclass = self.connect_params._default_description.cclass
+        conn_impl._pool = self
 
     def _process_timeout(self):
         """
@@ -504,10 +518,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         cdef ThinConnImpl conn_impl
         conn_impl = ThinConnImpl(self.dsn, self.connect_params)
-        conn_impl._cclass = self.connect_params._default_description.cclass
-        if params is not None:
-            conn_impl._cclass = params._default_description.cclass
-        conn_impl._pool = self
+        self._pre_connect(conn_impl, params)
         conn_impl.connect(self.connect_params)
         conn_impl._time_in_pool = time.monotonic()
         return conn_impl
@@ -700,10 +711,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         cdef AsyncThinConnImpl conn_impl
         conn_impl = AsyncThinConnImpl(self.dsn, self.connect_params)
-        conn_impl._cclass = self.connect_params._default_description.cclass
-        if params is not None:
-            conn_impl._cclass = params._default_description.cclass
-        conn_impl._pool = self
+        self._pre_connect(conn_impl, params)
         await conn_impl.connect(self.connect_params)
         conn_impl._time_in_pool = time.monotonic()
         return conn_impl

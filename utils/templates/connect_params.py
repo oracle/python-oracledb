@@ -32,6 +32,7 @@
 # -----------------------------------------------------------------------------
 
 import functools
+import ssl
 from typing import Union, Callable, Any
 
 import oracledb

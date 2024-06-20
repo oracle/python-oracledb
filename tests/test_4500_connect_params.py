@@ -651,6 +651,7 @@ class TestCase(test_env.BaseTestCase):
             ("sdu", 16384),
             ("pool_boundary", "statement"),
             ("use_tcp_fast_open", True),
+            ("ssl_version", ssl.TLSVersion.TLSv1_2),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]
@@ -696,6 +697,7 @@ class TestCase(test_env.BaseTestCase):
             ("sdu", 32768),
             ("pool_boundary", "transaction"),
             ("use_tcp_fast_open", False),
+            ("ssl_version", ssl.TLSVersion.TLSv1_2),
         ]
         params.set(**dict(new_values))
         parts = [f"{name}={value!r}" for name, value in new_values]

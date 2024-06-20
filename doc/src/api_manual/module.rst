@@ -49,7 +49,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -339,6 +340,15 @@ Oracledb Methods
     available with certain versions of ADB-S.  This value is used in both
     python-oracledb Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -351,7 +361,8 @@ Oracledb Methods
 
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
-        parameter was changed from 60.0 seconds to 20.0 seconds.
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ssl_version`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -379,7 +390,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -601,13 +613,23 @@ Oracledb Methods
     available with certain versions of ADB-S.  This value is used in both
     python-oracledb Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
     .. versionchanged:: 2.3.0
 
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
-        parameter was changed from 60.0 seconds to 20.0 seconds.
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ssl_version`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -634,7 +656,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -888,6 +911,15 @@ Oracledb Methods
     available with certain versions of ADB-S.  This value is used in both
     python-oracledb Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
@@ -897,7 +929,8 @@ Oracledb Methods
 
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
-        parameter was changed from 60.0 seconds to 20.0 seconds.
+        parameter was changed from 60.0 seconds to 20.0 seconds. The
+        ``ssl_version`` parameter was added.
 
     .. versionchanged:: 2.1.0
 
@@ -930,7 +963,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1277,6 +1311,15 @@ Oracledb Methods
     with certain versions of ADB-S.  This value is used in both python-oracledb
     Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1297,7 +1340,7 @@ Oracledb Methods
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
         parameter was changed from 60.0 seconds to 20.0 seconds. The
-        ``ping_timeout`` parameter was added.
+        ``ping_timeout`` and ``ssl_version`` parameters were added.
 
     .. versionchanged:: 2.1.0
 
@@ -1330,7 +1373,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -1607,6 +1651,15 @@ Oracledb Methods
     with certain versions of ADB-S.  This value is used in both python-oracledb
     Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
     .. versionchanged:: 2.3.0
@@ -1614,7 +1667,7 @@ Oracledb Methods
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
         parameter was changed from 60.0 seconds to 20.0 seconds. The
-        ``ping_timeout`` parameter was added.
+        ``ping_timeout`` and ``ssl_version`` parameters were added.
 
     .. versionchanged:: 2.1.0
 
@@ -1750,7 +1803,8 @@ Oracledb Methods
         config_dir=oracledb.defaults.config_dir, appcontext=[], \
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
-        pool_boundary=None, use_tcp_fast_open=False, handle=0)
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
+        handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2064,6 +2118,15 @@ Oracledb Methods
     with certain versions of ADB-S.  This value is used in both python-oracledb
     Thin and Thick modes.  The default value is False.
 
+    The ``ssl_version`` parameter is expected to be one of the constants
+    "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
+    protocol version to use.  These constants are defined in the Python
+    `ssl <https://docs.python.org/3/library/ssl.html>`__ module.  This
+    parameter can be specified when establishing connections with the protocol
+    "tcps".  This parameter is used in both python-oracledb Thin and Thick
+    modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
+    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
@@ -2074,7 +2137,7 @@ Oracledb Methods
         The default value of the ``retry_delay`` parameter was changed from 0
         seconds to 1 second. The default value of the ``tcp_connect_timeout``
         parameter was changed from 60.0 seconds to 20.0 seconds. The
-        ``ping_timeout`` parameter was added.
+        ``ping_timeout`` and ``ssl_version`` parameters were added.
 
     .. versionchanged:: 2.1.0
 

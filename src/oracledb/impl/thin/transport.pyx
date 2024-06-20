@@ -123,6 +123,11 @@ cdef class Transport:
         if self._ssl_context is None:
             self._ssl_context = ssl.create_default_context()
 
+        # set the minimum and maximum versions of the TLS protocol
+        if description.ssl_version is not None:
+            self._ssl_context.minimum_version = description.ssl_version
+            self._ssl_context.maximum_version = description.ssl_version
+
         # if the platform is macOS, check if the certifi package is installed;
         # if certifi is not installed, load the certificates from the macOS
         # keychain in PEM format

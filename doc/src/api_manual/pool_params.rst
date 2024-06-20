@@ -48,13 +48,13 @@ PoolParams Methods
         matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
         supershardingkey=[], debug_jdwp=None, connection_id_prefix=None, \
         ssl_context=None, sdu=None, pool_boundary=None, \
-        use_tcp_fast_open=False, handle=None)
+        use_tcp_fast_open=False, ssl_version=None, handle=None)
 
   Sets one or more of the parameters.
 
   .. versionchanged:: 2.3.0
 
-    The ``ping_timeout`` parameter was added.
+    The ``ping_timeout`` and ``ssl_version`` parameters were added.
 
   .. versionchanged:: 2.1.0
 

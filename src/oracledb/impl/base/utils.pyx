@@ -166,6 +166,28 @@ cdef int _set_server_type_param(dict args, str name, object target) except -1:
         setattr(target, name, in_val)
 
 
+cdef int _set_ssl_version_param(dict args, str name, object target) except -1:
+    """
+    Sets a SSL version parameter to the value specified. This must be one of
+    the values "tlsv1.2" or "tlsv1.3". If it is not one of these values
+    an error is raised. If a value is specified and meets the criteria it is
+    set directly on the target (since strings are treated as Python objects).
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        if isinstance(in_val, str):
+            in_val = in_val.lower()
+            if in_val == "tlsv1.2":
+                in_val = ssl.TLSVersion.TLSv1_2
+            elif in_val == "tlsv1.3":
+                in_val = ssl.TLSVersion.TLSv1_3
+        if in_val is not ssl.TLSVersion.TLSv1_2 \
+                and in_val is not ssl.TLSVersion.TLSv1_3:
+            errors._raise_err(errors.ERR_INVALID_SSL_VERSION,
+                              ssl_version=in_val)
+        setattr(target, name, in_val)
+
+
 cdef int _set_str_param(dict args, str name, object target) except -1:
     """
     Sets a string parameter to the value provided in the dictionary. If a value

@@ -900,6 +900,11 @@ cdef class Description(ConnectParamsNode):
             if self.ssl_server_cert_dn is not None:
                 temp = f"(SSL_SERVER_CERT_DN={self.ssl_server_cert_dn})"
                 temp_parts.append(temp)
+            if self.ssl_version is not None:
+                if self.ssl_version is ssl.TLSVersion.TLSv1_2:
+                    temp_parts.append(f"(SSL_VERSION=TLSv1.2)")
+                elif self.ssl_version is ssl.TLSVersion.TLSv1_3:
+                    temp_parts.append(f"(SSL_VERSION=TLSv1.3)")
             if self.wallet_location is not None:
                 temp = f"(MY_WALLET_DIRECTORY={self.wallet_location})"
                 temp_parts.append(temp)
@@ -929,6 +934,7 @@ cdef class Description(ConnectParamsNode):
         description.ssl_server_dn_match = self.ssl_server_dn_match
         description.use_tcp_fast_open = self.use_tcp_fast_open
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
+        description.ssl_version = self.ssl_version
         description.wallet_location = self.wallet_location
         return description
 
@@ -978,6 +984,7 @@ cdef class Description(ConnectParamsNode):
         """
         _set_bool_param(args, "ssl_server_dn_match", &self.ssl_server_dn_match)
         _set_str_param(args, "ssl_server_cert_dn", self)
+        _set_ssl_version_param(args, "ssl_version", self)
         _set_str_param(args, "wallet_location", self)
 
 
