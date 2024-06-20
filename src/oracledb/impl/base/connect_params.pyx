@@ -145,6 +145,11 @@ cdef class ConnectParamsImpl:
         Sets the property values based on the supplied arguments. All values
         not supplied will be left unchanged.
         """
+        cdef:
+            Description description
+            Address address
+
+        # set parameters found directly on the ConnectParamsImpl object
         self._external_handle = args.get("handle", self._external_handle)
         _set_str_param(args, "user", self)
         _set_str_param(args, "proxy_user", self)
@@ -166,12 +171,20 @@ cdef class ConnectParamsImpl:
         _set_obj_param(args, "appcontext", self)
         _set_obj_param(args, "shardingkey", self)
         _set_obj_param(args, "supershardingkey", self)
-        self._default_description.set_from_connect_data_args(args)
-        self._default_description.set_from_description_args(args)
-        self._default_description.set_from_security_args(args)
-        self._default_address.set_from_args(args)
         _set_bool_param(args, "externalauth", &self.externalauth)
         self._set_access_token_param(args.get("access_token"))
+
+        # set parameters found on Description instances
+        self._default_description.set_from_args(args)
+        for description in self.description_list.children:
+            if description is not self._default_description:
+                description.set_from_args(args)
+
+        # set parameters found on Address instances
+        self._default_address.set_from_args(args)
+        for address in self.description_list.get_addresses():
+            if address is not self._default_address:
+                address.set_from_args(args)
 
     cdef int _check_credentials(self) except -1:
         """
@@ -901,24 +914,31 @@ cdef class Description(ConnectParamsNode):
         """
         cdef Description description = Description.__new__(Description)
         description._copy(self)
-        description.service_name = self.service_name
-        description.sid = self.sid
-        description.server_type = self.server_type
-        description.cclass = self.cclass
-        description.purity = self.purity
         description.expire_time = self.expire_time
-        description.load_balance = self.load_balance
-        description.source_route = self.source_route
         description.retry_count = self.retry_count
         description.retry_delay = self.retry_delay
         description.sdu = self.sdu
         description.tcp_connect_timeout = self.tcp_connect_timeout
+        description.service_name = self.service_name
+        description.server_type = self.server_type
+        description.sid = self.sid
+        description.cclass = self.cclass
+        description.connection_id_prefix = self.connection_id_prefix
+        description.pool_boundary = self.pool_boundary
+        description.purity = self.purity
         description.ssl_server_dn_match = self.ssl_server_dn_match
+        description.use_tcp_fast_open = self.use_tcp_fast_open
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
         description.wallet_location = self.wallet_location
-        description.connection_id_prefix = self.connection_id_prefix
-        description.use_tcp_fast_open = self.use_tcp_fast_open
         return description
+
+    def set_from_args(self, dict args):
+        """
+        Set parameter values from an argument dictionary.
+        """
+        self.set_from_connect_data_args(args)
+        self.set_from_description_args(args)
+        self.set_from_security_args(args)
 
     def set_from_connect_data_args(self, dict args):
         """

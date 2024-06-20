@@ -596,18 +596,20 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.connection_id_prefix, "prefix4562b")
 
     def test_4538(self):
-        "4538 - test overriding parameters with parse_connection_string"
+        "4538 - test overriding parameters"
         params = oracledb.ConnectParams()
-        params.parse_connect_string("my_host:3578/my_service_name")
-        params.set(service_name="new_service_name", port=613)
-        self.assertEqual(params.service_name, "my_service_name")
-        self.assertEqual(params.port, 3578)
-
-        params = oracledb.ConnectParams()
-        params.set(service_name="my_service_name", port=613)
-        params.parse_connect_string("my_host:3578/new_service_name")
-        self.assertEqual(params.service_name, "new_service_name")
-        self.assertEqual(params.port, 3578)
+        host = "my_host_4538"
+        port = 3578
+        service_name = "my_service_name_4538"
+        connect_string = f"{host}:{port}/{service_name}"
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.service_name, service_name)
+        self.assertEqual(params.port, port)
+        new_service_name = "new_service_name_4538"
+        new_port = 613
+        params.set(service_name=new_service_name, port=new_port)
+        self.assertEqual(params.service_name, new_service_name)
+        self.assertEqual(params.port, new_port)
 
     def test_4539(self):
         "4539 - test ConnectParams repr()"
@@ -656,6 +658,59 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(repr(params), expected_value)
         self.assertIs(params.purity, oracledb.Purity.SELF)
         self.assertIs(params.mode, oracledb.AuthMode.SYSDBA)
+        new_values = [
+            ("user", "USER_NEW"),
+            ("proxy_user", "PROXY_USER_NEW"),
+            ("host", "my_host_new"),
+            ("port", 1621),
+            ("protocol", "tcps"),
+            ("https_proxy", "proxy_b"),
+            ("https_proxy_port", 4529),
+            ("service_name", "my_service_name_new"),
+            ("sid", "my_sid_new"),
+            ("server_type", "pooled"),
+            ("cclass", "cclass_new"),
+            ("purity", oracledb.PURITY_NEW),
+            ("expire_time", 90),
+            ("retry_count", 8),
+            ("retry_delay", 15),
+            ("tcp_connect_timeout", 15.0),
+            ("ssl_server_dn_match", True),
+            ("ssl_server_cert_dn", "CN=unknown19_new"),
+            ("wallet_location", "/tmp/wallet_loc1_new"),
+            ("events", False),
+            ("externalauth", False),
+            ("mode", oracledb.AUTH_MODE_SYSDGD),
+            ("disable_oob", False),
+            ("stmtcachesize", 35),
+            ("edition", "edition_new"),
+            ("tag", "tag_new"),
+            ("matchanytag", False),
+            ("config_dir", "config_dir_new"),
+            ("appcontext", [("a", "b", "c", "new")]),
+            ("shardingkey", [1, 2, 3, 4]),
+            ("supershardingkey", [6]),
+            ("debug_jdwp", "host=host;port=4638"),
+            ("connection_id_prefix", "prefix4664"),
+            ("ssl_context", ssl.create_default_context()),
+            ("sdu", 32768),
+            ("pool_boundary", "transaction"),
+            ("use_tcp_fast_open", False),
+        ]
+        params.set(**dict(new_values))
+        parts = [f"{name}={value!r}" for name, value in new_values]
+        expected_value = f"ConnectParams({', '.join(parts)})"
+        self.assertEqual(repr(params), expected_value)
+        cs_values = dict(
+            host="my_host_final",
+            service_name="my_service_final",
+        )
+        connect_string = f"{cs_values['host']}/{cs_values['service_name']}"
+        params.parse_connect_string(connect_string)
+        final_values = [(n, cs_values.get(n, v)) for n, v in new_values]
+        parts = [f"{name}={value!r}" for name, value in final_values]
+        expected_value = f"ConnectParams({', '.join(parts)})"
+        self.assertEqual(repr(params), expected_value)
 
     def test_4540(self):
         "4540 - connect descriptor with SDU"

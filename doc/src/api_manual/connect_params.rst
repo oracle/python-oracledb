@@ -61,11 +61,8 @@ ConnectParams Methods
         connection_id_prefix=None, ssl_context=None, sdu=None, \
         pool_boundary=None, use_tcp_fast_open=False, handle=None)
 
-    Sets the default values for one or more of the parameters of an empty
-    ConnectParams object.  A default will be overriden when a connection string
-    with that attribute is parsed.  After a ConnectParams object has been
-    populated by parsing a connection string, ``ConnectParams.set()`` will not
-    override any values.
+    Sets the values for one or more of the parameters of a ConnectParams
+    object.
 
     .. versionchanged:: 2.1.0
 
