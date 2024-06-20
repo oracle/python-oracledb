@@ -44,7 +44,8 @@ Common Changes
     :ref:`connection pool purity constants <drcppurityconsts>` and
     :ref:`vector format constants <vectorformatconstants>` with
     `enumerations <https://docs.python.org/3/library/enum.html>`__ in order to
-    provide a more useful repr() and improve type safety, among other things.
+    provide a more useful ``repr()`` and improve type safety, among other
+    things.
 #)  The default value of the ``tcp_connect_timeout`` parameter was changed
     from 60 seconds to 20 seconds. The default value of the
     ``retry_delay`` parameter was changed from 0 seconds to 1 second.
