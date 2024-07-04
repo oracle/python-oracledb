@@ -56,6 +56,21 @@ cdef class Message:
         bint retry
         object warning
 
+    cdef int _check_and_raise_exception(self) except -1:
+        """
+        Checks to see if an error has occurred. If one has, an error object is
+        created and then the appropriate exception raised. Note that if a "dead
+        connection" error is detected, the connection is forced closed
+        immediately.
+        """
+        if self.error_occurred:
+            error = errors._Error(self.error_info.message,
+                                  code=self.error_info.num,
+                                  offset=self.error_info.pos)
+            if error.is_session_dead:
+                self.conn_impl._protocol._force_close()
+            raise error.exc_type(error)
+
     cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
         """
         Initializes the message to contain the connection and a place to store
@@ -172,7 +187,7 @@ cdef class Message:
 
         # an error message marks the end of a response if no explicit end of
         # response is available
-        if not buf._caps.supports_end_of_request:
+        if not buf._caps.supports_end_of_response:
             self.end_of_response = True
 
     cdef int _process_message(self, ReadBuffer buf,
@@ -184,13 +199,13 @@ cdef class Message:
         elif message_type == TNS_MSG_TYPE_STATUS:
             buf.read_ub4(&self.call_status)
             buf.read_ub2(&self.end_to_end_seq_num)
-            if not buf._caps.supports_end_of_request:
+            if not buf._caps.supports_end_of_response:
                 self.end_of_response = True
         elif message_type == TNS_MSG_TYPE_PARAMETER:
             self._process_return_parameters(buf)
         elif message_type == TNS_MSG_TYPE_SERVER_SIDE_PIGGYBACK:
             self._process_server_side_piggyback(buf)
-        elif message_type == TNS_MSG_TYPE_END_OF_REQUEST:
+        elif message_type == TNS_MSG_TYPE_END_OF_RESPONSE:
             self.end_of_response = True
         else:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,
@@ -1936,7 +1951,7 @@ cdef class DataTypesMessage(Message):
             buf.read_uint16(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
-        if not buf._caps.supports_end_of_request:
+        if not buf._caps.supports_end_of_response:
             self.end_of_response = True
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
@@ -2378,7 +2393,7 @@ cdef class ProtocolMessage(Message):
                               uint8_t message_type) except -1:
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             self._process_protocol_info(buf)
-            if not buf._caps.supports_end_of_request:
+            if not buf._caps.supports_end_of_response:
                 self.end_of_response = True
         else:
             Message._process_message(self, buf, message_type)

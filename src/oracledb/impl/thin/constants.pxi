@@ -47,7 +47,7 @@ cdef enum:
 
 # data flags
 cdef enum:
-    TNS_DATA_FLAGS_END_OF_REQUEST = 0x2000
+    TNS_DATA_FLAGS_END_OF_RESPONSE = 0x2000
     TNS_DATA_FLAGS_EOF = 0x0040
 
 # marker types
@@ -412,7 +412,7 @@ cdef enum:
     TNS_MSG_TYPE_ONEWAY_FN = 26
     TNS_MSG_TYPE_IMPLICIT_RESULTSET = 27
     TNS_MSG_TYPE_RENEGOTIATE = 28
-    TNS_MSG_TYPE_END_OF_REQUEST = 29
+    TNS_MSG_TYPE_END_OF_RESPONSE = 29
     TNS_MSG_TYPE_FAST_AUTH = 34
 
 # parameter keyword numbers
@@ -714,7 +714,7 @@ cdef enum:
     TNS_CCAP_DRCP = 0x10
     TNS_CCAP_ZLNP = 0x04
     TNS_CCAP_INBAND_NOTIFICATION = 0x04
-    TNS_CCAP_END_OF_REQUEST = 0x20
+    TNS_CCAP_END_OF_RESPONSE = 0x20
     TNS_CCAP_CLIENT_FN_MAX = 12
     TNS_CCAP_VECTOR_SUPPORT = 0x08
 
@@ -749,7 +749,7 @@ cdef enum:
 # accept flags
 cdef enum:
     TNS_ACCEPT_FLAG_FAST_AUTH = 0x10000000
-    TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST = 0x02000000
+    TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE = 0x02000000
 
 # transaction switching op codes
 cdef enum:

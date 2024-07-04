@@ -41,7 +41,7 @@ cdef class Capabilities:
         uint32_t max_string_size
         bint supports_fast_auth
         bint supports_oob
-        bint supports_end_of_request
+        bint supports_end_of_response
         uint32_t sdu
 
     def __init__(self):
@@ -60,9 +60,9 @@ cdef class Capabilities:
         if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
             self.supports_fast_auth = True
         if protocol_version >= TNS_VERSION_MIN_END_OF_RESPONSE \
-                and flags & TNS_ACCEPT_FLAG_HAS_END_OF_REQUEST:
-            self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_REQUEST
-            self.supports_end_of_request = True
+                and flags & TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE:
+            self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_RESPONSE
+            self.supports_end_of_response = True
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_compile_caps(self, bytearray server_caps):
@@ -70,9 +70,9 @@ cdef class Capabilities:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
         if self.ttc_field_version < TNS_CCAP_FIELD_VERSION_23_4 \
-                and self.supports_end_of_request:
-            self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_REQUEST
-            self.supports_end_of_request = False
+                and self.supports_end_of_response:
+            self.compile_caps[TNS_CCAP_TTC4] ^= TNS_CCAP_END_OF_RESPONSE
+            self.supports_end_of_response = False
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):

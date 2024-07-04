@@ -55,7 +55,7 @@ cdef class Packet:
         uint8_t packet_flags
         bytes buf
 
-    cdef inline bint has_end_of_request(self):
+    cdef inline bint has_end_of_response(self):
         """
         Returns a boolean indicating if the end of request byte is found at the
         end of the packet.
@@ -66,10 +66,10 @@ cdef class Packet:
         ptr = cpython.PyBytes_AS_STRING(self.buf)
         flags = unpack_uint16(<const char_type*> &ptr[PACKET_HEADER_SIZE],
                               BYTE_ORDER_MSB)
-        if flags & TNS_DATA_FLAGS_END_OF_REQUEST:
+        if flags & TNS_DATA_FLAGS_END_OF_RESPONSE:
             return True
         if self.packet_size == PACKET_HEADER_SIZE + 3 \
-                and ptr[PACKET_HEADER_SIZE + 2] == TNS_MSG_TYPE_END_OF_REQUEST:
+                and ptr[PACKET_HEADER_SIZE + 2] == TNS_MSG_TYPE_END_OF_RESPONSE:
             return True
         return False
 
@@ -346,7 +346,7 @@ cdef class ReadBuffer(Buffer):
             notify_waiter[0] = \
                     packet.packet_type != TNS_PACKET_TYPE_DATA \
                     or not self._check_request_boundary \
-                    or packet.has_end_of_request()
+                    or packet.has_end_of_response()
 
     cdef int _read_raw_bytes_and_length(self, const char_type **ptr,
                                         ssize_t *num_bytes) except -1:
@@ -710,6 +710,7 @@ cdef class WriteBuffer(Buffer):
     cdef:
         uint8_t _packet_type
         uint8_t _packet_flags
+        uint16_t _data_flags
         Capabilities _caps
         Transport _transport
         uint8_t _seq_num
@@ -735,12 +736,14 @@ cdef class WriteBuffer(Buffer):
         self.write_uint8(self._packet_type)
         self.write_uint8(self._packet_flags)
         self.write_uint16(0)
+        if self._packet_type == TNS_PACKET_TYPE_DATA:
+            self.write_uint16(self._data_flags)
         self._pos = size
         self._transport.write_packet(self)
         self._packet_sent = True
         self._pos = PACKET_HEADER_SIZE
-        if not final_packet:
-            self.write_uint16(0)            # add data flags for next packet
+        if not final_packet and self._packet_type == TNS_PACKET_TYPE_DATA:
+            self._pos += sizeof(uint16_t)   # allow space for data flags
 
     cdef int _size_for_sdu(self) except -1:
         """
@@ -786,7 +789,8 @@ cdef class WriteBuffer(Buffer):
         self._packet_flags = packet_flags
         self._pos = PACKET_HEADER_SIZE
         if packet_type == TNS_PACKET_TYPE_DATA:
-            self.write_uint16(data_flags)
+            self._data_flags = data_flags
+            self._pos += sizeof(uint16_t)
 
     cdef object write_dbobject(self, ThinDbObjectImpl obj_impl):
         """

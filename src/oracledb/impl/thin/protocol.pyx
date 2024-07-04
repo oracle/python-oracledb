@@ -425,15 +425,7 @@ cdef class Protocol(BaseProtocol):
             if message.retry:
                 message.error_occurred = False
                 return self._process_message(message)
-            error = errors._Error(message.error_info.message,
-                                  code=message.error_info.num,
-                                  offset=message.error_info.pos)
-
-            # if a connection has received dead connection error then it is no
-            # longer usable
-            if error.is_session_dead:
-                self._force_close()
-            raise error.exc_type(error)
+            message._check_and_raise_exception()
 
     cdef int _process_single_message(self, Message message) except -1:
         """
@@ -452,7 +444,7 @@ cdef class Protocol(BaseProtocol):
             uint16_t refuse_message_len
             const char_type* ptr
         buf._check_request_boundary = \
-                check_request_boundary and self._caps.supports_end_of_request
+                check_request_boundary and self._caps.supports_end_of_response
         buf.wait_for_packets_sync()
         buf._check_request_boundary = False
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
@@ -779,15 +771,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if message.retry:
                 message.error_occurred = False
                 return await self._process_message(message)
-            error = errors._Error(message.error_info.message,
-                                  code=message.error_info.num,
-                                  offset=message.error_info.pos)
-
-            # if a connection has received dead connection error then it is no
-            # longer usable
-            if error.is_session_dead:
-                self._force_close()
-            raise error.exc_type(error)
+            message._check_and_raise_exception()
 
     async def _process_message_helper(self, Message message):
         """
@@ -830,7 +814,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             uint16_t refuse_message_len
             const char_type* ptr
         buf._check_request_boundary = \
-                check_request_boundary and self._caps.supports_end_of_request
+                check_request_boundary and self._caps.supports_end_of_response
         await buf.wait_for_packets_async()
         buf._check_request_boundary = False
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
