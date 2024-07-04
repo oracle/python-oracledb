@@ -1461,47 +1461,49 @@ class AsyncConnection(BaseConnection):
         asyncio.
         """
 
-        # mandate that thin mode is required
-        with driver_mode.get_manager(requested_thin_mode=True):
-            # determine which connection parameters to use
-            if params is None:
-                params_impl = base_impl.ConnectParamsImpl()
-            elif not isinstance(params, ConnectParams):
-                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-            else:
-                params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs, thin=True)
+        # mandate that thin mode is required; with asyncio, only thin mode is
+        # supported and only one thread is executing, so the manager can be
+        # manipulated directly
+        driver_mode.manager.thin_mode = True
 
-            # see if connection is being acquired from a pool
-            if pool is None:
-                pool_impl = None
-            elif not isinstance(pool, pool_module.AsyncConnectionPool):
-                message = (
-                    "pool must be an instance of "
-                    "oracledb.AsyncConnectionPool"
-                )
-                raise TypeError(message)
-            else:
-                pool._verify_open()
-                pool_impl = pool._impl
+        # determine which connection parameters to use
+        if params is None:
+            params_impl = base_impl.ConnectParamsImpl()
+        elif not isinstance(params, ConnectParams):
+            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+        else:
+            params_impl = params._impl.copy()
+        dsn = params_impl.process_args(dsn, kwargs, thin=True)
 
-            # create implementation object
-            if pool is not None:
-                impl = await pool_impl.acquire(params_impl)
-            else:
-                impl = thin_impl.AsyncThinConnImpl(dsn, params_impl)
-                await impl.connect(params_impl)
-            self._impl = impl
+        # see if connection is being acquired from a pool
+        if pool is None:
+            pool_impl = None
+        elif not isinstance(pool, pool_module.AsyncConnectionPool):
+            message = (
+                "pool must be an instance of oracledb.AsyncConnectionPool"
+            )
+            raise TypeError(message)
+        else:
+            pool._verify_open()
+            pool_impl = pool._impl
 
-            # invoke callback, if applicable
-            if (
-                impl.invoke_session_callback
-                and pool is not None
-                and pool.session_callback is not None
-                and callable(pool.session_callback)
-            ):
-                await pool.session_callback(self, params_impl.tag)
-                impl.invoke_session_callback = False
+        # create implementation object
+        if pool is not None:
+            impl = await pool_impl.acquire(params_impl)
+        else:
+            impl = thin_impl.AsyncThinConnImpl(dsn, params_impl)
+            await impl.connect(params_impl)
+        self._impl = impl
+
+        # invoke callback, if applicable
+        if (
+            impl.invoke_session_callback
+            and pool is not None
+            and pool.session_callback is not None
+            and callable(pool.session_callback)
+        ):
+            await pool.session_callback(self, params_impl.tag)
+            impl.invoke_session_callback = False
 
         return self
 
