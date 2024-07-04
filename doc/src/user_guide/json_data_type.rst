@@ -66,9 +66,7 @@ binding as shown below:
 
 .. code-block:: python
 
-    data = [
-      (5, dict(name="Sally", dept="Sales", location="France")),
-    ]
+    data = dict(name="Sally", dept="Sales", location="France")
     insert_sql = "insert into CustomersAsJson values (:1, :2)"
 
     # Take advantage of direct binding

@@ -1544,9 +1544,9 @@ servers in :ref:`DRCP <drcp>` or Oracle Connection Manager in Traffic Director
 Mode's (CMAN-TDM) `Proxy Resident Connection Pooling (PRCP)
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
 4F14-AF9B-BCC87C982DA8>`__.  Applications do not need to be modified.  The
-feature can be enabled by altering the application's :ref:`connection string
-<connstr>`.  Applications do not need to explicitly acquire, or release,
-connections to be able use a DRCP or PRCP pool.
+feature is enabled by adding a ``pool_boundary`` parameter to the application's
+:ref:`connection string <connstr>`.  Applications do not need to explicitly
+acquire, or release, connections to be able use a DRCP or PRCP pool.
 
 Implicit connection pooling is available in python-oracledb Thin and
 :ref:`Thick <enablingthick>` modes.  It requires Oracle Database
@@ -1558,10 +1558,9 @@ DRCP or PRCP pool when they are actually used by the application to do database
 work.  They are internally released back to pool when not in use.  This may
 occur between the application's explicit :meth:`oracledb.connect()` call and
 :meth:`Connection.close()` (or the application's equivalent connection release
-at end-of-scope).
-
-The internal connection release can be controlled by setting a value in the
-``pool_boundary`` parameter.  The value can be either:
+at end-of-scope).  The internal connection release can be controlled by the
+value of the ``pool_boundary`` connection string parameter, which can be
+either:
 
 - *statement*: If this boundary is specified, then the connection is released
   back to the DRCP or PRCP connection pool when the connection is implicitly
@@ -1582,7 +1581,19 @@ The internal connection release can be controlled by setting a value in the
   - Run queries that fetch :ref:`LOB <lobdata>` and :ref:`JSON <jsondatatype>`
     data
 
+Inline with DRCP and PRCP best practices regarding session sharing across
+differing applications, you should add a connection string
+``pool_connection_class`` parameter, using the same value for all applications
+that are alike.
+
+The DRCP and PRCP "purity" used by Implicit Connection Pooling defaults to
+SELF, which allows reuse of the server process session memory for best
+performance. Adding the connection string parameter ``pool_purity=new`` will
+change this and cause each use of a connection to recreate the session memory.
+
 .. _useimplicitconnpool:
+
+**Configuring Implicit Connection Pooling**
 
 To use implicit connection pooling in python-oracledb with DRCP:
 
@@ -1598,8 +1609,10 @@ To use implicit connection pooling in python-oracledb with DRCP:
 
      .. code-block:: python
 
+        cs = "dbhost.example.com/orclpdb:pooled"
+
         pool = oracledb.create_pool(user="hr", password=userpwd,
-                                    dsn="dbhost.example.com/orclpdb:pooled",
+                                    dsn=cs,
                                     min=2, max=5, increment=1,
                                     cclass="MYAPP")
 
@@ -1641,24 +1654,39 @@ To use implicit connection pooling in python-oracledb with DRCP:
    - Or the ``pool_boundary`` parameter in :meth:`oracledb.connect()` or
      :meth:`oracledb.create_pool()`
 
-.. note::
+   .. note::
 
-    - Implicit connection pooling is disabled if the application sets the
-      ``pool_boundary`` attribute to *transaction* or *statement* but
-      does not specify to use a pooled server.
+        Implicit connection pooling is not enabled if the application sets the
+        ``pool_boundary`` attribute to *transaction* or *statement* but does
+        not specify to use a pooled server.
 
-    - For all the ``POOL_BOUNDARY`` options, the default purity is set to
-      *SELF*. You can specify the purity using the ``POOL_PURITY`` parameter
-      in the connection string to override the default purity value.
+4. Set the connection class in:
+
+    - The :ref:`Easy Connect string <easyconnect>`. For example, to use a class
+      name 'myapp'::
+
+        dsn = "localhost:1521/orclpdb:pooled?pool_boundary=statement&pool_connection_class=myapp"
+
+    - Or the ``CONNECT_DATA`` section of the :ref:`Connect Descriptor string
+      <netservice>`. For example, to use a class name 'myapp'::
+
+        tnsalias = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=mymachine.example.com)
+                    (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)
+                    (SERVER=POOLED)(POOL_BOUNDARY=TRANSACTION)
+                    (POOL_CONNECTION_CLASS=myapp)))
+
+   Use the same connection class name for application processes of the same
+   type where you want session memory to be reused for connections.
+
+   The pool purity can also optionally be changed by adding ``POOL_PURITY=NEW``
+   to the connection string or descriptor.
 
 Similar steps can be used with PRCP.  For general information on PRCP, see the
 technical brief `CMAN-TDM — An Oracle Database connection proxy for scalable
 and highly available applications <https://download.oracle.com/
 ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_apps.pdf>`__.
 
-It is recommended to use python-oracledb's local :ref:`connpooling` where
-possible instead of implicit connection pooling.  This gives multi-user
-applications more control over pooled server reuse.
+**Implicit Pooling Notes**
 
 You should thoroughly test your application when using implicit connection
 pooling to ensure that the internal reuse of database servers does not cause
@@ -1670,6 +1698,9 @@ application connection because different servers may be used at different
 times. Another example is when using a statement boundary of *transaction*. In
 this scenario, any commit can invalidate open cursors.
 
+It is recommended to use python-oracledb's local :ref:`connpooling` where
+possible instead of implicit connection pooling.  This gives multi-user
+applications more control over pooled server reuse.
 
 .. _proxyauth:
 
