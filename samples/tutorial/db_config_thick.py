@@ -44,10 +44,10 @@ instant_client_dir = None
 if platform.system() == "Windows":
     instant_client_dir = r"C:\Oracle\instantclient_19_14"
 
-# On macOS (Intel x86) set the directory to your Instant Client directory
-if platform.system() == "Darwin" and platform.machine() == "x86_64":
+# On macOS set the directory to your Instant Client directory
+if platform.system() == "Darwin":
     instant_client_dir = (
-        os.environ.get("HOME") + "/Downloads/instantclient_19_8"
+        os.environ.get("HOME") + "/Downloads/instantclient_23_3"
     )
 
 # You must always call init_oracle_client() to use thick mode in any platform
