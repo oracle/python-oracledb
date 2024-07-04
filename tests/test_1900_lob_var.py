@@ -535,9 +535,10 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1933(self):
         "1933 - test creating a lob with an invalid type"
-        self.assertRaises(
-            TypeError, self.conn.createlob, oracledb.DB_TYPE_NUMBER
-        )
+        with self.assertRaises(TypeError):
+            self.conn.createlob(oracledb.DB_TYPE_NUMBER)
+        with self.assertRaises(TypeError):
+            self.conn.createlob(oracledb.DB_TYPE_BFILE)
 
     def test_1934(self):
         "1934 - test creation of temporary LOBs with varying data"
@@ -570,6 +571,36 @@ class TestCase(test_env.BaseTestCase):
                 lob.read()
             with self.assertRaisesFullCode("DPY-1001"):
                 lob.write("x")
+
+    def test_1936(self):
+        "1936 - test reading a non-existent directory"
+        directory_name = "TEST_1936_MISSING_DIR"
+        file_name = "test_1936_missing_file.txt"
+        self.cursor.execute(
+            "select BFILENAME(:1, :2) from dual", [directory_name, file_name]
+        )
+        (bfile,) = self.cursor.fetchone()
+        self.assertEqual(bfile.getfilename(), (directory_name, file_name))
+        with self.assertRaisesFullCode("ORA-22285"):
+            bfile.fileexists()
+        with self.assertRaisesFullCode("ORA-22285"):
+            bfile.read()
+
+    def test_1937(self):
+        "1937 - test using BFILE methods on non-BFILE LOBs"
+        types = [
+            oracledb.DB_TYPE_BLOB,
+            oracledb.DB_TYPE_CLOB,
+            oracledb.DB_TYPE_NCLOB,
+        ]
+        for typ in types:
+            lob = self.conn.createlob(typ)
+            with self.assertRaisesFullCode("DPY-3026"):
+                lob.getfilename()
+            with self.assertRaisesFullCode("DPY-3026"):
+                lob.setfilename("not_relevant", "not_relevant")
+            with self.assertRaisesFullCode("DPY-3026"):
+                lob.fileexists()
 
 
 if __name__ == "__main__":

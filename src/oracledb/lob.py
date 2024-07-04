@@ -41,6 +41,10 @@ class BaseLOB:
     def __del__(self):
         self._impl.free_lob()
 
+    def _check_is_bfile(self):
+        if self._impl.dbtype is not DB_TYPE_BFILE:
+            errors._raise_err(errors.ERR_OPERATION_ONLY_SUPPORTED_ON_BFILE)
+
     def _check_not_bfile(self):
         if self._impl.dbtype is DB_TYPE_BFILE:
             errors._raise_err(errors.ERR_OPERATION_NOT_SUPPORTED_ON_BFILE)
@@ -75,12 +79,14 @@ class BaseLOB:
         Return a two-tuple consisting of the directory alias and file name for
         a BFILE type LOB.
         """
+        self._check_is_bfile()
         return self._impl.get_file_name()
 
     def setfilename(self, dir_alias: str, name: str) -> None:
         """
         Set the directory alias and name of a BFILE type LOB.
         """
+        self._check_is_bfile()
         self._impl.set_file_name(dir_alias, name)
 
     @property
@@ -114,6 +120,7 @@ class LOB(BaseLOB):
         Return a boolean indicating if the file referenced by a BFILE type LOB
         exists.
         """
+        self._check_is_bfile()
         return self._impl.file_exists()
 
     def getchunksize(self) -> int:
@@ -217,6 +224,7 @@ class AsyncLOB(BaseLOB):
         Return a boolean indicating if the file referenced by a BFILE type LOB
         exists.
         """
+        self._check_is_bfile()
         return await self._impl.file_exists()
 
     async def getchunksize(self) -> int:

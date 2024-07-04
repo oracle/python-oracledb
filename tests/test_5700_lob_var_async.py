@@ -441,6 +441,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5723 - test creating a lob with an invalid type"
         with self.assertRaises(TypeError):
             await self.conn.createlob(oracledb.DB_TYPE_NUMBER)
+        with self.assertRaises(TypeError):
+            await self.conn.createlob(oracledb.DB_TYPE_BFILE)
 
     async def test_5724(self):
         "5724 - test creation of temporary LOBs with varying data"
@@ -457,6 +459,52 @@ class TestCase(test_env.BaseAsyncTestCase):
                 lob = await self.conn.createlob(typ, initial_data)
                 await lob.write(additional_data, len(initial_data) + 1)
                 self.assertEqual(await lob.read(), expected_result)
+
+    async def test_5725(self):
+        "5725 - test reading and writing a LOB with a closed connection"
+        types = [
+            oracledb.DB_TYPE_BLOB,
+            oracledb.DB_TYPE_CLOB,
+            oracledb.DB_TYPE_NCLOB,
+        ]
+        for typ in types:
+            conn = await test_env.get_connection(use_async=True)
+            lob = await conn.createlob(typ, "Temp LOB")
+            await conn.close()
+            with self.assertRaisesFullCode("DPY-1001"):
+                await lob.read()
+            with self.assertRaisesFullCode("DPY-1001"):
+                await lob.write("x")
+
+    async def test_5726(self):
+        "5726 - test reading a non-existent directory"
+        directory_name = "TEST_5726_MISSING_DIR"
+        file_name = "test_5726_missing_file.txt"
+        await self.cursor.execute(
+            "select BFILENAME(:1, :2) from dual", [directory_name, file_name]
+        )
+        (bfile,) = await self.cursor.fetchone()
+        self.assertEqual(bfile.getfilename(), (directory_name, file_name))
+        with self.assertRaisesFullCode("ORA-22285"):
+            await bfile.fileexists()
+        with self.assertRaisesFullCode("ORA-22285"):
+            await bfile.read()
+
+    async def test_5727(self):
+        "5727 - test using BFILE methods on non-BFILE LOBs"
+        types = [
+            oracledb.DB_TYPE_BLOB,
+            oracledb.DB_TYPE_CLOB,
+            oracledb.DB_TYPE_NCLOB,
+        ]
+        for typ in types:
+            lob = await self.conn.createlob(typ)
+            with self.assertRaisesFullCode("DPY-3026"):
+                lob.getfilename()
+            with self.assertRaisesFullCode("DPY-3026"):
+                lob.setfilename("not_relevant", "not_relevant")
+            with self.assertRaisesFullCode("DPY-3026"):
+                await lob.fileexists()
 
 
 if __name__ == "__main__":

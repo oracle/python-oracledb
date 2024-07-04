@@ -80,6 +80,9 @@ Common Changes
     when operations are attempted on BFILE LOBs that are not permitted.
     Previously, ``ORA-22275: invalid LOB locator specified`` was raised
     instead.
+#)  Error ``DPY-3026: operation is only supported on BFILE LOBs`` is now raised
+    when operations are attempted on LOBs that are only supported by BFILE
+    LOBs. Previously, ``DPI-1002: invalid OCI handle`` was raised instead.
 #)  Error ``DPY-4005: timed out waiting for the connection pool to return a
     connection`` is now raised consistently when using get mode
     :data:`oracledb.POOL_GETMODE_TIMEDWAIT` and the timeout expires.
