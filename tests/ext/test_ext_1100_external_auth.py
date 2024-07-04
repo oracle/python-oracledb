@@ -26,7 +26,8 @@
 E1100 - Module for testing external authentication. This requires access to the
 orapki executable found in a full database installation and will create and
 drop users in the database. The tests here will only run if the has_orapki
-value is enabled.
+value is enabled and, due to limitations in how the Oracle Client libraries
+work, can only be run by itself.
 """
 
 import os

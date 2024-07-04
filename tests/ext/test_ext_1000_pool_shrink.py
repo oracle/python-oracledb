@@ -39,7 +39,7 @@ import test_env
 )
 class TestCase(test_env.BaseTestCase):
     def test_ext_1000(self):
-        "E1000 - test pool timeout with simple acquite after waiting"
+        "E1000 - test pool timeout with simple acquire after waiting"
         pool = test_env.get_pool(min=3, max=10, increment=1, timeout=5)
         conns = [pool.acquire() for i in range(7)]
         self.assertEqual(pool.opened, 7)
