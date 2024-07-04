@@ -187,7 +187,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - SQL execution (see :ref:`sqlexecution`)
-      - Yes - bind and fetch all types except BFILE and JSON
+      - Yes
       - Yes
       - Yes
     * - PL/SQL execution (see :ref:`plsqlexecution`)
@@ -238,6 +238,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
+    * - Oracle Database 23ai JSON-Relational Duality Views (see :ref:`jsondualityviews`)
+      - Yes
+      - Yes
+      - No
     * - Continuous Query Notification (CQN) (see :ref:`cqn`)
       - No
       - Yes
@@ -454,8 +458,8 @@ values.
       - :ref:`oracledb.LOB <lobobj>`, bytes, str
     * - BFILE
       - :data:`~oracledb.DB_TYPE_BFILE`
-      - No relevant notes
-      - Cannot be set
+      - Can fetch a BFILE object and insert that object in a table. Cannot create BFILE objects.
+      - :ref:`oracledb.LOB <lobobj>`, bytes
     * - JSON
       - :data:`~oracledb.DB_TYPE_JSON`
       - No relevant notes

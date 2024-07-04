@@ -380,3 +380,58 @@ for example:
 This produces::
 
     [{"deptid":10,"name":"Administration"},{"deptid":20,"name":"Marketing"},{"deptid":30,"name":"Purchasing"},{"deptid":40,"name":"Human Resources"}]
+
+.. _jsondualityviews:
+
+JSON-Relational Duality Views
+=============================
+
+Oracle Database 23ai JSON-Relational Duality Views allow data to be stored as
+rows in tables to provide the benefits of the relational model and SQL access,
+while also allowing access to data as JSON documents for application
+simplicity.  See the `JSON-Relational Duality Developer's Guide
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=JSNVU>`__ for more
+information.
+
+For example, if you have tables ``AuthorTab`` and ``BookTab``
+containing authors and their books, then a JSON Duality View could be created
+in SQL*Plus::
+
+    create or replace json relational duality view BookDV as
+    BookTab @insert @update @delete
+    {
+        _id: BookId,
+        book_title: BookTitle,
+        author: AuthorTab @insert @update
+        {
+            author_id: AuthorId,
+            author_name: AuthorName
+        }
+    }
+
+Applications can choose whether to use relational access to the underlying
+tables, or use the duality view.
+
+You can use SQL/JSON to query the view and return JSON. The query uses the
+special column ``data``:
+
+.. code-block:: python
+
+    sql = """select b.data.book_title, b.data.author.author_name
+             from BookDV b
+             where b.data.author.author_id = :1"""
+    for r in cursor.execute(sql, [1]):
+        print(r)
+
+Inserting JSON into the view will update the base relational tables:
+
+.. code-block:: python
+
+    data = dict(_id=1000, book_title="My New Book",
+                author=dict(author_id=2000, author_name="John Doe"))
+    cursor.setinputsizes(oracledb.DB_TYPE_JSON)
+    cursor.execute("insert into BookDV values (:1)", [data])
+
+See `json_duality.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/json_duality.py>`__
+for a runnable example.
