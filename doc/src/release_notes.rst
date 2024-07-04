@@ -26,7 +26,8 @@ Thin Mode Changes
     delayed by any internal network ping to the database (`issue 330
     <https://github.com/oracle/python-oracledb/issues/330>`__).
 #)  Fixed bug when calling :meth:`oracledb.connect_async()` multiple times
-    concurrently.
+    concurrently
+    (`issue 353 <https://github.com/oracle/python-oracledb/issues/353>`__).
 #)  Fixed bug in fetching dates with years less than 0
     (`issue 345 <https://github.com/oracle/python-oracledb/issues/345>`__).
 
