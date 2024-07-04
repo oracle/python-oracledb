@@ -108,6 +108,8 @@ def get_value(name, label, default_value=None, password=False):
 
 
 def get_admin_connection(use_async=False):
+    if not get_is_thin() and oracledb.is_thin_mode():
+        oracledb.init_oracle_client()
     admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
     admin_password = get_value(
         "ADMIN_PASSWORD", f"Password for {admin_user}", password=True
@@ -208,6 +210,7 @@ def get_client_version():
         if get_is_thin():
             value = (23, 4)
         else:
+            oracledb.init_oracle_client()
             value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
     return value
@@ -226,6 +229,8 @@ def get_connect_params():
 
 
 def get_connection(dsn=None, use_async=False, **kwargs):
+    if not get_is_thin() and oracledb.is_thin_mode():
+        oracledb.init_oracle_client()
     if dsn is None:
         dsn = get_connect_string()
     method = oracledb.connect_async if use_async else oracledb.connect
@@ -605,6 +610,23 @@ class BaseTestCase(unittest.TestCase):
             attr_values.append(value)
         return tuple(attr_values)
 
+    def get_sid_serial(self, conn=None):
+        """
+        Returns the sid and serial number of the connection as a 2-tuple.
+        """
+        if conn is None:
+            conn = self.conn
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                select
+                    dbms_debug_jdwp.current_session_id,
+                    dbms_debug_jdwp.current_session_serial
+                from dual
+                """
+            )
+            return cursor.fetchone()
+
     def get_soda_database(
         self,
         minclient=(18, 3),
@@ -632,22 +654,24 @@ class BaseTestCase(unittest.TestCase):
         return is_on_oracle_cloud(connection)
 
     def setUp(self):
+        if not get_is_thin() and oracledb.is_thin_mode():
+            oracledb.init_oracle_client()
         if self.requires_connection:
             self.conn = get_connection()
             self.cursor = self.conn.cursor()
             self.cursor.execute("alter session set time_zone = '+00:00'")
 
-    def setup_parse_count_checker(self):
+    def setup_parse_count_checker(self, conn=None):
         if get_is_implicit_pooling():
             self.skipTest("sessions can change with implicit pooling")
         self.parse_count_info = ParseCountInfo()
-        self.parse_count_info._initialize(self.conn)
+        self.parse_count_info._initialize(conn or self.conn)
 
-    def setup_round_trip_checker(self):
+    def setup_round_trip_checker(self, conn=None):
         if get_is_implicit_pooling():
             self.skipTest("sessions can change with implicit pooling")
         self.round_trip_info = RoundTripInfo()
-        self.round_trip_info._initialize(self.conn)
+        self.round_trip_info._initialize(conn or self.conn)
 
     def tearDown(self):
         if self.requires_connection:
@@ -700,24 +724,36 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
             attr_values.append(value)
         return tuple(attr_values)
 
+    async def get_sid_serial(self, conn=None):
+        """
+        Returns the sid and serial number of the connection as a 2-tuple.
+        """
+        if conn is None:
+            conn = self.conn
+        with conn.cursor() as cursor:
+            await cursor.execute(
+                """
+                select
+                    dbms_debug_jdwp.current_session_id,
+                    dbms_debug_jdwp.current_session_serial
+                from dual
+                """
+            )
+            return await cursor.fetchone()
+
     async def is_on_oracle_cloud(self, connection=None):
         if connection is None:
             connection = self.conn
         return await is_on_oracle_cloud_async(connection)
 
-    async def setup_parse_count_checker(self):
+    async def setup_parse_count_checker(self, conn=None):
         if get_is_implicit_pooling():
             self.skipTest("sessions can change with implicit pooling")
         self.parse_count_info = ParseCountInfo()
-        await self.parse_count_info._initialize_async(self.conn)
+        await self.parse_count_info._initialize_async(conn or self.conn)
 
-    async def setup_round_trip_checker(self):
+    async def setup_round_trip_checker(self, conn=None):
         if get_is_implicit_pooling():
             self.skipTest("sessions can change with implicit pooling")
         self.round_trip_info = RoundTripInfo()
-        await self.round_trip_info._initialize_async(self.conn)
-
-
-# ensure that thick mode is enabled, if desired
-if not get_is_thin():
-    oracledb.init_oracle_client()
+        await self.round_trip_info._initialize_async(conn or self.conn)

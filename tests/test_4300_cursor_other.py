@@ -654,21 +654,13 @@ class TestCase(test_env.BaseTestCase):
         admin_conn = test_env.get_admin_connection()
         conn = test_env.get_connection()
         self.assertEqual(conn.is_healthy(), True)
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            select
-                dbms_debug_jdwp.current_session_id,
-                dbms_debug_jdwp.current_session_serial
-            from dual
-            """
-        )
-        sid, serial = cursor.fetchone()
+        sid, serial = self.get_sid_serial(conn)
         with admin_conn.cursor() as admin_cursor:
             sql = f"alter system kill session '{sid},{serial}'"
             admin_cursor.execute(sql)
         with self.assertRaisesFullCode("DPY-4011"):
-            cursor.execute("select user from dual")
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
@@ -677,23 +669,13 @@ class TestCase(test_env.BaseTestCase):
         admin_conn = test_env.get_admin_connection()
         conn = test_env.get_connection()
         self.assertEqual(conn.is_healthy(), True)
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                select
-                    dbms_debug_jdwp.current_session_id,
-                    dbms_debug_jdwp.current_session_serial
-                from dual
-                """
-            )
-            sid, serial = cursor.fetchone()
-            with admin_conn.cursor() as admin_cursor:
-                admin_cursor.execute(
-                    f"alter system kill session '{sid},{serial}'"
-                )
-            with self.assertRaisesFullCode("DPY-4011"):
+        sid, serial = self.get_sid_serial(conn)
+        with admin_conn.cursor() as admin_cursor:
+            admin_cursor.execute(f"alter system kill session '{sid},{serial}'")
+        with self.assertRaisesFullCode("DPY-4011"):
+            with conn.cursor() as cursor:
                 cursor.execute("select user from dual")
-            self.assertEqual(conn.is_healthy(), False)
+        self.assertEqual(conn.is_healthy(), False)
 
     def test_4349(self):
         "4349 - fetchmany() with and without parameters"

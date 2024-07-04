@@ -699,18 +699,9 @@ class TestCase(test_env.BaseTestCase):
         # acquire connections from the pool and kill all the sessions
         with admin_conn.cursor() as admin_cursor:
             for conn in [pool.acquire() for i in range(2)]:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        select
-                            dbms_debug_jdwp.current_session_id,
-                            dbms_debug_jdwp.current_session_serial
-                        from dual
-                        """
-                    )
-                    sid, serial = cursor.fetchone()
-                    sql = f"alter system kill session '{sid},{serial}'"
-                    admin_cursor.execute(sql)
+                sid, serial = self.get_sid_serial(conn)
+                sql = f"alter system kill session '{sid},{serial}'"
+                admin_cursor.execute(sql)
                 conn.close()
         self.assertEqual(pool.opened, 2)
 
@@ -803,28 +794,10 @@ class TestCase(test_env.BaseTestCase):
         with pool.acquire(cclass=cclass) as conn:
             pass
         with pool.acquire(cclass=cclass) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    """
-                    select
-                        dbms_debug_jdwp.current_session_id || ',' ||
-                        dbms_debug_jdwp.current_session_serial
-                    from dual
-                    """
-                )
-                (sid_serial,) = cursor.fetchone()
+            sid_serial = self.get_sid_serial(conn)
         with pool.acquire(cclass=cclass) as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    """
-                    select
-                        dbms_debug_jdwp.current_session_id || ',' ||
-                        dbms_debug_jdwp.current_session_serial
-                    from dual
-                    """
-                )
-                (next_sid_serial,) = cursor.fetchone()
-                self.assertEqual(next_sid_serial, sid_serial)
+            next_sid_serial = self.get_sid_serial(conn)
+            self.assertEqual(next_sid_serial, sid_serial)
         self.assertEqual(pool.opened, 1)
 
     def test_2432(self):

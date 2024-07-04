@@ -305,18 +305,9 @@ class TestCase(test_env.BaseAsyncTestCase):
             # acquire connections from the pool and kill all the sessions
             with admin_conn.cursor() as admin_cursor:
                 for conn in [await pool.acquire() for i in range(2)]:
-                    with conn.cursor() as cursor:
-                        await cursor.execute(
-                            """
-                            select
-                                dbms_debug_jdwp.current_session_id,
-                                dbms_debug_jdwp.current_session_serial
-                            from dual
-                            """
-                        )
-                        sid, serial = await cursor.fetchone()
-                        sql = f"alter system kill session '{sid},{serial}'"
-                        await admin_cursor.execute(sql)
+                    sid, serial = await self.get_sid_serial(conn)
+                    sql = f"alter system kill session '{sid},{serial}'"
+                    await admin_cursor.execute(sql)
                     await conn.close()
             self.assertEqual(pool.opened, 2)
 
@@ -436,28 +427,10 @@ class TestCase(test_env.BaseAsyncTestCase):
             async with pool.acquire(cclass=cclass) as conn:
                 pass
             async with pool.acquire(cclass=cclass) as conn:
-                with conn.cursor() as cursor:
-                    await cursor.execute(
-                        """
-                        select
-                            dbms_debug_jdwp.current_session_id || ',' ||
-                            dbms_debug_jdwp.current_session_serial
-                        from dual
-                        """
-                    )
-                    (sid_serial,) = await cursor.fetchone()
+                sid_serial = await self.get_sid_serial(conn)
             async with pool.acquire(cclass=cclass) as conn:
-                with conn.cursor() as cursor:
-                    await cursor.execute(
-                        """
-                        select
-                            dbms_debug_jdwp.current_session_id || ',' ||
-                            dbms_debug_jdwp.current_session_serial
-                        from dual
-                        """
-                    )
-                    (next_sid_serial,) = await cursor.fetchone()
-                    self.assertEqual(next_sid_serial, sid_serial)
+                next_sid_serial = await self.get_sid_serial(conn)
+                self.assertEqual(next_sid_serial, sid_serial)
             self.assertEqual(pool.opened, 1)
         finally:
             await pool.close(force=True)

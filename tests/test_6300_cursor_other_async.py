@@ -579,21 +579,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         admin_conn = await test_env.get_admin_connection_async()
         conn = await test_env.get_connection_async()
         self.assertEqual(conn.is_healthy(), True)
-        cursor = conn.cursor()
-        await cursor.execute(
-            """
-            select
-                dbms_debug_jdwp.current_session_id,
-                dbms_debug_jdwp.current_session_serial
-            from dual
-            """
-        )
-        sid, serial = await cursor.fetchone()
+        sid, serial = await self.get_sid_serial(conn)
         with admin_conn.cursor() as admin_cursor:
             sql = f"alter system kill session '{sid},{serial}'"
             await admin_cursor.execute(sql)
         with self.assertRaisesFullCode("DPY-4011"):
-            await cursor.execute("select user from dual")
+            with conn.cursor() as cursor:
+                await cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
@@ -602,23 +594,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         admin_conn = await test_env.get_admin_connection_async()
         conn = await test_env.get_connection_async()
         self.assertEqual(conn.is_healthy(), True)
-        with conn.cursor() as cursor:
-            await cursor.execute(
-                """
-                select
-                    dbms_debug_jdwp.current_session_id,
-                    dbms_debug_jdwp.current_session_serial
-                from dual
-                """
+        sid, serial = await self.get_sid_serial(conn)
+        with admin_conn.cursor() as admin_cursor:
+            await admin_cursor.execute(
+                f"alter system kill session '{sid},{serial}'"
             )
-            sid, serial = await cursor.fetchone()
-            with admin_conn.cursor() as admin_cursor:
-                await admin_cursor.execute(
-                    f"alter system kill session '{sid},{serial}'"
-                )
-            with self.assertRaisesFullCode("DPY-4011"):
+        with self.assertRaisesFullCode("DPY-4011"):
+            with conn.cursor() as cursor:
                 await cursor.execute("select user from dual")
-            self.assertEqual(conn.is_healthy(), False)
+        self.assertEqual(conn.is_healthy(), False)
 
     async def test_6337(self):
         "6337 - fetchmany() with and without parameters"
