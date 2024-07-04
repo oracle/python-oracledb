@@ -239,6 +239,10 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 self._free_new_conn_impls.append(request.conn_impl)
             else:
                 self._free_used_conn_impls.append(request.conn_impl)
+        elif request.requires_ping:
+            self._open_count -= 1
+            if self._num_to_create == 0 and self._open_count < self.min:
+                self._num_to_create = self.min - self._open_count
         self._requests.remove(request)
         self._condition.notify_all()
 
@@ -852,6 +856,7 @@ cdef class PooledConnRequest:
                 buf.check_control_packet()
         if buf._session_needs_to_be_closed:
             self.pool_impl._drop_conn_impl(conn_impl)
+            self._open_count -= 1
         else:
             self.conn_impl = conn_impl
             if self.pool_impl._ping_interval == 0:
