@@ -37,6 +37,8 @@ Thick Mode Changes
 
 #)  Eliminated memory leak when dequeing messages with JSON payloads
     (`issue 346 <https://github.com/oracle/python-oracledb/issues/346>`__).
+#)  An exception is now avoided if an error message is not correctly UTF-8
+    encoded by the database.
 
 Common Changes
 ++++++++++++++

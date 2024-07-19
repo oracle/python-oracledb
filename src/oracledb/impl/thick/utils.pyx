@@ -432,8 +432,8 @@ cdef object _create_new_from_info(dpiErrorInfo *error_info):
     """
     cdef bytes msg_bytes = error_info.message[:error_info.messageLength]
     context = "%s: %s" % (error_info.fnName, error_info.action)
-    return errors._Error(msg_bytes.decode(), context, code=error_info.code,
-                         offset=error_info.offset,
+    return errors._Error(msg_bytes.decode("utf-8", "replace"), context,
+                         code=error_info.code, offset=error_info.offset,
                          isrecoverable=error_info.isRecoverable,
                          iswarning=error_info.isWarning)
 
