@@ -41,7 +41,8 @@ class TestCase(test_env.BaseTestCase):
                 nullable_delta = None
             else:
                 nullable_delta = oracledb.IntervalYM(i + 5, i + 2)
-            data_tuple = (i, delta, nullable_delta)
+            precision_col = oracledb.IntervalYM(3, 8)
+            data_tuple = (i, delta, nullable_delta, precision_col)
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
@@ -143,6 +144,15 @@ class TestCase(test_env.BaseTestCase):
                 None,
                 None,
                 2,
+                0,
+                True,
+            ),
+            (
+                "INTERVALPRECISIONCOL",
+                oracledb.DB_TYPE_INTERVAL_YM,
+                None,
+                None,
+                3,
                 0,
                 True,
             ),

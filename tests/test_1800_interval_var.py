@@ -50,7 +50,25 @@ class TestCase(test_env.BaseTestCase):
                     minutes=i * 2 + 5,
                     seconds=i * 3 + 5,
                 )
-            data_tuple = (i, delta, nullable_delta)
+            precision_col = datetime.timedelta(
+                days=8,
+                hours=5,
+                minutes=15,
+                seconds=0,
+            )
+            precision_scale_col = datetime.timedelta(
+                days=10,
+                hours=12,
+                minutes=15,
+                seconds=15,
+            )
+            data_tuple = (
+                i,
+                delta,
+                nullable_delta,
+                precision_col,
+                precision_scale_col,
+            )
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
@@ -176,6 +194,24 @@ class TestCase(test_env.BaseTestCase):
                 None,
                 2,
                 6,
+                True,
+            ),
+            (
+                "INTERVALPRECISIONCOL",
+                oracledb.DB_TYPE_INTERVAL_DS,
+                None,
+                None,
+                7,
+                6,
+                True,
+            ),
+            (
+                "INTERVALPRECISIONSCALECOL",
+                oracledb.DB_TYPE_INTERVAL_DS,
+                None,
+                None,
+                8,
+                9,
                 True,
             ),
         ]

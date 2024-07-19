@@ -268,35 +268,41 @@ create table &main_user..TestObjects (
 create table &main_user..TestTimestamps (
     IntCol                              number(9) not null,
     TimestampCol                        timestamp not null,
-    NullableCol                         timestamp
+    NullableCol                         timestamp,
+    TimestampPrecisionCol               timestamp(4)
 )
 /
 
 create table &main_user..TestTimestampLTZs (
     IntCol                              number(9) not null,
     TimestampLTZCol                     timestamp with local time zone not null,
-    NullableCol                         timestamp with local time zone
+    NullableCol                         timestamp with local time zone,
+    TimestampLTZPrecisionCol            timestamp(5) with local time zone
 )
 /
 
 create table &main_user..TestTimestampTZs (
     IntCol                              number(9) not null,
     TimestampTZCol                      timestamp with time zone not null,
-    NullableCol                         timestamp with time zone
+    NullableCol                         timestamp with time zone,
+    TimestampTZPrecisionCol             timestamp(7) with time zone
 )
 /
 
 create table &main_user..TestIntervals (
     IntCol                              number(9) not null,
     IntervalCol                         interval day to second not null,
-    NullableCol                         interval day to second
+    NullableCol                         interval day to second,
+    IntervalPrecisionCol                interval day(7) to second,
+    IntervalPrecisionScaleCol           interval day(8) to second(9)
 )
 /
 
 create table &main_user..TestIntervalYMs (
     IntCol                              number(9) not null,
     IntervalCol                         interval year to month not null,
-    NullableCol                         interval year to month
+    NullableCol                         interval year to month,
+    IntervalPrecisionCol                interval year(3) to month
 )
 /
 
@@ -488,7 +494,8 @@ begin
                 decode(mod(i, 2), 0, to_timestamp(null, 'YYYYMMDD'),
                 to_timestamp('20021209', 'YYYYMMDD') +
                     to_dsinterval(to_char(i + 1) || ' 00:00:' ||
-                    to_char(i * 3) || '.' || to_char(i * 125))));
+                    to_char(i * 3) || '.' || to_char(i * 125))),
+                to_timestamp('20091214', 'YYYYMMDD'));
     end loop;
 end;
 /
@@ -505,7 +512,8 @@ begin
                 decode(mod(i, 2), 0, to_timestamp(null, 'YYYYMMDD'),
                 to_timestamp_tz('20220602 00:00', 'YYYYMMDD TZH:TZM') +
                     to_dsinterval(to_char(i + 1) || ' 00:00:' ||
-                    to_char(i * 3) || '.' || to_char(i * 125))));
+                    to_char(i * 3) || '.' || to_char(i * 125))),
+                to_timestamp_tz('20091214 00:00', 'YYYYMMDD TZH:TZM'));
     end loop;
 end;
 /
@@ -522,7 +530,8 @@ begin
                 decode(mod(i, 2), 0, to_timestamp(null, 'YYYYMMDD'),
                 to_timestamp_tz('20220603 00:00', 'YYYYMMDD TZH:TZM') +
                     to_dsinterval(to_char(i + 1) || ' 00:00:' ||
-                    to_char(i * 3) || '.' || to_char(i * 125))));
+                    to_char(i * 3) || '.' || to_char(i * 125))),
+                to_timestamp_tz('20091214 00:00', 'YYYYMMDD TZH:TZM'));
     end loop;
 end;
 /
@@ -534,7 +543,9 @@ begin
                 to_char(i * 2) || ':' || to_char(i * 3)),
                 decode(mod(i, 2), 0, to_dsinterval(null),
                 to_dsinterval(to_char(i + 5) || ' ' || to_char(i + 2) || ':' ||
-                to_char(i * 2 + 5) || ':' || to_char(i * 3 + 5))));
+                to_char(i * 2 + 5) || ':' || to_char(i * 3 + 5))),
+                to_dsinterval('8 05:15:00'),
+                to_dsinterval('10 12:15:15'));
     end loop;
 end;
 /
@@ -544,7 +555,8 @@ begin
         insert into &main_user..TestIntervalYMs
         values (i, to_yminterval(to_char(i - 5) || '-' || to_char(i)),
                 decode(mod(i, 2), 0, to_yminterval(null),
-                to_yminterval(to_char(i + 5) || '-' || to_char(i + 2))));
+                to_yminterval(to_char(i + 5) || '-' || to_char(i + 2))),
+                to_yminterval('3-8'));
     end loop;
 end;
 /

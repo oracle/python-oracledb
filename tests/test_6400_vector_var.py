@@ -45,6 +45,8 @@ class TestCase(test_env.BaseTestCase):
         Test inserting and fetching a vector.
         """
         self.cursor.execute("delete from TestVectors")
+        if isinstance(value, list):
+            self.cursor.setinputsizes(value=oracledb.DB_TYPE_VECTOR)
         self.cursor.execute(
             f"""
             insert into TestVectors (IntCol, {column_name})
@@ -121,6 +123,12 @@ class TestCase(test_env.BaseTestCase):
                 18.19,
                 -20.21,
                 9.23,
+                -2.54,
+                6.5,
+                4.21,
+                -1.96,
+                3.54,
+                2.6,
             ],
         )
         self.__test_insert_and_fetch(value, "Vector32Col", "f")
@@ -140,6 +148,12 @@ class TestCase(test_env.BaseTestCase):
                 18.19,
                 -20.21,
                 9.23,
+                -2.54,
+                6.5,
+                4.21,
+                -1.96,
+                3.54,
+                2.6,
             ],
         )
         self.__test_insert_and_fetch(value, "Vector64Col", "d")
@@ -159,6 +173,12 @@ class TestCase(test_env.BaseTestCase):
                 18.19,
                 -20.21,
                 9.23,
+                -2.54,
+                6.5,
+                4.21,
+                -1.96,
+                3.54,
+                2.6,
             ],
         )
         self.__test_insert_and_fetch(value, "VectorFlexAllCol", "f")
@@ -178,6 +198,12 @@ class TestCase(test_env.BaseTestCase):
                 0.125,
                 -0.5,
                 0.03125,
+                -2.50,
+                -0.75,
+                1.625,
+                1.025,
+                0.125,
+                0.725,
             ],
         )
         self.__test_insert_and_fetch(value, "Vector64Col", "d")
@@ -197,6 +223,12 @@ class TestCase(test_env.BaseTestCase):
                 0.125,
                 -0.5,
                 0.03125,
+                -2.50,
+                -0.75,
+                1.625,
+                1.025,
+                0.125,
+                0.725,
             ],
         )
         self.__test_insert_and_fetch(value, "Vector32Col", "f")
@@ -216,6 +248,12 @@ class TestCase(test_env.BaseTestCase):
                 0.125,
                 -0.5,
                 0.03125,
+                -2.50,
+                -0.75,
+                1.625,
+                1.025,
+                0.125,
+                0.725,
             ],
         )
         self.__test_insert_and_fetch(value, "VectorFlexAllCol", "d")
@@ -262,22 +300,22 @@ class TestCase(test_env.BaseTestCase):
                 oracledb.VECTOR_FORMAT_FLOAT64,
             ],
             [
+                "VECTOR8COL",
+                oracledb.DB_TYPE_VECTOR,
+                16,
+                oracledb.VECTOR_FORMAT_INT8,
+            ],
+            [
                 "VECTOR32COL",
                 oracledb.DB_TYPE_VECTOR,
-                10,
+                16,
                 oracledb.VECTOR_FORMAT_FLOAT32,
             ],
             [
                 "VECTOR64COL",
                 oracledb.DB_TYPE_VECTOR,
-                10,
+                16,
                 oracledb.VECTOR_FORMAT_FLOAT64,
-            ],
-            [
-                "VECTOR8COL",
-                oracledb.DB_TYPE_VECTOR,
-                10,
-                oracledb.VECTOR_FORMAT_INT8,
             ],
         ]
         self.cursor.execute("select * from TestVectors")
@@ -294,48 +332,42 @@ class TestCase(test_env.BaseTestCase):
     def test_6413(self):
         "6413 - insert an int8 vector into an int8 column"
         value = array.array(
-            "b",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "Vector8Col", "b")
 
     def test_6414(self):
         "6414 - insert an int8 vector into a float32 column"
         value = array.array(
-            "b",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "Vector32Col", "f")
 
     def test_6415(self):
         "6415 - insert an int8 vector into a float64 column"
         value = array.array(
-            "b",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "Vector64Col", "d")
 
     def test_6416(self):
         "6416 - insert an int8 vector into a flexible column"
         value = array.array(
-            "b",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "VectorFlexAllCol", "b")
 
     def test_6417(self):
         "6417 - insert a float32 vector into an int8 column"
         value = array.array(
-            "f",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "f", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "Vector8Col", "b")
 
     def test_6418(self):
         "6418 - insert a float64 vector into an int8 column"
         value = array.array(
-            "d",
-            [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128],
+            "d", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
         )
         self.__test_insert_and_fetch(value, "Vector8Col", "b")
 
@@ -368,7 +400,7 @@ class TestCase(test_env.BaseTestCase):
         "6421 - insert a float32 vector into an int8 column (negative)"
         value = array.array(
             "f",
-            [-130, -129, 0, 1, 2, 3, 127, 128, 129, 348],
+            [-130, -129, 0, 1, 2, 3, 127, 128, 129, 348, 12, 49, 78, 12, 9, 2],
         )
         with self.assertRaisesFullCode("ORA-51806"):
             self.__test_insert_and_fetch(value, "Vector8Col", "b")
@@ -501,7 +533,7 @@ class TestCase(test_env.BaseTestCase):
     def test_6430(self):
         "6430 - test binding a vector with inf values (negative)"
         value = array.array(
-            "d", [float("inf") if i % 2 else float("-inf") for i in range(10)]
+            "d", [float("inf") if i % 2 else float("-inf") for i in range(16)]
         )
         with self.assertRaisesFullCode("ORA-51805"):
             self.cursor.execute("select :1 from dual", [value])
@@ -509,7 +541,7 @@ class TestCase(test_env.BaseTestCase):
     def test_6431(self):
         "6431 - test setting an invalid type to a vector"
         var = self.cursor.var(oracledb.DB_TYPE_VECTOR)
-        self.assertRaises(TypeError, var.setvalue, 0, [[i] for i in range(10)])
+        self.assertRaises(TypeError, var.setvalue, 0, [[i] for i in range(16)])
 
     def test_6432(self):
         "6432 - fetch JSON value with an embedded vector"
@@ -587,6 +619,46 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.execute("select :1", [[]])
         with self.assertRaisesFullCode("DPY-4031"):
             self.cursor.execute("select :1", [array.array("d", [])])
+
+    def test_6437(self):
+        "6437 - insert a list vector into a flexible format column"
+        value = [1.5, 9.9]
+        self.__test_insert_and_fetch(value, "VectorFlexTypeCol", "d")
+
+    def test_6438(self):
+        "6438 - insert a list vector into a flexible size column"
+        value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "VectorFlexAllCol", "d")
+
+    def test_6439(self):
+        "6439 - insert a list vector into a flexible float32 column"
+        value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "VectorFlex32Col", "f")
+
+    def test_6440(self):
+        "6440 - insert a list vector into a flexible float64 column"
+        value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "VectorFlex64Col", "d")
+
+    def test_6441(self):
+        "6441 - insert a list vector into a float32 column"
+        value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "Vector32Col", "f")
+
+    def test_6442(self):
+        "6442 - insert a list vector into a float64 column"
+        value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "Vector64Col", "d")
+
+    def test_6443(self):
+        "6443 - insert a list vector into a flexible int8 column"
+        value = [1, 9, 3, 8, 4, 7, 5, 6, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "VectorFlex8Col", "b")
+
+    def test_6444(self):
+        "6444 - insert a list vector into an int8 column"
+        value = [1, 9, 3, 8, 4, 7, 5, 6, 0, 2, 6, 4, 5, 6, 7, 8]
+        self.__test_insert_and_fetch(value, "Vector8Col", "b")
 
 
 if __name__ == "__main__":

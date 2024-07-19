@@ -58,9 +58,9 @@ create table &main_user..TestVectors (
     VectorFlex8Col          vector(*, int8),
     VectorFlex32Col         vector(*, float32),
     VectorFlex64Col         vector(*, float64),
-    Vector32Col             vector(10, float32),
-    Vector64Col             vector(10, float64),
-    Vector8Col              vector(10, int8)
+    Vector8Col              vector(16, int8),
+    Vector32Col             vector(16, float32),
+    Vector64Col             vector(16, float64)
 )
 /
 

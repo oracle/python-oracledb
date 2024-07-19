@@ -967,7 +967,7 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(
         test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+        or test_env.get_server_version() < (23, 4),
         "unsupported data types",
     )
     def test_3445(self):
@@ -990,7 +990,7 @@ class TestCase(test_env.BaseTestCase):
 
     @unittest.skipIf(
         test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+        or test_env.get_server_version() < (23, 4),
         "unsupported data types",
     )
     def test_3446(self):

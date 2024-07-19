@@ -60,7 +60,8 @@ class TestCase(test_env.BaseTestCase):
                 nullable_col = base_date + offset
             else:
                 nullable_col = None
-            data_tuple = (i, col, nullable_col)
+            precision_col = datetime.datetime(2009, 12, 14)
+            data_tuple = (i, col, nullable_col, precision_col)
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
@@ -169,6 +170,15 @@ class TestCase(test_env.BaseTestCase):
                 None,
                 0,
                 6,
+                True,
+            ),
+            (
+                "TIMESTAMPLTZPRECISIONCOL",
+                oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                23,
+                None,
+                0,
+                5,
                 True,
             ),
         ]

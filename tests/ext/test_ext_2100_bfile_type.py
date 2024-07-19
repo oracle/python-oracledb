@@ -31,6 +31,7 @@ import os
 import tempfile
 import unittest
 
+import oracledb
 import test_env
 
 
@@ -157,6 +158,34 @@ class TestCase(test_env.BaseTestCase):
             self.assertFalse(bfile.fileexists())
             with self.assertRaisesFullCode("ORA-22288"):
                 bfile.read()
+
+    def test_ext_2105(self):
+        "E2105 - test setting and getting BFILE var"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            self._setup_directory(temp_dir)
+            file_name1 = "test1.txt"
+            contents1 = b"extended test 2105 - first file"
+            with open(os.path.join(temp_dir, file_name1), "wb") as f:
+                f.write(contents1)
+            file_name2 = "test2.txt"
+            contents2 = b"extended test 2105 - second file"
+            with open(os.path.join(temp_dir, file_name2), "wb") as f:
+                f.write(contents2)
+            var1 = self.cursor.var(oracledb.DB_TYPE_BFILE)
+            var2 = self.cursor.var(oracledb.DB_TYPE_BFILE)
+            self.cursor.execute(
+                f"""
+                begin
+                    :1 := BFILENAME('{self.dir_name}', '{file_name1}');
+                    :2 := BFILENAME('{self.dir_name}', '{file_name2}');
+                end;
+                """,
+                [var1, var2],
+            )
+            self.assertEqual(var1.getvalue().read(), contents1)
+            self.assertEqual(var2.getvalue().read(), contents2)
+            self.cursor.execute("begin :1 := :2; end;", [var1, var2])
+            self.assertEqual(var1.getvalue().read(), contents2)
 
 
 if __name__ == "__main__":

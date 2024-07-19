@@ -68,7 +68,8 @@ class TestCase(test_env.BaseTestCase):
                 )
             else:
                 nullable_col = None
-            data_tuple = (i, date_col, nullable_col)
+            precision_col = datetime.datetime(2009, 12, 14)
+            data_tuple = (i, date_col, nullable_col, precision_col)
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
@@ -167,6 +168,15 @@ class TestCase(test_env.BaseTestCase):
                 False,
             ),
             ("NULLABLECOL", oracledb.DB_TYPE_TIMESTAMP, 23, None, 0, 6, True),
+            (
+                "TIMESTAMPPRECISIONCOL",
+                oracledb.DB_TYPE_TIMESTAMP,
+                23,
+                None,
+                0,
+                4,
+                True,
+            ),
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
