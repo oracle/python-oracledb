@@ -809,9 +809,10 @@ objects seamlessly:
 Binding Multiple Values to a SQL WHERE IN Clause
 ================================================
 
-To use a SQL IN clause with multiple values, use one bind variable per
-value. You cannot directly bind a Python list or dictionary to a single bind
-variable. For example, to use two values in an IN clause:
+To use a SQL IN list with multiple values, use one bind variable placeholder
+per value. You cannot directly bind a Python list or dictionary to a single
+bind variable. For example, to use two values in an IN clause your code should
+be like:
 
 .. code-block:: python
 
@@ -832,10 +833,11 @@ This gives the output::
     (180, 'Winston', 'Taylor')
 
 If the query is executed multiple times with differing numbers of values, a
-bind variable should be included for each possible value. When the statement is
-executed but the maximum number of values has not been supplied, the value
-``None`` can be bound for missing values. For example, if the query above is
-used for up to 5 values, the code will be:
+bind variable placeholder should be included in the SQL statement for each of
+the maximum possible number of values. If the statement is executed with a
+lesser number of data values, then bind ``None`` for missing values. For
+example, if a query is used for up to five values, but only two values are used
+in a particular execution, the code could be:
 
 .. code-block:: python
 
@@ -848,18 +850,28 @@ used for up to 5 values, the code will be:
     for row in cursor:
         print(row)
 
-This will produce the same output as the original example. Reusing the same SQL
-statement like this for a variable number of values, instead of constructing a
-unique statement per set of values, allows best reuse of Oracle Database
-resources.
+This will produce the same output as the original example.
 
-If other bind variables are required in the statement, adjust the bind variable
-placeholder numbers:
+Reusing the same SQL statement like this for a variable number of values,
+instead of constructing a unique statement per set of values, allows best reuse
+of Oracle Database resources. Additionally, if a statement with a large number
+of bind variable placeholders is executed many times with varying string
+lengths for each execution, then consider using :func:`Cursor.setinputsizes()`
+to reduce the database's "version count" for the SQL statement. For example, if
+the columns are VARCHAR2(25), then add this before the
+:meth:`Cursor.execute()` call:
 
 .. code-block:: python
 
-    items = ["Smith", "Taylor", None, None, None]
-    binds = [120] + items
+    cursor.setinputsizes(25,25,25,25,25)
+
+If other bind variables are required in the statement, adjust the bind variable
+placeholder numbers appropriately:
+
+.. code-block:: python
+
+    binds = [120]                                   # employee id
+    binds += ["Smith", "Taylor", None, None, None]  # IN list
     cursor.execute("""
         select employee_id, first_name, last_name
         from employees
@@ -869,9 +881,9 @@ placeholder numbers:
     for row in cursor:
         print(row)
 
-If a statement containing WHERE IN is not going to be re-executed or the number
-of values is only going to be known at runtime, then a SQL statement can be
-built up as follows:
+If a statement containing WHERE IN is not going to be re-executed, or the
+number of values is only going to be known at runtime, then a SQL statement can
+be dynamically built:
 
 .. code-block:: python
 
@@ -882,7 +894,15 @@ built up as follows:
     for row in cursor:
         print(row)
 
-To exceed the IN clause value limit, you can add OR clauses like:
+Binding a Large Number of Items in an IN List
+---------------------------------------------
+
+The number of items in an IN list is limited to 65535 in Oracle Database 23ai,
+and to 1000 in earlier versions. If you exceed the limit, the database will
+return an error like ``ORA-01795: maximum number of expressions in a list is
+65535``.
+
+To use more values in the IN clause list, you can add OR clauses like:
 
 .. code-block:: python
 
@@ -891,7 +911,7 @@ To exceed the IN clause value limit, you can add OR clauses like:
                 or key in (:50,:51,:52,:53,:54,:55,:56,:57,:58,:59,...)
                 or key in (:100,:101,:102,:103,:104,:105,:106,:107,:108,:109,...)"""
 
-A general solution for a larger number of values is to construct a SQL
+A more general solution for a larger number of values is to construct a SQL
 statement like::
 
     SELECT ... WHERE col IN ( <something that returns a list of values> )
@@ -900,7 +920,7 @@ The best way to do the '<something that returns a list of values>' depends on
 how the data is initially represented and the number of items. For example you
 might look at using a global temporary table.
 
-One method for up to 32K values is to use an Oracle collection with the
+One method for large IN lists is to use an Oracle Database collection with the
 ``TABLE()`` clause. For example, if the following type was created::
 
     SQL> CREATE OR REPLACE TYPE name_array AS TABLE OF VARCHAR2(25);
@@ -920,16 +940,27 @@ then the application could do:
     for row in cursor:
         print(row)
 
-For efficiency, retain the return value of ``gettype()`` for reuse where
-possible instead of making repeated calls to get the type information.
+When using this technique, it is important to review the database optimizer
+plan to ensure it is efficient.
 
+Since this ``TABLE()`` solution uses an object type, there is a performance
+impact because of the extra :ref:`round-trips <roundtrips>` required to get the
+type information. Unless you have a large number of binds you may prefer one of
+the previous solutions. For efficiency, retain the return value of
+:meth:`Connection.gettype()` for reuse where possible instead of making
+repeated calls to it.
+
+Some users employ the types SYS.ODCINUMBERLIST, SYS.ODCIVARCHAR2LIST, or
+SYS.ODCIDATELIST instead of creating their own type, but this should be used
+with the understanding that the database may remove these in a future version,
+and that their size is 32K - 1.
 
 Binding Column and Table Names
 ==============================
 
-Column and table names cannot be bound in SQL queries.  You can concatenate
-text to build up a SQL statement, but ensure that you use an Allow List or other
-means to validate the data in order to avoid SQL Injection security issues:
+Table names cannot be bound in SQL queries.  You can concatenate text to build
+up a SQL statement, but ensure that you use an Allow List or other means to
+validate the data in order to avoid SQL Injection security issues:
 
 .. code-block:: python
 
@@ -939,8 +970,8 @@ means to validate the data in order to avoid SQL Injection security issues:
         raise Exception('Invalid table name')
     sql = f'select * from {table_name}'
 
-Binding column names can be done either by using the above method or by using a
-CASE statement.  The example below demonstrates binding a column name in an
+Binding column names can be done either by using a similar method, or by using
+a CASE statement.  The example below demonstrates binding a column name in an
 ORDER BY clause:
 
 .. code-block:: python

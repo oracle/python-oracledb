@@ -332,13 +332,14 @@ Oracledb Methods
     Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the
-    database after a connection has been established.  This feature is only
-    available with certain versions of ADB-S.  This value is used in both
-    python-oracledb Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -347,7 +348,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
@@ -605,13 +606,14 @@ Oracledb Methods
     the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the
-    database after a connection has been established.  This feature is only
-    available with certain versions of ADB-S.  This value is used in both
-    python-oracledb Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -620,7 +622,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
@@ -903,13 +905,14 @@ Oracledb Methods
     Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the
-    database after a connection has been established.  This feature is only
-    available with certain versions of ADB-S.  This value is used in both
-    python-oracledb Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -918,7 +921,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
@@ -1303,13 +1306,14 @@ Oracledb Methods
     Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the database
-    after a connection has been established.  This feature is only available
-    with certain versions of ADB-S.  This value is used in both python-oracledb
-    Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -1318,7 +1322,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
@@ -1643,13 +1647,14 @@ Oracledb Methods
     the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the database
-    after a connection has been established.  This feature is only available
-    with certain versions of ADB-S.  This value is used in both python-oracledb
-    Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -1658,7 +1663,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
@@ -2110,13 +2115,14 @@ Oracledb Methods
     Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
-    indicates whether to use an `Oracle Autonomous Database Serverless (ADB-S)
-    <https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/
-    adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
-    specific feature that can reduce the latency in round-trips to the database
-    after a connection has been established.  This feature is only available
-    with certain versions of ADB-S.  This value is used in both python-oracledb
-    Thin and Thick modes.  The default value is False.
+    indicates whether to use TCP Fast Open which is an `Oracle Autonomous
+    Database Serverless (ADB-S) <https://docs.oracle.com/en/cloud/paas/
+    autonomous-database/serverless/adbsb/connection-tcp-fast-open.html#
+    GUID-34654005-DBBA-4C49-BC6D-717F9C16A17C>`__ specific feature that can
+    reduce the latency in round-trips to the database after a connection has
+    been established.  This feature is only available with certain versions of
+    ADB-S.  This value is used in both python-oracledb Thin and Thick modes.
+    The default value is False.
 
     The ``ssl_version`` parameter is expected to be one of the constants
     "ssl.TLSVersion.TLSv1_2" or "ssl.TLSVersion.TLSv1_3" and specifies the TLS
@@ -2125,7 +2131,7 @@ Oracledb Methods
     parameter can be specified when establishing connections with the protocol
     "tcps".  This parameter is used in both python-oracledb Thin and Thick
     modes.  The value "ssl.TLSVersion.TLSv1_3" requires Oracle Database 23ai
-    and for Thick mode, Oracle Client 19c (or later) is additionally required.
+    and for Thick mode, Oracle Client 23ai is additionally required.
 
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the

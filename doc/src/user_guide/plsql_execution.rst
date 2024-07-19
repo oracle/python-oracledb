@@ -191,6 +191,104 @@ The output would be::
        := . ( @ % ;
 
 
+Using the %ROWTYPE Attribute
+----------------------------
+
+In PL/SQL, the `%ROWTYPE attribute
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4E0B9FE2-909D-444A-9B4A-E0243B7FCB99>`__
+lets you declare a record that represents either a full or partial row of a
+database table or view.
+
+To work with %ROWTYPE in python-oracledb, use :meth:`Connection.gettype()` to
+get the relevant attribute type information.
+
+**Getting a %ROWTYPE value from PL/SQL**
+
+Given a PL/SQL function that returns a row of the LOCATIONS table:
+
+.. code-block:: sql
+
+    create or replace function TestFuncOUT return locations%rowtype as
+      p locations%rowtype;
+    begin
+       select * into p from locations where rownum < 2;
+       return p;
+    end;
+    /
+
+You can use :meth:`~Connection.gettype()` to get the type of the PL/SQL
+function return value, and specify this as the :meth:`~Cursor.callfunc()`
+return type.  For example:
+
+.. code-block:: python
+
+    rt = connection.gettype("LOCATIONS%ROWTYPE")
+    r = cursor.callfunc("TESTFUNCOUT", rt)
+
+The variable ``r`` will contain the return value of the PL/SQL function as an
+:ref:`Object Type <dbobjecttype>`. You can access its contents using the
+methods discussed in :ref:`Fetching Oracle Database Objects and Collections
+<fetchobjects>`.  The helper function ``dump_object()`` defined there is a
+convenient example:
+
+.. code-block:: python
+
+    dump_object(r)
+
+Output will be::
+
+    {
+      LOCATION_ID: 1000
+      STREET_ADDRESS: '1297 Via Cola di Rie'
+      POSTAL_CODE: '00989'
+      CITY: 'Roma'
+      STATE_PROVINCE: None
+      COUNTRY_ID: 'IT'
+    }
+
+
+**Constructing a %ROWTYPE value in python-oracledb**
+
+You can construct a similar object directly in python-oracledb by using
+:meth:`DbObjectType.newobject()` and setting any desired fields.  For example:
+
+.. code-block:: python
+
+    rt = connection.gettype("LOCATIONS%ROWTYPE")
+    r = rt.newobject()
+    r.CITY = 'Roma'
+
+**Passing a %ROWTYPE value into PL/SQL**
+
+Given the PL/SQL procedure:
+
+.. code-block:: sql
+
+    create or replace procedure TestProcIN(p in locations%rowtype, city out varchar2) as
+    begin
+        city := p.city;
+    end;
+
+you can call :meth:`~Cursor.callproc()` passing the variable ``r`` from the
+previous :meth:`~Cursor.callfunc()` or :meth:`~DbObjectType.newobject()`
+examples in the appropriate parameter position, for example:
+
+.. code-block:: python
+
+    c = cursor.var(oracledb.DB_TYPE_VARCHAR)
+    cursor.callproc("TESTPROCIN", [r, c])
+    print(c.getvalue())
+
+This prints::
+
+    Roma
+
+
+See `plsql_rowtype.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/plsql_rowtype.py>`__
+for a runnable example.
+
+
 Using DBMS_OUTPUT
 -----------------
 

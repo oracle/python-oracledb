@@ -4,37 +4,36 @@
 Using CLOB and BLOB Data
 ************************
 
-Oracle Database uses :ref:`LOB objects <lobobj>` to store large data such as text, images,
-videos, and other multimedia formats.  The maximum size of a LOB (large object) is limited to
-the size of the tablespace storing it.
+Oracle Database uses :ref:`LOB objects <lobobj>` to store large data such as
+text, images, videos, and other multimedia formats.  The maximum size of a LOB
+(large object) is limited to the size of the tablespace storing it.
 
 There are `four types of LOBs <https://www.oracle.com/pls/topic/lookup?ctx=
 dblatest&id=GUID-0A692C1B-1C95-4121-8F95-25BE465B87F6>`__:
 
-    * BLOB - Binary Large Object, used for storing binary data. python-oracledb uses
-      the type :attr:`oracledb.DB_TYPE_BLOB`.
-    * CLOB - Character Large Object, used for string strings in the database
+    * BLOB - Binary Large Object, used for storing binary data. python-oracledb
+      uses the type :attr:`oracledb.DB_TYPE_BLOB`.
+    * CLOB - Character Large Object, used for storing strings in the database
       character set format. python-oracledb uses the type
       :attr:`oracledb.DB_TYPE_CLOB`.
-    * NCLOB - National Character Large Object, used for string strings in the
+    * NCLOB - National Character Large Object, used for storing strings in the
       national character set format. python-oracledb uses the type
       :attr:`oracledb.DB_TYPE_NCLOB`.
-    * BFILE - External Binary File, used
-      for referencing a file stored on the host operating system outside of
-      the database. python-oracledb uses the type
-      :attr:`oracledb.DB_TYPE_BFILE`. See `BFILEs <https://www.oracle.com/pls/
-      topic/lookup?ctx=dblatest&id=GUID-D4642C92-F343-4700-9F1F-
+    * BFILE - External Binary File, used for referencing a file stored on the
+      host operating system outside of the database. python-oracledb uses the
+      type :attr:`oracledb.DB_TYPE_BFILE`. See `BFILEs <https://www.oracle.com
+      /pls/topic/lookup?ctx=dblatest&id=GUID-D4642C92-F343-4700-9F1F-
       486F82249FB8>`__ for more information.
 
 LOBs can be streamed to, and from, Oracle Database.
 
-LOBs up to 1 GB in length can be also be handled directly as strings or bytes in
-python-oracledb.  This makes LOBs easy to work with, and has significant performance
-benefits over streaming.  However, it requires the entire LOB data to be present
-in Python memory, which may not be possible.
+LOBs up to 1 GB in length can be also be handled directly as strings or bytes
+in python-oracledb.  This makes LOBs easy to work with, and has significant
+performance benefits over streaming.  However, it requires the entire LOB
+data to be present in Python memory, which may not be possible.
 
-See `GitHub <https://github.com/oracle/python-oracledb/tree/main/samples>`__ for LOB examples.
-
+See `GitHub <https://github.com/oracle/python-oracledb/tree/main/samples>`__
+for LOB examples.
 
 Simple Insertion of LOBs
 ------------------------
@@ -49,8 +48,8 @@ Consider a table with CLOB and BLOB columns:
         b BLOB
     );
 
-With python-oracledb, LOB data can be inserted in the table by binding strings or
-bytes as needed:
+With python-oracledb, LOB data can be inserted in the table by binding strings
+or bytes as needed:
 
 .. code-block:: python
 
@@ -209,8 +208,8 @@ referencing them go out of scope or the connection in which they are created is
 explicitly closed.
 
 When calling PL/SQL procedures with data that exceeds 32,767 bytes in length,
-python-oracledb automatically creates a temporary LOB internally and passes that
-value through to the procedure. If the data that is to be passed to the
+python-oracledb automatically creates a temporary LOB internally and passes
+that value through to the procedure. If the data that is to be passed to the
 procedure exceeds that which can fit in a single block of data, however, you
 can use the method :meth:`Connection.createlob()` to create a temporary LOB.
 This LOB can then be read and written just like in the examples shown above for

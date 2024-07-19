@@ -403,7 +403,7 @@ Statement caching lets Oracle Database cursors be used without re-parsing the
 statement.  Statement caching also reduces metadata transfer costs between
 python-oracledb and the database. Performance and scalability are improved.
 
-The python-oracledb Thick mode uses `Oracle Call Interface statement cache
+The python-oracledb Thick mode uses `Oracle Call Interface statement caching
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4947CAE8-1F00-
 4897-BB2B-7F921E495175>`__, whereas the Thin mode uses its own implementation.
 
@@ -418,8 +418,8 @@ com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-
 EDEC145F7ACD>`__ (AWR) "bytes sent via SQL*Net to client" values.  The latter
 statistic should benefit from not shipping statement metadata to
 python-oracledb.  Adjust the statement cache size to your satisfaction. With
-Oracle Database 12c (or later), the statement cache size can be automatically
-tuned using an :ref:`oraaccess.xml <optclientfiles>` file.
+Oracle Database 12c (or later), the Thick mode statement cache size can be
+automatically tuned using an :ref:`oraaccess.xml <optclientfiles>` file.
 
 Setting the Statement Cache
 ---------------------------

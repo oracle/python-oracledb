@@ -10,6 +10,11 @@ allows documents to be inserted, queried, and retrieved from Oracle Database
 using a set of NoSQL-style python-oracledb methods. By default, documents are JSON
 strings. See the :ref:`user manual <sodausermanual>` for examples.
 
+.. note::
+
+    SODA is only supported in the python-oracledb Thick mode.  See
+    :ref:`enablingthick`.
+
 .. _sodarequirements:
 
 SODA Requirements
@@ -30,51 +35,53 @@ SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 
 .. note::
 
-    If you are using Oracle Database 21c (or later) and create new collections
-    you need to do one of the following:
+    SODA APIs are only supported in the python-oracledb Thick mode. See
+    :ref:`enablingthick`.
 
-    - Use Oracle Client libraries 21c (or later)
 
-    - Or explicitly use collection metadata when creating collections and set
-      the data storage type to BLOB, for example::
+If you are using Oracle Database 21c (or later) and create new collections
+you need to do one of the following:
 
-        {
-            "keyColumn": {
-                "name":"ID"
-            },
-            "contentColumn": {
-                "name": "JSON_DOCUMENT",
-                "sqlType": "BLOB"
-            },
-            "versionColumn": {
-                "name": "VERSION",
-                "method": "UUID"
-            },
-            "lastModifiedColumn": {
-                "name": "LAST_MODIFIED"
-            },
-            "creationTimeColumn": {
-                "name": "CREATED_ON"
-            }
+- Use Oracle Client libraries 21c (or later)
+
+- Or explicitly use collection metadata when creating collections and set
+  the data storage type to BLOB, for example::
+
+    {
+        "keyColumn": {
+            "name":"ID"
+        },
+        "contentColumn": {
+            "name": "JSON_DOCUMENT",
+            "sqlType": "BLOB"
+        },
+        "versionColumn": {
+            "name": "VERSION",
+            "method": "UUID"
+        },
+        "lastModifiedColumn": {
+            "name": "LAST_MODIFIED"
+        },
+        "creationTimeColumn": {
+            "name": "CREATED_ON"
         }
+    }
 
-    - Or, set the database initialization parameter `compatible
-      <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-      id=GUID-A2E90F08-BC9F-4688-A9D0-4A948DD3F7A9>`__ to 19 or lower.
+- Or set the database initialization parameter `compatible
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+  id=GUID-A2E90F08-BC9F-4688-A9D0-4A948DD3F7A9>`__ to 19.0.0 or lower
 
-    Otherwise, you may get errors such as ``ORA-40842: unsupported value JSON in
-    the metadata for the field sqlType`` or ``ORA-40659: Data type does not match
-    the specification in the collection metadata``.
+Otherwise, you may get errors such as ``ORA-40842: unsupported value JSON in
+the metadata for the field sqlType`` or ``ORA-40659: Data type does not match
+the specification in the collection metadata``.
 
 .. _sodadb:
 
 SodaDatabase Objects
 ====================
 
-.. note::
-
-    The SODA Database object is an extension the DB API. It is returned by the
-    method :meth:`Connection.getSodaDatabase()`.
+The SODA Database object is an extension to the DB API. It is returned by the
+method :meth:`Connection.getSodaDatabase()`.
 
 
 SodaDatabase Methods
@@ -152,12 +159,10 @@ SodaDatabase Methods
 SodaCollection Objects
 ======================
 
-.. note::
-
-    The SODA Collection object is an extension the DB API. It is used to
-    represent SODA collections and is created by methods
-    :meth:`SodaDatabase.createCollection()` and
-    :meth:`SodaDatabase.openCollection()`.
+The SODA Collection object is an extension to the DB API. It is used to
+represent SODA collections and is created by methods
+:meth:`SodaDatabase.createCollection()` and
+:meth:`SodaDatabase.openCollection()`.
 
 SodaCollection Methods
 ----------------------
@@ -361,12 +366,10 @@ SodaCollection Attributes
 SodaDoc Objects
 ===============
 
-.. note::
-
-    The SODA Document object is an extension the DB API. It is returned by the
-    methods :meth:`SodaDatabase.createDocument()`,
-    :meth:`SodaOperation.getDocuments()` and :meth:`SodaOperation.getOne()` as
-    well as by iterating over :ref:`SODA document cursors <sodadoccur>`.
+The SODA Document object is an extension to the DB API. It is returned by the
+methods :meth:`SodaDatabase.createDocument()`,
+:meth:`SodaOperation.getDocuments()` and :meth:`SodaOperation.getOne()` as
+well as by iterating over :ref:`SODA document cursors <sodadoccur>`.
 
 SodaDoc Methods
 ---------------
@@ -440,12 +443,10 @@ SodaDoc Attributes
 SodaDocCursor Objects
 =====================
 
-.. note::
-
-    The SODA Document Cursor object is an extension the DB API. It is returned
-    by the method :meth:`SodaOperation.getCursor()` and implements the iterator
-    protocol.  Each iteration will return a :ref:`SODA document object
-    <sodadoc>`.
+The SODA Document Cursor object is an extension to the DB API. It is returned
+by the method :meth:`SodaOperation.getCursor()` and implements the iterator
+protocol.  Each iteration will return a :ref:`SODA document object
+<sodadoc>`.
 
 SodaDocCursor Methods
 ---------------------
@@ -462,11 +463,9 @@ SodaDocCursor Methods
 SodaOperation Objects
 =====================
 
-.. note::
-
-    The SODA Operation Object is an extension to the DB API. It represents an
-    operation that will be performed on all or some of the documents in a SODA
-    collection. It is created by the method :meth:`SodaCollection.find()`.
+The SODA Operation Object is an extension to the DB API. It represents an
+operation that will be performed on all or some of the documents in a SODA
+collection. It is created by the method :meth:`SodaCollection.find()`.
 
 SodaOperation Methods
 ---------------------

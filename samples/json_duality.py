@@ -27,7 +27,9 @@
 #
 # Demonstrates Oracle Database 23ai JSON-Relational Duality Views.
 #
-# See https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN
+# Also see soda_json_duality.py
+#
+# Reference: https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN
 # -----------------------------------------------------------------------------
 
 import json

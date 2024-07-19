@@ -6,10 +6,12 @@ Working with Simple Oracle Document Access (SODA)
 
 Oracle Database Simple Oracle Document Access (SODA) allows documents to be
 inserted, queried, and retrieved from Oracle Database using a set of
-NoSQL-style python-oracledb methods. Documents are generally JSON data, but they can
-be any data at all (including video, images, sounds, or other binary content).
-Documents can be fetched from the database by key lookup or by using
-query-by-example (QBE) pattern-matching.
+NoSQL-style python-oracledb methods. Documents are generally JSON data, but
+they can be any data at all (including video, images, sounds, or other binary
+content).  Documents can be fetched from the database by key lookup or by using
+query-by-example (QBE) pattern-matching. You can also use SODA APIs to access
+existing :ref:`Oracle Database 23ai JSON-Relational Duality Views
+<jsondualityviews>`.
 
 .. note::
 
