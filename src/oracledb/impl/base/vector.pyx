@@ -32,6 +32,7 @@
 cdef array.array float_template = array.array('f')
 cdef array.array double_template = array.array('d')
 cdef array.array int8_template = array.array('b')
+cdef array.array uint8_template = array.array('B')
 
 @cython.final
 cdef class VectorDecoder(Buffer):
@@ -42,6 +43,7 @@ cdef class VectorDecoder(Buffer):
         """
         cdef:
             uint8_t magic_byte, version, vector_format, element_size = 0
+            uint8_t * uint8_buf = NULL
             double *double_buf = NULL
             int8_t *int8_buf = NULL
             uint32_t num_elements, i
@@ -60,7 +62,7 @@ cdef class VectorDecoder(Buffer):
             errors._raise_err(errors.ERR_UNEXPECTED_DATA,
                               data=bytes([magic_byte]))
         self.read_ub1(&version)
-        if version != TNS_VECTOR_VERSION:
+        if version > TNS_VECTOR_VERSION_WITH_BINARY:
             errors._raise_err(errors.ERR_VECTOR_VERSION_NOT_SUPPORTED,
                               version=version)
         self.read_uint16(&flags)
@@ -78,10 +80,15 @@ cdef class VectorDecoder(Buffer):
             result = array.clone(int8_template, num_elements, False)
             int8_buf = result.data.as_schars
             element_size = 1
+        elif vector_format == VECTOR_FORMAT_BINARY:
+            num_elements = num_elements // 8
+            result = array.clone(uint8_template, num_elements, False)
+            uint8_buf = result.data.as_uchars
         else:
             errors._raise_err(errors.ERR_VECTOR_FORMAT_NOT_SUPPORTED,
                               vector_format=vector_format)
-        if flags & TNS_VECTOR_FLAG_NORM:
+        if flags & TNS_VECTOR_FLAG_NORM_RESERVED \
+                or flags & TNS_VECTOR_FLAG_NORM:
             self.skip_raw_bytes(8)
 
         # parse data
@@ -92,8 +99,10 @@ cdef class VectorDecoder(Buffer):
             elif vector_format == VECTOR_FORMAT_FLOAT64:
                 ptr = self._get_raw(element_size)
                 self.parse_binary_double(ptr, &double_buf[i])
-            else:
+            elif vector_format == VECTOR_FORMAT_INT8:
                 self.read_sb1(&int8_buf[i])
+            else:
+                self.read_ub1(&uint8_buf[i])
         return result
 
 
@@ -105,11 +114,13 @@ cdef class VectorEncoder(GrowableBuffer):
         Encodes the given value to the internal VECTOR format.
         """
         cdef:
+            uint16_t flags = TNS_VECTOR_FLAG_NORM_RESERVED
+            uint8_t vector_format, vector_version
             double *double_ptr = NULL
+            uint8_t *uint8_ptr = NULL
             uint32_t num_elements, i
             float *float_ptr = NULL
             int8_t *int8_ptr = NULL
-            uint8_t vector_format
             object element
 
         # determine the type of vector to write
@@ -119,15 +130,26 @@ cdef class VectorEncoder(GrowableBuffer):
         elif value.typecode == 'f':
             vector_format = VECTOR_FORMAT_FLOAT32
             float_ptr = value.data.as_floats
-        else:
+        elif value.typecode == 'b':
             vector_format = VECTOR_FORMAT_INT8
             int8_ptr = value.data.as_schars
+        else:
+            vector_format = VECTOR_FORMAT_BINARY
+            uint8_ptr = value.data.as_uchars
+
+        # determine vector version and number of elements
+        if vector_format == VECTOR_FORMAT_BINARY:
+            num_elements = (<uint32_t> len(value)) * 8
+            vector_version = TNS_VECTOR_VERSION_WITH_BINARY
+        else:
+            num_elements = <uint32_t> len(value)
+            vector_version = TNS_VECTOR_VERSION_BASE
+            flags |= TNS_VECTOR_FLAG_NORM
 
         # write header
-        num_elements = <uint32_t> len(value)
         self.write_uint8(TNS_VECTOR_MAGIC_BYTE)
-        self.write_uint8(TNS_VECTOR_VERSION)
-        self.write_uint16(TNS_VECTOR_FLAG_NORM | TNS_VECTOR_FLAG_NORM_RESERVED)
+        self.write_uint8(vector_version)
+        self.write_uint16(flags)
         self.write_uint8(vector_format)
         self.write_uint32(num_elements)
         self._reserve_space(8)              # reserve space for norm
@@ -135,6 +157,8 @@ cdef class VectorEncoder(GrowableBuffer):
         # write elements
         if vector_format == VECTOR_FORMAT_INT8:
             self.write_raw(<char_type*> int8_ptr, num_elements)
+        elif vector_format == VECTOR_FORMAT_BINARY:
+            self.write_raw(<char_type*> uint8_ptr, num_elements // 8)
         else:
             for i in range(num_elements):
                 if vector_format == VECTOR_FORMAT_FLOAT32:

@@ -660,7 +660,8 @@ cdef enum:
     TNS_CCAP_TTC4 = 40
     TNS_CCAP_LOB2 = 42
     TNS_CCAP_TTC5 = 44
-    TNS_CCAP_MAX = 51
+    TNS_CCAP_VECTOR_FEATURES = 52
+    TNS_CCAP_MAX = 53
 
 # compile time capability values
 cdef enum:
@@ -717,6 +718,7 @@ cdef enum:
     TNS_CCAP_END_OF_RESPONSE = 0x20
     TNS_CCAP_CLIENT_FN_MAX = 12
     TNS_CCAP_VECTOR_SUPPORT = 0x08
+    TNS_CCAP_VECTOR_FEATURE_BINARY = 0x01
 
 # runtime capability indices
 cdef enum:

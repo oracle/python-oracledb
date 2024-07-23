@@ -59,6 +59,7 @@ class Purity(enum.IntEnum):
 
 
 class VectorFormat(enum.IntEnum):
+    BINARY = base_impl.VECTOR_FORMAT_BINARY
     FLOAT32 = base_impl.VECTOR_FORMAT_FLOAT32
     FLOAT64 = base_impl.VECTOR_FORMAT_FLOAT64
     INT8 = base_impl.VECTOR_FORMAT_INT8
@@ -81,6 +82,7 @@ POOL_GETMODE_WAIT = PoolGetMode.WAIT
 PURITY_DEFAULT = Purity.DEFAULT
 PURITY_NEW = Purity.NEW
 PURITY_SELF = Purity.SELF
+VECTOR_FORMAT_BINARY = VectorFormat.BINARY
 VECTOR_FORMAT_FLOAT32 = VectorFormat.FLOAT32
 VECTOR_FORMAT_FLOAT64 = VectorFormat.FLOAT64
 VECTOR_FORMAT_INT8 = VectorFormat.INT8

@@ -43,6 +43,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for Oracle Database 23ai
+    :ref:`BINARY vector format <binaryformat>`.
 #)  Replaced integer constants for
     :ref:`connection authorization modes <connection-authorization-modes>`,
     :ref:`connection pool get modes <connpoolmodes>`,

@@ -31,6 +31,7 @@
 cdef array.array float_template = array.array('f')
 cdef array.array double_template = array.array('d')
 cdef array.array int8_template = array.array('b')
+cdef array.array uint8_template = array.array('B')
 
 cdef object _convert_from_json_node(dpiJsonNode *node):
     cdef:
@@ -210,13 +211,16 @@ cdef int _convert_from_python(object value, DbType dbtype,
         if dpiJson_setValue(dbvalue.asJson, &json_buf._top_node) < 0:
             _raise_from_odpi()
     elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
+        vector_info.numDimensions = <uint32_t> len(value)
         if value.typecode == 'd':
             vector_info.format = DPI_VECTOR_FORMAT_FLOAT64
         elif value.typecode == 'f':
             vector_info.format = DPI_VECTOR_FORMAT_FLOAT32
+        elif value.typecode == 'B':
+            vector_info.format = DPI_VECTOR_FORMAT_BINARY
+            vector_info.numDimensions *= 8
         else:
             vector_info.format = DPI_VECTOR_FORMAT_INT8
-        vector_info.numDimensions = <uint32_t> len(value)
         vector_info.dimensions.asPtr = (<array.array> value).data.as_voidptr
         if dpiVector_setValue(dbvalue.asVector, &vector_info) < 0:
             _raise_from_odpi()
@@ -393,16 +397,22 @@ cdef object _convert_vector_to_python(dpiVector *vector):
     cdef:
         dpiVectorInfo vector_info
         array.array result
+        uint32_t num_bytes
     if dpiVector_getValue(vector, &vector_info) < 0:
         _raise_from_odpi()
     if vector_info.format == DPI_VECTOR_FORMAT_FLOAT32:
         result = array.clone(float_template, vector_info.numDimensions, False)
+        num_bytes = vector_info.numDimensions * vector_info.dimensionSize
     elif vector_info.format == DPI_VECTOR_FORMAT_FLOAT64:
         result = array.clone(double_template, vector_info.numDimensions, False)
+        num_bytes = vector_info.numDimensions * vector_info.dimensionSize
     elif vector_info.format == DPI_VECTOR_FORMAT_INT8:
         result = array.clone(int8_template, vector_info.numDimensions, False)
-    memcpy(result.data.as_voidptr, vector_info.dimensions.asPtr,
-            vector_info.numDimensions * vector_info.dimensionSize)
+        num_bytes = vector_info.numDimensions
+    elif vector_info.format == DPI_VECTOR_FORMAT_BINARY:
+        num_bytes = vector_info.numDimensions // 8
+        result = array.clone(uint8_template, num_bytes, False)
+    memcpy(result.data.as_voidptr, vector_info.dimensions.asPtr, num_bytes)
     return result
 
 

@@ -76,7 +76,8 @@ cdef enum:
 # VECTOR constants
 cdef enum:
     TNS_VECTOR_MAGIC_BYTE = 0xDB
-    TNS_VECTOR_VERSION = 0
+    TNS_VECTOR_VERSION_BASE = 0
+    TNS_VECTOR_VERSION_WITH_BINARY = 1
 
 # VECTOR flags
 cdef enum:

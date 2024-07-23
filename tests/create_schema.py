@@ -54,7 +54,11 @@ if test_env.get_server_version() >= (21, 0):
     )
 if test_env.get_server_version() >= (23, 4):
     test_env.run_sql_script(
-        conn, "create_schema_23", main_user=test_env.get_main_user()
+        conn, "create_schema_23_4", main_user=test_env.get_main_user()
+    )
+if test_env.get_server_version() >= (23, 5):
+    test_env.run_sql_script(
+        conn, "create_schema_23_5", main_user=test_env.get_main_user()
     )
 if test_env.is_on_oracle_cloud(conn):
     test_env.run_sql_script(

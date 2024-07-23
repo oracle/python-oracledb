@@ -157,6 +157,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     # vector formats
     enum:
+        DPI_VECTOR_FORMAT_BINARY
         DPI_VECTOR_FORMAT_FLOAT32
         DPI_VECTOR_FORMAT_FLOAT64
         DPI_VECTOR_FORMAT_INT8

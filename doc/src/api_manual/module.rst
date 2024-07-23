@@ -3546,6 +3546,16 @@ possible values for the :attr:`FetchInfo.vector_format` attribute.
     The integer constants for the vector format constants were replaced with
     the enumeration ``VectorFormat``.
 
+.. data:: VECTOR_FORMAT_BINARY
+
+    This constant is used to represent the storage format of VECTOR columns
+    using 8-bit unsigned integers.
+
+    This enumerated value can also be identified by
+    ``oracledb.VectorFormat.BINARY``.
+
+    .. versionadded:: 2.3.0
+
 .. data:: VECTOR_FORMAT_FLOAT32
 
     This constant is used to represent the storage format of VECTOR columns

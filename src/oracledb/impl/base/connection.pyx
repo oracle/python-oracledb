@@ -144,7 +144,7 @@ cdef class BaseConnImpl:
                     errors._raise_err(errors.ERR_INVALID_VECTOR)
                 return array.array('d', value)
             elif isinstance(value, array.array) \
-                    and value.typecode in ('f', 'd', 'b'):
+                    and value.typecode in ('f', 'd', 'b', 'B'):
                 if len(value) == 0:
                     errors._raise_err(errors.ERR_INVALID_VECTOR)
                 return value

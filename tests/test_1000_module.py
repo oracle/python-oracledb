@@ -208,6 +208,9 @@ class TestCase(test_env.BaseTestCase):
 
         # vector format enumeration
         self.assertIs(
+            oracledb.VECTOR_FORMAT_BINARY, oracledb.VectorFormat.BINARY
+        )
+        self.assertIs(
             oracledb.VECTOR_FORMAT_FLOAT32, oracledb.VectorFormat.FLOAT32
         )
         self.assertIs(

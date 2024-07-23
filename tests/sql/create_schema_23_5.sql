@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2024, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -23,58 +23,16 @@
  *---------------------------------------------------------------------------*/
 
 /*-----------------------------------------------------------------------------
- * create_schema_23.sql
+ * create_schema_23_5.sql
  *
  * Performs the actual work of creating and populating the schemas with the
  * database objects used by the python-oracledb test suite that require Oracle
- * Database 23ai or higher. It is executed by the Python script
+ * Database 23.5 or higher. It is executed by the Python script
  * create_schema.py.
  *---------------------------------------------------------------------------*/
 
-create domain &main_user..SimpleDomain as number(3, 0) NOT NULL
-/
-
-create table &main_user..TableWithDomainAndAnnotations (
-    id number(9) not null,
-    age number(3, 0) domain &main_user..SimpleDomain
-    annotations (
-        Anno_1 'first annotation',
-        Anno_2 'second annotation',
-        Anno_3
-    )
-)
-/
-
-insert into &main_user..TableWithDomainAndAnnotations values (1, 25)
-/
-
-commit
-/
-
-create table &main_user..TestVectors (
+create table &main_user..TestBinaryVectors (
     IntCol                  number(9) not null,
-    VectorFlexAllCol        vector,
-    VectorFlexTypeCol       vector(2),
-    VectorFlex8Col          vector(*, int8),
-    VectorFlex32Col         vector(*, float32),
-    VectorFlex64Col         vector(*, float64),
-    Vector8Col              vector(16, int8),
-    Vector32Col             vector(16, float32),
-    Vector64Col             vector(16, float64)
-)
-/
-
-create table &main_user..TestCompressedJson (
-    IntCol number(9) not null,
-    JsonCol json not null
-)
-json (JsonCol)
-store as (compress high)
-/
-
-create table &main_user..TestBooleans (
-    IntCol                  number(9) not null,
-    BooleanCol1             boolean not null,
-    BooleanCol2             boolean
+    VectorBinaryCol         vector(64, binary)
 )
 /

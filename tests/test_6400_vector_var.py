@@ -547,12 +547,12 @@ class TestCase(test_env.BaseTestCase):
         "6432 - fetch JSON value with an embedded vector"
         self.cursor.execute(
             """
-        select json_object(
-            'id' : 6432,
-            'vector' : to_vector('[1, 2, 3]')
-            returning json
-        ) from dual
-        """
+            select json_object(
+                'id' : 6432,
+                'vector' : to_vector('[1, 2, 3]')
+                returning json
+            ) from dual
+            """
         )
         (result,) = self.cursor.fetchone()
         expected_val = dict(id=6432, vector=array.array("f", [1, 2, 3]))
