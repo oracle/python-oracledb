@@ -2538,7 +2538,7 @@ cdef class TransactionChangeStateMessage(Message):
         """
         cdef:
             bytes global_transaction_id, branch_qualifier, xid_bytes
-            uint32_t format_id
+            uint32_t format_id = 0
 
         # acquire data to send to the server
         if self.xid is not None:
