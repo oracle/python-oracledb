@@ -602,6 +602,18 @@ class TestCase(test_env.BaseTestCase):
             with self.assertRaisesFullCode("DPY-3026"):
                 lob.fileexists()
 
+    def test_1938(self):
+        "1938 - confirm that LOB objects are retained across getvalue() calls"
+        for typ in (
+            oracledb.DB_TYPE_BLOB,
+            oracledb.DB_TYPE_CLOB,
+            oracledb.DB_TYPE_NCLOB,
+        ):
+            var = self.cursor.var(typ)
+            lob = self.conn.createlob(typ, "Some data for test 1938")
+            var.setvalue(0, lob)
+            self.assertIs(var.getvalue(), lob)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

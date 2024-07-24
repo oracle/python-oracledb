@@ -49,8 +49,11 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiDataBuffer *dbvalue
             const char *name_ptr
             bytes name_bytes
+            object cursor
         if self.dbtype.num == DB_TYPE_NUM_CURSOR:
-            for i in range(self.num_elements):
+            for i, cursor in enumerate(self._values):
+                if cursor is not None and cursor._impl is None:
+                    errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
                 if self._data[i].isNull:
                     continue
                 dbvalue = &self._data[i].value
@@ -93,6 +96,12 @@ cdef class ThickVarImpl(BaseVarImpl):
         Internal method that finalizes initialization of the variable.
         """
         BaseVarImpl._finalize_init(self)
+        if self.dbtype._native_num in (
+            DPI_NATIVE_TYPE_LOB,
+            DPI_NATIVE_TYPE_OBJECT,
+            DPI_NATIVE_TYPE_STMT,
+        ):
+            self._values = [None] * self.num_elements
         self._create_handle()
 
     cdef list _get_array_value(self):
@@ -103,17 +112,65 @@ cdef class ThickVarImpl(BaseVarImpl):
         return [self._get_scalar_value(i) \
                 for i in range(self.num_elements_in_array)]
 
-    cdef object _get_cursor_value(self, dpiDataBuffer *dbvalue):
+    cdef object _get_cursor_value(self, dpiDataBuffer *dbvalue, uint32_t pos):
+        """
+        Returns the cursor stored in the variable at the given position. If a
+        cursor was previously available, use it instead of creating a new one.
+        """
         cdef:
             ThickCursorImpl cursor_impl
             object cursor
-        cursor = self._conn.cursor()
+        cursor = self._values[pos]
+        if cursor is None:
+            cursor = self._values[pos] = self._conn.cursor()
         cursor_impl = <ThickCursorImpl> cursor._impl
         if dpiStmt_addRef(dbvalue.asStmt) < 0:
             _raise_from_odpi()
         cursor_impl._handle = dbvalue.asStmt
         cursor_impl._fixup_ref_cursor = True
         return cursor
+
+    cdef object _get_dbobject_value(self, dpiDataBuffer *dbvalue,
+                                    uint32_t pos):
+        """
+        Returns the DbObject stored in the variable at the given position. If a
+        DbObject was previously available, use it instead of creating a new
+        one, unless the handle has changed.
+        """
+        cdef:
+            ThickDbObjectImpl obj_impl
+            object obj
+        obj = self._values[pos]
+        if obj is not None:
+            obj_impl = <ThickDbObjectImpl> obj._impl
+            if obj_impl._handle == dbvalue.asObject:
+                return obj
+        obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
+        obj_impl.type = self.objtype
+        if dpiObject_addRef(dbvalue.asObject) < 0:
+            _raise_from_odpi()
+        obj_impl._handle = dbvalue.asObject
+        obj = self._values[pos] = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
+        return obj
+
+    cdef object _get_lob_value(self, dpiDataBuffer *dbvalue, uint32_t pos):
+        """
+        Returns the LOB stored in the variable at the given position. If a LOB
+        was previously created, use it instead of creating a new one, unless
+        the handle has changed.
+        """
+        cdef:
+            ThickLobImpl lob_impl
+            object lob
+        lob = self._values[pos]
+        if lob is not None:
+            lob_impl = <ThickLobImpl> lob._impl
+            if lob_impl._handle == dbvalue.asLOB:
+                return lob
+        lob_impl = ThickLobImpl._create(self._conn_impl, self.dbtype,
+                                        dbvalue.asLOB)
+        lob = self._values[pos] = PY_TYPE_LOB._from_impl(lob_impl)
+        return lob
 
     cdef object _get_scalar_value(self, uint32_t pos):
         """
@@ -182,6 +239,10 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiVar_release(orig_handle)
 
     cdef int _set_cursor_value(self, object cursor, uint32_t pos) except -1:
+        """
+        Sets a cursor value in the variable. If the cursor does not have a
+        statement handle already, associate the one created by the variable.
+        """
         cdef:
             ThickCursorImpl cursor_impl = cursor._impl
             dpiData *data
@@ -197,8 +258,29 @@ cdef class ThickVarImpl(BaseVarImpl):
             if dpiStmt_addRef(data.value.asStmt) < 0:
                 _raise_from_odpi()
             cursor_impl._handle = data.value.asStmt
+        self._values[pos] = cursor
         cursor_impl._fixup_ref_cursor = True
         cursor_impl.statement = None
+
+    cdef int _set_dbobject_value(self, object obj, uint32_t pos) except -1:
+        """
+        Sets an object value in the variable. The object is retained so that
+        multiple calls to getvalue() return the same instance.
+        """
+        cdef ThickDbObjectImpl obj_impl = <ThickDbObjectImpl> obj._impl
+        if dpiVar_setFromObject(self._handle, pos, obj_impl._handle) < 0:
+            _raise_from_odpi()
+        self._values[pos] = obj
+
+    cdef int _set_lob_value(self, object lob, uint32_t pos) except -1:
+        """
+        Sets a LOB value in the variable. The LOB is retained so that multiple
+        calls to getvalue() return the same instance.
+        """
+        cdef ThickLobImpl lob_impl = <ThickLobImpl> lob._impl
+        if dpiVar_setFromLob(self._handle, pos, lob_impl._handle) < 0:
+            _raise_from_odpi()
+        self._values[pos] = lob
 
     cdef int _set_num_elements_in_array(self, uint32_t num_elements) except -1:
         """
@@ -217,26 +299,26 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiDataBuffer temp_dbvalue
             dpiDataBuffer *dbvalue
             dpiBytes *as_bytes
-            bint needs_set
             dpiData *data
         data = &self._data[pos]
         data.isNull = (value is None)
         if not data.isNull:
-            if self.dbtype.num == DB_TYPE_NUM_CURSOR:
+            if self.dbtype._native_num == DPI_NATIVE_TYPE_STMT:
                 self._set_cursor_value(value, pos)
+            elif self.dbtype._native_num == DPI_NATIVE_TYPE_LOB:
+                self._set_lob_value(value, pos)
+            elif self.dbtype._native_num == DPI_NATIVE_TYPE_OBJECT:
+                self._set_dbobject_value(value, pos)
             else:
-                needs_set = self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
-                        or (self.dbtype._native_num == DPI_NATIVE_TYPE_LOB \
-                                and not isinstance(value, PY_TYPE_LOB))
-                if needs_set:
+                if self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES:
                     dbvalue = &temp_dbvalue
                 else:
                     dbvalue = &data.value
                 if self._buf is None:
                     self._buf = StringBuffer.__new__(StringBuffer)
                 _convert_from_python(value, self.dbtype, self.objtype, dbvalue,
-                                     self._buf, self, pos)
-                if needs_set:
+                                     self._buf)
+                if self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES:
                     as_bytes = &dbvalue.asBytes
                     if dpiVar_setFromBytes(self._handle, pos, as_bytes.ptr,
                                            as_bytes.length) < 0:
@@ -270,15 +352,20 @@ cdef class ThickVarImpl(BaseVarImpl):
             object value
         data = &data[pos]
         if not data.isNull:
-            if self.dbtype.num == DB_TYPE_NUM_CURSOR:
-                return self._get_cursor_value(&data.value)
-            if self.encoding_errors is not None:
-                encoding_errors_bytes = self.encoding_errors.encode()
-                encoding_errors = encoding_errors_bytes
-            value = _convert_to_python(self._conn_impl, self.dbtype,
-                                       self.objtype, &data.value,
-                                       self._preferred_num_type,
-                                       self.bypass_decode, encoding_errors)
+            if self.dbtype._native_num == DPI_NATIVE_TYPE_STMT:
+                value = self._get_cursor_value(&data.value, pos)
+            elif self.dbtype._native_num == DPI_NATIVE_TYPE_LOB:
+                value = self._get_lob_value(&data.value, pos)
+            elif self.dbtype._native_num == DPI_NATIVE_TYPE_OBJECT:
+                value = self._get_dbobject_value(&data.value, pos)
+            else:
+                if self.encoding_errors is not None:
+                    encoding_errors_bytes = self.encoding_errors.encode()
+                    encoding_errors = encoding_errors_bytes
+                value = _convert_to_python(self._conn_impl, self.dbtype,
+                                           self.objtype, &data.value,
+                                           self._preferred_num_type,
+                                           self.bypass_decode, encoding_errors)
             if self.outconverter is not None:
                 value = self.outconverter(value)
             return value

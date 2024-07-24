@@ -803,6 +803,14 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(obj.XMLVALUE, xml_val)
         self.assertEqual(obj.STRINGVALUE, str_val)
 
+    def test_2340(self):
+        "2340 - test DbObject instances are retained across getvalue() calls"
+        typ = self.conn.gettype("UDT_OBJECT")
+        obj = typ.newobject()
+        var = self.cursor.var(typ)
+        var.setvalue(0, obj)
+        self.assertIs(var.getvalue(), obj)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

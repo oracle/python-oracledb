@@ -133,6 +133,7 @@ cdef class BaseConnImpl:
                 return value
         elif db_type_num == DB_TYPE_NUM_CURSOR:
             if isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
+                value._verify_open()
                 return value
         elif db_type_num == DB_TYPE_NUM_BOOLEAN:
             return bool(value)

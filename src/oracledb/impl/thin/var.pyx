@@ -31,7 +31,6 @@
 
 cdef class ThinVarImpl(BaseVarImpl):
     cdef:
-        list _values
         object _conv_func
         object _last_raw_value
 

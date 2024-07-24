@@ -17,11 +17,23 @@ oracledb 2.4.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug resulting in a segfault when a closed cursor is bound as a REF
+    CURSOR.
+
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Variables containing cursors, LOBs or DbObject values now return the same
+    instances when calling :meth:`Variable.getvalue()`, matching Thin mode
+    behavior. Previously, new instances were created for each call in Thick
+    mode.
+
 Common Changes
 ++++++++++++++
+
+#)  Error ``DPY-1006: cursor is not open`` is now raised consistently when
+    attempting to bind a closed cursor. Previously, thin mode would result in a
+    segfault and thick mode would result in unusual errors.
 
 
 oracledb 2.3.0 (July 2024)

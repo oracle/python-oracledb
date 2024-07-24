@@ -1082,6 +1082,8 @@ cdef class MessageWithData(Message):
             buf.write_binary_float(value)
         elif ora_type_num == TNS_DATA_TYPE_CURSOR:
             cursor_impl = value._impl
+            if cursor_impl is None:
+                errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
             if cursor_impl._statement is None:
                 cursor_impl._statement = self.conn_impl._get_statement()
             if cursor_impl._statement._cursor_id == 0:

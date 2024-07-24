@@ -643,6 +643,7 @@ cdef class BaseVarImpl:
         BaseConnImpl _conn_impl
         int _preferred_num_type
         FetchInfoImpl _fetch_info
+        list _values
         bint _is_value_set
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor,
