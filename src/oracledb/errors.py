@@ -286,6 +286,7 @@ ERR_VECTOR_VERSION_NOT_SUPPORTED = 3023
 ERR_VECTOR_FORMAT_NOT_SUPPORTED = 3024
 ERR_OPERATION_NOT_SUPPORTED_ON_BFILE = 3025
 ERR_OPERATION_ONLY_SUPPORTED_ON_BFILE = 3026
+ERR_CURSOR_DIFF_CONNECTION = 3027
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -475,6 +476,9 @@ ERR_MESSAGE_FORMATS = {
         "cannot connect to database (CONNECTION_ID={connection_id})."
     ),
     ERR_CONTENT_INVALID_AFTER_NUMBER: "invalid number (content after number)",
+    ERR_CURSOR_DIFF_CONNECTION: (
+        "binding a cursor from a different connection is not supported"
+    ),
     ERR_CURSOR_NOT_OPEN: "cursor is not open",
     ERR_CURSOR_HAS_BEEN_CLOSED: "cursor has been closed by the database",
     ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED: (

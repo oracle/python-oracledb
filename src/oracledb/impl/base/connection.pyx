@@ -134,6 +134,8 @@ cdef class BaseConnImpl:
         elif db_type_num == DB_TYPE_NUM_CURSOR:
             if isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
                 value._verify_open()
+                if value.connection._impl is not self:
+                    errors._raise_err(errors.ERR_CURSOR_DIFF_CONNECTION)
                 return value
         elif db_type_num == DB_TYPE_NUM_BOOLEAN:
             return bool(value)

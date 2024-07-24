@@ -31,6 +31,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Error ``DPY-3027: binding a cursor from a different connection is not
+    supported`` is now raised when attempting to bind a cursor created on a
+    different connection. Previously, the attempt may have succeeded or may
+    have failed with a number of different unexpected exceptions.
 #)  Error ``DPY-1006: cursor is not open`` is now raised consistently when
     attempting to bind a closed cursor. Previously, thin mode would result in a
     segfault and thick mode would result in unusual errors.
