@@ -45,7 +45,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.opened, 7)
         for conn in conns:
             conn.close()
-        time.sleep(7)
+        time.sleep(10)
         conn = pool.acquire()
         self.assertEqual(pool.opened, 3)
 
