@@ -59,7 +59,7 @@ Variable Attributes
 
 .. attribute:: Variable.inconverter
 
-    This read-write attribute specifies the method used to convert data from
+    This read-only attribute specifies the method used to convert data from
     Python to the Oracle database. The method signature is converter(value)
     and the expected return value is the value to bind to the database. If this
     attribute is None, the value is bound directly without any conversion.
@@ -78,7 +78,7 @@ Variable Attributes
 
 .. attribute:: Variable.outconverter
 
-    This read-write attribute specifies the method used to convert data from
+    This read-only attribute specifies the method used to convert data from
     the Oracle database to Python. The method signature is converter(value)
     and the expected return value is the value to return to Python. If this
     attribute is None, the value is returned directly without any conversion.
