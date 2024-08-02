@@ -330,7 +330,6 @@ ERR_UNEXPECTED_DATA = 5004
 ERR_UNEXPECTED_REFUSE = 5005
 ERR_UNEXPECTED_END_OF_DATA = 5006
 ERR_UNEXPECTED_XML_TYPE = 5007
-ERR_TOO_MANY_CURSORS_TO_CLOSE = 5008
 ERR_UNKNOWN_SERVER_PIGGYBACK = 5009
 ERR_UNKNOWN_TRANSACTION_STATE = 5010
 
@@ -692,9 +691,6 @@ ERR_MESSAGE_FORMATS = {
         "Oracle Database does not support time only variables"
     ),
     ERR_TNS_ENTRY_NOT_FOUND: 'unable to find "{name}" in {file_name}',
-    ERR_TOO_MANY_CURSORS_TO_CLOSE: (
-        "internal error: attempt to close more than {num_cursors} cursors"
-    ),
     ERR_TOO_MANY_BATCH_ERRORS: (
         "the number of batch errors from executemany() exceeds 65535"
     ),

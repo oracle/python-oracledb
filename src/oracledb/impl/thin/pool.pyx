@@ -441,9 +441,6 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
 
 cdef class ThinPoolImpl(BaseThinPoolImpl):
 
-    cdef:
-        object _timer_thread
-
     def __init__(self, str dsn, PoolParamsImpl params):
         super().__init__(dsn, params)
         self._condition = threading.Condition()
