@@ -164,6 +164,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.tnsentry, pool.dsn)
         if test_env.get_client_version() >= (12, 2):
             self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT)
+            self.assertIs(pool.getmode, oracledb.PoolGetMode.WAIT)
         self.assertTrue(pool.homogeneous)
         self.assertEqual(pool.increment, 1)
         self.assertEqual(pool.max, 2)

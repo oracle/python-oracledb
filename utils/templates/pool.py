@@ -123,12 +123,12 @@ class BaseConnectionPool:
         return self._impl.dsn
 
     @property
-    def getmode(self) -> int:
+    def getmode(self) -> oracledb.PoolGetMode:
         self._verify_open()
-        return self._impl.get_getmode()
+        return oracledb.PoolGetMode(self._impl.get_getmode())
 
     @getmode.setter
-    def getmode(self, value: int) -> None:
+    def getmode(self, value: oracledb.PoolGetMode) -> None:
         self._verify_open()
         self._impl.set_getmode(value)
 

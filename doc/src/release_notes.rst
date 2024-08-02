@@ -32,6 +32,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Attribute :data:`ConnectionPool.getmode` is now one of the values of the
+    enumeration :ref:`connection pool get modes <connpoolmodes>` in order to be
+    consistent with the other uses of this attribute.
 #)  Error ``DPY-3027: binding a cursor from a different connection is not
     supported`` is now raised when attempting to bind a cursor created on a
     different connection. Previously, the attempt may have succeeded or may
