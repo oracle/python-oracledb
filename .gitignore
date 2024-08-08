@@ -8,3 +8,4 @@ doc/build
 src/oracledb/*.c
 tests/ext/config.ini
 .ipynb_checkpoints/
+samples/sample.csv
