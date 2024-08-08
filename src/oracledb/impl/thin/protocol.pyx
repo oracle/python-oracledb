@@ -287,6 +287,7 @@ cdef class Protocol(BaseProtocol):
             DataTypesMessage data_types_message
             FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
+            bint supports_end_of_response
             AuthMessage auth_message
 
         # if we can use OOB, send an urgent message now followed by a reset
@@ -311,10 +312,15 @@ cdef class Protocol(BaseProtocol):
             fast_auth_message.auth_message = auth_message
             self._process_message(fast_auth_message)
 
-        # otherwise, do the normal authentication
+        # otherwise, do the normal authentication; disable end of response for
+        # the first two messages as the server does not send an end of response
+        # for these messages
         else:
+            supports_end_of_response = self._caps.supports_end_of_response
+            self._caps.supports_end_of_response = False
             self._process_message(protocol_message)
             self._process_message(data_types_message)
+            self._caps.supports_end_of_response = supports_end_of_response
             self._process_message(auth_message)
 
         # send authorization message a second time, if needed, to respond to
@@ -637,6 +643,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             DataTypesMessage data_types_message
             FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
+            bint supports_end_of_response
             AuthMessage auth_message
 
         # create the messages that need to be sent to the server
@@ -654,10 +661,15 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             fast_auth_message.auth_message = auth_message
             await self._process_message(fast_auth_message)
 
-        # otherwise, do the normal authentication
+        # otherwise, do the normal authentication; disable end of response for
+        # the first two messages as the server does not send an end of response
+        # for these messages
         else:
+            supports_end_of_response = self._caps.supports_end_of_response
+            self._caps.supports_end_of_response = False
             await self._process_message(protocol_message)
             await self._process_message(data_types_message)
+            self._caps.supports_end_of_response = supports_end_of_response
             await self._process_message(auth_message)
 
         # send authorization message a second time, if needed, to respond to
