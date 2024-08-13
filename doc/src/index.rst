@@ -9,7 +9,7 @@ Database. It conforms to the `Python Database API v2.0 Specification
 additions and a couple of exclusions. Synchronous and
 :ref:`concurrent <asyncio>` coding styles are supported.
 
-This module is currently tested with Python 3.7, 3.8, 3.9, 3.10, 3.11 and 3.12
+This module is currently tested with Python 3.8, 3.9, 3.10, 3.11, 3.12 and 3.13
 against Oracle Database 23ai, 21c, 19c, 18c, 12c, and 11gR2.
 
 **python-oracledb** is distributed under an open-source

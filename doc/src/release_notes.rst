@@ -49,6 +49,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for Python 3.13 and dropped support for Python 3.7.
 #)  Attribute :data:`ConnectionPool.getmode` is now one of the values of the
     enumeration :ref:`connection pool get modes <connpoolmodes>` in order to be
     consistent with the other uses of this attribute.

@@ -32,7 +32,7 @@ Quick Start python-oracledb Installation
 1. Install `Python 3 <https://www.python.org/downloads>`__ if it is not already
    available.
 
-   Use any version from Python 3.7 through 3.12.
+   Use any version from Python 3.8 through 3.13.
 
 2. Install python-oracledb from `PyPI <https://pypi.org/project/oracledb/>`__,
    for example:
@@ -149,7 +149,7 @@ Installation Requirements
 
 To use python-oracledb, you need:
 
-- Python 3.7, 3.8, 3.9, 3.10, 3.11 or 3.12
+- Python 3.8, 3.9, 3.10, 3.11, 3.12 or 3.13
 
 - The Python cryptography package. This package is automatically installed as a
   dependency of python-oracledb.  It is strongly recommended that you keep the
@@ -701,8 +701,7 @@ Installing python-oracledb on macOS
 ===================================
 
 Python-oracledb is available as a Universal binary for Python 3.8, or later, on
-Apple macOS Intel x86-64 and Apple macOS ARM64 (M1, M2, M3) architectures.  A
-binary is also available for Python 3.7 on Apple Intel x86-64.
+Apple macOS Intel x86-64 and Apple macOS ARM64 (M1, M2, M3) architectures.
 
 Install python-oracledb
 -----------------------

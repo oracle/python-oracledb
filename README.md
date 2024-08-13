@@ -18,7 +18,7 @@ See [python-oracledb Installation][installation].
 
 ## Dependencies and Interoperability
 
-- Python versions 3.7 through 3.12.
+- Python versions 3.8 through 3.13.
 
   Prebuilt packages are available for these Python versions on Windows, on
   macOS and on Linux.
