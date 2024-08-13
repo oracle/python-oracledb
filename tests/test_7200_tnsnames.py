@@ -450,6 +450,29 @@ class TestCase(test_env.BaseTestCase):
                 ["IN_A", network_service_name.upper(), "ANOTHER_NSN", "IN_B"],
             )
 
+    def test_7219(self):
+        "7219 - test tnsnames.ora with multiple aliases on different lines"
+        host = "host_7219"
+        port = 7219
+        service_name = "service_7219"
+        connect_string = f"{host}:{port}/{service_name}"
+        network_service_names = ["nsn_7219a", "nsn_7219b", "nsn_7219c"]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                f.write(",\n".join(network_service_names))
+                f.write(f" = {connect_string}")
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            for name in network_service_names:
+                params.parse_connect_string(name)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+            self.assertEqual(
+                params.get_network_service_names(),
+                [n.upper() for n in network_service_names],
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

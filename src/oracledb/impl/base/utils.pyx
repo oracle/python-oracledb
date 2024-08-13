@@ -101,21 +101,6 @@ cdef int _set_obj_param(dict args, str name, object target) except -1:
         setattr(target, name, in_val)
 
 
-cdef int _set_protocol_param(dict args, str name, object target) except -1:
-    """
-    Sets a protocol parameter to the value provided in the dictionary. This
-    must be one of "tcp" or "tcps" currently. If it is not one of these values
-    an error is raised. If a value is specified and meets the criteria it is
-    set directly on the target (since strings are treated as Python objects).
-    """
-    in_val = args.get(name)
-    if in_val is not None:
-        in_val = in_val.lower()
-        if in_val not in ("tcp", "tcps"):
-            errors._raise_err(errors.ERR_INVALID_PROTOCOL, protocol=in_val)
-        setattr(target, name, in_val)
-
-
 cdef int _set_purity_param(dict args, str name, uint32_t* out_val) except -1:
     """
     Sets a purity parameter to the value provided in the dictionary. This
@@ -147,23 +132,6 @@ cdef int _set_purity_param(dict args, str name, uint32_t* out_val) except -1:
         if not ok:
             errors._raise_err(errors.ERR_INVALID_POOL_PURITY,
                               purity=in_val)
-
-
-cdef int _set_server_type_param(dict args, str name, object target) except -1:
-    """
-    Sets a server type parameter to the value provided in the dictionary. This
-    must be one of "dedicated", "pooled" or "shared" currently. If it is not
-    one of these values an error is raised. If a value is specified and meets
-    the criteria it is set directly on the target (since strings are treated as
-    Python objects).
-    """
-    in_val = args.get(name)
-    if in_val is not None:
-        in_val = in_val.lower()
-        if in_val not in ("dedicated", "pooled", "shared"):
-            errors._raise_err(errors.ERR_INVALID_SERVER_TYPE,
-                              server_type=in_val)
-        setattr(target, name, in_val)
 
 
 cdef int _set_ssl_version_param(dict args, str name, object target) except -1:

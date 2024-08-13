@@ -89,6 +89,7 @@ from .base_impl cimport (
     BaseDbObjectImpl,
     BaseDbObjectTypeImpl,
     BaseLobImpl,
+    BaseParser,
     BasePoolImpl,
     BaseVarImpl,
     Buffer,

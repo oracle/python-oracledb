@@ -398,6 +398,7 @@ cdef class Address(ConnectParamsNode):
         public uint32_t https_proxy_port
 
     cdef str build_connect_string(self)
+    cdef int set_protocol(self, str value) except -1
 
 
 cdef class AddressList(ConnectParamsNode):
@@ -429,6 +430,7 @@ cdef class Description(ConnectParamsNode):
 
     cdef str _build_duration_str(self, double value)
     cdef str build_connect_string(self, str cid=*)
+    cdef int set_server_type(self, str value) except -1
 
 
 cdef class DescriptionList(ConnectParamsNode):
@@ -482,10 +484,6 @@ cdef class ConnectParamsImpl:
     cdef object _get_token_expires(self, str token)
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
-    cdef int _parse_easy_connect_string(self, str connect_string,
-                                        object match) except -1
-    cdef int _process_connect_descriptor(self, str connecte_string,
-                                         dict args) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1
     cdef int _set_new_password(self, str password) except -1
@@ -787,6 +785,21 @@ cdef class BindVar:
                            object cursor, object value, object type_handler,
                            uint32_t row_num, uint32_t num_elements,
                            bint defer_type_assignment) except -1
+
+cdef class BaseParser:
+
+    cdef:
+        ssize_t pos, temp_pos, num_chars
+        str data_as_str
+        int data_kind
+        void *data
+
+    cdef Py_UCS4 get_current_char(self)
+    cdef int initialize(self, str data_to_parse) except -1
+    cdef int parse_keyword(self) except -1
+    cdef int parse_quoted_string(self, Py_UCS4 quote_type) except -1
+    cdef int skip_spaces(self) except -1
+
 
 cdef int get_preferred_num_type(int16_t precision, int8_t scale)
 cdef void pack_uint16(char_type *buf, uint16_t x, int order)

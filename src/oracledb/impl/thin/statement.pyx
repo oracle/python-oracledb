@@ -54,13 +54,10 @@ cdef class BindInfo:
         return BindInfo(self._bind_name, self._is_return_bind)
 
 
-cdef class Parser:
+cdef class StatementParser(BaseParser):
 
     cdef:
         bint returning_keyword_found
-        ssize_t pos, max_pos
-        void* sql_data
-        int sql_kind
 
     cdef int _parse_bind_name(self, Statement stmt) except -1:
         """
@@ -75,14 +72,15 @@ cdef class Parser:
         """
         cdef:
             bint quoted_name = False, in_bind = False, digits_only = False
-            ssize_t start_pos = 0, pos = self.pos + 1
+            ssize_t start_pos = 0
             str bind_name
             Py_UCS4 ch
-        while pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+        self.temp_pos = self.pos + 1
+        while self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
             if not in_bind:
                 if cpython.Py_UNICODE_ISSPACE(ch):
-                    pos += 1
+                    self.temp_pos += 1
                     continue
                 elif ch == '"':
                     quoted_name = True
@@ -91,26 +89,26 @@ cdef class Parser:
                 elif not cpython.Py_UNICODE_ISALPHA(ch):
                     break
                 in_bind = True
-                start_pos = pos
+                start_pos = self.temp_pos
             elif digits_only and not cpython.Py_UNICODE_ISDIGIT(ch):
-                self.pos = pos - 1
+                self.pos = self.temp_pos - 1
                 break
             elif quoted_name and ch == '"':
-                self.pos = pos
+                self.pos = self.temp_pos
                 break
             elif not digits_only and not quoted_name \
                     and not cpython.Py_UNICODE_ISALNUM(ch) \
                     and ch not in ('_', '$', '#'):
-                self.pos = pos - 1
+                self.pos = self.temp_pos - 1
                 break
-            pos += 1
+            self.temp_pos += 1
         if in_bind:
             if quoted_name:
-                bind_name = stmt._sql[start_pos + 1:pos]
+                bind_name = stmt._sql[start_pos + 1:self.temp_pos]
             elif digits_only:
-                bind_name = stmt._sql[start_pos:pos]
+                bind_name = stmt._sql[start_pos:self.temp_pos]
             else:
-                bind_name = stmt._sql[start_pos:pos].upper()
+                bind_name = stmt._sql[start_pos:self.temp_pos].upper()
             stmt._add_bind(bind_name)
 
     cdef int _parse_multiple_line_comment(self) except -1:
@@ -123,10 +121,10 @@ cdef class Parser:
         """
         cdef:
             bint in_comment = False, exiting_comment = False
-            ssize_t pos = self.pos + 1
             Py_UCS4 ch
-        while pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+        self.temp_pos = self.pos + 1
+        while self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
             if not in_comment:
                 if ch != '*':
                     break
@@ -135,10 +133,10 @@ cdef class Parser:
                 exiting_comment = True
             elif exiting_comment:
                 if ch == '/':
-                    self.pos = pos
+                    self.pos = self.temp_pos
                     break
                 exiting_comment = False
-            pos += 1
+            self.temp_pos += 1
 
     cdef int _parse_qstring(self) except -1:
         """
@@ -155,9 +153,9 @@ cdef class Parser:
         cdef:
             bint exiting_qstring = False, in_qstring = False
             Py_UCS4 ch, sep = 0
-        self.pos += 1
-        while self.pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
+        self.temp_pos += 1
+        while self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
             if not in_qstring:
                 if ch == '[':
                     sep = ']'
@@ -174,28 +172,12 @@ cdef class Parser:
                 exiting_qstring = True
             elif exiting_qstring:
                 if ch == "'":
+                    self.pos = self.temp_pos
                     return 0
                 elif ch != sep:
                     exiting_qstring = False
-            self.pos += 1
+            self.temp_pos += 1
         errors._raise_err(errors.ERR_MISSING_QUOTE_IN_STRING)
-
-    cdef int _parse_quoted_string(self, Py_UCS4 sep) except -1:
-        """
-        Parses a quoted string with the given separator. All characters until
-        the separate is detected are discarded.
-        """
-        cdef Py_UCS4 ch
-        self.pos += 1
-        while self.pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
-            if ch == sep:
-                return 0
-            self.pos += 1
-        if sep == "'":
-            errors._raise_err(errors.ERR_MISSING_QUOTE_IN_STRING)
-        else:
-            errors._raise_err(errors.ERR_MISSING_QUOTE_IN_IDENTIFIER)
 
     cdef int _parse_single_line_comment(self) except -1:
         """
@@ -206,19 +188,19 @@ cdef class Parser:
         updated; otherwise, the current position is left untouched.
         """
         cdef:
-            ssize_t pos = self.pos + 1
             bint in_comment = False
             Py_UCS4 ch
-        while pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, pos)
+        self.temp_pos = self.pos + 1
+        while self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
             if not in_comment:
                 if ch != '-':
                     return 0
                 in_comment = True
             elif cpython.Py_UNICODE_ISLINEBREAK(ch):
                 break
-            pos += 1
-        self.pos = pos
+            self.temp_pos += 1
+        self.pos = self.temp_pos
 
     cdef int parse(self, Statement stmt) except -1:
         """
@@ -236,14 +218,12 @@ cdef class Parser:
             str keyword
 
         # initialization
-        self.pos = 0
-        self.max_pos = cpython.PyUnicode_GET_LENGTH(stmt._sql) - 1
-        self.sql_kind = cpython.PyUnicode_KIND(stmt._sql)
-        self.sql_data = cpython.PyUnicode_DATA(stmt._sql)
+        self.initialize(stmt._sql)
 
         # scan all characters in the string
-        while self.pos <= self.max_pos:
-            ch = cpython.PyUnicode_READ(self.sql_kind, self.sql_data, self.pos)
+        while self.pos < self.num_chars:
+            self.temp_pos = self.pos
+            ch = self.get_current_char()
 
             # look for certain keywords (initial keyword and the ones for
             # detecting DML returning statements
@@ -279,14 +259,18 @@ cdef class Parser:
                 if last_ch in ('q', 'Q'):
                     self._parse_qstring()
                 else:
-                    self._parse_quoted_string(ch)
+                    self.temp_pos += 1
+                    self.parse_quoted_string(ch)
+                    self.pos -= 1
             elif not cpython.Py_UNICODE_ISSPACE(ch):
                 if ch == '-':
                     self._parse_single_line_comment()
                 elif ch == '/':
                     self._parse_multiple_line_comment()
                 elif ch == '"':
-                    self._parse_quoted_string(ch)
+                    self.temp_pos += 1
+                    self.parse_quoted_string(ch)
+                    self.pos -= 1
                 elif ch == ':' and not last_was_string:
                     self._parse_bind_name(stmt)
                 last_was_string = False
@@ -388,7 +372,7 @@ cdef class Statement:
         that are found within it. The length of the SQL text is also calculated
         at this time.
         """
-        cdef Parser parser = Parser.__new__(Parser)
+        cdef StatementParser parser = StatementParser.__new__(StatementParser)
 
         # retain normalized SQL (as string and bytes) as well as the length
         self._sql = sql

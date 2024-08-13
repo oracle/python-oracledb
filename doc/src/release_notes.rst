@@ -22,6 +22,21 @@ Thin Mode Changes
     (`issue 368 <https://github.com/oracle/python-oracledb/issues/368>`__).
 #)  Fixed bug resulting in an inability to connect to Oracle Database 23ai
     instances which have fast authentication disabled.
+#)  Reworked connection string parser:
+
+    - Fixed parsing an :ref:`Easy Connect <easyconnect>` string starting
+      with "`//`" (`issue 352
+      <https://github.com/oracle/python-oracledb/issues/352>`__).
+    - Fixed parsing an Easy Connect string with multiple hosts (a comma for
+      multiple addresses and a semicolon for multiple address lists).
+    - Fixed parsing an Easy Connect string with a static IPv6 address.
+    - Improved error when a connect descriptor parameter like DESCRIPTION or
+      ADDRESS incorrectly contains a simple value instead of nested values.
+
+#)  Reworked :ref:`tnsnames.ora<optnetfiles>` file parser to handle multiple
+    aliases found on separate lines (`issue 362
+    <https://github.com/oracle/python-oracledb/issues/362>`__).
+
 
 Thick Mode Changes
 ++++++++++++++++++

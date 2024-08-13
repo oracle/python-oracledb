@@ -50,7 +50,6 @@ import inspect
 import json
 import os
 import random
-import re
 import secrets
 import ssl
 import sys
@@ -94,6 +93,7 @@ include "impl/base/constants.pxi"
 include "impl/base/defaults.pyx"
 include "impl/base/utils.pyx"
 include "impl/base/buffer.pyx"
+include "impl/base/parsers.pyx"
 include "impl/base/oson.pyx"
 include "impl/base/vector.pyx"
 include "impl/base/connect_params.pyx"

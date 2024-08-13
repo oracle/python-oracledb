@@ -29,31 +29,6 @@
 # base_impl.pyx).
 #------------------------------------------------------------------------------
 
-# a set of alternative parameter names that are used in connect descriptors
-# the key is the parameter name used in connect descriptors and the value is
-# the key used in argument dictionaries (and stored in the parameter objects)
-ALTERNATIVE_PARAM_NAMES = {
-    "pool_connection_class": "cclass",
-    "pool_purity": "purity",
-    "server": "server_type",
-    "transport_connect_timeout": "tcp_connect_timeout",
-    "my_wallet_directory": "wallet_location"
-}
-
-# a set of parameter names in connect descriptors that are treated as
-# containers (values are always lists)
-CONTAINER_PARAM_NAMES = set((
-    "address_list",
-    "description",
-    "address"
-))
-
-# regular expression used for determining if a connect string refers to an Easy
-# Connect string or not
-EASY_CONNECT_PATTERN = \
-        "^((?P<protocol>\w+)://)?(?P<host>[\w\d.-]+)(:(?P<port>\d+)?)?/" \
-        "(?P<service_name>[^:?]*)(:(?P<server_type>\w+))?"
-
 # dictionary of tnsnames.ora files, indexed by the directory in which the file
 # is found; the results are cached in order to avoid parsing a file multiple
 # times; the modification time of the file is checked each time, though, to
@@ -67,62 +42,6 @@ cdef uint32_t DEFAULT_PORT = 1521
 cdef double DEFAULT_TCP_CONNECT_TIMEOUT = 20
 cdef uint32_t DEFAULT_RETRY_DELAY = 1
 cdef uint32_t DEFAULT_SDU = 8192
-
-
-cdef int _add_container(dict args, str name, object value) except -1:
-    """
-    Adds a container to the arguments.
-    """
-    if name == "address" and "address_list" in args:
-        value = dict(address=[value])
-        name = "address_list"
-    elif name == "address_list" and "address" in args:
-        args[name] = [dict(address=[v]) for v in args["address"]]
-        del args["address"]
-    args.setdefault(name, []).append(value)
-
-
-cdef dict _parse_connect_descriptor(str data, dict args):
-    """
-    Internal method which parses a connect descriptor containing name-value
-    pairs in the form (KEY = VALUE), where the value can itself be another
-    set of nested name-value pairs. A dictionary is returned containing
-    these key value pairs.
-    """
-    if data[0] != "(" or data[-1] != ")":
-        errors._raise_err(errors.ERR_INVALID_CONNECT_DESCRIPTOR, data=data)
-    data = data[1:-1]
-    pos = data.find("=")
-    if pos < 0:
-        errors._raise_err(errors.ERR_INVALID_CONNECT_DESCRIPTOR, data=data)
-    name = data[:pos].strip().lower()
-    data = data[pos + 1:].strip()
-    if not data or not data.startswith("("):
-        value = data
-        if value and value[0] == '"' and value[-1] == '"':
-            value = value[1:-1]
-    else:
-        value = {}
-        while data:
-            search_pos = 1
-            num_opening_parens = 1
-            num_closing_parens = 0
-            while num_closing_parens < num_opening_parens:
-                end_pos = data.find(")", search_pos)
-                if end_pos < 0:
-                    errors._raise_err(errors.ERR_INVALID_CONNECT_DESCRIPTOR,
-                                      data=data)
-                num_closing_parens += 1
-                num_opening_parens += data.count("(", search_pos, end_pos)
-                search_pos = end_pos + 1
-            _parse_connect_descriptor(data[:end_pos + 1].strip(), value)
-            data = data[end_pos + 1:].strip()
-    name = ALTERNATIVE_PARAM_NAMES.get(name, name)
-    if name in CONTAINER_PARAM_NAMES:
-        _add_container(args, name, value)
-    else:
-        args[name] = value
-    return args
 
 
 cdef class ConnectParamsImpl:
@@ -324,26 +243,18 @@ cdef class ConnectParamsImpl:
         """
         cdef:
             TnsnamesFile tnsnames_file
+            ConnectStringParser parser
             TnsnamesFileReader reader
-            Description description
-            Address address
-            dict args = {}
-            str name
 
-        # if a connect string starts with an opening parenthesis it is assumed
-        # to be a full connect descriptor
-        if connect_string.startswith("("):
-            _parse_connect_descriptor(connect_string, args)
-            return self._process_connect_descriptor(connect_string, args)
-
-        # otherwise, see if the connect string is an EasyConnect string
-        m = re.search(EASY_CONNECT_PATTERN, connect_string)
-        if m is not None:
-            self._parse_easy_connect_string(connect_string, m)
+        # attempt to parse the connect string directly
+        parser = ConnectStringParser.__new__(ConnectStringParser)
+        parser.template_description = self._default_description
+        parser.template_address = self._default_address
+        parser.parse(connect_string)
 
         # otherwise, see if the name is a connect alias in a tnsnames.ora
         # configuration file
-        else:
+        if parser.description_list is None:
             reader = TnsnamesFileReader()
             tnsnames_file = reader.read_tnsnames(self.config_dir)
             name = connect_string
@@ -351,91 +262,11 @@ cdef class ConnectParamsImpl:
             if connect_string is None:
                 errors._raise_err(errors.ERR_TNS_ENTRY_NOT_FOUND, name=name,
                                   file_name=tnsnames_file.file_name)
-            m = re.search(EASY_CONNECT_PATTERN, connect_string)
-            if m is not None:
-                self._parse_easy_connect_string(connect_string, m)
-            else:
-                _parse_connect_descriptor(connect_string, args)
-                self._process_connect_descriptor(connect_string, args)
-
-    cdef int _parse_easy_connect_string(self, str connect_string,
-                                        object match) except -1:
-        """
-        Internal method for parsing an Easy Connect string.
-        """
-        cdef:
-            str params, part, name, value, s
-            Description description
-            ssize_t params_pos
-            Address address
-            dict args
-
-        # determine arguments
-        args = match.groupdict()
-        connect_string = connect_string[match.end():]
-        params_pos = connect_string.find("?")
-        if params_pos >= 0:
-            params = connect_string[params_pos + 1:]
-            for part in params.split("&"):
-                name, value = [s.strip() for s in part.split("=", 1)]
-                name = name.lower()
-                name = ALTERNATIVE_PARAM_NAMES.get(name, name)
-                if value.startswith('"') and value.endswith('"'):
-                    value = value[1:-1]
-                args[name] = value
-
-        # create description list
-        address = self._default_address.copy()
-        address.set_from_args(args)
-        description = self._default_description.copy()
-        description.set_from_connect_data_args(args)
-        description.set_from_description_args(args)
-        description.set_from_security_args(args)
-        description.children = [AddressList()]
-        description.children[0].children.append(address)
-        self.description_list = DescriptionList()
-        self.description_list.children.append(description)
-
-    cdef int _process_connect_descriptor(self, str connect_string,
-                                         dict args) except -1:
-        """
-        Internal method used for processing the parsed connect descriptor into
-        the set of DescriptionList, Description, AddressList and Address
-        container objects.
-        """
-        cdef:
-            DescriptionList description_list
-            AddressList address_list
-            Description description
-            Address address
-        description_list = DescriptionList()
-        list_args = args.get("description_list")
-        if list_args is not None:
-            description_list.set_from_args(list_args)
-        else:
-            list_args = args
-        for desc_args in list_args.get("description", [list_args]):
-            description = self._default_description.copy()
-            description.set_from_description_args(desc_args)
-            description_list.children.append(description)
-            sub_args = desc_args.get("connect_data")
-            if sub_args is not None:
-                description.set_from_connect_data_args(sub_args)
-            sub_args = desc_args.get("security")
-            if sub_args is not None:
-                description.set_from_security_args(sub_args)
-            for list_args in desc_args.get("address_list", [desc_args]):
-                address_list = AddressList()
-                address_list.set_from_args(list_args)
-                description.children.append(address_list)
-                for addr_args in list_args.get("address", []):
-                    address = self._default_address.copy()
-                    address.set_from_args(addr_args)
-                    address_list.children.append(address)
-        if not description_list.get_addresses():
-            errors._raise_err(errors.ERR_MISSING_ADDRESS,
-                              connect_string=connect_string)
-        self.description_list = description_list
+            parser.parse(connect_string)
+            if parser.description_list is None:
+                errors._raise_err(errors.ERR_CANNOT_PARSE_CONNECT_STRING,
+                                  data=connect_string)
+        self.description_list = parser.description_list
 
     cdef int _set_access_token(self, object val, int error_num) except -1:
         """
@@ -756,9 +587,20 @@ cdef class Address(ConnectParamsNode):
         """
         _set_str_param(args, "host", self)
         _set_uint_param(args, "port", &self.port)
-        _set_protocol_param(args, "protocol", self)
+        protocol = args.get("protocol")
+        if protocol is not None:
+            self.set_protocol(protocol)
         _set_str_param(args, "https_proxy", self)
         _set_uint_param(args, "https_proxy_port", &self.https_proxy_port)
+
+    cdef int set_protocol(self, str value) except -1:
+        """
+        Sets the protocol in the address to the specified value.
+        """
+        value = value.lower()
+        if value not in ("tcp", "tcps"):
+            errors._raise_err(errors.ERR_INVALID_PROTOCOL, protocol=value)
+        self.protocol = value
 
 
 cdef class AddressList(ConnectParamsNode):
@@ -953,7 +795,9 @@ cdef class Description(ConnectParamsNode):
         """
         _set_str_param(args, "service_name", self)
         _set_str_param(args, "sid", self)
-        _set_server_type_param(args, "server_type", self)
+        server_type = args.get("server_type")
+        if server_type is not None:
+            self.set_server_type(server_type)
         _set_str_param(args, "cclass", self)
         _set_purity_param(args, "purity", &self.purity)
         _set_str_param(args, "pool_boundary", self)
@@ -986,6 +830,16 @@ cdef class Description(ConnectParamsNode):
         _set_str_param(args, "ssl_server_cert_dn", self)
         _set_ssl_version_param(args, "ssl_version", self)
         _set_str_param(args, "wallet_location", self)
+
+    cdef int set_server_type(self, str value) except -1:
+        """
+        Sets the server type in the description to the specified value.
+        """
+        value = value.lower()
+        if value not in ("dedicated", "pooled", "shared"):
+            errors._raise_err(errors.ERR_INVALID_SERVER_TYPE,
+                              server_type=value)
+        self.server_type = value
 
 
 cdef class DescriptionList(ConnectParamsNode):
@@ -1092,17 +946,6 @@ cdef class TnsnamesFileReader:
         list files_in_progress
         dict entries
 
-    cdef int _add_entry(self, TnsnamesFile tnsnames_file, str name,
-                        str value) except -1:
-        """
-        Adds an entry to the file, verifying that the name has not been
-        duplicated. An entry is always made in the primary file as well.
-        """
-        cdef TnsnamesFile orig_file
-        self.primary_file.entries[name] = value
-        if tnsnames_file is not self.primary_file:
-            tnsnames_file.entries[name] = value
-
     cdef TnsnamesFile _get_file(self, file_name):
         """
         Get the file from the cache or read it from the file system.
@@ -1133,43 +976,27 @@ cdef class TnsnamesFileReader:
         """
         cdef:
             TnsnamesFile included_file
+            TnsnamesFileParser parser
             int line_no = 0
+        def add_entry(key, value):
+            if key == "IFILE":
+                if not os.path.isabs(value):
+                    dir_name = os.path.dirname(tnsnames_file.file_name)
+                    value = os.path.join(dir_name, value)
+                included_file = self._get_file(value)
+                tnsnames_file.included_files.add(included_file)
+            else:
+                entry_names = [
+                    s.strip().splitlines()[-1] for s in key.split(",")
+                ]
+                for name in entry_names:
+                    self.primary_file.entries[name] = value
+                    if tnsnames_file is not self.primary_file:
+                        tnsnames_file.entries[name] = value
         tnsnames_file.clear()
+        parser = TnsnamesFileParser.__new__(TnsnamesFileParser)
         with open(tnsnames_file.file_name) as f:
-            entry_names = None
-            for line in f:
-                line_no += 1
-                line = line.strip()
-                pos = line.find("#")
-                if pos >= 0:
-                    line = line[:pos]
-                if not line:
-                    continue
-                if entry_names is None:
-                    pos = line.find("=")
-                    if pos < 0:
-                        continue
-                    name = line[:pos].strip().upper()
-                    if name == "IFILE":
-                        file_name = line[pos + 1:].strip()
-                        if not os.path.isabs(file_name):
-                            dir_name = os.path.dirname(tnsnames_file.file_name)
-                            file_name = os.path.join(dir_name, file_name)
-                        included_file = self._get_file(file_name)
-                        tnsnames_file.included_files.add(included_file)
-                        continue
-                    entry_names = [s.strip() for s in name.split(",")]
-                    entry_lines = []
-                    num_parens = 0
-                    line = line[pos+1:].strip()
-                if line:
-                    num_parens += line.count("(") - line.count(")")
-                    entry_lines.append(line)
-                if entry_lines and num_parens <= 0:
-                    descriptor = "".join(entry_lines)
-                    for name in entry_names:
-                        self._add_entry(tnsnames_file, name, descriptor)
-                    entry_names = None
+            parser.parse(f.read(), add_entry)
 
     cdef TnsnamesFile read_tnsnames(self, str dir_name):
         """

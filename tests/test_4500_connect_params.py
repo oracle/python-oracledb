@@ -820,6 +820,93 @@ class TestCase(test_env.BaseTestCase):
                 with self.assertRaisesFullCode("DPY-2049"):
                     params.parse_connect_string(connect_string)
 
+    def test_4547(self):
+        "4547 - test simple EasyConnect string parsing with IPv6 address"
+        host = "::1"
+        port = 4547
+        service_name = "service_name_4547"
+        connect_string = f"[{host}]:{port}/{service_name}"
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.port, port)
+        self.assertEqual(params.service_name, service_name)
+
+    def test_4548(self):
+        "4548 - test easy connect string with multiple hosts, different ports"
+        connect_string = (
+            "host4548a,host4548b:4548,host4548c,host4548d:4549/"
+            "service_name_4548"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(
+            params.host, ["host4548a", "host4548b", "host4548c", "host4548d"]
+        )
+        self.assertEqual(params.port, [4548, 4548, 4549, 4549])
+        self.assertEqual(params.service_name, "service_name_4548")
+
+    def test_4549(self):
+        "4549 - test easy connect string with multiple address lists"
+        connect_string = (
+            "host4549a;host4549b,host4549c:4549;host4549d/service_name_4549"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(
+            params.host, ["host4549a", "host4549b", "host4549c", "host4549d"]
+        )
+        self.assertEqual(params.port, [1521, 4549, 4549, 1521])
+        self.assertEqual(params.service_name, "service_name_4549")
+        expected_conn_string = (
+            "(DESCRIPTION=(RETRY_DELAY=1)"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549a)(PORT=1521))"
+            "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=host4549b)(PORT=4549))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549c)(PORT=4549)))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549d)(PORT=1521))"
+            "(CONNECT_DATA=(SERVICE_NAME=service_name_4549)))"
+        )
+        self.assertEqual(params.get_connect_string(), expected_conn_string)
+
+    def test_4550(self):
+        "4550 - test connect descriptor with mixed complex and simple data"
+        connect_string = (
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))"
+            "(CONNECT_DATA=(SERVER=DEDICATED) SERVICE_NAME=orclpdb1))"
+        )
+        params = oracledb.ConnectParams()
+        with self.assertRaisesFullCode("DPY-4017"):
+            params.parse_connect_string(connect_string)
+
+    def test_4551(self):
+        "4551 - test connect descriptor with simple data for containers"
+        container_names = [
+            "address",
+            "address_list",
+            "connect_data",
+            "description",
+            "description_list",
+            "security",
+        ]
+        for name in container_names:
+            with self.subTest(name=name):
+                connect_string = f"({name}=5)"
+                params = oracledb.ConnectParams()
+                with self.assertRaisesFullCode("DPY-4017"):
+                    params.parse_connect_string(connect_string)
+
+    def test_4552(self):
+        "4552 - test easy connect string with degenerate protocol"
+        host = "host_4552"
+        port = 4552
+        service_name = "service_name_4552"
+        connect_string = f"//{host}:{port}/{service_name}"
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.port, port)
+        self.assertEqual(params.service_name, service_name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
