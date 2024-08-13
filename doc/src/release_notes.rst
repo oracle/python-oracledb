@@ -20,8 +20,8 @@ Thin Mode Changes
 #)  Fixed bug resulting in a segfault when a closed cursor is bound as a REF
     CURSOR
     (`issue 368 <https://github.com/oracle/python-oracledb/issues/368>`__).
-#)  Fixed bug resulting in an inability to connect to 23ai databases which have
-    fast authentication disabled.
+#)  Fixed bug resulting in an inability to connect to Oracle Database 23ai
+    instances which have fast authentication disabled.
 
 Thick Mode Changes
 ++++++++++++++++++
