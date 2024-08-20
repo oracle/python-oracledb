@@ -74,8 +74,10 @@ FetchInfo Attributes
 .. attribute:: FetchInfo.is_oson
 
     This read-only attribute returns whether the column is known to contain
-    binary encoded OSON data. This will be ``True`` when an "IS JSON FORMAT
-    OSON" check constraint is enabled on BLOB columns.
+    binary encoded `OSON
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    data. This will be ``True`` when an "IS JSON FORMAT OSON" check constraint
+    is enabled on BLOB columns.
 
     .. versionadded:: 2.1.0
 

@@ -112,17 +112,20 @@ Connection Methods
 
 .. method:: Connection.decode_oson(data)
 
-    Decodes OSON-encoded bytes and returns the object encoded in those bytes.
-    This is useful for fetching columns which have the check constraint
-    ``IS JSON FORMAT OSON`` enabled.
+    Decodes `OSON-encoded
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    bytes and returns the object encoded in those bytes.  This is useful for
+    fetching columns which have the check constraint ``IS JSON FORMAT OSON``
+    enabled.
 
     .. versionadded:: 2.1.0
 
 .. method:: Connection.encode_oson(value)
 
-    Encodes a Python value into OSON-encoded bytes and returns them. This is
-    useful for inserting into columns which have the check constraint
-    ``IS JSON FORMAT OSON`` enabled.
+    Encodes a Python value into `OSON-encoded
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    bytes and returns them. This is useful for inserting into columns which
+    have the check constraint ``IS JSON FORMAT OSON`` enabled.
 
     .. versionadded:: 2.1.0
 

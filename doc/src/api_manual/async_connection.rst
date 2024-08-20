@@ -40,21 +40,21 @@ AsyncConnection Methods
     The exit point for the asynchronous connection as a context manager. This
     will close the connection and roll back any uncommitted transaction.
 
-.. method:: AsyncConnection.callfunc(name, return_type, parameters=[], \
-                keyword_parameters={})
+.. method:: AsyncConnection.callfunc(name, return_type, parameters=None, \
+                keyword_parameters=None)
 
     Calls a PL/SQL function with the given name.
 
-    This is a shortcut for creating a cursor, calling the stored function with
-    the cursor, and then closing the cursor.
+    This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.callfunc()`, and then :meth:`AsyncCursor.close()`.
 
-.. method:: AsyncConnection.callproc(name, parameters=[], \
-                keyword_parameters={})
+.. method:: AsyncConnection.callproc(name, parameters=None, \
+                keyword_parameters=None)
 
     Calls a PL/SQL procedure with the given name.
 
-    This is a shortcut for creating a cursor, calling the stored procedure
-    with the cursor, and then closing the cursor.
+    This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.callproc()`, and then :meth:`AsyncCursor.close()`.
 
 .. method:: AsyncConnection.cancel()
 
@@ -78,59 +78,94 @@ AsyncConnection Methods
 
 .. method:: AsyncConnection.cursor(scrollable=False)
 
-    A synchronous method that returns a cursor associated with the connection.
+    A synchronous method that returns an :ref:`AsyncCursor object
+    <asynccursorobj>` associated with the connection.
 
 .. method:: AsyncConnection.decode_oson(data)
 
-    A synchronous method that decodes OSON-encoded bytes and returns the object
-    encoded in those bytes.  This is useful for fetching columns which have the
-    check constraint ``IS JSON FORMAT OSON`` enabled.
+    A synchronous method that decodes `OSON-encoded
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    bytes and returns the object encoded in those bytes.  This is useful for
+    fetching columns which have the check constraint ``IS JSON FORMAT OSON``
+    enabled.
 
     .. versionadded:: 2.1.0
 
 .. method:: AsyncConnection.encode_oson(value)
 
-    A synchronous method that encodes a Python value into OSON-encoded bytes
-    and returns them. This is useful for inserting into columns which have the
-    check constraint ``IS JSON FORMAT OSON`` enabled.
+    A synchronous method that encodes a Python value into `OSON-encoded
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    bytes and returns them. This is useful for inserting into columns which
+    have the check constraint ``IS JSON FORMAT OSON`` enabled.
 
     .. versionadded:: 2.1.0
 
-.. method:: AsyncConnection.execute(statement, parameters=[])
+.. method:: AsyncConnection.execute(statement, parameters=None)
 
     Executes a statement against the database.
 
-    This is a shortcut for creating a cursor, executing a statement with the
-    cursor, and then closing the cursor.
+    This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.execute()`, and then :meth:`AsyncCursor.close()`
 
-.. method:: AsyncConnection.executemany(statement, parameters=[])
+.. method:: AsyncConnection.executemany(statement, parameters)
 
-    Prepares a statement for execution against a database and then executes it
-    against all parameter mappings or sequences found in the sequence
-    parameters.
+    Executes a statement against all parameter mappings or sequences found in
+    the sequence parameters.
 
-    This is a shortcut for creating a cursor, calling
-    :meth:`AsyncCursor.executemany()` on the cursor, and then closing the
-    cursor.
+    If there are no parameters, the number of iterations can be specified as an
+    integer instead of needing to provide a list of empty mappings or
+    sequences.
+
+    This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.executemany()`, and then :meth:`AsyncCursor.close()`.
 
 .. method:: AsyncConnection.fetchall(statement, parameters=None, \
                 arraysize=None, rowfactory=None)
 
-    Executes a query and returns all of the rows. After the rows are
-    fetched, the cursor is closed.
+    Executes a query and returns all of the rows.
+
+    The default value for ``arraysize`` is :attr:`defaults.arraysize`.
+
+    Internally, this method's :attr:`Cursor.prefetchrows` size is set to the
+    value of the explicit or default ``arraysize`` parameter value.
+
+    This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.fetchall()`, and then :meth:`AsyncCursor.close()`.
 
 .. method:: AsyncConnection.fetchmany(statement, parameters=None, \
                 num_rows=None, rowfactory=None)
 
-    Executes a query and returns up to the specified number of rows. After the
-    rows are fetched, the cursor is closed.
+    Executes a query and returns up to the specified number of rows.
+
+    The default value for ``num_rows`` is the value of
+    :attr:`defaults.arraysize`.
+
+    Internally, this method's :attr:`Cursor.prefetchrows` size is set to the
+    value of the explicit or default ``num_rows`` parameter, allowing all rows
+    to be fetched in one :ref:`round-trip <roundtrips>`
+
+    Since only one fetch is performed for a query, consider adding a ``FETCH
+    NEXT`` clause to the statement to prevent the database processing rows that
+    will never be fetched, see :ref:`rowlimit`.
+
+    This a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.fetchmany()`, and then :meth:`AsyncCursor.close()`.
 
 .. method:: AsyncConnection.fetchone(statement, parameters=None, \
                 rowfactory=None)
 
     Executes a query and returns the first row of the result set if one exists
-    (or None if no rows exist). After the row is fetched, the cursor is
-    closed.
+    (or None if no rows exist).
+
+    Internally, this method's :attr:`Cursor.prefetchrows` and
+    :attr:`Cursor.arraysize` sizes will be set to 1.
+
+    Since only one fetch is performed for a query, consider adding a ``WHERE``
+    condition or using a ``FETCH NEXT`` clause in the statement to prevent the
+    database processing rows that will never be fetched, see :ref:`rowlimit`.
+
+    This a shortcut for calling :meth:`AsyncConnection.cursor()`,
+    :meth:`AsyncCursor.fetchone()`, and then :meth:`AsyncCursor.close()`.
 
 .. method:: AsyncConnection.gettype(name)
 
@@ -145,7 +180,7 @@ AsyncConnection Methods
 
     Connections may become unusable in several cases, such as, if the network
     socket is broken, if an Oracle error indicates the connection is unusable,
-    or, after receiving a planned down notification from the database.
+    or after receiving a planned down notification from the database.
 
     This function is best used before starting a new database request on an
     existing standalone connection. Pooled connections internally perform this
@@ -155,8 +190,8 @@ AsyncConnection Methods
     application and a new connection should be established instead.
 
     This function performs a local check. To fully check a connection's health,
-    use :meth:`AsyncConnection.ping()` which performs a round-trip to the
-    database.
+    use :meth:`AsyncConnection.ping()` which performs a :ref:`round-trip
+    <roundtrips>` to the database.
 
 .. method:: AsyncConnection.ping()
 

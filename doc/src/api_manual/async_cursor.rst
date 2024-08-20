@@ -55,8 +55,8 @@ AsyncCursor Methods
     A synchronous method that returns the list of bind variable names bound to
     the statement. Note that a statement must have been prepared first.
 
-.. method:: AsyncCursor.callfunc(name, returnType, parameters=[], \
-        keyword_parameters={})
+.. method:: AsyncCursor.callfunc(name, returnType, parameters=None, \
+        keyword_parameters=None)
 
     Calls a function with the given name. The return type is specified in the
     same notation as is required by :meth:`~AsyncCursor.setinputsizes()`. The
@@ -73,7 +73,7 @@ AsyncCursor Methods
         prior to making this call, then note that the first item in the
         parameter list refers to the return value of the function.
 
-.. method:: AsyncCursor.callproc(name, parameters=[], keyword_parameters={})
+.. method:: AsyncCursor.callproc(name, parameters=None, keyword_parameters=None)
 
     Calls a procedure with the given name. The sequence of parameters must
     contain one entry for each parameter that the procedure expects. The result
@@ -91,7 +91,7 @@ AsyncCursor Methods
     forward; an Error exception will be raised if any operation is attempted
     with the cursor.
 
-.. method:: AsyncCursor.execute(statement, parameters=[], ** keyword_parameters)
+.. method:: AsyncCursor.execute(statement, parameters=None, ** keyword_parameters)
 
     Executes a statement against the database. See :ref:`sqlexecution`.
 
