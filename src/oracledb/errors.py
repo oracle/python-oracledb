@@ -320,6 +320,7 @@ ERR_TOO_MANY_BATCH_ERRORS = 4029
 ERR_IFILE_CYCLE_DETECTED = 4030
 ERR_INVALID_VECTOR = 4031
 ERR_INVALID_SSL_VERSION = 4032
+ERR_EXCEEDED_IDLE_TIME = 4033
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -495,6 +496,10 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_DUPLICATED_PARAMETER: (
         '"{deprecated_name}" and "{new_name}" cannot be specified together'
+    ),
+    ERR_EXCEEDED_IDLE_TIME: (
+        "the database closed the connection because the connection's idle "
+        "time has been exceeded"
     ),
     ERR_EXECUTE_MODE_ONLY_FOR_DML: (
         'parameters "batcherrors" and "arraydmlrowcounts" may only be '

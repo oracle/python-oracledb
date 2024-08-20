@@ -199,8 +199,8 @@ cdef class ReadBuffer(Buffer):
     cdef:
         ssize_t _saved_packet_pos, _next_packet_pos, _saved_pos
         ChunkedBytesBuffer _chunked_bytes_buf
-        bint _session_needs_to_be_closed
         const char_type _split_data[255]
+        uint32_t _pending_error_num
         Packet _current_packet
         Transport _transport
         list _saved_packets
@@ -213,6 +213,23 @@ cdef class ReadBuffer(Buffer):
         self._transport = transport
         self._caps = caps
         self._chunked_bytes_buf = ChunkedBytesBuffer()
+
+    cdef int _check_connected(self):
+        """
+        Checks to see if the transport is connected and throws the appropriate
+        exception if not.
+        """
+        if self._pending_error_num != 0:
+            if self._transport is not None:
+                self._transport.disconnect()
+                self._transport = None
+            if self._pending_error_num == TNS_ERR_EXCEEDED_IDLE_TIME:
+                errors._raise_err(errors.ERR_EXCEEDED_IDLE_TIME)
+            else:
+                errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
+                                  err_num=self._pending_error_num)
+        elif self._transport is None:
+            errors._raise_err(errors.ERR_NOT_CONNECTED)
 
     cdef int _get_int_length_and_sign(self, uint8_t *length,
                                       bint *is_negative,
@@ -311,7 +328,6 @@ cdef class ReadBuffer(Buffer):
         """
         cdef:
             uint16_t control_type
-            uint32_t error_num
             Buffer buf
         buf = Buffer.__new__(Buffer)
         buf._populate_from_bytes(packet.buf)
@@ -321,16 +337,11 @@ cdef class ReadBuffer(Buffer):
             self._caps.supports_oob = False
         elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
             buf.skip_raw_bytes(4)           # skip first integer
-            buf.read_uint32(&error_num)
-            if error_num == TNS_ERR_SESSION_SHUTDOWN \
-                    or error_num == TNS_ERR_INBAND_MESSAGE:
-                self._session_needs_to_be_closed = True
-            else:
-                errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
-                                  err_num=error_num)
+            buf.read_uint32(&self._pending_error_num)
 
     cdef int _process_packet(self, Packet packet,
-                             bint *notify_waiter) except -1:
+                             bint *notify_waiter,
+                             bint check_connected) except -1:
         """
         Processes a packet. If the packet is a control packet it is processed
         immediately and discarded; otherwise, it is added to the list of saved
@@ -341,6 +352,8 @@ cdef class ReadBuffer(Buffer):
         if packet.packet_type == TNS_PACKET_TYPE_CONTROL:
             self._process_control_packet(packet)
             notify_waiter[0] = False
+            if check_connected:
+                self._check_connected()
         else:
             self._saved_packets.append(packet)
             notify_waiter[0] = \
@@ -379,7 +392,7 @@ cdef class ReadBuffer(Buffer):
         if self._current_packet.packet_type == TNS_PACKET_TYPE_DATA:
             self.read_uint16(&data_flags)
             if data_flags == TNS_DATA_FLAGS_EOF:
-                self._session_needs_to_be_closed = True
+                self._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
 
     cdef int notify_packet_received(self) except -1:
         """
@@ -618,7 +631,7 @@ cdef class ReadBuffer(Buffer):
             bint notify_waiter
             Packet packet
         packet = self._transport.read_packet()
-        self._process_packet(packet, &notify_waiter)
+        self._process_packet(packet, &notify_waiter, False)
         if notify_waiter:
             self._start_packet()
 
@@ -698,7 +711,7 @@ cdef class ReadBuffer(Buffer):
                 raise OutOfPackets()
             while True:
                 packet = self._transport.read_packet()
-                self._process_packet(packet, &notify_waiter)
+                self._process_packet(packet, &notify_waiter, True)
                 if notify_waiter:
                     break
         self._start_packet()

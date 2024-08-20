@@ -22,6 +22,10 @@ Thin Mode Changes
     (`issue 368 <https://github.com/oracle/python-oracledb/issues/368>`__).
 #)  Fixed bug resulting in an inability to connect to Oracle Database 23ai
     instances which have fast authentication disabled.
+#)  Fixed error message when idle time is exceeded by a connection. The error
+    ``DPY-4033: the database closed the connection because the connection's
+    idle time has been exceeded`` is now raised when this situation is
+    detected.
 #)  Reworked connection string parser:
 
     - Fixed parsing an :ref:`Easy Connect <easyconnect>` string starting

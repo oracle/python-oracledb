@@ -80,8 +80,7 @@ cdef class Message:
         to avoid overhead using the constructor, a special hook method is used
         instead.
         """
-        if conn_impl._protocol._transport is None:
-            errors._raise_err(errors.ERR_NOT_CONNECTED)
+        conn_impl._protocol._read_buf._check_connected()
         self.conn_impl = conn_impl
         self.message_type = TNS_MSG_TYPE_FUNCTION
         self.error_info = _OracleErrorInfo.__new__(_OracleErrorInfo)

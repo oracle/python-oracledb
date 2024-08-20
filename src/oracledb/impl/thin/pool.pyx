@@ -846,12 +846,12 @@ cdef class PooledConnRequest:
             double elapsed_time
             bint has_data_ready
         if not buf._transport._is_async:
-            while not buf._session_needs_to_be_closed:
+            while buf._pending_error_num == 0:
                 buf._transport.has_data_ready(&has_data_ready)
                 if not has_data_ready:
                     break
                 buf.check_control_packet()
-        if buf._session_needs_to_be_closed:
+        if buf._pending_error_num != 0:
             self.pool_impl._drop_conn_impl(conn_impl)
             self._open_count -= 1
         else:

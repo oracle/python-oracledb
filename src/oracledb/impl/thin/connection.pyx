@@ -229,7 +229,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def get_is_healthy(self):
         return self._protocol._transport is not None \
-                and not self._protocol._read_buf._session_needs_to_be_closed
+                and self._protocol._read_buf._pending_error_num == 0
 
     def get_ltxid(self):
         return self._ltxid or b''

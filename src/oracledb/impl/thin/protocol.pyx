@@ -74,8 +74,7 @@ cdef class BaseProtocol:
         """
         buf.start_request(TNS_PACKET_TYPE_DATA, 0, TNS_DATA_FLAGS_EOF)
         buf.end_request()
-        self._transport.disconnect()
-        self._transport = None
+        self._force_close()
 
     cdef int _force_close(self) except -1:
         """
@@ -100,7 +99,7 @@ cdef class BaseProtocol:
         established.
         """
         conn_impl.warning = auth_message.warning
-        self._read_buf._session_needs_to_be_closed = False
+        self._read_buf._pending_error_num = 0
         self._in_connect = False
 
     cdef int _release_drcp_session(self, BaseThinConnImpl conn_impl,
@@ -163,7 +162,7 @@ cdef class Protocol(BaseProtocol):
 
             # if the session was marked as needing to be closed, force it
             # closed immediately (unless it was already closed)
-            if self._read_buf._session_needs_to_be_closed \
+            if self._read_buf._pending_error_num != 0 \
                     and self._transport is not None:
                 self._force_close()
 
@@ -520,7 +519,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
 
             # if the session was marked as needing to be closed, force it
             # closed immediately (unless it was already closed)
-            if self._read_buf._session_needs_to_be_closed \
+            if self._read_buf._pending_error_num != 0 \
                     and self._transport is not None:
                 self._force_close()
 
@@ -886,7 +885,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             Packet packet
         packet = self._transport.extract_packet(data)
         while packet is not None:
-            self._read_buf._process_packet(packet, &notify_waiter)
+            self._read_buf._process_packet(packet, &notify_waiter, False)
             if notify_waiter:
                 self._read_buf.notify_packet_received()
             packet = self._transport.extract_packet()
