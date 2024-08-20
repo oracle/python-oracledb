@@ -337,7 +337,7 @@ cdef class ConnectStringParser(BaseParser):
         sign.
         """
         cdef:
-            ssize_t start_pos, end_pos
+            ssize_t start_pos, end_pos = 0
             Py_UCS4 ch = 0
             str name
 
