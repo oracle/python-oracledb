@@ -184,9 +184,9 @@ PipelineOp Attributes
 PipelineOpResult Objects
 ========================
 
-PipelineOpResult objects are returned in list when calling
-:meth:`AsyncConnection.run_pipeline()`. These objects contain the results of
-the executed :ref:`PipelineOp objects <pipelineopobjs>` operations.
+When :meth:`AsyncConnection.run_pipeline()` is called, it returns a list of
+PipelineOpResult objects. These objects contain the results of the executed
+:ref:`PipelineOp objects <pipelineopobjs>` operations.
 
 PipelineOpResult Attributes
 ---------------------------
