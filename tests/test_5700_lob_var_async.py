@@ -414,7 +414,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(await lob.read(), supplemental_chars)
 
     async def test_5717(self):
-        "5727 - test fetching BLOB as bytes"
+        "5717 - test fetching BLOB as bytes"
         await self.__test_fetch_lobs_direct("BLOB")
 
     async def test_5718(self):

@@ -517,7 +517,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertIsInstance(fetch_info, oracledb.FetchInfo)
             self.assertEqual(fetch_info.display_size, display_size)
             self.assertEqual(fetch_info.internal_size, internal_size)
-            self.assertEqual(fetch_info.is_json, is_json)
+            if test_env.get_server_version() > (12, 2):
+                self.assertEqual(fetch_info.is_json, is_json)
             self.assertEqual(fetch_info.name, name)
             self.assertEqual(fetch_info.null_ok, null_ok)
             self.assertEqual(fetch_info.precision, precision)

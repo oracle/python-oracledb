@@ -879,6 +879,12 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = [(n, c.read()) for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
+    @unittest.skipIf(
+        test_env.get_server_version() <= (12, 2), "unsupported database"
+    )
+    @unittest.skipIf(
+        test_env.get_client_version() <= (12, 2), "unsupported database"
+    )
     def test_4360(self):
         "4360 - fetch JSON columns as Python objects"
         expected_data = (1, [1, 2, 3], [4, 5, 6], [7, 8, 9])
