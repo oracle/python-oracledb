@@ -337,6 +337,7 @@ Some general tips for reducing round-trips are:
   <sessioncallback>`.
 * Make use of PL/SQL procedures which execute multiple SQL statements instead
   of executing them individually from python-oracledb.
+* Review whether :ref:`Pipelining <pipelining>` can be used.
 * Use scalar types instead of Oracle Database object types.
 * Avoid overuse of :meth:`Connection.ping()`.
 * Avoid setting :attr:`ConnectionPool.ping_interval` to 0 or a small value.
@@ -391,6 +392,9 @@ and after doing some work can be used for this:
     round_trips_after = get_round_trips(systemconn, sid)
 
     print(f"Round-trips required for query: {round_trips_after - round_trips_before}")
+
+Note that ``V$SESSTAT`` is not accurate for :ref:`pipelined database operations
+<pipelining>`.
 
 .. _stmtcache:
 

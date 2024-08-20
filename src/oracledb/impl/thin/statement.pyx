@@ -430,3 +430,13 @@ cdef class Statement:
         self._requires_define = False
         self._no_prefetch = False
         self._cursor_id = 0
+
+    cdef bint requires_single_execute(self):
+        """
+        Returns a boolean indicating if the statement requires a single execute
+        in order to be processed correctly by the server. If a PL/SQL block has
+        not been executed before, the determination of input/output binds has
+        not been completed and so a single execution is required in order to
+        complete that determination.
+        """
+        return self._is_plsql and (self._cursor_id == 0 or self._binds_changed)

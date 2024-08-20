@@ -17,6 +17,8 @@ oracledb 2.4.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for Oracle Database 23ai :ref:`statement pipelining
+    <pipelining>`.
 #)  Fixed bug resulting in a segfault when a closed cursor is bound as a REF
     CURSOR
     (`issue 368 <https://github.com/oracle/python-oracledb/issues/368>`__).

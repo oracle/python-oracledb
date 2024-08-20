@@ -92,6 +92,7 @@ cdef int get_preferred_num_type(int16_t precision, int8_t scale):
 include "impl/base/constants.pxi"
 include "impl/base/defaults.pyx"
 include "impl/base/utils.pyx"
+include "impl/base/pipeline.pyx"
 include "impl/base/buffer.pyx"
 include "impl/base/parsers.pyx"
 include "impl/base/oson.pyx"

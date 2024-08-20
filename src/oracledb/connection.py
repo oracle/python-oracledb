@@ -45,6 +45,7 @@ from typing import Any, Callable, Type, Union
 from . import constants, driver_mode, errors
 from . import base_impl, thick_impl, thin_impl
 from . import pool as pool_module
+from .pipeline import Pipeline
 from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
 from .lob import AsyncLOB, LOB
@@ -1649,6 +1650,7 @@ class AsyncConnection(BaseConnection):
         with self.cursor() as cursor:
             if arraysize is not None:
                 cursor.arraysize = arraysize
+            cursor.prefetchrows = cursor.arraysize
             await cursor.execute(statement, parameters)
             cursor.rowfactory = rowfactory
             return await cursor.fetchall()
@@ -1665,6 +1667,11 @@ class AsyncConnection(BaseConnection):
         the rows are fetched, the cursor is closed.
         """
         with self.cursor() as cursor:
+            if num_rows is None:
+                num_rows = cursor.arraysize
+            elif num_rows <= 0:
+                return []
+            cursor.arraysize = cursor.prefetchrows = num_rows
             await cursor.execute(statement, parameters)
             cursor.rowfactory = rowfactory
             return await cursor.fetchmany(num_rows)
@@ -1681,7 +1688,7 @@ class AsyncConnection(BaseConnection):
         is closed.
         """
         with self.cursor() as cursor:
-            cursor.prefetchrows = cursor.arraysize = 2
+            cursor.prefetchrows = cursor.arraysize = 1
             await cursor.execute(statement, parameters)
             cursor.rowfactory = rowfactory
             return await cursor.fetchone()
@@ -1708,6 +1715,35 @@ class AsyncConnection(BaseConnection):
         """
         self._verify_connected()
         await self._impl.rollback()
+
+    async def run_pipeline(
+        self,
+        pipeline: Pipeline,
+        continue_on_error: bool = False,
+    ) -> list:
+        """
+        Runs all of the operations in the pipeline on the connection. If the
+        database is Oracle Database 23ai or higher, the operations will be
+        performed in a single round trip, subject to the following caveats:
+            - queries that contain LOBs require an additional round trip
+            - queries that contain DbObject values may require multiple round
+              trips
+            - queries that fetch all of the rows may require multiple round
+              trips
+        For all other databases, the operations will be performed in the same
+        way as they would be performed independently of the pipeline.
+        """
+        self._verify_connected()
+        results = [op._create_result() for op in pipeline.operations]
+        if self._impl.supports_pipelining() and len(results) > 1:
+            await self._impl.run_pipeline_with_pipelining(
+                self, results, continue_on_error
+            )
+        else:
+            await self._impl.run_pipeline_without_pipelining(
+                self, results, continue_on_error
+            )
+        return results
 
     async def tpc_begin(
         self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0

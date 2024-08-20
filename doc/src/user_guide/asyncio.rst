@@ -1,8 +1,17 @@
 .. _asyncio:
 
-***********************************
+**************************************************
+Concurrent Programming with asyncio and Pipelining
+**************************************************
+
+:ref:`concurrentprogramming` and :ref:`Oracle Database Pipelining <pipelining>`
+significantly enhances the overall performance and responsiveness of
+applications.
+
+.. _concurrentprogramming:
+
 Concurrent Programming with asyncio
-***********************************
+===================================
 
 The `Asynchronous I/O (asyncio) <https://docs.python.org/3/library/asyncio.
 html>`__ Python library can be used with python-oracledb Thin mode for
@@ -25,13 +34,13 @@ The asynchronous API classes are :ref:`AsyncConnection <asyncconnobj>`,
 
 .. note::
 
-    Concurrent programming with asyncio is only supported in the
+    Concurrent programming with asyncio is only supported in
     python-oracledb Thin mode.
 
 .. _connasync:
 
 Connecting to Oracle Database Asynchronously
-============================================
+--------------------------------------------
 
 With python-oracledb, you can create an asynchronous connection to Oracle
 Database using either :ref:`standalone connections <asyncstandalone>` or
@@ -41,7 +50,7 @@ programming, see :ref:`connhandling`.)
 .. _asyncstandalone:
 
 Standalone Connections
-----------------------
+++++++++++++++++++++++
 
 Standalone connections are useful for applications that need only a single
 connection to a database.
@@ -100,7 +109,7 @@ when they are no longer needed, for example:
 .. _asyncconnpool:
 
 Connection Pools
-----------------
+++++++++++++++++
 
 Connection pooling allows applications to create and maintain a pool of open
 connections to the database. Connection pooling is important for performance
@@ -144,7 +153,7 @@ the connection or by using an asynchronous context manager, for example:
 .. _sqlexecuteasync:
 
 Executing SQL Using Asynchronous Methods
-========================================
+----------------------------------------
 
 This section covers executing SQL using the asynchronous programming model.
 For discussion of synchronous programming, see :ref:`sqlexecution`.
@@ -248,7 +257,7 @@ samples/async_gather.py>`__ for a runnable example.
 .. _txnasync:
 
 Managing Transactions Using Asynchronous Methods
-================================================
+------------------------------------------------
 
 This section covers managing transactions using the asynchronous programming
 model. For discussion of synchronous programming, see :ref:`txnmgmnt`.
@@ -285,3 +294,330 @@ When executing multiple DML statements that constitute a single transaction, it
 is recommended to use autocommit mode only for the last DML statement in the
 sequence of operations. Unnecessarily committing causes extra database load,
 and can destroy transactional consistency.
+
+.. _pipelining:
+
+Pipelining Database Operations
+==============================
+
+.. note::
+
+    In this release, pipelining support is experimental and subject to change.
+
+Pipelining allows an application to send multiple, independent statements to
+Oracle Database with one call. While the database processes the pipeline of
+statements, the application can continue with non-database work. Pipelined
+operations are executed sequentially by the database. They do not execute
+concurrently. When all the pipelined operations have executed, their results
+are returned to the application.
+
+Effective use of Oracle Database Pipelining can increase the responsiveness of
+an application and improve overall system throughput. Pipelining is beneficial
+when the network to the database is slow. This is because of its reduction in
+:ref:`round-trips <roundtrips>` compared with those required if the equivalent
+SQL statements were individually executed with calls like
+:meth:`AsyncCursor.execute()`.
+
+See `Oracle Call Interface Pipelining
+<https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-D131842B-354E-431D-A1B3-26A001289806>`__ for more information
+about Oracle Database Pipelining.
+
+.. note::
+
+    True pipelining only occurs when you are connected to Oracle Database 23ai.
+
+    When you connect to an older database, operations are sequentially executed
+    by python-oracledb. Each operation concludes before the next is sent to the
+    database. There is no reduction in round-trips and no performance
+    benefit. This usage is only recommended for code portability such as when
+    preparing for a database upgrade.
+
+Using Pipelines
+---------------
+
+To create a :ref:`pipeline <pipelineobj>` to process a set of database
+operations, use :meth:`oracledb.create_pipeline()`.
+
+.. code-block:: python
+
+    pipeline = oracledb.create_pipeline()
+
+You can then add various operations to the pipeline using
+:meth:`~Pipeline.add_callfunc()`, :meth:`~Pipeline.add_callproc()`,
+:meth:`~Pipeline.add_commit()`, :meth:`~Pipeline.add_execute()`,
+:meth:`~Pipeline.add_executemany()`, :meth:`~Pipeline.add_fetchall()`,
+:meth:`~Pipeline.add_fetchmany()`, and :meth:`~Pipeline.add_fetchone()`.  For
+example:
+
+.. code-block:: python
+
+    pipeline.add_execute("insert into mytable (mycol) values (1234)")
+    pipeline.add_fetchone("select user from dual")
+    pipeline.add_fetchmany("select employee_id from employees", num_rows=20)
+
+Note that queries that return results do not call ``add_execute()``.
+
+Only one set of query results can be returned from each query operation.  For
+example :meth:`~Pipeline.add_fetchmany()` will only fetch the first set of
+query records, up to the limit specified by the method's ``num_rows``
+parameter. Similarly for :meth:`~Pipeline.add_fetchone()` only the first row
+can ever be fetched. It is not possible to fetch more data from these
+operations. To prevent the database processing rows that cannot be fetched by
+the application, consider adding appropriate ``WHERE`` conditions or using a
+``FETCH NEXT`` clause in the statement, see :ref:`rowlimit`.
+
+Query results or :ref:`OUT binds <bind>` from one operation cannot be passed to
+subsequent operations in the same pipeline.
+
+To execute the pipeline, call :meth:`AsyncConnection.run_pipeline()`.
+
+.. code-block:: python
+
+    results = await connection.run_pipeline(pipeline)
+
+The operations are all sent to the database and executed.  The method returns a
+list of :ref:`PipelineOpResult objects <pipelineopresultobjs>`, one entry per
+operation.
+
+The :attr:`Connection.call_timeout` value has no effect on pipeline operations.
+To limit the time for a pipeline, use an `asyncio timeout
+<https://docs.python.org/3/library/asyncio-task.html#timeouts>`__, available
+from Python 3.11.
+
+To tune fetching of rows with :meth:`Pipeline.add_fetchall()`, set
+:attr:`defaults.arraysize` or pass the ``arraysize`` parameter.
+
+Pipelining Examples
++++++++++++++++++++
+
+An example of pipelining is:
+
+.. code-block:: python
+
+    import asyncio
+    import oracledb
+
+    async def main():
+        # Create a pipeline and define the operations
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_fetchone("select temperature from weather")
+        pipeline.add_fetchall("select name from friends where active = true")
+        pipeline.add_fetchmany("select story from news order by popularity", num_rows=5)
+
+        connection = await oracle.connect_async(user="hr", password=userpwd,
+                                                dsn="localhost/orclpdb")
+
+        # Run the operations in the pipeline
+        result_1, result_2, result_3 = await connection.run_pipeline(pipeline)
+
+        # Print the database responses
+        print("Current temperature:", result_1.rows)
+        print("Active friends:", result_2.rows)
+        print("Top news stories:", result_3.rows)
+
+        await connection.close()
+
+    asyncio.run(main())
+
+See `pipelining1.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining1.py>`__
+for a runnable example.
+
+To allow the application to continue with non-database work before processing
+any responses from the database, use code similar to:
+
+.. code-block:: python
+
+    async def run_thing_one():
+        return "run_thing_one"
+
+    async def run_thing_two():
+        return "run_thing_two"
+
+    async def main():
+        connection = await oracle.connect_async(user="hr", password=userpwd,
+                                                dsn="localhost/orclpdb")
+
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_fetchone("select user from dual")
+        pipeline.add_fetchone("select sysdate from dual")
+
+        # Run the pipeline and non-database operations concurrently
+        results = await asyncio.gather(
+            run_thing_one(), run_thing_two(), connection.run_pipeline(pipeline)
+        )
+        for r in results:
+            if isinstance(r, list):  # the pipeline return list
+                for o in r:
+                    print(o.rows)
+            else:
+                print(r)
+
+        await connection.close()
+
+    asyncio.run(main())
+
+Output will be like::
+
+    run_thing_one
+    run_thing_two
+    [('HR',)]
+    [(datetime.datetime(2024, 8, 15, 6, 42, 30),)]
+
+See `pipelining2.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining2.py>`__
+for a runnable example.
+
+Using OUT Binds with Pipelines
+------------------------------
+
+To fetch :ref:`OUT binds <bind>` from executed statements, create an explicit
+cursor and use :meth:`Cursor.var()`.  These variables are associated with the
+connection and can be used by the other cursors created internally for each
+pipelined operation.  For example:
+
+.. code-block:: python
+
+    cursor = connection.cursor()
+    v1 = cursor.var(oracledb.DB_TYPE_BOOLEAN)
+    v2 = cursor.var(oracledb.DB_TYPE_VARCHAR)
+
+    pipeline = oracledb.create_pipeline()
+
+    pipeline.add_execute("""
+        begin
+          :1 := true;
+          :2 := 'Python';
+        end;
+        """, [v1, v2])
+    pipeline.add_fetchone("select 1234 from dual")
+
+    results = await connection.run_pipeline(pipeline)
+
+    for r in results:
+        if r.rows:
+            print(r.rows)
+
+    print(v1.getvalue(), v2.getvalue())
+
+This prints::
+
+    [(1234,)]
+    True Python
+
+OUT binds from one operation cannot be used in subsequent operations.  For
+example the following would print only ``True`` because the WHERE condition of
+the SQL statement is not matched:
+
+.. code-block:: python
+
+    cursor = connection.cursor()
+    v1 = cursor.var(oracledb.DB_TYPE_BOOLEAN)
+
+    pipeline = oracledb.create_pipeline()
+
+    pipeline.add_execute("""
+        begin
+          :1 := TRUE;
+        end;
+        """, [v1])
+    pipeline.add_fetchone("select 1234 from dual where :1 = TRUE", [v1])
+
+    results = await connection.run_pipeline(pipeline)
+
+    for r in results:
+        if r.rows:
+            print(r.rows)
+
+    print(v1.getvalue())  # prints True
+
+Pipeline Error Handling
+-----------------------
+
+The ``continue_on_error`` parameter to :meth:`AsyncConnection.run_pipeline()`
+determines whether subsequent operations should continue to run after a failure
+in one operation has occurred. When set to the default value False, if any
+error is returned in any operation in the pipeline then the database terminates
+all subsequent operations.
+
+For example:
+
+.. code-block:: python
+
+    # Stop on error
+
+    pipeline.add_fetchall("select 1234 from does_not_exist")
+    pipeline.add_fetchone("select 5678 from dual")
+
+    r1, r2 = await connection.run_pipeline(pipeline)
+
+will only execute the first operation and will throw the failure message::
+
+    oracledb.exceptions.DatabaseError: ORA-00942: table or view "HR"."DOES_NOT_EXIST" does not exist
+    Help: https://docs.oracle.com/error-help/db/ora-00942/
+
+
+whereas this code:
+
+.. code-block:: python
+
+    # Continue on error
+
+    pipeline.add_fetchall("select 1234 from does_not_exist")
+    pipeline.add_fetchone("select 5678 from dual")
+
+    r1, r2 = await connection.run_pipeline(pipeline, continue_on_error=True)
+
+    print(r1.error)
+    print(r2.rows)
+
+will execute all operations and will display::
+
+    ORA-00942: table or view "HR"."DOES_NOT_EXIST" does not exist
+    Help: https://docs.oracle.com/error-help/db/ora-00942/
+    [(5678,)]
+
+Pipeline Cursor Usage
+---------------------
+
+For each operation added to a pipeline, with the exception of
+:meth:`Pipeline.add_commit()`, a cursor will be opened when
+:meth:`AsyncConnection.run_pipeline()` is called.  For example, the following
+code will open two cursors:
+
+.. code-block:: python
+
+    pipeline = oracledb.create_pipeline()
+    pipeline.add_execute("insert into t1 (c1) values (1234)")
+    pipeline.add_fetchone("select user from dual")
+
+    await connection.run_pipeline(pipeline)
+
+Make sure your pipeline length does not exceed your cursor limit.  Set the
+database parameter `open_cursors
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-FAFD1247-06E5-4E64-917F-AEBD4703CF40>`__
+appropriately.
+
+Pipeline Round-trips
+--------------------
+
+The complete set of operations in a pipeline will be performed in a single
+:ref:`round-trip <roundtrips>` when :meth:`AsyncConnection.run_pipeline()` is
+called, with the following exceptions:
+
+- Queries that contain :ref:`LOBs <asynclobobj>` require an additional
+  round-trip
+- Queries that contain :ref:`DbObject <dbobject>` values may require multiple
+  round-trips
+- Queries with :meth:`~Pipeline.add_fetchall()` may require multiple
+  round-trips
+
+The reduction in round-trips is the significant contributor to pipelining's
+performance improvement in comparison to explicitly executing the equivalent
+SQL statements individually.  With high-speed networks there may be little
+performance benefit to using pipelining, however the database and network
+efficiencies can help overall system scalability.
+
+Note that the traditional method of monitoring round-trips by taking snapshots
+of ``V$SESSTAT`` is not accurate for pipelines.

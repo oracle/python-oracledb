@@ -335,6 +335,9 @@ cdef class BaseConnImpl:
     def startup(self, bint force, bint restrict, str pfile):
         errors._raise_not_supported("starting up the database")
 
+    def supports_pipelining(self):
+        return False
+
     def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         errors._raise_not_supported(
             "starting a TPC (two-phase commit) transaction"

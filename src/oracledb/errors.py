@@ -154,6 +154,24 @@ def _get_error_text(error_num: int, **args) -> str:
     return f"{ERR_PREFIX}-{error_num:04}: {message}"
 
 
+def _create_err(
+    error_num: int,
+    context_error_message: str = None,
+    cause: Exception = None,
+    **args,
+) -> _Error:
+    """
+    Returns a driver specific error object for the specified error number and
+    supplied arguments.
+    """
+    message = _get_error_text(error_num, **args)
+    if context_error_message is None and cause is not None:
+        context_error_message = str(cause)
+    if context_error_message is not None:
+        message = f"{message}\n{context_error_message}"
+    return _Error(message)
+
+
 def _create_warning(error_num: int, **args) -> _Error:
     """
     Returns a warning error object for the specified error number and supplied
@@ -173,12 +191,7 @@ def _raise_err(
     Raises a driver specific exception from the specified error number and
     supplied arguments.
     """
-    message = _get_error_text(error_num, **args)
-    if context_error_message is None and cause is not None:
-        context_error_message = str(cause)
-    if context_error_message is not None:
-        message = f"{message}\n{context_error_message}"
-    error = _Error(message)
+    error = _create_err(error_num, context_error_message, cause, **args)
     raise error.exc_type(error) from cause
 
 
@@ -258,6 +271,7 @@ ERR_DML_RETURNING_DUP_BINDS = 2048
 ERR_MISSING_ADDRESS = 2049
 ERR_INVALID_TPC_BEGIN_FLAGS = 2050
 ERR_INVALID_TPC_END_FLAGS = 2051
+ERR_MISMATCHED_TOKEN = 2052
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -287,6 +301,7 @@ ERR_VECTOR_FORMAT_NOT_SUPPORTED = 3024
 ERR_OPERATION_NOT_SUPPORTED_ON_BFILE = 3025
 ERR_OPERATION_ONLY_SUPPORTED_ON_BFILE = 3026
 ERR_CURSOR_DIFF_CONNECTION = 3027
+ERR_UNSUPPORTED_PIPELINE_OPERATION = 3028
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -333,6 +348,7 @@ ERR_UNEXPECTED_END_OF_DATA = 5006
 ERR_UNEXPECTED_XML_TYPE = 5007
 ERR_UNKNOWN_SERVER_PIGGYBACK = 5009
 ERR_UNKNOWN_TRANSACTION_STATE = 5010
+ERR_UNEXPECTED_PIPELINE_FAILURE = 5011
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -607,6 +623,10 @@ ERR_MESSAGE_FORMATS = {
         "internal error: unknown protocol message type {message_type} "
         "at position {position}"
     ),
+    ERR_MISMATCHED_TOKEN: (
+        "internal error: pipeline token number {token_num} does not match "
+        "expected token number {expected_token_num}"
+    ),
     ERR_MISSING_ADDRESS: (
         "no addresses are defined in connect descriptor: {connect_string}"
     ),
@@ -699,6 +719,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_TOO_MANY_BATCH_ERRORS: (
         "the number of batch errors from executemany() exceeds 65535"
     ),
+    ERR_UNEXPECTED_PIPELINE_FAILURE: "unexpected pipeline failure",
     ERR_UNEXPECTED_DATA: "unexpected data received: {data}",
     ERR_UNEXPECTED_END_OF_DATA: (
         "unexpected end of data: want {num_bytes_wanted} bytes but "
@@ -718,6 +739,9 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_UNKNOWN_TRANSACTION_STATE: (
         "internal error: unknown transaction state {state}"
+    ),
+    ERR_UNSUPPORTED_PIPELINE_OPERATION: (
+        "unsupported pipeline operation type: {op_type}"
     ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"

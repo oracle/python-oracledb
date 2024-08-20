@@ -95,6 +95,16 @@ from .enums import (
     AUTH_MODE_SYSKMT as AUTH_MODE_SYSKMT,
     AUTH_MODE_SYSOPER as AUTH_MODE_SYSOPER,
     AUTH_MODE_SYSRAC as AUTH_MODE_SYSRAC,
+    # pipeline operation types
+    PipelineOpType as PipelineOpType,
+    PIPELINE_OP_TYPE_CALL_FUNC as PIPELINE_OP_TYPE_CALL_FUNC,
+    PIPELINE_OP_TYPE_CALL_PROC as PIPELINE_OP_TYPE_CALL_PROC,
+    PIPELINE_OP_TYPE_COMMIT as PIPELINE_OP_TYPE_COMMIT,
+    PIPELINE_OP_TYPE_EXECUTE as PIPELINE_OP_TYPE_EXECUTE,
+    PIPELINE_OP_TYPE_EXECUTE_MANY as PIPELINE_OP_TYPE_EXECUTE_MANY,
+    PIPELINE_OP_TYPE_FETCH_ALL as PIPELINE_OP_TYPE_FETCH_ALL,
+    PIPELINE_OP_TYPE_FETCH_MANY as PIPELINE_OP_TYPE_FETCH_MANY,
+    PIPELINE_OP_TYPE_FETCH_ONE as PIPELINE_OP_TYPE_FETCH_ONE,
     # pool "get" modes
     PoolGetMode as PoolGetMode,
     POOL_GETMODE_WAIT as POOL_GETMODE_WAIT,
@@ -221,6 +231,13 @@ from .exceptions import (
 from .errors import _Error as _Error
 
 from .defaults import defaults as defaults
+
+from .pipeline import (
+    Pipeline as Pipeline,
+    PipelineOp as PipelineOp,
+    PipelineOpResult as PipelineOpResult,
+    create_pipeline as create_pipeline,
+)
 
 from .connection import (
     AsyncConnection as AsyncConnection,

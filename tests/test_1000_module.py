@@ -189,6 +189,38 @@ class TestCase(test_env.BaseTestCase):
         self.assertIs(oracledb.AUTH_MODE_SYSOPER, oracledb.AuthMode.SYSOPER)
         self.assertIs(oracledb.AUTH_MODE_SYSRAC, oracledb.AuthMode.SYSRAC)
 
+        # batch operation type enumeration
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_CALL_FUNC,
+            oracledb.PipelineOpType.CALL_FUNC,
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_CALL_PROC,
+            oracledb.PipelineOpType.CALL_PROC,
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_COMMIT, oracledb.PipelineOpType.COMMIT
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_EXECUTE, oracledb.PipelineOpType.EXECUTE
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_EXECUTE_MANY,
+            oracledb.PipelineOpType.EXECUTE_MANY,
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_FETCH_ALL,
+            oracledb.PipelineOpType.FETCH_ALL,
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_FETCH_MANY,
+            oracledb.PipelineOpType.FETCH_MANY,
+        )
+        self.assertIs(
+            oracledb.PIPELINE_OP_TYPE_FETCH_ONE,
+            oracledb.PipelineOpType.FETCH_ONE,
+        )
+
         # pool "get" mode enumeration
         self.assertIs(
             oracledb.POOL_GETMODE_FORCEGET, oracledb.PoolGetMode.FORCEGET

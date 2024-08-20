@@ -166,6 +166,37 @@ AsyncConnection Methods
 
     Rolls back any pending transaction.
 
+.. method:: AsyncConnection.run_pipeline(pipeline, continue_on_error=False)
+
+    Runs all of the operations in the :ref:`pipeline <pipelineobj>` and returns
+    a list of :ref:`PipelineOpResult Objects <pipelineopresultobjs>`, each
+    entry corresponding to an operation executed in the pipeline.
+
+    The ``continue_on_error`` parameter determines whether operations should
+    continue to run after an error has occurred. If this parameter is set to
+    True, then the :attr:`PipelineOpResult.error` attribute will be populated
+    with an :ref:`_Error <exchandling>` instance which identifies the error
+    that occurred. If this parameter is set to False, then an exception will be
+    raised as soon as an error is detected and all subsequent operations will
+    be terminated. The default value is False.
+
+    See :ref:`pipelining` for more information.
+
+    .. note::
+
+        In this release, pipelining support is experimental and subject to
+        change.
+
+        True pipelining requires Oracle Database 23ai.
+
+        When you connect to an older database, operations are sequentially
+        executed by python-oracledb. Each operation concludes before the next
+        is sent to the database. There is no reduction in round-trips and no
+        performance benefit. This usage is only recommended for code
+        portability such as when preparing for a database upgrade.
+
+    .. versionadded:: 2.4.0
+
 .. method:: AsyncConnection.tpc_begin(xid, flags, timeout)
 
     Begins a Two-Phase Commit (TPC) on a global transaction using the specified

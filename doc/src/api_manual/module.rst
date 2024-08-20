@@ -950,6 +950,18 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
+.. function:: create_pipeline()
+
+    Creates a :ref:`pipeline object <pipelineobjs>` which can be used to
+    process a set of operations against a database.
+
+    .. note::
+
+        In this release, pipelining support is experimental and subject to
+        change.
+
+    .. versionadded:: 2.4.0
+
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
         params=None, min=1, max=2, increment=1, \
         connectiontype=oracledb.Connection, \
@@ -2662,6 +2674,85 @@ cx_Oracle 8.3. They are possible values for the ``mode`` parameter of the
         This constant deprecates the ``SYSRAC`` constant that was used in
         cx_Oracle 8.3.
 
+.. _pipeline-operation-types:
+
+Pipeline Operation Types
+------------------------
+
+These constants belong to the enumeration called ``PipelineOpType``. The
+pipelining constants listed below are used to identify the type of operation
+added. They are possible values for the :attr:`PipelineOp.op_type` attribute.
+
+.. note::
+
+    In this release, pipelining support is experimental and subject to change.
+
+.. versionadded:: 2.4.0
+
+.. data:: oracledb.PIPELINE_OP_TYPE_CALL_FUNC
+
+    This constant identifies the type of operation as the calling of a stored
+    function.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.CALL_FUNC``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_CALL_PROC
+
+    This constant identifies the type of operation as the calling of a stored
+    procedure.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.CALL_PROC``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_COMMIT
+
+    This constant identifies the type of operation as the performing of a
+    commit.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.COMMIT``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_EXECUTE
+
+    This constant identifies the type of operation as the executing of a
+    statement.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.EXECUTE``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_EXECUTE_MANY
+
+    This constant identifies the type of operations as the executing of a
+    statement multiple times.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.EXECUTE_MANY``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_FETCH_ALL
+
+    This constant identifies the type of operation as the executing of a
+    query and returning all of the rows from the result set.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.FETCH_ALL``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_FETCH_MANY
+
+    This constant identifies the type of operation as the executing of a
+    query and returning up to the specified number of rows from the result
+    set.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.FETCH_MANY``.
+
+.. data:: oracledb.PIPELINE_OP_TYPE_FETCH_ONE
+
+    This constant identifies the type of operation as the executing of a query
+    and returning the first row of the result set.
+
+    This enumerated value can also be identified by
+    ``oracledb.PipelineOpType.FETCH_ONE``.
 
 Database Shutdown Modes
 -----------------------

@@ -32,8 +32,9 @@
 from typing import Any, Union, Callable
 
 from . import __name__ as MODULE_NAME
-from . import errors
 from . import connection as connection_module
+from . import errors
+from . import utils
 from .fetch_info import FetchInfo
 from .var import Var
 from .base_impl import DbType, DB_TYPE_OBJECT
@@ -74,25 +75,31 @@ class BaseCursor:
         name: str,
         parameters: Union[list, tuple],
         keyword_parameters: dict,
-        return_value: str = None,
+        return_value: Any = None,
     ) -> None:
         """
         Internal method used for generating the PL/SQL block used to call
         stored procedures.
         """
-
-        # verify parameters
-        if parameters is not None and not isinstance(
-            parameters, (list, tuple)
-        ):
-            errors._raise_err(errors.ERR_ARGS_MUST_BE_LIST_OR_TUPLE)
-        if keyword_parameters is not None and not isinstance(
-            keyword_parameters, dict
-        ):
-            errors._raise_err(errors.ERR_KEYWORD_ARGS_MUST_BE_DICT)
+        utils.verify_stored_proc_args(parameters, keyword_parameters)
         self._verify_open()
+        statement, bind_values = self._call_get_execute_args(
+            name, parameters, keyword_parameters, return_value
+        )
+        return self.execute(statement, bind_values)
 
-        # build and execute statement
+    def _call_get_execute_args(
+        self,
+        name: str,
+        parameters: Union[list, tuple],
+        keyword_parameters: dict,
+        return_value: str = None,
+    ) -> None:
+        """
+        Internal method used for generating the PL/SQL block used to call
+        stored procedures and functions. A tuple containing this statement and
+        the bind values is returned.
+        """
         bind_names = []
         bind_values = []
         statement_parts = ["begin "]
@@ -110,7 +117,7 @@ class BaseCursor:
         statement_parts.append(",".join(bind_names))
         statement_parts.append("); end;")
         statement = "".join(statement_parts)
-        return self.execute(statement, bind_values)
+        return (statement, bind_values)
 
     def _prepare(
         self, statement: str, tag: str = None, cache_statement: bool = True
@@ -120,7 +127,9 @@ class BaseCursor:
         """
         self._impl.prepare(statement, tag, cache_statement)
 
-    def _prepare_for_execute(self, statement, parameters, keyword_parameters):
+    def _prepare_for_execute(
+        self, statement, parameters, keyword_parameters=None
+    ):
         """
         Internal method for preparing a statement for execution.
         """

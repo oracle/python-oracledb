@@ -70,6 +70,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         str _connection_id
         bint _is_pool_extra
         bytes _transaction_context
+        uint8_t pipeline_mode
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:
@@ -522,6 +523,91 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         """
         return AsyncThinCursorImpl.__new__(AsyncThinCursorImpl, self)
 
+    async def _complete_pipeline_op(self, Message message):
+        """
+        Completes a particular pipeline operation.
+        """
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            PipelineOpResultImpl result_impl = message.pipeline_result_impl
+            MessageWithData fetch_message, message_with_data
+            PipelineOpImpl op_impl = result_impl.operation
+            uint8_t op_type = op_impl.op_type
+            AsyncThinCursorImpl cursor_impl
+
+        # all operations other than commit make use of a cursor
+        if op_type == PIPELINE_OP_TYPE_COMMIT:
+            return 0
+
+        # resend the message if that is required (for operations that fetch
+        # LOBS, for example)
+        message_with_data = <MessageWithData> message
+        cursor_impl = message_with_data.cursor_impl
+        if message.resend:
+            await protocol._process_message(message)
+            if op_type in (
+                PIPELINE_OP_TYPE_FETCH_ONE,
+                PIPELINE_OP_TYPE_FETCH_MANY,
+                PIPELINE_OP_TYPE_FETCH_ALL,
+            ):
+                while cursor_impl._buffer_rowcount > 0:
+                    result_impl.rows.append(cursor_impl._create_row())
+
+        # for fetchall(), perform as many round trips as are required to
+        # complete the fetch
+        if op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+            fetch_message = cursor_impl._create_message(
+                FetchMessage, message_with_data.cursor
+            )
+            while cursor_impl._more_rows_to_fetch:
+                await protocol._process_single_message(fetch_message)
+                while cursor_impl._buffer_rowcount > 0:
+                    result_impl.rows.append(cursor_impl._create_row())
+                if op_type != PIPELINE_OP_TYPE_FETCH_ALL:
+                    break
+
+        # for PL/SQL blocks that required a single execute, perform any
+        # remaining executes now
+        if op_type == PIPELINE_OP_TYPE_EXECUTE_MANY \
+                and message_with_data.num_execs < op_impl.num_execs:
+            while op_impl.num_execs > 0:
+                op_impl.num_execs -= 1
+                message_with_data.offset += 1
+                if not cursor_impl._statement.requires_single_execute():
+                    break
+                await protocol._process_message(message)
+            if op_impl.num_execs > 0:
+                message_with_data.num_execs = op_impl.num_execs
+                await protocol._process_message(message)
+
+        # populate the metadata for any partial types observed during the
+        # execution of the pipeline
+        if message_with_data.type_cache is not None:
+            conn = message_with_data.cursor.connection
+            await message_with_data.type_cache.populate_partial_types(conn)
+
+    async def _complete_pipeline_ops(
+        self, list messages, bint continue_on_error
+    ):
+        """
+        Completes any pipeline operations that have not actually completed.
+        This could be due to the fact that LOBs were fetched or a fetch all
+        operation has more rows to fetch.
+        """
+        cdef:
+            PipelineOpResultImpl result_impl
+            Message message
+        for message in messages:
+            result_impl = message.pipeline_result_impl
+            if result_impl.error is not None:
+                continue
+            try:
+                await self._complete_pipeline_op(message)
+            except Exception as e:
+                if not continue_on_error:
+                    raise
+                result_impl._capture_err(e)
+
     async def _connect_with_address(self, Address address,
                                     Description description,
                                     ConnectParamsImpl params,
@@ -598,6 +684,210 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
+    cdef Message _create_message_for_pipeline_op(
+        self, object conn, PipelineOpImpl op_impl
+    ):
+        """
+        Creates a single message for a pipeline operation.
+        """
+        cdef:
+            AsyncThinCursorImpl cursor_impl
+            MessageWithData message
+            uint32_t num_execs = 1
+            object cursor
+        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
+            return self._create_message(CommitMessage)
+        cursor = conn.cursor()
+        cursor_impl = <AsyncThinCursorImpl> cursor._impl
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            execute_args = cursor._call_get_execute_args(
+                op_impl.name,
+                op_impl.parameters,
+                op_impl.keyword_parameters,
+                cursor.var(op_impl.return_type)
+            )
+            cursor._prepare_for_execute(*execute_args)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
+            execute_args = cursor._call_get_execute_args(
+                op_impl.name,
+                op_impl.parameters,
+                op_impl.keyword_parameters
+            )
+            cursor._prepare_for_execute(*execute_args)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
+            num_execs = cursor_impl._prepare_for_executemany(
+                cursor, op_impl.statement, op_impl.parameters
+            )
+            op_impl.num_execs = num_execs
+            if cursor_impl._statement.requires_single_execute():
+                num_execs = 1
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = 1
+            cursor_impl.arraysize = 1
+            cursor_impl.rowfactory = op_impl.rowfactory
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = op_impl.num_rows
+            cursor_impl.arraysize = op_impl.num_rows
+            cursor_impl.rowfactory = op_impl.rowfactory
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = op_impl.arraysize
+            cursor_impl.arraysize = op_impl.arraysize
+            cursor_impl.rowfactory = op_impl.rowfactory
+        else:
+            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
+                              op_type=op_impl.op_type)
+        cursor_impl._preprocess_execute(conn)
+        message = cursor_impl._create_message(ExecuteMessage, cursor)
+        message.num_execs = num_execs
+        return message
+
+    cdef list _create_messages_for_pipeline(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Creates a list of messages for the pipeline and returns them after they
+        have been submitted to the database for processing.
+        """
+        cdef:
+            PipelineOpResultImpl result_impl
+            PipelineOpImpl op_impl
+            uint64_t token_num
+            Message message
+            object result
+            list messages
+        messages = []
+        token_num = 1
+        for result in results:
+            result_impl = result._impl
+            op_impl = result_impl.operation
+            try:
+                message = self._create_message_for_pipeline_op(conn, op_impl)
+            except Exception as e:
+                if not continue_on_error:
+                    raise
+                result_impl._capture_err(e)
+                continue
+            message.pipeline_result_impl = result_impl
+            message.token_num = token_num
+            token_num += 1
+            messages.append(message)
+        return messages
+
+    cdef int _populate_pipeline_op_result(self, Message message) except -1:
+        """
+        Populates the pipeline operation result object.
+        """
+        cdef:
+            MessageWithData message_with_data
+            AsyncThinCursorImpl cursor_impl
+            PipelineOpResultImpl result_impl
+            PipelineOpImpl op_impl
+            BindVar bind_var
+        result_impl = message.pipeline_result_impl
+        op_impl = result_impl.operation
+        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
+            return 0
+        message_with_data = <MessageWithData> message
+        cursor_impl = <AsyncThinCursorImpl> message_with_data.cursor_impl
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            bind_var = <BindVar> cursor_impl.bind_vars[0]
+            result_impl.return_value = bind_var.var_impl.get_value(0)
+        elif op_impl.op_type in (
+            PIPELINE_OP_TYPE_FETCH_ONE,
+            PIPELINE_OP_TYPE_FETCH_MANY,
+            PIPELINE_OP_TYPE_FETCH_ALL,
+        ):
+            result_impl.rows = []
+            while cursor_impl._buffer_rowcount > 0:
+                result_impl.rows.append(cursor_impl._create_row())
+
+    cdef int _populate_pipeline_op_results(
+        self, list messages, bint continue_on_error
+    ) except -1:
+        """
+        Populates the pipeline operation result objects associated with the
+        messages that were processed on the database.
+        """
+        cdef:
+            PipelineOpResultImpl result_impl
+            Message message
+        for message in messages:
+            result_impl = message.pipeline_result_impl
+            if result_impl.error is not None:
+                continue
+            try:
+                self._populate_pipeline_op_result(message)
+            except Exception as e:
+                if not continue_on_error:
+                    raise
+                result_impl._capture_err(e)
+
+    async def _run_pipeline_op_without_pipelining(
+        self, object conn, PipelineOpResultImpl result_impl
+    ):
+        """
+        Runs a pipeline operation without the use of pipelining.
+        """
+        cdef:
+            PipelineOpImpl op_impl = result_impl.operation
+            object cursor
+        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
+            await conn.commit()
+            return
+        cursor = conn.cursor()
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            result_impl.return_value = await cursor.callfunc(
+                op_impl.name,
+                op_impl.return_type,
+                op_impl.parameters,
+                op_impl.keyword_parameters,
+            )
+        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
+            await cursor.callproc(
+                op_impl.name, op_impl.parameters, op_impl.keyword_parameters
+            )
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
+            await cursor.execute(op_impl.statement, op_impl.parameters)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
+            await cursor.executemany(op_impl.statement, op_impl.parameters)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+            await cursor.execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = await cursor.fetchall()
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
+            await cursor.execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = await cursor.fetchmany(op_impl.num_rows)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
+            await cursor.execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = await cursor.fetchmany(1)
+        else:
+            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
+                              op_type=op_impl.op_type)
+
+    cdef int _send_messages_for_pipeline(
+        self, list messages, bint continue_on_error
+    ) except -1:
+        """
+        Sends the messages for the pipeline to the database for processing.
+        """
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            Message message
+        for message in messages:
+            try:
+                message.send(protocol._write_buf)
+            except Exception as e:
+                if not continue_on_error:
+                    raise
+                message.pipeline_result_impl._capture_err(e)
+
     async def change_password(self, str old_password, str new_password):
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
@@ -668,8 +958,64 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         message = self._create_message(RollbackMessage)
         await protocol._process_single_message(message)
 
+    async def run_pipeline_with_pipelining(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Run the pipeline with pipelining when the database supports it.
+        """
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            list messages
+        messages = self._create_messages_for_pipeline(
+            conn, results, continue_on_error
+        )
+        if messages:
+            protocol._read_buf.reset_packets()
+            if continue_on_error:
+                self.pipeline_mode = TNS_PIPELINE_MODE_CONTINUE_ON_ERROR
+            else:
+                self.pipeline_mode = TNS_PIPELINE_MODE_ABORT_ON_ERROR
+            self._send_messages_for_pipeline(messages, continue_on_error)
+            await protocol.end_pipeline(self, messages, continue_on_error)
+            self._populate_pipeline_op_results(messages, continue_on_error)
+            await self._complete_pipeline_ops(messages, continue_on_error)
+
+    async def run_pipeline_without_pipelining(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Run the pipeline without pipelining when the database doesn't support
+        pipelining. Call timeouts are disabled for consistency with when
+        run with pipelining.
+        """
+        cdef:
+            uint32_t call_timeout = self._call_timeout
+            PipelineOpResultImpl result_impl
+            object result
+        try:
+            for result in results:
+                result_impl = result._impl
+                try:
+                    await self._run_pipeline_op_without_pipelining(
+                        conn, result_impl
+                    )
+                except Exception as e:
+                    if not continue_on_error:
+                        raise
+                    result_impl._capture_err(e)
+        finally:
+            self._call_timeout = call_timeout
+
     def set_call_timeout(self, uint32_t value):
         self._call_timeout = value
+
+    def supports_pipelining(self):
+        """
+        Returns whether the connection supports pipelining. Currently this is
+        only supported with asyncio and Oracle Database 23ai and later.
+        """
+        return self._protocol._caps.supports_pipelining
 
     async def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         cdef:

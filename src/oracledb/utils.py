@@ -28,6 +28,10 @@
 # Contains utility classes and methods.
 # -----------------------------------------------------------------------------
 
+from typing import Union
+
+from . import errors
+
 
 def params_initer(f):
     """
@@ -61,3 +65,18 @@ def params_setter(f):
         self._impl.set(kwargs)
 
     return wrapped_f
+
+
+def verify_stored_proc_args(
+    parameters: Union[list, tuple], keyword_parameters: dict
+) -> None:
+    """
+    Verifies that the arguments to a call to a stored procedure or function
+    are acceptable.
+    """
+    if parameters is not None and not isinstance(parameters, (list, tuple)):
+        errors._raise_err(errors.ERR_ARGS_MUST_BE_LIST_OR_TUPLE)
+    if keyword_parameters is not None and not isinstance(
+        keyword_parameters, dict
+    ):
+        errors._raise_err(errors.ERR_KEYWORD_ARGS_MUST_BE_DICT)

@@ -81,6 +81,7 @@ API Manual
     api_manual/async_connection_pool.rst
     api_manual/async_cursor.rst
     api_manual/async_lob.rst
+    api_manual/pipeline.rst
     api_manual/deprecations.rst
 
 .. toctree::

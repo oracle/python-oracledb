@@ -42,6 +42,7 @@ cdef class Capabilities:
         bint supports_fast_auth
         bint supports_oob
         bint supports_end_of_response
+        bint supports_pipelining
         uint32_t sdu
 
     def __init__(self):
@@ -59,10 +60,11 @@ cdef class Capabilities:
         self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
         if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
             self.supports_fast_auth = True
-        if protocol_version >= TNS_VERSION_MIN_END_OF_RESPONSE \
-                and flags & TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE:
-            self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_RESPONSE
-            self.supports_end_of_response = True
+        if protocol_version >= TNS_VERSION_MIN_END_OF_RESPONSE:
+            if flags & TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE:
+                self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_RESPONSE
+                self.supports_end_of_response = True
+            self.supports_pipelining = True
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_compile_caps(self, bytearray server_caps):
@@ -121,7 +123,9 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX
         self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION
-        self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT
+        self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT | \
+                TNS_CCAP_TOKEN_SUPPORTED | TNS_CCAP_PIPELINING_SUPPORT | \
+                TNS_CCAP_PIPELINING_BREAK
         self.compile_caps[TNS_CCAP_VECTOR_FEATURES] = \
                 TNS_CCAP_VECTOR_FEATURE_BINARY
 

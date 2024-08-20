@@ -294,8 +294,12 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Concurrent programming with asyncio (see :ref:`asyncio`)
+    * - Concurrent programming with asyncio (see :ref:`concurrentprogramming`)
       - Yes
+      - No
+      - No
+    * - Oracle Database 23ai Pipelining (see :ref:`pipelining`)
+      - Yes - must use :ref:`asyncio <concurrentprogramming>`
       - No
       - No
     * - End-to-end monitoring and tracing attributes (see :ref:`tracingsql`)

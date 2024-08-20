@@ -83,7 +83,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             "select IntCol from TestTempTable order by IntCol", arraysize=1
         )
         self.assertEqual(res, data)
-        await self.assertRoundTrips(4)
+        await self.assertRoundTrips(5)
 
         res = await self.conn.fetchall(
             "select IntCol from TestTempTable order by IntCol",

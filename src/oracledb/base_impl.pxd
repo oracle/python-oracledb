@@ -119,6 +119,16 @@ cpdef enum:
     AUTH_MODE_SYSRAC = 0x00100000
 
 cpdef enum:
+    PIPELINE_OP_TYPE_CALL_FUNC = 1
+    PIPELINE_OP_TYPE_CALL_PROC = 2
+    PIPELINE_OP_TYPE_COMMIT = 3
+    PIPELINE_OP_TYPE_EXECUTE = 4
+    PIPELINE_OP_TYPE_EXECUTE_MANY = 5
+    PIPELINE_OP_TYPE_FETCH_ALL = 6
+    PIPELINE_OP_TYPE_FETCH_MANY = 7
+    PIPELINE_OP_TYPE_FETCH_ONE = 8
+
+cpdef enum:
     POOL_GETMODE_WAIT = 0
     POOL_GETMODE_NOWAIT = 1
     POOL_GETMODE_FORCEGET = 2
@@ -786,6 +796,7 @@ cdef class BindVar:
                            uint32_t row_num, uint32_t num_elements,
                            bint defer_type_assignment) except -1
 
+
 cdef class BaseParser:
 
     cdef:
@@ -799,6 +810,35 @@ cdef class BaseParser:
     cdef int parse_keyword(self) except -1
     cdef int parse_quoted_string(self, Py_UCS4 quote_type) except -1
     cdef int skip_spaces(self) except -1
+
+
+cdef class PipelineImpl:
+    cdef:
+        readonly list operations
+
+
+cdef class PipelineOpImpl:
+    cdef:
+        readonly str statement
+        readonly str name
+        readonly object parameters
+        readonly object keyword_parameters
+        readonly object return_type
+        readonly object rowfactory
+        readonly uint32_t arraysize
+        readonly uint32_t num_rows
+        readonly uint8_t op_type
+        uint32_t num_execs
+
+
+cdef class PipelineOpResultImpl:
+    cdef:
+        readonly PipelineOpImpl operation
+        readonly object return_value
+        readonly list rows
+        readonly object error
+
+    cdef int _capture_err(self, Exception exc) except -1
 
 
 cdef int get_preferred_num_type(int16_t precision, int8_t scale)

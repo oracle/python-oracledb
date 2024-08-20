@@ -436,6 +436,7 @@ cdef class Protocol(BaseProtocol):
         """
         Process a single message within a request.
         """
+        message.preprocess()
         with self._request_lock:
             self._process_message(message)
             if message.resend:
@@ -803,6 +804,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         Process a single message within a request.
         """
+        message.preprocess()
         async with self._request_lock:
             await self._process_message(message)
             if message.resend:
@@ -819,7 +821,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED, timeout=timeout)
 
     async def _receive_packet(self, Message message,
-                              bint check_request_boundary=False):
+                              bint check_request_boundary=False,
+                              bint in_pipeline=False):
         cdef:
             ReadBuffer buf = self._read_buf
             uint16_t refuse_message_len
@@ -829,7 +832,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         await buf.wait_for_packets_async()
         buf._check_request_boundary = False
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
-            await self._reset()
+            await self._reset(in_pipeline)
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
             buf.skip_raw_bytes(2)
@@ -840,11 +843,18 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 ptr = buf.read_raw_bytes(refuse_message_len)
                 message.error_info.message = ptr[:refuse_message_len].decode()
 
-    async def _reset(self):
-        cdef uint8_t marker_type, packet_type
+    async def _reset(self, bint in_pipeline=False):
+        cdef:
+            uint8_t marker_type, packet_type
+            uint8_t expected_marker_type
 
-        # send reset marker
-        self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+        # send reset marker, if not in a pipeline
+        # NOTE: the expected marker type is different inside a pipeline!
+        if in_pipeline:
+            expected_marker_type = TNS_MARKER_TYPE_BREAK
+        else:
+            expected_marker_type = TNS_MARKER_TYPE_RESET
+            self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
 
         # read and discard all packets until a reset marker is received
         while True:
@@ -852,7 +862,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if packet_type == TNS_PACKET_TYPE_MARKER:
                 self._read_buf.skip_raw_bytes(2)
                 self._read_buf.read_ub1(&marker_type)
-                if marker_type == TNS_MARKER_TYPE_RESET:
+                if marker_type == expected_marker_type:
                     break
             await self._read_buf.wait_for_packets_async()
 
@@ -889,6 +899,38 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if notify_waiter:
                 self._read_buf.notify_packet_received()
             packet = self._transport.extract_packet()
+
+    async def end_pipeline(self, BaseThinConnImpl conn_impl, list messages,
+                           bint continue_on_error):
+        """
+        Called when all messages for the pipeline have been sent to the
+        database. An end pipeline message is sent to the database and then
+        the responses to all of the messages are processed.
+        """
+        cdef Message message, end_message
+        end_message = conn_impl._create_message(EndPipelineMessage)
+        end_message.send(self._write_buf)
+        try:
+            for message in messages:
+                try:
+                    await self._receive_packet(message,
+                                               check_request_boundary=True,
+                                               in_pipeline=True)
+                    message.preprocess()
+                    message.process(self._read_buf)
+                    self._process_call_status(conn_impl, message.call_status)
+                    message._check_and_raise_exception()
+                except Exception as e:
+                    if not continue_on_error:
+                        raise
+                    message.pipeline_result_impl._capture_err(e)
+            await self._receive_packet(end_message,
+                                       check_request_boundary=True)
+            end_message.process(self._read_buf)
+            end_message._check_and_raise_exception()
+        except:
+            await self._reset()
+            raise
 
 
 class AsyncProtocol(BaseAsyncProtocol, asyncio.Protocol):
