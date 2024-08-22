@@ -219,7 +219,9 @@ cdef class ReadBuffer(Buffer):
         Checks to see if the transport is connected and throws the appropriate
         exception if not.
         """
-        if self._pending_error_num != 0:
+        if self._pending_error_num not in (
+            0, TNS_ERR_SESSION_SHUTDOWN, TNS_ERR_INBAND_MESSAGE
+        ):
             if self._transport is not None:
                 self._transport.disconnect()
                 self._transport = None

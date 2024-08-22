@@ -853,7 +853,7 @@ cdef class PooledConnRequest:
                 buf.check_control_packet()
         if buf._pending_error_num != 0:
             self.pool_impl._drop_conn_impl(conn_impl)
-            self._open_count -= 1
+            self.pool_impl._open_count -= 1
         else:
             self.conn_impl = conn_impl
             if self.pool_impl._ping_interval == 0:
