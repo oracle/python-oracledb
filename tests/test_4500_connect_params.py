@@ -907,6 +907,29 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, port)
         self.assertEqual(params.service_name, service_name)
 
+    def test_4553(self):
+        "4553 - test easy connect string with registered protocol"
+        protocol = "proto-test"
+        protocol_arg = "args/for/proto4553"
+        host = "host_4553"
+        service_name = "service_name_4553"
+        connect_string = f"{protocol}://{protocol_arg}"
+
+        def hook(passed_protocol, passed_protocol_arg, passed_params):
+            self.assertEqual(passed_protocol, protocol)
+            self.assertEqual(passed_protocol_arg, protocol_arg)
+            new_connect_string = f"{host}/{service_name}"
+            passed_params.parse_connect_string(new_connect_string)
+
+        try:
+            oracledb.register_protocol(protocol, hook)
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            self.assertEqual(params.host, host)
+            self.assertEqual(params.service_name, service_name)
+        finally:
+            oracledb.register_protocol(protocol, None)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

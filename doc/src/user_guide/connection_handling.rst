@@ -285,10 +285,12 @@ For more information about naming methods, see `Oracle Net Service Reference
 Easy Connect Syntax for Connection Strings
 ------------------------------------------
 
-An Easy Connect string is often the simplest connection string to use for the
-data source name parameter ``dsn`` of :meth:`oracledb.connect()` and
-:meth:`oracledb.create_pool()`.  This method does not need configuration files
-such as ``tnsnames.ora``.
+An `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ string is often the simplest
+connection string to use for the data source name parameter ``dsn`` of
+:meth:`oracledb.connect()` and :meth:`oracledb.create_pool()`.  This method
+does not need :ref:`configuration files <optnetfiles>` such as
+``tnsnames.ora``.
 
 For example, to connect to the Oracle Database service ``orclpdb`` that is
 running on the host ``dbhost.example.com`` with the default Oracle
@@ -573,6 +575,92 @@ When creating a standalone connection or connection pool the equivalent
 internal extraction is done automatically when a value is passed to the ``dsn``
 parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
 no value is passed to the ``user`` password.
+
+.. _ldapconnections:
+
+LDAP Directory Naming
+=====================
+
+Directory Naming centralizes the network names and addresses used for
+connections in a single place. More details can be found in `Configuring Oracle
+Database Clients for OID and OUD Directory Naming
+<https://www.oracle.com/a/otn/docs/database/oracle-net-oud-oid-directory-naming.pdf>`__
+and `Configuring Oracle Database Clients for Microsoft Active Directory Naming
+<https://www.oracle.com/a/otn/docs/database/oracle-net-active-directory-naming.pdf>`__.
+
+**Thick Mode**
+
+Once a directory server is configured, python-oracledb Thick mode applications
+can use the desired LDAP alias as the connection DSN.
+
+Oracle Client 23ai introduced support for LDAP URLs to be used as connection
+DSNs. This syntax removes the need for external ``ldap.ora`` and ``sqlnet.ora``
+files.  See `Oracle Client 23ai LDAP URL Syntax
+<https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.pdf>`__.
+For example, python-oracledb Thick mode applications using Oracle Client 23ai
+could connect using:
+
+.. code-block:: python
+
+    cs = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
+    connection = oracledb.connect(user="scott", password=pw, dsn=cs)
+
+**Thin Mode**
+
+To use LDAP in python-oracledb Thin mode, specify an LDAP URL as the DSN and
+call :meth:`oracledb.register_protocol()` to register a user function that gets
+the connect descriptor from the LDAP server. For example:
+
+.. code-block:: python
+
+    import ldap3
+    import re
+
+    # Get the Oracle Database connection string from an LDAP server
+    def ldap_hook(protocol, protocol_arg, params):
+        """
+        protocol_arg is in the form "ldapserver/dbname,cn=OracleContext,dc=dom,dc=com"
+        """
+        pattern = r"^(.+)\/(.+)\,(cn=OracleContext.*)$"
+        match = re.match(pattern, protocol_arg)
+        ldap_server, db, ora_context = match.groups()
+
+        server = ldap3.Server(ldap_server)
+        conn = ldap3.Connection(server)
+        conn.bind()
+        conn.search(ora_context, f"(cn={db})", attributes=['orclNetDescString'])
+        connect_string = conn.entries[0].orclNetDescString.value
+        params.parse_connect_string(connect_string)
+
+    oracledb.register_protocol("ldap", ldap_hook)
+
+    connection = oracledb.connect(user="hr" password=userpwd,
+                 dsn="ldap://ldapserver/dbname,cn=OracleContext,dc=dom,dc=com")
+
+You can modify or extend this as needed, for example to use an LDAP module that
+satisfies your business requirements, or to cache the response from the LDAP
+server.
+
+See :ref:`connectionhook` for more information about using
+:meth:`oracledb.register_protocol()`.
+
+.. _connectionhook:
+
+Connection Hook Functions
+=========================
+
+The :meth:`oracledb.register_protocol()` method registers a user function to be
+called prior to connection or pool creation when an :ref:`Easy Connect
+<easyconnect>` connection string prefixed with the specified protocol is being
+parsed internally by python-oracledb in Thin mode. The registered hook function
+will also be invoked by :meth:`ConnectParams.parse_connect_string()` in Thin
+and Thick modes.
+
+Your hook function is expected to find or construct a valid connection string.
+This connection string will be used by python-oracledb to establish the
+connection.
+
+See :ref:`ldapconnections` for an example.
 
 .. _connpooling:
 

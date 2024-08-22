@@ -250,6 +250,7 @@ cdef class ConnectParamsImpl:
         parser = ConnectStringParser.__new__(ConnectStringParser)
         parser.template_description = self._default_description
         parser.template_address = self._default_address
+        parser.params_impl = self
         parser.parse(connect_string)
 
         # otherwise, see if the name is a connect alias in a tnsnames.ora

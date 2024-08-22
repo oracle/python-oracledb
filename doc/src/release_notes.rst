@@ -17,6 +17,10 @@ oracledb 2.5.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added :meth:`oracledb.register_protocol()` to allow users to register a
+    function that will be called when a particular protocol is detected in an
+    Easy Connect string.
+
 Thick Mode Changes
 ++++++++++++++++++
 

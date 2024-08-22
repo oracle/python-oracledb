@@ -179,6 +179,7 @@ def init_base_impl(package):
         DRIVER_VERSION, \
         PY_TYPE_ASYNC_CURSOR, \
         PY_TYPE_ASYNC_LOB, \
+        PY_TYPE_CONNECT_PARAMS, \
         PY_TYPE_CURSOR, \
         PY_TYPE_DB_OBJECT, \
         PY_TYPE_DB_OBJECT_TYPE, \
@@ -194,6 +195,7 @@ def init_base_impl(package):
     DRIVER_VERSION = package.__version__
     PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
+    PY_TYPE_CONNECT_PARAMS = package.ConnectParams
     PY_TYPE_CURSOR = package.Cursor
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType

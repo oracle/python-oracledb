@@ -114,6 +114,7 @@ cdef class ConnectStringParser(BaseParser):
     cdef:
         DescriptionList description_list
         Description template_description
+        ConnectParamsImpl params_impl
         Address template_address
         Description description
 
@@ -256,7 +257,22 @@ cdef class ConnectStringParser(BaseParser):
         """
         Parses an easy connect string.
         """
-        self._parse_easy_connect_protocol()
+        cdef:
+            object params, fn
+            str protocol
+        protocol = self._parse_easy_connect_protocol()
+        if protocol is not None:
+            fn = REGISTERED_PROTOCOLS.get(protocol)
+            if fn is not None:
+                params = PY_TYPE_CONNECT_PARAMS.__new__(PY_TYPE_CONNECT_PARAMS)
+                params._impl = self.params_impl
+                fn(protocol, self.data_as_str[self.temp_pos:], params)
+                self.description_list = self.params_impl.description_list
+                self.pos = self.num_chars
+                return 0
+            elif protocol != self.template_address.protocol:
+                self.template_address = self.template_address.copy()
+                self.template_address.set_protocol(protocol)
         self._parse_easy_connect_hosts()
         self._parse_easy_connect_service_name()
         if self.description_list is not None:
@@ -427,7 +443,7 @@ cdef class ConnectStringParser(BaseParser):
         if found_port:
             address.port = int(self.data_as_str[pos:self.temp_pos])
 
-    cdef int _parse_easy_connect_protocol(self) except -1:
+    cdef str _parse_easy_connect_protocol(self):
         """
         Parses the protocol from an easy connect string. This should be a
         series of alphabetic characters or dashes, followed by a colon and two
@@ -457,10 +473,8 @@ cdef class ConnectStringParser(BaseParser):
             elif not cpython.Py_UNICODE_ISALPHA(ch) and ch not in ('-', '_'):
                 break
             self.temp_pos += 1
-        if protocol is not None and num_sep_chars == 2 \
-                and protocol != self.template_address.protocol:
-            self.template_address = self.template_address.copy()
-            self.template_address.set_protocol(protocol)
+        if protocol is not None and num_sep_chars == 2:
+            return protocol
 
     cdef str _parse_easy_connect_service_name(self):
         """

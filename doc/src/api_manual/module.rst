@@ -2175,6 +2175,62 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
+
+.. function:: register_protocol(protocol, hook_function)
+
+    Registers a user function to be called prior to connection or pool creation
+    when an :ref:`Easy Connect <easyconnect>` connection string prefixed with
+    the specified protocol is being parsed internally by python-oracledb in
+    Thin mode. The registered hook function will also be invoked by
+    :meth:`ConnectParams.parse_connect_string()` in Thin and Thick modes.
+
+    Your hook function is expected to find or construct a valid connection
+    string. For example, if the Easy Connect string is prefixed "ldaps://"
+    then a hook function registered for the "ldaps" protocol can perform LDAP
+    lookup to retrieve the actual database connection string that will be used
+    during connection creation.
+
+    The ``protocol`` parameter is a string that will be matched against the
+    prefix of Easy Connect strings that appears before the "://".
+
+    The ``hook_function`` parameter should be a function with the signature::
+
+        hook_function(protocol, protocol_arg, params)
+
+    The hook function will be called with the following arguments:
+
+    - The ``protocol`` parameter is the value that was registered.
+
+    - The ``protocol_arg`` parameter is the section after "://" in the Easy
+      Connect string.
+
+    - The ``params`` parameter is an instance of :ref:`ConnectParams
+      <connparam>`.  When :meth:`ConnectParams.parse_connect_string()` is
+      invoked then ``params`` will be the ConnectParams instance. Otherwise it
+      will be a new instance that will be used to create the connection.
+
+    The hook function should parse ``protocol_arg`` and update ``params`` with
+    the desired connection parameters. This can be done using
+    :meth:`ConnectParams.set()` or
+    :meth:`ConnectParams.parse_connect_string()`.
+
+    Internal hook functions for the "tcp" and "tcps" protocols are
+    pre-registered but can be overridden if needed. If any other protocol has
+    not been registered, then connecting will result in the error ``DPY-4021:
+    invalid protocol``.
+
+    Calling :meth:`~oracledb.register_protocol()` with the ``hook_function``
+    parameter set to None will result in a previously registered user function
+    being removed and the default behavior restored.
+
+    See :ref:`connectionhook` for more information.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+    .. versionadded:: 2.5.0
+
 .. function:: Time(hour, minute, second)
 
     Constructs an object holding a time value.

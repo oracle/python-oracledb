@@ -88,6 +88,8 @@ cdef int get_preferred_num_type(int16_t precision, int8_t scale):
         return NUM_TYPE_INT
     return NUM_TYPE_FLOAT
 
+# protocols registered with the library
+REGISTERED_PROTOCOLS = {}
 
 include "impl/base/constants.pxi"
 include "impl/base/defaults.pyx"

@@ -284,6 +284,8 @@ from .dsn import makedsn as makedsn
 
 from .driver_mode import is_thin_mode as is_thin_mode
 
+from .utils import register_protocol as register_protocol
+
 from .thick_impl import (
     clientversion as clientversion,
     init_oracle_client as init_oracle_client,

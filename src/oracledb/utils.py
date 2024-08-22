@@ -28,8 +28,9 @@
 # Contains utility classes and methods.
 # -----------------------------------------------------------------------------
 
-from typing import Union
+from typing import Callable, Union
 
+from . import base_impl
 from . import errors
 
 
@@ -65,6 +66,23 @@ def params_setter(f):
         self._impl.set(kwargs)
 
     return wrapped_f
+
+
+def register_protocol(protocol: str, hook_function: Callable) -> None:
+    """
+    Registers a user function to be called prior to connection or pool creation
+    when an Easy Connect connection string prefixed with the specified protocol
+    is being parsed internally by python-oracledb in Thin mode. The registered
+    function will also be invoked by ConnectParams.parse_connect_string() in
+    Thin and Thick modes. Your hook function is expected to find or construct a
+    valid connection string. If the supplied function is None, the registration
+    is removed.
+    """
+    protocol = protocol.lower()
+    if hook_function is None:
+        base_impl.REGISTERED_PROTOCOLS.pop(protocol)
+    else:
+        base_impl.REGISTERED_PROTOCOLS[protocol] = hook_function
 
 
 def verify_stored_proc_args(
