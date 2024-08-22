@@ -62,14 +62,14 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_ext_1800(self):
         "E1800 - test standalone connection is marked unhealthy"
         await self.__perform_setup()
-        conn = await test_env.get_connection_async()
-        self.assertEqual(conn.is_healthy(), True)
-        with conn.cursor() as cursor:
-            await cursor.callproc("dbms_tg_dbg.set_session_drainable")
-            await cursor.execute("select user from dual")
-            (user,) = await cursor.fetchone()
-            self.assertEqual(user, test_env.get_main_user().upper())
-        self.assertEqual(conn.is_healthy(), False)
+        async with test_env.get_connection_async() as conn:
+            self.assertEqual(conn.is_healthy(), True)
+            with conn.cursor() as cursor:
+                await cursor.callproc("dbms_tg_dbg.set_session_drainable")
+                await cursor.execute("select user from dual")
+                (user,) = await cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
+            self.assertEqual(conn.is_healthy(), False)
 
     async def test_ext_1801(self):
         "E1801 - test pooled connection that is marked unhealthy"
@@ -79,12 +79,34 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(conn.is_healthy(), True)
             with conn.cursor() as cursor:
                 await cursor.callproc("dbms_tg_dbg.set_session_drainable")
-                sid_serial = await self.get_sid_serial(conn)
+                info = await self.get_sid_serial(conn)
             self.assertEqual(conn.is_healthy(), False)
+            with conn.cursor() as cursor:
+                await cursor.execute("select user from dual")
+                (user,) = await cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
         async with pool.acquire() as conn:
             self.assertEqual(conn.is_healthy(), True)
-            new_sid_serial = await self.get_sid_serial(conn)
-            self.assertNotEqual(new_sid_serial, sid_serial)
+            new_info = await self.get_sid_serial(conn)
+            self.assertNotEqual(new_info, info)
+        await pool.close()
+
+    async def test_ext_1802(self):
+        "E1802 - test pooled connection is dropped from pool"
+        await self.__perform_setup()
+        pool = test_env.get_pool_async(min=1, max=1, increment=1)
+        async with pool.acquire() as conn:
+            self.assertEqual(conn.is_healthy(), True)
+            info = await self.get_sid_serial(conn)
+        async with pool.acquire() as conn:
+            new_info = await self.get_sid_serial(conn)
+            self.assertEqual(new_info, info)
+            with conn.cursor() as cursor:
+                await cursor.callproc("dbms_tg_dbg.set_session_drainable")
+        async with pool.acquire() as conn:
+            self.assertEqual(conn.is_healthy(), True)
+            new_info = await self.get_sid_serial(conn)
+            self.assertNotEqual(new_info, info)
 
 
 if __name__ == "__main__":

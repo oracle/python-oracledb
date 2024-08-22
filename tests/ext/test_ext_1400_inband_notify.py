@@ -67,6 +67,26 @@ class TestCase(test_env.BaseTestCase):
                 cursor.callproc("dbms_tg_dbg.set_session_drainable")
                 info = self.get_sid_serial(conn)
             self.assertEqual(conn.is_healthy(), False)
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+                (user,) = cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
+        with pool.acquire() as conn:
+            self.assertEqual(conn.is_healthy(), True)
+            new_info = self.get_sid_serial(conn)
+            self.assertNotEqual(new_info, info)
+
+    def test_ext_1402(self):
+        "E1402 - test pooled connection is dropped from pool"
+        pool = test_env.get_pool(min=1, max=1, increment=1)
+        with pool.acquire() as conn:
+            self.assertEqual(conn.is_healthy(), True)
+            info = self.get_sid_serial(conn)
+        with pool.acquire() as conn:
+            new_info = self.get_sid_serial(conn)
+            self.assertEqual(new_info, info)
+            with conn.cursor() as cursor:
+                cursor.callproc("dbms_tg_dbg.set_session_drainable")
         with pool.acquire() as conn:
             self.assertEqual(conn.is_healthy(), True)
             new_info = self.get_sid_serial(conn)
