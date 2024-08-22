@@ -17,15 +17,22 @@ oracledb 2.5.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fix bug when detecting in-band notification warning while connection is
-    being created or actively used
-    (`issue 383 <https://github.com/oracle/python-oracledb/issues/383>`__).
-
 Thick Mode Changes
 ++++++++++++++++++
 
 Common Changes
 ++++++++++++++
+
+
+oracledb 2.4.1 (August 2024)
+----------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug when detecting in-band notification warnings while the connection
+    is being created or actively used
+    (`issue 383 <https://github.com/oracle/python-oracledb/issues/383>`__).
 
 
 oracledb 2.4.0 (August 2024)
