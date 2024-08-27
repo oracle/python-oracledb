@@ -63,9 +63,9 @@ Xid = collections.namedtuple(
 
 class BaseConnection:
     __module__ = MODULE_NAME
+    _impl = None
 
     def __init__(self):
-        self._impl = None
         self._version = None
 
     def __repr__(self):
