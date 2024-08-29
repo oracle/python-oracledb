@@ -38,6 +38,8 @@ from cpython cimport array
 import array
 import datetime
 import decimal
+import locale
+import sys
 
 cydatetime.import_datetime()
 

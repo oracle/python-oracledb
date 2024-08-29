@@ -1768,6 +1768,15 @@ Oracledb Methods
 
         This method is an extension to the DB API definition.
 
+    .. versionchanged:: 2.5.0
+
+        The values supplied to the ``lib_dir`` and ``config_dir`` parameters
+        are encoded using the encoding returned by `locale.getencoding()
+        <https://docs.python.org/3/library/locale.html#locale.getencoding>`__
+        for Python 3.11 and higher; for all other versions, the encoding
+        "utf-8" is used.  These values may also be supplied as a ``bytes``
+        object, in which case they will be used as is.
+
 
 .. function:: is_thin_mode()
 

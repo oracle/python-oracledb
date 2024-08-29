@@ -485,12 +485,17 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         bytes lib_dir_bytes, config_dir_bytes, driver_name_bytes
         dpiContextCreateParams params
         dpiErrorInfo error_info
+        str encoding
     global driver_context_params
     params_tuple = (lib_dir, config_dir, error_url, driver_name)
     if driver_info.context != NULL:
         if params_tuple != driver_context_params:
             errors._raise_err(errors.ERR_LIBRARY_ALREADY_INITIALIZED)
         return
+    if sys.version_info[:2] < (3, 11):
+        encoding = "utf-8"
+    else:
+        encoding = locale.getencoding()
     with driver_mode.get_manager(requested_thin_mode=False) as mode_mgr:
         memset(&params, 0, sizeof(dpiContextCreateParams))
         params.defaultEncoding = ENCODING_UTF8
@@ -499,10 +504,16 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         if config_dir is None:
             config_dir = C_DEFAULTS.config_dir
         if lib_dir is not None:
-            lib_dir_bytes = lib_dir.encode()
+            if isinstance(lib_dir, bytes):
+                lib_dir_bytes = lib_dir
+            else:
+                lib_dir_bytes = lib_dir.encode(encoding)
             params.oracleClientLibDir = lib_dir_bytes
         if config_dir is not None:
-            config_dir_bytes = config_dir.encode()
+            if isinstance(config_dir, bytes):
+                config_dir_bytes = config_dir
+            else:
+                config_dir_bytes = config_dir.encode(encoding)
             params.oracleClientConfigDir = config_dir_bytes
         if driver_name is None:
             driver_name = f"{DRIVER_NAME} thk : {DRIVER_VERSION}"
