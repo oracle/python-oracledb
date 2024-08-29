@@ -949,6 +949,7 @@ commands::
 
     git clone --recurse-submodules https://github.com/oracle/python-oracledb.git
     cd python-oracledb
+    python -m pip install setuptools
     python setup.py build
     python setup.py install
 
@@ -990,6 +991,7 @@ Python-oracledb source code is mirrored from GitHub to `opensource.oracle.com
 
     git clone --recurse-submodules https://opensource.oracle.com/git/oracle/python-oracledb.git
     cd python-oracledb
+    python -m pip install setuptools
     python setup.py build
     python setup.py install
 
@@ -1003,6 +1005,7 @@ The python-oracledb source package can be downloaded manually from `PyPI
 python-oracledb download files <https://pypi.org/project/oracledb/#files>`__
 and extracted, after which the following commands should be run::
 
+    python -m pip install setuptools
     python setup.py build
     python setup.py install
 
