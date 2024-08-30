@@ -187,6 +187,10 @@ def init_base_impl(package):
         PY_TYPE_INTERVAL_YM, \
         PY_TYPE_JSON_ID, \
         PY_TYPE_LOB, \
+        PY_TYPE_MESSAGE, \
+        PY_TYPE_MESSAGE_QUERY, \
+        PY_TYPE_MESSAGE_ROW, \
+        PY_TYPE_MESSAGE_TABLE, \
         PY_TYPE_VAR
 
     errors = package.errors
@@ -203,4 +207,8 @@ def init_base_impl(package):
     PY_TYPE_INTERVAL_YM = package.IntervalYM
     PY_TYPE_JSON_ID = package.JsonId
     PY_TYPE_LOB = package.LOB
+    PY_TYPE_MESSAGE = package.Message
+    PY_TYPE_MESSAGE_QUERY = package.MessageQuery
+    PY_TYPE_MESSAGE_ROW = package.MessageRow
+    PY_TYPE_MESSAGE_TABLE = package.MessageTable
     PY_TYPE_VAR = package.Var

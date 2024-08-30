@@ -71,6 +71,10 @@ cdef type PY_TYPE_DB_OBJECT_TYPE
 cdef type PY_TYPE_JSON_ID
 cdef type PY_TYPE_INTERVAL_YM
 cdef type PY_TYPE_LOB
+cdef type PY_TYPE_MESSAGE
+cdef type PY_TYPE_MESSAGE_QUERY
+cdef type PY_TYPE_MESSAGE_ROW
+cdef type PY_TYPE_MESSAGE_TABLE
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO
