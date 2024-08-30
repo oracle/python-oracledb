@@ -35,6 +35,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Improved type hints for cursors
+    (`issue 391 <https://github.com/oracle/python-oracledb/issues/391>`__).
 #)  Improved error message when attempting to access attributes on a connection
     before a connection has been established
     (`issue 385 <https://github.com/oracle/python-oracledb/issues/385>`__).

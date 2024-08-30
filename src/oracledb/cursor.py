@@ -29,7 +29,7 @@
 # fetching results from queries.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Union, Callable
+from typing import Any, Union, Callable, Optional
 
 from . import __name__ as MODULE_NAME
 from . import connection as connection_module
@@ -608,10 +608,10 @@ class Cursor(BaseCursor):
         self,
         name: str,
         return_type: Any,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
         *,
-        keywordParameters: dict = None,
+        keywordParameters: Optional[dict] = None,
     ) -> Any:
         """
         Call a function with the given name. The return type is specified in
@@ -635,10 +635,10 @@ class Cursor(BaseCursor):
     def callproc(
         self,
         name: str,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
         *,
-        keywordParameters: dict = None,
+        keywordParameters: Optional[dict] = None,
     ) -> list:
         """
         Call a procedure with the given name. The sequence of parameters must
@@ -666,8 +666,8 @@ class Cursor(BaseCursor):
 
     def execute(
         self,
-        statement: Union[str, None],
-        parameters: Union[list, tuple, dict] = None,
+        statement: Optional[str],
+        parameters: Optional[Union[list, tuple, dict]] = None,
         **keyword_parameters: Any,
     ) -> Any:
         """
@@ -713,7 +713,7 @@ class Cursor(BaseCursor):
 
     def executemany(
         self,
-        statement: Union[str, None],
+        statement: Optional[str],
         parameters: Union[list, int],
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
@@ -782,7 +782,9 @@ class Cursor(BaseCursor):
             result.append(row)
         return result
 
-    def fetchmany(self, size: int = None, numRows: int = None) -> list:
+    def fetchmany(
+        self, size: Optional[int] = None, numRows: Optional[int] = None
+    ) -> list:
         """
         Fetch the next set of rows of a query result, returning a list of
         tuples. An empty list is returned if no more rows are available. Note
@@ -885,8 +887,8 @@ class AsyncCursor(BaseCursor):
         self,
         name: str,
         return_type: Any,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> Any:
         """
         Call a function with the given name. The return type is specified in
@@ -902,8 +904,8 @@ class AsyncCursor(BaseCursor):
     async def callproc(
         self,
         name: str,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> list:
         """
         Call a procedure with the given name. The sequence of parameters must
@@ -923,8 +925,8 @@ class AsyncCursor(BaseCursor):
 
     async def execute(
         self,
-        statement: Union[str, None],
-        parameters: Union[list, tuple, dict] = None,
+        statement: Optional[str],
+        parameters: Optional[Union[list, tuple, dict]] = None,
         **keyword_parameters: Any,
     ) -> None:
         """
@@ -963,7 +965,7 @@ class AsyncCursor(BaseCursor):
 
     async def executemany(
         self,
-        statement: Union[str, None],
+        statement: Optional[str],
         parameters: Union[list, int],
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
@@ -1032,7 +1034,7 @@ class AsyncCursor(BaseCursor):
             result.append(row)
         return result
 
-    async def fetchmany(self, size: int = None) -> list:
+    async def fetchmany(self, size: Optional[int] = None) -> list:
         """
         Fetch the next set of rows of a query result, returning a list of
         tuples. An empty list is returned if no more rows are available. Note
