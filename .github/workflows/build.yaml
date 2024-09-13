@@ -1,0 +1,108 @@
+name: build
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+
+  build_linux_wheels:
+    name: Build wheels for Linux
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - platform: amd64
+            container: quay.io/pypa/manylinux_2_28_x86_64
+          - platform: arm64
+            container: quay.io/pypa/manylinux_2_28_aarch64
+
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.platform }}
+
+      - name: Generate script
+        run: |
+          echo export PYO_COMPILE_ARGS=-g0 > build.sh
+          echo /opt/python/cp38-cp38/bin/python3.8 -m build >> build.sh
+          echo /opt/python/cp39-cp39/bin/python3.9 -m build >> build.sh
+          echo /opt/python/cp310-cp310/bin/python3.10 -m build >> build.sh
+          echo /opt/python/cp311-cp311/bin/python3.11 -m build >> build.sh
+          echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
+          echo /opt/python/cp313-cp313/bin/python3.13 -m build >> build.sh
+          echo cd dist >> build.sh
+          echo auditwheel repair *.whl >> build.sh
+          echo rm *.whl >> build.sh
+          echo mv wheelhouse/*.whl . >> build.sh
+          chmod +x build.sh
+
+      - name: Build wheels
+        run: |
+          docker run \
+            -v $(pwd):/io  \
+            -w /io \
+            --platform linux/${{ matrix.platform }} \
+            ${{ matrix.container }} \
+            ./build.sh
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux_${{ matrix.platform }}_wheels
+          path: dist
+
+  build_non_linux_wheels:
+    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        arch: ['x86', '']
+        exclude:
+          - os: macos-latest
+            arch: x86
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
+          allow-prereleases: true
+
+      - name: Ensure build package is present
+        run: python -m pip install build
+
+      - name: Build wheel for Python ${{ matrix.python-version }}
+        run: python -m build
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.arch }}
+          path: dist/*.whl
+
+  combine_artifacts:
+    name: Combine artifacts into single artifact
+    needs: [build_linux_wheels, build_non_linux_wheels]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: python-oracledb-wheels
+          delete-merged: true
