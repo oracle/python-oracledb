@@ -24,8 +24,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  Use ``locale.getencoding()`` with Python 3.11 and higher to determine the
-    encoding to use for the `config_dir` and `lib_dir` parameters to
+#)  Use `locale.getencoding() <https://docs.python.org/3/library/locale.html#
+    locale.getencoding>`__ with Python 3.11 and higher to determine the
+    encoding to use for the ``config_dir`` and ``lib_dir`` parameters to
     :meth:`oracledb.init_oracle_client()`. Bytes are also accepted in which
     case they will be used as is without any encoding
     (`issue 255 <https://github.com/oracle/python-oracledb/issues/255>`__).
