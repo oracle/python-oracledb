@@ -282,7 +282,8 @@ Oracledb Methods
     specified, are expected to be a sequence of values which identifies the
     database shard to connect to. The key values can be a list of strings,
     numbers, bytes, or dates.  These values are only used in the
-    python-oracledb Thick mode and are ignored in the Thin mode.
+    python-oracledb Thick mode and are ignored in the Thin mode. See
+    :ref:`connsharding`.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
     `host=<host>;port=<port>` that specifies the host and port of the PL/SQL
@@ -851,13 +852,12 @@ Oracledb Methods
     should be a string.  This value is only used inthe python-oracledb Thick
     mode.
 
-    The ``shardingkey`` parameter is expected to be a list of strings, numbers,
-    bytes or dates that identifies the database shard to connect to. This value
-    is only used in the python-oracledb Thick mode.
-
-    The ``supershardingkey`` parameter is expected to be a list of strings,
-    numbers, bytes or dates that identifies the database shard to connect to.
-    This value is only used in the python-oracledb Thick mode.
+    The ``shardingkey`` parameter and ``supershardingkey`` parameters, if
+    specified, are expected to be a sequence of values which identifies the
+    database shard to connect to. The key values can be a list of strings,
+    numbers, bytes, or dates.  These values are only used in the
+    python-oracledb Thick mode and are ignored in the Thin mode.  See
+    :ref:`connsharding`.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
     `host=<host>;port=<port>` that specifies the host and port of the PL/SQL
@@ -1008,6 +1008,19 @@ Oracledb Methods
     individual parameters, which themselves override values set in the
     ``params`` parameter object. Similar precedence rules also apply to other
     values.
+
+    Python-oracledb connection pools must be created, used and closed within
+    the same process. Sharing pools or connections across processes has
+    unpredictable behavior.  Using connection pools in multi-threaded
+    architectures is supported.  Multi-process architectures that cannot be
+    converted to threading may get some benefit from :ref:`drcp`.
+
+    In python-oracledb Thick mode, connection pooling is handled by Oracle's
+    `Session pooling <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ technology.
+    This allows python-oracledb applications to support features like
+    `Application Continuity <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
 
     The ``user``, ``password``, and ``dsn`` parameters are the same as for
     :meth:`oracledb.connect()`.
@@ -1221,8 +1234,11 @@ Oracledb Methods
     notifications. The default value is False.
 
     The ``externalauth`` parameter is a boolean that determines whether to use
-    external authentication. This value is only used in the python-oracledb
-    Thick mode and is ignored in the Thin mode. The default value is False.
+    external authentication. This value is only used in python-oracledb Thick
+    mode and is ignored in Thin mode. The default value is False. For pooled
+    connections in Thick mode, external authentication requires the use of a
+    heterogeneous pool. For this reason, you must set the ``homogeneous``
+    parameter to False. See :ref:`extauth`.
 
     If the ``mode`` parameter is specified, it must be one of the
     :ref:`connection authorization modes <connection-authorization-modes>`
@@ -1271,7 +1287,8 @@ Oracledb Methods
     specified, are expected to be a sequence of values which identifies the
     database shard to connect to. The key values can be a list of strings,
     numbers, bytes, or dates.  These values are only used in the
-    python-oracledb Thick mode and are ignored in the Thin mode.
+    python-oracledb Thick mode and are ignored in the Thin mode.  See
+    :ref:`connsharding`.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
     `host=<host>;port=<port>` that specifies the host and port of the PL/SQL
@@ -1347,13 +1364,6 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode and
     is ignored in the Thin mode. It should be used with extreme caution. The
     default value is 0.
-
-    In the python-oracledb Thick mode, connection pooling is handled by
-    Oracle's `Session pooling <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ technology.
-    This allows python-oracledb applications to support features like
-    `Application Continuity <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__.
 
     .. versionchanged:: 2.3.0
 
@@ -2085,13 +2095,12 @@ Oracledb Methods
     should be a string.  This value is only used inthe python-oracledb Thick
     mode.
 
-    The ``shardingkey`` parameter is expected to be a list of strings, numbers,
-    bytes or dates that identifies the database shard to connect to. This value
-    is only used in the python-oracledb Thick mode.
-
-    The ``supershardingkey`` parameter is expected to be a list of strings,
-    numbers, bytes or dates that identifies the database shard to connect to.
-    This value is only used in the python-oracledb Thick mode.
+    The ``shardingkey`` parameter and ``supershardingkey`` parameters, if
+    specified, are expected to be a sequence of values which identifies the
+    database shard to connect to. The key values can be a list of strings,
+    numbers, bytes, or dates.  These values are only used in the
+    python-oracledb Thick mode and are ignored in the Thin mode. See
+    :ref:`connsharding`.
 
     The ``debug_jdwp`` parameter is expected to be a string with the format
     `host=<host>;port=<port>` that specifies the host and port of the PL/SQL

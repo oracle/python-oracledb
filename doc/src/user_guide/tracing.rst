@@ -184,20 +184,24 @@ python-oracledb.
 
 Python-oracledb applications that call PL/SQL can step through that PL/SQL code
 using JDWP in a debugger. This allows Python and PL/SQL code to be debugged in
-the same debugger environment. You can enable PL/SQL debugging in the
-python-oracledb modes as follows:
+the same debugger environment. You can enable PL/SQL debugging in
+python-oracledb as follows:
 
-- If you are using python-oracledb Thick mode, set the ``ORA_DEBUG_JDWP`` environment
-  variable to `host=hostname;port=portnum` indicating where the PL/SQL debugger
-  is running.  Then run the application.
+- In python-oracledb Thin or Thick modes, set the ``ORA_DEBUG_JDWP``
+  environment variable to `host=hostname;port=portnum` indicating where the
+  PL/SQL debugger is running.  Then run the application.
 
-- In the python-oracledb Thin mode, you can additionally set the connection
+- In python-oracledb Thin mode, you can alternatively set the connection
   parameter ``debug_jdwp`` during connection.  This variable defaults to the
   value of the ``ORA_DEBUG_JDWP`` environment variable.
 
-See `DBMS_DEBUG_JDWP <https://docs.oracle.com/en/database/oracle/oracle-database
-/19/arpls/DBMS_DEBUG_JDWP.html>`_ and `Debugging PL/SQL from ASP.NET and Visual
-Studio <http://cshay.blogspot.com/2006/10/debugging-plsql-from-aspnet-and-visual.html>`_.
+See the documentation on `DBMS_DEBUG_JDWP
+<https://docs.oracle.com/en/database/oracle/oracle-database
+/19/arpls/DBMS_DEBUG_JDWP.html>`_, the video `PL/SQL debugging with Visual
+Studio and Visual Studio Code <https://www.youtube.com/watch?v=wk-3hLe30kk>`_,
+and the blog post `Debugging PL/SQL with Visual Studio Code (and more)
+<https://medium.com/oracledevs/debugging-pl-sql-with-visual-studio-code-and-
+more-45631f3952cf>`_.
 
 
 .. _lowlevelsqltrace:
@@ -205,10 +209,11 @@ Studio <http://cshay.blogspot.com/2006/10/debugging-plsql-from-aspnet-and-visual
 Low Level SQL Tracing
 ---------------------
 
-The Thick mode of python-oracledb is implemented using the `ODPI-C <https://oracle.
-github.io/odpi>`__ wrapper on top of the Oracle Client libraries.  The ODPI-C tracing
-capability can be used to log executed python-oracledb statements to the standard error
-stream. Before executing Python, set the environment variable ``DPI_DEBUG_LEVEL`` to 16.
+The Thick mode of python-oracledb is implemented using the
+`ODPI-C <https://oracle.github.io/odpi>`__ wrapper on top of the Oracle Client
+libraries.  The ODPI-C tracing capability can be used to log executed
+python-oracledb statements to the standard error stream. Before executing
+Python, set the environment variable ``DPI_DEBUG_LEVEL`` to 16.
 
 At a Windows command prompt, this could be done with::
 

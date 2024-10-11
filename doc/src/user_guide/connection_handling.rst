@@ -5,8 +5,10 @@ Connecting to Oracle Database
 *****************************
 
 Connections between python-oracledb and Oracle Database are used for executing
-:ref:`SQL <sqlexecution>`, :ref:`PL/SQL <plsqlexecution>`, and :ref:`SODA
-<sodausermanual>`.
+:ref:`SQL <sqlexecution>` and :ref:`PL/SQL <plsqlexecution>`, for calling
+:ref:`SODA <sodausermanual>` functions, for receiving database
+:ref:`notifications <cqn>` and :ref:`messages <aqusermanual>`, and for
+:ref:`starting and stopping <startup>` the database.
 
 By default, python-oracledb runs in a 'Thin' mode which connects directly to
 Oracle Database.  This mode does not need Oracle Client libraries.  However,
@@ -269,15 +271,20 @@ Connection Strings
 ==================
 
 The data source name parameter ``dsn`` of :meth:`oracledb.connect()` and
-:meth:`oracledb.create_pool()` is the Oracle Database connection string
-that identifies which database service to connect to.  The ``dsn`` string can be
-one of:
+:meth:`oracledb.create_pool()` is the Oracle Database connection string that
+identifies which database service to connect to.  The ``dsn`` value can be one
+of Oracle's naming methods:
 
-* An Oracle Easy Connect string
-* An Oracle Net Connect Descriptor string
-* A Net Service Name mapping to a connect descriptor
+* An Oracle :ref:`Easy Connect <easyconnect>` string
+* A :ref:`Net Service Name <netservice>` mapping to a connect descriptor
+* An Oracle Net :ref:`Connect Descriptor <conndescriptor>`
+* An :ref:`LDAP URL <ldapurl>`
 
-For more information about naming methods, see `Oracle Net Service Reference
+Connection strings used for JDBC and Oracle SQL Developer need to be altered to
+be usable as the ``dsn`` value, see :ref:`jdbcconnstring`.
+
+For more information about naming methods, see the `Database Net Services
+Administrator's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E5358DEA-D619-4B7B-A799-3D2F802500F1>`__.
 
 .. _easyconnect:
@@ -311,7 +318,7 @@ If the database is using a non-default port, it must be specified:
 The Easy Connect syntax supports Oracle Database service names.  It cannot be
 used with the older System Identifiers (SID).
 
-The latest `Easy Connect Plus
+The latest `Easy Connect
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ syntax allows the use of
 multiple hosts or ports, along with optional entries for the wallet location,
@@ -367,6 +374,8 @@ For more information about Net Service Names, see
 `Database Net Services Reference
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__.
 
+.. _conndescriptor:
+
 Oracle Net Connect Descriptor Strings
 -------------------------------------
 
@@ -398,6 +407,14 @@ This prints::
 
     (DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost.example.com)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=orclpdb))(SECURITY=(SSL_SERVER_DN_MATCH=True)))
 
+.. _ldapurl:
+
+LDAP URL Connection Strings
+---------------------------
+
+See :ref:`ldapconnections`.
+
+.. _jdbcconnstring:
 
 JDBC and Oracle SQL Developer Connection Strings
 ------------------------------------------------
@@ -419,8 +436,11 @@ then use Oracle's Easy Connect syntax in python-oracledb:
     connection = oracledb.connect(user="hr", password=userpwd,
                                   dsn="dbhost.example.com:1521/orclpdb")
 
-Alternatively, if a JDBC connection string uses an old-style Oracle Database
-SID "system identifier", and the database does not have a service name::
+You may need to remove JDBC-specific parameters from the connection string and
+use python-oracledb alternatives.
+
+If a JDBC connection string uses an old-style Oracle Database SID "system
+identifier", and the database does not have a service name::
 
     jdbc:oracle:thin:@hostname:port:sid
 
@@ -435,7 +455,7 @@ then connect by using the ``sid`` parameter:
     connection = oracledb.connect(user="hr", password=userpwd,
                                   host="dbhost.example.com", port=1521, sid="orcl")
 
-Alternatively, create a ``tnsnames.ora`` (see :ref:`optnetfiles`) entry, for
+Alternatively, create a ``tnsnames.ora`` entry (see :ref:`optnetfiles`), for
 example::
 
     finance =
@@ -602,14 +622,14 @@ could connect using:
 
 .. code-block:: python
 
-    cs = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
-    connection = oracledb.connect(user="scott", password=pw, dsn=cs)
+    ldapurl = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
+    connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
 
 **Thin Mode**
 
 To use LDAP in python-oracledb Thin mode, specify an LDAP URL as the DSN and
-call :meth:`oracledb.register_protocol()` to register a user function that gets
-the connect descriptor from the LDAP server. For example:
+call :meth:`oracledb.register_protocol()` to register your own user function
+that gets the connect descriptor from your LDAP server. For example:
 
 .. code-block:: python
 
@@ -685,6 +705,18 @@ pool technology <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__ which supports additional
 Oracle Database features, for example some advanced :ref:`high availability
 <highavailability>` features.
+
+.. note::
+
+    Python-oracledb connection pools must be created, used and closed within
+    the same process. Sharing pools or connections across processes has
+    unpredictable behavior.
+
+    Using connection pools in multi-threaded architectures is supported.
+
+    Multi-process architectures that cannot be converted to threading may get
+    some benefit from :ref:`drcp`.
+
 
 Creating a Connection Pool
 --------------------------
@@ -1468,22 +1500,22 @@ allocated each time :meth:`~ConnectionPool.acquire()` is called:
 
 **Setting the Connection Class and Purity in the Connection String**
 
-Using python-oracledb Thin mode with Oracle Database 21c, you can specify the
-class and purity in the connection string itself.  This removes the need to
-modify an existing application when you want to use DRCP:
+Using python-oracledb Thin mode with Oracle Database 21c, or later, you can
+specify the class and purity in the connection string itself.  This removes the
+need to modify an existing application when you want to use DRCP:
 
 .. code-block:: python
 
     dsn = "localhost/orclpdb:pooled?pool_connection_class=MYAPP&pool_purity=self"
 
 For python-oracledb Thick mode, this syntax is supported if you are using
-Oracle Database 21c and Oracle Client 19c (or later). However, explicitly
-specifying the purity as *SELF* in this way may cause some unusable connections
-in a python-oracledb Thick mode connection pool to not be terminated.  In
-summary, if you cannot programmatically set the class name and purity, or
-cannot use python-oracledb Thin mode, then avoid explicitly setting the purity
-as a connection string parameter when using a python-oracledb connection
-pooling in Thick mode.
+Oracle Database 21c (or later) and Oracle Client 19c (or later). However,
+explicitly specifying the purity as *SELF* in this way may cause some unusable
+connections in a python-oracledb Thick mode connection pool to not be
+terminated.  In summary, if you cannot programmatically set the class name and
+purity, or cannot use python-oracledb Thin mode, then avoid explicitly setting
+the purity as a connection string parameter when using a python-oracledb
+connection pooling in Thick mode.
 
 **Closing Connections when using DRCP**
 
@@ -1876,14 +1908,18 @@ Connecting Using External Authentication
 
 Instead of storing the database username and password in Python scripts or
 environment variables, database access can be authenticated by an outside
-system.  External Authentication allows applications to validate user access by
-an external password store (such as an Oracle Wallet), by the operating system,
-or with an external authentication service.
+system.  External Authentication allows applications to validate user access
+with an external password store (such as an
+:ref:`Oracle Wallet <extauthwithwallet>`), with the
+:ref:`operating system <opsysauth>`, or with an external authentication
+service.
 
 .. note::
 
     Connecting to Oracle Database using external authentication is only
     supported in the python-oracledb Thick mode. See :ref:`enablingthick`.
+
+.. _extauthwithwallet:
 
 Using an Oracle Wallet for External Authentication
 --------------------------------------------------
@@ -1961,21 +1997,28 @@ your DBA, skip to step 3.
     set to the directory containing them.  See :ref:`optnetfiles`.
 
 With an Oracle wallet configured, and readable by you, your scripts
-can connect using:
+can connect to Oracle Database with:
 
-.. code-block:: python
+- Standalone connections by setting the ``externalauth`` parameter to *True*
+  in :meth:`oracledb.connect()` as shown below:
+
+  .. code-block:: python
 
     connection = oracledb.connect(externalauth=True, dsn="mynetalias")
 
-or:
+- Or pooled connections by setting the ``externalauth`` parameter to *True*
+  in :meth:`oracledb.create_pool()`.  Additionally in python-oracledb Thick
+  mode, you must set the ``homogeneous`` parameter to *False* as shown below
+  since heterogeneous pools can only be used with external authentication:
 
-.. code-block:: python
+  .. code-block:: python
 
     pool = oracledb.create_pool(externalauth=True, homogeneous=False,
                                 dsn="mynetalias")
     pool.acquire()
 
-The ``dsn`` must match the one used in the wallet.
+The ``dsn`` used in :meth:`oracledb.connect()` and
+:meth:`oracledb.create_pool()` must match the one used in the wallet.
 
 After connecting, the query::
 
@@ -2046,13 +2089,15 @@ The following usage is not supported:
                                 homogeneous=False, dsn="mynetalias")
     pool.acquire()
 
+.. _opsysauth:
 
 Operating System Authentication
 -------------------------------
 
-With Operating System authentication, Oracle allows user authentication to be
-performed by the operating system.  The following steps give an overview of how
-to implement OS Authentication on Linux.
+With `Operating System <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-37BECE32-58D5-43BF-A098-97936D66968F>`__ authentication, Oracle allows
+user authentication to be performed by the operating system.  The following
+steps give an overview of how to implement OS Authentication on Linux.
 
 1.  Log in to your computer. The commands used in these steps assume the
     operating system user name is "oracle".
@@ -3007,66 +3052,15 @@ its own directory.  For each connection use different connection string
 file.  It is recommended to use Oracle Client libraries 19.17 (or later) when
 using :ref:`multiple wallets <connmultiwallets>`.
 
-Access Through a Proxy
-+++++++++++++++++++++++
+Using the Easy Connect Syntax with Oracle Autonomous Database
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-If you are behind a firewall, you can tunnel TLS/SSL connections via a proxy
-using `HTTPS_PROXY
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C672E92D-CE32-4759-9931-92D7960850F7>`__
-in the connect descriptor or setting connection attributes.  Successful
-connection depends on specific proxy configurations.  Oracle does not recommend
-doing this when performance is critical.
+When python-oracledb is using Oracle Client libraries 19c, or later, you can
+optionally use :ref:`Easy Connect <easyconnect>` syntax to connect to Oracle
+Autonomous Database.
 
-**In python-oracledb Thin mode**
-
-The proxy settings can be passed during connection creation:
-
-.. code-block:: python
-
-    connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low",
-                                  config_dir="/opt/OracleCloud/MYDB",
-                                  wallet_location="/opt/OracleCloud/MYDB", wallet_password=wp,
-                                  https_proxy='myproxy.example.com', https_proxy_port=80)
-
-Alternatively, edit ``tnsnames.ora`` and add an ``HTTPS_PROXY`` proxy name and
-``HTTPS_PROXY_PORT`` port to the connect descriptor address list of any service
-name you plan to use, for example::
-
-    mydb_low = (description=
-        (address=
-        (https_proxy=myproxy.example.com)(https_proxy_port=80)
-        (protocol=tcps)(port=1522)(host= . . . )
-
-.. code-block:: python
-
-    connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low",
-                                  config_dir="/opt/OracleCloud/MYDB",
-                                  wallet_location="/opt/OracleCloud/MYDB", wallet_password=wp)
-
-**In python-oracledb Thick mode**
-
-Edit ``sqlnet.ora`` and add a line::
-
-    SQLNET.USE_HTTPS_PROXY=on
-
-Edit ``tnsnames.ora`` and add an ``HTTPS_PROXY`` proxy name and
-``HTTPS_PROXY_PORT`` port to the connect descriptor address list of any service
-name you plan to use, for example::
-
-    mydb_high = (description=
-        (address=
-        (https_proxy=myproxy.example.com)(https_proxy_port=80)
-        (protocol=tcps)(port=1522)(host= . . . )
-
-Using the Easy Connect Syntax with Autonomous Database
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-When python-oracledb is using Oracle Client libraries 19c or later, you can
-optionally use the :ref:`Easy Connect <easyconnect>` syntax to connect to
-Oracle Autonomous Database.
-
-The mapping from the cloud ``tnsnames.ora`` entries to an Easy Connect Plus
-string is::
+The mapping from the cloud ``tnsnames.ora`` entries to an Easy Connect string
+is::
 
     protocol://host:port/service_name?wallet_location=/my/dir&retry_count=N&retry_delay=N
 
@@ -3088,7 +3082,7 @@ Then your applications can connect using the connection string:
 The ``wallet_location`` parameter needs to be set to the directory containing
 the ``cwallet.sso`` or ``ewallet.pem`` file from the wallet zip.  The other
 wallet files, including ``tnsnames.ora``, are not needed when you use the Easy
-Connect Plus syntax.
+Connect syntax.
 
 You can add other Easy Connect parameters to the connection string, for example::
 
@@ -3173,6 +3167,73 @@ location as the ``wallet_location`` parameter to :func:`oracledb.connect()` or
             f.write(cert.public_bytes(Encoding.PEM))
     print("PEM file", pem_file_name, "written.")
 
+.. _firewallproxy:
+
+Connecting Through a Firewall via a Proxy
+=========================================
+
+If you are behind a firewall, you can tunnel TLS/SSL connections via a proxy by
+setting connection attributes, or by making `HTTPS_PROXY <https://www.oracle.
+com/pls/topic/lookup?ctx=dblatest&id=GUID-C672E92D-CE32-4759-9931-
+92D7960850F7>`__ proxy name and `HTTPS_PROXY_PORT <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-E69D27B7-2B59-4946-89B3-5DDD491C2D9A>`__
+port parameters available in your :ref:`connection string <connstr>`.
+
+.. note::
+
+    Oracle does not recommend connecting through a firewall via a proxy when
+    performance is critical.
+
+**In python-oracledb Thin mode**
+
+- Proxy settings ``https_proxy`` and ``https_proxy_port`` can be passed during
+  connection or pool creation.  Use appropriate values for your proxy:
+
+  .. code-block:: python
+
+      connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low",
+                                    config_dir="/opt/OracleCloud/MYDB",
+                                    wallet_location="/opt/OracleCloud/MYDB", wallet_password=wp,
+                                    https_proxy="myproxy.example.com", https_proxy_port=80)
+
+- Alternatively, add the parameters to your :ref:`Easy Connect <easyconnect>`
+  string::
+
+      localhost/orclpdb&https_proxy=myproxy.example.com&https_proxy_port=80
+
+- Alternatively, update the :ref:`connect descriptor <conndescriptor>` (either
+  being passed directly during connection or contained in your
+  :ref:`tnsnames.ora <netservice>` file). If you are using a :ref:`tnsnames.ora
+  <netservice>` file, a modified entry might look like::
+
+      mydb_low = (description=
+                   (address=
+                     (https_proxy=myproxy.example.com)(https_proxy_port=80)
+                     (protocol=tcps)(port=1522)(host= . . . )
+
+**In python-oracledb Thick mode**
+
+- If you are using an :ref:`Easy Connect <easyconnect>` string, add
+  ``HTTPS_PROXY`` and ``HTTPS_PROXY_PORT`` parameters with appropriate values for
+  your proxy. For example, you might pass parameters like::
+
+      localhost/orclpdb&https_proxy=myproxy.example.com&https_proxy_port=80
+
+- Alternatively, update the :ref:`connect descriptor <conndescriptor>` (either
+  being passed directly during connection or contained in your
+  :ref:`tnsnames.ora <netservice>` file). If you are using a :ref:`tnsnames.ora
+  <netservice>` file, a modified entry might look like::
+
+      mydb_low = (description=
+                   (address=
+                     (https_proxy=myproxy.example.com)(https_proxy_port=80)
+                     (protocol=tcps)(port=1522)(host= . . . )
+
+  Additionally create, or edit, a :ref:`sqlnet.ora <optnetfiles>` file and add
+  a line::
+
+      SQLNET.USE_HTTPS_PROXY=on
+
 .. _connmultiwallets:
 
 Connecting using Multiple Wallets
@@ -3224,28 +3285,36 @@ typically the same directory where the ``wallet.zip`` file was extracted.
 
 .. note::
 
-       Use Oracle Client libraries 19.17, or later, or use Oracle Client 21c.
-       They contain important bug fixes for using multiple wallets in the one
-       process.
+       Use Oracle Client libraries 19.17, or later, or use Oracle Client 21c or
+       23ai.  They contain important bug fixes for using multiple wallets in
+       the one process.
+
 
 .. _connsharding:
 
-Connecting to Sharded Databases
-===============================
+Connecting to Oracle Globally Distributed Database
+==================================================
 
-`Oracle Sharding
-<https://www.oracle.com/database/technologies/high-availability/sharding.html>`__
-can be used to horizontally partition data across independent databases.  A
-database table can be split so each shard contains a table with the same columns
-but a different subset of rows.  These tables are known as sharded tables.
-Sharding is configured in Oracle Database, see the `Oracle Sharding
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__ manual.
-Sharding requires Oracle Database and Oracle Client libraries 12.2, or later.
+`Oracle Globally Distributed Database
+<https://www.oracle.com/database/distributed-database/>`__ is a feature of
+Oracle Database that lets you automatically distribute and replicate data
+across a pool of Oracle databases that share no hardware or software.  It was
+previously known as Oracle Sharding.  It allows a database table to be split so
+each database contains a table with the same columns but a different subset of
+rows.  These tables are known as sharded tables.  From the perspective of an
+application, a sharded table in Oracle Globally Distributed Database looks like
+a single table: the distribution of data across those shards is completely
+transparent to the application.
+
+Sharding is configured in
+Oracle Database, see the `Oracle Globally Distributed Database
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__ manual.  It
+requires Oracle Database and Oracle Client libraries 12.2, or later.
 
 .. note::
 
-    Sharding is only supported in the python-oracledb Thick mode.  See
-    :ref:`enablingthick`.
+    Oracle Globally Distributed Database is only supported in the
+    python-oracledb Thick mode.  See :ref:`enablingthick`.
 
 The :meth:`oracledb.connect()` and :meth:`ConnectionPool.acquire()` functions
 accept ``shardingkey`` and ``supershardingkey`` parameters that are a sequence

@@ -765,6 +765,24 @@ statements, or even to enable new types to be bound directly.
 An input type handler is enabled by setting the attribute
 :attr:`Cursor.inputtypehandler` or :attr:`Connection.inputtypehandler`.
 
+**Inserting NaN values as NULL in NUMBER columns**
+
+To insert NaN values as NULLs in a NUMBER column, use an input type handler
+with an inconverter:
+
+.. code-block:: python
+
+    def input_type_handler(cursor, value, arraysize):
+      if isinstance(value, float):
+          return cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=arraysize,
+                            inconverter=lambda x: None if math.isnan(x) else x)
+
+    connection.inputtypehandler = input_type_handler
+
+Note that this is not needed for BINARY_FLOAT or BINARY_DOUBLE columns.
+
+**Binding Python Objects**
+
 Input type handlers can be combined with variable converters to bind Python
 objects seamlessly:
 

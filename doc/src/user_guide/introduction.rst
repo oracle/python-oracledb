@@ -4,20 +4,41 @@
 Introduction to the Python Driver for Oracle Database
 *****************************************************
 
-The python-oracledb driver is a Python extension module that enables access to
-Oracle Database.  It has comprehensive functionality supporting the `Python
-Database API v2.0 Specification <https://www.python.org/dev/peps/pep-0249/>`__
-with a considerable number of additions and a couple of exclusions.
-Synchronous and :ref:`concurrent <asyncio>` coding styles are supported.
+The python-oracledb driver is a Python module that enables access to Oracle
+Database. It conforms to the `Python Database API v2.0 Specification
+<https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of
+additions and a couple of exclusions. Synchronous and :ref:`concurrent
+<asyncio>` coding styles are supported.  It is distributed under an open-source
+:ref:`license <license>`.
 
-The python-oracledb driver is the renamed, major version successor to
-`cx_Oracle 8.3 <https://oracle.github.io/python-cx_Oracle/>`__.  For upgrade
-information, see :ref:`upgrading83`.
+The module is available from standard package repositories including `PyPI
+<https://pypi.org/project/oracledb/>`__, `conda-forge
+<https://anaconda.org/conda-forge/oracledb>`__, and `yum.oracle.com
+<https://yum.oracle.com/oracle-linux-python.html>`__.  The source code is
+hosted at `github.com/oracle/python-oracledb
+<https://github.com/oracle/python-oracledb>`__.
 
-Python-oracledb is typically installed from Python's package repository
-`PyPI <https://pypi.org/project/oracledb/>`__ using `pip
-<https://pip.pypa.io/en/latest/installation/>`__. See :ref:`installation` for
-more information.
+This module is currently tested with Python 3.8, 3.9, 3.10, 3.11, 3.12 and 3.13
+against Oracle Database 23ai, 21c, 19c, 18c, 12c, and 11gR2.  Older versions of
+python-oracledb may support older versions of Python.
+
+Changes in python-oracledb
+releases can be found in the :ref:`release notes <releasenotes>`.
+
+The python-oracledb driver is the renamed, major version successor to cx_Oracle
+8.3.  For upgrade information, see :ref:`upgrading83`.
+
+Getting Started
+===============
+
+See :ref:`quickstart`.
+
+Runnable examples are in the `GitHub samples directory
+<https://github.com/oracle/python-oracledb/tree/main/samples>`__.
+A tutorial `Python and Oracle Database Tutorial: The New Wave of Scripting
+<https://oracle.github.io/python-oracledb
+/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html>`__
+is also available.
 
 Architecture
 ============
@@ -98,34 +119,18 @@ Feature Highlights of python-oracledb
 
 The python-oracledb feature highlights are:
 
-    *   Easy installation from PyPI
+    *   Easy installation from PyPI and other repositories
     *   Support for multiple Oracle Database versions
     *   Supports the `Python Database API v2.0 Specification <https://www.
         python.org/dev/peps/pep-0249/>`__ with a considerable number of
         additions and a couple of exclusions
     *   Works with common frameworks and ORMs
     *   Execution of SQL and PL/SQL statements
-    *   Extensive Oracle data type support, including JSON, large objects
-        (``CLOB`` and ``BLOB``) and binding of SQL objects
+    *   Extensive Oracle data type support, including JSON, VECTOR, large
+        objects (``CLOB`` and ``BLOB``) and binding of SQL objects
     *   Connection management, including connection pooling
     *   Oracle Database High Availability features
     *   Full use of Oracle Network Service infrastructure, including encrypted
         network traffic
 
 See :ref:`featuresummary` for more information.
-
-Getting Started
-===============
-
-See :ref:`quickstart`.
-
-
-Examples and Tutorial
-=====================
-
-Runnable examples are in the `GitHub samples directory
-<https://github.com/oracle/python-oracledb/tree/main/samples>`__.
-A tutorial `Python and Oracle Database Tutorial: The New Wave of Scripting
-<https://oracle.github.io/python-oracledb
-/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html>`__
-is also available.

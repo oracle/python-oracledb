@@ -118,7 +118,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Sharded Databases (see :ref:`connsharding`)
+    * - Oracle Globally Distributed Database - previously known as Oracle Sharded Databases (see :ref:`connsharding`)
       - No
       - Yes - No TIMESTAMP support
       - Yes - No TIMESTAMP support
@@ -142,7 +142,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Not applicable
       - Yes
       - Yes
-    * - Easy Connect Plus connection strings
+    * - Easy Connect connection strings (see :ref:`easyconnect`)
       - Yes - mostly supported. Unknown settings are ignored and not passed to Oracle Database.
       - Yes
       - Yes

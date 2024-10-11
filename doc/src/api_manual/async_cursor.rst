@@ -129,20 +129,25 @@ AsyncCursor Methods
 .. method:: AsyncCursor.executemany(statement, parameters, batcherrors=False, \
         arraydmlrowcounts=False)
 
-    Prepares a statement for execution against a database and then execute it
-    against all parameter mappings or sequences found in the sequence
-    parameters. See :ref:`batchstmnt`.
+    Executes a SQL statement once using all bind value mappings or sequences
+    found in the sequence parameters. This can be used to insert, update, or
+    delete multiple rows in a table with a single python-oracledb call. It can
+    also invoke a PL/SQL procedure multiple times. See :ref:`batchstmnt`.
 
     The ``statement`` parameter is managed in the same way as the
-    :meth:`~AsyncCursor.execute()` method manages it. If the size of the buffers
-    allocated for any of the parameters exceeds 2 GB, you will receive the
-    error "DPI-1015: array size of <n> is too large", where <n> varies with the
-    size of each element being allocated in the buffer. If you receive this
-    error, decrease the number of elements in the sequence parameters.
+    :meth:`~AsyncCursor.execute()` method manages it.
 
-    If there are no parameters, or parameters have previously been bound, the
-    number of iterations can be specified as an integer instead of needing to
-    provide a list of empty mappings or sequences.
+    The ``parameters`` parameter can be a list of tuples, where each tuple item
+    maps to one bind variable placeholder in ``statement``. It can also be a
+    list of dictionaries, where the keys match the bind variable placeholder
+    names in ``statement``. If there are no bind values, or values have
+    previously been bound, the ``parameters`` value can be an integer
+    specifying the number of iterations.
+
+    In python-oracledb Thick mode, if the size of the buffers allocated for any
+    of the parameters exceeds 2 GB, you will receive the error "DPI-1015: array
+    size of <n> is too large". If you receive this error, decrease the number
+    of rows being inserted.
 
     When True, the ``batcherrors`` parameter enables batch error support within
     Oracle and ensures that the call succeeds even if an exception takes place
@@ -154,14 +159,14 @@ AsyncCursor Methods
     then be retrieved using :meth:`~AsyncCursor.getarraydmlrowcounts()`.
 
     Both the ``batcherrors`` parameter and the ``arraydmlrowcounts`` parameter
-    can only be true when executing an insert, update, delete or merge
-    statement; in all other cases an error will be raised.
+    can only be True when executing an insert, update, delete, or merge
+    statement. In all other cases, an error will be raised.
 
     For maximum efficiency, it is best to use the
-    :meth:`~AsyncCursor.setinputsizes()` method to specify the parameter types and
-    sizes ahead of time; in particular, None is assumed to be a string of
-    length 1 so any values that are later bound as numbers or dates will raise
-    a TypeError exception.
+    :meth:`~AsyncCursor.setinputsizes()` method to specify the parameter types
+    and sizes ahead of time. In particular, the value None is assumed to be a
+    string of length 1 so any values that are later bound as numbers or dates
+    will raise a TypeError exception.
 
 .. method:: AsyncCursor.fetchall()
 

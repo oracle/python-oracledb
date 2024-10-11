@@ -402,7 +402,7 @@ to python-oracledb:
   Advanced Queuing (AQ), Continuous Query Notification (CQN), and Sharding.
   See :ref:`Features Supported <featuresummary>` for details.
 
-- python-oracledb can be used in SQLAlchemy, Django, Pandas, and other
+- python-oracledb can be used in SQLAlchemy, Django, Pandas, Superset and other
   frameworks and Object-relational Mappers (ORMs). To use python-oracledb in
   versions of these libraries that don't have native support for the new name,
   you can override the use of cx_Oracle with a few lines of code. See
@@ -745,9 +745,10 @@ Python Frameworks, SQL Generators, and ORMs
 Python-oracledb's Thin and :ref:`Thick <enablingthick>` modes cover the feature
 needs of frameworks that depend upon the Python Database API.
 
-For versions of SQLAlchemy, Django, other frameworks, object-relational mappers
-(ORMs), and libraries that don't have native support for python-oracledb, you
-can add code like this to use python-oracledb in-place of cx_Oracle:
+For versions of SQLAlchemy, Django, Superset, other frameworks,
+object-relational mappers (ORMs), and libraries that do not have native support
+for python-oracledb, you can add code like this to use python-oracledb in-place
+of cx_Oracle:
 
 .. code-block:: python
 
@@ -755,15 +756,105 @@ can add code like this to use python-oracledb in-place of cx_Oracle:
     import oracledb
     oracledb.version = "8.3.0"
     sys.modules["cx_Oracle"] = oracledb
-    import cx_Oracle
 
 .. note::
 
-    The import of cx_Oracle occurs last. This code must be run before the
-    library code does its own import of cx_Oracle.
+    This must occur before any import of cx_Oracle by your code or the library.
+
+To use Thick mode, for example if you need to connect to Oracle Database 11gR2,
+also add a call to :meth:`oracledb.init_oracle_client()` with the appropriate
+parameters for your environment, see :ref:`enablingthick`.
 
 SQLAlchemy 2 and Django 5 have native support for python-oracledb so this code
 snippet is not needed in those versions.
 
-To use Thick mode, an additional call to :meth:`~oracledb.init_oracle_client()`
-is needed, see :ref:`enablingthick`.
+Connecting with SQLAlchemy
+++++++++++++++++++++++++++
+
+**SQLAlchemy 1.4**
+
+.. code-block:: python
+
+    # Using python-oracledb in SQLAlchemy 1.4
+
+    import os
+    import getpass
+    import oracledb
+    from sqlalchemy import create_engine
+    from sqlalchemy import text
+
+    import sys
+    oracledb.version = "8.3.0"
+    sys.modules["cx_Oracle"] = oracledb
+
+    # Uncomment to use python-oracledb Thick mode
+    # Review the doc for the appropriate parameters
+    #oracledb.init_oracle_client(<your parameters>)
+
+    un = os.environ.get("PYTHON_USERNAME")
+    cs = os.environ.get("PYTHON_CONNECTSTRING")
+    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
+
+    # Note the first argument is different for SQLAlchemy 1.4 and 2
+    engine = create_engine(f'oracle://@',
+                           connect_args={
+                               "user": un,
+                               "password": pw,
+                               "dsn": cs
+                           }
+             )
+
+    with engine.connect() as connection:
+        print(connection.scalar(text(
+               """SELECT UNIQUE CLIENT_DRIVER
+                  FROM V$SESSION_CONNECT_INFO
+                  WHERE SID = SYS_CONTEXT('USERENV', 'SID')""")))
+
+
+Note that the ``create_engine()`` argument driver declaration uses
+``oracle://`` for SQLAlchemy 1.4 and ``oracle+oracledb://`` for SQLAlchemy 2.
+
+The ``connect_args`` dictionary can use any appropriate
+:meth:`oracledb.connect()` parameter.
+
+**SQLAlchemy 2**
+
+.. code-block:: python
+
+    # Using python-oracledb in SQLAlchemy 2
+
+    import os
+    import getpass
+    import oracledb
+    from sqlalchemy import create_engine
+    from sqlalchemy import text
+
+    # Uncomment to use python-oracledb Thick mode
+    # Review the doc for the appropriate parameters
+    #oracledb.init_oracle_client(<your parameters>)
+
+    un = os.environ.get("PYTHON_USERNAME")
+    cs = os.environ.get("PYTHON_CONNECTSTRING")
+    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
+
+    # Note the first argument is different for SQLAlchemy 1.4 and 2
+    engine = create_engine(f'oracle+oracledb://@',
+                           connect_args={
+                               "user": un,
+                               "password": pw,
+                               "dsn": cs
+                           }
+             )
+
+    with engine.connect() as connection:
+        print(connection.scalar(text(
+               """SELECT UNIQUE CLIENT_DRIVER
+                  FROM V$SESSION_CONNECT_INFO
+                  WHERE SID = SYS_CONTEXT('USERENV', 'SID')""")))
+
+
+Note that the ``create_engine()`` argument driver declaration uses
+``oracle://`` for SQLAlchemy 1.4 and ``oracle+oracledb://`` for SQLAlchemy 2.
+
+The ``connect_args`` dictionary can use any appropriate
+:meth:`oracledb.connect()` parameter.

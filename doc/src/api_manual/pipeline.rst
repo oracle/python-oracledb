@@ -8,7 +8,9 @@ API: Pipeline Objects
 
     In this release, pipelining support is experimental and subject to change.
 
-See :ref:`pipelining` for more information about pipelining.
+Pipelining is only supported in python-oracledb Thin mode with
+:ref:`asyncio <concurrentprogramming>`. See :ref:`pipelining` for more
+information about pipelining.
 
 .. note::
 
@@ -32,8 +34,13 @@ Pipeline Methods
 
 .. method:: Pipeline.add_callfunc(name, return_type, parameters=None, keyword_parameters=None)
 
-    Adds an operation that calls a stored PL/SQL function with the given
-    parameters and return type. When the Pipeline is executed, the
+    Adds an operation to the pipeline that calls a stored PL/SQL function with
+    the given parameters and return type. The created
+    :ref:`PipelineOp object <pipelineopobjs>` is also returned from this
+    function. :ref:`pipelineopattrs` can be used to examine the operation, if
+    needed.
+
+    When the Pipeline is executed, the
     :ref:`PipelineOpResult object <pipelineopresultobjs>` that is returned for
     this operation will have the :attr:`~PipelineOpResult.return_value`
     attribute populated with the return value of the PL/SQL function if the
@@ -42,6 +49,9 @@ Pipeline Methods
 .. method:: Pipeline.add_callproc(name, parameters=None, keyword_parameters=None)
 
     Adds an operation that calls a stored procedure with the given parameters.
+    The created :ref:`PipelineOp object <pipelineopobjs>` is also returned
+    from this function. :ref:`pipelineopattrs` can be used to examine the
+    operation, if needed.
 
 .. method:: Pipeline.add_commit()
 
@@ -50,6 +60,9 @@ Pipeline Methods
 .. method:: Pipeline.add_execute(statement, parameters=None)
 
     Adds an operation that executes a statement with the given parameters.
+    The created :ref:`PipelineOp object <pipelineopobjs>` is also returned
+    from this function. :ref:`pipelineopattrs` can be used to examine the
+    operation, if needed.
 
     Do not use this for queries that return rows.  Instead use
     :meth:`Pipeline.add_fetchall()`, :meth:`Pipeline.add_fetchmany()`, or
@@ -57,17 +70,30 @@ Pipeline Methods
 
 .. method:: Pipeline.add_executemany(statement, parameters)
 
-    Adds an operation that executes a statement multiple times with the given
-    parameter mappings or sequences found in the sequence parameters.
+    Adds an operation that executes a SQL statement once using all bind value
+    mappings or sequences found in the sequence parameters. This can be used to
+    insert, update, or delete multiple rows in a table. It can also invoke a
+    PL/SQL procedure multiple times. See :ref:`batchstmnt`.
 
-    If there are no parameters, the number of iterations can be specified as an
-    integer instead of needing to provide a list of empty mappings or
-    sequences.
+    The created :ref:`PipelineOp object <pipelineopobjs>` is also returned from
+    this function. :ref:`pipelineopattrs` can be used to examine the operation,
+    if needed.
+
+    The ``parameters`` parameter can be a list of tuples, where each tuple item
+    maps to one bind variable placeholder in ``statement``. It can also be a
+    list of dictionaries, where the keys match the bind variable placeholder
+    names in ``statement``. If there are no bind values, or values have
+    previously been bound, the ``parameters`` value can be an integer
+    specifying the number of iterations.
 
 .. method:: Pipeline.add_fetchall(statement, parameters=None, arraysize=None, rowfactory=None)
 
     Adds an operation that executes a query and returns all of the rows from
-    the result set. When the Pipeline is executed, the :ref:`PipelineOpResult
+    the result set.  The created :ref:`PipelineOp object <pipelineopobjs>` is
+    also returned from this function. :ref:`pipelineopattrs` can be used to
+    examine the operation, if needed.
+
+    When the Pipeline is executed, the :ref:`PipelineOpResult
     object <pipelineopresultobjs>` that is returned for this operation will
     have the :attr:`~PipelineOpResult.rows` attribute populated with the list
     of rows returned by the query.
@@ -80,7 +106,12 @@ Pipeline Methods
 .. method:: Pipeline.add_fetchmany(statement, parameters=None, num_rows=None, rowfactory=None)
 
     Adds an operation that executes a query and returns up to the specified
-    number of rows from the result set. When the Pipeline is executed, the
+    number of rows from the result set.  The created
+    :ref:`PipelineOp object <pipelineopobjs>` is also returned from this
+    function. :ref:`pipelineopattrs` can be used to examine the operation, if
+    needed.
+
+    When the Pipeline is executed, the
     :ref:`PipelineOpResult object <pipelineopresultobjs>` that is returned for
     this operation will have the :attr:`~PipelineOpResult.rows` attribute
     populated with the list of rows returned by the query.
@@ -99,7 +130,12 @@ Pipeline Methods
 .. method:: Pipeline.add_fetchone(statement, parameters=None, rowfactory=None)
 
     Adds an operation that executes a query and returns the first row of the
-    result set if one exists. When the Pipeline is executed, the
+    result set if one exists.  The created
+    :ref:`PipelineOp object <pipelineopobjs>` is also returned from this
+    function. :ref:`pipelineopattrs` can be used to examine the operation, if
+    needed.
+
+    When the Pipeline is executed, the
     :ref:`PipelineOpResult object <pipelineopresultobjs>` that is returned for
     this operation will have the :attr:`~PipelineOpResult.rows` attribute
     populated with this row if the query is performed successfully.
@@ -127,6 +163,8 @@ PipelineOp Objects
 
 PipelineOp objects are created by calling the methods in the
 :ref:`Pipeline class <pipelineobjs>`.
+
+.. _pipelineopattrs:
 
 PipelineOp Attributes
 ---------------------
@@ -199,6 +237,7 @@ PipelineOpResult Attributes
 .. attribute:: PipelineOpResult.operation
 
     This read-only attribute returns the operation associated with the result.
+    See :ref:`pipeline-operation-types` for types of operations.
 
 .. attribute:: PipelineOpResult.return_value
 

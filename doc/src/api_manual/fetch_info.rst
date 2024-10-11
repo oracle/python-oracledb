@@ -39,23 +39,25 @@ FetchInfo Attributes
 
 .. attribute:: FetchInfo.domain_name
 
-    This read-only attribute returns the name of the `SQL domain
-    <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
-    create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
-    associated with the fetched column. If there is no SQL domain, the value
-    ``None`` is returned. SQL domains require Oracle Database 23ai. If using
-    python-oracledb Thick mode, Oracle Client 23ai is also required.
+    This read-only attribute returns the name of the `data use case domain
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6-
+    D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
+    there is no data use case domain, the value ``None`` is returned. `Data
+    use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle Database 23ai.
+    If using python-oracledb Thick mode, Oracle Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 
 .. attribute:: FetchInfo.domain_schema
 
-    This read-only attribute returns the schema of the `SQL domain
-    <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
-    create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
-    associated with the fetched column. If there is no SQL domain, the value
-    ``None`` is returned. SQL domains require Oracle Database 23ai. If using
-    python-oracledb Thick mode, Oracle Client 23ai is also required.
+    This read-only attribute returns the schema of the `data use case domain
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6-
+    D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
+    there is no data use case domain, the value ``None`` is returned. `Data
+    use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle Database 23ai.
+    If using python-oracledb Thick mode, Oracle Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 

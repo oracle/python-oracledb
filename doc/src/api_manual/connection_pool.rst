@@ -75,7 +75,7 @@ ConnectionPool Methods
     The ``shardingkey`` and ``supershardingkey`` parameters, if specified, are
     expected to be a sequence of values which will be used to identify the
     database shard to connect to. The key values can be strings, numbers, bytes
-    or dates.
+    or dates.  See :ref:`connsharding`.
 
 .. method:: ConnectionPool.close(force=False)
 

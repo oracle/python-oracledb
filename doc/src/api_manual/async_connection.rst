@@ -109,12 +109,17 @@ AsyncConnection Methods
 
 .. method:: AsyncConnection.executemany(statement, parameters)
 
-    Executes a statement against all parameter mappings or sequences found in
-    the sequence parameters.
+    Executes a SQL statement once using all bind value mappings or sequences
+    found in the sequence parameters. This can be used to insert, update, or
+    delete multiple rows in a table with a single python-oracledb call. It can
+    also invoke a PL/SQL procedure multiple times.
 
-    If there are no parameters, the number of iterations can be specified as an
-    integer instead of needing to provide a list of empty mappings or
-    sequences.
+    The ``parameters`` parameter can be a list of tuples, where each tuple item
+    maps to one bind variable placeholder in ``statement``. It can also be a
+    list of dictionaries, where the keys match the bind variable placeholder
+    names in ``statement``. If there are no bind values, or values have
+    previously been bound, the ``parameters`` value can be an integer
+    specifying the number of iterations.
 
     This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
     :meth:`AsyncCursor.executemany()`, and then :meth:`AsyncCursor.close()`.

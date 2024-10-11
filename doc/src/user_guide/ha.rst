@@ -63,12 +63,12 @@ Client, a ``tnsnames.ora`` connect descriptor option `ENABLE=BROKEN
 can be used instead of ``EXPIRE_TIME``.  These settings can also aid detection
 of a terminated remote database server.
 
-When python-oracledb uses :ref:`Oracle Client libraries 19c <thickarchfig>`, then the
-:ref:`Easy Connect Plus syntax <easyconnect>` syntax enables some options to be
-used without needing a ``sqlnet.ora`` file.  For example, if your firewall times
-out every 4 minutes, and you cannot alter the firewall settings, then you may
-decide to use ``EXPIRE_TIME`` in your connect string to send a probe every 2
-minutes to the database to keep connections 'alive'::
+When python-oracledb uses :ref:`Oracle Client libraries 19c <thickarchfig>`, or
+later, then the :ref:`Easy Connect syntax <easyconnect>` syntax enables some
+options to be used without needing a ``sqlnet.ora`` file.  For example, if your
+firewall times out every 4 minutes, and you cannot alter the firewall settings,
+then you may decide to use ``EXPIRE_TIME`` in your connect string to send a
+probe every 2 minutes to the database to keep connections 'alive'::
 
     connection = oracledb.connect("hr", userpwd, "dbhost.example.com/orclpdb?expire_time=2")
 

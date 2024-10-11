@@ -4,7 +4,7 @@
 Executing Batch Statements and Bulk Loading
 *******************************************
 
-Inserting or updating multiple rows can be performed efficiently with
+Inserting, updating or deleting multiple rows can be performed efficiently with
 :meth:`Cursor.executemany()`, making it easy to work with large data sets with
 python-oracledb.  This method can significantly outperform repeated calls to
 :meth:`Cursor.execute()` by reducing network transfer costs and database
@@ -43,13 +43,15 @@ The following example inserts five rows into the table ``ParentTable``:
 .. code-block:: python
 
     data = [
-        (10, 'Parent 10'),
-        (20, 'Parent 20'),
-        (30, 'Parent 30'),
-        (40, 'Parent 40'),
-        (50, 'Parent 50')
+        (10, "Parent 10"),
+        (20, "Parent 20"),
+        (30, "Parent 30"),
+        (40, "Parent 40"),
+        (50, "Parent 50")
     ]
     cursor.executemany("insert into ParentTable values (:1, :2)", data)
+
+Each tuple value maps to one of the bind variable placeholders.
 
 This code requires only one :ref:`round-trip <roundtrips>` from the client to
 the database instead of the five round-trips that would be required for
@@ -59,6 +61,32 @@ so repeated calls to ``executemany()`` may be required.  The limits are based
 on both the number of rows being processed as well as the "size" of each row
 that is being processed.  Repeated calls to :meth:`~Cursor.executemany()` are
 still better than repeated calls to :meth:`~Cursor.execute()`.
+
+To insert a single column, make sure the bind variables are correctly created
+as tuples, for example:
+
+.. code-block:: python
+
+    data = [
+        (10,),
+        (20,),
+        (30,),
+    ]
+    cursor.executemany('insert into mytable (mycol) values (:1)', data)
+
+Named binds can be performed by passing an array of dicts, where the keys match
+the bind varible placeholder names:
+
+.. code-block:: python
+
+    data = [
+        {"pid": 10, "pdesc": "Parent 10"},
+        {"pid": 20, "pdesc": "Parent 20"},
+        {"pid": 30, "pdesc": "Parent 30"},
+        {"pid": 40, "pdesc": "Parent 40"},
+        {"pid": 50, "pdesc": "Parent 50"}
+    ]
+    cursor.executemany("insert into ParentTable values :pid, :pdesc)", data)
 
 
 Predefining Memory Areas
@@ -102,10 +130,28 @@ since numeric data is already stored efficiently.  Since python-oracledb
 allocates memory for each row based on the supplied values, do not oversize
 them.
 
-If the size of the buffers allocated for any of the parameters exceeds 2 GB,
+If the size of the buffers allocated for any of the bind values exceeds 2 GB,
 you will receive the error ``DPI-1015: array size of <n> is too large``, where
 <n> varies with the size of each element being allocated in the buffer. If you
-receive this error, decrease the number of elements in the sequence parameters.
+receive this error, decrease the number of rows being inserted.
+
+With named bind variables, use named parameters when calling
+:meth:`~Cursor.setinputsizes()`:
+
+.. code-block:: python
+
+    data = [
+        {"pid": 110, "pdesc": "Parent 110"},
+        {"pid": 2000, "pdesc": "Parent 2000"},
+        {"pid": 30000, "pdesc": "Parent 30000"},
+        {"pid": 400000, "pdesc": "Parent 400000"},
+        {"pid": 5000000, "pdesc": "Parent 5000000"}
+    ]
+    cursor.setinputsizes(pdesc=20)
+    cursor.executemany("""
+            insert into ParentTable (ParentId, Description)
+            values (:pid, :pdesc)""", data)
+
 
 Batch Execution of PL/SQL
 =========================
@@ -117,11 +163,11 @@ example:
 .. code-block:: python
 
     data = [
-        (10, 'Parent 10'),
-        (20, 'Parent 20'),
-        (30, 'Parent 30'),
-        (40, 'Parent 40'),
-        (50, 'Parent 50')
+        (10, "Parent 10"),
+        (20, "Parent 20"),
+        (30, "Parent 30"),
+        (40, "Parent 40"),
+        (50, "Parent 50")
     ]
     cursor.executemany("begin mypkg.create_parent(:1, :2); end;", data)
 
@@ -154,12 +200,12 @@ This example shows how data errors can be identified:
 .. code-block:: python
 
     data = [
-        (60, 'Parent 60'),
-        (70, 'Parent 70'),
-        (70, 'Parent 70 (duplicate)'),
-        (80, 'Parent 80'),
-        (80, 'Parent 80 (duplicate)'),
-        (90, 'Parent 90')
+        (60, "Parent 60"),
+        (70, "Parent 70"),
+        (70, "Parent 70 (duplicate)"),
+        (80, "Parent 80"),
+        (80, "Parent 80 (duplicate)"),
+        (90, "Parent 90")
     ]
     cursor.executemany("insert into ParentTable values (:1, :2)", data,
                        batcherrors=True)

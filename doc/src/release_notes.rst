@@ -43,6 +43,7 @@ Common Changes
 #)  Improved error message when attempting to access attributes on a connection
     before a connection has been established
     (`issue 385 <https://github.com/oracle/python-oracledb/issues/385>`__).
+#)  Improved test suite and documentation.
 
 
 oracledb 2.4.1 (August 2024)

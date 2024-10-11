@@ -125,13 +125,13 @@ Closing Cursors
 
 Once cursors are no longer needed, they should be closed in order to reclaim
 resources in the database.  Note cursors may be used to execute multiple
-statements.
+statements before being closed.
 
 Cursors can be closed in various ways:
 
-- A cursor will be closed automatically when the variable referencing it goes out
-  of scope (and no further references are retained). A ``with`` block is a
-  convenient way to ensure this. For example:
+- A cursor will be closed automatically when the variable referencing it goes
+  out of scope (and no further references are retained). A ``with`` context
+  manager block is a convenient and preferred way to ensure this. For example:
 
   .. code-block:: python
 
@@ -164,16 +164,33 @@ can be obtained using :attr:`Cursor.description`:
 
 .. code-block:: python
 
-    cursor = connection.cursor()
-    cursor.execute("select * from MyTable")
-    for column in cursor.description:
-        print(column)
+    with connection.cursor() as cursor:
+        cursor.execute("select * from MyTable")
+        for column in cursor.description:
+            print(column)
 
 This could result in metadata like::
 
     ('ID', <class 'oracledb.DB_TYPE_NUMBER'>, 39, None, 38, 0, 0)
     ('NAME', <class 'oracledb.DB_TYPE_VARCHAR'>, 20, 20, None, None, 1)
 
+To extract the column names from a query you can use code like:
+
+.. code-block:: python
+
+    with connection.cursor() as cursor:
+        cursor.execute("select * from locations")
+        columns = [col[0] for col in cursor.description]
+        print(columns)
+        for r in cursor:
+            print(r)
+
+This will print::
+
+    ['LOCATION_ID', 'STREET_ADDRESS', 'POSTAL_CODE', 'CITY', 'STATE_PROVINCE', 'COUNTRY_ID']
+    (1000, '1297 Via Cola di Rie', '00989', 'Roma', None, 'IT')
+    (1100, '93091 Calle della Testa', '10934', 'Venice', None, 'IT')
+    . . .
 
 .. _defaultfetchtypes:
 
@@ -366,7 +383,7 @@ previously set a type handler on a cursor, you can remove it with:
     cursor.outputtypehandler = None
 
 Other examples of output handlers are shown in :ref:`numberprecision`,
-:ref:`directlobs` and :ref:`fetching-raw-data`.  Also see samples such as
+:ref:`directlobs`, and :ref:`fetching-raw-data`.  Also see samples such as
 `samples/type_handlers_json_strings.py
 <https://github.com/oracle/python-oracledb/blob/main/samples/type_handlers_
 json_strings.py>`__.
@@ -379,7 +396,7 @@ Changing Query Results with Outconverters
 Python-oracledb "outconverters" can be used with :ref:`output type handlers
 <outputtypehandlers>` to change returned data.
 
-For example:
+For example, to convert numbers to strings:
 
 .. code-block:: python
 
@@ -397,8 +414,10 @@ For example:
 
 The output type handler is called once for each column in the SELECT query.
 For each numeric column, the database will now return a string representation
-of each row's value.  The outconverter will then be called in Python for each
-of those values.  Using it in a query:
+of each row's value, and the outconverter will be called for each of those
+values.
+
+Using it in a query:
 
 .. code-block:: python
 
@@ -417,9 +436,11 @@ requested in the output type handler.  The ``out_converter`` function then
 appended "was a string" to the data before the value was returned to the
 application.
 
-Note outconverters are not called for NULL data values unless the value
-specified in the ``convert_nulls`` parameter was *True* when the variable was
-created using :meth:`Cursor.var()`.
+Note outconverters are not called for NULL data values unless the
+:meth:`Cursor.var()` parameter ``convert_nulls`` is *True*.
+
+Another example of an outconverter is shown in :ref:`fetching VECTORs as lists
+<vecoutputtypehandlerlist>`.
 
 .. _rowfactories:
 
@@ -447,6 +468,8 @@ The output is::
     {'LOCATION_ID': 1000, 'STREET_ADDRESS': '1297 Via Cola di Rie',
     'POSTAL_CODE': '00989', 'CITY': 'Roma', 'STATE_PROVINCE': None,
     'COUNTRY_ID': 'IT'}
+
+Also see how ``JSON_OBJECT`` is used in :ref:`jsondatatype`.
 
 If you join tables where the same column name occurs in both tables with
 different meanings or values, then use a column alias in the query.  Otherwise,

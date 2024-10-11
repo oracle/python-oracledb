@@ -330,6 +330,7 @@ ConnectParams Attributes
 
     This read-only attribute is a list that specifies a sequence of strings,
     numbers, bytes, or dates that identify the database shard to connect to.
+    See :ref:`connsharding`.
 
     This attribute is only supported in python-oracledb Thick mode.
 
@@ -399,6 +400,7 @@ ConnectParams Attributes
 
     This read-only attribute is a list that specifies a sequence of strings,
     numbers, bytes, or dates that identify the database shard to connect to.
+    See :ref:`connsharding`.
 
     This attribute is only supported in python-oracledb Thick mode.
 

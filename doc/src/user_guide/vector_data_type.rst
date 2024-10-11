@@ -96,7 +96,7 @@ fetched metadata contains attributes :attr:`FetchInfo.vector_dimensions` and
 vector column and the format of each dimension value in the vector column
 respectively.
 
-.. _outputtypehandlerlist:
+.. _vecoutputtypehandlerlist:
 
 You can convert the vector data fetched from array.array() to a Python list by
 using the following :ref:`output type handler <outputtypehandlers>`:
@@ -107,7 +107,9 @@ using the following :ref:`output type handler <outputtypehandlers>`:
         if metadata.type_code is oracledb.DB_TYPE_VECTOR:
             return cursor.var(metadata.type_code, arraysize=cursor.arraysize,
                               outconverter=list)
+
     connection.outputtypehandler = output_type_handler
+
     cursor.execute("select * from vector_table")
     for row in cursor:
         print(row)
@@ -162,10 +164,10 @@ Inserting BINARY Vectors
 ------------------------
 
 Python arrays of type uint8_t (8-bit unsigned integer) are used as bind values
-when inserting vector columns. The length of unit8_t arrays must be equal to
+when inserting vector columns. The length of uint8_t arrays must be equal to
 the number of dimensions divided by 8. For example, if the number of
 dimensions for a vector column is 24, then the length of the array must be 3.
-The values in unint8_t arrays can range from 0 to 255. For example:
+The values in uint8_t arrays can range from 0 to 255. For example:
 
 .. code-block:: python
 
@@ -203,7 +205,7 @@ vector column and the format of each dimension value in the vector column
 respectively.
 
 You can convert the vector data fetched from a connection to a Python list by
-using this :ref:`output type handler <outputtypehandlerlist>`. For each vector
+using this :ref:`output type handler <vecoutputtypehandlerlist>`. For each vector
 column, the database will now return a Python list representation of each
 row's value.
 
