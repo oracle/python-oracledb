@@ -423,7 +423,8 @@ cdef class ConnectParamsImpl:
             credentials = dsn
             connect_string = None
         pos = credentials.find("/")
-        if pos >= 0:
+        if pos > 0 and credentials[pos - 1] != ':' \
+                or pos == 0 and len(credentials) == 1:
             user = credentials[:pos] or None
             password = credentials[pos + 1:] or None
         elif connect_string is None:

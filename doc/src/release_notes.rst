@@ -20,6 +20,8 @@ Thin Mode Changes
 #)  Added :meth:`oracledb.register_protocol()` to allow users to register a
     function that will be called when a particular protocol is detected in an
     Easy Connect string.
+#)  Fixed bug when calling :meth:`ConnectParams.parse_dsn_with_credentials()`
+    with an Easy Connect string containing a protocol.
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -930,6 +930,15 @@ class TestCase(test_env.BaseTestCase):
         finally:
             oracledb.register_protocol(protocol, None)
 
+    def test_4554(self):
+        "4554 - test parsing a DSN with a protocol specified"
+        dsn_in = "my-protocol://some_arguments_to_protocol"
+        params = oracledb.ConnectParams()
+        user, password, dsn_out = params.parse_dsn_with_credentials(dsn_in)
+        self.assertEqual(user, None)
+        self.assertEqual(password, None)
+        self.assertEqual(dsn_out, dsn_in)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
