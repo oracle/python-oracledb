@@ -870,6 +870,20 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(TypeError):
             oracledb.connect(pool="not a pool object")
 
+    def test_2441(self):
+        "2441 - test oracledb.POOL_GETMODE_FORCEGET"
+        pool = test_env.get_pool(
+            min=1, max=3, increment=1, getmode=oracledb.POOL_GETMODE_FORCEGET
+        )
+        num_conns = 10
+        active_sessions = set()
+        conns = [pool.acquire() for _ in range(num_conns)]
+        for conn in conns:
+            active_sessions.add(self.get_sid_serial(conn))
+        self.assertEqual(pool.opened, num_conns)
+        self.assertEqual(pool.busy, num_conns)
+        self.assertEqual(len(active_sessions), num_conns)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

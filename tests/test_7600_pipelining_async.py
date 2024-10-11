@@ -27,6 +27,8 @@
 """
 
 import unittest
+import datetime
+import decimal
 
 import oracledb
 import test_env
@@ -523,7 +525,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "7625 - test pipeline with clobs"
         clob = await self.conn.createlob(oracledb.DB_TYPE_CLOB, "Temp CLOB")
         pipeline = oracledb.create_pipeline()
-        pipeline.add_execute("truncate table TestCLOBs")
+        pipeline.add_execute("delete from TestCLOBs")
         pipeline.add_execute(
             "insert into TestCLOBs (IntCol, CLOBCol) values (1, :1)", ["CLOB"]
         )
@@ -572,7 +574,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "7627 - test executemany with number of iterations"
         num_iterations = 4
         pipeline = oracledb.create_pipeline()
-        pipeline.add_execute("truncate table TestAllTypes")
+        pipeline.add_execute("delete from TestAllTypes")
         pipeline.add_executemany(
             "insert into TestAllTypes (NumberValue) values (1)", num_iterations
         )
@@ -591,8 +593,9 @@ class TestCase(test_env.BaseAsyncTestCase):
         sql = "begin :var := :value; end;"
         pipeline.add_execute(sql, [var, 5])
         pipeline.add_execute(sql, [var, 10])
+        pipeline.add_execute(sql, [var, 15])
         await self.conn.run_pipeline(pipeline)
-        self.assertEqual(var.getvalue(), 10)
+        self.assertEqual(var.getvalue(), 15)
 
     async def test_7629(self):
         "7629 - test executemany() with PL/SQL"
@@ -616,6 +619,231 @@ class TestCase(test_env.BaseAsyncTestCase):
         pipeline.add_commit()
         await self.conn.run_pipeline(pipeline)
         self.assertEqual(out_bind.values, values)
+
+    async def test_7630(self):
+        "7630 - test oracledb.defaults.fetch_lobs"
+        clob_1_value = "CLOB Data One"
+        clob_2_value = "CLOB Data Two"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("delete from TestCLOBs")
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (1, :1)",
+            [clob_1_value],
+        )
+        clob = await self.conn.createlob(oracledb.DB_TYPE_CLOB, clob_2_value)
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (2, :1)", [clob]
+        )
+        pipeline.add_fetchall(
+            "select CLOBCol from TestCLOBs order by IntCol",
+        )
+        with test_env.DefaultsContextManager("fetch_lobs", False):
+            res = await self.conn.run_pipeline(pipeline)
+            self.assertEqual(
+                [res[-1].rows], [[(clob_1_value,), (clob_2_value,)]]
+            )
+
+    async def test_7631(self):
+        "7631 - test pipeline with lobs > 32K"
+        blob_1_data = b"T" * 33000
+        blob_2_data = b"B" * 33000
+        blob = await self.conn.createlob(oracledb.DB_TYPE_BLOB, blob_1_data)
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("delete from TestBLOBs")
+        pipeline.add_execute(
+            "insert into TestBLOBs (IntCol, BLOBCol) values (1, :1)", [blob]
+        )
+        pipeline.add_execute(
+            "insert into TestBLOBs (IntCol, BLOBCol) values (2, :1)",
+            [blob_2_data],
+        )
+        pipeline.add_fetchall(
+            "select BLOBCol from TestBLOBs order by IntCol",
+        )
+        res = await self.conn.run_pipeline(pipeline)
+        expected_value = [blob_1_data, blob_2_data]
+        fetched_value = [await lob.read() for lob, in res[-1].rows]
+        self.assertEqual(fetched_value, expected_value)
+
+    async def test_7632(self):
+        "7632 - test ref cursor"
+        ref_cursor1 = self.conn.cursor()
+        ref_cursor2 = self.conn.cursor()
+        sql = """
+                begin
+                    open :pcursor for
+                        select IntCol
+                        from TestNumbers
+                        order by IntCol;
+                end;"""
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute(sql, [ref_cursor1])
+        pipeline.add_execute(sql, [ref_cursor2])
+        await self.conn.run_pipeline(pipeline)
+        self.assertEqual(
+            await ref_cursor1.fetchall(), await ref_cursor2.fetchall()
+        )
+
+    async def test_7633(self):
+        "7633 - test add_callproc() with ref cursor"
+        values = [(2, None, None, None), (3, None, None, None)]
+        ref_cursor = self.conn.cursor()
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_fetchone("truncate table TestTempTable")
+        pipeline.add_executemany(
+            "insert into TestTempTable values (:1, :2, :3, :4)", values
+        )
+        pipeline.add_callproc("myrefcursorproc", [ref_cursor])
+        await self.conn.run_pipeline(pipeline)
+        self.assertEqual(await ref_cursor.fetchall(), values)
+
+    async def test_7634(self):
+        "7634 - test empty pipeline"
+        pipeline = oracledb.create_pipeline()
+        results = await self.conn.run_pipeline(pipeline)
+        self.assertEqual(results, [])
+
+    async def test_7635(self):
+        "7635 - test alter session"
+        sql = """
+            select value FROM nls_session_parameters
+            WHERE parameter = 'NLS_DATE_FORMAT'
+        """
+        (default_date_format,) = await self.conn.fetchone(sql)
+        date = datetime.datetime(2000, 12, 15, 7, 3)
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_fetchone("select to_char(:1) from dual", [date])
+        pipeline.add_execute(
+            "alter session set NLS_DATE_FORMAT='YYYY-MM-DD HH24:MI'"
+        )
+        pipeline.add_fetchone("select to_char(:1) from dual", [date])
+        pipeline.add_execute(
+            f"alter session set NLS_DATE_FORMAT='{default_date_format}'"
+        )
+        pipeline.add_fetchone("select to_char(:1) from dual", [date])
+        pipeline.add_fetchone(sql)
+        results = await self.conn.run_pipeline(pipeline)
+        self.assertEqual(results[2].rows, [("2000-12-15 07:03",)])
+        self.assertEqual(results[4].rows, results[0].rows)
+        self.assertEqual(results[-1].rows, [(default_date_format,)])
+
+    async def test_7636(self):
+        "7636 - test connection inputtypehandler"
+
+        def input_type_handler(cursor, value, num_elements):
+            if isinstance(value, str):
+                return cursor.var(
+                    oracledb.DB_TYPE_NUMBER,
+                    arraysize=num_elements,
+                    inconverter=lambda x: int(x),
+                )
+
+        self.conn.inputtypehandler = input_type_handler
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute(
+            "insert into TestTempTable (IntCol) values (:1)", ["12"]
+        )
+        pipeline.add_commit()
+        pipeline.add_fetchall("select IntCol from TestTempTable")
+        results = await self.conn.run_pipeline(pipeline)
+        self.assertEqual(results[-1].rows, [(12,)])
+
+    async def test_7637(self):
+        "7637 - test oracledb.defaults.fetch_decimals"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute("insert into TestTempTable (IntCol) values (1)")
+        pipeline.add_fetchall("select IntCol from TestTempTable")
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            res = await self.conn.run_pipeline(pipeline)
+        self.assertEqual([res[-1].rows], [[(decimal.Decimal("1"),)]])
+
+    async def test_7638(self):
+        "7638 - test oracledb.defaults.arraysize"
+        arraysize = 1
+        with test_env.DefaultsContextManager("arraysize", arraysize):
+            data = [(1,), (2,), (3,), (4,)]
+            pipeline = oracledb.create_pipeline()
+            pipeline.add_execute("truncate table TestTempTable")
+            pipeline.add_executemany(
+                "insert into TestTempTable (IntCol) values (:value)",
+                [{"value": i} for i, in data],
+            )
+            pipeline.add_commit()
+            op = pipeline.add_fetchall(
+                "select IntCol from TestTempTable order by IntCol",
+            )
+            self.assertEqual(op.arraysize, arraysize)
+            new_arraysize = 4
+            oracledb.defaults.arraysize = new_arraysize
+            op = pipeline.add_fetchall(
+                "select IntCol from TestTempTable order by IntCol",
+            )
+            self.assertEqual(op.arraysize, new_arraysize)
+            results = await self.conn.run_pipeline(pipeline)
+            self.assertEqual(results[-1].rows, data)
+            self.assertEqual(results[-2].rows, data)
+
+    async def test_7639(self):
+        "7639 - test autocommit"
+        conn1 = await test_env.get_connection_async()
+        conn1.autocommit = True
+        conn2 = await test_env.get_connection_async()
+
+        pipeline1 = oracledb.create_pipeline()
+        pipeline1.add_execute("truncate table TestTempTable")
+        pipeline1.add_execute("insert into TestTempTable (IntCol) values (1)")
+
+        pipeline2 = oracledb.create_pipeline()
+        pipeline2.add_execute("insert into TestTempTable (IntCol) values (2)")
+        pipeline2.add_commit()
+        pipeline2.add_fetchall("select IntCol from TestTempTable")
+
+        await conn1.run_pipeline(pipeline1)
+        results = await conn2.run_pipeline(pipeline2)
+        self.assertEqual(results[-1].rows, [(1,), (2,)])
+
+    async def test_7640(self):
+        "7640 - test DML returning"
+        out_value = self.cursor.var(str, arraysize=2)
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'Value for first row')
+            """
+        )
+        pipeline.add_execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (2, 'Value for second row')
+            """
+        )
+        pipeline.add_execute(
+            """
+            update TestTempTable set
+                StringCol1 = StringCol1 || ' (Modified)'
+            returning StringCol1 into :1
+            """,
+            [out_value],
+        )
+        pipeline.add_execute("update TestTempTable set StringCol1 = 'Fixed'")
+        pipeline.add_commit()
+        pipeline.add_fetchall(
+            "select IntCol, StringCol1 from TestTempTable order by IntCol"
+        )
+        results = await self.conn.run_pipeline(pipeline)
+        expected_data = [(1, "Fixed"), (2, "Fixed")]
+        self.assertEqual(results[-1].rows, expected_data)
+        self.assertEqual(
+            out_value.getvalue(),
+            [
+                "Value for first row (Modified)",
+                "Value for second row (Modified)",
+            ],
+        )
 
 
 if __name__ == "__main__":

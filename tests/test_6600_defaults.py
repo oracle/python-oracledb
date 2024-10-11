@@ -27,6 +27,7 @@
 """
 
 import decimal
+import os
 import tempfile
 
 import oracledb
@@ -66,6 +67,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_6604(self):
         "6604 - test setting defaults.stmtcachesize (pool)"
+        new_stmtcachesize = 15
         with test_env.DefaultsContextManager("stmtcachesize", 40):
             pool = test_env.get_pool()
             self.assertEqual(
@@ -75,14 +77,21 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(
                 conn.stmtcachesize, oracledb.defaults.stmtcachesize
             )
+            pool = test_env.get_pool(stmtcachesize=new_stmtcachesize)
+            self.assertEqual(pool.stmtcachesize, new_stmtcachesize)
+            conn = pool.acquire()
+            self.assertEqual(conn.stmtcachesize, new_stmtcachesize)
 
     def test_6605(self):
         "6605 - test setting defaults.stmtcachesize (standalone connection)"
+        new_stmtcachesize = 25
         with test_env.DefaultsContextManager("stmtcachesize", 50):
             conn = test_env.get_connection()
             self.assertEqual(
                 conn.stmtcachesize, oracledb.defaults.stmtcachesize
             )
+            conn = test_env.get_connection(stmtcachesize=new_stmtcachesize)
+            self.assertEqual(conn.stmtcachesize, new_stmtcachesize)
 
     def test_6606(self):
         "6606 - fetch_lobs does not affect LOBS returned as OUT binds"
@@ -97,18 +106,47 @@ class TestCase(test_env.BaseTestCase):
     def test_6607(self):
         "6607 - test setting defaults.config_dir"
         with tempfile.TemporaryDirectory() as temp_dir:
+            new_temp_dir = os.path.join(temp_dir, "subdir")
             with test_env.DefaultsContextManager("config_dir", temp_dir):
                 self.assertEqual(oracledb.defaults.config_dir, temp_dir)
                 params = oracledb.ConnectParams()
                 self.assertEqual(params.config_dir, temp_dir)
+                params = oracledb.ConnectParams(config_dir=new_temp_dir)
+                self.assertEqual(params.config_dir, new_temp_dir)
 
     def test_6608(self):
         "6608 - test setting defaults.stmtcachesize (ConnectParams)"
-        with test_env.DefaultsContextManager("stmtcachesize", 50):
+        new_stmtcachesize = 35
+        with test_env.DefaultsContextManager("stmtcachesize", 60):
             params = oracledb.ConnectParams()
             self.assertEqual(
                 params.stmtcachesize, oracledb.defaults.stmtcachesize
             )
+            params = oracledb.ConnectParams(stmtcachesize=new_stmtcachesize)
+            self.assertEqual(params.stmtcachesize, new_stmtcachesize)
+
+    def test_6609(self):
+        "6609 - test defaults.stmtcachesize persists after setting it again"
+        value = 50
+        new_value = 29
+        with test_env.DefaultsContextManager("stmtcachesize", value):
+            pool = test_env.get_pool()
+            pooled_conn = pool.acquire()
+            params = oracledb.ConnectParams()
+            standalone_conn = test_env.get_connection()
+            with test_env.DefaultsContextManager("stmtcachesize", new_value):
+                self.assertEqual(pool.stmtcachesize, value)
+                self.assertEqual(pooled_conn.stmtcachesize, value)
+                self.assertEqual(params.stmtcachesize, value)
+                self.assertEqual(standalone_conn.stmtcachesize, value)
+                pool = test_env.get_pool()
+                pooled_conn = pool.acquire()
+                params = oracledb.ConnectParams()
+                standalone_conn = test_env.get_connection()
+                self.assertEqual(pool.stmtcachesize, new_value)
+                self.assertEqual(pooled_conn.stmtcachesize, new_value)
+                self.assertEqual(params.stmtcachesize, new_value)
+                self.assertEqual(standalone_conn.stmtcachesize, new_value)
 
 
 if __name__ == "__main__":
