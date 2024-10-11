@@ -2057,7 +2057,7 @@ cdef class ExecuteMessage(MessageWithData):
             options |= TNS_EXEC_OPTION_BATCH_ERRORS
         if self.arraydmlrowcounts:
             dml_options = TNS_EXEC_OPTION_DML_ROWCOUNTS
-        if self.conn_impl.autocommit:
+        if self.conn_impl.autocommit and not self.parse_only:
             options |= TNS_EXEC_OPTION_COMMIT
 
         # write piggybacks, if needed

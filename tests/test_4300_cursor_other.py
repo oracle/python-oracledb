@@ -980,6 +980,15 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(lob.read(), "bb")
         self.assertEqual(num_val, 1)
 
+    def test_4367(self):
+        "4367 - test parse() with autocommit enabled"
+        conn = test_env.get_connection()
+        conn.autocommit = True
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.parse("insert into TestTempTable (IntCol) values (:1)")
+        cursor.execute(None, [1])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

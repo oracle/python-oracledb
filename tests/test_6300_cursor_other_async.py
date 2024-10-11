@@ -842,6 +842,17 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(await lob.read(), "bb")
         self.assertEqual(num_val, 1)
 
+    async def test_6349(self):
+        "6349 - test parse() with autocommit enabled"
+        async with test_env.get_connection_async() as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            await cursor.execute("truncate table TestTempTable")
+            await cursor.parse(
+                "insert into TestTempTable (IntCol) values (:1)"
+            )
+            await cursor.execute(None, [1])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
