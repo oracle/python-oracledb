@@ -27,6 +27,10 @@ Thin Mode Changes
     containing an embedded comment.
 #)  Fixed error message when a SQL statement is parsed containing a q-string
     without a closing quote.
+#)  When the interpreter shuts down, any pooled connections are ejected out of
+    any open pools and the pool itself shutdown. Previously, pooled connections
+    were closed, which was causing issues with other shutdown code such as that
+    found in the SQLAlchemy base pool implementation.
 
 Thick Mode Changes
 ++++++++++++++++++

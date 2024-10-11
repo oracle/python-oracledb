@@ -319,6 +319,25 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._busy_conn_impls.remove(conn_impl)
         self._check_timeout()
 
+    cdef int _shutdown(self) except -1:
+        """
+        Called when the main interpreter has completed and only shutdown code
+        is being executed. All connections in the pool are marked as non-pooled
+        and the pool itself terminated.
+        """
+        cdef BaseThinConnImpl conn_impl
+        with self._condition:
+            self._open = False
+            for lst in (self._free_used_conn_impls,
+                        self._free_new_conn_impls,
+                        self._busy_conn_impls):
+                for conn_impl in lst:
+                    conn_impl._pool = None
+                lst.clear()
+            self._requests.clear()
+            self._notify_bg_task()
+        self._bg_task.join()
+
     cdef int _start_timeout_task(self) except -1:
         """
         Starts the task for checking timeouts (differs for sync and async).
@@ -959,5 +978,5 @@ def close_pools_gracefully():
     cdef ThinPoolImpl pool_impl
     threading.main_thread().join()          # wait for main thread to finish
     for pool_impl in list(pools_to_close):
-        pool_impl.close(True)
+        pool_impl._shutdown()
 threading.Thread(target=close_pools_gracefully).start()
