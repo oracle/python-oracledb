@@ -23,6 +23,8 @@ Thin Mode Changes
 #)  Fixed bug when calling :meth:`ConnectParams.parse_dsn_with_credentials()`
     with an Easy Connect string containing a protocol.
 #)  Fixed bug when calling :meth:`Cursor.parse()` with autocommit enabled.
+#)  Fixed bug when parsing a tnsnames.ora file with a connect descriptor
+    containing an embedded comment.
 #)  Fixed error message when a SQL statement is parsed containing a q-string
     without a closing quote.
 

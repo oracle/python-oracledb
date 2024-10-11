@@ -473,6 +473,34 @@ class TestCase(test_env.BaseTestCase):
                 [n.upper() for n in network_service_names],
             )
 
+    def test_7220(self):
+        "7220 - test tnsnames.ora with comment embedded in dsn"
+        host = "host_7220"
+        port = 7220
+        service_name = "service_7220"
+        network_service_name = "nsn_7220"
+        connect_string = f"""
+            (DESCRIPTION=
+                (ADDRESS=(PROTOCOL=TCP)(HOST={host})(PORT={port}))
+                (CONNECT_DATA=
+                    (SERVICE_NAME={service_name})
+                    # embedded comment
+                )
+            )"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                print(f"{network_service_name} = {connect_string}", file=f)
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            params.parse_connect_string(network_service_name)
+            self.assertEqual(params.host, host)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.service_name, service_name)
+            self.assertEqual(
+                params.get_network_service_names(),
+                [network_service_name.upper()],
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

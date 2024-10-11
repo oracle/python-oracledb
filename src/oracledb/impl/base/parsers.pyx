@@ -622,8 +622,8 @@ cdef class TnsnamesFileParser(BaseParser):
         The number of parentheses are updated.
         """
         cdef:
-            bint found_part = False, stop_at_end_of_line = False
             ssize_t start_pos = 0, end_pos = 0
+            bint found_part = False
             Py_UCS4 ch
         self.skip_spaces()
         while self.temp_pos < self.num_chars:
@@ -634,22 +634,17 @@ cdef class TnsnamesFileParser(BaseParser):
                 if found_part:
                     break
                 continue
-            elif not found_part:
+            if found_part and num_parens[0] == 0:
+                if cpython.Py_UNICODE_ISLINEBREAK(ch):
+                    end_pos = self.temp_pos
+                    break
+            elif ch == '(':
+                num_parens[0] += 1
+            elif ch == ')' and num_parens[0] > 0:
+                num_parens[0] -= 1
+            if not found_part:
                 found_part = True
                 start_pos = self.temp_pos
-                if ch == '(':
-                    num_parens[0] += 1
-                else:
-                    stop_at_end_of_line = True
-            elif stop_at_end_of_line and cpython.Py_UNICODE_ISLINEBREAK(ch):
-                end_pos = self.temp_pos
-                break
-            elif num_parens[0] > 0 and ch == '(':
-                num_parens[0] += 1
-            elif num_parens[0] > 0 and ch == ')':
-                num_parens[0] -= 1
-                if num_parens[0] == 0:
-                    stop_at_end_of_line = True
             self.temp_pos += 1
             end_pos = self.temp_pos
         if found_part:
@@ -667,7 +662,7 @@ cdef class TnsnamesFileParser(BaseParser):
             ssize_t num_parens = 0
             list parts = []
             str part
-        while True:
+        while self.temp_pos < self.num_chars:
             part = self._parse_value_part(&num_parens)
             if part is not None:
                 parts.append(part)
