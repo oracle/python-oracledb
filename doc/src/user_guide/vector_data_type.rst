@@ -133,12 +133,11 @@ samples/vector.py>`__ for a runnable example.
 Using BINARY Vectors
 ====================
 
-In addition to Int8, Float32, and Float64 formats, you can also use a
-Binary format to define vectors. The binary format represents each dimension
-value as a binary value (0 or 1). Binary vectors require less memory storage.
-For example, a 16 dimensional vector with binary format requires only 2 bytes
-of storage while a 16 dimensional vector with int8 format requires 16 bytes of
-storage.
+A Binary vector format is supported when you are using Oracle Database 23.5, or
+later. The binary format represents each dimension value as a binary value (0
+or 1). Binary vectors require less memory storage.  For example, a 16
+dimensional vector with binary format requires only 2 bytes of storage while a
+16 dimensional vector with int8 format requires 16 bytes of storage.
 
 Binary vectors are represented as 8-bit unsigned integers. For the binary
 format, you must define the number of dimensions as a multiple of 8.
@@ -301,10 +300,10 @@ Using it in an ``INSERT`` statement:
 
 .. code-block:: python
 
-    vector_data_32 = numpy.array([1.625, 1.5, 1.0])
-    vector_data_64 = numpy.array([11.25, 11.75, 11.5])
-    vector_data_8 = numpy.array([1, 2, 3])
-    vector_data_vb = numpy.array([180, 150, 100])
+    vector_data_32 = numpy.array([1.625, 1.5, 1.0], dtype=numpy.float32)
+    vector_data_64 = numpy.array([11.25, 11.75, 11.5], dtype=numpy.float64)
+    vector_data_8 = numpy.array([1, 2, 3], dtype=numpy.int8)
+    vector_data_vb = numpy.array([180, 150, 100], dtype=numpy.uint8)
 
     connection.inputtypehandler = input_type_handler
 
@@ -324,15 +323,7 @@ an ndarray type by using an output type handler. For example:
 .. code-block:: python
 
     def numpy_converter_out(value):
-        if value.typecode == "b":
-            dtype = numpy.int8
-        elif value.typecode == "f":
-            dtype = numpy.float32
-        elif value.typecode == "B":
-            dtype = numpy.uint8
-        else:
-            dtype = numpy.float64
-        return numpy.array(value, copy=False, dtype=dtype)
+        return numpy.array(value, copy=False, dtype=value.typecode)
 
     def output_type_handler(cursor, metadata):
         if metadata.type_code is oracledb.DB_TYPE_VECTOR:
