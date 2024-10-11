@@ -189,6 +189,11 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.bindnames(), ["TABLE_NAME", "VALUE"])
 
+    def test_5214(self):
+        "5214 - qstring without a closing quote"
+        with self.assertRaisesFullCode("DPY-2041"):
+            self.cursor.prepare("select q'[something from dual")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

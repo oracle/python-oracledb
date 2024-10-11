@@ -177,7 +177,7 @@ cdef class StatementParser(BaseParser):
                 elif ch != sep:
                     exiting_qstring = False
             self.temp_pos += 1
-        errors._raise_err(errors.ERR_MISSING_QUOTE_IN_STRING)
+        errors._raise_err(errors.ERR_MISSING_ENDING_SINGLE_QUOTE)
 
     cdef int _parse_single_line_comment(self) except -1:
         """
