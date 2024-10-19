@@ -64,6 +64,11 @@ Common Changes
 #)  Improved error message when attempting to access attributes on a connection
     before a connection has been established
     (`issue 385 <https://github.com/oracle/python-oracledb/issues/385>`__).
+#)  Fixed bug when calling :meth:`ConnectParams.set()` with a value of ``None``
+    for the ``connectiontype`` and ``session_callback`` parameters. Previously,
+    any values set earlier would be improperly cleared and now they are
+    retained
+    (`issue 404 <https://github.com/oracle/python-oracledb/issues/404>`__).
 #)  Improved test suite and documentation.
 
 

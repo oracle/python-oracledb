@@ -49,6 +49,9 @@ class TestCase(test_env.BaseTestCase):
         params.set(**args)
         self.assertEqual(getattr(params, name), value)
         self.assertEqual(getattr(copied_params, name), orig_value)
+        args[name] = None
+        params.set(**args)
+        self.assertEqual(getattr(params, name), value)
 
     def __verify_network_name_attr(self, name):
         """

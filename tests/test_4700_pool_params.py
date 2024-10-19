@@ -48,6 +48,9 @@ class TestCase(test_env.BaseTestCase):
         params.set(**args)
         self.assertEqual(getattr(params, name), value)
         self.assertEqual(getattr(copied_params, name), orig_value)
+        args[name] = None
+        params.set(**args)
+        self.assertEqual(getattr(params, name), value)
 
     def test_4700(self):
         "4700 - test writable parameters"
