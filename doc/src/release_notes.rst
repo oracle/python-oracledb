@@ -42,7 +42,8 @@ Thick Mode Changes
     case they will be used as is without any encoding
     (`issue 255 <https://github.com/oracle/python-oracledb/issues/255>`__).
 #)  Fixed bug preventing subscriptions from invoking the callbacks associated
-    with them.
+    with them
+    (`issue 409 <https://github.com/oracle/python-oracledb/issues/409>`__).
 
 Common Changes
 ++++++++++++++

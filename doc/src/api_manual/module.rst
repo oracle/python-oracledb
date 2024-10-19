@@ -87,14 +87,14 @@ Oracledb Methods
     The ``params`` parameter is expected to be of type :ref:`ConnectParams
     <connparam>` and contains connection parameters that will be used when
     establishing the connection. If this parameter is not specified, the
-    additional keyword parameters will be used to create an instance of
-    ConnectParams. If both the params parameter and additional keyword
+    additional keyword parameters will be used to internally create an instance
+    of ConnectParams. If both the params parameter and additional keyword
     parameters are specified, the values in the keyword parameters have
-    precedence. Note that if a ``dsn`` is also supplied, then in the
-    python-oracledb Thin mode, the values of the parameters specified (if any)
-    within the ``dsn`` will override the values passed as additional keyword
-    parameters, which themselves override the values set in the ``params``
-    parameter object.
+    precedence. Note that if a ``dsn`` is also supplied in python-oracledb Thin
+    mode, then the values of the parameters specified (if any) within the
+    ``dsn`` will override the values passed as additional keyword parameters,
+    which themselves override the values set in the ``params`` parameter
+    object.
 
     The ``user`` parameter is expected to be a string which indicates the name
     of the user to connect to. This value is used in both the python-oracledb
@@ -2196,20 +2196,24 @@ Oracledb Methods
 
 .. function:: register_protocol(protocol, hook_function)
 
-    Registers a user function to be called prior to connection or pool creation
-    when an :ref:`Easy Connect <easyconnect>` connection string prefixed with
-    the specified protocol is being parsed internally by python-oracledb in
-    Thin mode. The registered hook function will also be invoked by
-    :meth:`ConnectParams.parse_connect_string()` in Thin and Thick modes.
+    Registers a user hook function that will be called internally by
+    python-oracledb Thin mode prior to connection or pool creation.  The hook
+    function will be invoked when :func:`oracledb.connect`,
+    :func:`oracledb.create_pool`, :meth:`oracledb.connect_async()`, or
+    :meth:`oracledb.create_pool_async()` are called with a ``dsn`` parameter
+    value prefixed with the specified protocol. The user function will also be
+    invoked when :meth:`ConnectParams.parse_connect_string()` is called in Thin
+    or Thick modes with a similar ``connect_string`` parameter value.
 
-    Your hook function is expected to find or construct a valid connection
-    string. For example, if the Easy Connect string is prefixed "ldaps://"
-    then a hook function registered for the "ldaps" protocol can perform LDAP
-    lookup to retrieve the actual database connection string that will be used
-    during connection creation.
+    Your hook function is expected to construct valid connection details. For
+    example, if a hook function is registered for the "ldaps" protocol, then
+    calling :func:`oracledb.connect` with a connection string prefixed with
+    "ldaps://" will invoke the function.  The function can then perform LDAP
+    lookup to retrieve and set the actual database information that will be
+    used internally by python-oracledb to complete the connection creation.
 
     The ``protocol`` parameter is a string that will be matched against the
-    prefix of Easy Connect strings that appears before the "://".
+    prefix appearing before "://" in connection strings.
 
     The ``hook_function`` parameter should be a function with the signature::
 
@@ -2219,18 +2223,30 @@ Oracledb Methods
 
     - The ``protocol`` parameter is the value that was registered.
 
-    - The ``protocol_arg`` parameter is the section after "://" in the Easy
-      Connect string.
+    - The ``protocol_arg`` parameter is the section after "://" in the
+      connection string used in the connection or pool creation call, or passed
+      to :meth:`~ConnectParams.parse_connect_string()`.
 
     - The ``params`` parameter is an instance of :ref:`ConnectParams
-      <connparam>`.  When :meth:`ConnectParams.parse_connect_string()` is
-      invoked then ``params`` will be the ConnectParams instance. Otherwise it
-      will be a new instance that will be used to create the connection.
+      <connparam>`.
 
-    The hook function should parse ``protocol_arg`` and update ``params`` with
-    the desired connection parameters. This can be done using
-    :meth:`ConnectParams.set()` or
-    :meth:`ConnectParams.parse_connect_string()`.
+      When your hook function is invoked internally prior to connection or pool
+      creation, ``params`` will be the ConnectParams instance originally passed
+      to the :func:`oracledb.connect`, :func:`oracledb.create_pool`,
+      :meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`
+      call, if such an instance was passed.  Otherwise it will be a new
+      ConnectParams instance.  The hook function should parse ``protocol`` and
+      ``protocol_arg`` and take any desired action to update ``params``
+      :ref:`attributes <connparamsattr>` with appropriate connection
+      parameters. Attributes can be set using :meth:`ConnectParams.set()` or
+      :meth:`ConnectParams.parse_connect_string()`. The ConnectParams instance
+      will then be used to complete the connection or pool creation.
+
+      When your hook function is invoked by
+      :meth:`ConnectParams.parse_connect_string()`, then ``params`` will be the
+      invoking ConnectParams instance that you can update using
+      :meth:`ConnectParams.set()` or
+      :meth:`ConnectParams.parse_connect_string()`.
 
     Internal hook functions for the "tcp" and "tcps" protocols are
     pre-registered but can be overridden if needed. If any other protocol has

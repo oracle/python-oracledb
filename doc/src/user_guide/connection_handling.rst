@@ -596,6 +596,87 @@ internal extraction is done automatically when a value is passed to the ``dsn``
 parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
 no value is passed to the ``user`` password.
 
+.. _connectionhook:
+
+Connection Hook Functions
+=========================
+
+The :meth:`oracledb.register_protocol()` method registers a user hook function
+that will be called internally by python-oracledb Thin mode prior to connection
+or pool creation.  The hook function will be invoked when
+:func:`oracledb.connect`, :func:`oracledb.create_pool`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` are
+called with a ``dsn`` parameter value prefixed with a specified protocol.  Your
+hook function is expected to construct valid connection details, which
+python-oracledb will use to complete the connection or pool creation.
+
+For example, the following hook function handles connection strings prefixed
+with ``tcp://``.  When :func:`oracledb.connect()` is called, the sample hook is
+invoked internally. It prints the parameters, and sets the connection
+information in the ``params`` parameter (without passing the ``tcp://`` prefix
+to :meth:`~ConnectParams.parse_connect_string()` otherwise recursion would
+occur).  This modified ConnectParams object is used by python-oracledb to
+establish the database connection:
+
+.. code-block:: python
+
+    def myhook(protocol, arg, params):
+        print(f"In myhook: protocol={protocol} arg={arg}")
+        params.parse_connect_string(arg)
+
+    oracledb.register_protocol("tcp", myhook)
+
+    connection = oracledb.connect(user="scott", password=pw,
+                                  dsn="tcp://localhost/orclpdb")
+
+    with connection.cursor() as cursor:
+        for (r,) in cursor.execute("select user from dual"):
+            print(r)
+
+The output would be::
+
+    In myhook: protocol=tcp arg=localhost/orclpdb
+    SCOTT
+
+The ``params`` :ref:`attributes <connparamsattr>` can be set with
+:meth:`ConnectParams.parse_connect_string()`, as shown, or by using
+:meth:`ConnectParams.set()`.
+
+See :ref:`ldapconnections` for a fuller example.
+
+Internal hook functions for the “tcp” and “tcps” protocols are pre-registered
+but can be overridden, if needed.  If any other protocol has not been
+registered, then connecting will result in an error.
+
+Calling :meth:`~oracledb.register_protocol()` with the ``hook_function``
+parameter set to None will result in a previously registered user function
+being removed and the default behavior restored.
+
+**Connection Hooks and parse_connect_string()**
+
+A registered user hook function will also be invoked in python-oracledb Thin or
+Thick modes when :meth:`ConnectParams.parse_connect_string()` is called with a
+``connect_string`` parameter beginning with the registered protocol.  The hook
+function ``params`` value will be the invoking ConnectParams instance that you
+can update using :meth:`ConnectParams.set()` or
+:meth:`ConnectParams.parse_connect_string()`.
+
+For example, with the hook ``myhook`` shown previously, then the code:
+
+.. code-block:: python
+
+    cp = oracledb.ConnectParams()
+    cp.set(port=1234)
+    print(f"host is {cp.host}, port is {cp.port}, service name is {cp.service_name}")
+    cp.parse_connect_string("tcp://localhost/orclpdb")
+    print(f"host is {cp.host}, port is {cp.port}, service name is {cp.service_name}")
+
+prints::
+
+    host is None, port is 1234, service name is None
+    In myhook: protocol=tcp arg=localhost/orclpdb
+    host is localhost, port is 1234, service name is orclpdb
+
 .. _ldapconnections:
 
 LDAP Directory Naming
@@ -628,8 +709,11 @@ could connect using:
 **Thin Mode**
 
 To use LDAP in python-oracledb Thin mode, specify an LDAP URL as the DSN and
-call :meth:`oracledb.register_protocol()` to register your own user function
-that gets the connect descriptor from your LDAP server. For example:
+call :meth:`oracledb.register_protocol()` to register your own user
+:ref:`connection hook function <connectionhook>` that gets the connect
+descriptor from your LDAP server.
+
+For example:
 
 .. code-block:: python
 
@@ -637,12 +721,10 @@ that gets the connect descriptor from your LDAP server. For example:
     import re
 
     # Get the Oracle Database connection string from an LDAP server
-    def ldap_hook(protocol, protocol_arg, params):
-        """
-        protocol_arg is in the form "ldapserver/dbname,cn=OracleContext,dc=dom,dc=com"
-        """
+    # In this example, arg will be "ldapserver/dbname,cn=OracleContext,dc=dom,dc=com"
+    def ldap_hook(protocol, arg, params):
         pattern = r"^(.+)\/(.+)\,(cn=OracleContext.*)$"
-        match = re.match(pattern, protocol_arg)
+        match = re.match(pattern, arg)
         ldap_server, db, ora_context = match.groups()
 
         server = ldap3.Server(ldap_server)
@@ -658,29 +740,8 @@ that gets the connect descriptor from your LDAP server. For example:
                  dsn="ldap://ldapserver/dbname,cn=OracleContext,dc=dom,dc=com")
 
 You can modify or extend this as needed, for example to use an LDAP module that
-satisfies your business requirements, or to cache the response from the LDAP
-server.
-
-See :ref:`connectionhook` for more information about using
-:meth:`oracledb.register_protocol()`.
-
-.. _connectionhook:
-
-Connection Hook Functions
-=========================
-
-The :meth:`oracledb.register_protocol()` method registers a user function to be
-called prior to connection or pool creation when an :ref:`Easy Connect
-<easyconnect>` connection string prefixed with the specified protocol is being
-parsed internally by python-oracledb in Thin mode. The registered hook function
-will also be invoked by :meth:`ConnectParams.parse_connect_string()` in Thin
-and Thick modes.
-
-Your hook function is expected to find or construct a valid connection string.
-This connection string will be used by python-oracledb to establish the
-connection.
-
-See :ref:`ldapconnections` for an example.
+satisfies your business and security requirements, or to cache the response
+from the LDAP server.
 
 .. _connpooling:
 

@@ -75,7 +75,7 @@ as tuples, for example:
     cursor.executemany('insert into mytable (mycol) values (:1)', data)
 
 Named binds can be performed by passing an array of dicts, where the keys match
-the bind varible placeholder names:
+the bind variable placeholder names:
 
 .. code-block:: python
 

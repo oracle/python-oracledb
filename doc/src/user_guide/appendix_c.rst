@@ -747,7 +747,7 @@ needs of frameworks that depend upon the Python Database API.
 
 For versions of SQLAlchemy, Django, Superset, other frameworks,
 object-relational mappers (ORMs), and libraries that do not have native support
-for python-oracledb, you can add code like this to use python-oracledb in-place
+for python-oracledb, you can add code like this to use python-oracledb instead
 of cx_Oracle:
 
 .. code-block:: python
