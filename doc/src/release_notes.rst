@@ -29,8 +29,8 @@ Thin Mode Changes
     added to :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
     :meth:`oracledb.create_pool()`, and :meth:`oracledb.create_pool_async()`.
 #)  Added :meth:`oracledb.register_protocol()` to allow users to register a
-    function that will be called when a particular protocol is detected in an
-    Easy Connect string.
+    function that will be called when a particular protocol is detected in a
+    connection string.
 #)  Fixed bug when calling :meth:`ConnectParams.parse_dsn_with_credentials()`
     with an Easy Connect string containing a protocol.
 #)  Fixed bug when calling :meth:`Cursor.parse()` with autocommit enabled.
