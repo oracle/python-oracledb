@@ -96,3 +96,8 @@ cdef enum:
 cdef enum:
     TZ_HOUR_OFFSET = 20
     TZ_MINUTE_OFFSET = 60
+
+# list of characters that are valid in a network name
+cdef str VALID_NETWORK_NAME_CHARS = (
+    string.ascii_letters + string.digits + '"' + r"'<>/\,.:;-_$+*#&!%?@"
+)

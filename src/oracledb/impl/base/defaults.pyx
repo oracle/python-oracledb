@@ -37,6 +37,14 @@ cdef class DefaultsImpl:
         self.fetch_decimals = False
         self.prefetchrows = 2
         self.stmtcachesize = 20
+        self.program = sanitize(sys.executable)
+        self.machine = sanitize(socket.gethostname())
+        self.terminal = "unknown"
+        try:
+            self.osuser = sanitize(getpass.getuser())
+        except:
+            self.osuser = ""
+        self.driver_name = None
 
 cdef DefaultsImpl C_DEFAULTS = DefaultsImpl()
 DEFAULTS = C_DEFAULTS

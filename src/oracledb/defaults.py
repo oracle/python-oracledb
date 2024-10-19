@@ -31,6 +31,7 @@
 
 from . import base_impl
 from . import __name__ as MODULE_NAME
+from . import errors
 
 
 class Defaults:
@@ -111,6 +112,68 @@ class Defaults:
     @stmtcachesize.setter
     def stmtcachesize(self, value: int):
         self._impl.stmtcachesize = value
+
+    @property
+    def program(self) -> str:
+        """
+        Specifies the program name connected to the Oracle Database.
+        """
+        return self._impl.program
+
+    @program.setter
+    def program(self, value: str):
+        if base_impl.sanitize(value) != value:
+            errors._raise_err(errors.ERR_INVALID_NETWORK_NAME, name="program")
+        self._impl.program = value
+
+    @property
+    def machine(self) -> str:
+        """
+        Specifies the machine name connected to the Oracle Database.
+        """
+        return self._impl.machine
+
+    @machine.setter
+    def machine(self, value: str):
+        if base_impl.sanitize(value) != value:
+            errors._raise_err(errors.ERR_INVALID_NETWORK_NAME, name="machine")
+        self._impl.machine = value
+
+    @property
+    def terminal(self) -> str:
+        """
+        Specifies the terminal identifier from which the connection originates.
+        """
+        return self._impl.terminal
+
+    @terminal.setter
+    def terminal(self, value: str):
+        self._impl.terminal = value
+
+    @property
+    def osuser(self) -> str:
+        """
+        Specifies the os user that initiates the connection to the
+        Oracle Database.
+        """
+        return self._impl.osuser
+
+    @osuser.setter
+    def osuser(self, value: str):
+        if base_impl.sanitize(value) != value:
+            errors._raise_err(errors.ERR_INVALID_NETWORK_NAME, name="osuser")
+        self._impl.osuser = value
+
+    @property
+    def driver_name(self) -> str:
+        """
+        Specifies the driver used for the connection.
+        """
+        return self._impl.driver_name
+
+    @driver_name.setter
+    def driver_name(self, value: str):
+        self._impl.driver_name = value
 
 
 defaults = Defaults()

@@ -43,9 +43,9 @@ cdef class ThickPoolImpl(BasePoolImpl):
 
     def __init__(self, str dsn, PoolParamsImpl params):
         cdef:
+            bytes session_callback_bytes, name_bytes, driver_name_bytes
             bytes edition_bytes, user_bytes, password_bytes, dsn_bytes
             uint32_t password_len = 0, user_len = 0, dsn_len = 0
-            bytes session_callback_bytes, name_bytes
             dpiCommonCreateParams common_params
             dpiPoolCreateParams create_params
             const char *password_ptr = NULL
@@ -99,6 +99,10 @@ cdef class ThickPoolImpl(BasePoolImpl):
             access_token.privateKey = private_key_ptr
             access_token.privateKeyLength = private_key_len
             common_params.accessToken = &access_token
+        if params.driver_name is not None:
+            driver_name_bytes = params.driver_name.encode()[:30]
+            common_params.driverName = driver_name_bytes
+            common_params.driverNameLength = <uint32_t> len(driver_name_bytes)
 
         # set up pool creation parameters
         if dpiContext_initPoolCreateParams(driver_info.context,

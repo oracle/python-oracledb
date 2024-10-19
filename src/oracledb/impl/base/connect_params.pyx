@@ -58,6 +58,11 @@ cdef class ConnectParamsImpl:
         address_list = AddressList()
         address_list.children.append(self._default_address)
         self._default_description.children.append(address_list)
+        self.program = C_DEFAULTS.program
+        self.terminal = C_DEFAULTS.terminal
+        self.machine = C_DEFAULTS.machine
+        self.osuser = C_DEFAULTS.osuser
+        self.driver_name = C_DEFAULTS.driver_name
 
     def set(self, dict args):
         """
@@ -91,6 +96,11 @@ cdef class ConnectParamsImpl:
         _set_obj_param(args, "shardingkey", self)
         _set_obj_param(args, "supershardingkey", self)
         _set_bool_param(args, "externalauth", &self.externalauth)
+        _set_str_param(args, "program", self, check_network_character_set=True)
+        _set_str_param(args, "terminal", self)
+        _set_str_param(args, "machine", self, check_network_character_set=True)
+        _set_str_param(args, "osuser", self, check_network_character_set=True)
+        _set_str_param(args, "driver_name", self)
         self._set_access_token_param(args.get("access_token"))
 
         # set parameters found on Description instances
@@ -151,6 +161,11 @@ cdef class ConnectParamsImpl:
         self._token_obfuscator = other_params._token_obfuscator
         self._private_key = other_params._private_key
         self._private_key_obfuscator = other_params._private_key_obfuscator
+        self.program = other_params.program
+        self.terminal = other_params.terminal
+        self.machine = other_params.machine
+        self.osuser = other_params.osuser
+        self.driver_name = other_params.driver_name
 
     cdef bytes _get_new_password(self):
         """

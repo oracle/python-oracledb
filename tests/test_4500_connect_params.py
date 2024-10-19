@@ -50,6 +50,31 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(getattr(params, name), value)
         self.assertEqual(getattr(copied_params, name), orig_value)
 
+    def __verify_network_name_attr(self, name):
+        """
+        Verify that a network name attribute is handled properly in both valid
+        and invalid cases.
+        """
+        cp = oracledb.ConnectParams()
+        self.assertEqual(getattr(cp, name), getattr(oracledb.defaults, name))
+        for value, ok in [
+            ("valid_value", True),
+            ("'contains_quotes'", False),
+            ('"contains_double_quotes"', False),
+            ("contains_opening_paren (", False),
+            ("contains_closing_paren )", False),
+            ("contains_equals =", False),
+            ("contains_trailing_slash\\", False),
+        ]:
+            args = {}
+            args[name] = value
+            if ok:
+                cp = oracledb.ConnectParams(**args)
+                self.assertEqual(getattr(cp, name), value)
+            else:
+                with self.assertRaisesFullCode("DPY-3029"):
+                    oracledb.ConnectParams(**args)
+
     def test_4500(self):
         "4500 - test simple EasyConnect string parsing with port specified"
         params = oracledb.ConnectParams()
@@ -652,6 +677,11 @@ class TestCase(test_env.BaseTestCase):
             ("pool_boundary", "statement"),
             ("use_tcp_fast_open", True),
             ("ssl_version", ssl.TLSVersion.TLSv1_2),
+            ("program", "my_program"),
+            ("machine", "my_machine"),
+            ("terminal", "my_terminal"),
+            ("osuser", "me"),
+            ("driver_name", "custom_driver"),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]
@@ -698,6 +728,11 @@ class TestCase(test_env.BaseTestCase):
             ("pool_boundary", "transaction"),
             ("use_tcp_fast_open", False),
             ("ssl_version", ssl.TLSVersion.TLSv1_2),
+            ("program", "modified_program"),
+            ("machine", "modified_machine"),
+            ("terminal", "modified_terminal"),
+            ("osuser", "modified_osuser"),
+            ("driver_name", "modified_driver_name"),
         ]
         params.set(**dict(new_values))
         parts = [f"{name}={value!r}" for name, value in new_values]
@@ -938,6 +973,34 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(user, None)
         self.assertEqual(password, None)
         self.assertEqual(dsn_out, dsn_in)
+
+    def test_4555(self):
+        "4555 - test program attribute"
+        self.__verify_network_name_attr("program")
+
+    def test_4556(self):
+        "4556 - test machine attribute"
+        self.__verify_network_name_attr("machine")
+
+    def test_4557(self):
+        "4557 - test osuser attribute"
+        self.__verify_network_name_attr("osuser")
+
+    def test_4558(self):
+        "4558 - test terminal attribute"
+        params = oracledb.ConnectParams()
+        self.assertEqual(params.terminal, oracledb.defaults.terminal)
+        value = "myterminal"
+        params = oracledb.ConnectParams(terminal=value)
+        self.assertEqual(params.terminal, value)
+
+    def test_4559(self):
+        "4559 - test driver_name attribute"
+        params = oracledb.ConnectParams()
+        self.assertEqual(params.driver_name, oracledb.defaults.driver_name)
+        value = "newdriver"
+        params = oracledb.ConnectParams(driver_name=value)
+        self.assertEqual(params.driver_name, value)
 
 
 if __name__ == "__main__":

@@ -64,6 +64,15 @@ class TestCase(test_env.BaseTestCase):
         (result,) = cursor.fetchone()
         self.assertEqual(result, value, f"{attr_name} value mismatch")
 
+    def __verify_connect_arg(self, arg_name, arg_value, sql):
+        args = {}
+        args[arg_name] = arg_value
+        conn = test_env.get_connection(**args)
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        (fetched_value,) = cursor.fetchone()
+        self.assertEqual(fetched_value, arg_value)
+
     def test_1100(self):
         "1100 - simple connection to database"
         conn = test_env.get_connection()
@@ -800,6 +809,62 @@ class TestCase(test_env.BaseTestCase):
         "1145 - test connection with invalid conn_class"
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_connection(conn_class=oracledb.ConnectionPool)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support program yet",
+    )
+    def test_1146(self):
+        "1146 - test passing program when creating a connection"
+        sql = (
+            "select program from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_connect_arg("program", "newprogram", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support machine yet",
+    )
+    def test_1147(self):
+        "1147 - test passing machine when creating a connection"
+        sql = (
+            "select machine from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_connect_arg("machine", "newmachine", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support terminal yet",
+    )
+    def test_1148(self):
+        "1148 - test passing terminal when creating a connection"
+        sql = (
+            "select terminal from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_connect_arg("terminal", "newterminal", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support osuser yet",
+    )
+    def test_1149(self):
+        "1149 - test passing osuser when creating a connection"
+        sql = (
+            "select osuser from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_connect_arg("osuser", "newosuser", sql)
+
+    def test_1150(self):
+        "1150 - test passing driver_name when creating a connection"
+        sql = (
+            "select distinct client_driver from v$session_connect_info "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_connect_arg("driver_name", "newdriver", sql)
 
 
 if __name__ == "__main__":

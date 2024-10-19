@@ -34,17 +34,7 @@ class OutOfPackets(Exception):
 class ConnectConstants:
 
     def __init__(self):
-        self.program_name = sys.executable
-        self.machine_name = socket.gethostname()
         self.pid = str(os.getpid())
-        try:
-            self.user_name = getpass.getuser()
-        except:
-            self.user_name = ""
-        self.terminal_name = "unknown"
-        self.sanitized_program_name = self._sanitize(self.program_name)
-        self.sanitized_machine_name = self._sanitize(self.machine_name)
-        self.sanitized_user_name = self._sanitize(self.user_name)
         pattern = r"(?P<major_num>\d+)\.(?P<minor_num>\d+)\.(?P<patch_num>\d+)"
         match_dict = re.match(pattern, DRIVER_VERSION)
         major_num = int(match_dict["major_num"])
@@ -53,12 +43,6 @@ class ConnectConstants:
         self.full_version_num = \
                 major_num << 24 | minor_num << 20 | patch_num << 12
 
-    def _sanitize(self, value):
-        """
-        Sanitize the value by replacing all the "(", ")" and "=" characters
-        with "?". These are invalid characters within connect data.
-        """
-        return value.replace("(", "?").replace(")", "?").replace("=", "?")
 
 cdef int _convert_base64(char_type *buf, long value, int size, int offset):
     """
@@ -90,14 +74,13 @@ cdef object _encode_rowid(Rowid *rowid):
         return buf[:TNS_MAX_ROWID_LENGTH].decode()
 
 
-cdef str _get_connect_data(Description description, str connection_id):
+cdef str _get_connect_data(Description description, str connection_id, ConnectParamsImpl params):
     """
     Return the connect data required by the listener in order to connect.
     """
-    constants = _connect_constants
-    cid = f"(PROGRAM={constants.sanitized_program_name})" + \
-          f"(HOST={constants.sanitized_machine_name})" + \
-          f"(USER={constants.sanitized_user_name})"
+    cid = f"(PROGRAM={params.program})" + \
+          f"(HOST={params.machine})" + \
+          f"(USER={params.osuser})"
     if description.connection_id_prefix:
         description.connection_id = description.connection_id_prefix + \
                 connection_id

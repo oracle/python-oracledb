@@ -68,6 +68,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await cursor.fetchone()
         self.assertEqual(result, value, f"{attr_name} value mismatch")
 
+    async def __verify_connect_arg(self, arg_name, arg_value, sql):
+        args = {}
+        args[arg_name] = arg_value
+        conn = await test_env.get_connection_async(**args)
+        cursor = conn.cursor()
+        await cursor.execute(sql)
+        (fetched_value,) = await cursor.fetchone()
+        self.assertEqual(fetched_value, arg_value)
+
     async def test_5300(self):
         "5300 - simple connection to database"
         async with test_env.get_connection_async() as conn:
@@ -599,6 +608,46 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5344 - test connection with an invalid pool"
         with self.assertRaises(TypeError):
             await oracledb.connect_async(pool="not a pool object")
+
+    async def test_5346(self):
+        "5346 - test passing program when creating a connection"
+        sql = (
+            "select program from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_connect_arg("program", "newprogram", sql)
+
+    async def test_5347(self):
+        "5347 - test passing machine when creating a connection"
+        sql = (
+            "select machine from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_connect_arg("machine", "newmachine", sql)
+
+    async def test_5348(self):
+        "5348 - test passing terminal when creating a connection"
+        sql = (
+            "select terminal from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_connect_arg("terminal", "newterminal", sql)
+
+    async def test_5349(self):
+        "5349 - test passing osuser when creating a connection"
+        sql = (
+            "select osuser from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_connect_arg("osuser", "newosuser", sql)
+
+    async def test_5350(self):
+        "5350 - test passing driver_name when creating a connection"
+        sql = (
+            "select distinct client_driver from v$session_connect_info "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_connect_arg("driver_name", "newdriver", sql)
 
 
 if __name__ == "__main__":

@@ -72,6 +72,17 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await connection.close()
 
+    async def __verify_create_arg(self, arg_name, arg_value, sql):
+        args = {}
+        args[arg_name] = arg_value
+        pool = test_env.get_pool_async(**args)
+        async with pool.acquire() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(sql)
+            (fetched_value,) = await cursor.fetchone()
+            self.assertEqual(fetched_value, arg_value)
+        await pool.close()
+
     async def test_5500(self):
         "5500 - test getting default pool parameters"
         pool = test_env.get_pool_async()
@@ -503,6 +514,46 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(conn.call_timeout, 0)
         async with pool.acquire() as conn:
             self.assertEqual(conn.call_timeout, 0)
+
+    async def test_5530(self):
+        "5530 - test passing program when creating a pool"
+        sql = (
+            "select program from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_create_arg("program", "newprogram", sql)
+
+    async def test_5531(self):
+        "5531 - test passing machine when creating a pool"
+        sql = (
+            "select machine from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_create_arg("machine", "newmachine", sql)
+
+    async def test_5532(self):
+        "5532 - test passing terminal when creating a pool"
+        sql = (
+            "select terminal from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_create_arg("terminal", "newterminal", sql)
+
+    async def test_5533(self):
+        "5533 - test passing osuser when creating a pool"
+        sql = (
+            "select osuser from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_create_arg("osuser", "newosuser", sql)
+
+    async def test_5534(self):
+        "5534 - test passing driver_name when creating a pool"
+        sql = (
+            "select distinct client_driver from v$session_connect_info "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        await self.__verify_create_arg("driver_name", "newdriver", sql)
 
 
 if __name__ == "__main__":

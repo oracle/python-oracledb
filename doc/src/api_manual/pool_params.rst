@@ -48,9 +48,17 @@ PoolParams Methods
         matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
         supershardingkey=[], debug_jdwp=None, connection_id_prefix=None, \
         ssl_context=None, sdu=None, pool_boundary=None, \
-        use_tcp_fast_open=False, ssl_version=None, handle=None)
+        use_tcp_fast_open=False, ssl_version=None, \
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=None)
 
   Sets one or more of the parameters.
+
+  .. versionchanged:: 2.5.0
+
+    The ``program``, ``machine``, ``terminal``, ``osuser``, and ``driver_name``
+    parameters were added.
 
   .. versionchanged:: 2.3.0
 

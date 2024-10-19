@@ -50,7 +50,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -352,6 +354,31 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -359,6 +386,11 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode and
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -394,7 +426,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -627,7 +661,37 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -662,7 +726,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -926,10 +992,40 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -982,7 +1078,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1357,6 +1455,31 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1364,6 +1487,11 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode and
     is ignored in the Thin mode. It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -1404,7 +1532,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -1692,7 +1822,37 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -1771,8 +1931,11 @@ Oracledb Methods
     ``V$SESSION_CONNECT_INFO``. The standard is to set this value to
     ``"<name> : version>"``, where <name> is the name of the driver and
     <version> is its version. There should be a single space character before
-    and after the colon. If this value is not specified, then the default value
-    in python-oracledb Thick mode is like "python-oracledb thk : <version>".
+    and after the colon. If this parameter is not set, then the value specified
+    in :attr:`oracledb.defaults.driver_name <defaults.driver_name>` is used. If
+    the value of this attribute is None, then the default value in
+    python-oracledb Thick mode is like "python-oracledb thk : <version>". See
+    :ref:`otherinit`.
 
     .. note::
 
@@ -1845,7 +2008,9 @@ Oracledb Methods
         shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=0)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2169,10 +2334,40 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``program`` parameter is expected to be a string which specifies the
+    name of the executable program or application connected to Oracle
+    Database.  This value is only used in the python-oracledb Thin mode. The
+    default is the value of :attr:`defaults.program`.
+
+    The ``machine`` parameter is expected to be a string which specifies the
+    machine name of the client connecting to Oracle Database.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.machine`.
+
+    The ``terminal`` parameter is expected to be a string which specifies the
+    terminal identifier from which the connection originates.  This value is
+    only used in the python-oracledb Thin mode.  The default is the value of
+    :attr:`defaults.terminal`.
+
+    The ``osuser`` parameter is expected to be a string which specifies the
+    operating system user that initiates the database connection.  This value
+    is only used in the python-oracledb Thin mode.  The default value is the
+    value of :attr:`defaults.osuser`.
+
+    The ``driver_name`` parameter is expected to be a string which specifies
+    the driver used by the client to connect to Oracle Database.  This value
+    is used in both the python-oracledb Thin and Thick modes.  The default is
+    the value of :attr:`defaults.driver_name`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is 0.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 

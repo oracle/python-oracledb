@@ -46,12 +46,15 @@ import array
 import base64
 import datetime
 import decimal
+import getpass
 import inspect
 import json
 import os
 import random
 import secrets
+import socket
 import ssl
+import string
 import sys
 
 cydatetime.import_datetime()
@@ -96,8 +99,8 @@ cdef int get_preferred_num_type(int16_t precision, int8_t scale):
 REGISTERED_PROTOCOLS = {}
 
 include "impl/base/constants.pxi"
-include "impl/base/defaults.pyx"
 include "impl/base/utils.pyx"
+include "impl/base/defaults.pyx"
 include "impl/base/pipeline.pyx"
 include "impl/base/buffer.pyx"
 include "impl/base/parsers.pyx"

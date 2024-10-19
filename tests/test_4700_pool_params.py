@@ -121,6 +121,11 @@ class TestCase(test_env.BaseTestCase):
             ("pool_boundary", "transaction"),
             ("use_tcp_fast_open", True),
             ("ssl_version", ssl.TLSVersion.TLSv1_2),
+            ("program", "my_program"),
+            ("machine", "my_machine"),
+            ("terminal", "my_terminal"),
+            ("osuser", "me"),
+            ("driver_name", "custom_driver"),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

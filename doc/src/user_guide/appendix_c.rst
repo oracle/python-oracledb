@@ -608,7 +608,19 @@ addition to the common :ref:`commonupgrade`:
 
    Also, see :ref:`sqlnetclientconfig`.
 
-3. If the application is connecting using an :ref:`Oracle Net service name
+3. If the ``driver_name`` parameter of :func:`~oracledb.init_oracle_client` had
+   been used, then set the new :attr:`defaults.driver_name` attribute to the
+   desired value or set the ``driver_name`` parameter when connecting.  The
+   convention for this parameter is to separate the product name from the
+   product version by a colon and single blank characters. For example:
+
+   .. code-block:: python
+
+       oracledb.defaults.driver_name = "python-oracledb : 1.2.0"
+
+   See :ref:`otherinit`.
+
+4. If the application is connecting using an :ref:`Oracle Net service name
    <netservice>` from a ``tnsnames.ora`` file located in a "default" location
    such as the Instant Client ``network/admin/`` subdirectory, in
    ``$ORACLE_HOME/network/admin/``, or in
@@ -616,11 +628,11 @@ addition to the common :ref:`commonupgrade`:
    home), then the configuration file directory must now explicitly be set as
    shown above.
 
-4. Remove calls to :func:`oracledb.clientversion()` which is only available in
+5. Remove calls to :func:`oracledb.clientversion()` which is only available in
    the python-oracledb Thick mode.  Oracle Client libraries are not available
    in Thin mode.
 
-5. Ensure that any assumptions about when connections are created in the
+6. Ensure that any assumptions about when connections are created in the
    connection pool are eliminated.  The python-oracledb Thin mode creates
    connections in a daemon thread and so the attribute
    :attr:`ConnectionPool.opened` will change over time and will not be equal
@@ -632,9 +644,9 @@ addition to the common :ref:`commonupgrade`:
    :meth:`ConnectionPool.acquire()` until sufficient time has passed for
    connections in the pool to be created.
 
-6. Review error handling improvements. See :ref:`errorhandling`.
+7. Review error handling improvements. See :ref:`errorhandling`.
 
-7. Review locale and globalization usage. See :ref:`globalization`.
+8. Review locale and globalization usage. See :ref:`globalization`.
 
 Additional Upgrade Steps to use python-oracledb Thick Mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

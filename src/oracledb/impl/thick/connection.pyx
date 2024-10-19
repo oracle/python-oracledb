@@ -42,6 +42,7 @@ cdef class ConnectionParams:
         bytes tag
         bytes token
         bytes private_key
+        bytes driver_name
 
         const char *dsn_ptr
         const char *username_ptr
@@ -52,6 +53,7 @@ cdef class ConnectionParams:
         const char *tag_ptr
         const char *token_ptr
         const char *private_key_ptr
+        const char *driver_name_ptr
 
         uint32_t dsn_len
         uint32_t username_len
@@ -62,6 +64,7 @@ cdef class ConnectionParams:
         uint32_t tag_len
         uint32_t token_len
         uint32_t private_key_len
+        uint32_t driver_name_len
 
         uint32_t num_app_context
         list bytes_references
@@ -423,6 +426,10 @@ cdef class ThickConnImpl(BaseConnImpl):
                 params.private_key = private_key.encode()
                 params.private_key_ptr = params.private_key
                 params.private_key_len = <uint32_t> len(params.private_key)
+        if user_params.driver_name is not None:
+            params.driver_name = user_params.driver_name.encode()[:30]
+            params.driver_name_ptr = params.driver_name
+            params.driver_name_len = <uint32_t> len(params.driver_name)
 
         # set up common creation parameters
         if dpiContext_initCommonCreateParams(driver_info.context,
@@ -440,6 +447,9 @@ cdef class ThickConnImpl(BaseConnImpl):
             access_token.privateKey = params.private_key_ptr
             access_token.privateKeyLength = params.private_key_len
             common_params.accessToken = &access_token
+        if user_params.driver_name is not None:
+            common_params.driverName = params.driver_name_ptr
+            common_params.driverNameLength = params.driver_name_len
 
         # set up connection specific creation parameters
         if dpiContext_initConnCreateParams(driver_info.context,

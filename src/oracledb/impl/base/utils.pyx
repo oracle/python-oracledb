@@ -156,15 +156,20 @@ cdef int _set_ssl_version_param(dict args, str name, object target) except -1:
         setattr(target, name, in_val)
 
 
-cdef int _set_str_param(dict args, str name, object target) except -1:
+cdef int _set_str_param(dict args, str name, object target, bint check_network_character_set = False) except -1:
     """
     Sets a string parameter to the value provided in the dictionary. If a value
     is specified it is set directly on the target (since strings are treated as
-    Python objects).
+    Python objects). Note that if check_network_character_set is True, an
+    exception is thrown if the sanitized value does not match the input value.
     """
     in_val = args.get(name)
     if in_val:
-        setattr(target, name, str(in_val))
+        in_val = str(in_val)
+        if check_network_character_set:
+            if sanitize(in_val) != in_val:
+                errors._raise_err(errors.ERR_INVALID_NETWORK_NAME, name=name)
+        setattr(target, name, in_val)
 
 
 def init_base_impl(package):
@@ -212,3 +217,29 @@ def init_base_impl(package):
     PY_TYPE_MESSAGE_ROW = package.MessageRow
     PY_TYPE_MESSAGE_TABLE = package.MessageTable
     PY_TYPE_VAR = package.Var
+
+
+def sanitize(str value):
+    """
+    Replaces invalid characters in a string with characters guaranteed to be in
+    the network character set.
+    """
+    cdef str sanitized_value = value
+
+    # strip single or double quotes from the start and end
+    if sanitized_value.startswith(("'", '"')):
+        sanitized_value = sanitized_value[1:]
+    if sanitized_value.endswith(("'", '"')):
+        sanitized_value = sanitized_value[:-1]
+
+    # replace invalid characters with '?'
+    sanitized_value = "".join(
+        char if char in VALID_NETWORK_NAME_CHARS else "?"
+        for char in sanitized_value
+    )
+
+    # if the last character is a backslash, replace it with '?'
+    if sanitized_value.endswith("\\"):
+        sanitized_value = sanitized_value[:-1] + "?"
+
+    return sanitized_value

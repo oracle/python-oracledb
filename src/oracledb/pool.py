@@ -638,6 +638,11 @@ def create_pool(
     pool_boundary: str = None,
     use_tcp_fast_open: bool = False,
     ssl_version: ssl.TLSVersion = None,
+    program: str = oracledb.defaults.program,
+    machine: str = oracledb.defaults.machine,
+    terminal: str = oracledb.defaults.terminal,
+    osuser: str = oracledb.defaults.osuser,
+    driver_name: str = oracledb.defaults.driver_name,
     handle: int = 0,
 ) -> ConnectionPool:
     """
@@ -884,6 +889,21 @@ def create_pool(
       ssl.TLSVersion.TLSv1_3 indicating which TLS version to use (default:
       None)
 
+    - program: the name of the executable program or application connected to
+      the Oracle Database (default: oracledb.defaults.program)
+
+    - machine: the machine name of the client connecting to the Oracle Database
+      (default: oracledb.defaults.machine)
+
+    - terminal: the terminal identifier from which the connection originates
+      (default: oracledb.defaults.terminal)
+
+    - osuser: the operating system user that initiates the database connection
+      (default: oracledb.defaults.osuser)
+
+    - driver_name: the driver name used by the client to connect to the Oracle
+      Database (default: oracledb.defaults.driver_name)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1107,6 +1127,11 @@ def create_pool_async(
     pool_boundary: str = None,
     use_tcp_fast_open: bool = False,
     ssl_version: ssl.TLSVersion = None,
+    program: str = oracledb.defaults.program,
+    machine: str = oracledb.defaults.machine,
+    terminal: str = oracledb.defaults.terminal,
+    osuser: str = oracledb.defaults.osuser,
+    driver_name: str = oracledb.defaults.driver_name,
     handle: int = 0,
 ) -> AsyncConnectionPool:
     """
@@ -1352,6 +1377,21 @@ def create_pool_async(
     - ssl_version: one of the values ssl.TLSVersion.TLSv1_2 or
       ssl.TLSVersion.TLSv1_3 indicating which TLS version to use (default:
       None)
+
+    - program: the name of the executable program or application connected to
+      the Oracle Database (default: oracledb.defaults.program)
+
+    - machine: the machine name of the client connecting to the Oracle Database
+      (default: oracledb.defaults.machine)
+
+    - terminal: the terminal identifier from which the connection originates
+      (default: oracledb.defaults.terminal)
+
+    - osuser: the operating system user that initiates the database connection
+      (default: oracledb.defaults.osuser)
+
+    - driver_name: the driver name used by the client to connect to the Oracle
+      Database (default: oracledb.defaults.driver_name)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

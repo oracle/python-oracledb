@@ -17,6 +17,17 @@ oracledb 2.5.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added attributes
+    :attr:`oracledb.defaults.driver_name <defaults.driver_name>`,
+    :attr:`oracledb.defaults.machine <defaults.machine>`,
+    :attr:`oracledb.defaults.osuser <defaults.osuser>`,
+    :attr:`oracledb.defaults.program <defaults.program>`, and
+    :attr:`oracledb.defaults.terminal <defaults.terminal>` which provide
+    information about the driver name, machine name, operating system user,
+    program name, and terminal name respectively. The ``driver_name``,
+    ``machine``, ``osuser``, ``program``, and ``terminal`` parameters were also
+    added to :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+    :meth:`oracledb.create_pool()`, and :meth:`oracledb.create_pool_async()`.
 #)  Added :meth:`oracledb.register_protocol()` to allow users to register a
     function that will be called when a particular protocol is detected in an
     Easy Connect string.

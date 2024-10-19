@@ -325,10 +325,9 @@ In the python-oracledb Thick mode, the output will be::
 
     python-oracledb thk : 1.0.0
 
-The ``CLIENT_DRIVER`` values is configurable in the python-oracledb Thick mode
-with a call like ``init_oracle_client(driver_name='myapp : 2.0.0')``. See
-:ref:`otherinit`.
-
+Note that you may not see these values if you have changed the default of the
+:attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute or the
+``driver_name`` parameter in :meth:`oracledb.init_oracle_client()`.
 
 .. _dbviews:
 

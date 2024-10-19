@@ -37,6 +37,28 @@ Defaults Attributes
     Oracle Client search path behavior for configuration files is followed, see
     :ref:`optnetfiles`.
 
+.. attribute:: defaults.driver_name
+
+    The default value that represents the driver used by the client to connect
+    to Oracle Database. This is the value used in the ``CLIENT_DRIVER`` column
+    of the ``V$SESSION_CONNECT_INFO`` view.
+
+    This attribute has an initial value of None. It is used as required in
+    python-oracledb Thick and Thin mode.
+
+    In python-oracledb Thick mode, this attribute is used if the
+    ``driver_name`` parameter is not specified in
+    :meth:`oracledb.init_oracle_client()`. In Thin mode, this attribute is
+    used if the ``driver_name`` parameter is not specified in
+    :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+    :meth:`oracledb.create_pool()`, or :meth:`oracledb.create_pool_async()`.
+    If the value of this attribute is None, the value set when connecting in
+    python-oracledb Thick mode is like "python-oracledb thk : <version>" and
+    in Thin mode is like "python-oracledb thn : <version>". See
+    :ref:`otherinit`.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: defaults.fetch_decimals
 
     Identifies whether numbers should be fetched as `decimal.Decimal
@@ -75,12 +97,50 @@ Defaults Attributes
 
     This attribute has an initial value of True.
 
+.. attribute:: defaults.machine
+
+    The default value that represents the machine name of the client
+    connecting to Oracle Database. This is the value used in the
+    ``MACHINE`` column of the ``V$SESSION`` view.
+
+    This attribute takes the host name where the application is running as its
+    initial value.
+
+    This attribute is only used in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
+
+.. attribute:: defaults.osuser
+
+    The default value that represents the operating system user that initiates
+    the database connection. This is the value used in the ``OSUSER``
+    column of the ``V$SESSION`` view.
+
+    This attribute takes the login name of the user as its initial value.
+
+    This attribute is only used in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: defaults.prefetchrows
 
     The default value for :attr:`Cursor.prefetchrows`. This is a query tuning
     attribute, see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
     This attribute has an initial value of 2.
+
+.. attribute:: defaults.program
+
+    The default value that represents the program name connected to the
+    database. This is the value used in the ``PROGRAM`` column of the
+    ``V$SESSION`` view.
+
+    This attribute has an initial value that is populated by `sys.executable
+    <https://docs.python.org/3/library/sys.html#sys.executable>`__.
+
+    This attribute is only used in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
 
 .. attribute:: defaults.stmtcachesize
 
@@ -89,3 +149,15 @@ Defaults Attributes
     :ref:`stmtcache`.
 
     This attribute has an initial value of 20.
+
+.. attribute:: defaults.terminal
+
+    The default value that represents the terminal identifier from which the
+    connection originates. This is the value used in the ``TERMINAL``
+    column of the ``V$SESSION`` view.
+
+    This attribute has an initial value of "unknown".
+
+    This attribute is only used in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0

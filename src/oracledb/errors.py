@@ -302,6 +302,7 @@ ERR_OPERATION_NOT_SUPPORTED_ON_BFILE = 3025
 ERR_OPERATION_ONLY_SUPPORTED_ON_BFILE = 3026
 ERR_CURSOR_DIFF_CONNECTION = 3027
 ERR_UNSUPPORTED_PIPELINE_OPERATION = 3028
+ERR_INVALID_NETWORK_NAME = 3029
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -785,4 +786,7 @@ ERR_MESSAGE_FORMATS = {
         "scroll mode must be relative, absolute, first or last"
     ),
     WRN_COMPILATION_ERROR: "creation succeeded with compilation errors",
+    ERR_INVALID_NETWORK_NAME: (
+        '"{name}" includes characters that are not allowed'
+    ),
 }

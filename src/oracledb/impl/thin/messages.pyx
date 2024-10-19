@@ -1453,6 +1453,11 @@ cdef class AuthMessage(Message):
         uint32_t auth_mode
         uint32_t verifier_type
         bint change_password
+        str program
+        str terminal
+        str machine
+        str osuser
+        str driver_name
 
     cdef int _encrypt_passwords(self) except -1:
         """
@@ -1650,6 +1655,13 @@ cdef class AuthMessage(Message):
         self.service_name = description.service_name
         self.proxy_user = params.proxy_user
         self.debug_jdwp = params.debug_jdwp
+        self.program = params.program
+        self.terminal = params.terminal
+        self.machine = params.machine
+        self.osuser = params.osuser
+        self.driver_name = params.driver_name
+        if self.driver_name is None:
+            self.driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -1766,15 +1778,11 @@ cdef class AuthMessage(Message):
 
         # write key/value pairs
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
-            self._write_key_value(buf, "AUTH_TERMINAL",
-                                  _connect_constants.terminal_name)
-            self._write_key_value(buf, "AUTH_PROGRAM_NM",
-                                  _connect_constants.program_name)
-            self._write_key_value(buf, "AUTH_MACHINE",
-                                  _connect_constants.machine_name)
+            self._write_key_value(buf, "AUTH_TERMINAL", self.terminal)
+            self._write_key_value(buf, "AUTH_PROGRAM_NM", self.program)
+            self._write_key_value(buf, "AUTH_MACHINE", self.machine)
             self._write_key_value(buf, "AUTH_PID", _connect_constants.pid)
-            self._write_key_value(buf, "AUTH_SID",
-                                  _connect_constants.user_name)
+            self._write_key_value(buf, "AUTH_SID", self.osuser)
         else:
             if self.proxy_user is not None:
                 self._write_key_value(buf, "PROXY_CLIENT_NAME",
@@ -1794,9 +1802,8 @@ cdef class AuthMessage(Message):
                                       self.encoded_newpassword)
             if not self.change_password:
                 self._write_key_value(buf, "SESSION_CLIENT_CHARSET", "873")
-                driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
                 self._write_key_value(buf, "SESSION_CLIENT_DRIVER_NAME",
-                                      driver_name)
+                                      self.driver_name)
                 self._write_key_value(buf, "SESSION_CLIENT_VERSION",
                                     str(_connect_constants.full_version_num))
                 self._write_key_value(buf, "AUTH_ALTER_SESSION",

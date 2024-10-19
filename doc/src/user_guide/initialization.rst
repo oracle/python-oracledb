@@ -567,8 +567,10 @@ setting the parameters is:
 The convention for ``driver_name`` is to separate the product name from the
 product version by a colon and single blank characters.  The value will be
 shown in Oracle Database views like ``V$SESSION_CONNECT_INFO``.  If this
-parameter is not specified, then a value like ``python-oracledb thk : 1.2.0``
-is shown, see :ref:`vsessconinfo`.
+parameter is not specified, then the value specified in the
+:attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute is used.
+If the value of this attribute is None, then a value like
+``python-oracledb thk : 1.2.0`` is shown, see :ref:`vsessconinfo`.
 
 The ``error_url`` string will be shown in the exception raised if
 ``init_oracle_client()`` cannot load the Oracle Client libraries.  This allows

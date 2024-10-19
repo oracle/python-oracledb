@@ -32,9 +32,35 @@ import tempfile
 
 import oracledb
 import test_env
+import unittest
 
 
 class TestCase(test_env.BaseTestCase):
+    def __verify_network_name_attr(self, name):
+        """
+        Verify that a default attribute is handled properly in both valid
+        and invalid cases.
+        """
+        for value, ok in [
+            ("valid_value", True),
+            ("'contains_quotes'", False),
+            ('"contains_double_quotes"', False),
+            ("contains_opening_paren (", False),
+            ("contains_closing_paren )", False),
+            ("contains_equals =", False),
+            ("contains_trailing_slash\\", False),
+        ]:
+            args = {}
+            args[name] = value
+            if ok:
+                with test_env.DefaultsContextManager(name, value):
+                    cp = oracledb.ConnectParams(**args)
+                    self.assertEqual(getattr(cp, name), value)
+            else:
+                with self.assertRaisesFullCode("DPY-3029"):
+                    with test_env.DefaultsContextManager(name, value):
+                        pass
+
     def test_6600(self):
         "6600 - test setting defaults.arraysize"
         with test_env.DefaultsContextManager("arraysize", 50):
@@ -147,6 +173,62 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(pooled_conn.stmtcachesize, new_value)
                 self.assertEqual(params.stmtcachesize, new_value)
                 self.assertEqual(standalone_conn.stmtcachesize, new_value)
+
+    def test_6610(self):
+        "6610 - test setting defaults.terminal"
+        with test_env.DefaultsContextManager("terminal", "newterminal"):
+            params = oracledb.ConnectParams()
+            self.assertEqual(params.terminal, oracledb.defaults.terminal)
+
+    def test_6611(self):
+        "6611 - test setting defaults.driver_name"
+        with test_env.DefaultsContextManager("driver_name", "newdriver"):
+            params = oracledb.ConnectParams()
+            self.assertEqual(params.driver_name, oracledb.defaults.driver_name)
+
+    def test_6612(self):
+        "6612 - test setting defaults.program attribute"
+        self.__verify_network_name_attr("program")
+
+    def test_6613(self):
+        "6613 - test setting defaults.machine attribute"
+        self.__verify_network_name_attr("machine")
+
+    def test_6614(self):
+        "6614 - test setting defaults.osuser attribute"
+        self.__verify_network_name_attr("osuser")
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support program yet",
+    )
+    def test_6615(self):
+        "6615 - test program with two pools"
+        default_value = "defaultprogram"
+        new_value = "newprogram"
+        verify_sql = (
+            "select program from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        with test_env.DefaultsContextManager("program", default_value):
+
+            # create pool using default value
+            pool = test_env.get_pool()
+            with pool.acquire() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(verify_sql)
+                    (fetched_value,) = cursor.fetchone()
+                    self.assertEqual(fetched_value, default_value)
+            pool.close()
+
+            # create pool using new value
+            pool = test_env.get_pool(program=new_value)
+            with pool.acquire() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(verify_sql)
+                    (fetched_value,) = cursor.fetchone()
+                    self.assertEqual(fetched_value, new_value)
+            pool.close()
 
 
 if __name__ == "__main__":

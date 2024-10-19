@@ -156,6 +156,17 @@ class TestCase(test_env.BaseTestCase):
             expected_proxy_user and expected_proxy_user.upper(),
         )
 
+    def __verify_create_arg(self, arg_name, arg_value, sql):
+        args = {}
+        args[arg_name] = arg_value
+        pool = test_env.get_pool(**args)
+        with pool.acquire() as conn:
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            (fetched_value,) = cursor.fetchone()
+            self.assertEqual(fetched_value, arg_value)
+        pool.close()
+
     def test_2400(self):
         "2400 - test getting default pool parameters"
         pool = test_env.get_pool()
@@ -883,6 +894,62 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.opened, num_conns)
         self.assertEqual(pool.busy, num_conns)
         self.assertEqual(len(active_sessions), num_conns)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support program yet",
+    )
+    def test_2442(self):
+        "2442 - test passing program when creating a pool"
+        sql = (
+            "select program from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_create_arg("program", "newprogram", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support machine yet",
+    )
+    def test_2443(self):
+        "2443 - test passing machine when creating a pool"
+        sql = (
+            "select machine from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_create_arg("machine", "newmachine", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support terminal yet",
+    )
+    def test_2444(self):
+        "2444 - test passing terminal when creating a pool"
+        sql = (
+            "select terminal from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_create_arg("terminal", "newterminal", sql)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support osuser yet",
+    )
+    def test_2445(self):
+        "2445 - test passing osuser when creating a pool"
+        sql = (
+            "select osuser from v$session "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_create_arg("osuser", "newosuser", sql)
+
+    def test_2446(self):
+        "2446 - test passing driver_name when creating a pool"
+        sql = (
+            "select distinct client_driver from v$session_connect_info "
+            "where sid = sys_context('userenv', 'sid')"
+        )
+        self.__verify_create_arg("driver_name", "newdriver", sql)
 
 
 if __name__ == "__main__":

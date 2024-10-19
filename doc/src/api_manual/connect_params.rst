@@ -60,10 +60,17 @@ ConnectParams Methods
         appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=None, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
-        handle=None)
+        program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
+        terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
+        driver_name=oracledb.defaults.driver_name, handle=None)
 
     Sets the values for one or more of the parameters of a ConnectParams
     object.
+
+    .. versionchanged:: 2.5.0
+
+        The ``program``, ``machine``, ``terminal``, ``osuser``, and
+        ``driver_name`` parameters were added.
 
     .. versionchanged:: 2.3.0
 
@@ -149,6 +156,19 @@ ConnectParams Attributes
     For python-oracledb Thick mode, set the equivalent option in a
     ``sqlnet.ora`` file.
 
+.. attribute:: ConnectParams.driver_name
+
+    This read-only attribute is a string that specifies the driver used by the
+    client to connect to Oracle Database. This is an arbitrary value set by the
+    user in the :meth:`oracledb.ConnectParams()` method or the
+    :attr:`defaults.driver_name` attribute which is the default value. This is
+    the value shown in the ``CLIENT_DRIVER`` column of the
+    ``V$SESSION_CONNECT_INFO`` view.
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: ConnectParams.edition
 
     This read-only attribute is a string that specifies the edition to use
@@ -210,6 +230,18 @@ ConnectParams Attributes
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
+.. attribute:: ConnectParams.machine
+
+    This read-only attribute is a string that specifies the machine name of
+    the client connecting to Oracle Database. This is an arbitrary value set
+    by the user in the :meth:`oracledb.ConnectParams()` method or the
+    :attr:`defaults.machine` attribute which is the default value. This is the
+    value shown in the ``MACHINE`` column of the ``V$SESSION`` view.
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: ConnectParams.matchanytag
 
     This read-only attribute is a boolean that specifies whether any tag can be
@@ -223,6 +255,18 @@ ConnectParams Attributes
     to use. The default value is :data:`~oracledb.AUTH_MODE_DEFAULT`.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. attribute:: ConnectParams.osuser
+
+    This read-only attribute is a string that represents the operating system
+    user that initiates the database connection. This is an arbitrary value
+    set by the user in the :meth:`oracledb.ConnectParams()` method or the
+    :attr:`defaults.osuser` attribute which is the default value. This is the
+    value shown in the ``OSUSER`` column of the ``V$SESSION`` view.
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
 
 .. attribute:: ConnectParams.pool_boundary
 
@@ -248,6 +292,19 @@ ConnectParams Attributes
     which the database listener is listening. The default value is 1521.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. attribute:: ConnectParams.program
+
+    This read-only attribute is a string that specifies the name of the
+    executable program or application connected to Oracle Database. This is an
+    arbitrary value set by the user in the :meth:`oracledb.ConnectParams()`
+    method or the :attr:`defaults.program` attribute which is the default
+    value. This is the value shown in the ``PROGRAM`` column of the
+    ``V$SESSION`` view.
+
+    This attribute is supported in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
 
 .. attribute:: ConnectParams.protocol
 
@@ -423,6 +480,18 @@ ConnectParams Attributes
 
         The default value of this attribute was changed from 60.0 seconds to
         20.0 seconds.
+
+.. attribute:: ConnectParams.terminal
+
+    This read-only attribute is a string that specifies the terminal
+    identifier from which the connection originates. This is an arbitrary value
+    set by the user in the :meth:`oracledb.ConnectParams()` method or the
+    :attr:`defaults.terminal` attribute which is the default value. This is the
+    value shown in the ``TERMINAL`` column of the ``V$SESSION`` view.
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
 
 .. attribute:: ConnectParams.use_tcp_fast_open
 

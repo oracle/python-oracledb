@@ -207,6 +207,11 @@ cdef class DefaultsImpl:
         public bint fetch_decimals
         public uint32_t prefetchrows
         public uint32_t stmtcachesize
+        public str program
+        public str machine
+        public str terminal
+        public str osuser
+        public str driver_name
 
 cdef DefaultsImpl C_DEFAULTS
 
@@ -483,6 +488,11 @@ cdef class ConnectParamsImpl:
         bytearray _token_obfuscator
         bytearray _private_key
         bytearray _private_key_obfuscator
+        public str program
+        public str machine
+        public str terminal
+        public str osuser
+        public str driver_name
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
