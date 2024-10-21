@@ -78,16 +78,18 @@ See :ref:`optnetfiles` and :ref:`optclientfiles` for more information.
 Connection Strings
 ------------------
 
-The python-oracledb Thin mode accepts connection strings in the same formats as
-the Oracle Client libraries used by Thick mode does, but not all Oracle Net
-keywords will be supported.
+Python-oracledb Thin mode accepts :ref:`Oracle Net Services connection strings
+<connstr>` in the same formats as the Oracle Client libraries used by Thick
+mode does, but not all keywords will be supported.
 
 The following table lists the parameters that are recognized in Thin mode
-either in Easy Connect Strings or in Full Connect Descriptor Strings that are
-either explicitly passed or referred to by a ``tnsnames.ora`` alias.  All
-unrecognized parameters are ignored.  The connection parameters shown can be
-used in :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.ConnectParams()`, and :meth:`oracledb.PoolParams()`.
+either in :ref:`Easy Connect <easyconnect>` strings or in :ref:`Connect
+Descriptors <conndescriptor>` that are either explicitly passed, or are in a
+``tnsnames.ora`` file.  All unrecognized parameters are ignored.  The
+connection parameters shown can be used in :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`,
+:meth:`oracledb.create_pool_async()`, :meth:`oracledb.ConnectParams()`, and
+:meth:`oracledb.PoolParams()`.
 
 .. list-table-with-summary::  Oracle Net Keywords Supported in the python-oracledb Thin Mode
     :header-rows: 1

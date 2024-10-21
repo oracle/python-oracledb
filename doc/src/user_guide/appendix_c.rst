@@ -620,13 +620,12 @@ addition to the common :ref:`commonupgrade`:
 
    See :ref:`otherinit`.
 
-4. If the application is connecting using an :ref:`Oracle Net service name
-   <netservice>` from a ``tnsnames.ora`` file located in a "default" location
-   such as the Instant Client ``network/admin/`` subdirectory, in
-   ``$ORACLE_HOME/network/admin/``, or in
-   ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle Database
-   home), then the configuration file directory must now explicitly be set as
-   shown above.
+4. If the application is connecting using a :ref:`TNS Alias <netservice>` from
+   a ``tnsnames.ora`` file located in a "default" location such as the Instant
+   Client ``network/admin/`` subdirectory, in ``$ORACLE_HOME/network/admin/``,
+   or in ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle
+   Database home), then the configuration file directory must now explicitly be
+   set as shown in Step 2.
 
 5. Remove calls to :func:`oracledb.clientversion()` which is only available in
    the python-oracledb Thick mode.  Oracle Client libraries are not available

@@ -75,10 +75,9 @@ Oracledb Methods
     ``params`` parameter object. Similar precedence rules also apply to other
     values.
 
-    The ``dsn`` (data source name) parameter can be a string in the format
-    ``user/password@connect_string`` or can simply be the connect string (in
-    which case authentication credentials such as the username and password
-    need to be specified separately). See :ref:`connstr` for more information.
+    The ``dsn`` (data source name) parameter is an :ref:`Oracle Net Services
+    Connection String <connstr>`.  It can also be a string in the format
+    ``user/password@connect_string``.
 
     The ``pool`` parameter is expected to be a pool object. The use of this
     parameter is the equivalent of calling :meth:`ConnectionPool.acquire()`.
@@ -444,10 +443,9 @@ Oracledb Methods
     the ``params`` parameter object. Similar precedence rules also apply to
     other values.
 
-    The ``dsn`` (data source name) parameter can be a string in the format
-    ``user/password@connect_string`` or can simply be the connect string (in
-    which case authentication credentials such as the username and password
-    need to be specified separately). See :ref:`connstr` for more information.
+    The ``dsn`` (data source name) parameter is an :ref:`Oracle Net Services
+    Connection String <connstr>`.  It can also be a string in the format
+    ``user/password@connect_string``.
 
     The ``pool`` parameter is expected to be an AsyncConnectionPool object. The
     use of this parameter is the equivalent of calling
@@ -1086,8 +1084,7 @@ Oracledb Methods
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
     pooling <connpooling>` for more information.
 
-    This function is the equivalent of the `cx_Oracle.SessionPool()
-    <https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.SessionPool>`__
+    This function is the equivalent of the ``cx_Oracle.SessionPool()``
     function.  The use of ``SessionPool()`` has been deprecated in
     python-oracledb.
 
@@ -1551,7 +1548,7 @@ Oracledb Methods
     other values.
 
     The ``user``, ``password``, and ``dsn`` parameters are the same as for
-    :meth:`oracledb.connect_async()`.
+    :meth:`oracledb.connect()`.
 
     The ``pool_class`` parameter is expected to be an
     :ref:`AsyncConnectionPool Object <asyncconnpoolobj>` or a subclass of

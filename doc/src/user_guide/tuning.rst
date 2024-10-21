@@ -13,7 +13,8 @@ Some general tuning tips are:
 
   For multi-user applications, make use of connection pooling.  Create the pool
   once during application initialization.  Do not oversize the pool, see
-  :ref:`connpooling` .  Use a session callback function to set session state, see
+  :ref:`connpooling`.  Use a session callback function to set session state,
+  see
   :ref:`Session Callbacks for Setting Pooled Connection State <sessioncallback>`.
 
   Make use of efficient python-oracledb functions.  For example, to insert
@@ -28,8 +29,8 @@ Some general tuning tips are:
   Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each query,
   see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
-  Do simple optimizations like :ref:`limiting the number of rows <rowlimit>` and
-  avoiding selecting columns not used in the application.
+  Do simple optimizations like :ref:`limiting the number of rows <rowlimit>`
+  and avoiding selecting columns not used in the application.
 
   It may be faster to work with simple scalar relational values than to use
   Oracle Database object types.
@@ -39,7 +40,8 @@ Some general tuning tips are:
 
   Tune the :ref:`Statement Cache <stmtcache>`.
 
-  Enable :ref:`Client Result Caching <clientresultcache>` for small lookup tables.
+  Enable :ref:`Client Result Caching <clientresultcache>` for small lookup
+  tables.
 
 * Tune your database.  See the `Database Performance Tuning Guide
   <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGDBA>`__.
@@ -47,18 +49,17 @@ Some general tuning tips are:
 * Tune your network.  For example, when inserting or retrieving a large number
   of rows (or for large data), or when using a slow network, then tune the
   Oracle Network Session Data Unit (SDU) and socket buffer sizes, see
-  `Configuring Session Data Unit
-  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__
-  and `Oracle Net Services: Best Practices for Database Performance and High
-  Availability
+  `Configuring Session Data Unit <https://www.oracle.com/pls/topic/lookup?ctx=
+  dblatest&id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__ and `Oracle Net
+  Services: Best Practices for Database Performance and High Availability
   <https://static.rainfocus.com/oracle/oow19/sess/1553616880266001WLIh/PF/
   OOW19_Net_CON4641_1569022126580001esUl.pdf>`__.
 
-  In python-oracledb Thick mode the SDU size is configured in the
+  In python-oracledb Thick mode, the SDU size is configured in the
   :ref:`optnetfiles`. In python-oracledb Thin mode, the SDU size can be passed
   as a connection or pool creation parameter.  In both modes it may optionally
   be set in the connection :ref:`Easy Connect string <easyconnect>` or
-  :ref:`connect descriptor <netservice>`.
+  :ref:`connect descriptor <conndescriptor>`.
 
 * Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit`
   on the last of a sequence of DML statements.
@@ -153,9 +154,9 @@ Here are some suggestions for tuning:
 
   This will return all rows for the query in one round-trip.
 
-* If you know that a query returns just one row then set :attr:`Cursor.arraysize`
-  to 1 to minimize memory usage.  The default prefetch value of 2 allows minimal
-  round-trips for single-row queries:
+* If you know that a query returns just one row then set
+  :attr:`Cursor.arraysize` to 1 to minimize memory usage.  The default prefetch
+  value of 2 allows minimal round-trips for single-row queries:
 
   .. code-block:: python
 

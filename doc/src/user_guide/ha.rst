@@ -4,8 +4,8 @@
 Using High Availability with python-oracledb
 *********************************************
 
-Applications can use many features for high availability (HA) during planned and
-unplanned outages in order to:
+Applications can use many features for high availability (HA) during planned
+and unplanned outages in order to:
 
 *  Reduce application downtime
 *  Eliminate compromises between high availability and performance
@@ -16,15 +16,27 @@ unplanned outages in order to:
 General HA Recommendations
 --------------------------
 
-General recommendations for creating highly available python-oracledb programs are:
+General recommendations for creating highly available python-oracledb programs
+are:
 
-* Tune operating system and Oracle Network parameters to avoid long TCP timeouts, to prevent firewalls killing connections, and to avoid connection storms.
+* Tune operating system and Oracle Network parameters to avoid long TCP
+  timeouts, to prevent firewalls killing connections, and to avoid connection
+  storms.
 * Implement application error handling and recovery.
-* Use the most recent version of the Oracle Client libraries.  New versions have improvements to features such as dead database server detection, and make it easier to set connection options.
-* Use the most recent version of Oracle Database.  New database versions introduce, and enhance, features such as Application Continuity (AC) and Transparent Application Continuity (TAC).
-* Use Oracle Database technologies such as `RAC <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=RACAD>`__ or standby databases.
+* Use the most recent version of the Oracle Client libraries.  New versions
+  have improvements to features such as dead database server detection, and
+  make it easier to set connection options.
+* Use the most recent version of Oracle Database.  New database versions
+  introduce, and enhance, features such as Application Continuity (AC) and
+  Transparent Application Continuity (TAC).
+* Use Oracle Database technologies such as `RAC <https://www.oracle.com/pls/
+  topic/lookup?ctx=dblatest&id=RACAD>`__ or standby databases.
 * Configure database services to emit :ref:`FAN <fan>` events.
-* Use a :ref:`connection pool <connpooling>` because pools can handle database events and take proactive and corrective action for draining, run time load balancing, and fail over.  Set the minimum and maximum pool sizes to the same values to avoid connection storms. Remove resource manager or user profiles that prematurely close sessions.
+* Use a :ref:`connection pool <connpooling>` because pools can handle database
+  events and take proactive and corrective action for draining, run time load
+  balancing, and fail over.  Set the minimum and maximum pool sizes to the
+  same values to avoid connection storms. Remove resource manager or user
+  profiles that prematurely close sessions.
 * Test all scenarios thoroughly.
 
 .. _hanetwork:
@@ -35,37 +47,36 @@ Network Configuration
 The operating system TCP and :ref:`Oracle Net configuration <optnetfiles>`
 should be configured for performance and availability.
 
-Options such as `SQLNET.OUTBOUND_CONNECT_TIMEOUT
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0857C817-675F-4CF0-BFBB-C3667F119176>`__,
-`SQLNET.RECV_TIMEOUT
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4A19D81A-75F0-448E-B271-24E5187B5909>`__
-and `SQLNET.SEND_TIMEOUT
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-48547756-9C0B-4D14-BE85-E7ADDD1A3A66>`__
-can be explored.
+Options such as `SQLNET.OUTBOUND_CONNECT_TIMEOUT <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-0857C817-675F-4CF0-BFBB-C3667F119176>`__,
+`SQLNET.RECV_TIMEOUT <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-4A19D81A-75F0-448E-B271-24E5187B5909>`__ and `SQLNET.SEND_TIMEOUT
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-48547756-9C0B-
+4D14-BE85-E7ADDD1A3A66>`__ can be explored.
 
-`Oracle Net Services
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=NETRF>`__ options may
-also be useful for high availability and performance tuning.  For example, the
-database's ``listener.ora`` file can have `RATE_LIMIT
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-F302BF91-64F2-4CE8-A3C7-9FDB5BA6DCF8>`__
-and `QUEUESIZE
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-FF87387C-1779-4CC3-932A-79BB01391C28>`__
-parameters that can help handle connection storms.
+`Oracle Net Services <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+NETRF>`__ options may also be useful for high availability and performance
+tuning.  For example, the database's ``listener.ora`` file can have `RATE_LIMIT
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-F302BF91-64F2-
+4CE8-A3C7-9FDB5BA6DCF8>`__ and `QUEUESIZE <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-FF87387C-1779-4CC3-932A-79BB01391C28>`__ parameters
+that can help handle connection storms.
 
-With Oracle Client 19c, `EXPIRE_TIME
-<https://docs.oracle.com/en/database/oracle/oracle-database/20/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-6140611A-83FC-4C9C-B31F-A41FC2A5B12D>`__
-can be used in :ref:`tnsnames.ora <optnetfiles>` connect descriptors to prevent
-firewalls from terminating idle connections and to adjust keepalive timeouts.
-The general recommendation for ``EXPIRE_TIME`` is to use a value that is
-slightly less than half of the termination period.  In older versions of Oracle
-Client, a ``tnsnames.ora`` connect descriptor option `ENABLE=BROKEN
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7A18022A-E40D-4880-B3CE-7EE9864756CA>`_
-can be used instead of ``EXPIRE_TIME``.  These settings can also aid detection
-of a terminated remote database server.
+With Oracle Client 19c, `EXPIRE_TIME <https://docs.oracle.com/en/database/
+oracle/oracle-database/20/netrf/local-naming-parameters-in-tns-ora-file.html#
+GUID-6140611A-83FC-4C9C-B31F-A41FC2A5B12D>`__ can be used in
+:ref:`Connect Descriptors <conndescriptor>` to prevent firewalls from
+terminating idle connections and to adjust keepalive timeouts.  The general
+recommendation for ``EXPIRE_TIME`` is to use a value that is slightly less than
+half of the termination period.  In older versions of Oracle Client, a connect
+descriptor option `ENABLE=BROKEN <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-7A18022A-E40D-4880-B3CE-7EE9864756CA>`_ can be used instead
+of ``EXPIRE_TIME``.  These settings can also aid detection of a terminated
+remote database server.
 
 When python-oracledb uses :ref:`Oracle Client libraries 19c <thickarchfig>`, or
-later, then the :ref:`Easy Connect syntax <easyconnect>` syntax enables some
-options to be used without needing a ``sqlnet.ora`` file.  For example, if your
+later, then the :ref:`Easy Connect <easyconnect>` syntax enables some options
+to be used without needing a ``sqlnet.ora`` file.  For example, if your
 firewall times out every 4 minutes, and you cannot alter the firewall settings,
 then you may decide to use ``EXPIRE_TIME`` in your connect string to send a
 probe every 2 minutes to the database to keep connections 'alive'::
@@ -89,31 +100,31 @@ must connect to a FAN-enabled database service.  The application should have
     :ref:`enablingthick`.
 
 FAN support is useful for planned and unplanned outages. It provides immediate
-notification to python-oracledb following outages related to the database, computers,
-and networks. Without FAN, python-oracledb can hang until a TCP timeout occurs and an
-error is returned, which might be several minutes.
+notification to python-oracledb following outages related to the database,
+computers, and networks. Without FAN, python-oracledb can hang until a TCP
+timeout occurs and an error is returned, which might be several minutes.
 
 FAN allows python-oracledb to provide high availability features without the
 application being aware of an outage.  Unused, idle connections in a
-:ref:`connection pool <connpooling>` will be automatically cleaned up.  A future
-:meth:`ConnectionPool.acquire()` call will establish a fresh connection to a
-surviving database instance without the application being aware of any service
-disruption.
+:ref:`connection pool <connpooling>` will be automatically cleaned up.  A
+future :meth:`ConnectionPool.acquire()` call will establish a fresh connection
+to a surviving database instance without the application being aware of any
+service disruption.
 
 To handle errors that affect active connections, you can add application logic
 to re-connect (this will connect to a surviving database instance) and replay
 application logic without having to return an error to the application user.
 
 FAN benefits users of Oracle Database's clustering technology `Oracle RAC
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D04AA2A7-2E68-4C5C-BD6E-36C62427B98E>`__
-because connections to surviving database instances can be immediately made.
-Users of Oracle's Data Guard with a broker will get FAN events generated when
-the standby database goes online.  Standalone databases will send FAN events
-when the database restarts.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D04AA2A7-2E68-
+4C5C-BD6E-36C62427B98E>`__ because connections to surviving database instances
+can be immediately made.  Users of Oracle's Data Guard with a broker will get
+FAN events generated when the standby database goes online.  Standalone
+databases will send FAN events when the database restarts.
 
 For more information on FAN, see the `white paper on Fast Application
-Notification
-<https://www.oracle.com/technetwork/database/options/clustering/applicationcontinuity/learnmore/fastapplicationnotification12c-2538999.pdf>`__.
+Notification <https://www.oracle.com/technetwork/database/options/clustering/
+applicationcontinuity/learnmore/fastapplicationnotification12c-2538999.pdf>`__.
 
 .. _appcont:
 
@@ -138,9 +149,9 @@ available to python-oracledb applications.
 You must thoroughly test your application because not all lower level calls in
 the python-oracledb implementation can be replayed.
 
-See `OCI and Application Continuity
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__
-for more information.
+See `OCI and Application Continuity <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__ for more
+information.
 
 .. _tg:
 
@@ -209,7 +220,8 @@ Follow the steps below to use the Transaction Guard feature in Python:
         END;
         /
 
-Ensure that the service is running by examining the output of the following query:
+Ensure that the service is running by examining the output of the following
+query:
 
     .. code-block:: sql
 

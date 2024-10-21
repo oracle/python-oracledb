@@ -72,10 +72,14 @@ Standalone Connections
 Standalone connections are database connections that do not use a
 python-oracledb connection pool.  They are useful for simple applications that
 use a single connection to a database.  Simple connections are created by
-calling :meth:`oracledb.connect()` and passing a database username, the
-database password for that user, and a 'data source name' :ref:`connection
-string <connstr>`.  Python-oracledb also supports :ref:`external authentication
-<extauth>` and so passwords do not need to be in the application.
+calling :meth:`oracledb.connect()` and passing:
+
+- A database username
+- The database password for that user
+- A 'data source name' connection string, see :ref:`connstr`
+
+Python-oracledb also supports :ref:`external authentication <extauth>` so
+passwords do not need to be in the application.
 
 Creating a Standalone Connection
 --------------------------------
@@ -153,18 +157,18 @@ may cause complications if the password contains '@' or '/' characters:
 Closing Connections
 +++++++++++++++++++
 
-Connections should be released when they are no longer needed.  You may prefer
+Connections should be released when they are no longer needed. You may prefer
 to let connections be automatically cleaned up when references to them go out
-of scope.  This lets python-oracledb close dependent resources in the correct
-order:
+of scope. This lets python-oracledb close dependent resources in the correct
+order. For example, you can use a Python `context manager
+<https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+``with`` block:
 
 .. code-block:: python
 
-    with oracledb.connect(user="hr", password=userpwd,
-                          dsn="dbhost.example.com/orclpdb") as connection:
+    with oracledb.connect(user="hr", password=userpwd, dsn="myhostname/orclpdb") as connection:
         with connection.cursor() as cursor:
-            cursor.execute("insert into SomeTable values (:1, :2)",
-                           (1, "Some string"))
+            cursor.execute("insert into SomeTable values (:1)", ("Some string"))
             connection.commit()
 
 This code ensures that once the block is completed, the connection is closed
@@ -183,6 +187,9 @@ Alternatively, you can explicitly close a connection by calling.
 
     # close the connection
     connection.close()
+
+If you explicitly close connections you may also need to close other resources
+first.
 
 .. _connerrors:
 
@@ -225,7 +232,7 @@ Use the correct credentials
 If your username or password are not known by the database that you attempted
 to connect to, then you will get the error::
 
-    ORA-01017: invalid username/password; logon denied
+    ORA-01017: invalid credential or not authorized; logon denied
 
 Find the correct username and password and try reconnecting.
 
@@ -267,17 +274,20 @@ The solution is to use a valid service name in the connection string. You can:
 
 .. _connstr:
 
-Connection Strings
-==================
+Oracle Net Services Connection Strings
+======================================
 
-The data source name parameter ``dsn`` of :meth:`oracledb.connect()` and
-:meth:`oracledb.create_pool()` is the Oracle Database connection string that
+The data source name parameter ``dsn`` of :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+:meth:`oracledb.create_pool_async()`, is the Oracle Database Oracle Net
+Services Connection String (commonly abbreviated as "connection string") that
 identifies which database service to connect to.  The ``dsn`` value can be one
-of Oracle's naming methods:
+of Oracle Database's naming methods:
 
 * An Oracle :ref:`Easy Connect <easyconnect>` string
-* A :ref:`Net Service Name <netservice>` mapping to a connect descriptor
-* An Oracle Net :ref:`Connect Descriptor <conndescriptor>`
+* A :ref:`Connect Descriptor <conndescriptor>`
+* A :ref:`TNS Alias <netservice>` mapping to a Connect Descriptor in a
+  :ref:`tnsnames.ora <optnetfiles>` file
 * An :ref:`LDAP URL <ldapurl>`
 
 Connection strings used for JDBC and Oracle SQL Developer need to be altered to
@@ -294,10 +304,10 @@ Easy Connect Syntax for Connection Strings
 
 An `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ string is often the simplest
-connection string to use for the data source name parameter ``dsn`` of
-:meth:`oracledb.connect()` and :meth:`oracledb.create_pool()`.  This method
-does not need :ref:`configuration files <optnetfiles>` such as
-``tnsnames.ora``.
+connection string to use in the data source name parameter ``dsn`` of
+connection functions such as :meth:`oracledb.connect()` and
+:meth:`oracledb.create_pool()`.  This method does not need configuration files
+such as :ref:`tnsnames.ora <optnetfiles>`.
 
 For example, to connect to the Oracle Database service ``orclpdb`` that is
 running on the host ``dbhost.example.com`` with the default Oracle
@@ -318,15 +328,15 @@ If the database is using a non-default port, it must be specified:
 The Easy Connect syntax supports Oracle Database service names.  It cannot be
 used with the older System Identifiers (SID).
 
-The latest `Easy Connect
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+The latest `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ syntax allows the use of
 multiple hosts or ports, along with optional entries for the wallet location,
-the distinguished name of the database server, and even allows some network
-configuration options be set. This means that a :ref:`sqlnet.ora <optnetfiles>`
-file is not needed for some common connection scenarios. See Oracle's
-`Technical Paper on Easy Connect Plus Syntax <https://download.oracle.com/
-ocomdocs/global/Oracle-Net-Easy-Connect-Plus.pdf>`__ for more information.
+the distinguished name of the database server, and allows some network
+configuration options such as the connection timeout and keep-alive values to
+be set. This means that a :ref:`sqlnet.ora <optnetfiles>` file is not needed
+for some common connection scenarios. See the technical brief `Oracle Database
+Easy Connect Plus <https://download.oracle.com/ocomdocs/global/Oracle-Net-Easy
+-Connect-Plus.pdf>`__ for more information.
 
 In python-oracledb Thin mode, any unknown Easy Connect options are ignored and
 are not passed to the database.  See :ref:`Connection String Differences
@@ -339,48 +349,15 @@ Service Administrator's Guide
 id=GUID-B0437826-43C1-49EC-A94D-B650B6A4A6EE>`__ for the syntax to use in your
 version of the Oracle Client libraries.
 
-.. _netservice:
-
-Net Service Names for Connection Strings
-----------------------------------------
-
-Connect Descriptor Strings are commonly stored in a :ref:`tnsnames.ora
-<optnetfiles>` file and associated with a Net Service Name.  This name can be
-used directly for the data source name parameter ``dsn`` of
-:meth:`oracledb.connect()` and :meth:`oracledb.create_pool()`.  For example,
-given a file ``/opt/oracle/config/tnsnames.ora`` with the following contents::
-
-    ORCLPDB =
-      (DESCRIPTION =
-        (ADDRESS = (PROTOCOL = TCP)(HOST = dbhost.example.com)(PORT = 1521))
-        (CONNECT_DATA =
-          (SERVER = DEDICATED)
-          (SERVICE_NAME = orclpdb)
-        )
-      )
-
-Then you could connect in python-oracledb Thin mode by using the following code:
-
-.. code-block:: python
-
-    connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
-                                  config_dir="/opt/oracle/config")
-
-More options for how python-oracledb locates ``tnsnames.ora`` files is detailed
-in :ref:`optnetfiles`.  Note in python-oracledb Thick mode, the configuration
-directory must be set during initialization, not at connection time.
-
-For more information about Net Service Names, see
-`Database Net Services Reference
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__.
-
 .. _conndescriptor:
 
-Oracle Net Connect Descriptor Strings
--------------------------------------
+Connect Descriptors
+-------------------
 
-Full Connect Descriptor strings can be embedded directly in python-oracledb
-applications:
+Connect Descriptors can be embedded directly in python-oracledb applications,
+or referenced via a :ref:`TNS Alias <netservice>`.
+
+An example of direct use is:
 
 .. code-block:: python
 
@@ -393,9 +370,10 @@ applications:
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn=dsn)
 
-The :meth:`oracledb.ConnectParams()` and :meth:`ConnectParams.get_connect_string()`
-functions can be used to construct a connect descriptor string from the
-individual components, see :ref:`usingconnparams`.  For example:
+The :meth:`oracledb.ConnectParams()` and
+:meth:`ConnectParams.get_connect_string()` functions can be used to construct a
+connect descriptor from the individual components, see :ref:`usingconnparams`.
+For example:
 
 .. code-block:: python
 
@@ -407,12 +385,64 @@ This prints::
 
     (DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost.example.com)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=orclpdb))(SECURITY=(SSL_SERVER_DN_MATCH=True)))
 
+.. _netservice:
+
+TNS Aliases for Connection Strings
+----------------------------------
+
+:ref:`Connect Descriptors <conndescriptor>` are commonly stored in a
+:ref:`tnsnames.ora <optnetfiles>` file and associated with a TNS Alias.  This
+alias can be used directly for the data source name parameter ``dsn`` of
+:meth:`oracledb.connect()` and :meth:`oracledb.create_pool()`.  For example,
+given a file ``/opt/oracle/config/tnsnames.ora`` with the following contents::
+
+    ORCLPDB =
+      (DESCRIPTION =
+        (ADDRESS = (PROTOCOL = TCP)(HOST = dbhost.example.com)(PORT = 1521))
+        (CONNECT_DATA =
+          (SERVER = DEDICATED)
+          (SERVICE_NAME = orclpdb)
+        )
+      )
+
+Then you could connect in python-oracledb Thin mode by passing the TNS Alias
+"ORCLPDB" (case insensitive) as the ``dsn`` value:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
+                                  config_dir="/opt/oracle/config")
+
+More options for how python-oracledb locates ``tnsnames.ora`` files are
+detailed in :ref:`optnetfiles`.  Note that in python-oracledb Thick mode, the
+configuration directory must be set during initialization, not at connection
+time.
+
+TNS Aliases may also be resolved by :ref:`LDAP <ldapconnections>`.
+
+For more information about Net Service Names, see `Database Net Services
+Reference <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__.
+
 .. _ldapurl:
 
 LDAP URL Connection Strings
 ---------------------------
 
-See :ref:`ldapconnections`.
+Oracle Client 23ai introduced support for LDAP URLs to be used as connection
+strings. This syntax removes the need for external ``ldap.ora`` and
+``sqlnet.ora`` files.  See the technical brief `Oracle Client 23ai LDAP URL
+Syntax <https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.
+pdf>`__.  For example, python-oracledb Thick mode applications using Oracle
+Client 23ai could connect using:
+
+.. code-block:: python
+
+    ldapurl = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
+    connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
+
+This syntax is also usable in python-oracledb Thin mode via a :ref:`connection
+hook function <connectionhook>`, see :ref:`ldapconnections`.
 
 .. _jdbcconnstring:
 
@@ -695,11 +725,11 @@ Once a directory server is configured, python-oracledb Thick mode applications
 can use the desired LDAP alias as the connection DSN.
 
 Oracle Client 23ai introduced support for LDAP URLs to be used as connection
-DSNs. This syntax removes the need for external ``ldap.ora`` and ``sqlnet.ora``
-files.  See `Oracle Client 23ai LDAP URL Syntax
-<https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.pdf>`__.
-For example, python-oracledb Thick mode applications using Oracle Client 23ai
-could connect using:
+strings. This syntax removes the need for external ``ldap.ora`` and
+``sqlnet.ora`` files.  See the technical brief `Oracle Client 23ai LDAP URL
+Syntax <https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.
+pdf>`__.  For example, python-oracledb Thick mode applications using Oracle
+Client 23ai could connect using:
 
 .. code-block:: python
 
@@ -711,7 +741,7 @@ could connect using:
 To use LDAP in python-oracledb Thin mode, specify an LDAP URL as the DSN and
 call :meth:`oracledb.register_protocol()` to register your own user
 :ref:`connection hook function <connectionhook>` that gets the connect
-descriptor from your LDAP server.
+string from your LDAP server.
 
 For example:
 
@@ -720,8 +750,11 @@ For example:
     import ldap3
     import re
 
-    # Get the Oracle Database connection string from an LDAP server
-    # In this example, arg will be "ldapserver/dbname,cn=OracleContext,dc=dom,dc=com"
+    # Get the Oracle Database connection string from an LDAP server when
+    # connection calls use an LDAP URL.
+    # In this example, "protocol"' will have the value "ldap", and "arg" will
+    # be "ldapserver/dbname,cn=OracleContext,dc=dom,dc=com"
+
     def ldap_hook(protocol, arg, params):
         pattern = r"^(.+)\/(.+)\,(cn=OracleContext.*)$"
         match = re.match(pattern, arg)
@@ -794,7 +827,10 @@ can grow up to five connections:
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
                                 min=1, max=5, increment=1)
 
-After the pool has been created, your application can get a connection from
+Getting Connections from a Pool
++++++++++++++++++++++++++++++++
+
+After a pool has been created, your application can get a connection from
 it by calling :meth:`ConnectionPool.acquire()`:
 
 .. code-block:: python
@@ -830,12 +866,15 @@ still wait if the pool can grow.  However, you will get an error immediately if
 the pool is at its maximum size.  With newer Oracle Client libraries and with
 Thin mode, an error will be returned if the pool has to, or cannot, grow.
 
+Returning Connections to a Pool
++++++++++++++++++++++++++++++++
+
 When your application has finished performing all required database operations,
-the pooled connection should be released to make it available for other users
-of the pool.  You can do this with :meth:`ConnectionPool.release()` or
-:meth:`Connection.close()`.  Alternatively you may prefer to let pooled
-connections be closed implicitly at the end of scope.  For example, by using a
-``with`` statement:
+the pooled connection should be released back to the pool to make it available
+for other users. For example, you can use a Python `context manager
+<https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+``with`` block which lets pooled connections be closed implicitly at the end of
+scope and cleans up dependent resources:
 
 .. code-block:: python
 
@@ -843,6 +882,24 @@ connections be closed implicitly at the end of scope.  For example, by using a
         with connection.cursor() as cursor:
             for result in cursor.execute("select * from mytab"):
                 print(result)
+
+Alternatively, you can explicitly return connections with
+:meth:`ConnectionPool.release()` or :meth:`Connection.close()`, however you may
+also need to close other resources first.
+
+If you need to force a connection to be closed and its associated database
+server process to be released, use :meth:`ConnectionPool.drop()`:
+
+.. code-block:: python
+
+    with pool.acquire() as connection:
+
+        . . .
+
+        pool.drop(connection)
+
+Closing a Connection Pool
++++++++++++++++++++++++++
 
 At application shutdown, the connection pool can be completely closed using
 :meth:`ConnectionPool.close()`:
@@ -857,11 +914,11 @@ To force immediate pool termination when connections are still in use, execute:
 
     pool.close(force=True)
 
-See `connection_pool.py
-<https://github.com/oracle/python-oracledb/tree/main/samples/connection_pool.py>`__
-for a runnable example of connection pooling.
+See `connection_pool.py <https://github.com/oracle/python-oracledb/tree/main/
+samples/connection_pool.py>`__ for a runnable example of connection pooling.
 
-**Connection Pool Growth**
+Connection Pool Growth
+++++++++++++++++++++++
 
 At pool creation, ``min`` connections are established to the database.  When a
 pool needs to grow, new connections are created automatically limited by the
@@ -923,7 +980,8 @@ then the number of connections opened at pool creation is zero even if a larger
 value is specified for ``min``.  Also, in these cases the pool increment unit
 is always 1 regardless of the value of ``increment``.
 
-**Pool Connection Health**
+Pool Connection Health
+++++++++++++++++++++++
 
 Before :meth:`ConnectionPool.acquire()` returns, python-oracledb does a
 lightweight check similar to :meth:`Connection.is_healthy()` to see if the
@@ -972,17 +1030,18 @@ pool is limited by the value of the :data:`ConnectionPool.wait_timeout`
 parameter.  A call that cannot be immediately satisfied will wait no longer
 than ``wait_timeout`` regardless of the value of ``ping_timeout``.
 
-Ensure that the :ref:`firewall <hanetwork>`, `resource manager
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__
-or user profile `IDLE_TIME
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-4EA9-857D-BEF7300B64C3>`__
-do not expire idle sessions, since this will require connections to be recreated
-which will impact performance and scalability.
+Connection pool health can be impacted by :ref:`firewalls <hanetwork>`,
+`resource managers <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-2BEF5482-CF97-4A85-BD90-9195E41E74EF>`__ or user profile `IDLE_TIME
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-ABC7AE4D-64A8-
+4EA9-857D-BEF7300B64C3>`__ values. For best efficiency, ensure these do not
+expire idle sessions since this will require connections to be recreated which
+will impact performance and scalability.
 
 A pool's internal connection re-establishment after lightweight and full pings
 can mask performance-impacting configuration issues such as firewalls
-terminating connections.  You should monitor `AWR
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
+terminating connections.  You should monitor `AWR <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
 reports for an unexpectedly large connection rate.
 
 .. _connpoolsize:
@@ -1000,20 +1059,21 @@ invalidates all connections.
 
 Fixed size pools avoid connection storms on the database which can decrease
 throughput.  See `Guideline for Preventing Connection Storms: Use Static Pools
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-4D16-B19C-31D168069B54>`__,
-which contains more details about sizing of pools.  Having a fixed size will
-also guarantee that the database can handle the upper pool size.  For example,
-if a dynamically sized pool needs to grow but the database resources are
-limited, then :meth:`ConnectionPool.acquire()` may return errors such as
-``ORA-28547``.  With a fixed pool size, this class of error will occur when the
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-
+4D16-B19C-31D168069B54>`__, which contains more details about sizing of pools.
+Having a fixed size will also guarantee that the database can handle the upper
+pool size.  For example, if a dynamically sized pool needs to grow but the
+database resources are limited, then :meth:`ConnectionPool.acquire()` may
+return errors such as `ORA-28547 <https://docs.oracle.com/error-help/db/ora-
+28547/>`__.  With a fixed pool size, this class of error will occur when the
 pool is created, allowing you to change the pool size or reconfigure the
 database before users access the application.  With a dynamically growing pool,
 the error may occur much later while the application is in use.
 
-The Real-World Performance Group also recommends keeping pool sizes small because
-they may perform better than larger pools. The pool attributes should be
-adjusted to handle the desired workload within the bounds of available resources
-in python-oracledb and the database.
+The Real-World Performance Group also recommends keeping pool sizes small
+because they often can perform better than larger pools. The pool attributes
+should be adjusted to handle the desired workload within the bounds of
+available resources in python-oracledb and the database.
 
 .. _poolreconfiguration:
 
@@ -1057,10 +1117,10 @@ Session Callbacks for Setting Pooled Connection State
 -----------------------------------------------------
 
 Applications can set "session" state in each connection.  Examples of session
-state are NLS globalization settings from ``ALTER SESSION`` statements.  Pooled
-connections will retain their session state after they have been released back
-to the pool.  However, because pools can grow or connections in the pool can
-be recreated, there is no guarantee a subsequent
+state are :ref:`NLS globalization <globalization>` settings from ``ALTER
+SESSION`` statements.  Pooled connections will retain their session state after
+they have been released back to the pool.  However, because pools can grow or
+connections in the pool can be recreated, there is no guarantee a subsequent
 :meth:`~ConnectionPool.acquire()` call will return a database connection that
 has any particular state.
 
@@ -1468,8 +1528,9 @@ To request a DRCP pooled server, you can:
                                     min=2, max=5, increment=1,
                                     cclass="MYAPP")
 
-- Alternatively, add ``(SERVER=POOLED)`` to the connect descriptor such as
-  used in an Oracle Network configuration file ``tnsnames.ora``::
+- Alternatively, add ``(SERVER=POOLED)`` to the :ref:`Connect Descriptor
+  <conndescriptor>` such as used in an Oracle Network configuration file
+  ``tnsnames.ora``::
 
     customerpool = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)
               (HOST=dbhost.example.com)
@@ -1797,7 +1858,7 @@ To use implicit connection pooling in python-oracledb with DRCP:
                                     min=2, max=5, increment=1,
                                     cclass="MYAPP")
 
-   - Or in the :ref:`connect descriptor <netservice>` used in an Oracle
+   - Or in the :ref:`Connect Descriptor <conndescriptor>` used in an Oracle
      Network configuration file such as :ref:`tnsnames.ora <optnetfiles>` by
      adding ``(SERVER=POOLED)``. For example::
 
@@ -1824,9 +1885,8 @@ To use implicit connection pooling in python-oracledb with DRCP:
 
         dsn = "localhost:1521/orclpdb:pooled?pool_boundary=statement"
 
-   - Or the ``CONNECT_DATA`` section of the
-     :ref:`Connect Descriptor string <netservice>`. For example, to use
-     the *transaction* boundary::
+   - Or the ``CONNECT_DATA`` section of the :ref:`Connect Descriptor
+     <conndescriptor>`. For example, to use the *transaction* boundary::
 
         tnsalias = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=mymachine.example.com)
                     (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)
@@ -1848,8 +1908,8 @@ To use implicit connection pooling in python-oracledb with DRCP:
 
         dsn = "localhost:1521/orclpdb:pooled?pool_boundary=statement&pool_connection_class=myapp"
 
-    - Or the ``CONNECT_DATA`` section of the :ref:`Connect Descriptor string
-      <netservice>`. For example, to use a class name 'myapp'::
+    - Or the ``CONNECT_DATA`` section of the :ref:`Connect Descriptor
+      <conndescriptor>`. For example, to use a class name 'myapp'::
 
         tnsalias = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=mymachine.example.com)
                     (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orcl)
@@ -1860,7 +1920,7 @@ To use implicit connection pooling in python-oracledb with DRCP:
    type where you want session memory to be reused for connections.
 
    The pool purity can also optionally be changed by adding ``POOL_PURITY=NEW``
-   to the connection string or descriptor.
+   to the Easy Connect string or Connect Descriptor.
 
 Similar steps can be used with PRCP.  For general information on PRCP, see the
 technical brief `CMAN-TDM — An Oracle Database connection proxy for scalable
@@ -2460,9 +2520,10 @@ case, so you must set ``TOKEN_LOCATION`` to either of the following:
 *  A fully qualified file name, in which case, you must specify the entire path
    of the file which contains the token value
 
-You can either set ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` in a sqlnet.ora file or
-alternatively, you can specify it inside a connect descriptor stored in
-:ref:`tnsnames.ora<optnetfiles>` file, for example::
+You can either set ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` in a :ref:`sqlnet.ora
+<optnetfiles>` file or alternatively, you can specify it inside a :ref:`Connect
+Descriptor <conndescriptor>`, for example when using a :ref:`tnsnames.ora
+<optnetfiles>` file::
 
     db_alias =
         (DESCRIPTION =
@@ -2699,8 +2760,9 @@ The Oracle Net parameter ``TOKEN_AUTH`` must be set when you are using the
 connection string syntax. Also, the ``PROTOCOL`` parameter must be ``tcps``
 and ``SSL_SERVER_DN_MATCH`` should be ``ON``.
 
-You can set ``TOKEN_AUTH=OCI_TOKEN`` in a ``sqlnet.ora`` file.
-Alternatively, you can specify it in a connect descriptor, for example::
+You can set ``TOKEN_AUTH=OCI_TOKEN`` in a ``sqlnet.ora`` file.  Alternatively,
+you can specify it in a :ref:`Connect Descriptor <conndescriptor>`, for example
+when using a :ref:`tnsnames.ora <optnetfiles>` file::
 
     db_alias =
         (DESCRIPTION =
@@ -2718,8 +2780,9 @@ that the OCI-CLI tool writes to. For example ``~/.oci/db-token/`` on Linux.
 
 If the token and private key files are not in the default location then their
 directory must be specified with the ``TOKEN_LOCATION`` parameter in a
-sqlnet.ora file or in a connect descriptor stored inside
-:ref:`tnsnames.ora<optnetfiles>` file, for example::
+:ref:`sqlnet.ora <optnetfiles>` file or in a :ref:`Connect Descriptor
+<conndescriptor>`, for example when using a :ref:`tnsnames.ora <optnetfiles>`
+file::
 
     db_alias =
         (DESCRIPTION =
@@ -2980,8 +3043,8 @@ ADB instance details:
 7. Copy the appropriate Connection String of the database instance used by your application.
 
 Applications can connect to your Oracle ADB instance using the database
-credentials and the copied connect descriptor.  For example, to connect as the
-ADMIN user:
+credentials and the copied :ref:`Connect Descriptor <conndescriptor>`.  For
+example, to connect as the ADMIN user:
 
 .. code-block:: python
 
@@ -3262,10 +3325,10 @@ port parameters available in your :ref:`connection string <connstr>`.
 
       localhost/orclpdb&https_proxy=myproxy.example.com&https_proxy_port=80
 
-- Alternatively, update the :ref:`connect descriptor <conndescriptor>` (either
+- Alternatively, update the :ref:`Connect Descriptor <conndescriptor>` (either
   being passed directly during connection or contained in your
-  :ref:`tnsnames.ora <netservice>` file). If you are using a :ref:`tnsnames.ora
-  <netservice>` file, a modified entry might look like::
+  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a :ref:`tnsnames.ora
+  <optnetfiles>` file, a modified entry might look like::
 
       mydb_low = (description=
                    (address=
@@ -3280,10 +3343,10 @@ port parameters available in your :ref:`connection string <connstr>`.
 
       localhost/orclpdb&https_proxy=myproxy.example.com&https_proxy_port=80
 
-- Alternatively, update the :ref:`connect descriptor <conndescriptor>` (either
+- Alternatively, update the :ref:`Connect Descriptor <conndescriptor>` (either
   being passed directly during connection or contained in your
-  :ref:`tnsnames.ora <netservice>` file). If you are using a :ref:`tnsnames.ora
-  <netservice>` file, a modified entry might look like::
+  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a :ref:`tnsnames.ora
+  <optnetfiles>` file, a modified entry might look like::
 
       mydb_low = (description=
                    (address=
