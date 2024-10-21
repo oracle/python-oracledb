@@ -811,6 +811,15 @@ class TestCase(test_env.BaseTestCase):
         var.setvalue(0, obj)
         self.assertIs(var.getvalue(), obj)
 
+    def test_2341(self):
+        "2341 - test insufficient privileges for gettype()"
+        user = test_env.get_proxy_user()
+        password = test_env.get_proxy_password()
+        main_user = test_env.get_main_user().upper()
+        conn = test_env.get_connection(user=user, password=password)
+        with self.assertRaisesFullCode("DPY-2035"):
+            conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

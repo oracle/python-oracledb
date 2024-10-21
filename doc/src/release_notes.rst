@@ -31,6 +31,9 @@ Thin Mode Changes
 #)  Added :meth:`oracledb.register_protocol()` to allow users to register a
     function that will be called when a particular protocol is detected in a
     connection string.
+#)  Fixed bug when calling :meth:`Connection.gettype()` for a type that exists
+    but on which the user has insufficient privileges to view
+    (`issue 397 <https://github.com/oracle/python-oracledb/issues/397>`__).
 #)  Fixed bug when calling :meth:`ConnectParams.parse_dsn_with_credentials()`
     with an Easy Connect string containing a protocol.
 #)  Fixed bug when calling :meth:`Cursor.parse()` with autocommit enabled.

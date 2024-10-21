@@ -589,6 +589,17 @@ class TestCase(test_env.BaseAsyncTestCase):
         result = [i for i in obj]
         self.assertEqual(result, [5, 10, 15])
 
+    async def test_5618(self):
+        "5618 - test insufficient privileges for gettype()"
+        user = test_env.get_proxy_user()
+        password = test_env.get_proxy_password()
+        main_user = test_env.get_main_user().upper()
+        async with await test_env.get_connection_async(
+            user=user, password=password
+        ) as conn:
+            with self.assertRaisesFullCode("DPY-2035"):
+                await conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

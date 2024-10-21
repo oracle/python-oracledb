@@ -416,6 +416,9 @@ cdef class BaseThinDbObjectTypeCache:
             typ_impl.schema = self.schema_var.getvalue()
             typ_impl.package_name = self.package_name_var.getvalue()
             typ_impl.name = self.name_var.getvalue()
+            if typ_impl.name is None:
+                errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME,
+                                  name=name)
             typ_impl.is_xml_type = \
                     (typ_impl.schema == "SYS" and typ_impl.name == "XMLTYPE")
         typ_impl.attrs = []
