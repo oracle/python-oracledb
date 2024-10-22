@@ -17,6 +17,9 @@ oracledb 2.5.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added attributes :attr:`Connection.session_id` and
+    :attr:`Connection.serial_num` that provide information about the session
+    identifier and session serial number associated with a connection.
 #)  Added attributes
     :attr:`oracledb.defaults.driver_name <defaults.driver_name>`,
     :attr:`oracledb.defaults.machine <defaults.machine>`,

@@ -35,7 +35,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         StatementCache _statement_cache
         BaseProtocol _protocol
         uint32_t _session_id
-        uint32_t _serial_num
+        uint16_t _serial_num
         str _action
         bint _action_modified
         str _dbop
@@ -215,6 +215,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def get_db_name(self):
         return self._db_name
+
+    def get_session_id(self):
+        return self._session_id
+
+    def get_serial_num(self):
+        return self._serial_num
 
     def get_edition(self):
         return self._edition

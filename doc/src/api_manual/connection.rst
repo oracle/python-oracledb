@@ -825,6 +825,25 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
+.. attribute:: Connection.serial_num
+
+    This read-only attribute specifies the session serial number associated with
+    the connection. It is the same value returned by the SQL
+    ``SELECT SERIAL# FROM V$SESSION``. It is available only in python-oracledb
+    Thin mode.
+
+    .. versionadded:: 2.5.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+        For applications using Database Resident Connection Pooling (DRCP),
+        the ``serial_num`` attribute may not contain the current session state
+        until a round-trip is made to the database after acquiring a session.
+        It is recommended to not use this attribute if your application uses
+        DRCP but may not perform a round-trip.
+
 .. attribute:: Connection.service_name
 
     This read-only attribute specifies the Oracle Database service name
@@ -836,6 +855,25 @@ Connection Attributes
     .. note::
 
         This attribute is an extension to the DB API definition.
+
+.. attribute:: Connection.session_id
+
+    This read-only attribute specifies the session identifier associated with
+    the connection. It is the same value returned by the SQL
+    ``SELECT SID FROM V$SESSION``. It is available only in python-oracledb
+    Thin mode.
+
+    .. versionadded:: 2.5.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+        For applications using Database Resident Connection Pooling (DRCP),
+        the ``session_id`` attribute may not contain the current session state
+        until a round-trip is made to the database after acquiring a session.
+        It is recommended to not use this attribute if your application uses
+        DRCP but may not perform a round-trip.
 
 .. attribute:: Connection.stmtcachesize
 

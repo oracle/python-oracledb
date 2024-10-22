@@ -649,6 +649,26 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await self.__verify_connect_arg("driver_name", "newdriver", sql)
 
+    async def test_5351(self):
+        "5351 - test getting session id"
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(
+                "select dbms_debug_jdwp.current_session_id from dual"
+            )
+            (fetched_value,) = await cursor.fetchone()
+            self.assertEqual(conn.session_id, fetched_value)
+
+    async def test_5352(self):
+        "5352 - test getting session serial number"
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+            await cursor.execute(
+                "select dbms_debug_jdwp.current_session_serial from dual"
+            )
+            (fetched_value,) = await cursor.fetchone()
+            self.assertEqual(conn.serial_num, fetched_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

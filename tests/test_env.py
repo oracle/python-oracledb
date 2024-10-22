@@ -611,16 +611,19 @@ class BaseTestCase(unittest.TestCase):
         """
         if conn is None:
             conn = self.conn
-        with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                select
-                    dbms_debug_jdwp.current_session_id,
-                    dbms_debug_jdwp.current_session_serial
-                from dual
-                """
-            )
-            return cursor.fetchone()
+        if get_is_thin():
+            return (conn.session_id, conn.serial_num)
+        else:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    """
+                    select
+                        dbms_debug_jdwp.current_session_id,
+                        dbms_debug_jdwp.current_session_serial
+                    from dual
+                    """
+                )
+                return cursor.fetchone()
 
     def get_soda_database(
         self,
@@ -725,16 +728,19 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
         """
         if conn is None:
             conn = self.conn
-        with conn.cursor() as cursor:
-            await cursor.execute(
-                """
-                select
-                    dbms_debug_jdwp.current_session_id,
-                    dbms_debug_jdwp.current_session_serial
-                from dual
-                """
-            )
-            return await cursor.fetchone()
+        if get_is_thin():
+            return (conn.session_id, conn.serial_num)
+        else:
+            with conn.cursor() as cursor:
+                await cursor.execute(
+                    """
+                    select
+                        dbms_debug_jdwp.current_session_id,
+                        dbms_debug_jdwp.current_session_serial
+                    from dual
+                    """
+                )
+                return await cursor.fetchone()
 
     async def is_on_oracle_cloud(self, connection=None):
         if connection is None:

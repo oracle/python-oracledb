@@ -236,6 +236,22 @@ class BaseConnection:
         return self._impl.get_db_name()
 
     @property
+    def session_id(self) -> int:
+        """
+        Specifies the session identifier.
+        """
+        self._verify_connected()
+        return self._impl.get_session_id()
+
+    @property
+    def serial_num(self) -> int:
+        """
+        Specifies the session serial number.
+        """
+        self._verify_connected()
+        return self._impl.get_serial_num()
+
+    @property
     def edition(self) -> str:
         """
         Specifies the session edition.

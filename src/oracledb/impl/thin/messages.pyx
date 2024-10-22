@@ -281,8 +281,8 @@ cdef class Message:
                 if self.conn_impl._drcp_establish_session:
                     self.conn_impl._statement_cache.clear_open_cursors()
             self.conn_impl._drcp_establish_session = False
-            buf.skip_ub4()                  # session id
-            buf.skip_ub2()                  # serial number
+            buf.read_ub4(&self.conn_impl._session_id)
+            buf.read_ub2(&self.conn_impl._serial_num)
         else:
             errors._raise_err(errors.ERR_UNKNOWN_SERVER_PIGGYBACK,
                               opcode=opcode)
@@ -1628,7 +1628,7 @@ cdef class AuthMessage(Message):
             self.conn_impl._session_id = \
                     <uint32_t> int(self.session_data["AUTH_SESSION_ID"])
             self.conn_impl._serial_num = \
-                    <uint32_t> int(self.session_data["AUTH_SERIAL_NUM"])
+                    <uint16_t> int(self.session_data["AUTH_SERIAL_NUM"])
             self.conn_impl._db_domain = \
                     self.session_data.get("AUTH_SC_DB_DOMAIN")
             self.conn_impl._db_name = \

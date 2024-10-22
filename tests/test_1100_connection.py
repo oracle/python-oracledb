@@ -866,6 +866,30 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connect_arg("driver_name", "newdriver", sql)
 
+    @unittest.skipUnless(
+        test_env.get_is_thin(), "thick mode doesn't support session_id yet"
+    )
+    def test_1151(self):
+        "1151 - test getting session id"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("select dbms_debug_jdwp.current_session_id from dual")
+        (fetched_value,) = cursor.fetchone()
+        self.assertEqual(conn.session_id, fetched_value)
+
+    @unittest.skipUnless(
+        test_env.get_is_thin(), "thick mode doesn't support serial_num yet"
+    )
+    def test_1152(self):
+        "1152 - test getting session serial number"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "select dbms_debug_jdwp.current_session_serial from dual"
+        )
+        (fetched_value,) = cursor.fetchone()
+        self.assertEqual(conn.serial_num, fetched_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

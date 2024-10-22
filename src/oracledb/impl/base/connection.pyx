@@ -278,8 +278,14 @@ cdef class BaseConnImpl:
     def get_sdu(self):
         errors._raise_not_supported("getting the session data unit (SDU)")
 
+    def get_serial_num(self):
+        errors._raise_not_supported("getting the session serial number")
+
     def get_service_name(self):
         errors._raise_not_supported("getting the service name")
+
+    def get_session_id(self):
+        errors._raise_not_supported("getting the session id")
 
     def get_stmt_cache_size(self):
         errors._raise_not_supported("getting the statement cache size")
