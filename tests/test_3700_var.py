@@ -510,6 +510,35 @@ class TestCase(test_env.BaseTestCase):
             simple_var = self.cursor.var(str, convert_nulls=convert_nulls)
             self.assertEqual(simple_var.convert_nulls, convert_nulls)
 
+    def test_3732(self):
+        "3732 - test encoding_errors"
+        str_value = "Я"
+        replacement_char = "�"
+        invalid_bytes = str_value.encode("windows-1251")
+        self.cursor.execute("truncate table TestTempTable")
+        self.cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, utl_raw.cast_to_varchar2(:1))
+            """,
+            [invalid_bytes],
+        )
+        self.conn.commit()
+
+        for arg_name in ["encoding_errors", "encodingErrors"]:
+            with self.subTest(arg_name=arg_name):
+
+                def type_handler(cursor, fetch_info):
+                    args = dict(arraysize=cursor.arraysize)
+                    args[arg_name] = "replace"
+                    return cursor.var(fetch_info.type_code, **args)
+
+                with self.conn.cursor() as cursor:
+                    cursor.outputtypehandler = type_handler
+                    cursor.execute("select StringCol1 from TestTempTable")
+                    (fetched_value,) = cursor.fetchone()
+                    self.assertEqual(fetched_value, replacement_char)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

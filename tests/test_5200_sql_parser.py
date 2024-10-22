@@ -194,6 +194,45 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2041"):
             self.cursor.prepare("select q'[something from dual")
 
+    def test_5215_different_space_combinations(self):
+        "5215 - different space combinations with :="
+        self.cursor.prepare(
+            """
+            begin :value2 :=
+                               :a  + :b  +   :c +:a +3; end;
+                               begin :value2
+                               :=
+                               :a + :c +3; end;
+            """
+        )
+        self.assertEqual(self.cursor.bindnames(), ["VALUE2", "A", "B", "C"])
+
+    def test_5216_binds_between_comment_blocks_with_quotes(self):
+        "5216 - bind variables between multiple comment blocks with quotes"
+        self.cursor.prepare(
+            """
+            select
+                /* ' comment 1 */
+                :a,
+                /* "comment " 2 ' */:b
+                /* comment 3 '*/,
+                :c
+                /* comment 4 ""*/
+            from dual
+            """
+        )
+        self.assertEqual(self.cursor.bindnames(), ["A", "B", "C"])
+
+    def test_5217_binds_missing_quote_exception(self):
+        "5217 - query with a missing end quote"
+        with self.assertRaisesFullCode("DPY-2041"):
+            self.cursor.prepare("select 'abc, :a from dual")
+
+    def test_5218_binds_missing_quote_exception(self):
+        "5218 - q-string with wrong closing symbols"
+        with self.assertRaisesFullCode("DPY-2041"):
+            self.cursor.prepare("select q'[abc'], 5 from dual")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
