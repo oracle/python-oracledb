@@ -38,7 +38,7 @@ Thin Mode Changes
     python-oracledb Thin mode without waiting for an initial connection to be
     succesfully established. Since python-oracledb defaults to Thin mode, this
     method is mostly useful for applications with multiple threads concurrently
-    creating connections to different databases when the application starts
+    creating connections to databases when the application starts
     (`issue 408 <https://github.com/oracle/python-oracledb/issues/408>`__).
 #)  Fixed bug when calling :meth:`Connection.gettype()` for a type that exists
     but on which the user has insufficient privileges to view

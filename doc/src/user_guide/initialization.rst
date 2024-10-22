@@ -317,28 +317,34 @@ going to be used.  In one special case, you may wish to explicitly enable Thin
 mode to prevent Thick mode from being enabled later.
 
 To allow application portability, the driver's internal logic allows
-applications to initally attempt
-:ref:`standalone connection <standaloneconnection>` creation in Thin mode, but
-then lets them :ref:`enable Thick mode <enablingthick>` if that connection is
-unsuccessful.  An example is when trying to connect to an Oracle Database that
-turns out to be an old version that requires Thick mode.  This heuristic means
-Thin mode is not enforced until the initial connection is successful.  Since
-all connections must be the same mode, any second and subsequent concurrent
-Thin mode connection attempts will wait for the initial standalone connection
-to succeed, meaning the driver mode is no longer potentially changeable to
-Thick mode.
+applications to initally attempt :ref:`standalone connection
+<standaloneconnection>` creation in Thin mode, but then lets them :ref:`enable
+Thick mode <enablingthick>` if that connection is unsuccessful.  An example is
+when trying to connect to an Oracle Database that turns out to be an old
+version that requires Thick mode.  This heuristic means Thin mode is not
+enforced until the initial connection is successful.  Since all connections
+must be the same mode, any second and subsequent concurrent Thin mode
+connection attempt will wait for the initial standalone connection to succeed,
+meaning the driver mode is no longer potentially changeable to Thick mode.
 
-This heuristic delay does not impact:
+If you have multiple threads concurrently creating standalone Thin mode
+connections, you may wish to call :meth:`oracledb.enable_thin_mode()` as part
+of your application initialization. This is not required but avoids the mode
+determination delay.
 
-- Single-threaded applications using standalone connections.
+The mode determination delay does not affect the following cases, so calling
+:meth:`~oracledb.enable_thin_mode()` is not needed for them:
+
+- Single-threaded applications using :ref:`standalone connections
+  <standaloneconnection>`.
 - Single or multi-threaded applications using
   :ref:`connection pools <connpooling>` (even with ``min`` of 0).
-- Applications that have already called :func:`oracledb.init_oracle_client()`.
 
-In the case that you want to open multiple standalone Thin mode connections in
-multiple threads, you may wish to force Thin mode by calling
-:meth:`oracledb.enable_thin_mode()` as part of your application initialization.
-This avoids the mode heuristic delay. For example:
+The delay also does not affect applications that have already called
+:func:`oracledb.init_oracle_client()` to enable Thick mode.
+
+To explicitly enable Thin mode, call :meth:`~oracledb.enable_thin_mode()`, for
+example:
 
 .. code-block:: python
 
