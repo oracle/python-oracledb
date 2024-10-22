@@ -1005,6 +1005,64 @@ class TestCase(test_env.BaseTestCase):
         params = oracledb.ConnectParams(driver_name=value)
         self.assertEqual(params.driver_name, value)
 
+    def test_4560(self):
+        "4560 - test register_protocol with invalid hook type"
+
+        def hook1(protocol, protocol_arg, params, extra_invalid_param):
+            pass
+
+        def hook2(passed_protocol):
+            pass
+
+        protocol = "proto-test"
+        try:
+            for hook in [hook1, hook2]:
+                oracledb.register_protocol(protocol, hook)
+                params = oracledb.ConnectParams()
+                with self.assertRaisesFullCode("DPY-4018"):
+                    params.parse_connect_string(f"{protocol}://args")
+        finally:
+            oracledb.register_protocol(protocol, None)
+
+    def test_4561(self):
+        "4561 - test register_protocol with invalid protocol type"
+        with self.assertRaises(TypeError):
+            oracledb.register_protocol(1, lambda: None)
+        with self.assertRaises(TypeError):
+            oracledb.register_protocol("proto", 5)
+
+    def test_4562(self):
+        "4562 - test removing unregistered protocol"
+        with self.assertRaises(KeyError):
+            oracledb.register_protocol("unregistered-protocol", None)
+
+    def test_4563(self):
+        "4563 - test restoring pre-registered protocols (tcp and tcps)"
+
+        host = "host_4565"
+        port = 4565
+        service_name = "service_4565"
+        user = "user_4565"
+
+        def hook(passed_protocol, passed_protocol_arg, passed_params):
+            passed_params.set(user=user)
+
+        for protocol in ["tcp", "tcps"]:
+            try:
+                oracledb.register_protocol(protocol, hook)
+                connect_string = f"{protocol}://{host}:{port}/{service_name}"
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_string)
+                self.assertEqual(params.user, user)
+                self.assertEqual(params.service_name, None)
+            finally:
+                oracledb.register_protocol(protocol, None)
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            self.assertEqual(params.host, host)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.service_name, service_name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

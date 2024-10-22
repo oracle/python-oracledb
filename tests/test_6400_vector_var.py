@@ -660,6 +660,39 @@ class TestCase(test_env.BaseTestCase):
         value = [1, 9, 3, 8, 4, 7, 5, 6, 0, 2, 6, 4, 5, 6, 7, 8]
         self.__test_insert_and_fetch(value, "Vector8Col", "b")
 
+    def test_6445(self):
+        "6445 - test setting a PL-SQL type to a vector"
+        vec1 = array.array("f", [1, 1.5, 2, 2.5])
+        vec2 = array.array("f", [4, 4.5, 5, 5.5])
+
+        in_out_vec = self.cursor.var(oracledb.DB_TYPE_VECTOR)
+        in_out_vec.setvalue(0, vec2)
+
+        distance = self.cursor.var(oracledb.DB_TYPE_BINARY_DOUBLE)
+        output_vec = self.cursor.var(oracledb.DB_TYPE_VECTOR)
+
+        plsql_block = """
+        DECLARE
+            dist BINARY_DOUBLE;
+        BEGIN
+            select vector_distance(:in_vec,:in_out_vec,euclidean) into dist;
+            :distance := dist;
+            :output_vec := :in_out_vec;
+            :in_out_vec :=:in_vec;
+        END;
+        """
+
+        self.cursor.execute(
+            plsql_block,
+            in_vec=vec1,
+            in_out_vec=in_out_vec,
+            distance=distance,
+            output_vec=output_vec,
+        )
+        self.assertEqual(output_vec.getvalue(), vec2)
+        self.assertEqual(in_out_vec.getvalue(), vec1)
+        self.assertEqual(distance.getvalue(), 6)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

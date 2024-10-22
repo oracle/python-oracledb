@@ -97,6 +97,10 @@ def register_protocol(protocol: str, hook_function: Callable) -> None:
     valid connection string. If the supplied function is None, the registration
     is removed.
     """
+    if not isinstance(protocol, str):
+        raise TypeError("protocol must be a string")
+    if hook_function is not None and not callable(hook_function):
+        raise TypeError("hook_function must be a callable")
     protocol = protocol.lower()
     if hook_function is None:
         base_impl.REGISTERED_PROTOCOLS.pop(protocol)
