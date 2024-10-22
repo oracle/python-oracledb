@@ -1891,6 +1891,26 @@ Oracledb Methods
     (number of seconds since the epoch; see the documentation of the standard
     Python time module for details).
 
+
+.. function:: enable_thin_mode()
+
+    Makes python-oracledb be in Thin mode. After this method is called, Thick
+    mode cannot be enabled. If python-oracledb is already in Thick mode, then
+    calling ``enable_thin_mode()`` will fail. If connections have already been
+    opened, or a connection pool created, in Thin mode, then calling
+    ``enable_thin_mode()`` is a no-op.
+
+    Since python-oracledb defaults to Thin mode, almost all applications do not
+    need to call this method. However, because it bypasses python-oracledb's
+    internal mode-determination heuristic, it may be useful for applications
+    that are using :ref:`standalone connections <standaloneconnection>` in
+    multiple threads to concurrently create connections when the application
+    starts.
+
+    See :ref:`enablingthin` for more information.
+
+    .. versionadded:: 2.5.0
+
 .. function:: init_oracle_client(lib_dir=None, config_dir=None, \
         error_url=None, driver_name=None)
 

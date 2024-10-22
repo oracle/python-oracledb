@@ -96,12 +96,6 @@ def get_manager(requested_thin_mode=None):
     """
     Returns the manager, but only after ensuring that no other threads are
     attempting to initialize the mode.
-
-    NOTE: the current implementation of the driver only requires
-    requested_thin_mode to be set when initializing the thick mode; for this
-    reason the error raised is specified about a thin mode connection already
-    being created. If this assumption changes, a new error message will be
-    required.
     """
     with manager.condition:
         if manager.thin_mode is None:
@@ -116,7 +110,10 @@ def get_manager(requested_thin_mode=None):
             requested_thin_mode is not None
             and requested_thin_mode != manager.thin_mode
         ):
-            errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
+            if requested_thin_mode:
+                errors._raise_err(errors.ERR_THICK_MODE_ENABLED)
+            else:
+                errors._raise_err(errors.ERR_THIN_CONNECTION_ALREADY_CREATED)
     return manager
 
 

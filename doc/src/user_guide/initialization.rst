@@ -307,6 +307,59 @@ On Linux and macOS, you might use::
 When your python-oracledb application is run, logging output is shown on the
 terminal.
 
+.. _enablingthin:
+
+Explicitly Enabling python-oracledb Thin Mode
+=============================================
+
+Python-oracledb defaults to Thin mode after determining that Thick mode is not
+going to be used.  In one special case, you may wish to explicitly enable Thin
+mode to prevent Thick mode from being enabled later.
+
+To allow application portability, the driver's internal logic allows
+applications to initally attempt
+:ref:`standalone connection <standaloneconnection>` creation in Thin mode, but
+then lets them :ref:`enable Thick mode <enablingthick>` if that connection is
+unsuccessful.  An example is when trying to connect to an Oracle Database that
+turns out to be an old version that requires Thick mode.  This heuristic means
+Thin mode is not enforced until the initial connection is successful.  Since
+all connections must be the same mode, any second and subsequent concurrent
+Thin mode connection attempts will wait for the initial standalone connection
+to succeed, meaning the driver mode is no longer potentially changeable to
+Thick mode.
+
+This heuristic delay does not impact:
+
+- Single-threaded applications using standalone connections.
+- Single or multi-threaded applications using
+  :ref:`connection pools <connpooling>` (even with ``min`` of 0).
+- Applications that have already called :func:`oracledb.init_oracle_client()`.
+
+In the case that you want to open multiple standalone Thin mode connections in
+multiple threads, you may wish to force Thin mode by calling
+:meth:`oracledb.enable_thin_mode()` as part of your application initialization.
+This avoids the mode heuristic delay. For example:
+
+.. code-block:: python
+
+    import oracledb
+
+    oracledb.enable_thin_mode()
+
+Once this method is called, then python-oracledb Thick mode cannot be enabled.
+If you call :func:`oracledb.init_oracle_client()`, you will get the following
+error::
+
+    DPY-2019: python-oracledb thick mode cannot be used because thin mode has
+    already been enabled or a thin mode connection has already been created
+
+If you have already enabled Thick mode by calling
+:func:`oracledb.init_oracle_client()` and then call
+:meth:`oracledb.enable_thin_mode()`, you will get the following error::
+
+    DPY-2053: python-oracledb thin mode cannot be used because thick mode has
+    already been enabled
+
 .. _optconfigfiles:
 
 Optional Oracle Configuration Files

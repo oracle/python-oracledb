@@ -31,7 +31,26 @@
 from typing import Callable, Union
 
 from . import base_impl
+from . import driver_mode
 from . import errors
+
+
+def enable_thin_mode():
+    """
+    Makes python-oracledb be in Thin mode. After this method is called, Thick
+    mode cannot be enabled. If python-oracledb is already in Thick mode, then
+    calling ``enable_thin_mode()`` will fail. If connections have already been
+    opened, or a connection pool created, in Thin mode, then calling
+    ``enable_thin_mode()`` is a no-op.
+
+    Since python-oracledb defaults to Thin mode, almost all applications do not
+    need to call this method. However, because it bypasses python-oracledb's
+    internal mode-determination heuristic, it may be useful for applications
+    that are using standalone connections in multiple threads to concurrently
+    create connections when the application starts.
+    """
+    with driver_mode.get_manager(requested_thin_mode=True):
+        pass
 
 
 def params_initer(f):

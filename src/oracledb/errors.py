@@ -272,6 +272,7 @@ ERR_MISSING_ADDRESS = 2049
 ERR_INVALID_TPC_BEGIN_FLAGS = 2050
 ERR_INVALID_TPC_END_FLAGS = 2051
 ERR_MISMATCHED_TOKEN = 2052
+ERR_THICK_MODE_ENABLED = 2053
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -709,9 +710,14 @@ ERR_MESSAGE_FORMATS = {
         "by python-oracledb in thin mode"
     ),
     ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
+    ERR_THICK_MODE_ENABLED: (
+        "python-oracledb thin mode cannot be used because thick mode has "
+        "already been enabled"
+    ),
     ERR_THIN_CONNECTION_ALREADY_CREATED: (
-        "python-oracledb thick mode cannot be used because a thin mode "
-        "connection has already been created"
+        "python-oracledb thick mode cannot be used because thin mode has "
+        "already been enabled or a thin mode connection has already been "
+        "created"
     ),
     ERR_TIME_NOT_SUPPORTED: (
         "Oracle Database does not support time only variables"
