@@ -631,13 +631,15 @@ applications that use python-oracledb in Thick mode to refer users to
 application-specific installation instructions.  If this value is not
 specified, then the :ref:`installation` URL is used.
 
+.. _thicktothin:
 
-Changing from python-oracledb Thick Mode to python-oracledb Thin Mode
-=====================================================================
+Migrating from python-oracledb Thick Mode to python-oracledb Thin Mode
+======================================================================
 
-Changing an application that currently uses Thin mode requires the removal of
-calls to :func:`oracledb.init_oracle_client()` and an application restart.
-Other small changes may be required.
+Changing an application that currently uses :ref:`Thick mode <enablingthick>`
+to use Thin mode requires the removal of calls to
+:func:`oracledb.init_oracle_client()` and an application restart.  Other small
+changes may be required.
 
 All connections in a python-oracledb application must use the same mode.
 
