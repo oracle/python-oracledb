@@ -25,12 +25,13 @@ Thin Mode Changes
     :attr:`oracledb.defaults.machine <defaults.machine>`,
     :attr:`oracledb.defaults.osuser <defaults.osuser>`,
     :attr:`oracledb.defaults.program <defaults.program>`, and
-    :attr:`oracledb.defaults.terminal <defaults.terminal>` which provide
+    :attr:`oracledb.defaults.terminal <defaults.terminal>` to set
     information about the driver name, machine name, operating system user,
     program name, and terminal name respectively. The ``driver_name``,
     ``machine``, ``osuser``, ``program``, and ``terminal`` parameters were also
     added to :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
-    :meth:`oracledb.create_pool()`, and :meth:`oracledb.create_pool_async()`.
+    :meth:`oracledb.create_pool()`, and :meth:`oracledb.create_pool_async()`
+    (`issue 343 <https://github.com/oracle/python-oracledb/issues/343>`__).
 #)  Added :meth:`oracledb.register_protocol()` to allow users to register a
     function that will be called when a particular protocol is detected in a
     connection string.
@@ -40,20 +41,20 @@ Thin Mode Changes
     method is mostly useful for applications with multiple threads concurrently
     creating connections to databases when the application starts
     (`issue 408 <https://github.com/oracle/python-oracledb/issues/408>`__).
-#)  Fixed bug when calling :meth:`Connection.gettype()` for a type that exists
-    but on which the user has insufficient privileges to view
+#)  Fixed bug with error handling when calling :meth:`Connection.gettype()` for
+    a type that exists but on which the user has insufficient privileges to
+    view
     (`issue 397 <https://github.com/oracle/python-oracledb/issues/397>`__).
 #)  Fixed bug when calling :meth:`ConnectParams.parse_dsn_with_credentials()`
     with an Easy Connect string containing a protocol.
 #)  Fixed bug when calling :meth:`Cursor.parse()` with autocommit enabled.
-#)  Fixed bug when parsing a tnsnames.ora file with a connect descriptor
-    containing an embedded comment.
+#)  Fixed bug when parsing a :ref:`tnsnames.ora files <optnetfiles>` file with
+    a connect descriptor containing an embedded comment.
 #)  Fixed error message when a SQL statement is parsed containing a q-string
     without a closing quote.
-#)  When the interpreter shuts down, any pooled connections are ejected out of
-    any open pools and the pool itself shutdown. Previously, pooled connections
-    were closed, which was causing issues with other shutdown code such as that
-    found in the SQLAlchemy base pool implementation.
+#)  Fixed bug affecting Python interpreter shut down using connection pooling
+    in SQLAlchemy. Pooled connection shutdown now occurs separately from pool
+    destruction.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -67,6 +68,9 @@ Thick Mode Changes
 #)  Fixed bug preventing subscriptions from invoking the callbacks associated
     with them
     (`issue 409 <https://github.com/oracle/python-oracledb/issues/409>`__).
+#)  Fixed bug affecting Application Continuity when older Oracle Client
+    libraries are used (`ODPI-C <https://github.com/oracle/odpi>`__ dependency
+    update).
 
 Common Changes
 ++++++++++++++
