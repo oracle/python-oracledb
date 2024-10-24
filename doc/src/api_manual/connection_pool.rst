@@ -56,7 +56,7 @@ ConnectionPool Methods
     be raised.
 
     The ``cclass`` parameter, if specified, should be a string corresponding to
-    the connection class for Database Resident Connection Pooling (DRCP).
+    the connection class for :ref:`drcp`.
 
     The ``purity`` parameter is expected to be one of
     :data:`~oracledb.PURITY_NEW`, :data:`~oracledb.PURITY_SELF`, or

@@ -158,11 +158,11 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Oracle Database Dedicated Servers, Shared Servers and Database Resident Connection Pooling (DRCP)
+    * - Oracle Database Dedicated Servers, Shared Servers and :ref:`drcp`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 23ai Implicit Connection Pooling with DRCP and PRCP (see :ref:`implicitconnpool`)
+    * - Oracle Database 23ai Implicit Connection Pooling with :ref:`DRCP <drcp>` and PRCP (see :ref:`implicitconnpool`)
       - Yes
       - Yes
       - No

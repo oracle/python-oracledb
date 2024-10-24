@@ -335,7 +335,7 @@ Database Views
 ==============
 
 This section shows some sample column values for database views.  Other views
-also contain useful information, such as the DRCP views discussed in
+also contain useful information, such as the :ref:`drcp` views discussed in
 :ref:`monitoringdrcp`.
 
 ``V$SESSION_CONNECT_INFO``

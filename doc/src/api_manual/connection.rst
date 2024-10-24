@@ -838,11 +838,11 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
-        For applications using Database Resident Connection Pooling (DRCP),
-        the ``serial_num`` attribute may not contain the current session state
-        until a round-trip is made to the database after acquiring a session.
-        It is recommended to not use this attribute if your application uses
-        DRCP but may not perform a round-trip.
+        For applications using :ref:`drcp`, the ``serial_num`` attribute may
+        not contain the current session state until a round-trip is made to the
+        database after acquiring a session.  It is recommended to not use this
+        attribute if your application uses DRCP but may not perform a
+        round-trip.
 
 .. attribute:: Connection.service_name
 
@@ -869,11 +869,11 @@ Connection Attributes
 
         This attribute is an extension to the DB API definition.
 
-        For applications using Database Resident Connection Pooling (DRCP),
-        the ``session_id`` attribute may not contain the current session state
-        until a round-trip is made to the database after acquiring a session.
-        It is recommended to not use this attribute if your application uses
-        DRCP but may not perform a round-trip.
+        For applications using :ref:`drcp`, the ``session_id`` attribute may
+        not contain the current session state until a round-trip is made to the
+        database after acquiring a session.  It is recommended to not use this
+        attribute if your application uses DRCP but may not perform a
+        round-trip.
 
 .. attribute:: Connection.stmtcachesize
 

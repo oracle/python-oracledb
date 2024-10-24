@@ -105,7 +105,7 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.cclass
 
     This read-only attribute is a string that specifies the connection class
-    to use for Database Resident Connection Pooling (DRCP).
+    to use for :ref:`drcp`.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -270,14 +270,14 @@ ConnectParams Attributes
 
 .. attribute:: ConnectParams.pool_boundary
 
-    This read-only attribute is one of the strings "statement" or
-    "transaction" which indicates when pooled DRCP or PRCP connections can be
-    returned to the pool. If the value is "statement", then pooled DRCP or
-    PRCP connections are implicitly released back to the DRCP or PRCP pool
-    when the connection is stateless (that is, there are no active cursors,
-    active transactions, temporary tables, or temporary LOBs). If the value is
-    "transaction", then pooled DRCP or PRCP connections are implicitly
-    released back to the DRCP or PRCP pool when either one of the methods
+    This read-only attribute is one of the strings "statement" or "transaction"
+    which indicates when pooled :ref:`DRCP <drcp>` or PRCP connections can be
+    returned to the pool. If the value is "statement", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when the
+    connection is stateless (that is, there are no active cursors, active
+    transactions, temporary tables, or temporary LOBs). If the value is
+    "transaction", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when either one of the methods
     :meth:`Connection.commit()` or :meth:`Connection.rollback()` are called.
     This attribute requires the use of DRCP or PRCP with Oracle Database 23ai
     (or later). See :ref:`implicitconnpool` for more information.
@@ -325,10 +325,11 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.purity
 
     This read-only attribute is an integer that returns the purity used for
-    DRCP.  When the value of this attribute is :attr:`oracledb.PURITY_DEFAULT`,
-    then any standalone connection will use :attr:`oracledb.PURITY_NEW` and any
-    pooled connection will use :attr:`oracledb.PURITY_SELF`. The default value
-    is :data:`~oracledb.PURITY_DEFAULT`.
+    :ref:`drcp`.  When the value of this attribute is
+    :attr:`oracledb.PURITY_DEFAULT`, then any standalone connection will use
+    :attr:`oracledb.PURITY_NEW` and any pooled connection will use
+    :attr:`oracledb.PURITY_SELF`. The default value is
+    :data:`~oracledb.PURITY_DEFAULT`.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 

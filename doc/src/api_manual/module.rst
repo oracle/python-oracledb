@@ -170,8 +170,8 @@ Oracledb Methods
     both the python-oracledb Thin and Thick modes.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
-    This value is used in both the python-oracledb Thin and Thick modes.
+    connection class to use for :ref:`drcp`. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -320,18 +320,18 @@ Oracledb Methods
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
-    called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23ai (or later).  See :ref:`implicitconnpool` for more
-    information.  This value is used in both the python-oracledb Thin and
-    Thick modes.
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`Connection.commit()` or
+    :meth:`Connection.rollback()` are called.  This parameter requires the use
+    of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
     indicates whether to use TCP Fast Open which is an `Oracle Autonomous
@@ -523,7 +523,7 @@ Oracledb Methods
     should be one of `dedicated`, `shared`, or `pooled`.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
+    connection class to use for :ref:`drcp`.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -626,16 +626,16 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`AsyncConnection.commit()` or
-    :meth:`AsyncConnection.rollback()` are called.  This parameter requires
-    the use of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`AsyncConnection.commit()` or
+    :meth:`AsyncConnection.rollback()` are called.  This parameter requires the
+    use of DRCP or PRCP with Oracle Database 23ai (or later).  See
     :ref:`implicitconnpool` for more information.  This value is used in both
     the python-oracledb Thin and Thick modes.
 
@@ -809,8 +809,8 @@ Oracledb Methods
     both the python-oracledb Thin and Thick modes.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
-    This value is used in both the python-oracledb Thin and Thick modes.
+    connection class to use for :ref:`drcp`. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -957,18 +957,18 @@ Oracledb Methods
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
-    called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23ai (or later).  See :ref:`implicitconnpool` for more
-    information.  This value is used in both  the python-oracledb Thin and
-    Thick modes.
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`Connection.commit()` or
+    :meth:`Connection.rollback()` are called.  This parameter requires the use
+    of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
     indicates whether to use TCP Fast Open which is an `Oracle Autonomous
@@ -1272,8 +1272,8 @@ Oracledb Methods
     both the python-oracledb Thin and Thick modes.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
-    This value is used in both the python-oracledb Thin and Thick modes.
+    connection class to use for :ref:`drcp`. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -1419,18 +1419,18 @@ Oracledb Methods
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
-    called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23ai (or later).  See :ref:`implicitconnpool` for more
-    information.  This value is used in both the python-oracledb Thin and
-    Thick modes.
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`Connection.commit()` or
+    :meth:`Connection.rollback()` are called.  This parameter requires the use
+    of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
     indicates whether to use TCP Fast Open which is an `Oracle Autonomous
@@ -1685,7 +1685,7 @@ Oracledb Methods
     should be one of `dedicated`, `shared`, or `pooled`.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
+    connection class to use for :ref:`drcp`.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -1786,16 +1786,16 @@ Oracledb Methods
     77949C8A2B04>`__ for more details. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`AsyncConnection.commit()` or
-    :meth:`AsyncConnection.rollback()` are called.  This parameter requires
-    the use of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`AsyncConnection.commit()` or
+    :meth:`AsyncConnection.rollback()` are called.  This parameter requires the
+    use of DRCP or PRCP with Oracle Database 23ai (or later).  See
     :ref:`implicitconnpool` for more information.  This value is used in both
     the python-oracledb Thin and Thick modes.
 
@@ -2175,8 +2175,8 @@ Oracledb Methods
     both the python-oracledb Thin and Thick modes.
 
     The ``cclass`` parameter is expected to be a string that identifies the
-    connection class to use for Database Resident Connection Pooling (DRCP).
-    This value is used in both the python-oracledb Thin and Thick modes.
+    connection class to use for :ref:`drcp`. This value is used in both the
+    python-oracledb Thin and Thick modes.
 
     The ``purity`` parameter is expected to be one of the
     :ref:`oracledb.PURITY_* <drcppurityconsts>` constants that identifies the
@@ -2317,18 +2317,18 @@ Oracledb Methods
     python-oracledb Thin and Thick modes. The default value is 8192 bytes.
 
     The ``pool_boundary`` parameter is expected to be one of the strings
-    "statement" or "transaction" which indicates when pooled DRCP or PRCP
-    connections can be returned to the pool.  If the value is "statement",
-    then pooled DRCP or PRCP connections are implicitly released back to the
-    DRCP or PRCP pool when the connection is stateless (that is, there are no
-    active cursors, active transactions, temporary tables, or temporary LOBs).
-    If the value is "transaction", then pooled DRCP or PRCP connections are
-    implicitly released back to the DRCP or PRCP pool when either one of the
-    methods :meth:`Connection.commit()` or :meth:`Connection.rollback()` are
-    called.  This parameter requires the use of DRCP or PRCP with Oracle
-    Database 23ai (or later).  See :ref:`implicitconnpool` for more
-    information.  This value is used in both the python-oracledb Thin and
-    Thick modes.
+    "statement" or "transaction" which indicates when pooled :ref:`DRCP <drcp>`
+    or PRCP connections can be returned to the pool.  If the value is
+    "statement", then pooled DRCP or PRCP connections are implicitly released
+    back to the DRCP or PRCP pool when the connection is stateless (that is,
+    there are no active cursors, active transactions, temporary tables, or
+    temporary LOBs).  If the value is "transaction", then pooled DRCP or PRCP
+    connections are implicitly released back to the DRCP or PRCP pool when
+    either one of the methods :meth:`Connection.commit()` or
+    :meth:`Connection.rollback()` are called.  This parameter requires the use
+    of DRCP or PRCP with Oracle Database 23ai (or later).  See
+    :ref:`implicitconnpool` for more information.  This value is used in both
+    the python-oracledb Thin and Thick modes.
 
     The ``use_tcp_fast_open`` parameter is expected to be a boolean which
     indicates whether to use TCP Fast Open which is an `Oracle Autonomous
@@ -3293,7 +3293,7 @@ listed below are extensions to the DB API definition and have deprecated the
 `Session Pool Purity <https://cx-oracle.readthedocs.io/en/latest/api_manual/
 module.html#session-pool-purity>`_ constants that were used in cx_Oracle 8.3.
 They are possible values for the ``purity`` parameter of the :meth:`connect()`
-method, which is used in Database Resident Connection Pooling (DRCP).
+method, which is used in :ref:`drcp`.
 
 .. versionchanged:: 2.3.0
 

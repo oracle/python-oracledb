@@ -556,11 +556,49 @@ AsyncConnection Attributes
     requested python-oracledb size and the maximum size allowed by the database
     network configuration.
 
+.. attribute:: AsyncConnection.serial_num
+
+    This read-only attribute specifies the session serial number associated with
+    the connection. It is the same value returned by the SQL
+    ``SELECT SERIAL# FROM V$SESSION``. It is available only in python-oracledb
+    Thin mode.
+
+    .. versionadded:: 2.5.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+        For applications using :ref:`drcp`, the ``serial_num`` attribute may
+        not contain the current session state until a round-trip is made to the
+        database after acquiring a session.  It is recommended to not use this
+        attribute if your application uses DRCP but may not perform a
+        round-trip.
+
 .. attribute:: AsyncConnection.service_name
 
     This read-only attribute specifies the Oracle Database service name
     associated with the connection.  This is the same value returned by the SQL
     ``SELECT SYS_CONTEXT('USERENV', 'SERVICE_NAME') FROM DUAL``.
+
+.. attribute:: AsyncConnection.session_id
+
+    This read-only attribute specifies the session identifier associated with
+    the connection. It is the same value returned by the SQL
+    ``SELECT SID FROM V$SESSION``. It is available only in python-oracledb
+    Thin mode.
+
+    .. versionadded:: 2.5.0
+
+    .. note::
+
+        This attribute is an extension to the DB API definition.
+
+        For applications using :ref:`drcp`, the ``session_id`` attribute may
+        not contain the current session state until a round-trip is made to the
+        database after acquiring a session.  It is recommended to not use this
+        attribute if your application uses DRCP but may not perform a
+        round-trip.
 
 .. attribute:: AsyncConnection.stmtcachesize
 
