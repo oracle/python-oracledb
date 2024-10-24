@@ -50,6 +50,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bytes _ltxid
         str _current_schema
         bint _current_schema_modified
+        uint8_t _max_identifier_length
         uint32_t _max_open_cursors
         str _db_domain
         str _db_name
@@ -240,6 +241,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def get_ltxid(self):
         return self._ltxid or b''
+
+    def get_max_identifier_length(self):
+        return self._max_identifier_length
 
     def get_max_open_cursors(self):
         return self._max_open_cursors

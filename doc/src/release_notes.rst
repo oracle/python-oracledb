@@ -75,6 +75,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for returning the maximum identifier length allowed by the
+    database using the new property :data:`Connection.max_identifier_length`
+    (`issue 395 <https://github.com/oracle/python-oracledb/issues/395>`__).
 #)  Improved type hints for cursors
     (`issue 391 <https://github.com/oracle/python-oracledb/issues/391>`__).
 #)  Improved error message when attempting to access attributes on a connection

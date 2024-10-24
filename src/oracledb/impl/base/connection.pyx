@@ -270,6 +270,9 @@ cdef class BaseConnImpl:
     def get_ltxid(self):
         errors._raise_not_supported("getting the logical transaction id")
 
+    def get_max_identifier_length(self):
+        errors._raise_not_supported("getting the maximum identifier length")
+
     def get_max_open_cursors(self):
         errors._raise_not_supported(
             "getting the maximum number of open cursors"

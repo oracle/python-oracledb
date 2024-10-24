@@ -337,6 +337,19 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint8_t numSuperShardingKeyColumns
         bint outNewSession
 
+    ctypedef struct dpiConnInfo:
+        const char *dbDomain
+        uint32_t dbDomainLength
+        const char *dbName
+        uint32_t dbNameLength
+        const char *instanceName
+        uint32_t instanceNameLength
+        const char *serviceName
+        uint32_t serviceNameLength
+        uint32_t maxIdentifierLength
+        uint32_t maxOpenCursors
+        uint8_t serverType
+
     ctypedef struct dpiContextCreateParams:
         const char *defaultDriverName
         const char *defaultEncoding
@@ -618,6 +631,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             uint32_t *valueLength) nogil
 
     int dpiConn_getHandle(dpiConn *conn, void **handle) nogil
+
+    int dpiConn_getInfo(dpiConn *conn, dpiConnInfo *info) nogil
 
     int dpiConn_getInstanceName(dpiConn *conn, const char **value,
             uint32_t *valueLength) nogil

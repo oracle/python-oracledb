@@ -526,6 +526,15 @@ AsyncConnection Attributes
         This attribute is only available when Oracle Database 12.1 or later is
         in use
 
+.. attribute:: AsyncConnection.max_identifier_length
+
+    This read-only attribute specifies the maximum length of bytes supported by
+    the database to which the connection has been established.  See `Database
+    Object Naming Rules <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: AsyncConnection.max_open_cursors
 
     This read-only attribute specifies the maximum number of cursors that the

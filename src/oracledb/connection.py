@@ -351,6 +351,15 @@ class BaseConnection:
         return self._impl.get_ltxid()
 
     @property
+    def max_identifier_length(self) -> int:
+        """
+        Returns the maximum length of identifiers supported by the database to
+        which this connection has been established.
+        """
+        self._verify_connected()
+        return self._impl.get_max_identifier_length()
+
+    @property
     def max_open_cursors(self) -> int:
         """
         Specifies the maximum number of cursors that the database can have open

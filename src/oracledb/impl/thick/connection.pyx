@@ -664,6 +664,12 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         return value[:value_length]
 
+    def get_max_identifier_length(self):
+        cdef dpiConnInfo info
+        if dpiConn_getInfo(self._handle, &info) < 0:
+            _raise_from_odpi()
+        return info.maxIdentifierLength
+
     def get_max_open_cursors(self):
         cdef uint32_t value
         if dpiConn_getMaxOpenCursors(self._handle, &value) < 0:

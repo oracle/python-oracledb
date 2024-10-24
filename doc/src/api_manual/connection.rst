@@ -755,6 +755,14 @@ Connection Attributes
         available when Oracle Database 12.1 or higher is in use on both the
         server and the client.
 
+.. attribute:: Connection.max_identifier_length
+
+    This read-only attribute specifies the maximum length of bytes supported
+    by the database to which the connection has been established.  See `Database
+    Object Naming Rules <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__.
+
+    .. versionadded:: 2.5.0
 
 .. attribute:: Connection.max_open_cursors
 
