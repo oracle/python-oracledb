@@ -989,6 +989,16 @@ class TestCase(test_env.BaseTestCase):
         cursor.parse("insert into TestTempTable (IntCol) values (:1)")
         cursor.execute(None, [1])
 
+    def test_4368(self):
+        "4368 - test cursor.setinputsizes() with early failed execute"
+        self.cursor.setinputsizes(a=int, b=str)
+        with self.assertRaisesFullCode("DPY-2006"):
+            self.cursor.execute("select :c from dual", [5])
+        value = 4368
+        self.cursor.execute("select :d from dual", [value])
+        (fetched_value,) = self.cursor.fetchone()
+        self.assertEqual(fetched_value, value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

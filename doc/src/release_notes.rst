@@ -80,6 +80,9 @@ Common Changes
 #)  Improved error message when attempting to access attributes on a connection
     before a connection has been established
     (`issue 385 <https://github.com/oracle/python-oracledb/issues/385>`__).
+#)  The variables saved with :meth:`Cursor.setinputsizes()` are now forgotten
+    when an exception is raised
+    (`issue 411 <https://github.com/oracle/python-oracledb/issues/411>`__).
 #)  Fixed bug when calling :meth:`ConnectParams.set()` with a value of ``None``
     for the ``connectiontype`` and ``session_callback`` parameters. Previously,
     any values set earlier would be improperly cleared and now they are

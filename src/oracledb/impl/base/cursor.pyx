@@ -393,14 +393,17 @@ cdef class BaseCursorImpl:
                 self.bind_style is dict and not isinstance(parameters, dict)
                 or self.bind_style is not dict and isinstance(parameters, dict)
             ):
+                self.set_input_sizes = False
                 errors._raise_err(errors.ERR_MIXED_POSITIONAL_AND_NAMED_BINDS)
 
         # prepare statement, if necessary
-        if prepare_needed:
-            self._prepare(statement, None, True)
+        try:
+            if prepare_needed:
+                self._prepare(statement, None, True)
+        finally:
+            self.set_input_sizes = False
 
         # perform bind
-        self.set_input_sizes = False
         if parameters is not None:
             self.bind_one(cursor, parameters)
 
@@ -417,11 +420,13 @@ cdef class BaseCursorImpl:
         # prepare statement, if necessary
         if statement is None and self.statement is None:
             errors._raise_err(errors.ERR_NO_STATEMENT)
-        elif statement is not None and statement != self.statement:
-            self._prepare(statement, None, True)
+        try:
+            if statement is not None and statement != self.statement:
+                self._prepare(statement, None, True)
+        finally:
+            self.set_input_sizes = False
 
         # perform bind, if applicable
-        self.set_input_sizes = False
         if isinstance(parameters, int):
             num_execs = parameters
             if self.bind_vars is not None:

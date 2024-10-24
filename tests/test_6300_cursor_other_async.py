@@ -853,6 +853,16 @@ class TestCase(test_env.BaseAsyncTestCase):
             )
             await cursor.execute(None, [1])
 
+    async def test_6350(self):
+        "6350 - test cursor.setinputsizes() with early failed execute"
+        self.cursor.setinputsizes(a=int, b=str)
+        with self.assertRaisesFullCode("DPY-2006"):
+            await self.cursor.execute("select :c from dual", [5])
+        value = 4368
+        await self.cursor.execute("select :d from dual", [value])
+        (fetched_value,) = await self.cursor.fetchone()
+        self.assertEqual(fetched_value, value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
