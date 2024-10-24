@@ -264,7 +264,12 @@ cdef class ConnectStringParser(BaseParser):
         if protocol is not None:
             fn = REGISTERED_PROTOCOLS.get(protocol)
             if fn is not None:
-                params = PY_TYPE_CONNECT_PARAMS.__new__(PY_TYPE_CONNECT_PARAMS)
+                if isinstance(self.params_impl, PoolParamsImpl):
+                    params = PY_TYPE_POOL_PARAMS.__new__(PY_TYPE_POOL_PARAMS)
+                else:
+                    params = PY_TYPE_CONNECT_PARAMS.__new__(
+                        PY_TYPE_CONNECT_PARAMS
+                    )
                 params._impl = self.params_impl
                 fn(protocol, self.data_as_str[self.temp_pos:], params)
                 self.description_list = self.params_impl.description_list

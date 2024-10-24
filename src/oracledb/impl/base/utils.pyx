@@ -196,6 +196,7 @@ def init_base_impl(package):
         PY_TYPE_MESSAGE_QUERY, \
         PY_TYPE_MESSAGE_ROW, \
         PY_TYPE_MESSAGE_TABLE, \
+        PY_TYPE_POOL_PARAMS, \
         PY_TYPE_VAR
 
     errors = package.errors
@@ -216,6 +217,7 @@ def init_base_impl(package):
     PY_TYPE_MESSAGE_QUERY = package.MessageQuery
     PY_TYPE_MESSAGE_ROW = package.MessageRow
     PY_TYPE_MESSAGE_TABLE = package.MessageTable
+    PY_TYPE_POOL_PARAMS = package.PoolParams
     PY_TYPE_VAR = package.Var
 
 
