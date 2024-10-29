@@ -43,25 +43,23 @@ Queue Methods
 
 .. method:: Queue.enqmany(messages)
 
-    Enqueues multiple messages into the queue. The ``messages`` parameter must be a
-    sequence containing :ref:`message property <msgproperties>` objects which
-    have all had their payload attribute set to a value that the queue
+    Enqueues multiple messages into the queue. The ``messages`` parameter must
+    be a sequence containing :ref:`message property <msgproperties>` objects
+    which have all had their payload attribute set to a value that the queue
     supports.
 
     .. warning::
 
-        Calling this function in parallel on different connections
-        acquired from the same pool may fail due to Oracle bug 29928074. Ensure
-        that this function is not run in parallel, use standalone connections or
-        connections from different pools, or make multiple calls to
-        :meth:`Queue.enqone()` instead. The function :meth:`Queue.deqmany()`
-        call is not affected.
-
+        Prior to Oracle Database 21c, calling this function in parallel on
+        different connections acquired from the same pool may fail due to
+        Oracle bug 29928074. Either ensure that this function is not run in
+        parallel, use standalone connections or connections from different
+        pools, or make multiple calls to :meth:`Queue.enqone()` instead. The
+        function :meth:`Queue.deqmany()` call is not affected.
 
     For consistency and compliance with the PEP 8 naming style, the name of
     the method was changed from `enqMany()`. The old name will continue
     to work for a period of time.
-
 
 .. method:: Queue.enqone(message)
 

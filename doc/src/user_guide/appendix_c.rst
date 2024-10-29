@@ -4,10 +4,9 @@
 Appendix C: The python-oracledb and cx_Oracle Drivers
 *****************************************************
 
-The python-oracledb driver is the renamed, major version successor to
-`cx_Oracle 8.3 <https://oracle.github.io/python-cx_Oracle/>`__. As a major
-release, the python-oracledb driver has :ref:`new features <releasenotes>` and
-some :ref:`deprecations`.  Also see :ref:`upgrading83`.
+The python-oracledb driver is the renamed, major version successor to cx_Oracle
+8.3. As a major release, the python-oracledb driver has :ref:`new features
+<releasenotes>` and some :ref:`deprecations`.  Also see :ref:`upgrading83`.
 
 .. _compatibility:
 
@@ -133,8 +132,7 @@ Pooling Differences from cx_Oracle
 It is recommended to use the new :ref:`ConnectionPool Object <connpool>`
 instead of the equivalent SessionPool object, which is deprecated.  To create a
 connection pool, use :meth:`oracledb.create_pool()`, which is equivalent to
-calling `cx_Oracle.SessionPool() <https://cx-oracle.readthedocs.io/en/latest/
-api_manual/module.html#cx_Oracle.SessionPool>`__.
+calling ``cx_Oracle.SessionPool()``.
 
 For more information, see :ref:`connpooling`.
 
@@ -142,9 +140,8 @@ oracledb.SessionPool() Differences
 ++++++++++++++++++++++++++++++++++
 
 The python-oracledb ``oracledb.SessionPool()`` method (which is an alias of
-:func:`oracledb.create_pool()`) differs from `cx_Oracle.SessionPool()
-<https://cx-oracle.readthedocs.io/en/latest/api_manual/module.html#cx_Oracle.
-SessionPool>`_ as follows:
+:func:`oracledb.create_pool()`) differs from ``cx_Oracle.SessionPool()`` as
+follows:
 
 - Keyword parameters **must** be used in calls. This change makes the driver
   compliant with the Python Database API specification PEP 249.  See
@@ -653,7 +650,7 @@ Additional Upgrade Steps to use python-oracledb Thick Mode
 To use python-oracledb Thick mode, the following changes need to be made in
 addition to the common :ref:`commonupgrade`:
 
-1. The function :func:`~oracledb.init_oracle_client()` *must* be called.  It
+1. The function :func:`oracledb.init_oracle_client()` *must* be called.  It
    can be called anywhere before the first call to :func:`~oracledb.connect()`,
    ``oracledb.Connection()``, and ``oracledb.SessionPool()``.  This enables the
    Thick mode. See :ref:`enablingthick` for more details.
@@ -670,10 +667,8 @@ addition to the common :ref:`commonupgrade`:
    passed. Instead, set the system library search path with ``ldconfig`` or
    ``LD_LIBRARY_PATH`` prior to running Python.
 
-2. Replace all usages of the deprecated Advanced Queuing API with the new
-   :ref:`AQ API <aqusermanual>` originally introduced in cx_Oracle 7.2, see
-   the `cx_Oracle Advanced Queuing (AQ) <https://cx-oracle.readthedocs.io
-   /en/latest/api_manual/aq.html>`_ documentation.
+2. Replace all usages of the deprecated Advanced Queuing API with the new API
+   originally introduced in cx_Oracle 7.2, see :ref:`aqusermanual`.
 
 3. Review error handling improvements. See :ref:`errorhandling`.
 

@@ -2818,12 +2818,12 @@ constants used in advanced queuing.
 Connection Authorization Modes
 ------------------------------
 
-These constants belong to the enumeration called ``AuthMode``. The constants
-listed below are extensions to the DB API definition and have
-deprecated the `authorization modes <https://cx-oracle.readthedocs.io/en/
-latest/api_manual/module.html#connection-authorization-modes>`_ used in
-cx_Oracle 8.3. They are possible values for the ``mode`` parameter of the
-:meth:`connect()` method.
+These constants belong to the enumeration called ``AuthMode``. They are
+possible values for the ``mode`` parameters of :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+:meth:`oracledb.create_pool_async()`.  They have deprecated the authorization
+modes used in cx_Oracle 8.3. The constants are extensions to the DB API
+definition.
 
 .. versionchanged:: 2.3.0
 
@@ -3214,12 +3214,11 @@ also used by the :attr:`MessageTable.operation` or
 Connection Pool Get Modes
 -------------------------
 
-These constants belong to the enumeration called ``PoolGetMode``. The constants
-listed below are extensions to the DB API definition and have deprecated the
-`Session Pool Get Modes <https://cx-oracle.readthedocs.io/en/latest/api_manual/
-module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
-8.3.  They are possible values for the ``getmode`` parameter of the
-:meth:`oracledb.create_pool()` method.
+These constants belong to the enumeration called ``PoolGetMode``. They are
+possible values for the ``getmode`` parameter of
+:meth:`oracledb.create_pool()` and :meth:`oracledb.create_pool_async()`. They
+have deprecated the Session Pool mode constants that were used in cx_Oracle
+8.3. The constants are extensions to the DB API definition.
 
 .. versionchanged:: 2.3.0
 
@@ -3288,12 +3287,10 @@ module.html#session-pool-get-modes>`_ constants that were used in cx_Oracle
 Connection Pool Purity Constants
 --------------------------------
 
-These constants belong to the enumeration called ``Purity``. The constants
-listed below are extensions to the DB API definition and have deprecated the
-`Session Pool Purity <https://cx-oracle.readthedocs.io/en/latest/api_manual/
-module.html#session-pool-purity>`_ constants that were used in cx_Oracle 8.3.
-They are possible values for the ``purity`` parameter of the :meth:`connect()`
-method, which is used in :ref:`drcp`.
+These constants belong to the enumeration called ``Purity``. They are possible
+values for the ``purity`` parameter of :meth:`connect()` used for :ref:`drcp`.
+They have deprecated the Session Pool purity constants that were used in
+cx_Oracle 8.3. The constants are extensions to the DB API definition.
 
 .. versionchanged:: 2.3.0
 

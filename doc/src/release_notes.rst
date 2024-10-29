@@ -41,8 +41,8 @@ Thin Mode Changes
     method is mostly useful for applications with multiple threads concurrently
     creating connections to databases when the application starts
     (`issue 408 <https://github.com/oracle/python-oracledb/issues/408>`__).
-#)  Fixed bug causing connections to remain in the busy connection list
-    permanently under some circumstances
+#)  Fixed bug causing some pooled connections to be permanently marked as busy
+    and unavailable for reuse
     (`issue 392 <https://github.com/oracle/python-oracledb/issues/392>`__).
 #)  Fixed bug with error handling when calling :meth:`Connection.gettype()` for
     a type that exists but on which the user has insufficient privileges to
@@ -1353,29 +1353,29 @@ cx_Oracle 8.2 (May 2021)
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-4-2-may-18-2021>`__.
 #)  Threaded mode is now always enabled when creating connection pools with
-    :meth:`cx_Oracle.SessionPool()`. Any `threaded` parameter value is ignored.
-#)  Added :meth:`SessionPool.reconfigure()` to support pool reconfiguration.
+    ``cx_Oracle.SessionPool()``. Any `threaded` parameter value is ignored.
+#)  Added ``SessionPool.reconfigure()`` to support pool reconfiguration.
     This method provides the ability to change properties such as the size of
     existing pools instead of having to restart the application or create a new
     pool.
-#)  Added parameter `max_sessions_per_shard` to :meth:`cx_Oracle.SessionPool()`
+#)  Added parameter `max_sessions_per_shard` to ``cx_Oracle.SessionPool()``
     to allow configuration of the maximum number of sessions per shard in the
     pool.  In addition, the attribute
-    :data:`SessionPool.max_sessions_per_shard` was added in order to permit
+    ``SessionPool.max_sessions_per_shard`` was added in order to permit
     making adjustments after the pool has been created. They are usable when
     using Oracle Client version 18.3 and higher.
-#)  Added parameter `stmtcachesize` to :meth:`cx_Oracle.connect()` and
-    :meth:`cx_Oracle.SessionPool()` in order to permit specifying the size of
+#)  Added parameter `stmtcachesize` to ``cx_Oracle.connect()`` and
+    ``cx_Oracle.SessionPool()`` in order to permit specifying the size of
     the statement cache during the creation of pools and standalone
     connections.
-#)  Added parameter `ping_interval` to :meth:`cx_Oracle.SessionPool()` to
+#)  Added parameter `ping_interval` to ``cx_Oracle.SessionPool()`` to
     specify the ping interval when acquiring pooled connections. In addition,
-    the attribute :data:`SessionPool.ping_interval` was added in order to
+    the attribute ``SessionPool.ping_interval`` was added in order to
     permit making adjustments after the pool has been created.  In previous
     cx_Oracle releases a fixed ping interval of 60 seconds was used.
-#)  Added parameter `soda_metadata_cache` to :meth:`cx_Oracle.SessionPool()`
+#)  Added parameter `soda_metadata_cache` to ``cx_Oracle.SessionPool()``
     for :ref:`SODA metadata cache <sodametadatacache>` support.  In addition,
-    the attribute :data:`SessionPool.soda_metadata_cache` was added in order to
+    the attribute ``SessionPool.soda_metadata_cache`` was added in order to
     permit making adjustments after the pool has been created. This feature
     significantly improves the performance of methods
     :meth:`SodaDatabase.createCollection()` (when not specifying a value for
@@ -1464,10 +1464,9 @@ cx_Oracle 8.0 (June 2020)
 #)  Reworked type management to clarify and simplify code
 
     - Added :ref:`constants <dbtypes>` for all database types. The database
-      types :data:`cx_Oracle.DB_TYPE_BINARY_FLOAT`,
-      :data:`cx_Oracle.DB_TYPE_INTERVAL_YM`,
-      :data:`cx_Oracle.DB_TYPE_TIMESTAMP_LTZ` and
-      :data:`cx_Oracle.DB_TYPE_TIMESTAMP_TZ` are completely new. The other
+      types ``cx_Oracle.DB_TYPE_BINARY_FLOAT``,
+      ``cx_Oracle.DB_TYPE_INTERVAL_YM``, ``cx_Oracle.DB_TYPE_TIMESTAMP_LTZ``
+      and ``cx_Oracle.DB_TYPE_TIMESTAMP_TZ`` are completely new. The other
       types were found in earlier releases under a different name. These types
       will be found in :data:`Cursor.description` and passed as the defaultType
       parameter to the :data:`Connection.outputtypehandler` and
@@ -1482,9 +1481,9 @@ cx_Oracle 8.0 (June 2020)
       new database type constants if the variable does not contain objects
       (previously it was None in that case).
     - The attribute :data:`~LOB.type` was added to LOB values.
-    - The attribute `type <https://cx-oracle.readthedocs.io/en/latest/api_manual/object_type.html#ObjectAttribute.type>`_ was added to attributes of object types.
-    - The attribute `element_type <https://cx-oracle.readthedocs.io/en/latest/api_manual/object_type.html#ObjectType.element_type>`_ was added to object types.
-    - `Object types <https://cx-oracle.readthedocs.io/en/latest/api_manual/object_type.html#object-type-objects>`_ now compare equal if they were created
+    - The attribute ``type`` was added to attributes of object types.
+    - The attribute ``element_type`` was added to object types.
+    - Object types now compare equal if they were created
       by the same connection or session pool and their schemas and names match.
     - All variables are now instances of the same class (previously each type
       was an instance of a separate variable type). The attribute
@@ -1493,7 +1492,7 @@ cx_Oracle 8.0 (June 2020)
     - The string representation of variables has changed to include the type
       in addition to the value.
 
-#)  Added function :meth:`cx_Oracle.init_oracle_client()` in order to enable
+#)  Added function ``cx_Oracle.init_oracle_client()`` in order to enable
     programmatic control of the initialization of the Oracle Client library.
 #)  The default encoding for all character data is now UTF-8 and any character
     set specified in the environment variable ``NLS_LANG`` is ignored.
@@ -1545,8 +1544,8 @@ cx_Oracle 7.3 (December 2019)
 #)  Added :attr:`support <Cursor.lastrowid>` for returning the rowid of the
     last row modified by an operation on a cursor (or None if no row was
     modified).
-#)  Added support for setting the maxSessionsPerShard attribute when
-    :meth:`creating session pools <cx_Oracle.SessionPool>`.
+#)  Added support for setting the ``maxSessionsPerShard`` attribute when
+    creating connection pools.
 #)  Added check to ensure sharding key is specified when a super sharding key
     is specified.
 #)  Improved error message when the Oracle Client library is loaded
@@ -1614,7 +1613,7 @@ cx_Oracle 7.2.2 (August 2019)
     :meth:`Subscription.registerquery()` with SQL that is not a SELECT
     statement.
 #)  Eliminated segfault when a connection is closed after being created by a
-    call to :meth:`cx_Oracle.connect()` with the parameter ``cclass`` set to
+    call to ``cx_Oracle.connect()`` with the parameter ``cclass`` set to
     a non-empty string.
 #)  Added user guide documentation.
 #)  Updated default connect strings to use 19c and XE 18c defaults.
@@ -1656,7 +1655,7 @@ cx_Oracle 7.2 (July 2019)
     18.5 and higher.
 #)  Added support for setting LOB object attributes, as requested
     (`issue 299 <https://github.com/oracle/python-cx_Oracle/issues/299>`__).
-#)  Added mode :data:`cx_Oracle.DEFAULT_AUTH` as requested
+#)  Added mode ``cx_Oracle.DEFAULT_AUTH`` as requested
     (`issue 293 <https://github.com/oracle/python-cx_Oracle/issues/293>`__).
 #)  Added support for using the LOB prefetch length indicator in order to
     reduce the number of round trips when fetching LOBs and then subsequently
@@ -1749,7 +1748,7 @@ cx_Oracle 7.1 (February 2019)
     version-3-1-january-21-2019>`__.
 #)  Improved support for session tagging in session pools by allowing a
     session callback to be specified when creating a pool via
-    :meth:`cx_Oracle.SessionPool()`. Callbacks can be written in Python or in
+    ``cx_Oracle.SessionPool()``. Callbacks can be written in Python or in
     PL/SQL and can be used to improve performance by decreasing round trips to
     the database needed to set session state. Callbacks written in Python will
     be invoked for brand new connections (that have never been acquired from
@@ -1840,7 +1839,7 @@ cx_Oracle 7.0 (September 2018)
     dictionary, where the keys are the indices of the collection and the values
     are the elements of the collection. See function :meth:`Object.asdict()`.
 #)  Added support for closing a session pool via the function
-    :meth:`SessionPool.close()`. Once closed, further attempts to use any
+    ``SessionPool.close()``. Once closed, further attempts to use any
     connection that was acquired from the pool will result in the error
     "DPI-1010: not connected".
 #)  Added support for setting a LOB attribute of an object with a string or
@@ -1903,7 +1902,7 @@ cx_Oracle 6.4 (July 2018)
       :meth:`Connection.subscribe()`.
     - Added support for subscribing to notifications when messages are
       available to dequeue in an AQ queue. The new constant
-      :data:`cx_Oracle.SUBSCR_NAMESPACE_AQ` should be passed to the namespace
+      ``cx_Oracle.SUBSCR_NAMESPACE_AQ`` should be passed to the namespace
       parameter of function :meth:`Connection.subscribe()` in order to get this
       functionality. Attributes :attr:`Message.queueName` and
       :attr:`Message.consumerName` will be populated in notification messages
@@ -1912,12 +1911,12 @@ cx_Oracle 6.4 (July 2018)
       callback know when the subscription that generated the notification is no
       longer registered with the database.
     - Added support for timed waits when acquiring a session from a session
-      pool. Use the new constant :data:`cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT` in
-      the parameter getmode to function :meth:`cx_Oracle.SessionPool` along
-      with the new parameter waitTimeout.
+      pool. Use the new constant ``cx_Oracle.SPOOL_ATTRVAL_TIMEDWAIT`` in
+      the parameter getmode to function ``cx_Oracle.SessionPool()`` along
+      with the new parameter ``waitTimeout``.
     - Added support for specifying the timeout and maximum lifetime session for
       session pools when they are created using function
-      :meth:`cx_Oracle.SessionPool`. Previously the pool had to be created
+      ``cx_Oracle.SessionPool()``. Previously the pool had to be created
       before these values could be changed.
     - Avoid memory leak when dequeuing from an empty queue.
     - Ensure that the row count for queries is reset to zero when the statement
@@ -1967,9 +1966,9 @@ cx_Oracle 6.3.1 (May 2018)
     - Ensure that before a statement is executed any buffers used for DML
       returning statements are reset.
 
-#)  Ensure that behavior with cx_Oracle.__future__.dml_ret_array_val not
-    set or False is the same as the behavior in cx_Oracle 6.2
-    (`issue 176 <https://github.com/oracle/python-cx_Oracle/issues/176>`__).
+#)  Ensure that behavior with ``cx_Oracle.__future__.dml_ret_array_val`` not
+    set or False is the same as the behavior in cx_Oracle 6.2 (`issue 176
+    <https://github.com/oracle/python-cx_Oracle/issues/176>`__).
 
 
 cx_Oracle 6.3 (April 2018)
@@ -2007,17 +2006,17 @@ cx_Oracle 6.3 (April 2018)
 
 #)  Fixed support for getting the OUT values of bind variables bound to a DML
     Returning statement when calling the function :meth:`Cursor.executemany()`.
-    Note that the attribute dml_ret_array_val in :attr:`cx_Oracle.__future__`
+    Note that the attribute dml_ret_array_val in ``cx_Oracle.__future__``
     must be set to True first.
-#)  Added support for binding integers and floats as cx_Oracle.NATIVE_FLOAT.
-#)  A :attr:`cx_Oracle._Error` object is now the value of all cx_Oracle
+#)  Added support for binding integers and floats as ``cx_Oracle.NATIVE_FLOAT``.
+#)  A ``cx_Oracle._Error`` object is now the value of all cx_Oracle
     exceptions raised by cx_Oracle.
     (`issue 51 <https://github.com/oracle/python-cx_Oracle/issues/51>`__).
 #)  Added support for building cx_Oracle with a pre-compiled version of ODPI-C,
     as requested
     (`issue 103 <https://github.com/oracle/python-cx_Oracle/issues/103>`__).
 #)  Default values are now provided for all parameters to
-    :meth:`cx_Oracle.SessionPool`.
+    ``cx_Oracle.SessionPool()``.
 #)  Improved error message when an unsupported Oracle type is encountered.
 #)  The Python GIL is now prevented from being held while performing a round
     trip for the call to get the attribute :attr:`Connection.version`
@@ -2074,7 +2073,7 @@ cx_Oracle 6.2 (March 2018)
     ``with`` code block controlled by the connection as a context manager, but
     in a backwards compatible way
     (`issue 113 <https://github.com/oracle/python-cx_Oracle/issues/113>`__).
-    See :data:`cx_Oracle.__future__` for more information.
+    See ``cx_Oracle.__future__`` for more information.
 #)  Reorganized code to simplify continued maintenance and consolidate
     transformations to/from Python objects.
 #)  Ensure that the number of elements in the array is not lost when the
@@ -2150,9 +2149,9 @@ cx_Oracle 6.1 (December 2017)
 #)  Ensure that the edition is passed through to the database when a session
     pool is created.
 #)  Corrected handling of Python object references when an invalid keyword
-    parameter is passed to :meth:`cx_Oracle.SessionPool`.
+    parameter is passed to ``cx_Oracle.SessionPool()``.
 #)  Corrected handling of :attr:`Connection.handle` and the handle parameter
-    to :meth:`cx_Oracle.connect` on Windows.
+    to ``cx_Oracle.connect()`` on Windows.
 #)  Documentation improvements.
 #)  Added test cases to the test suite.
 
@@ -2316,7 +2315,7 @@ cx_Oracle 6.0 rc 1 (June 2017)
     <https://github.com/oracle/python-cx_Oracle/issues/34>`__).
 #)  OCI requires that both encoding and nencoding have values or that both
     encoding and encoding do not have values. These parameters are used in
-    functions :meth:`cx_Oracle.connect` and :meth:`cx_Oracle.SessionPool`. The
+    functions ``cx_Oracle.connect()`` and ``cx_Oracle.SessionPool()``. The
     missing value is set to its default value if one of the values is set and
     the other is not (`issue 36
     <https://github.com/oracle/python-cx_Oracle/issues/36>`__).
@@ -2368,17 +2367,17 @@ cx_Oracle 6.0 beta 1 (April 2017)
     runtime cx_Oracle can adapt to Oracle Client 11.2, 12.1 or 12.2 libraries
     without needing to be rebuilt. This also means that wheels can now be
     produced and installed via pip.
-#)  Added attribute :attr:`SessionPool.stmtcachesize` to support getting and
+#)  Added attribute ``SessionPool.stmtcachesize`` to support getting and
     setting the default statement cache size for connections in the pool.
 #)  Added attribute :attr:`Connection.dbop` to support setting the database
     operation that is to be monitored.
 #)  Added attribute :attr:`Connection.handle` to facilitate testing the
     creation of a connection using a OCI service context handle.
-#)  Added parameters tag and matchanytag to the :meth:`cx_Oracle.connect`
-    and :meth:`SessionPool.acquire` methods and added parameters tag and retag
-    to the :meth:`SessionPool.release` method in order to support session
+#)  Added parameters tag and matchanytag to the ``cx_Oracle.connect()``
+    and ``SessionPool.acquire()`` methods and added parameters tag and retag
+    to the ``SessionPool.release`` method in order to support session
     tagging.
-#)  Added parameter edition to the :meth:`cx_Oracle.SessionPool` method.
+#)  Added parameter edition to the ``cx_Oracle.SessionPool()`` method.
 #)  Added support for
     `universal rowids <https://github.com/oracle/python-cx_Oracle/blob/main/
     samples/universal_rowids.py>`__.
@@ -2388,7 +2387,7 @@ cx_Oracle 6.0 beta 1 (April 2017)
 #)  Added attributes :attr:`Variable.actualElements` and
     :attr:`Variable.values` to variables.
 #)  Added parameters region, sharding_key and super_sharding_key to the
-    :meth:`cx_Oracle.makedsn()` method to support connecting to a sharded
+    ``cx_Oracle.makedsn()`` method to support connecting to a sharded
     database (new in Oracle Database 12.2).
 #)  Added support for smallint and float data types in Oracle objects, as
     `requested <https://github.com/oracle/python-cx_Oracle/issues/4>`__.
@@ -2398,20 +2397,20 @@ cx_Oracle 6.0 beta 1 (April 2017)
     :meth:`Object.prev()`.
 #)  If the environment variables NLS_LANG and NLS_NCHAR are being used, they
     must be set before the module is imported. Using the encoding and nencoding
-    parameters to the :meth:`cx_Oracle.connect` and
-    :meth:`cx_Oracle.SessionPool` methods is a simpler alternative to setting
+    parameters to the ``cx_Oracle.connect()`` and
+    ``cx_Oracle.SessionPool()`` methods is a simpler alternative to setting
     these environment variables.
 #)  Removed restriction on fetching LOBs across round trips to the database
     (eliminates error "LOB variable no longer valid after subsequent fetch").
 #)  Removed requirement for specifying a maximum size when fetching LONG or
     LONG raw columns. This also allows CLOB, NCLOB, BLOB and BFILE columns to
     be fetched as strings or bytes without needing to specify a maximum size.
-#)  Dropped deprecated parameter twophase from the :meth:`cx_Oracle.connect`
+#)  Dropped deprecated parameter twophase from the ``cx_Oracle.connect()``
     method. Applications should set the :attr:`Connection.internal_name` and
     :attr:`Connection.external_name` attributes instead to a value appropriate
     to the application.
 #)  Dropped deprecated parameters action, module and clientinfo from the
-    :meth:`cx_Oracle.connect` method. The appcontext parameter should be used
+    ``cx_Oracle.connect()`` method. The appcontext parameter should be used
     instead as shown in this `sample <https://github.com/oracle/
     python-cx_Oracle/blob/main/samples/app_context.py>`__.
 #)  Dropped deprecated attribute numbersAsString from
@@ -2439,9 +2438,8 @@ cx_Oracle 5.3 (March 2017)
     (available in Oracle 12.1)
 #)  Added support for :attr:`Transaction Guard <Connection.ltxid>` (available
     in Oracle 12.1).
-#)  Added support for setting the
-    :attr:`maximum lifetime <SessionPool.max_lifetime_session>` of pool
-    connections (available in Oracle 12.1).
+#)  Added support for setting the maximum lifetime of pool connections
+    (available in Oracle 12.1).
 #)  Added support for large row counts (larger than 2 ** 32, available in
     Oracle 12.1)
 #)  Added support for :meth:`advanced queuing <Connection.deq()>`.
@@ -2489,13 +2487,13 @@ cx_Oracle 5.3 (March 2017)
     more closely align with the PL/SQL implementation and prepare for sending
     notifications for AQ messages. The following changes were made:
 
-    - added constant :data:`~cx_Oracle.SUBSCR_QOS_BEST_EFFORT` to replace
+    - added constant ``cx_Oracle.SUBSCR_QOS_BEST_EFFORT`` to replace
       deprecated constant SUBSCR_CQ_QOS_BEST_EFFORT
-    - added constant :data:`~cx_Oracle.SUBSCR_QOS_QUERY` to replace
+    - added constant ``cx_Oracle.SUBSCR_QOS_QUERY`` to replace
       deprecated constant SUBSCR_CQ_QOS_QUERY
-    - added constant :data:`~cx_Oracle.SUBSCR_QOS_DEREG_NFY` to replace
+    - added constant ``cx_Oracle.SUBSCR_QOS_DEREG_NFY`` to replace
       deprecated constant SUBSCR_QOS_PURGE_ON_NTFN
-    - added constant :data:`~cx_Oracle.SUBSCR_QOS_ROWIDS` to replace parameter
+    - added constant ``cx_Oracle.SUBSCR_QOS_ROWIDS`` to replace parameter
       rowids for method :meth:`Connection.subscribe()`
     - deprecated parameter cqqos for method :meth:`Connection.subscribe()`. The
       qos parameter should be used instead.
@@ -2515,8 +2513,9 @@ cx_Oracle 5.2.1 (January 2016)
     can be read in process dumps, for example). For those who would like to
     retain this feature, a subclass of Connection could be used to store the
     password.
-#)  Added optional parameter externalauth to SessionPool() which enables wallet
-    based or other external authentication mechanisms to be used.
+#)  Added optional parameter ``externalauth`` to ``cx_Oracle.SessionPool()``
+    which enables wallet based or other external authentication mechanisms to
+    be used.
 #)  Use the national character set encoding when required (when char set form
     is SQLCS_NCHAR); otherwise, the wrong encoding would be used if the
     environment variable ``NLS_NCHAR`` is set.
