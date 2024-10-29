@@ -84,7 +84,8 @@ Common Changes
 #)  Improved type hints for cursors
     (`issue 391 <https://github.com/oracle/python-oracledb/issues/391>`__).
 #)  Improved error message when attempting to access attributes on a connection
-    before a connection has been established
+    before a connection has been established or a connection pool before it has
+    been created
     (`issue 385 <https://github.com/oracle/python-oracledb/issues/385>`__).
 #)  The variables saved with :meth:`Cursor.setinputsizes()` are now forgotten
     when an exception is raised

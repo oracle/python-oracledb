@@ -48,6 +48,7 @@ from .pool_params import PoolParams
 
 class BaseConnectionPool:
     __module__ = oracledb.__name__
+    _impl = None
 
     def __init__(
         self, dsn: str = None, *, params: PoolParams = None, **kwargs
@@ -77,7 +78,6 @@ class BaseConnectionPool:
         keyword parameters, which themselves override the values set in the
         params parameter object.
         """
-        self._impl = None
         if params is None:
             params_impl = base_impl.PoolParamsImpl()
         elif not isinstance(params, PoolParams):
