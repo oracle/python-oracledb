@@ -206,6 +206,7 @@ cdef class ReadBuffer(Buffer):
         list _saved_packets
         Capabilities _caps
         bint _check_request_boundary
+        bint _in_pipeline
         object _waiter
         object _loop
 
@@ -346,16 +347,20 @@ cdef class ReadBuffer(Buffer):
                              bint check_connected) except -1:
         """
         Processes a packet. If the packet is a control packet it is processed
-        immediately and discarded; otherwise, it is added to the list of saved
-        packets for this response. If the protocol supports sending the end of
-        request notification we wait for that message type to be returned at
-        the end of the packet.
+        immediately and discarded; if the packet is a marker packet and a
+        pipeline is being processed, the packet is discarded; otherwise, it is
+        added to the list of saved packets for this response. If the protocol
+        supports sending the end of request notification we wait for that
+        message type to be returned at the end of the packet.
         """
         if packet.packet_type == TNS_PACKET_TYPE_CONTROL:
             self._process_control_packet(packet)
             notify_waiter[0] = False
             if check_connected:
                 self._check_connected()
+        elif self._in_pipeline \
+                and packet.packet_type == TNS_PACKET_TYPE_MARKER:
+            notify_waiter[0] = False
         else:
             self._saved_packets.append(packet)
             notify_waiter[0] = \
@@ -395,6 +400,21 @@ cdef class ReadBuffer(Buffer):
             self.read_uint16(&data_flags)
             if data_flags == TNS_DATA_FLAGS_EOF:
                 self._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
+
+    async def discard_pipeline_responses(self, ssize_t num_responses):
+        """
+        Discards the specified number of responses after the pipeline has
+        encountered an exception.
+        """
+        while num_responses > 0:
+            if not self.has_response():
+                await self.wait_for_response_async()
+            while True:
+                self._start_packet()
+                if self._current_packet.has_end_of_response():
+                    break
+            num_responses -= 1
+        self.reset_packets()
 
     cdef int notify_packet_received(self) except -1:
         """
@@ -637,6 +657,21 @@ cdef class ReadBuffer(Buffer):
         if notify_waiter:
             self._start_packet()
 
+    cdef bint has_response(self):
+        """
+        Returns a boolean indicating if the list of saved packets contains all
+        of the packets for a response from the database. This method can only
+        be called if support for the end of response bit is present.
+        """
+        cdef:
+            Packet packet
+            ssize_t i, max_pos
+        for i in range(self._next_packet_pos, len(self._saved_packets)):
+            packet = <Packet> self._saved_packets[i]
+            if packet.has_end_of_response():
+                return True
+        return False
+
     cdef int reset_packets(self) except -1:
         """
         Resets the list of saved packets and the saved position (called when a
@@ -717,6 +752,22 @@ cdef class ReadBuffer(Buffer):
                 if notify_waiter:
                     break
         self._start_packet()
+
+    async def wait_for_response_async(self):
+        """
+        Wait for packets to arrive in response to the request that was sent to
+        the database (using asyncio). This method will not return until the
+        complete response has been received. This requires the "end of
+        response" capability available in Oracle Database 23ai and higher. This
+        method also assumes that the current list of saved packets does not
+        contain a full response.
+        """
+        try:
+            self._check_request_boundary = True
+            self._waiter = self._loop.create_future()
+            await self._waiter
+        finally:
+            self._check_request_boundary = False
 
 
 @cython.final

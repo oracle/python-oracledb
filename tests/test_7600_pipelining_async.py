@@ -872,6 +872,52 @@ class TestCase(test_env.BaseAsyncTestCase):
         names = [i.name for i in results[0].columns]
         self.assertEqual(names, ["USER"])
 
+    async def test_7643(self):
+        "7643 - test DML returning with error - pipeline error"
+        out_value = self.cursor.var(oracledb.DB_TYPE_RAW)
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'Value for first row')
+            returning StringCol1 into :1
+            """,
+            [out_value],
+        )
+        pipeline.add_commit()
+        pipeline.add_fetchone("select user from dual")
+        with self.assertRaisesFullCode("ORA-01465"):
+            await self.conn.run_pipeline(pipeline)
+        await self.cursor.execute("select user from dual")
+        (fetched_value,) = await self.cursor.fetchone()
+        self.assertEqual(fetched_value, test_env.get_main_user().upper())
+
+    async def test_7644(self):
+        "7644 - test DML returning with error - pipeline continue"
+        out_value = self.cursor.var(oracledb.DB_TYPE_RAW)
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'Value for first row')
+            returning StringCol1 into :1
+            """,
+            [out_value],
+        )
+        pipeline.add_commit()
+        pipeline.add_fetchone("select user from dual")
+        results = await self.conn.run_pipeline(
+            pipeline, continue_on_error=True
+        )
+        self.assertEqual(results[1].error.full_code, "ORA-01465")
+        user = test_env.get_main_user().upper()
+        self.assertEqual(results[3].rows, [(user,)])
+        await self.cursor.execute("select user from dual")
+        (fetched_value,) = await self.cursor.fetchone()
+        self.assertEqual(fetched_value, test_env.get_main_user().upper())
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

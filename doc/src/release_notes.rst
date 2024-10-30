@@ -58,6 +58,8 @@ Thin Mode Changes
 #)  Fixed bug when calling :meth:`Cursor.parse()` with autocommit enabled.
 #)  Fixed bug when parsing a :ref:`tnsnames.ora files <optnetfiles>` file with
     a connect descriptor containing an embedded comment.
+#)  Fixed bug when calling :meth:`AsyncConnection.run_pipeline()` with a DML
+    RETURNING statement that results in an error.
 #)  Fixed error message when a SQL statement is parsed containing a q-string
     without a closing quote.
 #)  Fixed bug affecting Python interpreter shut down using connection pooling
