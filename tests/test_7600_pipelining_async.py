@@ -689,7 +689,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         values = [(2, None, None, None), (3, None, None, None)]
         ref_cursor = self.conn.cursor()
         pipeline = oracledb.create_pipeline()
-        pipeline.add_fetchone("truncate table TestTempTable")
+        pipeline.add_execute("truncate table TestTempTable")
         pipeline.add_executemany(
             "insert into TestTempTable values (:1, :2, :3, :4)", values
         )
@@ -844,6 +844,33 @@ class TestCase(test_env.BaseAsyncTestCase):
                 "Value for second row (Modified)",
             ],
         )
+
+    async def test_7641(self):
+        "7641 - test the columns attribute on results"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("truncate table TestTempTable")
+        pipeline.add_execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (1, 'Value for first row')
+            """
+        )
+        pipeline.add_commit()
+        pipeline.add_fetchone("select IntCol, StringCol1 from TestTempTable")
+        results = await self.conn.run_pipeline(pipeline)
+        self.assertIsNone(results[0].columns)
+        self.assertIsNone(results[1].columns)
+        self.assertIsNone(results[2].columns)
+        names = [i.name for i in results[3].columns]
+        self.assertEqual(names, ["INTCOL", "STRINGCOL1"])
+
+    async def test_7642(self):
+        "7642 - test the columns attribute on single operation"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_fetchone("select user from dual")
+        results = await self.conn.run_pipeline(pipeline)
+        names = [i.name for i in results[0].columns]
+        self.assertEqual(names, ["USER"])
 
 
 if __name__ == "__main__":

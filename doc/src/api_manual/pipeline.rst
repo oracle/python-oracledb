@@ -229,6 +229,14 @@ PipelineOpResult objects. These objects contain the results of the executed
 PipelineOpResult Attributes
 ---------------------------
 
+.. attribute:: PipelineOpResult.columns
+
+    This read-only attribute is a list of :ref:`FetchInfo<fetchinfoobj>`
+    objects. This attribute will be None for operations that do not return
+    rows.
+
+    .. versionadded:: 2.5.0
+
 .. attribute:: PipelineOpResult.error
 
     This read-only attribute returns the error that occurred when running this
@@ -248,3 +256,11 @@ PipelineOpResult Attributes
 
     This read-only attribute returns the rows that were fetched by the
     operation, if a query was executed.
+
+.. attribute:: PipelineOpResult.warning
+
+    This read-only attribute returns any warning that was encountered when
+    running this operation. If no warning was encountered, then the value None
+    is returned. See :ref:`PL/SQL Compilation Warnings <pipelinewarning>`.
+
+    .. versionadded:: 2.5.0

@@ -41,6 +41,11 @@ Thin Mode Changes
     method is mostly useful for applications with multiple threads concurrently
     creating connections to databases when the application starts
     (`issue 408 <https://github.com/oracle/python-oracledb/issues/408>`__).
+#)  Added attribute :data:`PipelineOpResult.warning` to provide information
+    about any warning that was encountered during the execution of a pipeline
+    operation.
+#)  Added attribute :data:`PipelineOpResult.columns` to provide information
+    about any query column metadata returned from a pipeline operation.
 #)  Fixed bug causing some pooled connections to be permanently marked as busy
     and unavailable for reuse
     (`issue 392 <https://github.com/oracle/python-oracledb/issues/392>`__).

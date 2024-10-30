@@ -23,9 +23,10 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# pipelining1.py
+# pipelining_parallel.py
 #
-# Demonstrates Oracle Database Pipelining.
+# Demonstrates Oracle Database Pipelining running local and database operations
+# concurrently.
 # True pipelining is only available when connected to Oracle Database 23ai
 # -----------------------------------------------------------------------------
 
@@ -36,11 +37,11 @@ import sample_env
 
 
 async def run_thing_one():
-    return "run_thing_one"
+    return "thing_one"
 
 
 async def run_thing_two():
-    return "run_thing_two"
+    return "thing_two"
 
 
 async def main():
@@ -57,16 +58,20 @@ async def main():
 
     # Run the pipeline and non-database operations concurrently.
     # Note although the database receives all the operations at the same time,
-    # it will execute each operation sequentially
-    results = await asyncio.gather(
+    # it will execute each operation sequentially. It is the local and
+    # database tasks that execute concurrently.
+    return_values = await asyncio.gather(
         run_thing_one(), run_thing_two(), connection.run_pipeline(pipeline)
     )
-    for r in results:
+
+    for r in return_values:
         if isinstance(r, list):  # the pipeline return list
-            for o in r:
-                print(o.rows)
+            for result in r:
+                if result.rows:
+                    for row in result.rows:
+                        print(*row, sep="\t")
         else:
-            print(r)
+            print(r)  # a local operation result
 
     await connection.close()
 

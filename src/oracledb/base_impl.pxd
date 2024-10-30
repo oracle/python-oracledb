@@ -847,6 +847,8 @@ cdef class PipelineOpResultImpl:
         readonly object return_value
         readonly list rows
         readonly object error
+        readonly object warning
+        readonly list fetch_info_impls
 
     cdef int _capture_err(self, Exception exc) except -1
 

@@ -140,6 +140,72 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute(f"drop type {type_name}")
         self.assertIsNone(self.cursor.warning)
 
+    async def test_6807(self):
+        "6807 - verify warning is saved in a pipeline"
+        proc_name = "bad_proc_1704"
+        func_name = "bad_func_1705"
+        type_name = "bad_type_1706"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null
+            end;
+            """
+        )
+        pipeline.add_execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null;
+            end;
+            """
+        )
+        pipeline.add_execute(f"drop procedure {proc_name}")
+        pipeline.add_execute(
+            f"""
+            create or replace function {func_name}
+            return number as
+            begin
+                return null
+            end;
+            """
+        )
+        pipeline.add_execute(f"drop function {func_name}")
+        pipeline.add_execute(
+            f"""
+            create or replace type {type_name} as object (
+                x bad_type
+            );
+            """
+        )
+        pipeline.add_execute(f"drop type {type_name}")
+        results = await self.conn.run_pipeline(pipeline)
+        self.assertEqual(results[0].warning.full_code, "DPY-7000")
+        self.assertIsNone(results[1].warning)
+        self.assertIsNone(results[2].warning)
+        self.assertEqual(results[3].warning.full_code, "DPY-7000")
+        self.assertIsNone(results[4].warning)
+        self.assertEqual(results[5].warning.full_code, "DPY-7000")
+        self.assertIsNone(results[6].warning)
+
+    async def test_6808(self):
+        "6808 - verify warning is saved in a pipeline with a single operation"
+        proc_name = "bad_proc_6808"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute(
+            f"""
+            create or replace procedure {proc_name} as
+            begin
+                null
+            end;
+            """
+        )
+        (result,) = await self.conn.run_pipeline(pipeline)
+        self.assertEqual(result.warning.full_code, "DPY-7000")
+        await self.cursor.execute(f"drop procedure {proc_name}")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

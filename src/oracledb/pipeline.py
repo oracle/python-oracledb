@@ -33,6 +33,7 @@ from typing import Any, Callable, Union
 from . import __name__ as MODULE_NAME
 from . import utils
 from .defaults import defaults
+from .fetch_info import FetchInfo
 from .base_impl import PipelineImpl, PipelineOpImpl, PipelineOpResultImpl
 from .enums import PipelineOpType
 from .errors import _Error
@@ -140,6 +141,17 @@ class PipelineOpResult:
         )
 
     @property
+    def columns(self) -> Union[list, None]:
+        """
+        Returns a list of FetchInfo instances containing metadata about an
+        executed query, or the value None, if no fetch operation took place.
+        """
+        if self._impl.fetch_info_impls is not None:
+            return [
+                FetchInfo._from_impl(i) for i in self._impl.fetch_info_impls
+            ]
+
+    @property
     def error(self) -> Union[_Error, None]:
         """
         Returns the error that occurred when running this operation, or the
@@ -169,6 +181,14 @@ class PipelineOpResult:
         executed.
         """
         return self._impl.rows
+
+    @property
+    def warning(self) -> Union[_Error, None]:
+        """
+        Returns the warning that was encountered when running this operation,
+        or the value None, if no warning was encountered.
+        """
+        return self._impl.warning
 
 
 class Pipeline:

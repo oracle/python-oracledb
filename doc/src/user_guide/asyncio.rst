@@ -305,11 +305,15 @@ Pipelining Database Operations
     In this release, pipelining support is experimental and subject to change.
 
 Pipelining allows an application to send multiple, independent statements to
-Oracle Database with one call. While the database processes the pipeline of
-statements, the application can continue with non-database work. Pipelined
-operations are executed sequentially by the database. They do not execute
-concurrently. When all the pipelined operations have executed, their results
-are returned to the application.
+Oracle Database with one call. The database can be kept busy without waiting
+for the application to receive a result set and send the next statement.  While
+the database processes the pipeline of statements, the application can continue
+with non-database work. When the database has executed all the pipelined
+operations, their results are returned to the application.
+
+Pipelined operations are executed sequentially by the database. They do not
+execute concurrently. It is local tasks that can be executed at the same time
+the database is working.
 
 Effective use of Oracle Database Pipelining can increase the responsiveness of
 an application and improve overall system throughput. Pipelining is useful when
@@ -382,7 +386,10 @@ To execute the pipeline, call :meth:`AsyncConnection.run_pipeline()`.
 
 The operations are all sent to the database and executed.  The method returns a
 list of :ref:`PipelineOpResult objects <pipelineopresultobjs>`, one entry per
-operation.
+operation. The objects contain information about the execution of the relevant
+operation, such as any error number, PL/SQL function return value, or any query
+rows and column metadata.
+
 
 The :attr:`Connection.call_timeout` value has no effect on pipeline operations.
 To limit the time for a pipeline, use an `asyncio timeout
@@ -424,20 +431,20 @@ An example of pipelining is:
 
     asyncio.run(main())
 
-See `pipelining1.py
-<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining1.py>`__
+See `pipelining_basic.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining_basic.py>`__
 for a runnable example.
 
-To allow the application to continue with non-database work before processing
+To allow an application to continue with non-database work before processing
 any responses from the database, use code similar to:
 
 .. code-block:: python
 
     async def run_thing_one():
-        return "run_thing_one"
+        return "thing_one"
 
     async def run_thing_two():
-        return "run_thing_two"
+        return "thing_two"
 
     async def main():
         connection = await oracle.connect_async(user="hr", password=userpwd,
@@ -448,15 +455,18 @@ any responses from the database, use code similar to:
         pipeline.add_fetchone("select sysdate from dual")
 
         # Run the pipeline and non-database operations concurrently
-        results = await asyncio.gather(
+        return_values = await asyncio.gather(
             run_thing_one(), run_thing_two(), connection.run_pipeline(pipeline)
         )
-        for r in results:
+
+        for r in return_values:
             if isinstance(r, list):  # the pipeline return list
-                for o in r:
-                    print(o.rows)
+                for result in r:
+                    if result.rows:
+                        for row in result.rows:
+                            print(*row, sep="\t")
             else:
-                print(r)
+                print(r)             # a local operation result
 
         await connection.close()
 
@@ -464,13 +474,13 @@ any responses from the database, use code similar to:
 
 Output will be like::
 
-    run_thing_one
-    run_thing_two
-    [('HR',)]
-    [(datetime.datetime(2024, 8, 15, 6, 42, 30),)]
+    thing_one
+    thing_two
+    HR
+    2024-10-29 03:34:43
 
-See `pipelining2.py
-<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining2.py>`__
+See `pipelining_parallel.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining_parallel.py>`__
 for a runnable example.
 
 Using OUT Binds with Pipelines
@@ -581,6 +591,38 @@ will execute all operations and will display::
     ORA-00942: table or view "HR"."DOES_NOT_EXIST" does not exist
     Help: https://docs.oracle.com/error-help/db/ora-00942/
     [(5678,)]
+
+.. _pipelinewarning:
+
+**PL/SQL Compilation Warnings**
+
+:ref:`plsqlwarning` can be identified by checking the :ref:`PipelineOpResult
+Attribute <pipelineopresultobjs>` :attr:`PipelineOpResult.warning`.  For
+example:
+
+.. code-block:: python
+
+    pipeline.add_execute(
+        """create or replace procedure myproc as
+           begin
+              bogus;
+           end;"""
+    )
+    (result,) = await connection.run_pipeline(pipeline)
+
+    print(result.warning.full_code)
+    print(result.warning)
+
+will print::
+
+    DPY-7000
+    DPY-7000: creation succeeded with compilation errors
+
+
+See `pipelining_error.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/pipelining_error.py>`__
+for a runnable example showing warnings and errors.
+
 
 Pipeline Cursor Usage
 ---------------------

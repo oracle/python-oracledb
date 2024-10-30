@@ -23,7 +23,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# pipelining1.py
+# pipelining_basic.py
 #
 # Demonstrates Oracle Database Pipelining.
 # True pipelining is only available when connected to Oracle Database 23ai
@@ -43,19 +43,48 @@ async def main():
         params=sample_env.get_connect_params(),
     )
 
+    # ------------------------------------------------------------
+
     # Create a pipeline and define the operations
     pipeline = oracledb.create_pipeline()
+
     pipeline.add_fetchone("select user from dual")
+
     pipeline.add_fetchone("select sysdate from dual")
+
+    rows = [
+        (1, "First"),
+        (2, "Second"),
+        (3, "Third"),
+        (4, "Fourth"),
+        (5, "Fifth"),
+        (6, "Sixth"),
+    ]
+    pipeline.add_executemany(
+        "insert into mytab(id, data) values (:1, :2)", rows
+    )
+
+    # pipeline.add_commit()  # uncomment to persist data
+
+    pipeline.add_fetchall("select * from mytab")
 
     # Run the operations in the pipeline.
     # Note although the database receives all the operations at the same time,
     # it will execute each operation sequentially
-    result_1, result_2 = await connection.run_pipeline(pipeline)
+    results = await connection.run_pipeline(pipeline)
 
-    # Print the database responses
-    print("rows 1:", result_1.rows)
-    print("rows 2:", result_2.rows)
+    # Print the query results
+    for i, result in enumerate(results):
+        if result.rows:
+            statement = pipeline.operations[i].statement
+            print(f"\nRows from operation {i+1} '{statement}':\n")
+            headings = [col.name for col in result.columns]
+            print(*headings, sep="\t")
+            print("--")
+            for row in result.rows:
+                print(*row, sep="\t")
+
+    # ------------------------------------------------------------
 
     await connection.close()
 

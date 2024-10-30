@@ -549,9 +549,12 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         if op_type == PIPELINE_OP_TYPE_COMMIT:
             return 0
 
+        # keep warning, if applicable
+        message_with_data = <MessageWithData> message
+        result_impl.warning = message_with_data.warning
+
         # resend the message if that is required (for operations that fetch
         # LOBS, for example)
-        message_with_data = <MessageWithData> message
         cursor_impl = message_with_data.cursor_impl
         if message.resend:
             await protocol._process_message(message)
@@ -562,6 +565,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             ):
                 while cursor_impl._buffer_rowcount > 0:
                     result_impl.rows.append(cursor_impl._create_row())
+        result_impl.fetch_info_impls = cursor_impl.fetch_info_impls
 
         # for fetchall(), perform as many round trips as are required to
         # complete the fetch
@@ -880,6 +884,8 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         else:
             errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
                               op_type=op_impl.op_type)
+        result_impl.warning = cursor.warning
+        result_impl.fetch_info_impls = cursor._impl.fetch_info_impls
 
     cdef int _send_messages_for_pipeline(
         self, list messages, bint continue_on_error
