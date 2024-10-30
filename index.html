@@ -84,24 +84,33 @@ limitations under the License.
           <img src="./python-oracledb-arch.png">
           </p>
 
+	  <p>
+
+	  Connections between python-oracledb and Oracle Database are used for
+	  executing SQL and PL/SQL, for calling SODA NoSQL-style APIs, for
+	  receiving database notifications and messages, and for starting and
+	  stopping the database.
+
+	  </p>
+
+	  <p>
+
+          Synchronous and concurrent <a
+          href="https://docs.python.org/3/library/asyncio.html" >asyncio</a>
+          coding styles are supported.  Database operations can optionally be
+          pipelined.
+
+          </p>
+
           <p>
 
-          The module conforms to the <a
+          The python-oracledb module conforms to the <a
           href="https://peps.python.org/pep-0249/" >Python Database API 2.0
           specification</a> with a considerable number of additions and a
           couple of minor exclusions, see the <a href="#features" >feature
           list</a>.
 
           </p>
-
-          <p>
-
-          Synchronous and concurrent <a
-          href="https://docs.python.org/3/library/asyncio.html" >asyncio</a>
-          coding styles are supported.
-
-          </p>
-
 
       </div> <!-- /about -->
 
@@ -279,8 +288,8 @@ limitations under the License.
       href="https://docs.python.org/3/library/asyncio.html" >asyncio</a> coding
       styles.</p></li>
 
-      <li><p>Connects to Oracle Database 11.2, 12, 18, 19, 21 or 23 on-premises
-      or in the Cloud.</p></li>
+      <li><p>Connects to Oracle Database 9.2, 10, 11.2, 12, 18, 19, 21 and 23
+      on-premises or in the Cloud.</p></li>
 
       <li><p>Optional use of Oracle Client 11.2, 12, 18, 19, 21 or 23 libraries
       for advanced Oracle Database functionality.  Oracle's standard
