@@ -555,6 +555,32 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         await self.__verify_create_arg("driver_name", "newdriver", sql)
 
+    async def test_5535(self):
+        "5535 - test register_parameter with pooled connection"
+        sdu = 4096
+        params = test_env.get_pool_params()
+        protocol = "proto-test"
+        orig_connect_string = test_env.get_connect_string()
+        connect_string = f"{protocol}://{orig_connect_string}"
+
+        def hook(passed_protocol, passed_protocol_arg, passed_params):
+            self.assertEqual(passed_protocol, protocol)
+            self.assertEqual(passed_protocol_arg, orig_connect_string)
+            passed_params.parse_connect_string(passed_protocol_arg)
+            passed_params.set(sdu=sdu)
+
+        try:
+            oracledb.register_protocol(protocol, hook)
+            pool = oracledb.create_pool_async(
+                dsn=connect_string, params=params
+            )
+            self.assertEqual(params.sdu, sdu)
+            async with pool.acquire():
+                pass
+            await pool.close()
+        finally:
+            oracledb.register_protocol(protocol, None)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

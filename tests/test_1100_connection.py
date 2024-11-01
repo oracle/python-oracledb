@@ -890,6 +890,31 @@ class TestCase(test_env.BaseTestCase):
         (fetched_value,) = cursor.fetchone()
         self.assertEqual(conn.serial_num, fetched_value)
 
+    @unittest.skipUnless(
+        test_env.get_is_thin(),
+        "thick mode doesn't support registered protocols",
+    )
+    def test_1153(self):
+        "1153 - test passed params in hook with standalone connection"
+        sdu = 4096
+        params = test_env.get_connect_params()
+        protocol = "proto-test"
+        orig_connect_string = test_env.get_connect_string()
+        connect_string = f"{protocol}://{orig_connect_string}"
+
+        def hook(passed_protocol, passed_protocol_arg, passed_params):
+            self.assertEqual(passed_protocol, protocol)
+            self.assertEqual(passed_protocol_arg, orig_connect_string)
+            passed_params.parse_connect_string(passed_protocol_arg)
+            passed_params.set(sdu=sdu)
+
+        try:
+            oracledb.register_protocol(protocol, hook)
+            oracledb.connect(dsn=connect_string, params=params)
+            self.assertEqual(params.sdu, sdu)
+        finally:
+            oracledb.register_protocol(protocol, None)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
