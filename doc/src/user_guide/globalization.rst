@@ -51,9 +51,10 @@ To find the database's national character set, execute the query:
 Setting the Client Character Set
 --------------------------------
 
-In python-oracledb, the encoding used for all character data is "UTF-8".  The
-``encoding`` and ``nencoding`` parameters of the :meth:`oracledb.connect`
-and :meth:`oracledb.create_pool` methods are deprecated and ignored.
+In python-oracledb, the encoding used for all character data is "UTF-8".  Older
+versions of the driver allowed ``encoding`` and ``nencoding`` parameters to be
+passed to the :meth:`oracledb.connect` and :meth:`oracledb.create_pool` methods
+but these parameters are now desupported.
 
 .. _timezonefiles:
 

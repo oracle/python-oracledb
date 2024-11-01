@@ -524,12 +524,13 @@ following steps:
 4. Review obsolete encoding parameters in calls to :func:`oracledb.connect()`,
    ``oracledb.Connection()``, and ``oracledb.SessionPool()``:
 
-   - ``encoding`` and ``nencoding`` are ignored by python-oracledb. The
-     python-oracledb driver uses UTF-8 exclusively.
+   - ``encoding`` and ``nencoding`` are desupported in python-oracledb and must
+     be removed. The python-oracledb driver uses UTF-8 exclusively.
 
-   - ``threaded`` is ignored in :func:`oracledb.connect()` and
-     ``oracledb.Connection()`` by python-oracledb. This parameter was already
-     ignored in ``oracledb.SessionPool()`` from cx_Oracle 8.2.
+   - ``threaded`` is desupported in :func:`oracledb.connect()` and
+     ``oracledb.Connection()`` by python-oracledb and must be removed. This
+     parameter was already ignored in ``oracledb.SessionPool()`` from cx_Oracle
+     8.2.
 
 5. Remove all references to :meth:`Cursor.fetchraw()` as this method was
    deprecated in cx_Oracle 8.2 and has been removed in python-oracledb.

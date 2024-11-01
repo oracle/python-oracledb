@@ -29,7 +29,7 @@ of the database that should be started:
     connection.startup()
 
     # the following statements must be issued in normal SYSDBA mode
-    connection = oracledb.connect(mode=oracledb.SYSDBA, encoding="UTF-8")
+    connection = oracledb.connect(mode=oracledb.SYSDBA)
     cursor = connection.cursor()
     cursor.execute("alter database mount")
     cursor.execute("alter database open")
