@@ -1924,27 +1924,47 @@ Oracledb Methods
 
     See :ref:`initialization` for more information.
 
-    If the ``lib_dir`` parameter is not None or the empty string,
-    the specified directory is the only one searched for the Oracle Client
-    libraries; otherwise, the standard way of locating the Oracle Client
-    library is used.
+    The ``lib_dir`` parameter is a string or a bytes object that specifies the
+    directory containing Oracle Client libraries.  If the ``lib_dir`` parameter
+    is set, then the specified directory is the only one searched for the
+    Oracle Client libraries; otherwise, the operating system library search
+    path is used to locate the Oracle Client library.  If you are using Python
+    3.11 and later, then the value specified in this parameter is encoded
+    using `locale.getencoding() <https://docs.python.org/3/library/locale.html
+    #locale.getencoding>`__.  For all other Python versions, the encoding
+    "utf-8" is used.  If a bytes object is specified in this parameter, then
+    this value will be used as is without any encoding.
 
-    If the ``config_dir`` parameter is not None or the empty string, the
-    specified directory is used to find Oracle Client library configuration
-    files. This is equivalent to setting the environment variable ``TNS_ADMIN``
-    and overrides any value already set in ``TNS_ADMIN``. If this parameter is
-    not set, the standard way of locating Oracle Client library configuration
-    files is used.
+    The ``config_dir`` parameter is a string or a bytes object that specifies
+    the directory in which the
+    :ref:`Optional Oracle Net Configuration <optnetfiles>` and
+    :ref:`Optional Oracle Client Configuration <optclientfiles>` files reside.
+    If the ``config_dir`` parameter is set, then the specified directory is
+    used to find Oracle Client library configuration files.  This is
+    equivalent to setting the environment variable ``TNS_ADMIN`` and overrides
+    any value already set in ``TNS_ADMIN``.  If this parameter is not set, the
+    :ref:`Oracle standard <usingconfigfiles>` way of locating Oracle Client
+    library configuration files is used.  If you are using Python 3.11 and
+    later, then the value specified in this parameter is encoded using
+    `locale.getencoding() <https://docs.python.org/3/library/locale.html#
+    locale.getencoding>`__.  For all other Python versions, the encoding
+    "utf-8" is used.  If a bytes object is specified in this parameter, then
+    this value will be used as is without any encoding.
 
-    If the ``error_url`` parameter is not None or the empty string, the
-    specified value is included in the message of the exception raised when the
-    Oracle Client library cannot be loaded; otherwise, the :ref:`installation`
-    URL is included.
+    The ``error_url`` parameter is a string that specifies the URL which is
+    included in the python-oracledb exception message if the Oracle Client
+    libraries cannot be loaded.  If the ``error_url`` parameter is set, then
+    the specified value is included in the message of the exception raised
+    when the Oracle Client library cannot be loaded; otherwise, the
+    :ref:`installation` URL is included.  This parameter lets your application
+    display custom installation instructions.
 
-    If the ``driver_name`` parameter is not None or the empty string, the
-    specified value can be found in database views that give information about
-    connections. For example, it is in the ``CLIENT_DRIVER`` column of
-    ``V$SESSION_CONNECT_INFO``. The standard is to set this value to
+    The ``driver_name`` parameter is a string that specifies the driver name
+    value. If the ``driver_name`` parameter is set, then the specified value
+    can be found in database views that give information about connections.
+    For example, it is in the ``CLIENT_DRIVER`` column of
+    ``V$SESSION_CONNECT_INFO``. From Oracle Database 12.2, the name displayed
+    can be 30 characters.  The standard is to set this value to
     ``"<name> : version>"``, where <name> is the name of the driver and
     <version> is its version. There should be a single space character before
     and after the colon. If this parameter is not set, then the value specified
