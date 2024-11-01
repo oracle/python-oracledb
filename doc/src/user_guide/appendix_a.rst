@@ -183,7 +183,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Edition Based Redefinition (EBR) (see :ref:`ebr`)
-      - No - not at connect time.  ALTER SESSION can be used.
+      - Yes
       - Yes
       - Yes
     * - SQL execution (see :ref:`sqlexecution`)

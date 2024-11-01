@@ -77,6 +77,13 @@ begin
 end;
 /
 
+-- create edition
+create edition &edition_name
+/
+
+grant use on edition &edition_name to &main_user
+/
+
 -- create types
 create type &main_user..udt_SubObject as object (
     SubNumberValue                      number,

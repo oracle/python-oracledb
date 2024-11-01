@@ -41,6 +41,7 @@
 #   PYO_TEST_WALLET_PASSWORD: password for wallet file (thin mode, mTLS)
 #   PYO_TEST_DRIVER_MODE: python-oracledb mode (thick or thin) to use
 #   PYO_TEST_EXTERNAL_USER: user for testing external authentication
+#   PYO_TEST_EDITION_NAME: name of edition for editioning tests
 #
 # PYO_TEST_CONNECT_STRING can be set to an Easy Connect string, or a
 # Net Service Name from a tnsnames.ora file or external naming service,
@@ -74,6 +75,7 @@ import oracledb
 DEFAULT_MAIN_USER = "pythontest"
 DEFAULT_PROXY_USER = "pythontestproxy"
 DEFAULT_CONNECT_STRING = "localhost/orclpdb1"
+DEFAULT_EDITION_NAME = "pythonedition"
 
 # dictionary containing all parameters; these are acquired as needed by the
 # methods below (which should be used instead of consulting this dictionary
@@ -240,6 +242,10 @@ def get_connect_string():
     return get_value(
         "CONNECT_STRING", "Connect String", DEFAULT_CONNECT_STRING
     )
+
+
+def get_edition_name():
+    return get_value("EDITION_NAME", "Edition Name", DEFAULT_EDITION_NAME)
 
 
 def get_is_drcp():

@@ -979,6 +979,13 @@ class TestCase(test_env.BaseTestCase):
         finally:
             oracledb.register_protocol(protocol, None)
 
+    def test_2448(self):
+        "2448 - test create_pool() with edition"
+        edition = test_env.get_edition_name()
+        pool = test_env.get_pool(edition=edition)
+        conn = pool.acquire()
+        self.assertEqual(conn.edition, edition)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -42,6 +42,7 @@ def drop_schema(conn):
         "drop_schema",
         main_user=test_env.get_main_user(),
         proxy_user=test_env.get_proxy_user(),
+        edition_name=test_env.get_edition_name(),
     )
 
 

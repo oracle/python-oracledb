@@ -581,6 +581,14 @@ class TestCase(test_env.BaseAsyncTestCase):
         finally:
             oracledb.register_protocol(protocol, None)
 
+    async def test_5536(self):
+        "5536 - test create_pool() with edition"
+        edition = test_env.get_edition_name()
+        pool = test_env.get_pool_async(edition=edition)
+        async with pool.acquire() as conn:
+            self.assertEqual(conn.edition, edition)
+        await pool.close()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

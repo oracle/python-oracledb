@@ -47,6 +47,7 @@ test_env.run_sql_script(
     main_password=test_env.get_main_password(),
     proxy_user=test_env.get_proxy_user(),
     proxy_password=test_env.get_proxy_password(),
+    edition_name=test_env.get_edition_name(),
 )
 if test_env.get_server_version() >= (21, 0):
     test_env.run_sql_script(

@@ -55,6 +55,7 @@ cdef class ConnectParamsImpl:
         self.description_list = DescriptionList()
         self.description_list.children.append(self._default_description)
         self.debug_jdwp = os.getenv("ORA_DEBUG_JDWP")
+        self.edition = os.getenv("ORA_EDITION")
         address_list = AddressList()
         address_list.children.append(self._default_address)
         self._default_description.children.append(address_list)

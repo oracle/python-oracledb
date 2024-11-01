@@ -915,6 +915,32 @@ class TestCase(test_env.BaseTestCase):
         finally:
             oracledb.register_protocol(protocol, None)
 
+    def test_1154(self):
+        "1154 - test altering connection edition"
+        conn = test_env.get_connection()
+        self.assertIsNone(conn.edition)
+        cursor = conn.cursor()
+        sql = "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
+        default_edition = "ORA$BASE"
+        test_edition = test_env.get_edition_name()
+        for edition in [test_edition, default_edition]:
+            with self.subTest(edition=edition):
+                cursor.execute(f"alter session set edition = {edition}")
+                cursor.execute(sql)
+                self.assertEqual(conn.edition, cursor.fetchone()[0])
+                self.assertEqual(conn.edition, edition.upper())
+
+    def test_1155(self):
+        "1155 - test connect() with edition"
+        edition = test_env.get_edition_name()
+        conn = test_env.get_connection(edition=edition)
+        cursor = conn.cursor()
+        cursor.execute(
+            "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
+        )
+        self.assertEqual(cursor.fetchone()[0], edition.upper())
+        self.assertEqual(conn.edition, edition)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

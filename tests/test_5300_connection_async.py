@@ -690,6 +690,34 @@ class TestCase(test_env.BaseAsyncTestCase):
         finally:
             oracledb.register_protocol(protocol, None)
 
+    async def test_5354(self):
+        "5354 - test altering connection edition"
+        conn = await test_env.get_admin_connection_async()
+        self.assertIsNone(conn.edition)
+        cursor = conn.cursor()
+        sql = "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
+        default_edition = "ORA$BASE"
+        test_edition = test_env.get_edition_name()
+        for edition in [test_edition, default_edition]:
+            with self.subTest(edition=edition):
+                await cursor.execute(f"alter session set edition = {edition}")
+                await cursor.execute(sql)
+                (fetched_edition,) = await cursor.fetchone()
+                self.assertEqual(fetched_edition, edition.upper())
+                self.assertEqual(conn.edition, edition.upper())
+
+    async def test_5355(self):
+        "5355 - test connect() with edition"
+        edition = test_env.get_edition_name()
+        conn = await test_env.get_connection_async(edition=edition)
+        cursor = conn.cursor()
+        await cursor.execute(
+            "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
+        )
+        (fetched_edition,) = await cursor.fetchone()
+        self.assertEqual(fetched_edition, edition.upper())
+        self.assertEqual(conn.edition, edition)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

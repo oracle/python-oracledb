@@ -40,5 +40,13 @@ begin
         execute immediate 'drop user ' || r.username || ' cascade';
     end loop;
 
+    for r in
+            ( select edition_name
+              from dba_editions
+              where edition_name in (upper('&edition_name'))
+            ) loop
+        execute immediate 'drop edition ' || r.edition_name || ' cascade';
+    end loop;
+
 end;
 /

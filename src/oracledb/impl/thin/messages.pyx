@@ -1458,6 +1458,7 @@ cdef class AuthMessage(Message):
         str machine
         str osuser
         str driver_name
+        str edition
 
     cdef int _encrypt_passwords(self) except -1:
         """
@@ -1644,6 +1645,7 @@ cdef class AuthMessage(Message):
             self.conn_impl.server_version = self._get_version_tuple(buf)
             self.conn_impl.supports_bool = \
                     buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1
+            self.conn_impl._edition = self.edition
 
     cdef int _set_params(self, ConnectParamsImpl params,
                          Description description) except -1:
@@ -1664,6 +1666,7 @@ cdef class AuthMessage(Message):
         self.driver_name = params.driver_name
         if self.driver_name is None:
             self.driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
+        self.edition = params.edition
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -1765,6 +1768,8 @@ cdef class AuthMessage(Message):
                 num_pairs += 2
             if self.encoded_jdwp_data is not None:
                 num_pairs += 1
+            if self.edition is not None:
+                num_pairs += 1
 
         # write basic data to packet
         self._write_function_code(buf)
@@ -1829,6 +1834,8 @@ cdef class AuthMessage(Message):
             if self.encoded_jdwp_data is not None:
                 self._write_key_value(buf, "AUTH_ORA_DEBUG_JDWP",
                                       self.encoded_jdwp_data)
+            if self.edition is not None:
+                self._write_key_value(buf, "AUTH_ORA_EDITION", self.edition)
 
 
 @cython.final

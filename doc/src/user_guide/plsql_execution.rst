@@ -422,38 +422,34 @@ or eliminating down time. This feature allows multiple versions of views,
 synonyms, PL/SQL objects and SQL Translation profiles to be used concurrently.
 Different versions of the database objects are associated with an "edition".
 
-.. note::
-
-    Setting the Edition-Based Redefinition (EBR) edition at connection time is
-    only supported in the python-oracledb Thick mode.  See
-    :ref:`enablingthick`.  In python-oracledb Thin mode, the edition can be
-    changed with ALTER SESSION after connecting.
-
-The simplest way to set an edition is to pass the ``edition`` parameter to
-:meth:`oracledb.connect()` or :meth:`oracledb.create_pool()`:
+The simplest way to set the edition used by your applications is to pass the
+``edition`` parameter to :meth:`oracledb.connect()` or
+:meth:`oracledb.create_pool()`:
 
 .. code-block:: python
 
     connection = oracledb.connect(user="hr", password=userpwd,
                                    dsn="dbhost.example.com/orclpdb",
-                                   edition="newsales", encoding="UTF-8")
+                                   edition="newsales")
 
 
-The edition could also be set by setting the environment variable
-``ORA_EDITION`` or by executing the SQL statement:
+The edition can also be set by executing the SQL statement:
 
 .. code-block:: sql
 
     alter session set edition = <edition name>;
 
-Regardless of which method is used to set the edition, the value that is in use
-can be seen by examining the attribute :attr:`Connection.edition`. If no value
-has been set, the value will be None. This corresponds to the database default
+You can also set the environment variable ``ORA_EDITION`` to your edition name.
+
+Regardless of which method sets the edition, the value that is in use can be
+seen by examining the attribute :attr:`Connection.edition`. If no value has
+been set, the value will be None. This corresponds to the database default
 edition ``ORA$BASE``.
 
 Consider an example where one version of a PL/SQL function ``Discount`` is
 defined in the database default edition ``ORA$BASE`` and the other version of
-the same function is defined in a user created edition ``DEMO``.
+the same function is defined in a user created edition ``DEMO``.  In your SQL
+editor run:
 
 .. code-block:: sql
 
@@ -494,14 +490,13 @@ The ``Discount`` function for the demo edition is as follows:
     END;
     /
 
-The Python application can then call the required version of the PL/SQL
-function as shown:
+A Python application can then call the required version of the PL/SQL function
+as shown:
 
 .. code-block:: python
 
     connection = oracledb.connect(user=user, password=password,
-                                   dsn="dbhost.example.com/orclpdb",
-                                   encoding="UTF-8")
+                                   dsn="dbhost.example.com/orclpdb")
     print("Edition is:", repr(connection.edition))
 
     cursor = connection.cursor()
@@ -511,7 +506,7 @@ function as shown:
     # Use the edition parameter for the connection
     connection = oracledb.connect(user=user, password=password,
                                    dsn="dbhost.example.com/orclpdb",
-                                   edition="demo", encoding="UTF-8")
+                                   edition="demo")
     print("Edition is:", repr(connection.edition))
 
     cursor = connection.cursor()
