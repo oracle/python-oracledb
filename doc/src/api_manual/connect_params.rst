@@ -100,7 +100,7 @@ ConnectParams Attributes
     used by the connection. It is a list of 3-tuples that includes the
     namespace, name, and value.  Each entry in the tuple is a string.
 
-    This attribute is only supported in python-oracledb Thick mode.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.cclass
 

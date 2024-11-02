@@ -485,9 +485,8 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.edition
 
-    This read-only attribute gets the session edition and is only available in
-    Oracle Database 11.2 (the server must be at this level or higher for this
-    to work). This attribute is ignored in python-oracledb Thin mode.
+    This read-only attribute gets the session edition and is only available
+    with Oracle Database 11.2, or later.
 
 .. attribute:: AsyncConnection.external_name
 

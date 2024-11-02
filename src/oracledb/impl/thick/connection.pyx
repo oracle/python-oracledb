@@ -157,8 +157,6 @@ cdef class ConnectionParams:
         num_bytes = self.num_app_context * sizeof(dpiAppContext)
         self.app_context = <dpiAppContext*> cpython.PyMem_Malloc(num_bytes)
         for i in range(self.num_app_context):
-            if not isinstance(entries[i], tuple) or len(entries[i]) != 3:
-                raise TypeError("appcontext should be a list of 3-tuples")
             namespace, name, value = entries[i]
             entry = &self.app_context[i]
             self._process_context_str(namespace, &entry.namespaceName,

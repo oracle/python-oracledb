@@ -85,10 +85,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.thin, test_env.get_is_thin())
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support application context yet",
-    )
     def test_1101(self):
         "1101 - test use of application context"
         namespace = "CLIENTCONTEXT"
@@ -106,10 +102,6 @@ class TestCase(test_env.BaseTestCase):
             (actual_value,) = cursor.fetchone()
             self.assertEqual(actual_value, value)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support application context yet",
-    )
     def test_1102(self):
         "1102 - test invalid use of application context"
         self.assertRaises(

@@ -234,12 +234,13 @@ the recommended way to create a connection pool.  The use of the equivalent
 The :func:`~oracledb.create_pool()` method in the python-oracledb Thin mode
 differs from the python-oracledb Thick mode in the following ways:
 
-* Not all the parameters of the :func:`oracledb.create_pool()` method are applicable
-  to both python-oracledb modes.  Each mode ignores unrecognized parameters.
-  The parameters that are ignored in Thin mode include ``events``, ``tag``,
-  ``matchanytag``, ``appcontext``, ``shardingkey``, ``supershardingkey``, and
-  ``handle`` parameters.  The parameters that are ignored in the Thick mode include
-  ``wallet_password``, ``disable_oob``, ``config_dir``, and ``debug_jdwp`` parameters.
+* Not all the parameters of the :func:`oracledb.create_pool()` method are
+  applicable to both python-oracledb modes.  Each mode ignores unrecognized
+  parameters.  The parameters that are ignored in Thin mode include ``events``,
+  ``tag``, ``matchanytag``, ``shardingkey``, ``supershardingkey``, and
+  ``handle`` parameters.  The parameters that are ignored in the Thick mode
+  include ``wallet_password``, ``disable_oob``, ``config_dir``, and
+  ``debug_jdwp`` parameters.
 
 * The python-oracledb Thin mode only suppports :ref:`homogeneous
   <connpooltypes>` pools.

@@ -48,6 +48,8 @@ Thin Mode Changes
     about any query column metadata returned from a pipeline operation.
 #)  Added support for setting the :ref:`edition <ebr>` when connecting to
     Oracle Database.
+#)  Added support for Application Contexts, i.e. the ``appcontext`` parameter
+    is supported when connecting.
 #)  Fixed bug causing some pooled connections to be permanently marked as busy
     and unavailable for reuse
     (`issue 392 <https://github.com/oracle/python-oracledb/issues/392>`__).

@@ -721,7 +721,7 @@ class TestCase(test_env.BaseTestCase):
             ("tag", "tag_new"),
             ("matchanytag", False),
             ("config_dir", "config_dir_new"),
-            ("appcontext", [("a", "b", "c", "new")]),
+            ("appcontext", [("a", "b", "c"), ("d", "e", "f")]),
             ("shardingkey", [1, 2, 3, 4]),
             ("supershardingkey", [6]),
             ("debug_jdwp", "host=host;port=4638"),

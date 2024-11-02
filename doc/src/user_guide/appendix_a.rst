@@ -331,7 +331,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Application Contexts
-      - No
+      - Yes
       - Yes
       - Yes
     * - Persistent and Temporary LOBs

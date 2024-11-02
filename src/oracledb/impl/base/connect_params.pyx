@@ -93,7 +93,7 @@ cdef class ConnectParamsImpl:
         _set_obj_param(args, "ssl_context", self)
         _set_str_param(args, "debug_jdwp", self)
         _set_str_param(args, "config_dir", self)
-        _set_obj_param(args, "appcontext", self)
+        _set_app_context_param(args, "appcontext", self)
         _set_obj_param(args, "shardingkey", self)
         _set_obj_param(args, "supershardingkey", self)
         _set_bool_param(args, "externalauth", &self.externalauth)

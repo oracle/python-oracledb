@@ -1459,6 +1459,7 @@ cdef class AuthMessage(Message):
         str osuser
         str driver_name
         str edition
+        list appcontext
 
     cdef int _encrypt_passwords(self) except -1:
         """
@@ -1667,6 +1668,7 @@ cdef class AuthMessage(Message):
         if self.driver_name is None:
             self.driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
         self.edition = params.edition
+        self.appcontext = params.appcontext
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -1770,6 +1772,8 @@ cdef class AuthMessage(Message):
                 num_pairs += 1
             if self.edition is not None:
                 num_pairs += 1
+            if self.appcontext is not None:
+                num_pairs += len(self.appcontext) * 3
 
         # write basic data to packet
         self._write_function_code(buf)
@@ -1836,6 +1840,13 @@ cdef class AuthMessage(Message):
                                       self.encoded_jdwp_data)
             if self.edition is not None:
                 self._write_key_value(buf, "AUTH_ORA_EDITION", self.edition)
+            if self.appcontext is not None:
+                # NOTE: these keys require a trailing null character as the
+                # server expects it!
+                for entry in self.appcontext:
+                    self._write_key_value(buf, "AUTH_APPCTX_NSPACE\0", entry[0])
+                    self._write_key_value(buf, "AUTH_APPCTX_ATTR\0", entry[1])
+                    self._write_key_value(buf, "AUTH_APPCTX_VALUE\0", entry[2])
 
 
 @cython.final

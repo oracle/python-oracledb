@@ -28,6 +28,29 @@
 # Cython file defining utility methods (embedded in base_impl.pyx).
 #------------------------------------------------------------------------------
 
+cdef int _set_app_context_param(dict args, str name, object target) except -1:
+    """
+    Sets an application context parameter to the value provided in the
+    dictionary, if a value is provided. This value is then set directly on the
+    target.
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        message = (
+            "appcontext should be a list of 3-tuples and each 3-tuple should "
+            "contain three strings"
+        )
+        if not isinstance(in_val, list):
+            raise TypeError(message)
+        for entry in in_val:
+            if not isinstance(entry, tuple) or len(entry) != 3:
+                raise TypeError(message)
+            for value in entry:
+                if not isinstance(value, str):
+                    raise TypeError(message)
+        setattr(target, name, in_val)
+
+
 cdef int _set_bool_param(dict args, str name, bint *out_val) except -1:
     """
     Sets a boolean parameter to the value provided in the dictionary. This can

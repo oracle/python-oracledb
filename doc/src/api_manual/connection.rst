@@ -677,9 +677,8 @@ Connection Attributes
 
 .. attribute:: Connection.edition
 
-    This read-only attribute gets the session edition and is only available in
-    Oracle Database 11.2 (both client and server must be at this level or
-    higher for this to work).
+    This read-only attribute gets the session edition and is only available
+    with Oracle Database 11.2, or later.
 
     .. note::
 
