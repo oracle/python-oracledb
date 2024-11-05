@@ -224,10 +224,10 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         list depending on whether the waiter is still waiting for the request
         to be satisfied!
         """
-        request.completed = True
         request.in_progress = False
         request.bg_processing = False
         if request.conn_impl is not None:
+            request.completed = True
             if not request.is_replacing and not request.requires_ping:
                 self._open_count += 1
                 if self._num_to_create > 0:
