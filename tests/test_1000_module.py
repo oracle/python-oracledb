@@ -250,6 +250,16 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertIs(oracledb.VECTOR_FORMAT_INT8, oracledb.VectorFormat.INT8)
 
+    def test_1009(self):
+        "1009 - test enable_thin_mode()"
+        if test_env.get_is_thin():
+            oracledb.enable_thin_mode()
+            with self.assertRaisesFullCode("DPY-2019"):
+                oracledb.init_oracle_client()
+        else:
+            with self.assertRaisesFullCode("DPY-2053"):
+                oracledb.enable_thin_mode()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -512,6 +512,8 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3732(self):
         "3732 - test encoding_errors"
+        if test_env.get_charset() != "AL32UTF8":
+            self.skipTest("Database character set must be AL32UTF8")
         str_value = "Я"
         replacement_char = "�"
         invalid_bytes = str_value.encode("windows-1251")
