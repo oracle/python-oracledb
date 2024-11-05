@@ -785,58 +785,6 @@ query is::
 Ensure to use :ref:`bind variables <bind>` for the upper and lower limit
 values.
 
-.. _crc:
-
-Client Result Cache
--------------------
-
-Python-oracledb applications can use Oracle Database's `Client Result Cache
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-4C2D-9075-6F639F25425E>`__
-The CRC enables client-side caching of SQL query (SELECT statement) results in
-client memory for immediate use when the same query is re-executed.  This is
-useful for reducing the cost of queries for small, mostly static, lookup tables,
-such as for postal codes.  CRC reduces network :ref:`round-trips <roundtrips>`,
-and also reduces database server CPU usage.
-
-.. note::
-
-  Client Result Caching is only supported in the python-oracledb Thick mode.
-  See :ref:`enablingthick`.
-
-The cache is at the application process level.  Access and invalidation is
-managed by the Oracle Client libraries.  This removes the need for extra
-application logic, or external utilities, to implement a cache.
-
-CRC can be enabled by setting the `database parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A9D4A5F5-B939-48FF-80AE-0228E7314C7D>`__
-``CLIENT_RESULT_CACHE_SIZE`` and ``CLIENT_RESULT_CACHE_LAG``, and then
-restarting the database.  For example, to set the parameters:
-
-.. code-block:: sql
-
-    SQL> ALTER SYSTEM SET CLIENT_RESULT_CACHE_LAG = 3000 SCOPE=SPFILE;
-    SQL> ALTER SYSTEM SET CLIENT_RESULT_CACHE_SIZE = 64K SCOPE=SPFILE;
-
-CRC can alternatively be configured in an :ref:`oraaccess.xml <optclientfiles>`
-or :ref:`sqlnet.ora <optnetfiles>` file on the Python host, see `Client
-Configuration Parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E63D75A1-FCAA-4A54-A3D2-B068442CE766>`__.
-
-Tables can then be created, or altered, so repeated queries use CRC.  This
-allows existing applications to use CRC without needing modification.  For example:
-
-.. code-block:: sql
-
-    SQL> CREATE TABLE cities (id number, name varchar2(40)) RESULT_CACHE (MODE FORCE);
-    SQL> ALTER TABLE locations RESULT_CACHE (MODE FORCE);
-
-Alternatively, hints can be used in SQL statements.  For example:
-
-.. code-block:: sql
-
-    SELECT /*+ result_cache */ postal_code FROM locations
-
-
 .. _fetching-raw-data:
 
 Fetching Raw Data

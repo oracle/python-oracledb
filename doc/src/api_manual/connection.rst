@@ -756,9 +756,10 @@ Connection Attributes
 
 .. attribute:: Connection.max_identifier_length
 
-    This read-only attribute specifies the maximum length of bytes supported
-    by the database to which the connection has been established.  See `Database
-    Object Naming Rules <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    This read-only attribute specifies the maximum database identifier length
+    in bytes supported by the database to which the connection has been
+    established.  See `Database Object Naming Rules
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__.
 
     .. versionadded:: 2.5.0
@@ -834,10 +835,10 @@ Connection Attributes
 
 .. attribute:: Connection.serial_num
 
-    This read-only attribute specifies the session serial number associated with
-    the connection. It is the same value returned by the SQL
-    ``SELECT SERIAL# FROM V$SESSION``. It is available only in python-oracledb
-    Thin mode.
+    This read-only attribute specifies the session serial number associated
+    with the connection. It is the same value returned by the SQL
+    ``SELECT SERIAL# FROM V$SESSION WHERE SID=SYS_CONTEXT('USERENV', 'SID')``.
+    It is available only in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
 
@@ -867,8 +868,8 @@ Connection Attributes
 
     This read-only attribute specifies the session identifier associated with
     the connection. It is the same value returned by the SQL
-    ``SELECT SID FROM V$SESSION``. It is available only in python-oracledb
-    Thin mode.
+    ``SELECT SYS_CONTEXT('USERENV', 'SID') FROM DUAL``. It is available
+    only in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
 

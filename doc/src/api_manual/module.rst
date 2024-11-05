@@ -436,6 +436,8 @@ Oracledb Methods
 
     This method can only be used in python-oracledb Thin mode.
 
+    When connecting to Oracle Autonomous Database, use Python 3.11, or later.
+
     .. versionadded:: 2.0.0
 
     Some values, such as the database host name, can be specified as
@@ -1026,7 +1028,8 @@ Oracledb Methods
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
-        ``driver_name`` parameters were added.
+        ``driver_name`` parameters were added. Support for ``edition`` and
+        ``appcontext`` was added to python-oracledb Thin mode.
 
     .. versionchanged:: 2.3.0
 
@@ -1378,8 +1381,7 @@ Oracledb Methods
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
     should contain namespace, name, and value and each entry in the tuple
-    should be a string.  This value is only used in the python-oracledb Thick
-    mode and is ignored in the Thin mode.
+    should be a string.
 
     The ``shardingkey`` parameter and ``supershardingkey`` parameters, if
     specified, are expected to be a sequence of values which identifies the
@@ -1543,6 +1545,8 @@ Oracledb Methods
     :ref:`Connection pooling <asyncconnpool>` for more information.
 
     This method can only be used in python-oracledb Thin mode.
+
+    When connecting to Oracle Autonomous Database, use Python 3.11, or later.
 
     .. versionadded:: 2.0.0
 
@@ -2301,8 +2305,7 @@ Oracledb Methods
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
     should contain namespace, name, and value and each entry in the tuple
-    should be a string.  This value is only used inthe python-oracledb Thick
-    mode.
+    should be a string.
 
     The ``shardingkey`` parameter and ``supershardingkey`` parameters, if
     specified, are expected to be a sequence of values which identifies the
@@ -2411,7 +2414,8 @@ Oracledb Methods
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
-        ``driver_name`` parameters were added.
+        ``driver_name`` parameters were added. Support for ``edition`` and
+        ``appcontext`` was added to python-oracledb Thin mode.
 
     .. versionchanged:: 2.3.0
 
@@ -2872,8 +2876,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``DEFAULT_AUTH`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``DEFAULT_AUTH`` constant that was used in
+    cx_Oracle 8.3, and was the default ``mode`` value.
 
 .. data:: AUTH_MODE_PRELIM
 
@@ -2888,8 +2892,8 @@ definition.
         This constant can only be used in the python-oracledb Thick mode for
         standalone connections.
 
-        This constant deprecates the ``PRELIM_AUTH`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``PRELIM_AUTH`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSASM
 
@@ -2904,8 +2908,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSASM`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSASM`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSBKP
 
@@ -2920,8 +2924,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSBKP`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSBKP`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSDBA
 
@@ -2936,8 +2940,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSDBA`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSDBA`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSDGD
 
@@ -2952,8 +2956,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSDGD`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSDGD`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSKMT
 
@@ -2968,8 +2972,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSKMT`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSKMT`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSOPER
 
@@ -2984,8 +2988,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSOPER`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSOPER`` constant that was used in
+    cx_Oracle 8.3.
 
 .. data:: AUTH_MODE_SYSRAC
 
@@ -3000,8 +3004,8 @@ definition.
         python-oracledb Thin mode, and for standalone connections in the Thick
         mode.
 
-        This constant deprecates the ``SYSRAC`` constant that was used in
-        cx_Oracle 8.3.
+    This constant deprecates the ``SYSRAC`` constant that was used in
+    cx_Oracle 8.3.
 
 .. _pipeline-operation-types:
 
@@ -3243,72 +3247,76 @@ Connection Pool Get Modes
 -------------------------
 
 These constants belong to the enumeration called ``PoolGetMode``. They are
-possible values for the ``getmode`` parameter of
-:meth:`oracledb.create_pool()` and :meth:`oracledb.create_pool_async()`. They
-have deprecated the Session Pool mode constants that were used in cx_Oracle
-8.3. The constants are extensions to the DB API definition.
+possible values for the ``getmode`` parameters of
+:meth:`oracledb.create_pool()`, :meth:`oracledb.create_pool_async()`,
+:meth:`PoolParams.set()`, and for related attributes. They have deprecated the
+Session Pool mode constants that were used in cx_Oracle 8.3. The constants are
+extensions to the DB API definition
 
 .. versionchanged:: 2.3.0
 
-    The integer constants for the connection pool get modes were replaced
-    with the enumeration ``PoolGetMode``.
+    The integer constants for the connection pool creation, reconfiguration,
+    and acquisition ``getmode`` parameters were replaced with the enumeration
+    ``PoolGetMode``.
 
 .. data:: POOL_GETMODE_FORCEGET
 
-    This constant is used to specify that a new connection will be returned if
-    there are no free sessions available in the pool.
+    This constant is used to specify that a new connection should be created
+    and returned by :meth:`ConnectionPool.acquire()` if there are no free
+    connections available in the pool and the pool is already at its maximum
+    size.
+
+    When a connection acquired in this mode is eventually released back to the
+    pool, it will be dropped and not added to the pool if the pool is still at
+    its maximum size.
 
     This enumerated value can also be identified by
     ``oracledb.PoolGetMode.FORCEGET``.
 
-    .. note::
-
-        This constant deprecates the ``SPOOL_ATTRVAL_FORCEGET`` constant that
-        was used in cx_Oracle 8.3.
+    This constant deprecates the ``SPOOL_ATTRVAL_FORCEGET`` constant that was
+    used in cx_Oracle 8.3.
 
 
 .. data:: POOL_GETMODE_NOWAIT
 
-    This constant is used to specify that an exception should be raised if
-    there are no free sessions available in the pool.
+    This constant is used to specify that an exception should be raised by
+    :meth:`ConnectionPool.acquire()` when all currently created connections are
+    already in use and so :meth:`~ConnectionPool.acquire()` cannot immediately
+    return a connection. Note the exception may occur even if the pool is
+    smaller than its maximum size.
 
     This enumerated value can also be identified by
     ``oracledb.PoolGetMode.NOWAIT``.
 
-    .. note::
-
-        This constant deprecates the ``SPOOL_ATTRVAL_NOWAIT`` constant that was
-        used in cx_Oracle 8.3.
+    This constant deprecates the ``SPOOL_ATTRVAL_NOWAIT`` constant that was
+    used in cx_Oracle 8.3, and was the default ``getmode`` value.
 
 
 .. data:: POOL_GETMODE_WAIT
 
-    This constant is used to specify that the caller should wait until a
-    session is available if there are no free sessions available in the pool.
-    This is the default value.
+    This constant is used to specify that :meth:`ConnectionPool.acquire()`
+    should wait until a connection is available if there are currently no free
+    connections available in the pool.  This is the default value.
 
     This enumerated value can also be identified by
     ``oracledb.PoolGetMode.WAIT``.
 
-    .. note::
-
-        This constant deprecates the ``SPOOL_ATTRVAL_WAIT`` constant that was
-        used in cx_Oracle 8.3.
+    This constant deprecates the ``SPOOL_ATTRVAL_WAIT`` constant that was
+    used in cx_Oracle 8.3.
 
 
 .. data:: POOL_GETMODE_TIMEDWAIT
 
-    This constant is used to specify that the caller should wait for a period
-    of time (defined by the ``wait_timeout`` parameter) for a session to become
-    available before returning with an error.
+    This constant is used to specify that :meth:`ConnectionPool.acquire()`
+    should wait for a period of time (defined by the ``wait_timeout``
+    parameter) for a connection to become available before returning with an
+    error.
 
     This enumerated value can also be identified by
     ``oracledb.PoolGetMode.TIMEDWAIT``.
 
-    .. note::
-
-        This constant deprecates the ``SPOOL_ATTRVAL_TIMEDWAIT`` constant that
-        was used in cx_Oracle 8.3.
+    This constant deprecates the ``SPOOL_ATTRVAL_TIMEDWAIT`` constant that was
+    used in cx_Oracle 8.3.
 
 .. _drcppurityconsts:
 
@@ -3316,9 +3324,11 @@ Connection Pool Purity Constants
 --------------------------------
 
 These constants belong to the enumeration called ``Purity``. They are possible
-values for the ``purity`` parameter of :meth:`connect()` used for :ref:`drcp`.
-They have deprecated the Session Pool purity constants that were used in
-cx_Oracle 8.3. The constants are extensions to the DB API definition.
+values for the :ref:`drcp` ``purity`` parameter of
+:meth:`oracledb.create_pool()`, :meth:`ConnectionPool.acquire()`, and
+:meth:`oracledb.connect()`. They have deprecated the Session Pool purity
+constants that were used in cx_Oracle 8.3. The constants are extensions to the
+DB API definition.
 
 .. versionchanged:: 2.3.0
 
@@ -3334,10 +3344,8 @@ cx_Oracle 8.3. The constants are extensions to the DB API definition.
     This enumerated value can also be identified by
     ``oracledb.Purity.DEFAULT``.
 
-    .. note::
-
-        This constant deprecates the ``ATTR_PURITY_DEFAULT`` constant that was
-        used in cx_Oracle 8.3.
+    This constant deprecates the ``ATTR_PURITY_DEFAULT`` constant that was used
+    in cx_Oracle 8.3, and was the default ``purity`` value.
 
 .. data:: PURITY_NEW
 
@@ -3346,10 +3354,8 @@ cx_Oracle 8.3. The constants are extensions to the DB API definition.
 
     This enumerated value can also be identified by ``oracledb.Purity.NEW``.
 
-    .. note::
-
-        This constant deprecates the ``ATTR_PURITY_NEW`` constant that was used
-        in cx_Oracle 8.3.
+    This constant deprecates the ``ATTR_PURITY_NEW`` constant that was used in
+    cx_Oracle 8.3.
 
 
 .. data:: PURITY_SELF
@@ -3359,10 +3365,8 @@ cx_Oracle 8.3. The constants are extensions to the DB API definition.
 
     This enumerated value can also be identified by ``oracledb.Purity.SELF``.
 
-    .. note::
-
-        This constant deprecates the ``ATTR_PURITY_SELF`` constant that was
-        used in cx_Oracle 8.3.
+    This constant deprecates the ``ATTR_PURITY_SELF`` constant that was used in
+    cx_Oracle 8.3.
 
 Subscription Grouping Classes
 -----------------------------

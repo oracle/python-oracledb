@@ -86,8 +86,8 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Lightweight Directory Access Protocol (LDAP) connections
-      - No
+    * - Lightweight Directory Access Protocol (LDAP) connections (see :ref:`ldapconnections`)
+      - Yes - via a user function enabled with :meth:`oracledb.register_protocol()`
       - Yes
       - Yes
     * - Proxy connections (see :ref:`proxyauth`)
@@ -218,7 +218,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - UTF-8
       - UTF-8
       - Yes - can use Python encodings. Default in 8.0 is UTF-8
-    * - Oracle Globalization support
+    * - Oracle Globalization support (see :ref:`globalization`)
       - No - All NLS environment variables are ignored.  Use Python globalization support instead
       - Yes - NLS environment variables are respected except character set in NLS_LANG
       - Yes - NLS environment variables are respected except character set in NLS_LANG
@@ -330,7 +330,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Application Contexts
+    * - Application Contexts (see :ref:`appcontext`)
       - Yes
       - Yes
       - Yes

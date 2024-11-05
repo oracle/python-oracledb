@@ -39,11 +39,25 @@ Oracle Database end-to-end application tracing simplifies diagnosing
 application code flow and performance problems in multi-tier or multi-user
 environments.
 
-The connection attributes, :attr:`~Connection.client_identifier`,
-:attr:`~Connection.clientinfo`, :attr:`~Connection.dbop`,
-:attr:`~Connection.module` and :attr:`~Connection.action`, set the metadata for
-end-to-end tracing.  You can query data dictionary and dynamic performance
-views to monitor applications, or you can use tracing utilities.
+The connection attributes :attr:`Connection.client_identifier`,
+:attr:`Connection.clientinfo`, :attr:`Connection.dbop`,
+:attr:`Connection.module`, and :attr:`Connection.action` set metadata for
+end-to-end tracing. The values can be queried from data dictionary and dynamic
+performance views to monitor applications, or you can use tracing
+utilities. Values may appear in logs and audit trails.
+
+Also see :ref:`appcontext` for information about setting Application Contexts.
+
+The :attr:`~Connection.client_identifier` attribute is typically set to the
+name (or identifier) of the actual end user initiating a query.  This allows
+the database to distinguish, and trace, end users for applications that connect
+to a common database username. It can also be used by `Oracle Virtual Private
+Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-06022729-9210-4895-BF04-6177713C65A7>`__ policies to automatically limit
+data access.
+
+The :attr:`~Connection.module` and :attr:`~Connection.action` attributes can be
+set to user-chosen, descriptive values identifying your code architecture.
 
 After attributes are set, the values are sent to the database when the next
 :ref:`round-trip <roundtrips>` to the database occurs, for example when the
@@ -76,14 +90,12 @@ The output will be like::
 
     ('SYSTEM', 'pythonuser', 'End-to-end Demo', 'Query Session tracing parameters')
 
-The values can also be manually set as shown by calling
-`DBMS_APPLICATION_INFO procedures
+The values can also be manually set by calling `DBMS_APPLICATION_INFO
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-14484F86-44F2-4B34-B34E-0C873D323EAD>`__
-or `DBMS_SESSION.SET_IDENTIFIER
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-988EA930-BDFE-4205-A806-E54F05333562>`__. These incur round-trips to
-the database; however, reducing scalability.
+id=GUID-14484F86-44F2-4B34-B34E-0C873D323EAD>`__ procedures or
+`DBMS_SESSION.SET_IDENTIFIER <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-988EA930-BDFE-4205-A806-E54F05333562>`__. These incur
+round-trips to the database which reduces application scalability:
 
 .. code-block:: sql
 
@@ -93,8 +105,10 @@ the database; however, reducing scalability.
         DBMS_APPLICATION_INFO.set_action(action_name => 'Query Session tracing parameters');
     END;
 
-The value of :attr:`Connection.dbop` will be shown in the ``DBOP_NAME`` column
-of the ``V$SQL_MONITOR`` table:
+The :attr:`Connection.dbop` attribute can be used for Real-Time SQL Monitoring,
+see `Monitoring Database Operations <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__. The value will
+be shown in the ``DBOP_NAME`` column of the ``V$SQL_MONITOR`` table:
 
 .. code-block:: python
 

@@ -527,9 +527,10 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.max_identifier_length
 
-    This read-only attribute specifies the maximum length of bytes supported by
-    the database to which the connection has been established.  See `Database
-    Object Naming Rules <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    This read-only attribute specifies the maximum database identifier length
+    in bytes supported by the database to which the connection has been
+    established.  See `Database Object Naming Rules
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__.
 
     .. versionadded:: 2.5.0

@@ -58,7 +58,8 @@ PoolParams Methods
   .. versionchanged:: 2.5.0
 
     The ``program``, ``machine``, ``terminal``, ``osuser``, and ``driver_name``
-    parameters were added.
+    parameters were added. Support for ``edition`` and ``appcontext`` was
+    added to python-oracledb Thin mode.
 
   .. versionchanged:: 2.3.0
 

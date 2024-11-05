@@ -656,7 +656,7 @@ establish the database connection:
 
     oracledb.register_protocol("tcp", myhook)
 
-    connection = oracledb.connect(user="scott", password=pw,
+    connection = oracledb.connect(user="scott", password=userpwd,
                                   dsn="tcp://localhost/orclpdb")
 
     with connection.cursor() as cursor:
@@ -706,6 +706,18 @@ prints::
     host is None, port is 1234, service name is None
     In myhook: protocol=tcp arg=localhost/orclpdb
     host is localhost, port is 1234, service name is orclpdb
+
+If you have an application that can run in either python-oracledb Thin or Thick
+modes, and you want a registered connection hook function to be used in both
+modes, your connection code can be like:
+
+.. code-block:: python
+
+    dsn = "tcp://localhost/orclpdb"
+
+    cp = oracledb.ConnectParams()
+    cp.parse_connect_string(dsn)
+    connection = oracledb.connect(user="hr", password=userpwd, params=cp)
 
 .. _ldapconnections:
 
@@ -775,6 +787,72 @@ For example:
 You can modify or extend this as needed, for example to use an LDAP module that
 satisfies your business and security requirements, or to cache the response
 from the LDAP server.
+
+.. _appcontext:
+
+Connection Metadata and Application Contexts
+============================================
+
+During connection you can set additional metadata properties that can be
+accessed in the database for tracing and for enforcing fine-grained data
+access, for example with Oracle Virtual Private Database policies. Values may
+appear in logs and audit trails.
+
+**End-to-End Tracing Attributes**
+
+The connection attributes :attr:`Connection.client_identifier`,
+:attr:`Connection.clientinfo`, :attr:`Connection.dbop`,
+:attr:`Connection.module`, and :attr:`Connection.action` set metadata about the
+connection.
+
+It is recommended to always set at least :attr:`~Connection.client_identifier`,
+:attr:`~Connection.module`, and :attr:`~Connection.action` for all applications
+because their availability in the database can greatly aid future
+troubleshooting.
+
+See :ref:`endtoendtracing` for more information.
+
+**Application Contexts**
+
+An application context stores user identification that can enable or prevent a
+user from accessing data in the database.  See the Oracle Database
+documentation `About Application Contexts <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-6745DB10-F540-45D7-9761-9E8F342F1435>`__.
+
+A context has a namespace and a key-value pair. The namespace CLIENTCONTEXT is
+reserved for use with client session-based application contexts. Contexts are
+set during connection as a 3-tuple containing string values for the namespace,
+key, and value. For example:
+
+.. code-block:: python
+
+    myctx = [
+        ("clientcontext", "loc_id", "1900")
+    ]
+
+    connection = oracledb.connect(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
+                                  appcontext=myctx)
+
+
+Context values set during connection can be directly queried in your
+applications. For example:
+
+.. code-block:: python
+
+    with connection.cursor() as cursor:
+        sql = """select * from locations
+                 where location_id = sys_context('clientcontext', 'loc_id')"""
+        for r in cursor.execute(sql):
+            print(r)
+
+This will print::
+
+    (1900, '6092 Boxwood St', 'YSW 9T2', 'Whitehorse', 'Yukon', 'CA')
+
+You can use contexts to set up restrictive policies that are automatically
+applied to any query executed. See Oracle Database documentation `Oracle
+Virtual Private Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-06022729-9210-4895-BF04-6177713C65A7>`__.
 
 .. _connpooling:
 
