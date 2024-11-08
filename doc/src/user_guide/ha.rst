@@ -62,9 +62,8 @@ tuning.  For example, the database's ``listener.ora`` file can have `RATE_LIMIT
 lookup?ctx=dblatest&id=GUID-FF87387C-1779-4CC3-932A-79BB01391C28>`__ parameters
 that can help handle connection storms.
 
-With Oracle Client 19c, `EXPIRE_TIME <https://docs.oracle.com/en/database/
-oracle/oracle-database/20/netrf/local-naming-parameters-in-tns-ora-file.html#
-GUID-6140611A-83FC-4C9C-B31F-A41FC2A5B12D>`__ can be used in
+With Oracle Client 19c, `EXPIRE_TIME <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-6140611A-83FC-4C9C-B31F-A41FC2A5B12D>`__ can be used in
 :ref:`Connect Descriptors <conndescriptor>` to prevent firewalls from
 terminating idle connections and to adjust keepalive timeouts.  The general
 recommendation for ``EXPIRE_TIME`` is to use a value that is slightly less than

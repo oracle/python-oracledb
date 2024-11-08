@@ -5,10 +5,10 @@ Using Two-Phase Commits (TPC)
 *****************************
 
 The python-oracledb functions :meth:`~Connection.tpc_begin()` and
-:meth:`~Connection.tpc_end()` support distributed transactions. See
-`Two-Phase Commit Mechanism <https://docs.oracle.com/en/database/oracle/
-oracle-database/21/admin/distributed-transactions-concepts.html#GUID-8152084F-4760-4B89-
-A91C-9A84F81C23D1>`_ in the Oracle Database documentation.
+:meth:`~Connection.tpc_end()` support distributed transactions. See `Two-Phase
+Commit Mechanism <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-8152084F-4760-4B89-A91C-9A84F81C23D1>`_ in the Oracle Database
+documentation.
 
 The method :meth:`Connection.tpc_begin()` can be used to start a TPC
 transaction.

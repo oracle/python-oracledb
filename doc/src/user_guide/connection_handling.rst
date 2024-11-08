@@ -1058,6 +1058,8 @@ then the number of connections opened at pool creation is zero even if a larger
 value is specified for ``min``.  Also, in these cases the pool increment unit
 is always 1 regardless of the value of ``increment``.
 
+.. _poolhealth:
+
 Pool Connection Health
 ++++++++++++++++++++++
 

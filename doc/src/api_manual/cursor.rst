@@ -477,10 +477,10 @@ Cursor Attributes
 .. attribute:: Cursor.bindvars
 
     This read-only attribute provides the bind variables used for the last
-    execute. The value will be either a list or a dictionary depending on
-    whether binding was done by position or name. Care should be taken when
-    referencing this attribute. In particular, elements should not be removed
-    or replaced.
+    statement that was executed on the cursor. The value will be either a list
+    or a dictionary, depending on whether binding was done by position or
+    name. Care should be taken when referencing this attribute. In particular,
+    elements should not be removed or replaced.
 
     .. note::
 
@@ -498,16 +498,17 @@ Cursor Attributes
 
 .. attribute:: Cursor.description
 
-    This read-only attribute is a sequence of :ref:`FetchInfo<fetchinfoobj>`
-    objects. This attribute will be None for operations that do not return rows
-    or if the cursor has not had an operation invoked via the
-    :meth:`~Cursor.execute()` method yet.
+    This read-only attribute contains information about the columns used in a
+    query. It is a sequence of :ref:`FetchInfo <fetchinfoobj>` objects, one per
+    column. This attribute will be None for statements that are not SELECT or
+    WITH statements, or if the cursor has not had :meth:`Cursor.execute()`
+    invoked yet.
 
     .. versionchanged:: 1.4.0
 
-        Previously, this attribute was a sequence of 7-item sequences.  Each
-        of these sequences contained information describing one result column:
-        (name, type, display_size, internal_size, precision, scale, null_ok).
+        Previously, this attribute was a sequence of 7-tuples.  Each of these
+        tuples contained information describing one query column: "(name, type,
+        display_size, internal_size, precision, scale, null_ok)".
 
 .. attribute:: Cursor.fetchvars
 

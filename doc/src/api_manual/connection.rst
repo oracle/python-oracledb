@@ -161,8 +161,10 @@ Connection Methods
     receiving a planned down notification from the database.
 
     This function is best used before starting a new database request on an
-    existing standalone connection. Pooled connections internally perform this
-    check before returning a connection to the application.
+    existing :ref:`standalone connections <standaloneconnection>`. For pooled
+    connections, the :meth:`ConnectionPool.acquire()` method internally
+    performs this check before returning a connection to the application, see
+    :ref:`poolhealth`.
 
     If this function returns False, the connection should be not be used by the
     application and a new connection should be established instead.
@@ -185,6 +187,12 @@ Connection Methods
 .. method:: Connection.ping()
 
     Pings the database to verify if the connection is valid.
+
+    This function performs a :ref:`round-trip <roundtrips>` to the database, so
+    it should not be used unnecessarily.
+
+    Note connection pools will perform the same health check automatically,
+    based on configuration settings. See :ref:`poolhealth`.
 
     .. note::
 

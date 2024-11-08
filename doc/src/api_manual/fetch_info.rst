@@ -24,11 +24,11 @@ FetchInfo Attributes
 .. attribute:: FetchInfo.annotations
 
     This read-only attribute returns a dictionary containing the `annotations
-    <https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/
-    annotations_clause.html#GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__
-    associated with the fetched column. If there are no annotations, the value
-    ``None`` is returned. Annotations require Oracle Database 23ai. If using
-    python-oracledb Thick mode, Oracle Client 23ai is also required.
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1AC16117-
+    BBB6-4435-8794-2B99F8F68052>`__ associated with the fetched column. If
+    there are no annotations, the value ``None`` is returned. Annotations
+    require Oracle Database 23ai. If using python-oracledb Thick mode, Oracle
+    Client 23ai is also required.
 
     .. versionadded:: 2.0.0
 

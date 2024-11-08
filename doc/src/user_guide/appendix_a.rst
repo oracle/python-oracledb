@@ -26,7 +26,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - python-oracledb Thin Mode
       - python-oracledb Thick Mode
       - cx_Oracle 8.3
-    * - Python Database API Support
+    * - Python Database API Support (see `PEP 249 <https://peps.python.org/pep-0249/>`__)
       - Yes - a couple of features are not feasible. Many extensions.
       - Yes - a couple of features are not feasible. Many extensions.
       - Yes - a couple of features are not feasible. Many extensions.
@@ -46,15 +46,15 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Homogeneous only - must use keyword arguments
       - Yes - must use keyword arguments
       - Yes
-    * - Connection Pool Connection Load Balancing (CLB)
+    * - Connection Pool Connection Load Balancing (CLB) (see `Client-Side Load Balancing <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-10F7892A-92DD-482C-8D68-AE80CE956010>`__)
       - Yes
       - Yes
       - Yes
-    * - Connection Pool Runtime Load Balancing (RLB)
+    * - Connection Pool Runtime Load Balancing (RLB) (see `Runtime Connection Load Balancing <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A8B79A40-C4AA-4FBA-8042-C70C8FD2D2EF>`__)
       - No
       - Yes
       - Yes
-    * - Connection Pool draining
+    * - Connection Pool draining (see `Prepare Applications for Planned Maintenance <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9121F9FF-88E5-4DA2-9874-23A185CB2F82>`__)
       - Yes
       - Yes
       - Yes
@@ -126,7 +126,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Connection pinging API
+    * - Connection health check APIs (see :meth:`~Connection.is_healthy()` and :meth:`~Connection.ping()`)
       - Yes
       - Yes
       - Yes
@@ -210,7 +210,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
       - Yes
-    * - Query column metadata
+    * - Query column metadata (see :ref:`querymetadata`)
       - Yes
       - Yes
       - Yes
@@ -218,15 +218,15 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - UTF-8
       - UTF-8
       - Yes - can use Python encodings. Default in 8.0 is UTF-8
-    * - Oracle Globalization support (see :ref:`globalization`)
-      - No - All NLS environment variables are ignored.  Use Python globalization support instead
-      - Yes - NLS environment variables are respected except character set in NLS_LANG
-      - Yes - NLS environment variables are respected except character set in NLS_LANG
-    * - Row prefetching on first query execute (see :attr:`prefetchrows`)
+    * - Globalization support (see :ref:`globalization`)
+      - Yes - via Python globalization support
+      - Yes - Oracle Database NLS environment variables are respected, excluding the character set in NLS_LANG
+      - Yes - Oracle Database NLS environment variables are respected, excluding the character set in NLS_LANG
+    * - Row prefetching on first query execute (see :ref:`tuningfetch`)
       - Yes - unless the row contains LOBs or similar types
       - Yes - unless the row contains LOBs or similar types
       - Yes - unless the row contains LOBs or similar types
-    * - Array fetching for queries (see :attr:`arraysize`)
+    * - Array fetching for queries (see :ref:`tuningfetch`)
       - Yes
       - Yes
       - Yes
@@ -299,14 +299,14 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - No
     * - Oracle Database 23ai Pipelining (see :ref:`pipelining`)
-      - Yes - must use :ref:`asyncio <concurrentprogramming>`
+      - Yes
       - No
       - No
     * - End-to-end monitoring and tracing attributes (see :ref:`tracingsql`)
       - Yes
       - Yes
       - Yes
-    * - Automatic Diagnostic Repository (ADR)
+    * - Automatic Diagnostic Repository (ADR) (see `About Fault Diagnosability in OCI <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A2945AF1-36DE-4C87-8C19-DA82B352F176>`__)
       - No
       - Yes
       - Yes
@@ -353,14 +353,12 @@ Supported Oracle Database Data Types
 ====================================
 
 The following table lists the Oracle Database types that are supported in the
-python-oracledb driver.  See `Oracle Database Types
-<https://docs.oracle.com/en/database/oracle/
-oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265
-BA5968483>`__ and `PL/SQL Types <https://docs.oracle.com/en/database/oracle
-/oracle-database/21/lnpls/plsql-data-types.html#GUID-391C58FD-16AF-486C-AF28-
-173E309CDBA5>`__.  The python-oracledb constant shown is the common one.  In some
-python-oracledb APIs you may use other types, for example when binding numeric
-values.
+python-oracledb driver.  See `Oracle Database Types <https://www.oracle.com/
+pls/topic/lookup?ctx=dblatest&id=GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483>`__
+and `PL/SQL Types <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID
+-391C58FD-16AF-486C-AF28-173E309CDBA5>`__.  The python-oracledb constant shown
+is the common one.  In some python-oracledb APIs you may use other types, for
+example when binding numeric values.
 
 .. list-table-with-summary::  Oracle Database Data Types Supported
     :header-rows: 1

@@ -210,10 +210,10 @@ python-oracledb as follows:
   value of the ``ORA_DEBUG_JDWP`` environment variable.
 
 See the documentation on `DBMS_DEBUG_JDWP
-<https://docs.oracle.com/en/database/oracle/oracle-database
-/19/arpls/DBMS_DEBUG_JDWP.html>`_, the video `PL/SQL debugging with Visual
-Studio and Visual Studio Code <https://www.youtube.com/watch?v=wk-3hLe30kk>`_,
-and the blog post `Debugging PL/SQL with Visual Studio Code (and more)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-AFF566A0-9E90-
+4218-B5C6-A74C3BF1CE14>`_, the video `PL/SQL debugging with Visual Studio and
+Visual Studio Code <https://www.youtube.com/watch?v=wk-3hLe30kk>`_, and the
+blog post `Debugging PL/SQL with Visual Studio Code (and more)
 <https://medium.com/oracledevs/debugging-pl-sql-with-visual-studio-code-and-
 more-45631f3952cf>`_.
 
@@ -431,5 +431,4 @@ Low level tracing is mostly useful to maintainers of python-oracledb.
 
   - Oracle Net services tracing as documented in `Oracle Net Services Tracing
     Parameters
-    <https://docs.oracle.com/en/database/oracle/oracle-database/21/
-    netrf/parameters-for-the-sqlnet.ora.html>`__
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-619D46BB-FE40-4EE1-8D5F-9E7666B23276>`__
