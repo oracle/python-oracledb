@@ -42,6 +42,40 @@ except ImportError:
 DN_REGEX = '(?:^|,\s?)(?:(?P<name>[A-Z]+)=(?P<val>"(?:[^"]|"")+"|[^,]+))+'
 PEM_WALLET_FILE_NAME = "ewallet.pem"
 
+
+def check_server_dn(sock, expected_dn, expected_name):
+    """
+    Validates the server distinguished name (if one is specified) or the
+    simple name (if a distinguished name is not present).
+    """
+    cert_data = sock.getpeercert(binary_form=True)
+    cert = x509.load_der_x509_certificate(cert_data)
+    if expected_dn is not None:
+        server_dn = cert.subject.rfc4514_string()
+        expected_dn_dict = dict(re.findall(DN_REGEX, expected_dn))
+        server_dn_dict = dict(re.findall(DN_REGEX, server_dn))
+        if server_dn_dict != expected_dn_dict:
+            errors._raise_err(errors.ERR_INVALID_SERVER_CERT_DN,
+                              expected_dn=expected_dn)
+    else:
+        for name in cert.subject.get_attributes_for_oid(
+            x509.oid.NameOID.COMMON_NAME
+        ):
+            if name.value == expected_name:
+                return
+        try:
+            ext = cert.extensions.get_extension_for_oid(
+                x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+            )
+            for name in ext.value.get_values_for_type(x509.DNSName):
+                if name == expected_name:
+                    return
+        except x509.ExtensionNotFound:
+            pass
+        errors._raise_err(errors.ERR_INVALID_SERVER_NAME,
+                          expected_name=expected_name)
+
+
 def decrypt_cbc(key, encrypted_text):
     """
     Decrypt the given text using the given key.
@@ -79,19 +113,6 @@ def get_derived_key(key, salt, length, iterations):
     kdf = pbkdf2.PBKDF2HMAC(algorithm=hashes.SHA512(), salt=salt,
                             length=length, iterations=iterations)
     return kdf.derive(key)
-
-
-def get_server_dn_matches(sock, expected_dn):
-    """
-    Return a boolean indicating if the server distinguished name (DN) matches
-    the expected distinguished name (DN).
-    """
-    cert_data = sock.getpeercert(binary_form=True)
-    cert = x509.load_der_x509_certificate(cert_data)
-    server_dn = cert.subject.rfc4514_string()
-    expected_dn_dict = dict(re.findall(DN_REGEX, expected_dn))
-    server_dn_dict = dict(re.findall(DN_REGEX, server_dn))
-    return server_dn_dict == expected_dn_dict
 
 
 def get_signature(private_key_str, text):

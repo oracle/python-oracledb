@@ -265,14 +265,12 @@ cdef class Protocol(BaseProtocol):
                 self._write_buf._size_for_sdu()
                 break
 
-            # for TCPS connections, OOB processing is not supported; if the
-            # packet flags indicate that TLS renegotiation is required, this is
-            # performed now
+            # for TCPS connections, if the packet flags indicate that TLS
+            # renegotiation is required, this is performed now
             if address.protocol == "tcps":
-                self._caps.supports_oob = False
                 packet_flags = self._read_buf._current_packet.packet_flags
                 if packet_flags & TNS_PACKET_FLAG_TLS_RENEG:
-                    self._transport.renegotiate_tls(description)
+                    self._transport.renegotiate_tls(address, description)
 
     cdef int _connect_phase_two(self, ThinConnImpl conn_impl,
                                 Description description,
@@ -374,10 +372,12 @@ cdef class Protocol(BaseProtocol):
         # set socket on transport
         self._transport.set_from_socket(sock, params, description, address)
 
-        # negotiate TLS, if applicable
+        # for TCPS connections, OOB processing is not supported and TLS
+        # negotiation is required
         if use_tcps:
+            self._caps.supports_oob = False
             self._transport.create_ssl_context(params, description, address)
-            self._transport.negotiate_tls(sock, description)
+            self._transport.negotiate_tls(sock, address, description)
 
     cdef int _process_message(self, Message message) except -1:
         cdef uint32_t timeout = message.conn_impl._call_timeout
@@ -632,7 +632,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 packet_flags = self._read_buf._current_packet.packet_flags
                 if packet_flags & TNS_PACKET_FLAG_TLS_RENEG:
                     self._transport._transport = orig_transport
-                    await self._transport.negotiate_tls_async(self,
+                    await self._transport.negotiate_tls_async(self, address,
                                                               description)
 
     async def _connect_phase_two(self, AsyncThinConnImpl conn_impl,
@@ -736,7 +736,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         # negotiate TLS, if applicable
         if use_tcps:
             self._transport.create_ssl_context(params, description, address)
-            return await self._transport.negotiate_tls_async(self, description)
+            return await self._transport.negotiate_tls_async(self, address,
+                                                             description)
 
     async def _process_message(self, Message message):
         """

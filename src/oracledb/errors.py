@@ -359,6 +359,7 @@ ERR_INVALID_SERVER_CERT_DN = 6002
 ERR_INVALID_SID = 6003
 ERR_PROXY_FAILURE = 6004
 ERR_CONNECTION_FAILED = 6005
+ERR_INVALID_SERVER_NAME = 6006
 
 # error numbers that result in Warning
 WRN_COMPILATION_ERROR = 7000
@@ -592,7 +593,11 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_REF_CURSOR: "invalid REF CURSOR: never opened in PL/SQL",
     ERR_INVALID_SERVER_CERT_DN: (
         "The distinguished name (DN) on the server certificate does not "
-        "match the expected value"
+        "match the expected value: {expected_dn}"
+    ),
+    ERR_INVALID_SERVER_NAME: (
+        "The name on the server certificate does not match the expected "
+        'value: "{expected_name}"'
     ),
     ERR_INVALID_SERVER_TYPE: "invalid server_type: {server_type}",
     ERR_INVALID_SERVICE_NAME: (

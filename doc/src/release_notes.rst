@@ -17,6 +17,17 @@ oracledb 2.6.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Perform TLS server matching in python-oracledb instead of the Python SSL
+    library to allow alternate names to be checked
+    (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
+#)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
+    does not match the expected value: "{expected_dn}"`` now shows the expected
+    value.
+#)  Error ``DPY-6006: The name on the server certificate does not match the
+    expected value: "{expected_name}"`` is now raised when neither the common
+    name (CN) nor any of the subject alternative names (SANs) found on the
+    server certificate match the host name used to connect to the database.
+
 Thick Mode Changes
 ++++++++++++++++++
 

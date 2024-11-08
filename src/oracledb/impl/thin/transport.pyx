@@ -36,7 +36,6 @@ cdef class Transport:
     cdef:
         object _transport
         object _ssl_context
-        str _ssl_server_hostname
         uint32_t _transport_num
         ssize_t _max_packet_size
         uint32_t _op_num
@@ -156,14 +155,10 @@ cdef class Transport:
             except ssl.SSLError:
                 pass
 
-        # determine the SSL server host name to use if desired; otherwise, mark
-        # the SSL context to indicate that server host name matching is not
-        # desired by the client (should generally be avoided)
-        if description.ssl_server_dn_match \
-                and description.ssl_server_cert_dn is None:
-            self._ssl_server_hostname = address.host
-        else:
-            self._ssl_context.check_hostname = False
+        # the SSL host name is not checked but the SSL server DN matching
+        # algorithm is run instead after the TLS connection has been
+        # established
+        self._ssl_context.check_hostname = False
 
     cdef Packet extract_packet(self, bytes data=None):
         """
@@ -236,31 +231,28 @@ cdef class Transport:
         read_socks, _, _ = select.select(socket_list, [], [], 0)
         data_ready[0] = bool(read_socks)
 
-    cdef int negotiate_tls(self, object sock,
+    cdef int negotiate_tls(self, object sock, Address address,
                            Description description) except -1:
         """
         Negotiate TLS on the socket.
         """
-        self._transport = self._ssl_context.wrap_socket(
-            sock, server_hostname=self._ssl_server_hostname
-        )
-        if description.ssl_server_dn_match \
-                and description.ssl_server_cert_dn is not None:
-            if not get_server_dn_matches(self._transport,
-                                         description.ssl_server_cert_dn):
-                errors._raise_err(errors.ERR_INVALID_SERVER_CERT_DN)
+        self._transport = self._ssl_context.wrap_socket(sock)
+        if description.ssl_server_dn_match:
+            check_server_dn(self._transport, description.ssl_server_cert_dn,
+                            address.host)
 
-    cdef int renegotiate_tls(self, Description description) except -1:
+    cdef int renegotiate_tls(self, Address address,
+                             Description description) except -1:
         """
         Renegotiate TLS on the socket.
         """
         orig_sock = self._transport
         sock = socket.socket(family=orig_sock.family, type=orig_sock.type,
                              proto=orig_sock.proto, fileno=orig_sock.detach())
-        self.negotiate_tls(sock, description)
+        self.negotiate_tls(sock, address, description)
 
     async def negotiate_tls_async(self, BaseAsyncProtocol protocol,
-                                  Description description):
+                                  Address address, Description description):
         """
         Negotiate TLS on the socket asynchronously.
         """
@@ -269,13 +261,10 @@ cdef class Transport:
         self._transport = await loop.start_tls(
             self._transport, protocol,
             self._ssl_context,
-            server_hostname=self._ssl_server_hostname
         )
-        if description.ssl_server_dn_match \
-                and description.ssl_server_cert_dn is not None:
+        if description.ssl_server_dn_match:
             sock = self._transport.get_extra_info("ssl_object")
-            if not get_server_dn_matches(sock, description.ssl_server_cert_dn):
-                errors._raise_err(errors.ERR_INVALID_SERVER_CERT_DN)
+            check_server_dn(sock, description.ssl_server_cert_dn, address.host)
         return orig_transport
 
     cdef int send_oob_break(self) except -1:
