@@ -772,8 +772,8 @@ To use Thick mode, for example if you need to connect to Oracle Database 11gR2,
 also add a call to :meth:`oracledb.init_oracle_client()` with the appropriate
 parameters for your environment, see :ref:`enablingthick`.
 
-SQLAlchemy 2 and Django 5 have native support for python-oracledb so this code
-snippet is not needed in those versions.
+SQLAlchemy 2 and Django 5 have native support for python-oracledb so the above
+code snippet is not needed in those versions.
 
 Connecting with SQLAlchemy
 ++++++++++++++++++++++++++
@@ -803,8 +803,9 @@ Connecting with SQLAlchemy
     pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
 
     # Note the first argument is different for SQLAlchemy 1.4 and 2
-    engine = create_engine(f'oracle://@',
+    engine = create_engine('oracle://@',
                            connect_args={
+                               # Pass any python-oracledb connect() parameters
                                "user": un,
                                "password": pw,
                                "dsn": cs
@@ -813,9 +814,9 @@ Connecting with SQLAlchemy
 
     with engine.connect() as connection:
         print(connection.scalar(text(
-               """SELECT UNIQUE CLIENT_DRIVER
-                  FROM V$SESSION_CONNECT_INFO
-                  WHERE SID = SYS_CONTEXT('USERENV', 'SID')""")))
+               """select unique client_driver
+                  from v$session_connect_info
+                  where sid = sys_context('userenv', 'sid')""")))
 
 
 Note that the ``create_engine()`` argument driver declaration uses
@@ -845,8 +846,9 @@ The ``connect_args`` dictionary can use any appropriate
     pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
 
     # Note the first argument is different for SQLAlchemy 1.4 and 2
-    engine = create_engine(f'oracle+oracledb://@',
+    engine = create_engine('oracle+oracledb://@',
                            connect_args={
+                               # Pass any python-oracledb connect() parameters
                                "user": un,
                                "password": pw,
                                "dsn": cs
@@ -855,9 +857,9 @@ The ``connect_args`` dictionary can use any appropriate
 
     with engine.connect() as connection:
         print(connection.scalar(text(
-               """SELECT UNIQUE CLIENT_DRIVER
-                  FROM V$SESSION_CONNECT_INFO
-                  WHERE SID = SYS_CONTEXT('USERENV', 'SID')""")))
+               """select unique client_driver
+                  from v$session_connect_info
+                  where sid = sys_context('userenv', 'sid')""")))
 
 
 Note that the ``create_engine()`` argument driver declaration uses
@@ -865,3 +867,41 @@ Note that the ``create_engine()`` argument driver declaration uses
 
 The ``connect_args`` dictionary can use any appropriate
 :meth:`oracledb.connect()` parameter.
+
+**SQLAlchemy Connection Pools**
+
+Most multi-user applications should use a :ref:`connection pool <connpooling>`.
+The python-oracledb pool is preferred because of its high availability support.
+For example:
+
+.. code-block:: python
+
+    # Using python-oracledb in SQLAlchemy 2
+
+    import os, platform
+    import getpass
+    import oracledb
+    from sqlalchemy import create_engine
+    from sqlalchemy import text
+    from sqlalchemy.pool import NullPool
+
+    # Uncomment to use python-oracledb Thick mode
+    # Review the doc for the appropriate parameters
+    #oracledb.init_oracle_client(<your parameters>)
+
+    un = os.environ.get("PYTHON_USERNAME")
+    cs = os.environ.get("PYTHON_CONNECTSTRING")
+    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
+
+    pool = oracledb.create_pool(user=un, password=pw, dsn=cs,
+                                min=4, max=4, increment=0)
+    engine = create_engine("oracle+oracledb://", creator=pool.acquire, poolclass=NullPool)
+
+    with engine.connect() as connection:
+        print(connection.scalar(text("""select unique client_driver
+                                        from v$session_connect_info
+                                        where sid = sys_context('userenv', 'sid')""")))
+
+
+You can also use python-oracledb connection pooling with SQLAlchemy 1.4.  Use
+the appropriate name mapping code and first argument to ``create_engine()``.
