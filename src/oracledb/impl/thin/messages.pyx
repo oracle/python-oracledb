@@ -503,8 +503,6 @@ cdef class MessageWithData(Message):
                                      ThinVarImpl var_impl, uint32_t pos):
         cdef:
             uint8_t num_bytes, ora_type_num, csfrm
-            const char* encoding_errors = NULL
-            bytes encoding_errors_bytes
             ThinDbObjectTypeImpl typ_impl
             BaseThinCursorImpl cursor_impl
             object column_value = None
@@ -534,10 +532,7 @@ cdef class MessageWithData(Message):
                 or ora_type_num == TNS_DATA_TYPE_LONG:
             if csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()
-            if var_impl.encoding_errors is not None:
-                encoding_errors_bytes = var_impl.encoding_errors.encode()
-                encoding_errors = encoding_errors_bytes
-            column_value = buf.read_str(csfrm, encoding_errors)
+            column_value = buf.read_str(csfrm, var_impl._encoding_errors)
         elif ora_type_num == TNS_DATA_TYPE_RAW \
                 or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
             column_value = buf.read_bytes()

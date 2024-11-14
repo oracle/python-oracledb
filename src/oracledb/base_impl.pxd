@@ -656,6 +656,8 @@ cdef class BaseVarImpl:
         public uint32_t num_elements_in_array
         readonly DbType dbtype
         readonly BaseDbObjectTypeImpl objtype
+        bytes _encoding_error_bytes
+        const char *_encoding_errors
         BaseConnImpl _conn_impl
         int _preferred_num_type
         FetchInfoImpl _fetch_info

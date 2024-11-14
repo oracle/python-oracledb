@@ -346,10 +346,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         Transforms a single element from the value supplied by ODPI-C to its
         equivalent Python value.
         """
-        cdef:
-            const char *encoding_errors = NULL
-            bytes encoding_errors_bytes
-            object value
+        cdef object value
         data = &data[pos]
         if not data.isNull:
             if self.dbtype._native_num == DPI_NATIVE_TYPE_STMT:
@@ -359,13 +356,11 @@ cdef class ThickVarImpl(BaseVarImpl):
             elif self.dbtype._native_num == DPI_NATIVE_TYPE_OBJECT:
                 value = self._get_dbobject_value(&data.value, pos)
             else:
-                if self.encoding_errors is not None:
-                    encoding_errors_bytes = self.encoding_errors.encode()
-                    encoding_errors = encoding_errors_bytes
                 value = _convert_to_python(self._conn_impl, self.dbtype,
                                            self.objtype, &data.value,
                                            self._preferred_num_type,
-                                           self.bypass_decode, encoding_errors)
+                                           self.bypass_decode,
+                                           self._encoding_errors)
             if self.outconverter is not None:
                 value = self.outconverter(value)
             return value
