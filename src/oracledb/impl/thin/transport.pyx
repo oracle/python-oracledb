@@ -186,9 +186,9 @@ cdef class Transport:
             # extract the packet size
             ptr = <char_type*> self._partial_buf
             if self._full_packet_size:
-                packet_size = unpack_uint32(ptr, BYTE_ORDER_MSB)
+                packet_size = decode_uint32be(ptr)
             else:
-                packet_size = unpack_uint16(ptr, BYTE_ORDER_MSB)
+                packet_size = decode_uint16be(ptr)
 
             # if enough bytes are available for the packet, return it
             if size >= packet_size:

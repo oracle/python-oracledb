@@ -100,10 +100,6 @@ cdef enum:
     CS_FORM_NCHAR = 2
 
 cdef enum:
-    BYTE_ORDER_LSB = 1
-    BYTE_ORDER_MSB = 2
-
-cdef enum:
     TNS_LONG_LENGTH_INDICATOR = 254
     TNS_NULL_LENGTH_INDICATOR = 255
 
@@ -256,7 +252,7 @@ cdef class Buffer:
     cdef object read_date(self)
     cdef object read_interval_ds(self)
     cdef object read_interval_ym(self)
-    cdef int read_int32(self, int32_t *value, int byte_order=*) except -1
+    cdef int read_int32be(self, int32_t *value) except -1
     cdef object read_oracle_number(self, int preferred_num_type)
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
@@ -271,8 +267,9 @@ cdef class Buffer:
     cdef int read_ub2(self, uint16_t *value) except -1
     cdef int read_ub4(self, uint32_t *value) except -1
     cdef int read_ub8(self, uint64_t *value) except -1
-    cdef int read_uint16(self, uint16_t *value, int byte_order=*) except -1
-    cdef int read_uint32(self, uint32_t *value, int byte_order=*) except -1
+    cdef int read_uint16be(self, uint16_t *value) except -1
+    cdef int read_uint16le(self, uint16_t *value) except -1
+    cdef int read_uint32be(self, uint32_t *value) except -1
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1
     cdef inline int skip_sb4(self) except -1
     cdef inline void skip_to(self, ssize_t pos)
@@ -297,9 +294,10 @@ cdef class Buffer:
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
     cdef int write_str(self, str value) except -1
     cdef int write_uint8(self, uint8_t value) except -1
-    cdef int write_uint16(self, uint16_t value, int byte_order=*) except -1
-    cdef int write_uint32(self, uint32_t value, int byte_order=*) except -1
-    cdef int write_uint64(self, uint64_t value, byte_order=*) except -1
+    cdef int write_uint16be(self, uint16_t value) except -1
+    cdef int write_uint16le(self, uint16_t value) except -1
+    cdef int write_uint32be(self, uint32_t value) except -1
+    cdef int write_uint64be(self, uint64_t value) except -1
     cdef int write_ub2(self, uint16_t value) except -1
     cdef int write_ub4(self, uint32_t value) except -1
     cdef int write_ub8(self, uint64_t value) except -1
@@ -854,8 +852,11 @@ cdef class PipelineOpResultImpl:
 
 
 cdef int get_preferred_num_type(int16_t precision, int8_t scale)
-cdef void pack_uint16(char_type *buf, uint16_t x, int order)
-cdef void pack_uint32(char_type *buf, uint32_t x, int order)
-cdef void pack_uint64(char_type *buf, uint64_t x, int order)
-cdef uint16_t unpack_uint16(const char_type *buf, int order)
-cdef uint32_t unpack_uint32(const char_type *buf, int order)
+cdef uint16_t decode_uint16be(const char_type *buf)
+cdef uint32_t decode_uint32be(const char_type *buf)
+cdef uint16_t decode_uint16le(const char_type *buf)
+cdef uint64_t decode_uint64be(const char_type *buf)
+cdef void encode_uint16be(char_type *buf, uint16_t value)
+cdef void encode_uint16le(char_type *buf, uint16_t value)
+cdef void encode_uint32be(char_type *buf, uint32_t value)
+cdef void encode_uint64be(char_type *buf, uint64_t value)

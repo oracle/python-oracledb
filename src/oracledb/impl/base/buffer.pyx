@@ -32,89 +32,6 @@ cdef enum:
     NUMBER_AS_TEXT_CHARS = 172
     NUMBER_MAX_DIGITS = 40
 
-cdef int MACHINE_BYTE_ORDER = BYTE_ORDER_MSB \
-        if sys.byteorder == "big" else BYTE_ORDER_LSB
-
-cdef inline uint16_t bswap16(uint16_t value):
-    """
-    Swap the order of bytes for a 16-bit integer.
-    """
-    return ((value << 8) & 0xff00) | ((value >> 8) & 0x00ff)
-
-
-cdef inline uint32_t bswap32(uint32_t value):
-    """
-    Swap the order of bytes for a 32-bit integer.
-    """
-    return (
-            ((value << 24) & (<uint32_t> 0xff000000)) |
-            ((value << 8) & 0x00ff0000) |
-            ((value >> 8) & 0x0000ff00) |
-            ((value >> 24) & 0x000000ff)
-    )
-
-
-cdef inline uint64_t bswap64(uint64_t value):
-    """
-    Swap the order of bytes for a 64-bit integer.
-    """
-    return (
-        ((value << 56) & (<uint64_t> 0xff00000000000000ULL)) |
-        ((value << 40) & 0x00ff000000000000ULL) |
-        ((value << 24) & 0x0000ff0000000000ULL) |
-        ((value << 8) & 0x000000ff00000000ULL) |
-        ((value >> 8) & 0x00000000ff000000ULL) |
-        ((value >> 24) & 0x0000000000ff0000ULL) |
-        ((value >> 40) & 0x000000000000ff00ULL) |
-        ((value >> 56) & 0x00000000000000ffULL)
-    )
-
-
-cdef inline void pack_uint16(char_type *buf, uint16_t x, int order):
-    """
-    Pack a 16-bit integer into the buffer using the specified type order.
-    """
-    if order != MACHINE_BYTE_ORDER:
-        x = bswap16(x)
-    memcpy(buf, &x, sizeof(x))
-
-
-cdef inline void pack_uint32(char_type *buf, uint32_t x, int order):
-    """
-    Pack a 32-bit integer into the buffer using the specified type order.
-    """
-    if order != MACHINE_BYTE_ORDER:
-        x = bswap32(x)
-    memcpy(buf, &x, sizeof(x))
-
-
-cdef inline void pack_uint64(char_type *buf, uint64_t x, int order):
-    """
-    Pack a 64-bit integer into the buffer using the specified type order.
-    """
-    if order != MACHINE_BYTE_ORDER:
-        x = bswap64(x)
-    memcpy(buf, &x, sizeof(x))
-
-
-cdef inline uint16_t unpack_uint16(const char_type *buf, int order):
-    """
-    Unpacks a 16-bit integer from the buffer using the specified byte order.
-    """
-    cdef uint16_t raw_value
-    memcpy(&raw_value, buf, sizeof(raw_value))
-    return raw_value if order == MACHINE_BYTE_ORDER else bswap16(raw_value)
-
-
-cdef inline uint32_t unpack_uint32(const char_type *buf, int order):
-    """
-    Unpacks a 32-bit integer from the buffer using the specified byte order.
-    """
-    cdef uint32_t raw_value
-    memcpy(&raw_value, buf, sizeof(raw_value))
-    return raw_value if order == MACHINE_BYTE_ORDER else bswap32(raw_value)
-
-
 cdef class Buffer:
 
     cdef int _get_int_length_and_sign(self, uint8_t *length,
@@ -344,7 +261,7 @@ cdef class Buffer:
             int16_t year
         year = (ptr[0] - 100) * 100 + ptr[1] - 100
         if num_bytes >= 11:
-            fsecond = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) // 1000
+            fsecond = decode_uint32be(&ptr[7]) // 1000
         value = cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
                                         ptr[5] - 1, ptr[6] - 1, fsecond, None)
         if num_bytes > 11 and ptr[11] != 0 and ptr[12] != 0:
@@ -366,8 +283,8 @@ cdef class Buffer:
             int32_t days, hours, minutes, seconds, total_seconds, fseconds
             uint8_t duration_offset = TNS_DURATION_OFFSET
             uint32_t duration_mid = TNS_DURATION_MID
-        days = unpack_uint32(ptr, BYTE_ORDER_MSB) - duration_mid
-        fseconds = unpack_uint32(&ptr[7], BYTE_ORDER_MSB) - duration_mid
+        days = decode_uint32be(ptr) - duration_mid
+        fseconds = decode_uint32be(&ptr[7]) - duration_mid
         hours = ptr[4] - duration_offset
         minutes = ptr[5] - duration_offset
         seconds = ptr[6] - duration_offset
@@ -380,7 +297,7 @@ cdef class Buffer:
         corresponding Python object representing that value.
         """
         cdef int32_t years, months
-        years = unpack_uint32(ptr, BYTE_ORDER_MSB) - TNS_DURATION_MID
+        years = decode_uint32be(ptr) - TNS_DURATION_MID
         months = ptr[4] - TNS_DURATION_OFFSET
         return PY_TYPE_INTERVAL_YM(years, months)
 
@@ -613,14 +530,11 @@ cdef class Buffer:
         if ptr != NULL:
             return self.parse_interval_ym(ptr)
 
-    cdef int read_int32(self, int32_t *value,
-                        int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int read_int32be(self, int32_t *value) except -1:
         """
-        Read a signed 32-bit integer from the buffer in the specified byte
-        order.
+        Read a signed 32-bit integer in big endian order from the buffer.
         """
-        cdef const char_type *ptr = self._get_raw(4)
-        value[0] = <int32_t> unpack_uint32(ptr, byte_order)
+        value[0] = <int32_t> decode_uint32be(self._get_raw(4))
 
     cdef object read_oracle_number(self, int preferred_num_type):
         """
@@ -793,21 +707,23 @@ cdef class Buffer:
             ptr = self._get_raw(length)
             value[0] = self._unpack_int(ptr, length)
 
-    cdef int read_uint16(self, uint16_t *value,
-                         int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int read_uint16be(self, uint16_t *value) except -1:
         """
-        Read a 16-bit integer from the buffer in the specified byte order.
+        Read a 16-bit integer in big endian order from the buffer.
         """
-        cdef const char_type *ptr = self._get_raw(2)
-        value[0] = unpack_uint16(ptr, byte_order)
+        value[0] = decode_uint16be(self._get_raw(2))
 
-    cdef int read_uint32(self, uint32_t *value,
-                         int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int read_uint16le(self, uint16_t *value) except -1:
         """
-        Read a 32-bit integer from the buffer in the specified byte order.
+        Read a 16-bit integer in little endian order from the buffer.
         """
-        cdef const char_type *ptr = self._get_raw(4)
-        value[0] = unpack_uint32(ptr, byte_order)
+        value[0] = decode_uint16le(self._get_raw(2))
+
+    cdef int read_uint32be(self, uint32_t *value) except -1:
+        """
+        Read a 32-bit integer in big endian order from the buffer.
+        """
+        value[0] = decode_uint32be(self._get_raw(4))
 
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """
@@ -940,9 +856,9 @@ cdef class Buffer:
         """
         if value:
             self.write_uint8(2)
-            self.write_uint16(0x0101)
+            self.write_uint16be(0x0101)
         else:
-            self.write_uint16(0x0100)
+            self.write_uint16be(0x0100)
 
     cdef int write_bytes(self, bytes value) except -1:
         """
@@ -974,14 +890,14 @@ cdef class Buffer:
             int32_t days, seconds, fseconds
             char_type buf[11]
         days = cydatetime.timedelta_days(value)
-        pack_uint32(buf, days + TNS_DURATION_MID, BYTE_ORDER_MSB)
+        encode_uint32be(buf, days + TNS_DURATION_MID)
         seconds = cydatetime.timedelta_seconds(value)
         buf[4] = (seconds // 3600) + TNS_DURATION_OFFSET
         seconds = seconds % 3600
         buf[5] = (seconds // 60) + TNS_DURATION_OFFSET
         buf[6] = (seconds % 60) + TNS_DURATION_OFFSET
         fseconds = cydatetime.timedelta_microseconds(value) * 1000
-        pack_uint32(&buf[7], fseconds + TNS_DURATION_MID, BYTE_ORDER_MSB)
+        encode_uint32be(&buf[7], fseconds + TNS_DURATION_MID)
         if write_length:
             self.write_uint8(sizeof(buf))
         self.write_raw(buf, sizeof(buf))
@@ -997,7 +913,7 @@ cdef class Buffer:
             char_type buf[5]
         years = (<tuple> value)[0]
         months = (<tuple> value)[1]
-        pack_uint32(buf, years + TNS_DURATION_MID, BYTE_ORDER_MSB)
+        encode_uint32be(buf, years + TNS_DURATION_MID)
         buf[4] = months + TNS_DURATION_OFFSET
         if write_length:
             self.write_uint8(sizeof(buf))
@@ -1026,7 +942,7 @@ cdef class Buffer:
             if fsecond == 0 and length <= 11:
                 length = 7
             else:
-                pack_uint32(&buf[7], fsecond, BYTE_ORDER_MSB)
+                encode_uint32be(&buf[7], fsecond)
         if length > 11:
             buf[11] = TZ_HOUR_OFFSET
             buf[12] = TZ_MINUTE_OFFSET
@@ -1213,34 +1129,40 @@ cdef class Buffer:
         self._data[self._pos] = value
         self._pos += 1
 
-    cdef int write_uint16(self, uint16_t value,
-                          int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int write_uint16be(self, uint16_t value) except -1:
         """
-        Writes a 16-bit integer to the buffer in native format.
+        Writes a 16-bit integer to the buffer in big endian format.
         """
         if self._pos + 2 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 2)
-        pack_uint16(&self._data[self._pos], value, byte_order)
+        encode_uint16be(&self._data[self._pos], value)
         self._pos += 2
 
-    cdef int write_uint32(self, uint32_t value,
-                          int byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int write_uint16le(self, uint16_t value) except -1:
         """
-        Writes a 32-bit integer to the buffer in native format.
+        Writes a 16-bit integer to the buffer in little endian format.
+        """
+        if self._pos + 2 > self._max_size:
+            self._write_more_data(self._max_size - self._pos, 2)
+        encode_uint16le(&self._data[self._pos], value)
+        self._pos += 2
+
+    cdef int write_uint32be(self, uint32_t value) except -1:
+        """
+        Writes a 32-bit integer to the buffer in big endian format.
         """
         if self._pos + 4 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 4)
-        pack_uint32(&self._data[self._pos], value, byte_order)
+        encode_uint32be(&self._data[self._pos], value)
         self._pos += 4
 
-    cdef int write_uint64(self, uint64_t value,
-                          byte_order=BYTE_ORDER_MSB) except -1:
+    cdef int write_uint64be(self, uint64_t value) except -1:
         """
-        Writes a 64-bit integer to the buffer in native format.
+        Writes a 64-bit integer to the buffer in big endian format.
         """
         if self._pos + 8 > self._max_size:
             self._write_more_data(self._max_size - self._pos, 8)
-        pack_uint64(&self._data[self._pos], value, byte_order)
+        encode_uint64be(&self._data[self._pos], value)
         self._pos += 8
 
     cdef int write_ub2(self, uint16_t value) except -1:
@@ -1254,7 +1176,7 @@ cdef class Buffer:
             self.write_uint8(<uint8_t> value)
         else:
             self.write_uint8(2)
-            self.write_uint16(value)
+            self.write_uint16be(value)
 
     cdef int write_ub4(self, uint32_t value) except -1:
         """
@@ -1267,10 +1189,10 @@ cdef class Buffer:
             self.write_uint8(<uint8_t> value)
         elif value <= UINT16_MAX:
             self.write_uint8(2)
-            self.write_uint16(<uint16_t> value)
+            self.write_uint16be(<uint16_t> value)
         else:
             self.write_uint8(4)
-            self.write_uint32(value)
+            self.write_uint32be(value)
 
     cdef int write_ub8(self, uint64_t value) except -1:
         """
@@ -1283,13 +1205,13 @@ cdef class Buffer:
             self.write_uint8(<uint8_t> value)
         elif value <= UINT16_MAX:
             self.write_uint8(2)
-            self.write_uint16(<uint16_t> value)
+            self.write_uint16be(<uint16_t> value)
         elif value <= UINT32_MAX:
             self.write_uint8(4)
-            self.write_uint32(<uint32_t> value)
+            self.write_uint32be(<uint32_t> value)
         else:
             self.write_uint8(8)
-            self.write_uint64(value)
+            self.write_uint64be(value)
 
 
 cdef class GrowableBuffer(Buffer):

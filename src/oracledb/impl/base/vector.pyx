@@ -65,9 +65,9 @@ cdef class VectorDecoder(Buffer):
         if version > TNS_VECTOR_VERSION_WITH_BINARY:
             errors._raise_err(errors.ERR_VECTOR_VERSION_NOT_SUPPORTED,
                               version=version)
-        self.read_uint16(&flags)
+        self.read_uint16be(&flags)
         self.read_ub1(&vector_format)
-        self.read_uint32(&num_elements)
+        self.read_uint32be(&num_elements)
         if vector_format == VECTOR_FORMAT_FLOAT32:
             result = array.clone(float_template, num_elements, False)
             float_buf = result.data.as_floats
@@ -149,9 +149,9 @@ cdef class VectorEncoder(GrowableBuffer):
         # write header
         self.write_uint8(TNS_VECTOR_MAGIC_BYTE)
         self.write_uint8(vector_version)
-        self.write_uint16(flags)
+        self.write_uint16be(flags)
         self.write_uint8(vector_format)
-        self.write_uint32(num_elements)
+        self.write_uint32be(num_elements)
         self._reserve_space(8)              # reserve space for norm
 
         # write elements

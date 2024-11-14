@@ -1894,7 +1894,7 @@ cdef class ConnectMessage(Message):
             bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             if not self.read_redirect_data_len:
-                buf.read_uint16(&self.redirect_data_len)
+                buf.read_uint16be(&self.redirect_data_len)
                 self.read_redirect_data_len = True
             buf.wait_for_packets_sync()
             redirect_data = buf.read_raw_bytes(self.redirect_data_len)
@@ -1903,17 +1903,17 @@ cdef class ConnectMessage(Message):
                         redirect_data[:self.redirect_data_len].decode()
             self.read_redirect_data_len = False
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_ACCEPT:
-            buf.read_uint16(&protocol_version)
+            buf.read_uint16be(&protocol_version)
             # check if the protocol version supported by the database is high
             # enough; if not, reject the connection immediately
             if protocol_version < TNS_VERSION_MIN_ACCEPTED:
                 errors._raise_err(errors.ERR_SERVER_VERSION_NOT_SUPPORTED)
-            buf.read_uint16(&protocol_options)
+            buf.read_uint16be(&protocol_options)
             buf.skip_raw_bytes(20)
-            buf.read_uint32(&buf._caps.sdu)
+            buf.read_uint32be(&buf._caps.sdu)
             if protocol_version >= TNS_VERSION_MIN_OOB_CHECK:
                 buf.skip_raw_bytes(5)
-                buf.read_uint32(&flags)
+                buf.read_uint32be(&flags)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options,
                                            flags)
             buf._transport._full_packet_size = True
@@ -1951,26 +1951,26 @@ cdef class ConnectMessage(Message):
             service_options |= TNS_GSO_CAN_RECV_ATTENTION
             connect_flags_2 |= TNS_CHECK_OOB
         buf.start_request(TNS_PACKET_TYPE_CONNECT, self.packet_flags)
-        buf.write_uint16(TNS_VERSION_DESIRED)
-        buf.write_uint16(TNS_VERSION_MINIMUM)
-        buf.write_uint16(service_options)
-        buf.write_uint16(self.description.sdu)
-        buf.write_uint16(self.description.sdu)
-        buf.write_uint16(TNS_PROTOCOL_CHARACTERISTICS)
-        buf.write_uint16(0)                 # line turnaround
-        buf.write_uint16(1)                 # value of 1
-        buf.write_uint16(self.connect_string_len)
-        buf.write_uint16(74)                # offset to connect data
-        buf.write_uint32(0)                 # max receivable data
+        buf.write_uint16be(TNS_VERSION_DESIRED)
+        buf.write_uint16be(TNS_VERSION_MINIMUM)
+        buf.write_uint16be(service_options)
+        buf.write_uint16be(self.description.sdu)
+        buf.write_uint16be(self.description.sdu)
+        buf.write_uint16be(TNS_PROTOCOL_CHARACTERISTICS)
+        buf.write_uint16be(0)               # line turnaround
+        buf.write_uint16be(1)               # value of 1
+        buf.write_uint16be(self.connect_string_len)
+        buf.write_uint16be(74)              # offset to connect data
+        buf.write_uint32be(0)               # max receivable data
         buf.write_uint8(nsi_flags)
         buf.write_uint8(nsi_flags)
-        buf.write_uint64(0)                 # obsolete
-        buf.write_uint64(0)                 # obsolete
-        buf.write_uint64(0)                 # obsolete
-        buf.write_uint32(self.description.sdu)      # SDU (large)
-        buf.write_uint32(self.description.sdu)      # TDU (large)
-        buf.write_uint32(connect_flags_1)
-        buf.write_uint32(connect_flags_2)
+        buf.write_uint64be(0)               # obsolete
+        buf.write_uint64be(0)               # obsolete
+        buf.write_uint64be(0)               # obsolete
+        buf.write_uint32be(self.description.sdu)      # SDU (large)
+        buf.write_uint32be(self.description.sdu)      # TDU (large)
+        buf.write_uint32be(connect_flags_1)
+        buf.write_uint32be(connect_flags_2)
         if self.connect_string_len > TNS_MAX_CONNECT_DATA:
             buf.end_request()
             buf.start_request(TNS_PACKET_TYPE_DATA)
@@ -1985,10 +1985,10 @@ cdef class DataTypesMessage(Message):
                               uint8_t message_type) except -1:
         cdef uint16_t data_type, conv_data_type
         while True:
-            buf.read_uint16(&data_type)
+            buf.read_uint16be(&data_type)
             if data_type == 0:
                 break
-            buf.read_uint16(&conv_data_type)
+            buf.read_uint16be(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
         if not buf._caps.supports_end_of_response:
@@ -2001,8 +2001,8 @@ cdef class DataTypesMessage(Message):
 
         # write character set and capabilities
         buf.write_uint8(TNS_MSG_TYPE_DATA_TYPES)
-        buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
-        buf.write_uint16(TNS_CHARSET_UTF8, BYTE_ORDER_LSB)
+        buf.write_uint16le(TNS_CHARSET_UTF8)
+        buf.write_uint16le(TNS_CHARSET_UTF8)
         buf.write_uint8(TNS_ENCODING_MULTI_BYTE | TNS_ENCODING_CONV_LENGTH)
         buf.write_bytes_with_length(bytes(buf._caps.compile_caps))
         buf.write_bytes_with_length(bytes(buf._caps.runtime_caps))
@@ -2014,11 +2014,11 @@ cdef class DataTypesMessage(Message):
             if data_type.data_type == 0:
                 break
             i += 1
-            buf.write_uint16(data_type.data_type)
-            buf.write_uint16(data_type.conv_data_type)
-            buf.write_uint16(data_type.representation)
-            buf.write_uint16(0)
-        buf.write_uint16(0)
+            buf.write_uint16be(data_type.data_type)
+            buf.write_uint16be(data_type.conv_data_type)
+            buf.write_uint16be(data_type.representation)
+            buf.write_uint16be(0)
+        buf.write_uint16be(0)
 
 
 @cython.final
@@ -2392,7 +2392,7 @@ cdef class LobOpMessage(Message):
         else:
             buf.write_uint8(0)              # pointer (amount)
         for i in range(3):                  # array LOB (not used)
-            buf.write_uint16(0)
+            buf.write_uint16be(0)
         if self.source_lob_impl is not None:
             buf.write_bytes(self.source_lob_impl._locator)
         if self.dest_lob_impl is not None:
@@ -2468,12 +2468,12 @@ cdef class ProtocolMessage(Message):
         buf.read_ub1(&self.server_version)
         buf.skip_ub1()                      # skip zero byte
         self.server_banner = buf.read_null_terminated_bytes()
-        buf.read_uint16(&caps.charset_id, BYTE_ORDER_LSB)
+        buf.read_uint16le(&caps.charset_id)
         buf.read_ub1(&self.server_flags)
-        buf.read_uint16(&num_elem, BYTE_ORDER_LSB)
+        buf.read_uint16le(&num_elem)
         if num_elem > 0:                    # skip elements
             buf.skip_raw_bytes(num_elem * 5)
-        buf.read_uint16(&fdo_length)
+        buf.read_uint16be(&fdo_length)
         fdo = buf.read_raw_bytes(fdo_length)
         ix = 6 + fdo[5] + fdo[6]
         caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
@@ -2523,9 +2523,9 @@ cdef class FastAuthMessage(Message):
         buf.write_uint8(TNS_SERVER_CONVERTS_CHARS)  # flag 1
         buf.write_uint8(0)                  # flag 2
         ProtocolMessage._write_message(self.protocol_message, buf)
-        buf.write_uint16(0)                 # server charset (unused)
+        buf.write_uint16be(0)               # server charset (unused)
         buf.write_uint8(0)                  # server charset flag (unused)
-        buf.write_uint16(0)                 # server ncharset (unused)
+        buf.write_uint16be(0)               # server ncharset (unused)
         buf._caps.ttc_field_version = TNS_CCAP_FIELD_VERSION_19_1_EXT_1
         buf.write_uint8(buf._caps.ttc_field_version)
         DataTypesMessage._write_message(self.data_types_message, buf)

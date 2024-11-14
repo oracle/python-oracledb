@@ -104,8 +104,6 @@ from .base_impl cimport (
     PIPELINE_OP_TYPE_FETCH_ONE,
     BindVar,
     Buffer,
-    BYTE_ORDER_LSB,
-    BYTE_ORDER_MSB,
     ConnectParamsImpl,
     CS_FORM_IMPLICIT,
     CS_FORM_NCHAR,
@@ -143,11 +141,11 @@ from .base_impl cimport (
     PY_TYPE_TIMEDELTA,
     TNS_LONG_LENGTH_INDICATOR,
     TNS_NULL_LENGTH_INDICATOR,
-    unpack_uint16,
-    unpack_uint32,
+    decode_uint16be,
+    decode_uint32be,
     VectorDecoder,
     VectorEncoder,
-    pack_uint16,
+    encode_uint16be,
 )
 
 from .base_impl import (

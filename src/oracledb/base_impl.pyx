@@ -99,6 +99,8 @@ cdef int get_preferred_num_type(int16_t precision, int8_t scale):
 REGISTERED_PROTOCOLS = {}
 
 include "impl/base/constants.pxi"
+include "impl/base/decoders.pyx"
+include "impl/base/encoders.pyx"
 include "impl/base/utils.pyx"
 include "impl/base/defaults.pyx"
 include "impl/base/pipeline.pyx"

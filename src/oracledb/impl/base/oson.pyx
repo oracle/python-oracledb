@@ -75,10 +75,10 @@ cdef class OsonDecoder(Buffer):
                     self.read_ub1(&temp8)
                     name = self.field_names[temp8 - 1]
                 elif self.field_id_length == 2:
-                    self.read_uint16(&temp16)
+                    self.read_uint16be(&temp16)
                     name = self.field_names[temp16 - 1]
                 else:
-                    self.read_uint32(&temp32)
+                    self.read_uint32be(&temp32)
                     name = self.field_names[temp32 - 1]
                 field_ids_pos = self._pos
             self.skip_to(offsets_pos)
@@ -151,11 +151,11 @@ cdef class OsonDecoder(Buffer):
             ptr = self._get_raw(temp8)
             return ptr[:temp8].decode()
         elif node_type == TNS_JSON_TYPE_STRING_LENGTH_UINT16:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             ptr = self._get_raw(temp16)
             return ptr[:temp16].decode()
         elif node_type == TNS_JSON_TYPE_STRING_LENGTH_UINT32:
-            self.read_uint32(&temp32)
+            self.read_uint32be(&temp32)
             ptr = self._get_raw(temp32)
             return ptr[:temp32].decode()
         elif node_type == TNS_JSON_TYPE_NUMBER_LENGTH_UINT8:
@@ -165,11 +165,11 @@ cdef class OsonDecoder(Buffer):
             ptr = self._get_raw(temp8)
             return PY_TYPE_JSON_ID(ptr[:temp8])
         elif node_type == TNS_JSON_TYPE_BINARY_LENGTH_UINT16:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             ptr = self._get_raw(temp16)
             return ptr[:temp16]
         elif node_type == TNS_JSON_TYPE_BINARY_LENGTH_UINT32:
-            self.read_uint32(&temp32)
+            self.read_uint32be(&temp32)
             ptr = self._get_raw(temp32)
             return ptr[:temp32]
 
@@ -177,7 +177,7 @@ cdef class OsonDecoder(Buffer):
         elif node_type == TNS_JSON_TYPE_EXTENDED:
             self.read_ub1(&node_type)
             if node_type == TNS_JSON_TYPE_VECTOR:
-                self.read_uint32(&temp32)
+                self.read_uint32be(&temp32)
                 ptr = self._get_raw(temp32)
                 vector_decoder = VectorDecoder.__new__(VectorDecoder)
                 return vector_decoder.decode(ptr[:temp32])
@@ -232,11 +232,11 @@ cdef class OsonDecoder(Buffer):
         field_names = [None] * num_fields
         for i in range(num_fields):
             if offsets_size == 2:
-                self.read_uint16(&temp16)
+                self.read_uint16be(&temp16)
                 offset = temp16
             else:
-                self.read_uint32(&offset)
-            temp16 = unpack_uint16(&ptr[offset], BYTE_ORDER_MSB)
+                self.read_uint32be(&offset)
+            temp16 = decode_uint16be(&ptr[offset])
             field_names[i] = ptr[offset + 2:offset + temp16 + 2].decode()
         self.skip_to(final_pos)
         return field_names
@@ -264,10 +264,10 @@ cdef class OsonDecoder(Buffer):
             self.read_ub1(&temp8)
             num_children[0] = temp8
         elif children_bits == 0x08:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             num_children[0] = temp16
         elif children_bits == 0x10:
-            self.read_uint32(num_children)
+            self.read_uint32be(num_children)
 
     cdef int _get_offset(self, uint8_t node_type, uint32_t* offset) except -1:
         """
@@ -276,9 +276,9 @@ cdef class OsonDecoder(Buffer):
         """
         cdef uint16_t temp16
         if node_type & 0x20:
-            self.read_uint32(offset)
+            self.read_uint32be(offset)
         else:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             offset[0] = temp16
 
     cdef list _get_short_field_names(self, uint32_t num_fields,
@@ -309,10 +309,10 @@ cdef class OsonDecoder(Buffer):
         field_names = [None] * num_fields
         for i in range(num_fields):
             if offsets_size == 2:
-                self.read_uint16(&temp16)
+                self.read_uint16be(&temp16)
                 offset = temp16
             else:
-                self.read_uint32(&offset)
+                self.read_uint32be(&offset)
             temp8 = ptr[offset]
             field_names[i] = ptr[offset + 1:offset + temp8 + 1].decode()
         self.skip_to(final_pos)
@@ -350,7 +350,7 @@ cdef class OsonDecoder(Buffer):
         ):
             errors._raise_err(errors.ERR_OSON_VERSION_NOT_SUPPORTED,
                               version=self.version)
-        self.read_uint16(&self.primary_flags)
+        self.read_uint16be(&self.primary_flags)
         self.relative_offsets = \
                 self.primary_flags & TNS_JSON_FLAG_REL_OFFSET_MODE
 
@@ -364,10 +364,10 @@ cdef class OsonDecoder(Buffer):
 
         # determine the number of field names
         if self.primary_flags & TNS_JSON_FLAG_NUM_FNAMES_UINT32:
-            self.read_uint32(&num_short_field_names)
+            self.read_uint32be(&num_short_field_names)
             self.field_id_length = 4
         elif self.primary_flags & TNS_JSON_FLAG_NUM_FNAMES_UINT16:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             num_short_field_names = temp16
             self.field_id_length = 2
         else:
@@ -378,32 +378,32 @@ cdef class OsonDecoder(Buffer):
         # determine the size of the field names segment
         if self.primary_flags & TNS_JSON_FLAG_FNAMES_SEG_UINT32:
             short_field_name_offsets_size = 4
-            self.read_uint32(&short_field_names_seg_size)
+            self.read_uint32be(&short_field_names_seg_size)
         else:
             short_field_name_offsets_size = 2
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             short_field_names_seg_size = temp16
 
         # if the version indicates that field names > 255 bytes exist, parse
         # the information about that segment
         if self.version == TNS_JSON_VERSION_MAX_FNAME_65535:
-            self.read_uint16(&self.secondary_flags)
+            self.read_uint16be(&self.secondary_flags)
             if self.secondary_flags & TNS_JSON_FLAG_SEC_FNAMES_SEG_UINT16:
                 long_field_name_offsets_size = 2
             else:
                 long_field_name_offsets_size = 4
-            self.read_uint32(&num_long_field_names)
-            self.read_uint32(&long_field_names_seg_size)
+            self.read_uint32be(&num_long_field_names)
+            self.read_uint32be(&long_field_names_seg_size)
 
         # determine the size of the tree segment
         if self.primary_flags & TNS_JSON_FLAG_TREE_SEG_UINT32:
-            self.read_uint32(&tree_seg_size)
+            self.read_uint32be(&tree_seg_size)
         else:
-            self.read_uint16(&temp16)
+            self.read_uint16be(&temp16)
             tree_seg_size = temp16
 
         # determine the number of "tiny" nodes
-        self.read_uint16(&num_tiny_nodes)
+        self.read_uint16be(&num_tiny_nodes)
 
         # if there are any short names, read them now
         self.field_names = []
@@ -482,7 +482,7 @@ cdef class OsonFieldNamesSegment(GrowableBuffer):
         if field_name.name_bytes_len <= 255:
             self.write_uint8(field_name.name_bytes_len)
         else:
-            self.write_uint16(field_name.name_bytes_len)
+            self.write_uint16be(field_name.name_bytes_len)
         self.write_bytes(field_name.name_bytes)
         self.field_names.append(field_name)
 
@@ -529,9 +529,9 @@ cdef class OsonTreeSegment(GrowableBuffer):
         if num_children < 256:
             self.write_uint8(<uint8_t> num_children)
         elif num_children < 65536:
-            self.write_uint16(<uint16_t> num_children)
+            self.write_uint16be(<uint16_t> num_children)
         else:
-            self.write_uint32(<uint32_t> num_children)
+            self.write_uint32be(<uint32_t> num_children)
 
     cdef int encode_array(self, object value, OsonEncoder encoder) except -1:
         """
@@ -546,7 +546,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
         offset = self._pos
         self._reserve_space(num_children * sizeof(uint32_t))
         for element in value:
-            pack_uint32(&self._data[offset], self._pos, BYTE_ORDER_MSB)
+            encode_uint32be(&self._data[offset], self._pos)
             offset += sizeof(uint32_t)
             self.encode_node(element, encoder)
 
@@ -572,12 +572,12 @@ cdef class OsonTreeSegment(GrowableBuffer):
             if encoder.field_id_size == 1:
                 self._data[field_id_offset] = <uint8_t> field_name.field_id
             elif encoder.field_id_size == 2:
-                pack_uint16(&self._data[field_id_offset],
-                            <uint16_t> field_name.field_id, BYTE_ORDER_MSB)
+                encode_uint16be(&self._data[field_id_offset],
+                            <uint16_t> field_name.field_id)
             else:
-                pack_uint32(&self._data[field_id_offset], field_name.field_id,
-                            BYTE_ORDER_MSB)
-            pack_uint32(&self._data[value_offset], self._pos, BYTE_ORDER_MSB)
+                encode_uint32be(&self._data[field_id_offset],
+                              field_name.field_id)
+            encode_uint32be(&self._data[value_offset], self._pos)
             field_id_offset += encoder.field_id_size
             value_offset += sizeof(uint32_t)
             self.encode_node(child_value, encoder)
@@ -616,10 +616,10 @@ cdef class OsonTreeSegment(GrowableBuffer):
                 self.write_uint8(<uint8_t> value_len)
             elif value_len < 65536:
                 self.write_uint8(TNS_JSON_TYPE_BINARY_LENGTH_UINT16)
-                self.write_uint16(<uint16_t> value_len)
+                self.write_uint16be(<uint16_t> value_len)
             else:
                 self.write_uint8(TNS_JSON_TYPE_BINARY_LENGTH_UINT32)
-                self.write_uint32(value_len)
+                self.write_uint32be(value_len)
             self.write_bytes(<bytes> value)
 
         # handle timestamps
@@ -650,10 +650,10 @@ cdef class OsonTreeSegment(GrowableBuffer):
                 self.write_uint8(<uint8_t> value_len)
             elif value_len < 65536:
                 self.write_uint8(TNS_JSON_TYPE_STRING_LENGTH_UINT16)
-                self.write_uint16(<uint16_t> value_len)
+                self.write_uint16be(<uint16_t> value_len)
             else:
                 self.write_uint8(TNS_JSON_TYPE_STRING_LENGTH_UINT32)
-                self.write_uint32(value_len)
+                self.write_uint32be(value_len)
             if value_len > 0:
                 self.write_bytes(value_bytes)
 
@@ -671,7 +671,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
             self.write_uint8(TNS_JSON_TYPE_VECTOR)
             vector_encoder = VectorEncoder.__new__(VectorEncoder)
             vector_encoder.encode(value)
-            self.write_uint32(vector_encoder._pos)
+            self.write_uint32be(vector_encoder._pos)
             self.write_raw(vector_encoder._data, vector_encoder._pos)
 
         # other types are not supported
@@ -766,23 +766,25 @@ cdef class OsonEncoder(GrowableBuffer):
         if self.field_id_size == 1:
             self.write_uint8(<uint8_t> self.short_fnames_seg.num_field_names)
         elif self.field_id_size == 2:
-            self.write_uint16(<uint16_t> self.short_fnames_seg.num_field_names)
+            self.write_uint16be(
+                <uint16_t> self.short_fnames_seg.num_field_names
+            )
         else:
-            self.write_uint32(self.short_fnames_seg.num_field_names)
+            self.write_uint32be(self.short_fnames_seg.num_field_names)
 
         # write size of short field names segment
         if self.short_fnames_seg._pos < 65536:
-            self.write_uint16(<uint16_t> self.short_fnames_seg._pos)
+            self.write_uint16be(<uint16_t> self.short_fnames_seg._pos)
         else:
-            self.write_uint32(self.short_fnames_seg._pos)
+            self.write_uint32be(self.short_fnames_seg._pos)
 
         # write fields for long field names segment, if applicable
         if self.long_fnames_seg is not None:
             if self.long_fnames_seg._pos < 65536:
                 secondary_flags = TNS_JSON_FLAG_SEC_FNAMES_SEG_UINT16
-            self.write_uint16(secondary_flags)
-            self.write_uint32(self.long_fnames_seg.num_field_names)
-            self.write_uint32(self.long_fnames_seg._pos)
+            self.write_uint16be(secondary_flags)
+            self.write_uint32be(self.long_fnames_seg.num_field_names)
+            self.write_uint32be(self.long_fnames_seg._pos)
 
     cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1:
         """
@@ -795,14 +797,14 @@ cdef class OsonEncoder(GrowableBuffer):
             if field_name.name_bytes_len <= 255:
                 self.write_uint8(field_name.hash_id & 0xff)
             else:
-                self.write_uint16(field_name.hash_id & 0xffff)
+                self.write_uint16be(field_name.hash_id & 0xffff)
 
         # write array of field name offsets for the short field names
         for field_name in seg.field_names:
             if seg._pos < 65536:
-                self.write_uint16(<uint16_t> field_name.offset)
+                self.write_uint16be(<uint16_t> field_name.offset)
             else:
-                self.write_uint32(field_name.offset)
+                self.write_uint32be(field_name.offset)
 
         # write field names
         if seg._pos > 0:
@@ -836,7 +838,7 @@ cdef class OsonEncoder(GrowableBuffer):
             self.write_uint8(TNS_JSON_VERSION_MAX_FNAME_65535)
         else:
             self.write_uint8(TNS_JSON_VERSION_MAX_FNAME_255)
-        self.write_uint16(flags)
+        self.write_uint16be(flags)
 
         # write extended header (when value is not scalar)
         if self.short_fnames_seg is not None:
@@ -844,15 +846,15 @@ cdef class OsonEncoder(GrowableBuffer):
 
         # write size of tree segment
         if tree_seg._pos < 65536:
-            self.write_uint16(<uint16_t> tree_seg._pos)
+            self.write_uint16be(<uint16_t> tree_seg._pos)
         else:
-            self.write_uint32(tree_seg._pos)
+            self.write_uint32be(tree_seg._pos)
 
         # write remainder of header and any data (when value is not scalar)
         if self.short_fnames_seg is not None:
 
             # write number of "tiny" nodes (always zero)
-            self.write_uint16(0)
+            self.write_uint16be(0)
 
             # write field name segments
             self._write_fnames_seg(self.short_fnames_seg)

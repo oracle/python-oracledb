@@ -40,7 +40,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         """
         cdef uint32_t extended_num_bytes
         if num_bytes[0] == TNS_LONG_LENGTH_INDICATOR:
-            self.read_uint32(&extended_num_bytes)
+            self.read_uint32be(&extended_num_bytes)
             num_bytes[0] = <ssize_t> extended_num_bytes
         ptr[0] = self._get_raw(num_bytes[0])
 
@@ -90,7 +90,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         cdef uint8_t short_length
         self.read_ub1(&short_length)
         if short_length == TNS_LONG_LENGTH_INDICATOR:
-            self.read_uint32(length)
+            self.read_uint32be(length)
         else:
             length[0] = short_length
 
@@ -108,7 +108,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
             type cls
         self.read_header(&image_flags, &image_version)
         self.skip_raw_bytes(1)              # XML version
-        self.read_uint32(&xml_flag)
+        self.read_uint32be(&xml_flag)
         if xml_flag & TNS_XML_TYPE_FLAG_SKIP_NEXT_4:
             self.skip_raw_bytes(4)
         bytes_left = self.bytes_left()
@@ -143,7 +143,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         self.write_uint8(obj_impl.image_flags)
         self.write_uint8(obj_impl.image_version)
         self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
-        self.write_uint32(0)
+        self.write_uint32be(0)
         if typ_impl.is_collection:
             self.write_uint8(1)             # length of prefix segment
             self.write_uint8(1)             # prefix segment contents
@@ -156,7 +156,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
             self.write_uint8(<uint8_t> length)
         else:
             self.write_uint8(TNS_LONG_LENGTH_INDICATOR)
-            self.write_uint32(<uint32_t> length)
+            self.write_uint32be(<uint32_t> length)
 
 
 @cython.final
@@ -209,7 +209,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         self._pack_data(buf)
         size = buf._pos
         buf.skip_to(3)
-        buf.write_uint32(size)
+        buf.write_uint32be(size)
         return buf._data[:size]
 
     cdef int _pack_data(self, DbObjectPickleBuffer buf) except -1:
@@ -227,7 +227,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                 self._ensure_assoc_keys()
                 buf.write_length(len(self.unpacked_assoc_keys))
                 for index in self.unpacked_assoc_keys:
-                    buf.write_uint32(<uint32_t> index)
+                    buf.write_uint32be(<uint32_t> index)
                     self._pack_value(buf, typ_impl.element_dbtype,
                                      typ_impl.element_objtype,
                                      self.unpacked_assoc_array[index])
@@ -269,7 +269,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             buf.write_oracle_number(temp_bytes)
         elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
             buf.write_uint8(4)
-            buf.write_uint32(<uint32_t> value)
+            buf.write_uint32be(<uint32_t> value)
         elif ora_type_num == TNS_DATA_TYPE_RAW:
             buf.write_bytes_with_length(value)
         elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
@@ -278,7 +278,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             buf.write_binary_float(value)
         elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
             buf.write_uint8(4)
-            buf.write_uint32(value)
+            buf.write_uint32be(value)
         elif ora_type_num in (TNS_DATA_TYPE_DATE, TNS_DATA_TYPE_TIMESTAMP,
                               TNS_DATA_TYPE_TIMESTAMP_TZ,
                               TNS_DATA_TYPE_TIMESTAMP_LTZ):
@@ -329,7 +329,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             buf.read_length(&num_elements)
             for i in range(num_elements):
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
-                    buf.read_int32(&assoc_index)
+                    buf.read_int32be(&assoc_index)
                 value = self._unpack_value(
                     buf,
                     typ_impl.element_dbtype,

@@ -64,8 +64,7 @@ cdef class Packet:
             uint16_t flags
             char *ptr
         ptr = cpython.PyBytes_AS_STRING(self.buf)
-        flags = unpack_uint16(<const char_type*> &ptr[PACKET_HEADER_SIZE],
-                              BYTE_ORDER_MSB)
+        flags = decode_uint16be(<const char_type*> &ptr[PACKET_HEADER_SIZE])
         if flags & TNS_DATA_FLAGS_END_OF_RESPONSE:
             return True
         if self.packet_size == PACKET_HEADER_SIZE + 3 \
@@ -335,12 +334,12 @@ cdef class ReadBuffer(Buffer):
         buf = Buffer.__new__(Buffer)
         buf._populate_from_bytes(packet.buf)
         buf.skip_raw_bytes(8)               # skip packet header
-        buf.read_uint16(&control_type)
+        buf.read_uint16be(&control_type)
         if control_type == TNS_CONTROL_TYPE_RESET_OOB:
             self._caps.supports_oob = False
         elif control_type == TNS_CONTROL_TYPE_INBAND_NOTIFICATION:
             buf.skip_raw_bytes(4)           # skip first integer
-            buf.read_uint32(&self._pending_error_num)
+            buf.read_uint32be(&self._pending_error_num)
 
     cdef int _process_packet(self, Packet packet,
                              bint *notify_waiter,
@@ -397,7 +396,7 @@ cdef class ReadBuffer(Buffer):
         self._populate_from_bytes(self._current_packet.buf)
         self._pos = PACKET_HEADER_SIZE
         if self._current_packet.packet_type == TNS_PACKET_TYPE_DATA:
-            self.read_uint16(&data_flags)
+            self.read_uint16be(&data_flags)
             if data_flags == TNS_DATA_FLAGS_EOF:
                 self._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
 
@@ -543,10 +542,10 @@ cdef class ReadBuffer(Buffer):
 
         # handle physical rowid
         if input_ptr[0] == 1:
-            rowid.rba = unpack_uint32(&input_ptr[1], BYTE_ORDER_MSB)
-            rowid.partition_id = unpack_uint16(&input_ptr[5], BYTE_ORDER_MSB)
-            rowid.block_num = unpack_uint32(&input_ptr[7], BYTE_ORDER_MSB)
-            rowid.slot_num = unpack_uint16(&input_ptr[11], BYTE_ORDER_MSB)
+            rowid.rba = decode_uint32be(&input_ptr[1])
+            rowid.partition_id = decode_uint16be(&input_ptr[5])
+            rowid.block_num = decode_uint32be(&input_ptr[7])
+            rowid.slot_num = decode_uint16be(&input_ptr[11])
             return _encode_rowid(&rowid)
 
         # handle logical rowid
@@ -795,15 +794,15 @@ cdef class WriteBuffer(Buffer):
         cdef ssize_t size = self._pos
         self._pos = 0
         if self._caps.protocol_version >= TNS_VERSION_MIN_LARGE_SDU:
-            self.write_uint32(size)
+            self.write_uint32be(size)
         else:
-            self.write_uint16(size)
-            self.write_uint16(0)
+            self.write_uint16be(size)
+            self.write_uint16be(0)
         self.write_uint8(self._packet_type)
         self.write_uint8(self._packet_flags)
-        self.write_uint16(0)
+        self.write_uint16be(0)
         if self._packet_type == TNS_PACKET_TYPE_DATA:
-            self.write_uint16(self._data_flags)
+            self.write_uint16be(self._data_flags)
         self._pos = size
         self._transport.write_packet(self)
         self._packet_sent = True
@@ -893,20 +892,20 @@ cdef class WriteBuffer(Buffer):
         """
         self.write_ub4(40)                  # QLocator length
         self.write_uint8(40)                # chunk length
-        self.write_uint16(38)               # QLocator length less 2 bytes
-        self.write_uint16(TNS_LOB_QLOCATOR_VERSION)
+        self.write_uint16be(38)             # QLocator length less 2 bytes
+        self.write_uint16be(TNS_LOB_QLOCATOR_VERSION)
         self.write_uint8(TNS_LOB_LOC_FLAGS_VALUE_BASED | \
                          TNS_LOB_LOC_FLAGS_BLOB | \
                          TNS_LOB_LOC_FLAGS_ABSTRACT)
         self.write_uint8(TNS_LOB_LOC_FLAGS_INIT)
-        self.write_uint16(0)                # additional flags
-        self.write_uint16(1)                # byt1
-        self.write_uint64(data_length)
-        self.write_uint16(0)                # unused
-        self.write_uint16(0)                # csid
-        self.write_uint16(0)                # unused
-        self.write_uint64(0)                # unused
-        self.write_uint64(0)                # unused
+        self.write_uint16be(0)              # additional flags
+        self.write_uint16be(1)              # byt1
+        self.write_uint64be(data_length)
+        self.write_uint16be(0)              # unused
+        self.write_uint16be(0)              # csid
+        self.write_uint16be(0)              # unused
+        self.write_uint64be(0)              # unused
+        self.write_uint64be(0)              # unused
 
     cdef object write_oson(self, value, ssize_t max_fname_size):
         """

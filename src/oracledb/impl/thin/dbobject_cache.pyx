@@ -242,7 +242,7 @@ cdef class BaseThinDbObjectTypeCache:
         buf.skip_raw_bytes(4)               # end offset
         buf.skip_raw_bytes(2)               # version op code and version
         buf.skip_raw_bytes(2)               # unknown
-        buf.read_uint16(&num_attrs)         # number of attributes
+        buf.read_uint16be(&num_attrs)       # number of attributes
         buf.skip_raw_bytes(1)               # TDS attributes?
         buf.skip_raw_bytes(1)               # start ADT op code
         buf.skip_raw_bytes(2)               # ADT number (always zero)
@@ -260,8 +260,8 @@ cdef class BaseThinDbObjectTypeCache:
 
         # handle collections
         if typ_impl.is_collection:
-            buf.read_uint32(&pos)
-            buf.read_uint32(&typ_impl.max_num_elements)
+            buf.read_uint32be(&pos)
+            buf.read_uint32be(&typ_impl.max_num_elements)
             buf.read_ub1(&typ_impl.collection_type)
             if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                 typ_impl.collection_flags = TNS_OBJ_HAS_INDEXES
@@ -315,7 +315,7 @@ cdef class BaseThinDbObjectTypeCache:
             ora_type_num = TNS_DATA_TYPE_NUMBER
             buf.skip_raw_bytes(1)           # precision
         elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
-            buf.read_uint16(&temp16)        # maximum length
+            buf.read_uint16be(&temp16)      # maximum length
             max_size[0] = temp16
             buf.read_ub1(&csfrm)
             csfrm = csfrm & 0x7f
@@ -325,7 +325,7 @@ cdef class BaseThinDbObjectTypeCache:
             else:
                 ora_type_num = TNS_DATA_TYPE_CHAR
         elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
-            buf.read_uint16(&temp16)        # maximum length
+            buf.read_uint16be(&temp16)      # maximum length
             max_size[0] = temp16
             ora_type_num = TNS_DATA_TYPE_RAW
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:

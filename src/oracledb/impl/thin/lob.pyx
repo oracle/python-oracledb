@@ -237,11 +237,9 @@ cdef class BaseThinLobImpl(BaseLobImpl):
             uint16_t dir_name_offset, file_name_offset
             uint16_t dir_name_len, file_name_len
         dir_name_offset = TNS_LOB_LOC_FIXED_OFFSET + 2
-        dir_name_len = unpack_uint16(&ptr[TNS_LOB_LOC_FIXED_OFFSET],
-                                     BYTE_ORDER_MSB)
+        dir_name_len = decode_uint16be(&ptr[TNS_LOB_LOC_FIXED_OFFSET])
         file_name_offset = dir_name_offset + dir_name_len + 2
-        file_name_len = unpack_uint16(&ptr[dir_name_offset + dir_name_len],
-                                      BYTE_ORDER_MSB)
+        file_name_len = decode_uint16be(&ptr[dir_name_offset + dir_name_len])
         return (
             ptr[dir_name_offset:dir_name_offset + dir_name_len].decode(),
             ptr[file_name_offset:file_name_offset + file_name_len].decode()
@@ -254,8 +252,8 @@ cdef class BaseThinLobImpl(BaseLobImpl):
         """
         cdef char_type dir_length[2]
         cdef char_type name_length[2]
-        pack_uint16(dir_length, len(dir_alias), BYTE_ORDER_MSB)
-        pack_uint16(name_length, len(name), BYTE_ORDER_MSB)
+        encode_uint16be(dir_length, len(dir_alias))
+        encode_uint16be(name_length, len(name))
         self._locator = self._locator[:TNS_LOB_LOC_FIXED_OFFSET] + \
                 dir_length[:2] + dir_alias.encode() + name_length[:2] + \
                 name.encode()

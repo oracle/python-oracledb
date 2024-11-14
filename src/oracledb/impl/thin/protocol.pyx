@@ -462,7 +462,7 @@ cdef class Protocol(BaseProtocol):
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
             buf.skip_raw_bytes(2)
-            buf.read_uint16(&refuse_message_len)
+            buf.read_uint16be(&refuse_message_len)
             if refuse_message_len == 0:
                 message.error_info.message = None
             else:
@@ -846,7 +846,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
             buf.skip_raw_bytes(2)
-            buf.read_uint16(&refuse_message_len)
+            buf.read_uint16be(&refuse_message_len)
             if refuse_message_len == 0:
                 message.error_info.message = None
             else:
