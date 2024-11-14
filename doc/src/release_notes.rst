@@ -27,6 +27,10 @@ Thin Mode Changes
     expected value: "{expected_name}"`` is now raised when neither the common
     name (CN) nor any of the subject alternative names (SANs) found on the
     server certificate match the host name used to connect to the database.
+#)  All exceptions subclassed from ``OSError`` now cause connection retry
+    attempts, subject to the connection ``retry_count`` and ``retry_delay``
+    parameters
+    (`issue 420 <https://github.com/oracle/python-oracledb/issues/420>`__).
 #)  Internal change: improve low-level encoding and decoding routines.
 
 Thick Mode Changes
