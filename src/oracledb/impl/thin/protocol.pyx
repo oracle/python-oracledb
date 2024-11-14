@@ -289,8 +289,7 @@ cdef class Protocol(BaseProtocol):
 
         # if we can use OOB, send an urgent message now followed by a reset
         # marker to see if the server understands it
-        if self._caps.supports_oob \
-                and self._caps.protocol_version >= TNS_VERSION_MIN_OOB_CHECK:
+        if self._caps.supports_oob and self._caps.supports_oob_check:
             self._transport.send_oob_break()
             self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
 

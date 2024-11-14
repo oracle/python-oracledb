@@ -20,6 +20,12 @@ Thin Mode Changes
 #)  Perform TLS server matching in python-oracledb instead of the Python SSL
     library to allow alternate names to be checked
     (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
+#)  If the database states that an out-of-band break check should not take place
+    during connect (by setting the `DISABLE_OOB_AUTO
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-490A0B3B-FEF3-425A-81B0-6FA29D4B8C0E>`__ parameter to TRUE),
+    python-oracledb no longer attempts to do so
+    (`issue 419 <https://github.com/oracle/python-oracledb/issues/419>`__).
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
     does not match the expected value: "{expected_dn}"`` now shows the expected
     value.

@@ -41,6 +41,7 @@ cdef class Capabilities:
         uint32_t max_string_size
         bint supports_fast_auth
         bint supports_oob
+        bint supports_oob_check
         bint supports_end_of_response
         bint supports_pipelining
         uint32_t sdu
@@ -60,6 +61,8 @@ cdef class Capabilities:
         self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
         if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
             self.supports_fast_auth = True
+        if flags & TNS_ACCEPT_FLAG_CHECK_OOB:
+            self.supports_oob_check = True
         if protocol_version >= TNS_VERSION_MIN_END_OF_RESPONSE:
             if flags & TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE:
                 self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_RESPONSE
