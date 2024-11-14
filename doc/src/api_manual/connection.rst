@@ -768,7 +768,11 @@ Connection Attributes
     in bytes supported by the database to which the connection has been
     established.  See `Database Object Naming Rules
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-    id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__.
+    id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__. The value may be
+    ``None``, 30, or 128. The value ``None`` indicates the size cannot be
+    reliably determined by python-oracledb, which occurs when using Thick mode
+    with Oracle Client libraries 12.1 (or older) to connect to Oracle Database
+    12.2, or later.
 
     .. versionadded:: 2.5.0
 

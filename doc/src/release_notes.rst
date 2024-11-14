@@ -31,6 +31,13 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug calculating property :data:`Connection.max_identifier_length`
+    when using Oracle Client libraries 12.1, or older. The returned value may
+    now be ``None`` when the size cannot be reliably determined by
+    python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
+    older) to connect to Oracle Database 12.2, or later.
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+
 Common Changes
 ++++++++++++++
 
