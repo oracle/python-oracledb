@@ -375,21 +375,31 @@ cdef class MessageWithData(Message):
         """
         cdef:
             FetchInfoImpl prev_fetch_info = prev_var_impl._fetch_info
-            uint8_t csfrm = prev_var_impl.dbtype._csfrm
-            uint8_t type_num
-        if fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
+            uint8_t type_num, csfrm
+        if fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_VARCHAR \
+                and prev_fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_LONG:
+            type_num = TNS_DATA_TYPE_LONG
+            csfrm = fetch_info.dbtype._csfrm
+            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
+
+        elif fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_RAW \
+                and prev_fetch_info.dbtype._ora_type_num == \
+                        TNS_DATA_TYPE_LONG_RAW:
+            type_num = TNS_DATA_TYPE_LONG_RAW
+            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
+        elif fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
                 and prev_fetch_info.dbtype._ora_type_num in \
                         (TNS_DATA_TYPE_CHAR, TNS_DATA_TYPE_VARCHAR,
                          TNS_DATA_TYPE_LONG):
             type_num = TNS_DATA_TYPE_LONG
+            csfrm = prev_var_impl.dbtype._csfrm
             fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
                                                                 csfrm)
         elif fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB \
                 and prev_fetch_info.dbtype._ora_type_num in \
                         (TNS_DATA_TYPE_RAW, TNS_DATA_TYPE_LONG_RAW):
             type_num = TNS_DATA_TYPE_LONG_RAW
-            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
-                                                                csfrm)
+            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):

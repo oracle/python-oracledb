@@ -14,6 +14,14 @@ of python-oracledb), as affecting the optional :ref:`Thick Mode
 oracledb 2.5.1 (TBD)
 --------------------
 
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug when the fetched data type of a column changes from
+    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to
+    to a different compatible type
+    (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
@@ -23,6 +31,7 @@ Thick Mode Changes
     python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
     older) to connect to Oracle Database 12.2, or later.
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+
 
 oracledb 2.5.0 (November 2024)
 ------------------------------
