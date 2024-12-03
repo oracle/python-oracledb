@@ -29,6 +29,7 @@
 import datetime
 import unittest
 
+import oracledb
 import test_env
 
 
@@ -40,27 +41,33 @@ class TestCase(test_env.BaseTestCase):
         query_frag_2,
         query_value_2,
         table_name="dual",
+        type_handler=None,
     ):
         if test_env.get_is_implicit_pooling():
             self.skipTest("sessions can change with implicit pooling")
-        self.cursor.execute(
-            f"""
-            create or replace view TestTypesChanged as
-            select {query_frag_1} as value
-            from {table_name}
-            """
-        )
-        self.cursor.execute("select * from TestTypesChanged")
-        self.assertEqual(self.cursor.fetchall(), [(query_value_1,)])
-        self.cursor.execute(
-            f"""
-            create or replace view TestTypesChanged as
-                select {query_frag_2} as value
-                from dual
-            """
-        )
-        self.cursor.execute("select * from TestTypesChanged")
-        self.assertEqual(self.cursor.fetchall(), [(query_value_2,)])
+        orig_type_handler = self.conn.outputtypehandler
+        self.conn.outputtypehandler = type_handler
+        try:
+            self.cursor.execute(
+                f"""
+                create or replace view TestTypesChanged as
+                select {query_frag_1} as value
+                from {table_name}
+                """
+            )
+            self.cursor.execute("select * from TestTypesChanged")
+            self.assertEqual(self.cursor.fetchall(), [(query_value_1,)])
+            self.cursor.execute(
+                f"""
+                create or replace view TestTypesChanged as
+                    select {query_frag_2} as value
+                    from dual
+                """
+            )
+            self.cursor.execute("select * from TestTypesChanged")
+            self.assertEqual(self.cursor.fetchall(), [(query_value_2,)])
+        finally:
+            self.conn.outputtypehandler = orig_type_handler
 
     @unittest.skipIf(
         not test_env.get_is_thin(),
@@ -271,6 +278,111 @@ class TestCase(test_env.BaseTestCase):
             4616,
             "to_date('05-JAN-2022')",
             datetime.datetime(2022, 1, 5, 0, 0),
+        )
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(),
+        "thick mode doesn't support this type change",
+    )
+    def test_4617(self):
+        "4617 - test data type changing from CLOB to VARCHAR"
+
+        def type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_CLOB:
+                return cursor.var(
+                    oracledb.DB_TYPE_VARCHAR,
+                    size=32768,
+                    arraysize=cursor.arraysize,
+                )
+
+        self.__test_type_change(
+            "to_clob('clob_4617')",
+            "clob_4617",
+            "cast('string_4617' as VARCHAR2(15))",
+            "string_4617",
+            type_handler=type_handler,
+        )
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(),
+        "thick mode doesn't support this type change",
+    )
+    def test_4618(self):
+        "4618 - test data type changing from NCLOB to NVARCHAR"
+
+        def type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_NCLOB:
+                return cursor.var(
+                    oracledb.DB_TYPE_NVARCHAR,
+                    size=32768,
+                    arraysize=cursor.arraysize,
+                )
+
+        self.__test_type_change(
+            "to_nclob('nclob_4618')",
+            "nclob_4618",
+            "cast('nstring_4618' as NVARCHAR2(15))",
+            "nstring_4618",
+            type_handler=type_handler,
+        )
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(),
+        "thick mode doesn't support this type change",
+    )
+    def test_4619(self):
+        "4619 - test data type changing from CLOB to NVARCHAR"
+
+        def type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_CLOB:
+                return cursor.var(
+                    oracledb.DB_TYPE_NVARCHAR,
+                    size=32768,
+                    arraysize=cursor.arraysize,
+                )
+
+        self.__test_type_change(
+            "to_clob('clob_4619')",
+            "clob_4619",
+            "cast('string_4619' as VARCHAR2(15))",
+            "string_4619",
+            type_handler=type_handler,
+        )
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(),
+        "thick mode doesn't support this type change",
+    )
+    def test_4620(self):
+        "4620 - test data type changing from BLOB to RAW"
+
+        def type_handler(cursor, metadata):
+            if metadata.type_code is oracledb.DB_TYPE_BLOB:
+                return cursor.var(
+                    oracledb.DB_TYPE_RAW,
+                    size=32768,
+                    arraysize=cursor.arraysize,
+                )
+
+        self.__test_type_change(
+            "to_blob(utl_raw.cast_to_raw('blob_4620'))",
+            b"blob_4620",
+            "utl_raw.cast_to_raw('string_4620')",
+            b"string_4620",
+            type_handler=type_handler,
+        )
+
+    @unittest.skipIf(
+        not test_env.get_is_thin(),
+        "thick mode doesn't support this type change",
+    )
+    def test_4621(self):
+        "4621 - test data type changing from NVARCHAR to CLOB"
+        self.__test_type_change(
+            "cast('string_4621' as NVARCHAR2(15))",
+            "string_4621",
+            "to_clob('clob_4621')",
+            "clob_4621",
         )
 
 

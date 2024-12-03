@@ -370,23 +370,36 @@ cdef class MessageWithData(Message):
         previously returned was CHAR/VARCHAR/RAW (or the equivalent long
         types), then the server returns the data as LONG (RAW), similarly to
         what happens when a define is done to return CLOB/BLOB as string/bytes.
-        Detect this situation and adjust the fetch type appropriately.
+        In addition, if the data type returned was previously LONG or LONG RAW,
+        and the new type is VARCHAR or RAW, the database continues to return
+        LONG or LONG RAW. Detect these situations and adjust the fetch type
+        appropriately.
         """
         cdef:
             OracleMetadata prev_metadata = prev_var_impl._fetch_metadata
-            uint8_t csfrm = prev_metadata.dbtype._csfrm
-            uint8_t type_num
-        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
+            uint8_t type_num, csfrm
+        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_VARCHAR \
+                and prev_metadata.dbtype._ora_type_num == ORA_TYPE_NUM_LONG:
+            type_num = ORA_TYPE_NUM_LONG
+            csfrm = metadata.dbtype._csfrm
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
+
+        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_RAW \
+                and prev_metadata.dbtype._ora_type_num == ORA_TYPE_NUM_LONG_RAW:
+            type_num = ORA_TYPE_NUM_LONG_RAW
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
+        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
                 and prev_metadata.dbtype._ora_type_num in \
                         (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR,
                          ORA_TYPE_NUM_LONG):
             type_num = ORA_TYPE_NUM_LONG
+            csfrm = prev_metadata.dbtype._csfrm
             metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
         elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB \
                 and prev_metadata.dbtype._ora_type_num in \
                         (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
             type_num = ORA_TYPE_NUM_LONG_RAW
-            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):
