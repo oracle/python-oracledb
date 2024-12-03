@@ -377,17 +377,17 @@ cdef class MessageWithData(Message):
             FetchInfoImpl prev_fetch_info = prev_var_impl._fetch_info
             uint8_t csfrm = prev_var_impl.dbtype._csfrm
             uint8_t type_num
-        if fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
+        if fetch_info.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
                 and prev_fetch_info.dbtype._ora_type_num in \
-                        (TNS_DATA_TYPE_CHAR, TNS_DATA_TYPE_VARCHAR,
-                         TNS_DATA_TYPE_LONG):
-            type_num = TNS_DATA_TYPE_LONG
+                        (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR,
+                         ORA_TYPE_NUM_LONG):
+            type_num = ORA_TYPE_NUM_LONG
             fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
                                                                 csfrm)
-        elif fetch_info.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB \
+        elif fetch_info.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB \
                 and prev_fetch_info.dbtype._ora_type_num in \
-                        (TNS_DATA_TYPE_RAW, TNS_DATA_TYPE_LONG_RAW):
-            type_num = TNS_DATA_TYPE_LONG_RAW
+                        (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
+            type_num = ORA_TYPE_NUM_LONG_RAW
             fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
                                                                 csfrm)
 
@@ -521,29 +521,29 @@ cdef class MessageWithData(Message):
             csfrm = var_impl.dbtype._csfrm
             buffer_size = var_impl.buffer_size
         if var_impl.bypass_decode:
-            ora_type_num = TNS_DATA_TYPE_RAW
+            ora_type_num = ORA_TYPE_NUM_RAW
         if buffer_size == 0 and self.in_fetch \
-                and ora_type_num not in (TNS_DATA_TYPE_LONG,
-                                         TNS_DATA_TYPE_LONG_RAW,
-                                         TNS_DATA_TYPE_UROWID):
+                and ora_type_num not in (ORA_TYPE_NUM_LONG,
+                                         ORA_TYPE_NUM_LONG_RAW,
+                                         ORA_TYPE_NUM_UROWID):
             column_value = None             # column is null by describe
-        elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
-                or ora_type_num == TNS_DATA_TYPE_CHAR \
-                or ora_type_num == TNS_DATA_TYPE_LONG:
+        elif ora_type_num == ORA_TYPE_NUM_VARCHAR \
+                or ora_type_num == ORA_TYPE_NUM_CHAR \
+                or ora_type_num == ORA_TYPE_NUM_LONG:
             if csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()
             column_value = buf.read_str(csfrm, var_impl._encoding_errors)
-        elif ora_type_num == TNS_DATA_TYPE_RAW \
-                or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
+        elif ora_type_num == ORA_TYPE_NUM_RAW \
+                or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
             column_value = buf.read_bytes()
-        elif ora_type_num == TNS_DATA_TYPE_NUMBER:
+        elif ora_type_num == ORA_TYPE_NUM_NUMBER:
             column_value = buf.read_oracle_number(var_impl._preferred_num_type)
-        elif ora_type_num == TNS_DATA_TYPE_DATE \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP_LTZ \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP_TZ:
+        elif ora_type_num == ORA_TYPE_NUM_DATE \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_TZ:
             column_value = buf.read_date()
-        elif ora_type_num == TNS_DATA_TYPE_ROWID:
+        elif ora_type_num == ORA_TYPE_NUM_ROWID:
             if not self.in_fetch:
                 column_value = buf.read_str(CS_FORM_IMPLICIT)
             else:
@@ -553,42 +553,42 @@ cdef class MessageWithData(Message):
                 else:
                     buf.read_rowid(&rowid)
                     column_value = _encode_rowid(&rowid)
-        elif ora_type_num == TNS_DATA_TYPE_UROWID:
+        elif ora_type_num == ORA_TYPE_NUM_UROWID:
             if not self.in_fetch:
                 column_value = buf.read_str(CS_FORM_IMPLICIT)
             else:
                 column_value = buf.read_urowid()
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
             column_value = buf.read_binary_double()
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_FLOAT:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
             column_value = buf.read_binary_float()
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
             column_value = buf.read_oracle_number(NUM_TYPE_INT)
             if column_value is not None:
                 column_value = int(column_value)
-        elif ora_type_num == TNS_DATA_TYPE_CURSOR:
+        elif ora_type_num == ORA_TYPE_NUM_CURSOR:
             buf.skip_ub1()                  # length (fixed value)
             if not self.in_fetch:
                 column_value = var_impl._values[pos]
             column_value = self._create_cursor_from_describe(buf, column_value)
             cursor_impl = column_value._impl
             buf.read_ub2(&cursor_impl._statement._cursor_id)
-        elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             column_value = buf.read_bool()
-        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
+        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
             column_value = buf.read_interval_ds()
-        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
+        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
             column_value = buf.read_interval_ym()
-        elif ora_type_num in (TNS_DATA_TYPE_CLOB,
-                              TNS_DATA_TYPE_BLOB,
-                              TNS_DATA_TYPE_BFILE):
+        elif ora_type_num in (ORA_TYPE_NUM_CLOB,
+                              ORA_TYPE_NUM_BLOB,
+                              ORA_TYPE_NUM_BFILE):
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     var_impl.dbtype)
-        elif ora_type_num == TNS_DATA_TYPE_JSON:
+        elif ora_type_num == ORA_TYPE_NUM_JSON:
             column_value = buf.read_oson()
-        elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+        elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             column_value = buf.read_vector()
-        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+        elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             typ_impl = var_impl.objtype
             if typ_impl is None:
                 column_value = buf.read_xmltype(self.conn_impl)
@@ -606,7 +606,7 @@ cdef class MessageWithData(Message):
                               name=var_impl.dbtype.name)
         if not self.in_fetch:
             buf.read_sb4(&actual_num_bytes)
-            if actual_num_bytes < 0 and ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+            if actual_num_bytes < 0 and ora_type_num == ORA_TYPE_NUM_BOOLEAN:
                 column_value = None
             elif actual_num_bytes != 0 and column_value is not None:
                 unit_type = "bytes" if isinstance(column_value, bytes) \
@@ -614,8 +614,8 @@ cdef class MessageWithData(Message):
                 errors._raise_err(errors.ERR_COLUMN_TRUNCATED,
                                   col_value_len=len(column_value),
                                   unit=unit_type, actual_len=actual_num_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_LONG \
-                or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
+        elif ora_type_num == ORA_TYPE_NUM_LONG \
+                or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
             buf.skip_sb4()                  # null indicator
             buf.skip_ub4()                  # return code
         if column_value is not None:
@@ -653,7 +653,7 @@ cdef class MessageWithData(Message):
         buf.read_ub1(&csfrm)                # character set form
         fetch_info.dbtype = DbType._from_ora_type_and_csfrm(data_type, csfrm)
         buf.read_ub4(&fetch_info.size)
-        if data_type == TNS_DATA_TYPE_RAW:
+        if data_type == ORA_TYPE_NUM_RAW:
             fetch_info.size = fetch_info.buffer_size
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
             buf.skip_ub4()                  # oaccolid
@@ -702,7 +702,7 @@ cdef class MessageWithData(Message):
             buf.read_ub4(&fetch_info.vector_dimensions)
             buf.read_ub1(&fetch_info.vector_format)
             buf.read_ub1(&fetch_info.vector_flags)
-        if data_type == TNS_DATA_TYPE_INT_NAMED:
+        if data_type == ORA_TYPE_NUM_OBJECT:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num
                 self.type_cache = get_dbobject_type_cache(cache_num)
@@ -738,10 +738,10 @@ cdef class MessageWithData(Message):
             if prev_fetch_var_impls is not None \
                     and i < len(prev_fetch_var_impls):
                 self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
-            if fetch_info.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                                   TNS_DATA_TYPE_CLOB,
-                                                   TNS_DATA_TYPE_JSON,
-                                                   TNS_DATA_TYPE_VECTOR):
+            if fetch_info.dbtype._ora_type_num in (ORA_TYPE_NUM_BLOB,
+                                                   ORA_TYPE_NUM_CLOB,
+                                                   ORA_TYPE_NUM_JSON,
+                                                   ORA_TYPE_NUM_VECTOR):
                 stmt._requires_define = True
                 stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
@@ -963,21 +963,21 @@ cdef class MessageWithData(Message):
         for var_impl in bind_var_impls:
             ora_type_num = var_impl.dbtype._ora_type_num
             buffer_size = var_impl.buffer_size
-            if ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
-                ora_type_num = TNS_DATA_TYPE_VARCHAR
+            if ora_type_num in (ORA_TYPE_NUM_ROWID, ORA_TYPE_NUM_UROWID):
+                ora_type_num = ORA_TYPE_NUM_VARCHAR
                 buffer_size = TNS_MAX_UROWID_LENGTH
             flag = TNS_BIND_USE_INDICATORS
             if var_impl.is_array:
                 flag |= TNS_BIND_ARRAY
             cont_flag = 0
             lob_prefetch_length = 0
-            if ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                TNS_DATA_TYPE_CLOB):
+            if ora_type_num in (ORA_TYPE_NUM_BLOB,
+                                ORA_TYPE_NUM_CLOB):
                 cont_flag = TNS_LOB_PREFETCH_FLAG
-            elif ora_type_num == TNS_DATA_TYPE_JSON:
+            elif ora_type_num == ORA_TYPE_NUM_JSON:
                 cont_flag = TNS_LOB_PREFETCH_FLAG
                 buffer_size = lob_prefetch_length = TNS_JSON_MAX_LENGTH
-            elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+            elif ora_type_num == ORA_TYPE_NUM_VECTOR:
                 cont_flag = TNS_LOB_PREFETCH_FLAG
                 buffer_size = lob_prefetch_length = TNS_VECTOR_MAX_LENGTH
             buf.write_uint8(ora_type_num)
@@ -1030,10 +1030,10 @@ cdef class MessageWithData(Message):
             uint32_t num_bytes
             bytes temp_bytes
         if value is None:
-            if ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+            if ora_type_num == ORA_TYPE_NUM_BOOLEAN:
                 buf.write_uint8(TNS_ESCAPE_CHAR)
                 buf.write_uint8(1)
-            elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+            elif ora_type_num == ORA_TYPE_NUM_OBJECT:
                 buf.write_ub4(0)                # TOID
                 buf.write_ub4(0)                # OID
                 buf.write_ub4(0)                # snapshot
@@ -1042,35 +1042,35 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(TNS_OBJ_TOP_LEVEL)    # flags
             else:
                 buf.write_uint8(0)
-        elif ora_type_num == TNS_DATA_TYPE_VARCHAR \
-                or ora_type_num == TNS_DATA_TYPE_CHAR \
-                or ora_type_num == TNS_DATA_TYPE_LONG:
+        elif ora_type_num == ORA_TYPE_NUM_VARCHAR \
+                or ora_type_num == ORA_TYPE_NUM_CHAR \
+                or ora_type_num == ORA_TYPE_NUM_LONG:
             if var_impl.dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
                 buf._caps._check_ncharset_id()
                 temp_bytes = (<str> value).encode(ENCODING_UTF16)
             buf.write_bytes_with_length(temp_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_RAW \
-                or ora_type_num == TNS_DATA_TYPE_LONG_RAW:
+        elif ora_type_num == ORA_TYPE_NUM_RAW \
+                or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
             buf.write_bytes_with_length(value)
-        elif ora_type_num == TNS_DATA_TYPE_NUMBER \
-                or ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
+        elif ora_type_num == ORA_TYPE_NUM_NUMBER \
+                or ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
             if isinstance(value, bool):
                 temp_bytes = b'1' if value is True else b'0'
             else:
                 temp_bytes = (<str> cpython.PyObject_Str(value)).encode()
             buf.write_oracle_number(temp_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_DATE \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP_TZ \
-                or ora_type_num == TNS_DATA_TYPE_TIMESTAMP_LTZ:
+        elif ora_type_num == ORA_TYPE_NUM_DATE \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_TZ \
+                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ:
             buf.write_oracle_date(value, var_impl.dbtype._buffer_size_factor)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
             buf.write_binary_double(value)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_FLOAT:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
             buf.write_binary_float(value)
-        elif ora_type_num == TNS_DATA_TYPE_CURSOR:
+        elif ora_type_num == ORA_TYPE_NUM_CURSOR:
             cursor_impl = value._impl
             if cursor_impl is None:
                 errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
@@ -1083,26 +1083,26 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(1)
                 buf.write_ub4(cursor_impl._statement._cursor_id)
             cursor_impl.statement = None
-        elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             buf.write_bool(value)
-        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_DS:
+        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
             buf.write_interval_ds(value)
-        elif ora_type_num == TNS_DATA_TYPE_INTERVAL_YM:
+        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
             buf.write_interval_ym(value)
         elif ora_type_num in (
-                TNS_DATA_TYPE_BLOB,
-                TNS_DATA_TYPE_CLOB,
-                TNS_DATA_TYPE_BFILE
+                ORA_TYPE_NUM_BLOB,
+                ORA_TYPE_NUM_CLOB,
+                ORA_TYPE_NUM_BFILE
             ):
             buf.write_lob_with_length(value._impl)
-        elif ora_type_num in (TNS_DATA_TYPE_ROWID, TNS_DATA_TYPE_UROWID):
+        elif ora_type_num in (ORA_TYPE_NUM_ROWID, ORA_TYPE_NUM_UROWID):
             temp_bytes = (<str> value).encode()
             buf.write_bytes_with_length(temp_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+        elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             buf.write_dbobject(value._impl)
-        elif ora_type_num == TNS_DATA_TYPE_JSON:
+        elif ora_type_num == ORA_TYPE_NUM_JSON:
             buf.write_oson(value, self.conn_impl._oson_max_fname_size)
-        elif ora_type_num == TNS_DATA_TYPE_VECTOR:
+        elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             buf.write_vector(value)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
@@ -2316,7 +2316,7 @@ cdef class LobOpMessage(Message):
         if message_type == TNS_MSG_TYPE_LOB_DATA:
             buf.read_raw_bytes_and_length(&ptr, &num_bytes)
             if self.source_lob_impl.dbtype._ora_type_num in \
-                    (TNS_DATA_TYPE_BLOB, TNS_DATA_TYPE_BFILE):
+                    (ORA_TYPE_NUM_BLOB, ORA_TYPE_NUM_BFILE):
                 self.data = ptr[:num_bytes]
             else:
                 encoding = self.source_lob_impl._get_encoding()

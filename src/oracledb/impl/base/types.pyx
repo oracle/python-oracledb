@@ -109,94 +109,291 @@ cdef class DbType:
 
 
 # database types
-DB_TYPE_BFILE = DbType(DB_TYPE_NUM_BFILE, "DB_TYPE_BFILE", "BFILE",
-                       NATIVE_TYPE_NUM_LOB, 114, buffer_size_factor=4000)
-DB_TYPE_BINARY_DOUBLE = DbType(DB_TYPE_NUM_BINARY_DOUBLE,
-                               "DB_TYPE_BINARY_DOUBLE", "BINARY_DOUBLE",
-                               NATIVE_TYPE_NUM_DOUBLE, 101,
-                               buffer_size_factor=8)
-DB_TYPE_BINARY_FLOAT = DbType(DB_TYPE_NUM_BINARY_FLOAT, "DB_TYPE_BINARY_FLOAT",
-                              "BINARY_FLOAT", NATIVE_TYPE_NUM_FLOAT, 100,
-                              buffer_size_factor=4)
-DB_TYPE_BINARY_INTEGER = DbType(DB_TYPE_NUM_BINARY_INTEGER,
-                                "DB_TYPE_BINARY_INTEGER", "BINARY_INTEGER",
-                                NATIVE_TYPE_NUM_INT64, 3,
-                                buffer_size_factor=22)
-DB_TYPE_BLOB = DbType(DB_TYPE_NUM_BLOB, "DB_TYPE_BLOB", "BLOB",
-                      NATIVE_TYPE_NUM_LOB, 113,
-                      buffer_size_factor=112)
-DB_TYPE_BOOLEAN = DbType(DB_TYPE_NUM_BOOLEAN, "DB_TYPE_BOOLEAN", "BOOLEAN",
-                         NATIVE_TYPE_NUM_BOOLEAN, 252, buffer_size_factor=4)
-DB_TYPE_CHAR = DbType(DB_TYPE_NUM_CHAR, "DB_TYPE_CHAR", "CHAR",
-                      NATIVE_TYPE_NUM_BYTES, 96, 2000, csfrm=1,
-                      buffer_size_factor=4)
-DB_TYPE_CLOB = DbType(DB_TYPE_NUM_CLOB, "DB_TYPE_CLOB", "CLOB",
-                      NATIVE_TYPE_NUM_LOB, 112, csfrm=1,
-                      buffer_size_factor=112)
-DB_TYPE_CURSOR = DbType(DB_TYPE_NUM_CURSOR, "DB_TYPE_CURSOR", "CURSOR",
-                        NATIVE_TYPE_NUM_STMT, 102, buffer_size_factor=4)
-DB_TYPE_DATE = DbType(DB_TYPE_NUM_DATE, "DB_TYPE_DATE", "DATE",
-                      NATIVE_TYPE_NUM_TIMESTAMP, 12, buffer_size_factor=7)
-DB_TYPE_INTERVAL_DS = DbType(DB_TYPE_NUM_INTERVAL_DS, "DB_TYPE_INTERVAL_DS",
-                             "INTERVAL DAY TO SECOND",
-                             NATIVE_TYPE_NUM_INTERVAL_DS, 183,
-                             buffer_size_factor=11)
-DB_TYPE_INTERVAL_YM = DbType(DB_TYPE_NUM_INTERVAL_YM, "DB_TYPE_INTERVAL_YM",
-                             "INTERVAL YEAR TO MONTH",
-                             NATIVE_TYPE_NUM_INTERVAL_YM, 182,
-                             buffer_size_factor=5)
-DB_TYPE_JSON = DbType(DB_TYPE_NUM_JSON, "DB_TYPE_JSON", "JSON",
-                      NATIVE_TYPE_NUM_JSON, 119)
-DB_TYPE_LONG = DbType(DB_TYPE_NUM_LONG_VARCHAR, "DB_TYPE_LONG", "LONG",
-                      NATIVE_TYPE_NUM_BYTES, 8, csfrm=1,
-                      buffer_size_factor=2147483647)
-DB_TYPE_LONG_NVARCHAR = DbType(DB_TYPE_NUM_LONG_NVARCHAR,
-                               "DB_TYPE_LONG_NVARCHAR", "LONG NVARCHAR",
-                               NATIVE_TYPE_NUM_BYTES, 8, csfrm=2,
-                               buffer_size_factor=2147483647)
-DB_TYPE_LONG_RAW = DbType(DB_TYPE_NUM_LONG_RAW, "DB_TYPE_LONG_RAW", "LONG RAW",
-                          NATIVE_TYPE_NUM_BYTES, 24,
-                          buffer_size_factor=2147483647)
-DB_TYPE_NCHAR = DbType(DB_TYPE_NUM_NCHAR, "DB_TYPE_NCHAR", "NCHAR",
-                       NATIVE_TYPE_NUM_BYTES, 96, 2000, csfrm=2,
-                       buffer_size_factor=4)
-DB_TYPE_NCLOB = DbType(DB_TYPE_NUM_NCLOB, "DB_TYPE_NCLOB", "NCLOB",
-                       NATIVE_TYPE_NUM_LOB, 112, csfrm=2,
-                       buffer_size_factor=112)
-DB_TYPE_NUMBER = DbType(DB_TYPE_NUM_NUMBER, "DB_TYPE_NUMBER", "NUMBER",
-                        NATIVE_TYPE_NUM_BYTES, 2, buffer_size_factor=22)
-DB_TYPE_NVARCHAR = DbType(DB_TYPE_NUM_NVARCHAR, "DB_TYPE_NVARCHAR",
-                          "NVARCHAR2", NATIVE_TYPE_NUM_BYTES, 1, 4000, csfrm=2,
-                          buffer_size_factor=4)
-DB_TYPE_OBJECT = DbType(DB_TYPE_NUM_OBJECT, "DB_TYPE_OBJECT", "OBJECT",
-                        NATIVE_TYPE_NUM_OBJECT, 109)
-DB_TYPE_RAW = DbType(DB_TYPE_NUM_RAW, "DB_TYPE_RAW", "RAW",
-                     NATIVE_TYPE_NUM_BYTES, 23, 4000, buffer_size_factor=1)
-DB_TYPE_ROWID = DbType(DB_TYPE_NUM_ROWID, "DB_TYPE_ROWID", "ROWID",
-                       NATIVE_TYPE_NUM_ROWID, 11, buffer_size_factor=18)
-DB_TYPE_TIMESTAMP = DbType(DB_TYPE_NUM_TIMESTAMP, "DB_TYPE_TIMESTAMP",
-                           "TIMESTAMP", NATIVE_TYPE_NUM_TIMESTAMP, 180,
-                           buffer_size_factor=11)
-DB_TYPE_TIMESTAMP_LTZ = DbType(DB_TYPE_NUM_TIMESTAMP_LTZ,
-                               "DB_TYPE_TIMESTAMP_LTZ",
-                               "TIMESTAMP WITH LOCAL TIME ZONE",
-                               NATIVE_TYPE_NUM_TIMESTAMP, 231,
-                               buffer_size_factor=11)
-DB_TYPE_TIMESTAMP_TZ = DbType(DB_TYPE_NUM_TIMESTAMP_TZ, "DB_TYPE_TIMESTAMP_TZ",
-                              "TIMESTAMP WITH TIME ZONE",
-                              NATIVE_TYPE_NUM_TIMESTAMP, 181,
-                              buffer_size_factor=13)
-DB_TYPE_UNKNOWN = DbType(DB_TYPE_NUM_UNKNOWN, "DB_TYPE_UNKNOWN", "UNKNOWN")
-DB_TYPE_UROWID = DbType(DB_TYPE_NUM_UROWID, "DB_TYPE_UROWID", "UROWID",
-                        NATIVE_TYPE_NUM_BYTES, 208)
-DB_TYPE_VARCHAR = DbType(DB_TYPE_NUM_VARCHAR, "DB_TYPE_VARCHAR", "VARCHAR2",
-                         NATIVE_TYPE_NUM_BYTES, 1, 4000, csfrm=1,
-                         buffer_size_factor=4)
-DB_TYPE_VECTOR = DbType(DB_TYPE_NUM_VECTOR, "DB_TYPE_VECTOR", "VECTOR",
-                        NATIVE_TYPE_NUM_VECTOR, 127)
-DB_TYPE_XMLTYPE = DbType(DB_TYPE_NUM_XMLTYPE, "DB_TYPE_XMLTYPE", "XMLTYPE",
-                         NATIVE_TYPE_NUM_BYTES, 109, csfrm=1,
-                         buffer_size_factor=2147483647)
+DB_TYPE_BFILE = DbType(
+    DB_TYPE_NUM_BFILE,
+    "DB_TYPE_BFILE",
+    "BFILE",
+    NATIVE_TYPE_NUM_LOB,
+    ORA_TYPE_NUM_BFILE,
+    buffer_size_factor=4000
+)
+
+DB_TYPE_BINARY_DOUBLE = DbType(
+    DB_TYPE_NUM_BINARY_DOUBLE,
+    "DB_TYPE_BINARY_DOUBLE",
+    "BINARY_DOUBLE",
+    NATIVE_TYPE_NUM_DOUBLE,
+    ORA_TYPE_NUM_BINARY_DOUBLE,
+    buffer_size_factor=8
+)
+
+DB_TYPE_BINARY_FLOAT = DbType(
+    DB_TYPE_NUM_BINARY_FLOAT,
+    "DB_TYPE_BINARY_FLOAT",
+    "BINARY_FLOAT",
+    NATIVE_TYPE_NUM_FLOAT,
+    ORA_TYPE_NUM_BINARY_FLOAT,
+    buffer_size_factor=4
+)
+
+DB_TYPE_BINARY_INTEGER = DbType(
+    DB_TYPE_NUM_BINARY_INTEGER,
+    "DB_TYPE_BINARY_INTEGER",
+    "BINARY_INTEGER",
+    NATIVE_TYPE_NUM_INT64,
+    ORA_TYPE_NUM_BINARY_INTEGER,
+    buffer_size_factor=22
+)
+
+DB_TYPE_BLOB = DbType(
+    DB_TYPE_NUM_BLOB,
+    "DB_TYPE_BLOB",
+    "BLOB",
+    NATIVE_TYPE_NUM_LOB,
+    ORA_TYPE_NUM_BLOB,
+    buffer_size_factor=112
+)
+
+DB_TYPE_BOOLEAN = DbType(
+    DB_TYPE_NUM_BOOLEAN,
+    "DB_TYPE_BOOLEAN",
+    "BOOLEAN",
+    NATIVE_TYPE_NUM_BOOLEAN,
+    ORA_TYPE_NUM_BOOLEAN,
+    buffer_size_factor=4
+)
+
+DB_TYPE_CHAR = DbType(
+    DB_TYPE_NUM_CHAR,
+    "DB_TYPE_CHAR",
+    "CHAR",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_CHAR,
+    default_size=2000,
+    csfrm=CS_FORM_IMPLICIT,
+    buffer_size_factor=4
+)
+
+DB_TYPE_CLOB = DbType(
+    DB_TYPE_NUM_CLOB,
+    "DB_TYPE_CLOB",
+    "CLOB",
+    NATIVE_TYPE_NUM_LOB,
+    ORA_TYPE_NUM_CLOB,
+    csfrm=CS_FORM_IMPLICIT,
+    buffer_size_factor=112
+)
+
+DB_TYPE_CURSOR = DbType(
+    DB_TYPE_NUM_CURSOR,
+    "DB_TYPE_CURSOR",
+    "CURSOR",
+    NATIVE_TYPE_NUM_STMT,
+    ORA_TYPE_NUM_CURSOR,
+    buffer_size_factor=4
+)
+
+DB_TYPE_DATE = DbType(
+    DB_TYPE_NUM_DATE,
+    "DB_TYPE_DATE",
+    "DATE",
+    NATIVE_TYPE_NUM_TIMESTAMP,
+    ORA_TYPE_NUM_DATE,
+    buffer_size_factor=7
+)
+
+DB_TYPE_INTERVAL_DS = DbType(
+    DB_TYPE_NUM_INTERVAL_DS,
+    "DB_TYPE_INTERVAL_DS",
+    "INTERVAL DAY TO SECOND",
+    NATIVE_TYPE_NUM_INTERVAL_DS,
+    ORA_TYPE_NUM_INTERVAL_DS,
+    buffer_size_factor=11
+)
+
+DB_TYPE_INTERVAL_YM = DbType(
+    DB_TYPE_NUM_INTERVAL_YM,
+    "DB_TYPE_INTERVAL_YM",
+    "INTERVAL YEAR TO MONTH",
+    NATIVE_TYPE_NUM_INTERVAL_YM,
+    ORA_TYPE_NUM_INTERVAL_YM,
+    buffer_size_factor=5
+)
+
+DB_TYPE_JSON = DbType(
+    DB_TYPE_NUM_JSON,
+    "DB_TYPE_JSON",
+    "JSON",
+    NATIVE_TYPE_NUM_JSON,
+    ORA_TYPE_NUM_JSON
+)
+
+DB_TYPE_LONG = DbType(
+    DB_TYPE_NUM_LONG_VARCHAR,
+    "DB_TYPE_LONG",
+    "LONG",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_LONG,
+    csfrm=CS_FORM_IMPLICIT,
+    buffer_size_factor=2147483647
+)
+
+DB_TYPE_LONG_NVARCHAR = DbType(
+    DB_TYPE_NUM_LONG_NVARCHAR,
+    "DB_TYPE_LONG_NVARCHAR",
+    "LONG NVARCHAR",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_LONG,
+    csfrm=CS_FORM_NCHAR,
+    buffer_size_factor=2147483647
+)
+
+DB_TYPE_LONG_RAW = DbType(
+    DB_TYPE_NUM_LONG_RAW,
+    "DB_TYPE_LONG_RAW",
+    "LONG RAW",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_LONG_RAW,
+    buffer_size_factor=2147483647
+)
+
+DB_TYPE_NCHAR = DbType(
+    DB_TYPE_NUM_NCHAR,
+    "DB_TYPE_NCHAR",
+    "NCHAR",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_CHAR,
+    default_size=2000,
+    csfrm=CS_FORM_NCHAR,
+    buffer_size_factor=4
+)
+
+DB_TYPE_NCLOB = DbType(
+    DB_TYPE_NUM_NCLOB,
+    "DB_TYPE_NCLOB",
+    "NCLOB",
+    NATIVE_TYPE_NUM_LOB,
+    ORA_TYPE_NUM_CLOB,
+    csfrm=CS_FORM_NCHAR,
+    buffer_size_factor=112
+)
+
+DB_TYPE_NUMBER = DbType(
+    DB_TYPE_NUM_NUMBER,
+    "DB_TYPE_NUMBER",
+    "NUMBER",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_NUMBER,
+    buffer_size_factor=22
+)
+
+DB_TYPE_NVARCHAR = DbType(
+    DB_TYPE_NUM_NVARCHAR,
+    "DB_TYPE_NVARCHAR",
+    "NVARCHAR2",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_VARCHAR,
+    default_size=4000,
+    csfrm=CS_FORM_NCHAR,
+    buffer_size_factor=4
+)
+
+DB_TYPE_OBJECT = DbType(
+    DB_TYPE_NUM_OBJECT,
+    "DB_TYPE_OBJECT",
+    "OBJECT",
+    NATIVE_TYPE_NUM_OBJECT,
+    ORA_TYPE_NUM_OBJECT
+)
+
+DB_TYPE_RAW = DbType(
+    DB_TYPE_NUM_RAW,
+    "DB_TYPE_RAW",
+    "RAW",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_RAW,
+    default_size=4000,
+    buffer_size_factor=1
+)
+
+DB_TYPE_ROWID = DbType(
+    DB_TYPE_NUM_ROWID,
+    "DB_TYPE_ROWID",
+    "ROWID",
+    NATIVE_TYPE_NUM_ROWID,
+    ORA_TYPE_NUM_ROWID,
+    buffer_size_factor=18
+)
+
+DB_TYPE_TIMESTAMP = DbType(
+    DB_TYPE_NUM_TIMESTAMP,
+    "DB_TYPE_TIMESTAMP",
+    "TIMESTAMP",
+    NATIVE_TYPE_NUM_TIMESTAMP,
+    ORA_TYPE_NUM_TIMESTAMP,
+    buffer_size_factor=11
+)
+
+DB_TYPE_TIMESTAMP_LTZ = DbType(
+    DB_TYPE_NUM_TIMESTAMP_LTZ,
+    "DB_TYPE_TIMESTAMP_LTZ",
+    "TIMESTAMP WITH LOCAL TIME ZONE",
+    NATIVE_TYPE_NUM_TIMESTAMP,
+    ORA_TYPE_NUM_TIMESTAMP_LTZ,
+    buffer_size_factor=11
+)
+
+DB_TYPE_TIMESTAMP_TZ = DbType(
+    DB_TYPE_NUM_TIMESTAMP_TZ,
+    "DB_TYPE_TIMESTAMP_TZ",
+    "TIMESTAMP WITH TIME ZONE",
+    NATIVE_TYPE_NUM_TIMESTAMP,
+    ORA_TYPE_NUM_TIMESTAMP_TZ,
+    buffer_size_factor=13
+)
+
+DB_TYPE_UNKNOWN = DbType(
+    DB_TYPE_NUM_UNKNOWN,
+    "DB_TYPE_UNKNOWN",
+    "UNKNOWN"
+)
+
+DB_TYPE_UROWID = DbType(
+    DB_TYPE_NUM_UROWID,
+    "DB_TYPE_UROWID",
+    "UROWID",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_UROWID
+)
+
+DB_TYPE_VARCHAR = DbType(
+    DB_TYPE_NUM_VARCHAR,
+    "DB_TYPE_VARCHAR",
+    "VARCHAR2",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_VARCHAR,
+    default_size=4000,
+    csfrm=CS_FORM_IMPLICIT,
+    buffer_size_factor=4
+)
+
+DB_TYPE_VECTOR = DbType(
+    DB_TYPE_NUM_VECTOR,
+    "DB_TYPE_VECTOR",
+    "VECTOR",
+    NATIVE_TYPE_NUM_VECTOR,
+    ORA_TYPE_NUM_VECTOR
+)
+
+DB_TYPE_XMLTYPE = DbType(
+    DB_TYPE_NUM_XMLTYPE,
+    "DB_TYPE_XMLTYPE",
+    "XMLTYPE",
+    NATIVE_TYPE_NUM_BYTES,
+    ORA_TYPE_NUM_OBJECT,
+    csfrm=CS_FORM_IMPLICIT,
+    buffer_size_factor=2147483647
+)
 
 # additional aliases
 db_type_by_ora_name["DOUBLE PRECISION"] = DB_TYPE_NUMBER

@@ -143,7 +143,7 @@ cdef class BaseThinLobImpl(BaseLobImpl):
         message.operation = TNS_LOB_OP_WRITE
         message.source_lob_impl = self
         message.source_offset = offset
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             if not isinstance(value, bytes):
                 raise TypeError("only bytes can be written to BLOBs")
             message.data = value
@@ -272,7 +272,7 @@ cdef class ThinLobImpl(BaseThinLobImpl):
         """
         Internal method for closing a LOB that was opened earlier.
         """
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             self._process_message(self._create_file_close_message())
         else:
             self._process_message(self._create_close_message())
@@ -309,7 +309,7 @@ cdef class ThinLobImpl(BaseThinLobImpl):
         Internal method for returning whether the LOB is open or not.
         """
         cdef LobOpMessage message
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             message = self._create_get_file_is_open_message()
         else:
             message = self._create_get_is_open_message()
@@ -331,7 +331,7 @@ cdef class ThinLobImpl(BaseThinLobImpl):
         """
         Internal method for opening a LOB.
         """
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             self._process_message(self._create_file_open_message())
         else:
             self._process_message(self._create_open_message())
@@ -343,7 +343,7 @@ cdef class ThinLobImpl(BaseThinLobImpl):
         cdef:
             bint should_close = False
             LobOpMessage message
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             if not self.get_is_open():
                 should_close = True
                 self.open()
@@ -352,8 +352,8 @@ cdef class ThinLobImpl(BaseThinLobImpl):
         if should_close:
             self.close()
         if message.data is None:
-            if self.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                             TNS_DATA_TYPE_BFILE):
+            if self.dbtype._ora_type_num in (ORA_TYPE_NUM_BLOB,
+                                             ORA_TYPE_NUM_BFILE):
                 return b""
             return ""
         return message.data
@@ -387,7 +387,7 @@ cdef class AsyncThinLobImpl(BaseThinLobImpl):
         """
         Internal method for closing a LOB that was opened earlier.
         """
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             await self._process_message(self._create_file_close_message())
         else:
             await self._process_message(self._create_close_message())
@@ -424,7 +424,7 @@ cdef class AsyncThinLobImpl(BaseThinLobImpl):
         Internal method for returning whether the LOB is open or not.
         """
         cdef LobOpMessage message
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             message = self._create_get_file_is_open_message()
         else:
             message = self._create_get_is_open_message()
@@ -446,7 +446,7 @@ cdef class AsyncThinLobImpl(BaseThinLobImpl):
         """
         Internal method for opening a LOB.
         """
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             await self._process_message(self._create_file_open_message())
         else:
             await self._process_message(self._create_open_message())
@@ -458,7 +458,7 @@ cdef class AsyncThinLobImpl(BaseThinLobImpl):
         cdef:
             bint should_close = False
             LobOpMessage message
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
             if not await self.get_is_open():
                 should_close = True
                 await self.open()
@@ -467,8 +467,8 @@ cdef class AsyncThinLobImpl(BaseThinLobImpl):
         if should_close:
             await self.close()
         if message.data is None:
-            if self.dbtype._ora_type_num in (TNS_DATA_TYPE_BLOB,
-                                             TNS_DATA_TYPE_BFILE):
+            if self.dbtype._ora_type_num in (ORA_TYPE_NUM_BLOB,
+                                             ORA_TYPE_NUM_BFILE):
                 return b""
             return ""
         return message.data

@@ -258,35 +258,35 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                 buf.write_uint8(TNS_OBJ_ATOMIC_NULL)
             else:
                 buf.write_uint8(TNS_NULL_LENGTH_INDICATOR)
-        elif ora_type_num in (TNS_DATA_TYPE_CHAR, TNS_DATA_TYPE_VARCHAR):
+        elif ora_type_num in (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR):
             if dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
                 temp_bytes = (<str> value).encode(ENCODING_UTF16)
             buf.write_bytes_with_length(temp_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_NUMBER:
+        elif ora_type_num == ORA_TYPE_NUM_NUMBER:
             temp_bytes = (<str> cpython.PyObject_Str(value)).encode()
             buf.write_oracle_number(temp_bytes)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
             buf.write_uint8(4)
             buf.write_uint32be(<uint32_t> value)
-        elif ora_type_num == TNS_DATA_TYPE_RAW:
+        elif ora_type_num == ORA_TYPE_NUM_RAW:
             buf.write_bytes_with_length(value)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
             buf.write_binary_double(value)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_FLOAT:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
             buf.write_binary_float(value)
-        elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             buf.write_uint8(4)
             buf.write_uint32be(value)
-        elif ora_type_num in (TNS_DATA_TYPE_DATE, TNS_DATA_TYPE_TIMESTAMP,
-                              TNS_DATA_TYPE_TIMESTAMP_TZ,
-                              TNS_DATA_TYPE_TIMESTAMP_LTZ):
+        elif ora_type_num in (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_TIMESTAMP,
+                              ORA_TYPE_NUM_TIMESTAMP_TZ,
+                              ORA_TYPE_NUM_TIMESTAMP_LTZ):
             buf.write_oracle_date(value, dbtype._buffer_size_factor)
-        elif ora_type_num in (TNS_DATA_TYPE_CLOB, TNS_DATA_TYPE_BLOB):
+        elif ora_type_num in (ORA_TYPE_NUM_CLOB, ORA_TYPE_NUM_BLOB):
             lob_impl = <BaseThinLobImpl> value._impl
             buf.write_bytes_with_length(lob_impl._locator)
-        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+        elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             obj_impl = value._impl
             if self.type.is_collection or obj_impl.type.is_collection:
                 temp_bytes = obj_impl._get_packed_data()
@@ -366,28 +366,28 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             bytes locator
             bint is_null
             type cls
-        if ora_type_num == TNS_DATA_TYPE_NUMBER:
+        if ora_type_num == ORA_TYPE_NUM_NUMBER:
             return buf.read_oracle_number(preferred_num_type)
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_INTEGER:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
             return buf.read_binary_integer()
-        elif ora_type_num in (TNS_DATA_TYPE_VARCHAR, TNS_DATA_TYPE_CHAR):
+        elif ora_type_num in (ORA_TYPE_NUM_VARCHAR, ORA_TYPE_NUM_CHAR):
             if csfrm == CS_FORM_NCHAR:
                 conn_impl = self.type._conn_impl
                 conn_impl._protocol._caps._check_ncharset_id()
             return buf.read_str(csfrm)
-        elif ora_type_num == TNS_DATA_TYPE_RAW:
+        elif ora_type_num == ORA_TYPE_NUM_RAW:
             return buf.read_bytes()
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_DOUBLE:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
             return buf.read_binary_double()
-        elif ora_type_num == TNS_DATA_TYPE_BINARY_FLOAT:
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
             return buf.read_binary_float()
-        elif ora_type_num in (TNS_DATA_TYPE_DATE, TNS_DATA_TYPE_TIMESTAMP,
-                              TNS_DATA_TYPE_TIMESTAMP_LTZ,
-                              TNS_DATA_TYPE_TIMESTAMP_TZ):
+        elif ora_type_num in (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_TIMESTAMP,
+                              ORA_TYPE_NUM_TIMESTAMP_LTZ,
+                              ORA_TYPE_NUM_TIMESTAMP_TZ):
             return buf.read_date()
-        elif ora_type_num in (TNS_DATA_TYPE_CLOB,
-                              TNS_DATA_TYPE_BLOB,
-                              TNS_DATA_TYPE_BFILE):
+        elif ora_type_num in (ORA_TYPE_NUM_CLOB,
+                              ORA_TYPE_NUM_BLOB,
+                              ORA_TYPE_NUM_BFILE):
             conn_impl = self.type._conn_impl
             locator = buf.read_bytes()
             if locator is None:
@@ -397,9 +397,9 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                     if conn_impl._protocol._transport._is_async \
                     else PY_TYPE_LOB
             return cls._from_impl(lob_impl)
-        elif ora_type_num == TNS_DATA_TYPE_BOOLEAN:
+        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             return buf.read_bool()
-        elif ora_type_num == TNS_DATA_TYPE_INT_NAMED:
+        elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             buf.get_is_atomic_null(&is_null)
             if is_null:
                 return None

@@ -51,8 +51,8 @@ cdef class ThinVarImpl(BaseVarImpl):
         # needs to be established as well to return the string in the way that
         # the user expects to get it
         if stmt._is_plsql and self.size > 32767:
-            if self.dbtype._ora_type_num == TNS_DATA_TYPE_RAW \
-                    or self.dbtype._ora_type_num == TNS_DATA_TYPE_LONG_RAW:
+            if self.dbtype._ora_type_num == ORA_TYPE_NUM_RAW \
+                    or self.dbtype._ora_type_num == ORA_TYPE_NUM_LONG_RAW:
                 self.dbtype = DB_TYPE_BLOB
             elif self.dbtype._csfrm == CS_FORM_NCHAR:
                 self.dbtype = DB_TYPE_NCLOB
@@ -67,8 +67,8 @@ cdef class ThinVarImpl(BaseVarImpl):
             self.outconverter = converter
 
         # for variables containing LOBs, create temporary LOBs, if needed
-        if self.dbtype._ora_type_num == TNS_DATA_TYPE_CLOB \
-                or self.dbtype._ora_type_num == TNS_DATA_TYPE_BLOB:
+        if self.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
+                or self.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             for idx, value in enumerate(self._values):
                 if value is not None \
                         and not isinstance(value, (PY_TYPE_LOB,

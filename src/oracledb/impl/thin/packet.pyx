@@ -487,7 +487,7 @@ cdef class ReadBuffer(Buffer):
             type cls
         self.read_ub4(&num_bytes)
         if num_bytes > 0:
-            if dbtype._ora_type_num == TNS_DATA_TYPE_BFILE:
+            if dbtype._ora_type_num == ORA_TYPE_NUM_BFILE:
                 size = chunk_size = 0
             else:
                 self.read_ub8(&size)
@@ -496,7 +496,7 @@ cdef class ReadBuffer(Buffer):
             lob_impl._size = size
             lob_impl._chunk_size = chunk_size
             lob_impl._has_metadata = \
-                    dbtype._ora_type_num != TNS_DATA_TYPE_BFILE
+                    dbtype._ora_type_num != ORA_TYPE_NUM_BFILE
             cls = PY_TYPE_ASYNC_LOB \
                     if conn_impl._protocol._transport._is_async \
                     else PY_TYPE_LOB

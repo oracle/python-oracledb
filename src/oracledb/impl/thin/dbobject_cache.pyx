@@ -306,13 +306,13 @@ cdef class BaseThinDbObjectTypeCache:
 
         # process the type code
         if attr_type == TNS_OBJ_TDS_TYPE_NUMBER:
-            ora_type_num = TNS_DATA_TYPE_NUMBER
+            ora_type_num = ORA_TYPE_NUM_NUMBER
             buf.read_sb1(precision)
             buf.read_sb1(scale)
             preferred_num_type[0] = \
                     get_preferred_num_type(precision[0], scale[0])
         elif attr_type == TNS_OBJ_TDS_TYPE_FLOAT:
-            ora_type_num = TNS_DATA_TYPE_NUMBER
+            ora_type_num = ORA_TYPE_NUM_NUMBER
             buf.skip_raw_bytes(1)           # precision
         elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
             buf.read_uint16be(&temp16)      # maximum length
@@ -321,40 +321,40 @@ cdef class BaseThinDbObjectTypeCache:
             csfrm = csfrm & 0x7f
             buf.skip_raw_bytes(2)           # character set
             if attr_type == TNS_OBJ_TDS_TYPE_VARCHAR:
-                ora_type_num = TNS_DATA_TYPE_VARCHAR
+                ora_type_num = ORA_TYPE_NUM_VARCHAR
             else:
-                ora_type_num = TNS_DATA_TYPE_CHAR
+                ora_type_num = ORA_TYPE_NUM_CHAR
         elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
             buf.read_uint16be(&temp16)      # maximum length
             max_size[0] = temp16
-            ora_type_num = TNS_DATA_TYPE_RAW
+            ora_type_num = ORA_TYPE_NUM_RAW
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:
-            ora_type_num = TNS_DATA_TYPE_BINARY_FLOAT
+            ora_type_num = ORA_TYPE_NUM_BINARY_FLOAT
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_DOUBLE:
-            ora_type_num = TNS_DATA_TYPE_BINARY_DOUBLE
+            ora_type_num = ORA_TYPE_NUM_BINARY_DOUBLE
         elif attr_type == TNS_OBJ_TDS_TYPE_DATE:
-            ora_type_num = TNS_DATA_TYPE_DATE
+            ora_type_num = ORA_TYPE_NUM_DATE
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP:
             buf.skip_raw_bytes(1)           # precision
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP
+            ora_type_num = ORA_TYPE_NUM_TIMESTAMP
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_LTZ:
             buf.skip_raw_bytes(1)           # precision
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_LTZ
+            ora_type_num = ORA_TYPE_NUM_TIMESTAMP_LTZ
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_TZ:
             buf.skip_raw_bytes(1)           # precision
-            ora_type_num = TNS_DATA_TYPE_TIMESTAMP_TZ
+            ora_type_num = ORA_TYPE_NUM_TIMESTAMP_TZ
         elif attr_type == TNS_OBJ_TDS_TYPE_BOOLEAN:
-            ora_type_num = TNS_DATA_TYPE_BOOLEAN
+            ora_type_num = ORA_TYPE_NUM_BOOLEAN
         elif attr_type == TNS_OBJ_TDS_TYPE_CLOB:
-            ora_type_num = TNS_DATA_TYPE_CLOB
+            ora_type_num = ORA_TYPE_NUM_CLOB
             csfrm = CS_FORM_IMPLICIT
         elif attr_type == TNS_OBJ_TDS_TYPE_BLOB:
-            ora_type_num = TNS_DATA_TYPE_BLOB
+            ora_type_num = ORA_TYPE_NUM_BLOB
         elif attr_type == TNS_OBJ_TDS_TYPE_OBJ:
-            ora_type_num = TNS_DATA_TYPE_INT_NAMED
+            ora_type_num = ORA_TYPE_NUM_OBJECT
             buf.skip_raw_bytes(5)           # offset and code
         elif attr_type == TNS_OBJ_TDS_TYPE_START_EMBED_ADT:
-            ora_type_num = TNS_DATA_TYPE_INT_NAMED
+            ora_type_num = ORA_TYPE_NUM_OBJECT
             while self._parse_tds_attr(buf, &temp_precision, &temp_scale,
                                        &temp_max_size,
                                        &temp_preferred_num_type):
