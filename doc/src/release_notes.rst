@@ -52,6 +52,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for :ref:`naming and caching connection pools
+    <connpoolcache>` during creation, and retrieving them later from the
+    python-oracledb pool cache with :meth:`oracledb.get_pool()`.
+
 
 oracledb 2.5.0 (November 2024)
 ------------------------------

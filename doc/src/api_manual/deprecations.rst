@@ -14,6 +14,16 @@ The previous cx_Oracle deprecation announcements remain in force for
 python-oracledb.  The relevant functionality may be removed in a future version
 of python-oracledb.
 
+.. list-table-with-summary:: Deprecated in python-oracledb 2.6
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
+    :name: _deprecations_2_6
+
+    * - Name
+      - Comments
+    * - Parameter ``pool`` of :meth:`oracledb.connect()` and :meth:`oracledb.connect_async()`
+      - Use :meth:`ConnectionPool.acquire()` instead
 
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1

@@ -46,6 +46,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Homogeneous only - must use keyword arguments
       - Yes - must use keyword arguments
       - Yes
+    * - Named Connection Pools (see :ref:`connpoolcache`)
+      - Yes
+      - Yes
+      - No
     * - Connection Pool Connection Load Balancing (CLB) (see `Client-Side Load Balancing <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-10F7892A-92DD-482C-8D68-AE80CE956010>`__)
       - Yes
       - Yes

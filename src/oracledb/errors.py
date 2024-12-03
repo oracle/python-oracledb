@@ -273,6 +273,8 @@ ERR_INVALID_TPC_BEGIN_FLAGS = 2050
 ERR_INVALID_TPC_END_FLAGS = 2051
 ERR_MISMATCHED_TOKEN = 2052
 ERR_THICK_MODE_ENABLED = 2053
+ERR_NAMED_POOL_MISSING = 2054
+ERR_NAMED_POOL_EXISTS = 2055
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -652,6 +654,12 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_MIXED_POSITIONAL_AND_NAMED_BINDS: (
         "positional and named binds cannot be intermixed"
+    ),
+    ERR_NAMED_POOL_EXISTS: (
+        'connection pool with name "{name}" already exists'
+    ),
+    ERR_NAMED_POOL_MISSING: (
+        'connection pool with name "{name}" does not exist'
     ),
     ERR_NAMED_TIMEZONE_NOT_SUPPORTED: (
         "named time zones are not supported in thin mode"

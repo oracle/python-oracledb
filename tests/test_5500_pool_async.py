@@ -589,6 +589,39 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(conn.edition, edition)
         await pool.close()
 
+    async def test_5537(self):
+        "5537 - test create_pool() and get_pool() with name"
+        name = "pool_name_5537"
+        pool = test_env.get_pool_async(pool_name=name)
+        self.assertIs(pool, oracledb.get_pool(name))
+        await pool.close()
+
+    async def test_5538(self):
+        "5538 - test create_pool() twice with the same name"
+        name = "pool_name_5538"
+        pool = test_env.get_pool_async(pool_name=name)
+        with self.assertRaisesFullCode("DPY-2055"):
+            test_env.get_pool_async(pool_name=name)
+        await pool.close()
+        self.assertIsNone(oracledb.get_pool(name))
+
+    async def test_5539(self):
+        "5539 - test connect() with pool name"
+        name = "pool_name_5539"
+        pool = test_env.get_pool_async(pool_name=name)
+        try:
+            with self.assertRaisesFullCode("DPY-2014"):
+                test_env.get_connection_async(pool=pool, pool_name=name)
+            async with oracledb.connect_async(pool_name=name) as conn:
+                with conn.cursor() as cursor:
+                    await cursor.execute("select user from dual")
+                    (value,) = await cursor.fetchone()
+                    self.assertEqual(value, test_env.get_main_user().upper())
+        finally:
+            await pool.close(force=True)
+        with self.assertRaisesFullCode("DPY-2054"):
+            await oracledb.connect_async(pool_name=name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

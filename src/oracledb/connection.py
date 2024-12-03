@@ -1179,13 +1179,33 @@ def _connection_factory(f):
         dsn: str = None,
         *,
         pool: "pool_module.ConnectionPool" = None,
+        pool_name: str = None,
         conn_class: Type[Connection] = Connection,
         params: ConnectParams = None,
         **kwargs,
     ) -> Connection:
-        f(dsn=dsn, pool=pool, conn_class=conn_class, params=params, **kwargs)
+        f(
+            dsn=dsn,
+            pool=pool,
+            pool_name=pool_name,
+            conn_class=conn_class,
+            params=params,
+            **kwargs,
+        )
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+        if pool is not None and pool_name is not None:
+            errors._raise_err(
+                errors.ERR_DUPLICATED_PARAMETER,
+                deprecated_name="pool",
+                new_name="pool_name",
+            )
+        if pool_name is not None:
+            pool = pool_module.named_pools.pools.get(pool_name)
+            if pool is None:
+                errors._raise_err(
+                    errors.ERR_NAMED_POOL_MISSING, name=pool_name
+                )
         if pool is not None and not isinstance(
             pool, pool_module.ConnectionPool
         ):
@@ -1201,6 +1221,7 @@ def connect(
     dsn: str = None,
     *,
     pool: "pool_module.ConnectionPool" = None,
+    pool_name: str = None,
     conn_class: Type[Connection] = Connection,
     params: ConnectParams = None,
     user: str = None,
@@ -1914,6 +1935,7 @@ def _async_connection_factory(f):
         dsn: str = None,
         *,
         pool: "pool_module.AsyncConnectionPool" = None,
+        pool_name: str = None,
         conn_class: Type[AsyncConnection] = AsyncConnection,
         params: ConnectParams = None,
         **kwargs,
@@ -1922,12 +1944,26 @@ def _async_connection_factory(f):
         f(
             dsn=dsn,
             pool=pool,
+            pool_name=pool_name,
             conn_class=conn_class,
             params=params,
             **kwargs,
         )
         if not issubclass(conn_class, AsyncConnection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
+
+        if pool is not None and pool_name is not None:
+            errors._raise_err(
+                errors.ERR_DUPLICATED_PARAMETER,
+                deprecated_name="pool",
+                new_name="pool_name",
+            )
+        if pool_name is not None:
+            pool = pool_module.named_pools.pools.get(pool_name)
+            if pool is None:
+                errors._raise_err(
+                    errors.ERR_NAMED_POOL_MISSING, name=pool_name
+                )
         if pool is not None and not isinstance(
             pool, pool_module.AsyncConnectionPool
         ):
@@ -1950,6 +1986,7 @@ def connect_async(
     dsn: str = None,
     *,
     pool: "pool_module.AsyncConnectionPool" = None,
+    pool_name: str = None,
     conn_class: Type[AsyncConnection] = AsyncConnection,
     params: ConnectParams = None,
     user: str = None,

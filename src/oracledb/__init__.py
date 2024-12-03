@@ -256,6 +256,7 @@ from .pool import (
     ConnectionPool as ConnectionPool,
     create_pool as create_pool,
     create_pool_async as create_pool_async,
+    get_pool as get_pool,
 )
 
 from .subscr import (

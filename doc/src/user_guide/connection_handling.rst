@@ -995,6 +995,114 @@ To force immediate pool termination when connections are still in use, execute:
 See `connection_pool.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/connection_pool.py>`__ for a runnable example of connection pooling.
 
+.. _connpoolcache:
+
+Using the Connection Pool Cache
+-------------------------------
+
+When your application architecture makes it difficult to pass a
+:ref:`ConnectionPool object <connpool>` between your code layers, you can use
+the python-oracledb connection pool cache. This lets you store and retrieve
+pools by name.
+
+**Adding a pool to the python-oracledb connection pool cache**
+
+To use the python-oracledb pool cache, specify the ``pool_name`` parameter when
+you create a pool during application initialization. Its value should be a
+user-chosen string. For example:
+
+.. code-block:: python
+
+    import oracledb
+
+    NAME = "my_pool"
+
+    oracledb.create_pool(
+        user="hr",
+        password=userpwd,
+        dsn="dbhost.example.com/orclpdb",
+        pool_name=NAME
+    )
+
+This creates a pool and stores it in the cache under the name "my_pool". The
+application does not need to store or manage the reference to the pool so the
+:meth:`~oracledb.create_pool()` return value is not saved.
+
+If a pool already exists with the name "my_pool", the following error will
+be raised::
+
+    DPY-2055: connection pool with name "my_pool" already exists
+
+**Getting a connection from a cached pool**
+
+Applications can get a connection from a cached pool by passing its name
+directly to :meth:`oracledb.connect()`:
+
+.. code-block:: python
+
+    import oracledb
+
+    NAME = "my_pool"
+
+    connection = oracledb.connect(pool_name=NAME)
+
+This is equivalent to calling :meth:`ConnectionPool.acquire()`. You can pass
+additional parameters to :meth:`~oracledb.connect()` that are allowed for
+:meth:`~ConnectionPool.acquire()`. For example, with a :ref:`heterogeneous
+<connpooltypes>` pool you can pass the username and password:
+
+.. code-block:: python
+
+    import oracledb
+
+    NAME = "my_pool"
+
+    connection = oracledb.connect(pool_name=NAME, user="toto", password=pw)
+
+If there is no pool named ``my_pool`` in the cache, you will get the following
+error::
+
+    DPY-2054: connection pool with name "my_pool" does not exist
+
+You cannot pass ``pool_name`` and the deprecated ``pool`` parameter together to
+:meth:`oracledb.connect()` or :meth:`oracledb.connect_async()`. If you do, the
+following error is raised::
+
+    DPY-2014: "pool_name" and "pool" cannot be specified together
+
+**Getting a pool from the connection pool cache**
+
+You can use :meth:`oracledb.get_pool()` to retrieve a pool and then access it
+directly:
+
+.. code-block:: python
+
+    import oracledb
+
+    NAME = "my_pool"
+
+    pool = oracledb.get_pool(NAME)
+    connection = pool.acquire()
+
+This allows any connection pool :ref:`method <connpoolmethods>` or
+:ref:`attribute <connpoolattr>` from a cached pool to be used, as normal.
+
+If there is no pool named ``my_pool`` in the cache, then
+:meth:`~oracledb.get_pool()` will return None.
+
+**Removing a pool from the cache**
+
+A pool is automatically removed from the cache when the pool is closed:
+
+.. code-block:: python
+
+    import oracledb
+
+    NAME = "my_pool"
+
+    pool = oracledb.get_pool(NAME)
+    pool.close()
+
 .. _connpoolsize:
 
 Connection Pool Sizing

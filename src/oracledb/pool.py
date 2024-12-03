@@ -35,6 +35,7 @@
 
 import functools
 import ssl
+import threading
 from typing import Callable, Type, Union, Any
 
 import oracledb
@@ -51,7 +52,12 @@ class BaseConnectionPool:
     _impl = None
 
     def __init__(
-        self, dsn: str = None, *, params: PoolParams = None, **kwargs
+        self,
+        dsn: str = None,
+        *,
+        params: PoolParams = None,
+        cache_name=None,
+        **kwargs,
     ) -> None:
         """
         Constructor for creating a connection pool. Connection pooling creates
@@ -88,16 +94,24 @@ class BaseConnectionPool:
             thin = mode_mgr.thin
             dsn = params_impl.process_args(dsn, kwargs, thin)
             self._set_connection_type(params_impl.connectiontype)
-            if issubclass(
-                self._connection_type, connection_module.AsyncConnection
-            ):
-                impl = thin_impl.AsyncThinPoolImpl(dsn, params_impl)
-            elif thin:
-                impl = thin_impl.ThinPoolImpl(dsn, params_impl)
-            else:
-                impl = thick_impl.ThickPoolImpl(dsn, params_impl)
-            self._impl = impl
-            self.session_callback = params_impl.session_callback
+            self._cache_name = cache_name
+            if cache_name is not None:
+                named_pools.add_pool(cache_name, self)
+            try:
+                if issubclass(
+                    self._connection_type, connection_module.AsyncConnection
+                ):
+                    impl = thin_impl.AsyncThinPoolImpl(dsn, params_impl)
+                elif thin:
+                    impl = thin_impl.ThinPoolImpl(dsn, params_impl)
+                else:
+                    impl = thick_impl.ThickPoolImpl(dsn, params_impl)
+                self._impl = impl
+                self.session_callback = params_impl.session_callback
+            except:
+                if cache_name is not None:
+                    del named_pools.pools[cache_name]
+                raise
 
     def _verify_open(self) -> None:
         """
@@ -426,6 +440,8 @@ class ConnectionPool(BaseConnectionPool):
         """
         self._verify_open()
         self._impl.close(force)
+        if self._cache_name is not None:
+            named_pools.remove_pool(self._cache_name)
         self._impl = None
 
     def drop(self, connection: "connection_module.Connection") -> None:
@@ -565,13 +581,20 @@ def _pool_factory(f):
         dsn: str = None,
         *,
         pool_class: Type[ConnectionPool] = ConnectionPool,
+        pool_name: str = None,
         params: PoolParams = None,
         **kwargs,
     ) -> ConnectionPool:
-        f(dsn=dsn, pool_class=pool_class, params=params, **kwargs)
+        f(
+            dsn=dsn,
+            pool_class=pool_class,
+            pool_name=pool_name,
+            params=params,
+            **kwargs,
+        )
         if not issubclass(pool_class, ConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
-        return pool_class(dsn, params=params, **kwargs)
+        return pool_class(dsn, params=params, cache_name=pool_name, **kwargs)
 
     return create_pool
 
@@ -581,6 +604,7 @@ def create_pool(
     dsn: str = None,
     *,
     pool_class: Type[ConnectionPool] = ConnectionPool,
+    pool_name: str = None,
     params: PoolParams = None,
     min: int = 1,
     max: int = 2,
@@ -656,6 +680,12 @@ def create_pool(
 
     The pool_class parameter is expected to be ConnectionPool or a subclass of
     ConnectionPool.
+
+    The pool_name parameter is expected to be a string representing the name
+    used to store and reference the pool in the python-oracledb connection
+    pool cache. If this parameter is not specified, then the pool will not be
+    added to the cache. The value of this parameter can be used with the
+    oracledb.get_pool() and oracledb.connect() methods to access the pool.
 
     The params parameter is expected to be of type PoolParams and contains
     parameters that are used to create the pool. See the documentation on
@@ -988,6 +1018,8 @@ class AsyncConnectionPool(BaseConnectionPool):
         """
         self._verify_open()
         await self._impl.close(force)
+        if self._cache_name is not None:
+            named_pools.remove_pool(self._cache_name)
         self._impl = None
 
     async def drop(self, connection: "connection_module.Connection") -> None:
@@ -1054,13 +1086,20 @@ def _async_pool_factory(f):
         dsn: str = None,
         *,
         pool_class: Type[ConnectionPool] = AsyncConnectionPool,
+        pool_name: str = None,
         params: PoolParams = None,
         **kwargs,
     ) -> AsyncConnectionPool:
-        f(dsn=dsn, pool_class=pool_class, params=params, **kwargs)
+        f(
+            dsn=dsn,
+            pool_class=pool_class,
+            pool_name=pool_name,
+            params=params,
+            **kwargs,
+        )
         if not issubclass(pool_class, AsyncConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
-        return pool_class(dsn, params=params, **kwargs)
+        return pool_class(dsn, params=params, cache_name=pool_name, **kwargs)
 
     return create_pool_async
 
@@ -1070,6 +1109,7 @@ def create_pool_async(
     dsn: str = None,
     *,
     pool_class: Type[ConnectionPool] = AsyncConnectionPool,
+    pool_name: str = None,
     params: PoolParams = None,
     min: int = 1,
     max: int = 2,
@@ -1145,6 +1185,13 @@ def create_pool_async(
 
     The pool_class parameter is expected to be AsyncConnectionPool or a
     subclass of AsyncConnectionPool.
+
+    The pool_name parameter is expected to be a string representing the name
+    used to store and reference the pool in the python-oracledb connection
+    pool cache. If this parameter is not specified, then the pool will not be
+    added to the cache. The value of this parameter can be used with the
+    oracledb.get_pool() and oracledb.connect_async() methods to access the
+    pool.
 
     The params parameter is expected to be of type PoolParams and contains
     parameters that are used to create the pool. See the documentation on
@@ -1398,3 +1445,44 @@ def create_pool_async(
       extreme caution (default: 0)
     """
     pass
+
+
+class NamedPools:
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.pools = {}
+
+    def add_pool(self, name, pool):
+        """
+        Adds a pool to the cache. An exception is raised if a pool is already
+        cached with the given name.
+        """
+        with self.lock:
+            if name in self.pools:
+                errors._raise_err(errors.ERR_NAMED_POOL_EXISTS, name=name)
+            self.pools[name] = pool
+
+    def remove_pool(self, name):
+        """
+        Removes the pool with the given name from the cache. An exception is
+        raised if there is no pool cached with the given name.
+        """
+        with self.lock:
+            if name not in self.pools:
+                errors._raise_err(errors.ERR_NAMED_POOL_MISSING, name=name)
+            del self.pools[name]
+
+
+named_pools = NamedPools()
+
+
+def get_pool(
+    pool_name: str,
+) -> Union[ConnectionPool, AsyncConnectionPool, None]:
+    """
+    Returns the connection pool with the given name from the python-oracledb
+    connection pool cache. If a pool with that name does not exist, the value
+    "None" will be returned.
+    """
+    return named_pools.pools.get(pool_name)

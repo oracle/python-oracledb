@@ -35,10 +35,10 @@ Oracledb Methods
 
         This method is an extension to the DB API definition.
 
-.. function:: connect(dsn=None, pool=None, conn_class=None, params=None, \
-        user=None, proxy_user=None, password=None, newpassword=None, \
-        wallet_password=None, access_token=None, host=None, port=1521, \
-        protocol="tcp", https_proxy=None, https_proxy_port=0, \
+.. function:: connect(dsn=None, pool=None, pool_name=None, conn_class=None, \
+        params=None, user=None, proxy_user=None, password=None, \
+        newpassword=None, wallet_password=None, access_token=None, host=None, \
+        port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
         service_name=None, sid=None, server_type=None, cclass=None, \
         purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
         retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
@@ -79,8 +79,17 @@ Oracledb Methods
     Connection String <connstr>`.  It can also be a string in the format
     ``user/password@connect_string``.
 
-    The ``pool`` parameter is expected to be a pool object. The use of this
-    parameter is the equivalent of calling :meth:`ConnectionPool.acquire()`.
+    The ``pool`` parameter is expected to be a pool object.  This parameter
+    was deprecated in python-oracledb 2.6.0.  Use
+    :meth:`ConnectionPool.acquire()` instead since the use of this parameter
+    is the equivalent of calling this method.
+
+    The ``pool_name`` parameter is expected to be a string which indicates the
+    name of the previously created pool in the :ref:`connection pool cache
+    <connpoolcache>` from which to acquire the connection. This is identical to
+    calling :meth:`ConnectionPool.acquire()`. When ``pool_name`` is used,
+    ``connect()`` supports the same parameters as
+    :meth:`~ConnectionPool.acquire()` and has the same behavior.
 
     The ``conn_class`` parameter is expected to be Connection or a subclass of
     Connection.
@@ -385,6 +394,11 @@ Oracledb Methods
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.6.0
+
+        The ``pool_name`` parameter was added.  The ``pool`` parameter was
+        deprecated. Use :meth:`ConnectionPool.acquire()` instead.
+
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
@@ -410,13 +424,14 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
-.. function:: connect_async(dsn=None, pool=None, conn_class=None, params=None, \
-        user=None, proxy_user=None, password=None, newpassword=None, \
-        wallet_password=None, access_token=None, host=None, port=1521, \
-        protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
+.. function:: connect_async(dsn=None, pool=None, pool_name=None, \
+        conn_class=None, params=None, user=None, proxy_user=None, \
+        password=None, newpassword=None, wallet_password=None, \
+        access_token=None, host=None, port=1521, protocol="tcp", \
+        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
+        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
+        expire_time=0, retry_count=0, retry_delay=1, \
+        tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -451,9 +466,17 @@ Oracledb Methods
     Connection String <connstr>`.  It can also be a string in the format
     ``user/password@connect_string``.
 
-    The ``pool`` parameter is expected to be an AsyncConnectionPool object. The
-    use of this parameter is the equivalent of calling
-    :meth:`AsyncConnectionPool.acquire()`.
+    The ``pool`` parameter is expected to be an AsyncConnectionPool object.
+    This parameter was deprecated in python-oracledb 2.6.0.  Use
+    :meth:`AsyncConnectionPool.acquire()` instead since the
+    use of this parameter is the equivalent of calling this method.
+
+    The ``pool_name`` parameter is expected to be a string which indicates the
+    name of the previously created pool in the :ref:`connection pool cache
+    <connpoolcache>` from which to acquire the connection. This is identical to
+    calling :meth:`AsyncConnectionPool.acquire()`. When ``pool_name`` is used,
+    ``connect_async()`` supports the same parameters as
+    :meth:`~AsyncConnectionPool.acquire()` and has the same behavior.
 
     The ``conn_class`` parameter is expected to be AsyncConnection or a
     subclass of AsyncConnection.
@@ -690,6 +713,11 @@ Oracledb Methods
     the value of :attr:`defaults.driver_name`.
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+
+    .. versionchanged:: 2.6.0
+
+        The ``pool_name`` parameter was added. The ``pool`` parameter was
+        deprecated. Use :meth:`AsyncConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -1063,7 +1091,7 @@ Oracledb Methods
     .. versionadded:: 2.4.0
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
-        params=None, min=1, max=2, increment=1, \
+        pool_name=None, params=None, min=1, max=2, increment=1, \
         connectiontype=oracledb.Connection, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
@@ -1128,6 +1156,13 @@ Oracledb Methods
 
     The ``pool_class`` parameter is expected to be a
     :ref:`ConnectionPool Object <connpool>` or a subclass of ConnectionPool.
+
+    The ``pool_name`` parameter is expected to be a string representing the
+    name used to store and reference the pool in the python-oracledb connection
+    pool cache. If this parameter is not specified, then the pool will not be
+    added to the cache. The value of this parameter can be used with the
+    :meth:`oracledb.get_pool()` and :meth:`oracledb.connect()` methods to
+    access the pool.  See :ref:`connpoolcache`.
 
     The ``params`` parameter is expected to be of type :ref:`PoolParams
     <poolparam>` and contains parameters that are used to create the pool.
@@ -1490,6 +1525,10 @@ Oracledb Methods
     is ignored in the Thin mode. It should be used with extreme caution. The
     default value is 0.
 
+    .. versionchanged:: 2.6.0
+
+        The ``pool_name`` parameter was added.
+
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
@@ -1515,7 +1554,8 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
-.. function:: create_pool_async(dsn=None, pool_class=oracledb.AsyncConnectionPool, \
+.. function:: create_pool_async(dsn=None, \
+        pool_class=oracledb.AsyncConnectionPool, pool_name=None, \
         params=None, min=1, max=2, increment=1, \
         connectiontype=oracledb.AsyncConnection, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
@@ -1563,6 +1603,13 @@ Oracledb Methods
     The ``pool_class`` parameter is expected to be an
     :ref:`AsyncConnectionPool Object <asyncconnpoolobj>` or a subclass of
     AsyncConnectionPool.
+
+    The ``pool_name`` parameter is expected to be a string representing the
+    name used to store and reference the pool in the python-oracledb connection
+    pool cache. If this parameter is not specified, then the pool will not be
+    added to the cache. The value of this parameter can be used with the
+    :meth:`oracledb.get_pool()` and :meth:`oracledb.connect_async()` methods to
+    access the pool.  See :ref:`connpoolcache`.
 
     The ``params`` parameter is expected to be of type :ref:`PoolParams
     <poolparam>` and contains parameters that are used to create the pool.
@@ -1857,6 +1904,10 @@ Oracledb Methods
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
+    .. versionchanged:: 2.6.0
+
+        The ``pool_name`` parameter was added.
+
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
@@ -1921,6 +1972,19 @@ Oracledb Methods
     See :ref:`enablingthin` for more information.
 
     .. versionadded:: 2.5.0
+
+.. function:: get_pool(pool_name)
+
+    Returns a :ref:`ConnectionPool object <connpool>` from the python-oracledb
+    pool cache. The pool must have been previously created by passing the same
+    ``pool_name`` value to :meth:`oracledb.create_pool()` or
+    :meth:`oracledb.create_pool_async()`.
+
+    If a pool with the given name does not exist, None is returned.
+
+    See :ref:`connpoolcache` for more information.
+
+    .. versionadded:: 2.6.0
 
 .. function:: init_oracle_client(lib_dir=None, config_dir=None, \
         error_url=None, driver_name=None)

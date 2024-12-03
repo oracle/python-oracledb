@@ -986,6 +986,37 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire()
         self.assertEqual(conn.edition, edition)
 
+    def test_2449(self):
+        "2449 - test create_pool() and get_pool() with name"
+        name = "pool_name_2449"
+        pool = test_env.get_pool(pool_name=name)
+        self.assertIs(pool, oracledb.get_pool(name))
+        pool.close()
+
+    def test_2450(self):
+        "2450 - test create_pool() twice with the same name"
+        name = "pool_name_2450"
+        pool = test_env.get_pool(pool_name=name)
+        with self.assertRaisesFullCode("DPY-2055"):
+            test_env.get_pool(pool_name=name)
+        pool.close()
+        self.assertIsNone(oracledb.get_pool(name))
+
+    def test_2451(self):
+        "2451 - test connect() with pool name"
+        name = "pool_name_2451"
+        pool = test_env.get_pool(pool_name=name)
+        with self.assertRaisesFullCode("DPY-2014"):
+            test_env.get_connection(pool=pool, pool_name=name)
+        with oracledb.connect(pool_name=name) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+                (value,) = cursor.fetchone()
+                self.assertEqual(value, test_env.get_main_user().upper())
+        pool.close()
+        with self.assertRaisesFullCode("DPY-2054"):
+            oracledb.connect(pool_name=name)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

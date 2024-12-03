@@ -40,6 +40,8 @@ The function :meth:`oracledb.SessionPool` that is used to create pools is
 deprecated in python-oracledb 1.0 and has been deprecated by the function
 :meth:`oracledb.create_pool`.
 
+.. _connpoolmethods:
+
 ConnectionPool Methods
 ======================
 
@@ -75,6 +77,10 @@ ConnectionPool Methods
     expected to be a sequence of values which will be used to identify the
     database shard to connect to. The key values can be strings, numbers, bytes
     or dates.  See :ref:`connsharding`.
+
+    When using the :ref:`connection pool cache <connpoolcache>`, calling
+    :meth:`oracledb.connect()` with a ``pool_name`` parameter is the same as
+    calling ``pool.acquire()``.
 
 .. method:: ConnectionPool.close(force=False)
 
@@ -162,6 +168,8 @@ ConnectionPool Methods
     :attr:`Connection.tag`. If either :attr:`Connection.tag` or the tag
     parameter are not None, the connection will be retagged when it is released
     back to the pool.
+
+.. _connpoolattr:
 
 ConnectionPool Attributes
 =========================
