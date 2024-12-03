@@ -416,7 +416,7 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.action
 
-    This write-only attribute sets the action column in the v$session table. It
+    This write-only attribute sets the ACTION column in the V$SESSION view. It
     is a string attribute but the value None is accepted and treated as an
     empty string.
 
@@ -438,13 +438,13 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.client_identifier
 
-    This write-only attribute sets the client_identifier column in the
-    v$session table.
+    This write-only attribute sets the CLIENT_IDENTIFIER column in the
+    V$SESSION view.
 
 .. attribute:: AsyncConnection.clientinfo
 
-    This write-only attribute sets the client_info column in the v$session
-    table.
+    This write-only attribute sets the CLIENT_INFO column in the V$SESSION
+    view.
 
 .. attribute:: AsyncConnection.current_schema
 
@@ -469,8 +469,8 @@ AsyncConnection Attributes
 .. attribute:: AsyncConnection.dbop
 
     This write-only attribute sets the database operation that is to be
-    monitored. This can be viewed in the ``DBOP_NAME`` column of the
-    ``v$sql_monitor`` table.
+    monitored. This can be viewed in the DBOP_NAME column of the
+    V$SQL_MONITOR view.
 
 .. attribute:: AsyncConnection.dsn
 
@@ -479,9 +479,9 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.econtext_id
 
-    This write-only attribute specifies the execution context id. This
-    value can be found as ecid in the v$session table and econtext_id in the
-    auditing tables. The maximum length is 64 bytes.
+    This write-only attribute specifies the execution context id. This value
+    can be found as the ECID column in the V$SESSION view and ECONTEXT_ID in
+    the auditing tables. The maximum length is 64 bytes.
 
 .. attribute:: AsyncConnection.edition
 
@@ -543,7 +543,7 @@ AsyncConnection Attributes
 
 .. attribute:: AsyncConnection.module
 
-    This write-only attribute sets the module column in the v$session table.
+    This write-only attribute sets the MODULE column in the V$SESSION view.
     The maximum length for this string is 48 and if you exceed this length you
     will get ORA-24960.
 

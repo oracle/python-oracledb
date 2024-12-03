@@ -55,7 +55,7 @@ AsyncCursor Methods
     A synchronous method that returns the list of bind variable names bound to
     the statement. Note that a statement must have been prepared first.
 
-.. method:: AsyncCursor.callfunc(name, returnType, parameters=None, \
+.. method:: AsyncCursor.callfunc(name, return_type, parameters=None, \
         keyword_parameters=None)
 
     Calls a function with the given name. The return type is specified in the

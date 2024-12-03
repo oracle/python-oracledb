@@ -702,9 +702,9 @@ An example application showing this module in use is:
 
     connection = cx_Oracle.connect(user=un, password=pw, dsn=cs)
     with connection.cursor() as cursor:
-        sql = """SELECT UNIQUE CLIENT_DRIVER
-                 FROM V$SESSION_CONNECT_INFO
-                 WHERE SID = SYS_CONTEXT('USERENV', 'SID')"""
+        sql = """select unique client_driver
+                 from v$session_connect_info
+                 where sid = sys_context('userenv', 'sid')"""
         for r, in cursor.execute(sql):
             print(r)
 
@@ -741,8 +741,8 @@ similar to:
     else:
            print('oracledb')
 
-Another method that can be used to check which driver is in use is to query
-``V$SESSION_CONNECT_INFO``, see :ref:`vsessconinfo`.
+Another method that can be used to check which driver is in use is to query the
+view V$SESSION_CONNECT_INFO, see :ref:`vsessconinfo`.
 
 .. _frameworks:
 

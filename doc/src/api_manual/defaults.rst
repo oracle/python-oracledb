@@ -40,8 +40,8 @@ Defaults Attributes
 .. attribute:: defaults.driver_name
 
     The default value that represents the driver used by the client to connect
-    to Oracle Database. This is the value used in the ``CLIENT_DRIVER`` column
-    of the ``V$SESSION_CONNECT_INFO`` view.
+    to Oracle Database. This is the value used in the CLIENT_DRIVER column
+    of the V$SESSION_CONNECT_INFO view.
 
     This attribute has an initial value of None. It is used as required in
     python-oracledb Thick and Thin mode.
@@ -101,7 +101,7 @@ Defaults Attributes
 
     The default value that represents the machine name of the client
     connecting to Oracle Database. This is the value used in the
-    ``MACHINE`` column of the ``V$SESSION`` view.
+    MACHINE column of the V$SESSION view.
 
     This attribute takes the host name where the application is running as its
     initial value.
@@ -113,8 +113,8 @@ Defaults Attributes
 .. attribute:: defaults.osuser
 
     The default value that represents the operating system user that initiates
-    the database connection. This is the value used in the ``OSUSER``
-    column of the ``V$SESSION`` view.
+    the database connection. This is the value used in the OSUSER
+    column of the V$SESSION view.
 
     This attribute takes the login name of the user as its initial value.
 
@@ -132,8 +132,8 @@ Defaults Attributes
 .. attribute:: defaults.program
 
     The default value that represents the program name connected to the
-    database. This is the value used in the ``PROGRAM`` column of the
-    ``V$SESSION`` view.
+    database. This is the value used in the PROGRAM column of the
+    V$SESSION view.
 
     This attribute has an initial value that is populated by `sys.executable
     <https://docs.python.org/3/library/sys.html#sys.executable>`__.
@@ -153,8 +153,8 @@ Defaults Attributes
 .. attribute:: defaults.terminal
 
     The default value that represents the terminal identifier from which the
-    connection originates. This is the value used in the ``TERMINAL``
-    column of the ``V$SESSION`` view.
+    connection originates. This is the value used in the TERMINAL
+    column of the V$SESSION view.
 
     This attribute has an initial value of "unknown".
 

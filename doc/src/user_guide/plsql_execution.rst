@@ -51,7 +51,7 @@ PL/SQL Stored Functions
 
 The :meth:`Cursor.callfunc()` method is used to call PL/SQL functions.
 
-The ``returnType`` parameter for :meth:`~Cursor.callfunc()` is
+The ``return_type`` parameter for :meth:`~Cursor.callfunc()` is
 expected to be a Python type, one of the :ref:`oracledb types <types>` or
 an :ref:`Object Type <dbobjecttype>`.
 

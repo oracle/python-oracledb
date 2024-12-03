@@ -887,14 +887,19 @@ Installing python-oracledb without Internet Access
 ===================================================
 
 To install python-oracledb on a computer that is not connected to the internet,
-download the appropriate python-oracledb file from Python's package repository
-`PyPI <https://pypi.org/project/oracledb/#files>`__.  Transfer this file to the
-offline computer and install it with::
+download a python-oracledb wheel package from Python's package repository `PyPI
+<https://pypi.org/project/oracledb/#files>`__. Use the file appropriate for
+your operating system and python version. Transfer this file to the offline
+computer and install it with::
 
     python -m pip install "<file_name>"
 
-Then follow the general python-oracledb platform installation instructions
-to install Oracle client libraries.
+You will also need to use a similar step to install the required cryptography
+package and its dependencies.
+
+Then follow the general python-oracledb platform installation instructions to
+install Oracle Client libraries. This is only necessary if you intend to use
+python-oracledb :ref:`Thick mode <initialization>`.
 
 .. _nocrypto:
 

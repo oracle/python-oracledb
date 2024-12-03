@@ -1974,13 +1974,13 @@ Oracledb Methods
     The ``driver_name`` parameter is a string that specifies the driver name
     value. If the ``driver_name`` parameter is set, then the specified value
     can be found in database views that give information about connections.
-    For example, it is in the ``CLIENT_DRIVER`` column of
-    ``V$SESSION_CONNECT_INFO``. From Oracle Database 12.2, the name displayed
-    can be 30 characters.  The standard is to set this value to
-    ``"<name> : version>"``, where <name> is the name of the driver and
-    <version> is its version. There should be a single space character before
-    and after the colon. If this parameter is not set, then the value specified
-    in :attr:`oracledb.defaults.driver_name <defaults.driver_name>` is used. If
+    For example, it is in the CLIENT_DRIVER column of the
+    V$SESSION_CONNECT_INFO view. From Oracle Database 12.2, the name displayed
+    can be 30 characters.  The standard is to set this value to ``"<name> :
+    version>"``, where <name> is the name of the driver and <version> is its
+    version. There should be a single space character before and after the
+    colon. If this parameter is not set, then the value specified in
+    :attr:`oracledb.defaults.driver_name <defaults.driver_name>` is used. If
     the value of this attribute is None, then the default value in
     python-oracledb Thick mode is like "python-oracledb thk : <version>". See
     :ref:`otherinit`.

@@ -354,7 +354,7 @@ lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
 finding the overall behavior of a system.
 
 Sometimes you may wish to find the number of round-trips used for a
-specific application.  Snapshots of the ``V$SESSTAT`` view taken before
+specific application.  Snapshots of the V$SESSTAT view taken before
 and after doing some work can be used for this:
 
 .. code-block:: python
@@ -394,7 +394,7 @@ and after doing some work can be used for this:
 
     print(f"Round-trips required for query: {round_trips_after - round_trips_before}")
 
-Note that ``V$SESSTAT`` is not accurate for :ref:`pipelined database operations
+Note that V$SESSTAT is not accurate for :ref:`pipelined database operations
 <pipelining>`.
 
 .. _stmtcache:

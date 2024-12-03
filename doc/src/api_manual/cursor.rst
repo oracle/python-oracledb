@@ -66,7 +66,7 @@ Cursor Methods
 
         The DB API definition does not define this method.
 
-.. method:: Cursor.callfunc(name, returnType, parameters=[], \
+.. method:: Cursor.callfunc(name, return_type, parameters=[], \
         keyword_parameters={})
 
     Calls a function with the given name. The return type is specified in the
@@ -301,10 +301,11 @@ Cursor Methods
 
 .. method:: Cursor.prepare(statement, tag, cache_statement=True)
 
-    This can be used before a call to :meth:`~Cursor.execute()` to define the
-    statement that will be executed. When this is done, the prepare phase will
-    not be performed when the call to :meth:`~Cursor.execute()` is made with
-    None or the same string object as the statement.
+    This can be used before a call to :meth:`~Cursor.execute()` or
+    :meth:`~Cursor.executemany()` to define the statement that will be
+    executed. When this is done, the prepare phase will not be performed when
+    the call to :meth:`~Cursor.execute()` or :meth:`~Cursor.executemany()` is
+    made with None or the same string object as the statement.
 
     If the ``tag`` parameter is specified and the ``cache_statement`` parameter
     is True, the statement will be returned to the statement cache with the

@@ -151,7 +151,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Mutual TLS (mTLS) connections (see :ref:`twowaytls`)
-      - Yes - needs a PEM format wallet (see :ref:`createpem`)
+      - Yes
       - Yes
       - Yes
     * - Secure External Password Store (SEPS) wallet (e.g. wallets created by mkstore)

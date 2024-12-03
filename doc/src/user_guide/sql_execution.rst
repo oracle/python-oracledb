@@ -634,7 +634,7 @@ can be traversed to access its elements.  Attributes including
 :attr:`DbObjectType.name` and :attr:`DbObjectType.iscollection`, and methods
 including :meth:`DbObject.aslist` and :meth:`DbObject.asdict` are available.
 
-For example, if a table ``mygeometrytab`` contains a column ``geometry`` of
+For example, if a table MYGEOMETRYTAB contains a column GEOMETRY of
 Oracle's predefined Spatial object type `SDO_GEOMETRY
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-683FF8C5-A773-4018-932D-2AF6EC8BC119>`__,
 then it can be queried and printed:

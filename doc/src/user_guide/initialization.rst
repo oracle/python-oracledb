@@ -625,7 +625,7 @@ setting the parameters is:
 
 The convention for ``driver_name`` is to separate the product name from the
 product version by a colon and single blank characters.  The value will be
-shown in Oracle Database views like ``V$SESSION_CONNECT_INFO``.  If this
+shown in Oracle Database views like V$SESSION_CONNECT_INFO.  If this
 parameter is not specified, then the value specified in the
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute is used.
 If the value of this attribute is None, then a value like
@@ -662,6 +662,6 @@ If you have been using python-oracledb in Thick mode, you can use Thin mode by:
 4. When you are satisfied, you can optionally remove Oracle Client
    libraries. For example, delete your Oracle Instant Client directory.
 
-You can validate the python-oracledb mode by querying the ``CLIENT_DRIVER``
-column of ``V$SESSION_CONNECT_INFO`` and verifying if the value of the column
+You can validate the python-oracledb mode by querying the CLIENT_DRIVER
+column of V$SESSION_CONNECT_INFO and verifying if the value of the column
 begins with the text ``python-oracledb thn``. See :ref:`vsessconinfo`.

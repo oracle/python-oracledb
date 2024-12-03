@@ -150,7 +150,7 @@ To create a table with one column for vector data:
         vb vector(24, binary)
     )
 
-In this example, the ``vb`` column can store vector data of 24 dimensions
+In this example, the VB column can store vector data of 24 dimensions
 where each dimension value is represented as a single bit. Note that the
 number of dimensions 24 is a multiple of 8.
 

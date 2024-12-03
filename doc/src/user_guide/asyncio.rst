@@ -202,7 +202,7 @@ multiple coroutines:
 
     # Query the unique session identifier/serial number combination of a connection
     SQL = """SELECT UNIQUE CURRENT_TIMESTAMP AS CT, sid||'-'||serial# AS SIDSER
-             FROM v$session_connect_info
+             FROM V$SESSION_CONNECT_INFO
              WHERE sid = SYS_CONTEXT('USERENV', 'SID')"""
 
     # Show the unique session identifier/serial number of each connection that the
@@ -666,4 +666,4 @@ performance benefit to using pipelining, however the database and network
 efficiencies can help overall system scalability.
 
 Note that the traditional method of monitoring round-trips by taking snapshots
-of ``V$SESSTAT`` is not accurate for pipelines.
+of the V$SESSTAT view is not accurate for pipelines.

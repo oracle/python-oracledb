@@ -24,7 +24,7 @@ advantage of the dedicated JSON type with Oracle Database 21c, or later, you
 can use python-oracledb in Thin or Thick modes.  With Thick mode the Oracle
 Client libraries should be version 21, or later.
 
-To create a table with a column called ``JSON_DATA`` for JSON data you might
+To create a table with a column called JSON_DATA for JSON data you might
 use:
 
 .. code-block:: sql
@@ -281,8 +281,8 @@ satisfy, it.  Path expressions can use wildcards and array ranges.  A simple
 path expression is ``$.friends`` which is the value of the JSON field
 ``friends``.
 
-For example, the previously created ``customers`` table with JSON column
-``json_data`` can be queried like:
+For example, the previously created CUSTOMERS table with JSON column
+JSON_DATA can be queried like:
 
 .. code-block:: sql
 
@@ -424,7 +424,7 @@ Applications can choose whether to use relational access to the underlying
 tables, or use the duality view.
 
 You can use SQL/JSON to query the view and return JSON. The query uses the
-special column ``data``:
+special column DATA:
 
 .. code-block:: python
 

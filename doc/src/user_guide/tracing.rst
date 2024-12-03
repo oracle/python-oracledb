@@ -83,7 +83,7 @@ is done externally to the application.
     for row in cursor.execute("""
             SELECT username, client_identifier, module, action
             FROM V$SESSION
-            WHERE SID = SYS_CONTEXT('USERENV', 'SID')"""):
+            WHERE sid = SYS_CONTEXT('USERENV', 'SID')"""):
         print(row)
 
 The output will be like::
@@ -108,7 +108,7 @@ round-trips to the database which reduces application scalability:
 The :attr:`Connection.dbop` attribute can be used for Real-Time SQL Monitoring,
 see `Monitoring Database Operations <https://www.oracle.com/pls/topic/lookup?
 ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__. The value will
-be shown in the ``DBOP_NAME`` column of the ``V$SQL_MONITOR`` table:
+be shown in the DBOP_NAME column of the V$SQL_MONITOR view:
 
 .. code-block:: python
 
@@ -116,8 +116,8 @@ be shown in the ``DBOP_NAME`` column of the ``V$SQL_MONITOR`` table:
 
     for row in cursor.execute("""
             SELECT dbop_name
-            FROM v$sql_monitor
-            WHERE SID = SYS_CONTEXT('USERENV', 'SID')"""):
+            FROM V$SQL_MONITOR
+            WHERE sid = SYS_CONTEXT('USERENV', 'SID')"""):
         print(row)
 
 .. _subclassconn:
@@ -320,14 +320,14 @@ respectively.  The python-oracledb version can be shown with
 :data:`oracledb.__version__`.
 
 The information can also be seen in the Oracle Database data dictionary table
-``V$SESSION_CONNECT_INFO``:
+V$SESSION_CONNECT_INFO:
 
 .. code-block:: python
 
     with connection.cursor() as cursor:
-        sql = """SELECT UNIQUE CLIENT_DRIVER
+        sql = """SELECT UNIQUE client_driver
                  FROM V$SESSION_CONNECT_INFO
-                 WHERE SID = SYS_CONTEXT('USERENV', 'SID')"""
+                 WHERE sid = SYS_CONTEXT('USERENV', 'SID')"""
         for r, in cursor.execute(sql):
             print(r)
 
@@ -352,8 +352,8 @@ This section shows some sample column values for database views.  Other views
 also contain useful information, such as the :ref:`drcp` views discussed in
 :ref:`monitoringdrcp`.
 
-``V$SESSION_CONNECT_INFO``
---------------------------
+V$SESSION_CONNECT_INFO
+----------------------
 
 The following table lists sample values for some `V$SESSION_CONNECT_INFO
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__
@@ -380,8 +380,8 @@ columns:
       - "python-oracledb thn : 1.0.0"
 
 
-``V$SESSION``
--------------
+V$SESSION
+---------
 
 The following table list sample values for columns with differences in
 `V$SESSION
@@ -407,7 +407,7 @@ The following table list sample values for columns with differences in
       - similar to `python@myuser-mac2 (TNS V1-V3)`
       - the contents of Python's ``sys.executable``, such as `/Users/myuser/.pyenv/versions/3.9.6/bin/python`
 
-The ``MODULE`` column value can be set as shown in :ref:`endtoendtracing`.
+The MODULE column value can be set as shown in :ref:`endtoendtracing`.
 
 Low Level Python-oracledb Driver Tracing
 ========================================
@@ -424,7 +424,7 @@ Low level tracing is mostly useful to maintainers of python-oracledb.
 
 - The python-oracledb Thick mode can be traced using:
 
-  - dpi_debug_level as documented in `ODPI-C Debugging
+  - DPI_DEBUG_LEVEL as documented in `<ODPI-C Debugging
     <https://oracle.github.io/odpi/doc/user_guide/debugging.html>`__.
 
   - Oracle Call Interface (OCI) tracing as directed by Oracle Support.

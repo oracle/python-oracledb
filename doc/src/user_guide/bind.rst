@@ -214,7 +214,7 @@ For example:
             insert into departments (department_id, department_name)
             values (:dept_id, :dept_name)""", dept_id=280, dept_name=None)
 
-In this specific case, since the ``DEPARTMENT_NAME`` column is defined as a
+In this specific case, since the DEPARTMENT_NAME column is defined as a
 ``NOT NULL`` column, an error will occur::
 
     oracledb.IntegrityError: ORA-01400: cannot insert NULL into ("HR"."DEPARTMENTS"."DEPARTMENT_NAME")
@@ -229,7 +229,7 @@ variable with the correct type by calling :func:`Cursor.var()`.
 Binding ROWID Values
 ====================
 
-The pseudo-column ``ROWID`` uniquely identifies a row in a table.  In
+The pseudo-column ROWID uniquely identifies a row in a table.  In
 python-oracledb, ROWID values are represented as strings. The example below shows
 fetching a row and then updating that row by binding its rowid:
 
@@ -1009,4 +1009,4 @@ ORDER BY clause:
     cursor.execute(sql, [col_name])
 
 Depending on the name provided by the user, the query results will be
-ordered either by the column ``DEPARTMENT_ID`` or the column ``MANAGER_ID``.
+ordered either by the column DEPARTMENT_ID or the column MANAGER_ID.

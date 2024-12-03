@@ -10,6 +10,9 @@ Connections between python-oracledb and Oracle Database are used for executing
 :ref:`notifications <cqn>` and :ref:`messages <aqusermanual>`, and for
 :ref:`starting and stopping <startup>` the database.
 
+This chapter covers python-oracledb's synchronous programming model. For
+discussion of asynchronous programming, see :ref:`asyncio`.
+
 By default, python-oracledb runs in a 'Thin' mode which connects directly to
 Oracle Database.  This mode does not need Oracle Client libraries.  However,
 some :ref:`additional functionality <featuresummary>` is available when
@@ -17,9 +20,6 @@ python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode when
 Oracle Client libraries are used.  See :ref:`enablingthick`.  Both modes have
 comprehensive functionality supporting the Python Database API v2.0
 Specification.
-
-This chapter covers python-oracledb's synchronous programming model. For
-discussion of asynchronous programming, see :ref:`asyncio`.
 
 If you intend to use the Thick mode, then you *must* call
 :func:`~oracledb.init_oracle_client()` in the application before any standalone
@@ -303,7 +303,7 @@ Easy Connect Syntax for Connection Strings
 ------------------------------------------
 
 An `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ string is often the simplest
+id=GUID-59956F00-4996-4943-8D8B-9720DC67AD5D>`__ string is often the simplest
 connection string to use in the data source name parameter ``dsn`` of
 connection functions such as :meth:`oracledb.connect()` and
 :meth:`oracledb.create_pool()`.  This method does not need configuration files
@@ -995,6 +995,37 @@ To force immediate pool termination when connections are still in use, execute:
 See `connection_pool.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/connection_pool.py>`__ for a runnable example of connection pooling.
 
+.. _connpoolsize:
+
+Connection Pool Sizing
+----------------------
+
+The Oracle Real-World Performance Group's recommendation is to use fixed size
+connection pools.  The values of ``min`` and ``max`` should be the same.  When
+using older versions of Oracle Client libraries the ``increment`` parameter
+will need to be zero (which is internally treated as a value of one), but
+otherwise you may prefer a larger size since this will affect how the
+connection pool is re-established after, for example, a network dropout
+invalidates all connections.
+
+Fixed size pools avoid connection storms on the database which can decrease
+throughput.  See `Guideline for Preventing Connection Storms: Use Static Pools
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-
+4D16-B19C-31D168069B54>`__, which contains more details about sizing of pools.
+Having a fixed size will also guarantee that the database can handle the upper
+pool size.  For example, if a dynamically sized pool needs to grow but the
+database resources are limited, then :meth:`ConnectionPool.acquire()` may
+return errors such as `ORA-28547 <https://docs.oracle.com/error-help/db/ora-
+28547/>`__.  With a fixed pool size, this class of error will occur when the
+pool is created, allowing you to change the pool size or reconfigure the
+database before users access the application.  With a dynamically growing pool,
+the error may occur much later while the application is in use.
+
+The Real-World Performance Group also recommends keeping pool sizes small
+because they often can perform better than larger pools. The pool attributes
+should be adjusted to handle the desired workload within the bounds of
+available resources in python-oracledb and the database.
+
 Connection Pool Growth
 ++++++++++++++++++++++
 
@@ -1061,7 +1092,7 @@ is always 1 regardless of the value of ``increment``.
 .. _poolhealth:
 
 Pool Connection Health
-++++++++++++++++++++++
+----------------------
 
 Before :meth:`ConnectionPool.acquire()` returns, python-oracledb does a
 lightweight check similar to :meth:`Connection.is_healthy()` to see if the
@@ -1123,37 +1154,6 @@ can mask performance-impacting configuration issues such as firewalls
 terminating connections.  You should monitor `AWR <https://www.oracle.com/pls/
 topic/lookup?ctx=dblatest&id=GUID-56AEF38E-9400-427B-A818-EDEC145F7ACD>`__
 reports for an unexpectedly large connection rate.
-
-.. _connpoolsize:
-
-Connection Pool Sizing
-----------------------
-
-The Oracle Real-World Performance Group's recommendation is to use fixed size
-connection pools.  The values of ``min`` and ``max`` should be the same.  When
-using older versions of Oracle Client libraries the ``increment`` parameter
-will need to be zero (which is internally treated as a value of one), but
-otherwise you may prefer a larger size since this will affect how the
-connection pool is re-established after, for example, a network dropout
-invalidates all connections.
-
-Fixed size pools avoid connection storms on the database which can decrease
-throughput.  See `Guideline for Preventing Connection Storms: Use Static Pools
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7DFBA826-7CC0-
-4D16-B19C-31D168069B54>`__, which contains more details about sizing of pools.
-Having a fixed size will also guarantee that the database can handle the upper
-pool size.  For example, if a dynamically sized pool needs to grow but the
-database resources are limited, then :meth:`ConnectionPool.acquire()` may
-return errors such as `ORA-28547 <https://docs.oracle.com/error-help/db/ora-
-28547/>`__.  With a fixed pool size, this class of error will occur when the
-pool is created, allowing you to change the pool size or reconfigure the
-database before users access the application.  With a dynamically growing pool,
-the error may occur much later while the application is in use.
-
-The Real-World Performance Group also recommends keeping pool sizes small
-because they often can perform better than larger pools. The pool attributes
-should be adjusted to handle the desired workload within the bounds of
-available resources in python-oracledb and the database.
 
 .. _poolreconfiguration:
 
@@ -1396,11 +1396,13 @@ samples/session_callback_plsql.py>`__ for an example.
 Heterogeneous and Homogeneous Connection Pools
 ----------------------------------------------
 
+**Homogeneous Pools**
+
 By default, connection pools are 'homogeneous', meaning that all connections
 use the same database credentials.  Both python-oracledb Thin and :ref:`Thick
 <enablingthick>` modes support homogeneous pools.
 
-**Creating Heterogeneous Pools**
+**Heterogeneous Pools**
 
 The python-oracledb Thick mode additionally supports Heterogeneous pools,
 allowing different user names and passwords to be passed to each
@@ -1761,21 +1763,21 @@ Database administrators can check statistics such as the number of busy and
 free servers, and the number of hits and misses in the pool against the total
 number of requests from clients. The views include:
 
-* ``DBA_CPOOL_INFO``
-* ``V$PROCESS``
-* ``V$SESSION``
-* ``V$CPOOL_STATS``
-* ``V$CPOOL_CC_STATS``
-* ``V$CPOOL_CONN_INFO``
+* DBA_CPOOL_INFO
+* V$PROCESS
+* V$SESSION
+* V$CPOOL_STATS
+* V$CPOOL_CC_STATS
+* V$CPOOL_CONN_INFO
 
 **DBA_CPOOL_INFO View**
 
-``DBA_CPOOL_INFO`` displays configuration information about the DRCP pool.  The
+DBA_CPOOL_INFO displays configuration information about the DRCP pool.  The
 columns are equivalent to the ``dbms_connection_pool.configure_pool()``
 settings described in the table of DRCP configuration options, with the
-addition of a ``STATUS`` column.  The status is ``ACTIVE`` if the pool has been
+addition of a STATUS column.  The status is ``ACTIVE`` if the pool has been
 started and ``INACTIVE`` otherwise.  Note that the pool name column is called
-``CONNECTION_POOL``.  This example checks whether the pool has been started and
+CONNECTION_POOL.  This example checks whether the pool has been started and
 finds the maximum number of pooled servers::
 
     SQL> SELECT connection_pool, status, maxsize FROM dba_cpool_info;
@@ -1786,13 +1788,13 @@ finds the maximum number of pooled servers::
 
 **V$PROCESS and V$SESSION Views**
 
-The ``V$SESSION`` view shows information about the currently active DRCP
-sessions.  It can also be joined with ``V$PROCESS`` through
+The V$SESSION view shows information about the currently active DRCP
+sessions.  It can also be joined with V$PROCESS through
 ``V$SESSION.PADDR = V$PROCESS.ADDR`` to correlate the views.
 
 **V$CPOOL_STATS View**
 
-The ``V$CPOOL_STATS`` view displays information about the DRCP statistics for
+The V$CPOOL_STATS view displays information about the DRCP statistics for
 an instance.  The V$CPOOL_STATS view can be used to assess how efficient the
 pool settings are.  This example query shows an application using the pool
 effectively.  The low number of misses indicates that servers and sessions were
@@ -1809,11 +1811,11 @@ the connection load, then NUM_WAITS will be high.
 
 **V$CPOOL_CC_STATS View**
 
-The view ``V$CPOOL_CC_STATS`` displays information about the connection class
+The view V$CPOOL_CC_STATS displays information about the connection class
 level statistics for the pool per instance::
 
-    SQL> SELECT cclass_name, num_requests, num_hits, num_misses
-         FROM v$cpool_cc_stats;
+    SQL> select cclass_name, num_requests, num_hits, num_misses
+         from v$cpool_cc_stats;
 
     CCLASS_NAME                      NUM_REQUESTS   NUM_HITS NUM_MISSES
     -------------------------------- ------------ ---------- ----------
@@ -1825,17 +1827,17 @@ connection class name.
 
 **V$CPOOL_CONN_INFO View**
 
-The ``V$POOL_CONN_INFO`` view gives insight into client processes that are
+The V$POOL_CONN_INFO view gives insight into client processes that are
 connected to the connection broker, making it easier to monitor and trace
 applications that are currently using pooled servers or are idle. This view was
 introduced in Oracle 11gR2.
 
-You can monitor the view ``V$CPOOL_CONN_INFO`` to, for example, identify
+You can monitor the view V$CPOOL_CONN_INFO to, for example, identify
 misconfigured machines that do not have the connection class set correctly.
 This view maps the machine name to the class name.  In python-oracledb Thick
 mode, the class name will be default to one like shown below::
 
-    SQL> SELECT cclass_name, machine FROM v$cpool_conn_info;
+    SQL> select cclass_name, machine from v$cpool_conn_info;
 
     CCLASS_NAME                             MACHINE
     --------------------------------------- ------------
@@ -1844,8 +1846,8 @@ mode, the class name will be default to one like shown below::
 In this example, you would examine applications on ``cjlinux`` and make them
 set ``cclass``.
 
-When connecting to Oracle Autonomous Database on shared infrastructure (ADB-S),
-the ``V$CPOOL_CONN_INFO`` view can be used to track the number of connection
+When connecting to Oracle Autonomous Database on Shared Infrastructure (ADB-S),
+the V$CPOOL_CONN_INFO view can be used to track the number of connection
 hits and misses to show the pool efficiency.
 
 .. _implicitconnpool:
@@ -3003,12 +3005,12 @@ Note that these are example settings only. You must review your security
 requirements and read the documentation for your Oracle version. In particular,
 review the available algorithms for security and performance.
 
-The ``NETWORK_SERVICE_BANNER`` column of the database view
+The NETWORK_SERVICE_BANNER column of the database view
 `V$SESSION_CONNECT_INFO <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__ can be used to verify the
 encryption status of a connection. For example with SQL*Plus::
 
-    SQL> SELECT network_service_banner FROM v$session_connect_info;
+    SQL> select network_service_banner from v$session_connect_info;
 
 If the connection is encrypted, then this query prints an output that includes
 the available encryption service, the crypto-checksumming service, and the
@@ -3301,13 +3303,13 @@ Creating a PEM File for python-oracledb Thin Mode
 +++++++++++++++++++++++++++++++++++++++++++++++++
 
 For mutual TLS in python-oracledb Thin mode, the certificate must be Privacy
-Enhanced Mail (PEM) format.  If you are using Oracle Autonomous Database and
-your wallet zip file does not already include a PEM file, then you can convert
-the PKCS12 ``ewallet.p12`` file to PEM format using third party tools or the
-script below.
+Enhanced Mail (PEM) format. If you are using Oracle Autonomous Database your
+wallet zip file will already include a PEM file.
 
-For example, invoke the conversion script by passing the wallet password and the
-directory containing the PKCS file::
+If you have a PKCS12 ``ewallet.p12`` file and need to create PEM file, you can
+use third party tools or the script below to do a conversion. For example, you
+can invoke the script by passing the wallet password and the directory
+containing the PKCS12 file::
 
     python create_pem.py --wallet-password 'xxxxx' /Users/scott/cloud_configs/MYDBDIR
 

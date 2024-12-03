@@ -163,8 +163,8 @@ ConnectParams Attributes
     client to connect to Oracle Database. This is an arbitrary value set by the
     user in the :meth:`oracledb.ConnectParams()` method or the
     :attr:`defaults.driver_name` attribute which is the default value. This is
-    the value shown in the ``CLIENT_DRIVER`` column of the
-    ``V$SESSION_CONNECT_INFO`` view.
+    the value shown in the CLIENT_DRIVER column of the
+    V$SESSION_CONNECT_INFO view.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -237,7 +237,7 @@ ConnectParams Attributes
     the client connecting to Oracle Database. This is an arbitrary value set
     by the user in the :meth:`oracledb.ConnectParams()` method or the
     :attr:`defaults.machine` attribute which is the default value. This is the
-    value shown in the ``MACHINE`` column of the ``V$SESSION`` view.
+    value shown in the MACHINE column of the V$SESSION view.
 
     This attribute is only supported in python-oracledb Thin mode.
 
@@ -263,7 +263,7 @@ ConnectParams Attributes
     user that initiates the database connection. This is an arbitrary value
     set by the user in the :meth:`oracledb.ConnectParams()` method or the
     :attr:`defaults.osuser` attribute which is the default value. This is the
-    value shown in the ``OSUSER`` column of the ``V$SESSION`` view.
+    value shown in the OSUSER column of the V$SESSION view.
 
     This attribute is only supported in python-oracledb Thin mode.
 
@@ -300,8 +300,8 @@ ConnectParams Attributes
     executable program or application connected to Oracle Database. This is an
     arbitrary value set by the user in the :meth:`oracledb.ConnectParams()`
     method or the :attr:`defaults.program` attribute which is the default
-    value. This is the value shown in the ``PROGRAM`` column of the
-    ``V$SESSION`` view.
+    value. This is the value shown in the PROGRAM column of the
+    V$SESSION view.
 
     This attribute is supported in python-oracledb Thin mode.
 
@@ -489,7 +489,7 @@ ConnectParams Attributes
     identifier from which the connection originates. This is an arbitrary value
     set by the user in the :meth:`oracledb.ConnectParams()` method or the
     :attr:`defaults.terminal` attribute which is the default value. This is the
-    value shown in the ``TERMINAL`` column of the ``V$SESSION`` view.
+    value shown in the TERMINAL column of the V$SESSION view.
 
     This attribute is only supported in python-oracledb Thin mode.
 
