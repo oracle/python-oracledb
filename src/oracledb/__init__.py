@@ -353,7 +353,7 @@ OBJECT = DB_TYPE_OBJECT
 NCLOB = DB_TYPE_NCLOB
 TIMESTAMP = DB_TYPE_TIMESTAMP
 
-# aliases for authhentication modes (for backwards compatibility)
+# aliases for authentication modes (for backwards compatibility)
 DEFAULT_AUTH = AUTH_MODE_DEFAULT
 SYSASM = AUTH_MODE_SYSASM
 SYSBKP = AUTH_MODE_SYSBKP
