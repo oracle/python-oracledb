@@ -38,6 +38,8 @@ Thin Mode Changes
     parameters
     (`issue 420 <https://github.com/oracle/python-oracledb/issues/420>`__).
 #)  Internal change: improve low-level encoding and decoding routines.
+#)  Internal change: send buffer length for bind variables without unneeded
+    adjustment.
 
 Thick Mode Changes
 ++++++++++++++++++

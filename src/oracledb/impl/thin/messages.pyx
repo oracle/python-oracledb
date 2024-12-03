@@ -986,10 +986,7 @@ cdef class MessageWithData(Message):
             # expects that and complains if any other value is sent!
             buf.write_uint8(0)
             buf.write_uint8(0)
-            if buffer_size > buf._caps.max_string_size:
-                buf.write_ub4(TNS_MAX_LONG_LENGTH)
-            else:
-                buf.write_ub4(buffer_size)
+            buf.write_ub4(buffer_size)
             if var_impl.is_array:
                 buf.write_ub4(var_impl.num_elements)
             else:
