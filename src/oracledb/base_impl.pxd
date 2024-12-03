@@ -38,10 +38,20 @@ from cpython cimport array
 ctypedef unsigned char char_type
 
 cdef enum:
-    NUM_TYPE_FLOAT = 0
-    NUM_TYPE_INT = 1
-    NUM_TYPE_DECIMAL = 2
-    NUM_TYPE_STR = 3
+    PY_TYPE_NUM_ARRAY = 13
+    PY_TYPE_NUM_BOOL = 4
+    PY_TYPE_NUM_BYTES = 10
+    PY_TYPE_NUM_DATETIME = 7
+    PY_TYPE_NUM_DECIMAL = 14
+    PY_TYPE_NUM_FLOAT = 2
+    PY_TYPE_NUM_INT = 3
+    PY_TYPE_NUM_OBJECT = 9
+    PY_TYPE_NUM_ORACLE_CURSOR = 6
+    PY_TYPE_NUM_ORACLE_INTERVAL_YM = 12
+    PY_TYPE_NUM_ORACLE_LOB = 1
+    PY_TYPE_NUM_ORACLE_OBJECT = 11
+    PY_TYPE_NUM_STR = 5
+    PY_TYPE_NUM_TIMEDELTA = 8
 
 cdef enum:
     DB_TYPE_NUM_MIN = 2000
@@ -211,6 +221,7 @@ cdef class DbType:
         str _ora_name
         uint8_t _ora_type_num
         uint8_t _csfrm
+        uint8_t _default_py_type_num
 
     @staticmethod
     cdef DbType _from_num(uint32_t num)
@@ -270,7 +281,7 @@ cdef class Buffer:
     cdef object parse_interval_ds(self, const uint8_t* ptr)
     cdef object parse_interval_ym(self, const uint8_t* ptr)
     cdef object parse_oracle_number(self, const uint8_t* ptr,
-                                    ssize_t num_bytes, int preferred_num_type)
+                                    ssize_t num_bytes, uint8_t py_type_num)
     cdef object read_binary_double(self)
     cdef object read_binary_float(self)
     cdef object read_binary_integer(self)
@@ -280,7 +291,7 @@ cdef class Buffer:
     cdef object read_interval_ds(self)
     cdef object read_interval_ym(self)
     cdef int read_int32be(self, int32_t *value) except -1
-    cdef object read_oracle_number(self, int preferred_num_type)
+    cdef object read_oracle_number(self, uint8_t py_type_num)
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
                                        ssize_t *num_bytes) except -1
@@ -414,6 +425,34 @@ cdef class VectorDecoder(Buffer):
 cdef class VectorEncoder(GrowableBuffer):
 
     cdef int encode(self, array.array value) except -1
+
+
+cdef class OracleMetadata:
+    cdef:
+        readonly str name
+        readonly DbType dbtype
+        readonly BaseDbObjectTypeImpl objtype
+        readonly int8_t precision
+        readonly int8_t scale
+        readonly uint32_t max_size
+        readonly uint32_t buffer_size
+        readonly bint nulls_allowed
+        readonly bint is_json
+        readonly bint is_oson
+        readonly str domain_schema
+        readonly str domain_name
+        readonly dict annotations
+        readonly uint32_t vector_dimensions
+        readonly uint8_t vector_format
+        readonly uint8_t vector_flags
+        uint8_t _py_type_num
+
+    cdef int _finalize_init(self) except -1
+    cdef OracleMetadata copy(self)
+    @staticmethod
+    cdef OracleMetadata from_type(object typ)
+    @staticmethod
+    cdef OracleMetadata from_value(object value)
 
 
 cdef class ConnectParamsNode:
@@ -571,8 +610,8 @@ cdef class BaseConnImpl:
         ssize_t _oson_max_fname_size
         bint _allow_bind_str_to_lob
 
-    cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
-                             object value, bint* is_ok)
+    cdef object _check_value(self, OracleMetadata type_info, object value,
+                             bint* is_ok)
     cdef BaseCursorImpl _create_cursor_impl(self)
 
 
@@ -599,7 +638,7 @@ cdef class BaseCursorImpl:
         public object rowfactory
         public bint scrollable
         public bint set_input_sizes
-        public list fetch_info_impls
+        public list fetch_metadata
         public list fetch_vars
         public list fetch_var_impls
         public list bind_vars
@@ -626,8 +665,8 @@ cdef class BaseCursorImpl:
     cdef int _close(self, bint in_del) except -1
     cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
                                        object type_handler, bint
-                                       uses_fetch_info, ssize_t pos,
-                                       FetchInfoImpl fetch_info)
+                                       uses_metadata, ssize_t pos,
+                                       OracleMetadata metadata)
     cdef object _create_row(self)
     cdef BaseVarImpl _create_var_impl(self, object conn)
     cdef int _fetch_rows(self, object cursor) except -1
@@ -645,49 +684,21 @@ cdef class BaseCursorImpl:
     cdef int bind_one(self, object cursor, object parameters) except -1
 
 
-cdef class FetchInfoImpl:
-    cdef:
-        readonly int16_t precision
-        readonly int16_t scale
-        readonly uint32_t buffer_size
-        readonly uint32_t size
-        readonly bint nulls_allowed
-        readonly str name
-        readonly DbType dbtype
-        readonly BaseDbObjectTypeImpl objtype
-        readonly bint is_json
-        readonly bint is_oson
-        readonly str domain_schema
-        readonly str domain_name
-        readonly dict annotations
-        readonly uint32_t vector_dimensions
-        readonly uint8_t vector_format
-        readonly uint8_t vector_flags
-
-
 cdef class BaseVarImpl:
     cdef:
-        readonly str name
-        readonly int16_t precision
-        readonly int16_t scale
+        readonly OracleMetadata metadata
         readonly uint32_t num_elements
         readonly object inconverter
         readonly object outconverter
-        readonly uint32_t size
-        readonly uint32_t buffer_size
         readonly bint bypass_decode
         readonly str encoding_errors
         readonly bint is_array
-        readonly bint nulls_allowed
         readonly bint convert_nulls
         public uint32_t num_elements_in_array
-        readonly DbType dbtype
-        readonly BaseDbObjectTypeImpl objtype
         bytes _encoding_error_bytes
         const char *_encoding_errors
         BaseConnImpl _conn_impl
-        int _preferred_num_type
-        FetchInfoImpl _fetch_info
+        OracleMetadata _fetch_metadata
         list _values
         bint _is_value_set
 
@@ -702,11 +713,11 @@ cdef class BaseVarImpl:
     cdef object _get_scalar_value(self, uint32_t pos)
     cdef int _on_reset_bind(self, uint32_t num_rows) except -1
     cdef int _resize(self, uint32_t new_size) except -1
-    cdef int _set_scalar_value(self, uint32_t pos, object value) except -1
+    cdef int _set_metadata_from_type(self, object typ) except -1
+    cdef int _set_metadata_from_value(self, object value,
+                                      bint is_plsql) except -1
     cdef int _set_num_elements_in_array(self, uint32_t num_elements) except -1
-    cdef int _set_type_info_from_type(self, object typ) except -1
-    cdef int _set_type_info_from_value(self, object value,
-                                       bint is_plsql) except -1
+    cdef int _set_scalar_value(self, uint32_t pos, object value) except -1
 
 
 cdef class BaseLobImpl:
@@ -722,26 +733,14 @@ cdef class BaseDbObjectTypeImpl:
         readonly list attrs
         readonly bint is_collection
         readonly dict attrs_by_name
-        readonly DbType element_dbtype
-        readonly BaseDbObjectTypeImpl element_objtype
-        readonly int8_t element_precision
-        readonly int8_t element_scale
-        readonly uint32_t element_max_size
+        readonly OracleMetadata element_metadata
         readonly BaseConnImpl _conn_impl
-        int _element_preferred_num_type
 
     cpdef str _get_fqn(self)
 
 
-cdef class BaseDbObjectAttrImpl:
-    cdef:
-        readonly str name
-        readonly DbType dbtype
-        readonly BaseDbObjectTypeImpl objtype
-        readonly int8_t precision
-        readonly int8_t scale
-        readonly uint32_t max_size
-        int _preferred_num_type
+cdef class BaseDbObjectAttrImpl(OracleMetadata):
+    pass
 
 
 cdef class BaseDbObjectImpl:
@@ -875,12 +874,11 @@ cdef class PipelineOpResultImpl:
         readonly list rows
         readonly object error
         readonly object warning
-        readonly list fetch_info_impls
+        readonly list fetch_metadata
 
     cdef int _capture_err(self, Exception exc) except -1
 
 
-cdef int get_preferred_num_type(int16_t precision, int8_t scale)
 cdef uint16_t decode_uint16be(const char_type *buf)
 cdef uint32_t decode_uint32be(const char_type *buf)
 cdef uint16_t decode_uint16le(const char_type *buf)

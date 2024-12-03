@@ -47,14 +47,14 @@ cdef class BindVar:
         if isinstance(value, list):
             if len(value) != 2:
                 errors._raise_err(errors.ERR_WRONG_ARRAY_DEFINITION)
-            var_impl._set_type_info_from_type(value[0])
+            var_impl._set_metadata_from_type(value[0])
             var_impl.num_elements = value[1]
             var_impl.is_array = True
         elif isinstance(value, int):
-            var_impl.dbtype = DB_TYPE_VARCHAR
-            var_impl.size = value
+            var_impl._set_metadata_from_type(str)
+            var_impl.metadata.max_size = value
         else:
-            var_impl._set_type_info_from_type(value)
+            var_impl._set_metadata_from_type(value)
         var_impl._finalize_init()
         self.var_impl = var_impl
         if isinstance(value, PY_TYPE_DB_OBJECT_TYPE):
@@ -68,20 +68,23 @@ cdef class BindVar:
         """
         cdef:
             bint is_plsql = cursor_impl._is_plsql()
+            OracleMetadata metadata
             BaseVarImpl var_impl
         var_impl = cursor_impl._create_var_impl(conn)
         if not isinstance(value, list):
             var_impl.num_elements = num_elements
-            var_impl._set_type_info_from_value(value, is_plsql)
+            var_impl._set_metadata_from_value(value, is_plsql)
         else:
             var_impl.is_array = True
             var_impl.num_elements = max(num_elements, len(value))
             for element in value:
                 if element is not None:
-                    var_impl._set_type_info_from_value(element, is_plsql)
-            if var_impl.dbtype is None:
-                var_impl.dbtype = DB_TYPE_VARCHAR
-                var_impl.size = 1
+                    var_impl._set_metadata_from_value(element, is_plsql)
+            if var_impl.metadata is None:
+                metadata = OracleMetadata.__new__(OracleMetadata)
+                metadata.dbtype = DB_TYPE_VARCHAR
+                metadata.max_size = 1
+                var_impl.metadata = metadata
         var_impl._finalize_init()
         self.var_impl = var_impl
 

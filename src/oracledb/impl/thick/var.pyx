@@ -50,7 +50,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             const char *name_ptr
             bytes name_bytes
             object cursor
-        if self.dbtype.num == DB_TYPE_NUM_CURSOR:
+        if self.metadata.dbtype.num == DB_TYPE_NUM_CURSOR:
             for i, cursor in enumerate(self._values):
                 if cursor is not None and cursor._impl is None:
                     errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
@@ -82,13 +82,13 @@ cdef class ThickVarImpl(BaseVarImpl):
         if self._handle != NULL:
              dpiVar_release(self._handle)
              self._handle = NULL
-        if self.objtype is not None:
-             obj_type_impl = <ThickDbObjectTypeImpl> self.objtype
+        if self.metadata.objtype is not None:
+             obj_type_impl = <ThickDbObjectTypeImpl> self.metadata.objtype
              obj_type_handle = obj_type_impl._handle
-        if dpiConn_newVar(conn_impl._handle, self.dbtype.num,
-                          self.dbtype._native_num, self.num_elements,
-                          self.size, 0, self.is_array, obj_type_handle,
-                          &self._handle, &self._data) < 0:
+        if dpiConn_newVar(conn_impl._handle, self.metadata.dbtype.num,
+                          self.metadata.dbtype._native_num, self.num_elements,
+                          self.metadata.max_size, 0, self.is_array,
+                          obj_type_handle, &self._handle, &self._data) < 0:
              _raise_from_odpi()
 
     cdef int _finalize_init(self) except -1:
@@ -96,7 +96,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         Internal method that finalizes initialization of the variable.
         """
         BaseVarImpl._finalize_init(self)
-        if self.dbtype._native_num in (
+        if self.metadata.dbtype._native_num in (
             DPI_NATIVE_TYPE_LOB,
             DPI_NATIVE_TYPE_OBJECT,
             DPI_NATIVE_TYPE_STMT,
@@ -146,7 +146,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             if obj_impl._handle == dbvalue.asObject:
                 return obj
         obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
-        obj_impl.type = self.objtype
+        obj_impl.type = self.metadata.objtype
         if dpiObject_addRef(dbvalue.asObject) < 0:
             _raise_from_odpi()
         obj_impl._handle = dbvalue.asObject
@@ -167,7 +167,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             lob_impl = <ThickLobImpl> lob._impl
             if lob_impl._handle == dbvalue.asLOB:
                 return lob
-        lob_impl = ThickLobImpl._create(self._conn_impl, self.dbtype,
+        lob_impl = ThickLobImpl._create(self._conn_impl, self.metadata.dbtype,
                                         dbvalue.asLOB)
         lob = self._values[pos] = PY_TYPE_LOB._from_impl(lob_impl)
         return lob
@@ -197,7 +197,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             dpiStmtInfo stmt_info
             uint32_t i
         BaseVarImpl._on_reset_bind(self, num_rows)
-        if self.dbtype.num == DB_TYPE_NUM_CURSOR:
+        if self.metadata.dbtype.num == DB_TYPE_NUM_CURSOR:
             for i in range(self.num_elements):
                 if self._data[i].isNull:
                     continue
@@ -298,27 +298,28 @@ cdef class ThickVarImpl(BaseVarImpl):
         cdef:
             dpiDataBuffer temp_dbvalue
             dpiDataBuffer *dbvalue
+            uint32_t native_num
             dpiBytes *as_bytes
             dpiData *data
         data = &self._data[pos]
         data.isNull = (value is None)
         if not data.isNull:
-            if self.dbtype._native_num == DPI_NATIVE_TYPE_STMT:
+            native_num = self.metadata.dbtype._native_num
+            if native_num == DPI_NATIVE_TYPE_STMT:
                 self._set_cursor_value(value, pos)
-            elif self.dbtype._native_num == DPI_NATIVE_TYPE_LOB:
+            elif native_num == DPI_NATIVE_TYPE_LOB:
                 self._set_lob_value(value, pos)
-            elif self.dbtype._native_num == DPI_NATIVE_TYPE_OBJECT:
+            elif native_num == DPI_NATIVE_TYPE_OBJECT:
                 self._set_dbobject_value(value, pos)
             else:
-                if self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES:
+                if native_num == DPI_NATIVE_TYPE_BYTES:
                     dbvalue = &temp_dbvalue
                 else:
                     dbvalue = &data.value
                 if self._buf is None:
                     self._buf = StringBuffer.__new__(StringBuffer)
-                _convert_from_python(value, self.dbtype, self.objtype, dbvalue,
-                                     self._buf)
-                if self.dbtype._native_num == DPI_NATIVE_TYPE_BYTES:
+                _convert_from_python(value, self.metadata, dbvalue, self._buf)
+                if native_num == DPI_NATIVE_TYPE_BYTES:
                     as_bytes = &dbvalue.asBytes
                     if dpiVar_setFromBytes(self._handle, pos, as_bytes.ptr,
                                            as_bytes.length) < 0:
@@ -346,20 +347,21 @@ cdef class ThickVarImpl(BaseVarImpl):
         Transforms a single element from the value supplied by ODPI-C to its
         equivalent Python value.
         """
-        cdef object value
+        cdef:
+            uint32_t native_num
+            object value
         data = &data[pos]
         if not data.isNull:
-            if self.dbtype._native_num == DPI_NATIVE_TYPE_STMT:
+            native_num = self.metadata.dbtype._native_num
+            if native_num == DPI_NATIVE_TYPE_STMT:
                 value = self._get_cursor_value(&data.value, pos)
-            elif self.dbtype._native_num == DPI_NATIVE_TYPE_LOB:
+            elif native_num == DPI_NATIVE_TYPE_LOB:
                 value = self._get_lob_value(&data.value, pos)
-            elif self.dbtype._native_num == DPI_NATIVE_TYPE_OBJECT:
+            elif native_num == DPI_NATIVE_TYPE_OBJECT:
                 value = self._get_dbobject_value(&data.value, pos)
             else:
-                value = _convert_to_python(self._conn_impl, self.dbtype,
-                                           self.objtype, &data.value,
-                                           self._preferred_num_type,
-                                           self.bypass_decode,
+                value = _convert_to_python(self._conn_impl, self.metadata,
+                                           &data.value, self.bypass_decode,
                                            self._encoding_errors)
             if self.outconverter is not None:
                 value = self.outconverter(value)

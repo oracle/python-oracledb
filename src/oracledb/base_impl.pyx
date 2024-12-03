@@ -59,8 +59,6 @@ import sys
 
 cydatetime.import_datetime()
 
-include "impl/base/types.pyx"
-
 # Python types used by the driver
 cdef type PY_TYPE_ASYNC_CURSOR
 cdef type PY_TYPE_ASYNC_LOB
@@ -90,17 +88,14 @@ cdef const char* DRIVER_INSTALLATION_URL = \
 cdef const char* ENCODING_UTF8 = "UTF-8"
 cdef const char* ENCODING_UTF16 = "UTF-16BE"
 
-cdef int get_preferred_num_type(int16_t precision, int8_t scale):
-    if scale == 0 or (scale == -127 and precision == 0):
-        return NUM_TYPE_INT
-    return NUM_TYPE_FLOAT
-
 # protocols registered with the library
 REGISTERED_PROTOCOLS = {}
 
+include "impl/base/types.pyx"
 include "impl/base/constants.pxi"
 include "impl/base/decoders.pyx"
 include "impl/base/encoders.pyx"
+include "impl/base/metadata.pyx"
 include "impl/base/utils.pyx"
 include "impl/base/defaults.pyx"
 include "impl/base/pipeline.pyx"

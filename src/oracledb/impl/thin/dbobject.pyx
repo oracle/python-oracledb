@@ -228,38 +228,35 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                 buf.write_length(len(self.unpacked_assoc_keys))
                 for index in self.unpacked_assoc_keys:
                     buf.write_uint32be(<uint32_t> index)
-                    self._pack_value(buf, typ_impl.element_dbtype,
-                                     typ_impl.element_objtype,
+                    self._pack_value(buf, typ_impl.element_metadata,
                                      self.unpacked_assoc_array[index])
             else:
                 buf.write_length(len(self.unpacked_array))
                 for value in self.unpacked_array:
-                    self._pack_value(buf, typ_impl.element_dbtype,
-                                    typ_impl.element_objtype, value)
+                    self._pack_value(buf, typ_impl.element_metadata, value)
         else:
             for attr in typ_impl.attrs:
-                self._pack_value(buf, attr.dbtype, attr.objtype,
-                                 self.unpacked_attrs[attr.name])
+                self._pack_value(buf, attr, self.unpacked_attrs[attr.name])
 
     cdef int _pack_value(self, DbObjectPickleBuffer buf,
-                         DbType dbtype, ThinDbObjectTypeImpl objtype,
-                         object value) except -1:
+                         OracleMetadata metadata, object value) except -1:
         """
         Packs a value into the buffer. At this point it is assumed that the
         value matches the correct type.
         """
         cdef:
-            uint8_t ora_type_num = dbtype._ora_type_num
+            uint8_t ora_type_num = metadata.dbtype._ora_type_num
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
             bytes temp_bytes
         if value is None:
-            if objtype is not None and not objtype.is_collection:
+            if metadata.objtype is not None \
+                    and not metadata.objtype.is_collection:
                 buf.write_uint8(TNS_OBJ_ATOMIC_NULL)
             else:
                 buf.write_uint8(TNS_NULL_LENGTH_INDICATOR)
         elif ora_type_num in (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR):
-            if dbtype._csfrm == CS_FORM_IMPLICIT:
+            if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
                 temp_bytes = (<str> value).encode(ENCODING_UTF16)
@@ -282,7 +279,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         elif ora_type_num in (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_TIMESTAMP,
                               ORA_TYPE_NUM_TIMESTAMP_TZ,
                               ORA_TYPE_NUM_TIMESTAMP_LTZ):
-            buf.write_oracle_date(value, dbtype._buffer_size_factor)
+            buf.write_oracle_date(value, metadata.dbtype._buffer_size_factor)
         elif ora_type_num in (ORA_TYPE_NUM_CLOB, ORA_TYPE_NUM_BLOB):
             lob_impl = <BaseThinLobImpl> value._impl
             buf.write_bytes_with_length(lob_impl._locator)
@@ -295,7 +292,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                 obj_impl._pack_data(buf)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
-                              name=dbtype.name)
+                              name=metadata.dbtype.name)
 
     cdef int _unpack_data(self) except -1:
         """
@@ -330,12 +327,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             for i in range(num_elements):
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     buf.read_int32be(&assoc_index)
-                value = self._unpack_value(
-                    buf,
-                    typ_impl.element_dbtype,
-                    typ_impl.element_objtype,
-                    typ_impl._element_preferred_num_type
-                )
+                value = self._unpack_value(buf, typ_impl.element_metadata)
                 if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                     unpacked_assoc_array[assoc_index] = value
                 else:
@@ -343,22 +335,20 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         else:
             unpacked_attrs = {}
             for attr in typ_impl.attrs:
-                value = self._unpack_value(buf, attr.dbtype, attr.objtype,
-                                           attr._preferred_num_type)
+                value = self._unpack_value(buf, attr)
                 unpacked_attrs[attr.name] = value
         self.unpacked_attrs = unpacked_attrs
         self.unpacked_array = unpacked_array
         self.unpacked_assoc_array = unpacked_assoc_array
 
     cdef object _unpack_value(self, DbObjectPickleBuffer buf,
-                              DbType dbtype, ThinDbObjectTypeImpl objtype,
-                              int preferred_num_type):
+                              OracleMetadata metadata):
         """
         Unpacks a single value and returns it.
         """
         cdef:
-            uint8_t ora_type_num = dbtype._ora_type_num
-            uint8_t csfrm = dbtype._csfrm
+            uint8_t ora_type_num = metadata.dbtype._ora_type_num
+            uint8_t csfrm = metadata.dbtype._csfrm
             DbObjectPickleBuffer xml_buf
             BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
@@ -367,7 +357,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             bint is_null
             type cls
         if ora_type_num == ORA_TYPE_NUM_NUMBER:
-            return buf.read_oracle_number(preferred_num_type)
+            return buf.read_oracle_number(metadata._py_type_num)
         elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
             return buf.read_binary_integer()
         elif ora_type_num in (ORA_TYPE_NUM_VARCHAR, ORA_TYPE_NUM_CHAR):
@@ -392,7 +382,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             locator = buf.read_bytes()
             if locator is None:
                 return None
-            lob_impl = conn_impl._create_lob_impl(dbtype, locator)
+            lob_impl = conn_impl._create_lob_impl(metadata.dbtype, locator)
             cls = PY_TYPE_ASYNC_LOB \
                     if conn_impl._protocol._transport._is_async \
                     else PY_TYPE_LOB
@@ -403,18 +393,19 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             buf.get_is_atomic_null(&is_null)
             if is_null:
                 return None
-            if objtype is None:
+            if metadata.objtype is None:
                 xml_buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
                 xml_buf._populate_from_bytes(buf.read_bytes())
                 return xml_buf.read_xmltype(self.type._conn_impl)
             obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
-            obj_impl.type = objtype
-            if objtype.is_collection or self.type.is_collection:
+            obj_impl.type = metadata.objtype
+            if metadata.objtype.is_collection or self.type.is_collection:
                 obj_impl.packed_data = buf.read_bytes()
             else:
                 obj_impl._unpack_data_from_buf(buf)
             return PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-        errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
+        errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
+                          name=metadata.dbtype.name)
 
     def append_checked(self, object value):
         """

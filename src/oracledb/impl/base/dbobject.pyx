@@ -54,16 +54,15 @@ cdef class BaseDbObjectImpl:
             BaseConnImpl conn_impl = self.type._conn_impl
             ssize_t actual_size
             bint violated
-        value = conn_impl._check_value(self.type.element_dbtype,
-                                       self.type.element_objtype, value, NULL)
-        self._check_max_size(value, self.type.element_max_size, &actual_size,
-                             &violated)
+        value = conn_impl._check_value(self.type.element_metadata, value, NULL)
+        self._check_max_size(value, self.type.element_metadata.max_size,
+                             &actual_size, &violated)
         if violated:
             errors._raise_err(errors.ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED,
                               index=self.get_size(),
                               type_name=self.type._get_fqn(),
                               actual_size=actual_size,
-                              max_size=self.type.element_max_size)
+                              max_size=self.type.element_metadata.max_size)
         self.append_checked(value)
 
     def append_checked(self, object value):
@@ -112,7 +111,7 @@ cdef class BaseDbObjectImpl:
             BaseConnImpl conn_impl = self.type._conn_impl
             ssize_t actual_size
             bint violated
-        value = conn_impl._check_value(attr.dbtype, attr.objtype, value, NULL)
+        value = conn_impl._check_value(attr, value, NULL)
         self._check_max_size(value, attr.max_size, &actual_size, &violated)
         if violated:
             errors._raise_err(errors.ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED,
@@ -133,15 +132,14 @@ cdef class BaseDbObjectImpl:
             BaseConnImpl conn_impl = self.type._conn_impl
             ssize_t actual_size
             bint violated
-        value = conn_impl._check_value(self.type.element_dbtype,
-                                       self.type.element_objtype, value, NULL)
-        self._check_max_size(value, self.type.element_max_size, &actual_size,
-                             &violated)
+        value = conn_impl._check_value(self.type.element_metadata, value, NULL)
+        self._check_max_size(value, self.type.element_metadata.max_size,
+                             &actual_size, &violated)
         if violated:
             errors._raise_err(errors.ERR_DBOBJECT_ELEMENT_MAX_SIZE_VIOLATED,
                               index=index, type_name=self.type._get_fqn(),
                               actual_size=actual_size,
-                              max_size=self.type.element_max_size)
+                              max_size=self.type.element_metadata.max_size)
         self.set_element_by_index_checked(index, value)
 
     def set_element_by_index_checked(self, int32_t index, object value):
@@ -151,7 +149,7 @@ cdef class BaseDbObjectImpl:
         errors._raise_not_supported("trimming elements from a collection")
 
 
-cdef class BaseDbObjectAttrImpl:
+cdef class BaseDbObjectAttrImpl(OracleMetadata):
     pass
 
 

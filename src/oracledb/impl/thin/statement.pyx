@@ -294,7 +294,7 @@ cdef class Statement:
         bint _is_ddl
         bint _is_returning
         list _bind_info_list
-        list _fetch_info_impls
+        list _fetch_metadata
         list _fetch_vars
         list _fetch_var_impls
         object _bind_info_dict
@@ -393,28 +393,30 @@ cdef class Statement:
         statement as requiring a full execute. In addition, binding a REF
         cursor also requires a full execute.
         """
-        cdef object value
-        if var_impl.dbtype._ora_type_num == ORA_TYPE_NUM_CURSOR:
+        cdef:
+            OracleMetadata metadata = var_impl.metadata
+            object value
+        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CURSOR:
             for value in var_impl._values:
                 if value is not None and value._impl is cursor_impl:
                     errors._raise_err(errors.ERR_SELF_BIND_NOT_SUPPORTED)
             self._binds_changed = True
-        if var_impl.dbtype._ora_type_num != bind_info.ora_type_num \
-                or var_impl.size != bind_info.size \
-                or var_impl.buffer_size != bind_info.buffer_size \
-                or var_impl.precision != bind_info.precision \
-                or var_impl.scale != bind_info.scale \
+        if metadata.dbtype._ora_type_num != bind_info.ora_type_num \
+                or metadata.max_size != bind_info.size \
+                or metadata.buffer_size != bind_info.buffer_size \
+                or metadata.precision != bind_info.precision \
+                or metadata.scale != bind_info.scale \
                 or var_impl.is_array != bind_info.is_array \
                 or var_impl.num_elements != bind_info.num_elements \
-                or var_impl.dbtype._csfrm != bind_info.csfrm:
-            bind_info.ora_type_num = var_impl.dbtype._ora_type_num
-            bind_info.csfrm = var_impl.dbtype._csfrm
+                or metadata.dbtype._csfrm != bind_info.csfrm:
+            bind_info.ora_type_num = metadata.dbtype._ora_type_num
+            bind_info.csfrm = metadata.dbtype._csfrm
             bind_info.is_array = var_impl.is_array
             bind_info.num_elements = var_impl.num_elements
-            bind_info.size = var_impl.size
-            bind_info.buffer_size = var_impl.buffer_size
-            bind_info.precision = var_impl.precision
-            bind_info.scale = var_impl.scale
+            bind_info.size = metadata.max_size
+            bind_info.buffer_size = metadata.buffer_size
+            bind_info.precision = metadata.precision
+            bind_info.scale = metadata.scale
             self._binds_changed = True
         bind_info._bind_var_impl = var_impl
 
@@ -423,7 +425,7 @@ cdef class Statement:
         Clears all state associated with the cursor.
         """
         self._fetch_vars = None
-        self._fetch_info_impls = None
+        self._fetch_metadata = None
         self._fetch_var_impls = None
         self._executed = False
         self._binds_changed = False

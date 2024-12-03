@@ -243,6 +243,7 @@ cdef class BaseThinDbObjectTypeCache:
         """
         cdef:
             ThinDbObjectAttrImpl attr_impl
+            OracleMetadata metadata
             int preferred_num_type
             uint16_t num_attrs, i
             uint8_t attr_type
@@ -279,34 +280,31 @@ cdef class BaseThinDbObjectTypeCache:
             if typ_impl.collection_type == TNS_OBJ_PLSQL_INDEX_TABLE:
                 typ_impl.collection_flags = TNS_OBJ_HAS_INDEXES
             buf.skip_to(pos)
-            typ_impl.element_dbtype = self._parse_tds_attr(
-                buf, &typ_impl.element_precision, &typ_impl.element_scale,
-                &typ_impl.element_max_size,
-                &typ_impl._element_preferred_num_type
-            )
-            if typ_impl.element_dbtype is DB_TYPE_CLOB:
+            typ_impl.element_metadata = self._parse_tds_attr(buf)
+            typ_impl.element_metadata._finalize_init()
+            if typ_impl.element_metadata.dbtype is DB_TYPE_CLOB:
                 return self._get_element_type_clob(typ_impl)
-            elif typ_impl.element_dbtype is DB_TYPE_OBJECT:
+            elif typ_impl.element_metadata.dbtype is DB_TYPE_OBJECT:
                 return self._get_element_type_obj(typ_impl)
 
         # handle objects with attributes
         else:
             for i, attr_impl in enumerate(typ_impl.attrs):
-                self._parse_tds_attr(buf, &attr_impl.precision,
-                                     &attr_impl.scale, &attr_impl.max_size,
-                                     &attr_impl._preferred_num_type)
+                metadata = self._parse_tds_attr(buf)
+                if metadata.precision != 0 or metadata.scale != 0:
+                    attr_impl.precision = metadata.precision
+                    attr_impl.scale = metadata.scale
+                attr_impl.max_size = metadata.max_size
+                metadata._finalize_init()
 
-    cdef DbType _parse_tds_attr(self, TDSBuffer buf, int8_t* precision,
-                                int8_t* scale, uint32_t *max_size,
-                                int* preferred_num_type):
+    cdef OracleMetadata _parse_tds_attr(self, TDSBuffer buf):
         """
         Parses a TDS attribute from the buffer.
         """
         cdef:
             uint8_t attr_type, ora_type_num = 0, csfrm = 0
             int8_t temp_precision, temp_scale
-            int temp_preferred_num_type
-            uint32_t temp_max_size
+            OracleMetadata metadata
             uint16_t temp16
 
         # skip until a type code that is of interest
@@ -318,21 +316,20 @@ cdef class BaseThinDbObjectTypeCache:
                 break
 
         # process the type code
+        metadata = OracleMetadata.__new__(OracleMetadata)
         if attr_type == TNS_OBJ_TDS_TYPE_NUMBER:
             ora_type_num = ORA_TYPE_NUM_NUMBER
             buf.read_sb1(&temp_precision)
             buf.read_sb1(&temp_scale)
             if temp_precision != 0 or temp_scale != 0:
-                precision[0] = temp_precision
-                scale[0] = temp_scale
-                preferred_num_type[0] = \
-                        get_preferred_num_type(precision[0], scale[0])
+                metadata.precision = temp_precision
+                metadata.scale = temp_scale
         elif attr_type == TNS_OBJ_TDS_TYPE_FLOAT:
             ora_type_num = ORA_TYPE_NUM_NUMBER
             buf.skip_raw_bytes(1)           # precision
         elif attr_type in (TNS_OBJ_TDS_TYPE_VARCHAR, TNS_OBJ_TDS_TYPE_CHAR):
             buf.read_uint16be(&temp16)      # maximum length
-            max_size[0] = temp16
+            metadata.max_size = temp16
             buf.read_ub1(&csfrm)
             csfrm = csfrm & 0x7f
             buf.skip_raw_bytes(2)           # character set
@@ -341,9 +338,9 @@ cdef class BaseThinDbObjectTypeCache:
             else:
                 ora_type_num = ORA_TYPE_NUM_CHAR
         elif attr_type == TNS_OBJ_TDS_TYPE_RAW:
-            buf.read_uint16be(&temp16)      # maximum length
-            max_size[0] = temp16
             ora_type_num = ORA_TYPE_NUM_RAW
+            buf.read_uint16be(&temp16)      # maximum length
+            metadata.max_size = temp16
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_FLOAT:
             ora_type_num = ORA_TYPE_NUM_BINARY_FLOAT
         elif attr_type == TNS_OBJ_TDS_TYPE_BINARY_DOUBLE:
@@ -371,15 +368,14 @@ cdef class BaseThinDbObjectTypeCache:
             buf.skip_raw_bytes(5)           # offset and code
         elif attr_type == TNS_OBJ_TDS_TYPE_START_EMBED_ADT:
             ora_type_num = ORA_TYPE_NUM_OBJECT
-            while self._parse_tds_attr(buf, &temp_precision, &temp_scale,
-                                       &temp_max_size,
-                                       &temp_preferred_num_type):
+            while self._parse_tds_attr(buf):
                 pass
         elif attr_type == TNS_OBJ_TDS_TYPE_END_EMBED_ADT:
             return None
         else:
             errors._raise_err(errors.ERR_TDS_TYPE_NOT_SUPPORTED, num=attr_type)
-        return DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        return metadata
 
     cdef int _create_attr(self, ThinDbObjectTypeImpl typ_impl, str name,
                           str type_name, str type_owner,
@@ -429,10 +425,7 @@ cdef class BaseThinDbObjectTypeCache:
                 if attr_impl.dbtype._ora_type_num == ORA_TYPE_NUM_NUMBER:
                     attr_impl.precision = precision
                     attr_impl.scale = scale
-            if attr_impl.dbtype._ora_type_num == ORA_TYPE_NUM_NUMBER:
-                attr_impl._preferred_num_type = \
-                        get_preferred_num_type(attr_impl.precision,
-                                               attr_impl.scale)
+        attr_impl._finalize_init()
         typ_impl.attrs.append(attr_impl)
         typ_impl.attrs_by_name[name] = attr_impl
 
@@ -538,7 +531,7 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
                     name=typ_impl.name)
         type_name, = cursor.fetchone()
         if type_name == "NCLOB":
-            typ_impl.element_dbtype = DB_TYPE_NCLOB
+            typ_impl.element_metadata.dbtype = DB_TYPE_NCLOB
 
     def _get_element_type_obj(self, ThinDbObjectTypeImpl typ_impl):
         """
@@ -561,8 +554,8 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
                     owner=typ_impl.schema,
                     name=typ_impl.name)
             schema, name = cursor.fetchone()
-        typ_impl.element_objtype = self.get_type_for_info(None, schema,
-                                                          package_name, name)
+        typ_impl.element_metadata.objtype = \
+                self.get_type_for_info(None, schema, package_name, name)
 
     cdef list _lookup_type(self, object conn, str name,
                            ThinDbObjectTypeImpl typ_impl):
@@ -645,7 +638,7 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
                     name=typ_impl.name)
         type_name, = await cursor.fetchone()
         if type_name == "NCLOB":
-            typ_impl.element_dbtype = DB_TYPE_NCLOB
+            typ_impl.element_metadata.dbtype = DB_TYPE_NCLOB
 
     async def _get_element_type_obj(self, ThinDbObjectTypeImpl typ_impl):
         """
@@ -668,8 +661,8 @@ cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
                     owner=typ_impl.schema,
                     name=typ_impl.name)
             schema, name = await cursor.fetchone()
-        typ_impl.element_objtype = self.get_type_for_info(None, schema,
-                                                          package_name, name)
+        typ_impl.element_metadata.objtype = \
+                self.get_type_for_info(None, schema, package_name, name)
 
     async def _lookup_type(self, object conn, str name,
                            ThinDbObjectTypeImpl typ_impl):

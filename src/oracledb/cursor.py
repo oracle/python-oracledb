@@ -262,9 +262,7 @@ class BaseCursor:
         """
         self._verify_open()
         if self._impl.is_query(self):
-            return [
-                FetchInfo._from_impl(i) for i in self._impl.fetch_info_impls
-            ]
+            return [FetchInfo._from_impl(i) for i in self._impl.fetch_metadata]
 
     @property
     def fetchvars(self) -> list:

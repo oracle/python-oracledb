@@ -71,8 +71,8 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
     @cython.wraparound(False)
     cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
                                        object type_handler,
-                                       bint uses_fetch_info, ssize_t pos,
-                                       FetchInfoImpl fetch_info):
+                                       bint uses_metadata, ssize_t pos,
+                                       OracleMetadata metadata):
         """
         Internal method that creates a fetch variable. A check is made after
         the variable is created to determine if a conversion is required and
@@ -82,12 +82,11 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
             ThinDbObjectTypeImpl typ_impl
             ThinVarImpl var_impl
         var_impl = <ThinVarImpl> BaseCursorImpl._create_fetch_var(
-            self, conn, cursor, type_handler, uses_fetch_info, pos, fetch_info
+            self, conn, cursor, type_handler, uses_metadata, pos, metadata
         )
-        if var_impl.dbtype._ora_type_num != fetch_info.dbtype._ora_type_num:
-            conversion_helper(var_impl, fetch_info)
-        elif var_impl.objtype is not None:
-            typ_impl = var_impl.objtype
+        conversion_helper(var_impl, metadata)
+        if metadata.objtype is not None:
+            typ_impl = metadata.objtype
             if typ_impl.is_xml_type:
                 var_impl.outconverter = \
                         lambda v: v if isinstance(v, str) else v.read()
@@ -113,7 +112,7 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
             self._statement = None
         self._statement = self._conn_impl._get_statement(statement.strip(),
                                                          cache_statement)
-        self.fetch_info_impls = self._statement._fetch_info_impls
+        self.fetch_metadata = self._statement._fetch_metadata
         self.fetch_vars = self._statement._fetch_vars
         self.fetch_var_impls = self._statement._fetch_var_impls
         self._num_columns = self._statement._num_columns

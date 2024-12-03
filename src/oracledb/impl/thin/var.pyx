@@ -41,6 +41,7 @@ cdef class ThinVarImpl(BaseVarImpl):
             Statement stmt = thin_cursor_impl._statement
             object bind_info_dict = stmt._bind_info_dict
             list bind_info_list = stmt._bind_info_list
+            OracleMetadata metadata = self.metadata
             ssize_t idx, num_binds, num_vars
             BindInfo bind_info
             str normalized_name
@@ -50,14 +51,14 @@ cdef class ThinVarImpl(BaseVarImpl):
         # 32,767 bytes it must be converted to a BLOB/CLOB; and out converter
         # needs to be established as well to return the string in the way that
         # the user expects to get it
-        if stmt._is_plsql and self.size > 32767:
-            if self.dbtype._ora_type_num == ORA_TYPE_NUM_RAW \
-                    or self.dbtype._ora_type_num == ORA_TYPE_NUM_LONG_RAW:
-                self.dbtype = DB_TYPE_BLOB
-            elif self.dbtype._csfrm == CS_FORM_NCHAR:
-                self.dbtype = DB_TYPE_NCLOB
+        if stmt._is_plsql and metadata.max_size > 32767:
+            if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_RAW \
+                    or metadata.dbtype._ora_type_num == ORA_TYPE_NUM_LONG_RAW:
+                metadata.dbtype = DB_TYPE_BLOB
+            elif metadata.dbtype._csfrm == CS_FORM_NCHAR:
+                metadata.dbtype = DB_TYPE_NCLOB
             else:
-                self.dbtype = DB_TYPE_CLOB
+                metadata.dbtype = DB_TYPE_CLOB
             orig_converter = self.outconverter
             def converter(v):
                 v = v.read()
@@ -67,13 +68,13 @@ cdef class ThinVarImpl(BaseVarImpl):
             self.outconverter = converter
 
         # for variables containing LOBs, create temporary LOBs, if needed
-        if self.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
-                or self.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
+        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
+                or metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             for idx, value in enumerate(self._values):
                 if value is not None \
                         and not isinstance(value, (PY_TYPE_LOB,
                                                    PY_TYPE_ASYNC_LOB)):
-                    lob = conn.createlob(self.dbtype)
+                    lob = conn.createlob(metadata.dbtype)
                     if value:
                         lob.write(value)
                     self._values[idx] = lob

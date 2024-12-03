@@ -302,7 +302,7 @@ cdef class Buffer:
         return PY_TYPE_INTERVAL_YM(years, months)
 
     cdef object parse_oracle_number(self, const uint8_t* ptr,
-                                    ssize_t num_bytes, int preferred_num_type):
+                                    ssize_t num_bytes, uint8_t py_type_num):
         """
         Parse an Oracle number from the supplied buffer and return the
         corresponding Python object representing that value. The preferred
@@ -332,18 +332,18 @@ cdef class Buffer:
         # of -1e126 (if negative)
         if num_bytes == 1:
             if is_positive:
-                if preferred_num_type == NUM_TYPE_INT:
+                if py_type_num == PY_TYPE_NUM_INT:
                     return 0
-                elif preferred_num_type == NUM_TYPE_DECIMAL:
+                elif py_type_num == PY_TYPE_NUM_DECIMAL:
                     return PY_TYPE_DECIMAL(0)
-                elif preferred_num_type == NUM_TYPE_STR:
+                elif py_type_num == PY_TYPE_NUM_STR:
                     return "0"
                 return 0.0
-            if preferred_num_type == NUM_TYPE_INT:
+            if py_type_num == PY_TYPE_NUM_INT:
                 return -10 ** 126
-            elif preferred_num_type == NUM_TYPE_DECIMAL:
+            elif py_type_num == PY_TYPE_NUM_DECIMAL:
                 return PY_TYPE_DECIMAL("-1e126")
-            elif preferred_num_type == NUM_TYPE_STR:
+            elif py_type_num == PY_TYPE_NUM_STR:
                 return "-1e126"
             return -1.0e126
 
@@ -421,11 +421,11 @@ cdef class Buffer:
                 num_bytes += 1
 
         # convert result to an integer or a decimal number
-        if preferred_num_type == NUM_TYPE_INT and is_integer:
+        if py_type_num == PY_TYPE_NUM_INT and is_integer:
             return int(buf[:num_bytes])
-        elif preferred_num_type == NUM_TYPE_DECIMAL:
+        elif py_type_num == PY_TYPE_NUM_DECIMAL:
             return PY_TYPE_DECIMAL(buf[:num_bytes].decode())
-        elif preferred_num_type == NUM_TYPE_STR:
+        elif py_type_num == PY_TYPE_NUM_STR:
             return buf[:num_bytes].decode()
         return float(buf[:num_bytes])
 
@@ -536,7 +536,7 @@ cdef class Buffer:
         """
         value[0] = <int32_t> decode_uint32be(self._get_raw(4))
 
-    cdef object read_oracle_number(self, int preferred_num_type):
+    cdef object read_oracle_number(self, uint8_t py_type_num):
         """
         Read an Oracle number from the buffer and return the corresponding
         Python object representing that value. The preferred numeric type
@@ -550,7 +550,7 @@ cdef class Buffer:
         # length indicator, return None
         self.read_raw_bytes_and_length(&ptr, &num_bytes)
         if ptr != NULL:
-            return self.parse_oracle_number(ptr, num_bytes, preferred_num_type)
+            return self.parse_oracle_number(ptr, num_bytes, py_type_num)
 
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL:
         """

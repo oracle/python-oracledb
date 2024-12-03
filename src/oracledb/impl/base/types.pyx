@@ -57,7 +57,8 @@ cdef dict db_type_by_ora_type_num = {}
 cdef class DbType:
 
     def __init__(self, num, name, ora_name, native_num=0, ora_type_num=0,
-                 default_size=0, csfrm=0, buffer_size_factor=0):
+                 default_py_type_num=0, default_size=0, csfrm=0,
+                 buffer_size_factor=0):
         cdef uint16_t ora_type_key = csfrm * 256 + ora_type_num
         self.num = num
         self.name = name
@@ -65,6 +66,7 @@ cdef class DbType:
         self._native_num = native_num
         self._ora_name = ora_name
         self._ora_type_num = ora_type_num
+        self._default_py_type_num = default_py_type_num
         self._csfrm = csfrm
         self._buffer_size_factor = buffer_size_factor
         if num != 0:
@@ -115,6 +117,7 @@ DB_TYPE_BFILE = DbType(
     "BFILE",
     NATIVE_TYPE_NUM_LOB,
     ORA_TYPE_NUM_BFILE,
+    PY_TYPE_NUM_ORACLE_LOB,
     buffer_size_factor=4000
 )
 
@@ -124,6 +127,7 @@ DB_TYPE_BINARY_DOUBLE = DbType(
     "BINARY_DOUBLE",
     NATIVE_TYPE_NUM_DOUBLE,
     ORA_TYPE_NUM_BINARY_DOUBLE,
+    PY_TYPE_NUM_FLOAT,
     buffer_size_factor=8
 )
 
@@ -133,6 +137,7 @@ DB_TYPE_BINARY_FLOAT = DbType(
     "BINARY_FLOAT",
     NATIVE_TYPE_NUM_FLOAT,
     ORA_TYPE_NUM_BINARY_FLOAT,
+    PY_TYPE_NUM_FLOAT,
     buffer_size_factor=4
 )
 
@@ -142,6 +147,7 @@ DB_TYPE_BINARY_INTEGER = DbType(
     "BINARY_INTEGER",
     NATIVE_TYPE_NUM_INT64,
     ORA_TYPE_NUM_BINARY_INTEGER,
+    PY_TYPE_NUM_INT,
     buffer_size_factor=22
 )
 
@@ -151,6 +157,7 @@ DB_TYPE_BLOB = DbType(
     "BLOB",
     NATIVE_TYPE_NUM_LOB,
     ORA_TYPE_NUM_BLOB,
+    PY_TYPE_NUM_ORACLE_LOB,
     buffer_size_factor=112
 )
 
@@ -160,6 +167,7 @@ DB_TYPE_BOOLEAN = DbType(
     "BOOLEAN",
     NATIVE_TYPE_NUM_BOOLEAN,
     ORA_TYPE_NUM_BOOLEAN,
+    PY_TYPE_NUM_BOOL,
     buffer_size_factor=4
 )
 
@@ -169,6 +177,7 @@ DB_TYPE_CHAR = DbType(
     "CHAR",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_CHAR,
+    PY_TYPE_NUM_STR,
     default_size=2000,
     csfrm=CS_FORM_IMPLICIT,
     buffer_size_factor=4
@@ -180,6 +189,7 @@ DB_TYPE_CLOB = DbType(
     "CLOB",
     NATIVE_TYPE_NUM_LOB,
     ORA_TYPE_NUM_CLOB,
+    PY_TYPE_NUM_ORACLE_LOB,
     csfrm=CS_FORM_IMPLICIT,
     buffer_size_factor=112
 )
@@ -190,6 +200,7 @@ DB_TYPE_CURSOR = DbType(
     "CURSOR",
     NATIVE_TYPE_NUM_STMT,
     ORA_TYPE_NUM_CURSOR,
+    PY_TYPE_NUM_ORACLE_CURSOR,
     buffer_size_factor=4
 )
 
@@ -199,6 +210,7 @@ DB_TYPE_DATE = DbType(
     "DATE",
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_DATE,
+    PY_TYPE_NUM_DATETIME,
     buffer_size_factor=7
 )
 
@@ -208,6 +220,7 @@ DB_TYPE_INTERVAL_DS = DbType(
     "INTERVAL DAY TO SECOND",
     NATIVE_TYPE_NUM_INTERVAL_DS,
     ORA_TYPE_NUM_INTERVAL_DS,
+    PY_TYPE_NUM_TIMEDELTA,
     buffer_size_factor=11
 )
 
@@ -217,6 +230,7 @@ DB_TYPE_INTERVAL_YM = DbType(
     "INTERVAL YEAR TO MONTH",
     NATIVE_TYPE_NUM_INTERVAL_YM,
     ORA_TYPE_NUM_INTERVAL_YM,
+    PY_TYPE_NUM_ORACLE_INTERVAL_YM,
     buffer_size_factor=5
 )
 
@@ -225,7 +239,8 @@ DB_TYPE_JSON = DbType(
     "DB_TYPE_JSON",
     "JSON",
     NATIVE_TYPE_NUM_JSON,
-    ORA_TYPE_NUM_JSON
+    ORA_TYPE_NUM_JSON,
+    PY_TYPE_NUM_OBJECT
 )
 
 DB_TYPE_LONG = DbType(
@@ -234,6 +249,7 @@ DB_TYPE_LONG = DbType(
     "LONG",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_LONG,
+    PY_TYPE_NUM_STR,
     csfrm=CS_FORM_IMPLICIT,
     buffer_size_factor=2147483647
 )
@@ -244,6 +260,7 @@ DB_TYPE_LONG_NVARCHAR = DbType(
     "LONG NVARCHAR",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_LONG,
+    PY_TYPE_NUM_STR,
     csfrm=CS_FORM_NCHAR,
     buffer_size_factor=2147483647
 )
@@ -254,6 +271,7 @@ DB_TYPE_LONG_RAW = DbType(
     "LONG RAW",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_LONG_RAW,
+    PY_TYPE_NUM_BYTES,
     buffer_size_factor=2147483647
 )
 
@@ -263,6 +281,7 @@ DB_TYPE_NCHAR = DbType(
     "NCHAR",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_CHAR,
+    PY_TYPE_NUM_STR,
     default_size=2000,
     csfrm=CS_FORM_NCHAR,
     buffer_size_factor=4
@@ -274,6 +293,7 @@ DB_TYPE_NCLOB = DbType(
     "NCLOB",
     NATIVE_TYPE_NUM_LOB,
     ORA_TYPE_NUM_CLOB,
+    PY_TYPE_NUM_ORACLE_LOB,
     csfrm=CS_FORM_NCHAR,
     buffer_size_factor=112
 )
@@ -284,6 +304,7 @@ DB_TYPE_NUMBER = DbType(
     "NUMBER",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_NUMBER,
+    PY_TYPE_NUM_FLOAT,
     buffer_size_factor=22
 )
 
@@ -293,6 +314,7 @@ DB_TYPE_NVARCHAR = DbType(
     "NVARCHAR2",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_VARCHAR,
+    PY_TYPE_NUM_STR,
     default_size=4000,
     csfrm=CS_FORM_NCHAR,
     buffer_size_factor=4
@@ -303,7 +325,8 @@ DB_TYPE_OBJECT = DbType(
     "DB_TYPE_OBJECT",
     "OBJECT",
     NATIVE_TYPE_NUM_OBJECT,
-    ORA_TYPE_NUM_OBJECT
+    ORA_TYPE_NUM_OBJECT,
+    PY_TYPE_NUM_ORACLE_OBJECT
 )
 
 DB_TYPE_RAW = DbType(
@@ -312,6 +335,7 @@ DB_TYPE_RAW = DbType(
     "RAW",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_RAW,
+    PY_TYPE_NUM_BYTES,
     default_size=4000,
     buffer_size_factor=1
 )
@@ -322,6 +346,7 @@ DB_TYPE_ROWID = DbType(
     "ROWID",
     NATIVE_TYPE_NUM_ROWID,
     ORA_TYPE_NUM_ROWID,
+    PY_TYPE_NUM_STR,
     buffer_size_factor=18
 )
 
@@ -331,6 +356,7 @@ DB_TYPE_TIMESTAMP = DbType(
     "TIMESTAMP",
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP,
+    PY_TYPE_NUM_DATETIME,
     buffer_size_factor=11
 )
 
@@ -340,6 +366,7 @@ DB_TYPE_TIMESTAMP_LTZ = DbType(
     "TIMESTAMP WITH LOCAL TIME ZONE",
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP_LTZ,
+    PY_TYPE_NUM_DATETIME,
     buffer_size_factor=11
 )
 
@@ -349,6 +376,7 @@ DB_TYPE_TIMESTAMP_TZ = DbType(
     "TIMESTAMP WITH TIME ZONE",
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP_TZ,
+    PY_TYPE_NUM_DATETIME,
     buffer_size_factor=13
 )
 
@@ -363,7 +391,8 @@ DB_TYPE_UROWID = DbType(
     "DB_TYPE_UROWID",
     "UROWID",
     NATIVE_TYPE_NUM_BYTES,
-    ORA_TYPE_NUM_UROWID
+    ORA_TYPE_NUM_UROWID,
+    PY_TYPE_NUM_STR
 )
 
 DB_TYPE_VARCHAR = DbType(
@@ -372,6 +401,7 @@ DB_TYPE_VARCHAR = DbType(
     "VARCHAR2",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_VARCHAR,
+    PY_TYPE_NUM_STR,
     default_size=4000,
     csfrm=CS_FORM_IMPLICIT,
     buffer_size_factor=4
@@ -382,7 +412,8 @@ DB_TYPE_VECTOR = DbType(
     "DB_TYPE_VECTOR",
     "VECTOR",
     NATIVE_TYPE_NUM_VECTOR,
-    ORA_TYPE_NUM_VECTOR
+    ORA_TYPE_NUM_VECTOR,
+    PY_TYPE_NUM_ARRAY
 )
 
 DB_TYPE_XMLTYPE = DbType(
@@ -391,6 +422,7 @@ DB_TYPE_XMLTYPE = DbType(
     "XMLTYPE",
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_OBJECT,
+    PY_TYPE_NUM_STR,
     csfrm=CS_FORM_IMPLICIT,
     buffer_size_factor=2147483647
 )

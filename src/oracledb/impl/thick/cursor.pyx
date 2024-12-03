@@ -68,7 +68,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         return var_impl
 
     cdef int _define_var(self, object conn, object cursor, object type_handler,
-                         bint uses_fetch_info, ssize_t pos) except -1:
+                         bint uses_metadata, ssize_t pos) except -1:
         """
         Internal method that creates the variable using the query info (unless
         an output type handler has been specified) and then performs the define
@@ -76,58 +76,57 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         """
         cdef:
             ThickDbObjectTypeImpl typ_impl
-            dpiDataTypeInfo *type_info
-            FetchInfoImpl fetch_info
+            OracleMetadata metadata
             ThickConnImpl conn_impl
             dpiQueryInfo query_info
+            dpiDataTypeInfo *info
             ThickVarImpl var_impl
             uint32_t i, temp_len
             str key, value
 
-        # build FetchInfoImpl based on query info provided by ODPI-C
+        # build metadata based on query info provided by ODPI-C
         if dpiStmt_getQueryInfo(self._handle, pos + 1, &query_info) < 0:
             _raise_from_odpi()
-        type_info = &query_info.typeInfo
-        fetch_info = FetchInfoImpl.__new__(FetchInfoImpl)
-        fetch_info.dbtype = DbType._from_num(type_info.oracleTypeNum)
-        if type_info.sizeInChars > 0:
-            fetch_info.size = type_info.sizeInChars
+        info = &query_info.typeInfo
+        metadata = OracleMetadata.__new__(OracleMetadata)
+        metadata.dbtype = DbType._from_num(info.oracleTypeNum)
+        if info.sizeInChars > 0:
+            metadata.max_size = info.sizeInChars
         else:
-            fetch_info.size = type_info.clientSizeInBytes
-        fetch_info.buffer_size = type_info.clientSizeInBytes
-        fetch_info.name = query_info.name[:query_info.nameLength].decode()
-        fetch_info.scale = type_info.scale + type_info.fsPrecision
-        fetch_info.precision = type_info.precision
-        fetch_info.nulls_allowed = query_info.nullOk
-        fetch_info.is_json = type_info.isJson
-        fetch_info.is_oson = type_info.isOson
-        if type_info.domainSchema:
-            temp_len = type_info.domainSchemaLength
-            fetch_info.domain_schema = \
-                    type_info.domainSchema[:temp_len].decode()
-        if type_info.domainName:
-            fetch_info.domain_name = \
-                    type_info.domainName[:type_info.domainNameLength].decode()
-        if type_info.numAnnotations > 0:
-            fetch_info.annotations = {}
-            for i in range(type_info.numAnnotations):
-                temp_len = type_info.annotations[i].keyLength
-                key = type_info.annotations[i].key[:temp_len].decode()
-                temp_len = type_info.annotations[i].valueLength
-                value = type_info.annotations[i].value[:temp_len].decode()
-                fetch_info.annotations[key] = value
-        if type_info.objectType != NULL:
+            metadata.max_size = info.clientSizeInBytes
+        metadata.buffer_size = info.clientSizeInBytes
+        metadata.name = query_info.name[:query_info.nameLength].decode()
+        metadata.scale = <int8_t> info.scale + info.fsPrecision
+        metadata.precision = <int8_t> info.precision
+        metadata.nulls_allowed = query_info.nullOk
+        metadata.is_json = info.isJson
+        metadata.is_oson = info.isOson
+        if info.domainSchema:
+            temp_len = info.domainSchemaLength
+            metadata.domain_schema = info.domainSchema[:temp_len].decode()
+        if info.domainName:
+            metadata.domain_name = \
+                    info.domainName[:info.domainNameLength].decode()
+        if info.numAnnotations > 0:
+            metadata.annotations = {}
+            for i in range(info.numAnnotations):
+                temp_len = info.annotations[i].keyLength
+                key = info.annotations[i].key[:temp_len].decode()
+                temp_len = info.annotations[i].valueLength
+                value = info.annotations[i].value[:temp_len].decode()
+                metadata.annotations[key] = value
+        if info.objectType != NULL:
             typ_impl = ThickDbObjectTypeImpl._from_handle(self._conn_impl,
-                                                          type_info.objectType)
-            fetch_info.objtype = typ_impl
-        if fetch_info.dbtype.num == DPI_ORACLE_TYPE_VECTOR:
-            fetch_info.vector_dimensions = type_info.vectorDimensions
-            fetch_info.vector_format = type_info.vectorFormat
-            fetch_info.vector_flags = type_info.vectorFlags
+                                                          info.objectType)
+            metadata.objtype = typ_impl
+        if metadata.dbtype.num == DPI_ORACLE_TYPE_VECTOR:
+            metadata.vector_dimensions = info.vectorDimensions
+            metadata.vector_format = info.vectorFormat
+            metadata.vector_flags = info.vectorFlags
 
         # create variable and call define in ODPI-C
         var_impl = <ThickVarImpl> self._create_fetch_var(
-            conn, cursor, type_handler, uses_fetch_info, pos, fetch_info
+            conn, cursor, type_handler, uses_metadata, pos, metadata
         )
         if dpiStmt_define(self._handle, pos + 1, var_impl._handle) < 0:
             _raise_from_odpi()
@@ -185,7 +184,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             ThickCursorImpl cursor_impl = <ThickCursorImpl> cursor._impl
             object var, type_handler, conn
             ThickVarImpl var_impl
-            bint uses_fetch_info
+            bint uses_metadata
             ssize_t i
 
         # initialize fetching variables; these are used to reduce the number of
@@ -203,10 +202,10 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         # populate list to contain fetch variables that are created
         self._fetch_array_size = self.arraysize
         self._init_fetch_vars(num_query_cols)
-        type_handler = self._get_output_type_handler(&uses_fetch_info)
+        type_handler = self._get_output_type_handler(&uses_metadata)
         conn = cursor.connection
         for i in range(num_query_cols):
-            self._define_var(conn, cursor, type_handler, uses_fetch_info, i)
+            self._define_var(conn, cursor, type_handler, uses_metadata, i)
 
     cdef int _prepare(self, str statement, str tag,
                       bint cache_statement) except -1:

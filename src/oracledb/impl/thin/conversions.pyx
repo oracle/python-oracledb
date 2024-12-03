@@ -43,9 +43,9 @@ cdef converter_dict = {
     (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_CHAR): str,
     (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_VARCHAR): str,
     (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_LONG): str,
-    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_VARCHAR): NUM_TYPE_STR,
-    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_CHAR): NUM_TYPE_STR,
-    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_LONG): NUM_TYPE_STR,
+    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_VARCHAR): PY_TYPE_NUM_STR,
+    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_CHAR): PY_TYPE_NUM_STR,
+    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_LONG): PY_TYPE_NUM_STR,
     (ORA_TYPE_NUM_BINARY_DOUBLE, ORA_TYPE_NUM_VARCHAR): str,
     (ORA_TYPE_NUM_BINARY_FLOAT, ORA_TYPE_NUM_VARCHAR): str,
     (ORA_TYPE_NUM_BINARY_DOUBLE, ORA_TYPE_NUM_CHAR): str,
@@ -73,12 +73,12 @@ cdef converter_dict = {
     (ORA_TYPE_NUM_TIMESTAMP, ORA_TYPE_NUM_DATE): _tstamp_to_date,
     (ORA_TYPE_NUM_TIMESTAMP_TZ, ORA_TYPE_NUM_DATE): _tstamp_to_date,
     (ORA_TYPE_NUM_TIMESTAMP_LTZ, ORA_TYPE_NUM_DATE): _tstamp_to_date,
-    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_BINARY_DOUBLE): NUM_TYPE_FLOAT,
+    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_BINARY_DOUBLE): PY_TYPE_NUM_FLOAT,
     (ORA_TYPE_NUM_BINARY_FLOAT, ORA_TYPE_NUM_BINARY_DOUBLE): float,
     (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_BINARY_DOUBLE): float,
     (ORA_TYPE_NUM_VARCHAR, ORA_TYPE_NUM_BINARY_DOUBLE): float,
     (ORA_TYPE_NUM_LONG, ORA_TYPE_NUM_BINARY_DOUBLE): float,
-    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_BINARY_FLOAT): NUM_TYPE_FLOAT,
+    (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_BINARY_FLOAT): PY_TYPE_NUM_FLOAT,
     (ORA_TYPE_NUM_BINARY_DOUBLE, ORA_TYPE_NUM_BINARY_FLOAT): float,
     (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_BINARY_FLOAT): float,
     (ORA_TYPE_NUM_VARCHAR, ORA_TYPE_NUM_BINARY_FLOAT): float,
@@ -121,27 +121,28 @@ cdef object _tstamp_to_date(object fetch_value):
     return fetch_value.replace(microsecond=0)
 
 cdef int conversion_helper(ThinVarImpl output_var,
-                           FetchInfoImpl fetch_info) except -1:
+                           OracleMetadata metadata) except -1:
     cdef:
         uint8_t fetch_ora_type_num, output_ora_type_num, csfrm
         object key, value
 
-    fetch_ora_type_num = fetch_info.dbtype._ora_type_num
-    output_ora_type_num = output_var.dbtype._ora_type_num
+    fetch_ora_type_num = metadata.dbtype._ora_type_num
+    output_ora_type_num = output_var.metadata.dbtype._ora_type_num
+    if fetch_ora_type_num == output_ora_type_num:
+        return 0
 
     key = (fetch_ora_type_num, output_ora_type_num)
     try:
         value = converter_dict[key]
         if isinstance(value, int):
             if fetch_ora_type_num == ORA_TYPE_NUM_NUMBER:
-                output_var._preferred_num_type = value
+                output_var.metadata._py_type_num = value
             else:
-                csfrm = output_var.dbtype._csfrm
-                fetch_info.dbtype = DbType._from_ora_type_and_csfrm(value,
-                                                                    csfrm)
+                csfrm = output_var.metadata.dbtype._csfrm
+                metadata.dbtype = DbType._from_ora_type_and_csfrm(value, csfrm)
         else:
             output_var._conv_func = value
     except:
         errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
-                          input_type=fetch_info.dbtype.name,
-                          output_type=output_var.dbtype.name)
+                          input_type=metadata.dbtype.name,
+                          output_type=output_var.metadata.dbtype.name)

@@ -564,7 +564,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             ):
                 while cursor_impl._buffer_rowcount > 0:
                     result_impl.rows.append(cursor_impl._create_row())
-        result_impl.fetch_info_impls = cursor_impl.fetch_info_impls
+        result_impl.fetch_metadata = cursor_impl.fetch_metadata
 
         # for fetchall(), perform as many round trips as are required to
         # complete the fetch
@@ -884,7 +884,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
                               op_type=op_impl.op_type)
         result_impl.warning = cursor.warning
-        result_impl.fetch_info_impls = cursor._impl.fetch_info_impls
+        result_impl.fetch_metadata = cursor._impl.fetch_metadata
 
     cdef int _send_messages_for_pipeline(
         self, list messages, bint continue_on_error

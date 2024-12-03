@@ -347,11 +347,11 @@ class DbObjectType:
         object type; otherwise, it will be one of the database type constants.
         """
         if self._element_type is None:
-            if self._impl.element_objtype is not None:
-                typ_impl = self._impl.element_objtype
+            if self._impl.element_metadata.objtype is not None:
+                typ_impl = self._impl.element_metadata.objtype
                 self._element_type = DbObjectType._from_impl(typ_impl)
             else:
-                self._element_type = self._impl.element_dbtype
+                self._element_type = self._impl.element_metadata.dbtype
         return self._element_type
 
     def newobject(self, value: Sequence = None) -> DbObject:

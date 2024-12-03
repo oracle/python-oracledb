@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,10 +48,10 @@ class Var:
         var._impl = impl
         if typ is not None:
             var._type = typ
-        elif impl.objtype is not None:
-            var._type = DbObjectType._from_impl(impl.objtype)
+        elif impl.metadata.objtype is not None:
+            var._type = DbObjectType._from_impl(impl.metadata.objtype)
         else:
-            var._type = impl.dbtype
+            var._type = impl.metadata.dbtype
         return var
 
     @property
@@ -80,7 +80,7 @@ class Var:
         This read-only attribute returns the size of the buffer allocated for
         each element in bytes.
         """
-        return self._impl.buffer_size
+        return self._impl.metadata.buffer_size
 
     @property
     def bufferSize(self) -> int:
@@ -159,7 +159,7 @@ class Var:
         this value is the size in characters. For all others, this is same
         value as the attribute buffer_size.
         """
-        return self._impl.size
+        return self._impl.metadata.max_size
 
     @property
     def type(self) -> Union[DbType, DbObjectType]:

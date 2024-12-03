@@ -64,6 +64,7 @@ Common Changes
 #)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
     objects defined using ANSI names (including FLOAT and REAL) may have shown
     as integers.
+#)  Internal change: improve handling of metadata.
 
 
 oracledb 2.5.0 (November 2024)

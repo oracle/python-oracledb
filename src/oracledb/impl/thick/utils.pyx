@@ -102,12 +102,11 @@ cdef object _convert_from_json_node(dpiJsonNode *node):
     errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
 
 
-cdef int _convert_from_python(object value, DbType dbtype,
-                              ThickDbObjectTypeImpl obj_type_impl,
+cdef int _convert_from_python(object value, OracleMetadata metadata,
                               dpiDataBuffer *dbvalue,
                               StringBuffer buf) except -1:
     cdef:
-        uint32_t oracle_type = dbtype.num
+        uint32_t oracle_type = metadata.dbtype.num
         ThickDbObjectImpl obj_impl
         dpiVectorInfo vector_info
         dpiTimestamp *timestamp
@@ -217,7 +216,8 @@ cdef int _convert_from_python(object value, DbType dbtype,
         dbvalue.asIntervalYM.years = (<tuple> value)[0]
         dbvalue.asIntervalYM.months = (<tuple> value)[1]
     else:
-        errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
+        errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
+                          name=metadata.dbtype.name)
 
 
 cdef object _convert_json_to_python(dpiJson *json):
@@ -290,14 +290,13 @@ cdef int _convert_python_to_oci_attr(object value, uint32_t attr_type,
                           attr_type=attr_type)
 
 
-cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
-                               ThickDbObjectTypeImpl obj_type_impl,
+cdef object _convert_to_python(ThickConnImpl conn_impl,
+                               OracleMetadata metadata,
                                dpiDataBuffer *dbvalue,
-                               int preferred_num_type=NUM_TYPE_FLOAT,
                                bint bypass_decode=False,
                                const char* encoding_errors=NULL):
     cdef:
-        uint32_t oracle_type = dbtype.num
+        uint32_t oracle_type = metadata.dbtype.num
         ThickDbObjectImpl obj_impl
         dpiTimestamp *as_timestamp
         ThickLobImpl lob_impl
@@ -318,10 +317,10 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
         return as_bytes.ptr[:as_bytes.length].decode("utf-8", encoding_errors)
     elif oracle_type == DPI_ORACLE_TYPE_NUMBER:
         as_bytes = &dbvalue.asBytes
-        if preferred_num_type == NUM_TYPE_INT \
+        if metadata._py_type_num == PY_TYPE_NUM_INT \
                 and memchr(as_bytes.ptr, b'.', as_bytes.length) == NULL:
             return int(as_bytes.ptr[:as_bytes.length])
-        elif preferred_num_type == NUM_TYPE_DECIMAL:
+        elif metadata._py_type_num == PY_TYPE_NUM_DECIMAL:
             return PY_TYPE_DECIMAL(as_bytes.ptr[:as_bytes.length].decode())
         return float(as_bytes.ptr[:as_bytes.length])
     elif oracle_type == DPI_ORACLE_TYPE_RAW \
@@ -354,11 +353,12 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
             or oracle_type == DPI_ORACLE_TYPE_BLOB \
             or oracle_type == DPI_ORACLE_TYPE_NCLOB \
             or oracle_type == DPI_ORACLE_TYPE_BFILE:
-        lob_impl = ThickLobImpl._create(conn_impl, dbtype, dbvalue.asLOB)
+        lob_impl = ThickLobImpl._create(conn_impl, metadata.dbtype,
+                                        dbvalue.asLOB)
         return PY_TYPE_LOB._from_impl(lob_impl)
     elif oracle_type == DPI_ORACLE_TYPE_OBJECT:
         obj_impl = ThickDbObjectImpl.__new__(ThickDbObjectImpl)
-        obj_impl.type = obj_type_impl
+        obj_impl.type = metadata.objtype
         if dpiObject_addRef(dbvalue.asObject) < 0:
             _raise_from_odpi()
         obj_impl._handle = dbvalue.asObject
@@ -376,7 +376,8 @@ cdef object _convert_to_python(ThickConnImpl conn_impl, DbType dbtype,
     elif oracle_type == DPI_ORACLE_TYPE_INTERVAL_YM:
         return PY_TYPE_INTERVAL_YM(dbvalue.asIntervalYM.years,
                                    dbvalue.asIntervalYM.months)
-    errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED, name=dbtype.name)
+    errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
+                      name=metadata.dbtype.name)
 
 
 cdef object _convert_vector_to_python(dpiVector *vector):

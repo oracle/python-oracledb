@@ -114,8 +114,8 @@ class FetchInfo:
         """
         Returns the display size of the column.
         """
-        if self._impl.size > 0:
-            return self._impl.size
+        if self._impl.max_size > 0:
+            return self._impl.max_size
         dbtype = self._impl.dbtype
         if (
             dbtype is DB_TYPE_DATE
@@ -158,7 +158,7 @@ class FetchInfo:
         """
         Returns the size in bytes of the column.
         """
-        if self._impl.size > 0:
+        if self._impl.max_size > 0:
             return self._impl.buffer_size
 
     @property

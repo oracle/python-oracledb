@@ -106,7 +106,7 @@ class TestCase(test_env.BaseTestCase):
     def test_3603(self):
         "3603 - test output type handler: from INTEGER to NUMBER"
         self.__test_type_handler(
-            oracledb.DB_TYPE_BINARY_INTEGER, oracledb.DB_TYPE_NUMBER, 31, 31.0
+            oracledb.DB_TYPE_BINARY_INTEGER, oracledb.DB_TYPE_NUMBER, 31, 31
         )
 
     def test_3604(self):

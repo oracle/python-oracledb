@@ -57,15 +57,14 @@ cdef class BaseVarImpl:
             value = self.inconverter(value)
 
         # check the value and verify it is acceptable
-        value = self._conn_impl._check_value(self.dbtype, self.objtype, value,
-                                             was_set)
+        value = self._conn_impl._check_value(self.metadata, value, was_set)
         if was_set != NULL and not was_set[0]:
             return 0
 
         # resize variable, if applicable
-        if value is not None and self.dbtype.default_size != 0:
+        if value is not None and self.metadata.dbtype.default_size != 0:
             size = <uint32_t> len(value)
-            if size > self.size:
+            if size > self.metadata.max_size:
                 self._resize(size)
 
         # set value
@@ -115,12 +114,7 @@ cdef class BaseVarImpl:
         """
         Internal method that finalizes initialization of the variable.
         """
-        if self.dbtype.default_size > 0:
-            if self.size == 0:
-                self.size = self.dbtype.default_size
-            self.buffer_size = self.size * self.dbtype._buffer_size_factor
-        else:
-            self.buffer_size = self.dbtype._buffer_size_factor
+        self.metadata._finalize_init()
         if self.num_elements == 0:
             self.num_elements = 1
 
@@ -150,15 +144,35 @@ cdef class BaseVarImpl:
         """
         Resize the variable to the new size provided.
         """
-        self.size = new_size
-        self.buffer_size = new_size * self.dbtype._buffer_size_factor
+        self.metadata.max_size = new_size
+        self.metadata.buffer_size = 0
+        self.metadata._finalize_init()
 
-    cdef int _set_scalar_value(self, uint32_t pos, object value) except -1:
+    cdef int _set_metadata_from_type(self, object typ) except -1:
         """
-        Set the value of the variable at the given position. At this point it
-        is assumed that all checks have been performed!
+        Sets the type and size of the variable given a Python type.
         """
-        raise NotImplementedError()
+        self.metadata = OracleMetadata.from_type(typ)
+
+    cdef int _set_metadata_from_value(self, object value,
+                                      bint is_plsql) except -1:
+        """
+        Sets the type and size of the variable given a Python value. This
+        method is called once for scalars and once per element in a list for
+        array values. If a different type is detected an error is raised.
+        """
+        cdef OracleMetadata metadata
+        metadata = OracleMetadata.from_value(value)
+        if metadata.dbtype is DB_TYPE_BOOLEAN \
+                and not self._conn_impl.supports_bool and not is_plsql:
+            metadata.dbtype = DB_TYPE_BINARY_INTEGER
+        if self.metadata is None:
+            self.metadata = metadata
+        elif metadata.dbtype is not self.metadata.dbtype \
+                or metadata.objtype is not self.metadata.objtype:
+            errors._raise_err(errors.ERR_MIXED_ELEMENT_TYPES, element=value)
+        elif metadata.max_size > self.metadata.max_size:
+            self.metadata.max_size = metadata.max_size
 
     cdef int _set_num_elements_in_array(self, uint32_t num_elements) except -1:
         """
@@ -166,105 +180,12 @@ cdef class BaseVarImpl:
         """
         self.num_elements_in_array = num_elements
 
-    cdef int _set_type_info_from_type(self, object typ) except -1:
+    cdef int _set_scalar_value(self, uint32_t pos, object value) except -1:
         """
-        Sets the type and size of the variable given a Python type.
+        Set the value of the variable at the given position. At this point it
+        is assumed that all checks have been performed!
         """
-        cdef ApiType apitype
-        if isinstance(typ, DbType):
-            self.dbtype = typ
-        elif isinstance(typ, ApiType):
-            apitype = typ
-            self.dbtype = apitype.dbtypes[0]
-        elif isinstance(typ, PY_TYPE_DB_OBJECT_TYPE):
-            self.dbtype = DB_TYPE_OBJECT
-            self.objtype = typ._impl
-        elif not isinstance(typ, type):
-            errors._raise_err(errors.ERR_EXPECTING_TYPE)
-        elif typ is int:
-            self.dbtype = DB_TYPE_NUMBER
-            self._preferred_num_type = NUM_TYPE_INT
-        elif typ is float:
-            self.dbtype = DB_TYPE_NUMBER
-            self._preferred_num_type = NUM_TYPE_FLOAT
-        elif typ is str:
-            self.dbtype = DB_TYPE_VARCHAR
-        elif typ is bytes:
-            self.dbtype = DB_TYPE_RAW
-        elif typ is PY_TYPE_DECIMAL:
-            self.dbtype = DB_TYPE_NUMBER
-            self._preferred_num_type = NUM_TYPE_DECIMAL
-        elif typ is PY_TYPE_BOOL:
-            self.dbtype = DB_TYPE_BOOLEAN
-        elif typ is PY_TYPE_DATE:
-            self.dbtype = DB_TYPE_DATE
-        elif typ is PY_TYPE_DATETIME:
-            self.dbtype = DB_TYPE_TIMESTAMP
-        elif typ is PY_TYPE_TIMEDELTA:
-            self.dbtype = DB_TYPE_INTERVAL_DS
-        else:
-            errors._raise_err(errors.ERR_PYTHON_TYPE_NOT_SUPPORTED, typ=typ)
-
-    cdef int _set_type_info_from_value(self, object value,
-                                       bint is_plsql) except -1:
-        """
-        Sets the type and size of the variable given a Python value. This
-        method is called once for scalars and once per element in a list for
-        array values. If a different type is detected an error is raised.
-        """
-        cdef:
-            int preferred_num_type = NUM_TYPE_FLOAT
-            BaseDbObjectTypeImpl objtype = None
-            DbType dbtype = None
-            uint32_t size = 0
-        if value is None:
-            dbtype = DB_TYPE_VARCHAR
-            size = 1
-        elif isinstance(value, PY_TYPE_BOOL):
-            dbtype = DB_TYPE_BOOLEAN \
-                    if self._conn_impl.supports_bool or is_plsql \
-                    else DB_TYPE_BINARY_INTEGER
-        elif isinstance(value, str):
-            size = <uint32_t> len(value)
-            dbtype = DB_TYPE_VARCHAR
-        elif isinstance(value, bytes):
-            size = <uint32_t> len(value)
-            dbtype = DB_TYPE_RAW
-        elif isinstance(value, int):
-            dbtype = DB_TYPE_NUMBER
-            preferred_num_type = NUM_TYPE_INT
-        elif isinstance(value, float):
-            dbtype = DB_TYPE_NUMBER
-            preferred_num_type = NUM_TYPE_FLOAT
-        elif isinstance(value, PY_TYPE_DECIMAL):
-            dbtype = DB_TYPE_NUMBER
-            preferred_num_type = NUM_TYPE_DECIMAL
-        elif isinstance(value, (PY_TYPE_DATE, PY_TYPE_DATETIME)):
-            dbtype = DB_TYPE_DATE
-        elif isinstance(value, PY_TYPE_TIMEDELTA):
-            dbtype = DB_TYPE_INTERVAL_DS
-        elif isinstance(value, PY_TYPE_DB_OBJECT):
-            dbtype = DB_TYPE_OBJECT
-            objtype = value.type._impl
-        elif isinstance(value, (PY_TYPE_LOB, PY_TYPE_ASYNC_LOB)):
-            dbtype = value.type
-        elif isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
-            dbtype = DB_TYPE_CURSOR
-        elif isinstance(value, array.array):
-            dbtype = DB_TYPE_VECTOR
-        elif isinstance(value, PY_TYPE_INTERVAL_YM):
-            dbtype = DB_TYPE_INTERVAL_YM
-        else:
-            errors._raise_err(errors.ERR_PYTHON_VALUE_NOT_SUPPORTED,
-                              type_name=type(value).__name__)
-        if self.dbtype is None:
-            self.dbtype = dbtype
-            self.objtype = objtype
-            self._preferred_num_type = preferred_num_type
-        elif dbtype is not self.dbtype or objtype is not self.objtype:
-            errors._raise_err(errors.ERR_MIXED_ELEMENT_TYPES, element=value)
-        if size > self.size:
-            self.size = size
+        raise NotImplementedError()
 
     def get_all_values(self):
         """

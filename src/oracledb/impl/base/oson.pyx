@@ -159,7 +159,7 @@ cdef class OsonDecoder(Buffer):
             ptr = self._get_raw(temp32)
             return ptr[:temp32].decode()
         elif node_type == TNS_JSON_TYPE_NUMBER_LENGTH_UINT8:
-            return self.read_oracle_number(NUM_TYPE_DECIMAL)
+            return self.read_oracle_number(PY_TYPE_NUM_DECIMAL)
         elif node_type == TNS_JSON_TYPE_ID:
             self.read_ub1(&temp8)
             ptr = self._get_raw(temp8)
@@ -186,13 +186,13 @@ cdef class OsonDecoder(Buffer):
         if (node_type & 0xf0) in (0x20, 0x60):
             temp8 = node_type & 0x0f
             ptr = self._get_raw(temp8 + 1)
-            return self.parse_oracle_number(ptr, temp8 + 1, NUM_TYPE_DECIMAL)
+            return self.parse_oracle_number(ptr, temp8 + 1, PY_TYPE_NUM_DECIMAL)
 
         # handle integer with length stored inside the node itself
         elif (node_type & 0xf0) in (0x40, 0x50):
             temp8 = node_type & 0x0f
             ptr = self._get_raw(temp8)
-            return self.parse_oracle_number(ptr, temp8, NUM_TYPE_DECIMAL)
+            return self.parse_oracle_number(ptr, temp8, PY_TYPE_NUM_DECIMAL)
 
         # handle string with length stored inside the node itself
         elif (node_type & 0xe0) == 0:

@@ -29,11 +29,6 @@
 # base_impl.pyx).
 #------------------------------------------------------------------------------
 
-@cython.freelist(20)
-cdef class FetchInfoImpl:
-    pass
-
-
 cdef class BaseCursorImpl:
 
     @cython.boundscheck(False)
@@ -162,40 +157,39 @@ cdef class BaseCursorImpl:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
-                                       object type_handler, bint
-                                       uses_fetch_info, ssize_t pos,
-                                       FetchInfoImpl fetch_info):
+                                       object type_handler, bint uses_metadata,
+                                       ssize_t pos, OracleMetadata metadata):
         """
         Create the fetch variable for the given position and fetch information.
         The output type handler is consulted, if present, to make any necessary
         adjustments.
         """
         cdef:
-            object var, pub_fetch_info
+            object var, pub_metadata
             BaseConnImpl conn_impl
             BaseVarImpl var_impl
             uint32_t db_type_num
 
         # add the fetch info to the list used for handling the cursor
         # description attribute
-        self.fetch_info_impls[pos] = fetch_info
+        self.fetch_metadata[pos] = metadata
 
         # if an output type handler is specified, call it; the output type
         # handler should return a variable or None; the value None implies that
         # the default processing should take place just as if no output type
         # handler was defined
         if type_handler is not None:
-            if uses_fetch_info:
-                pub_fetch_info = PY_TYPE_FETCHINFO._from_impl(fetch_info)
-                var = type_handler(cursor, pub_fetch_info)
+            if uses_metadata:
+                pub_metadata = PY_TYPE_FETCHINFO._from_impl(metadata)
+                var = type_handler(cursor, pub_metadata)
             else:
-                var = type_handler(cursor, fetch_info.name, fetch_info.dbtype,
-                                   fetch_info.size, fetch_info.precision,
-                                   fetch_info.scale)
+                var = type_handler(cursor, metadata.name, metadata.dbtype,
+                                   metadata.max_size, metadata.precision,
+                                   metadata.scale)
             if var is not None:
                 self._verify_var(var)
                 var_impl = var._impl
-                var_impl._fetch_info = fetch_info
+                var_impl._fetch_metadata = metadata
                 if var_impl.num_elements < self._fetch_array_size:
                     var_impl.num_elements = self._fetch_array_size
                     var_impl._finalize_init()
@@ -203,40 +197,31 @@ cdef class BaseCursorImpl:
                 self.fetch_var_impls[pos] = var_impl
                 return var_impl
 
-        # otherwise, create a new variable using the provided fetch information
+        # otherwise, create a new variable using the provided fetch metadata
         var_impl = self._create_var_impl(conn)
         var_impl.num_elements = self._fetch_array_size
-        var_impl.dbtype = fetch_info.dbtype
-        var_impl.objtype = fetch_info.objtype
-        var_impl.name = fetch_info.name
-        var_impl.size = fetch_info.size
-        var_impl.precision = fetch_info.precision
-        var_impl.scale = fetch_info.scale
-        var_impl.nulls_allowed = fetch_info.nulls_allowed
-        var_impl._fetch_info = fetch_info
+        var_impl.metadata = metadata.copy()
+        var_impl._fetch_metadata = metadata
 
         # adjust the variable based on the defaults specified by the user, if
         # applicable
-        db_type_num = var_impl.dbtype.num
+        db_type_num = metadata.dbtype.num
         if db_type_num == DB_TYPE_NUM_NUMBER:
             if C_DEFAULTS.fetch_decimals:
-                var_impl._preferred_num_type = NUM_TYPE_DECIMAL
-            else:
-                var_impl._preferred_num_type = \
-                    get_preferred_num_type(var_impl.precision, var_impl.scale)
-        elif fetch_info.is_oson and db_type_num != DB_TYPE_NUM_JSON:
+                var_impl.metadata._py_type_num = PY_TYPE_NUM_DECIMAL
+        elif metadata.is_oson and db_type_num != DB_TYPE_NUM_JSON:
             conn_impl = self._get_conn_impl()
-            var_impl.dbtype = DB_TYPE_LONG_RAW
+            var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
             var_impl.outconverter = conn_impl.decode_oson
-        elif fetch_info.is_json and db_type_num != DB_TYPE_NUM_JSON:
+        elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON:
             var_impl.outconverter = self._build_json_converter_fn()
         elif not C_DEFAULTS.fetch_lobs:
             if db_type_num == DB_TYPE_NUM_BLOB:
-                var_impl.dbtype = DB_TYPE_LONG_RAW
+                var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
             elif db_type_num == DB_TYPE_NUM_CLOB:
-                var_impl.dbtype = DB_TYPE_LONG
+                var_impl.metadata.dbtype = DB_TYPE_LONG
             elif db_type_num == DB_TYPE_NUM_NCLOB:
-                var_impl.dbtype = DB_TYPE_LONG_NVARCHAR
+                var_impl.metadata.dbtype = DB_TYPE_LONG_NVARCHAR
 
         # finalize variable and store in arrays
         var_impl._finalize_init()
@@ -301,7 +286,7 @@ cdef class BaseCursorImpl:
     def _get_oci_attr(self, uint32_t attr_num, uint32_t attr_type):
         errors._raise_not_supported("getting a cursor OCI attribute")
 
-    cdef object _get_output_type_handler(self, bint *uses_fetch_info):
+    cdef object _get_output_type_handler(self, bint *uses_metadata):
         """
         Return the output type handler to use for the cursor. If one is not
         directly defined on the cursor then the one defined on the connection
@@ -318,9 +303,9 @@ cdef class BaseCursorImpl:
         if type_handler is not None:
             try:
                 sig = inspect.signature(type_handler)
-                uses_fetch_info[0] = (len(sig.parameters) == 2)
+                uses_metadata[0] = (len(sig.parameters) == 2)
             except (ValueError, TypeError):
-                uses_fetch_info[0] = False
+                uses_metadata[0] = False
         return type_handler
 
     cdef int _init_fetch_vars(self, uint32_t num_columns) except -1:
@@ -328,7 +313,7 @@ cdef class BaseCursorImpl:
         Initializes the fetch variable lists in preparation for creating the
         fetch variables used in fetching rows from the database.
         """
-        self.fetch_info_impls = [None] * num_columns
+        self.fetch_metadata = [None] * num_columns
         self.fetch_vars = [None] * num_columns
         self.fetch_var_impls = [None] * num_columns
 
@@ -525,8 +510,8 @@ cdef class BaseCursorImpl:
                    bint convert_nulls=False):
         cdef BaseVarImpl var_impl
         var_impl = self._create_var_impl(conn)
-        var_impl._set_type_info_from_type(typ)
-        var_impl.size = size
+        var_impl._set_metadata_from_type(typ)
+        var_impl.metadata.max_size = size
         var_impl.num_elements = num_elements
         var_impl.inconverter = inconverter
         var_impl.outconverter = outconverter

@@ -37,9 +37,8 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         if self._handle != NULL:
             dpiObject_release(self._handle)
 
-    cdef int _convert_from_python(self, object value, DbType dbtype,
-                                  ThickDbObjectTypeImpl objtype, dpiData *data,
-                                  StringBuffer buf):
+    cdef int _convert_from_python(self, object value, OracleMetadata metadata,
+                                  dpiData *data, StringBuffer buf):
         """
         Internal method for converting a value from Python to the value
         required by ODPI-C.
@@ -48,7 +47,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             data.isNull = 1
         else:
             data.isNull = 0
-            _convert_from_python(value, dbtype, objtype, &data.value, buf)
+            _convert_from_python(value, metadata, &data.value, buf)
 
     def append_checked(self, object value):
         """
@@ -59,10 +58,9 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             ThickDbObjectTypeImpl objtype
             dpiData data
         objtype = <ThickDbObjectTypeImpl> self.type
-        self._convert_from_python(value, objtype.element_dbtype,
-                                  objtype.element_objtype, &data, buf)
+        self._convert_from_python(value, objtype.element_metadata, &data, buf)
         if dpiObject_appendElement(self._handle,
-                                   objtype.element_dbtype._native_num,
+                                   objtype.element_metadata.dbtype._native_num,
                                    &data) < 0:
             _raise_from_odpi()
 
@@ -115,9 +113,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             return None
         type_impl = self.type
         try:
-            return _convert_to_python(type_impl._conn_impl, attr.dbtype,
-                                      attr.objtype, &data.value,
-                                      attr._preferred_num_type)
+            return _convert_to_python(type_impl._conn_impl, attr, &data.value)
         finally:
             if attr.objtype is not None:
                 dpiObject_release(data.value.asObject)
@@ -130,26 +126,25 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
         cdef:
             char number_as_string_buffer[200]
             ThickDbObjectTypeImpl objtype
+            DbType dbtype
             dpiData data
         objtype = self.type
-        if objtype.element_dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
-                and objtype.element_dbtype.num == DPI_ORACLE_TYPE_NUMBER:
+        dbtype = objtype.element_metadata.dbtype
+        if dbtype._native_num == DPI_NATIVE_TYPE_BYTES \
+                and dbtype.num == DPI_ORACLE_TYPE_NUMBER:
             data.value.asBytes.ptr = number_as_string_buffer
             data.value.asBytes.length = sizeof(number_as_string_buffer)
             data.value.asBytes.encoding = NULL
         if dpiObject_getElementValueByIndex(self._handle, index,
-                                            objtype.element_dbtype._native_num,
-                                            &data) < 0:
+                                            dbtype._native_num, &data) < 0:
             _raise_from_odpi()
         if data.isNull:
             return None
         try:
             return _convert_to_python(objtype._conn_impl,
-                                      objtype.element_dbtype,
-                                      objtype.element_objtype, &data.value,
-                                      objtype._element_preferred_num_type)
+                                      objtype.element_metadata, &data.value)
         finally:
-            if objtype.element_objtype is not None:
+            if objtype.element_metadata.objtype is not None:
                 dpiObject_release(data.value.asObject)
 
     def get_first_index(self):
@@ -223,8 +218,7 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             StringBuffer buf = StringBuffer()
             uint32_t native_type_num
             dpiData data
-        self._convert_from_python(value, attr.dbtype, attr.objtype, &data,
-                                  buf)
+        self._convert_from_python(value, attr, &data, buf)
         native_type_num = attr.dbtype._native_num
         if native_type_num == DPI_NATIVE_TYPE_LOB \
                 and not isinstance(value, PY_TYPE_LOB):
@@ -244,9 +238,8 @@ cdef class ThickDbObjectImpl(BaseDbObjectImpl):
             uint32_t native_type_num
             dpiData data
         objtype = self.type
-        self._convert_from_python(value, objtype.element_dbtype,
-                                  objtype.element_objtype, &data, buf)
-        native_type_num = objtype.element_dbtype._native_num
+        self._convert_from_python(value, objtype.element_metadata, &data, buf)
+        native_type_num = objtype.element_metadata.dbtype._native_num
         if native_type_num == DPI_NATIVE_TYPE_LOB \
                 and not isinstance(value, PY_TYPE_LOB):
             native_typeNum = DPI_NATIVE_TYPE_BYTES
@@ -286,17 +279,14 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
             _raise_from_odpi()
         impl.name = info.name[:info.nameLength].decode()
         impl.dbtype = DbType._from_num(info.typeInfo.oracleTypeNum)
-        impl.precision = info.typeInfo.precision
-        impl.scale = info.typeInfo.scale
+        impl.precision = <int8_t> info.typeInfo.precision
+        impl.scale = <int8_t> info.typeInfo.scale
         impl.max_size = info.typeInfo.dbSizeInBytes
-        if impl.dbtype.num == DPI_ORACLE_TYPE_NUMBER:
-            impl._preferred_num_type = \
-                    get_preferred_num_type(info.typeInfo.precision,
-                                           info.typeInfo.scale)
         if info.typeInfo.objectType:
             typ_handle = info.typeInfo.objectType
             impl.objtype = ThickDbObjectTypeImpl._from_handle(conn_impl,
                                                               typ_handle)
+        impl._finalize_init()
         return impl
 
 
@@ -316,11 +306,11 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
         """
         cdef:
             dpiObjectAttr **attributes = NULL
-            ThickDbObjectTypeImpl impl, temp
             ThickDbObjectAttrImpl attr_impl
+            ThickDbObjectTypeImpl impl
+            OracleMetadata metadata
             dpiObjectTypeInfo info
             ssize_t num_bytes
-            DbType dbtype
             uint16_t i
             object typ
         impl = ThickDbObjectTypeImpl.__new__(ThickDbObjectTypeImpl)
@@ -337,19 +327,18 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
                     info.packageName[:info.packageNameLength].decode()
         impl.is_collection = info.isCollection
         if impl.is_collection:
-            dbtype = DbType._from_num(info.elementTypeInfo.oracleTypeNum)
-            impl.element_dbtype = dbtype
-            impl.element_precision = info.elementTypeInfo.precision
-            impl.element_scale = info.elementTypeInfo.scale
-            impl.element_max_size = info.elementTypeInfo.dbSizeInBytes
-            if dbtype.num == DPI_ORACLE_TYPE_NUMBER:
-                impl._element_preferred_num_type = \
-                    get_preferred_num_type(info.elementTypeInfo.precision,
-                                           info.elementTypeInfo.scale)
+            metadata = OracleMetadata.__new__(OracleMetadata)
+            impl.element_metadata = metadata
+            metadata.dbtype = \
+                    DbType._from_num(info.elementTypeInfo.oracleTypeNum)
+            metadata.precision = <int8_t> info.elementTypeInfo.precision
+            metadata.scale = <int8_t> info.elementTypeInfo.scale
+            metadata.max_size = info.elementTypeInfo.dbSizeInBytes
             if info.elementTypeInfo.objectType != NULL:
                 handle = info.elementTypeInfo.objectType
-                temp = ThickDbObjectTypeImpl._from_handle(conn_impl, handle)
-                impl.element_objtype = temp
+                metadata.objtype = \
+                        ThickDbObjectTypeImpl._from_handle(conn_impl, handle)
+            metadata._finalize_init()
         impl.attrs_by_name = {}
         impl.attrs = [None] * info.numAttributes
         try:

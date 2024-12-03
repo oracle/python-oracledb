@@ -37,8 +37,8 @@ cdef class BaseConnImpl:
         self.proxy_user = params.proxy_user
         self._oson_max_fname_size = 255
 
-    cdef object _check_value(self, DbType dbtype, BaseDbObjectTypeImpl objtype,
-                             object value, bint* is_ok):
+    cdef object _check_value(self, OracleMetadata metadata, object value,
+                             bint* is_ok):
         """
         Checks that the specified Python value is acceptable for the given
         database type. If the "is_ok" parameter is passed as NULL, an exception
@@ -55,7 +55,7 @@ cdef class BaseConnImpl:
 
         # check to see if the Python value is accepted and perform any
         # necessary adjustments
-        db_type_num = dbtype.num
+        db_type_num = metadata.dbtype.num
         if db_type_num in (DB_TYPE_NUM_NUMBER,
                            DB_TYPE_NUM_BINARY_INTEGER,
                            DB_TYPE_NUM_BINARY_DOUBLE,
@@ -99,13 +99,13 @@ cdef class BaseConnImpl:
                              DB_TYPE_NUM_BFILE):
             if isinstance(value, (PY_TYPE_LOB, PY_TYPE_ASYNC_LOB)):
                 lob_impl = value._impl
-                if lob_impl.dbtype is not dbtype:
+                if lob_impl.dbtype is not metadata.dbtype:
                     if is_ok != NULL:
                         is_ok[0] = False
                         return value
                     errors._raise_err(errors.ERR_LOB_OF_WRONG_TYPE,
                                       actual_type_name=lob_impl.dbtype.name,
-                                      expected_type_name=dbtype.name)
+                                      expected_type_name=metadata.dbtype.name)
                 return value
             elif self._allow_bind_str_to_lob \
                     and db_type_num != DB_TYPE_NUM_BFILE \
@@ -115,21 +115,21 @@ cdef class BaseConnImpl:
                         value = value.encode()
                 elif isinstance(value, bytes):
                     value = value.decode()
-                lob_impl = self.create_temp_lob_impl(dbtype)
+                lob_impl = self.create_temp_lob_impl(metadata.dbtype)
                 if value:
                     lob_impl.write(value, 1)
                 return PY_TYPE_LOB._from_impl(lob_impl)
         elif db_type_num == DB_TYPE_NUM_OBJECT:
             if isinstance(value, PY_TYPE_DB_OBJECT):
-                if value._impl.type != objtype:
+                if value._impl.type != metadata.objtype:
                     if is_ok != NULL:
                         is_ok[0] = False
                         return value
                     errors._raise_err(errors.ERR_WRONG_OBJECT_TYPE,
                                       actual_schema=value.type.schema,
                                       actual_name=value.type.name,
-                                      expected_schema=objtype.schema,
-                                      expected_name=objtype.name)
+                                      expected_schema=metadata.objtype.schema,
+                                      expected_name=metadata.objtype.name)
                 return value
         elif db_type_num == DB_TYPE_NUM_CURSOR:
             if isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
@@ -159,7 +159,7 @@ cdef class BaseConnImpl:
                 is_ok[0] = False
                 return value
             errors._raise_err(errors.ERR_UNSUPPORTED_TYPE_SET,
-                              db_type_name=dbtype.name)
+                              db_type_name=metadata.dbtype.name)
 
         # the Python value was not considered acceptable
         if is_ok != NULL:
@@ -167,7 +167,7 @@ cdef class BaseConnImpl:
             return value
         errors._raise_err(errors.ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE,
                           py_type_name=type(value).__name__,
-                          db_type_name=dbtype.name)
+                          db_type_name=metadata.dbtype.name)
 
     cdef BaseCursorImpl _create_cursor_impl(self):
         """

@@ -361,9 +361,8 @@ cdef class MessageWithData(Message):
         object cursor
         uint32_t offset
 
-    cdef int _adjust_fetch_info(self,
-                                ThinVarImpl prev_var_impl,
-                                FetchInfoImpl fetch_info) except -1:
+    cdef int _adjust_metadata(self, ThinVarImpl prev_var_impl,
+                              OracleMetadata metadata) except -1:
         """
         When a query is re-executed but the data type of a column has changed
         the server returns the type information of the new type. However, if
@@ -374,22 +373,20 @@ cdef class MessageWithData(Message):
         Detect this situation and adjust the fetch type appropriately.
         """
         cdef:
-            FetchInfoImpl prev_fetch_info = prev_var_impl._fetch_info
-            uint8_t csfrm = prev_var_impl.dbtype._csfrm
+            OracleMetadata prev_metadata = prev_var_impl._fetch_metadata
+            uint8_t csfrm = prev_metadata.dbtype._csfrm
             uint8_t type_num
-        if fetch_info.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
-                and prev_fetch_info.dbtype._ora_type_num in \
+        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
+                and prev_metadata.dbtype._ora_type_num in \
                         (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR,
                          ORA_TYPE_NUM_LONG):
             type_num = ORA_TYPE_NUM_LONG
-            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
-                                                                csfrm)
-        elif fetch_info.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB \
-                and prev_fetch_info.dbtype._ora_type_num in \
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
+        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB \
+                and prev_metadata.dbtype._ora_type_num in \
                         (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
             type_num = ORA_TYPE_NUM_LONG_RAW
-            fetch_info.dbtype = DbType._from_ora_type_and_csfrm(type_num,
-                                                                csfrm)
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):
@@ -461,8 +458,8 @@ cdef class MessageWithData(Message):
             Statement statement = cursor_impl._statement
             object type_handler, conn
             ThinVarImpl var_impl
-            bint uses_fetch_info
             ssize_t i, num_vals
+            bint uses_metadata
 
         # set values to indicate the start of a new fetch operation
         self.in_fetch = True
@@ -480,12 +477,12 @@ cdef class MessageWithData(Message):
         # the one that was used during the last fetch, rebuild the fetch
         # variables in order to take the new type handler into account
         conn = self.cursor.connection
-        type_handler = cursor_impl._get_output_type_handler(&uses_fetch_info)
+        type_handler = cursor_impl._get_output_type_handler(&uses_metadata)
         if type_handler is not statement._last_output_type_handler:
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
-                                              uses_fetch_info, i,
-                                              var_impl._fetch_info)
+                                              uses_metadata, i,
+                                              var_impl._fetch_metadata)
             statement._last_output_type_handler = type_handler
 
         # the list of output variables is equivalent to the fetch variables
@@ -507,22 +504,18 @@ cdef class MessageWithData(Message):
             BaseThinCursorImpl cursor_impl
             object column_value = None
             ThinDbObjectImpl obj_impl
-            FetchInfoImpl fetch_info
             int32_t actual_num_bytes
-            uint32_t buffer_size
+            OracleMetadata metadata
             Rowid rowid
-        fetch_info = var_impl._fetch_info
-        if fetch_info is not None:
-            ora_type_num = fetch_info.dbtype._ora_type_num
-            csfrm =  fetch_info.dbtype._csfrm
-            buffer_size = fetch_info.buffer_size
+        if self.in_fetch:
+            metadata = var_impl._fetch_metadata
         else:
-            ora_type_num = var_impl.dbtype._ora_type_num
-            csfrm = var_impl.dbtype._csfrm
-            buffer_size = var_impl.buffer_size
+            metadata = var_impl.metadata
+        ora_type_num = metadata.dbtype._ora_type_num
+        csfrm =  metadata.dbtype._csfrm
         if var_impl.bypass_decode:
             ora_type_num = ORA_TYPE_NUM_RAW
-        if buffer_size == 0 and self.in_fetch \
+        if metadata.buffer_size == 0 and self.in_fetch \
                 and ora_type_num not in (ORA_TYPE_NUM_LONG,
                                          ORA_TYPE_NUM_LONG_RAW,
                                          ORA_TYPE_NUM_UROWID):
@@ -537,7 +530,8 @@ cdef class MessageWithData(Message):
                 or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
             column_value = buf.read_bytes()
         elif ora_type_num == ORA_TYPE_NUM_NUMBER:
-            column_value = buf.read_oracle_number(var_impl._preferred_num_type)
+            column_value = \
+                    buf.read_oracle_number(var_impl.metadata._py_type_num)
         elif ora_type_num == ORA_TYPE_NUM_DATE \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ \
@@ -563,7 +557,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
             column_value = buf.read_binary_float()
         elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
-            column_value = buf.read_oracle_number(NUM_TYPE_INT)
+            column_value = buf.read_oracle_number(PY_TYPE_NUM_INT)
             if column_value is not None:
                 column_value = int(column_value)
         elif ora_type_num == ORA_TYPE_NUM_CURSOR:
@@ -583,13 +577,13 @@ cdef class MessageWithData(Message):
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):
             column_value = buf.read_lob_with_length(self.conn_impl,
-                                                    var_impl.dbtype)
+                                                    metadata.dbtype)
         elif ora_type_num == ORA_TYPE_NUM_JSON:
             column_value = buf.read_oson()
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             column_value = buf.read_vector()
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
-            typ_impl = var_impl.objtype
+            typ_impl = metadata.objtype
             if typ_impl is None:
                 column_value = buf.read_xmltype(self.conn_impl)
             else:
@@ -623,26 +617,23 @@ cdef class MessageWithData(Message):
                 column_value = var_impl._conv_func(column_value)
         return column_value
 
-    cdef FetchInfoImpl _process_column_info(self, ReadBuffer buf,
-                                            BaseThinCursorImpl cursor_impl):
+    cdef OracleMetadata _process_column_info(self, ReadBuffer buf,
+                                             BaseThinCursorImpl cursor_impl):
         cdef:
             uint32_t num_bytes, uds_flags, num_annotations, i
             ThinDbObjectTypeImpl typ_impl
             str schema, name, key, value
-            uint8_t data_type, csfrm
-            FetchInfoImpl fetch_info
-            int8_t precision, scale
+            uint8_t ora_type_num, csfrm
+            OracleMetadata metadata
             uint8_t nulls_allowed
             int cache_num
             bytes oid
-        buf.read_ub1(&data_type)
-        fetch_info = FetchInfoImpl()
+        buf.read_ub1(&ora_type_num)
+        metadata = OracleMetadata.__new__(OracleMetadata)
         buf.skip_ub1()                      # flags
-        buf.read_sb1(&precision)
-        fetch_info.precision = precision
-        buf.read_sb1(&scale)
-        fetch_info.scale = scale
-        buf.read_ub4(&fetch_info.buffer_size)
+        buf.read_sb1(&metadata.precision)
+        buf.read_sb1(&metadata.scale)
+        buf.read_ub4(&metadata.buffer_size)
         buf.skip_ub4()                      # max number of array elements
         buf.skip_ub8()                      # cont flags
         buf.read_ub4(&num_bytes)            # OID
@@ -651,18 +642,18 @@ cdef class MessageWithData(Message):
         buf.skip_ub2()                      # version
         buf.skip_ub2()                      # character set id
         buf.read_ub1(&csfrm)                # character set form
-        fetch_info.dbtype = DbType._from_ora_type_and_csfrm(data_type, csfrm)
-        buf.read_ub4(&fetch_info.size)
-        if data_type == ORA_TYPE_NUM_RAW:
-            fetch_info.size = fetch_info.buffer_size
+        metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        buf.read_ub4(&metadata.max_size)
+        if ora_type_num == ORA_TYPE_NUM_RAW:
+            metadata.max_size = metadata.buffer_size
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
             buf.skip_ub4()                  # oaccolid
         buf.read_ub1(&nulls_allowed)
-        fetch_info.nulls_allowed = nulls_allowed
+        metadata.nulls_allowed = nulls_allowed
         buf.skip_ub1()                      # v7 length of name
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            fetch_info.name = buf.read_str(CS_FORM_IMPLICIT)
+            metadata.name = buf.read_str(CS_FORM_IMPLICIT)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             schema = buf.read_str(CS_FORM_IMPLICIT)
@@ -671,20 +662,20 @@ cdef class MessageWithData(Message):
             name = buf.read_str(CS_FORM_IMPLICIT)
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
-        fetch_info.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
-        fetch_info.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
+        metadata.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
+        metadata.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                fetch_info.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
+                metadata.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                fetch_info.domain_name = buf.read_str(CS_FORM_IMPLICIT)
+                metadata.domain_name = buf.read_str(CS_FORM_IMPLICIT)
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
             buf.read_ub4(&num_annotations)
             if num_annotations > 0:
                 buf.skip_ub1()
-                fetch_info.annotations = {}
+                metadata.annotations = {}
                 buf.read_ub4(&num_annotations)
                 buf.skip_ub1()
                 for i in range(num_annotations):
@@ -695,24 +686,24 @@ cdef class MessageWithData(Message):
                         value = buf.read_str(CS_FORM_IMPLICIT)
                     else:
                         value = ""
-                    fetch_info.annotations[key] = value
+                    metadata.annotations[key] = value
                     buf.skip_ub4()          # flags
                 buf.skip_ub4()              # flags
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_4:
-            buf.read_ub4(&fetch_info.vector_dimensions)
-            buf.read_ub1(&fetch_info.vector_format)
-            buf.read_ub1(&fetch_info.vector_flags)
-        if data_type == ORA_TYPE_NUM_OBJECT:
+            buf.read_ub4(&metadata.vector_dimensions)
+            buf.read_ub1(&metadata.vector_format)
+            buf.read_ub1(&metadata.vector_flags)
+        if ora_type_num == ORA_TYPE_NUM_OBJECT:
             if self.type_cache is None:
                 cache_num = self.conn_impl._dbobject_type_cache_num
                 self.type_cache = get_dbobject_type_cache(cache_num)
             typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
                                                          name)
             if typ_impl.is_xml_type:
-                fetch_info.dbtype = DB_TYPE_XMLTYPE
+                metadata.dbtype = DB_TYPE_XMLTYPE
             else:
-                fetch_info.objtype = typ_impl
-        return fetch_info
+                metadata.objtype = typ_impl
+        return metadata
 
     cdef int _process_describe_info(self, ReadBuffer buf,
                                     object cursor,
@@ -721,9 +712,9 @@ cdef class MessageWithData(Message):
             Statement stmt = cursor_impl._statement
             list prev_fetch_var_impls
             object type_handler, conn
-            FetchInfoImpl fetch_info
+            OracleMetadata metadata
             uint32_t num_bytes, i
-            bint uses_fetch_info
+            bint uses_metadata
             str message
         buf.skip_ub4()                      # max row size
         buf.read_ub4(&cursor_impl._num_columns)
@@ -731,21 +722,21 @@ cdef class MessageWithData(Message):
         cursor_impl._init_fetch_vars(cursor_impl._num_columns)
         if cursor_impl._num_columns > 0:
             buf.skip_ub1()
-        type_handler = cursor_impl._get_output_type_handler(&uses_fetch_info)
+        type_handler = cursor_impl._get_output_type_handler(&uses_metadata)
         conn = self.cursor.connection
         for i in range(cursor_impl._num_columns):
-            fetch_info = self._process_column_info(buf, cursor_impl)
+            metadata = self._process_column_info(buf, cursor_impl)
             if prev_fetch_var_impls is not None \
                     and i < len(prev_fetch_var_impls):
-                self._adjust_fetch_info(prev_fetch_var_impls[i], fetch_info)
-            if fetch_info.dbtype._ora_type_num in (ORA_TYPE_NUM_BLOB,
-                                                   ORA_TYPE_NUM_CLOB,
-                                                   ORA_TYPE_NUM_JSON,
-                                                   ORA_TYPE_NUM_VECTOR):
+                self._adjust_metadata(prev_fetch_var_impls[i], metadata)
+            if metadata.dbtype._ora_type_num in (ORA_TYPE_NUM_BLOB,
+                                                 ORA_TYPE_NUM_CLOB,
+                                                 ORA_TYPE_NUM_JSON,
+                                                 ORA_TYPE_NUM_VECTOR):
                 stmt._requires_define = True
                 stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
-                                          uses_fetch_info, i, fetch_info)
+                                          uses_metadata, i, metadata)
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # current date
@@ -756,7 +747,7 @@ cdef class MessageWithData(Message):
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
             buf.skip_raw_bytes_chunked()    # dcbqcky
-        stmt._fetch_info_impls = cursor_impl.fetch_info_impls
+        stmt._fetch_metadata = cursor_impl.fetch_metadata
         stmt._fetch_vars = cursor_impl.fetch_vars
         stmt._fetch_var_impls = cursor_impl.fetch_var_impls
         stmt._num_columns = cursor_impl._num_columns
@@ -959,10 +950,12 @@ cdef class MessageWithData(Message):
             uint32_t buffer_size, cont_flag, lob_prefetch_length
             ThinDbObjectTypeImpl typ_impl
             uint8_t ora_type_num, flag
+            OracleMetadata metadata
             ThinVarImpl var_impl
         for var_impl in bind_var_impls:
-            ora_type_num = var_impl.dbtype._ora_type_num
-            buffer_size = var_impl.buffer_size
+            metadata = var_impl.metadata
+            ora_type_num = metadata.dbtype._ora_type_num
+            buffer_size = metadata.buffer_size
             if ora_type_num in (ORA_TYPE_NUM_ROWID, ORA_TYPE_NUM_UROWID):
                 ora_type_num = ORA_TYPE_NUM_VARCHAR
                 buffer_size = TNS_MAX_UROWID_LENGTH
@@ -992,19 +985,19 @@ cdef class MessageWithData(Message):
             else:
                 buf.write_ub4(0)            # max num elements
             buf.write_ub8(cont_flag)
-            if var_impl.objtype is not None:
-                typ_impl = var_impl.objtype
+            if metadata.objtype is not None:
+                typ_impl = metadata.objtype
                 buf.write_ub4(len(typ_impl.oid))
                 buf.write_bytes_with_length(typ_impl.oid)
                 buf.write_ub4(typ_impl.version)
             else:
                 buf.write_ub4(0)            # OID
                 buf.write_ub2(0)            # version
-            if var_impl.dbtype._csfrm != 0:
+            if metadata.dbtype._csfrm != 0:
                 buf.write_ub2(TNS_CHARSET_UTF8)
             else:
                 buf.write_ub2(0)
-            buf.write_uint8(var_impl.dbtype._csfrm)
+            buf.write_uint8(metadata.dbtype._csfrm)
             buf.write_ub4(lob_prefetch_length)  # max chars (LOB prefetch)
             if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
                 buf.write_ub4(0)            # oaccolid
@@ -1017,10 +1010,10 @@ cdef class MessageWithData(Message):
         buf.write_uint8(self.conn_impl.pipeline_mode)
 
     cdef int _write_bind_params_column(self, WriteBuffer buf,
-                                       ThinVarImpl var_impl,
+                                       OracleMetadata metadata,
                                        object value) except -1:
         cdef:
-            uint8_t ora_type_num = var_impl.dbtype._ora_type_num
+            uint8_t ora_type_num = metadata.dbtype._ora_type_num
             ThinDbObjectTypeImpl typ_impl
             BaseThinCursorImpl cursor_impl
             BaseThinLobImpl lob_impl
@@ -1042,7 +1035,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num == ORA_TYPE_NUM_VARCHAR \
                 or ora_type_num == ORA_TYPE_NUM_CHAR \
                 or ora_type_num == ORA_TYPE_NUM_LONG:
-            if var_impl.dbtype._csfrm == CS_FORM_IMPLICIT:
+            if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
                 temp_bytes = (<str> value).encode()
             else:
                 buf._caps._check_ncharset_id()
@@ -1062,7 +1055,7 @@ cdef class MessageWithData(Message):
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_TZ \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ:
-            buf.write_oracle_date(value, var_impl.dbtype._buffer_size_factor)
+            buf.write_oracle_date(value, metadata.dbtype._buffer_size_factor)
         elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
             buf.write_binary_double(value)
         elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
@@ -1103,7 +1096,7 @@ cdef class MessageWithData(Message):
             buf.write_vector(value)
         else:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
-                              name=var_impl.dbtype.name)
+                              name=metadata.dbtype.name)
 
     cdef int _write_bind_params_row(self, WriteBuffer buf, list params,
                                     uint32_t pos) except -1:
@@ -1114,32 +1107,35 @@ cdef class MessageWithData(Message):
         cdef:
             uint32_t i, num_elements, offset = self.offset
             bint found_long = False
+            OracleMetadata metadata
             ThinVarImpl var_impl
             BindInfo bind_info
         for i, bind_info in enumerate(params):
             if bind_info._is_return_bind:
                 continue
             var_impl = bind_info._bind_var_impl
+            metadata = var_impl.metadata
             if var_impl.is_array:
                 num_elements = var_impl.num_elements_in_array
                 buf.write_ub4(num_elements)
                 for value in var_impl._values[:num_elements]:
-                    self._write_bind_params_column(buf, var_impl, value)
+                    self._write_bind_params_column(buf, metadata, value)
             else:
                 if not self.cursor_impl._statement._is_plsql \
-                        and var_impl.buffer_size > buf._caps.max_string_size:
+                        and metadata.buffer_size > buf._caps.max_string_size:
                     found_long = True
                     continue
-                self._write_bind_params_column(buf, var_impl,
+                self._write_bind_params_column(buf, metadata,
                                                var_impl._values[pos + offset])
         if found_long:
             for i, bind_info in enumerate(params):
                 if bind_info._is_return_bind:
                     continue
                 var_impl = bind_info._bind_var_impl
-                if var_impl.buffer_size <= buf._caps.max_string_size:
+                metadata = var_impl.metadata
+                if metadata.buffer_size <= buf._caps.max_string_size:
                     continue
-                self._write_bind_params_column(buf, var_impl,
+                self._write_bind_params_column(buf, metadata,
                                                var_impl._values[pos + offset])
 
     cdef int _write_close_cursors_piggyback(self, WriteBuffer buf) except -1:
