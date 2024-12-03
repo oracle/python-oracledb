@@ -78,8 +78,21 @@ cdef str DBO_CACHE_SQL_GET_COLUMNS = """
                     then data_length
                 else 0
             end,
-            nvl(data_precision, 0),
-            nvl(data_scale, 0)
+            case
+                when data_precision is null and data_scale is null
+                    then 0
+                when data_precision is null
+                    then 38
+                else data_precision
+            end,
+            case
+                when data_precision is null and data_scale is null
+                        and data_type = 'NUMBER'
+                    then -127
+                when data_scale is null
+                    then 0
+                else data_scale
+            end
         from all_tab_cols
         where owner = :owner
           and table_name = substr(:name, 1, length(:name) - 8)
@@ -307,10 +320,13 @@ cdef class BaseThinDbObjectTypeCache:
         # process the type code
         if attr_type == TNS_OBJ_TDS_TYPE_NUMBER:
             ora_type_num = ORA_TYPE_NUM_NUMBER
-            buf.read_sb1(precision)
-            buf.read_sb1(scale)
-            preferred_num_type[0] = \
-                    get_preferred_num_type(precision[0], scale[0])
+            buf.read_sb1(&temp_precision)
+            buf.read_sb1(&temp_scale)
+            if temp_precision != 0 or temp_scale != 0:
+                precision[0] = temp_precision
+                scale[0] = temp_scale
+                preferred_num_type[0] = \
+                        get_preferred_num_type(precision[0], scale[0])
         elif attr_type == TNS_OBJ_TDS_TYPE_FLOAT:
             ora_type_num = ORA_TYPE_NUM_NUMBER
             buf.skip_raw_bytes(1)           # precision
@@ -389,13 +405,34 @@ cdef class BaseThinDbObjectTypeCache:
                 attr_impl.dbtype = DB_TYPE_OBJECT
                 attr_impl.objtype = attr_typ_impl
         else:
-            attr_impl.dbtype = DbType._from_ora_name(type_name)
-            attr_impl.max_size = max_size
-            if precision != 0 or scale != 0:
-                attr_impl.precision = precision
-                attr_impl.scale = scale
+            if type_name in ("INTEGER", "SMALLINT"):
+                attr_impl.dbtype = DB_TYPE_NUMBER
+                attr_impl.precision = 38
+                attr_impl.scale = 0
+            elif type_name == "REAL":
+                attr_impl.dbtype = DB_TYPE_NUMBER
+                attr_impl.precision = 63
+                attr_impl.scale = -127
+            elif type_name in ("DOUBLE PRECISION", "FLOAT"):
+                attr_impl.dbtype = DB_TYPE_NUMBER
+                # the database sends type name "FLOAT" instead of type name
+                # "REAL" when looking at table metadata but not when examining
+                # database object attribute metadata so account for that here
+                if precision != 0:
+                    attr_impl.precision = precision
+                else:
+                    attr_impl.precision = 126
+                attr_impl.scale = -127
+            else:
+                attr_impl.dbtype = DbType._from_ora_name(type_name)
+                attr_impl.max_size = max_size
+                if attr_impl.dbtype._ora_type_num == ORA_TYPE_NUM_NUMBER:
+                    attr_impl.precision = precision
+                    attr_impl.scale = scale
+            if attr_impl.dbtype._ora_type_num == ORA_TYPE_NUM_NUMBER:
                 attr_impl._preferred_num_type = \
-                        get_preferred_num_type(precision, scale)
+                        get_preferred_num_type(attr_impl.precision,
+                                               attr_impl.scale)
         typ_impl.attrs.append(attr_impl)
         typ_impl.attrs_by_name[name] = attr_impl
 

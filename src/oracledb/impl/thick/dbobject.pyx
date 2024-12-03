@@ -289,9 +289,10 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
         impl.precision = info.typeInfo.precision
         impl.scale = info.typeInfo.scale
         impl.max_size = info.typeInfo.dbSizeInBytes
-        impl._preferred_num_type = \
-                get_preferred_num_type(info.typeInfo.precision,
-                                       info.typeInfo.scale)
+        if impl.dbtype.num == DPI_ORACLE_TYPE_NUMBER:
+            impl._preferred_num_type = \
+                    get_preferred_num_type(info.typeInfo.precision,
+                                           info.typeInfo.scale)
         if info.typeInfo.objectType:
             typ_handle = info.typeInfo.objectType
             impl.objtype = ThickDbObjectTypeImpl._from_handle(conn_impl,
@@ -341,9 +342,10 @@ cdef class ThickDbObjectTypeImpl(BaseDbObjectTypeImpl):
             impl.element_precision = info.elementTypeInfo.precision
             impl.element_scale = info.elementTypeInfo.scale
             impl.element_max_size = info.elementTypeInfo.dbSizeInBytes
-            impl._element_preferred_num_type = \
-                get_preferred_num_type(info.elementTypeInfo.precision,
-                                       info.elementTypeInfo.scale)
+            if dbtype.num == DPI_ORACLE_TYPE_NUMBER:
+                impl._element_preferred_num_type = \
+                    get_preferred_num_type(info.elementTypeInfo.precision,
+                                           info.elementTypeInfo.scale)
             if info.elementTypeInfo.objectType != NULL:
                 handle = info.elementTypeInfo.objectType
                 temp = ThickDbObjectTypeImpl._from_handle(conn_impl, handle)

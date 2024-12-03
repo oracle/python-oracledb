@@ -236,11 +236,37 @@ class DbObjectAttr:
         return attr
 
     @property
+    def max_size(self) -> Union[int, None]:
+        """
+        Returns the max size of the attribute (in bytes) for attributes of type
+        DB_TYPE_RAW, DB_TYPE_CHAR, DB_TYPE_NCHAR, DB_TYPE_VARCHAR and
+        DB_TYPE_NVARCHAR.
+        """
+        if self._impl.max_size:
+            return self._impl.max_size
+
+    @property
     def name(self) -> str:
         """
         This read-only attribute returns the name of the attribute.
         """
         return self._impl.name
+
+    @property
+    def precision(self) -> Union[int, None]:
+        """
+        Returns the precision of the attribute.
+        """
+        if self._impl.precision or self._impl.scale:
+            return self._impl.precision
+
+    @property
+    def scale(self) -> Union[int, None]:
+        """
+        Returns the scale of the column.
+        """
+        if self._impl.precision or self._impl.scale:
+            return self._impl.scale
 
     @property
     def type(self) -> Union["DbObjectType", DbType]:

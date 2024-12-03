@@ -57,6 +57,13 @@ Common Changes
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the
     python-oracledb pool cache with :meth:`oracledb.get_pool()`.
+#)  Added attributes :attr:`DbObjectAttribute.precision`,
+    :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
+    provide additional metadata about
+    :ref:`database object attributes <dbobjectattr>`.
+#)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
+    objects defined using ANSI names (including FLOAT and REAL) may have shown
+    as integers.
 
 
 oracledb 2.5.0 (November 2024)

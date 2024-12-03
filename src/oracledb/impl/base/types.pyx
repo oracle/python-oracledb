@@ -396,14 +396,9 @@ DB_TYPE_XMLTYPE = DbType(
 )
 
 # additional aliases
-db_type_by_ora_name["DOUBLE PRECISION"] = DB_TYPE_NUMBER
-db_type_by_ora_name["FLOAT"] = DB_TYPE_NUMBER
-db_type_by_ora_name["INTEGER"] = DB_TYPE_NUMBER
 db_type_by_ora_name["PL/SQL BOOLEAN"] = DB_TYPE_BOOLEAN
 db_type_by_ora_name["PL/SQL BINARY INTEGER"] = DB_TYPE_BINARY_INTEGER
 db_type_by_ora_name["PL/SQL PLS INTEGER"] = DB_TYPE_BINARY_INTEGER
-db_type_by_ora_name["REAL"] = DB_TYPE_NUMBER
-db_type_by_ora_name["SMALLINT"] = DB_TYPE_NUMBER
 db_type_by_ora_name["TIMESTAMP WITH TZ"] = DB_TYPE_TIMESTAMP_TZ
 db_type_by_ora_name["TIMESTAMP WITH LOCAL TZ"] = DB_TYPE_TIMESTAMP_LTZ
 

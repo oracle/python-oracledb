@@ -179,6 +179,7 @@ from .base_impl import (
     DB_TYPE_NCLOB,
     DB_TYPE_BINARY_INTEGER,
     DB_TYPE_CURSOR,
+    DB_TYPE_NUMBER,
     DB_TYPE_OBJECT,
     DB_TYPE_XMLTYPE,
 )

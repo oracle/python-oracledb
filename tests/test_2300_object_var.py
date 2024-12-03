@@ -217,58 +217,59 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(type_obj.name, "UDT_OBJECT")
         sub_object_value_type = self.conn.gettype("UDT_SUBOBJECT")
         sub_object_array_type = self.conn.gettype("UDT_OBJECTARRAY")
-        expected_attr_names = [
-            "NUMBERVALUE",
-            "STRINGVALUE",
-            "FIXEDCHARVALUE",
-            "NSTRINGVALUE",
-            "NFIXEDCHARVALUE",
-            "RAWVALUE",
-            "INTVALUE",
-            "SMALLINTVALUE",
-            "REALVALUE",
-            "DOUBLEPRECISIONVALUE",
-            "FLOATVALUE",
-            "BINARYFLOATVALUE",
-            "BINARYDOUBLEVALUE",
-            "DATEVALUE",
-            "TIMESTAMPVALUE",
-            "TIMESTAMPTZVALUE",
-            "TIMESTAMPLTZVALUE",
-            "CLOBVALUE",
-            "NCLOBVALUE",
-            "BLOBVALUE",
-            "SUBOBJECTVALUE",
-            "SUBOBJECTARRAY",
+        expected_metadata = [
+            ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER, 0, -127, None),
+            ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR, None, None, 60),
+            ("FIXEDCHARVALUE", oracledb.DB_TYPE_CHAR, None, None, 10),
+            ("NSTRINGVALUE", oracledb.DB_TYPE_NVARCHAR, None, None, 120),
+            ("NFIXEDCHARVALUE", oracledb.DB_TYPE_NCHAR, None, None, 20),
+            ("RAWVALUE", oracledb.DB_TYPE_RAW, None, None, 16),
+            ("INTVALUE", oracledb.DB_TYPE_NUMBER, 38, 0, None),
+            ("SMALLINTVALUE", oracledb.DB_TYPE_NUMBER, 38, 0, None),
+            ("REALVALUE", oracledb.DB_TYPE_NUMBER, 63, -127, None),
+            ("DOUBLEPRECISIONVALUE", oracledb.DB_TYPE_NUMBER, 126, -127, None),
+            ("FLOATVALUE", oracledb.DB_TYPE_NUMBER, 126, -127, None),
+            (
+                "BINARYFLOATVALUE",
+                oracledb.DB_TYPE_BINARY_FLOAT,
+                None,
+                None,
+                None,
+            ),
+            (
+                "BINARYDOUBLEVALUE",
+                oracledb.DB_TYPE_BINARY_DOUBLE,
+                None,
+                None,
+                None,
+            ),
+            ("DATEVALUE", oracledb.DB_TYPE_DATE, None, None, None),
+            ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP, None, None, None),
+            (
+                "TIMESTAMPTZVALUE",
+                oracledb.DB_TYPE_TIMESTAMP_TZ,
+                None,
+                None,
+                None,
+            ),
+            (
+                "TIMESTAMPLTZVALUE",
+                oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                None,
+                None,
+                None,
+            ),
+            ("CLOBVALUE", oracledb.DB_TYPE_CLOB, None, None, None),
+            ("NCLOBVALUE", oracledb.DB_TYPE_NCLOB, None, None, None),
+            ("BLOBVALUE", oracledb.DB_TYPE_BLOB, None, None, None),
+            ("SUBOBJECTVALUE", sub_object_value_type, None, None, None),
+            ("SUBOBJECTARRAY", sub_object_array_type, None, None, None),
         ]
-        actual_attr_names = [attr.name for attr in type_obj.attributes]
-        self.assertEqual(actual_attr_names, expected_attr_names)
-        expected_attr_types = [
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_VARCHAR,
-            oracledb.DB_TYPE_CHAR,
-            oracledb.DB_TYPE_NVARCHAR,
-            oracledb.DB_TYPE_NCHAR,
-            oracledb.DB_TYPE_RAW,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_NUMBER,
-            oracledb.DB_TYPE_BINARY_FLOAT,
-            oracledb.DB_TYPE_BINARY_DOUBLE,
-            oracledb.DB_TYPE_DATE,
-            oracledb.DB_TYPE_TIMESTAMP,
-            oracledb.DB_TYPE_TIMESTAMP_TZ,
-            oracledb.DB_TYPE_TIMESTAMP_LTZ,
-            oracledb.DB_TYPE_CLOB,
-            oracledb.DB_TYPE_NCLOB,
-            oracledb.DB_TYPE_BLOB,
-            sub_object_value_type,
-            sub_object_array_type,
+        actual_metadata = [
+            (attr.name, attr.type, attr.precision, attr.scale, attr.max_size)
+            for attr in type_obj.attributes
         ]
-        actual_attr_types = [attr.type for attr in type_obj.attributes]
-        self.assertEqual(actual_attr_types, expected_attr_types)
+        self.assertEqual(actual_metadata, expected_metadata)
         self.assertEqual(sub_object_array_type.iscollection, True)
         self.assertEqual(sub_object_array_type.attributes, [])
 
@@ -292,6 +293,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("delete from TestClobs")
         self.cursor.execute("delete from TestNClobs")
         self.cursor.execute("delete from TestBlobs")
+        self.cursor.execute("delete from TestObjects where IntCol > 3")
         self.cursor.execute(
             """
             insert into TestClobs (IntCol, ClobCol)
@@ -749,33 +751,60 @@ class TestCase(test_env.BaseTestCase):
         "2337 - test %ROWTYPE with all types"
         sub_obj_type = self.conn.gettype("UDT_SUBOBJECT")
         sub_arr_type = self.conn.gettype("UDT_OBJECTARRAY")
-        expected_attrs = [
-            ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER),
-            ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR),
-            ("FIXEDCHARVALUE", oracledb.DB_TYPE_CHAR),
-            ("NSTRINGVALUE", oracledb.DB_TYPE_NVARCHAR),
-            ("NFIXEDCHARVALUE", oracledb.DB_TYPE_NCHAR),
-            ("RAWVALUE", oracledb.DB_TYPE_RAW),
-            ("INTVALUE", oracledb.DB_TYPE_NUMBER),
-            ("SMALLINTVALUE", oracledb.DB_TYPE_NUMBER),
-            ("REALVALUE", oracledb.DB_TYPE_NUMBER),
-            ("DOUBLEPRECISIONVALUE", oracledb.DB_TYPE_NUMBER),
-            ("FLOATVALUE", oracledb.DB_TYPE_NUMBER),
-            ("BINARYFLOATVALUE", oracledb.DB_TYPE_BINARY_FLOAT),
-            ("BINARYDOUBLEVALUE", oracledb.DB_TYPE_BINARY_DOUBLE),
-            ("DATEVALUE", oracledb.DB_TYPE_DATE),
-            ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP),
-            ("TIMESTAMPTZVALUE", oracledb.DB_TYPE_TIMESTAMP_TZ),
-            ("TIMESTAMPLTZVALUE", oracledb.DB_TYPE_TIMESTAMP_LTZ),
-            ("CLOBVALUE", oracledb.DB_TYPE_CLOB),
-            ("NCLOBVALUE", oracledb.DB_TYPE_NCLOB),
-            ("BLOBVALUE", oracledb.DB_TYPE_BLOB),
-            ("SUBOBJECTVALUE", sub_obj_type),
-            ("SUBOBJECTARRAY", sub_arr_type),
+        expected_metadata = [
+            ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER, 0, -127, None),
+            ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR, None, None, 60),
+            ("FIXEDCHARVALUE", oracledb.DB_TYPE_CHAR, None, None, 10),
+            ("NSTRINGVALUE", oracledb.DB_TYPE_NVARCHAR, None, None, 120),
+            ("NFIXEDCHARVALUE", oracledb.DB_TYPE_NCHAR, None, None, 20),
+            ("RAWVALUE", oracledb.DB_TYPE_RAW, None, None, 16),
+            ("INTVALUE", oracledb.DB_TYPE_NUMBER, 38, 0, None),
+            ("SMALLINTVALUE", oracledb.DB_TYPE_NUMBER, 38, 0, None),
+            ("REALVALUE", oracledb.DB_TYPE_NUMBER, 63, -127, None),
+            ("DOUBLEPRECISIONVALUE", oracledb.DB_TYPE_NUMBER, 126, -127, None),
+            ("FLOATVALUE", oracledb.DB_TYPE_NUMBER, 126, -127, None),
+            (
+                "BINARYFLOATVALUE",
+                oracledb.DB_TYPE_BINARY_FLOAT,
+                None,
+                None,
+                None,
+            ),
+            (
+                "BINARYDOUBLEVALUE",
+                oracledb.DB_TYPE_BINARY_DOUBLE,
+                None,
+                None,
+                None,
+            ),
+            ("DATEVALUE", oracledb.DB_TYPE_DATE, None, None, None),
+            ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP, None, None, None),
+            (
+                "TIMESTAMPTZVALUE",
+                oracledb.DB_TYPE_TIMESTAMP_TZ,
+                None,
+                None,
+                None,
+            ),
+            (
+                "TIMESTAMPLTZVALUE",
+                oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                None,
+                None,
+                None,
+            ),
+            ("CLOBVALUE", oracledb.DB_TYPE_CLOB, None, None, None),
+            ("NCLOBVALUE", oracledb.DB_TYPE_NCLOB, None, None, None),
+            ("BLOBVALUE", oracledb.DB_TYPE_BLOB, None, None, None),
+            ("SUBOBJECTVALUE", sub_obj_type, None, None, None),
+            ("SUBOBJECTARRAY", sub_arr_type, None, None, None),
         ]
         obj_type = self.conn.gettype("TESTALLTYPES%ROWTYPE")
-        actual_attrs = [(a.name, a.type) for a in obj_type.attributes]
-        self.assertEqual(actual_attrs, expected_attrs)
+        actual_metadata = [
+            (attr.name, attr.type, attr.precision, attr.scale, attr.max_size)
+            for attr in obj_type.attributes
+        ]
+        self.assertEqual(actual_metadata, expected_metadata)
 
     def test_2338(self):
         "2338 - test collection iteration"

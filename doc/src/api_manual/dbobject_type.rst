@@ -192,9 +192,39 @@ DbObjectAttribute Objects
     :attr:`DbObjectType.attributes` are instances of this type.
 
 
+.. attribute:: DbObjectAttribute.max_size
+
+    This read-only attribute returns the maximum size (in bytes) of the
+    attribute when the attribute's type is one of
+    :data:`oracledb.DB_TYPE_CHAR`, :data:`oracledb.DB_TYPE_NCHAR`,
+    :data:`oracledb.DB_TYPE_NVARCHAR`, :data:`oracledb.DB_TYPE_RAW`, or
+    :data:`oracledb.DB_TYPE_VARCHAR`. For all other types the value returned is
+    `None`.
+
+    .. versionadded:: 2.6.0
+
+
 .. attribute:: DbObjectAttribute.name
 
     This read-only attribute returns the name of the attribute.
+
+
+.. attribute:: DbObjectAttribute.precision
+
+    This read-only attribute returns the precision of the attribute when the
+    attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
+    the value returned is `None`.
+
+    .. versionadded:: 2.6.0
+
+
+.. attribute:: DbObjectAttribute.scale
+
+    This read-only attribute returns the scale of the attribute when the
+    attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
+    the value returned is `None`.
+
+    .. versionadded:: 2.6.0
 
 
 .. attribute:: DbObjectAttribute.type

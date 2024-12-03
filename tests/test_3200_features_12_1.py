@@ -669,6 +669,36 @@ class TestCase(test_env.BaseTestCase):
             with self.assertRaisesFullCode("DPI-1039"):
                 cursor1.fetchall()
 
+    def test_3234(self):
+        "3234 - test PL/SQL record metadata"
+        rec_type = self.conn.gettype("PKG_TESTRECORDS.UDT_RECORD")
+        expected_metadata = [
+            ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER, 0, -127, None),
+            ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR, None, None, 30),
+            ("DATEVALUE", oracledb.DB_TYPE_DATE, None, None, None),
+            ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP, None, None, None),
+            ("BOOLEANVALUE", oracledb.DB_TYPE_BOOLEAN, None, None, None),
+            (
+                "PLSINTEGERVALUE",
+                oracledb.DB_TYPE_BINARY_INTEGER,
+                None,
+                None,
+                None,
+            ),
+            (
+                "BINARYINTEGERVALUE",
+                oracledb.DB_TYPE_BINARY_INTEGER,
+                None,
+                None,
+                None,
+            ),
+        ]
+        actual_metadata = [
+            (attr.name, attr.type, attr.precision, attr.scale, attr.max_size)
+            for attr in rec_type.attributes
+        ]
+        self.assertEqual(actual_metadata, expected_metadata)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
