@@ -331,8 +331,7 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         try:
             protocol._connect_phase_one(self, params, description,
                                         address, connect_string)
-        except (exceptions.DatabaseError, socket.gaierror,
-                ConnectionRefusedError) as e:
+        except (exceptions.DatabaseError, socket.gaierror, OSError) as e:
             if raise_exception:
                 errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
                                   connection_id=description.connection_id)

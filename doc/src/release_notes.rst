@@ -21,6 +21,10 @@ Thin Mode Changes
     :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to
     to a different compatible type
     (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
+#)  All exceptions subclassed from ``OSError`` now cause connection retry
+    attempts, subject to the connection ``retry_count`` and ``retry_delay``
+    parameters
+    (`issue 420 <https://github.com/oracle/python-oracledb/issues/420>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
