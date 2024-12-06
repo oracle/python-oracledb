@@ -887,9 +887,12 @@ class TestCase(test_env.BaseTestCase):
     )
     def test_4360(self):
         "4360 - fetch JSON columns as Python objects"
-        expected_data = (1, [1, 2, 3], [4, 5, 6], [7, 8, 9])
-        self.cursor.execute("select * from TestJsonCols")
-        self.assertEqual(self.cursor.fetchone(), expected_data)
+        expected_data = [
+            (1, [1, 2, 3], [4, 5, 6], [7, 8, 9]),
+            (2, None, None, None),
+        ]
+        self.cursor.execute("select * from TestJsonCols order by IntCol")
+        self.assertEqual(self.cursor.fetchall(), expected_data)
 
     @unittest.skipIf(
         test_env.get_server_version() < (23, 1), "unsupported database"

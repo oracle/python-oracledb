@@ -136,7 +136,8 @@ cdef class BaseCursorImpl:
                 value = value.read()
             if isinstance(value, bytes):
                 value = value.decode()
-            return json.loads(value)
+            if value:
+                return json.loads(value)
         return converter
 
     cdef int _check_binds(self, uint32_t num_execs) except -1:

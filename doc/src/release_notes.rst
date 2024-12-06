@@ -34,6 +34,13 @@ Thick Mode Changes
 #)  Fixed bug resulting in a segfault when using external authentication
     (`issue 425 <https://github.com/oracle/python-oracledb/issues/425>`__).
 
+Common Changes
+++++++++++++++
+
+#)  Fixed bug when fetching an empty CLOB or BLOB column marked with the
+    ``IS JSON`` constraint
+    (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
+
 
 oracledb 2.5.0 (November 2024)
 ------------------------------
