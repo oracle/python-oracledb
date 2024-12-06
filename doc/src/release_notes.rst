@@ -31,6 +31,8 @@ Thick Mode Changes
     python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
     older) to connect to Oracle Database 12.2, or later.
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+#)  Fixed bug resulting in a segfault when using external authentication
+    (`issue 425 <https://github.com/oracle/python-oracledb/issues/425>`__).
 
 
 oracledb 2.5.0 (November 2024)
