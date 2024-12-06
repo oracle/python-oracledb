@@ -21,6 +21,12 @@ Thin Mode Changes
     :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to
     to a different compatible type
     (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
+#)  If the database states that an out-of-band break check should not take
+    place during connect (by setting the `DISABLE_OOB_AUTO
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-490A0B3B-FEF3-425A-81B0-6FA29D4B8C0E>`__ parameter to TRUE),
+    python-oracledb no longer attempts to do so
+    (`issue 419 <https://github.com/oracle/python-oracledb/issues/419>`__).
 #)  All exceptions subclassed from ``OSError`` now cause connection retry
     attempts, subject to the connection ``retry_count`` and ``retry_delay``
     parameters
