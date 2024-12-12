@@ -17,9 +17,9 @@ oracledb 2.5.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug when the fetched data type of a column changes from
-    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to
-    to a different compatible type
+#)  Fixed bug when table recreation changes the data type of a column from
+    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to a
+    different compatible type
     (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
 #)  If the database states that an out-of-band break check should not take
     place during connect (by setting the `DISABLE_OOB_AUTO
@@ -47,8 +47,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Fixed bug when fetching an empty CLOB or BLOB column marked with the
-    ``IS JSON`` constraint
+#)  Fixed bug when fetching empty data from CLOB or BLOB columns marked with
+    the ``IS JSON`` constraint
     (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
 
 
