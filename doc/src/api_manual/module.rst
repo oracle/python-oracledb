@@ -35,7 +35,7 @@ Oracledb Methods
 
         This method is an extension to the DB API definition.
 
-.. function:: connect(dsn=None, pool=None, pool_name=None, conn_class=None, \
+.. function:: connect(dsn=None, pool=None, pool_alias=None, conn_class=None, \
         params=None, user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
@@ -84,10 +84,10 @@ Oracledb Methods
     :meth:`ConnectionPool.acquire()` instead since the use of this parameter
     is the equivalent of calling this method.
 
-    The ``pool_name`` parameter is expected to be a string which indicates the
+    The ``pool_alias`` parameter is expected to be a string which indicates the
     name of the previously created pool in the :ref:`connection pool cache
     <connpoolcache>` from which to acquire the connection. This is identical to
-    calling :meth:`ConnectionPool.acquire()`. When ``pool_name`` is used,
+    calling :meth:`ConnectionPool.acquire()`. When ``pool_alias`` is used,
     ``connect()`` supports the same parameters as
     :meth:`~ConnectionPool.acquire()` and has the same behavior.
 
@@ -396,7 +396,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_name`` parameter was added.  The ``pool`` parameter was
+        The ``pool_alias`` parameter was added.  The ``pool`` parameter was
         deprecated. Use :meth:`ConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
@@ -424,7 +424,7 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
-.. function:: connect_async(dsn=None, pool=None, pool_name=None, \
+.. function:: connect_async(dsn=None, pool=None, pool_alias=None, \
         conn_class=None, params=None, user=None, proxy_user=None, \
         password=None, newpassword=None, wallet_password=None, \
         access_token=None, host=None, port=1521, protocol="tcp", \
@@ -471,10 +471,10 @@ Oracledb Methods
     :meth:`AsyncConnectionPool.acquire()` instead since the
     use of this parameter is the equivalent of calling this method.
 
-    The ``pool_name`` parameter is expected to be a string which indicates the
+    The ``pool_alias`` parameter is expected to be a string which indicates the
     name of the previously created pool in the :ref:`connection pool cache
     <connpoolcache>` from which to acquire the connection. This is identical to
-    calling :meth:`AsyncConnectionPool.acquire()`. When ``pool_name`` is used,
+    calling :meth:`AsyncConnectionPool.acquire()`. When ``pool_alias`` is used,
     ``connect_async()`` supports the same parameters as
     :meth:`~AsyncConnectionPool.acquire()` and has the same behavior.
 
@@ -716,7 +716,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_name`` parameter was added. The ``pool`` parameter was
+        The ``pool_alias`` parameter was added. The ``pool`` parameter was
         deprecated. Use :meth:`AsyncConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
@@ -1091,7 +1091,7 @@ Oracledb Methods
     .. versionadded:: 2.4.0
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
-        pool_name=None, params=None, min=1, max=2, increment=1, \
+        pool_alias=None, params=None, min=1, max=2, increment=1, \
         connectiontype=oracledb.Connection, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
         wait_timeout=0, max_lifetime_session=0, session_callback=None, \
@@ -1157,7 +1157,7 @@ Oracledb Methods
     The ``pool_class`` parameter is expected to be a
     :ref:`ConnectionPool Object <connpool>` or a subclass of ConnectionPool.
 
-    The ``pool_name`` parameter is expected to be a string representing the
+    The ``pool_alias`` parameter is expected to be a string representing the
     name used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
@@ -1527,7 +1527,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_name`` parameter was added.
+        The ``pool_alias`` parameter was added.
 
     .. versionchanged:: 2.5.0
 
@@ -1555,7 +1555,7 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. function:: create_pool_async(dsn=None, \
-        pool_class=oracledb.AsyncConnectionPool, pool_name=None, \
+        pool_class=oracledb.AsyncConnectionPool, pool_alias=None, \
         params=None, min=1, max=2, increment=1, \
         connectiontype=oracledb.AsyncConnection, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
@@ -1604,7 +1604,7 @@ Oracledb Methods
     :ref:`AsyncConnectionPool Object <asyncconnpoolobj>` or a subclass of
     AsyncConnectionPool.
 
-    The ``pool_name`` parameter is expected to be a string representing the
+    The ``pool_alias`` parameter is expected to be a string representing the
     name used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
@@ -1906,7 +1906,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_name`` parameter was added.
+        The ``pool_alias`` parameter was added.
 
     .. versionchanged:: 2.5.0
 
@@ -1973,11 +1973,11 @@ Oracledb Methods
 
     .. versionadded:: 2.5.0
 
-.. function:: get_pool(pool_name)
+.. function:: get_pool(pool_alias)
 
     Returns a :ref:`ConnectionPool object <connpool>` from the python-oracledb
     pool cache. The pool must have been previously created by passing the same
-    ``pool_name`` value to :meth:`oracledb.create_pool()` or
+    ``pool_alias`` value to :meth:`oracledb.create_pool()` or
     :meth:`oracledb.create_pool_async()`.
 
     If a pool with the given name does not exist, None is returned.

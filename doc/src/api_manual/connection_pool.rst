@@ -79,7 +79,7 @@ ConnectionPool Methods
     or dates.  See :ref:`connsharding`.
 
     When using the :ref:`connection pool cache <connpoolcache>`, calling
-    :meth:`oracledb.connect()` with a ``pool_name`` parameter is the same as
+    :meth:`oracledb.connect()` with a ``pool_alias`` parameter is the same as
     calling ``pool.acquire()``.
 
 .. method:: ConnectionPool.close(force=False)

@@ -1029,8 +1029,8 @@ pools by name.
 
 **Adding a pool to the python-oracledb connection pool cache**
 
-To use the python-oracledb pool cache, specify the ``pool_name`` parameter when
-you create a pool during application initialization. Its value should be a
+To use the python-oracledb pool cache, specify the ``pool_alias`` parameter
+when you create a pool during application initialization. Its value should be a
 user-chosen string. For example:
 
 .. code-block:: python
@@ -1043,7 +1043,7 @@ user-chosen string. For example:
         user="hr",
         password=userpwd,
         dsn="dbhost.example.com/orclpdb",
-        pool_name=NAME
+        pool_alias=NAME
     )
 
 This creates a pool and stores it in the cache under the name "my_pool". The
@@ -1066,7 +1066,7 @@ directly to :meth:`oracledb.connect()`:
 
     NAME = "my_pool"
 
-    connection = oracledb.connect(pool_name=NAME)
+    connection = oracledb.connect(pool_alias=NAME)
 
 This is equivalent to calling :meth:`ConnectionPool.acquire()`. You can pass
 additional parameters to :meth:`~oracledb.connect()` that are allowed for
@@ -1079,18 +1079,18 @@ additional parameters to :meth:`~oracledb.connect()` that are allowed for
 
     NAME = "my_pool"
 
-    connection = oracledb.connect(pool_name=NAME, user="toto", password=pw)
+    connection = oracledb.connect(pool_alias=NAME, user="toto", password=pw)
 
 If there is no pool named ``my_pool`` in the cache, you will get the following
 error::
 
     DPY-2054: connection pool with name "my_pool" does not exist
 
-You cannot pass ``pool_name`` and the deprecated ``pool`` parameter together to
-:meth:`oracledb.connect()` or :meth:`oracledb.connect_async()`. If you do, the
-following error is raised::
+You cannot pass ``pool_alias`` and the deprecated ``pool`` parameter together
+to :meth:`oracledb.connect()` or :meth:`oracledb.connect_async()`. If you do,
+the following error is raised::
 
-    DPY-2014: "pool_name" and "pool" cannot be specified together
+    DPY-2014: "pool_alias" and "pool" cannot be specified together
 
 **Getting a pool from the connection pool cache**
 

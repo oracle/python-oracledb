@@ -656,10 +656,10 @@ ERR_MESSAGE_FORMATS = {
         "positional and named binds cannot be intermixed"
     ),
     ERR_NAMED_POOL_EXISTS: (
-        'connection pool with name "{name}" already exists'
+        'connection pool with alias "{alias}" already exists'
     ),
     ERR_NAMED_POOL_MISSING: (
-        'connection pool with name "{name}" does not exist'
+        'connection pool with alias "{alias}" does not exist'
     ),
     ERR_NAMED_TIMEZONE_NOT_SUPPORTED: (
         "named time zones are not supported in thin mode"

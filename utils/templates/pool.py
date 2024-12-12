@@ -579,20 +579,20 @@ def _pool_factory(f):
         dsn: str = None,
         *,
         pool_class: Type[ConnectionPool] = ConnectionPool,
-        pool_name: str = None,
+        pool_alias: str = None,
         params: PoolParams = None,
         **kwargs,
     ) -> ConnectionPool:
         f(
             dsn=dsn,
             pool_class=pool_class,
-            pool_name=pool_name,
+            pool_alias=pool_alias,
             params=params,
             **kwargs,
         )
         if not issubclass(pool_class, ConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
-        return pool_class(dsn, params=params, cache_name=pool_name, **kwargs)
+        return pool_class(dsn, params=params, cache_name=pool_alias, **kwargs)
 
     return create_pool
 
@@ -602,7 +602,7 @@ def create_pool(
     dsn: str = None,
     *,
     pool_class: Type[ConnectionPool] = ConnectionPool,
-    pool_name: str = None,
+    pool_alias: str = None,
     params: PoolParams = None,
     # {{ args_with_defaults }}
 ) -> ConnectionPool:
@@ -618,7 +618,7 @@ def create_pool(
     The pool_class parameter is expected to be ConnectionPool or a subclass of
     ConnectionPool.
 
-    The pool_name parameter is expected to be a string representing the name
+    The pool_alias parameter is expected to be a string representing the name
     used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
@@ -788,20 +788,20 @@ def _async_pool_factory(f):
         dsn: str = None,
         *,
         pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-        pool_name: str = None,
+        pool_alias: str = None,
         params: PoolParams = None,
         **kwargs,
     ) -> AsyncConnectionPool:
         f(
             dsn=dsn,
             pool_class=pool_class,
-            pool_name=pool_name,
+            pool_alias=pool_alias,
             params=params,
             **kwargs,
         )
         if not issubclass(pool_class, AsyncConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
-        return pool_class(dsn, params=params, cache_name=pool_name, **kwargs)
+        return pool_class(dsn, params=params, cache_name=pool_alias, **kwargs)
 
     return create_pool_async
 
@@ -811,7 +811,7 @@ def create_pool_async(
     dsn: str = None,
     *,
     pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-    pool_name: str = None,
+    pool_alias: str = None,
     params: PoolParams = None,
     # {{ async_args_with_defaults }}
 ) -> AsyncConnectionPool:
@@ -827,7 +827,7 @@ def create_pool_async(
     The pool_class parameter is expected to be AsyncConnectionPool or a
     subclass of AsyncConnectionPool.
 
-    The pool_name parameter is expected to be a string representing the name
+    The pool_alias parameter is expected to be a string representing the name
     used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
@@ -859,36 +859,36 @@ class NamedPools:
         self.lock = threading.Lock()
         self.pools = {}
 
-    def add_pool(self, name, pool):
+    def add_pool(self, alias, pool):
         """
         Adds a pool to the cache. An exception is raised if a pool is already
-        cached with the given name.
+        cached with the given alias.
         """
         with self.lock:
-            if name in self.pools:
-                errors._raise_err(errors.ERR_NAMED_POOL_EXISTS, name=name)
-            self.pools[name] = pool
+            if alias in self.pools:
+                errors._raise_err(errors.ERR_NAMED_POOL_EXISTS, alias=alias)
+            self.pools[alias] = pool
 
-    def remove_pool(self, name):
+    def remove_pool(self, alias):
         """
-        Removes the pool with the given name from the cache. An exception is
-        raised if there is no pool cached with the given name.
+        Removes the pool with the given alias from the cache. An exception is
+        raised if there is no pool cached with the given alias.
         """
         with self.lock:
-            if name not in self.pools:
-                errors._raise_err(errors.ERR_NAMED_POOL_MISSING, name=name)
-            del self.pools[name]
+            if alias not in self.pools:
+                errors._raise_err(errors.ERR_NAMED_POOL_MISSING, alias=alias)
+            del self.pools[alias]
 
 
 named_pools = NamedPools()
 
 
 def get_pool(
-    pool_name: str,
+    pool_alias: str,
 ) -> Union[ConnectionPool, AsyncConnectionPool, None]:
     """
-    Returns the connection pool with the given name from the python-oracledb
-    connection pool cache. If a pool with that name does not exist, the value
+    Returns the connection pool with the given alias from the python-oracledb
+    connection pool cache. If a pool with that alias does not exist, the value
     "None" will be returned.
     """
-    return named_pools.pools.get(pool_name)
+    return named_pools.pools.get(pool_alias)
