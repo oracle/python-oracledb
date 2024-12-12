@@ -1038,10 +1038,10 @@ changes.
 Inserting NULLs
 ---------------
 
-Oracle requires a type, even for null values. When you pass the value None, then
-python-oracledb assumes the type is STRING.  If this is not the desired type, you can
-explicitly set it.  For example, to insert a null :ref:`Oracle Spatial
-SDO_GEOMETRY <spatial>` object:
+Oracle Database requires a type, even for null values. When you pass the value
+None, then python-oracledb assumes its type is a string.  If this is not the
+desired type, you can explicitly set it.  For example, to insert a null
+:ref:`Oracle Spatial SDO_GEOMETRY <spatial>` object:
 
 .. code-block:: python
 

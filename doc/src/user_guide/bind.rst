@@ -158,10 +158,10 @@ repeated.
 Bind Direction
 ==============
 
-The caller can supply data to the database (IN), the database can return
-data to the caller (OUT) or the caller can supply initial data to the
-database and the database can supply the modified data back to the caller
-(IN/OUT). This is known as the bind direction.
+The caller can supply data to the database (IN), the database can return data
+to the caller (OUT) or the caller can supply initial data to the database and
+the database can supply the modified data back to the caller (IN/OUT). This is
+known as the bind direction.
 
 The examples shown above have all supplied data to the database and are
 therefore classified as IN bind variables. In order to have the database return
@@ -207,26 +207,46 @@ have a value set will start out with a value of ``null``.
 Binding Null Values
 ===================
 
-In python-oracledb, null values are represented by the Python singleton ``None``.
+To insert a NULL into a character column you can bind the Python singleton
+``None``. For example, with the table::
 
-For example:
+    create table tab (id number, val varchar2(50));
+
+You can use:
 
 .. code-block:: python
 
-    cursor.execute("""
-            insert into departments (department_id, department_name)
-            values (:dept_id, :dept_name)""", dept_id=280, dept_name=None)
+    cursor.execute("insert into tab (id, val) values (:i, :v)", i=280, v=None)
 
-In this specific case, since the DEPARTMENT_NAME column is defined as a
-``NOT NULL`` column, an error will occur::
+Python-oracledb assumes the value will be a string (equivalent to a VARCHAR2
+column). If you need to use a different Oracle Database data type you will need
+to make a call to :func:`Cursor.setinputsizes()` or create a bind variable with
+the correct type by calling :func:`Cursor.var()`.
 
-    oracledb.IntegrityError: ORA-01400: cannot insert NULL into ("HR"."DEPARTMENTS"."DEPARTMENT_NAME")
+For example, if the table had been created using an :ref:`Oracle Spatial
+SDO_GEOMETRY <spatial>` object column::
 
+    create table tab (id number, val sdo_geometry);
 
-If this value is bound directly, python-oracledb assumes it to be a string
-(equivalent to a VARCHAR2 column).  If you need to use a different Oracle type
-you will need to make a call to :func:`Cursor.setinputsizes()` or create a bind
-variable with the correct type by calling :func:`Cursor.var()`.
+Then the previous code would fail with::
+
+    ORA-00932: expression is of data type CHAR, which is incompatible with expected data type MDSYS.SDO_GEOMETRY
+
+To insert a NULL into the new table, use:
+
+.. code-block:: python
+
+    type_obj = connection.gettype("SDO_GEOMETRY")
+    var = cursor.var(type_obj)
+    cursor.execute("insert into tab (id, val) values (:i, :v)", i=280, v=var)
+
+Alternatively use:
+
+.. code-block:: python
+
+    type_obj = connection.gettype("SDO_GEOMETRY")
+    cursor.setinputsizes(i=None, v=type_obj)
+    cursor.execute("insert into tab (id, val) values (:i, :v)", i=280, v=None)
 
 
 Binding ROWID Values
@@ -415,6 +435,9 @@ return type of :meth:`Cursor.callfunc()`:
 
 See :ref:`tuning` for information on how to tune REF CURSORS.
 
+Also see :ref:`Implicit Results <implicitresults>` which provides an
+alternative way to return query results from PL/SQL procedures.
+
 Binding PL/SQL Collections
 ==========================
 
@@ -536,7 +559,7 @@ This would produce the following output::
     Demo out element #4
     Demo out element #5
 
-The Python code to process an IN/OUT collections is similar. Note the different
+The Python code to process IN/OUT collections is similar. Note the different
 call to :meth:`Cursor.arrayvar()` which creates space for an array of strings,
 but uses an array to determine both the maximum length of the array and its
 initial value.
@@ -756,6 +779,97 @@ committed to database. This is similar to the examples above.
 An example of fetching SDO_GEOMETRY is in :ref:`Oracle Database Objects and
 Collections <fetchobjects>`.
 
+.. _sqlversioncount:
+
+Reducing the SQL Version Count
+==============================
+
+When repeated calls to :meth:`Cursor.execute()` or :meth:`Cursor.executemany()`
+bind different string data lengths, then using :meth:`Cursor.setinputsizes()`
+can help reduce Oracle Database's SQL "`version count
+<https://support.oracle.com/knowledge/Oracle%20Cloud/296377_1.html>`__" for the
+statement. The version count is the number of child cursors used for the same
+statement text. The database will have a parent cursor representing the text of
+a statement, and a number of child cursors for differing executions of the
+statement, for example when different bind variable types or lengths are used.
+
+For example, with a table created as::
+
+    create table mytab (c1 varchar2(25), c2 varchar2(100), c3 number);
+
+You can use :meth:`~Cursor.setinputsizes()` to help reduce the number of child
+cursors:
+
+.. code-block:: python
+
+    sql = "insert into mytab (c1, c2) values (:1, :2)"
+
+    cursor.setinputsizes(25, 15)
+
+    s1 = "abc"
+    s2 = "def"
+    cursor.execute(sql, [s1, s2])
+
+    s1 = "aaaaaaaaaaaaaaaaaaaaaaaaa"
+    s2 = "z"
+    cursor.execute(sql, [s1, s2])
+
+The :meth:`~Cursor.setinputsizes()` call indicates that the first value bound
+will be a Python string of no more than 25 characters and the second value
+bound will be a string of no more than 15 characters.  If the data string
+lengths exceed the :meth:`~Cursor.setinputsizes()` values, then python-oracledb
+will accept them but there will be no processing benefit.
+
+It is not uncommon for SQL statements to have low hundreds of
+versions. Sometimes this is expected and not a result of any issue. To
+determine the reason, find the SQL identifier of the statement and then query
+the Oracle Database view `V$SQL_SHARED_CURSOR <https://docs.oracle.com/en/
+database/oracle/oracle-database/23/refrn/V-SQL_SHARED_CURSOR.html>`__.
+
+The SQL identifier of a statement can be found in Oracle Database views like
+`V$SQLAREA <https://docs.oracle.com/en/database/oracle/oracle-database/23/
+refrn/V-SQLAREA.html>`__ after you have run a statement, or you can find it
+*before* you execute the statement by using the `DBMS_SQL_TRANSLATOR.SQL_ID()
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-DFFB611B-853A-
+434E-808D-D713671C3AA4>`__ function. Make sure to pass in exactly the same SQL
+text, including the same whitespace:
+
+.. code-block:: python
+
+    sql = "insert into mytab (c1, c2) values (:1, :2)"  # statement to examine
+
+    cursor.execute("select dbms_sql_translator.sql_id(:1) from dual", [sql])
+    (sqlid,) = cursor.fetchone();
+    print(sqlid)
+
+This might print a value like::
+
+    6h6gj3ztw2wd8
+
+Then, to find the SQL versions, run a query to see the child cursors. For
+example:
+
+.. code-block:: python
+
+    cursor.execute("""select child_number, reason
+                      from v$sql_shared_cursor
+                      where sql_id = :1 order by 1""", [sqlid])
+    col_names = [c.name for c in cursor.description]
+    for row in cursor.fetchall():
+        r = [dict(zip(col_names, row))]
+        print(r)
+
+With the earlier code that used :meth:`~Cursor.setinputsizes()` and inserted
+different data lengths you might see::
+
+    [{'CHILD_NUMBER': 0, 'REASON': ' '}]
+
+However if :meth:`~Cursor.setinputsizes()` had not been used, you would see two
+rows and REASON would include the text "Bind mismatch", for example::
+
+    [{'CHILD_NUMBER': 0, 'REASON': '<ChildNode><ChildNumber>0</ChildNumber><ID>39</ID><reason>Bind mismatch(22)</reason><size>4x8</size><bind_position>0</bind_position><original_oacflg>1</original_oacflg><original_oacmxl>32</original_oacmxl><upgradeable_new_oacmxl>128</upgradeable_new_oacmxl></ChildNode> '}]
+    [{'CHILD_NUMBER': 1, 'REASON': '<ChildNode><ChildNumber>1</ChildNumber><ID>39</ID><reason>Bind mismatch(22)</reason><size>4x8</size><bind_position>0</bind_position><original_oacflg>1</original_oacflg><original_oacmxl>128</original_oacmxl><upgradeable_new_oacmxl>32</upgradeable_new_oacmxl></ChildNode> '}]
+
 
 .. _inputtypehandlers:
 
@@ -878,9 +992,9 @@ instead of constructing a unique statement per set of values, allows best reuse
 of Oracle Database resources. Additionally, if a statement with a large number
 of bind variable placeholders is executed many times with varying string
 lengths for each execution, then consider using :func:`Cursor.setinputsizes()`
-to reduce the database's "version count" for the SQL statement. For example, if
-the columns are VARCHAR2(25), then add this before the
-:meth:`Cursor.execute()` call:
+to reduce Oracle Database's SQL ":ref:`version count <sqlversioncount>`" for
+the statement. For example, if the columns are VARCHAR2(25), then add this
+before the :meth:`Cursor.execute()` call:
 
 .. code-block:: python
 

@@ -360,10 +360,11 @@ and crypto-checksumming services in the output. For example::
 
 If NNE is enabled, you can resolve this error by either:
 
-- Changing the architecture to use Transport Layer Security (TLS) which is
-  supported in python-oracledb Thin mode instead of using NNE.
-- Or :ref:`enabling python-oracledb Thick mode <enablingthick>` since NNE is
-  supported in Thick mode.
+- Changing the architecture to use Transport Layer Security (TLS), which is
+  supported in python-oracledb Thin and Thick modes. See `Configuring
+  Transport Layer Security Encryption
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__.
+- Or :ref:`enabling python-oracledb Thick mode <enablingthick>`.
 
 .. seealso::
 

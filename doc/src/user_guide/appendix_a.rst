@@ -127,7 +127,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes - No TIMESTAMP support
       - Yes - No TIMESTAMP support
     * - Oracle Database Native Network Encryption (NNE) (see :ref:`nne`)
-      - No
+      - No - use `TLS <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__ instead
       - Yes
       - Yes
     * - Connection health check APIs (see :meth:`~Connection.is_healthy()` and :meth:`~Connection.ping()`)

@@ -51,19 +51,23 @@ PL/SQL Stored Functions
 
 The :meth:`Cursor.callfunc()` method is used to call PL/SQL functions.
 
-The ``return_type`` parameter for :meth:`~Cursor.callfunc()` is
-expected to be a Python type, one of the :ref:`oracledb types <types>` or
-an :ref:`Object Type <dbobjecttype>`.
+The first parameter to :meth:`~Cursor.callfunc()` is the function name. The
+second parameter represents the PL/SQL function return value and is expected to
+be a Python type, one of the :ref:`oracledb types <types>` or an :ref:`Object
+Type <dbobjecttype>`. Any following sequence of values or named parameters are
+passed as PL/SQL function arguments.
 
-If a function with the following definition exists:
+If a PL/SQL function with the following definition exists:
 
 .. code-block:: sql
 
     create or replace function myfunc (
         a_StrVal varchar2,
-        a_NumVal number
+        a_NumVal number,
+        a_Date out date
     ) return number as
     begin
+        select sysdate into a_Date from dual;
         return length(a_StrVal) + a_NumVal * 2;
     end;
 
@@ -71,8 +75,10 @@ then the following Python code can be used to call it:
 
 .. code-block:: python
 
-    return_val = cursor.callfunc("myfunc", int, ["a string", 15])
-    print(return_val)        # will print 38
+    d = cursor.var(oracledb.DB_TYPE_DATE)   # for the a_Date OUT parameter
+    return_val = cursor.callfunc("myfunc", int, ["a string", 15, d])
+    print(return_val)        # prints 38
+    print(d.getvalue())      # like 2024-12-04 22:35:23
 
 A more complex example that returns a spatial (SDO) object can be seen below.
 First, the SQL statements necessary to set up the example:
@@ -118,7 +124,9 @@ See :ref:`bind` for information on binding.
 Anonymous PL/SQL Blocks
 -----------------------
 
-An anonymous PL/SQL block can be called as shown:
+An `anonymous PL/SQL block <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-826B070B-4888-4398-889B-61A3C6B91349>`__ can be called as
+shown:
 
 .. code-block:: python
 
@@ -130,6 +138,28 @@ An anonymous PL/SQL block can be called as shown:
     print(var.getvalue())        # will print 15
 
 See :ref:`bind` for information on binding.
+
+
+.. _plsqlnull:
+
+Passing NULL values to PL/SQL
+-----------------------------
+
+Oracle Database requires a type, even for null values. When you pass the value
+None, then python-oracledb assumes its type is a string. If this is not the
+desired type, you can explicitly set it.  For example, to pass a NULL
+:ref:`Oracle Spatial SDO_GEOMETRY <spatial>` object to a PL/SQL stored
+procedure with the signature::
+
+    procedure myproc(p in sdo_geometry)
+
+You can use:
+
+.. code-block:: python
+
+    type_obj = connection.gettype("SDO_GEOMETRY")
+    var = cursor.var(type_obj)
+    cursor.callproc("myproc", [var])
 
 
 Creating Stored Procedures and Packages
@@ -152,13 +182,12 @@ with a CREATE command. For example:
 PL/SQL Compilation Warnings
 +++++++++++++++++++++++++++
 
-When creating PL/SQL procedures and functions (or creating types) in
-python-oracledb, the statement might succeed without throwing an error, but
-there may be additional informational messages. (These messages are sometimes
-known in Oracle as "success with info" messages). If your application needs to
-show such messages, they must be explicitly looked for using
-:attr:`Cursor.warning`. A subsequent query from a table like ``USER_ERRORS``
-will show more details. For example:
+When creating PL/SQL procedures, functions, or types in python-oracledb, the
+statement might succeed without throwing an error but there may be additional
+informational messages. These messages are sometimes known in Oracle as
+"success with info" messages. If your application needs to show such messages,
+they must be explicitly looked for using :attr:`Cursor.warning`. A subsequent
+query from a table like ``USER_ERRORS`` will show more details. For example:
 
 .. code-block:: python
 
@@ -364,9 +393,9 @@ Implicit Results
 ----------------
 
 Implicit results permit a Python program to consume cursors returned by a
-PL/SQL block without the requirement to use OUT REF CURSOR parameters. The
-method :meth:`Cursor.getimplicitresults()` can be used for this purpose. It
-needs Oracle Database 12.1 (or later). For python-oracledb
+PL/SQL block without the requirement to use OUT :ref:`REF CURSOR <refcur>`
+parameters. The method :meth:`Cursor.getimplicitresults()` can be used for this
+purpose. It needs Oracle Database 12.1 (or later). For python-oracledb
 :ref:`Thick <enablingthick>` mode, Oracle Client 12.1 (or later) is
 additionally required.
 

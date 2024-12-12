@@ -58,29 +58,47 @@ AsyncCursor Methods
 .. method:: AsyncCursor.callfunc(name, return_type, parameters=None, \
         keyword_parameters=None)
 
-    Calls a function with the given name. The return type is specified in the
-    same notation as is required by :meth:`AsyncCursor.setinputsizes()`. The
-    sequence of parameters must contain one entry for each parameter that the
-    function expects. Any keyword parameters will be included after the
-    positional parameters. The result of the call is the return value of the
-    function.
+    Calls a PL/SQL function with the given name and returns its value.
 
-    See :ref:`plsqlfunc` for an example.
+    The ``return_type`` parameter for :meth:`~AsyncCursor.callfunc()` is
+    expected to be a Python type, one of the :ref:`oracledb types <types>` or
+    an :ref:`Object Type <dbobjecttype>`.
+
+    The sequence of parameters must contain one entry for each parameter that
+    the PL/SQL function expects. Any keyword parameters will be included after
+    the positional parameters.
+
+    Use :meth:`AsyncCursor.var()` to define any OUT or IN OUT parameters, if
+    necessary.
+
+    See :ref:`plsqlfunc` for examples.
 
     .. note::
 
-        If you intend to call :meth:`AsyncCursor.setinputsizes()` on the cursor
-        prior to making this call, then note that the first item in the
-        parameter list refers to the return value of the function.
+        In line with the Python DB API, it is not recommended to call
+        :meth:`AsyncCursor.setinputsizes()` prior to calling
+        :meth:`~AsyncCursor.callfunc()`. Use :meth:`AsyncCursor.var()` instead.
+        In existing code that calls :meth:`~AsyncCursor.setinputsizes()`, the
+        first item in the :meth:`~AsyncCursor.setinputsizes()` parameter list
+        refers to the return value of the PL/SQL function.
 
 .. method:: AsyncCursor.callproc(name, parameters=None, keyword_parameters=None)
 
-    Calls a procedure with the given name. The sequence of parameters must
-    contain one entry for each parameter that the procedure expects. The result
-    of the call is a modified copy of the input sequence. Input parameters are
-    left untouched; output and input/output parameters are replaced with
-    possibly new values. Keyword parameters will be included after the
-    positional parameters and are not returned as part of the output sequence.
+    Calls a PL/SQL procedure with the given name.
+
+    The sequence of parameters must contain one entry for each parameter that
+    the procedure expects. The result of the call is a modified copy of the
+    input sequence. Input parameters are left untouched; output and
+    input/output parameters are replaced with possibly new values. Keyword
+    parameters will be included after the positional parameters and are not
+    returned as part of the output sequence.
+
+    Use :meth:`AsyncCursor.var()` to define any OUT or IN OUT parameters if
+    necessary.
+
+    No query result set is returned by :meth:`~AsyncCursor.callproc()`.
+    Instead, use :ref:`REF CURSOR <refcur>` parameters or :ref:`Implicit
+    Results <implicitresults>`.
 
     See :ref:`plsqlproc` for an example.
 
@@ -291,6 +309,12 @@ AsyncCursor Methods
     placeholders used in the SQL or PL/SQL statement. Note this means that for
     use with :meth:`AsyncCursor.executemany()` it does not correspond to the
     number of bind value mappings or sequences being passed.
+
+    When repeated calls to :meth:`AsyncCursor.execute()` or
+    :meth:`AsyncCursor.executemany()` are made binding different string data
+    lengths, using :meth:`~AsyncCursor.setinputsizes()` can help reduce the
+    database's SQL "version count" for the statement. See :ref:`Reducing the
+    SQL Version Count <sqlversioncount>`.
 
     .. note::
 
