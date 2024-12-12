@@ -267,31 +267,13 @@ cdef class Buffer:
                                         ssize_t *num_bytes) except -1
     cdef int _resize(self, ssize_t new_max_size) except -1
     cdef int _skip_int(self, uint8_t max_length, bint *is_negative) except -1
-    cdef uint64_t _unpack_int(self, const char_type *ptr, uint8_t length)
     cdef int _write_more_data(self, ssize_t num_bytes_available,
                               ssize_t num_bytes_wanted) except -1
     cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
                                          ssize_t num_bytes) except -1
     cdef inline ssize_t bytes_left(self)
-    cdef int parse_binary_double(self, const uint8_t* ptr,
-                                 double *double_ptr) except -1
-    cdef int parse_binary_float(self, const uint8_t* ptr,
-                                float *float_ptr) except -1
-    cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes)
-    cdef object parse_interval_ds(self, const uint8_t* ptr)
-    cdef object parse_interval_ym(self, const uint8_t* ptr)
-    cdef object parse_oracle_number(self, const uint8_t* ptr,
-                                    ssize_t num_bytes, uint8_t py_type_num)
-    cdef object read_binary_double(self)
-    cdef object read_binary_float(self)
-    cdef object read_binary_integer(self)
-    cdef object read_bool(self)
     cdef object read_bytes(self)
-    cdef object read_date(self)
-    cdef object read_interval_ds(self)
-    cdef object read_interval_ym(self)
     cdef int read_int32be(self, int32_t *value) except -1
-    cdef object read_oracle_number(self, uint8_t py_type_num)
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
                                        ssize_t *num_bytes) except -1
@@ -300,6 +282,8 @@ cdef class Buffer:
     cdef int read_sb4(self, int32_t *value) except -1
     cdef int read_sb8(self, int64_t *value) except -1
     cdef bytes read_null_terminated_bytes(self)
+    cdef int read_oracle_data(self, OracleMetadata metadata,
+                              OracleData* data, bint from_dbobject) except -1
     cdef object read_str(self, int csfrm, const char* encoding_errors=*)
     cdef int read_ub1(self, uint8_t *value) except -1
     cdef int read_ub2(self, uint16_t *value) except -1
@@ -712,7 +696,9 @@ cdef class BaseVarImpl:
                                          bint* was_set) except -1
     cdef int _check_and_set_value(self, uint32_t pos, object value,
                                   bint* was_set) except -1
+    cdef DbType _check_fetch_conversion(self)
     cdef int _finalize_init(self) except -1
+    cdef DbType _get_adjusted_type(self, uint8_t ora_type_num)
     cdef list _get_array_value(self)
     cdef object _get_scalar_value(self, uint32_t pos)
     cdef int _on_reset_bind(self, uint32_t num_rows) except -1
@@ -883,6 +869,65 @@ cdef class PipelineOpResultImpl:
     cdef int _capture_err(self, Exception exc) except -1
 
 
+cdef struct OracleDate:
+    int16_t year
+    uint8_t month
+    uint8_t day
+    uint8_t hour
+    uint8_t minute
+    uint8_t second
+    uint32_t fsecond
+    int8_t tz_hour_offset
+    int8_t tz_minute_offset
+
+
+cdef struct OracleIntervalDS:
+    int32_t days
+    int8_t hours
+    int8_t minutes
+    int8_t seconds
+    int32_t fseconds
+
+
+cdef struct OracleIntervalYM:
+    int32_t years
+    int8_t months
+
+
+cdef struct OracleNumber:
+    bint is_integer
+    bint is_max_negative_value
+    uint8_t num_chars
+    char_type chars[172]
+
+
+cdef struct OracleRawBytes:
+    const char_type *ptr
+    ssize_t num_bytes
+
+
+cdef union OracleDataBuffer:
+    OracleDate as_date
+    OracleNumber as_number
+    OracleIntervalDS as_interval_ds
+    OracleIntervalYM as_interval_ym
+    OracleRawBytes as_raw_bytes
+    int32_t as_integer
+    double as_double
+    float as_float
+    bint as_bool
+
+
+cdef struct OracleData:
+    bint is_null
+    OracleDataBuffer buffer
+
+
+cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
+                                          OracleMetadata to_metadatda,
+                                          OracleData* data,
+                                          const char* encoding_errors,
+                                          bint from_dbobject)
 cdef uint16_t decode_uint16be(const char_type *buf)
 cdef uint32_t decode_uint32be(const char_type *buf)
 cdef uint16_t decode_uint16le(const char_type *buf)

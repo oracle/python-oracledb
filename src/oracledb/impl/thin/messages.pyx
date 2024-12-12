@@ -370,34 +370,20 @@ cdef class MessageWithData(Message):
         previously returned was CHAR/VARCHAR/RAW (or the equivalent long
         types), then the server returns the data as LONG (RAW), similarly to
         what happens when a define is done to return CLOB/BLOB as string/bytes.
-        In addition, if the data type returned was previously LONG or LONG RAW,
-        and the new type is VARCHAR or RAW, the database continues to return
-        LONG or LONG RAW. Detect these situations and adjust the fetch type
-        appropriately.
+        Detect these situations and adjust the fetch type appropriately.
         """
-        cdef:
-            OracleMetadata prev_metadata = prev_var_impl._fetch_metadata
-            uint8_t type_num, csfrm
-        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_VARCHAR \
-                and prev_metadata.dbtype._ora_type_num == ORA_TYPE_NUM_LONG:
+        cdef uint8_t type_num, prev_type_num, csfrm
+        type_num = metadata.dbtype._ora_type_num
+        prev_type_num = prev_var_impl._fetch_metadata.dbtype._ora_type_num
+        if type_num == ORA_TYPE_NUM_CLOB \
+                and prev_type_num in (ORA_TYPE_NUM_CHAR,
+                                      ORA_TYPE_NUM_LONG,
+                                      ORA_TYPE_NUM_VARCHAR):
             type_num = ORA_TYPE_NUM_LONG
-            csfrm = metadata.dbtype._csfrm
+            csfrm = prev_var_impl._fetch_metadata.dbtype._csfrm
             metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
-
-        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_RAW \
-                and prev_metadata.dbtype._ora_type_num == ORA_TYPE_NUM_LONG_RAW:
-            type_num = ORA_TYPE_NUM_LONG_RAW
-            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
-        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
-                and prev_metadata.dbtype._ora_type_num in \
-                        (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR,
-                         ORA_TYPE_NUM_LONG):
-            type_num = ORA_TYPE_NUM_LONG
-            csfrm = prev_metadata.dbtype._csfrm
-            metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, csfrm)
-        elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB \
-                and prev_metadata.dbtype._ora_type_num in \
-                        (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
+        elif type_num == ORA_TYPE_NUM_BLOB \
+                and prev_type_num in (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
             type_num = ORA_TYPE_NUM_LONG_RAW
             metadata.dbtype = DbType._from_ora_type_and_csfrm(type_num, 0)
 
@@ -519,6 +505,7 @@ cdef class MessageWithData(Message):
             ThinDbObjectImpl obj_impl
             int32_t actual_num_bytes
             OracleMetadata metadata
+            OracleData data
             Rowid rowid
         if self.in_fetch:
             metadata = var_impl._fetch_metadata
@@ -533,23 +520,6 @@ cdef class MessageWithData(Message):
                                          ORA_TYPE_NUM_LONG_RAW,
                                          ORA_TYPE_NUM_UROWID):
             column_value = None             # column is null by describe
-        elif ora_type_num == ORA_TYPE_NUM_VARCHAR \
-                or ora_type_num == ORA_TYPE_NUM_CHAR \
-                or ora_type_num == ORA_TYPE_NUM_LONG:
-            if csfrm == CS_FORM_NCHAR:
-                buf._caps._check_ncharset_id()
-            column_value = buf.read_str(csfrm, var_impl._encoding_errors)
-        elif ora_type_num == ORA_TYPE_NUM_RAW \
-                or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
-            column_value = buf.read_bytes()
-        elif ora_type_num == ORA_TYPE_NUM_NUMBER:
-            column_value = \
-                    buf.read_oracle_number(var_impl.metadata._py_type_num)
-        elif ora_type_num == ORA_TYPE_NUM_DATE \
-                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
-                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ \
-                or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_TZ:
-            column_value = buf.read_date()
         elif ora_type_num == ORA_TYPE_NUM_ROWID:
             if not self.in_fetch:
                 column_value = buf.read_str(CS_FORM_IMPLICIT)
@@ -565,14 +535,6 @@ cdef class MessageWithData(Message):
                 column_value = buf.read_str(CS_FORM_IMPLICIT)
             else:
                 column_value = buf.read_urowid()
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
-            column_value = buf.read_binary_double()
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
-            column_value = buf.read_binary_float()
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
-            column_value = buf.read_oracle_number(PY_TYPE_NUM_INT)
-            if column_value is not None:
-                column_value = int(column_value)
         elif ora_type_num == ORA_TYPE_NUM_CURSOR:
             buf.skip_ub1()                  # length (fixed value)
             if not self.in_fetch:
@@ -580,12 +542,6 @@ cdef class MessageWithData(Message):
             column_value = self._create_cursor_from_describe(buf, column_value)
             cursor_impl = column_value._impl
             buf.read_ub2(&cursor_impl._statement._cursor_id)
-        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
-            column_value = buf.read_bool()
-        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
-            column_value = buf.read_interval_ds()
-        elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
-            column_value = buf.read_interval_ym()
         elif ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):
@@ -609,8 +565,13 @@ cdef class MessageWithData(Message):
                     else:
                         column_value = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
         else:
-            errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
-                              name=var_impl.dbtype.name)
+            buf.read_oracle_data(metadata, &data, from_dbobject=False)
+            if metadata.dbtype._csfrm == CS_FORM_NCHAR:
+                buf._caps._check_ncharset_id()
+            column_value = convert_oracle_data_to_python(
+                metadata, var_impl.metadata, &data, var_impl._encoding_errors,
+                from_dbobject=False
+            )
         if not self.in_fetch:
             buf.read_sb4(&actual_num_bytes)
             if actual_num_bytes < 0 and ora_type_num == ORA_TYPE_NUM_BOOLEAN:
@@ -625,9 +586,6 @@ cdef class MessageWithData(Message):
                 or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
             buf.skip_sb4()                  # null indicator
             buf.skip_ub4()                  # return code
-        if column_value is not None:
-            if var_impl._conv_func is not None:
-                column_value = var_impl._conv_func(column_value)
         return column_value
 
     cdef OracleMetadata _process_column_info(self, ReadBuffer buf,

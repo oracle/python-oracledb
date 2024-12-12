@@ -353,29 +353,11 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
+            OracleData data
             bytes locator
             bint is_null
             type cls
-        if ora_type_num == ORA_TYPE_NUM_NUMBER:
-            return buf.read_oracle_number(metadata._py_type_num)
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
-            return buf.read_binary_integer()
-        elif ora_type_num in (ORA_TYPE_NUM_VARCHAR, ORA_TYPE_NUM_CHAR):
-            if csfrm == CS_FORM_NCHAR:
-                conn_impl = self.type._conn_impl
-                conn_impl._protocol._caps._check_ncharset_id()
-            return buf.read_str(csfrm)
-        elif ora_type_num == ORA_TYPE_NUM_RAW:
-            return buf.read_bytes()
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
-            return buf.read_binary_double()
-        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
-            return buf.read_binary_float()
-        elif ora_type_num in (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_TIMESTAMP,
-                              ORA_TYPE_NUM_TIMESTAMP_LTZ,
-                              ORA_TYPE_NUM_TIMESTAMP_TZ):
-            return buf.read_date()
-        elif ora_type_num in (ORA_TYPE_NUM_CLOB,
+        if ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):
             conn_impl = self.type._conn_impl
@@ -387,8 +369,6 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                     if conn_impl._protocol._transport._is_async \
                     else PY_TYPE_LOB
             return cls._from_impl(lob_impl)
-        elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
-            return buf.read_bool()
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             buf.get_is_atomic_null(&is_null)
             if is_null:
@@ -404,8 +384,13 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             else:
                 obj_impl._unpack_data_from_buf(buf)
             return PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-        errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
-                          name=metadata.dbtype.name)
+        buf.read_oracle_data(metadata, &data, from_dbobject=True)
+        if metadata.dbtype._csfrm == CS_FORM_NCHAR:
+            conn_impl = self.type._conn_impl
+            conn_impl._protocol._caps._check_ncharset_id()
+        return convert_oracle_data_to_python(metadata, metadata, &data,
+                                             encoding_errors=NULL,
+                                             from_dbobject=True)
 
     def append_checked(self, object value):
         """

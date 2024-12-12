@@ -42,13 +42,13 @@ cdef class VectorDecoder(Buffer):
         Returns a Python object corresponding to the encoded VECTOR bytes.
         """
         cdef:
-            uint8_t magic_byte, version, vector_format, element_size = 0
+            uint8_t magic_byte, version, vector_format
             uint8_t * uint8_buf = NULL
             double *double_buf = NULL
             int8_t *int8_buf = NULL
             uint32_t num_elements, i
             float *float_buf = NULL
-            const char_type* ptr
+            OracleDataBuffer buffer
             array.array result
             uint16_t flags
             object value
@@ -71,15 +71,12 @@ cdef class VectorDecoder(Buffer):
         if vector_format == VECTOR_FORMAT_FLOAT32:
             result = array.clone(float_template, num_elements, False)
             float_buf = result.data.as_floats
-            element_size = 4
         elif vector_format == VECTOR_FORMAT_FLOAT64:
             result = array.clone(double_template, num_elements, False)
             double_buf = result.data.as_doubles
-            element_size = 8
         elif vector_format == VECTOR_FORMAT_INT8:
             result = array.clone(int8_template, num_elements, False)
             int8_buf = result.data.as_schars
-            element_size = 1
         elif vector_format == VECTOR_FORMAT_BINARY:
             num_elements = num_elements // 8
             result = array.clone(uint8_template, num_elements, False)
@@ -94,11 +91,11 @@ cdef class VectorDecoder(Buffer):
         # parse data
         for i in range(num_elements):
             if vector_format == VECTOR_FORMAT_FLOAT32:
-                ptr = self._get_raw(element_size)
-                self.parse_binary_float(ptr, &float_buf[i])
+                decode_binary_float(self._get_raw(4), 4, &buffer)
+                float_buf[i] = buffer.as_float
             elif vector_format == VECTOR_FORMAT_FLOAT64:
-                ptr = self._get_raw(element_size)
-                self.parse_binary_double(ptr, &double_buf[i])
+                decode_binary_double(self._get_raw(8), 8, &buffer)
+                double_buf[i] = buffer.as_double
             elif vector_format == VECTOR_FORMAT_INT8:
                 self.read_sb1(&int8_buf[i])
             else:

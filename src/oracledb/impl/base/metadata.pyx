@@ -37,14 +37,13 @@ cdef class OracleMetadata:
         setting the buffer size, max size and default Python type (if they have
         not already been set).
         """
-        if self.max_size == 0:
-            self.max_size = self.dbtype.default_size
-        if self.buffer_size == 0:
-            if self.dbtype.default_size == 0:
-                self.buffer_size = self.dbtype._buffer_size_factor
-            else:
-                self.buffer_size = \
-                        self.max_size * self.dbtype._buffer_size_factor
+        if self.dbtype.default_size == 0:
+            self.max_size = 0
+            self.buffer_size = self.dbtype._buffer_size_factor
+        else:
+            if self.max_size == 0:
+                self.max_size = self.dbtype.default_size
+            self.buffer_size = self.max_size * self.dbtype._buffer_size_factor
         if self._py_type_num == 0:
             if self.dbtype._ora_type_num != ORA_TYPE_NUM_NUMBER:
                 self._py_type_num = self.dbtype._default_py_type_num

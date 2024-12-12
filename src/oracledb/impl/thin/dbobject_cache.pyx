@@ -244,7 +244,6 @@ cdef class BaseThinDbObjectTypeCache:
         cdef:
             ThinDbObjectAttrImpl attr_impl
             OracleMetadata metadata
-            int preferred_num_type
             uint16_t num_attrs, i
             uint8_t attr_type
             TDSBuffer buf

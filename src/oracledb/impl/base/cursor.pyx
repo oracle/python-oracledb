@@ -191,9 +191,13 @@ cdef class BaseCursorImpl:
                 self._verify_var(var)
                 var_impl = var._impl
                 var_impl._fetch_metadata = metadata
+                var_impl.metadata.name = metadata.name
+                if var_impl.metadata.dbtype is not metadata.dbtype:
+                    var_impl.metadata.dbtype = \
+                            var_impl._check_fetch_conversion()
                 if var_impl.num_elements < self._fetch_array_size:
                     var_impl.num_elements = self._fetch_array_size
-                    var_impl._finalize_init()
+                var_impl._finalize_init()
                 self.fetch_vars[pos] = var
                 self.fetch_var_impls[pos] = var_impl
                 return var_impl
@@ -213,16 +217,20 @@ cdef class BaseCursorImpl:
         elif metadata.is_oson and db_type_num != DB_TYPE_NUM_JSON:
             conn_impl = self._get_conn_impl()
             var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
+            var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_RAW
             var_impl.outconverter = conn_impl.decode_oson
         elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON:
             var_impl.outconverter = self._build_json_converter_fn()
         elif not C_DEFAULTS.fetch_lobs:
             if db_type_num == DB_TYPE_NUM_BLOB:
                 var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
+                var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_RAW
             elif db_type_num == DB_TYPE_NUM_CLOB:
                 var_impl.metadata.dbtype = DB_TYPE_LONG
+                var_impl._fetch_metadata.dbtype = DB_TYPE_LONG
             elif db_type_num == DB_TYPE_NUM_NCLOB:
                 var_impl.metadata.dbtype = DB_TYPE_LONG_NVARCHAR
+                var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_NVARCHAR
 
         # finalize variable and store in arrays
         var_impl._finalize_init()
@@ -517,6 +525,8 @@ cdef class BaseCursorImpl:
         var_impl.inconverter = inconverter
         var_impl.outconverter = outconverter
         var_impl.bypass_decode = bypass_decode
+        if bypass_decode:
+            var_impl.metadata._py_type_num = PY_TYPE_NUM_BYTES
         if encoding_errors is not None:
             var_impl.encoding_errors = encoding_errors
             var_impl._encoding_error_bytes = encoding_errors.encode()

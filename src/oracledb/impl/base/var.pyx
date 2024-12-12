@@ -110,6 +110,143 @@ cdef class BaseVarImpl:
                 return 0
         self._set_num_elements_in_array(num_elements_in_array)
 
+    cdef DbType _check_fetch_conversion(self):
+        """
+        Checks to see if the fetch type can be transformed into the requested
+        type. This is only called during fetch when an output type handler is
+        specified and the supplied variable has a type other than the fetch
+        type. All matches are done using the underlying Oracle type and the
+        character set form of the variable metadata is adjusted to
+        use the character set form of the fetch metadata where applicable. The
+        type to use for the metadata is returned.
+        """
+        cdef uint8_t from_ora_type_num, to_ora_type_num
+        from_ora_type_num = self._fetch_metadata.dbtype._ora_type_num
+        to_ora_type_num = self.metadata.dbtype._ora_type_num
+
+        # Oracle BINARY_DOUBLE, BINARY_FLOAT
+        if from_ora_type_num in (ORA_TYPE_NUM_BINARY_DOUBLE,
+                                 ORA_TYPE_NUM_BINARY_FLOAT):
+            if to_ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
+                self.metadata._py_type_num = PY_TYPE_NUM_INT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_BINARY_DOUBLE,
+                                     ORA_TYPE_NUM_BINARY_FLOAT,
+                                     ORA_TYPE_NUM_NUMBER):
+                self.metadata._py_type_num = PY_TYPE_NUM_FLOAT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                     ORA_TYPE_NUM_LONG,
+                                     ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle BINARY_INTEGER
+        elif from_ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
+            if to_ora_type_num == ORA_TYPE_NUM_NUMBER:
+                self.metadata._py_type_num = PY_TYPE_NUM_FLOAT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                     ORA_TYPE_NUM_LONG,
+                                     ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle BLOB
+        elif from_ora_type_num == ORA_TYPE_NUM_BLOB:
+            if to_ora_type_num in (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
+                self._fetch_metadata.dbtype = DB_TYPE_LONG_RAW
+                return self._fetch_metadata.dbtype
+
+        # Oracle CHAR, LONG or VARCHAR
+        elif from_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_LONG,
+                                   ORA_TYPE_NUM_VARCHAR):
+            if to_ora_type_num in (ORA_TYPE_NUM_BINARY_DOUBLE,
+                                   ORA_TYPE_NUM_BINARY_FLOAT,
+                                   ORA_TYPE_NUM_NUMBER):
+                self.metadata._py_type_num = PY_TYPE_NUM_FLOAT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
+                self.metadata._py_type_num = PY_TYPE_NUM_INT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                     ORA_TYPE_NUM_LONG,
+                                     ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle CLOB
+        elif from_ora_type_num == ORA_TYPE_NUM_CLOB:
+            if to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_LONG,
+                                   ORA_TYPE_NUM_VARCHAR):
+                self._fetch_metadata.dbtype = \
+                        self._get_adjusted_type(ORA_TYPE_NUM_LONG)
+                return self._fetch_metadata.dbtype
+
+        # Oracle DATE, TIMESTAMP (WITH (LOCAL) TIME ZONE)
+        elif from_ora_type_num in (ORA_TYPE_NUM_DATE,
+                                   ORA_TYPE_NUM_TIMESTAMP,
+                                   ORA_TYPE_NUM_TIMESTAMP_LTZ,
+                                   ORA_TYPE_NUM_TIMESTAMP_TZ):
+            if to_ora_type_num in (ORA_TYPE_NUM_DATE,
+                                   ORA_TYPE_NUM_TIMESTAMP,
+                                   ORA_TYPE_NUM_TIMESTAMP_LTZ,
+                                   ORA_TYPE_NUM_TIMESTAMP_TZ,
+                                   ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_LONG,
+                                   ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle INTERVAL DAY TO SECOND, INTERVAL YEAR TO MONTH, ROWID
+        elif from_ora_type_num in (ORA_TYPE_NUM_INTERVAL_DS,
+                                   ORA_TYPE_NUM_INTERVAL_YM,
+                                   ORA_TYPE_NUM_ROWID):
+            if to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_LONG,
+                                   ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle JSON
+        elif from_ora_type_num == ORA_TYPE_NUM_JSON:
+            if to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_VARCHAR):
+                # the server won't accept LONG being defined but even so it
+                # still sends back LONG data!
+                self._fetch_metadata.dbtype = DB_TYPE_LONG
+                return DB_TYPE_VARCHAR
+            elif to_ora_type_num == ORA_TYPE_NUM_RAW:
+                self._fetch_metadata.dbtype = DB_TYPE_RAW
+                return self._fetch_metadata.dbtype
+
+        # Oracle NUMBER
+        elif from_ora_type_num == ORA_TYPE_NUM_NUMBER:
+            if to_ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
+                self.metadata._py_type_num = PY_TYPE_NUM_INT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_BINARY_DOUBLE,
+                                     ORA_TYPE_NUM_BINARY_FLOAT):
+                self.metadata._py_type_num = PY_TYPE_NUM_FLOAT
+                return self._get_adjusted_type(to_ora_type_num)
+            elif to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                     ORA_TYPE_NUM_LONG,
+                                     ORA_TYPE_NUM_VARCHAR):
+                return self._get_adjusted_type(to_ora_type_num)
+
+        # Oracle VECTOR
+        elif from_ora_type_num == ORA_TYPE_NUM_VECTOR:
+            if to_ora_type_num in (ORA_TYPE_NUM_CHAR,
+                                   ORA_TYPE_NUM_LONG,
+                                   ORA_TYPE_NUM_VARCHAR):
+                self._fetch_metadata.dbtype = DB_TYPE_LONG
+                return self._fetch_metadata.dbtype
+            elif to_ora_type_num == ORA_TYPE_NUM_CLOB:
+                self._fetch_metadata.dbtype = DB_TYPE_CLOB
+                return self._fetch_metadata.dbtype
+
+        # conversion not supported
+        errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
+                          input_type=self._fetch_metadata.dbtype.name,
+                          output_type=self.metadata.dbtype.name)
+
     cdef int _finalize_init(self) except -1:
         """
         Internal method that finalizes initialization of the variable.
@@ -117,6 +254,25 @@ cdef class BaseVarImpl:
         self.metadata._finalize_init()
         if self.num_elements == 0:
             self.num_elements = 1
+
+    cdef DbType _get_adjusted_type(self, uint8_t ora_type_num):
+        """
+        Returns an adjusted type based on the desired Oracle type and the
+        character set form from the fetch metadata. The intent of this function
+        is to ensure that the character set form is not changed. For example,
+        if the user requests the use of NVARCHAR but the data being fetched is
+        of type CLOB, the type will be adjusted to VARCHAR. For those types
+        which do not require a character set form, CS_FORM_IMPLICIT is always
+        used.
+        """
+        cdef uint8_t csfrm
+        if self.metadata.dbtype._csfrm == 0:
+            csfrm = 0
+        elif self._fetch_metadata.dbtype._csfrm == 0:
+            csfrm = CS_FORM_IMPLICIT
+        else:
+            csfrm = self._fetch_metadata.dbtype._csfrm
+        return DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
 
     cdef list _get_array_value(self):
         """

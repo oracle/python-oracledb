@@ -125,37 +125,6 @@ cdef class Buffer:
         self._get_int_length_and_sign(&length, is_negative, max_length)
         self.skip_raw_bytes(length)
 
-    cdef uint64_t _unpack_int(self, const char_type *ptr, uint8_t length):
-        """
-        Unpacks an integer received in the buffer into its native format.
-        """
-        if length == 1:
-            return ptr[0]
-        elif length == 2:
-            return (ptr[0] << 8) | ptr[1]
-        elif length == 3:
-            return (ptr[0] << 16) | (ptr[1] << 8) | ptr[2]
-        elif length == 4:
-            return (ptr[0] << 24) | (ptr[1] << 16) | (ptr[2] << 8) | ptr[3]
-        elif length == 5:
-            return ((<uint64_t> ptr[0]) << 32) | (ptr[1] << 24) | \
-                    (ptr[2] << 16) | (ptr[3] << 8) | ptr[4]
-        elif length == 6:
-            return ((<uint64_t> ptr[0]) << 40) | \
-                   ((<uint64_t> ptr[1]) << 32) | (ptr[2] << 24) | \
-                   (ptr[3] << 16) | (ptr[4] << 8) | ptr[5]
-        elif length == 7:
-            return ((<uint64_t> ptr[0]) << 48) | \
-                   ((<uint64_t> ptr[1]) << 40) | \
-                   ((<uint64_t> ptr[2]) << 32) | \
-                   (ptr[3] << 24) | (ptr[4] << 16) | (ptr[5] << 8) | ptr[6]
-        elif length == 8:
-            return ((<uint64_t> ptr[0]) << 56) | \
-                   ((<uint64_t> ptr[1]) << 48) | \
-                   ((<uint64_t> ptr[2]) << 40) | \
-                   ((<uint64_t> ptr[3]) << 32) | \
-                   (ptr[4] << 24) | (ptr[5] << 16) | (ptr[6] << 8) | ptr[7]
-
     cdef int _write_more_data(self, ssize_t num_bytes_available,
                               ssize_t num_bytes_wanted) except -1:
         """
@@ -193,294 +162,54 @@ cdef class Buffer:
         """
         return self._size - self._pos
 
-    cdef int parse_binary_double(self, const uint8_t* ptr,
-                                 double *double_ptr) except -1:
+    cdef int read_oracle_data(self, OracleMetadata metadata,
+                              OracleData* data, bint from_dbobject) except -1:
         """
-        Read a binary double value from the buffer and return the corresponding
-        Python object representing that value.
-        """
-        cdef:
-            uint8_t b0, b1, b2, b3, b4, b5, b6, b7
-            uint64_t high_bits, low_bits, all_bits
-        b0 = ptr[0]
-        b1 = ptr[1]
-        b2 = ptr[2]
-        b3 = ptr[3]
-        b4 = ptr[4]
-        b5 = ptr[5]
-        b6 = ptr[6]
-        b7 = ptr[7]
-        if b0 & 0x80:
-            b0 = b0 & 0x7f
-        else:
-            b0 = ~b0
-            b1 = ~b1
-            b2 = ~b2
-            b3 = ~b3
-            b4 = ~b4
-            b5 = ~b5
-            b6 = ~b6
-            b7 = ~b7
-        high_bits = b0 << 24 | b1 << 16 | b2 << 8 | b3
-        low_bits = b4 << 24 | b5 << 16 | b6 << 8 | b7
-        all_bits = high_bits << 32 | (low_bits & <uint64_t> 0xffffffff)
-        memcpy(double_ptr, &all_bits, 8)
-
-    cdef int parse_binary_float(self, const uint8_t* ptr,
-                                float *float_ptr) except -1:
-        """
-        Parse a binary float value from the buffer and return the corresponding
-        Python object representing that value.
+        Reads Oracle data of the given type from the buffer.
         """
         cdef:
-            uint8_t b0, b1, b2, b3
-            uint64_t all_bits
-        b0 = ptr[0]
-        b1 = ptr[1]
-        b2 = ptr[2]
-        b3 = ptr[3]
-        if b0 & 0x80:
-            b0 = b0 & 0x7f
-        else:
-            b0 = ~b0
-            b1 = ~b1
-            b2 = ~b2
-            b3 = ~b3
-        all_bits = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
-        memcpy(float_ptr, &all_bits, 4)
-
-    cdef object parse_date(self, const uint8_t* ptr, ssize_t num_bytes):
-        """
-        Read a date from the buffer and return the corresponding Python object
-        representing that value.
-        """
-        cdef:
-            int8_t tz_hour = 0, tz_minute = 0
-            uint32_t fsecond = 0
-            int32_t seconds
-            int16_t year
-        year = (ptr[0] - 100) * 100 + ptr[1] - 100
-        if num_bytes >= 11:
-            fsecond = decode_uint32be(&ptr[7]) // 1000
-        value = cydatetime.datetime_new(year, ptr[2], ptr[3], ptr[4] - 1,
-                                        ptr[5] - 1, ptr[6] - 1, fsecond, None)
-        if num_bytes > 11 and ptr[11] != 0 and ptr[12] != 0:
-            if ptr[11] & TNS_HAS_REGION_ID:
-                errors._raise_err(errors.ERR_NAMED_TIMEZONE_NOT_SUPPORTED)
-            tz_hour = ptr[11] - TZ_HOUR_OFFSET
-            tz_minute = ptr[12] - TZ_MINUTE_OFFSET
-            if tz_hour != 0 or tz_minute != 0:
-                seconds = tz_hour * 3600 + tz_minute * 60
-                value += cydatetime.timedelta_new(0, seconds, 0)
-        return value
-
-    cdef object parse_interval_ds(self, const uint8_t* ptr):
-        """
-        Read an interval day to second value from the buffer and return the
-        corresponding Python object representing that value.
-        """
-        cdef:
-            int32_t days, hours, minutes, seconds, total_seconds, fseconds
-            uint8_t duration_offset = TNS_DURATION_OFFSET
-            uint32_t duration_mid = TNS_DURATION_MID
-        days = decode_uint32be(ptr) - duration_mid
-        fseconds = decode_uint32be(&ptr[7]) - duration_mid
-        hours = ptr[4] - duration_offset
-        minutes = ptr[5] - duration_offset
-        seconds = ptr[6] - duration_offset
-        total_seconds = hours * 60 * 60 + minutes * 60 + seconds
-        return cydatetime.timedelta_new(days, total_seconds, fseconds // 1000)
-
-    cdef object parse_interval_ym(self, const uint8_t* ptr):
-        """
-        Read an interval year to month value from the buffer and return the
-        corresponding Python object representing that value.
-        """
-        cdef int32_t years, months
-        years = decode_uint32be(ptr) - TNS_DURATION_MID
-        months = ptr[4] - TNS_DURATION_OFFSET
-        return PY_TYPE_INTERVAL_YM(years, months)
-
-    cdef object parse_oracle_number(self, const uint8_t* ptr,
-                                    ssize_t num_bytes, uint8_t py_type_num):
-        """
-        Parse an Oracle number from the supplied buffer and return the
-        corresponding Python object representing that value. The preferred
-        numeric type (int, float, decimal.Decimal and str) is used, if
-        possible.
-        """
-        cdef:
-            char_type buf[NUMBER_AS_TEXT_CHARS]
-            uint8_t digits[NUMBER_MAX_DIGITS]
-            uint8_t num_digits, byte, digit
-            bint is_positive, is_integer
-            int16_t decimal_point_index
-            int8_t exponent
-            str text
-
-        # the first byte is the exponent; positive numbers have the highest
-        # order bit set, whereas negative numbers have the highest order bit
-        # cleared and the bits inverted
-        exponent = <int8_t> ptr[0]
-        is_positive = (exponent & 0x80)
-        if not is_positive:
-            exponent = ~exponent
-        exponent -= 193
-        decimal_point_index = exponent * 2 + 2
-
-        # a mantissa length of 0 implies a value of 0 (if positive) or a value
-        # of -1e126 (if negative)
-        if num_bytes == 1:
-            if is_positive:
-                if py_type_num == PY_TYPE_NUM_INT:
-                    return 0
-                elif py_type_num == PY_TYPE_NUM_DECIMAL:
-                    return PY_TYPE_DECIMAL(0)
-                elif py_type_num == PY_TYPE_NUM_STR:
-                    return "0"
-                return 0.0
-            if py_type_num == PY_TYPE_NUM_INT:
-                return -10 ** 126
-            elif py_type_num == PY_TYPE_NUM_DECIMAL:
-                return PY_TYPE_DECIMAL("-1e126")
-            elif py_type_num == PY_TYPE_NUM_STR:
-                return "-1e126"
-            return -1.0e126
-
-        # check for the trailing 102 byte for negative numbers and, if present,
-        # reduce the number of mantissa digits
-        if not is_positive and ptr[num_bytes - 1] == 102:
-            num_bytes -= 1
-
-        # process the mantissa bytes which are the remaining bytes; each
-        # mantissa byte is a base-100 digit
-        num_digits = 0
-        for i in range(1, num_bytes):
-
-            # positive numbers have 1 added to them; negative numbers are
-            # subtracted from the value 101
-            byte = ptr[i]
-            if is_positive:
-                byte -= 1
+            uint8_t ora_type_num
+            const uint8_t* ptr
+            ssize_t num_bytes
+        self.read_raw_bytes_and_length(&ptr, &num_bytes)
+        data.is_null = (ptr == NULL)
+        if not data.is_null:
+            ora_type_num = metadata.dbtype._ora_type_num
+            if ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
+                decode_binary_double(ptr, num_bytes, &data.buffer)
+            elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
+                decode_binary_float(ptr, num_bytes, &data.buffer)
+            elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
+                decode_bool(ptr, num_bytes, &data.buffer)
+            elif ora_type_num in (
+                ORA_TYPE_NUM_CHAR,
+                ORA_TYPE_NUM_LONG,
+                ORA_TYPE_NUM_LONG_RAW,
+                ORA_TYPE_NUM_RAW,
+                ORA_TYPE_NUM_VARCHAR,
+            ):
+                data.buffer.as_raw_bytes.ptr = ptr
+                data.buffer.as_raw_bytes.num_bytes = num_bytes
+            elif ora_type_num in (
+                ORA_TYPE_NUM_DATE,
+                ORA_TYPE_NUM_TIMESTAMP,
+                ORA_TYPE_NUM_TIMESTAMP_LTZ,
+                ORA_TYPE_NUM_TIMESTAMP_TZ,
+            ):
+                decode_date(ptr, num_bytes, &data.buffer)
+            elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
+                decode_interval_ds(ptr, num_bytes, &data.buffer)
+            elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
+                decode_interval_ym(ptr, num_bytes, &data.buffer)
+            elif from_dbobject and ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
+                data.buffer.as_integer = \
+                        <int32_t> decode_integer(ptr, num_bytes)
+            elif ora_type_num in (ORA_TYPE_NUM_NUMBER,
+                                  ORA_TYPE_NUM_BINARY_INTEGER):
+                decode_number(ptr, num_bytes, &data.buffer)
             else:
-                byte = 101 - byte
-
-            # process the first digit; leading zeroes are ignored
-            digit = <uint8_t> byte // 10
-            if digit == 0 and num_digits == 0:
-                decimal_point_index -= 1
-            elif digit == 10:
-                digits[num_digits] = 1
-                digits[num_digits + 1] = 0
-                num_digits += 2
-                decimal_point_index += 1
-            elif digit != 0 or i > 0:
-                digits[num_digits] = digit
-                num_digits += 1
-
-            # process the second digit; trailing zeroes are ignored
-            digit = byte % 10
-            if digit != 0 or i < num_bytes - 1:
-                digits[num_digits] = digit
-                num_digits += 1
-
-        # create string of digits for transformation to Python value
-        is_integer = 1
-        num_bytes = 0
-
-        # if negative, include the sign
-        if not is_positive:
-            buf[num_bytes] = 45         # minus sign
-            num_bytes += 1
-
-        # if the decimal point index is 0 or less, add the decimal point and
-        # any leading zeroes that are needed
-        if decimal_point_index <= 0:
-            buf[num_bytes] = 48         # zero
-            buf[num_bytes + 1] = 46     # decimal point
-            num_bytes += 2
-            is_integer = 0
-            for i in range(decimal_point_index, 0):
-                buf[num_bytes] = 48     # zero
-                num_bytes += 1
-
-        # add each of the digits
-        for i in range(num_digits):
-            if i > 0 and i == decimal_point_index:
-                buf[num_bytes] = 46     # decimal point
-                is_integer = 0
-                num_bytes += 1
-            buf[num_bytes] = 48 + digits[i]
-            num_bytes += 1
-
-        # if the decimal point index exceeds the number of digits, add any
-        # trailing zeroes that are needed
-        if decimal_point_index > num_digits:
-            for i in range(num_digits, decimal_point_index):
-                buf[num_bytes] = 48     # zero
-                num_bytes += 1
-
-        # convert result to an integer or a decimal number
-        if py_type_num == PY_TYPE_NUM_INT and is_integer:
-            return int(buf[:num_bytes])
-        elif py_type_num == PY_TYPE_NUM_DECIMAL:
-            return PY_TYPE_DECIMAL(buf[:num_bytes].decode())
-        elif py_type_num == PY_TYPE_NUM_STR:
-            return buf[:num_bytes].decode()
-        return float(buf[:num_bytes])
-
-    cdef object read_binary_double(self):
-        """
-        Read a binary double value from the buffer and return the corresponding
-        Python object representing that value.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-            double value
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            self.parse_binary_double(ptr, &value)
-            return value
-
-    cdef object read_binary_float(self):
-        """
-        Read a binary float value from the buffer and return the corresponding
-        Python object representing that value.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-            float value
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            self.parse_binary_float(ptr, &value)
-            return value
-
-    cdef object read_binary_integer(self):
-        """
-        Read a binary integer from the buffer.
-        """
-        cdef:
-            const char_type *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if num_bytes > 4:
-            errors._raise_err(errors.ERR_INTEGER_TOO_LARGE, length=num_bytes,
-                              max_length=4)
-        if ptr != NULL:
-            return <int32_t> self._unpack_int(ptr, num_bytes)
-
-    cdef object read_bool(self):
-        """
-        Read a boolean from the buffer and return True, False or None.
-        """
-        cdef:
-            const char_type *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return ptr[num_bytes - 1] == 1
+                errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
+                                  name=metadata.dbtype.name)
 
     cdef object read_bytes(self):
         """
@@ -494,63 +223,11 @@ cdef class Buffer:
         if ptr != NULL:
             return ptr[:num_bytes]
 
-    cdef object read_date(self):
-        """
-        Read a date from the buffer and return the corresponding Python object
-        representing that value.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return self.parse_date(ptr, num_bytes)
-
-    cdef object read_interval_ds(self):
-        """
-        Read an interval day to second value from the buffer and return the
-        corresponding Python object representing that value.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return self.parse_interval_ds(ptr)
-
-    cdef object read_interval_ym(self):
-        """
-        Read an interval year to month value from the buffer and return the
-        corresponding Python object representing that value.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return self.parse_interval_ym(ptr)
-
     cdef int read_int32be(self, int32_t *value) except -1:
         """
         Read a signed 32-bit integer in big endian order from the buffer.
         """
         value[0] = <int32_t> decode_uint32be(self._get_raw(4))
-
-    cdef object read_oracle_number(self, uint8_t py_type_num):
-        """
-        Read an Oracle number from the buffer and return the corresponding
-        Python object representing that value. The preferred numeric type
-        (int, float, decimal.Decimal and str) is used, if possible.
-        """
-        cdef:
-            const uint8_t *ptr
-            ssize_t num_bytes
-
-        # read the number of bytes in the number; if the value is 0 or the null
-        # length indicator, return None
-        self.read_raw_bytes_and_length(&ptr, &num_bytes)
-        if ptr != NULL:
-            return self.parse_oracle_number(ptr, num_bytes, py_type_num)
 
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL:
         """
@@ -594,7 +271,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = <int16_t> self._unpack_int(ptr, length)
+            value[0] = <int16_t> decode_integer(ptr, length)
             if is_negative:
                 value[0] = -value[0]
 
@@ -611,7 +288,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = <int32_t> self._unpack_int(ptr, length)
+            value[0] = <int32_t> decode_integer(ptr, length)
             if is_negative:
                 value[0] = -value[0]
 
@@ -628,7 +305,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = self._unpack_int(ptr, length)
+            value[0] = decode_integer(ptr, length)
             if is_negative:
                 value[0] = -value[0]
 
@@ -677,7 +354,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = <uint16_t> self._unpack_int(ptr, length)
+            value[0] = <uint16_t> decode_integer(ptr, length)
 
     cdef int read_ub4(self, uint32_t *value) except -1:
         """
@@ -691,7 +368,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = <uint32_t> self._unpack_int(ptr, length)
+            value[0] = <uint32_t> decode_integer(ptr, length)
 
     cdef int read_ub8(self, uint64_t *value) except -1:
         """
@@ -705,7 +382,7 @@ cdef class Buffer:
             value[0] = 0
         else:
             ptr = self._get_raw(length)
-            value[0] = self._unpack_int(ptr, length)
+            value[0] = decode_integer(ptr, length)
 
     cdef int read_uint16be(self, uint16_t *value) except -1:
         """

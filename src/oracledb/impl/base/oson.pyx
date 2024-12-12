@@ -101,9 +101,8 @@ cdef class OsonDecoder(Buffer):
         cdef:
             VectorDecoder vector_decoder
             uint8_t node_type, temp8
+            OracleDataBuffer data
             const char_type* ptr
-            double double_value
-            float float_value
             uint16_t temp16
             uint32_t temp32
 
@@ -122,25 +121,23 @@ cdef class OsonDecoder(Buffer):
 
         # handle fixed length scalars
         elif node_type in (TNS_JSON_TYPE_DATE, TNS_JSON_TYPE_TIMESTAMP7):
-            ptr = self._get_raw(7)
-            return self.parse_date(ptr, 7)
+            decode_date(self._get_raw(7), 7, &data)
+            return convert_date_to_python(&data)
         elif node_type == TNS_JSON_TYPE_TIMESTAMP:
-            ptr = self._get_raw(11)
-            return self.parse_date(ptr, 11)
+            decode_date(self._get_raw(11), 11, &data)
+            return convert_date_to_python(&data)
         elif node_type == TNS_JSON_TYPE_TIMESTAMP_TZ:
-            ptr = self._get_raw(13)
-            return self.parse_date(ptr, 13)
+            decode_date(self._get_raw(13), 13, &data)
+            return convert_date_to_python(&data)
         elif node_type == TNS_JSON_TYPE_BINARY_FLOAT:
-            ptr = self._get_raw(4)
-            self.parse_binary_float(ptr, &float_value)
-            return float_value
+            decode_binary_float(self._get_raw(4), 4, &data)
+            return data.as_float
         elif node_type == TNS_JSON_TYPE_BINARY_DOUBLE:
-            ptr = self._get_raw(8)
-            self.parse_binary_double(ptr, &double_value)
-            return double_value
+            decode_binary_double(self._get_raw(8), 8, &data)
+            return data.as_double
         elif node_type == TNS_JSON_TYPE_INTERVAL_DS:
-            ptr = self._get_raw(11)
-            return self.parse_interval_ds(ptr)
+            decode_interval_ds(self._get_raw(11), 11, &data)
+            return convert_interval_ds_to_python(&data)
         elif node_type == TNS_JSON_TYPE_INTERVAL_YM:
             errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                               name="DB_TYPE_INTERVAL_YM")
@@ -159,7 +156,10 @@ cdef class OsonDecoder(Buffer):
             ptr = self._get_raw(temp32)
             return ptr[:temp32].decode()
         elif node_type == TNS_JSON_TYPE_NUMBER_LENGTH_UINT8:
-            return self.read_oracle_number(PY_TYPE_NUM_DECIMAL)
+            self.read_ub1(&temp8)
+            ptr = self._get_raw(temp8)
+            decode_number(ptr, temp8, &data)
+            return convert_number_to_python_decimal(&data)
         elif node_type == TNS_JSON_TYPE_ID:
             self.read_ub1(&temp8)
             ptr = self._get_raw(temp8)
@@ -185,14 +185,14 @@ cdef class OsonDecoder(Buffer):
         # handle number/decimal with length stored inside the node itself
         if (node_type & 0xf0) in (0x20, 0x60):
             temp8 = node_type & 0x0f
-            ptr = self._get_raw(temp8 + 1)
-            return self.parse_oracle_number(ptr, temp8 + 1, PY_TYPE_NUM_DECIMAL)
+            decode_number(self._get_raw(temp8 + 1), temp8 + 1, &data)
+            return convert_number_to_python_decimal(&data)
 
         # handle integer with length stored inside the node itself
         elif (node_type & 0xf0) in (0x40, 0x50):
             temp8 = node_type & 0x0f
-            ptr = self._get_raw(temp8)
-            return self.parse_oracle_number(ptr, temp8, PY_TYPE_NUM_DECIMAL)
+            decode_number(self._get_raw(temp8), temp8, &data)
+            return convert_number_to_python_decimal(&data)
 
         # handle string with length stored inside the node itself
         elif (node_type & 0xe0) == 0:

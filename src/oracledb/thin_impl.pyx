@@ -105,6 +105,7 @@ from .base_impl cimport (
     BindVar,
     Buffer,
     ConnectParamsImpl,
+    convert_oracle_data_to_python,
     CS_FORM_IMPLICIT,
     CS_FORM_NCHAR,
     DbType,
@@ -145,6 +146,7 @@ from .base_impl cimport (
     ORA_TYPE_NUM_VARCHAR,
     ORA_TYPE_NUM_VECTOR,
     OracleMetadata,
+    OracleData,
     OsonDecoder,
     OsonEncoder,
     POOL_GETMODE_FORCEGET,
@@ -206,4 +208,3 @@ include "impl/thin/dbobject.pyx"
 include "impl/thin/dbobject_cache.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
-include "impl/thin/conversions.pyx"

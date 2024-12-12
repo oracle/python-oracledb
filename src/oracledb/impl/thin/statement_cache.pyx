@@ -73,6 +73,7 @@ cdef class StatementCache:
         self._cursors_to_close[self._num_cursors_to_close] = stmt._cursor_id
         self._num_cursors_to_close += 1
         stmt._cursor_id = 0
+        stmt._fetch_var_impls = None
         stmt._executed = False
 
     cdef int clear_open_cursors(self) except -1:

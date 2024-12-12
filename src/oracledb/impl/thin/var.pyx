@@ -31,7 +31,6 @@
 
 cdef class ThinVarImpl(BaseVarImpl):
     cdef:
-        object _conv_func
         object _last_raw_value
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor_impl,

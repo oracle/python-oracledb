@@ -84,7 +84,6 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         var_impl = <ThinVarImpl> BaseCursorImpl._create_fetch_var(
             self, conn, cursor, type_handler, uses_metadata, pos, metadata
         )
-        conversion_helper(var_impl, metadata)
         if metadata.objtype is not None:
             typ_impl = metadata.objtype
             if typ_impl.is_xml_type:
