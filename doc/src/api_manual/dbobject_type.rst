@@ -201,7 +201,7 @@ DbObjectAttribute Objects
     :data:`oracledb.DB_TYPE_VARCHAR`. For all other types the value returned is
     `None`.
 
-    .. versionadded:: 2.6.0
+    .. versionadded:: 3.0.0
 
 
 .. attribute:: DbObjectAttribute.name
@@ -215,7 +215,7 @@ DbObjectAttribute Objects
     attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
     the value returned is `None`.
 
-    .. versionadded:: 2.6.0
+    .. versionadded:: 3.0.0
 
 
 .. attribute:: DbObjectAttribute.scale
@@ -224,7 +224,7 @@ DbObjectAttribute Objects
     attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
     the value returned is `None`.
 
-    .. versionadded:: 2.6.0
+    .. versionadded:: 3.0.0
 
 
 .. attribute:: DbObjectAttribute.type

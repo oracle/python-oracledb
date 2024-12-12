@@ -334,11 +334,11 @@ V$SESSION_CONNECT_INFO:
 
 In python-oracledb Thin mode, the output will be like::
 
-    python-oracledb thn : 2.6.0
+    python-oracledb thn : 3.0.0
 
 In python-oracledb Thick mode, the output will be like::
 
-    python-oracledb thk : 2.6.0
+    python-oracledb thk : 3.0.0
 
 Note that you may not see these values if you have set
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` or the
@@ -379,10 +379,10 @@ creation parameters, or set the ``driver_name`` parameter in
       - "Unknown"
     * - CLIENT_VERSION
       - The Oracle Client library version number
-      - "2.6.0.0.0" (the python-oracledb version number with an extra .0.0)
+      - "3.0.0.0.0" (the python-oracledb version number with an extra .0.0)
     * - CLIENT_DRIVER
-      - "python-oracledb thk : 2.6.0"
-      - "python-oracledb thn : 2.6.0"
+      - "python-oracledb thk : 3.0.0"
+      - "python-oracledb thn : 3.0.0"
 
 V$SESSION
 ---------

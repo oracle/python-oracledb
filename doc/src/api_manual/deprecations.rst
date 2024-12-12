@@ -14,11 +14,11 @@ The previous cx_Oracle deprecation announcements remain in force for
 python-oracledb.  The relevant functionality may be removed in a future version
 of python-oracledb.
 
-.. list-table-with-summary:: Deprecated in python-oracledb 2.6
+.. list-table-with-summary:: Deprecated in python-oracledb 3.0
     :header-rows: 1
     :class: wy-table-responsive
     :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
-    :name: _deprecations_2_6
+    :name: _deprecations_3_0
 
     * - Name
       - Comments

@@ -80,7 +80,7 @@ Oracledb Methods
     ``user/password@connect_string``.
 
     The ``pool`` parameter is expected to be a pool object.  This parameter
-    was deprecated in python-oracledb 2.6.0.  Use
+    was deprecated in python-oracledb 3.0.0.  Use
     :meth:`ConnectionPool.acquire()` instead since the use of this parameter
     is the equivalent of calling this method.
 
@@ -394,7 +394,7 @@ Oracledb Methods
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is 0.
 
-    .. versionchanged:: 2.6.0
+    .. versionchanged:: 3.0.0
 
         The ``pool_name`` parameter was added.  The ``pool`` parameter was
         deprecated. Use :meth:`ConnectionPool.acquire()` instead.
@@ -467,7 +467,7 @@ Oracledb Methods
     ``user/password@connect_string``.
 
     The ``pool`` parameter is expected to be an AsyncConnectionPool object.
-    This parameter was deprecated in python-oracledb 2.6.0.  Use
+    This parameter was deprecated in python-oracledb 3.0.0.  Use
     :meth:`AsyncConnectionPool.acquire()` instead since the
     use of this parameter is the equivalent of calling this method.
 
@@ -714,7 +714,7 @@ Oracledb Methods
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
-    .. versionchanged:: 2.6.0
+    .. versionchanged:: 3.0.0
 
         The ``pool_name`` parameter was added. The ``pool`` parameter was
         deprecated. Use :meth:`AsyncConnectionPool.acquire()` instead.
@@ -1525,7 +1525,7 @@ Oracledb Methods
     is ignored in the Thin mode. It should be used with extreme caution. The
     default value is 0.
 
-    .. versionchanged:: 2.6.0
+    .. versionchanged:: 3.0.0
 
         The ``pool_name`` parameter was added.
 
@@ -1904,7 +1904,7 @@ Oracledb Methods
 
     The ``handle`` parameter is ignored in the python-oracledb Thin mode.
 
-    .. versionchanged:: 2.6.0
+    .. versionchanged:: 3.0.0
 
         The ``pool_name`` parameter was added.
 
@@ -1984,7 +1984,7 @@ Oracledb Methods
 
     See :ref:`connpoolcache` for more information.
 
-    .. versionadded:: 2.6.0
+    .. versionadded:: 3.0.0
 
 .. function:: init_oracle_client(lib_dir=None, config_dir=None, \
         error_url=None, driver_name=None)
