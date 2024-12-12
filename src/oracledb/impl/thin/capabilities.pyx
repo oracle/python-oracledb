@@ -67,7 +67,7 @@ cdef class Capabilities:
             if flags & TNS_ACCEPT_FLAG_HAS_END_OF_RESPONSE:
                 self.compile_caps[TNS_CCAP_TTC4] |= TNS_CCAP_END_OF_RESPONSE
                 self.supports_end_of_response = True
-            self.supports_pipelining = True
+                self.supports_pipelining = True
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_compile_caps(self, bytearray server_caps):

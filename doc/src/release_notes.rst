@@ -33,6 +33,8 @@ Thin Mode Changes
     :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to a
     different compatible type (`issue 424
     <https://github.com/oracle/python-oracledb/issues/424>`__).
+#)  Fixed hang when attempting to use pipelining against a database that
+    doesn't support the end of response flag.
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
     does not match the expected value: "{expected_dn}"`` now shows the expected
     value.
