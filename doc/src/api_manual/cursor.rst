@@ -38,7 +38,7 @@ Cursor Methods
 .. method:: Cursor.arrayvar(typ, value, [size])
 
     Creates an array variable associated with the cursor of the given type and
-    size and return a :ref:`variable object <varobj>`. The value is either an
+    size and returns a :ref:`variable object <varobj>`. The value is either an
     integer specifying the number of elements to allocate or it is a list and
     the number of elements allocated is drawn from the size of the list. If the
     value is a list, the variable is also set with the contents of the list. If
@@ -70,7 +70,7 @@ Cursor Methods
         keyword_parameters={})
 
     Calls a function with the given name. The return type is specified in the
-    same notation as is required by :meth:`~Cursor.setinputsizes()`. The
+    same notation as is required by :meth:`Cursor.setinputsizes()`. The
     sequence of parameters must contain one entry for each parameter that the
     function expects. Any keyword parameters will be included after the
     positional parameters. The result of the call is the return value of the
@@ -145,7 +145,7 @@ Cursor Methods
     passed in during the last execution that contained them.
 
     For maximum efficiency when reusing a statement, it is best to use the
-    :meth:`~Cursor.setinputsizes()` method to specify the parameter types and
+    :meth:`Cursor.setinputsizes()` method to specify the parameter types and
     sizes ahead of time; in particular, None is assumed to be a string of
     length 1 so any values that are later bound as numbers or dates will raise
     a TypeError exception.
@@ -167,7 +167,7 @@ Cursor Methods
     also invoke a PL/SQL procedure multiple times. See :ref:`batchstmnt`.
 
     The ``statement`` parameter is managed in the same way as the
-    :meth:`~Cursor.execute()` method manages it.
+    :meth:`Cursor.execute()` method manages it.
 
     The ``parameters`` parameter can be a list of tuples, where each tuple item
     maps to one bind variable placeholder in ``statement``. It can also be a
@@ -184,18 +184,18 @@ Cursor Methods
     When True, the ``batcherrors`` parameter enables batch error support within
     Oracle Database and ensures that the call succeeds even if an exception
     takes place in one or more of the sequence of bind values. The errors can
-    then be retrieved using :meth:`~Cursor.getbatcherrors()`.
+    then be retrieved using :meth:`Cursor.getbatcherrors()`.
 
     When True, the ``arraydmlrowcounts`` parameter enables DML row counts to be
     retrieved from Oracle after the method has completed. The row counts can
-    then be retrieved using :meth:`~Cursor.getarraydmlrowcounts()`.
+    then be retrieved using :meth:`Cursor.getarraydmlrowcounts()`.
 
     Both the ``batcherrors`` parameter and the ``arraydmlrowcounts`` parameter
     can only be True when executing an insert, update, delete or merge
     statement; in all other cases an error will be raised.
 
     For maximum efficiency, it is best to use the
-    :meth:`~Cursor.setinputsizes()` method to specify the bind value types and
+    :meth:`Cursor.setinputsizes()` method to specify the bind value types and
     sizes. In particular, if the type is not explicitly specified, the value
     None is assumed to be a string of length 1 so any values that are later
     bound as numbers or dates will raise a TypeError exception.
@@ -208,7 +208,7 @@ Cursor Methods
     operation, as internally reads from the database are done in batches
     corresponding to the arraysize.
 
-    An exception is raised if the previous call to :meth:`~Cursor.execute()`
+    An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
     See :ref:`fetching` for an example.
@@ -224,7 +224,7 @@ Cursor Methods
     fetched. If the number of rows available to be fetched is fewer than the
     amount requested, fewer rows will be returned.
 
-    An exception is raised if the previous call to :meth:`~Cursor.execute()`
+    An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
     See :ref:`fetching` for an example.
@@ -234,17 +234,17 @@ Cursor Methods
     Fetches the next row of a query result set, returning a single tuple or None
     when no more data is available.
 
-    An exception is raised if the previous call to :meth:`~Cursor.execute()`
+    An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
 
     See :ref:`fetching` for an example.
 
 .. method:: Cursor.getarraydmlrowcounts()
 
-    Retrieves the DML row counts after a call to :meth:`~Cursor.executemany()`
+    Retrieves the DML row counts after a call to :meth:`Cursor.executemany()`
     with arraydmlrowcounts enabled. This will return a list of integers
     corresponding to the number of rows affected by the DML statement for each
-    element of the array passed to :meth:`~Cursor.executemany()`.
+    element of the array passed to :meth:`Cursor.executemany()`.
 
     .. note::
 
@@ -254,7 +254,7 @@ Cursor Methods
 .. method:: Cursor.getbatcherrors()
 
     Retrieves the exceptions that took place after a call to
-    :meth:`~Cursor.executemany()` with batcherrors enabled. This will return a
+    :meth:`Cursor.executemany()` with batcherrors enabled. This will return a
     list of Error objects, one error for each iteration that failed. The offset
     can be determined by looking at the offset attribute of the error object.
 
@@ -301,10 +301,10 @@ Cursor Methods
 
 .. method:: Cursor.prepare(statement, tag, cache_statement=True)
 
-    This can be used before a call to :meth:`~Cursor.execute()` or
-    :meth:`~Cursor.executemany()` to define the statement that will be
+    This can be used before a call to :meth:`Cursor.execute()` or
+    :meth:`Cursor.executemany()` to define the statement that will be
     executed. When this is done, the prepare phase will not be performed when
-    the call to :meth:`~Cursor.execute()` or :meth:`~Cursor.executemany()` is
+    the call to :meth:`Cursor.execute()` or :meth:`Cursor.executemany()` is
     made with None or the same string object as the statement.
 
     If the ``tag`` parameter is specified and the ``cache_statement`` parameter
@@ -342,34 +342,48 @@ Cursor Methods
 
 .. method:: Cursor.setinputsizes(*args, **keywordArgs)
 
-    This can be used before a call to :meth:`~Cursor.execute()`,
-    :meth:`~Cursor.executemany()`, :meth:`~Cursor.callfunc()` or
-    :meth:`~Cursor.callproc()` to predefine memory areas for the operation's
-    parameters. Each parameter should be a type object corresponding to the
-    input that will be used or it should be an integer specifying the maximum
-    length of a string parameter. Use keyword parameters when binding by name
-    and positional parameters when binding by position. The singleton None can
-    be used as a parameter when using positional parameters to indicate that no
-    space should be reserved for that position.
+    This can be used before calls to :meth:`Cursor.execute()` or
+    :meth:`Cursor.executemany()` to predefine memory areas used for
+    :ref:`bind variables <bind>`. Each parameter should be a type object
+    corresponding to the data that will be used for a bind variable placeholder
+    in the SQL or PL/SQL statement. Alternatively, it can be an integer
+    specifying the maximum length of a string bind variable value.
+
+    Use keyword parameters when :ref:`binding by name <bindbyname>`. Use
+    positional parameters when :ref:`binding by position <bindbyposition>`. The
+    parameter value can be None to indicate that python-oracledb should
+    determine the required space from the data value provided.
+
+    The parameters or keyword names correspond to the bind variable
+    placeholders used in the SQL or PL/SQL statement. Note this means that for
+    use with :meth:`Cursor.executemany()` it does not correspond to the number
+    of bind value mappings or sequences being passed.
 
     .. note::
 
-        If you plan to use :meth:`~Cursor.callfunc()` then be aware that the
-        first parameter in the list refers to the return value of the function.
+        :meth:`Cursor.setinputsizes()` should not be used for bind variables
+        passed to :meth:`Cursor.callfunc()` or
+        :meth:`Cursor.callproc()`. Instead, use :meth:`Cursor.var()`.
+
+        If :meth:`Cursor.setinputsizes()` is used with
+        :meth:`Cursor.callfunc()`, the first parameter in the list refers to
+        the return value of the PL/SQL function.
 
 .. method:: Cursor.setoutputsize(size, [column])
 
     This method does nothing and is retained solely for compatibility with the
-    DB API. The module automatically allocates as much space as needed to fetch
-    LONG and LONG RAW columns (or CLOB as string and BLOB as bytes).
+    DB API. Python-oracledb automatically allocates as much space as needed to
+    fetch LONG and LONG RAW columns, and also to fetch CLOB as string and BLOB
+    as bytes.
 
 .. method:: Cursor.var(typ, [size, arraysize, inconverter, outconverter, \
         typename, encoding_errors, bypass_decode, convert_nulls])
 
-    Creates a variable with the specified characteristics. This method was
-    designed for use with PL/SQL in/out variables where the length or type
-    cannot be determined automatically from the Python object passed in or for
-    use in input and output type handlers defined on cursors or connections.
+    Creates a :ref:`variable object <varobj>` with the specified
+    characteristics. This method can be used for binding to PL/SQL IN and OUT
+    parameters where the length or type cannot be determined automatically from
+    the Python variable being bound. It can also be used in :ref:`input
+    <inputtypehandlers>` and :ref:`output <outputtypehandlers>` type handlers.
 
     The ``typ`` parameter specifies the type of data that should be stored in the
     variable. This should be one of the :ref:`database type constants
@@ -463,9 +477,9 @@ Cursor Attributes
     from SELECT statements and REF CURSORS.  The value can drastically affect
     the performance of a query since it directly affects the number of network
     round trips between Python and the database.  For methods like
-    :meth:`~Cursor.fetchone()` and :meth:`~Cursor.fetchall()` it does not change
+    :meth:`Cursor.fetchone()` and :meth:`Cursor.fetchall()` it does not change
     how many rows are returned to the application. For
-    :meth:`~Cursor.fetchmany()` it is the default number of rows to fetch.
+    :meth:`Cursor.fetchmany()` it is the default number of rows to fetch.
 
     The attribute is only used for tuning row and SODA document fetches from
     the database.  It does not affect data inserts.
@@ -613,7 +627,7 @@ Cursor Attributes
     scrolled or not. By default, cursors are not scrollable, as the server
     resources and response times are greater than nonscrollable cursors. This
     attribute is checked and the corresponding mode set in Oracle when calling
-    the method :meth:`~Cursor.execute()`.
+    the method :meth:`Cursor.execute()`.
 
     .. note::
 
@@ -622,8 +636,8 @@ Cursor Attributes
 .. attribute:: Cursor.statement
 
     This read-only attribute provides the string object that was previously
-    prepared with :meth:`~Cursor.prepare()` or executed with
-    :meth:`~Cursor.execute()`.
+    prepared with :meth:`Cursor.prepare()` or executed with
+    :meth:`Cursor.execute()`.
 
     .. note::
 
@@ -634,9 +648,9 @@ Cursor Attributes
     This read-only attribute provides an :ref:`oracledb._Error<exchandling>`
     object giving information about any database warnings (such as PL/SQL
     compilation warnings) that were generated during the last call to
-    :meth:`~Cursor.execute()` or :meth:`~Cursor.executemany()`. This value is
-    automatically cleared on the next call to :meth:`~Cursor.execute()` or
-    :meth:`~Cursor.executemany()`. If no warning was generated the value
+    :meth:`Cursor.execute()` or :meth:`Cursor.executemany()`. This value is
+    automatically cleared on the next call to :meth:`Cursor.execute()` or
+    :meth:`Cursor.executemany()`. If no warning was generated the value
     ``None`` is returned.
 
     See :ref:`plsqlwarning` for more information.

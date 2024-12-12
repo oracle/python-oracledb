@@ -4,6 +4,9 @@
 API: Variable Objects
 *********************
 
+Variable objects are created with :meth:`Cursor.var()` or
+:func:`Cursor.arrayvar()`.
+
 .. note::
 
     The DB API definition does not define this object.

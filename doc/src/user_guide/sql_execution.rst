@@ -143,7 +143,7 @@ Cursors can be closed in various ways:
   database resources can be reclaimed. In addition, any attempt to use the
   variable ``cursor`` outside of the block will fail.
 
-- Cursors can be explicitly closed by calling :meth:`~Cursor.close()`
+- Cursors can be explicitly closed by calling :meth:`Cursor.close()`:
 
   .. code-block:: python
 
@@ -370,7 +370,7 @@ prints ``('123',)`` showing the number was converted to a string.  Without the
 type handler, the output would have been ``(123,)``.
 
 When creating variables using :meth:`Cursor.var()` in a handler, the
-``arraysize`` parameter should be the same as the :attr:`~Cursor.arraysize` of
+``arraysize`` parameter should be the same as the :attr:`Cursor.arraysize` of
 the query cursor.  In python-oracledb Thick mode, the query (and ``var()``)
 arraysize multiplied by the byte size of the particular column must be less
 than INT_MAX.
@@ -734,8 +734,8 @@ rows using:
 
 .. code-block:: python
 
-    myoffset = 0       // do not skip any rows (start at row 1)
-    mymaxnumrows = 20  // get 20 rows
+    myoffset = 0       # do not skip any rows (start at row 1)
+    mymaxnumrows = 20  # get 20 rows
 
     sql =
       """SELECT last_name
@@ -743,9 +743,13 @@ rows using:
          ORDER BY last_name
          OFFSET :offset ROWS FETCH NEXT :maxnumrows ROWS ONLY"""
 
-    cursor = connection.cursor()
-    for row in cursor.execute(sql, offset=myoffset, maxnumrows=mymaxnumrows):
-        print(row)
+    with connection.cursor() as cursor:
+
+        cursor.prefetchrows = mymaxnumrows + 1
+        cursor.arraysize = mymaxnumrows
+
+        for row in cursor.execute(sql, offset=myoffset, maxnumrows=mymaxnumrows):
+            print(row)
 
 In applications where the SQL query is not known in advance, this method
 sometimes involves appending the ``OFFSET`` clause to the 'real' user query. Be
@@ -784,6 +788,102 @@ query is::
 
 Ensure to use :ref:`bind variables <bind>` for the upper and lower limit
 values.
+
+.. _parallelqueries:
+
+Fetching Data in Parallel
+-------------------------
+
+The performance benefit of selecting table data in parallel from Oracle
+Database compared with a executing a single query depends on many
+factors. Partitioning the table and reading one partition per connection is
+usually the most efficient database-side solution. However, even if a parallel
+solution appears to be faster, it could be inefficient, thereby impacting, or
+eventually being limited by, everyone else. Only benchmarking in your
+environment will determine whether to use this technique.
+
+A naive example using multiple threads is:
+
+.. code-block:: python
+
+    # A naive example for fetching data in parallel.
+    # Many factors affect whether this is beneficial
+
+    # The degree of parallelism / number of connections to open
+    NUM_THREADS = 10
+
+    # How many rows to fetch in each thread
+    BATCH_SIZE = 1000
+
+    # Internal buffer size: Tune for performance
+    oracledb.defaults.arraysize = 1000
+
+    # Note OFFSET/FETCH is not particularly efficient.
+    # It would be better to use a partitioned table
+    SQL = """
+        select data
+        from demo
+        order by id
+        offset :rowoffset rows fetch next :maxrows rows only
+        """
+
+    def do_query(tn):
+        with pool.acquire() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(SQL, rowoffset=(tn*BATCH_SIZE), maxrows=BATCH_SIZE)
+                while True:
+                    rows = cursor.fetchmany()
+                    if not rows:
+                        break
+                    print(f'Thread {tn}', rows)
+
+
+    pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
+                                min=NUM_THREADS, max=NUM_THREADS)
+
+    thread = []
+    for i in range(NUM_THREADS):
+        t = threading.Thread(target=do_query, args=(i,))
+        t.start()
+        thread.append(t)
+
+    for i in range(NUM_THREADS):
+        thread[i].join()
+
+When considering to parallelize queries from a table, some of the many factors
+include:
+
+- Each connection to Oracle Database can only execute one statement at a time,
+  so to parallelize queries requires using multiple connections.
+
+- Python's threading behavior and impact of the Python's Global Interpreter
+  Lock (GIL) may have an impact. You may need to spread work over multiple
+  processes.
+
+- What level of parallelism is most efficient?
+
+- How many rows to fetch in each batch?
+
+- What is your application doing with the data - can the receiving end
+  efficiently process it, or write it to a disk?
+
+- The OFFSET FETCH syntax will still cause database table blocks to be scanned
+  even though not all data is returned to the application.  Can the table be
+  partitioned instead?
+
+- There will be extra load on the database, both from the additional
+  connections, and the work they are performing.
+
+- Do your queries use up all of the database's parallel servers?
+
+- Is the data in the database spread across multiple disk spindles or is it the
+  one disk which continually has to seek?
+
+- Are Oracle Database zone maps being used?
+
+- Is Oracle Exadata with storage indexes being used?
+
+- Do you have function based indexes that are being invoked for every row?
 
 .. _fetching-raw-data:
 
@@ -833,8 +933,8 @@ This will return the value "Fiancé".
 If you want to save ``b'Fianc\xc3\xa9'`` into the database directly without
 using a Python string, you will need to create a variable using
 :meth:`Cursor.var()` that specifies the type as
-:data:`~oracledb.DB_TYPE_VARCHAR` (otherwise the value will be treated as
-:data:`~oracledb.DB_TYPE_RAW`). The following sample demonstrates this:
+:data:`oracledb.DB_TYPE_VARCHAR` (otherwise the value will be treated as
+:data:`oracledb.DB_TYPE_RAW`). The following sample demonstrates this:
 
     .. code-block:: python
 
@@ -865,7 +965,7 @@ If queries fail with the error "codec can't decode byte" when you select data,
 then:
 
 * Check if your :ref:`character set <globalization>` is correct.  Review the
-  :ref:`database character sets <findingcharset>`.  Check with
+  :ref:`database character sets <findingcharset>`.  Check
   :ref:`fetching-raw-data`. Note that the encoding used for all character
   data in python-oracledb is "UTF-8".
 
@@ -873,10 +973,10 @@ then:
 
 If data really is corrupt, you can pass options to the internal `decode()
 <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__ used by
-python-oracledb to allow it to be selected and prevent the whole query failing.  Do
-this by creating an :ref:`outputtypehandler <outputtypehandlers>` and setting
-``encoding_errors``.  For example to replace corrupt characters in character
-columns:
+python-oracledb to allow it to be selected and prevent the whole query failing.
+Do this by creating an :ref:`outputtypehandler <outputtypehandlers>` and
+setting ``encoding_errors``.  For example, to replace corrupt characters in
+character columns:
 
 .. code-block:: python
 
@@ -904,18 +1004,36 @@ easily be executed with python-oracledb.  For example:
 
 .. code-block:: python
 
-    cursor = connection.cursor()
-    cursor.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
+    with connection.cursor() as cursor:
+      cursor.execute("insert into MyTable values (:idbv, :nmbv)", [1, "Fredico"])
 
 Do not concatenate or interpolate user data into SQL statements.  See
 :ref:`bind` instead.
 
-See :ref:`txnmgmnt` for best practices on committing and rolling back data
-changes.
-
-When handling multiple data values, use :meth:`~Cursor.executemany()` for
+When handling multiple data values, use :meth:`Cursor.executemany()` for
 performance.  See :ref:`batchstmnt`
 
+By default data is not committed to the database and other users will not be
+able to see your changes until your connection commits them by calling
+:meth:`Connection.commit()`. You can optionally rollback changes by calling
+:meth:`Connection.rollback()`. An implicit rollback will occur if your
+application finishes and does not explicitly commit any work.
+
+To commit your changes, call:
+
+.. code-block:: python
+
+    connection.commit()
+
+Note that the commit occurs on the connection, not the cursor.
+
+If the attribute :attr:`Connection.autocommit` is ``True``, then each statement
+executed is automatically committed without the need to call
+:meth:`Connection.commit()`. However overuse of the attribute causes extra
+database load, and can destroy transactional consistency.
+
+See :ref:`txnmgmnt` for best practices on committing and rolling back data
+changes.
 
 Inserting NULLs
 ---------------

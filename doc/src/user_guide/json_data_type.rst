@@ -4,25 +4,27 @@
 Using JSON Data
 ***************
 
-Native support for JavaScript Object Notation (JSON) data was introduced in
-Oracle Database 12c.  You can use JSON with relational database features,
-including transactions, indexing, declarative querying, and views.  You can
-project JSON data relationally, making it available for relational processes
-and tools.  Also see :ref:`Simple Oracle Document Access (SODA) <sodausermanual>`,
-which allows access to JSON documents through a set of NoSQL-style APIs.
+JSON data can be used with relational database features, including
+transactions, indexing, declarative querying, and views. You can project JSON
+data relationally, making it available for relational processes and
+tools. :ref:`JSON-Relational Duality Views <jsondualityviews>` provide the
+benefits of the relational model and SQL access, while also allowing read and
+write access to data as JSON documents. Also see :ref:`Simple Oracle Document
+Access (SODA) <sodausermanual>`, which allows access to JSON documents through
+a set of NoSQL-style APIs.
 
-For more information about using JSON in Oracle Database see the `Database JSON
-Developer's Guide
+Support for JSON was introduced in Oracle Database 12c. For more information
+about using JSON in Oracle Database see the `Database JSON Developer's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADJSN>`__.
 
-**Oracle Database 21c JSON Data Type**
+Using the Oracle Database JSON Type in python-oracledb
+======================================================
 
 Oracle Database 21c introduced a dedicated JSON data type with a new `binary
-storage format <https://blogs.oracle.com/jsondb/osonformat>`__ that improves
-performance and functionality compared with earlier releases.  To take
-advantage of the dedicated JSON type with Oracle Database 21c, or later, you
-can use python-oracledb in Thin or Thick modes.  With Thick mode the Oracle
-Client libraries should be version 21, or later.
+storage format OSON <https://blogs.oracle.com/jsondb/osonformat>`__ that
+improves performance and functionality compared with earlier releases. Both
+python-oracledb Thin and Thick modes support the JSON data type.  With Thick
+mode, the Oracle Client libraries should be version 21, or later.
 
 To create a table with a column called JSON_DATA for JSON data you might
 use:
@@ -35,12 +37,49 @@ use:
     );
 
 
-**Oracle Database 12c JSON Data Type**
+With Oracle Database 21c (or later), when using python-oracledb Thin mode or
+when using Thick mode with Oracle Client 21c (or later), you can insert JSON
+data by binding directly:
 
-In Oracle Database 12c, or later, JSON in relational tables can be stored as
-BLOB, CLOB or VARCHAR2 data.  All of these types can be used with
-python-oracledb in Thin or Thick modes.  BLOB is preferred to avoid character
-set conversion overheads.
+.. code-block:: python
+
+    data = dict(name="Sally", dept="Sales", location="France")
+    insert_sql = "insert into CustomersAsJson values (:1, :2)"
+
+    # Take advantage of direct binding
+    cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
+    cursor.execute(insert_sql, [1, data])
+
+The call to :meth:`Cursor.setinputsizes()` uses None to indicate that the type
+for the first bind variable placeholder should be inferred from the data value
+(that is, it is numeric), and uses ``oracledb.DB_TYPE_JSON`` to indicate that
+the second placeholder in the SQL statement should be bound as a JSON type.
+
+.. _json21fetch:
+
+Fetching a JSON column automatically returns a Python object:
+
+.. code-block:: python
+
+    for row in cursor.execute("select * from CustomersAsJson"):
+        print(row)
+
+This gives::
+
+    (1, {'name': 'Sally', 'dept': 'Sales', 'location': 'France'})
+
+See `json_direct.py
+<https://github.com/oracle/python-oracledb/tree/main/samples/json_direct.py>`__
+for a runnable example.  The example also shows how to use this type when
+python-oracledb Thick mode uses older Oracle Client libraries.
+
+Using JSON stored in BLOB, CLOB or VARCHAR2 columns
+===================================================
+
+In Oracle Database 12c, or later, JSON can be stored in BLOB, CLOB or VARCHAR2
+relational table columns. All of these types can be used with python-oracledb
+in Thin or Thick modes. BLOB is preferred to avoid character set conversion
+overheads.
 
 The syntax to create a table with a JSON column using BLOB storage is like:
 
@@ -54,41 +93,8 @@ The syntax to create a table with a JSON column using BLOB storage is like:
 The check constraint with the clause ``IS JSON`` ensures only JSON data is
 stored in that column.
 
-This older syntax can still be used in Oracle Database 21c (and later);
-however, the recommendation is to move to the new JSON type.
-
-Using the Oracle Database 21c JSON Type in python-oracledb
-==========================================================
-
-Using python-oracledb Thin mode with Oracle Database 21c, or using Thick mode
-with Oracle Database 21c and Oracle Client 21c (or later), you can insert by
-binding as shown below:
-
-.. code-block:: python
-
-    data = dict(name="Sally", dept="Sales", location="France")
-    insert_sql = "insert into CustomersAsJson values (:1, :2)"
-
-    # Take advantage of direct binding
-    cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
-    cursor.execute(insert_sql, [1, data])
-
-.. _json21fetch:
-
-To fetch a JSON column, use:
-
-.. code-block:: python
-
-    for row in cursor.execute("select * from CustomersAsJson"):
-        print(row)
-
-See `json_direct.py
-<https://github.com/oracle/python-oracledb/tree/main/samples/json_direct.py>`__
-for a runnable example.  The example also shows how to use this type when
-python-oracledb Thick mode uses older Oracle Client libraries.
-
-Using the Oracle 12c JSON type in python-oracledb
-=================================================
+This older syntax can still be used in Oracle Database 21c (and later).
+However the recommendation is to move to the new JSON type.
 
 When using Oracle Database 12c or later with JSON using BLOB storage, you can
 insert JSON strings like:
@@ -114,19 +120,62 @@ use Oracle Client 19c (or later). For example:
 
 .. versionchanged:: 2.0
 
-    Previously, the ``oracledb.__future__.old_json_col_as_obj`` attribute
-    needed to be set to *True* to fetch VARCHAR2 and LOB columns that
-    contained JSON data. Also, you could fetch JSON data without setting this
-    attribute with a call to ``json.loads()`` on the returned data. With this
-    change, the ``oracledb.__future__.old_json_col_as_obj`` attribute is
-    desupported. VARCHAR2 and LOB columns containing JSON data can now be
-    fetched directly without setting the
-    ``oracledb.__future__.old_json_col_as_obj`` attribute or without needing
-    to call ``json.loads()`` on the value.
+    The behavior when fetching JSON data stored in VARCHAR2 and LOB columns
+    which have the check constraint ``IS JSON`` changed in python-oracledb
+    versions 1.4 and 2.0.
+
+    In python-oracledb 2.0, fetching from these columns in Oracle Database 12c
+    (or later) has the same behavior as fetching from a column of type JSON in
+    Oracle Database 21c (or later): a Python object is returned
+    automatically. You do not need to explicitly invoke ``json.loads()``.
+
+    In python-oracledb 1.4 you could set the attribute
+    ``oracledb.__future__.old_json_col_as_obj`` to change how these columns
+    were returned. When set to False (its default value), your application
+    needed to invoke ``json.loads()`` on the fetched values.  When the
+    attribute was True, the data was automatically returned as Python objects.
+    The attribute provided a forward migration path to python-oracledb 2.0.
+
+    With all python-oracledb version prior to 1.4 your application always
+    needed to call ``json.loads()`` on the returned data.
+
+    The attribute ``oracledb.__future__.old_json_col_as_obj`` was added in
+    python-oracledb 1.4 and removed in version 2.0.
 
 See `json_blob.py
 <https://github.com/oracle/python-oracledb/tree/main/samples/json_blob.py>`__
 for a runnable example.
+
+Using OSON storage
+------------------
+
+When using JSON with VARCHAR or LOB storage in databases that support `OSON
+<https://blogs.oracle.com/jsondb/osonformat>`__, Oracle's optimized binary JSON
+format, you can set this as the storage option:
+
+.. code-block:: sql
+
+     create table mytab (json_data blob check (json_data is json format oson));
+
+To insert into this table, encode the data using
+:meth:`Connection.encode_oson()`, and use :meth:`Cursor.setinputsizes()` to
+specify that the bind variable placeholder represents JSON:
+
+.. code-block:: python
+
+     data = dict(name="Sally", dept="Sales", location="France")
+
+     oson = connection.encode_oson(data)
+     cursor.setinputsizes(oracledb.DB_TYPE_JSON)
+     cursor.execute("insert into mytab (json_data) values (:1)", [oson])
+
+When fetching, use :meth:`Connection.decode_json()` to extract the values:
+
+.. code-block:: python
+
+     for (o,) in cursor.execute("select * from mytab"):
+         d = connection.decode_oson(o)
+         print(d)
 
 IN Bind Type Mapping
 ====================

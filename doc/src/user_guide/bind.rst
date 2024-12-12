@@ -56,6 +56,8 @@ Binding by Name or Position
 
 Binding can be done "by name" or "by position".
 
+.. _bindbyname:
+
 Bind by Name
 ------------
 
@@ -96,6 +98,7 @@ An example of reusing a bind variable placeholder is:
             where department_id = :dept_id""",
             dept_id=280)
 
+.. _bindbyposition:
 
 Bind by Position
 ----------------

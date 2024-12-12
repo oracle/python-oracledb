@@ -59,7 +59,7 @@ AsyncCursor Methods
         keyword_parameters=None)
 
     Calls a function with the given name. The return type is specified in the
-    same notation as is required by :meth:`~AsyncCursor.setinputsizes()`. The
+    same notation as is required by :meth:`AsyncCursor.setinputsizes()`. The
     sequence of parameters must contain one entry for each parameter that the
     function expects. Any keyword parameters will be included after the
     positional parameters. The result of the call is the return value of the
@@ -117,7 +117,7 @@ AsyncCursor Methods
     passed in during the last execution that contained them.
 
     For maximum efficiency when reusing a statement, it is best to use the
-    :meth:`~AsyncCursor.setinputsizes()` method to specify the parameter types and
+    :meth:`AsyncCursor.setinputsizes()` method to specify the parameter types and
     sizes ahead of time; in particular, None is assumed to be a string of
     length 1 so any values that are later bound as numbers or dates will raise
     a TypeError exception.
@@ -135,7 +135,7 @@ AsyncCursor Methods
     also invoke a PL/SQL procedure multiple times. See :ref:`batchstmnt`.
 
     The ``statement`` parameter is managed in the same way as the
-    :meth:`~AsyncCursor.execute()` method manages it.
+    :meth:`AsyncCursor.execute()` method manages it.
 
     The ``parameters`` parameter can be a list of tuples, where each tuple item
     maps to one bind variable placeholder in ``statement``. It can also be a
@@ -152,18 +152,18 @@ AsyncCursor Methods
     When True, the ``batcherrors`` parameter enables batch error support within
     Oracle and ensures that the call succeeds even if an exception takes place
     in one or more of the sequence of parameters. The errors can then be
-    retrieved using :meth:`~AsyncCursor.getbatcherrors()`.
+    retrieved using :meth:`AsyncCursor.getbatcherrors()`.
 
     When True, the ``arraydmlrowcounts`` parameter enables DML row counts to be
     retrieved from Oracle after the method has completed. The row counts can
-    then be retrieved using :meth:`~AsyncCursor.getarraydmlrowcounts()`.
+    then be retrieved using :meth:`AsyncCursor.getarraydmlrowcounts()`.
 
     Both the ``batcherrors`` parameter and the ``arraydmlrowcounts`` parameter
     can only be True when executing an insert, update, delete, or merge
     statement. In all other cases, an error will be raised.
 
     For maximum efficiency, it is best to use the
-    :meth:`~AsyncCursor.setinputsizes()` method to specify the parameter types
+    :meth:`AsyncCursor.setinputsizes()` method to specify the parameter types
     and sizes ahead of time. In particular, the value None is assumed to be a
     string of length 1 so any values that are later bound as numbers or dates
     will raise a TypeError exception.
@@ -177,7 +177,7 @@ AsyncCursor Methods
     corresponding to ``arraysize``.
 
     An exception is raised if the previous call to
-    :meth:`~AsyncCursor.execute()` did not produce any result set or no call
+    :meth:`AsyncCursor.execute()` did not produce any result set or no call
     was issued yet.
 
 .. method:: AsyncCursor.fetchmany(size=cursor.arraysize)
@@ -192,7 +192,7 @@ AsyncCursor Methods
     amount requested, fewer rows will be returned.
 
     An exception is raised if the previous call to
-    :meth:`~AsyncCursor.execute()` did not produce any result set or no call
+    :meth:`AsyncCursor.execute()` did not produce any result set or no call
     was issued yet.
 
 .. method:: AsyncCursor.fetchone()
@@ -201,16 +201,16 @@ AsyncCursor Methods
     None when no more data is available.
 
     An exception is raised if the previous call to
-    :meth:`~AsyncCursor.execute()` did not produce any result set or no call
+    :meth:`AsyncCursor.execute()` did not produce any result set or no call
     was issued yet.
 
 .. method:: AsyncCursor.getarraydmlrowcounts()
 
     A synchronous method that retrieves the DML row counts after a call to
-    :meth:`~AsyncCursor.executemany()` with arraydmlrowcounts enabled. This
+    :meth:`AsyncCursor.executemany()` with arraydmlrowcounts enabled. This
     will return a list of integers corresponding to the number of rows
     affected by the DML statement for each element of the array passed to
-    :meth:`~AsyncCursor.executemany()`.
+    :meth:`AsyncCursor.executemany()`.
 
     .. note::
 
@@ -219,7 +219,7 @@ AsyncCursor Methods
 .. method:: AsyncCursor.getbatcherrors()
 
     A synchronous method that retrieves the exceptions that took place after a
-    call to :meth:`~AsyncCursor.executemany()` with batcherrors enabled. This
+    call to :meth:`AsyncCursor.executemany()` with batcherrors enabled. This
     will return a list of Error objects, one error for each iteration that
     failed. The offset can be determined by looking at the offset attribute of
     the error object.
@@ -257,9 +257,9 @@ AsyncCursor Methods
 .. method:: AsyncCursor.prepare(statement, tag, cache_statement=True)
 
     A synchronous method that can be used before a call to
-    :meth:`~AsyncCursor.execute()` to define the  statement that will be
+    :meth:`AsyncCursor.execute()` to define the  statement that will be
     executed. When this is done, the prepare phase will not be performed when
-    the call to :meth:`~AsyncCursor.execute()` is made with None or the same
+    the call to :meth:`AsyncCursor.execute()` is made with None or the same
     string object as the statement.
 
     If the ``tag`` parameter is specified and the ``cache_statement`` parameter
@@ -275,35 +275,49 @@ AsyncCursor Methods
 .. method:: AsyncCursor.setinputsizes(*args, **keywordArgs)
 
     A synchronous method that can be used before a call to
-    :meth:`~AsyncCursor.execute()`, :meth:`~AsyncCursor.executemany()`,
-    :meth:`~AsyncCursor.callfunc()` or :meth:`~AsyncCursor.callproc()` to
+    :meth:`AsyncCursor.execute()` and :meth:`AsyncCursor.executemany()` to
     predefine memory areas for the operation's parameters. Each parameter
-    should be a type object corresponding to the input that will be used or it
-    should be an integer specifying the maximum length of a string parameter.
-    Use keyword parameters when binding by name and positional parameters when
-    binding by position. The singleton None can be used as a parameter when
-    using positional parameters to indicate that no space should be reserved
-    for that position.
+    should be a type object corresponding to the data that will be used for a
+    :ref:`bind variable placeholder <bind>` in the SQL or PL/SQL statement.
+    Alternatively, it can be an integer specifying the maximum length of a
+    string bind variable value.
+
+    Use keyword parameters when :ref:`binding by name <bindbyname>`. Use
+    positional parameters when :ref:`binding by position <bindbyposition>`. The
+    parameter value can be None to indicate that python-oracledb should
+    determine the required space from the data value provided.
+
+    The parameters or keyword names correspond to the bind variable
+    placeholders used in the SQL or PL/SQL statement. Note this means that for
+    use with :meth:`AsyncCursor.executemany()` it does not correspond to the
+    number of bind value mappings or sequences being passed.
 
     .. note::
 
-        If you plan to use :meth:`~AsyncCursor.callfunc()` then be aware that the
-        first parameter in the list refers to the return value of the function.
+        :meth:`AsyncCursor.setinputsizes()` should not be used for bind
+        variables passed to :meth:`AsyncCursor.callfunc()` or
+        :meth:`AsyncCursor.callproc()`.  Instead, use `AsyncCursor.var()`.
+
+        If :meth:`AsyncCursor.setinputsizes()` is used with
+        :meth:`AsyncCursor.callfunc()`, the first parameter in the list refers
+        to the return value of the PL/SQL function.
 
 .. method:: AsyncCursor.setoutputsize(size, [column])
 
     This method does nothing and is retained solely for compatibility with the
-    DB API. The module automatically allocates as much space as needed to fetch
-    LONG and LONG RAW columns (or CLOB as string and BLOB as bytes).
+    DB API. Python-oracledb automatically allocates as much space as needed to
+    fetch LONG and LONG RAW columns, and also to fetch CLOB as string and BLOB
+    as bytes.
 
 .. method:: AsyncCursor.var(typ, [size, arraysize, inconverter, outconverter, \
         typename, encoding_errors, bypass_decode, convert_nulls])
 
-    A synchronous method that creates a variable with the specified
-    characteristics. This method was designed for use with PL/SQL in/out
-    variables where the length or type cannot be determined automatically from
-    the Python object passed in or for use in input and output type handlers
-    defined on cursors or connections.
+    A synchronous method that creates a :ref:`variable object <varobj>` with
+    the specified characteristics. This method can be used for binding to
+    PL/SQL IN and OUT parameters where the length or type cannot be determined
+    automatically from the Python variable being bound. It can also be used in
+    :ref:`input <inputtypehandlers>` and :ref:`output <outputtypehandlers>`
+    type handlers.
 
     The ``typ`` parameter specifies the type of data that should be stored in the
     variable. This should be one of the :ref:`database type constants
@@ -387,9 +401,9 @@ AsyncCursor Attributes
     from SELECT statements and REF CURSORS.  The value can drastically affect
     the performance of a query since it directly affects the number of network
     round trips between Python and the database.  For methods like
-    :meth:`~AsyncCursor.fetchone()` and :meth:`~AsyncCursor.fetchall()` it
+    :meth:`AsyncCursor.fetchone()` and :meth:`AsyncCursor.fetchall()` it
     does not change how many rows are returned to the application. For
-    :meth:`~AsyncCursor.fetchmany()` it is the default number of rows to fetch.
+    :meth:`AsyncCursor.fetchmany()` it is the default number of rows to fetch.
 
     The attribute is only used for tuning row and SODA document fetches from
     the database.  It does not affect data inserts.
@@ -412,7 +426,7 @@ AsyncCursor Attributes
     This read-only attribute is a sequence of :ref:`FetchInfo<fetchinfoobj>`
     objects. This attribute will be None for operations that do not return rows
     or if the cursor has not had an operation invoked via the
-    :meth:`~AsyncCursor.execute()` method yet.
+    :meth:`AsyncCursor.execute()` method yet.
 
 .. attribute:: AsyncCursor.fetchvars
 
@@ -485,4 +499,4 @@ AsyncCursor Attributes
     scrolled or not. By default, cursors are not scrollable, as the server
     resources and response times are greater than nonscrollable cursors. This
     attribute is checked and the corresponding mode set in Oracle when calling
-    the method :meth:`~AsyncCursor.execute()`.
+    the method :meth:`AsyncCursor.execute()`.

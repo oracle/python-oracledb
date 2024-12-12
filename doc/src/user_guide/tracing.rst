@@ -48,7 +48,7 @@ utilities. Values may appear in logs and audit trails.
 
 Also see :ref:`appcontext` for information about setting Application Contexts.
 
-The :attr:`~Connection.client_identifier` attribute is typically set to the
+The :attr:`Connection.client_identifier` attribute is typically set to the
 name (or identifier) of the actual end user initiating a query.  This allows
 the database to distinguish, and trace, end users for applications that connect
 to a common database username. It can also be used by `Oracle Virtual Private
@@ -56,7 +56,7 @@ Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
 GUID-06022729-9210-4895-BF04-6177713C65A7>`__ policies to automatically limit
 data access.
 
-The :attr:`~Connection.module` and :attr:`~Connection.action` attributes can be
+The :attr:`Connection.module` and :attr:`Connection.action` attributes can be
 set to user-chosen, descriptive values identifying your code architecture.
 
 After attributes are set, the values are sent to the database when the next
@@ -227,15 +227,16 @@ The Thick mode of python-oracledb is implemented using the
 `ODPI-C <https://oracle.github.io/odpi>`__ wrapper on top of the Oracle Client
 libraries.  The ODPI-C tracing capability can be used to log executed
 python-oracledb statements to the standard error stream. Before executing
-Python, set the environment variable ``DPI_DEBUG_LEVEL`` to 16.
-
-At a Windows command prompt, this could be done with::
-
-    set DPI_DEBUG_LEVEL=16
+Python, set the environment variable ``DPI_DEBUG_LEVEL`` to 16 in your terminal
+window.
 
 On Linux, you might use::
 
     export DPI_DEBUG_LEVEL=16
+
+On Windows, this could be done with::
+
+    set DPI_DEBUG_LEVEL=16
 
 After setting the variable, run the Python Script, for example on Linux::
 
@@ -331,16 +332,16 @@ V$SESSION_CONNECT_INFO:
         for r, in cursor.execute(sql):
             print(r)
 
-In the python-oracledb Thin mode, the output will be::
+In python-oracledb Thin mode, the output will be like::
 
-    python-oracledb thn : 1.0.0
+    python-oracledb thn : 2.6.0
 
-In the python-oracledb Thick mode, the output will be::
+In python-oracledb Thick mode, the output will be like::
 
-    python-oracledb thk : 1.0.0
+    python-oracledb thk : 2.6.0
 
-Note that you may not see these values if you have changed the default of the
-:attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute or the
+Note that you may not see these values if you have set
+:attr:`oracledb.defaults.driver_name <defaults.driver_name>` or the
 ``driver_name`` parameter in :meth:`oracledb.init_oracle_client()`.
 
 .. _dbviews:
@@ -348,16 +349,20 @@ Note that you may not see these values if you have changed the default of the
 Database Views
 ==============
 
-This section shows some sample column values for database views.  Other views
-also contain useful information, such as the :ref:`drcp` views discussed in
-:ref:`monitoringdrcp`.
+This section shows some sample column values for database views useful for
+tracing and monitoring python-oracledb.  Other views also contain useful
+information, such as the :ref:`drcp` views discussed in :ref:`monitoringdrcp`.
 
 V$SESSION_CONNECT_INFO
 ----------------------
 
-The following table lists sample values for some `V$SESSION_CONNECT_INFO
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__
-columns:
+The following table lists sample default values for some
+`V$SESSION_CONNECT_INFO <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__ columns. You may not see
+values with these formats if you have changed the defaults using the
+:ref:`Defaults object <defaults>`, set the equivalent connection or pool
+creation parameters, or set the ``driver_name`` parameter in
+:meth:`oracledb.init_oracle_client()`.
 
 .. list-table-with-summary:: Sample V$SESSION_CONNECT_INFO column values
     :header-rows: 1
@@ -374,18 +379,21 @@ columns:
       - "Unknown"
     * - CLIENT_VERSION
       - The Oracle Client library version number
-      - "1.0.0.0.0" (the python-oracledb version number with an extra .0.0)
+      - "2.6.0.0.0" (the python-oracledb version number with an extra .0.0)
     * - CLIENT_DRIVER
-      - "python-oracledb thk : 1.0.0"
-      - "python-oracledb thn : 1.0.0"
-
+      - "python-oracledb thk : 2.6.0"
+      - "python-oracledb thn : 2.6.0"
 
 V$SESSION
 ---------
 
-The following table list sample values for columns with differences in
-`V$SESSION
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__.
+The following table lists sample default values for columns with differences in
+`V$SESSION <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__. You may not see values with
+these formats if you have changed the defaults using the
+:ref:`Defaults object <defaults>`, set the equivalent connection or pool
+creation parameters, or set the attribute :attr:`Connection.module` as
+shown in :ref:`endtoendtracing`.
 
 .. list-table-with-summary:: Sample V$SESSION column values
     :header-rows: 1
@@ -407,28 +415,43 @@ The following table list sample values for columns with differences in
       - similar to `python@myuser-mac2 (TNS V1-V3)`
       - the contents of Python's ``sys.executable``, such as `/Users/myuser/.pyenv/versions/3.9.6/bin/python`
 
-The MODULE column value can be set as shown in :ref:`endtoendtracing`.
-
 Low Level Python-oracledb Driver Tracing
 ========================================
 
 Low level tracing is mostly useful to maintainers of python-oracledb.
 
-- For the python-oracledb Thin mode, packets can be traced by setting the
-  environment variable::
+- For python-oracledb Thin mode, packets can be traced by setting the
+  environment variable PYO_DEBUG_PACKETS in your terminal window before running
+  your application.
 
-      PYO_DEBUG_PACKETS=1
+  For example, on Linux, you might use::
 
-  Output goes to stdout. The logging is similar to an Oracle Net trace of
-  level 16.
+      export PYO_DEBUG_PACKETS=1
 
-- The python-oracledb Thick mode can be traced using:
+  On Windows you might set the variable like::
 
-  - DPI_DEBUG_LEVEL as documented in `<ODPI-C Debugging
-    <https://oracle.github.io/odpi/doc/user_guide/debugging.html>`__.
+      set PYO_DEBUG_PACKETS=1
+
+  Alternatively, the variable can be set in the application:
+
+  .. code-block:: python
+
+      import os
+      os.environ["PYO_DEBUG_PACKETS"] = "1"
+      import oracledb
+
+  The output goes to stdout. The information logged is roughly similar to an
+  Oracle Net trace of level 16, see `Oracle Net Services TRACE_LEVEL_CLIENT
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+  GUID-1CC6424E-B3B5-4D55-A605-0C558496CBE0>`__.
+
+- Python-oracledb Thick mode can be traced using:
+
+  - DPI_DEBUG_LEVEL as documented in `ODPI-C Debugging
+    <https://odpi-c.readthedocs.io/en/latest/user_guide/debugging.html>`__.
 
   - Oracle Call Interface (OCI) tracing as directed by Oracle Support.
 
   - Oracle Net services tracing as documented in `Oracle Net Services Tracing
-    Parameters
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-619D46BB-FE40-4EE1-8D5F-9E7666B23276>`__
+    Parameters <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-619D46BB-FE40-4EE1-8D5F-9E7666B23276>`__.

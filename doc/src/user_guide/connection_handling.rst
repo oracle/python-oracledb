@@ -821,8 +821,8 @@ lookup?ctx=dblatest&id=GUID-6745DB10-F540-45D7-9761-9E8F342F1435>`__.
 
 A context has a namespace and a key-value pair. The namespace CLIENTCONTEXT is
 reserved for use with client session-based application contexts. Contexts are
-set during connection as a 3-tuple containing string values for the namespace,
-key, and value. For example:
+set during connection as an array of 3-tuple containing string values for the
+namespace, key, and value.  For example:
 
 .. code-block:: python
 
@@ -832,7 +832,6 @@ key, and value. For example:
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
                                   appcontext=myctx)
-
 
 Context values set during connection can be directly queried in your
 applications. For example:
@@ -848,6 +847,29 @@ applications. For example:
 This will print::
 
     (1900, '6092 Boxwood St', 'YSW 9T2', 'Whitehorse', 'Yukon', 'CA')
+
+Multiple context values can be set when connecting. For example:
+
+.. code-block:: python
+
+    myctx = [
+        ("clientcontext", "loc_id", "1900"),
+        ("clientcontext", "my_world", "earth"),
+    ]
+
+    connection = oracledb.connect(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
+                                  appcontext=myctx)
+
+    with connection.cursor() as cursor:
+        sql = """select sys_context('clientcontext', 'loc_id'),
+                        sys_context('clientcontext', 'my_world')
+                 from dual"""
+        for r in cursor.execute(sql):
+            print(r)
+
+will display::
+
+    ('1900', 'earth')
 
 You can use contexts to set up restrictive policies that are automatically
 applied to any query executed. See Oracle Database documentation `Oracle
@@ -1594,19 +1616,24 @@ relatively short duration, and then releases it.
 
 For efficiency, it is recommended that DRCP connections should be used in
 conjunction with python-oracledb's local :ref:`connection pool <connpooling>`.
-However, although using DRCP with standalone connections is not as efficient
-it does allow the database to reuse database server processes which can provide
-a performance benefit for applications that cannot use a local connection pool.
+Using DRCP with :ref:`standalone connections <standaloneconnection>` is not as
+efficient but does allow the database to reuse database server processes which
+can provide a performance benefit for applications that cannot use a local
+connection pool. In this scenario, make sure to configure enough DRCP
+authentication servers to handle the connection load.
 
-Although applications can choose whether or not to use pooled connections at
-runtime, care must be taken to configure the database appropriately for the
+Although applications can choose whether or not to use DRCP pooled connections
+at runtime, care must be taken to configure the database appropriately for the
 number of expected connections, and also to stop inadvertent use of non-DRCP
 connections leading to a database server resource shortage. Conversely, avoid
 using DRCP connections for long-running operations.
 
-For more information about DRCP, see `Oracle Database Concepts Guide
+For more information about DRCP, see the technical brief `Extreme Oracle
+Database Connection Scalability with Database Resident Connection Pooling
+(DRCP) <https://www.oracle.com/docs/tech/drcp-technical-brief.pdf>`__, the user
+documentation `Oracle Database Concepts Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-531EEE8A-B00A-4C03-A2ED-D45D92B3F797>`__ and for DRCP Configuration,
+id=GUID-531EEE8A-B00A-4C03-A2ED-D45D92B3F797>`__, and for DRCP Configuration
 see `Oracle Database Administrator's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-82FF6896-F57E-41CF-89F7-755F3BC9C924>`__.

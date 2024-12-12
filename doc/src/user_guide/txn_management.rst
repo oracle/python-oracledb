@@ -27,19 +27,24 @@ Autocommitting
 ==============
 
 An alternative way to commit is to set the attribute
-:attr:`~Connection.autocommit` of the connection to ``True``.  This ensures all
+:attr:`Connection.autocommit` of the connection to ``True``.  This ensures all
 :ref:`DML <dml>` statements (INSERT, UPDATE, and so on) are committed as they are
 executed.  Unlike :meth:`Connection.commit()`, this does not require an
 additional :ref:`round-trip <roundtrips>` to the database so it is more
 efficient when used appropriately.
 
-Note that irrespective of the autocommit value, Oracle Database will always
-commit an open transaction when a DDL statement is executed.
-
 When executing multiple DML statements that constitute a single transaction, it
 is recommended to use autocommit mode only for the last DML statement in the
-sequence of operations.  Unnecessarily committing causes extra database load,
-and can destroy transactional consistency.
+sequence of operations.
+
+.. warning::
+
+    Overuse of the mode can impact database performance. It can also destroy
+    relational data consistency when related changes made to multiple tables
+    are committed independently, causing table data to be out of sync.
+
+Note that irrespective of the autocommit value, Oracle Database will always
+commit an open transaction when a DDL statement is executed.
 
 The example below shows a new customer being added to the table ``CUST_TABLE``.
 The corresponding ``SALES`` table is updated with a purchase of 3000 pens from

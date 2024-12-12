@@ -1,8 +1,8 @@
 # python-oracledb
 
 python-oracledb is a [Python programming language][python] extension module
-allowing Python programs to connect to [Oracle Database][oracledb].  It is the
-renamed, new major release of the popular cx_Oracle driver.
+allowing Python programs to connect to [Oracle Database][oracledb].
+Python-oracledb is the new name for Oracle's popular cx_Oracle driver.
 
 The module conforms to the [Python Database API 2.0 specification][pep249] with
 a considerable number of additions and a couple of minor exclusions, see the
@@ -40,7 +40,7 @@ See [python-oracledb Installation][installation].
 
   **Thin mode**: Oracle Database 12.1 (or later) is required.
 
-  **Thick mode**: Oracle Database 11.2 (or later) is required, depending on the
+  **Thick mode**: Oracle Database 9.2 (or later) is required, depending on the
   Oracle Client library version.  Oracle Database's standard client-server
   version interoperability allows connection to both older and newer
   databases. For example when python-oracledb uses Oracle Client 19c libraries,

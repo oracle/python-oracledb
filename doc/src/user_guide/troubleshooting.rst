@@ -140,9 +140,10 @@ Error Messages
 ==============
 
 While using python-oracledb in Thin or Thick mode, you may encounter
-errors. Some common :ref:`DPI <dpierr>` and :ref:`DPY <dpyerr>` errors are
-detailed in this section with information about the probable cause of the
-error, and the recommended action which may resolve the error.
+errors. Some common :ref:`DPI <dpierr>`, :ref:`DPY <dpyerr>`, and :ref:`ORA
+<oraerr>` errors are detailed in this section with information about the
+probable cause of the error, and the recommended action which may resolve the
+error.
 
 If you have multiple versions of Python installed, ensure that you are
 using the correct python and pip (or python3 and pip3) executables.
@@ -326,9 +327,12 @@ DPY-4011
 
 **Message:** ``DPY-4011: the database or network closed the connection``
 
-**Cause:**  The connection failed because the Oracle Database that you are
-trying to connect to using python-oracledb Thin mode may have Native Network
-Encryption (NNE) enabled. NNE is only supported in python-oracledb Thick mode.
+**Cause:** If this occurs when using an already opened connection, additional
+messages may indicate a reason.
+
+If the error occurs when creating a connection or connection pool, the common
+cause is that Oracle Database has Native Network Encryption (NNE) enabled. NNE
+is only supported in python-oracledb Thick mode.
 
 **Action:** To verify if NNE is enabled, you can use the following query::
 
@@ -367,3 +371,38 @@ If NNE is enabled, you can resolve this error by either:
     ctx=dblatest&id=DBSEG>`__ for more information about Oracle Data Network
     Encryption and Integrity, and for information about configuring TLS
     network encryption.
+
+.. _oraerr:
+
+ORA Error Messages
+------------------
+
+ORA-00933
++++++++++
+
+**Message:** ``ORA-00933: SQL command not properly ended`` or
+``ORA-00933: unexpected keyword at or near <keyword_value>``
+
+**Cause:** Commonly this error occurs when the SQL statement passed to Oracle
+Database contains a trailing semicolon.
+
+**Action:** If your code is like:
+
+.. code-block:: python
+
+    cursor.execute("select * from dept;")
+
+Then remove the trailing semi-colon:
+
+.. code-block:: python
+
+    cursor.execute("select * from dept")
+
+Note with Oracle Database 23ai this incorrect usage gives the message
+``ORA-03048: SQL reserved word ';' is not syntactically valid following
+'select * from dept'``.
+
+.. seealso::
+
+   For other causes and solutions see `Database Error Messages ORA-00933
+   <https://docs.oracle.com/error-help/db/ora-00933/>`__

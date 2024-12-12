@@ -26,10 +26,10 @@ Thin Mode Changes
     id=GUID-490A0B3B-FEF3-425A-81B0-6FA29D4B8C0E>`__ parameter to TRUE),
     python-oracledb no longer attempts to do so
     (`issue 419 <https://github.com/oracle/python-oracledb/issues/419>`__).
-#)  Fixed bug when the fetched data type of a column changes from
-    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to
-    to a different compatible type
-    (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
+#)  Fixed bug when table recreation changes the data type of a column from
+    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to a
+    different compatible type (`issue 424
+    <https://github.com/oracle/python-oracledb/issues/424>`__).
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
     does not match the expected value: "{expected_dn}"`` now shows the expected
     value.
