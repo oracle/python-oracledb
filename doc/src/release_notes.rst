@@ -23,16 +23,6 @@ Thin Mode Changes
 #)  Host names are now resolved to IP addresses in python-oracledb instead of
     the Python libraries. Address list load balancing and failover settings
     will be used when establishing connections.
-#)  If the database states that an out-of-band break check should not take place
-    during connect (by setting the `DISABLE_OOB_AUTO
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-    id=GUID-490A0B3B-FEF3-425A-81B0-6FA29D4B8C0E>`__ parameter to TRUE),
-    python-oracledb no longer attempts to do so
-    (`issue 419 <https://github.com/oracle/python-oracledb/issues/419>`__).
-#)  Fixed bug when table recreation changes the data type of a column from
-    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to a
-    different compatible type (`issue 424
-    <https://github.com/oracle/python-oracledb/issues/424>`__).
 #)  Fixed hang when attempting to use pipelining against a database that
     doesn't support the end of response flag.
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
@@ -42,23 +32,12 @@ Thin Mode Changes
     expected value: "{expected_name}"`` is now raised when neither the common
     name (CN) nor any of the subject alternative names (SANs) found on the
     server certificate match the host name used to connect to the database.
-#)  All exceptions subclassed from ``OSError`` now cause connection retry
-    attempts, subject to the connection ``retry_count`` and ``retry_delay``
-    parameters
-    (`issue 420 <https://github.com/oracle/python-oracledb/issues/420>`__).
 #)  Internal change: improve low-level encoding and decoding routines.
 #)  Internal change: send buffer length for bind variables without unneeded
     adjustment.
 
 Thick Mode Changes
 ++++++++++++++++++
-
-#)  Fixed bug calculating property :data:`Connection.max_identifier_length`
-    when using Oracle Client libraries 12.1, or older. The returned value may
-    now be ``None`` when the size cannot be reliably determined by
-    python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
-    older) to connect to Oracle Database 12.2, or later.
-    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 
 Common Changes
 ++++++++++++++
@@ -73,10 +52,48 @@ Common Changes
 #)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
     objects defined using ANSI names (including FLOAT and REAL) may have shown
     as integers.
-#)  Fixed bug when fetching an empty CLOB or BLOB column marked with the
-    ``IS JSON`` constraint
-    (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
 #)  Internal change: improve handling of metadata.
+
+
+oracledb 2.5.1 (December 2024)
+------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug when table recreation changes the data type of a column from
+    :data:`oracledb.DB_TYPE_LONG` or :data:`oracledb.DB_TYPE_LONG_RAW` to a
+    different compatible type
+    (`issue 424 <https://github.com/oracle/python-oracledb/issues/424>`__).
+#)  If the database states that an out-of-band break check should not take
+    place during connect (by setting the `DISABLE_OOB_AUTO
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+    id=GUID-490A0B3B-FEF3-425A-81B0-6FA29D4B8C0E>`__ parameter to TRUE),
+    python-oracledb no longer attempts to do so
+    (`issue 419 <https://github.com/oracle/python-oracledb/issues/419>`__).
+#)  All exceptions subclassed from ``OSError`` now cause connection retry
+    attempts, subject to the connection ``retry_count`` and ``retry_delay``
+    parameters
+    (`issue 420 <https://github.com/oracle/python-oracledb/issues/420>`__).
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed bug calculating property :data:`Connection.max_identifier_length`
+    when using Oracle Client libraries 12.1, or older. The returned value may
+    now be ``None`` when the size cannot be reliably determined by
+    python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
+    older) to connect to Oracle Database 12.2, or later.
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+#)  Fixed bug resulting in a segfault when using external authentication
+    (`issue 425 <https://github.com/oracle/python-oracledb/issues/425>`__).
+
+Common Changes
+++++++++++++++
+
+#)  Fixed bug when fetching empty data from CLOB or BLOB columns marked with
+    the ``IS JSON`` constraint
+    (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
 
 
 oracledb 2.5.0 (November 2024)
