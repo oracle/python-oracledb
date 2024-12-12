@@ -339,6 +339,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.external_name, "test_external")
         conn.internal_name = "test_internal"
         self.assertEqual(conn.internal_name, "test_internal")
+        if conn.max_identifier_length is not None:
+            self.assertIsInstance(conn.max_identifier_length, int)
         conn.stmtcachesize = 30
         self.assertEqual(conn.stmtcachesize, 30)
         self.assertRaises(TypeError, conn.stmtcachesize, 20.5)
