@@ -613,6 +613,10 @@ insert into &main_user..TestJsonCols values (1,
     '[1, 2, 3]', '[4, 5, 6]', utl_raw.cast_to_raw('[7, 8, 9]'))
 /
 
+insert into &main_user..TestJsonCols values (2,
+    'null', empty_clob(), empty_blob())
+/
+
 commit
 /
 

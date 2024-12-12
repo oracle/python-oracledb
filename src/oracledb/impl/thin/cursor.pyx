@@ -255,7 +255,8 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
                 value = await value.read()
             if isinstance(value, bytes):
                 value = value.decode()
-            return json.loads(value)
+            if value:
+                return json.loads(value)
         return converter
 
     async def _fetch_rows_async(self, object cursor):

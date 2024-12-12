@@ -71,6 +71,9 @@ Common Changes
 #)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
     objects defined using ANSI names (including FLOAT and REAL) may have shown
     as integers.
+#)  Fixed bug when fetching an empty CLOB or BLOB column marked with the
+    ``IS JSON`` constraint
+    (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
 #)  Internal change: improve handling of metadata.
 
 

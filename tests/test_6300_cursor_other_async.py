@@ -863,6 +863,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         (fetched_value,) = await self.cursor.fetchone()
         self.assertEqual(fetched_value, value)
 
+    async def test_6351(self):
+        "4360 - fetch JSON columns as Python objects"
+        expected_data = [
+            (1, [1, 2, 3], [4, 5, 6], [7, 8, 9]),
+            (2, None, None, None),
+        ]
+        await self.cursor.execute("select * from TestJsonCols order by IntCol")
+        self.assertEqual(await self.cursor.fetchall(), expected_data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
