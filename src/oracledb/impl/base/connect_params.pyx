@@ -508,7 +508,7 @@ cdef class ConnectParamsNode:
             self.load_balance = source.load_balance
             self.source_route = source.source_route
 
-    cdef int _set_active_children(self) except -1:
+    cdef int _set_active_children(self, list children) except -1:
         """
         Set the active children to process when connecting to the database.
         This call is recursive and will set the active children of each of its
@@ -517,36 +517,35 @@ cdef class ConnectParamsNode:
         cdef ConnectParamsNode child
 
         # if only one child is present, that child is considered active
-        if len(self.children) == 1:
-            self.active_children = self.children
+        if len(children) == 1:
+            self.active_children = children
 
         # for source route, only the first child is considered active
         elif self.source_route:
-            self.active_children = self.children[:1]
+            self.active_children = children[:1]
 
         # for failover with load balance, all of the children are active but
         # are processed in a random order
         elif self.failover and self.load_balance:
-            self.active_children = random.sample(self.children,
-                                                 k=len(self.children))
+            self.active_children = random.sample(children, k=len(children))
 
         # for failover without load balance, all of the children are active and
         # are processed in the same order
         elif self.failover:
-            self.active_children = self.children
+            self.active_children = children
 
         # without failover, load balance indicates that only one of the
         # children is considered active and which one is selected randomly
         elif self.load_balance:
-            self.active_children = random.sample(self.children, k=1)
+            self.active_children = random.sample(children, k=1)
 
         # without failover or load balance, just the first child is navigated
         else:
-            self.active_children = self.children[:1]
+            self.active_children = children[:1]
 
-        for child in self.children:
+        for child in children:
             if child.must_have_children:
-                child._set_active_children()
+                child._set_active_children(child.children)
 
 
 cdef class Address(ConnectParamsNode):
@@ -598,6 +597,25 @@ cdef class Address(ConnectParamsNode):
         address.set_from_args(args)
         return address
 
+    cdef list resolve_host_name(self):
+        """
+        Resolve the host name associated with the address and store the IP
+        address and family on the address. If multiple IP addresses are found,
+        duplicate the address and return one address for each IP address.
+        """
+        cdef:
+            list results = []
+            Address address
+            object info
+        for info in socket.getaddrinfo(self.host, self.port,
+                                       proto=socket.IPPROTO_TCP,
+                                       type=socket.SOCK_STREAM):
+            address = self.copy()
+            address.ip_family = info[0]
+            address.ip_address = info[4][0]
+            results.append(address)
+        return results
+
     def set_from_args(self, dict args):
         """
         Sets parameter values from an argument dictionary or an (ADDRESS) node
@@ -629,6 +647,21 @@ cdef class AddressList(ConnectParamsNode):
 
     def __init__(self):
         ConnectParamsNode.__init__(self, True)
+
+    cdef int _set_active_children(self, list children) except -1:
+        """
+        Set the active children to process when connecting to the database.
+        First, all names are resolved to IP addresses
+
+        This call is recursive and will set the active children of each of its
+        children.
+        """
+        cdef:
+            list addresses = []
+            Address address
+        for address in children:
+            addresses.extend(address.resolve_host_name())
+        ConnectParamsNode._set_active_children(self, addresses)
 
     cdef bint _uses_tcps(self):
         """
@@ -892,6 +925,13 @@ cdef class DescriptionList(ConnectParamsNode):
         return [addr for desc in self.children \
                 for addr_list in desc.children \
                 for addr in addr_list.children]
+
+    cdef int set_active_children(self) except -1:
+        """
+        Sets the list of active children to process when connecting to the
+        database.
+        """
+        self._set_active_children(self.children)
 
     def set_from_args(self, dict args):
         """

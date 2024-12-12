@@ -220,7 +220,7 @@ cdef class Protocol(BaseProtocol):
                 and sys.platform != "win32"
 
         # establish initial TCP connection and get initial connect string
-        host = address.host
+        host = address.ip_address
         port = address.port
         self._connect_tcp(params, description, address, host, port,
                           connect_string)
@@ -352,7 +352,7 @@ cdef class Protocol(BaseProtocol):
                     or params.access_token_callback is not None):
                 errors._raise_err(errors.ERR_ACCESS_TOKEN_REQUIRES_TCPS)
         if description.use_tcp_fast_open:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.socket(address.ip_family, socket.SOCK_STREAM)
             sock.sendto(connect_string.encode(), socket.MSG_FASTOPEN,
                         connect_info)
         else:
@@ -578,7 +578,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         self._caps.supports_oob = False
 
         # establish initial TCP connection and get initial connect string
-        host = address.host
+        host = address.ip_address
         port = address.port
         orig_transport = await self._connect_tcp(params, description, address,
                                                  host, port)

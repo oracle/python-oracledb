@@ -382,7 +382,7 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             ssize_t i, num_descriptions
             Description description
             bint final_desc
-        description_list._set_active_children()
+        description_list.set_active_children()
         num_descriptions = len(description_list.active_children)
         for i, description in enumerate(description_list.active_children):
             final_desc = (i == num_descriptions - 1)
@@ -688,7 +688,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             ssize_t i, num_descriptions
             Description description
             bint final_desc
-        description_list._set_active_children()
+        description_list.set_active_children()
         num_descriptions = len(description_list.active_children)
         for i, description in enumerate(description_list.active_children):
             final_desc = (i == num_descriptions - 1)

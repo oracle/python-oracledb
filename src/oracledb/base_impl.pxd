@@ -462,10 +462,10 @@ cdef class ConnectParamsNode:
         public bint failover
         public bint must_have_children
         public list children
-        public list active_children
+        list active_children
 
     cdef int _copy(self, ConnectParamsNode source) except -1
-    cdef int _set_active_children(self) except -1
+    cdef int _set_active_children(self, list children) except -1
 
 
 cdef class Address(ConnectParamsNode):
@@ -475,9 +475,12 @@ cdef class Address(ConnectParamsNode):
         public str protocol
         public str https_proxy
         public uint32_t https_proxy_port
+        str ip_address
+        int ip_family
 
     cdef str build_connect_string(self)
     cdef int set_protocol(self, str value) except -1
+    cdef list resolve_host_name(self)
 
 
 cdef class AddressList(ConnectParamsNode):
@@ -516,6 +519,7 @@ cdef class DescriptionList(ConnectParamsNode):
 
     cdef str build_connect_string(self)
     cdef list get_addresses(self)
+    cdef int set_active_children(self) except -1
 
 
 cdef class ConnectParamsImpl:

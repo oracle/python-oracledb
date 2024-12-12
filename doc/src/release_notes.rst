@@ -20,6 +20,9 @@ Thin Mode Changes
 #)  Perform TLS server matching in python-oracledb instead of the Python SSL
     library to allow alternate names to be checked
     (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
+#)  Host names are now resolved to IP addresses in python-oracledb instead of
+    the Python libraries. Address list load balancing and failover settings
+    will be used when establishing connections.
 #)  If the database states that an out-of-band break check should not take place
     during connect (by setting the `DISABLE_OOB_AUTO
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
