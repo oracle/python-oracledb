@@ -244,8 +244,8 @@ PipelineOpResult Attributes
 
 .. attribute:: PipelineOpResult.operation
 
-    This read-only attribute returns the operation associated with the result.
-    See :ref:`pipeline-operation-types` for types of operations.
+    This read-only attribute returns the :ref:`PipelineOp <pipelineopobjs>`
+    operation object that generated the result.
 
 .. attribute:: PipelineOpResult.return_value
 
