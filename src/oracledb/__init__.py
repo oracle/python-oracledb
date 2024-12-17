@@ -324,11 +324,33 @@ thin_impl.init_thin_impl(package)
 del package
 
 # remove unnecessary symbols
-del sys, warnings
-del aq, base_impl, connect_params, connection, constants, constructors  # noqa
-del cursor, dbobject, driver_mode, dsn, errors, exceptions, fetch_info  # noqa
-del future, lob, pool, pool_params, soda, subscr, thick_impl, thin_impl  # noqa
-del utils, var  # noqa
+del (
+    aq,  # noqa
+    base_impl,  # noqa
+    connect_params,  # noqa
+    connection,  # noqa
+    constants,  # noqa
+    constructors,  # noqa
+    cursor,  # noqa
+    dbobject,  # noqa
+    driver_mode,  # noqa
+    dsn,  # noqa
+    errors,  # noqa
+    exceptions,  # noqa
+    fetch_info,  # noqa
+    future,  # noqa
+    lob,  # noqa
+    pool,  # noqa
+    pool_params,  # noqa
+    soda,  # noqa
+    subscr,  # noqa
+    sys,  # noqa
+    thick_impl,  # noqa
+    thin_impl,  # noqa
+    utils,  # noqa
+    var,  # noqa
+    warnings,  # noqa
+)
 
 # general aliases (for backwards compatibility)
 ObjectType = DbObjectType
