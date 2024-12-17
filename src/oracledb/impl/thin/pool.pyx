@@ -478,7 +478,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             uint32_t num_to_create
 
         # add to the list of pools that require closing
-        pools_to_close.add(self)
+        pool_closer.add_pool(self)
 
         # perform task until pool is closed
         while self._open or self._conn_impls_to_drop:
@@ -523,7 +523,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             self._timeout_task.cancel()
 
         # remove from the list of pools that require closing
-        pools_to_close.remove(self)
+        pool_closer.remove_pool(self)
 
     cdef ThinConnImpl _create_conn_impl(self, ConnectParamsImpl params=None):
         """
@@ -622,7 +622,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         pools gracefully may have already run, so if the close has already
         happened, nothing more needs to be done!
         """
-        if self in pools_to_close:
+        if self._open:
             with self._condition:
                 self._close_helper(force)
             self._bg_task.join()
@@ -984,12 +984,51 @@ cdef class PooledConnRequest:
                 pool_impl._free_used_conn_impls.append(conn_impl)
 
 
-# keep track of which pools need to be closed and ensure that they are closed
-# gracefully when the main thread finishes its work
-pools_to_close = set()
-def close_pools_gracefully():
-    cdef ThinPoolImpl pool_impl
-    threading.main_thread().join()          # wait for main thread to finish
-    for pool_impl in list(pools_to_close):
-        pool_impl._shutdown()
-threading.Thread(target=close_pools_gracefully).start()
+cdef class PoolCloser:
+    cdef:
+        bint closing
+        object lock
+        set pools
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.closing = False
+
+    cdef int add_pool(self, ThinPoolImpl pool_impl) except -1:
+        """
+        Adds a pool to the list of pools to close. If this is the first pool
+        being added, a thread is started to ensure that all remaining open
+        pools are closed gracefully at shutdown of the interpreter.
+        """
+        with self.lock:
+            if self.pools is None:
+                self.pools = set()
+                threading.Thread(target=self.close_pools_gracefully).start()
+            self.pools.add(pool_impl)
+
+    def close_pools_gracefully(self):
+        """
+        Closes all remaining open pools gracefully. Since pools start a
+        background thread, the interpreter will not shut down until these
+        background threads have completed, nor will registered atexit functions
+        run. Marking the background threads as daemon threads allows the
+        interpreter to kill them but then pools are not closed gracefully. This
+        method of starting a thread to wait until the main thread finishes
+        handles all of these situations.
+        """
+        cdef ThinPoolImpl pool_impl
+        threading.main_thread().join()      # wait for main thread to finish
+        self.closing = True
+        for pool_impl in self.pools:
+            pool_impl._shutdown()
+
+    cdef int remove_pool(self, ThinPoolImpl pool_impl) except -1:
+        """
+        Removes a pool from the list of pools to close.
+        """
+        with self.lock:
+            if not self.closing:
+                self.pools.remove(pool_impl)
+
+
+cdef PoolCloser pool_closer = PoolCloser()

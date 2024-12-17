@@ -23,6 +23,9 @@ Thin Mode Changes
 #)  Host names are now resolved to IP addresses in python-oracledb instead of
     the Python libraries. Address list load balancing and failover settings
     will be used when establishing connections.
+#)  The thread that closes connection pools on interpreter shutdown is now only
+    started when the first pool is created and not at module import
+    (`issue 426 <https://github.com/oracle/python-oracledb/issues/426>`__).
 #)  Fixed hang when attempting to use pipelining against a database that
     doesn't support the end of response flag.
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
@@ -236,7 +239,6 @@ Thin Mode Changes
 #)  Reworked :ref:`tnsnames.ora<optnetfiles>` file parser to handle multiple
     aliases found on separate lines (`issue 362
     <https://github.com/oracle/python-oracledb/issues/362>`__).
-
 
 Thick Mode Changes
 ++++++++++++++++++
