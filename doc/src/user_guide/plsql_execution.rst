@@ -4,8 +4,13 @@
 Executing PL/SQL
 ****************
 
-PL/SQL stored procedures, functions and anonymous blocks can be called from
+PL/SQL stored procedures, functions, and anonymous blocks can be called from
 python-oracledb.
+
+Examples in this chapter show single invocations using
+:meth:`Cursor.callproc()`, :meth:`Cursor.callfunc()`, or
+:meth:`Cursor.execute()`. Examples of repeated calls using
+:meth:`Cursor.executemany()` are shown in :ref:`batchplsql`.
 
 .. _plsqlproc:
 

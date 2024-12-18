@@ -153,12 +153,20 @@ With named bind variables, use named parameters when calling
             values (:pid, :pdesc)""", data)
 
 
+.. _batchplsql:
+
 Batch Execution of PL/SQL
 =========================
 
-PL/SQL functions and procedures and anonymous PL/SQL blocks can also be called
-using :meth:`~Cursor.executemany()` in order to improve performance. For
-example:
+Using :meth:`~Cursor.executemany()` can improve performance when PL/SQL
+functions, procedures, or anonymous blocks need to be called multiple times.
+
+Runnable examples are in `plsql_batch.py <https://github.com/oracle/python-
+oracledb/tree/main/samples/plsql_batch.py>`__.
+
+**IN Binds**
+
+An example using :ref:`bind by position <bindbyposition>` for IN binds is:
 
 .. code-block:: python
 
@@ -171,12 +179,110 @@ example:
     ]
     cursor.executemany("begin mypkg.create_parent(:1, :2); end;", data)
 
-If ``executemany()`` is used for PL/SQL code that returns OUT binds it will
-have the same performance characteristics as repeated calls to ``execute()``.
+Note that the ``batcherrors`` parameter of :meth:`~Cursor.executemany()`
+(discussed in :ref:`batcherrors`) cannot be used with PL/SQL block execution.
 
-Note that the ``batcherrors`` parameter (discussed below) cannot be used with
-PL/SQL block execution.
+**OUT Binds**
 
+When using OUT binds in PL/SQL, the input data omits entries for the OUT bind
+variable placeholders. An example PL/SQL procedure that returns OUT binds is:
+
+.. code-block:: sql
+
+    create or replace procedure myproc(p1 in number, p2 out number) as
+    begin
+        p2 := p1 * 2;
+    end;
+
+This can be called in python-oracledb using positional binds like:
+
+.. code-block:: python
+
+    data = [
+        (100,),
+        (200,),
+        (300,)
+    ]
+
+    outvals = cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=len(data))
+    cursor.setinputsizes(None, outvals)
+
+    cursor.executemany("begin myproc(:1, :2); end;", data)
+    print(outvals.values)
+
+The output is::
+
+    [200, 400, 600]
+
+The equivalent code using named binds is:
+
+.. code-block:: python
+
+    data = [
+        {"p1bv": 100},
+        {"p1bv": 200},
+        {"p1bv": 300}
+    ]
+
+    outvals = cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=len(data))
+    cursor.setinputsizes(p1bv=None, p2bv=outvals)
+
+    cursor.executemany("begin myproc(:p1bv, :p2bv); end;", data)
+    print(outvals.values)
+
+Note that in python-oracledb Thick mode, when :meth:`~Cursor.executemany()` is
+used for PL/SQL code that returns OUT binds, it will have the same performance
+characteristics as repeated calls to :meth:`~Cursor.execute()`.
+
+**IN/OUT Binds**
+
+An example PL/SQL procedure that returns IN/OUT binds is:
+
+.. code-block:: sql
+
+    create or replace procedure myproc2 (p1 in number, p2 in out varchar2) as
+    begin
+        p2 := p2 || ' ' || p1;
+    end;
+
+This can be called in python-oracledb using positional binds like:
+
+.. code-block:: python
+
+    data = [
+        (440, 'Gregory'),
+        (550, 'Haley'),
+        (660, 'Ian')
+    ]
+    outvals = cursor.var(oracledb.DB_TYPE_VARCHAR, size=100, arraysize=len(data))
+    cursor.setinputsizes(None, outvals)
+
+    cursor.executemany("begin myproc2(:1, :2); end;", data)
+    print(outvals.values)
+
+The ``size`` parameter of :meth:`Cursor.var()` indicates the maximum length of
+the string that can be returned.
+
+Output is::
+
+    ['Gregory 440', 'Haley 550', 'Ian 660']
+
+The equivalent code using named binds is:
+
+.. code-block:: python
+
+    data = [
+        {"p1bv": 440, "p2bv": 'Gregory'},
+        {"p1bv": 550, "p2bv": 'Haley'},
+        {"p1bv": 660, "p2bv": 'Ian'}
+    ]
+    outvals = cursor.var(oracledb.DB_TYPE_VARCHAR, size=100, arraysize=len(data))
+    cursor.setinputsizes(p1bv=None, p2bv=outvals)
+
+    cursor.executemany("begin myproc2(:p1bv, :p2bv); end;", data)
+    print(outvals.values)
+
+.. _batcherrors:
 
 Handling Data Errors
 ====================
