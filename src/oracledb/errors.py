@@ -278,6 +278,7 @@ ERR_NAMED_POOL_EXISTS = 2055
 ERR_PROTOCOL_HANDLER_FAILED = 2056
 ERR_PASSWORD_TYPE_HANDLER_FAILED = 2057
 ERR_PLAINTEXT_PASSWORD_IN_CONFIG = 2058
+ERR_MISSING_CONNECT_DESCRIPTOR = 2059
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -647,6 +648,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_MISSING_BIND_VALUE: (
         'a bind variable replacement value for placeholder ":{name}" was '
         "not provided"
+    ),
+    ERR_MISSING_CONNECT_DESCRIPTOR: (
+        '"connect_descriptor" key missing from configuration'
     ),
     ERR_MISSING_FILE: "file '{file_name}' is missing or unreadable",
     ERR_MISSING_ENDING_DOUBLE_QUOTE: 'missing ending quote (")',

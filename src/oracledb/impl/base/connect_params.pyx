@@ -122,8 +122,9 @@ cdef class ConnectParamsImpl:
         configuration.
         """
         connect_string = config.get("connect_descriptor")
-        if connect_string is not None:
-            self.parse_connect_string(connect_string)
+        if connect_string is None:
+            errors._raise_err(errors.ERR_MISSING_CONNECT_DESCRIPTOR)
+        self.parse_connect_string(connect_string)
         if self.user is None and self._password is None:
             user = config.get("user")
             password = config.get("password")
