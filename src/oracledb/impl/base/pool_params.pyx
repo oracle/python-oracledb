@@ -81,7 +81,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         _set_uint_param(args, "max", &self.max)
         _set_uint_param(args, "increment", &self.increment)
         _set_obj_param(args, "connectiontype", self)
-        _set_uint_param(args, "getmode", &self.getmode)
+        _set_enum_param(args, "getmode", ENUM_POOL_GET_MODE, &self.getmode)
         _set_bool_param(args, "homogeneous", &self.homogeneous)
         _set_uint_param(args, "timeout", &self.timeout)
         _set_uint_param(args, "wait_timeout", &self.wait_timeout)

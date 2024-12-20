@@ -1063,6 +1063,53 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.port, port)
             self.assertEqual(params.service_name, service_name)
 
+    def test_4564(self):
+        "4564 - test extended connect strings for ConnectParams"
+        test_scenarios = [
+            ("cclass", "test_cclass", "test_cclass"),
+            ("connection_id_prefix", "cid_prefix", "cid_prefix"),
+            ("disable_oob", "true", True),
+            ("disable_oob", "off", False),
+            ("driver_name", "test_driver_name", "test_driver_name"),
+            ("edition", "test_edition", "test_edition"),
+            ("events", "on", True),
+            ("events", "false", False),
+            ("expire_time", "10", 10),
+            ("externalauth", "yes", True),
+            ("externalauth", "no", False),
+            ("https_proxy", "test_proxy", "test_proxy"),
+            ("https_proxy_port", "80", 80),
+            ("machine", "test_machine", "test_machine"),
+            ("machine", "test_machine", "test_machine"),
+            ("mode", "SYSDBA", oracledb.AUTH_MODE_SYSDBA),
+            ("osuser", "test_osuser", "test_osuser"),
+            ("pool_boundary", "statement", "statement"),
+            ("program", "test_program", "test_program"),
+            ("purity", "NEW", oracledb.PURITY_NEW),
+            ("retry_count", "5", 5),
+            ("retry_delay", "3", 3),
+            ("sdu", "16384", 16384),
+            ("ssl_server_cert_dn", "test_dn", "test_dn"),
+            ("ssl_server_dn_match", "on", True),
+            ("ssl_server_dn_match", "false", False),
+            ("stmtcachesize", "25", 25),
+            ("tcp_connect_timeout", "15", 15),
+            ("terminal", "test_terminal", "test_terminal"),
+            ("use_tcp_fast_open", "true", True),
+            ("use_tcp_fast_open", "off", False),
+            ("wallet_location", "test_location", "test_location"),
+        ]
+        host = "host_4564"
+        service_name = "service_4564"
+        for name, str_value, actual_value in test_scenarios:
+            conn_string = f"{host}/{service_name}?pyo.{name}={str_value}"
+            with self.subTest(name=name, value=str_value):
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(conn_string)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(getattr(params, name), actual_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

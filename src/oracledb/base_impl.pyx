@@ -80,6 +80,11 @@ cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO
 
+# enumerations used by the driver in connect parameters
+cdef object ENUM_AUTH_MODE
+cdef object ENUM_POOL_GET_MODE
+cdef object ENUM_PURITY
+
 cdef const char* DRIVER_NAME = "python-oracledb"
 cdef const char* DRIVER_VERSION
 cdef const char* DRIVER_INSTALLATION_URL = \

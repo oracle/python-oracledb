@@ -626,6 +626,198 @@ internal extraction is done automatically when a value is passed to the ``dsn``
 parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
 no value is passed to the ``user`` password.
 
+.. _defineconnparams:
+
+Defining ConnectParams Parameters in a Connection String
+--------------------------------------------------------
+
+You can specify certain common parameters of the :ref:`ConnectParams object
+<connparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
+be done by using the question mark symbol (?) to indicate the start of the
+parameter-value pairs and the ampersand symbol (&) to delimit each
+parameter-value pair. For example:
+
+.. code-block:: python
+
+    cp = oracledb.ConnectParams()
+    cp.parse_connect_string("host.example.com:1522/orclpdb?transport_connect_timeout=15&retry_count=5&retry_delay=5")
+
+The common ConnectParams parameters that can be set in a connection string are
+listed in the table below:
+
+.. list-table-with-summary:: Common ConnectParams Parameters
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 10 10 10
+    :name: _common_parameters
+    :summary: The first column displays the name of the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
+
+    * - Connect String Parameter Name
+      - Python Parameter Name
+      - Type
+    * - EXPIRE_TIME
+      - :attr:`~ConnectParams.expire_time`
+      - integer
+    * - HTTPS_PROXY
+      - :attr:`~ConnectParams.https_proxy`
+      - string
+    * - HTTPS_PROXY_PORT
+      - :attr:`~ConnectParams.https_proxy_port`
+      - integer
+    * - POOL_BOUNDARY
+      - :attr:`~ConnectParams.pool_boundary`
+      - string
+    * - POOL_CONNECTION_CLASS
+      - :attr:`~ConnectParams.cclass`
+      - string
+    * - POOL_PURITY
+      - :attr:`~ConnectParams.purity`
+      - oracledb.Purity
+    * - RETRY_COUNT
+      - :attr:`~ConnectParams.retry_count`
+      - integer
+    * - RETRY_DELAY
+      - :attr:`~ConnectParams.retry_delay`
+      - integer
+    * - SDU
+      - :attr:`~ConnectParams.sdu`
+      - integer
+    * - SSL_SERVER_DN_MATCH
+      - :attr:`~ConnectParams.ssl_server_dn_match`
+      - boolean
+    * - SSL_SERVER_CERT_DN
+      - :attr:`~ConnectParams.ssl_server_cert_dn`
+      - string
+    * - TRANSPORT_CONNECT_TIMEOUT
+      - :attr:`~ConnectParams.tcp_connect_timeout`
+      - integer
+    * - WALLET_LOCATION
+      - :attr:`~ConnectParams.wallet_location`
+      - string
+
+Also, you can specify additional parameters of the :ref:`ConnectParams object
+<connparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
+be done by using the question mark symbol (?) to indicate the start of the
+parameter-value pairs and the ampersand symbol (&) to delimit each
+parameter-value pair. Addiitionally, you must define each parameter name with
+the prefix "pyo.". For example:
+
+.. code-block:: python
+
+    cp = oracledb.ConnectParams()
+    cp.parse_connect_string("host.example.com:1522/orclpdb?pyo.stmtcachesize=30&pyo.mode=SYSDBA")
+
+Note that these parameters can only be added in Easy Connect strings and not
+in :ref:`Connect Descriptors <conndescriptor>`.
+
+The ConnectParams parameters that can be set in a connection string with the
+prefix "pyo."" are listed in the table below:
+
+.. list-table-with-summary:: Additional ConnectParams Parameters
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 10 10 10
+    :name: _additional_connectparams_parameters
+    :summary: The first column displays the name of the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
+
+    * - Connect String Parameter Name
+      - Python Parameter Name
+      - Type
+    * - PYO.CCLASS
+      - :attr:`ConnectParams.cclass`
+      - string
+    * - PYO.CONNECTION_ID_PREFIX
+      - :attr:`ConnectParams.connection_id_prefix`
+      - string
+    * - PYO.DISABLE_OOB
+      - :attr:`ConnectParams.disable_oob`
+      - boolean
+    * - PYO.DRIVER_NAME
+      - :attr:`~ConnectParams.driver_name`
+      - string
+    * - PYO.EDITION
+      - :attr:`~ConnectParams.edition`
+      - string
+    * - PYO.EVENTS
+      - :attr:`~ConnectParams.events`
+      - boolean
+    * - PYO.EXPIRE_TIME
+      - :attr:`~ConnectParams.expire_time`
+      - integer
+    * - PYO.EXTERNALAUTH
+      - :attr:`~ConnectParams.externalauth`
+      - boolean
+    * - PYO.HTTPS_PROXY
+      - :attr:`~ConnectParams.https_proxy`
+      - string
+    * - PYO.HTTPS_PROXY_PORT
+      - :attr:`~ConnectParams.https_proxy_port`
+      - integer
+    * - PYO.MACHINE
+      - :attr:`~ConnectParams.machine`
+      - string
+    * - PYO.MODE
+      - :attr:`~ConnectParams.mode`
+      - oracledb.AuthMode
+    * - PYO.OSUSER
+      - :attr:`~ConnectParams.osuser`
+      - string
+    * - PYO.POOL_BOUNDARY
+      - :attr:`~ConnectParams.pool_boundary`
+      - string
+    * - PYO.PROGRAM
+      - :attr:`~ConnectParams.program`
+      - string
+    * - PYO.PURITY
+      - :attr:`~ConnectParams.purity`
+      - oracledb.Purity
+    * - PYO.RETRY_COUNT
+      - :attr:`~ConnectParams.retry_count`
+      - integer
+    * - PYO.RETRY_DELAY
+      - :attr:`~ConnectParams.retry_delay`
+      - integer
+    * - PYO.SDU
+      - :attr:`~ConnectParams.sdu`
+      - integer
+    * - PYO.SSL_SERVER_CERT_DN
+      - :attr:`~ConnectParams.ssl_server_cert_dn`
+      - string
+    * - PYO.SSL_SERVER_DN_MATCH
+      - :attr:`~ConnectParams.ssl_server_dn_match`
+      - boolean
+    * - PYO.STMTCACHESIZE
+      - :attr:`~ConnectParams.stmtcachesize`
+      - integer
+    * - PYO.TCP_CONNECT_TIMEOUT
+      - :attr:`~ConnectParams.tcp_connect_timeout`
+      - integer
+    * - PYO.TERMINAL
+      - :attr:`~ConnectParams.terminal`
+      - string
+    * - PYO.USE_TCP_FAST_OPEN
+      - :attr:`~ConnectParams.use_tcp_fast_open`
+      - boolean
+    * - PYO.WALLET_LOCATION
+      - :attr:`~ConnectParams.wallet_location`
+      - string
+
+If a common or additional parameter is specified multiple times in a connect
+string, then the last value of that parameter is considered as the value. For
+example, if the ``sdu`` parameter is specified multiple times in the connect
+string like this "sdu=5&sdu=10&pyo.sdu=15&sdu=20", then the value 20 is
+considered as the value of the this parameter.
+
+Note that the Connect String parameter names for the common and additional
+parameters are not case-sensitive. The boolean values may use one of the
+strings "on" or "off", "true" or "false", or "yes" or "no". The enumerated
+values use the enumerated name and are converted to uppercase before they are
+looked up in the enumeration. For example,
+:data:`oracledb.AuthMode.SYSDBA <oracledb.AUTH_MODE_SYSDBA>` would be
+specified as SYSDBA.
+
 .. _connectionhook:
 
 Connection Hook Functions
@@ -1593,6 +1785,175 @@ internally used that contains all relevant values specified.  The precedence in
 Thin mode is that values in any ``dsn`` parameter override values passed as
 individual parameters, which themselves override values set in the ``params``
 object.  Similar precedence rules also apply to other values.
+
+.. _definepoolparams:
+
+Defining PoolParams Parameters in a Connection String
+-----------------------------------------------------
+
+You can specify certain common parameters of the :ref:`PoolParams object
+<poolparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
+be done by using the question mark symbol (?) to indicate the start of the
+parameter-value pairs and the ampersand symbol (&) to delimit each
+parameter-value pair. See :ref:`_common_parameters` for the list of common
+parameters.
+
+Also, you can specify additional parameters of the :ref:`PoolParams object
+<poolparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
+be done by using the question mark symbol (?) to indicate the start of the
+parameter-value pairs and the ampersand symbol (&) to delimit each
+parameter-value pair. Additionally, you must define each parameter name with
+the prefix "pyo.". For example:
+
+.. code-block:: python
+
+    pp = oracledb.PoolParams()
+    pp.parse_connect_string("host.example.com:1522/orclpdb?pyo.max=10&pyo.increment=2")
+
+Note that these parameters can only be added in Easy Connect strings and not in
+:ref:`Connect Descriptors <conndescriptor>`.
+
+The PoolParams parameters that can be set in a connection string with the
+prefix "pyo."" are listed in the table below:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 10 10 10
+    :summary: The first column displays the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
+
+    * - Connect String Parameter Name
+      - Python Parameter Name
+      - Type
+    * - PYO.CCLASS
+      - :attr:`ConnectParams.cclass`
+      - string
+    * - PYO.CONNECTION_ID_PREFIX
+      - :attr:`ConnectParams.connection_id_prefix`
+      - string
+    * - PYO.DISABLE_OOB
+      - :attr:`ConnectParams.disable_oob`
+      - boolean
+    * - PYO.DRIVER_NAME
+      - :attr:`ConnectParams.driver_name`
+      - string
+    * - PYO.EDITION
+      - :attr:`ConnectParams.edition`
+      - string
+    * - PYO.EVENTS
+      - :attr:`ConnectParams.events`
+      - boolean
+    * - PYO.EXPIRE_TIME
+      - :attr:`ConnectParams.expire_time`
+      - integer
+    * - PYO.EXTERNALAUTH
+      - :attr:`ConnectParams.externalauth`
+      - boolean
+    * - PYO.GETMODE
+      - :attr:`PoolParams.getmode`
+      - oracledb.PoolGetMode
+    * - PYO.HOMOGENEOUS
+      - :attr:`PoolParams.homogeneous`
+      - boolean
+    * - PYO.HTTPS_PROXY
+      - :attr:`ConnectParams.https_proxy`
+      - string
+    * - PYO.HTTPS_PROXY_PORT
+      - :attr:`ConnectParams.https_proxy_port`
+      - integer
+    * - PYO.INCREMENT
+      - :attr:`PoolParams.increment`
+      - integer
+    * - PYO.MACHINE
+      - :attr:`ConnectParams.machine`
+      - string
+    * - PYO.MAX
+      - :attr:`PoolParams.max`
+      - integer
+    * - PYO.MAX_LIFETIME_SESSION
+      - :attr:`PoolParams.max_lifetime_session`
+      - integer
+    * - PYO.MAX_SESSIONS_PER_SHARD
+      - :attr:`PoolParams.max_sessions_per_shard`
+      - integer
+    * - PYO.MIN
+      - :attr:`PoolParams.min`
+      - integer
+    * - PYO.MODE
+      - :attr:`ConnectParams.mode`
+      - oracledb.AuthMode
+    * - PYO.OSUSER
+      - :attr:`ConnectParams.osuser`
+      - string
+    * - PYO_PING_INTERVAL
+      - :attr:`PoolParams.ping_interval`
+      - integer
+    * - PYO.PING_TIMEOUT
+      - :attr:`PoolParams.ping_timeout`
+      - integer
+    * - PYO.POOL_BOUNDARY
+      - :attr:`ConnectParams.pool_boundary`
+      - string
+    * - PYO.PROGRAM
+      - :attr:`ConnectParams.program`
+      - string
+    * - PYO.PURITY
+      - :attr:`ConnectParams.purity`
+      - oracledb.Purity
+    * - PYO.RETRY_COUNT
+      - :attr:`ConnectParams.retry_count`
+      - integer
+    * - PYO.RETRY_DELAY
+      - :attr:`ConnectParams.retry_delay`
+      - integer
+    * - PYO.SDU
+      - :attr:`ConnectParams.sdu`
+      - integer
+    * - PYO.SODA_METADATA_CACHE
+      - :attr:`PoolParams.soda_metadata_cache`
+      - boolean
+    * - PYO.SSL_SERVER_CERT_DN
+      - :attr:`ConnectParams.ssl_server_cert_dn`
+      - string
+    * - PYO.SSL_SERVER_DN_MATCH
+      - :attr:`ConnectParams.ssl_server_dn_match`
+      - boolean
+    * - PYO.STMTCACHESIZE
+      - :attr:`ConnectParams.stmtcachesize`
+      - integer
+    * - PYO.TCP_CONNECT_TIMEOUT
+      - :attr:`ConnectParams.tcp_connect_timeout`
+      - integer
+    * - PYO.TERMINAL
+      - :attr:`ConnectParams.terminal`
+      - string
+    * - PYO.TIMEOUT
+      - :attr:`PoolParams.timeout`
+      - integer
+    * - PYO.USE_TCP_FAST_OPEN
+      - :attr:`ConnectParams.use_tcp_fast_open`
+      - boolean
+    * - PYO.WAIT_TIMEOUT
+      - :attr:`PoolParams.wait_timeout`
+      - integer
+    * - PYO.WALLET_LOCATION
+      - :attr:`ConnectParams.wallet_location`
+      - string
+
+If a common or additional parameter is specified multiple times in a connect
+string, then the last value of that parameter is considered as the value. For
+example, if the ``sdu`` parameter is specified multiple times in the connect
+string like this "sdu=5&sdu=10&pyo.sdu=15&sdu=20", then the value 20 is
+considered as the value of the this parameter.
+
+Note that the Connect String parameter names for the common and additional
+parameters are not case-sensitive. The boolean values may use one of the
+strings "on" or "off", "true" or "false", or "yes" or "no". The enumerated
+values use the enumerated name and are converted to uppercase before they are
+looked up in the enumeration. For example,
+:data:`oracledb.AuthMode.SYSDBA <oracledb.AUTH_MODE_SYSDBA>` would be
+specified as SYSDBA.
 
 .. _drcp:
 

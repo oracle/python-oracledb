@@ -40,6 +40,7 @@ ALTERNATIVE_PARAM_NAMES = {
     "my_wallet_directory": "wallet_location"
 }
 
+# a set of parameter names used as containers for storing additional parameters
 CONTAINER_PARAM_NAMES = set([
     "address",
     "address_list",
@@ -48,6 +49,68 @@ CONTAINER_PARAM_NAMES = set([
     "description_list",
     "security",
 ])
+
+# a set of parameter names supported in EasyConnect strings that are common
+# to all drivers
+COMMON_PARAM_NAMES = set([
+    "expire_time",
+    "https_proxy",
+    "https_proxy_port",
+    "pool_boundary",
+    "pool_connection_class",
+    "pool_purity",
+    "retry_count",
+    "retry_delay",
+    "sdu",
+    "ssl_server_cert_dn",
+    "ssl_server_dn_match",
+    "transport_connect_timeout",
+    "wallet_location",
+])
+
+# extended parameter prefix
+EXTENDED_PARAM_PREFIX = "pyo."
+
+# a set of parameter names that can be specified in EasyConnect strings using
+# the extended parameter prefix; these are specific to python-oracledb
+EXTENDED_PARAM_NAMES = set([
+
+    # ConnectParams
+    "connection_id_prefix",
+    "disable_oob",
+    "driver_name",
+    "edition",
+    "events",
+    "externalauth",
+    "machine",
+    "mode",
+    "osuser",
+    "program",
+    "stmtcachesize",
+    "terminal",
+    "use_tcp_fast_open",
+
+    # PoolParams
+    "getmode",
+    "homogeneous",
+    "increment",
+    "max",
+    "max_lifetime_session",
+    "max_sessions_per_shard",
+    "min",
+    "ping_interval",
+    "ping_timeout",
+    "soda_metadata_cache",
+    "timeout",
+    "wait_timeout",
+
+])
+
+# add all of the common parameters to the extended parameters using the
+# python-oracledb specific name
+for name in COMMON_PARAM_NAMES:
+    EXTENDED_PARAM_NAMES.add(ALTERNATIVE_PARAM_NAMES.get(name, name))
+
 
 cdef class BaseParser:
 
@@ -76,7 +139,7 @@ cdef class BaseParser:
         cdef Py_UCS4 ch
         while self.temp_pos < self.num_chars:
             ch = self.get_current_char()
-            if not cpython.Py_UNICODE_ISALPHA(ch) and ch != '_':
+            if not cpython.Py_UNICODE_ISALPHA(ch) and ch != '_' and ch != '.':
                 break
             self.temp_pos += 1
 
@@ -117,6 +180,7 @@ cdef class ConnectStringParser(BaseParser):
         ConnectParamsImpl params_impl
         Address template_address
         Description description
+        dict parameters
 
     cdef bint _is_host_or_service_name_char(self, Py_UCS4 ch):
         """
@@ -351,7 +415,7 @@ cdef class ConnectStringParser(BaseParser):
                 break
             self.temp_pos += 1
 
-    cdef int _parse_easy_connect_parameter(self, dict parameters) except -1:
+    cdef int _parse_easy_connect_parameter(self) except -1:
         """
         Parses a single parameter from the easy connect string. This is
         expected to be a keyword followed by a value seprated by an equals
@@ -360,6 +424,7 @@ cdef class ConnectStringParser(BaseParser):
         cdef:
             ssize_t start_pos, end_pos = 0
             Py_UCS4 ch = 0
+            bint keep
             str name
 
         # get parameter name
@@ -369,7 +434,12 @@ cdef class ConnectStringParser(BaseParser):
         if self.temp_pos == start_pos or self.temp_pos >= self.num_chars:
             return 0
         name = self.data_as_str[start_pos:self.temp_pos].lower()
-        name = ALTERNATIVE_PARAM_NAMES.get(name, name)
+        if name.startswith(EXTENDED_PARAM_PREFIX):
+            name = name[len(EXTENDED_PARAM_PREFIX):]
+            keep = name in EXTENDED_PARAM_NAMES
+        else:
+            keep = name in COMMON_PARAM_NAMES
+            name = ALTERNATIVE_PARAM_NAMES.get(name, name)
 
         # look for the equals sign
         self.skip_spaces()
@@ -401,8 +471,10 @@ cdef class ConnectStringParser(BaseParser):
                 break
             self.temp_pos += 1
             end_pos = self.temp_pos
-        if end_pos > start_pos:
-            parameters[name] = self.data_as_str[start_pos:end_pos]
+        if end_pos > start_pos and keep:
+            if self.parameters is None:
+                self.parameters = {}
+            self.parameters[name] = self.data_as_str[start_pos:end_pos]
         self.skip_spaces()
         self.pos = self.temp_pos
 
@@ -414,7 +486,6 @@ cdef class ConnectStringParser(BaseParser):
         """
         cdef:
             Py_UCS4 ch, expected_sep
-            dict parameters = {}
             Address address
         expected_sep = '?'
         self.temp_pos = self.pos
@@ -424,11 +495,7 @@ cdef class ConnectStringParser(BaseParser):
                 break
             expected_sep = '&'
             self.temp_pos += 1
-            self._parse_easy_connect_parameter(parameters)
-        if parameters:
-            for address in self.description_list.get_addresses():
-                address.set_from_args(parameters)
-            self.description.set_from_args(parameters)
+            self._parse_easy_connect_parameter()
 
     cdef int _parse_easy_connect_port(self, Address address) except -1:
         """

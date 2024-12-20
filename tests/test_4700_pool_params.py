@@ -136,6 +136,35 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(repr(params), expected_value)
         self.assertIs(params.getmode, oracledb.PoolGetMode.WAIT)
 
+    def test_4702(self):
+        "4702 - test extended connect strings for ConnectParams"
+        test_scenarios = [
+            ("getmode", "NOWAIT", oracledb.POOL_GETMODE_NOWAIT),
+            ("homogeneous", "true", True),
+            ("homogeneous", "false", False),
+            ("increment", "2", 2),
+            ("max", "50", 50),
+            ("max_lifetime_session", "6000", 6000),
+            ("max_sessions_per_shard", "5", 5),
+            ("min", "3", 3),
+            ("ping_interval", "-1", -1),
+            ("ping_timeout", "2500", 2500),
+            ("homogeneous", "on", True),
+            ("homogeneous", "off", False),
+            ("timeout", "3000", 3000),
+            ("wait_timeout", "300", 300),
+        ]
+        host = "host_4702"
+        service_name = "service_4702"
+        for name, str_value, actual_value in test_scenarios:
+            conn_string = f"{host}/{service_name}?pyo.{name}={str_value}"
+            with self.subTest(name=name, value=str_value):
+                params = oracledb.PoolParams()
+                params.parse_connect_string(conn_string)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(getattr(params, name), actual_value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

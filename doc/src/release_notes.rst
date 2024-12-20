@@ -35,6 +35,8 @@ Thin Mode Changes
     expected value: "{expected_name}"`` is now raised when neither the common
     name (CN) nor any of the subject alternative names (SANs) found on the
     server certificate match the host name used to connect to the database.
+#)  The text of error ``DPY-4022: invalid value for DRCP purity {purity}``
+    changed to ``DPY-4022: invalid value for enumeration {name}: {value}``.
 #)  Internal change: improve low-level encoding and decoding routines.
 #)  Internal change: send buffer length for bind variables without unneeded
     adjustment.

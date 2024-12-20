@@ -84,7 +84,7 @@ cdef class ConnectParamsImpl:
         self._set_new_password(args.get("newpassword"))
         self._set_wallet_password(args.get("wallet_password"))
         _set_bool_param(args, "events", &self.events)
-        _set_uint_param(args, "mode", &self.mode)
+        _set_enum_param(args, "mode", ENUM_AUTH_MODE, &self.mode)
         _set_str_param(args, "edition", self)
         _set_str_param(args, "tag", self)
         _set_bool_param(args, "matchanytag", &self.matchanytag)
@@ -284,6 +284,8 @@ cdef class ConnectParamsImpl:
                 errors._raise_err(errors.ERR_CANNOT_PARSE_CONNECT_STRING,
                                   data=connect_string)
         self.description_list = parser.description_list
+        if parser.parameters is not None:
+            self.set(parser.parameters)
 
     cdef int _set_access_token(self, object val, int error_num) except -1:
         """
@@ -850,7 +852,7 @@ cdef class Description(ConnectParamsNode):
         if server_type is not None:
             self.set_server_type(server_type)
         _set_str_param(args, "cclass", self)
-        _set_purity_param(args, "purity", &self.purity)
+        _set_enum_param(args, "purity", ENUM_PURITY, &self.purity)
         _set_str_param(args, "pool_boundary", self)
         _set_str_param(args, "connection_id_prefix", self)
         _set_bool_param(args, "use_tcp_fast_open", &self.use_tcp_fast_open)

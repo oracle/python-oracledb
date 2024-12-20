@@ -90,6 +90,28 @@ cdef int _set_duration_param(dict args, str name, double *out_val) except -1:
             out_val[0] = float(in_val)
 
 
+cdef int _set_enum_param(dict args, str name, object enum_obj,
+                         uint32_t* out_val) except -1:
+    """
+    Sets an unsigned integer parameter to the value provided in the dictionary.
+    If digits are not provided, the value is looked up in the provided
+    enumeration.
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        if not isinstance(in_val, str) or in_val.isdigit():
+            out_val[0] = int(in_val)
+            if out_val[0] in enum_obj:
+                return 0
+        else:
+            enum_val = getattr(enum_obj, in_val.upper(), None)
+            if enum_val is not None:
+                out_val[0] = enum_val.value
+                return 0
+        errors._raise_err(errors.ERR_INVALID_ENUM_VALUE,
+                          name=enum_obj.__name__, value=in_val)
+
+
 cdef int _set_int_param(dict args, str name, int* out_val) except -1:
     """
     Sets an integer parameter to the value provided in the dictionary. This
@@ -122,39 +144,6 @@ cdef int _set_obj_param(dict args, str name, object target) except -1:
     in_val = args.get(name)
     if in_val is not None:
         setattr(target, name, in_val)
-
-
-cdef int _set_purity_param(dict args, str name, uint32_t* out_val) except -1:
-    """
-    Sets a purity parameter to the value provided in the dictionary. This
-    must be one of "new" or "self" currently (or the equivalent constants, if
-    specified directly). If it is not one of these values an error is raised.
-    """
-    cdef bint ok = True
-    in_val = args.get(name)
-    if in_val is not None:
-        if isinstance(in_val, str):
-            in_val = in_val.lower()
-            if in_val == "new":
-                out_val[0] = PURITY_NEW
-            elif in_val == "self":
-                out_val[0] = PURITY_SELF
-            else:
-                ok = False
-        elif isinstance(in_val, int):
-            if in_val == PURITY_NEW:
-                out_val[0] = PURITY_NEW
-            elif in_val == PURITY_SELF:
-                out_val[0] = PURITY_SELF
-            elif in_val == PURITY_DEFAULT:
-                out_val[0] = PURITY_DEFAULT
-            else:
-                ok = False
-        else:
-            ok = False
-        if not ok:
-            errors._raise_err(errors.ERR_INVALID_POOL_PURITY,
-                              purity=in_val)
 
 
 cdef int _set_ssl_version_param(dict args, str name, object target) except -1:
@@ -205,6 +194,9 @@ def init_base_impl(package):
         exceptions, \
         utils, \
         DRIVER_VERSION, \
+        ENUM_AUTH_MODE, \
+        ENUM_POOL_GET_MODE, \
+        ENUM_PURITY, \
         PY_TYPE_ASYNC_CURSOR, \
         PY_TYPE_ASYNC_LOB, \
         PY_TYPE_CONNECT_PARAMS, \
@@ -226,6 +218,9 @@ def init_base_impl(package):
     exceptions = package.exceptions
     utils = package.utils
     DRIVER_VERSION = package.__version__
+    ENUM_AUTH_MODE = package.AuthMode
+    ENUM_PURITY = package.Purity
+    ENUM_POOL_GET_MODE = package.PoolGetMode
     PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
     PY_TYPE_CONNECT_PARAMS = package.ConnectParams

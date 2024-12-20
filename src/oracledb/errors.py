@@ -329,7 +329,7 @@ ERR_INVALID_CONNECT_DESCRIPTOR = 4017
 ERR_CANNOT_PARSE_CONNECT_STRING = 4018
 ERR_INVALID_REDIRECT_DATA = 4019
 ERR_INVALID_PROTOCOL = 4021
-ERR_INVALID_POOL_PURITY = 4022
+ERR_INVALID_ENUM_VALUE = 4022
 ERR_CALL_TIMEOUT_EXCEEDED = 4024
 ERR_INVALID_REF_CURSOR = 4025
 ERR_MISSING_FILE = 4026
@@ -581,6 +581,7 @@ ERR_MESSAGE_FORMATS = {
         "given index {index} must be in the range of {min_index} to "
         "{max_index}"
     ),
+    ERR_INVALID_ENUM_VALUE: "invalid value for enumeration {name}: {value}",
     ERR_INVALID_LOB_AMOUNT: "LOB amount must be greater than zero",
     ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
     ERR_INVALID_MAKEDSN_ARG: '"{name}" argument contains invalid values',
@@ -589,7 +590,6 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_OCI_ATTR_TYPE: "invalid OCI attribute type {attr_type}",
     ERR_INVALID_POOL_CLASS: "invalid connection pool class",
     ERR_INVALID_POOL_PARAMS: "invalid pool params",
-    ERR_INVALID_POOL_PURITY: "invalid DRCP purity {purity}",
     ERR_INVALID_PROTOCOL: 'invalid protocol "{protocol}"',
     ERR_INVALID_REDIRECT_DATA: "invalid redirect data {data}",
     ERR_INVALID_REF_CURSOR: "invalid REF CURSOR: never opened in PL/SQL",
