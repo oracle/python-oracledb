@@ -28,6 +28,7 @@
 
 import unittest
 
+import oracledb
 import test_env
 
 
@@ -57,6 +58,14 @@ class TestCase(test_env.BaseTestCase):
             test_env.get_connection(shardingkey=[27])
         with self.assertRaisesFullCode("DPY-3001"):
             test_env.get_connection(supershardingkey=[17, 23])
+
+    def test_7303(self):
+        "7303 - test connect() without a connect string (bequeath)"
+        with self.assertRaisesFullCode("DPY-3001"):
+            oracledb.connect(
+                user=test_env.get_main_user(),
+                password=test_env.get_main_password(),
+            )
 
 
 if __name__ == "__main__":

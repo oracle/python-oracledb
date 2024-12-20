@@ -37,6 +37,9 @@ Thin Mode Changes
     server certificate match the host name used to connect to the database.
 #)  The text of error ``DPY-4022: invalid value for DRCP purity {purity}``
     changed to ``DPY-4022: invalid value for enumeration {name}: {value}``.
+#)  Error ``DPY-3001: bequeath is only supported in python-oracledb thick
+    mode`` is now raised when attempting to connect to the database without a
+    connect string.
 #)  Internal change: improve low-level encoding and decoding routines.
 #)  Internal change: send buffer length for bind variables without unneeded
     adjustment.

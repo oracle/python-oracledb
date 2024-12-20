@@ -358,7 +358,11 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             Address address
         num_lists = len(description.active_children)
         num_attempts = description.retry_count + 1
-        connect_string = _get_connect_data(description, self._connection_id, params)
+        connect_string = _get_connect_data(description, self._connection_id,
+                                           params)
+        if connect_string is None:
+            errors._raise_err(errors.ERR_FEATURE_NOT_SUPPORTED,
+                              feature="bequeath", driver_type="thick")
         for i in range(num_attempts):
             for j, address_list in enumerate(description.active_children):
                 num_addresses = len(address_list.active_children)
