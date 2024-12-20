@@ -290,6 +290,11 @@ of Oracle Database's naming methods:
   :ref:`tnsnames.ora <optnetfiles>` file
 * An :ref:`LDAP URL <ldapurl>`
 
+The ``dsn`` can additionally refer to a :ref:`Centralized Configuration
+Provider <builtinconfigproviders>`.  The following providers are supported:
+
+* :ref:`File Configuration Provider <fileconfigprovider>`
+
 Connection strings used for JDBC and Oracle SQL Developer need to be altered to
 be usable as the ``dsn`` value, see :ref:`jdbcconnstring`.
 
@@ -501,6 +506,170 @@ This can be referenced in python-oracledb:
 .. code-block:: python
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn="finance")
+
+.. _builtinconfigproviders:
+
+Centralized Configuration Providers
+===================================
+
+Oracle Database Centralized Configuration Providers allow the storage and
+management of database connection credentials and application configuration
+information in a central location.
+
+A configuration provider is used by setting the ``dsn`` parameter of connection
+and pool creation methods to specify where the configuration is located. For
+example to use connection configuration stored in a local file
+``/opt/oracle/my-config.json``:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                       dsn="config-file:///opt/oracle/my-config.json")
+
+The following providers are supported by python-oracledb:
+
+* :ref:`File Configuration Provider <fileconfigprovider>`
+
+.. _fileconfigprovider:
+
+Connecting Using the File Configuration Provider
+------------------------------------------------
+
+The file configuration provider enables the storage and management of Oracle
+Database connection information as JSON in a file on your local file system.
+
+When a connection or pool creation method is called with the prefix
+``config-file://`` for its ``dsn`` parameter, a built-in :ref:`connection hook
+function <connectionhook>` is internally invoked. This function parses the DSN
+and loads the configuration information which is stored in the specified file
+as JSON.  The hook function sets the connection information in its
+``connect_params`` parameter. This :ref:`ConnectParams <connparam>` object is
+used by python-oracledb to establish a connection to Oracle Database.
+
+The configuration file must contain at least the database connection
+string. Optionally, you can add the database user name, password, and
+python-oracledb specific properties. The JSON properties that can be added to
+the file are listed in the table below.
+
+.. list-table-with-summary:: JSON properties for the File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _file_configuration_provider
+    :summary: The first column displays the name of the property. The second column displays its description. The third column displays whether the sub-object is required or optional.
+
+    * - Sub-object
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user, or a dictionary containing the key "type" and password type-specific properties.
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`. The file must contain this property.
+      - Required
+    * - ``pyo``
+      - Python-oracledb specific settings.
+      - Optional
+
+See the `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
+more information on these sub-objects.
+
+.. warning::
+
+    Storing passwords in the configuration file should only ever be used in
+    development or test environments.
+
+    When using the password type handler for "base64", a warning message will
+    be generated: "base64 encoded passwords are insecure".
+
+
+**Sample File Configuration Provider syntax**
+
+.. _singlefileconfiguration:
+
+The following sample is an example of the File Configuration Provider syntax::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "base64",
+            "value": "dGlnZXI="
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+.. _multiplefileconfigurations:
+
+Multiple configurations can be defined by using keys as shown in the example
+below. The key values are user-chosen::
+
+    {
+        "production": {
+            "connect_descriptor": "localhost/orclpdb"
+        },
+        "testing": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "scott",
+            "password": {
+                "type": "base64",
+                "value": "dGlnZXI="
+            }
+        }
+    }
+
+**Sample Using a File Configuration Provider**
+
+To use a provider file, specify the ``dsn`` parameter of
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` using
+the following format::
+
+    config-file://<file-path-and-name>[?key=<key>]
+
+The parameters of the ``dsn`` parameter are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 20 60
+    :name: _connection_string_for_file_configuration_provider
+    :summary: The first column displays the name of the connection string parameter. The second column displays the description of the connection string parameter.
+
+    * - Parameter
+      - Description
+    * - ``config-file``
+      - Indicates that the centralized configuration provider is a file in your local system.
+    * - <file-name>
+      - The file path (absolute or relative path) and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the ``config_dir`` value to create an absolute path.
+    * - ``key``
+      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key. If not specified, the file is assumed to contain a single configuration.
+
+For example, if you have a configuration file in
+``/opt/oracle/my-config1.json`` with a :ref:`single configuration
+<singlefileconfiguration>` you could use it like:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                       dsn="config-file:///opt/oracle/my-config1.json")
+
+If you have a configuration file in ``/opt/oracle/my-config2.json`` with
+:ref:`multiple configurations <multiplefileconfigurations>` you could use it like:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                 dsn="config-file:///opt/oracle/my-config2.json?key=production")
+
 
 .. _usingconnparams:
 
@@ -2561,6 +2730,7 @@ It is recommended to use python-oracledb's local :ref:`connpooling` where
 possible instead of implicit connection pooling.  This gives multi-user
 applications more control over pooled server reuse.
 
+
 .. _proxyauth:
 
 Connecting Using Proxy Authentication
@@ -4030,125 +4200,6 @@ typically the same directory where the ``wallet.zip`` file was extracted.
        Use Oracle Client libraries 19.17, or later, or use Oracle Client 21c or
        23ai.  They contain important bug fixes for using multiple wallets in
        the one process.
-
-.. _builtinconfigproviders:
-
-Connecting Using the File Centralized Configuration Provider
-============================================================
-
-The file configuration provider enables the storage and management of Oracle
-Database connection information in a JSON file on your local file system. You
-must add the connect descriptor in the file. Optionally, you can add the
-database user name, password, and python-oracledb specific properties in the
-file. The sub-objects that can be added to the JSON file are listed in the
-table below.
-
-.. list-table-with-summary:: Sub-objects for JSON File in File Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 20 60
-    :name: _file_configuration_provider
-    :summary: The first column displays the name of the sub-object. The second column displays the description of the sub-object.
-
-    * - Sub-object
-      - Description
-    * - ``user``
-      - The database user name.
-    * - ``password``
-      - The password of the database user or a dictionary containing "type" and password type specific properties.
-    * - ``connect_descriptor``
-      - The :ref:`connect descriptor <conndescriptor>` value.
-    * - ``pyo``
-      - The python-oracledb specific attributes.
-
-See `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
-topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
-more information on these sub-objects.
-
-The following sample is an example of the configuration information defined in
-a JSON file that is stored in a local file system::
-
-    {
-        "user": "scott",
-        "password": {
-            "type": "base64",
-            "value": "dGlnZXI="
-        },
-        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
-        "pyo": {
-            "stmtcachesize": 30,
-            "min": 2,
-            "max": 10
-        }
-    }
-
-.. _multipleconfigurations:
-
-Multiple configurations can be defined in a JSON file by using keys as
-shown in the example below::
-
-    {
-        "key1": {
-            "connect_descriptor": "localhost/orclpdb"
-        },
-        "key2": {
-            "connect_descriptor": "localhost/orclpdb",
-            "user": "scott",
-            "password": {
-                "type": "base64",
-                "value": "dGlnZXI="
-            }
-        }
-    }
-
-You can use python-oracledb to access the configuration information stored in
-a JSON file on your local file system. For this, you must specify the
-connection string URL in the ``dsn`` parameter of :meth:`oracledb.connect()`,
-:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
-:meth:`oracledb.create_pool_async()` in the following format::
-
-    config-file://<file-name>?key=<key>
-
-The parameters of the connection string are detailed in the table below.
-
-.. list-table-with-summary:: Connection String Parameters for File Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 20 60
-    :name: _connection_string_for_file_configuration_provider
-    :summary: The first column displays the name of the connection string parameter. The second column displays the description of the connection string parameter.
-
-    * - Parameter
-      - Description
-    * - ``config-file``
-      - Indicates that the centralized configuration provider is a file in your local system.
-    * - <file-name>
-      - The file path (absolute or relative path) and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the ``config_dir`` value to create an absolute path.
-    * - ``key``
-      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key. If not specified, the file is assumed to contain a single configuration.
-
-For example, to access the "myfile.json" JSON file and the "key2" configuration
-from the :ref:`multiple configurations sample <multipleconfigurations>` shown
-above:
-
-.. code-block:: python
-
-    configfileurl = "config-file://myfile.json?key=key2"
-    oracledb.connect(dsn=configfileurl)
-
-When :meth:`oracledb.connect()` is called, the built-in hook function to handle
-connection strings prefixed with ``config-file://`` is
-internally invoked. This hook function parses the connection string and
-extracts the name of the JSON file containing the configuration information
-and the connection key name that is stored in your local file system. Using
-these details, this hook function accesses the configuration information
-stored in the JSON file. The hook function sets the connection information
-from the JSON file in its ``connect_params`` parameter. This ConnectParams
-object is used by python-oracledb to establish a connection to Oracle
-Database.
-
-Note that when using the password type handler for "base64", a warning will be
-generated: "base64 encoded passwords are insecure".
 
 .. _connsharding:
 
