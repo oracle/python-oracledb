@@ -864,6 +864,8 @@ class NamedPools:
         Adds a pool to the cache. An exception is raised if a pool is already
         cached with the given alias.
         """
+        if not isinstance(alias, str):
+            raise TypeError("pool_alias must be a string")
         with self.lock:
             if alias in self.pools:
                 errors._raise_err(errors.ERR_NAMED_POOL_EXISTS, alias=alias)
