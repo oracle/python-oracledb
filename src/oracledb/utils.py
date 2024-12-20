@@ -87,6 +87,26 @@ def params_setter(f):
     return wrapped_f
 
 
+def register_password_type(
+    password_type: str, hook_function: Callable
+) -> None:
+    """
+    Registers a user function to be called when a password is provided as a
+    dictionary containing a key "type" with the specified value. The hook
+    function is expected to use the dictionary and return the password value.
+    If the supplied function is None, the registration is removed.
+    """
+    if not isinstance(password_type, str):
+        raise TypeError("password_type must be a string")
+    if hook_function is not None and not callable(hook_function):
+        raise TypeError("hook_function must be a callable")
+    password_type = password_type.lower()
+    if hook_function is None:
+        base_impl.REGISTERED_PASSWORD_TYPES.pop(password_type)
+    else:
+        base_impl.REGISTERED_PASSWORD_TYPES[password_type] = hook_function
+
+
 def register_protocol(protocol: str, hook_function: Callable) -> None:
     """
     Registers a user function to be called prior to connection or pool creation

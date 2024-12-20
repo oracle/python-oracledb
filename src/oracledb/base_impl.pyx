@@ -56,6 +56,7 @@ import socket
 import ssl
 import string
 import sys
+import warnings
 
 cydatetime.import_datetime()
 
@@ -95,6 +96,9 @@ cdef const char* ENCODING_UTF16 = "UTF-16BE"
 
 # protocols registered with the library
 REGISTERED_PROTOCOLS = {}
+
+# password types registered with the library
+REGISTERED_PASSWORD_TYPES = {}
 
 include "impl/base/types.pyx"
 include "impl/base/constants.pxi"

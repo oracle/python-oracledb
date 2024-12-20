@@ -50,6 +50,11 @@ Common Changes
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the
     python-oracledb pool cache with :meth:`oracledb.get_pool()`.
+#)  Added Centralized Configuration Provider support for :ref:`file-based
+    configurations <builtinconfigproviders>`.
+#)  Added :meth:`oracledb.register_password_type()` to allow users to register
+    a function that will be called when a password is supplied as a dictionary
+    containing the key "type".
 #)  Added attributes :attr:`DbObjectAttribute.precision`,
     :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
     provide additional metadata about
@@ -57,6 +62,9 @@ Common Changes
 #)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
     objects defined using ANSI names (including FLOAT and REAL) may have shown
     as integers.
+#)  Error ``DPY-2056: registered handler for protocol "{protocol}" failed for
+    arg "{arg}"`` is now raised when an exception occurs when calling the
+    registered handler for a protocol.
 #)  Internal change: improve handling of metadata.
 
 

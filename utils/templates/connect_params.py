@@ -133,3 +133,27 @@ class ConnectParams:
         # {{ args_help_without_defaults }}
         """
         pass
+
+    def set_from_config(self, config: dict) -> None:
+        """
+        Sets the property values based on the supplied configuration. The
+        configuration consists of a dictionary with the following keys, all of
+        which are optional: "connect_descriptor", "user", "password" and "pyo".
+
+        If the "connect_descriptor" key is supplied, it is expected to be a
+        string, which will be parsed and the properties found within it stored
+        in the parameters.
+
+        If the "user" or "password" keys are supplied, and the parameters do
+        not already have a user or password, these values will be stored;
+        otherwise, they will be ignored. The "user" key is expected to be a
+        string. The "password" key may be a string or it may be a dictionary
+        containing the keys "type" and "value" which will be used to determine
+        the actual password.
+
+        If the "pyo" key is supplied, it is expected to be a dictionary
+        containing keys corresponding to property names. Any property names
+        accepted by the parameters will be stored; all other values will be
+        ignored.
+        """
+        self._impl.set_from_config(config)

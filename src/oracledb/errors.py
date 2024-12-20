@@ -275,6 +275,9 @@ ERR_MISMATCHED_TOKEN = 2052
 ERR_THICK_MODE_ENABLED = 2053
 ERR_NAMED_POOL_MISSING = 2054
 ERR_NAMED_POOL_EXISTS = 2055
+ERR_PROTOCOL_HANDLER_FAILED = 2056
+ERR_PASSWORD_TYPE_HANDLER_FAILED = 2057
+ERR_PLAINTEXT_PASSWORD_IN_CONFIG = 2058
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -340,6 +343,7 @@ ERR_IFILE_CYCLE_DETECTED = 4030
 ERR_INVALID_VECTOR = 4031
 ERR_INVALID_SSL_VERSION = 4032
 ERR_EXCEEDED_IDLE_TIME = 4033
+ERR_INVALID_PASSWORD_TYPE = 4034
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -588,6 +592,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_NUMBER: "invalid number",
     ERR_INVALID_OBJECT_TYPE_NAME: 'invalid object type name: "{name}"',
     ERR_INVALID_OCI_ATTR_TYPE: "invalid OCI attribute type {attr_type}",
+    ERR_INVALID_PASSWORD_TYPE: 'invalid password type "{password_type}"',
     ERR_INVALID_POOL_CLASS: "invalid connection pool class",
     ERR_INVALID_POOL_PARAMS: "invalid pool params",
     ERR_INVALID_PROTOCOL: 'invalid protocol "{protocol}"',
@@ -668,7 +673,7 @@ ERR_MESSAGE_FORMATS = {
         "national character set id {charset_id} is not supported by "
         "python-oracledb in thin mode"
     ),
-    ERR_NO_CONFIG_DIR: "no configuration directory to search for tnsnames.ora",
+    ERR_NO_CONFIG_DIR: "no configuration directory specified",
     ERR_NO_CREDENTIALS: "no credentials specified",
     ERR_NO_CRYPTOGRAPHY_PACKAGE: (
         "python-oracledb thin mode cannot be used because the "
@@ -704,6 +709,12 @@ ERR_MESSAGE_FORMATS = {
         "OSON node type 0x{node_type:x} is not supported"
     ),
     ERR_OSON_VERSION_NOT_SUPPORTED: "OSON version {version} is not supported",
+    ERR_PASSWORD_TYPE_HANDLER_FAILED: (
+        'registered handler for password type "{password_type}" failed'
+    ),
+    ERR_PLAINTEXT_PASSWORD_IN_CONFIG: (
+        "password in configuration must specify a type"
+    ),
     ERR_POOL_HAS_BUSY_CONNECTIONS: (
         "connection pool cannot be closed because connections are busy"
     ),
@@ -711,6 +722,9 @@ ERR_MESSAGE_FORMATS = {
         "timed out waiting for the connection pool to return a connection"
     ),
     ERR_POOL_NOT_OPEN: "connection pool is not open",
+    ERR_PROTOCOL_HANDLER_FAILED: (
+        'registered handler for protocol "{protocol}" failed for arg "{arg}"'
+    ),
     ERR_PROXY_FAILURE: "network proxy failed: response was {response}",
     ERR_PYTHON_TYPE_NOT_SUPPORTED: "Python type {typ} is not supported",
     ERR_PYTHON_VALUE_NOT_SUPPORTED: (

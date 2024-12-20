@@ -89,6 +89,31 @@ ConnectParams Methods
 
         The ``connection_id_prefix`` parameter was added.
 
+.. method:: ConnectParams.set_from_config(config)
+
+    Sets the property values based on the specified configuration. This method
+    is intended for use with Centralized Configuration Providers.
+
+    The ``config`` parameter is a dictionary which consists of the following
+    optional keys: "connect_descriptor", "user", "password", and "pyo".
+
+    If the key "connect_descriptor" is specified, it is expected to be a
+    string, which will be parsed and the properties found within it are stored
+    in the ConnectParams instance.
+
+    If the keys "user" or "password" are specified, and the parameters do not
+    already have a user or password set, these values will be stored;
+    otherwise, they will be ignored. The key "user" is expected to be a
+    string. The "key" password may be a string or it may be a dictionary which
+    will be examined by a :ref:`registered password type handler
+    <registerpasswordtype>` to determine the actual password.
+
+    If the key "pyo" is specified, it is expected to be a dictionary containing
+    keys corresponding to property names. Any property names accepted by the
+    ConnectParams class will be stored in the ConnectParams instance; all other
+    values will be ignored.
+
+    .. versionadded:: 3.0.0
 
 .. _connparamsattr:
 

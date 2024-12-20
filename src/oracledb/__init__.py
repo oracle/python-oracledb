@@ -287,6 +287,7 @@ from .driver_mode import is_thin_mode as is_thin_mode
 
 from .utils import (
     enable_thin_mode as enable_thin_mode,
+    register_password_type as register_password_type,
     register_protocol as register_protocol,
 )
 
@@ -309,6 +310,7 @@ from .future import (
     future as __future__,  # noqa: F401
 )
 
+from . import config_providers
 
 IntervalYM = collections.namedtuple("IntervalYM", ["years", "months"])
 
@@ -327,6 +329,7 @@ del package
 del (
     aq,  # noqa
     base_impl,  # noqa
+    config_providers,  # noqa
     connect_params,  # noqa
     connection,  # noqa
     constants,  # noqa

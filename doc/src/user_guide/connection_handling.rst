@@ -619,7 +619,7 @@ returned::
 If :attr:`~ConnectParams.config_dir` is not specified, then the following
 error is returned::
 
-    DPY-4027: no configuration directory to search for tnsnames.ora
+    DPY-4027: no configuration directory specified
 
 When creating a standalone connection or connection pool the equivalent
 internal extraction is done automatically when a value is passed to the ``dsn``
@@ -910,6 +910,46 @@ modes, your connection code can be like:
     cp = oracledb.ConnectParams()
     cp.parse_connect_string(dsn)
     connection = oracledb.connect(user="hr", password=userpwd, params=cp)
+
+.. _registerpasswordtype:
+
+Using oracledb.register_password_type()
+---------------------------------------
+
+The :meth:`oracledb.register_password_type()` method registers a user hook
+function that will be called internally by python-oracledb prior to connection
+or pool creation by :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. If
+the ``password``, ``newpassword``, or ``wallet_password`` parameters to those
+methods are a dictionary containing the key "type", then the registered user
+hook function will be invoked.  Your hook function is expected to accept the
+dictionary and return the actual password string.
+
+Below is an example of a hook function that handles passwords of type base64.
+Note this specific hook function is already included and registered in
+python-oracledb:
+
+.. code-block:: python
+
+    def mypasswordhook(args):
+        return base64.b64decode(args["value"].encode()).decode()
+
+    oracledb.register_password_type("base64", mypasswordhook)
+
+When :meth:`oracledb.connect()` is called as shown below, the sample hook is
+invoked internally. It decodes the base64-encoded string in the key "value" and
+returns the password which is then used by python-oracledb to establish a
+connection to the database:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="scott",
+                                  password=dict(type="base64", value="dGlnZXI="),
+                                  dsn="localhost/orclpdb")
+
+Calling :meth:`~oracledb.register_password_type()` with the
+``hook_function`` parameter set to None will result in a previously
+registered user function being removed and the default behavior restored.
 
 .. _ldapconnections:
 
@@ -3991,6 +4031,124 @@ typically the same directory where the ``wallet.zip`` file was extracted.
        23ai.  They contain important bug fixes for using multiple wallets in
        the one process.
 
+.. _builtinconfigproviders:
+
+Connecting Using the File Centralized Configuration Provider
+============================================================
+
+The file configuration provider enables the storage and management of Oracle
+Database connection information in a JSON file on your local file system. You
+must add the connect descriptor in the file. Optionally, you can add the
+database user name, password, and python-oracledb specific properties in the
+file. The sub-objects that can be added to the JSON file are listed in the
+table below.
+
+.. list-table-with-summary:: Sub-objects for JSON File in File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 20 60
+    :name: _file_configuration_provider
+    :summary: The first column displays the name of the sub-object. The second column displays the description of the sub-object.
+
+    * - Sub-object
+      - Description
+    * - ``user``
+      - The database user name.
+    * - ``password``
+      - The password of the database user or a dictionary containing "type" and password type specific properties.
+    * - ``connect_descriptor``
+      - The :ref:`connect descriptor <conndescriptor>` value.
+    * - ``pyo``
+      - The python-oracledb specific attributes.
+
+See `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
+more information on these sub-objects.
+
+The following sample is an example of the configuration information defined in
+a JSON file that is stored in a local file system::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "base64",
+            "value": "dGlnZXI="
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+.. _multipleconfigurations:
+
+Multiple configurations can be defined in a JSON file by using keys as
+shown in the example below::
+
+    {
+        "key1": {
+            "connect_descriptor": "localhost/orclpdb"
+        },
+        "key2": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "scott",
+            "password": {
+                "type": "base64",
+                "value": "dGlnZXI="
+            }
+        }
+    }
+
+You can use python-oracledb to access the configuration information stored in
+a JSON file on your local file system. For this, you must specify the
+connection string URL in the ``dsn`` parameter of :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` in the following format::
+
+    config-file://<file-name>?key=<key>
+
+The parameters of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 20 60
+    :name: _connection_string_for_file_configuration_provider
+    :summary: The first column displays the name of the connection string parameter. The second column displays the description of the connection string parameter.
+
+    * - Parameter
+      - Description
+    * - ``config-file``
+      - Indicates that the centralized configuration provider is a file in your local system.
+    * - <file-name>
+      - The file path (absolute or relative path) and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the ``config_dir`` value to create an absolute path.
+    * - ``key``
+      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key. If not specified, the file is assumed to contain a single configuration.
+
+For example, to access the "myfile.json" JSON file and the "key2" configuration
+from the :ref:`multiple configurations sample <multipleconfigurations>` shown
+above:
+
+.. code-block:: python
+
+    configfileurl = "config-file://myfile.json?key=key2"
+    oracledb.connect(dsn=configfileurl)
+
+When :meth:`oracledb.connect()` is called, the built-in hook function to handle
+connection strings prefixed with ``config-file://`` is
+internally invoked. This hook function parses the connection string and
+extracts the name of the JSON file containing the configuration information
+and the connection key name that is stored in your local file system. Using
+these details, this hook function accesses the configuration information
+stored in the JSON file. The hook function sets the connection information
+from the JSON file in its ``connect_params`` parameter. This ConnectParams
+object is used by python-oracledb to establish a connection to Oracle
+Database.
+
+Note that when using the password type handler for "base64", a warning will be
+generated: "base64 encoded passwords are insecure".
 
 .. _connsharding:
 

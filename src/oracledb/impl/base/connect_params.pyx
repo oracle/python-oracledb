@@ -116,6 +116,25 @@ cdef class ConnectParamsImpl:
             if address is not self._default_address:
                 address.set_from_args(args)
 
+    def set_from_config(self, dict config):
+        """
+        Internal method for setting the property from the supplied
+        configuration.
+        """
+        connect_string = config.get("connect_descriptor")
+        if connect_string is not None:
+            self.parse_connect_string(connect_string)
+        if self.user is None and self._password is None:
+            user = config.get("user")
+            password = config.get("password")
+            if not isinstance(password, dict):
+                errors._raise_err(errors.ERR_PLAINTEXT_PASSWORD_IN_CONFIG)
+            if user is not None or password is not None:
+                self.set(dict(user=user, password=password))
+        args = config.get("pyo")
+        if args is not None:
+            self.set(args)
+
     cdef int _check_credentials(self) except -1:
         """
         Check to see that credentials have been supplied: either a password or
@@ -327,33 +346,58 @@ cdef class ConnectParamsImpl:
                 self._set_access_token(val,
                                        errors.ERR_INVALID_ACCESS_TOKEN_PARAM)
 
-    cdef int _set_new_password(self, str password) except -1:
+    cdef int _set_new_password(self, object password_in) except -1:
         """
         Sets the new password on the instance after first obfuscating it.
         """
-        if password is not None:
+        cdef str password
+        if password_in is not None:
+            password = self._transform_password(password_in)
             self._new_password_obfuscator = self._get_obfuscator(password)
             self._new_password = self._xor_bytes(bytearray(password.encode()),
                                                  self._new_password_obfuscator)
 
-    cdef int _set_password(self, str password) except -1:
+    cdef int _set_password(self, object password_in) except -1:
         """
         Sets the password on the instance after first obfuscating it.
         """
-        if password is not None:
+        cdef str password
+        if password_in is not None:
+            password = self._transform_password(password_in)
             self._password_obfuscator = self._get_obfuscator(password)
             self._password = self._xor_bytes(bytearray(password.encode()),
                                              self._password_obfuscator)
 
-    cdef int _set_wallet_password(self, str password) except -1:
+    cdef int _set_wallet_password(self, object password_in) except -1:
         """
         Sets the wallet password on the instance after first obfuscating it.
         """
-        if password is not None:
+        cdef str password
+        if password_in is not None:
+            password = self._transform_password(password_in)
             self._wallet_password_obfuscator = self._get_obfuscator(password)
             self._wallet_password = \
                     self._xor_bytes(bytearray(password.encode()),
                                     self._wallet_password_obfuscator)
+
+    cdef str _transform_password(self, object password):
+        """
+        Transforms the password by calling any registered password type
+        handlers if the password is supplied as a dictionary.
+        """
+        cdef str password_type
+        if isinstance(password, dict):
+            password_type = password.get("type")
+            fn = REGISTERED_PASSWORD_TYPES.get(password_type)
+            if fn is None:
+                errors._raise_err(errors.ERR_INVALID_PASSWORD_TYPE,
+                                  password_type=password_type)
+            try:
+                return fn(password)
+            except Exception as e:
+                errors._raise_err(errors.ERR_PASSWORD_TYPE_HANDLER_FAILED,
+                                  password_type=password_type, cause=e)
+        return password
 
     cdef bytearray _xor_bytes(self, bytearray a, bytearray b):
         """

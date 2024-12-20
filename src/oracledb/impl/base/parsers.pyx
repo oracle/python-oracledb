@@ -323,7 +323,7 @@ cdef class ConnectStringParser(BaseParser):
         """
         cdef:
             object params, fn
-            str protocol
+            str protocol, arg
         protocol = self._parse_easy_connect_protocol()
         if protocol is not None:
             fn = REGISTERED_PROTOCOLS.get(protocol)
@@ -335,7 +335,12 @@ cdef class ConnectStringParser(BaseParser):
                         PY_TYPE_CONNECT_PARAMS
                     )
                 params._impl = self.params_impl
-                fn(protocol, self.data_as_str[self.temp_pos:], params)
+                arg = self.data_as_str[self.temp_pos:]
+                try:
+                    fn(protocol, arg, params)
+                except Exception as e:
+                    errors._raise_err(errors.ERR_PROTOCOL_HANDLER_FAILED,
+                                      protocol=protocol, arg=arg, cause=e)
                 self.description_list = self.params_impl.description_list
                 self.pos = self.num_chars
                 return 0

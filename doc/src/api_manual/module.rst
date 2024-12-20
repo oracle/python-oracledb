@@ -2501,6 +2501,31 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 
+.. function:: register_password_type(password_type, hook_function)
+
+    Registers a user hook function that will be called internally by
+    python-oracledb when a password is supplied as a dictionary containing the
+    given ``password_type`` as the key "type". The hook function is called for
+    passwords specified as the ``password``, ``newpassword`` and
+    ``wallet_parameter`` parameters in calls to :meth:`oracledb.connect()`,
+    :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+    :meth:`oracledb.create_pool_async()`.
+
+    Your hook function is expected to accept the dictionary supplied by the
+    application and return the valid password.
+
+    Calling :meth:`~oracledb.register_password_type()` with the
+    ``hook_function`` parameter set to None will result in a previously
+    registered user function being removed and the default behavior restored.
+
+    See :ref:`registerpasswordtype`.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+    .. versionadded:: 3.0.0
+
 .. function:: register_protocol(protocol, hook_function)
 
     Registers a user hook function that will be called internally by
