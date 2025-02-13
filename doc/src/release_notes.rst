@@ -104,6 +104,10 @@ Common Changes
 #)  All Oracle errors that result in the connection no longer being usable will
     be raised as ``DPY-4011: the database or network closed the connection``
     with the underlying reason being included in the error message.
+#)  Error ``DPY-2053: python-oracledb thin mode cannot be used because thick
+    mode has already been enabled`` is now raised when attempting to use
+    asyncio in thick mode
+    (`issue 448 <https://github.com/oracle/python-oracledb/issues/448>`__).
 #)  Error ``DPY-2056: registered handler for protocol "{protocol}" failed for
     arg "{arg}"`` is now raised when an exception occurs when calling the
     registered handler for a protocol.

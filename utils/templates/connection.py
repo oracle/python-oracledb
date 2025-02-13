@@ -1747,6 +1747,7 @@ def _async_connection_factory(f):
 
         # build connection class and call the implementation connect to
         # actually establish the connection
+        oracledb.enable_thin_mode()
         return conn_class(dsn, pool, params, kwargs)
 
     return connect_async

@@ -1105,6 +1105,7 @@ def _async_pool_factory(f):
             params=params,
             **kwargs,
         )
+        oracledb.enable_thin_mode()
         if not issubclass(pool_class, AsyncConnectionPool):
             errors._raise_err(errors.ERR_INVALID_POOL_CLASS)
         return pool_class(dsn, params=params, cache_name=pool_alias, **kwargs)
