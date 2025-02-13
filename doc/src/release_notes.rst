@@ -72,6 +72,8 @@ Common Changes
     arg "{arg}"`` is now raised when an exception occurs when calling the
     registered handler for a protocol.
 #)  Internal change: improve handling of metadata.
+#)  Internal build tool change: bumped minimum Cython version to 3.0.10 to
+    avoid bug in earlier versions.
 
 
 oracledb 2.5.1 (December 2024)
