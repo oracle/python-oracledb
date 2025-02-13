@@ -898,8 +898,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.port, [1521, 4549, 4549, 1521])
         self.assertEqual(params.service_name, "service_name_4549")
         expected_conn_string = (
-            "(DESCRIPTION=(RETRY_DELAY=1)"
-            "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549a)(PORT=1521))"
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host4549a)(PORT=1521))"
             "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=host4549b)(PORT=4549))"
             "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549c)(PORT=4549)))"
             "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549d)(PORT=1521))"

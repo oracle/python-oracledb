@@ -40,6 +40,9 @@ Thin Mode Changes
 #)  Error ``DPY-3001: bequeath is only supported in python-oracledb thick
     mode`` is now raised when attempting to connect to the database without a
     connect string.
+#)  Optimization: the connect descriptor sent to the database does not include
+    the RETRY_DELAY parameter unless the RETRY_COUNT parameter is also
+    specified.
 #)  Internal change: improve low-level encoding and decoding routines.
 #)  Internal change: send buffer length for bind variables without unneeded
     adjustment.

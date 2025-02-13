@@ -785,8 +785,8 @@ cdef class Description(ConnectParamsNode):
             parts.append("(SOURCE_ROUTE=ON)")
         if self.retry_count != 0:
             parts.append(f"(RETRY_COUNT={self.retry_count})")
-        if self.retry_delay != 0:
-            parts.append(f"(RETRY_DELAY={self.retry_delay})")
+            if self.retry_delay != 0:
+                parts.append(f"(RETRY_DELAY={self.retry_delay})")
         if self.expire_time != 0:
             parts.append(f"(EXPIRE_TIME={self.expire_time})")
         if self.tcp_connect_timeout != DEFAULT_TCP_CONNECT_TIMEOUT:
