@@ -27,6 +27,9 @@ Thin Mode Changes
 #)  Added parameter :data:`ConnectParams.use_sni` to specify that the TLS SNI
     extension should be used to reduce the number of TLS neegotiations that are
     needed to connect to the database.
+#)  Added parameter :data:`ConnectParams.instance_name` to specify the instance
+    name to use when connecting to the database. Added support for setting the
+    instance name in :ref:`Easy Connect strings <easyconnect>`.
 #)  Host names are now resolved to IP addresses in python-oracledb instead of
     the Python libraries. Address list load balancing and failover settings
     will be used when establishing connections.

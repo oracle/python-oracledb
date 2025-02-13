@@ -488,6 +488,7 @@ cdef class Description(ConnectParamsNode):
         public uint32_t sdu
         public double tcp_connect_timeout
         public str service_name
+        public str instance_name
         public str server_type
         public str sid
         public str cclass

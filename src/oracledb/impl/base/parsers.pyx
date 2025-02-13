@@ -55,6 +55,7 @@ CONTAINER_PARAM_NAMES = set([
 CONNECT_DATA_PARAM_NAMES = set([
     "cclass",
     "connection_id_prefix",
+    "instance_name",
     "pool_boundary",
     "purity",
     "server_type",
@@ -363,6 +364,7 @@ cdef class ConnectStringParser(BaseParser):
                 self.template_address.set_protocol(protocol)
         self._parse_easy_connect_hosts()
         self._parse_easy_connect_service_name()
+        self._parse_easy_connect_instance_name()
         if self.description_list is not None:
             self._parse_easy_connect_parameters()
 
@@ -605,6 +607,34 @@ cdef class ConnectStringParser(BaseParser):
         if found_server_type:
             value = self.data_as_str[service_name_end_pos + 1:self.temp_pos]
             self.description.set_server_type(value)
+
+    cdef str _parse_easy_connect_instance_name(self):
+        """
+        Parses the instance name from an easy connect string. This is expected
+        to be a slash followed by a series of alphanumeric characters. If such
+        a string is found, it is returned.
+        """
+        cdef:
+            ssize_t instance_name_end_pos = 0
+            bint found_instance_name = False
+            bint found_slash = False
+            Py_UCS4 ch
+            str value
+        self.temp_pos = self.pos
+        while self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
+            if not found_slash and ch == '/':
+                found_slash = True
+            elif found_slash and self._is_host_or_service_name_char(ch):
+                found_instance_name = True
+                instance_name_end_pos = self.temp_pos + 1
+            else:
+                break
+            self.temp_pos += 1
+        if found_instance_name:
+            self.description.instance_name = \
+                    self.data_as_str[self.pos + 1:instance_name_end_pos]
+            self.pos = self.temp_pos
 
     cdef dict _set_connect_data(self, dict args):
         """

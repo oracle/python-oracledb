@@ -39,16 +39,16 @@ PoolParams Methods
         ping_interval=None, ping_timeout=None, user=None, proxy_user=None, \
         password=None, newpassword=None, wallet_password=None, \
         access_token=None, host=None, port=None, protocol=None, \
-        https_proxy=None, https_proxy_port=None, service_name=None, sid=None, \
-        server_type=None, cclass=None, purity=None, expire_time=None, \
-        retry_count=None, retry_delay=None, tcp_connect_timeout=None, \
-        ssl_server_dn_match=None, ssl_server_cert_dn=None, \
-        wallet_location=None, events=None, externalauth=None, mode=None, \
-        disable_oob=None, stmtcachesize=None, edition=None, tag=None, \
-        matchanytag=None, config_dir=None, appcontext=[], shardingkey=[], \
-        supershardingkey=[], debug_jdwp=None, connection_id_prefix=None, \
-        ssl_context=None, sdu=None, pool_boundary=None, \
-        use_tcp_fast_open=False, ssl_version=None, \
+        https_proxy=None, https_proxy_port=None, service_name=None, \
+        instance_name=None, sid=None, server_type=None, cclass=None, \
+        purity=None, expire_time=None, retry_count=None, retry_delay=None, \
+        tcp_connect_timeout=None, ssl_server_dn_match=None, \
+        ssl_server_cert_dn=None, wallet_location=None, events=None, \
+        externalauth=None, mode=None, disable_oob=None, stmtcachesize=None, \
+        edition=None, tag=None, matchanytag=None, config_dir=None, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        connection_id_prefix=None, ssl_context=None, sdu=None, \
+        pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=None, handle=None)
@@ -57,7 +57,7 @@ PoolParams Methods
 
         .. versionchanged:: 3.0.0
 
-            The ``use_sni`` parameter was added.
+            The ``use_sni`` and ``instance_name`` parameters were added.
 
         .. versionchanged:: 2.5.0
 

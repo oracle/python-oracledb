@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -68,6 +68,7 @@ class ConnectParams:
         https_proxy: str = None,
         https_proxy_port: int = 0,
         service_name: str = None,
+        instance_name: str = None,
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
@@ -153,6 +154,8 @@ class ConnectParams:
           host (default: 0)
 
         - service_name: the service name of the database (default: None)
+
+        - instance_name: the instance name of the database (default: None)
 
         - sid: the system identifier (SID) of the database. Note using a
           service_name instead is recommended (default: None)
@@ -317,6 +320,7 @@ class ConnectParams:
             + f"https_proxy={self.https_proxy!r}, "
             + f"https_proxy_port={self.https_proxy_port!r}, "
             + f"service_name={self.service_name!r}, "
+            + f"instance_name={self.instance_name!r}, "
             + f"sid={self.sid!r}, "
             + f"server_type={self.server_type!r}, "
             + f"cclass={self.cclass!r}, "
@@ -492,6 +496,14 @@ class ConnectParams:
         The port on which to communicate with the proxy host.
         """
         return [a.https_proxy_port for a in self._impl._get_addresses()]
+
+    @property
+    @_flatten_value
+    def instance_name(self) -> Union[list, str]:
+        """
+        The instance name of the database.
+        """
+        return [d.instance_name for d in self._impl.description_list.children]
 
     @property
     def machine(self) -> str:
@@ -828,6 +840,7 @@ class ConnectParams:
         https_proxy: str = None,
         https_proxy_port: int = None,
         service_name: str = None,
+        instance_name: str = None,
         sid: str = None,
         server_type: str = None,
         cclass: str = None,
@@ -910,6 +923,8 @@ class ConnectParams:
           host
 
         - service_name: the service name of the database
+
+        - instance_name: the instance name of the database
 
         - sid: the system identifier (SID) of the database. Note using a
           service_name instead is recommended

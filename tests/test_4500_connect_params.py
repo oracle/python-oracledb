@@ -651,6 +651,7 @@ class TestCase(test_env.BaseTestCase):
             ("https_proxy", "proxy_a"),
             ("https_proxy_port", 4528),
             ("service_name", "my_service_name1"),
+            ("instance_name", "my_instance_name"),
             ("sid", "my_sid1"),
             ("server_type", "dedicated"),
             ("cclass", "cclass_1"),
@@ -703,6 +704,7 @@ class TestCase(test_env.BaseTestCase):
             ("https_proxy", "proxy_b"),
             ("https_proxy_port", 4529),
             ("service_name", "my_service_name_new"),
+            ("instance_name", "my_instance_name_new"),
             ("sid", "my_sid_new"),
             ("server_type", "pooled"),
             ("cclass", "cclass_new"),
@@ -1226,6 +1228,27 @@ class TestCase(test_env.BaseTestCase):
                 params = oracledb.ConnectParams()
                 params.parse_connect_string(connect_string)
                 self.assertEqual(params.get_connect_string(), connect_string)
+
+    def test_4571(self):
+        "4571 - test INSTANCE_NAME in connect string"
+        service_name = "service_4571"
+        instance_name = "instance_4571"
+        host = "host_4571"
+        port = 4571
+        easy_connect = f"{host}:{port}/{service_name}/{instance_name}"
+        connect_descriptor = (
+            f"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={host})(PORT={port}))"
+            f"(CONNECT_DATA=(SERVICE_NAME={service_name})"
+            f"(INSTANCE_NAME={instance_name})))"
+        )
+        for connect_string in (easy_connect, connect_descriptor):
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+            self.assertEqual(params.service_name, service_name)
+            self.assertEqual(params.instance_name, instance_name)
+            self.assertEqual(params.host, host)
+            self.assertEqual(params.port, port)
+            self.assertEqual(params.get_connect_string(), connect_descriptor)
 
 
 if __name__ == "__main__":

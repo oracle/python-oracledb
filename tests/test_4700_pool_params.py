@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -94,6 +94,7 @@ class TestCase(test_env.BaseTestCase):
             ("https_proxy", "proxy_4701"),
             ("https_proxy_port", 4701),
             ("service_name", "my_service_name1"),
+            ("instance_name", "my_instance_name"),
             ("sid", "my_sid1"),
             ("server_type", "dedicated"),
             ("cclass", "cclass_1"),

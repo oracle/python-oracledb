@@ -828,6 +828,8 @@ cdef class Description(ConnectParamsNode):
         temp_parts = []
         if self.service_name is not None:
             temp_parts.append(f"(SERVICE_NAME={self.service_name})")
+        if self.instance_name is not None:
+            temp_parts.append(f"(INSTANCE_NAME={self.instance_name})")
         elif self.sid is not None:
             temp_parts.append(f"(SID={self.sid})")
         if self.server_type is not None:
@@ -886,6 +888,7 @@ cdef class Description(ConnectParamsNode):
         description.sdu = self.sdu
         description.tcp_connect_timeout = self.tcp_connect_timeout
         description.service_name = self.service_name
+        description.instance_name = self.instance_name
         description.server_type = self.server_type
         description.sid = self.sid
         description.cclass = self.cclass
@@ -914,6 +917,7 @@ cdef class Description(ConnectParamsNode):
         node in a connect descriptor.
         """
         _set_str_param(args, "service_name", self)
+        _set_str_param(args, "instance_name", self)
         _set_str_param(args, "sid", self)
         server_type = args.get("server_type")
         if server_type is not None:

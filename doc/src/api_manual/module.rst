@@ -39,15 +39,15 @@ Oracledb Methods
         params=None, user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
-        ssl_server_cert_dn=None, wallet_location=None, events=False, \
-        externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
-        disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
-        edition=None, tag=None, matchanytag=False, \
-        config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        service_name=None, instance_name=None, sid=None, server_type=None, \
+        cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+        retry_count=0, retry_delay=1, tcp_connect_timeout=20.0, \
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
+        wallet_location=None, events=False, externalauth=False, \
+        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+        tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
@@ -168,6 +168,10 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database. This value is used in both the
+    python-oracledb Thin and Thick modes.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
@@ -403,8 +407,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` and ``use_sni`` parameters were added.  The ``pool``
-        parameter was deprecated. Use :meth:`ConnectionPool.acquire()` instead.
+        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
+        added.  The ``pool`` parameter was deprecated. Use
+        :meth:`ConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -435,10 +440,10 @@ Oracledb Methods
         conn_class=None, params=None, user=None, proxy_user=None, \
         password=None, newpassword=None, wallet_password=None, \
         access_token=None, host=None, port=1521, protocol="tcp", \
-        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
-        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
-        expire_time=0, retry_count=0, retry_delay=1, \
-        tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
+        https_proxy=None, https_proxy_port=0, service_name=None, \
+        instance_name=None, sid=None, server_type=None, cclass=None, \
+        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False,  stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -549,6 +554,9 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
     the database. It is recommended to use ``service_name`` instead.
@@ -730,9 +738,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` and ``use_sni`` parameters were added. The ``pool``
-        parameter was deprecated. Use :meth:`AsyncConnectionPool.acquire()`
-        instead.
+        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
+        added. The ``pool`` parameter was deprecated. Use
+        :meth:`AsyncConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -762,15 +770,15 @@ Oracledb Methods
 .. function:: ConnectParams(user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
-        ssl_server_cert_dn=None, wallet_location=None, events=False, \
-        externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
-        disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
-        edition=None, tag=None, matchanytag=False, \
-        config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        service_name=None, instance_name=None, sid=None, server_type=None, \
+        cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+        retry_count=0, retry_delay=1, tcp_connect_timeout=20.0, \
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
+        wallet_location=None, events=False, externalauth=False, \
+        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+        tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
@@ -847,6 +855,10 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database. This value is used in both the
+    python-oracledb Thin and Thick modes.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
@@ -1077,7 +1089,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni`` parameter was added.
+        The ``use_sni`` and ``instance_name`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -1125,15 +1137,15 @@ Oracledb Methods
         ping_timeout=5000, user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
-        ssl_server_cert_dn=None, wallet_location=None, events=False, \
-        externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
-        disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
-        edition=None, tag=None, matchanytag=False, \
-        config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        service_name=None, instance_name=None, sid=None, server_type=None, \
+        cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+        retry_count=0, retry_delay=1, tcp_connect_timeout=20.0, \
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
+        wallet_location=None, events=False, externalauth=False, \
+        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+        tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
@@ -1332,6 +1344,10 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database. This value is used in both the
+    python-oracledb Thin and Thick modes.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
@@ -1564,17 +1580,14 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` parameter was added.
+        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
+        added.
 
     .. versionchanged:: 2.5.0
 
         The ``program``, ``machine``, ``terminal``, ``osuser``, and
         ``driver_name`` parameters were added. Support for ``edition`` and
         ``appcontext`` was added to python-oracledb Thin mode.
-
-    .. versionchanged:: 2.5.0
-
-        The ``use_sni`` parameter was added.
 
     .. versionchanged:: 2.3.0
 
@@ -1605,15 +1618,15 @@ Oracledb Methods
         ping_timeout=5000, user=None, proxy_user=None, password=None, \
         newpassword=None, wallet_password=None, access_token=None, host=None, \
         port=1521, protocol="tcp", https_proxy=None, https_proxy_port=0, \
-        service_name=None, sid=None, server_type=None, cclass=None, \
-        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
-        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
-        ssl_server_cert_dn=None, wallet_location=None, events=False, \
-        externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
-        disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
-        edition=None, tag=None, matchanytag=False, \
-        config_dir=oracledb.defaults.config_dir, appcontext=[], \
-        shardingkey=[], supershardingkey=[], debug_jdwp=None, \
+        service_name=None, instance_name=None, sid=None, server_type=None, \
+        cclass=None, purity=oracledb.PURITY_DEFAULT, expire_time=0, \
+        retry_count=0, retry_delay=1, tcp_connect_timeout=20.0, \
+        ssl_server_dn_match=True, ssl_server_cert_dn=None, \
+        wallet_location=None, events=False, externalauth=False, \
+        mode=oracledb.AUTH_MODE_DEFAULT, disable_oob=False, \
+        stmtcachesize=oracledb.defaults.stmtcachesize, edition=None, \
+        tag=None, matchanytag=False, config_dir=oracledb.defaults.config_dir, \
+        appcontext=[], shardingkey=[], supershardingkey=[], debug_jdwp=None, \
         connection_id_prefix=None, ssl_context=None, sdu=8192, \
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
@@ -1779,6 +1792,9 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
     the database. It is recommended to use ``service_name`` instead.
@@ -1958,7 +1974,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` and ``use_sni`` parameters were added.
+        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
+        added.
 
     .. versionchanged:: 2.5.0
 
@@ -2161,10 +2178,10 @@ Oracledb Methods
         ping_interval=60, ping_timeout=5000, user=None, proxy_user=Nonde, \
         password=None, newpassword=None, wallet_password=None, \
         access_token=None, host=None, port=1521, protocol="tcp", \
-        https_proxy=None, https_proxy_port=0, service_name=None, sid=None, \
-        server_type=None, cclass=None, purity=oracledb.PURITY_DEFAULT, \
-        expire_time=0, retry_count=0, retry_delay=1, \
-        tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
+        https_proxy=None, https_proxy_port=0, service_name=None, \
+        instance_name=None, sid=None, server_type=None, cclass=None, \
+        purity=oracledb.PURITY_DEFAULT, expire_time=0, retry_count=0, \
+        retry_delay=1, tcp_connect_timeout=20.0, ssl_server_dn_match=True, \
         ssl_server_cert_dn=None, wallet_location=None, events=False, \
         externalauth=False, mode=oracledb.AUTH_MODE_DEFAULT, \
         disable_oob=False, stmtcachesize=oracledb.defaults.stmtcachesize, \
@@ -2317,6 +2334,10 @@ Oracledb Methods
 
     The ``service_name`` parameter is expected to be a string which indicates
     the service name of the database. This value is used in both the
+    python-oracledb Thin and Thick modes.
+
+    The ``instance_name`` parameter is expected to be a string which indicates
+    the instance name of the database. This value is used in both the
     python-oracledb Thin and Thick modes.
 
     The ``sid`` parameter is expected to be a string which indicates the SID of
@@ -2541,7 +2562,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni`` parameter was added.
+        The ``use_sni`` and ``instance_name`` parameters were added.
 
     .. versionchanged:: 2.5.0
 

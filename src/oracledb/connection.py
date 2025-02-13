@@ -1236,6 +1236,7 @@ def connect(
     https_proxy: str = None,
     https_proxy_port: int = 0,
     service_name: str = None,
+    instance_name: str = None,
     sid: str = None,
     server_type: str = None,
     cclass: str = None,
@@ -1346,6 +1347,8 @@ def connect(
       (default: 0)
 
     - service_name: the service name of the database (default: None)
+
+    - instance_name: the instance name of the database (default: None)
 
     - sid: the system identifier (SID) of the database. Note using a
       service_name instead is recommended (default: None)
@@ -2006,6 +2009,7 @@ def connect_async(
     https_proxy: str = None,
     https_proxy_port: int = 0,
     service_name: str = None,
+    instance_name: str = None,
     sid: str = None,
     server_type: str = None,
     cclass: str = None,
@@ -2116,6 +2120,8 @@ def connect_async(
       (default: 0)
 
     - service_name: the service name of the database (default: None)
+
+    - instance_name: the instance name of the database (default: None)
 
     - sid: the system identifier (SID) of the database. Note using a
       service_name instead is recommended (default: None)
