@@ -62,6 +62,13 @@ class TestCase(test_env.BaseAsyncTestCase):
             )
             (count,) = await cursor.fetchone()
             if count > 0:
+                try:
+                    await cursor.callproc(
+                        "dbms_service.start_service", [self.service_name]
+                    )
+                except Exception as e:
+                    if not str(e).startswith("ORA-44305:"):
+                        raise
                 return
             await cursor.execute(
                 f"""
