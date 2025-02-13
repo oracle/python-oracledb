@@ -125,10 +125,11 @@ cdef class ConnectParamsImpl:
         if connect_string is None:
             errors._raise_err(errors.ERR_MISSING_CONNECT_DESCRIPTOR)
         self.parse_connect_string(connect_string)
-        if self.user is None and self._password is None:
+        if self.user is None and self._password is None \
+                and not self.externalauth:
             user = config.get("user")
             password = config.get("password")
-            if not isinstance(password, dict):
+            if password is not None and not isinstance(password, dict):
                 errors._raise_err(errors.ERR_PLAINTEXT_PASSWORD_IN_CONFIG)
             if user is not None or password is not None:
                 self.set(dict(user=user, password=password))

@@ -1116,24 +1116,32 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4565(self):
         "4565 - test set_from_config() with no user and password set"
-        host = "host_4565"
-        service_name = "service_4565"
-        connect_string = f"{host}/{service_name}"
         user = "user_4565"
         password = test_env.get_random_string()
-        config = dict(
-            connect_descriptor=connect_string,
-            user=user,
-            password=dict(
-                type="base64",
-                value=base64.b64encode(password.encode()).decode(),
-            ),
-        )
-        params = oracledb.ConnectParams()
-        params.set_from_config(config)
-        self.assertEqual(params.host, host)
-        self.assertEqual(params.service_name, service_name)
-        self.assertEqual(params.user, user)
+        options = [
+            ("a", user, password),
+            ("b", user, None),
+            ("c", None, None),
+        ]
+        for option, user, password in options:
+            with self.subTest(option=option):
+                host = f"host_4565{option}"
+                service_name = f"service_4565{option}"
+                connect_string = f"{host}/{service_name}"
+                config = dict(connect_descriptor=connect_string)
+                if user is not None:
+                    config["user"] = user
+                if password is not None:
+                    config["password"] = dict(
+                        type="base64",
+                        value=base64.b64encode(password.encode()).decode(),
+                    )
+                params = oracledb.ConnectParams()
+                params.set_from_config(config)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.service_name, service_name)
+                if user is not None:
+                    self.assertEqual(params.user, user)
 
     def test_4566(self):
         "4566 - test set_from_config() with user and password already set"
