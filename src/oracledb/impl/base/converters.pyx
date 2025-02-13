@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -179,6 +179,14 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
         # Oracle NUMBER
         elif ora_type_num == ORA_TYPE_NUM_NUMBER:
             return convert_number_to_python_str(&data.buffer)
+
+        # Oracle BINARY_DOUBLE
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
+            return str(data.buffer.as_double)
+
+        # Oracle BINARY_FLOAT
+        elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
+            return str(data.buffer.as_float)
 
         # Oracle DATE, TIMESTAMP (WITH (LOCAL) TIME ZONE)
         elif ora_type_num in (
