@@ -42,6 +42,7 @@
 #   PYO_TEST_DRIVER_MODE: python-oracledb mode (thick or thin) to use
 #   PYO_TEST_EXTERNAL_USER: user for testing external authentication
 #   PYO_TEST_EDITION_NAME: name of edition for editioning tests
+#   PYO_TEST_PLUGINS: list of plugins to import before running tests
 #
 # PYO_TEST_CONNECT_STRING can be set to an Easy Connect string, or a
 # Net Service Name from a tnsnames.ora file or external naming service,
@@ -65,6 +66,7 @@
 # -----------------------------------------------------------------------------
 
 import getpass
+import importlib
 import os
 import secrets
 import sys
@@ -85,11 +87,29 @@ DEFAULT_EDITION_NAME = "pythonedition"
 PARAMETERS = {}
 
 
+def _initialize():
+    """
+    Performs initialization of the test environment. This ensures the desired
+    mode is set, imports any required plugins and establishes a test
+    connection to ensure that the supplied credentials are correct.
+    """
+    if not get_is_thin():
+        oracledb.init_oracle_client()
+    plugin_names = os.environ.get("PYO_TEST_PLUGINS")
+    if plugin_names is not None:
+        for name in plugin_names.split(","):
+            module_name = f"oracledb.plugins.{name}"
+            print("importing module", module_name)
+            importlib.import_module(module_name)
+    get_connection()
+
+
 def get_value(name, label, default_value=None, password=False):
     try:
         return PARAMETERS[name]
     except KeyError:
         pass
+    requires_initialization = len(PARAMETERS) == 0
     env_name = "PYO_TEST_" + name
     value = os.environ.get(env_name)
     if value is None:
@@ -103,12 +123,12 @@ def get_value(name, label, default_value=None, password=False):
     if not value:
         value = default_value
     PARAMETERS[name] = value
+    if requires_initialization:
+        _initialize()
     return value
 
 
 def get_admin_connection(use_async=False):
-    if not get_is_thin() and oracledb.is_thin_mode():
-        oracledb.init_oracle_client()
     admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
     admin_password = get_value(
         "ADMIN_PASSWORD", f"Password for {admin_user}", password=True
@@ -209,7 +229,6 @@ def get_client_version():
         if get_is_thin():
             value = (23, 7)
         else:
-            oracledb.init_oracle_client()
             value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
     return value
@@ -228,8 +247,6 @@ def get_connect_params():
 
 
 def get_connection(dsn=None, use_async=False, **kwargs):
-    if not get_is_thin() and oracledb.is_thin_mode():
-        oracledb.init_oracle_client()
     if dsn is None:
         dsn = get_connect_string()
     method = oracledb.connect_async if use_async else oracledb.connect
@@ -445,6 +462,7 @@ def run_sql_script(conn, script_name, **kwargs):
 
 
 def run_test_cases():
+    get_is_thin()
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2))
 
 
@@ -664,8 +682,6 @@ class BaseTestCase(unittest.TestCase):
         return is_on_oracle_cloud(connection)
 
     def setUp(self):
-        if not get_is_thin() and oracledb.is_thin_mode():
-            oracledb.init_oracle_client()
         if self.requires_connection:
             self.conn = get_connection()
             self.cursor = self.conn.cursor()
