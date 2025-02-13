@@ -26,6 +26,7 @@
 4500 - Module for testing connection parameters.
 """
 
+import base64
 import random
 import ssl
 
@@ -1019,7 +1020,7 @@ class TestCase(test_env.BaseTestCase):
             for hook in [hook1, hook2]:
                 oracledb.register_protocol(protocol, hook)
                 params = oracledb.ConnectParams()
-                with self.assertRaisesFullCode("DPY-4018"):
+                with self.assertRaisesFullCode("DPY-2056"):
                     params.parse_connect_string(f"{protocol}://args")
         finally:
             oracledb.register_protocol(protocol, None)
@@ -1109,6 +1110,80 @@ class TestCase(test_env.BaseTestCase):
                 self.assertEqual(params.host, host)
                 self.assertEqual(params.service_name, service_name)
                 self.assertEqual(getattr(params, name), actual_value)
+
+    def test_4565(self):
+        "4565 - test set_from_config() with no user and password set"
+        host = "host_4565"
+        service_name = "service_4565"
+        connect_string = f"{host}/{service_name}"
+        user = "user_4565"
+        password = test_env.get_random_string()
+        config = dict(
+            connect_descriptor=connect_string,
+            user=user,
+            password=dict(
+                type="base64",
+                value=base64.b64encode(password.encode()).decode(),
+            ),
+        )
+        params = oracledb.ConnectParams()
+        params.set_from_config(config)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.service_name, service_name)
+        self.assertEqual(params.user, user)
+
+    def test_4566(self):
+        "4566 - test set_from_config() with user and password already set"
+        host = "host_4566"
+        service_name = "service_4566"
+        connect_string = f"{host}/{service_name}"
+        user = "user_4566"
+        password = test_env.get_random_string()
+        config_user = "user_4566_in_config"
+        config_password = test_env.get_random_string()
+        config = dict(
+            connect_descriptor=connect_string,
+            user=config_user,
+            password=dict(
+                type="base64",
+                value=base64.b64encode(config_password.encode()).decode(),
+            ),
+        )
+        params = oracledb.ConnectParams(user=user, password=password)
+        params.set_from_config(config)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.service_name, service_name)
+        self.assertEqual(params.user, user)
+
+    def test_4567(self):
+        "4567 - test set_from_config() without connect_descriptor"
+        params = oracledb.ConnectParams()
+        with self.assertRaisesFullCode("DPY-2059"):
+            params.set_from_config(dict(connect_descriptor_missing="missing"))
+
+    def test_4568(self):
+        "4568 - test set_from_config() with extended parameters"
+        host = "host_4566"
+        service_name = "service_4566"
+        connect_string = f"{host}/{service_name}"
+        stmtcachesize = 35
+        user = "user_4566"
+        password = test_env.get_random_string()
+        config = dict(
+            connect_descriptor=connect_string,
+            user=user,
+            password=dict(
+                type="base64",
+                value=base64.b64encode(password.encode()).decode(),
+            ),
+            pyo=dict(stmtcachesize=stmtcachesize),
+        )
+        params = oracledb.ConnectParams(user=user, password=password)
+        params.set_from_config(config)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.service_name, service_name)
+        self.assertEqual(params.user, user)
+        self.assertEqual(params.stmtcachesize, stmtcachesize)
 
 
 if __name__ == "__main__":

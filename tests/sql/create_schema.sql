@@ -632,6 +632,20 @@ begin
 end;
 /
 
+create procedure &main_user..proc_Test2 (
+    a_InValue                           varchar2,
+    a_InOutValue                        in out number,
+    a_OutValue                          out boolean
+) as
+begin
+    a_InOutValue := a_InOutValue * length(a_InValue);
+    a_OutValue := false;
+    if length(a_InValue) >= 2 then
+        a_OutValue := true;
+    end if;
+end;
+/
+
 create procedure &main_user..proc_TestNoArgs as
 begin
     null;
@@ -656,6 +670,19 @@ create function &main_user..func_Test (
 ) return number as
 begin
     return length(a_String) + a_ExtraAmount;
+end;
+/
+
+create function &main_user..func_Test2 (
+    a_String                            varchar2,
+    a_ExtraAmount                       number,
+    a_Boolean                           boolean
+) return number as
+begin
+    if a_Boolean then
+        return length(a_String) + a_ExtraAmount;
+    end if;
+    return length(a_String) - a_ExtraAmount;
 end;
 /
 

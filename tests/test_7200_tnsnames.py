@@ -501,6 +501,46 @@ class TestCase(test_env.BaseTestCase):
                 [network_service_name.upper()],
             )
 
+    def test_7221(self):
+        "7221 - test tnsnames.ora with a comment between aliases"
+        test_values = [
+            ("nsn_7221_1", "tcp://host_7221:7221/service_7222_1"),
+            ("nsn_7221_2", "tcp://host_7222:7222/service_7222_2"),
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            for i in range(3):
+                entries = [f"{n} = {c}\n" for n, c in test_values]
+                entries.insert(i, "# COMMENT \n")
+                with open(file_name, "w") as f:
+                    f.writelines(entries)
+                params = oracledb.ConnectParams(config_dir=temp_dir)
+                self.assertEqual(
+                    params.get_network_service_names(),
+                    [n.upper() for n, _ in test_values],
+                )
+
+    def test_7222(self):
+        "7222 - test tnsnames.ora with easy connect and connect descriptors"
+        network_service_name1 = "nsn_7222_1"
+        connect_string1 = """
+            (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=host_7220)(PORT=7222))
+            (CONNECT_DATA=(SERVICE_NAME=service_7222_1)))"""
+
+        network_service_name2 = "nsn_7222_2"
+        connect_string2 = "tcp://host_7222:7222/service_7222_2"
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = os.path.join(temp_dir, "tnsnames.ora")
+            with open(file_name, "w") as f:
+                f.write(f"{network_service_name1} = {connect_string1}\n")
+                f.write(f"{network_service_name2} = {connect_string2}\n")
+            params = oracledb.ConnectParams(config_dir=temp_dir)
+            self.assertEqual(
+                params.get_network_service_names(),
+                [network_service_name1.upper(), network_service_name2.upper()],
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

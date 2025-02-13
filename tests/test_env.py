@@ -66,7 +66,9 @@
 
 import getpass
 import os
+import secrets
 import sys
+import string
 import unittest
 
 import oracledb
@@ -366,6 +368,10 @@ def get_wallet_password():
 def get_external_user():
     if not get_is_thin():
         return get_value("EXTERNAL_USER", "External User")
+
+
+def get_random_string(length=10):
+    return "".join(secrets.choice(string.ascii_letters) for i in range(length))
 
 
 def is_on_oracle_cloud(connection):

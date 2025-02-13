@@ -144,6 +144,306 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(results, ["hi", 10])
         self.assertEqual(out_value.getvalue(), 2.0)
 
+    def test_4111(self):
+        "4111 - test callproc with setinputsizes"
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
+        )
+        results = self.cursor.callproc("proc_Test2", ("hi", 5, out_value))
+        self.assertEqual(results, ["hi", 10, True])
+        self.assertTrue(out_value.getvalue())
+
+    def test_4112(self):
+        "4112 - test callfunc with setinputsizes"
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_NUMBER,
+            oracledb.DB_TYPE_VARCHAR,
+            oracledb.DB_TYPE_NUMBER,
+            oracledb.DB_TYPE_BOOLEAN,
+        )
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.NUMBER, ("hi", 5, True)
+        )
+        self.assertEqual(results, 7)
+
+    def test_4113(self):
+        "4113 - test callproc with setinputsizes with kwargs"
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
+        )
+        kwargs = dict(a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", ("hi", 5), kwargs)
+        self.assertEqual(results, ["hi", 10])
+        self.assertTrue(out_value.getvalue())
+
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
+        )
+        kwargs = dict(a_InValue="hi", a_InOutValue=5, a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", [], kwargs)
+        self.assertEqual(results, [])
+        self.assertTrue(out_value.getvalue())
+
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR,
+            oracledb.DB_TYPE_NUMBER,
+            oracledb.DB_TYPE_BOOLEAN,
+        )
+        kwargs = dict(a_InValue="hi", a_InOutValue=5, a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", [], kwargs)
+        self.assertEqual(results, [])
+        self.assertTrue(out_value.getvalue())
+
+    def test_4114(self):
+        "4114 - test callproc with setinputsizes with kwargs in mixed order"
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
+        )
+        kwargs = dict(a_OutValue=out_value, a_InValue="hi", a_InOutValue=5)
+        with self.assertRaisesFullCode("ORA-06550"):
+            results = self.cursor.callproc(
+                "proc_Test2", keyword_parameters=kwargs
+            )
+            self.assertEqual(results, [])
+            self.assertTrue(out_value.getvalue())
+
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR,
+            oracledb.DB_TYPE_NUMBER,
+            oracledb.DB_TYPE_BOOLEAN,
+        )
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callproc("proc_Test2", keyword_parameters=kwargs)
+
+    def test_4115(self):
+        "4115 - test callfunc with setinputsizes with kwargs"
+        extra_amount = self.cursor.var(oracledb.DB_TYPE_NUMBER)
+        extra_amount.setvalue(0, 5)
+        test_values = [
+            (["hi"], dict(a_ExtraAmount=extra_amount, a_Boolean=True)),
+            (
+                [],
+                dict(
+                    a_String="hi", a_ExtraAmount=extra_amount, a_Boolean=True
+                ),
+            ),
+        ]
+        for args, kwargs in test_values:
+            self.cursor.setinputsizes(
+                oracledb.DB_TYPE_NUMBER,
+                oracledb.DB_TYPE_VARCHAR,
+                oracledb.DB_TYPE_NUMBER,
+                oracledb.DB_TYPE_BOOLEAN,
+            )
+            results = self.cursor.callfunc(
+                "func_Test2", oracledb.DB_TYPE_NUMBER, args, kwargs
+            )
+            self.assertEqual(results, 7)
+
+    def test_4116(self):
+        "4116 - test callproc with setinputsizes with extra arguments"
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        test_values = [
+            (("hi", 5, out_value), None),
+            (("hi",), dict(a_InOutValue=5, a_OutValue=out_value)),
+            ([], dict(a_InValue="hi", a_InOutValue=5, a_OutValue=out_value)),
+        ]
+        for args, kwargs in test_values:
+            self.cursor.setinputsizes(
+                oracledb.DB_TYPE_VARCHAR,
+                oracledb.NUMBER,
+                out_value,
+                oracledb.DB_TYPE_VARCHAR,  # extra argument
+            )
+            with self.assertRaisesFullCode("ORA-01036", "DPY-4009"):
+                self.cursor.callproc("proc_Test2", args, kwargs)
+
+    def test_4117(self):
+        "4117 - test callfunc with setinputsizes with extra arguments"
+        extra_amount = self.cursor.var(oracledb.DB_TYPE_NUMBER)
+        extra_amount.setvalue(0, 5)
+        test_values = [
+            (["hi", extra_amount], None),
+            (["hi"], dict(a_ExtraAmount=extra_amount)),
+            ([], dict(a_ExtraAmount=extra_amount, a_String="hi")),
+        ]
+        for args, kwargs in test_values:
+            self.cursor.setinputsizes(
+                oracledb.DB_TYPE_NUMBER,
+                oracledb.DB_TYPE_VARCHAR,
+                oracledb.DB_TYPE_NUMBER,
+                oracledb.DB_TYPE_BOOLEAN,
+                oracledb.DB_TYPE_VARCHAR,  # extra argument
+            )
+            with self.assertRaisesFullCode("ORA-01036", "DPY-4009"):
+                self.cursor.callfunc(
+                    "func_Test2", oracledb.DB_TYPE_NUMBER, args, kwargs
+                )
+
+    def test_4118(self):
+        "4118 - test callproc with setinputsizes with too few parameters"
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+
+        # setinputsizes for 2 args (missed 1 args)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER
+        )
+        results = self.cursor.callproc("proc_Test2", ("hi", 5, out_value))
+        self.assertEqual(results, ["hi", 10, out_value.getvalue()])
+        self.assertTrue(out_value.getvalue())
+
+        # setinputsizes for 2 args (missed 1 kwargs)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER
+        )
+        kwargs = dict(a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", ("hi", 5), kwargs)
+        self.assertEqual(results, ["hi", 10])
+        self.assertTrue(out_value.getvalue())
+
+        # setinputsizes for 1 args (missed 2 args)
+        self.cursor.setinputsizes(oracledb.DB_TYPE_VARCHAR)
+        results = self.cursor.callproc("proc_Test2", ("hi", 5, out_value))
+        self.assertEqual(results, ["hi", 10, out_value.getvalue()])
+        self.assertTrue(out_value.getvalue())
+
+        # setinputsizes for 1 args (missed 1 args and 1 kwargs)
+        self.cursor.setinputsizes(oracledb.DB_TYPE_VARCHAR)
+        kwargs = dict(a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", ("hi", 5), kwargs)
+        self.assertEqual(results, ["hi", 10])
+        self.assertTrue(out_value.getvalue())
+
+        # setinputsizes for 2 kwargs (missed 1 kwargs)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER
+        )
+        kwargs = dict(a_InValue="hi", a_InOutValue=5, a_OutValue=out_value)
+        results = self.cursor.callproc("proc_Test2", [], kwargs)
+        self.assertEqual(results, [])
+        self.assertTrue(out_value.getvalue())
+
+    def test_4119(self):
+        """
+        4119 - test callproc with setinputsizes with wrong order of parameters
+        """
+        # setinputsizes for 2 args (missed 1 kwargs)
+        out_value = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        self.cursor.setinputsizes(bool, oracledb.DB_TYPE_VARCHAR)
+        kwargs = dict(a_OutValue=out_value)
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callproc("proc_Test2", ["hi", 5], kwargs)
+
+        # setinputsizes for 2 kwargs (missed 1 kwargs)
+        self.cursor.setinputsizes(bool, oracledb.DB_TYPE_VARCHAR)
+        kwargs = dict(a_InValue="hi", a_InOutValue=5, a_OutValue=out_value)
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callproc("proc_Test2", [], kwargs)
+
+    def test_4120(self):
+        "4120 - test callfunc with setinputsizes with too few parameters"
+        # setinputsizes for return_type and 1 kwargs (missed 2 kwargs)
+        bool_var = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        bool_var.setvalue(0, False)
+        kwargs = dict(a_Boolean=bool_var, a_String="hi", a_ExtraAmount=3)
+        self.cursor.setinputsizes(oracledb.NUMBER, oracledb.DB_TYPE_VARCHAR)
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.NUMBER, [], kwargs
+        )
+        self.assertEqual(results, -1)
+
+        # setinputsizes for return_type (missed 3 kwargs)
+        bool_var.setvalue(0, False)
+        kwargs = dict(a_Boolean=bool_var, a_String="hi", a_ExtraAmount=1)
+        self.cursor.setinputsizes(oracledb.NUMBER)
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.NUMBER, [], kwargs
+        )
+        self.assertEqual(results, 1)
+
+        # setinputsizes for return_type (missed 3 args)
+        bool_var.setvalue(0, True)
+        self.cursor.setinputsizes(oracledb.NUMBER)
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.NUMBER, ["hi", 2, bool_var]
+        )
+        self.assertEqual(results, 4)
+
+    def test_4121(self):
+        """
+        4121 - test callfunc with setinputsizes with wrong order of parameters
+        """
+        # setinputsizes for 2 args (missed 2 kwargs)
+        bool_var = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        bool_var.setvalue(0, True)
+        self.cursor.setinputsizes(oracledb.NUMBER, oracledb.DB_TYPE_BOOLEAN)
+        kwargs = dict(a_Boolean=bool_var)
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callfunc(
+                "func_Test2", oracledb.NUMBER, ["hi", bool_var], kwargs
+            )
+
+    def test_4122(self):
+        "4122 - test callfunc with setinputsizes without type for return_type"
+        # setinputsizes for 1 args and 1 kwargs
+        bool_var = self.cursor.var(oracledb.DB_TYPE_BOOLEAN)
+        bool_var.setvalue(0, False)
+        self.cursor.setinputsizes(oracledb.NUMBER, oracledb.DB_TYPE_BOOLEAN)
+        kwargs = dict(a_Boolean=bool_var)
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callfunc(
+                "func_Test2", oracledb.DB_TYPE_NUMBER, ["hi"], kwargs
+            )
+
+        # setinputsizes for 2 kwargs (missed 1 kwargs)
+        bool_var.setvalue(0, False)
+        kwargs = dict(a_Boolean=bool_var, a_String="hi", a_ExtraAmount=0)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_BOOLEAN, oracledb.DB_TYPE_VARCHAR
+        )
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.DB_TYPE_NUMBER, [], kwargs
+        )
+        self.assertEqual(results, 2)
+
+        # setinputsizes for 2 args and 1 kwargs
+        bool_var.setvalue(0, False)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_BOOLEAN, oracledb.DB_TYPE_NUMBER
+        )
+        kwargs = dict(a_Boolean=bool_var)
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.DB_TYPE_NUMBER, ["Bye", 2], kwargs
+        )
+        self.assertEqual(results, 1)
+
+        # setinputsizes for 2 args (missed 1 args)
+        bool_var.setvalue(0, False)
+        self.cursor.setinputsizes(
+            oracledb.DB_TYPE_BOOLEAN, oracledb.DB_TYPE_NUMBER
+        )
+        kwargs = dict(a_Boolean=bool_var)
+        results = self.cursor.callfunc(
+            "func_Test2", oracledb.DB_TYPE_NUMBER, ["Light", -1, bool_var]
+        )
+        self.assertEqual(results, 6)
+
+    def test_4123(self):
+        "4123 - test executing a procedure with callfunc"
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callfunc(
+                "proc_Test2", oracledb.NUMBER, ("hello", 3, False)
+            )
+
+    def test_4124(self):
+        "4124 - test executing a function with callproc"
+        with self.assertRaisesFullCode("ORA-06550"):
+            self.cursor.callproc("func_Test2", ("hello", 5, True))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

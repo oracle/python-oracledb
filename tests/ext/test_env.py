@@ -29,8 +29,6 @@
 
 import configparser
 import os
-import secrets
-import string
 
 dir_name = os.path.dirname(os.path.dirname(__file__))
 file_name = os.path.join(dir_name, os.path.basename(__file__))
@@ -75,7 +73,3 @@ def get_extended_config_str(name, fallback=None):
     return _extended_config.parser.get(
         _extended_config.section_name, name, fallback=fallback
     )
-
-
-def get_random_string(length=10):
-    return "".join(secrets.choice(string.ascii_letters) for i in range(length))
