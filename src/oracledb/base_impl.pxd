@@ -496,6 +496,7 @@ cdef class Description(ConnectParamsNode):
         public uint32_t purity
         public bint ssl_server_dn_match
         public bint use_tcp_fast_open
+        public bint use_sni
         public str ssl_server_cert_dn
         public object ssl_version
         public str wallet_location

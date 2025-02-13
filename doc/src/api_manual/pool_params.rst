@@ -51,9 +51,13 @@ PoolParams Methods
         use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=None)
+        driver_name=oracledb.defaults.driver_name, use_sni=None, handle=None)
 
         Sets one or more of the parameters.
+
+        .. versionchanged:: 3.0.0
+
+            The ``use_sni`` parameter was added.
 
         .. versionchanged:: 2.5.0
 

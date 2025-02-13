@@ -116,6 +116,7 @@ class PoolParams(ConnectParams):
         terminal: str = oracledb.defaults.terminal,
         osuser: str = oracledb.defaults.osuser,
         driver_name: str = oracledb.defaults.driver_name,
+        use_sni: bool = False,
         handle: int = 0,
     ):
         """
@@ -363,6 +364,10 @@ class PoolParams(ConnectParams):
         - driver_name: the driver name used by the client to connect to the
           Oracle Database (default: oracledb.defaults.driver_name)
 
+        - use_sni: boolean indicating whether to use the TLS SNI extension to
+          bypass the second TLS neogiation that would otherwise be required
+          (default: False)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -429,7 +434,8 @@ class PoolParams(ConnectParams):
             + f"machine={self.machine!r}, "
             + f"terminal={self.terminal!r}, "
             + f"osuser={self.osuser!r}, "
-            + f"driver_name={self.driver_name!r}"
+            + f"driver_name={self.driver_name!r}, "
+            + f"use_sni={self.use_sni!r}"
             + ")"
         )
 
@@ -626,6 +632,7 @@ class PoolParams(ConnectParams):
         terminal: str = None,
         osuser: str = None,
         driver_name: str = None,
+        use_sni: bool = None,
         handle: int = None,
     ):
         """
@@ -855,6 +862,9 @@ class PoolParams(ConnectParams):
 
         - driver_name: the driver name used by the client to connect to the
           Oracle Database
+
+        - use_sni: boolean indicating whether to use the TLS SNI extension to
+          bypass the second TLS neogiation that would otherwise be required
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

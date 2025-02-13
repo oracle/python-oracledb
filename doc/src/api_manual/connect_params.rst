@@ -62,10 +62,14 @@ ConnectParams Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=None)
+        driver_name=oracledb.defaults.driver_name, use_sni=None, handle=None)
 
     Sets the values for one or more of the parameters of a ConnectParams
     object.
+
+    .. versionchanged:: 3.0.0
+
+        The ``use_sni`` parameter was added.
 
     .. versionchanged:: 2.5.0
 
@@ -508,6 +512,16 @@ ConnectParams Attributes
 
         The default value of this attribute was changed from *60.0* seconds to
         *20.0* seconds.
+
+.. attribute:: ConnectParams.use_sni
+
+    This read-only attribute is a boolean which indicates whether to use the
+    TLS Server Name Indicator (SNI) extension to bypass the second TLS
+    negotiation that would otherwise be required.
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 3.0.0
 
 .. attribute:: ConnectParams.terminal
 

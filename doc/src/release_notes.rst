@@ -22,6 +22,9 @@ Thin Mode Changes
 #)  Perform TLS server matching in python-oracledb instead of the Python SSL
     library to allow alternate names to be checked
     (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
+#)  Added parameter :data:`ConnectParams.use_sni` to specify that the TLS SNI
+    extension should be used to reduce the number of TLS neegotiations that are
+    needed to connect to the database.
 #)  Host names are now resolved to IP addresses in python-oracledb instead of
     the Python libraries. Address list load balancing and failover settings
     will be used when establishing connections.

@@ -667,6 +667,7 @@ def create_pool(
     terminal: str = oracledb.defaults.terminal,
     osuser: str = oracledb.defaults.osuser,
     driver_name: str = oracledb.defaults.driver_name,
+    use_sni: bool = False,
     handle: int = 0,
 ) -> ConnectionPool:
     """
@@ -934,6 +935,10 @@ def create_pool(
     - driver_name: the driver name used by the client to connect to the Oracle
       Database (default: oracledb.defaults.driver_name)
 
+    - use_sni: boolean indicating whether to use the TLS SNI extension to
+      bypass the second TLS neogiation that would otherwise be required
+      (default: False)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1172,6 +1177,7 @@ def create_pool_async(
     terminal: str = oracledb.defaults.terminal,
     osuser: str = oracledb.defaults.osuser,
     driver_name: str = oracledb.defaults.driver_name,
+    use_sni: bool = False,
     handle: int = 0,
 ) -> AsyncConnectionPool:
     """
@@ -1439,6 +1445,10 @@ def create_pool_async(
 
     - driver_name: the driver name used by the client to connect to the Oracle
       Database (default: oracledb.defaults.driver_name)
+
+    - use_sni: boolean indicating whether to use the TLS SNI extension to
+      bypass the second TLS neogiation that would otherwise be required
+      (default: False)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

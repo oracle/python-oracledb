@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -686,6 +686,7 @@ class TestCase(test_env.BaseTestCase):
             ("terminal", "my_terminal"),
             ("osuser", "me"),
             ("driver_name", "custom_driver"),
+            ("use_sni", True),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]
@@ -737,6 +738,7 @@ class TestCase(test_env.BaseTestCase):
             ("terminal", "modified_terminal"),
             ("osuser", "modified_osuser"),
             ("driver_name", "modified_driver_name"),
+            ("use_sni", False),
         ]
         params.set(**dict(new_values))
         parts = [f"{name}={value!r}" for name, value in new_values]
@@ -1183,6 +1185,29 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(params.service_name, service_name)
         self.assertEqual(params.user, user)
         self.assertEqual(params.stmtcachesize, stmtcachesize)
+
+    def test_4569(self):
+        "4569 - test USE_SNI in connect string"
+        options = [("on", True), ("off", False)]
+        service_name = "service_4569"
+        host = "host_4569"
+        port = 4569
+        for str_val, val in options:
+            easy_connect = f"{host}:{port}/{service_name}?use_sni={str_val}"
+            descriptor_part = f"(USE_SNI={str_val.upper()})" if val else ""
+            connect_descriptor = (
+                f"(DESCRIPTION={descriptor_part}"
+                f"(ADDRESS=(PROTOCOL=tcp)(HOST={host})"
+                f"(PORT={port}))(CONNECT_DATA=(SERVICE_NAME={service_name})))"
+            )
+            for connect_string in (easy_connect, connect_descriptor):
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_string)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(params.use_sni, val)
+            self.assertEqual(params.get_connect_string(), connect_descriptor)
 
 
 if __name__ == "__main__":

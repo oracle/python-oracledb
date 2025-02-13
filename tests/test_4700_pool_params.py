@@ -129,6 +129,7 @@ class TestCase(test_env.BaseTestCase):
             ("terminal", "my_terminal"),
             ("osuser", "me"),
             ("driver_name", "custom_driver"),
+            ("use_sni", True),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

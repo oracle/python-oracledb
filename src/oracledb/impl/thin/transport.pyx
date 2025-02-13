@@ -36,12 +36,27 @@ cdef class Transport:
     cdef:
         object _transport
         object _ssl_context
+        str _ssl_sni_data
         uint32_t _transport_num
         ssize_t _max_packet_size
         uint32_t _op_num
         bytes _partial_buf
         bint _full_packet_size
         bint _is_async
+
+    cdef str _calc_sni_data(self, Description description):
+        """
+        Calculates the string used for the special SNI handling that allows one
+        of the TLS negotiations to be bypassed.
+        """
+        cdef str server_type_part = ""
+        if description.server_type is not None:
+            server_type_part = f".T1.{description.server_type[:1]}"
+        return (
+            f"S{len(description.service_name)}.{description.service_name}"
+            f"{server_type_part}"
+            f".V3.{TNS_VERSION_DESIRED}"
+        )
 
     cdef str _get_debugging_header(self, str operation):
         """
@@ -160,6 +175,12 @@ cdef class Transport:
         # established
         self._ssl_context.check_hostname = False
 
+        # calculate the SNI data to send to the server, if applicable
+        if description.use_sni:
+            self._ssl_sni_data = self._calc_sni_data(description)
+        else:
+            self._ssl_sni_data = None
+
     cdef Packet extract_packet(self, bytes data=None):
         """
         Extracts a packet from the data, if possible (after first appending it
@@ -236,7 +257,11 @@ cdef class Transport:
         """
         Negotiate TLS on the socket.
         """
-        self._transport = self._ssl_context.wrap_socket(sock)
+        if DEBUG_PACKETS:
+            self._print_output(self._get_debugging_header("Negotiate TLS"))
+        self._transport = self._ssl_context.wrap_socket(
+            sock, server_hostname=self._ssl_sni_data
+        )
         if description.ssl_server_dn_match:
             check_server_dn(self._transport, description.ssl_server_cert_dn,
                             address.host)
@@ -256,11 +281,14 @@ cdef class Transport:
         """
         Negotiate TLS on the socket asynchronously.
         """
+        if DEBUG_PACKETS:
+            self._print_output(self._get_debugging_header("Negotiate TLS"))
         orig_transport = self._transport
         loop = protocol._read_buf._loop
         self._transport = await loop.start_tls(
             self._transport, protocol,
             self._ssl_context,
+            server_hostname=self._ssl_sni_data
         )
         if description.ssl_server_dn_match:
             sock = self._transport.get_extra_info("ssl_object")

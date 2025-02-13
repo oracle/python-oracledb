@@ -52,7 +52,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -362,6 +362,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -397,8 +403,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` parameter was added.  The ``pool`` parameter was
-        deprecated. Use :meth:`ConnectionPool.acquire()` instead.
+        The ``pool_alias`` and ``use_sni`` parameters were added.  The ``pool``
+        parameter was deprecated. Use :meth:`ConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -443,7 +449,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -689,6 +695,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -718,8 +730,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` parameter was added. The ``pool`` parameter was
-        deprecated. Use :meth:`AsyncConnectionPool.acquire()` instead.
+        The ``pool_alias`` and ``use_sni`` parameters were added. The ``pool``
+        parameter was deprecated. Use :meth:`AsyncConnectionPool.acquire()`
+        instead.
 
     .. versionchanged:: 2.5.0
 
@@ -762,7 +775,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -1026,6 +1039,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -1055,6 +1074,10 @@ Oracledb Methods
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.0.0
+
+        The ``use_sni`` parameter was added.
 
     .. versionchanged:: 2.5.0
 
@@ -1115,7 +1138,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1497,6 +1520,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -1540,6 +1569,10 @@ Oracledb Methods
         ``driver_name`` parameters were added. Support for ``edition`` and
         ``appcontext`` was added to python-oracledb Thin mode.
 
+    .. versionchanged:: 2.5.0
+
+        The ``use_sni`` parameter was added.
+
     .. versionchanged:: 2.3.0
 
         The default value of the ``retry_delay`` parameter was changed from *0*
@@ -1582,7 +1615,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -1884,6 +1917,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -1913,7 +1952,7 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias`` parameter was added.
+        The ``pool_alias`` and ``use_sni`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -2129,7 +2168,7 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2454,6 +2493,12 @@ Oracledb Methods
     are using python-oracledb Thick mode, Oracle Client 23ai is additionally
     required.
 
+    The ``use_sni`` parameter is expected to be a boolean which indicates
+    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    second TLS neogiation that would otherwise be required. This parameter is
+    used in both python-oracledb Thin and Thick modes. The default value is
+    False.
+
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
     Database.  This value is only used in the python-oracledb Thin mode. The
@@ -2483,6 +2528,10 @@ Oracledb Methods
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.0.0
+
+        The ``use_sni`` parameter was added.
 
     .. versionchanged:: 2.5.0
 

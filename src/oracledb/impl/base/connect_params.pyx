@@ -792,6 +792,8 @@ cdef class Description(ConnectParamsNode):
         if self.tcp_connect_timeout != DEFAULT_TCP_CONNECT_TIMEOUT:
             temp = self._build_duration_str(self.tcp_connect_timeout)
             parts.append(f"(TRANSPORT_CONNECT_TIMEOUT={temp})")
+        if self.use_sni:
+            parts.append("(USE_SNI=ON)")
         if self.sdu != DEFAULT_SDU:
             parts.append(f"(SDU={self.sdu})")
 
@@ -875,6 +877,7 @@ cdef class Description(ConnectParamsNode):
         description.use_tcp_fast_open = self.use_tcp_fast_open
         description.ssl_server_cert_dn = self.ssl_server_cert_dn
         description.ssl_version = self.ssl_version
+        description.use_sni = self.use_sni
         description.wallet_location = self.wallet_location
         return description
 
@@ -914,6 +917,7 @@ cdef class Description(ConnectParamsNode):
         _set_bool_param(args, "source_route", &self.source_route)
         _set_uint_param(args, "retry_count", &self.retry_count)
         _set_uint_param(args, "retry_delay", &self.retry_delay)
+        _set_bool_param(args, "use_sni", &self.use_sni)
         _set_uint_param(args, "sdu", &self.sdu)
         self.sdu = min(max(self.sdu, 512), 2097152)         # sanitize SDU
         _set_duration_param(args, "tcp_connect_timeout",
