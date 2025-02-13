@@ -241,6 +241,7 @@ cdef class DefaultsImpl:
         public str config_dir
         public bint fetch_lobs
         public bint fetch_decimals
+        public bint thick_mode_dsn_passthrough
         public uint32_t prefetchrows
         public uint32_t stmtcachesize
         public str program
@@ -559,6 +560,7 @@ cdef class ConnectParamsImpl:
         public str terminal
         public str osuser
         public str driver_name
+        public bint thick_mode_dsn_passthrough
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1

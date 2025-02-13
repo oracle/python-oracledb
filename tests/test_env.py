@@ -95,6 +95,7 @@ def _initialize():
     """
     if not get_is_thin():
         oracledb.init_oracle_client()
+        oracledb.defaults.thick_mode_dsn_passthrough = False
     plugin_names = os.environ.get("PYO_TEST_PLUGINS")
     if plugin_names is not None:
         for name in plugin_names.split(","):

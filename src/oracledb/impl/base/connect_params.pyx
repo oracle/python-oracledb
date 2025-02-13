@@ -64,6 +64,7 @@ cdef class ConnectParamsImpl:
         self.machine = C_DEFAULTS.machine
         self.osuser = C_DEFAULTS.osuser
         self.driver_name = C_DEFAULTS.driver_name
+        self.thick_mode_dsn_passthrough = C_DEFAULTS.thick_mode_dsn_passthrough
 
     def set(self, dict args):
         """
@@ -102,6 +103,8 @@ cdef class ConnectParamsImpl:
         _set_str_param(args, "machine", self, check_network_character_set=True)
         _set_str_param(args, "osuser", self, check_network_character_set=True)
         _set_str_param(args, "driver_name", self)
+        _set_bool_param(args, "thick_mode_dsn_passthrough",
+                        &self.thick_mode_dsn_passthrough)
         self._set_access_token_param(args.get("access_token"))
 
         # set parameters found on Description instances
@@ -188,6 +191,8 @@ cdef class ConnectParamsImpl:
         self.machine = other_params.machine
         self.osuser = other_params.osuser
         self.driver_name = other_params.driver_name
+        self.thick_mode_dsn_passthrough = \
+                other_params.thick_mode_dsn_passthrough
 
     cdef str _get_connect_string(self):
         """
@@ -531,7 +536,7 @@ cdef class ConnectParamsImpl:
         else:
             self.user = user
 
-    def process_args(self, str dsn, dict kwargs):
+    def process_args(self, str dsn, dict kwargs, bint thin):
         """
         Processes the arguments to connect() and create_pool().
 
@@ -548,10 +553,10 @@ cdef class ConnectParamsImpl:
         if self.user is None and not self.externalauth and dsn is not None:
             user, password, dsn = self.parse_dsn_with_credentials(dsn)
             self.set(dict(user=user, password=password))
-        if dsn is not None:
-            self.parse_connect_string(dsn)
-        else:
+        if dsn is None:
             dsn = self._get_connect_string()
+        elif thin or not self.thick_mode_dsn_passthrough:
+            self.parse_connect_string(dsn)
         return dsn
 
 

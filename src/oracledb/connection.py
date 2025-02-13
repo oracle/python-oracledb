@@ -549,7 +549,7 @@ class Connection(BaseConnection):
                 errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
             else:
                 params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs)
+            dsn = params_impl.process_args(dsn, kwargs, thin)
 
             # see if connection is being acquired from a pool
             if pool is None:
@@ -1278,6 +1278,7 @@ def connect(
     osuser: Optional[str] = None,
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
+    thick_mode_dsn_passthrough: Optional[bool] = None,
     handle: Optional[int] = None,
 ) -> Connection:
     """
@@ -1494,6 +1495,13 @@ def connect(
       bypass the second TLS neogiation that would otherwise be required
       (default: False)
 
+    - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+      connect string to the Oracle Client libraries unchanged without parsing
+      by the driver. Setting this to False makes thick and thin mode
+      applications behave similarly regarding connection string parameter
+      handling and locating any optional tnsnames.ora configuration file
+      (default: oracledb.defaults.thick_mode_dsn_passthrough)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1553,7 +1561,7 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
         else:
             params_impl = params._impl.copy()
-        dsn = params_impl.process_args(dsn, kwargs)
+        dsn = params_impl.process_args(dsn, kwargs, thin=True)
 
         # see if connection is being acquired from a pool
         if pool is None:
@@ -2054,6 +2062,7 @@ def connect_async(
     osuser: Optional[str] = None,
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
+    thick_mode_dsn_passthrough: Optional[bool] = None,
     handle: Optional[int] = None,
 ) -> AsyncConnection:
     """
@@ -2269,6 +2278,13 @@ def connect_async(
     - use_sni: boolean indicating whether to use the TLS SNI extension to
       bypass the second TLS neogiation that would otherwise be required
       (default: False)
+
+    - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+      connect string to the Oracle Client libraries unchanged without parsing
+      by the driver. Setting this to False makes thick and thin mode
+      applications behave similarly regarding connection string parameter
+      handling and locating any optional tnsnames.ora configuration file
+      (default: oracledb.defaults.thick_mode_dsn_passthrough)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

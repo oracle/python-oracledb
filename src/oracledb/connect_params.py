@@ -105,6 +105,7 @@ class ConnectParams:
         osuser: Optional[str] = None,
         driver_name: Optional[str] = None,
         use_sni: Optional[bool] = None,
+        thick_mode_dsn_passthrough: Optional[bool] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -302,6 +303,14 @@ class ConnectParams:
           bypass the second TLS neogiation that would otherwise be required
           (default: False)
 
+        - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+          connect string to the Oracle Client libraries unchanged without
+          parsing by the driver. Setting this to False makes thick and thin
+          mode applications behave similarly regarding connection string
+          parameter handling and locating any optional tnsnames.ora
+          configuration file (default:
+          oracledb.defaults.thick_mode_dsn_passthrough)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -356,7 +365,8 @@ class ConnectParams:
             + f"terminal={self.terminal!r}, "
             + f"osuser={self.osuser!r}, "
             + f"driver_name={self.driver_name!r}, "
-            + f"use_sni={self.use_sni!r}"
+            + f"use_sni={self.use_sni!r}, "
+            + f"thick_mode_dsn_passthrough={self.thick_mode_dsn_passthrough!r}"
             + ")"
         )
 
@@ -741,6 +751,17 @@ class ConnectParams:
         return self._impl.terminal
 
     @property
+    def thick_mode_dsn_passthrough(self) -> bool:
+        """
+        Boolean indicating whether to pass the connect string to the Oracle
+        Client libraries unchanged without parsing by the driver. Setting this
+        to False makes thick and thin mode applications behave similarly
+        regarding connection string parameter handling and locating any
+        optional tnsnames.ora configuration file.
+        """
+        return self._impl.thick_mode_dsn_passthrough
+
+    @property
     def user(self) -> str:
         """
         The name of the user to connect to.
@@ -877,6 +898,7 @@ class ConnectParams:
         osuser: Optional[str] = None,
         driver_name: Optional[str] = None,
         use_sni: Optional[bool] = None,
+        thick_mode_dsn_passthrough: Optional[bool] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -1060,6 +1082,13 @@ class ConnectParams:
 
         - use_sni: boolean indicating whether to use the TLS SNI extension to
           bypass the second TLS neogiation that would otherwise be required
+
+        - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+          connect string to the Oracle Client libraries unchanged without
+          parsing by the driver. Setting this to False makes thick and thin
+          mode applications behave similarly regarding connection string
+          parameter handling and locating any optional tnsnames.ora
+          configuration file
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

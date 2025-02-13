@@ -383,7 +383,10 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.password_ptr = params.password
             params.password_len = <uint32_t> len(params.password)
         if pool_impl is None:
-            connect_string = user_params._get_connect_string()
+            if user_params.thick_mode_dsn_passthrough:
+                connect_string = self.dsn
+            else:
+                connect_string = user_params._get_connect_string()
             if connect_string is not None:
                 params.connect_string = connect_string.encode()
                 params.connect_string_ptr = params.connect_string

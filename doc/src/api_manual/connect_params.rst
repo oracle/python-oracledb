@@ -62,14 +62,17 @@ ConnectParams Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=None, handle=None)
+        driver_name=oracledb.defaults.driver_name, use_sni=None, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=None)
 
     Sets the values for one or more of the parameters of a ConnectParams
     object.
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni`` and ``instance_name`` parameters were added.
+        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
+        parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -543,6 +546,18 @@ ConnectParams Attributes
     This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
+
+.. attribute:: ConnectParams.thick_mode_dsn_passthrough
+
+    This read-only attribute is a boolean which indicates whether the connect
+    string should be passed unchanged to Oracle Client libraries for parsing or
+    if python-oracledb should parse the connect string itself when using Thick
+    mode. The default value is the value of
+    :attr:`defaults.thick_mode_dsn_passthrough`.
+
+    This attribute is only supported in python-oracledb Thick mode.
+
+    .. versionadded:: 3.0.0
 
 .. attribute:: ConnectParams.use_tcp_fast_open
 

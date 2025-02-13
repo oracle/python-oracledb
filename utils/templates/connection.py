@@ -547,7 +547,7 @@ class Connection(BaseConnection):
                 errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
             else:
                 params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs)
+            dsn = params_impl.process_args(dsn, kwargs, thin)
 
             # see if connection is being acquired from a pool
             if pool is None:
@@ -1316,7 +1316,7 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
         else:
             params_impl = params._impl.copy()
-        dsn = params_impl.process_args(dsn, kwargs)
+        dsn = params_impl.process_args(dsn, kwargs, thin=True)
 
         # see if connection is being acquired from a pool
         if pool is None:

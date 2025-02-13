@@ -131,6 +131,7 @@ class TestCase(test_env.BaseTestCase):
             ("osuser", "me"),
             ("driver_name", "custom_driver"),
             ("use_sni", True),
+            ("thick_mode_dsn_passthrough", True),
         ]
         params = oracledb.PoolParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]

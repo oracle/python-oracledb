@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -174,6 +174,18 @@ class Defaults:
     @driver_name.setter
     def driver_name(self, value: str):
         self._impl.driver_name = value
+
+    @property
+    def thick_mode_dsn_passthrough(self) -> str:
+        """
+        Specifies whether to pass connect strings to the Oracle Client
+        libraries unchanged when using thick mode.
+        """
+        return self._impl.thick_mode_dsn_passthrough
+
+    @thick_mode_dsn_passthrough.setter
+    def thick_mode_dsn_passthrough(self, value: str):
+        self._impl.thick_mode_dsn_passthrough = value
 
 
 defaults = Defaults()

@@ -92,7 +92,7 @@ class BaseConnectionPool:
             params_impl = params._impl.copy()
         with driver_mode.get_manager() as mode_mgr:
             thin = mode_mgr.thin
-            dsn = params_impl.process_args(dsn, kwargs)
+            dsn = params_impl.process_args(dsn, kwargs, thin)
             self._set_connection_type(params_impl.connectiontype)
             self._cache_name = cache_name
             if cache_name is not None:
@@ -671,6 +671,7 @@ def create_pool(
     osuser: Optional[str] = None,
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
+    thick_mode_dsn_passthrough: Optional[bool] = None,
     handle: Optional[int] = None,
 ) -> ConnectionPool:
     """
@@ -944,6 +945,13 @@ def create_pool(
       bypass the second TLS neogiation that would otherwise be required
       (default: False)
 
+    - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+      connect string to the Oracle Client libraries unchanged without parsing
+      by the driver. Setting this to False makes thick and thin mode
+      applications behave similarly regarding connection string parameter
+      handling and locating any optional tnsnames.ora configuration file
+      (default: oracledb.defaults.thick_mode_dsn_passthrough)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1187,6 +1195,7 @@ def create_pool_async(
     osuser: Optional[str] = None,
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
+    thick_mode_dsn_passthrough: Optional[bool] = None,
     handle: Optional[int] = None,
 ) -> AsyncConnectionPool:
     """
@@ -1460,6 +1469,13 @@ def create_pool_async(
     - use_sni: boolean indicating whether to use the TLS SNI extension to
       bypass the second TLS neogiation that would otherwise be required
       (default: False)
+
+    - thick_mode_dsn_passthrough: boolean indicating whether to pass the
+      connect string to the Oracle Client libraries unchanged without parsing
+      by the driver. Setting this to False makes thick and thin mode
+      applications behave similarly regarding connection string parameter
+      handling and locating any optional tnsnames.ora configuration file
+      (default: oracledb.defaults.thick_mode_dsn_passthrough)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

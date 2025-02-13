@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,6 +45,7 @@ cdef class DefaultsImpl:
         except:
             self.osuser = ""
         self.driver_name = None
+        self.thick_mode_dsn_passthrough = True
 
 cdef DefaultsImpl C_DEFAULTS = DefaultsImpl()
 DEFAULTS = C_DEFAULTS

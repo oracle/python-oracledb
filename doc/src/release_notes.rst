@@ -88,7 +88,8 @@ Common Changes
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
-#)  All connect strings are now parsed by the driver. Previously, only Thin
+#)  All connect strings are parsed by the driver if the new parameter
+    ``thick_mode_dsn_passthrough`` is set to *True*. Previously, only Thin
     mode parsed all connect strings and Thick mode passed the connect string
     unchanged to the Oracle Client library to parse. Parameters unrecognized by
     the driver in :ref:`Easy Connect strings <easyconnect>` are now ignored.

@@ -51,13 +51,16 @@ PoolParams Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=None, handle=None)
+        driver_name=oracledb.defaults.driver_name, use_sni=None, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=None)
 
         Sets one or more of the parameters.
 
         .. versionchanged:: 3.0.0
 
-            The ``use_sni`` and ``instance_name`` parameters were added.
+            The ``use_sni``, ``thick_mode_dsn_passthrough``, and
+            ``instance_name`` parameters were added.
 
         .. versionchanged:: 2.5.0
 

@@ -162,3 +162,30 @@ Defaults Attributes
     This attribute is only used in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
+
+.. attribute:: defaults.thick_mode_dsn_passthrough
+
+    The default value that determines whether :ref:`connection strings
+    <connstr>` passed to :meth:`oracledb.connect()` and
+    :meth:`oracledb.create_pool()` in python-oracledb Thick mode will be parsed
+    by Oracle Client libraries or by python-oracledb itself.
+
+    When the value of this attribute is *True*, then connection strings passed
+    to these methods will be sent unchanged to the Oracle Client libraries.
+
+    Setting this attribute to *False* makes Thick and Thin mode applications
+    behave similarly regarding connection string parameter handling and
+    locating any optional :ref:`tnsnames.ora files <optnetfiles>` configuration
+    file, see :ref:`usingconfigfiles`. Connection strings used in connection
+    and pool creation methods in Thick mode are parsed by python-oracledb
+    itself and a generated connect descriptor is sent to the Oracle Client
+    libraries. The location of any optional :ref:`tnsnames.ora file
+    <optnetfiles>` used to resolve a :ref:`TNS Alias <netservice>` is
+    determined by python-oracledb heuristics instead of by the Oracle Client
+    libraries.
+
+    This attribute has an initial value of *True*.
+
+    This attribute is ignored in python-oracledb Thin mode.
+
+    .. versionadded:: 3.0.0

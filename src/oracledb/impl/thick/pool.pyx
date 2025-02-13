@@ -141,7 +141,10 @@ cdef class ThickPoolImpl(BasePoolImpl):
         if password_bytes is not None:
             password_ptr = password_bytes
             password_len = <uint32_t> len(password_bytes)
-        connect_string = params._get_connect_string()
+        if params.thick_mode_dsn_passthrough:
+            connect_string = self.dsn
+        else:
+            connect_string = params._get_connect_string()
         if connect_string is not None:
             connect_string_bytes = connect_string.encode()
             connect_string_ptr = connect_string_bytes

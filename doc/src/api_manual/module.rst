@@ -52,7 +52,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -397,6 +399,15 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``thick_mode_dsn_passthrough`` parameter is expected to be a boolean
+    which indicates whether the connect string should be passed unchanged to
+    the Oracle Client libraries for parsing when using python-oracledb Thick
+    mode. If this parameter is set to *False* in Thick mode, connect strings
+    are parsed by python-oracledb itself and a generated connect descriptor is
+    sent to the Oracle Client libraries. This value is only used in the
+    python-oracledb Thick mode. The default value is the value of
+    :attr:`defaults.thick_mode_dsn_passthrough`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -407,9 +418,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
-        added.  The ``pool`` parameter was deprecated. Use
-        :meth:`ConnectionPool.acquire()` instead.
+        The ``pool_alias``, ``instance_name``, ``use_sni``, and
+        ``thick_mode_dsn_passthrough`` parameters were added.  The ``pool``
+        parameter was deprecated. Use :meth:`ConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -454,7 +465,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -734,13 +747,15 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
-    The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+    The ``thick_mode_dsn_passthrough`` and ``handle`` parameters are ignored in
+    python-oracledb Thin mode.
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
-        added. The ``pool`` parameter was deprecated. Use
-        :meth:`AsyncConnectionPool.acquire()` instead.
+        The ``pool_alias``, ``instance_name``, ``use_sni``, and
+        ``thick_mode_dsn_passthrough`` parameters were added. The ``pool``
+        parameter was deprecated. Use :meth:`AsyncConnectionPool.acquire()`
+        instead.
 
     .. versionchanged:: 2.5.0
 
@@ -783,7 +798,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -1082,6 +1099,15 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``thick_mode_dsn_passthrough`` parameter is expected to be a boolean
+    which indicates whether the connect string should be passed unchanged to
+    the Oracle Client libraries for parsing when using python-oracledb Thick
+    mode. If this parameter is set to *False* in Thick mode, connect strings
+    are parsed by python-oracledb itself and a generated connect descriptor is
+    sent to the Oracle Client libraries. This value is only used in the
+    python-oracledb Thick mode. The default value is the value of
+    :attr:`defaults.thick_mode_dsn_passthrough`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
@@ -1089,7 +1115,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni`` and ``instance_name`` parameters were added.
+        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
+        parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -1150,7 +1177,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1570,6 +1599,15 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``thick_mode_dsn_passthrough`` parameter is expected to be a boolean
+    which indicates whether the connect string should be passed unchanged to
+    the Oracle Client libraries for parsing when using python-oracledb Thick
+    mode. If this parameter is set to *False* in Thick mode, connect strings
+    are parsed by python-oracledb itself and a generated connect descriptor is
+    sent to the Oracle Client libraries. This value is only used in the
+    python-oracledb Thick mode. The default value is
+    :attr:`defaults.thick_mode_dsn_passthrough`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1580,8 +1618,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
-        added.
+        The ``pool_alias``, ``instance_name``, ``use_sni``, and
+        ``thick_mode_dsn_passthrough`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -1631,7 +1669,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -1970,12 +2010,13 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
-    The ``handle`` parameter is ignored in the python-oracledb Thin mode.
+    The ``handle`` and ``thick_mode_dsn_passthrough`` parameters are ignored in
+    python-oracledb Thin mode.
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name`` and ``use_sni`` parameters were
-        added.
+        The ``pool_alias``, ``instance_name``, ``use_sni``, and
+        ``thick_mode_dsn_passthrough`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -2192,7 +2233,9 @@ Oracledb Methods
         pool_boundary=None, use_tcp_fast_open=False, ssl_version=None, \
         program=oracledb.defaults.program, machine=oracledb.defaults.machine, \
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
-        driver_name=oracledb.defaults.driver_name, use_sni=False, handle=0)
+        driver_name=oracledb.defaults.driver_name, use_sni=False, \
+        thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
+        handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2555,6 +2598,15 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``thick_mode_dsn_passthrough`` parameter is expected to be a boolean
+    which indicates whether the connect string should be passed unchanged to
+    the Oracle Client libraries for parsing when using python-oracledb Thick
+    mode. If this parameter is set to *False* in Thick mode, connect strings
+    are parsed by python-oracledb itself and a generated connect descriptor is
+    sent to the Oracle Client libraries. This value is only used in the
+    python-oracledb Thick mode. The default value is
+    :attr:`defualts.thick_mode_dsn_passthrough`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
@@ -2562,7 +2614,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni`` and ``instance_name`` parameters were added.
+        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
+        parameters were added.
 
     .. versionchanged:: 2.5.0
 
