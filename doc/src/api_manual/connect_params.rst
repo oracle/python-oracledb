@@ -44,7 +44,7 @@ ConnectParams Methods
     Parses a DSN in the form <user>/<password>@<connect_string> or in the form
     <user>/<password> and returns a 3-tuple containing the parsed user,
     password and connect string. Empty strings are returned as the value
-    ``None``.
+    *None*.
 
     .. versionadded:: 1.3.0
 
@@ -174,8 +174,8 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.disable_oob
 
     This read-only attribute is a boolean that indicates whether out-of-band
-    breaks should be disabled. The default value is False. Note that this value
-    has no effect on Windows, which does not support this functionality.
+    breaks should be disabled. The default value is *False*. Note that this
+    value has no effect on Windows, which does not support this functionality.
 
     This attribute is only supported in python-oracledb Thin mode.
 
@@ -209,7 +209,7 @@ ConnectParams Attributes
     mode should be enabled.
 
     This attribute is needed for continuous query notification (CQN) and high
-    availability event notifications. The default value is False.
+    availability event notifications. The default value is *False*.
 
     This attribute is only supported in python-oracledb Thick mode.
 
@@ -218,7 +218,7 @@ ConnectParams Attributes
     This read-only attribute is an integer that returns the number of minutes
     between the sending of keepalive probes.
 
-    The default value is 0. If this attribute is set to a value greater than
+    The default value is *0*. If this attribute is set to a value greater than
     zero, it enables keepalive.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
@@ -226,12 +226,12 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.externalauth
 
     This read-only attribute is a boolean that specifies whether external
-    authentication should be used. The default value is False.
+    authentication should be used. The default value is *False*.
 
     For standalone connections, external authentication occurs when the
     ``user`` and ``password`` attributes are not used. If these attributes,
     are not used, you can optionally set the ``externalauth`` attribute to
-    True, which may aid code auditing.
+    *True*, which may aid code auditing.
 
     This attribute is only supported in python-oracledb Thick mode.
 
@@ -252,7 +252,7 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.https_proxy_port
 
     This read-only attribute is an integer that returns the port to be used to
-    communicate with the proxy host. The default value is 0.
+    communicate with the proxy host. The default value is *0*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -271,7 +271,8 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.matchanytag
 
     This read-only attribute is a boolean that specifies whether any tag can be
-    used when acquiring a connection from the pool. The default value is False.
+    used when acquiring a connection from the pool. The default value is
+    *False*.
 
     This attribute is only supported in python-oracledb Thick mode.
 
@@ -296,13 +297,13 @@ ConnectParams Attributes
 
 .. attribute:: ConnectParams.pool_boundary
 
-    This read-only attribute is one of the strings "statement" or "transaction"
+    This read-only attribute is one of the strings *statement* or *transaction*
     which indicates when pooled :ref:`DRCP <drcp>` or PRCP connections can be
-    returned to the pool. If the value is "statement", then pooled DRCP or PRCP
+    returned to the pool. If the value is *statement*, then pooled DRCP or PRCP
     connections are implicitly released back to the DRCP or PRCP pool when the
     connection is stateless (that is, there are no active cursors, active
     transactions, temporary tables, or temporary LOBs). If the value is
-    "transaction", then pooled DRCP or PRCP connections are implicitly released
+    *transaction*, then pooled DRCP or PRCP connections are implicitly released
     back to the DRCP or PRCP pool when either one of the methods
     :meth:`Connection.commit()` or :meth:`Connection.rollback()` are called.
     This attribute requires the use of DRCP or PRCP with Oracle Database 23ai
@@ -315,7 +316,7 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.port
 
     This read-only attribute is an integer that returns the port number on
-    which the database listener is listening. The default value is 1521.
+    which the database listener is listening. The default value is *1521*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -336,7 +337,7 @@ ConnectParams Attributes
 
     This read-only attribute is a string that indicates whether unencrypted
     network traffic or encrypted network traffic (TLS) is used and it can have
-    the value "tcp" or "tcps". The default value is "tcp".
+    the value *tcp* or *tcps*. The default value is *tcp*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -363,20 +364,20 @@ ConnectParams Attributes
 
     This read-only attribute is an integer that returns the number of times
     that a connection attempt should be retried before the attempt is
-    terminated. The default value is 0.
+    terminated. The default value is *0*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: ConnectParams.retry_delay
 
     This read-only attribute is an integer that returns the number of seconds
-    to wait before making a new connection attempt. The default value is 1.
+    to wait before making a new connection attempt. The default value is *1*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionchanged:: 2.3.0
 
-        The default value of this attribute was changed from 0 seconds to 1
+        The default value of this attribute was changed from *0* seconds to *1*
         second.
 
 .. attribute:: ConnectParams.sdu
@@ -399,7 +400,7 @@ ConnectParams Attributes
 
     This read-only attribute is a string that returns the type of server
     connection that should be established. If specified, it should be one of
-    `dedicated`, `shared`, or `pooled`.
+    *dedicated*, *shared*, or *pooled*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -445,7 +446,7 @@ ConnectParams Attributes
     then it is used for any verification. Otherwise, the hostname will be used.
 
     This value is ignored if the :attr:`~ConnectParams.ssl_server_dn_match`
-    attribute is not set to the value `True`.
+    attribute is not set to the value *True*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -454,7 +455,7 @@ ConnectParams Attributes
     This read-only attribute is a boolean that indicates whether the server
     certificate distinguished name (DN) should be matched in addition to the
     regular certificate verification that is performed. The default value is
-    True.
+    *True*.
 
     Note that if the :attr:`~ConnectParams.ssl_server_cert_dn` attribute is not
     specified, then host name matching is performed instead.
@@ -463,8 +464,8 @@ ConnectParams Attributes
 
 .. attribute:: ConnectParams.ssl_version
 
-    This read-only attribute is one of the constants "ssl.TLSVersion.TLSv1_2"
-    or "ssl.TLSVersion.TLSv1_3" which identifies the TLS protocol version
+    This read-only attribute is one of the constants *ssl.TLSVersion.TLSv1_2*
+    or *ssl.TLSVersion.TLSv1_3* which identifies the TLS protocol version
     used.  These constants are defined in the Python `ssl <https://docs.python.
     org/3/library/ssl.html>`__ module.
 
@@ -499,14 +500,14 @@ ConnectParams Attributes
 
     This read-only attribute is a float that indicates the maximum number of
     seconds to wait for a connection to be established to the database host.
-    The default value is 20.0.
+    The default value is *20.0*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionchanged:: 2.3.0
 
-        The default value of this attribute was changed from 60.0 seconds to
-        20.0 seconds.
+        The default value of this attribute was changed from *60.0* seconds to
+        *20.0* seconds.
 
 .. attribute:: ConnectParams.terminal
 
@@ -528,7 +529,7 @@ ConnectParams Attributes
     adbsb/adbsb-overview.html#GUID-A7435462-9D74-44B4-8240-4A6F06E92348>`__
     specific feature that can reduce the latency in round-trips to the database
     after a connection has been established. This feature is only available
-    with certain versions of ADB-S. The default value is False.
+    with certain versions of ADB-S. The default value is *False*.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 

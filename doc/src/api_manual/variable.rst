@@ -39,7 +39,7 @@ Variable Attributes
     identical to the attribute :attr:`~Variable.numElements`.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `actualElements` was renamed to `actual_elements`. The old
+    attribute ``actualElements`` was renamed to ``actual_elements``. The old
     name will continue to work for a period of time.
 
 
@@ -49,7 +49,7 @@ Variable Attributes
     element in bytes.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `bufferSize` was renamed to `buffer_size`. The old
+    attribute ``bufferSize`` was renamed to ``buffer_size``. The old
     name will continue to work for a period of time.
 
 
@@ -65,7 +65,7 @@ Variable Attributes
     This read-only attribute specifies the method used to convert data from
     Python to the Oracle database. The method signature is converter(value)
     and the expected return value is the value to bind to the database. If this
-    attribute is None, the value is bound directly without any conversion.
+    attribute is *None*, the value is bound directly without any conversion.
 
 
 .. attribute:: Variable.num_elements
@@ -75,8 +75,8 @@ Variable Attributes
     or bound to the variable.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `numElements` was renamed to `num_elements`. The old
-    name will continue to work for a period of time.
+    attribute ``numElements`` was renamed to ``num_elements``. The old name
+    will continue to work for a period of time.
 
 
 .. attribute:: Variable.outconverter
@@ -84,7 +84,7 @@ Variable Attributes
     This read-only attribute specifies the method used to convert data from
     the Oracle database to Python. The method signature is converter(value)
     and the expected return value is the value to return to Python. If this
-    attribute is None, the value is returned directly without any conversion.
+    attribute is *None*, the value is returned directly without any conversion.
 
 
 .. attribute:: Variable.size

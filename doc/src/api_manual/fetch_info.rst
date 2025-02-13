@@ -26,7 +26,7 @@ FetchInfo Attributes
     This read-only attribute returns a dictionary containing the `annotations
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1AC16117-
     BBB6-4435-8794-2B99F8F68052>`__ associated with the fetched column. If
-    there are no annotations, the value ``None`` is returned. Annotations
+    there are no annotations, the value *None* is returned. Annotations
     require Oracle Database 23ai. If using python-oracledb Thick mode, Oracle
     Client 23ai is also required.
 
@@ -42,7 +42,7 @@ FetchInfo Attributes
     This read-only attribute returns the name of the `data use case domain
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6-
     D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
-    there is no data use case domain, the value ``None`` is returned. `Data
+    there is no data use case domain, the value *None* is returned. `Data
     use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle Database 23ai.
     If using python-oracledb Thick mode, Oracle Client 23ai is also required.
@@ -54,7 +54,7 @@ FetchInfo Attributes
     This read-only attribute returns the schema of the `data use case domain
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6-
     D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
-    there is no data use case domain, the value ``None`` is returned. `Data
+    there is no data use case domain, the value *None* is returned. `Data
     use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle Database 23ai.
     If using python-oracledb Thick mode, Oracle Client 23ai is also required.
@@ -69,17 +69,16 @@ FetchInfo Attributes
 .. attribute:: FetchInfo.is_json
 
     This read-only attribute returns whether the column is known to contain
-    JSON data. This will be ``True`` when the type code is
-    ``oracledb.DB_TYPE_JSON`` as well as when an "IS JSON" constraint is
+    JSON data. This will be *True* when the type code is
+    :data:`oracledb.DB_TYPE_JSON` as well as when an "IS JSON" constraint is
     enabled on LOB and VARCHAR2 columns.
 
 .. attribute:: FetchInfo.is_oson
 
     This read-only attribute returns whether the column is known to contain
-    binary encoded `OSON
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
-    data. This will be ``True`` when an "IS JSON FORMAT OSON" check constraint
-    is enabled on BLOB columns.
+    binary encoded `OSON <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
+    &id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__ data. This will be *True*
+    when an "IS JSON FORMAT OSON" check constraint is enabled on BLOB columns.
 
     .. versionadded:: 2.1.0
 
@@ -121,7 +120,7 @@ FetchInfo Attributes
 
     This read-only attribute returns the number of dimensions required by
     VECTOR columns. If the column is not a VECTOR column or allows for any
-    number of dimensions, the value returned is ``None``.
+    number of dimensions, the value returned is *None*.
 
     .. versionadded:: 2.2.0
 
@@ -140,6 +139,6 @@ FetchInfo Attributes
       floating-point numbers
 
     If the column is not a VECTOR column or allows for any type of storage,
-    the value returned is ``None``.
+    the value returned is *None*.
 
     .. versionadded:: 2.2.0

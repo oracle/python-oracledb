@@ -152,8 +152,8 @@ Cursor Methods
     to the bind variable name used by the statement and the value maps to the
     Python value you wish bound to that bind variable.
 
-    A reference to the statement will be retained by the cursor. If None or the
-    same string object is passed in again, the cursor will execute that
+    A reference to the statement will be retained by the cursor. If *None* or
+    the same string object is passed in again, the cursor will execute that
     statement again without performing a prepare or rebinding and redefining.
     This is most effective for algorithms where the same statement is used, but
     different parameters are bound to it (many times). Note that parameters
@@ -162,13 +162,13 @@ Cursor Methods
 
     For maximum efficiency when reusing a statement, it is best to use the
     :meth:`Cursor.setinputsizes()` method to specify the parameter types and
-    sizes ahead of time; in particular, None is assumed to be a string of
+    sizes ahead of time; in particular, *None* is assumed to be a string of
     length 1 so any values that are later bound as numbers or dates will raise
     a TypeError exception.
 
     If the statement is a query, the cursor is returned as a convenience to the
     caller (so it can be used directly as an iterator over the rows in the
-    cursor); otherwise, ``None`` is returned.
+    cursor); otherwise, *None* is returned.
 
     .. note::
 
@@ -193,27 +193,27 @@ Cursor Methods
     specifying the number of iterations.
 
     In python-oracledb Thick mode, if the size of the buffers allocated for any
-    of the parameters exceeds 2 GB, you will receive the error "DPI-1015: array
-    size of <n> is too large". If you receive this error, decrease the number
-    of rows being inserted.
+    of the parameters exceeds 2 GB, you will receive the error ``DPI-1015:
+    array size of <n> is too large``. If you receive this error, decrease the
+    number of rows being inserted.
 
-    When True, the ``batcherrors`` parameter enables batch error support within
-    Oracle Database and ensures that the call succeeds even if an exception
-    takes place in one or more of the sequence of bind values. The errors can
-    then be retrieved using :meth:`Cursor.getbatcherrors()`.
+    When *True*, the ``batcherrors`` parameter enables batch error support
+    within Oracle Database and ensures that the call succeeds even if an
+    exception takes place in one or more of the sequence of bind values. The
+    errors can then be retrieved using :meth:`Cursor.getbatcherrors()`.
 
-    When True, the ``arraydmlrowcounts`` parameter enables DML row counts to be
-    retrieved from Oracle after the method has completed. The row counts can
+    When *True*, the ``arraydmlrowcounts`` parameter enables DML row counts to
+    be retrieved from Oracle after the method has completed. The row counts can
     then be retrieved using :meth:`Cursor.getarraydmlrowcounts()`.
 
     Both the ``batcherrors`` parameter and the ``arraydmlrowcounts`` parameter
-    can only be True when executing an insert, update, delete or merge
+    can only be *True* when executing an insert, update, delete, or merge
     statement; in all other cases an error will be raised.
 
     For maximum efficiency, it is best to use the
     :meth:`Cursor.setinputsizes()` method to specify the bind value types and
     sizes. In particular, if the type is not explicitly specified, the value
-    None is assumed to be a string of length 1 so any values that are later
+    *None* is assumed to be a string of length 1 so any values that are later
     bound as numbers or dates will raise a TypeError exception.
 
 .. method:: Cursor.fetchall()
@@ -236,9 +236,9 @@ Cursor Methods
     cursor's arraysize attribute can affect the performance of this operation.
 
     The number of rows to fetch is specified by the parameter. If it is not
-    given, the cursor's arraysize attribute determines the number of rows to be
-    fetched. If the number of rows available to be fetched is fewer than the
-    amount requested, fewer rows will be returned.
+    given, the cursor's ``arraysize`` attribute determines the number of rows
+    to be fetched. If the number of rows available to be fetched is fewer than
+    the amount requested, fewer rows will be returned.
 
     An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
@@ -247,8 +247,8 @@ Cursor Methods
 
 .. method:: Cursor.fetchone()
 
-    Fetches the next row of a query result set, returning a single tuple or None
-    when no more data is available.
+    Fetches the next row of a query result set, returning a single tuple or
+    *None* when no more data is available.
 
     An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
@@ -258,7 +258,7 @@ Cursor Methods
 .. method:: Cursor.getarraydmlrowcounts()
 
     Retrieves the DML row counts after a call to :meth:`Cursor.executemany()`
-    with arraydmlrowcounts enabled. This will return a list of integers
+    with ``arraydmlrowcounts`` enabled. This will return a list of integers
     corresponding to the number of rows affected by the DML statement for each
     element of the array passed to :meth:`Cursor.executemany()`.
 
@@ -270,7 +270,7 @@ Cursor Methods
 .. method:: Cursor.getbatcherrors()
 
     Retrieves the exceptions that took place after a call to
-    :meth:`Cursor.executemany()` with batcherrors enabled. This will return a
+    :meth:`Cursor.executemany()` with ``batcherrors`` enabled. This will return a
     list of Error objects, one error for each iteration that failed. The offset
     can be determined by looking at the offset attribute of the error object.
 
@@ -321,13 +321,13 @@ Cursor Methods
     :meth:`Cursor.executemany()` to define the statement that will be
     executed. When this is done, the prepare phase will not be performed when
     the call to :meth:`Cursor.execute()` or :meth:`Cursor.executemany()` is
-    made with None or the same string object as the statement.
+    made with *None* or the same string object as the statement.
 
     If the ``tag`` parameter is specified and the ``cache_statement`` parameter
-    is True, the statement will be returned to the statement cache with the
+    is *True*, the statement will be returned to the statement cache with the
     given tag.
 
-    If the ``cache_statement`` parameter is False, the statement will be
+    If the ``cache_statement`` parameter is *False*, the statement will be
     removed from the statement cache (if it was found there) or will simply not
     be cached.
 
@@ -342,13 +342,13 @@ Cursor Methods
     Scrolls the cursor in the result set to a new position according to the
     mode.
 
-    If mode is "relative" (the default value), the value is taken as an offset
-    to the current position in the result set. If set to "absolute", value
-    states an absolute target position. If set to "first", the cursor is
-    positioned at the first row and if set to "last", the cursor is set to the
+    If mode is *relative* (the default value), the value is taken as an offset
+    to the current position in the result set. If set to *absolute*, value
+    states an absolute target position. If set to *first*, the cursor is
+    positioned at the first row and if set to *last*, the cursor is set to the
     last row in the result set.
 
-    An error is raised if the mode is "relative" or "absolute" and the scroll
+    An error is raised if the mode is *relative* or *absolute* and the scroll
     operation would position the cursor outside of the result set.
 
     .. note::
@@ -367,7 +367,7 @@ Cursor Methods
 
     Use keyword parameters when :ref:`binding by name <bindbyname>`. Use
     positional parameters when :ref:`binding by position <bindbyposition>`. The
-    parameter value can be None to indicate that python-oracledb should
+    parameter value can be *None* to indicate that python-oracledb should
     determine the required space from the data value provided.
 
     The parameters or keyword names correspond to the bind variable
@@ -442,10 +442,10 @@ Cursor Methods
 
     The ``size`` parameter specifies the length of string and raw variables and is
     ignored in all other cases. If not specified for string and raw variables,
-    the value 4000 is used.
+    the value *4000* is used.
 
     The ``arraysize`` parameter specifies the number of elements the variable will
-    have. If not specified the bind array size (usually 1) is used. When a
+    have. If not specified the bind array size (usually *1*) is used. When a
     variable is created in an output type handler this parameter should be set
     to the cursor's array size.
 
@@ -464,15 +464,15 @@ Cursor Methods
     function.
 
     The ``bypass_decode`` parameter, if specified, should be passed as a
-    boolean value. Passing a `True` value causes values of database types
+    boolean value. Passing a *True* value causes values of database types
     :data:`~oracledb.DB_TYPE_VARCHAR`, :data:`~oracledb.DB_TYPE_CHAR`,
     :data:`~oracledb.DB_TYPE_NVARCHAR`, :data:`~oracledb.DB_TYPE_NCHAR` and
-    :data:`~oracledb.DB_TYPE_LONG` to be returned as `bytes` instead of `str`,
+    :data:`~oracledb.DB_TYPE_LONG` to be returned as bytes instead of str,
     meaning that python-oracledb does not do any decoding. See :ref:`Fetching raw
     data <fetching-raw-data>` for more information.
 
     The ``convert_nulls`` parameter, if specified, should be passed as a boolean
-    value. Passing the value ``True`` causes the ``outconverter`` to be called
+    value. Passing the value *True* causes the ``outconverter`` to be called
     when a null value is fetched from the database; otherwise, the
     ``outconverter`` is only called when non-null values are fetched from the
     database.
@@ -506,8 +506,8 @@ Cursor Attributes
     The attribute is only used for tuning row and SODA document fetches from
     the database.  It does not affect data inserts.
 
-    Due to the performance benefits, the default ``Cursor.arraysize`` is 100
-    instead of the 1 that the Python DB API recommends.
+    Due to the performance benefits, the default ``Cursor.arraysize`` is *100*
+    instead of the *1* that the Python DB API recommends.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
@@ -537,7 +537,7 @@ Cursor Attributes
 
     This read-only attribute contains information about the columns used in a
     query. It is a sequence of :ref:`FetchInfo <fetchinfoobj>` objects, one per
-    column. This attribute will be None for statements that are not SELECT or
+    column. This attribute will be *None* for statements that are not SELECT or
     WITH statements, or if the cursor has not had :meth:`Cursor.execute()`
     invoked yet.
 
@@ -564,8 +564,8 @@ Cursor Attributes
     bound to a statement executed on the cursor and overrides the attribute
     with the same name on the connection if specified. The method signature is
     handler(cursor, value, arraysize) and the return value is expected to be a
-    variable object or None in which case a default variable object will be
-    created. If this attribute is None, the default behavior will take place
+    variable object or *None* in which case a default variable object will be
+    created. If this attribute is *None*, the default behavior will take place
     for all values bound to the statements.
 
     See :ref:`inputtypehandlers`.
@@ -578,15 +578,15 @@ Cursor Attributes
 
     This read-only attribute returns the rowid of the last row modified by the
     cursor. If no row was modified by the last operation performed on the
-    cursor, the value None is returned.
+    cursor, the value *None* is returned.
 
 .. attribute:: Cursor.outputtypehandler
 
     This read-write attribute specifies a method called for each column that is
     to be fetched from this cursor. The method signature is
     handler(cursor, metadata) and the return value is expected to be a
-    :ref:`variable object<varobj>` or None in which case a default variable
-    object will be created. If this attribute is None, then the default
+    :ref:`variable object <varobj>` or *None* in which case a default variable
+    object will be created. If this attribute is *None*, then the default
     behavior will take place for all columns fetched from this cursor.
 
     See :ref:`outputtypehandlers`.
@@ -605,9 +605,10 @@ Cursor Attributes
 
     This read-write attribute can be used to tune the number of rows that the
     Oracle Client library fetches when a SELECT statement is executed. This
-    value can reduce the number of round-trips to the database that are required
-    to fetch rows but at the cost of additional memory. Setting this value to 0
-    can be useful when the timing of fetches must be explicitly controlled.
+    value can reduce the number of round-trips to the database that are
+    required to fetch rows but at the cost of additional memory. Setting this
+    value to *0* can be useful when the timing of fetches must be explicitly
+    controlled.
 
     The attribute is only used for tuning row fetches from the database.  It
     does not affect data inserts.
@@ -625,9 +626,9 @@ Cursor Attributes
 
     This read-only attribute specifies the number of rows that have currently
     been fetched from the cursor (for select statements) or that have been
-    affected by the operation (for insert, update, delete and merge
-    statements). For all other statements the value is always zero. If the
-    cursor or connection is closed, the value returned is -1.
+    affected by the operation (for insert, update, delete, and merge
+    statements). For all other statements the value is always *0*. If the
+    cursor or connection is closed, the value returned is *-1*.
 
 .. attribute:: Cursor.rowfactory
 
@@ -673,7 +674,7 @@ Cursor Attributes
     :meth:`Cursor.execute()` or :meth:`Cursor.executemany()`. This value is
     automatically cleared on the next call to :meth:`Cursor.execute()` or
     :meth:`Cursor.executemany()`. If no warning was generated the value
-    ``None`` is returned.
+    *None* is returned.
 
     See :ref:`plsqlwarning` for more information.
 

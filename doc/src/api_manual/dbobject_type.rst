@@ -38,8 +38,8 @@ DbObjectType Attributes
 .. attribute:: DbObjectType.element_type
 
     This read-only attribute returns the type of elements found in collections
-    of this type, if :attr:`~DbObjectType.iscollection` is True; otherwise,
-    it returns None. If the collection contains objects, this will be
+    of this type, if :attr:`~DbObjectType.iscollection` is *True*; otherwise,
+    it returns *None*. If the collection contains objects, this will be
     another object type; otherwise, it will be one of the
     :ref:`database type constants <dbtypes>`.
 
@@ -58,7 +58,7 @@ DbObjectType Attributes
 .. attribute:: DbObjectType.package_name
 
     This read-only attribute returns the name of the package, if the type
-    refers to a PL/SQL type (otherwise, it returns the value `None`).
+    refers to a PL/SQL type (otherwise, it returns the value *None*).
 
 
 .. attribute:: DbObjectType.schema
@@ -115,8 +115,8 @@ DbObject Methods
 
 .. method:: DbObject.exists(index)
 
-    Returns True or False indicating if an element exists in the collection at
-    the specified index.
+    Returns *True* or *False* indicating if an element exists in the collection
+    at the specified index.
 
 
 .. method:: DbObject.extend(sequence)
@@ -129,7 +129,7 @@ DbObject Methods
 .. method:: DbObject.first()
 
     Returns the index of the first element in the collection. If the collection
-    is empty, None is returned.
+    is empty, *None* is returned.
 
 
 .. method:: DbObject.getelement(index)
@@ -141,21 +141,21 @@ DbObject Methods
 .. method:: DbObject.last()
 
     Returns the index of the last element in the collection. If the collection
-    is empty, None is returned.
+    is empty, *None* is returned.
 
 
 .. method:: DbObject.next(index)
 
     Returns the index of the next element in the collection following the
     specified index. If there are no elements in the collection following the
-    specified index, None is returned.
+    specified index, *None* is returned.
 
 
 .. method:: DbObject.prev(index)
 
     Returns the index of the element in the collection preceding the specified
     index. If there are no elements in the collection preceding the
-    specified index, None is returned.
+    specified index, *None* is returned.
 
 
 .. method:: DbObject.setelement(index, value)
@@ -199,7 +199,7 @@ DbObjectAttribute Objects
     :data:`oracledb.DB_TYPE_CHAR`, :data:`oracledb.DB_TYPE_NCHAR`,
     :data:`oracledb.DB_TYPE_NVARCHAR`, :data:`oracledb.DB_TYPE_RAW`, or
     :data:`oracledb.DB_TYPE_VARCHAR`. For all other types the value returned is
-    `None`.
+    *None*.
 
     .. versionadded:: 3.0.0
 
@@ -213,7 +213,7 @@ DbObjectAttribute Objects
 
     This read-only attribute returns the precision of the attribute when the
     attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
-    the value returned is `None`.
+    the value returned is *None*.
 
     .. versionadded:: 3.0.0
 
@@ -222,7 +222,7 @@ DbObjectAttribute Objects
 
     This read-only attribute returns the scale of the attribute when the
     attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
-    the value returned is `None`.
+    the value returned is *None*.
 
     .. versionadded:: 3.0.0
 

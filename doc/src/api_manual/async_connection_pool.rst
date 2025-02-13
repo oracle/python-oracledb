@@ -124,7 +124,7 @@ AsyncConnectionPool Attributes
     closed. They become candidates for termination only when they are released
     back to the pool and have existed for longer than max_lifetime_session
     seconds. Note that termination only occurs when the pool is accessed. A
-    value of 0 means that there is no maximum length of time that a pooled
+    value of *0* means that there is no maximum length of time that a pooled
     connection may exist. This attribute is only available in Oracle Database
     12.1 or later.
 
@@ -158,11 +158,11 @@ AsyncConnectionPool Attributes
     <roundtrips>` ping to the database is performed. If the connection is
     unusable, it is discarded and a different connection is selected to be
     returned by :meth:`AsyncConnectionPool.acquire()`.  Setting
-    ``ping_interval`` to a negative value disables pinging.  Setting it to 0
+    ``ping_interval`` to a negative value disables pinging.  Setting it to *0*
     forces a ping for every :meth:`AsyncConnectionPool.acquire()` and is not
     recommended.
 
-    Prior to cx_Oracle 8.2, the ping interval was fixed at 60 seconds.
+    Prior to cx_Oracle 8.2, the ping interval was fixed at *60* seconds.
 
 .. attribute:: AsyncConnectionPool.soda_metadata_cache
 
@@ -175,23 +175,23 @@ AsyncConnectionPool Attributes
     This read-write attribute specifies the size of the statement cache that
     will be used for connections obtained from the pool. Once a connection is
     created, that connection’s statement cache size can only be changed by
-    setting the stmtcachesize attribute on the connection itself.
+    setting the ``stmtcachesize`` attribute on the connection itself.
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
 .. attribute:: AsyncConnectionPool.thin
 
     This attribute returns a boolean which indicates the python-oracledb mode
-    in which the pool was created. If the value of this attribute is True, it
+    in which the pool was created. If the value of this attribute is *True*, it
     indicates that the pool was created in the python-oracledb Thin mode. If
-    the value of this attribute is False, it indicates that the pool was created
-    in the python-oracledb Thick mode.
+    the value of this attribute is *False*, it indicates that the pool was
+    created in the python-oracledb Thick mode.
 
 .. attribute:: AsyncConnectionPool.timeout
 
     This read-write attribute specifies the time (in seconds) after which idle
     connections will be terminated in order to maintain an optimum number of
-    open connections. A value of 0 means that no idle connections are
+    open connections. A value of *0* means that no idle connections are
     terminated.
 
 .. attribute:: AsyncConnectionPool.username

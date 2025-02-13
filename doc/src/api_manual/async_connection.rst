@@ -160,10 +160,10 @@ AsyncConnection Methods
                 rowfactory=None)
 
     Executes a query and returns the first row of the result set if one exists
-    (or None if no rows exist).
+    (or *None* if no rows exist).
 
     Internally, this method's :attr:`Cursor.prefetchrows` and
-    :attr:`Cursor.arraysize` sizes will be set to 1.
+    :attr:`Cursor.arraysize` sizes will be set to *1*.
 
     Since only one fetch is performed for a query, consider adding a ``WHERE``
     condition or using a ``FETCH NEXT`` clause in the statement to prevent the
@@ -191,8 +191,8 @@ AsyncConnection Methods
     existing standalone connection. Pooled connections internally perform this
     check before returning a connection to the application.
 
-    If this function returns False, the connection should be not be used by the
-    application and a new connection should be established instead.
+    If this function returns *False*, the connection should be not be used by
+    the application and a new connection should be established instead.
 
     This function performs a local check. To fully check a connection's health,
     use :meth:`AsyncConnection.ping()` which performs a :ref:`round-trip
@@ -214,11 +214,11 @@ AsyncConnection Methods
 
     The ``continue_on_error`` parameter determines whether operations should
     continue to run after an error has occurred. If this parameter is set to
-    True, then the :attr:`PipelineOpResult.error` attribute will be populated
+    *True*, then the :attr:`PipelineOpResult.error` attribute will be populated
     with an :ref:`_Error <exchandling>` instance which identifies the error
-    that occurred. If this parameter is set to False, then an exception will be
-    raised as soon as an error is detected and all subsequent operations will
-    be terminated. The default value is False.
+    that occurred. If this parameter is set to *False*, then an exception will
+    be raised as soon as an error is detected and all subsequent operations
+    will be terminated. The default value is *False*.
 
     See :ref:`pipelining` for more information.
 
@@ -258,7 +258,7 @@ AsyncConnection Methods
     transaction can be inactive before it is automatically terminated by the
     system. A transaction is inactive between the time it is detached with
     :meth:`AsyncConnection.tpc_end()` and the time it is resumed with
-    :meth:`AsyncConnection.tpc_begin()`.The default is 0 seconds.
+    :meth:`AsyncConnection.tpc_begin()`.The default is *0* seconds.
 
     The following code sample demonstrates the ``tpc_begin()`` function::
 
@@ -284,8 +284,8 @@ AsyncConnection Methods
     transaction and is intended for use in recovery.
 
     The ``one_phase`` parameter is a boolean identifying whether to perform a
-    one-phase or two-phase commit. If ``one_phase`` parameter is True, a
-    single-phase commit is performed.  The default value is False. This
+    one-phase or two-phase commit. If ``one_phase`` parameter is *True*, a
+    single-phase commit is performed.  The default value is *False*. This
     parameter is only examined if a value is provided for the ``xid``
     parameter. Otherwise, the driver already knows whether
     :meth:`~AsyncConnection.tpc_prepare()` was called for the transaction and
@@ -356,8 +356,8 @@ AsyncConnection Methods
     ``ORA-24756: transaction does not exist``.
 
     If an ``xid`` parameter is passed, then an object should be returned by the
-    :meth:`~Connection.xid()` function. If an xid parameter is not passed, then
-    the transaction identifier used by the previous
+    :meth:`~Connection.xid()` function. If an ``xid`` parameter is not passed,
+    then the transaction identifier used by the previous
     :meth:`~AsyncConnection.tpc_begin()` is used.
 
     The following code sample demonstrates the ``tpc_prepare()`` function::
@@ -417,7 +417,7 @@ AsyncConnection Attributes
 .. attribute:: AsyncConnection.action
 
     This write-only attribute sets the ACTION column in the V$SESSION view. It
-    is a string attribute but the value None is accepted and treated as an
+    is a string attribute but the value *None* is accepted and treated as an
     empty string.
 
 .. attribute:: AsyncConnection.autocommit
@@ -430,10 +430,10 @@ AsyncConnection Attributes
 
     This read-write attribute specifies the amount of time (in milliseconds)
     that a single round-trip to the database may take before a timeout will
-    occur. A value of 0 means that no timeout will take place.
+    occur. A value of *0* means that no timeout will take place.
 
-    If a timeout occurs, the error *DPI-1067* will be returned if the
-    connection is still usable.  Alternatively the error *DPI-1080* will be
+    If a timeout occurs, the error ``DPI-1067`` will be returned if the
+    connection is still usable.  Alternatively, the error ``DPI-1080`` will be
     returned if the connection has become invalid and can no longer be used.
 
 .. attribute:: AsyncConnection.client_identifier
@@ -498,9 +498,10 @@ AsyncConnection Attributes
     This read-write attribute specifies a method called for each value that is
     bound to a statement executed on any cursor associated with this
     connection.  The method signature is handler(cursor, value, arraysize) and
-    the return value is expected to be a variable object or None in which case
-    a default variable object will be created. If this attribute is None, the
-    default behavior will take place for all values bound to statements.
+    the return value is expected to be a variable object or *None* in which
+    case a default variable object will be created. If this attribute is
+    *None*, the default behavior will take place for all values bound to
+    statements.
 
 .. attribute:: AsyncConnection.instance_name
 
@@ -545,15 +546,15 @@ AsyncConnection Attributes
 
     This write-only attribute sets the MODULE column in the V$SESSION view.
     The maximum length for this string is 48 and if you exceed this length you
-    will get ORA-24960.
+    will get ``ORA-24960``.
 
 .. attribute:: AsyncConnection.outputtypehandler
 
     This read-write attribute specifies a method called for each column that is
     going to be fetched from any cursor associated with this connection. The
     method signature is ``handler(cursor, metadata)`` and the return value is
-    expected to be a :ref:`variable object<varobj>` or None in which case a
-    default variable object will be created. If this attribute is None, the
+    expected to be a :ref:`variable object <varobj>` or *None* in which case a
+    default variable object will be created. If this attribute is *None*, the
     default behavior will take place for all columns fetched from cursors.
 
     See :ref:`outputtypehandlers`.
@@ -615,15 +616,15 @@ AsyncConnection Attributes
     value can make a significant difference in performance if you have a small
     number of statements that you execute repeatedly.
 
-    The default value is 20.
+    The default value is *20*.
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
 .. attribute:: AsyncConnection.thin
 
     This read-only attribute returns a boolean indicating if the connection was
-    established with the python-oracledb Thin mode (True) or python-oracledb
-    Thick mode (False).
+    established with the python-oracledb Thin mode (*True*) or python-oracledb
+    Thick mode (*False*).
 
 .. attribute:: AsyncConnection.transaction_in_progress
 

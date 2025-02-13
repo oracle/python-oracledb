@@ -126,8 +126,8 @@ AsyncCursor Methods
     to the bind variable name used by the statement and the value maps to the
     Python value you wish bound to that bind variable.
 
-    A reference to the statement will be retained by the cursor. If None or the
-    same string object is passed in again, the cursor will execute that
+    A reference to the statement will be retained by the cursor. If *None* or
+    the same string object is passed in again, the cursor will execute that
     statement again without performing a prepare or rebinding and redefining.
     This is most effective for algorithms where the same statement is used, but
     different parameters are bound to it (many times). Note that parameters
@@ -136,13 +136,13 @@ AsyncCursor Methods
 
     For maximum efficiency when reusing a statement, it is best to use the
     :meth:`AsyncCursor.setinputsizes()` method to specify the parameter types and
-    sizes ahead of time; in particular, None is assumed to be a string of
+    sizes ahead of time; in particular, *None* is assumed to be a string of
     length 1 so any values that are later bound as numbers or dates will raise
     a TypeError exception.
 
     If the statement is a query, the cursor is returned as a convenience to the
     caller (so it can be used directly as an iterator over the rows in the
-    cursor); otherwise, ``None`` is returned.
+    cursor); otherwise, *None* is returned.
 
 .. method:: AsyncCursor.executemany(statement, parameters, batcherrors=False, \
         arraydmlrowcounts=False)
@@ -163,9 +163,9 @@ AsyncCursor Methods
     specifying the number of iterations.
 
     In python-oracledb Thick mode, if the size of the buffers allocated for any
-    of the parameters exceeds 2 GB, you will receive the error "DPI-1015: array
-    size of <n> is too large". If you receive this error, decrease the number
-    of rows being inserted.
+    of the parameters exceeds 2 GB, you will receive the error ``DPI-1015:
+    array size of <n> is too large``. If you receive this error, decrease the
+    number of rows being inserted.
 
     When True, the ``batcherrors`` parameter enables batch error support within
     Oracle and ensures that the call succeeds even if an exception takes place
@@ -182,7 +182,7 @@ AsyncCursor Methods
 
     For maximum efficiency, it is best to use the
     :meth:`AsyncCursor.setinputsizes()` method to specify the parameter types
-    and sizes ahead of time. In particular, the value None is assumed to be a
+    and sizes ahead of time. In particular, the value *None* is assumed to be a
     string of length 1 so any values that are later bound as numbers or dates
     will raise a TypeError exception.
 
@@ -216,7 +216,7 @@ AsyncCursor Methods
 .. method:: AsyncCursor.fetchone()
 
     Fetches the next row of a query result set, returning a single tuple or
-    None when no more data is available.
+    *None* when no more data is available.
 
     An exception is raised if the previous call to
     :meth:`AsyncCursor.execute()` did not produce any result set or no call
@@ -225,7 +225,7 @@ AsyncCursor Methods
 .. method:: AsyncCursor.getarraydmlrowcounts()
 
     A synchronous method that retrieves the DML row counts after a call to
-    :meth:`AsyncCursor.executemany()` with arraydmlrowcounts enabled. This
+    :meth:`AsyncCursor.executemany()` with ``arraydmlrowcounts`` enabled. This
     will return a list of integers corresponding to the number of rows
     affected by the DML statement for each element of the array passed to
     :meth:`AsyncCursor.executemany()`.
@@ -237,8 +237,8 @@ AsyncCursor Methods
 .. method:: AsyncCursor.getbatcherrors()
 
     A synchronous method that retrieves the exceptions that took place after a
-    call to :meth:`AsyncCursor.executemany()` with batcherrors enabled. This
-    will return a list of Error objects, one error for each iteration that
+    call to :meth:`AsyncCursor.executemany()` with ``batcherrors`` enabled.
+    This will return a list of Error objects, one error for each iteration that
     failed. The offset can be determined by looking at the offset attribute of
     the error object.
 
@@ -277,14 +277,14 @@ AsyncCursor Methods
     A synchronous method that can be used before a call to
     :meth:`AsyncCursor.execute()` to define the  statement that will be
     executed. When this is done, the prepare phase will not be performed when
-    the call to :meth:`AsyncCursor.execute()` is made with None or the same
+    the call to :meth:`AsyncCursor.execute()` is made with *None* or the same
     string object as the statement.
 
     If the ``tag`` parameter is specified and the ``cache_statement`` parameter
-    is True, the statement will be returned to the statement cache with the
+    is *True*, the statement will be returned to the statement cache with the
     given tag.
 
-    If the ``cache_statement`` parameter is False, the statement will be
+    If the ``cache_statement`` parameter is *False*, the statement will be
     removed from the statement cache (if it was found there) or will simply not
     be cached.
 
@@ -302,7 +302,7 @@ AsyncCursor Methods
 
     Use keyword parameters when :ref:`binding by name <bindbyname>`. Use
     positional parameters when :ref:`binding by position <bindbyposition>`. The
-    parameter value can be None to indicate that python-oracledb should
+    parameter value can be *None* to indicate that python-oracledb should
     determine the required space from the data value provided.
 
     The parameters or keyword names correspond to the bind variable
@@ -378,10 +378,10 @@ AsyncCursor Methods
 
     The ``size`` parameter specifies the length of string and raw variables and is
     ignored in all other cases. If not specified for string and raw variables,
-    the value 4000 is used.
+    the value *4000* is used.
 
     The ``arraysize`` parameter specifies the number of elements the variable will
-    have. If not specified the bind array size (usually 1) is used. When a
+    have. If not specified the bind array size (usually *1*) is used. When a
     variable is created in an output type handler this parameter should be set
     to the cursor's array size.
 
@@ -408,7 +408,7 @@ AsyncCursor Methods
     data <fetching-raw-data>` for more information.
 
     The ``convert_nulls`` parameter, if specified, should be passed as a boolean
-    value. Passing the value ``True`` causes the ``outconverter`` to be called
+    value. Passing the value *True* causes the ``outconverter`` to be called
     when a null value is fetched from the database; otherwise, the
     ``outconverter`` is only called when non-null values are fetched from the
     database.
@@ -432,8 +432,8 @@ AsyncCursor Attributes
     The attribute is only used for tuning row and SODA document fetches from
     the database.  It does not affect data inserts.
 
-    Due to the performance benefits, the default ``Cursor.arraysize`` is 100
-    instead of the 1 that the Python DB API recommends.
+    Due to the performance benefits, the default ``Cursor.arraysize`` is *100*
+    instead of the *1* that the Python DB API recommends.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
@@ -448,8 +448,8 @@ AsyncCursor Attributes
 .. attribute:: AsyncCursor.description
 
     This read-only attribute is a sequence of :ref:`FetchInfo<fetchinfoobj>`
-    objects. This attribute will be None for operations that do not return rows
-    or if the cursor has not had an operation invoked via the
+    objects. This attribute will be *None* for operations that do not return
+    rows or if the cursor has not had an operation invoked via the
     :meth:`AsyncCursor.execute()` method yet.
 
 .. attribute:: AsyncCursor.fetchvars
@@ -465,23 +465,23 @@ AsyncCursor Attributes
     bound to a statement executed on the cursor and overrides the attribute
     with the same name on the connection if specified. The method signature is
     handler(cursor, value, arraysize) and the return value is expected to be a
-    variable object or None in which case a default variable object will be
-    created. If this attribute is None, the default behavior will take place
+    variable object or *None* in which case a default variable object will be
+    created. If this attribute is *None*, the default behavior will take place
     for all values bound to the statements.
 
 .. attribute:: AsyncCursor.lastrowid
 
     This read-only attribute returns the rowid of the last row modified by the
     cursor. If no row was modified by the last operation performed on the
-    cursor, the value None is returned.
+    cursor, the value *None* is returned.
 
 .. attribute:: AsyncCursor.outputtypehandler
 
     This read-write attribute specifies a method called for each column that is
     to be fetched from this cursor. The method signature is
     handler(cursor, metadata) and the return value is expected to be a
-    :ref:`variable object<varobj>` or None in which case a default variable
-    object will be created. If this attribute is None, then the default
+    :ref:`variable object<varobj>` or *None* in which case a default variable
+    object will be created. If this attribute is *None*, then the default
     behavior will take place for all columns fetched from this cursor.
 
     See :ref:`outputtypehandlers`.
@@ -491,7 +491,7 @@ AsyncCursor Attributes
     This read-write attribute can be used to tune the number of rows that the
     python-oracledb fetches when a SELECT statement is executed. This value can
     reduce the number of round-trips to the database that are required to fetch
-    rows but at the cost of additional memory. Setting this value to 0 can be
+    rows but at the cost of additional memory. Setting this value to *0* can be
     useful when the timing of fetches must be explicitly controlled.
 
     The attribute is only used for tuning row fetches from the database.  It
@@ -504,8 +504,8 @@ AsyncCursor Attributes
     This read-only attribute specifies the number of rows that have currently
     been fetched from the cursor (for select statements) or that have been
     affected by the operation (for insert, update, delete and merge
-    statements). For all other statements the value is always zero. If the
-    cursor or connection is closed, the value returned is -1.
+    statements). For all other statements the value is always *0*. If the
+    cursor or connection is closed, the value returned is *-1*.
 
 .. attribute:: AsyncCursor.rowfactory
 

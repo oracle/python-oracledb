@@ -106,9 +106,10 @@ SodaDatabase Methods
     lookup?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-2650383566A3>`__ for
     more information.
 
-    If the ``mapMode`` parameter is set to True, the new collection is mapped to an
-    existing table instead of creating a table. If a collection is created in
-    this way, dropping the collection will not drop the existing table either.
+    If the ``mapMode`` parameter is set to *True*, the new collection is mapped
+    to an existing table instead of creating a table. If a collection is
+    created in this way, dropping the collection will not drop the existing
+    table either.
 
 
 .. method:: SodaDatabase.createDocument(content, key=None, mediaType="application/json")
@@ -117,7 +118,8 @@ SodaDatabase Methods
     You only need to use this method if your collection requires
     client-assigned keys or has non-JSON content; otherwise, you can pass your
     content directly to SODA write operations. SodaDocument attributes
-    'createdOn', 'lastModified' and 'version' will be None.
+    :attr:`~SodaDoc.createdOn`, :attr:`~SodaDoc.lastModified`, and
+    :attr:`~SodaDoc.version` will be *None*.
 
     The ``content`` parameter can be a dictionary or list which will be
     transformed into a JSON string and then UTF-8 encoded. It can also be a
@@ -152,7 +154,7 @@ SodaDatabase Methods
 
     Opens an existing collection with the given name and returns a new
     :ref:`SODA collection object <sodacoll>`. If a collection with that name
-    does not exist, None is returned.
+    does not exist, *None* is returned.
 
 .. _sodacoll:
 
@@ -183,8 +185,8 @@ SodaCollection Methods
 .. method:: SodaCollection.drop()
 
     Drops the collection from the database, if it exists. Note that if the
-    collection was created with mapMode set to True the underlying table will
-    not be dropped.
+    collection was created with the ``mapMode`` parameter set to *True* the
+    underlying table will not be dropped.
 
     A boolean value is returned indicating if the collection was actually
     dropped.
@@ -194,12 +196,12 @@ SodaCollection Methods
 
     Drops the index with the specified name, if it exists.
 
-    The ``force`` parameter, if set to True, can be used to force the dropping of
-    an index that the underlying Oracle Database domain index doesn't normally
-    permit. This is only applicable to spatial and JSON search indexes.
-    See `here <https://www.oracle.com/pls/topic/
-    lookup?ctx=dblatest&id=GUID-F60F75DF-2866-4F93-BB7F-8FCE64BF67B6>`__
-    for more information.
+    The ``force`` parameter, if set to *True*, can be used to force the
+    dropping of an index that the underlying Oracle Database domain index
+    does not normally permit. This is only applicable to spatial and JSON
+    search indexes. See `here <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-F60F75DF-2866-4F93-BB7F-8FCE64BF67B6>`__ for more
+    information.
 
     A boolean value is returned indicating if the index was actually dropped.
 
@@ -220,7 +222,7 @@ SodaCollection Methods
     It can be useful for exploring the schema of a collection. Note that this
     method is only supported for JSON-only collections where a JSON search
     index has been created with the 'dataguide' option enabled. If there are
-    no documents in the collection, None is returned.
+    no documents in the collection, *None* is returned.
 
 .. method:: SodaCollection.insertMany(docs)
 
@@ -244,8 +246,8 @@ SodaCollection Methods
     The ``hint`` parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
     format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
-    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
+    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
     Tuning Guide documentation `MONITOR and NO_MONITOR Hints
     <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
@@ -258,7 +260,8 @@ SodaCollection Methods
 
         - This method requires Oracle Client 18.5 and higher.
 
-        - Use of the ``hint`` parameter requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        - Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
+          (or Oracle Client 19 from 19.11).
 
 
 .. method:: SodaCollection.insertOne(doc)
@@ -277,8 +280,8 @@ SodaCollection Methods
     The ``hint`` parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
     format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
-    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
+    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
     Tuning Guide documentation `MONITOR and NO_MONITOR Hints
     <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
@@ -289,7 +292,8 @@ SodaCollection Methods
 
     .. note::
 
-        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
+        (or Oracle Client 19 from 19.11).
 
 .. method:: SodaCollection.listIndexes()
 
@@ -321,8 +325,8 @@ SodaCollection Methods
     The ``hint`` parameter, if specified, supplies a hint to the database when
     processing the SODA operation. This is expected to be a string in the same
     format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint ``"MONITOR"`` (turn on monitoring)
-    or ``"NO_MONITOR"`` (turn off monitoring).  See the Oracle Database SQL
+    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
+    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
     Tuning Guide documentation `MONITOR and NO_MONITOR Hints
     <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
@@ -336,7 +340,8 @@ SodaCollection Methods
 
     .. note::
 
-        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
+        (or Oracle Client 19 from 19.11).
 
 
 .. method:: SodaCollection.truncate()
@@ -351,9 +356,8 @@ SodaCollection Attributes
 
     This read-only attribute returns a dictionary containing the metadata that
     was used to create the collection. See this `collection metadata reference
-    <https://www.oracle.com/pls/topic/
-    lookup?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-2650383566A3>`__
-    for more information.
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-49EFF3D3-
+    9FAB-4DA6-BDE2-2650383566A3>`__ for more information.
 
 
 .. attribute:: SodaCollection.name
@@ -378,20 +382,20 @@ SodaDoc Methods
 
     Returns the content of the document as a dictionary or list. This method
     assumes that the content is application/json and will raise an exception if
-    this is not the case. If there is no content, however, None will be
+    this is not the case. If there is no content, however, *None* will be
     returned.
 
 
 .. method:: SodaDoc.getContentAsBytes()
 
     Returns the content of the document as a bytes object. If there is no
-    content, however, None will be returned.
+    content, however, *None* will be returned.
 
 
 .. method:: SodaDoc.getContentAsString()
 
     Returns the content of the document as a string. If the document encoding
-    is not known, UTF-8 will be used. If there is no content, however, None
+    is not known, UTF-8 will be used. If there is no content, however, *None*
     will be returned.
 
 SodaDoc Attributes
@@ -403,13 +407,13 @@ SodaDoc Attributes
     `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
     format. Documents created by :meth:`SodaDatabase.createDocument()` or
     fetched from collections where this attribute is not stored will return
-    None.
+    *None*.
 
 .. attribute:: SodaDoc.key
 
     This read-only attribute returns the unique key assigned to this document.
     Documents created by :meth:`SodaDatabase.createDocument()` may not have a
-    value assigned to them and return None.
+    value assigned to them and return *None*.
 
 
 .. attribute:: SodaDoc.lastModified
@@ -418,7 +422,7 @@ SodaDoc Attributes
     `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
     format. Documents created by :meth:`SodaDatabase.createDocument()` or
     fetched from collections where this attribute is not stored will return
-    None.
+    *None*.
 
 
 .. attribute:: SodaDoc.mediaType
@@ -435,7 +439,7 @@ SodaDoc Attributes
 
     This read-only attribute returns the version assigned to this document.
     Documents created by :meth:`SodaDatabase.createDocument()` or fetched
-    from collections where this attribute is not stored will return None.
+    from collections where this attribute is not stored will return *None*.
 
 
 .. _sodadoccur:
@@ -483,8 +487,9 @@ SodaOperation Methods
     This is a tuning method to specify the number of documents that are
     internally fetched in batches by calls to :meth:`~SodaOperation.getCursor()`
     and :meth:`~SodaOperation.getDocuments()`. It does not affect how many
-    documents are returned to the application. A value of 0 will use the default
-    value (100). This method is only available in Oracle Client 19.5 and higher.
+    documents are returned to the application. A value of *0* will use the
+    default value (*100*). This method is only available in Oracle Client 19.5
+    and higher.
 
     As a convenience, the SodaOperation object is returned so that further
     criteria can be specified by chaining methods together.
@@ -529,13 +534,13 @@ SodaOperation Methods
     Specifies a hint that will be provided to the SODA operation when it is
     performed. This is expected to be a string in the same format as a SQL hint
     but without any comment characters, for example ``hint("MONITOR")``. Pass
-    only the hint ``"MONITOR"`` (turn on monitoring) or ``"NO_MONITOR"`` (turn
-    off monitoring). See the Oracle Database SQL Tuning Guide documentation
-    `MONITOR and NO_MONITOR Hints
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
-    and `Monitoring Database Operations
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
-    for more information.
+    only the hint "MONITOR" (turn on monitoring) or "NO_MONITOR" (turn off
+    monitoring). See the Oracle Database SQL Tuning Guide documentation
+    `MONITOR and NO_MONITOR Hints <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and
+    `Monitoring Database Operations <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__ for more
+    information.
 
     As a convenience, the SodaOperation object is returned so that further
     criteria can be specified by chaining methods together.

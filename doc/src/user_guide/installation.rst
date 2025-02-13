@@ -929,9 +929,14 @@ To use python-oracledb without the cryptography package:
 Installing from Source Code
 ===========================
 
-You can build and install python-oracledb either
-:ref:`locally from source code <installgh>`, or
-by using a :ref:`presupplied GitHub Action <installghactions>` which builds
+For platforms that do not have pre-built binaries on `PyPI
+<https://pypi.org/project/oracledb/>`__, using the normal ``python -m pip
+install oracledb`` command will download the python-oracledb source bundle,
+build, and install it.
+
+Alternatively, to create your own package files for installation, you can build
+and install python-oracledb either :ref:`locally from source code <installgh>`,
+or by using a :ref:`presupplied GitHub Action <installghactions>` which builds
 packages for all architectures and Python versions.
 
 .. _installgh:

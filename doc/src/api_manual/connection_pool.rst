@@ -66,7 +66,7 @@ ConnectionPool Methods
     The ``tag`` parameter, if specified, is expected to be a string with
     name=value pairs like "k1=v1;k2=v2" and will limit the connections that can
     be returned from a connection pool unless the ``matchanytag`` parameter is
-    set to True. In that case, connections with the specified tag will be
+    set to *True*. In that case, connections with the specified tag will be
     preferred over others, but if no such connections are available, then a
     connection with a different tag may be returned instead. In any case,
     untagged connections will always be returned if no connections with the
@@ -75,8 +75,8 @@ ConnectionPool Methods
 
     The ``shardingkey`` and ``supershardingkey`` parameters, if specified, are
     expected to be a sequence of values which will be used to identify the
-    database shard to connect to. The key values can be strings, numbers, bytes
-    or dates.  See :ref:`connsharding`.
+    database shard to connect to. The key values can be strings, numbers,
+    bytes, or dates.  See :ref:`connsharding`.
 
     When using the :ref:`connection pool cache <connpoolcache>`, calling
     :meth:`oracledb.connect()` with a ``pool_alias`` parameter is the same as
@@ -88,7 +88,7 @@ ConnectionPool Methods
     released, which makes it unusable for further work.
 
     If any connections have been acquired and not released back to the pool,
-    this method will fail unless the ``force`` parameter is set to True.
+    this method will fail unless the ``force`` parameter is set to *True*.
 
 .. method:: ConnectionPool.drop(connection)
 
@@ -163,11 +163,11 @@ ConnectionPool Methods
     connections back to the pool in order to ensure sufficient resources are
     available.
 
-    If the tag is not None, it is expected to be a string with name=value pairs
-    like "k1=v1;k2=v2" and will override the value in the property
+    If the tag is not *None*, it is expected to be a string with name=value
+    pairs like "k1=v1;k2=v2" and will override the value in the property
     :attr:`Connection.tag`. If either :attr:`Connection.tag` or the tag
-    parameter are not None, the connection will be retagged when it is released
-    back to the pool.
+    parameter are not *None*, the connection will be retagged when it is
+    released back to the pool.
 
 .. _connpoolattr:
 
@@ -221,7 +221,7 @@ ConnectionPool Attributes
     closed. They become candidates for termination only when they are released
     back to the pool and have existed for longer than max_lifetime_session
     seconds. Note that termination only occurs when the pool is accessed. A
-    value of 0 means that there is no maximum length of time that a pooled
+    value of *0* means that there is no maximum length of time that a pooled
     connection may exist. This attribute is only available in Oracle Database
     12.1 or later.
 
@@ -231,7 +231,7 @@ ConnectionPool Attributes
     created per shard in the pool. Setting this attribute greater than zero
     specifies the maximum number of sessions in the pool that can be used for
     any given shard in a sharded database. This lets connections in the pool be
-    balanced across the shards. A value of zero will not set any maximum number
+    balanced across the shards. A value of *0* will not set any maximum number
     of sessions for each shard. This attribute is only available in Oracle
     Client 18.3 and higher.
 
@@ -259,17 +259,17 @@ ConnectionPool Attributes
     <roundtrips>` ping to the database is performed. If the connection is
     unusable, it is discarded and a different connection is selected to be
     returned by :meth:`ConnectionPool.acquire()`.  Setting ``ping_interval`` to
-    a negative value disables pinging.  Setting it to 0 forces a ping for every
-    :meth:`ConnectionPool.acquire()` and is not recommended.
+    a negative value disables pinging.  Setting it to *0* forces a ping for
+    every :meth:`ConnectionPool.acquire()` and is not recommended.
 
-    Prior to cx_Oracle 8.2, the ping interval was fixed at 60 seconds.
+    Prior to cx_Oracle 8.2, the ping interval was fixed at *60* seconds.
 
 .. attribute:: ConnectionPool.soda_metadata_cache
 
     This read-write boolean attribute returns whether the SODA metadata cache
     is enabled or not. Enabling the cache significantly improves the
     performance of methods :meth:`SodaDatabase.createCollection()` (when not
-    specifying a value for the metadata parameter) and
+    specifying a value for the ``metadata`` parameter) and
     :meth:`SodaDatabase.openCollection()`. Note that the cache can become out
     of date if changes to the metadata of cached collections are made
     externally.
@@ -279,23 +279,23 @@ ConnectionPool Attributes
     This read-write attribute specifies the size of the statement cache that
     will be used for connections obtained from the pool. Once a connection is
     created, that connection’s statement cache size can only be changed by
-    setting the stmtcachesize attribute on the connection itself.
+    setting the ``stmtcachesize`` attribute on the connection itself.
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
 .. attribute:: ConnectionPool.thin
 
     This attribute returns a boolean which indicates the python-oracledb mode
-    in which the pool was created. If the value of this attribute is True, it
+    in which the pool was created. If the value of this attribute is *True*, it
     indicates that the pool was created in the python-oracledb Thin mode. If
-    the value of this attribute is False, it indicates that the pool was created
-    in the python-oracledb Thick mode.
+    the value of this attribute is *False*, it indicates that the pool was
+    created in the python-oracledb Thick mode.
 
 .. attribute:: ConnectionPool.timeout
 
     This read-write attribute specifies the time (in seconds) after which idle
     connections will be terminated in order to maintain an optimum number of
-    open connections. A value of 0 means that no idle connections are
+    open connections. A value of *0* means that no idle connections are
     terminated. Note that in python-oracledb Thick mode with older Oracle
     Client Libraries, the termination only occurs when the pool is accessed.
 

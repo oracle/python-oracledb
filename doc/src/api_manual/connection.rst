@@ -112,18 +112,17 @@ Connection Methods
 
 .. method:: Connection.decode_oson(data)
 
-    Decodes `OSON-encoded
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
-    bytes and returns the object encoded in those bytes.  This is useful for
-    fetching columns which have the check constraint ``IS JSON FORMAT OSON``
-    enabled.
+    Decodes `OSON-encoded <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
+    &id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__ bytes and returns the
+    object encoded in those bytes.  This is useful for fetching columns which
+    have the check constraint ``IS JSON FORMAT OSON`` enabled.
 
     .. versionadded:: 2.1.0
 
 .. method:: Connection.encode_oson(value)
 
-    Encodes a Python value into `OSON-encoded
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
+    Encodes a Python value into `OSON-encoded <https://www.oracle.com/pls/
+    topic/lookup?ctx=dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__
     bytes and returns them. This is useful for inserting into columns which
     have the check constraint ``IS JSON FORMAT OSON`` enabled.
 
@@ -144,8 +143,8 @@ Connection Methods
 
 .. method:: Connection.gettype(name)
 
-    Returns a :ref:`type object <dbobjecttype>` given its name. This can then be
-    used to create objects which can be bound to cursors created by this
+    Returns a :ref:`type object <dbobjecttype>` given its name. This can then
+    be used to create objects which can be bound to cursors created by this
     connection.
 
     .. note::
@@ -154,11 +153,12 @@ Connection Methods
 
 .. method:: Connection.is_healthy()
 
-    This function returns a boolean indicating the health status of a connection.
+    This function returns a boolean indicating the health status of a
+    connection.
 
-    Connections may become unusable in several cases, such as, if the network socket
-    is broken, if an Oracle error indicates the connection is unusable, or, after
-    receiving a planned down notification from the database.
+    Connections may become unusable in several cases, such as, if the network
+    socket is broken, if an Oracle error indicates the connection is unusable,
+    or, after receiving a planned down notification from the database.
 
     This function is best used before starting a new database request on an
     existing :ref:`standalone connections <standaloneconnection>`. For pooled
@@ -166,8 +166,8 @@ Connection Methods
     performs this check before returning a connection to the application, see
     :ref:`poolhealth`.
 
-    If this function returns False, the connection should be not be used by the
-    application and a new connection should be established instead.
+    If this function returns *False*, the connection should be not be used by
+    the application and a new connection should be established instead.
 
     This function performs a local check. To fully check a connection's health,
     use :meth:`Connection.ping()` which performs a round-trip to the database.
@@ -200,9 +200,9 @@ Connection Methods
 
 .. method:: Connection.prepare()
 
-    Prepares the distributed (global) transaction for commit. Return a boolean
+    Prepares the distributed (global) transaction for commit. Returns a boolean
     indicating if a transaction was actually prepared in order to avoid the
-    error ORA-24756 (transaction does not exist).
+    error ``ORA-24756 (transaction does not exist)``.
 
     .. deprecated:: python-oracledb 1.0
 
@@ -226,7 +226,7 @@ Connection Methods
     dequeued. If not specified, RAW data is enqueued and dequeued.
 
     For consistency and compliance with the PEP 8 naming style, the
-    parameter `payloadType` was renamed to `payload_type`. The old name
+    parameter ``payloadType`` was renamed to ``payload_type``. The old name
     will continue to work as a keyword parameter for a period of time.
 
     .. note::
@@ -239,9 +239,10 @@ Connection Methods
 
 .. method:: Connection.shutdown([mode])
 
-    Shuts down the database. In order to do this the connection must be connected
-    as :data:`~oracledb.SYSDBA` or :data:`~oracledb.SYSOPER`. Two calls must
-    be made unless the mode specified is :data:`~oracledb.DBSHUTDOWN_ABORT`.
+    Shuts down the database. In order to do this the connection must be
+    connected as :data:`~oracledb.SYSDBA` or :data:`~oracledb.SYSOPER`. Two
+    calls must be made unless the mode specified is
+    :data:`~oracledb.DBSHUTDOWN_ABORT`.
     An example is shown below:
 
     ::
@@ -262,14 +263,14 @@ Connection Methods
 
 .. method:: Connection.startup(force=False, restrict=False, pfile=None)
 
-    Starts up the database. This is equivalent to the SQL\*Plus command "startup
-    nomount". The connection must be connected as :data:`~oracledb.SYSDBA` or
-    :data:`~oracledb.SYSOPER` with the :data:`~oracledb.PRELIM_AUTH` option
-    specified for this to work.
+    Starts up the database. This is equivalent to the SQL\*Plus command
+    ``startup nomount``. The connection must be connected as
+    :data:`~oracledb.SYSDBA` or :data:`~oracledb.SYSOPER` with the
+    :data:`~oracledb.PRELIM_AUTH` option specified for this to work.
 
-    The ``pfile`` parameter, if specified, is expected to be a string identifying
-    the location of the parameter file (PFILE) which will be used instead of
-    the stored parameter file (SPFILE).
+    The ``pfile`` parameter, if specified, is expected to be a string
+    identifying the location of the parameter file (PFILE) which will be used
+    instead of the stored parameter file (SPFILE).
 
     An example is shown below:
 
@@ -299,39 +300,40 @@ Connection Methods
     notifications for events that take place in the database that match the
     given parameters.
 
-    The ``namespace`` parameter specifies the namespace the subscription uses. It
-    can be one of :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE` or
+    The ``namespace`` parameter specifies the namespace the subscription uses.
+    It can be one of :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE` or
     :data:`oracledb.SUBSCR_NAMESPACE_AQ`.
 
-    The ``protocol`` parameter specifies the protocol to use when notifications are
-    sent. Currently the only valid value is :data:`oracledb.SUBSCR_PROTO_OCI`.
+    The ``protocol`` parameter specifies the protocol to use when notifications
+    are sent. Currently the only valid value is
+    :data:`oracledb.SUBSCR_PROTO_OCI`.
 
-    The ``callback`` is expected to be a callable that accepts a single parameter.
-    A :ref:`message object <msgobjects>` is passed to this callback whenever a
-    notification is received.
+    The ``callback`` is expected to be a callable that accepts a single
+    parameter. A :ref:`message object <msgobjects>` is passed to this callback
+    whenever a notification is received.
 
-    The ``timeout`` value specifies that the subscription expires after the given
-    time in seconds. The default value of 0 indicates that the subscription
-    never expires.
+    The ``timeout`` value specifies that the subscription expires after the
+    given time in seconds. The default value of *0* indicates that the
+    subscription never expires.
 
-    The ``operations`` parameter enables filtering of the messages that are sent
-    (insert, update, delete). The default value will send notifications for all
-    operations. This parameter is only used when the namespace is set to
-    :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE`.
+    The ``operations`` parameter enables filtering of the messages that are
+    sent (insert, update, delete). The default value will send notifications
+    for all operations. This parameter is only used when the namespace is set
+    to :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE`.
 
-    The ``port`` parameter specifies the listening port for callback notifications
-    from the database server. If not specified, an unused port will be selected
-    by the Oracle Client libraries.
+    The ``port`` parameter specifies the listening port for callback
+    notifications from the database server. If not specified, an unused port
+    will be selected by the Oracle Client libraries.
 
-    The ``qos`` parameter specifies quality of service options. It should be one or
-    more of the following flags, OR'ed together:
+    The ``qos`` parameter specifies quality of service options. It should be
+    one or more of the following flags, OR'ed together:
     :data:`oracledb.SUBSCR_QOS_RELIABLE`,
     :data:`oracledb.SUBSCR_QOS_DEREG_NFY`,
     :data:`oracledb.SUBSCR_QOS_ROWIDS`,
     :data:`oracledb.SUBSCR_QOS_QUERY`,
     :data:`oracledb.SUBSCR_QOS_BEST_EFFORT`.
 
-    The ``ip_address`` parameter specifies the IP address (IPv4 or IPv6) in
+    The ``ip_address`` parameter specifies the IP address (*IPv4* or *IPv6*) in
     standard string notation to bind for callback notifications from the
     database server. If not specified, the client IP address will be determined
     by the Oracle Client libraries.
@@ -340,12 +342,12 @@ Connection Methods
     notifications should take place. Currently, if set, this value can only be
     set to the value :data:`oracledb.SUBSCR_GROUPING_CLASS_TIME`, which
     will group notifications by the number of seconds specified in the
-    ``grouping_value`` parameter. The ``grouping_type`` parameter should be one of the
-    values :data:`oracledb.SUBSCR_GROUPING_TYPE_SUMMARY` (the default) or
-    :data:`oracledb.SUBSCR_GROUPING_TYPE_LAST`.
+    ``grouping_value`` parameter. The ``grouping_type`` parameter should be one
+    of the values :data:`oracledb.SUBSCR_GROUPING_TYPE_SUMMARY` (the default)
+    or :data:`oracledb.SUBSCR_GROUPING_TYPE_LAST`.
 
-    The ``name`` parameter is used to identify the subscription and is specific to
-    the selected namespace. If the namespace parameter is
+    The ``name`` parameter is used to identify the subscription and is
+    specific to the selected namespace. If the namespace parameter is
     :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE` then the name is optional and
     can be any value. If the namespace parameter is
     :data:`oracledb.SUBSCR_NAMESPACE_AQ`, however, the name must be in the
@@ -360,11 +362,11 @@ Connection Methods
     Client 19.4 and Oracle Database 19.4 and higher.
 
     For consistency and compliance with the PEP 8 naming style, the
-    parameter `ipAddress` was renamed to `ip_address`, the parameter
-    `groupingClass` was renamed to `grouping_class`, the parameter
-    `groupingValue` was renamed to `grouping_value`, the parameter
-    `groupingType` was renamed to `grouping_type` and the parameter
-    `clientInitiated` was renamed to `client_initiated`. The old names will
+    parameter ``ipAddress`` was renamed to ``ip_address``, the parameter
+    ``groupingClass`` was renamed to ``grouping_class``, the parameter
+    ``groupingValue`` was renamed to ``grouping_value``, the parameter
+    ``groupingType`` was renamed to ``grouping_type`` and the parameter
+    ``clientInitiated`` was renamed to ``client_initiated``. The old names will
     continue to work as keyword parameters for a period of time.
 
     .. note::
@@ -384,21 +386,23 @@ Connection Methods
     Begins a Two-Phase Commit (TPC) on a global transaction using the specified
     transaction identifier (xid).
 
-    The ``xid`` parameter should be an object returned by the :meth:`~Connection.xid()`
-    method.
+    The ``xid`` parameter should be an object returned by the
+    :meth:`~Connection.xid()` method.
 
-    The ``flags`` parameter is one of the constants :data:`oracledb.TPC_BEGIN_JOIN`,
-    :data:`oracledb.TPC_BEGIN_NEW`, :data:`oracledb.TPC_BEGIN_PROMOTE`, or
-    :data:`oracledb.TPC_BEGIN_RESUME`. The default is :data:`oracledb.TPC_BEGIN_NEW`.
+    The ``flags`` parameter is one of the constants
+    :data:`oracledb.TPC_BEGIN_JOIN`, :data:`oracledb.TPC_BEGIN_NEW`,
+    :data:`oracledb.TPC_BEGIN_PROMOTE`, or :data:`oracledb.TPC_BEGIN_RESUME`.
+    The default is :data:`oracledb.TPC_BEGIN_NEW`.
 
-    The ``timeout`` parameter is the number of seconds to wait for a transaction to
-    become available for resumption when :data:`~oracledb.TPC_BEGIN_RESUME` is
-    specified in the ``flags`` parameter. When :data:`~oracledb.TPC_BEGIN_NEW` is
-    specified in the ``flags`` parameter, the ``timeout`` parameter indicates the
-    number of seconds the transaction can be inactive before it is automatically
-    terminated by the system. A transaction is inactive between the time it is
-    detached with :meth:`Connection.tpc_end()` and the time it is resumed with
-    :meth:`Connection.tpc_begin()`.The default is 0 seconds.
+    The ``timeout`` parameter is the number of seconds to wait for a
+    transaction to become available for resumption when
+    :data:`~oracledb.TPC_BEGIN_RESUME` is specified in the ``flags`` parameter.
+    When :data:`~oracledb.TPC_BEGIN_NEW` is specified in the ``flags``
+    parameter, the ``timeout`` parameter indicates the number of seconds the
+    transaction can be inactive before it is automatically terminated by the
+    system. A transaction is inactive between the time it is detached with
+    :meth:`Connection.tpc_end()` and the time it is resumed with
+    :meth:`Connection.tpc_begin()`.The default is *0* seconds.
 
     The following code sample demonstrates the ``tpc_begin()`` function::
 
@@ -409,22 +413,25 @@ Connection Methods
 
 .. method:: Connection.tpc_commit(xid, one_phase)
 
-    Commits a global transaction. When called with no arguments, this method commits
-    a transaction previously prepared with :meth:`~Connection.tpc_begin()` and optionally
-    prepared with :meth:`~Connection.tpc_prepare()`. If :meth:`~Connection.tpc_prepare()`
-    is not called, a single phase commit is performed. A transaction manager may choose
-    to do this if only a single resource is participating in the global transaction.
+    Commits a global transaction. When called with no arguments, this method
+    commits a transaction previously prepared with
+    :meth:`~Connection.tpc_begin()` and optionally prepared with
+    :meth:`~Connection.tpc_prepare()`. If :meth:`~Connection.tpc_prepare()`
+    is not called, a single phase commit is performed. A transaction manager
+    may choose to do this if only a single resource is participating in the
+    global transaction.
 
     If an ``xid`` parameter is passed, then an object should be returned by the
     :meth:`~Connection.xid()` function. This form should be called outside of a
     transaction and is intended for use in recovery.
 
-    The ``one_phase`` parameter is a boolean identifying whether to perform a one-phase
-    or two-phase commit. If ``one_phase`` parameter is True, a single-phase commit is performed.
-    The default value is False. This parameter is only examined if a value is provided
-    for the ``xid`` parameter. Otherwise, the driver already knows whether
-    :meth:`~Connection.tpc_prepare()` was called for the transaction and whether a
-    one-phase or two-phase commit is required.
+    The ``one_phase`` parameter is a boolean identifying whether to perform a
+    one-phase or two-phase commit. If ``one_phase`` parameter is *True*, a
+    single-phase commit is performed. The default value is *False*. This
+    parameter is only examined if a value is provided for the ``xid``
+    parameter. Otherwise, the driver already knows whether
+    :meth:`~Connection.tpc_prepare()` was called for the transaction and
+    whether a one-phase or two-phase commit is required.
 
     The following code sample demonstrates the ``tpc_commit()`` function::
 
@@ -435,15 +442,17 @@ Connection Methods
 
 .. method:: Connection.tpc_end(xid, flags)
 
-    Ends or suspends work on a global transaction. This function is only intended
-    for use by transaction managers.
+    Ends or suspends work on a global transaction. This function is only
+    intended for use by transaction managers.
 
     If an ``xid`` parameter is passed, then an object should be returned by the
     :meth:`~Connection.xid()` function. If no xid parameter is passed, then the
-    transaction identifier used by the previous :meth:`~Connection.tpc_begin()` is used.
+    transaction identifier used by the previous :meth:`~Connection.tpc_begin()`
+    is used.
 
-    The ``flags`` parameter is one of the constants :data:`oracledb.TPC_END_NORMAL` or
-    :data:`oracledb.TPC_END_SUSPEND`. The default is :data:`oracledb.TPC_END_NORMAL`.
+    The ``flags`` parameter is one of the constants
+    :data:`oracledb.TPC_END_NORMAL` or :data:`oracledb.TPC_END_SUSPEND`. The
+    default is :data:`oracledb.TPC_END_NORMAL`.
 
     If the flag is :data:`oracledb.TPC_END_SUSPEND` then the transaction may be
     resumed later by calling :meth:`Connection.tpc_begin()` with the flag
@@ -458,11 +467,11 @@ Connection Methods
 
 .. method:: Connection.tpc_forget(xid)
 
-    Causes the database to forget a heuristically completed TPC transaction. This
-    function is only intended to be called by transaction managers.
+    Causes the database to forget a heuristically completed TPC transaction.
+    This function is only intended to be called by transaction managers.
 
-    The ``xid`` parameter is mandatory and should be an object should be returned by
-    the :meth:`~Connection.xid()` function.
+    The ``xid`` parameter is mandatory and should be an object should be
+    returned by the :meth:`~Connection.xid()` function.
 
     The following code sample demonstrates the ``tpc_forget()`` function::
 
@@ -478,13 +487,14 @@ Connection Methods
     :meth:`~Connection.tpc_commit()` or :meth:`~Connection.tpc_rollback()` have
     been called.
 
-    Returns a boolean indicating whether a commit is needed or not. If you attempt to
-    commit when not needed, then it results in the error ``ORA-24756: transaction does not
-    exist``.
+    Returns a boolean indicating whether a commit is needed or not. If you
+    attempt to commit when not needed, then it results in the error
+    ``ORA-24756: transaction does not exist``.
 
-    If an ``xid`` parameter is passed, then an object should be returned by the
-    :meth:`~Connection.xid()` function. If an xid parameter is not passed, then the
-    transaction identifier used by the previous :meth:`~Connection.tpc_begin()` is used.
+    If an ``xid`` parameter is passed, then an object should be returned by
+    the :meth:`~Connection.xid()` function. If an ``xid`` parameter is not
+    passed, then the transaction identifier used by the previous
+    :meth:`~Connection.tpc_begin()` is used.
 
     The following code sample demonstrates the ``tpc_prepare()`` function::
 
@@ -495,13 +505,14 @@ Connection Methods
 
 .. method:: Connection.tpc_recover()
 
-    Returns a list of pending transaction identifiers that require recovery. Objects of
-    type ``Xid`` (as returned by the :meth:`~Connection.xid()` function) are returned and
-    these can be passed to :meth:`~Connection.tpc_commit()` or :meth:`~Connection.tpc_rollback()`
-    as needed.
+    Returns a list of pending transaction identifiers that require recovery.
+    Objects of type ``Xid`` (as returned by the :meth:`~Connection.xid()`
+    function) are returned and these can be passed to
+    :meth:`~Connection.tpc_commit()` or :meth:`~Connection.tpc_rollback()` as
+    needed.
 
-    This function queries the view ``DBA_PENDING_TRANSACTIONS`` and requires ``SELECT``
-    privilege on that view.
+    This function queries the DBA_PENDING_TRANSACTIONS view and requires
+    "SELECT" privilege on that view.
 
     The following code sample demonstrates the ``tpc_recover()`` function::
 
@@ -514,12 +525,13 @@ Connection Methods
 
     Rolls back a global transaction.
 
-    If an ``xid`` parameter is not passed, then it rolls back the transaction that was previously
-    started with :meth:`~Connection.tpc_begin()`.
+    If an ``xid`` parameter is not passed, then it rolls back the transaction
+    that was previously started with :meth:`~Connection.tpc_begin()`.
 
     If an ``xid`` parameter is passed, then an object should be returned by
-    :meth:`~Connection.xid()` and the specified transaction is rolled back. This form
-    should be called outside of a transaction and is intended for use in recovery.
+    :meth:`~Connection.xid()` and the specified transaction is rolled back.
+    This form should be called outside of a transaction and is intended for
+    use in recovery.
 
     The following code sample demonstrates the ``tpc_rollback()`` function::
 
@@ -545,13 +557,15 @@ Connection Methods
     values are checked by ODPI-C when they are passed to the relevant functions.
     .. When this functionality is also supported in the thin driver the checks will be performed at the Python level as well.
 
-    The ``format_id`` parameter should be a positive 32-bit integer. This value identifies
-    the format of the global_transaction_id and branch_qualifier parameters and the
-    value is determined by the Transaction Manager (TM), if one is in use.
+    The ``format_id`` parameter should be a positive 32-bit integer. This
+    value identifies the format of the ``global_transaction_id`` and
+    ``branch_qualifier`` parameters and the value is determined by the
+    Transaction Manager (TM), if one is in use.
 
-    The ``global_transaction_id`` and branch_qualifier parameters should be of type
-    bytes or string. If a value of type string is passed, then this value will be
-    UTF-8 encoded to bytes. The values cannot exceed 64 bytes in length.
+    The ``global_transaction_id`` and ``branch_qualifier`` parameters should
+    be of type bytes or string. If a value of type string is passed, then
+    this value will be UTF-8 encoded to bytes. The values cannot exceed 64
+    bytes in length.
 
     The following code sample demonstrates the ``xid()`` function::
 
@@ -567,7 +581,7 @@ Connection Attributes
 .. attribute:: Connection.action
 
     This write-only attribute sets the ACTION column in the V$SESSION view. It
-    is a string attribute but the value None is accepted and treated as an
+    is a string attribute but the value *None* is accepted and treated as an
     empty string.
 
     .. note::
@@ -588,15 +602,15 @@ Connection Attributes
 
     This read-write attribute specifies the amount of time (in milliseconds)
     that a single round-trip to the database may take before a timeout will
-    occur. A value of 0 means that no timeout will take place.
+    occur. A value of *0* means that no timeout will take place.
 
-    If a timeout occurs, the error *DPI-1067* will be returned if the
-    connection is still usable.  Alternatively the error *DPI-1080* will be
+    If a timeout occurs, the error ``DPI-1067`` will be returned if the
+    connection is still usable.  Alternatively the error ``DPI-1080`` will be
     returned if the connection has become invalid and can no longer be used.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `callTimeout` was renamed to `call_timeout`. The old name
-    will continue to work for a period of time.  The error *DPI-1080* was
+    attribute ``callTimeout`` was renamed to ``call_timeout``. The old name
+    will continue to work for a period of time.  The error ``DPI-1080`` was
     also introduced in this release.
 
     .. note::
@@ -718,9 +732,10 @@ Connection Attributes
     This read-write attribute specifies a method called for each value that is
     bound to a statement executed on any cursor associated with this
     connection.  The method signature is handler(cursor, value, arraysize) and
-    the return value is expected to be a variable object or None in which case
-    a default variable object will be created. If this attribute is None, the
-    default behavior will take place for all values bound to statements.
+    the return value is expected to be a variable object or *None* in which
+    case a default variable object will be created. If this attribute is
+    *None*, the default behavior will take place for all values bound to
+    statements.
 
     See :ref:`inputtypehandlers`.
 
@@ -769,7 +784,7 @@ Connection Attributes
     established.  See `Database Object Naming Rules
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-75337742-67FD-4EC0-985F-741C93D918DA>`__. The value may be
-    ``None``, 30, or 128. The value ``None`` indicates the size cannot be
+    *None*, *30*, or *128*. The value *None* indicates the size cannot be
     reliably determined by python-oracledb, which occurs when using Thick mode
     with Oracle Client libraries 12.1 (or older) to connect to Oracle Database
     12.2, or later.
@@ -792,7 +807,7 @@ Connection Attributes
 
     This write-only attribute sets the MODULE column in the V$SESSION view.
     The maximum length for this string is 48 and if you exceed this length you
-    will get ORA-24960.
+    will get ``ORA-24960``.
 
     .. note:
 
@@ -804,8 +819,8 @@ Connection Attributes
     This read-write attribute specifies a method called for each column that is
     going to be fetched from any cursor associated with this connection. The
     method signature is ``handler(cursor, metadata)`` and the return value is
-    expected to be a :ref:`variable object<varobj>` or None in which case a
-    default variable object will be created. If this attribute is None, the
+    expected to be a :ref:`variable object<varobj>` or *None* in which case a
+    default variable object will be created. If this attribute is *None*, the
     default behavior will take place for all columns fetched from cursors.
 
     See :ref:`outputtypehandlers`.
@@ -901,7 +916,7 @@ Connection Attributes
     value can make a significant difference in performance if you have a small
     number of statements that you execute repeatedly.
 
-    The default value is 20.
+    The default value is *20*.
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
@@ -914,13 +929,13 @@ Connection Attributes
     This read-write attribute initially contains the actual tag of the session
     that was acquired from a pool by :meth:`ConnectionPool.acquire()`. If the
     connection was not acquired from a pool or no tagging parameters were
-    specified (``tag`` and ``matchanytag``) when the connection was acquired from the
-    pool, this value will be None. If the value is changed, it must be a string
-    containing name=value pairs like "k1=v1;k2=v2".
+    specified (``tag`` and ``matchanytag``) when the connection was acquired
+    from the pool, this value will be None. If the value is changed, it must
+    be a string containing name=value pairs like "k1=v1;k2=v2".
 
-    If this value is not None when the connection is released back to the pool
-    it will be used to retag the session. This value can be overridden in the
-    call to :meth:`ConnectionPool.release()`.
+    If this value is not *None* when the connection is released back to the
+    pool it will be used to retag the session. This value can be overridden in
+    the call to :meth:`ConnectionPool.release()`.
 
     .. note::
 
@@ -929,8 +944,8 @@ Connection Attributes
 .. attribute:: Connection.thin
 
     This read-only attribute returns a boolean indicating if the connection was
-    established with the python-oracledb Thin mode (True) or python-oracledb
-    Thick mode (False).
+    established with the python-oracledb Thin mode (*True*) or python-oracledb
+    Thick mode (*False*).
 
     .. note::
 
@@ -994,7 +1009,7 @@ Connection Attributes
     connection creations, in which case those connection warnings will be
     returned.
 
-    If no warning was generated the value ``None`` is returned.
+    If no warning was generated the value *None* is returned.
 
     .. versionadded:: 2.0.0
 

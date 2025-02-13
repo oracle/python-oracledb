@@ -173,7 +173,7 @@ PipelineOp Attributes
 
     This read-only attribute returns the :ref:`array size <tuningfetch>` that
     will be used when fetching query rows with :meth:`Pipeline.add_fetchall()`.
-    For all other operations, the value returned is 0.
+    For all other operations, the value returned is *0*.
 
 .. attribute:: PipelineOp.keyword_parameters
 
@@ -189,7 +189,7 @@ PipelineOp Attributes
 
     This read-only attribute returns the number of rows to fetch when
     performing a query of a specific number of rows. For all other operations,
-    the value returned is 0.
+    the value returned is *0*.
 
 .. attribute:: PipelineOp.op_type
 
@@ -232,7 +232,7 @@ PipelineOpResult Attributes
 .. attribute:: PipelineOpResult.columns
 
     This read-only attribute is a list of :ref:`FetchInfo<fetchinfoobj>`
-    objects. This attribute will be None for operations that do not return
+    objects. This attribute will be *None* for operations that do not return
     rows.
 
     .. versionadded:: 2.5.0
@@ -240,7 +240,7 @@ PipelineOpResult Attributes
 .. attribute:: PipelineOpResult.error
 
     This read-only attribute returns the error that occurred when running this
-    operation. If no error occurred, then the value None is returned.
+    operation. If no error occurred, then the value *None* is returned.
 
 .. attribute:: PipelineOpResult.operation
 
@@ -260,7 +260,8 @@ PipelineOpResult Attributes
 .. attribute:: PipelineOpResult.warning
 
     This read-only attribute returns any warning that was encountered when
-    running this operation. If no warning was encountered, then the value None
-    is returned. See :ref:`PL/SQL Compilation Warnings <pipelinewarning>`.
+    running this operation. If no warning was encountered, then the value
+    *None* is returned. See :ref:`PL/SQL Compilation Warnings
+    <pipelinewarning>`.
 
     .. versionadded:: 2.5.0

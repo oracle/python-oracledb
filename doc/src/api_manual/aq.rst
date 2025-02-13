@@ -25,7 +25,7 @@ Queue Methods
 
     Dequeues up to the specified number of messages from the queue and returns
     a list of these messages. Each element of the returned list is a
-    :ref:`message property<msgproperties>` object.
+    :ref:`message property <msgproperties>` object.
 
     For consistency and compliance with the PEP 8 naming style, the name of
     the method was changed from `deqMany()`. The old name will continue to
@@ -34,8 +34,8 @@ Queue Methods
 .. method:: Queue.deqone()
 
     Dequeues at most one message from the queue. If a message is dequeued, it
-    will be a :ref:`message property<msgproperties>` object; otherwise, it will
-    be the value None.
+    will be a :ref:`message property <msgproperties>` object; otherwise, it will
+    be the value *None*.
 
     For consistency and compliance with the PEP 8 naming style, the name of
     the method was changed from `deqOne()`. The old name will continue to
@@ -85,7 +85,7 @@ Queue Attributes
     <deqoptions>` that will be used when dequeuing messages from the queue.
 
     For consistency and compliance with the PEP 8 naming style, the name of
-    the attribute was changed from `deqOptions`. The old name will continue
+    the attribute was changed from ``deqOptions``. The old name will continue
     to work for a period of time.
 
 .. attribute:: Queue.enqoptions
@@ -94,7 +94,7 @@ Queue Attributes
     <enqoptions>` that will be used when enqueuing messages into the queue.
 
     For consistency and compliance with the PEP 8 naming style, the name of
-    the attribute was changed from `enqOptions`. The old name will continue
+    the attribute was changed from ``enqOptions``. The old name will continue
     to work for a period of time.
 
 .. attribute:: Queue.name
@@ -105,10 +105,10 @@ Queue Attributes
 
     This read-only attribute returns the object type for payloads that can be
     enqueued and dequeued. If using a JSON queue, this returns the value
-    ``"JSON"``. If using a raw queue, this returns the value ``None``.
+    ``"JSON"``. If using a raw queue, this returns the value *None*.
 
     For consistency and compliance with the PEP 8 naming style, the name of
-    the attribute was changed from `payloadType`. The old name will
+    the attribute was changed from ``payloadType``. The old name will
     continue to work for a period of time.
 
 
@@ -311,7 +311,7 @@ Message Properties
 
     This read-only attribute specifies the id of the message in the last queue
     that enqueued or dequeued the message. If the message has never been
-    dequeued or enqueued, the value will be `None`.
+    dequeued or enqueued, the value will be *None*.
 
 
 .. attribute:: MessageProperties.payload
@@ -327,7 +327,7 @@ Message Properties
 
     This read-write attribute specifies the priority of the message. A smaller
     number indicates a higher priority. The priority can be any integer, including
-    negative numbers. The default value is zero.
+    negative numbers. The default value is *0*.
 
 
 .. attribute:: MessageProperties.state

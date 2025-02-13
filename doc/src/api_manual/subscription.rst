@@ -14,11 +14,11 @@ Subscription Methods
 .. method:: Subscription.registerquery(statement, [args])
 
     Registers the query for subsequent notification when tables referenced by
-    the query are changed. This behaves similarly to :meth:`Cursor.execute()` but only
-    queries are permitted and the ``args`` parameter must be a sequence or
-    dictionary.  If the ``qos`` parameter included the flag
-    :data:`oracledb.SUBSCR_QOS_QUERY` when the subscription was created, then the ID
-    for the registered query is returned; otherwise, None is returned.
+    the query are changed. This behaves similarly to :meth:`Cursor.execute()`
+    but only queries are permitted and the ``args`` parameter must be a
+    sequence or dictionary.  If the ``qos`` parameter included the flag
+    :data:`oracledb.SUBSCR_QOS_QUERY` when the subscription was created, then
+    the ID for the registered query is returned; otherwise, *None* is returned.
 
 Subscription Attributes
 =======================
@@ -37,20 +37,20 @@ Subscription Attributes
 
 .. attribute:: Subscription.id
 
-    This read-only attribute returns the value of ``REGID`` found in the
-    database view ``USER_CHANGE_NOTIFICATION_REGS`` or the value of ``REG_ID``
-    found in the database view ``USER_SUBSCR_REGISTRATIONS``. For AQ
-    subscriptions, the value is 0.
+    This read-only attribute returns the value of the REGID column found in the
+    database view USER_CHANGE_NOTIFICATION_REGS or the value of the REG_ID
+    column found in the database view USER_SUBSCR_REGISTRATIONS. For AQ
+    subscriptions, the value is *0*.
 
 
 .. attribute:: Subscription.ip_address
 
     This read-only attribute returns the IP address used for callback
     notifications from the database server. If not set during construction,
-    this value is None.
+    this value is *None*.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `ipAddress` was renamed to `ip_address`. The old name will
+    attribute ``ipAddress`` was renamed to ``ip_address``. The old name will
     continue to work for a period of time.
 
 
@@ -77,7 +77,7 @@ Subscription Attributes
 
     This read-only attribute returns the port used for callback notifications
     from the database server. If not set during construction, this value is
-    zero.
+    *0*.
 
 
 .. attribute:: Subscription.protocol
@@ -95,7 +95,7 @@ Subscription Attributes
 .. attribute:: Subscription.timeout
 
     This read-only attribute returns the timeout (in seconds) that was
-    specified when the subscription was created. A value of 0 indicates that
+    specified when the subscription was created. A value of *0* indicates that
     there is no timeout.
 
 
@@ -117,7 +117,7 @@ Message Objects
     multiple consumer queue.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `consumerName` was renamed to `consumer_name`. The old name
+    attribute ``consumerName`` was renamed to ``consumer_name``. The old name
     will continue to work for a period of time.
 
 
@@ -148,7 +148,7 @@ Message Objects
     with the namespace :data:`oracledb.SUBSCR_NAMESPACE_AQ`.
 
     For consistency and compliance with the PEP 8 naming style, the
-    attribute `queueName` was renamed to `queue_name`. The old name will
+    attribute ``queueName`` was renamed to ``queue_name``. The old name will
     continue to work for a period of time.
 
 
@@ -251,7 +251,7 @@ MessageQuery Objects
 
     This read-only attribute returns the query id of the query for which the
     result set changed. The value will match the value returned by
-    Subscription.registerquery when the related query was registered.
+    :meth:`Subscription.registerquery()` when the related query was registered.
 
 
 .. attribute:: MessageQuery.operation
