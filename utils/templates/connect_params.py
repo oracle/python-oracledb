@@ -33,7 +33,7 @@
 
 import functools
 import ssl
-from typing import Union, Callable, Any
+from typing import Union, Callable, Any, Optional
 
 import oracledb
 

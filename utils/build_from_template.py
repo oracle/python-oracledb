@@ -187,7 +187,7 @@ def args_with_defaults_content(indent):
     Generates the content for the args_with_defaults template tag.
     """
     args_joiner = "\n" + indent
-    args = [f"{f.name}: {f.typ} = {f.default}," for f in fields]
+    args = [f"{f.name}: Optional[{f.typ}] = None," for f in fields]
     return args_joiner.join(args)
 
 
@@ -217,7 +217,7 @@ def async_args_with_defaults_content(indent):
     Generates the content for the async_args_with_defaults template tag.
     """
     args_joiner = "\n" + indent
-    args = [f"{f.name}: {f.async_typ} = {f.default}," for f in fields]
+    args = [f"{f.name}: Optional[{f.async_typ}] = None," for f in fields]
     return args_joiner.join(args)
 
 
@@ -242,7 +242,7 @@ def params_constructor_args_content(indent):
     """
     args_joiner = f"\n{indent}"
     args = ["self,", "*,"] + [
-        f"{f.name}: {f.typ} = {f.default}," for f in fields
+        f"{f.name}: Optional[{f.typ}] = None," for f in fields
     ]
     return args_joiner.join(args)
 
@@ -334,7 +334,9 @@ def params_setter_args_content(indent):
     Generates the content for the params_setter_args template tag.
     """
     args_joiner = f"\n{indent}"
-    args = ["self,", "*,"] + [f"{f.name}: {f.typ} = None," for f in fields]
+    args = ["self,", "*,"] + [
+        f"{f.name}: Optional[{f.typ}] = None," for f in fields
+    ]
     return args_joiner.join(args)
 
 

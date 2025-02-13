@@ -34,7 +34,7 @@
 import functools
 import ssl
 import threading
-from typing import Callable, Type, Union, Any
+from typing import Callable, Type, Union, Any, Optional
 
 import oracledb
 
@@ -51,10 +51,10 @@ class BaseConnectionPool:
 
     def __init__(
         self,
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
-        params: PoolParams = None,
-        cache_name=None,
+        params: Optional[PoolParams] = None,
+        cache_name: Optional[str] = None,
         **kwargs,
     ) -> None:
         """
@@ -377,14 +377,14 @@ class ConnectionPool(BaseConnectionPool):
 
     def acquire(
         self,
-        user: str = None,
-        password: str = None,
-        cclass: str = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        cclass: Optional[str] = None,
         purity: int = oracledb.PURITY_DEFAULT,
-        tag: str = None,
+        tag: Optional[str] = None,
         matchanytag: bool = False,
-        shardingkey: list = None,
-        supershardingkey: list = None,
+        shardingkey: Optional[list] = None,
+        supershardingkey: Optional[list] = None,
     ) -> "connection_module.Connection":
         """
         Acquire a connection from the pool and return it.
@@ -456,7 +456,9 @@ class ConnectionPool(BaseConnectionPool):
         connection._impl = None
 
     def release(
-        self, connection: "connection_module.Connection", tag: str = None
+        self,
+        connection: "connection_module.Connection",
+        tag: Optional[str] = None,
     ) -> None:
         """
         Release the connection back to the pool now, rather than whenever
@@ -489,17 +491,17 @@ class ConnectionPool(BaseConnectionPool):
 
     def reconfigure(
         self,
-        min: int = None,
-        max: int = None,
-        increment: int = None,
-        getmode: int = None,
-        timeout: int = None,
-        wait_timeout: int = None,
-        max_lifetime_session: int = None,
-        max_sessions_per_shard: int = None,
-        soda_metadata_cache: bool = None,
-        stmtcachesize: int = None,
-        ping_interval: int = None,
+        min: Optional[int] = None,
+        max: Optional[int] = None,
+        increment: Optional[int] = None,
+        getmode: Optional[int] = None,
+        timeout: Optional[int] = None,
+        wait_timeout: Optional[int] = None,
+        max_lifetime_session: Optional[int] = None,
+        max_sessions_per_shard: Optional[int] = None,
+        soda_metadata_cache: Optional[bool] = None,
+        stmtcachesize: Optional[int] = None,
+        ping_interval: Optional[int] = None,
     ) -> None:
         """
         Reconfigures various parameters of a connection pool. The pool size
@@ -576,11 +578,11 @@ def _pool_factory(f):
 
     @functools.wraps(f)
     def create_pool(
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
         pool_class: Type[ConnectionPool] = ConnectionPool,
-        pool_alias: str = None,
-        params: PoolParams = None,
+        pool_alias: Optional[str] = None,
+        params: Optional[PoolParams] = None,
         **kwargs,
     ) -> ConnectionPool:
         f(
@@ -599,11 +601,11 @@ def _pool_factory(f):
 
 @_pool_factory
 def create_pool(
-    dsn: str = None,
+    dsn: Optional[str] = None,
     *,
     pool_class: Type[ConnectionPool] = ConnectionPool,
-    pool_alias: str = None,
-    params: PoolParams = None,
+    pool_alias: Optional[str] = None,
+    params: Optional[PoolParams] = None,
     # {{ args_with_defaults }}
 ) -> ConnectionPool:
     """
@@ -659,14 +661,14 @@ class AsyncConnectionPool(BaseConnectionPool):
 
     def acquire(
         self,
-        user: str = None,
-        password: str = None,
-        cclass: str = None,
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+        cclass: Optional[str] = None,
         purity: int = oracledb.PURITY_DEFAULT,
-        tag: str = None,
+        tag: Optional[str] = None,
         matchanytag: bool = False,
-        shardingkey: list = None,
-        supershardingkey: list = None,
+        shardingkey: Optional[list] = None,
+        supershardingkey: Optional[list] = None,
     ) -> "connection_module.AsyncConnection":
         """
         Acquire a connection from the pool and return it.
@@ -740,7 +742,9 @@ class AsyncConnectionPool(BaseConnectionPool):
         connection._impl = None
 
     async def release(
-        self, connection: "connection_module.AsyncConnection", tag: str = None
+        self,
+        connection: "connection_module.AsyncConnection",
+        tag: Optional[str] = None,
     ) -> None:
         """
         Release the connection back to the pool now, rather than whenever
@@ -785,11 +789,11 @@ def _async_pool_factory(f):
 
     @functools.wraps(f)
     def create_pool_async(
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
         pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-        pool_alias: str = None,
-        params: PoolParams = None,
+        pool_alias: Optional[str] = None,
+        params: Optional[PoolParams] = None,
         **kwargs,
     ) -> AsyncConnectionPool:
         f(
@@ -809,11 +813,11 @@ def _async_pool_factory(f):
 
 @_async_pool_factory
 def create_pool_async(
-    dsn: str = None,
+    dsn: Optional[str] = None,
     *,
     pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-    pool_alias: str = None,
-    params: PoolParams = None,
+    pool_alias: Optional[str] = None,
+    params: Optional[PoolParams] = None,
     # {{ async_args_with_defaults }}
 ) -> AsyncConnectionPool:
     """

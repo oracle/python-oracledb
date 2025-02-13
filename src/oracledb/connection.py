@@ -41,7 +41,7 @@ import oracledb
 
 from . import __name__ as MODULE_NAME
 
-from typing import Any, Callable, Type, Union
+from typing import Any, Callable, Type, Union, Optional
 from . import constants, driver_mode, errors
 from . import base_impl, thick_impl, thin_impl
 from . import pool as pool_module
@@ -505,10 +505,10 @@ class Connection(BaseConnection):
 
     def __init__(
         self,
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
-        pool: "pool_module.ConnectionPool" = None,
-        params: ConnectParams = None,
+        pool: Optional["pool_module.ConnectionPool"] = None,
+        params: Optional[ConnectParams] = None,
         **kwargs,
     ) -> None:
         """
@@ -674,7 +674,7 @@ class Connection(BaseConnection):
         self._impl.commit()
 
     def createlob(
-        self, lob_type: DbType, data: Union[str, bytes] = None
+        self, lob_type: DbType, data: Optional[Union[str, bytes]] = None
     ) -> LOB:
         """
         Create and return a new temporary LOB of the specified type.
@@ -752,13 +752,13 @@ class Connection(BaseConnection):
 
     def msgproperties(
         self,
-        payload: Union[bytes, str, DbObject] = None,
-        correlation: str = None,
-        delay: int = None,
-        exceptionq: str = None,
-        expiration: int = None,
-        priority: int = None,
-        recipients: list = None,
+        payload: Optional[Union[bytes, str, DbObject]] = None,
+        correlation: Optional[str] = None,
+        delay: Optional[int] = None,
+        exceptionq: Optional[str] = None,
+        expiration: Optional[int] = None,
+        priority: Optional[int] = None,
+        recipients: Optional[list] = None,
     ) -> MessageProperties:
         """
         Create and return a message properties object. If the parameters are
@@ -807,9 +807,9 @@ class Connection(BaseConnection):
     def queue(
         self,
         name: str,
-        payload_type: Union[DbObjectType, str] = None,
+        payload_type: Optional[Union[DbObjectType, str]] = None,
         *,
-        payloadType: DbObjectType = None,
+        payloadType: Optional[DbObjectType] = None,
     ) -> Queue:
         """
         Creates and returns a queue which is used to enqueue and dequeue
@@ -862,7 +862,10 @@ class Connection(BaseConnection):
         self._impl.shutdown(mode)
 
     def startup(
-        self, force: bool = False, restrict: bool = False, pfile: str = None
+        self,
+        force: bool = False,
+        restrict: bool = False,
+        pfile: Optional[str] = None,
     ) -> None:
         """
         Startup the database. This is equivalent to the SQL*Plus command
@@ -880,19 +883,19 @@ class Connection(BaseConnection):
         self,
         namespace: int = constants.SUBSCR_NAMESPACE_DBCHANGE,
         protocol: int = constants.SUBSCR_PROTO_CALLBACK,
-        callback: Callable = None,
+        callback: Optional[Callable] = None,
         timeout: int = 0,
         operations: int = constants.OPCODE_ALLOPS,
         port: int = 0,
         qos: int = constants.SUBSCR_QOS_DEFAULT,
-        ip_address: str = None,
+        ip_address: Optional[str] = None,
         grouping_class: int = constants.SUBSCR_GROUPING_CLASS_NONE,
         grouping_value: int = 0,
         grouping_type: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
-        name: str = None,
+        name: Optional[str] = None,
         client_initiated: bool = False,
         *,
-        ipAddress: str = None,
+        ipAddress: Optional[str] = None,
         groupingClass: int = constants.SUBSCR_GROUPING_CLASS_NONE,
         groupingValue: int = 0,
         groupingType: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
@@ -1062,7 +1065,9 @@ class Connection(BaseConnection):
             errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
         self._impl.tpc_begin(xid, flags, timeout)
 
-    def tpc_commit(self, xid: Xid = None, one_phase: bool = False) -> None:
+    def tpc_commit(
+        self, xid: Optional[Xid] = None, one_phase: bool = False
+    ) -> None:
         """
         Prepare the global transaction for commit. Return a boolean indicating
         if a transaction was actually prepared in order to avoid the error
@@ -1083,7 +1088,7 @@ class Connection(BaseConnection):
         self._impl.tpc_commit(xid, one_phase)
 
     def tpc_end(
-        self, xid: Xid = None, flags: int = constants.TPC_END_NORMAL
+        self, xid: Optional[Xid] = None, flags: int = constants.TPC_END_NORMAL
     ) -> None:
         """
         Ends (detaches from) a TPC (two-phase commit) transaction.
@@ -1103,7 +1108,7 @@ class Connection(BaseConnection):
         self._verify_xid(xid)
         self._impl.tpc_forget(xid)
 
-    def tpc_prepare(self, xid: Xid = None) -> bool:
+    def tpc_prepare(self, xid: Optional[Xid] = None) -> bool:
         """
         Prepares a global transaction for commit. After calling this function,
         no further activity should take place on this connection until either
@@ -1138,7 +1143,7 @@ class Connection(BaseConnection):
             cursor.rowfactory = Xid
             return cursor.fetchall()
 
-    def tpc_rollback(self, xid: Xid = None) -> None:
+    def tpc_rollback(self, xid: Optional[Xid] = None) -> None:
         """
         When called with no arguments, rolls back the transaction previously
         started with tpc_begin().
@@ -1176,12 +1181,12 @@ def _connection_factory(f):
 
     @functools.wraps(f)
     def connect(
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
-        pool: "pool_module.ConnectionPool" = None,
-        pool_alias: str = None,
+        pool: Optional["pool_module.ConnectionPool"] = None,
+        pool_alias: Optional[str] = None,
         conn_class: Type[Connection] = Connection,
-        params: ConnectParams = None,
+        params: Optional[ConnectParams] = None,
         **kwargs,
     ) -> Connection:
         f(
@@ -1218,62 +1223,62 @@ def _connection_factory(f):
 
 @_connection_factory
 def connect(
-    dsn: str = None,
+    dsn: Optional[str] = None,
     *,
-    pool: "pool_module.ConnectionPool" = None,
-    pool_alias: str = None,
+    pool: Optional["pool_module.ConnectionPool"] = None,
+    pool_alias: Optional[str] = None,
     conn_class: Type[Connection] = Connection,
-    params: ConnectParams = None,
-    user: str = None,
-    proxy_user: str = None,
-    password: str = None,
-    newpassword: str = None,
-    wallet_password: str = None,
-    access_token: Union[str, tuple, Callable] = None,
-    host: str = None,
-    port: int = 1521,
-    protocol: str = "tcp",
-    https_proxy: str = None,
-    https_proxy_port: int = 0,
-    service_name: str = None,
-    instance_name: str = None,
-    sid: str = None,
-    server_type: str = None,
-    cclass: str = None,
-    purity: oracledb.Purity = oracledb.PURITY_DEFAULT,
-    expire_time: int = 0,
-    retry_count: int = 0,
-    retry_delay: int = 1,
-    tcp_connect_timeout: float = 20.0,
-    ssl_server_dn_match: bool = True,
-    ssl_server_cert_dn: str = None,
-    wallet_location: str = None,
-    events: bool = False,
-    externalauth: bool = False,
-    mode: oracledb.AuthMode = oracledb.AUTH_MODE_DEFAULT,
-    disable_oob: bool = False,
-    stmtcachesize: int = oracledb.defaults.stmtcachesize,
-    edition: str = None,
-    tag: str = None,
-    matchanytag: bool = False,
-    config_dir: str = oracledb.defaults.config_dir,
-    appcontext: list = None,
-    shardingkey: list = None,
-    supershardingkey: list = None,
-    debug_jdwp: str = None,
-    connection_id_prefix: str = None,
-    ssl_context: Any = None,
-    sdu: int = 8192,
-    pool_boundary: str = None,
-    use_tcp_fast_open: bool = False,
-    ssl_version: ssl.TLSVersion = None,
-    program: str = oracledb.defaults.program,
-    machine: str = oracledb.defaults.machine,
-    terminal: str = oracledb.defaults.terminal,
-    osuser: str = oracledb.defaults.osuser,
-    driver_name: str = oracledb.defaults.driver_name,
-    use_sni: bool = False,
-    handle: int = 0,
+    params: Optional[ConnectParams] = None,
+    user: Optional[str] = None,
+    proxy_user: Optional[str] = None,
+    password: Optional[str] = None,
+    newpassword: Optional[str] = None,
+    wallet_password: Optional[str] = None,
+    access_token: Optional[Union[str, tuple, Callable]] = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    protocol: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    https_proxy_port: Optional[int] = None,
+    service_name: Optional[str] = None,
+    instance_name: Optional[str] = None,
+    sid: Optional[str] = None,
+    server_type: Optional[str] = None,
+    cclass: Optional[str] = None,
+    purity: Optional[oracledb.Purity] = None,
+    expire_time: Optional[int] = None,
+    retry_count: Optional[int] = None,
+    retry_delay: Optional[int] = None,
+    tcp_connect_timeout: Optional[float] = None,
+    ssl_server_dn_match: Optional[bool] = None,
+    ssl_server_cert_dn: Optional[str] = None,
+    wallet_location: Optional[str] = None,
+    events: Optional[bool] = None,
+    externalauth: Optional[bool] = None,
+    mode: Optional[oracledb.AuthMode] = None,
+    disable_oob: Optional[bool] = None,
+    stmtcachesize: Optional[int] = None,
+    edition: Optional[str] = None,
+    tag: Optional[str] = None,
+    matchanytag: Optional[bool] = None,
+    config_dir: Optional[str] = None,
+    appcontext: Optional[list] = None,
+    shardingkey: Optional[list] = None,
+    supershardingkey: Optional[list] = None,
+    debug_jdwp: Optional[str] = None,
+    connection_id_prefix: Optional[str] = None,
+    ssl_context: Optional[Any] = None,
+    sdu: Optional[int] = None,
+    pool_boundary: Optional[str] = None,
+    use_tcp_fast_open: Optional[bool] = None,
+    ssl_version: Optional[ssl.TLSVersion] = None,
+    program: Optional[str] = None,
+    machine: Optional[str] = None,
+    terminal: Optional[str] = None,
+    osuser: Optional[str] = None,
+    driver_name: Optional[str] = None,
+    use_sni: Optional[bool] = None,
+    handle: Optional[int] = None,
 ) -> Connection:
     """
     Factory function which creates a connection to the database and returns it.
@@ -1605,8 +1610,8 @@ class AsyncConnection(BaseConnection):
         self,
         name: str,
         return_type: Any,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> Any:
         """
         Call a PL/SQL function with the given name.
@@ -1622,8 +1627,8 @@ class AsyncConnection(BaseConnection):
     async def callproc(
         self,
         name: str,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> list:
         """
         Call a PL/SQL procedure with the given name.
@@ -1659,7 +1664,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.commit()
 
     async def createlob(
-        self, lob_type: DbType, data: Union[str, bytes] = None
+        self, lob_type: DbType, data: Optional[Union[str, bytes]] = None
     ) -> AsyncLOB:
         """
         Create and return a new temporary LOB of the specified type.
@@ -1685,7 +1690,9 @@ class AsyncConnection(BaseConnection):
         return AsyncCursor(self, scrollable)
 
     async def execute(
-        self, statement: str, parameters: Union[list, tuple, dict] = None
+        self,
+        statement: str,
+        parameters: Optional[Union[list, tuple, dict]] = None,
     ) -> None:
         """
         Execute a statement against the database.
@@ -1713,9 +1720,9 @@ class AsyncConnection(BaseConnection):
     async def fetchall(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        arraysize: int = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        arraysize: Optional[int] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> list:
         """
         Executes a query and returns all of the rows. After the rows are
@@ -1732,9 +1739,9 @@ class AsyncConnection(BaseConnection):
     async def fetchmany(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        num_rows: int = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        num_rows: Optional[int] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> list:
         """
         Executes a query and returns up to the specified number of rows. After
@@ -1753,8 +1760,8 @@ class AsyncConnection(BaseConnection):
     async def fetchone(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> Any:
         """
         Executes a query and returns the first row of the result set if one
@@ -1839,7 +1846,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_begin(xid, flags, timeout)
 
     async def tpc_commit(
-        self, xid: Xid = None, one_phase: bool = False
+        self, xid: Optional[Xid] = None, one_phase: bool = False
     ) -> None:
         """
         Prepare the global transaction for commit. Return a boolean indicating
@@ -1861,7 +1868,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_commit(xid, one_phase)
 
     async def tpc_end(
-        self, xid: Xid = None, flags: int = constants.TPC_END_NORMAL
+        self, xid: Optional[Xid] = None, flags: int = constants.TPC_END_NORMAL
     ) -> None:
         """
         Ends (detaches from) a TPC (two-phase commit) transaction.
@@ -1881,7 +1888,7 @@ class AsyncConnection(BaseConnection):
         self._verify_xid(xid)
         await self._impl.tpc_forget(xid)
 
-    async def tpc_prepare(self, xid: Xid = None) -> bool:
+    async def tpc_prepare(self, xid: Optional[Xid] = None) -> bool:
         """
         Prepares a global transaction for commit. After calling this function,
         no further activity should take place on this connection until either
@@ -1916,7 +1923,7 @@ class AsyncConnection(BaseConnection):
             cursor.rowfactory = Xid
             return await cursor.fetchall()
 
-    async def tpc_rollback(self, xid: Xid = None) -> None:
+    async def tpc_rollback(self, xid: Optional[Xid] = None) -> None:
         """
         When called with no arguments, rolls back the transaction previously
         started with tpc_begin().
@@ -1940,12 +1947,12 @@ def _async_connection_factory(f):
 
     @functools.wraps(f)
     def connect_async(
-        dsn: str = None,
+        dsn: Optional[str] = None,
         *,
-        pool: "pool_module.AsyncConnectionPool" = None,
-        pool_alias: str = None,
+        pool: Optional["pool_module.AsyncConnectionPool"] = None,
+        pool_alias: Optional[str] = None,
         conn_class: Type[AsyncConnection] = AsyncConnection,
-        params: ConnectParams = None,
+        params: Optional[ConnectParams] = None,
         **kwargs,
     ) -> AsyncConnection:
         # check arguments
@@ -1992,62 +1999,62 @@ def _async_connection_factory(f):
 
 @_async_connection_factory
 def connect_async(
-    dsn: str = None,
+    dsn: Optional[str] = None,
     *,
-    pool: "pool_module.AsyncConnectionPool" = None,
-    pool_alias: str = None,
+    pool: Optional["pool_module.AsyncConnectionPool"] = None,
+    pool_alias: Optional[str] = None,
     conn_class: Type[AsyncConnection] = AsyncConnection,
-    params: ConnectParams = None,
-    user: str = None,
-    proxy_user: str = None,
-    password: str = None,
-    newpassword: str = None,
-    wallet_password: str = None,
-    access_token: Union[str, tuple, Callable] = None,
-    host: str = None,
-    port: int = 1521,
-    protocol: str = "tcp",
-    https_proxy: str = None,
-    https_proxy_port: int = 0,
-    service_name: str = None,
-    instance_name: str = None,
-    sid: str = None,
-    server_type: str = None,
-    cclass: str = None,
-    purity: oracledb.Purity = oracledb.PURITY_DEFAULT,
-    expire_time: int = 0,
-    retry_count: int = 0,
-    retry_delay: int = 1,
-    tcp_connect_timeout: float = 20.0,
-    ssl_server_dn_match: bool = True,
-    ssl_server_cert_dn: str = None,
-    wallet_location: str = None,
-    events: bool = False,
-    externalauth: bool = False,
-    mode: oracledb.AuthMode = oracledb.AUTH_MODE_DEFAULT,
-    disable_oob: bool = False,
-    stmtcachesize: int = oracledb.defaults.stmtcachesize,
-    edition: str = None,
-    tag: str = None,
-    matchanytag: bool = False,
-    config_dir: str = oracledb.defaults.config_dir,
-    appcontext: list = None,
-    shardingkey: list = None,
-    supershardingkey: list = None,
-    debug_jdwp: str = None,
-    connection_id_prefix: str = None,
-    ssl_context: Any = None,
-    sdu: int = 8192,
-    pool_boundary: str = None,
-    use_tcp_fast_open: bool = False,
-    ssl_version: ssl.TLSVersion = None,
-    program: str = oracledb.defaults.program,
-    machine: str = oracledb.defaults.machine,
-    terminal: str = oracledb.defaults.terminal,
-    osuser: str = oracledb.defaults.osuser,
-    driver_name: str = oracledb.defaults.driver_name,
-    use_sni: bool = False,
-    handle: int = 0,
+    params: Optional[ConnectParams] = None,
+    user: Optional[str] = None,
+    proxy_user: Optional[str] = None,
+    password: Optional[str] = None,
+    newpassword: Optional[str] = None,
+    wallet_password: Optional[str] = None,
+    access_token: Optional[Union[str, tuple, Callable]] = None,
+    host: Optional[str] = None,
+    port: Optional[int] = None,
+    protocol: Optional[str] = None,
+    https_proxy: Optional[str] = None,
+    https_proxy_port: Optional[int] = None,
+    service_name: Optional[str] = None,
+    instance_name: Optional[str] = None,
+    sid: Optional[str] = None,
+    server_type: Optional[str] = None,
+    cclass: Optional[str] = None,
+    purity: Optional[oracledb.Purity] = None,
+    expire_time: Optional[int] = None,
+    retry_count: Optional[int] = None,
+    retry_delay: Optional[int] = None,
+    tcp_connect_timeout: Optional[float] = None,
+    ssl_server_dn_match: Optional[bool] = None,
+    ssl_server_cert_dn: Optional[str] = None,
+    wallet_location: Optional[str] = None,
+    events: Optional[bool] = None,
+    externalauth: Optional[bool] = None,
+    mode: Optional[oracledb.AuthMode] = None,
+    disable_oob: Optional[bool] = None,
+    stmtcachesize: Optional[int] = None,
+    edition: Optional[str] = None,
+    tag: Optional[str] = None,
+    matchanytag: Optional[bool] = None,
+    config_dir: Optional[str] = None,
+    appcontext: Optional[list] = None,
+    shardingkey: Optional[list] = None,
+    supershardingkey: Optional[list] = None,
+    debug_jdwp: Optional[str] = None,
+    connection_id_prefix: Optional[str] = None,
+    ssl_context: Optional[Any] = None,
+    sdu: Optional[int] = None,
+    pool_boundary: Optional[str] = None,
+    use_tcp_fast_open: Optional[bool] = None,
+    ssl_version: Optional[ssl.TLSVersion] = None,
+    program: Optional[str] = None,
+    machine: Optional[str] = None,
+    terminal: Optional[str] = None,
+    osuser: Optional[str] = None,
+    driver_name: Optional[str] = None,
+    use_sni: Optional[bool] = None,
+    handle: Optional[int] = None,
 ) -> AsyncConnection:
     """
     Factory function which creates a connection to the database and returns it.
