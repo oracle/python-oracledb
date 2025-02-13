@@ -73,6 +73,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bint _is_pool_extra
         bytes _transaction_context
         uint8_t pipeline_mode
+        uint8_t _session_state_desired
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         if not HAS_CRYPTOGRAPHY:

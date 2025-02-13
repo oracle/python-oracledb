@@ -616,6 +616,7 @@ cdef class BaseConnImpl:
         readonly bint supports_bool
         ssize_t _oson_max_fname_size
         bint _allow_bind_str_to_lob
+        bint _in_request
 
     cdef object _check_value(self, OracleMetadata type_info, object value,
                              bint* is_ok)

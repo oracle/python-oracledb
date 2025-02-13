@@ -126,7 +126,8 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_TTC2] = TNS_CCAP_ZLNP
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX
-        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION
+        self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION | \
+                TNS_CCAP_EXPLICIT_BOUNDARY
         self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT | \
                 TNS_CCAP_TOKEN_SUPPORTED | TNS_CCAP_PIPELINING_SUPPORT | \
                 TNS_CCAP_PIPELINING_BREAK

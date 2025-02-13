@@ -167,9 +167,17 @@ cdef class Protocol(BaseProtocol):
                 self._force_close()
 
             # rollback any open transaction and release the DRCP session, if
-            # applicable
+            # applicable; end the request, if one was started (and that
+            # information made it to the database)
             if self._transport is not None:
-                if self._txn_in_progress:
+                if conn_impl._in_request \
+                        and conn_impl._session_state_desired != 0:
+                    conn_impl._in_request = False
+                if self._txn_in_progress or conn_impl._in_request:
+                    if conn_impl._in_request:
+                        conn_impl._session_state_desired = \
+                                TNS_SESSION_STATE_REQUEST_END
+                        conn_impl._in_request = False
                     if conn_impl._transaction_context is not None:
                         message = conn_impl._create_tpc_rollback_message()
                     else:

@@ -328,7 +328,210 @@ cdef class Message:
             self.warning = errors._Error(message, code=error_num,
                                          iswarning=True)
 
+    cdef int _write_begin_pipeline_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback to the server that informs the server that a
+        pipeline is beginning.
+        """
+        buf._data_flags |= TNS_DATA_FLAGS_BEGIN_PIPELINE
+        self._write_piggyback_code(buf, TNS_FUNC_PIPELINE_BEGIN)
+        buf.write_ub2(0)                    # error set ID
+        buf.write_uint8(0)                  # error set mode
+        buf.write_uint8(self.conn_impl.pipeline_mode)
+
+    cdef int _write_close_cursors_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of the cursors that can be
+        closed.
+        """
+        self._write_piggyback_code(buf, TNS_FUNC_CLOSE_CURSORS)
+        buf.write_uint8(1)                  # pointer
+        self.conn_impl._statement_cache.write_cursors_to_close(buf)
+
+    cdef int _write_current_schema_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server that a new current schema
+        is desired.
+        """
+        cdef bytes schema_bytes
+        self._write_piggyback_code(buf, TNS_FUNC_SET_SCHEMA)
+        buf.write_uint8(1)                  # pointer
+        schema_bytes = self.conn_impl._current_schema.encode()
+        buf.write_ub4(len(schema_bytes))
+        buf.write_bytes_with_length(schema_bytes)
+
+    cdef int _write_close_temp_lobs_piggyback(self,
+                                              WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of the temporary LOBs that
+        can be closed.
+        """
+        cdef:
+            list lobs_to_close = self.conn_impl._temp_lobs_to_close
+            uint64_t total_size = 0
+        self._write_piggyback_code(buf, TNS_FUNC_LOB_OP)
+        op_code = TNS_LOB_OP_FREE_TEMP | TNS_LOB_OP_ARRAY
+
+        # temp lob data
+        buf.write_uint8(1)                  # pointer
+        buf.write_ub4(self.conn_impl._temp_lobs_total_size)
+        buf.write_uint8(0)                  # dest lob locator
+        buf.write_ub4(0)
+        buf.write_ub4(0)                    # source lob locator
+        buf.write_ub4(0)
+        buf.write_uint8(0)                  # source lob offset
+        buf.write_uint8(0)                  # dest lob offset
+        buf.write_uint8(0)                  # charset
+        buf.write_ub4(op_code)
+        buf.write_uint8(0)                  # scn
+        buf.write_ub4(0)                    # losbscn
+        buf.write_ub8(0)                    # lobscnl
+        buf.write_ub8(0)
+        buf.write_uint8(0)
+
+        # array lob fields
+        buf.write_uint8(0)
+        buf.write_ub4(0)
+        buf.write_uint8(0)
+        buf.write_ub4(0)
+        buf.write_uint8(0)
+        buf.write_ub4(0)
+        for i in range(len(lobs_to_close)):
+            buf.write_bytes(lobs_to_close[i])
+
+        # reset values
+        self.conn_impl._temp_lobs_to_close = None
+        self.conn_impl._temp_lobs_total_size = 0
+
+    cdef int _write_end_to_end_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of end-to-end attributes
+        that are being changed.
+        """
+        cdef:
+            bytes action_bytes, client_identifier_bytes, client_info_bytes
+            BaseThinConnImpl conn_impl = self.conn_impl
+            bytes module_bytes, dbop_bytes
+            uint32_t flags = 0
+
+        # determine which flags to send
+        if conn_impl._action_modified:
+            flags |= TNS_END_TO_END_ACTION
+        if conn_impl._client_identifier_modified:
+            flags |= TNS_END_TO_END_CLIENT_IDENTIFIER
+        if conn_impl._client_info_modified:
+            flags |= TNS_END_TO_END_CLIENT_INFO
+        if conn_impl._module_modified:
+            flags |= TNS_END_TO_END_MODULE
+        if conn_impl._dbop_modified:
+            flags |= TNS_END_TO_END_DBOP
+
+        # write initial packet data
+        self._write_piggyback_code(buf, TNS_FUNC_SET_END_TO_END_ATTR)
+        buf.write_uint8(0)                  # pointer (cidnam)
+        buf.write_uint8(0)                  # pointer (cidser)
+        buf.write_ub4(flags)
+
+        # write client identifier header info
+        if conn_impl._client_identifier_modified:
+            buf.write_uint8(1)              # pointer (client identifier)
+            if conn_impl._client_identifier is None:
+                buf.write_ub4(0)
+            else:
+                client_identifier_bytes = conn_impl._client_identifier.encode()
+                buf.write_ub4(len(client_identifier_bytes))
+        else:
+            buf.write_uint8(0)              # pointer (client identifier)
+            buf.write_ub4(0)                # length of client identifier
+
+        # write module header info
+        if conn_impl._module_modified:
+            buf.write_uint8(1)              # pointer (module)
+            if conn_impl._module is None:
+                buf.write_ub4(0)
+            else:
+                module_bytes = conn_impl._module.encode()
+                buf.write_ub4(len(module_bytes))
+        else:
+            buf.write_uint8(0)              # pointer (module)
+            buf.write_ub4(0)                # length of module
+
+        # write action header info
+        if conn_impl._action_modified:
+            buf.write_uint8(1)              # pointer (action)
+            if conn_impl._action is None:
+                buf.write_ub4(0)
+            else:
+                action_bytes = conn_impl._action.encode()
+                buf.write_ub4(len(action_bytes))
+        else:
+            buf.write_uint8(0)              # pointer (action)
+            buf.write_ub4(0)                # length of action
+
+        # write unsupported bits
+        buf.write_uint8(0)                  # pointer (cideci)
+        buf.write_ub4(0)                    # length (cideci)
+        buf.write_uint8(0)                  # cidcct
+        buf.write_ub4(0)                    # cidecs
+
+        # write client info header info
+        if conn_impl._client_info_modified:
+            buf.write_uint8(1)              # pointer (client info)
+            if conn_impl._client_info is None:
+                buf.write_ub4(0)
+            else:
+                client_info_bytes = conn_impl._client_info.encode()
+                buf.write_ub4(len(client_info_bytes))
+        else:
+            buf.write_uint8(0)              # pointer (client info)
+            buf.write_ub4(0)                # length of client info
+
+        # write more unsupported bits
+        buf.write_uint8(0)                  # pointer (cidkstk)
+        buf.write_ub4(0)                    # length (cidkstk)
+        buf.write_uint8(0)                  # pointer (cidktgt)
+        buf.write_ub4(0)                    # length (cidktgt)
+
+        # write dbop header info
+        if conn_impl._dbop_modified:
+            buf.write_uint8(1)              # pointer (dbop)
+            if conn_impl._dbop is None:
+                buf.write_ub4(0)
+            else:
+                dbop_bytes = conn_impl._dbop.encode()
+                buf.write_ub4(len(dbop_bytes))
+        else:
+            buf.write_uint8(0)              # pointer (dbop)
+            buf.write_ub4(0)                # length of dbop
+
+        # write strings
+        if conn_impl._client_identifier_modified \
+                and conn_impl._client_identifier is not None:
+            buf.write_bytes_with_length(client_identifier_bytes)
+        if conn_impl._module_modified and conn_impl._module is not None:
+            buf.write_bytes_with_length(module_bytes)
+        if conn_impl._action_modified and conn_impl._action is not None:
+            buf.write_bytes_with_length(action_bytes)
+        if conn_impl._client_info_modified \
+                and conn_impl._client_info is not None:
+            buf.write_bytes_with_length(client_info_bytes)
+        if conn_impl._dbop_modified and conn_impl._dbop is not None:
+            buf.write_bytes_with_length(dbop_bytes)
+
+        # reset flags and values
+        conn_impl._action_modified = False
+        conn_impl._action = None
+        conn_impl._client_identifier_modified = False
+        conn_impl._client_identifier = None
+        conn_impl._client_info_modified = False
+        conn_impl._client_info = None
+        conn_impl._dbop_modified = False
+        conn_impl._dbop = None
+        conn_impl._module_modified = False
+        conn_impl._module = None
+
     cdef int _write_function_code(self, WriteBuffer buf) except -1:
+        self._write_piggybacks(buf)
         buf.write_uint8(self.message_type)
         buf.write_uint8(self.function_code)
         buf.write_seq_num()
@@ -340,11 +543,49 @@ cdef class Message:
 
     cdef int _write_piggyback_code(self, WriteBuffer buf,
                                    uint8_t code) except -1:
+        """
+        Writes the header for piggybacks for the specified function code.
+        """
         buf.write_uint8(TNS_MSG_TYPE_PIGGYBACK)
         buf.write_uint8(code)
         buf.write_seq_num()
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_1:
             buf.write_ub8(self.token_num)
+
+    cdef int _write_piggybacks(self, WriteBuffer buf) except -1:
+        """
+        Writes all of the piggybacks to the server.
+        """
+        if self.conn_impl.pipeline_mode != 0:
+            self._write_begin_pipeline_piggyback(buf)
+            self.conn_impl.pipeline_mode = 0
+        if self.conn_impl._current_schema_modified:
+            self._write_current_schema_piggyback(buf)
+        if self.conn_impl._statement_cache is not None \
+                and self.conn_impl._statement_cache._num_cursors_to_close > 0 \
+                and not self.conn_impl._drcp_establish_session:
+            self._write_close_cursors_piggyback(buf)
+        if self.conn_impl._action_modified \
+                or self.conn_impl._client_identifier_modified \
+                or self.conn_impl._client_info_modified \
+                or self.conn_impl._dbop_modified \
+                or self.conn_impl._module_modified:
+            self._write_end_to_end_piggyback(buf)
+        if self.conn_impl._temp_lobs_total_size > 0:
+            self._write_close_temp_lobs_piggyback(buf)
+        if self.conn_impl._session_state_desired != 0:
+            self._write_session_state_piggyback(buf)
+
+    cdef int _write_session_state_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Write the session state piggyback. This is used to let the database
+        know when the client is beginning and ending a request. The database
+        uses this information to optimise its resources.
+        """
+        cdef uint8_t state = self.conn_impl._session_state_desired
+        self._write_piggyback_code(buf, TNS_FUNC_SESSION_STATE)
+        buf.write_ub8(state | TNS_SESSION_STATE_EXPLICIT_BOUNDARY)
+        self.conn_impl._session_state_desired = 0
 
     cdef int postprocess(self) except -1:
         pass
@@ -1002,13 +1243,6 @@ cdef class MessageWithData(Message):
             if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
                 buf.write_ub4(0)            # oaccolid
 
-    cdef int _write_begin_pipeline_piggyback(self, WriteBuffer buf) except -1:
-        buf._data_flags |= TNS_DATA_FLAGS_BEGIN_PIPELINE
-        self._write_piggyback_code(buf, TNS_FUNC_PIPELINE_BEGIN)
-        buf.write_ub2(0)                    # error set ID
-        buf.write_uint8(0)                  # error set mode
-        buf.write_uint8(self.conn_impl.pipeline_mode)
-
     cdef int _write_bind_params_column(self, WriteBuffer buf,
                                        OracleMetadata metadata,
                                        object value) except -1:
@@ -1137,199 +1371,6 @@ cdef class MessageWithData(Message):
                     continue
                 self._write_bind_params_column(buf, metadata,
                                                var_impl._values[pos + offset])
-
-    cdef int _write_close_cursors_piggyback(self, WriteBuffer buf) except -1:
-        self._write_piggyback_code(buf, TNS_FUNC_CLOSE_CURSORS)
-        buf.write_uint8(1)                  # pointer
-        self.conn_impl._statement_cache.write_cursors_to_close(buf)
-
-    cdef int _write_current_schema_piggyback(self, WriteBuffer buf) except -1:
-        cdef bytes schema_bytes
-        self._write_piggyback_code(buf, TNS_FUNC_SET_SCHEMA)
-        buf.write_uint8(1)                  # pointer
-        schema_bytes = self.conn_impl._current_schema.encode()
-        buf.write_ub4(len(schema_bytes))
-        buf.write_bytes_with_length(schema_bytes)
-
-    cdef int _write_close_temp_lobs_piggyback(self,
-                                              WriteBuffer buf) except -1:
-        cdef:
-            list lobs_to_close = self.conn_impl._temp_lobs_to_close
-            uint64_t total_size = 0
-        self._write_piggyback_code(buf, TNS_FUNC_LOB_OP)
-        op_code = TNS_LOB_OP_FREE_TEMP | TNS_LOB_OP_ARRAY
-
-        # temp lob data
-        buf.write_uint8(1)                  # pointer
-        buf.write_ub4(self.conn_impl._temp_lobs_total_size)
-        buf.write_uint8(0)                  # dest lob locator
-        buf.write_ub4(0)
-        buf.write_ub4(0)                    # source lob locator
-        buf.write_ub4(0)
-        buf.write_uint8(0)                  # source lob offset
-        buf.write_uint8(0)                  # dest lob offset
-        buf.write_uint8(0)                  # charset
-        buf.write_ub4(op_code)
-        buf.write_uint8(0)                  # scn
-        buf.write_ub4(0)                    # losbscn
-        buf.write_ub8(0)                    # lobscnl
-        buf.write_ub8(0)
-        buf.write_uint8(0)
-
-        # array lob fields
-        buf.write_uint8(0)
-        buf.write_ub4(0)
-        buf.write_uint8(0)
-        buf.write_ub4(0)
-        buf.write_uint8(0)
-        buf.write_ub4(0)
-        for i in range(len(lobs_to_close)):
-            buf.write_bytes(lobs_to_close[i])
-
-        # reset values
-        self.conn_impl._temp_lobs_to_close = None
-        self.conn_impl._temp_lobs_total_size = 0
-
-    cdef int _write_end_to_end_piggyback(self, WriteBuffer buf) except -1:
-        cdef:
-            bytes action_bytes, client_identifier_bytes, client_info_bytes
-            BaseThinConnImpl conn_impl = self.conn_impl
-            bytes module_bytes, dbop_bytes
-            uint32_t flags = 0
-
-        # determine which flags to send
-        if conn_impl._action_modified:
-            flags |= TNS_END_TO_END_ACTION
-        if conn_impl._client_identifier_modified:
-            flags |= TNS_END_TO_END_CLIENT_IDENTIFIER
-        if conn_impl._client_info_modified:
-            flags |= TNS_END_TO_END_CLIENT_INFO
-        if conn_impl._module_modified:
-            flags |= TNS_END_TO_END_MODULE
-        if conn_impl._dbop_modified:
-            flags |= TNS_END_TO_END_DBOP
-
-        # write initial packet data
-        self._write_piggyback_code(buf, TNS_FUNC_SET_END_TO_END_ATTR)
-        buf.write_uint8(0)                  # pointer (cidnam)
-        buf.write_uint8(0)                  # pointer (cidser)
-        buf.write_ub4(flags)
-
-        # write client identifier header info
-        if conn_impl._client_identifier_modified:
-            buf.write_uint8(1)              # pointer (client identifier)
-            if conn_impl._client_identifier is None:
-                buf.write_ub4(0)
-            else:
-                client_identifier_bytes = conn_impl._client_identifier.encode()
-                buf.write_ub4(len(client_identifier_bytes))
-        else:
-            buf.write_uint8(0)              # pointer (client identifier)
-            buf.write_ub4(0)                # length of client identifier
-
-        # write module header info
-        if conn_impl._module_modified:
-            buf.write_uint8(1)              # pointer (module)
-            if conn_impl._module is None:
-                buf.write_ub4(0)
-            else:
-                module_bytes = conn_impl._module.encode()
-                buf.write_ub4(len(module_bytes))
-        else:
-            buf.write_uint8(0)              # pointer (module)
-            buf.write_ub4(0)                # length of module
-
-        # write action header info
-        if conn_impl._action_modified:
-            buf.write_uint8(1)              # pointer (action)
-            if conn_impl._action is None:
-                buf.write_ub4(0)
-            else:
-                action_bytes = conn_impl._action.encode()
-                buf.write_ub4(len(action_bytes))
-        else:
-            buf.write_uint8(0)              # pointer (action)
-            buf.write_ub4(0)                # length of action
-
-        # write unsupported bits
-        buf.write_uint8(0)                  # pointer (cideci)
-        buf.write_ub4(0)                    # length (cideci)
-        buf.write_uint8(0)                  # cidcct
-        buf.write_ub4(0)                    # cidecs
-
-        # write client info header info
-        if conn_impl._client_info_modified:
-            buf.write_uint8(1)              # pointer (client info)
-            if conn_impl._client_info is None:
-                buf.write_ub4(0)
-            else:
-                client_info_bytes = conn_impl._client_info.encode()
-                buf.write_ub4(len(client_info_bytes))
-        else:
-            buf.write_uint8(0)              # pointer (client info)
-            buf.write_ub4(0)                # length of client info
-
-        # write more unsupported bits
-        buf.write_uint8(0)                  # pointer (cidkstk)
-        buf.write_ub4(0)                    # length (cidkstk)
-        buf.write_uint8(0)                  # pointer (cidktgt)
-        buf.write_ub4(0)                    # length (cidktgt)
-
-        # write dbop header info
-        if conn_impl._dbop_modified:
-            buf.write_uint8(1)              # pointer (dbop)
-            if conn_impl._dbop is None:
-                buf.write_ub4(0)
-            else:
-                dbop_bytes = conn_impl._dbop.encode()
-                buf.write_ub4(len(dbop_bytes))
-        else:
-            buf.write_uint8(0)              # pointer (dbop)
-            buf.write_ub4(0)                # length of dbop
-
-        # write strings
-        if conn_impl._client_identifier_modified \
-                and conn_impl._client_identifier is not None:
-            buf.write_bytes_with_length(client_identifier_bytes)
-        if conn_impl._module_modified and conn_impl._module is not None:
-            buf.write_bytes_with_length(module_bytes)
-        if conn_impl._action_modified and conn_impl._action is not None:
-            buf.write_bytes_with_length(action_bytes)
-        if conn_impl._client_info_modified \
-                and conn_impl._client_info is not None:
-            buf.write_bytes_with_length(client_info_bytes)
-        if conn_impl._dbop_modified and conn_impl._dbop is not None:
-            buf.write_bytes_with_length(dbop_bytes)
-
-        # reset flags and values
-        conn_impl._action_modified = False
-        conn_impl._action = None
-        conn_impl._client_identifier_modified = False
-        conn_impl._client_identifier = None
-        conn_impl._client_info_modified = False
-        conn_impl._client_info = None
-        conn_impl._dbop_modified = False
-        conn_impl._dbop = None
-        conn_impl._module_modified = False
-        conn_impl._module = None
-
-    cdef int _write_piggybacks(self, WriteBuffer buf) except -1:
-        if self.conn_impl.pipeline_mode != 0:
-            self._write_begin_pipeline_piggyback(buf)
-            self.conn_impl.pipeline_mode = 0
-        if self.conn_impl._current_schema_modified:
-            self._write_current_schema_piggyback(buf)
-        if self.conn_impl._statement_cache._num_cursors_to_close > 0 \
-                and not self.conn_impl._drcp_establish_session:
-            self._write_close_cursors_piggyback(buf)
-        if self.conn_impl._action_modified \
-                or self.conn_impl._client_identifier_modified \
-                or self.conn_impl._client_info_modified \
-                or self.conn_impl._dbop_modified \
-                or self.conn_impl._module_modified:
-            self._write_end_to_end_piggyback(buf)
-        if self.conn_impl._temp_lobs_total_size > 0:
-            self._write_close_temp_lobs_piggyback(buf)
 
     cdef int postprocess(self) except -1:
         """
@@ -2088,9 +2129,6 @@ cdef class ExecuteMessage(MessageWithData):
         if self.conn_impl.autocommit and not self.parse_only:
             options |= TNS_EXEC_OPTION_COMMIT
 
-        # write piggybacks, if needed
-        self._write_piggybacks(buf)
-
         # write body of message
         self._write_function_code(buf)
         buf.write_ub4(options)              # execute options
@@ -2208,7 +2246,6 @@ cdef class ExecuteMessage(MessageWithData):
                 exec_flags_2 |= TNS_EXEC_OPTION_COMMIT_REEXECUTE
             num_iters = self.num_execs
 
-        self._write_piggybacks(buf)
         self._write_function_code(buf)
         buf.write_ub4(stmt._cursor_id)
         buf.write_ub4(num_iters)

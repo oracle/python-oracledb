@@ -194,6 +194,16 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 return request
             break
 
+    cdef BaseThinConnImpl _post_acquire(self, BaseThinConnImpl conn_impl):
+        """
+        Called after an acquire has succeeded. The connection is added to the
+        list of busy connections and is marked as being in a request.
+        """
+        self._busy_conn_impls.append(conn_impl)
+        conn_impl._session_state_desired = TNS_SESSION_STATE_REQUEST_BEGIN
+        conn_impl._in_request = True
+        return conn_impl
+
     cdef int _post_create_conn_impl(self,
                                     BaseThinConnImpl conn_impl) except -1:
         """
@@ -636,8 +646,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                 request.waiting = False
             if not request.completed:
                 errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
-            self._busy_conn_impls.append(request.conn_impl)
-            return request.conn_impl
+            return self._post_acquire(request.conn_impl)
 
     def close(self, bint force):
         """
@@ -828,8 +837,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             )
         except asyncio.TimeoutError:
             errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
-        self._busy_conn_impls.append(request.conn_impl)
-        return request.conn_impl
+        return self._post_acquire(request.conn_impl)
 
     async def close(self, bint force):
         """
