@@ -1856,7 +1856,8 @@ cdef class ConnectMessage(Message):
         cdef:
             uint16_t protocol_version, protocol_options
             const char_type *redirect_data
-            uint32_t flags = 0
+            uint32_t flags2 = 0
+            uint8_t flags1
             bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             if not self.read_redirect_data_len:
@@ -1875,13 +1876,18 @@ cdef class ConnectMessage(Message):
             if protocol_version < TNS_VERSION_MIN_ACCEPTED:
                 errors._raise_err(errors.ERR_SERVER_VERSION_NOT_SUPPORTED)
             buf.read_uint16be(&protocol_options)
-            buf.skip_raw_bytes(20)
+            buf.skip_raw_bytes(10)
+            buf.read_ub1(&flags1)
+            if flags1 & TNS_NSI_NA_REQUIRED:
+                feature = "Native Network Encryption and Data Integrity"
+                errors._raise_not_supported(feature)
+            buf.skip_raw_bytes(9)
             buf.read_uint32be(&buf._caps.sdu)
             if protocol_version >= TNS_VERSION_MIN_OOB_CHECK:
                 buf.skip_raw_bytes(5)
-                buf.read_uint32be(&flags)
+                buf.read_uint32be(&flags2)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options,
-                                           flags)
+                                           flags2)
             buf._transport._full_packet_size = True
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message

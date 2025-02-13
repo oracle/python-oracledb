@@ -47,6 +47,11 @@ Thin Mode Changes
 #)  Error ``DPY-3001: bequeath is only supported in python-oracledb thick
     mode`` is now raised when attempting to connect to the database without a
     connect string.
+#)  Error ``DPY-3001: Native Network Encryption and Data Integrity is only
+    supported in python-oracledb thick mode`` is now the secondary error
+    message returned when Oracle Net NNE or checksumming is required by the
+    database. Previously, the error ``DPY-4011: the database or network closed
+    the connection`` was raised.
 #)  Optimization: the connect descriptor sent to the database does not include
     the RETRY_DELAY parameter unless the RETRY_COUNT parameter is also
     specified.
