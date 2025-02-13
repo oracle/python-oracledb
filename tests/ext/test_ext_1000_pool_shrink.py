@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -62,9 +62,9 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire()
         self.assertEqual(pool.opened, 3)
 
-    @unittest.skipIf(not test_env.get_is_thin(), "doesn't occur in thick mode")
+    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
     def test_ext_1002(self):
-        "E1002 - test pool shrinks to min on pool inactivity"
+        "E1002 - test pool timeout shrinks to min on pool inactivity"
         pool = test_env.get_pool(min=3, max=10, increment=2, timeout=4)
         conns = [pool.acquire() for i in range(6)]
         self.assertEqual(pool.opened, 6)
@@ -73,9 +73,9 @@ class TestCase(test_env.BaseTestCase):
         time.sleep(6)
         self.assertEqual(pool.opened, 3)
 
-    @unittest.skipIf(not test_env.get_is_thin(), "doesn't occur in thick mode")
+    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
     def test_ext_1003(self):
-        "E1003 - test pool eliminates extra connections on inactivity"
+        "E1003 - test pool timeout eliminates extra connections on inactivity"
         pool = test_env.get_pool(min=4, max=10, increment=4, timeout=3)
         conns = [pool.acquire() for i in range(5)]
         self.assertEqual(pool.opened, 5)
@@ -84,6 +84,40 @@ class TestCase(test_env.BaseTestCase):
         time.sleep(3)
         self.assertEqual(pool.opened, 5)
         del conns
+
+    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    def test_ext_1004(self):
+        "E1004 - test pool max_lifetime_session on release"
+        pool = test_env.get_pool(
+            min=4, max=10, increment=4, max_lifetime_session=3
+        )
+        conns = [pool.acquire() for i in range(5)]
+        self.assertEqual(pool.opened, 5)
+        time.sleep(2)
+        self.assertEqual(pool.opened, 8)
+        time.sleep(2)
+        for conn in conns:
+            conn.close()
+        time.sleep(2)
+        self.assertEqual(pool.opened, 4)
+
+    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    def test_ext_1005(self):
+        "E1005 - test pool max_lifetime_session on acquire"
+        pool = test_env.get_pool(
+            min=4, max=10, increment=4, max_lifetime_session=4
+        )
+        conns = [pool.acquire() for i in range(5)]
+        self.assertEqual(pool.opened, 5)
+        time.sleep(2)
+        self.assertEqual(pool.opened, 8)
+        for conn in conns:
+            conn.close()
+        time.sleep(4)
+        with pool.acquire():
+            pass
+        time.sleep(2)
+        self.assertEqual(pool.opened, 4)
 
 
 if __name__ == "__main__":

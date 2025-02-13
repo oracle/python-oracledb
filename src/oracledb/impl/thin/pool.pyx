@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -70,6 +70,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self.set_wait_timeout(params.wait_timeout)
         self.set_timeout(params.timeout)
         self._stmt_cache_size = params.stmtcachesize
+        self._max_lifetime_session = params.max_lifetime_session
         self._ping_interval = params.ping_interval
         self._ping_timeout = params.ping_timeout
         self._free_new_conn_impls = []
@@ -154,6 +155,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         if conn_impl._protocol._transport is not None:
             self._conn_impls_to_drop.append(conn_impl)
             self._notify_bg_task()
+        self._ensure_min_connections()
 
     cdef int _drop_conn_impls_helper(self, list conn_impls_to_drop) except -1:
         """
@@ -166,6 +168,16 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 conn_impl._force_close()
             except:
                 pass
+
+    cdef int _ensure_min_connections(self) except -1:
+        """
+        Ensure that the minimum number of connections in the pool is
+        maintained.
+        """
+        if self._open_count < self.min:
+            self._num_to_create = max(self._num_to_create,
+                                      self.min - self._open_count)
+            self._notify_bg_task()
 
     cdef PooledConnRequest _get_next_request(self):
         """
@@ -246,13 +258,15 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         """
         Called before the connection is connected. The connection class and
         pool attributes are updated and the TLS session is stored on the
-        transport for reuse.
+        transport for reuse. The timestamps are also retained for later use.
         """
         if params is not None:
             conn_impl._cclass = params._default_description.cclass
         else:
             conn_impl._cclass = self.connect_params._default_description.cclass
         conn_impl._pool = self
+        conn_impl._time_created = time.monotonic()
+        conn_impl._time_returned = conn_impl._time_created
 
     def _process_timeout(self):
         """
@@ -280,25 +294,35 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             bint is_open = conn_impl._protocol._transport is not None
             BaseThinDbObjectTypeCache type_cache
             PooledConnRequest request
+            double tstamp
             int cache_num
         self._busy_conn_impls.remove(conn_impl)
         if conn_impl._dbobject_type_cache_num > 0:
             cache_num = conn_impl._dbobject_type_cache_num
             type_cache = get_dbobject_type_cache(cache_num)
             type_cache._clear_cursors()
+        if not is_open:
+            self._open_count -= 1
+            self._ensure_min_connections()
         if conn_impl._is_pool_extra:
             conn_impl._is_pool_extra = False
             if is_open and self._open_count >= self.max:
                 if self._free_new_conn_impls and self._open_count == self.max:
                     self._drop_conn_impl(self._free_new_conn_impls.pop(0))
                 else:
+                    self._open_count -= 1
                     self._drop_conn_impl(conn_impl)
                     is_open = False
-        if not is_open:
-            self._open_count -= 1
-        else:
+        if is_open:
             conn_impl.warning = None
-            conn_impl._time_in_pool = time.monotonic()
+            conn_impl._time_returned = time.monotonic()
+            if self._max_lifetime_session != 0:
+                tstamp = conn_impl._time_created + self._max_lifetime_session
+                if conn_impl._time_returned > tstamp:
+                    self._open_count -= 1
+                    self._drop_conn_impl(conn_impl)
+                    is_open = False
+        if is_open:
             for request in self._requests:
                 if request.in_progress or request.wants_new \
                         or request.conn_impl is not None \
@@ -349,7 +373,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         current_time = time.monotonic()
         while conn_impls_to_check and self._open_count > self.min:
             conn_impl = conn_impls_to_check[0]
-            if current_time - conn_impl._time_in_pool < self._timeout:
+            if current_time - conn_impl._time_returned < self._timeout:
                 break
             conn_impls_to_check.pop(0)
             self._drop_conn_impl(conn_impl)
@@ -535,7 +559,6 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         conn_impl = ThinConnImpl(self.dsn, self.connect_params)
         self._pre_connect(conn_impl, params)
         conn_impl.connect(self.connect_params)
-        conn_impl._time_in_pool = time.monotonic()
         return conn_impl
 
     def _notify_bg_task(self):
@@ -729,7 +752,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         conn_impl = AsyncThinConnImpl(self.dsn, self.connect_params)
         self._pre_connect(conn_impl, params)
         await conn_impl.connect(self.connect_params)
-        conn_impl._time_in_pool = time.monotonic()
         return conn_impl
 
     def _notify_bg_task(self):
@@ -856,7 +878,7 @@ cdef class PooledConnRequest:
         """
         cdef:
             ReadBuffer buf = conn_impl._protocol._read_buf
-            double elapsed_time
+            double elapsed_time, min_create_time
             bint has_data_ready
         if not buf._transport._is_async:
             while buf._pending_error_num == 0:
@@ -865,20 +887,27 @@ cdef class PooledConnRequest:
                     break
                 buf.check_control_packet()
         if buf._pending_error_num != 0:
-            self.pool_impl._drop_conn_impl(conn_impl)
             self.pool_impl._open_count -= 1
-        else:
-            self.conn_impl = conn_impl
-            if self.pool_impl._ping_interval == 0:
+            self.pool_impl._drop_conn_impl(conn_impl)
+            return 0
+        elif self.pool_impl._max_lifetime_session > 0:
+            min_create_time = \
+                    time.monotonic() - self.pool_impl._max_lifetime_session
+            if conn_impl._time_created < min_create_time:
+                self.pool_impl._open_count -= 1
+                self.pool_impl._drop_conn_impl(conn_impl)
+                return 0
+        self.conn_impl = conn_impl
+        if self.pool_impl._ping_interval == 0:
+            self.requires_ping = True
+        elif self.pool_impl._ping_interval > 0:
+            elapsed_time = time.monotonic() - conn_impl._time_returned
+            if elapsed_time > self.pool_impl._ping_interval:
                 self.requires_ping = True
-            elif self.pool_impl._ping_interval > 0:
-                elapsed_time = time.monotonic() - conn_impl._time_in_pool
-                if elapsed_time > self.pool_impl._ping_interval:
-                    self.requires_ping = True
-            if self.requires_ping:
-                self.pool_impl._add_request(self)
-            else:
-                self.completed = True
+        if self.requires_ping:
+            self.pool_impl._add_request(self)
+        else:
+            self.completed = True
 
     def fulfill(self):
         """
@@ -890,8 +919,8 @@ cdef class PooledConnRequest:
         cdef:
             BaseThinPoolImpl pool = self.pool_impl
             BaseThinConnImpl conn_impl
+            ssize_t ix
             object exc
-            ssize_t i
 
         # if an exception was raised in the background thread, raise it now
         if self.exception is not None:
@@ -910,13 +939,14 @@ cdef class PooledConnRequest:
         # connection is not required); in addition, ensure that the connection
         # class matches
         if not self.wants_new and pool._free_used_conn_impls:
-            for i, conn_impl in enumerate(reversed(pool._free_used_conn_impls)):
+            ix = len(pool._free_used_conn_impls) - 1
+            for conn_impl in reversed(pool._free_used_conn_impls):
                 if self.cclass is None or conn_impl._cclass == self.cclass:
-                    i = len(pool._free_used_conn_impls) - i - 1
-                    pool._free_used_conn_impls.pop(i)
+                    pool._free_used_conn_impls.pop(ix)
                     self._check_connection(conn_impl)
                     if self.completed or self.requires_ping:
                         return self.completed
+                ix -= 1
 
         # check for an available new connection (only permitted if the
         # connection class matches)

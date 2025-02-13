@@ -2079,17 +2079,16 @@ application) and are unused for longer than the pool creation attribute
 seconds signifying an infinite time and meaning idle connections will never be
 closed.
 
-In python-oracledb Thick mode, the pool creation parameter
-``max_lifetime_session`` also allows pools to shrink.  This parameter bounds
-the total length of time that a connection can exist starting from the time the
-pool created it.  If a connection was created ``max_lifetime_session`` or
-longer seconds ago, then it will be closed when it is idle in the pool.  In the
-case when ``timeout`` and ``max_lifetime_session`` are both set, the connection
-will be terminated if either the idle timeout happens or the max lifetime
-setting is exceeded.  Note that when using python-oracledb in Thick mode with
-Oracle Client libraries prior to 21c, pool shrinkage is only initiated when the
-pool is accessed so pools in fully dormant applications will not shrink until
-the application is next used.
+The pool creation parameter ``max_lifetime_session`` also allows pools to
+shrink.  This parameter bounds the total length of time that a connection can
+exist starting from the time the pool created it.  If a connection was created
+``max_lifetime_session`` or longer seconds ago, then it will be closed when it
+is idle in the pool.  In the case when ``timeout`` and ``max_lifetime_session``
+are both set, the connection will be terminated if either the idle timeout
+happens or the max lifetime setting is exceeded.  Note that when using
+python-oracledb in Thick mode with Oracle Client libraries prior to 21c, pool
+shrinkage is only initiated when the pool is accessed so pools in fully dormant
+applications will not shrink until the application is next used.
 
 For pools created with :ref:`external authentication <extauth>`, with
 :ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`,

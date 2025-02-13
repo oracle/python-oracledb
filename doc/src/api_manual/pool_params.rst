@@ -136,8 +136,6 @@ PoolParams Attributes
     attribute is *0*, then the connections may remain in the pool indefinitely.
     The default value is *0* seconds.
 
-    This attribute is only supported in python-oracledb Thick mode.
-
 .. attribute:: PoolParams.max_sessions_per_shard
 
     This read-only attribute is an integer that determines the maximum number

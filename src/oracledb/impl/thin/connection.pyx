@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -61,7 +61,8 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         str _service_name
         bint _drcp_enabled
         bint _drcp_establish_session
-        double _time_in_pool
+        double _time_created
+        double _time_returned
         list _temp_lobs_to_close
         uint32_t _temp_lobs_total_size
         uint32_t _call_timeout
