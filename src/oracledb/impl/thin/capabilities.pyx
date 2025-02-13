@@ -130,7 +130,8 @@ cdef class Capabilities:
                 TNS_CCAP_TOKEN_SUPPORTED | TNS_CCAP_PIPELINING_SUPPORT | \
                 TNS_CCAP_PIPELINING_BREAK
         self.compile_caps[TNS_CCAP_VECTOR_FEATURES] = \
-                TNS_CCAP_VECTOR_FEATURE_BINARY
+                TNS_CCAP_VECTOR_FEATURE_BINARY | \
+                TNS_CCAP_VECTOR_FEATURE_SPARSE
 
     @cython.boundscheck(False)
     cdef void _init_runtime_caps(self):

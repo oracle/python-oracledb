@@ -575,6 +575,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         uint32_t numDimensions
         uint8_t dimensionSize
         dpiVectorDimensionBuffer dimensions
+        uint32_t numSparseValues;
+        uint32_t *sparseIndices;
+
 
     ctypedef struct dpiVersionInfo:
         int versionNum

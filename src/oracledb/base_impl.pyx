@@ -77,6 +77,7 @@ cdef type PY_TYPE_MESSAGE
 cdef type PY_TYPE_MESSAGE_QUERY
 cdef type PY_TYPE_MESSAGE_ROW
 cdef type PY_TYPE_MESSAGE_TABLE
+cdef type PY_TYPE_SPARSE_VECTOR
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
 cdef type PY_TYPE_FETCHINFO

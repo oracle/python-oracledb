@@ -249,3 +249,13 @@ class FetchInfo:
             and self._impl.vector_format != 0
         ):
             return oracledb.VectorFormat(self._impl.vector_format)
+
+    @property
+    def vector_is_sparse(self) -> Union[bool, None]:
+        """
+        Returns a boolean indicating if the vector is sparse or not. If the
+        column is not a vector column, the value returned is None.
+        """
+        if self._impl.dbtype is DB_TYPE_VECTOR:
+            flags = self._impl.vector_flags
+            return bool(flags & constants.VECTOR_META_FLAG_SPARSE_VECTOR)

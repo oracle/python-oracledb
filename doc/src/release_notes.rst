@@ -55,6 +55,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for Oracle Database 23ai SPARSE vectors.
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the
     python-oracledb pool cache with :meth:`oracledb.get_pool()`.

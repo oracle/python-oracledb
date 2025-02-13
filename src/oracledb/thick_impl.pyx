@@ -44,6 +44,7 @@ import sys
 cydatetime.import_datetime()
 
 from .base_impl cimport (
+    ARRAY_TYPE_CODE_UINT32,
     BaseConnImpl,
     BaseCursorImpl,
     BaseDbObjectImpl,
@@ -83,11 +84,13 @@ from .base_impl cimport (
     PY_TYPE_MESSAGE_QUERY,
     PY_TYPE_MESSAGE_ROW,
     PY_TYPE_MESSAGE_TABLE,
+    PY_TYPE_SPARSE_VECTOR,
     PY_TYPE_TIMEDELTA,
     PoolParamsImpl,
     PY_TYPE_NUM_FLOAT,
     PY_TYPE_NUM_INT,
     PY_TYPE_NUM_DECIMAL,
+    SparseVectorImpl,
     VectorDecoder,
     VectorEncoder,
 )

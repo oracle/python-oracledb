@@ -107,6 +107,7 @@ cdef int _convert_from_python(object value, OracleMetadata metadata,
                               StringBuffer buf) except -1:
     cdef:
         uint32_t oracle_type = metadata.dbtype.num
+        SparseVectorImpl sparse_impl
         ThickDbObjectImpl obj_impl
         dpiVectorInfo vector_info
         dpiTimestamp *timestamp
@@ -199,7 +200,17 @@ cdef int _convert_from_python(object value, OracleMetadata metadata,
         if dpiJson_setValue(dbvalue.asJson, &json_buf._top_node) < 0:
             _raise_from_odpi()
     elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
-        vector_info.numDimensions = <uint32_t> len(value)
+        if isinstance(value, PY_TYPE_SPARSE_VECTOR):
+            sparse_impl = <SparseVectorImpl> value._impl
+            vector_info.numDimensions = <uint32_t> sparse_impl.num_dimensions
+            vector_info.numSparseValues = <uint32_t> len(sparse_impl.indices)
+            vector_info.sparseIndices = \
+                    <uint32_t*> sparse_impl.indices.data.as_voidptr
+            value = sparse_impl.values
+        else:
+            vector_info.numDimensions = <uint32_t> len(value)
+            vector_info.numSparseValues = 0
+            vector_info.sparseIndices = NULL
         if value.typecode == 'd':
             vector_info.format = DPI_VECTOR_FORMAT_FLOAT64
         elif value.typecode == 'f':
@@ -385,24 +396,40 @@ cdef object _convert_vector_to_python(dpiVector *vector):
     Converts a vector to a Python array.
     """
     cdef:
+        array.array result, indices_template, sparse_indices
+        uint32_t num_elements, num_bytes
+        SparseVectorImpl sparse_impl
         dpiVectorInfo vector_info
-        array.array result
-        uint32_t num_bytes
     if dpiVector_getValue(vector, &vector_info) < 0:
         _raise_from_odpi()
+    if vector_info.numSparseValues > 0:
+        num_elements = vector_info.numSparseValues
+    else:
+        num_elements = vector_info.numDimensions
     if vector_info.format == DPI_VECTOR_FORMAT_FLOAT32:
-        result = array.clone(float_template, vector_info.numDimensions, False)
-        num_bytes = vector_info.numDimensions * vector_info.dimensionSize
+        result = array.clone(float_template, num_elements, False)
+        num_bytes = num_elements * vector_info.dimensionSize
     elif vector_info.format == DPI_VECTOR_FORMAT_FLOAT64:
-        result = array.clone(double_template, vector_info.numDimensions, False)
-        num_bytes = vector_info.numDimensions * vector_info.dimensionSize
+        result = array.clone(double_template, num_elements, False)
+        num_bytes = num_elements * vector_info.dimensionSize
     elif vector_info.format == DPI_VECTOR_FORMAT_INT8:
-        result = array.clone(int8_template, vector_info.numDimensions, False)
-        num_bytes = vector_info.numDimensions
+        result = array.clone(int8_template, num_elements, False)
+        num_bytes = num_elements
     elif vector_info.format == DPI_VECTOR_FORMAT_BINARY:
-        num_bytes = vector_info.numDimensions // 8
+        num_bytes = num_elements // 8
         result = array.clone(uint8_template, num_bytes, False)
     memcpy(result.data.as_voidptr, vector_info.dimensions.asPtr, num_bytes)
+    if vector_info.numSparseValues > 0:
+        sparse_impl = SparseVectorImpl.__new__(SparseVectorImpl)
+        sparse_impl.num_dimensions = vector_info.numDimensions
+        indices_template = array.array(ARRAY_TYPE_CODE_UINT32)
+        sparse_indices = array.clone(indices_template,
+                                     vector_info.numSparseValues, False)
+        memcpy(sparse_indices.data.as_voidptr, vector_info.sparseIndices,
+               vector_info.numSparseValues * sizeof(uint32_t))
+        sparse_impl.indices = sparse_indices
+        sparse_impl.values = result
+        return PY_TYPE_SPARSE_VECTOR._from_impl(sparse_impl)
     return result
 
 

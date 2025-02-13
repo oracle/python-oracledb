@@ -142,3 +142,14 @@ FetchInfo Attributes
     the value returned is *None*.
 
     .. versionadded:: 2.2.0
+
+.. attribute:: FetchInfo.vector_is_sparse
+
+    This read-only attribute returns a boolean that indicates whether the
+    vector is sparse or not.
+
+    If the column contains vectors that are SPARSE, the value returned is
+    True. If the column contains vectors that are DENSE, the value returned is
+    False. If the column is not a VECTOR column, the value returned is ``None``.
+
+    .. versionadded:: 3.0.0

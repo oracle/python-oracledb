@@ -158,7 +158,7 @@ cdef class OracleMetadata:
             metadata.dbtype = value.type
         elif isinstance(value, (PY_TYPE_CURSOR, PY_TYPE_ASYNC_CURSOR)):
             metadata.dbtype = DB_TYPE_CURSOR
-        elif isinstance(value, array.array):
+        elif isinstance(value, (array.array, PY_TYPE_SPARSE_VECTOR)):
             metadata.dbtype = DB_TYPE_VECTOR
         elif isinstance(value, PY_TYPE_INTERVAL_YM):
             metadata.dbtype = DB_TYPE_INTERVAL_YM

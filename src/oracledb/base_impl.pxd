@@ -195,12 +195,14 @@ cdef type PY_TYPE_MESSAGE
 cdef type PY_TYPE_MESSAGE_QUERY
 cdef type PY_TYPE_MESSAGE_ROW
 cdef type PY_TYPE_MESSAGE_TABLE
+cdef type PY_TYPE_SPARSE_VECTOR
 cdef type PY_TYPE_TIMEDELTA
 cdef type PY_TYPE_VAR
 
 cdef str DRIVER_NAME
 cdef str DRIVER_VERSION
 cdef str DRIVER_INSTALLATION_URL
+cdef str ARRAY_TYPE_CODE_UINT32
 
 cdef const char* ENCODING_UTF8
 cdef const char* ENCODING_UTF16
@@ -403,12 +405,17 @@ cdef class OsonEncoder(GrowableBuffer):
 
 cdef class VectorDecoder(Buffer):
 
+    cdef array.array _decode_values(self, uint32_t num_elements,
+                                    uint8_t vector_format)
     cdef object decode(self, bytes data)
 
 
 cdef class VectorEncoder(GrowableBuffer):
 
-    cdef int encode(self, array.array value) except -1
+    cdef int _encode_values(self, array.array value, uint32_t num_elements,
+                            uint8_t vector_format) except -1
+    cdef uint8_t _get_vector_format(self, array.array value)
+    cdef int encode(self, object value) except -1
 
 
 cdef class OracleMetadata:
@@ -868,6 +875,13 @@ cdef class PipelineOpResultImpl:
         readonly list fetch_metadata
 
     cdef int _capture_err(self, Exception exc) except -1
+
+
+cdef class SparseVectorImpl:
+    cdef:
+        readonly uint32_t num_dimensions
+        readonly array.array indices
+        readonly array.array values
 
 
 cdef struct OracleDate:

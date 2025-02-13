@@ -189,6 +189,23 @@ cdef int _set_str_param(dict args, str name, object target, bint check_network_c
         setattr(target, name, in_val)
 
 
+def get_array_type_code_uint32():
+    """
+    Returns the type code to use for array.array that will store uint32_t.
+    """
+    cdef:
+        array.array temp_array
+        str type_code
+    global ARRAY_TYPE_CODE_UINT32
+    if ARRAY_TYPE_CODE_UINT32 is None:
+        for type_code in ("I", "L"):
+            temp_array = array.array(type_code)
+            if temp_array.itemsize == 4:
+                ARRAY_TYPE_CODE_UINT32 = type_code
+                break
+    return ARRAY_TYPE_CODE_UINT32
+
+
 def init_base_impl(package):
     """
     Initializes globals after the package has been completely initialized. This
@@ -217,6 +234,7 @@ def init_base_impl(package):
         PY_TYPE_MESSAGE_ROW, \
         PY_TYPE_MESSAGE_TABLE, \
         PY_TYPE_POOL_PARAMS, \
+        PY_TYPE_SPARSE_VECTOR, \
         PY_TYPE_VAR
 
     errors = package.errors
@@ -241,6 +259,7 @@ def init_base_impl(package):
     PY_TYPE_MESSAGE_ROW = package.MessageRow
     PY_TYPE_MESSAGE_TABLE = package.MessageTable
     PY_TYPE_POOL_PARAMS = package.PoolParams
+    PY_TYPE_SPARSE_VECTOR = package.SparseVector
     PY_TYPE_VAR = package.Var
 
 

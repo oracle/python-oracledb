@@ -310,6 +310,10 @@ from .future import (
     future as __future__,  # noqa: F401
 )
 
+from .sparse_vector import (
+    SparseVector as SparseVector,
+)
+
 from . import config_providers
 
 IntervalYM = collections.namedtuple("IntervalYM", ["years", "months"])
@@ -345,6 +349,7 @@ del (
     lob,  # noqa
     pool,  # noqa
     pool_params,  # noqa
+    sparse_vector,  # noqa
     soda,  # noqa
     subscr,  # noqa
     sys,  # noqa

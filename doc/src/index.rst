@@ -64,6 +64,7 @@ API Manual
     api_manual/subscription.rst
     api_manual/lob.rst
     api_manual/dbobject_type.rst
+    api_manual/sparse_vector.rst
     api_manual/aq.rst
     api_manual/soda.rst
     api_manual/async_connection.rst

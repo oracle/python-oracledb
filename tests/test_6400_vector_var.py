@@ -306,46 +306,53 @@ class TestCase(test_env.BaseTestCase):
             "type_code",
             "vector_dimensions",
             "vector_format",
+            "vector_is_sparse",
         ]
         expected_values = [
-            ["INTCOL", oracledb.DB_TYPE_NUMBER, None, None],
-            ["VECTORFLEXALLCOL", oracledb.DB_TYPE_VECTOR, None, None],
-            ["VECTORFLEXTYPECOL", oracledb.DB_TYPE_VECTOR, 2, None],
+            ["INTCOL", oracledb.DB_TYPE_NUMBER, None, None, None],
+            ["VECTORFLEXALLCOL", oracledb.DB_TYPE_VECTOR, None, None, False],
+            ["VECTORFLEXTYPECOL", oracledb.DB_TYPE_VECTOR, 2, None, False],
             [
                 "VECTORFLEX8COL",
                 oracledb.DB_TYPE_VECTOR,
                 None,
                 oracledb.VECTOR_FORMAT_INT8,
+                False,
             ],
             [
                 "VECTORFLEX32COL",
                 oracledb.DB_TYPE_VECTOR,
                 None,
                 oracledb.VECTOR_FORMAT_FLOAT32,
+                False,
             ],
             [
                 "VECTORFLEX64COL",
                 oracledb.DB_TYPE_VECTOR,
                 None,
                 oracledb.VECTOR_FORMAT_FLOAT64,
+                False,
             ],
             [
                 "VECTOR8COL",
                 oracledb.DB_TYPE_VECTOR,
                 16,
                 oracledb.VECTOR_FORMAT_INT8,
+                False,
             ],
             [
                 "VECTOR32COL",
                 oracledb.DB_TYPE_VECTOR,
                 16,
                 oracledb.VECTOR_FORMAT_FLOAT32,
+                False,
             ],
             [
                 "VECTOR64COL",
                 oracledb.DB_TYPE_VECTOR,
                 16,
                 oracledb.VECTOR_FORMAT_FLOAT64,
+                False,
             ],
         ]
         self.cursor.execute("select * from TestVectors")

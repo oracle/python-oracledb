@@ -212,6 +212,116 @@ If you are using python-oracledb Thick mode with older versions of Oracle
 Client libraries than 23ai, see this
 :ref:`section <vector_thick_mode_old_client>`.
 
+.. _sparsevectors:
+
+Using SPARSE Vectors
+====================
+
+A Sparse vector is a vector which has zero value for most of its dimensions.
+This vector only physically stores the non-zero values. A sparse vector is
+supported when you are using Oracle Database 23.7 or later.
+
+Sparse vectors can store the total number of dimensions, an array of indices,
+and an array of values. The storage formats that can be used with sparse
+vectors are float32, float64, and int8. Note that the binary storage format
+cannot be used with sparse vectors. You can define a column for a sparse
+vector using the following format::
+
+    VECTOR(number_of_dimensions, dimension_storage_format, sparse)
+
+For example, to create a table with three columns for sparse vectors:
+
+.. code-block:: sql
+
+    CREATE TABLE vector_sparse_table (
+        float32sparsecol vector(25, float32, sparse),
+        float64sparsecol vector(30, float64, sparse),
+        int8sparsecol vector(35, int8, sparse)
+    )
+
+In this example the:
+
+- The float32sparsecol column can store sparse vector data of 25 dimensions
+  where each dimension value is a 32-bit floating-point number.
+
+- The float64sparsecol column can store sparse vector data of 30 dimensions
+  where each dimension value is a 64-bit floating-point number.
+
+- The int8sparsecol column can store sparse vector data of 35 dimensions where
+  each dimension value is a 8-bit signed integer.
+
+.. _insertsparsevectors:
+
+Inserting SPARSE Vectors
+------------------------
+
+With python-oracledb, sparse vector data can be inserted using
+:ref:`SparseVector objects <sparsevectorsobj>`. You can specify the number of
+dimensions, an array of indices, and an array of values as the data for a
+sparse vector. For example, the string representation is::
+
+    [25, [5,8,11], [25.25, 6.125, 8.25]]
+
+In this example, the sparse vector has 25 dimensions. Only indices 5, 8, and
+11 have values 25.25, 6.125, and 8.25 respectively. All of the other values
+are zero.
+
+The SparseVector objects are used as bind values when inserting sparse vector
+columns. For example:
+
+.. code-block:: python
+
+    import array
+
+    # 32-bit float sparse vector
+    float32_val = oracledb.SparseVector(
+        25, [6, 10, 18], array.array('f', [26.25, 129.625, 579.875])
+    )
+
+    # 64-bit float sparse vector
+    float64_val = oracledb.SparseVector(
+        30, [9, 16, 24], array.array('d', [19.125, 78.5, 977.375])
+    )
+
+    # 8-bit signed integer sparse vector
+    int8_val = oracledb.SparseVector(
+        35, [10, 20, 30], array.array('b', [26, 125, -37])
+    )
+
+    cursor.execute(
+        "insert into vector_sparse_table (:1, :2, :3)",
+        [float32_val, float64_val, int8_val]
+    )
+
+.. _fetchsparsevectors:
+
+Fetching Sparse Vectors
+-----------------------
+
+With python-oracledb, sparse vector columns are fetched in the same format
+accepted by Oracle Database by using the str() function. For example:
+
+.. code-block:: python
+
+    cursor.execute("select * from vec_sparse")
+    for float32_val, float64_val, int8_val in cursor:
+        print("float32:", str(float32_val))
+        print("float64:", str(float64_val))
+        print("int8:", str(int8_val))
+
+This prints the following output::
+
+    float32: [25, [6, 10, 18], [26.25, 129.625, 579.875]]
+    float64: [30, [9, 16, 24], [19.125, 78.5, 977.375]]
+    int8: [35, [10, 20, 30], [26, 125, -37]]
+
+The :ref:`FetchInfo <fetchinfoobj>` object that is returned as part of the
+fetched metadata contains attributes :attr:`FetchInfo.vector_dimensions`,
+:attr:`FetchInfo.vector_format`, and :attr:`FetchInfo.vector_is_sparse` which
+return the number of dimensions of the vector column, the format of each
+dimension value in the vector column, and a boolean which determines whether
+the vector is sparse or not.
+
 .. _vector_thick_mode_old_client:
 
 Using python-oracledb Thick Mode with Older Versions of Oracle Client Libraries

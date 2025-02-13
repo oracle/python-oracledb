@@ -2509,6 +2509,19 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
+.. function:: SparseVector(num_dimensions, indices, values)
+
+    Creates and returns a :ref:`SparseVector object <sparsevectorsobj>`.
+
+    The ``num_dimensions`` parameter is the number of dimensions contained in
+    the vector.
+
+    The ``indices`` parameter is the indices (zero-based) of non-zero values
+    in the vector.
+
+    The ``values`` parameter is the non-zero values stored in the vector.
+
+    .. versionadded:: 3.0.0
 
 .. function:: register_password_type(password_type, hook_function)
 

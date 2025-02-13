@@ -404,6 +404,7 @@ cdef enum:
     TNS_CCAP_PIPELINING_SUPPORT = 0x04
     TNS_CCAP_PIPELINING_BREAK = 0x10
     TNS_CCAP_VECTOR_FEATURE_BINARY = 0x01
+    TNS_CCAP_VECTOR_FEATURE_SPARSE = 0x02
 
 # runtime capability indices
 cdef enum:
