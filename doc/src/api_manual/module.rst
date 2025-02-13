@@ -4295,8 +4295,10 @@ See :ref:`exception` for usage information.
 .. attribute:: _Error.isrecoverable
 
     Boolean attribute representing whether the error is recoverable or not.
-    This is False in all cases unless both Oracle Database 12.1 (or later) and
-    Oracle Client 12.1 (or later) are being used.
+    This requires Oracle Database 12.1 (or later). If python-oracledb Thick
+    mode is used, then Oracle Client 12.1 (or later) is also required.
+
+    See :ref:`tg` for more information.
 
 .. _oracledbplugins:
 

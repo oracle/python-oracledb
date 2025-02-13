@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -61,6 +61,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(error_obj.code, 20101)
         self.assertEqual(error_obj.offset, 0)
         self.assertIsInstance(error_obj.isrecoverable, bool)
+        self.assertFalse(error_obj.isrecoverable)
         new_error_obj = pickle.loads(pickle.dumps(error_obj))
         self.assertIsInstance(new_error_obj, oracledb._Error)
         self.assertEqual(new_error_obj.message, error_obj.message)
@@ -205,6 +206,20 @@ class TestCase(test_env.BaseAsyncTestCase):
         (result,) = await self.conn.run_pipeline(pipeline)
         self.assertEqual(result.warning.full_code, "DPY-7000")
         await self.cursor.execute(f"drop procedure {proc_name}")
+
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    async def test_6809(self):
+        "6809 - error from killed connection is deemed recoverable"
+        admin_conn = await test_env.get_admin_connection_async()
+        conn = await test_env.get_connection_async()
+        sid, serial = await self.get_sid_serial(conn)
+        with admin_conn.cursor() as admin_cursor:
+            sql = f"alter system kill session '{sid},{serial}'"
+            await admin_cursor.execute(sql)
+        with self.assertRaisesFullCode("DPY-4011") as cm:
+            with conn.cursor() as cursor:
+                await cursor.execute("select user from dual")
+        self.assertTrue(cm.error_obj.isrecoverable)
 
 
 if __name__ == "__main__":

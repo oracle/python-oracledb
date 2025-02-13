@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -58,6 +58,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(error_obj.code, 20101)
         self.assertEqual(error_obj.offset, 0)
         self.assertIsInstance(error_obj.isrecoverable, bool)
+        self.assertFalse(error_obj.isrecoverable)
         new_error_obj = pickle.loads(pickle.dumps(error_obj))
         self.assertIsInstance(new_error_obj, oracledb._Error)
         self.assertEqual(new_error_obj.message, error_obj.message)
@@ -197,6 +198,20 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(error_obj.code, code)
             self.assertEqual(error_obj.full_code, f"ORA-{code}")
             self.assertTrue("Help:" not in error_obj.message)
+
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    def test_1709(self):
+        "1709 - error from killed connection is deemed recoverable"
+        admin_conn = test_env.get_admin_connection()
+        conn = test_env.get_connection()
+        sid, serial = self.get_sid_serial(conn)
+        with admin_conn.cursor() as admin_cursor:
+            sql = f"alter system kill session '{sid},{serial}'"
+            admin_cursor.execute(sql)
+        with self.assertRaisesFullCode("DPY-4011") as cm:
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+        self.assertTrue(cm.error_obj.isrecoverable)
 
 
 if __name__ == "__main__":

@@ -552,11 +552,11 @@ class FullCodeErrorContextManager:
         if not issubclass(exc_type, oracledb.Error):
             return False
         if issubclass(exc_type, oracledb.Error):
-            error_obj = exc_value.args[0]
-            if error_obj.full_code not in self.full_codes:
+            self.error_obj = exc_value.args[0]
+            if self.error_obj.full_code not in self.full_codes:
                 message = (
                     f"{self.message_fragment} should have been raised but "
-                    f'"{error_obj.full_code}" was raised instead.'
+                    f'"{self.error_obj.full_code}" was raised instead.'
                 )
                 raise AssertionError(message)
         return True
