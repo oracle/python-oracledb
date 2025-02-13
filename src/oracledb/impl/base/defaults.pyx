@@ -33,6 +33,10 @@ cdef class DefaultsImpl:
     def __init__(self):
         self.arraysize = 100
         self.config_dir = os.environ.get("TNS_ADMIN")
+        if self.config_dir is None:
+            oracle_home = os.environ.get("ORACLE_HOME")
+            if oracle_home is not None:
+                self.config_dir = os.path.join(oracle_home, "network", "admin")
         self.fetch_lobs = True
         self.fetch_decimals = False
         self.prefetchrows = 2

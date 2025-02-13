@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -531,6 +531,8 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         params.useJsonId = True
         if config_dir is None:
             config_dir = C_DEFAULTS.config_dir
+        else:
+            C_DEFAULTS.config_dir = config_dir
         if lib_dir is not None:
             if isinstance(lib_dir, bytes):
                 lib_dir_bytes = lib_dir
@@ -558,6 +560,8 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
                                        &params, &driver_info.context,
                                        &error_info) < 0:
             _raise_from_info(&error_info)
+        if config_dir is None and params.oracleClientConfigDir != NULL:
+            C_DEFAULTS.config_dir = params.oracleClientConfigDir.decode()
         if dpiContext_getClientVersion(driver_info.context,
                                        &driver_info.client_version_info) < 0:
             _raise_from_odpi()

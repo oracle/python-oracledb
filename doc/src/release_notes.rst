@@ -72,6 +72,12 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  The value of :attr:`defaults.config_dir` is now calculated from the
+    location of the Oracle Client shared library on some platforms. If a value
+    is supplied to the ``config_dir`` parameter of
+    :meth:`oracledb.init_oracle_client()`, then the value of
+    :attr:`defaults.config_dir` is set to that value after the call completes
+    successfully.
 #)  Fixed bug that caused :attr:`oracledb._Error.isrecoverable` to always be
     `False`.
 
@@ -88,6 +94,9 @@ Common Changes
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
+#)  Set the default value of :attr:`defaults.config_dir` to
+    ``$ORACLE_HOME/network/admin`` if the environment variable ``ORACLE_HOME``
+    is set.
 #)  All connect strings are parsed by the driver if the new parameter
     ``thick_mode_dsn_passthrough`` is set to *True*. Previously, only Thin
     mode parsed all connect strings and Thick mode passed the connect string
