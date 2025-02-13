@@ -637,7 +637,7 @@ print("All done!")
 </p>
 
 <p>Try changing <code>getmode</code> to
-<code>oracledb.POOL_GETMODE_WAIT</code>.  When <code>numberOfThreads</code>
+<code>oracledb.POOL_GETMODE_NOWAIT</code>.  When <code>numberOfThreads</code>
 exceeds the maximum size of the pool, the <code>acquire()</code> call will now
 generate an error such as "<em>ORA-24459: OCISessionGet() timed out waiting for pool to create new connections</em>".  </p>
 
@@ -2726,7 +2726,7 @@ import sys</pre>
 
 <hr/>
 <h2>License</h2>
-<p>Copyright &copy; 2017, 2023, Oracle and/or its affiliates. </p>
+<p>Copyright &copy; 2017, 2025, Oracle and/or its affiliates. </p>
 
 <p>This software is dual-licensed to you under the Universal Permissive License
 (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
