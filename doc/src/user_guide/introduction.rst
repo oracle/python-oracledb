@@ -26,7 +26,8 @@ Changes in python-oracledb
 releases can be found in the :ref:`release notes <releasenotes>`.
 
 The python-oracledb driver is the renamed, major version successor to cx_Oracle
-8.3.  For upgrade information, see :ref:`upgrading83`.
+8.3.  For upgrade information, see :ref:`upgrading83`. The cx_Oracle driver is
+obsolete and should not be used for new development.
 
 Getting Started
 ===============

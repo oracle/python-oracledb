@@ -7,9 +7,9 @@ Installing python-oracledb
 The python-oracledb driver allows Python 3 applications to connect to Oracle
 Database.
 
-Python-oracledb is the new name for the Python `cx_Oracle driver
-<https://oracle.github.io/python-cx_Oracle/>`__.  If you are upgrading from
-cx_Oracle, see :ref:`upgrading83`.
+The python-oracledb driver is the renamed, major version successor to cx_Oracle
+8.3.  For upgrade information, see :ref:`upgrading83`. The cx_Oracle driver is
+obsolete and should not be used for new development.
 
 .. figure:: /images/python-oracledb-thin-arch.png
    :alt: architecture of the python-oracledb driver

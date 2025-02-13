@@ -9,8 +9,9 @@ Oracle Database.  This mode does not need Oracle Client libraries.  However,
 some additional functionality is available when python-oracledb uses them.
 Python-oracledb is said to be in 'Thick' mode when Oracle Client libraries are
 used.  Both modes have comprehensive functionality supporting the Python
-Database API v2.0 Specification.  See :ref:`initialization` for how to enable
-Thick mode.
+Database API v2.0 Specification `PEP 249
+<https://peps.python.org/pep-0249/>`__.  See :ref:`initialization` for how to
+enable Thick mode.
 
 The following table summarizes the Oracle Database features supported by
 python-oracledb Thin and Thick modes, and by cx_Oracle 8.3.  For more details
@@ -26,10 +27,6 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - python-oracledb Thin Mode
       - python-oracledb Thick Mode
       - cx_Oracle 8.3
-    * - Python Database API Support (see `PEP 249 <https://peps.python.org/pep-0249/>`__)
-      - Yes - a couple of features are not feasible. Many extensions.
-      - Yes - a couple of features are not feasible. Many extensions.
-      - Yes - a couple of features are not feasible. Many extensions.
     * - Oracle Client version
       - Not applicable
       - Release 11.2 and later

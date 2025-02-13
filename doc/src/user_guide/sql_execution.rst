@@ -180,7 +180,7 @@ To extract the column names from a query you can use code like:
 
     with connection.cursor() as cursor:
         cursor.execute("select * from locations")
-        columns = [col[0] for col in cursor.description]
+        columns = [col.name for col in cursor.description]
         print(columns)
         for r in cursor:
             print(r)
@@ -191,6 +191,22 @@ This will print::
     (1000, '1297 Via Cola di Rie', '00989', 'Roma', None, 'IT')
     (1100, '93091 Calle della Testa', '10934', 'Venice', None, 'IT')
     . . .
+
+**Changing Column Names to Lowercase**
+
+To change all column names to lowercase you could do:
+
+.. code-block:: python
+
+    cursor.execute("select * from locations where location_id = 1000")
+
+    columns = [col.name.lower() for col in cursor.description]
+    print(columns)
+
+The output is::
+
+    ['location_id', 'street_address', 'postal_code', 'city', 'state_province',
+    'country_id']
 
 .. _defaultfetchtypes:
 
@@ -452,13 +468,15 @@ the database. The :meth:`Cursor.rowfactory` method is called with the tuple
 fetched from the database before it is returned to the application.  The method
 can convert the tuple to a different value.
 
+**Fetching Rows as Dictionaries**
+
 For example, to fetch each row of a query as a dictionary:
 
 .. code-block:: python
 
     cursor.execute("select * from locations where location_id = 1000")
 
-    columns = [col[0] for col in cursor.description]
+    columns = [col.name for col in cursor.description]
     cursor.rowfactory = lambda *args: dict(zip(columns, args))
     data = cursor.fetchone()
     print(data)
@@ -484,8 +502,11 @@ only one of the similarly named columns will be included in the dictionary:
         dogs.color
     from cats, dogs
 
+**Example with an Output Type Handler, Outconverter, and Row Factory**
+
 An example showing an :ref:`output type handler <outputtypehandlers>`, an
-:ref:`outconverter <outconverters>`, and a row factory is:
+:ref:`outconverter <outconverters>`, and a :ref:`row factory <rowfactories>`
+is:
 
 .. code-block:: python
 
@@ -505,17 +526,17 @@ An example showing an :ref:`output type handler <outputtypehandlers>`, an
 
     cursor.execute("select 123 as col1, 'abc' as col2 from dual")
 
-    columns = [col[0] for col in cursor.description]
+    columns = [col.name.lower() for col in cursor.description]
     cursor.rowfactory = lambda *args: dict(zip(columns, args))
     for r in cursor.fetchall():
         print(r)
 
 The database converts the number to a string before it is returned to
-python-oracledb.  The outconverter appends "was a string" to this value.
-Finally the row factory changes the complete row to a dictionary.  The output
-is::
+python-oracledb. The outconverter appends "was a string" to this value. The
+column names are converted to lowercase. Finally, the row factory changes the
+complete row to a dictionary. The output is::
 
-    {'COL1': '123 was a string', 'COL2': 'abc'}
+    {'col1': '123 was a string', 'col2': 'abc'}
 
 .. _numberprecision:
 
