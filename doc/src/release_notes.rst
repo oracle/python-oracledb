@@ -107,6 +107,8 @@ Common Changes
 #)  Error ``DPY-2056: registered handler for protocol "{protocol}" failed for
     arg "{arg}"`` is now raised when an exception occurs when calling the
     registered handler for a protocol.
+#)  Added a sample Dockerfile that can be used to create a container for
+    developing and deploying python-oracledb applications.
 #)  Internal change: improve handling of metadata.
 #)  Internal build tool change: bumped minimum Cython version to 3.0.10 to
     avoid bug in earlier versions.

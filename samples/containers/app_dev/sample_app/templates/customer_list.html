@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <title>My Customer Sample Application - python-oracledb developer environment</title>
+  </head>
+  <body>
+    <header>
+      <img src="{{ url_for('static', filename='logo.png')}}" alt="Logo" class="logo">
+      <h1>Customer list</h1>
+    </header>
+    <table>
+      <tr>
+        <th>Customer ID</th>
+        <th>Name</th>
+        <th>Date of birth</th>
+        <th>City</th>
+        <th>Zipcode</th>
+      </tr>
+      {% for item in form_data %}
+      <tr>
+        <td> {{item[0]}} </td>
+        <td> {{item[1]}} </td>
+        <td> {{item[2]}} </td>
+        <td> {{item[3]}} </td>
+        <td> {{item[4]}} </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <h2>Add new customer</h2>
+    <form action="{{ url_for('entry') }}" method="post">
+      <table>
+        <tr>
+          <td><label for="cus_name">Name: </label></td>
+          <td><input type="text" name="cus_name" required/></td>
+        </tr>
+        <tr>
+          <td><label for="cus_dob">Date of birth (DD-MON-YYYY): </label></td>
+          <td><input type="text" name="cus_dob" required/></td>
+        </tr>
+        <tr>
+          <td><label for="cus_city">City: </label></td>
+          <td><input type="text" name="cus_city" required/></td>
+        </tr>
+        <tr>
+          <td><label for="cus_zipcode">Zipcode :</label></td>
+          <td><input type="number" name="cus_zipcode" required/></td>
+        </tr>
+      </table>
+      <input type="submit" value="Add Customer"/>
+    </form>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for message in messages %}
+            <li>{{message}}</li>
+          {% endfor %}
+        </ul>
+     {% endif %}
+    {% endwith %}
+  </body>
+</html>

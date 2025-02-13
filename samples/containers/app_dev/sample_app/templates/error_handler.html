@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/styles.css') }}">
+    <title>My Customer Sample Application - python-oracledb developer environment</title>
+  </head>
+  <body>
+    <header>
+      <img src="{{ url_for('static', filename='logo.png')}}" alt="Logo" class="logo">
+      <h1>Database Error</h1>
+    </header>
+    <table>
+      <tr>
+        <th>Error Message</th>
+      </tr>
+      <tr>
+        <td>
+          {% for item in form_data %}{{item[0]}}{% endfor %}
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# -----------------------------------------------------------------------------
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# This software is dual-licensed to you under the Universal Permissive License
+# (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
+# 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose
+# either license.
+#
+# If you elect to accept the software under the Apache License, Version 2.0,
+# the following applies:
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# -----------------------------------------------------------------------------
+#
+# NAME
+#
+#   autodeployscript.sh
+#
+# PURPOSE
+#
+#   Deploy a user application during container creation.
+
+apache_conf_file="OPY_OSUSERBASEDIR/apache/conf/extra/pyorcldb_wsgi.conf"
+requirements_txt="OPY_OSUSERBASEDIR/app/requirements.txt"
+search_txt="# Add your WSGI file details below in the next line"
+auto_deploy="${DEPLOY_APP:-FALSE}"
+appname="${APP_NAME:-No_App_Name}"
+
+( [ ${auto_deploy} != "TRUE" ] && echo "No need to deploy application" && exit 0)
+
+( [ ${auto_deploy} == "TRUE" ] && [ ${appname} == "No_App_Name" ] &&
+  echo "Application name is not found" && \
+  echo "Application name is required to deploy your application" && \
+  echo "Please set it in environment variable APP_NAME" && exit -1 )
+
+( [ ${auto_deploy} == "TRUE" ] &&
+  sed -i "s/OPY_APPNAME/${appname}/g" $apache_conf_file &&
+  sed -i "s/No_App_Name/${appname}/g" $apache_conf_file )
+
+search_txt1="# DocumentRoot"
+replace_txt1="DocumentRoot"
+
+search_txt2="# WSGIScriptAlias \\/app"
+replace_txt2="WSGIScriptAlias \\/app"
+
+search_txt3="# <Directory"
+replace_txt3="<Directory"
+
+search_txt4="#   Order"
+replace_txt4="  Order"
+
+search_txt5="#   Allow"
+replace_txt5="  Allow"
+
+search_txt6="#   Require"
+replace_txt6="  Require"
+
+search_txt7="# <\\/Directory>"
+replace_txt7="<\\/Directory>"
+
+search_txt8="# WSGIDaemonProcess"
+replace_txt8="WSGIDaemonProcess"
+
+search_txt9="#   WSGIProcessGroup"
+replace_txt9="  WSGIProcessGroup"
+
+( [ ${auto_deploy} == "TRUE" ] &&
+  sed -i "s/$search_txt1/$replace_txt1/g" $apache_conf_file && \
+  sed -i "s/$search_txt2/$replace_txt2/g" $apache_conf_file && \
+  sed -i "s/$search_txt3/$replace_txt3/g" $apache_conf_file && \
+  sed -i "s/$search_txt4/$replace_txt4/g" $apache_conf_file && \
+  sed -i "s/$search_txt5/$replace_txt5/g" $apache_conf_file && \
+  sed -i "s/$search_txt6/$replace_txt6/g" $apache_conf_file && \
+  sed -i "s/$search_txt7/$replace_txt7/g" $apache_conf_file )
+
+( [ ${appname} != "No_App_Name" ] && \
+  sed -i "s/$search_txt8/$replace_txt8/g" $apache_conf_file && \
+  sed -i "s/$search_txt9/$replace_txt9/g" $apache_conf_file )
+
+( ( [ ${auto_deploy} == "TRUE" ] && \
+    ( [ -f "$requirements_txt" ] && pip install -r "$requirements_txt" ) && \
+    apachectl restart 1>/tmp/null && \
+     [ $? -eq 0 ] && echo "Application deployment was successfully completed! Starting Apache HTTP server.." ) ||
+  [ "TRUE" == "TRUE" ] )
+
+exit 0

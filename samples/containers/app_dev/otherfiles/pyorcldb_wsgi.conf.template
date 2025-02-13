@@ -1,0 +1,44 @@
+# Sample WSGI configuration for testing purposes
+
+Define opy_basedir OPY_BASEDIR
+Define opy_port OPY_APACHE_LISTEN_PORT
+Define opy_pythonvirtualdirname OPY_PYTHONVIRTUALDIRNAME
+Define opy_appdir app
+Define opy_appname OPY_APPNAME
+
+ServerName pyorcldbdemo
+
+Listen 0.0.0.0:${opy_port}
+
+<IfModule !wsgi_module>
+    LoadModule wsgi_module modules/mod_wsgi.so
+</IfModule>
+
+WSGIPythonHome ${opy_basedir}/${opy_pythonvirtualdirname}
+
+<VirtualHost 0.0.0.0:${opy_port}>
+
+#  Alias /static/ ${opy_basedir}/${opy_appdir}/static/
+#  <Directory ${opy_basedir}/${opy_appdir}/static>
+#    Require all granted
+#  </Directory>
+
+  ErrorLog ${opy_basedir}/apache/logs/pyorcldb_error.log
+  CustomLog ${opy_basedir}/apache/logs/appstack_app_access.log "%h %l %u %t \"%r\" %>s %b"
+
+  SSLEngine on
+  SSLCertificateFile ${opy_basedir}/cert/certificate.pem
+  SSLCertificateKeyFile ${opy_basedir}/cert/privatekey.pem
+
+  # Deployed application
+  # DocumentRoot ${opy_basedir}/${opy_appdir}
+  # WSGIDaemonProcess ${opy_appname} python-path=${opy_basedir}/${opy_appdir}
+  # WSGIScriptAlias /app ${opy_basedir}/${opy_appdir}/pyorcldb_app.wsgi
+  # <Directory ${opy_basedir}/${opy_appdir}>
+  #   WSGIProcessGroup ${opy_appname}
+  #   Order allow,deny
+  #   Allow from all
+  #   Require all granted
+  # </Directory>
+
+</VirtualHost>
