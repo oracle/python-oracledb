@@ -101,8 +101,13 @@ cdef int _set_enum_param(dict args, str name, object enum_obj,
     if in_val is not None:
         if not isinstance(in_val, str) or in_val.isdigit():
             out_val[0] = int(in_val)
-            if out_val[0] in enum_obj:
+            if isinstance(in_val, enum_obj):
                 return 0
+            try:
+                enum_obj(out_val[0])
+                return 0
+            except ValueError:
+                pass
         else:
             enum_val = getattr(enum_obj, in_val.upper(), None)
             if enum_val is not None:
