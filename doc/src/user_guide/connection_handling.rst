@@ -2091,10 +2091,11 @@ shrinkage is only initiated when the pool is accessed so pools in fully dormant
 applications will not shrink until the application is next used.
 
 For pools created with :ref:`external authentication <extauth>`, with
-:ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp`,
-then the number of connections opened at pool creation is zero even if a larger
-value is specified for ``min``.  Also, in these cases the pool increment unit
-is always 1 regardless of the value of ``increment``.
+:ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp` (in
+python-oracledb Thick mode), then the number of connections opened at pool
+creation is zero even if a larger value is specified for ``min``.  Also, in
+these cases the pool increment unit is always 1 regardless of the value of
+``increment``.
 
 .. _poolhealth:
 
@@ -2773,6 +2774,10 @@ state can optionally be specified. See the Oracle Database documentation on
 `benefiting from scalability <https://www.oracle.com/pls/topic/lookup?ctx=
 dblatest&id=GUID-661BB906-74D2-4C5D-9C7E-2798F76501B3>`__ for more information
 on purity and connection classes.
+
+Note that when using DRCP with a python-oracledb local :ref:`connection pool
+<connpooling>` in Thick mode, the local connection pool ``min`` value is
+ignored and the pool will be created with zero connections.
 
 **Requesting a Pooled Server**
 
