@@ -35,6 +35,8 @@ Thin Mode Changes
     (`issue 426 <https://github.com/oracle/python-oracledb/issues/426>`__).
 #)  Fixed hang when attempting to use pipelining against a database that
     doesn't support the end of response flag.
+#)  Fixed hang when using asyncio and a connection is unexpectedly closed by
+    the database.
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
     does not match the expected value: "{expected_dn}"`` now shows the expected
     value.

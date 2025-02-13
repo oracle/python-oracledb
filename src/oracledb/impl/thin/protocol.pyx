@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -761,7 +761,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         except:
             if not self._in_connect \
                     and self._write_buf._packet_sent \
-                    and self._read_buf._transport is not None:
+                    and self._transport is not None:
                 self._send_marker(self._write_buf, TNS_MARKER_TYPE_BREAK)
                 await self._reset()
             raise
@@ -888,6 +888,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         if not self._in_connect:
             self._transport = None
+            if self._read_buf._waiter is not None \
+                    and not self._read_buf._waiter.done():
+                error = errors._create_err(errors.ERR_CONNECTION_CLOSED)
+                self._read_buf._waiter.set_exception(error.exc_type(error))
 
     def data_received(self, data):
         """
