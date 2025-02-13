@@ -456,6 +456,7 @@ cdef class ConnectParamsNode:
         list active_children
 
     cdef int _copy(self, ConnectParamsNode source) except -1
+    cdef list _get_initial_connect_string_parts(self)
     cdef int _set_active_children(self, list children) except -1
 
 
@@ -502,6 +503,8 @@ cdef class Description(ConnectParamsNode):
         public object ssl_version
         public str wallet_location
         dict extra_connect_data_args
+        dict extra_security_args
+        dict extra_args
         str connection_id
 
     cdef str _build_duration_str(self, double value)

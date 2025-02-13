@@ -331,19 +331,21 @@ class TestCase(test_env.BaseTestCase):
     def test_4521(self):
         "4521 - test connect string with an address list"
         params = oracledb.ConnectParams()
-        connect_string = """
-            (DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)
-            (ADDRESS_LIST=(LOAD_BALANCE=ON)
-            (ADDRESS=(PROTOCOL=tcp)(PORT=1521)(HOST=my_host25))
-            (ADDRESS=(PROTOCOL=tcps)(PORT=222)(HOST=my_host26)))
-            (CONNECT_DATA=(SERVICE_NAME=my_service_name25)))"""
+        connect_string = (
+            "(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)"
+            "(ADDRESS_LIST=(LOAD_BALANCE=ON)"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host25)(PORT=4521))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host26)(PORT=4522)))"
+            "(CONNECT_DATA=(SERVICE_NAME=my_service_name25)))"
+        )
         params.parse_connect_string(connect_string)
         self.assertEqual(params.host, ["my_host25", "my_host26"])
-        self.assertEqual(params.port, [1521, 222])
-        self.assertEqual(params.protocol, ["tcp", "tcps"])
+        self.assertEqual(params.port, [4521, 4522])
+        self.assertEqual(params.protocol, ["tcp", "tcp"])
         self.assertEqual(params.service_name, "my_service_name25")
         self.assertEqual(params.retry_count, 5)
         self.assertEqual(params.retry_delay, 2)
+        self.assertEqual(params.get_connect_string(), connect_string)
 
     def test_4522(self):
         "4522 - test connect string with multiple address lists"
@@ -477,9 +479,9 @@ class TestCase(test_env.BaseTestCase):
             tcp_timeout_val = f"(TRANSPORT_CONNECT_TIMEOUT={out_val})"
             connect_string = (
                 f"(DESCRIPTION={tcp_timeout_val}"
-                + "(ADDRESS=(PROTOCOL=tcp)"
-                + f"(HOST={host})(PORT=1521))(CONNECT_DATA="
-                + f"(SERVICE_NAME={service_name})))"
+                "(ADDRESS=(PROTOCOL=tcp)"
+                f"(HOST={host})(PORT=1521))(CONNECT_DATA="
+                f"(SERVICE_NAME={service_name})))"
             )
             self.assertEqual(params.get_connect_string(), connect_string)
 
@@ -559,10 +561,10 @@ class TestCase(test_env.BaseTestCase):
             source_route_clause = "(SOURCE_ROUTE=ON)" if has_section else ""
             connect_string = (
                 f"(DESCRIPTION={source_route_clause}"
-                + "(ADDRESS_LIST="
-                + "(ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))"
-                + "(ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522)))"
-                + "(CONNECT_DATA=(SERVICE_NAME=my_service_35)))"
+                f"(ADDRESS_LIST={source_route_clause}"
+                "(ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))"
+                "(ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522)))"
+                "(CONNECT_DATA=(SERVICE_NAME=my_service_35)))"
             )
             self.assertEqual(params.get_connect_string(), connect_string)
 
@@ -1257,6 +1259,439 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(params.host, host)
             self.assertEqual(params.port, port)
             self.assertEqual(params.get_connect_string(), connect_descriptor)
+
+    def test_4572(self):
+        "4572 - test passing through unrecognized parameters in SECURITY"
+        options = [
+            "(SIMPLE_KEY=SIMPLE_VALUE)",
+            "(COMPLEX_KEY=(SUB_VALUE_A=23)(SUB_VALUE_B=27))",
+            "(COMPLEX_KEY=(SUB_VALUE_A=A)(SUB_VALUE_B=(SUB_SUB_A=B)))",
+        ]
+        for option in options:
+            with self.subTest(option=option):
+                connect_string = (
+                    "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=host4572)"
+                    "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service4572))"
+                    f"(SECURITY=(SSL_SERVER_DN_MATCH=ON){option}))"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_string)
+                self.assertEqual(params.get_connect_string(), connect_string)
+
+    def test_4573(self):
+        "4573 - test passing through unrecognized parameters in DESCRIPTION"
+        options = [
+            "(SIMPLE_KEY=SIMPLE_VALUE)",
+            "(COMPLEX_KEY=(SUB_VALUE_1=1)(SUB_VALUE_B=2))",
+            "(COMPLEX_KEY=(SUB_VALUE_2=S)(SUB_VALUE_B=(SUB_SUB_A=T)))",
+        ]
+        for option in options:
+            with self.subTest(option=option):
+                connect_string = (
+                    "(DESCRIPTION_LIST="
+                    f"(DESCRIPTION={option}(ADDRESS=(PROTOCOL=tcp)"
+                    "(HOST=host4573a)(PORT=1521))"
+                    "(CONNECT_DATA=(SERVICE_NAME=service4573)))"
+                    f"(DESCRIPTION={option}(ADDRESS=(PROTOCOL=tcp)"
+                    "(HOST=host4573b)(PORT=1521))"
+                    "(CONNECT_DATA=(SERVICE_NAME=service4573))))"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_string)
+                self.assertEqual(params.get_connect_string(), connect_string)
+
+    def test_4574(self):
+        "4574 - test passing through specific unsupported parameters"
+        easy_connect = (
+            "host_4574/service_4574?"
+            "enable=broken&recv_buf_size=1024&send_buf_size=2048"
+        )
+        connect_descriptor = (
+            "(DESCRIPTION=(ENABLE=broken)(RECV_BUF_SIZE=1024)"
+            "(SEND_BUF_SIZE=2048)(ADDRESS=(PROTOCOL=tcp)(HOST=host_4574)"
+            "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service_4574)))"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(easy_connect)
+        self.assertEqual(params.get_connect_string(), connect_descriptor)
+
+    def test_4575(self):
+        "4575 - test syntax rule for keywords"
+        for value, ok in [
+            ("(SIMPLE_KEY=SIMPLE_VALUE)", True),
+            ("(KEY_CONTAINS SPACE=SIMPLE_VALUE)", False),
+            ("(∆KEY✓🚀=SIMPLE_VALUE)", False),
+            ("(§∞ホスト🔑=SIMPLE_VALUE)", False),
+            ("(^MY_KEY_NAME=SIMPLE_VALUE)", False),
+            ("(KEY_CONTAINS     TAB=SIMPLE_VALUE)", False),
+            ("(KEY_CONTAINS_QUOTES_''=SIMPLE_VALUE)", False),
+            ("(KEY_CONTAINS'\r'=SIMPLE_VALUE)", False),
+            ("(KEY_CONTAINS'\n'=SIMPLE_VALUE)", False),
+        ]:
+            with self.subTest(value=value):
+                connect_string = (
+                    "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host4573)"
+                    + "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service4573)"
+                    + f"{value}))"
+                )
+                if ok:
+                    params = oracledb.ConnectParams()
+                    params.parse_connect_string(connect_string)
+                    self.assertEqual(
+                        params.get_connect_string(), connect_string
+                    )
+                else:
+                    with self.assertRaisesFullCode("DPY-4017"):
+                        params.parse_connect_string(connect_string)
+
+    def test_4576(self):
+        "4576 - test syntax rule for keywords in easy connect string"
+        for value, ok in [
+            ("simple_key=simple_value", True),
+            ("key_contains space=simple_value", False),
+            ("∆key✓🚀=simple_value", False),
+            ("^my_key_name=simple_value", False),
+            ("key_contains      tab=simple_value", False),
+            ("key_contains_quotes_''=simple_value", False),
+            ("key_contains'r'=simple_value", False),
+            ("key_contains'\n'=simple_value", False),
+        ]:
+            with self.subTest(value=value):
+                easy_connect = f"""host4574:1589/service4574?{value}"""
+                connect_string_exp = (
+                    "(DESCRIPTION="
+                    + "(ADDRESS=(PROTOCOL=tcp)(HOST=host4574)(PORT=1589))"
+                    + "(CONNECT_DATA=(SERVICE_NAME=service4574)))"
+                )
+                if ok:
+                    params = oracledb.ConnectParams()
+                    params.parse_connect_string(easy_connect)
+                    self.assertEqual(params.host, "host4574")
+                    self.assertEqual(params.port, 1589)
+                    self.assertEqual(params.service_name, "service4574")
+                    self.assertEqual(
+                        params.get_connect_string(), connect_string_exp
+                    )
+                else:
+                    with self.assertRaisesFullCode("DPY-4018"):
+                        params.parse_connect_string(easy_connect)
+
+    def test_4577(self):
+        "4577 - test for DESCRIPTION_LIST with FAILOVER"
+        connect_string = (
+            "(DESCRIPTION_LIST=(FAILOVER=OFF)(LOAD_BALANCE=ON)"
+            "(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=1)(RETRY_DELAY=1)"
+            "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=my_host30)(PORT=5001))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host31)(PORT=1521)))"
+            "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=my_host32)(PORT=5002))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host32)(PORT=5003)))"
+            "(CONNECT_DATA=(SERVICE_NAME=my_service_name27)))"
+            "(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=2)(RETRY_DELAY=3)"
+            "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=my_host34)(PORT=5002))"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host35)(PORT=5001)))"
+            "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=my_host36)(PORT=5002))"
+            "(ADDRESS=(PROTOCOL=tcps)(HOST=my_host37)(PORT=1521)))"
+            "(SECURITY=(SSL_SERVER_DN_MATCH=ON))))"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.get_connect_string(), connect_string)
+
+    def test_4578(self):
+        "4578 - test for descriptor parameters in connect descriptor"
+        options = [
+            ("(FAILOVER=on)", ""),
+            ("(FAILOVER=off)", "(FAILOVER=OFF)"),
+            ("(FAILOVER=true)", ""),
+            ("(FAILOVER=false)", "(FAILOVER=OFF)"),
+            ("(FAILOVER=yes)", ""),
+            ("(FAILOVER=no)", "(FAILOVER=OFF)"),
+            ("(FAILOVER=unsupported_value)", "(FAILOVER=OFF)"),
+            ("(FAILOVER=1700)", "(FAILOVER=OFF)"),
+            ("(ENABLE=broken)", "(ENABLE=broken)"),
+            ("(LOAD_BALANCE=on)", "(LOAD_BALANCE=ON)"),
+            ("(LOAD_BALANCE=off)", ""),
+            ("(LOAD_BALANCE=true)", "(LOAD_BALANCE=ON)"),
+            ("(LOAD_BALANCE=false)", ""),
+            ("(LOAD_BALANCE=yes)", "(LOAD_BALANCE=ON)"),
+            ("(LOAD_BALANCE=no)", ""),
+            ("(LOAD_BALANCE=unsupported_value)", ""),
+            ("(LOAD_BALANCE=1700)", ""),
+            ("(RECV_BUF_SIZE=87300)", "(RECV_BUF_SIZE=87300)"),
+            ("(RECV_BUF_SIZE=11784)", "(RECV_BUF_SIZE=11784)"),
+            ("(SEND_BUF_SIZE=87300)", "(SEND_BUF_SIZE=87300)"),
+            ("(SEND_BUF_SIZE=11784)", "(SEND_BUF_SIZE=11784)"),
+            ("(RECV_TIMEOUT=10)", "(RECV_TIMEOUT=10)"),
+            ("(RECV_TIMEOUT=10ms)", "(RECV_TIMEOUT=10ms)"),
+            ("(RECV_TIMEOUT=10 ms)", "(RECV_TIMEOUT=10 ms)"),
+            ("(RECV_TIMEOUT=10 hr)", "(RECV_TIMEOUT=10 hr)"),
+            ("(RECV_TIMEOUT=10 min)", "(RECV_TIMEOUT=10 min)"),
+            ("(RECV_TIMEOUT=10 sec)", "(RECV_TIMEOUT=10 sec)"),
+            ("(COMPRESSION=on)", "(COMPRESSION=on)"),
+            ("(COMPRESSION=off)", "(COMPRESSION=off)"),
+            (
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=low))",
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=low))",
+            ),
+            (
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=high))",
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=high))",
+            ),
+            (
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=wrong))",
+                "(COMPRESSION=on)(COMPRESSION_LEVELS=(LEVEL=wrong))",
+            ),
+        ]
+
+        service_name = "service_4576"
+        host1 = "host_4576_1"
+        host2 = "host_4576_2"
+        port1 = 45761
+        port2 = 45762
+        for str_val, exp_val in options:
+            with self.subTest(str_val=str_val):
+                descriptor_part = str_val
+                descriptor_part_exp = exp_val
+                connect_descriptor = (
+                    f"(DESCRIPTION={descriptor_part}(ADDRESS_LIST="
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host1})(PORT={port1}))"
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host2})(PORT={port2})))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name})))"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_descriptor)
+
+                connect_descriptor_exp = (
+                    f"(DESCRIPTION={descriptor_part_exp}(ADDRESS_LIST="
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host1})(PORT={port1}))"
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host2})(PORT={port2})))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name})))"
+                )
+
+                self.assertEqual(params.host, [host1, host2])
+                self.assertEqual(params.port, [port1, port2])
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(
+                    params.get_connect_string(), connect_descriptor_exp
+                )
+
+    def test_4579(self):
+        "4579 - test for connect data parameters in connect descriptor"
+        options = [
+            "(COLOCATION_TAG=ColocationTag4577)",
+            "(COLOCATION_TAG=ColocationTag_4577)",
+            "(FAILOVER_MODE=(BACKUP=bhost)(TYPE=session)(METHOD=basic))",
+            "(FAILOVER_MODE=(BACKUP=bhost)(TYPE=select)(METHOD=preconnect))",
+            "(FAILOVER_MODE=(TYPE=select)(METHOD=basic)(RETRIES=2)(DELAY=15))",
+            "(HS=ok)",
+            "(TUNNEL_SERVICE_NAME=south)",
+        ]
+
+        service_name = "service_4577"
+        host = "host_4577"
+        port = 4577
+        for str_val in options:
+            with self.subTest(str_val=str_val):
+                connect_data_part = str_val
+                connect_descriptor = (
+                    f"(DESCRIPTION="
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host})(PORT={port}))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name})"
+                    f"{connect_data_part}))"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_descriptor)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(
+                    params.get_connect_string(), connect_descriptor
+                )
+
+    def test_4580(self):
+        "4580 - test for security parameters in connect descriptor"
+
+        security_options = {
+            # IGNORE_ANO_ENCRYPTION_FOR_TCPS variations
+            "(SECURITY=(IGNORE_ANO_ENCRYPTION_FOR_TCPS=TRUE))": (
+                "(SECURITY=(SSL_SERVER_DN_MATCH=ON)"
+                "(IGNORE_ANO_ENCRYPTION_FOR_TCPS=TRUE))"
+            ),
+            "(SECURITY=(IGNORE_ANO_ENCRYPTION_FOR_TCPS=FALSE))": (
+                "(SECURITY=(SSL_SERVER_DN_MATCH=ON)"
+                "(IGNORE_ANO_ENCRYPTION_FOR_TCPS=FALSE))"
+            ),
+            "(SECURITY=(SSL_SERVER_DN_MATCH=false)"
+            "(IGNORE_ANO_ENCRYPTION_FOR_TCPS=FALSE))": (
+                "(SECURITY=(IGNORE_ANO_ENCRYPTION_FOR_TCPS=FALSE))"
+            ),
+            # KERBEROS5_CC_NAME and KERBEROS5_PRINCIPAL variations
+            "(SECURITY=(KERBEROS5_CC_NAME=/tmp/krbuser2/krb.cc)"
+            "(KERBEROS5_PRINCIPAL=krbprinc2@example.com))": (
+                "(SECURITY=(SSL_SERVER_DN_MATCH=ON)"
+                "(KERBEROS5_CC_NAME=/tmp/krbuser2/krb.cc)"
+                "(KERBEROS5_PRINCIPAL=krbprinc2@example.com))"
+            ),
+            # SSL_SERVER_CERT_DN and SSL_SERVER_DN_MATCH variations
+            "(SECURITY=(SSL_SERVER_DN_MATCH=on)"
+            "(SSL_SERVER_CERT_DN=CN=unknown19a)"
+            "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))": (
+                "(SECURITY=(SSL_SERVER_DN_MATCH=ON)"
+                "(SSL_SERVER_CERT_DN=CN=unknown19a)"
+                "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))"
+            ),
+            "(SECURITY=(SSL_SERVER_DN_MATCH=false)"
+            "(SSL_SERVER_CERT_DN=CN=unknown19a)"
+            "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))": (
+                "(SECURITY=(SSL_SERVER_CERT_DN=CN=unknown19a)"
+                "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))"
+            ),
+            "(SECURITY=(SSL_SERVER_DN_MATCH=wrong)"
+            "(SSL_SERVER_CERT_DN=CN=unknown19a)"
+            "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))": (
+                "(SECURITY=(SSL_SERVER_CERT_DN=CN=unknown19a)"
+                "(MY_WALLET_DIRECTORY=/tmp/wallet_loc19a))"
+            ),
+        }
+
+        service_name = "service_4578"
+        host = "host_4578"
+        port = 4578
+        for str_val, exp_val in security_options.items():
+            with self.subTest(str_val=str_val):
+                security_part = str_val
+                security_part_exp = exp_val
+                connect_descriptor = (
+                    f"(DESCRIPTION="
+                    f"(ADDRESS=(PROTOCOL=tcps)(HOST={host})(PORT={port}))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name}))"
+                    f"{security_part})"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(connect_descriptor)
+                connect_descriptor_exp = (
+                    f"(DESCRIPTION="
+                    f"(ADDRESS=(PROTOCOL=tcps)(HOST={host})(PORT={port}))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name}))"
+                    f"{security_part_exp})"
+                )
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(
+                    params.get_connect_string(), connect_descriptor_exp
+                )
+
+    def test_4581(self):
+        "4581 - test for parameters supported in easy connect descriptor"
+        options = [
+            ("retry_count=3&retry_delay=6", "(RETRY_COUNT=3)(RETRY_DELAY=6)"),
+            ("enable=broken", "(ENABLE=broken)"),
+            ("failover=on", ""),
+            ("failover=off", "(FAILOVER=OFF)"),
+            ("failover=true", ""),
+            ("failover=false", "(FAILOVER=OFF)"),
+            ("failover=yes", ""),
+            ("failover=no", "(FAILOVER=OFF)"),
+            ("failover=unsupported_value", "(FAILOVER=OFF)"),
+            ("failover=1700", "(FAILOVER=OFF)"),
+            ("load_balance=on", "(LOAD_BALANCE=ON)"),
+            ("load_balance=off", ""),
+            ("load_balance=true", "(LOAD_BALANCE=ON)"),
+            ("load_balance=false", ""),
+            ("load_balance=yes", "(LOAD_BALANCE=ON)"),
+            ("load_balance=no", ""),
+            ("load_balance=unsupported_value", ""),
+            ("load_balance=1700", ""),
+            ("recv_buf_size=87300", "(RECV_BUF_SIZE=87300)"),
+            ("send_buf_size=11786", "(SEND_BUF_SIZE=11786)"),
+            ("sdu=16384", "(SDU=16384)"),
+            ("retry_count=6", "(RETRY_COUNT=6)(RETRY_DELAY=1)"),
+            ("source_route=on", "(SOURCE_ROUTE=ON)"),
+            ("source_route=true", "(SOURCE_ROUTE=ON)"),
+            ("source_route=yes", "(SOURCE_ROUTE=ON)"),
+            ("source_route=off", ""),
+            ("source_route=false", ""),
+            ("source_route=no", ""),
+            ("source_route=wrong", ""),
+            (
+                "transport_connect_timeout=100",
+                "(TRANSPORT_CONNECT_TIMEOUT=100)",
+            ),
+            (
+                "transport_connect_timeout=500ms",
+                "(TRANSPORT_CONNECT_TIMEOUT=500ms)",
+            ),
+        ]
+
+        service_name = "service_4579"
+        host = "host_4579"
+        port = 4579
+        for str_val, exp_str in options:
+            with self.subTest(str_val=str_val):
+                descriptor_part = exp_str
+                easy_connect = f"""{host}:{port}/{service_name}?{str_val}"""
+                connect_descriptor_exp = (
+                    f"(DESCRIPTION={descriptor_part}"
+                    f"(ADDRESS=(PROTOCOL=tcp)(HOST={host})(PORT={port}))"
+                    f"(CONNECT_DATA=(SERVICE_NAME={service_name})))"
+                )
+                params = oracledb.ConnectParams()
+                params.parse_connect_string(easy_connect)
+                self.assertEqual(params.host, host)
+                self.assertEqual(params.port, port)
+                self.assertEqual(params.service_name, service_name)
+                self.assertEqual(
+                    params.get_connect_string(), connect_descriptor_exp
+                )
+
+    def test_4582(self):
+        "4582 - test for security parameters in easy connect descriptor"
+        service_name = "service_4580"
+        srvc_str = (
+            "ssl_server_dn_match=true"
+            "&ssl_server_cert_dn='cn=sales,cn=OracleContext,"
+            "dc=us,dc=example,dc=com'"
+            "&wallet_location='/tmp/oracle'"
+        )
+        host = "host_4580"
+        port = 4580
+        easy_connect = f"tcps://{host}:{port}/{service_name}?{srvc_str}"
+        connect_descriptor_exp = (
+            f"(DESCRIPTION="
+            f"(ADDRESS=(PROTOCOL=tcps)(HOST={host})"
+            f"(PORT={port}))"
+            f"(CONNECT_DATA=(SERVICE_NAME={service_name}))"
+            "(SECURITY=(SSL_SERVER_DN_MATCH=ON)"
+            "(SSL_SERVER_CERT_DN='cn=sales,cn=OracleContext,"
+            "dc=us,dc=example,dc=com')"
+            "(MY_WALLET_DIRECTORY='/tmp/oracle')))"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(easy_connect)
+        self.assertEqual(params.host, host)
+        self.assertEqual(params.port, port)
+        self.assertEqual(params.service_name, service_name)
+        self.assertEqual(params.get_connect_string(), connect_descriptor_exp)
+
+    def test_4583(self):
+        "4583 - test for TYPE_OF_SERVICE, RDB_DATABASE, GLOBAL_NAME parameters"
+        connect_string = (
+            "(DESCRIPTION_LIST="
+            "(DESCRIPTION=(TYPE_OF_SERVICE=rdb_database)"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host94_1)(PORT=5002))"
+            "(CONNECT_DATA="
+            "(SERVICE_NAME=generic)"
+            "(RDB_DATABASE=[.mf]mf_personal.rdb)"
+            "(GLOBAL_NAME=alpha5)))"
+            "(DESCRIPTION=(TYPE_OF_SERVICE=oracle11_database)"
+            "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host94_2)(PORT=5003))"
+            "(CONNECT_DATA="
+            "(SERVICE_NAME=sales.us.example.com))))"
+        )
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        self.assertEqual(params.get_connect_string(), connect_string)
 
 
 if __name__ == "__main__":

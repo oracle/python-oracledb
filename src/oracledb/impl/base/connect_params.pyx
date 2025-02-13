@@ -561,6 +561,20 @@ cdef class ConnectParamsNode:
             self.load_balance = source.load_balance
             self.source_route = source.source_route
 
+    cdef list _get_initial_connect_string_parts(self):
+        """
+        Returns a list of the initial connect strings parts used for container
+        nodes.
+        """
+        cdef list parts = []
+        if not self.failover:
+            parts.append("(FAILOVER=OFF)")
+        if self.load_balance:
+            parts.append("(LOAD_BALANCE=ON)")
+        if self.source_route:
+            parts.append("(SOURCE_ROUTE=ON)")
+        return parts
+
     cdef int _set_active_children(self, list children) except -1:
         """
         Set the active children to process when connecting to the database.
@@ -731,8 +745,12 @@ cdef class AddressList(ConnectParamsNode):
         """
         Build a connect string from the components.
         """
-        cdef Address a
-        parts = [a.build_connect_string() for a in self.children]
+        cdef:
+            Address address
+            list parts
+        parts = self._get_initial_connect_string_parts()
+        for address in self.children:
+            parts.append(address.build_connect_string())
         if len(parts) == 1:
             return parts[0]
         return f'(ADDRESS_LIST={"".join(parts)})'
@@ -795,11 +813,7 @@ cdef class Description(ConnectParamsNode):
             str temp
 
         # build top-level description parts
-        parts = []
-        if self.load_balance:
-            parts.append("(LOAD_BALANCE=ON)")
-        if self.source_route:
-            parts.append("(SOURCE_ROUTE=ON)")
+        parts = self._get_initial_connect_string_parts()
         if self.retry_count != 0:
             parts.append(f"(RETRY_COUNT={self.retry_count})")
             if self.retry_delay != 0:
@@ -813,6 +827,9 @@ cdef class Description(ConnectParamsNode):
             parts.append("(USE_SNI=ON)")
         if self.sdu != DEFAULT_SDU:
             parts.append(f"(SDU={self.sdu})")
+        if self.extra_args is not None:
+            parts.extend(f"({k.upper()}={self._value_repr(v)})"
+                         for k, v in self.extra_args.items())
 
         # add address lists, but if the address list contains only a single
         # entry and that entry does not have a host, the other parts aren't
@@ -872,6 +889,9 @@ cdef class Description(ConnectParamsNode):
             if self.wallet_location is not None:
                 temp = f"(MY_WALLET_DIRECTORY={self.wallet_location})"
                 temp_parts.append(temp)
+            if self.extra_security_args is not None:
+                temp_parts.extend(f"({k.upper()}={self._value_repr(v)})"
+                                  for k, v in self.extra_security_args.items())
             parts.append(f'(SECURITY={"".join(temp_parts)})')
 
         return f'(DESCRIPTION={"".join(parts)})'
@@ -902,6 +922,9 @@ cdef class Description(ConnectParamsNode):
         description.ssl_version = self.ssl_version
         description.use_sni = self.use_sni
         description.wallet_location = self.wallet_location
+        description.extra_args = self.extra_args
+        description.extra_connect_data_args = self.extra_connect_data_args
+        description.extra_security_args = self.extra_security_args
         return description
 
     def set_from_args(self, dict args):
@@ -949,6 +972,9 @@ cdef class Description(ConnectParamsNode):
         self.sdu = min(max(self.sdu, 512), 2097152)         # sanitize SDU
         _set_duration_param(args, "tcp_connect_timeout",
                             &self.tcp_connect_timeout)
+        extra_args = args.get("extra_args")
+        if extra_args is not None:
+            self.extra_args = extra_args
 
     def set_from_security_args(self, dict args):
         """
@@ -959,6 +985,9 @@ cdef class Description(ConnectParamsNode):
         _set_str_param(args, "ssl_server_cert_dn", self)
         _set_ssl_version_param(args, "ssl_version", self)
         _set_str_param(args, "wallet_location", self)
+        extra_args = args.get("extra_security_args")
+        if extra_args is not None:
+            self.extra_security_args = extra_args
 
     cdef int set_server_type(self, str value) except -1:
         """
@@ -985,12 +1014,14 @@ cdef class DescriptionList(ConnectParamsNode):
         Build a connect string from the components.
         """
         cdef:
-            Description d
+            Description description
             list parts
-        parts = [d.build_connect_string() for d in self.children]
+        parts = self._get_initial_connect_string_parts()
+        for description in self.children:
+            parts.append(description.build_connect_string())
         if len(parts) == 1:
             return parts[0]
-        return f'(DESCIPTION_LIST={"".join(parts)})'
+        return f'(DESCRIPTION_LIST={"".join(parts)})'
 
     cdef list get_addresses(self):
         """

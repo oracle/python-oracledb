@@ -50,8 +50,34 @@ CONTAINER_PARAM_NAMES = set([
     "security",
 ])
 
+# DESCRIPTION parameter names that are supported by the driver; all other
+# key/value pairs are passed unchanged to the database
+DESCRIPTION_PARAM_NAMES = set([
+    "address",
+    "address_list",
+    "connect_data",
+    "expire_time",
+    "failover",
+    "load_balance",
+    "source_route",
+    "retry_count",
+    "retry_delay",
+    "sdu",
+    "tcp_connect_timeout",
+    "use_sni",
+    "security",
+])
+
+# extra DESCRIPTION parameter names that are passed through when detected in an
+# easy connect string
+EXTRA_DESCRIPTION_PARAM_NAMES = set([
+    "enable",
+    "recv_buf_size",
+    "send_buf_size"
+])
+
 # CONNECT_DATA parameter names that are supported by the driver; all other
-# simple key/value pairs are passed unchanged to the database
+# key/value pairs are passed unchanged to the database
 CONNECT_DATA_PARAM_NAMES = set([
     "cclass",
     "connection_id_prefix",
@@ -64,18 +90,30 @@ CONNECT_DATA_PARAM_NAMES = set([
     "use_tcp_fast_open",
 ])
 
+# SECURITY parameter names that are supported by the driver; all other
+# key/value pairs are passed unchanged to the database
+SECURITY_PARAM_NAMES = set([
+    "ssl_server_cert_dn",
+    "ssl_server_dn_match",
+    "ssl_version",
+    "wallet_location",
+])
+
 # a set of parameter names supported by the driver in EasyConnect strings that
 # are common to all drivers
 COMMON_PARAM_NAMES = set([
     "expire_time",
+    "failover",
     "https_proxy",
     "https_proxy_port",
+    "load_balance",
     "pool_boundary",
     "pool_connection_class",
     "pool_purity",
     "retry_count",
     "retry_delay",
     "sdu",
+    "source_route",
     "ssl_server_cert_dn",
     "ssl_server_dn_match",
     "transport_connect_timeout",
@@ -154,7 +192,9 @@ cdef class BaseParser:
         cdef Py_UCS4 ch
         while self.temp_pos < self.num_chars:
             ch = self.get_current_char()
-            if not cpython.Py_UNICODE_ISALPHA(ch) and ch != '_' and ch != '.':
+            if not cpython.Py_UNICODE_ISALPHA(ch) \
+                    and not cpython.Py_UNICODE_ISDIGIT(ch) \
+                    and ch != '_' and ch != '.':
                 break
             self.temp_pos += 1
 
@@ -444,9 +484,9 @@ cdef class ConnectStringParser(BaseParser):
         """
         cdef:
             ssize_t start_pos, end_pos = 0
+            str name, value
             Py_UCS4 ch = 0
             bint keep
-            str name
 
         # get parameter name
         self.skip_spaces()
@@ -459,7 +499,8 @@ cdef class ConnectStringParser(BaseParser):
             name = name[len(EXTENDED_PARAM_PREFIX):]
             keep = name in EXTENDED_PARAM_NAMES
         else:
-            keep = name in COMMON_PARAM_NAMES
+            keep = name in COMMON_PARAM_NAMES \
+                    or name in EXTRA_DESCRIPTION_PARAM_NAMES
             name = ALTERNATIVE_PARAM_NAMES.get(name, name)
 
         # look for the equals sign
@@ -495,7 +536,11 @@ cdef class ConnectStringParser(BaseParser):
         if end_pos > start_pos and keep:
             if self.parameters is None:
                 self.parameters = {}
-            self.parameters[name] = self.data_as_str[start_pos:end_pos]
+            value = self.data_as_str[start_pos:end_pos]
+            if name in EXTRA_DESCRIPTION_PARAM_NAMES:
+                self.parameters.setdefault("extra_args", {})[name] = value
+            else:
+                self.parameters[name] = value
         self.skip_spaces()
         self.pos = self.temp_pos
 
@@ -636,19 +681,23 @@ cdef class ConnectStringParser(BaseParser):
                     self.data_as_str[self.pos + 1:instance_name_end_pos]
             self.pos = self.temp_pos
 
-    cdef dict _set_connect_data(self, dict args):
+    cdef dict _process_args_with_extras(self, dict args, set allowed_names,
+                                        str extras_name):
         """
-        Sets the connect data value.
+        Processes arguments which contain a set of known attributes and any
+        number of unknown attributes. The known attributes are left untouched
+        whereas the unknown ones are put in a separate dictionary with the
+        given name.
         """
         cdef:
             dict extras, result = {}
             object value
             str key
         for key, value in args.items():
-            if key in CONNECT_DATA_PARAM_NAMES:
+            if key in allowed_names:
                 result[key] = value
             else:
-                extras = result.setdefault("extra_connect_data_args", {})
+                extras = result.setdefault(extras_name, {})
                 extras[key] = value
         return result
 
@@ -663,6 +712,21 @@ cdef class ConnectStringParser(BaseParser):
         being added and addresses already exist, those addresses are first
         added to the address list before the new value is added.
         """
+        # process unrecognized parameters, if applicable
+        if name == "description":
+            value = self._process_args_with_extras(
+                value, DESCRIPTION_PARAM_NAMES, "extra_args"
+            )
+        elif name == "connect_data":
+            value = self._process_args_with_extras(
+                value, CONNECT_DATA_PARAM_NAMES, "extra_connect_data_args"
+            )
+        elif name == "security":
+            value = self._process_args_with_extras(
+                value, SECURITY_PARAM_NAMES, "extra_security_args"
+            )
+
+        # add value to arguments, creating a list if encountered multiple times
         orig_value = args.get(name)
         if orig_value is None:
             if name == "address" and "address_list" in args:
@@ -673,8 +737,6 @@ cdef class ConnectStringParser(BaseParser):
                 if not isinstance(addresses, list):
                     addresses = [addresses]
                 value = [dict(address=a) for a in addresses] + [value]
-            elif name == "connect_data":
-                value = self._set_connect_data(value)
             args[name] = value
         elif isinstance(orig_value, list):
             args[name].append(value)
