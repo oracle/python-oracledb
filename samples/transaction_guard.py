@@ -77,15 +77,28 @@ connection = pool.acquire()
 cursor = connection.cursor()
 cursor.execute("delete from TestTempTable where IntCol = 1")
 cursor.execute("insert into TestTempTable values (1, null)")
-input(
-    "Please kill %s session now. Press ENTER when complete."
-    % sample_env.get_main_user()
-)
+
+try:
+    sql = """select unique
+             'alter system kill session '''||sid||','||serial#||''';'
+             from v$session_connect_info
+             where sid = sys_context('USERENV', 'SID')"""
+    (killsql,) = connection.cursor().execute(sql).fetchone()
+    print(f"Execute this SQL statement as a DBA user in SQL*Plus:\n {killsql}")
+except Exception:
+    print(
+        "As a DBA user in SQL*Plus, use ALTER SYSTEM KILL SESSION "
+        f"to terminate the {sample_env.get_main_user()} session now."
+    )
+
+input("Press ENTER when complete.")
+
 try:
     connection.commit()  # this should fail
-    sys.exit("Session was not killed. Terminating.")
+    sys.exit("Session was not killed. Sample cannot continue.")
 except oracledb.DatabaseError as e:
     (error_obj,) = e.args
+    print("Session is recoverable:", error_obj.isrecoverable)
     if not error_obj.isrecoverable:
         sys.exit("Session is not recoverable. Terminating.")
 ltxid = connection.ltxid
