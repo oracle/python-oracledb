@@ -1,40 +1,64 @@
 .. _aqusermanual:
 
-***********************************
-Using Oracle Advanced Queuing (AQ)
-***********************************
+************************************************************
+Using Oracle Transactional Event Queues and Advanced Queuing
+************************************************************
 
-`Oracle Advanced Queuing
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ is a highly
-configurable and scalable messaging feature of Oracle Database.  It has
-interfaces in various languages, letting you integrate multiple tools in your
-architecture.
+`Oracle Transactional Event Queues and Advanced Queuing
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ are highly
+configurable and scalable messaging features of Oracle Database allowing
+data-driven and event-driven applications to stream events and communicate with
+each other. They have interfaces in various languages, letting you integrate
+multiple tools in your architecture. Both Oracle Transactional Event Queues
+(TxEventQ) and Advanced Queuing (AQ) "Classic" queues support sending and
+receiving of various payloads, such as RAW values, JSON, JMS, and objects.
+Transactional Event Queues use a highly optimized implementation of Advanced
+Queuing. They were previously called AQ Sharded Queues.
 
 .. note::
 
-    Oracle Advanced Queuing is only supported in the python-oracledb Thick
+    TxEventQ and AQ Classic queues are only supported in python-oracledb Thick
     mode.  See :ref:`enablingthick`.
 
-Python-oracledb uses the updated interface for Oracle Advanced Queuing that
-was first introduced in cx_Oracle 7.2.
+Python-oracledb API calls are the same for Transactional Event Queues and
+Classic Queues, however there are differences in support for some payload
+types.
 
-Starting from Oracle Database 21c, Advanced Queuing also supports the JSON
-payload type. To use the JSON payload type, the Oracle Client libraries must
-be version 21 or later.
+**Classic Queue Support**
 
-There are Advanced Queuing examples in the `GitHub examples
+- RAW, named Oracle objects, and JMS payloads are supported.
+
+- The JSON payload requires Oracle Client libraries 21c (or later) and Oracle
+  Database 21c (or later).
+
+There are examples of AQ Classic Queues in the `GitHub examples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
 
+**Transactional Event Queue Support**
+
+- RAW and named Oracle object payloads are supported for single and array
+  message enqueuing and dequeuing when using Oracle Client 19c (or later) and
+  connected to Oracle Database 19c (or later).
+
+- JMS payloads are supported for single and array message enqueuing and
+  dequeuing when using Oracle Client 19c (or later) and Oracle Database 23ai.
+
+- JSON payloads are supported for single message enqueuing and dequeuing when
+  using Oracle Client libraries 21c (or later) and Oracle Database 21c (or
+  later). Array enqueuing and dequeuing is not supported for JSON payloads.
+
+Transactional Event Queues do not support :attr:`EnqOptions.transformation`,
+:attr:`DeqOptions.transformation`, or :ref:`Recipient Lists <reciplists>`.
 
 Creating a Queue
 ================
 
-Before being used, queues need to be created in the database.
+Before being used in applications, queues need to be created in the database.
 
 **Using RAW Payloads**
 
-Queues can be created using the RAW payload type, for example in
-SQL*Plus:
+To use SQL*Plus to create a Classic Queue for the RAW payload which is suitable
+for sending string or bytes messages:
 
 .. code-block:: sql
 
@@ -45,13 +69,20 @@ SQL*Plus:
     end;
     /
 
-This example creates a RAW queue suitable for sending string or bytes
-messages.
+To create a Transactional Event Queue for RAW payloads:
+
+.. code-block:: sql
+
+    begin
+        dbms_aqadm.create_sharded_queue('RAW_SHQ', queue_payload_type=>'RAW');
+        dbms_aqadm.start_queue('RAW_SHQ');
+    end;
+    /
 
 **Using JSON Payloads**
 
-Also, queues can be created using the JSON payload type. For example,
-in SQL*Plus:
+Queues can also be created for JSON payloads. For example, to create a Classic
+Queue in SQL*Plus:
 
 .. code-block:: sql
 
@@ -62,14 +93,11 @@ in SQL*Plus:
     end;
     /
 
-This example creates a JSON queue suitable for sending JSON data
-messages.
-
 Enqueuing Messages
 ==================
 
 To send messages in Python, you connect and get a :ref:`queue <queue>`. The
-queue can be used for enqueuing, dequeuing, or both as needed.
+queue can then be used for enqueuing, dequeuing, or for both.
 
 **Using RAW Payloads**
 
@@ -94,9 +122,12 @@ messages:
         queue.enqone(connection.msgproperties(payload=data))
     connection.commit()
 
-Since the queue sending the messages is a RAW queue, the strings in this
-example will be internally encoded to bytes using ``message.encode()``
-before being enqueued.
+Since the queue is a RAW queue, strings are internally encoded to bytes using
+``message.encode()`` before being enqueued.
+
+The use of :meth:`~Connection.commit()` means that messages are sent only when
+any database transaction related to them is committed. This behavior can be
+altered, see :ref:`aqoptions`.
 
 **Using JSON Payloads**
 
@@ -105,8 +136,8 @@ payload type by using:
 
 .. code-block:: python
 
+    # The argument "JSON" indicates the queue is of JSON payload type
     queue = connection.queue("DEMO_JSON_QUEUE", "JSON")
-    # The second argument (JSON) indicates that the queue is of JSON payload type.
 
 Now the message can be enqueued using :meth:`~Queue.enqone()`.
 
@@ -133,7 +164,7 @@ Dequeuing Messages
 Dequeuing is performed similarly. To dequeue a message call the method
 :meth:`~Queue.deqone()` as shown in the examples below.
 
-**Using RAW Payload Type**
+**Using RAW Payloads**
 
 .. code-block:: python
 
@@ -142,10 +173,10 @@ Dequeuing is performed similarly. To dequeue a message call the method
     connection.commit()
     print(message.payload.decode())
 
-Note that if the message is expected to be a string, the bytes must
-be decoded using ``message.payload.decode()``, as shown.
+Note that if the message is expected to be a string, the bytes must be decoded
+by the application using ``message.payload.decode()``, as shown.
 
-**Using JSON Payload Type**
+**Using JSON Payloads**
 
 .. code-block:: python
 
@@ -179,7 +210,7 @@ And a queue that accepts this type:
     end;
     /
 
-You can queue messages:
+You can enqueue messages:
 
 .. code-block:: python
 
@@ -194,7 +225,7 @@ You can queue messages:
     queue.enqone(connection.msgproperties(payload=book))
     connection.commit()
 
-Dequeuing is done like this:
+Dequeuing can be done like this:
 
 .. code-block:: python
 
@@ -205,18 +236,20 @@ Dequeuing is done like this:
     connection.commit()
     print(message.payload.TITLE)   # will print Quick Brown Fox
 
+.. _reciplists:
 
 Using Recipient Lists
 =====================
 
-A list of recipient names can be associated with a message at the time
-a message is enqueued. This allows a limited set of recipients to
-dequeue each message. The recipient list associated with the message
-overrides the queue subscriber list, if there is one. The recipient
-names need not be in the subscriber list but can be, if desired.
+Classic Queues support Recipient Lists.  A list of recipient names can be
+associated with a message at the time a message is enqueued. This allows a
+limited set of recipients to dequeue each message. The recipient list
+associated with the message overrides the queue subscriber list, if there is
+one. The recipient names need not be in the subscriber list but can be, if
+desired.  Transactional Event Queues do not support Recipient Lists.
 
-To dequeue a message, the ``consumername`` attribute can be set to
-one of the recipient names. The original message recipient list is
+To dequeue a message, the :attr:`~DeqOptions.consumername` attribute can be
+set to one of the recipient names. The original message recipient list is
 not available on dequeued messages. All recipients have to dequeue
 a message before it gets removed from the queue.
 
@@ -237,6 +270,8 @@ messages intended for that recipient using the ``consumername`` attribute::
     queue.deqoptions.consumername = "sub3"
     m = queue.deqone()
 
+.. _aqoptions:
+
 Changing Queue and Message Options
 ==================================
 
@@ -245,8 +280,8 @@ Refer to the :ref:`python-oracledb AQ API <aq>` and
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ for details
 on all of the enqueue and dequeue options available.
 
-Enqueue options can be set.  For example, to make it so that an explicit
-call to :meth:`~Connection.commit()` on the connection is not needed to commit
+Enqueue options can be set.  For example, to make it so that an explicit call
+to :meth:`~Connection.commit()` on the connection is not needed to send
 messages:
 
 .. code-block:: python
@@ -269,7 +304,7 @@ expiration of 60 seconds on a message:
 
     queue.enqone(connection.msgproperties(payload="Message", expiration=60))
 
-This means that if no dequeue operation occurs within 60 seconds that the
+This means that if no dequeue operation occurs within 60 seconds then the
 message will be dropped from the queue.
 
 
@@ -279,8 +314,8 @@ Bulk Enqueue and Dequeue
 The :meth:`~Queue.enqmany()` and :meth:`~Queue.deqmany()` methods can be used
 for efficient bulk message handling.
 
-:meth:`~Queue.enqmany()` is similar to :meth:`~Queue.enqone()` but accepts an
-array of messages:
+The :meth:`~Queue.enqmany()` method is similar to :meth:`~Queue.enqone()` but
+accepts an array of messages:
 
 .. code-block:: python
 
@@ -296,11 +331,11 @@ array of messages:
 .. warning::
 
     Calling :meth:`~Queue.enqmany()` in parallel on different connections
-    acquired from the same pool may fail due to Oracle bug 29928074.  Ensure
-    that this function is not run in parallel, use standalone connections or
-    connections from different pools, or make multiple calls to
-    :meth:`~Queue.enqone()` instead. The function :meth:`~Queue.deqmany()` call
-    is not affected.
+    acquired from the same pool may fail due to Oracle bug 29928074. To avoid
+    this, ensure that :meth:`~Queue.enqmany()` is not run in parallel, use
+    standalone connections or connections from different pools, or make
+    multiple calls to :meth:`~Queue.enqone()` instead. The function
+    :meth:`~Queue.deqmany()` call is not affected.
 
 To dequeue multiple messages at one time, use :meth:`~Queue.deqmany()`.  This
 takes an argument specifying the maximum number of messages to dequeue at one

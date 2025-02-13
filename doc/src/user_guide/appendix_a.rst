@@ -250,9 +250,9 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - No
       - Yes
       - Yes
-    * - Advanced Queuing (AQ) (see :ref:`aqusermanual`)
+    * - Oracle Transactional Event Queues and Advanced Queuing (AQ) (see :ref:`aqusermanual`)
       - No
-      - Yes - must use new API introduced in cx_Oracle 7.2
+      - Yes
       - Yes
     * - Call timeouts (see :attr:`Connection.call_timeout`)
       - Yes
