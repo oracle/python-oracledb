@@ -50,8 +50,21 @@ CONTAINER_PARAM_NAMES = set([
     "security",
 ])
 
-# a set of parameter names supported in EasyConnect strings that are common
-# to all drivers
+# CONNECT_DATA parameter names that are supported by the driver; all other
+# simple key/value pairs are passed unchanged to the database
+CONNECT_DATA_PARAM_NAMES = set([
+    "cclass",
+    "connection_id_prefix",
+    "pool_boundary",
+    "purity",
+    "server_type",
+    "service_name",
+    "sid",
+    "use_tcp_fast_open",
+])
+
+# a set of parameter names supported by the driver in EasyConnect strings that
+# are common to all drivers
 COMMON_PARAM_NAMES = set([
     "expire_time",
     "https_proxy",
@@ -593,6 +606,22 @@ cdef class ConnectStringParser(BaseParser):
             value = self.data_as_str[service_name_end_pos + 1:self.temp_pos]
             self.description.set_server_type(value)
 
+    cdef dict _set_connect_data(self, dict args):
+        """
+        Sets the connect data value.
+        """
+        cdef:
+            dict extras, result = {}
+            object value
+            str key
+        for key, value in args.items():
+            if key in CONNECT_DATA_PARAM_NAMES:
+                result[key] = value
+            else:
+                extras = result.setdefault("extra_connect_data_args", {})
+                extras[key] = value
+        return result
+
     cdef int _set_descriptor_arg(
         self, dict args, str name, object value
     ) except -1:
@@ -614,6 +643,8 @@ cdef class ConnectStringParser(BaseParser):
                 if not isinstance(addresses, list):
                     addresses = [addresses]
                 value = [dict(address=a) for a in addresses] + [value]
+            elif name == "connect_data":
+                value = self._set_connect_data(value)
             args[name] = value
         elif isinstance(orig_value, list):
             args[name].append(value)

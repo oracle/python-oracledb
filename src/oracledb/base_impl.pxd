@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -500,9 +500,11 @@ cdef class Description(ConnectParamsNode):
         public str ssl_server_cert_dn
         public object ssl_version
         public str wallet_location
+        dict extra_connect_data_args
         str connection_id
 
     cdef str _build_duration_str(self, double value)
+    cdef str _value_repr(self, object value)
     cdef str build_connect_string(self, str cid=*)
     cdef int set_server_type(self, str value) except -1
 
@@ -556,6 +558,7 @@ cdef class ConnectParamsImpl:
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
+    cdef str _get_connect_string(self)
     cdef bytes _get_new_password(self)
     cdef bytearray _get_obfuscator(self, str secret_value)
     cdef bytes _get_password(self)

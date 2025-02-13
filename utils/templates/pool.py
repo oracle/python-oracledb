@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -90,7 +90,7 @@ class BaseConnectionPool:
             params_impl = params._impl.copy()
         with driver_mode.get_manager() as mode_mgr:
             thin = mode_mgr.thin
-            dsn = params_impl.process_args(dsn, kwargs, thin)
+            dsn = params_impl.process_args(dsn, kwargs)
             self._set_connection_type(params_impl.connectiontype)
             self._cache_name = cache_name
             if cache_name is not None:

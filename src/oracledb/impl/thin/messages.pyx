@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1419,6 +1419,7 @@ cdef class AuthMessage(Message):
         str driver_name
         str edition
         list appcontext
+        str connect_string
 
     cdef int _encrypt_passwords(self) except -1:
         """
@@ -1628,6 +1629,7 @@ cdef class AuthMessage(Message):
             self.driver_name = f"{DRIVER_NAME} thn : {DRIVER_VERSION}"
         self.edition = params.edition
         self.appcontext = params.appcontext
+        self.connect_string = params._get_connect_string()
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -1733,6 +1735,8 @@ cdef class AuthMessage(Message):
                 num_pairs += 1
             if self.appcontext is not None:
                 num_pairs += len(self.appcontext) * 3
+            if self.connect_string is not None:
+                num_pairs += 1
 
         # write basic data to packet
         self._write_function_code(buf)
@@ -1806,6 +1810,9 @@ cdef class AuthMessage(Message):
                     self._write_key_value(buf, "AUTH_APPCTX_NSPACE\0", entry[0])
                     self._write_key_value(buf, "AUTH_APPCTX_ATTR\0", entry[1])
                     self._write_key_value(buf, "AUTH_APPCTX_VALUE\0", entry[2])
+            if self.connect_string is not None:
+                self._write_key_value(buf, "AUTH_CONNECT_STRING",
+                                      self.connect_string)
 
 
 @cython.final

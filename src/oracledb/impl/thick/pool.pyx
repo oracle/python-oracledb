@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -43,21 +43,21 @@ cdef class ThickPoolImpl(BasePoolImpl):
 
     def __init__(self, str dsn, PoolParamsImpl params):
         cdef:
+            uint32_t password_len = 0, user_len = 0, connect_string_len = 0
+            bytes token_bytes, private_key_bytes, connect_string_bytes
             bytes session_callback_bytes, name_bytes, driver_name_bytes
-            bytes edition_bytes, user_bytes, password_bytes, dsn_bytes
-            uint32_t password_len = 0, user_len = 0, dsn_len = 0
+            bytes edition_bytes, user_bytes, password_bytes
+            const char *connect_string_ptr = NULL
+            str token, private_key, connect_string
             dpiCommonCreateParams common_params
             dpiPoolCreateParams create_params
             const char *password_ptr = NULL
             const char *user_ptr = NULL
-            const char *dsn_ptr = NULL
-            bytes token_bytes, private_key_bytes
             uint32_t token_len = 0, private_key_len = 0
             const char *token_ptr = NULL
             const char *private_key_ptr = NULL
             dpiAccessToken access_token
             dpiErrorInfo error_info
-            str token, private_key
             int status
 
         # save parameters
@@ -132,7 +132,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
         common_params.sodaMetadataCache = params.soda_metadata_cache
         create_params.externalAuth = params.externalauth
 
-        # prepare user, password and DSN for use
+        # prepare user, password and connect string for use
         if self.username is not None:
             user_bytes = params.get_full_user().encode()
             user_ptr = user_bytes
@@ -141,16 +141,18 @@ cdef class ThickPoolImpl(BasePoolImpl):
         if password_bytes is not None:
             password_ptr = password_bytes
             password_len = <uint32_t> len(password_bytes)
-        if self.dsn is not None:
-            dsn_bytes = self.dsn.encode()
-            dsn_ptr = dsn_bytes
-            dsn_len = <uint32_t> len(dsn_bytes)
+        connect_string = params._get_connect_string()
+        if connect_string is not None:
+            connect_string_bytes = connect_string.encode()
+            connect_string_ptr = connect_string_bytes
+            connect_string_len = <uint32_t> len(connect_string_bytes)
 
         # create pool
         with nogil:
             status = dpiPool_create(driver_info.context, user_ptr, user_len,
-                                    password_ptr, password_len, dsn_ptr,
-                                    dsn_len, &common_params, &create_params,
+                                    password_ptr, password_len,
+                                    connect_string_ptr, connect_string_len,
+                                    &common_params, &create_params,
                                     &self._handle)
             dpiContext_getError(driver_info.context, &error_info)
         if status < 0:

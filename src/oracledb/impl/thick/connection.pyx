@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,7 +33,7 @@ ctypedef int (*dpiConnSetTextAttrFunc)(dpiConn*, const char*, uint32_t) nogil
 
 cdef class ConnectionParams:
     cdef:
-        bytes dsn
+        bytes connect_string
         bytes username
         bytes password
         bytes cclass
@@ -44,7 +44,7 @@ cdef class ConnectionParams:
         bytes private_key
         bytes driver_name
 
-        const char *dsn_ptr
+        const char *connect_string_ptr
         const char *username_ptr
         const char *password_ptr
         const char *cclass_ptr
@@ -55,7 +55,7 @@ cdef class ConnectionParams:
         const char *private_key_ptr
         const char *driver_name_ptr
 
-        uint32_t dsn_len
+        uint32_t connect_string_len
         uint32_t username_len
         uint32_t password_len
         uint32_t cclass_len
@@ -348,7 +348,7 @@ cdef class ThickConnImpl(BaseConnImpl):
 
     def connect(self, ConnectParamsImpl user_params, ThickPoolImpl pool_impl):
         cdef:
-            str full_user, cclass, token, private_key
+            str full_user, cclass, token, private_key, connect_string
             bytes password_bytes, new_password_bytes
             dpiCommonCreateParams common_params
             dpiConnCreateParams conn_params
@@ -382,10 +382,13 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.password = password_bytes
             params.password_ptr = params.password
             params.password_len = <uint32_t> len(params.password)
-        if self.dsn is not None:
-            params.dsn = self.dsn.encode()
-            params.dsn_ptr = params.dsn
-            params.dsn_len = <uint32_t> len(params.dsn)
+        if pool_impl is None:
+            connect_string = user_params._get_connect_string()
+            if connect_string is not None:
+                params.connect_string = connect_string.encode()
+                params.connect_string_ptr = params.connect_string
+                params.connect_string_len = \
+                        <uint32_t> len(params.connect_string)
         if pool_impl is None \
                 or user_params._default_description.cclass is not None:
             cclass = user_params._default_description.cclass
@@ -494,9 +497,11 @@ cdef class ThickConnImpl(BaseConnImpl):
         with nogil:
             status = dpiConn_create(driver_info.context, params.username_ptr,
                                     params.username_len, params.password_ptr,
-                                    params.password_len, params.dsn_ptr,
-                                    params.dsn_len, &common_params,
-                                    &conn_params, &self._handle)
+                                    params.password_len,
+                                    params.connect_string_ptr,
+                                    params.connect_string_len,
+                                    &common_params, &conn_params,
+                                    &self._handle)
             dpiContext_getError(driver_info.context, &error_info)
         if status < 0:
             _raise_from_info(&error_info)

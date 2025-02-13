@@ -129,19 +129,16 @@ If you like to encapsulate values, parameters can be passed using a
     conn = oracledb.connect(user="my_user", password="my_password", params=params)
 
 Some values such as the database host name can be specified as ``connect()``
-parameters, as part of the connect string, and in the ``params`` object.  If a
-``dsn`` is passed, the python-oracledb :ref:`Thick <enablingthick>` mode will
-use the ``dsn`` string to connect. Otherwise, a connection string is internally
-constructed from the individual parameters and ``params`` object values, with
-the individual parameters having precedence.  In python-oracledb's default Thin
-mode, a connection string is internally used that contains all relevant values
-specified.  The precedence in Thin mode is that values in any ``dsn`` parameter
-override values passed as individual parameters, which themselves override
-values set in the ``params`` object.  Similar precedence rules also apply to
-other values.
+parameters, as part of the connect string, and in the ``params`` object. If a
+``dsn`` is passed, a connection string is internally constructed from the
+individual parameters and ``params`` object values, with the individual
+parameters having precedence. The precedence is that values in any ``dsn``
+parameter override values passed as individual parameters, which themselves
+override values set in the ``params`` object. Similar precedence rules also
+apply to other values.
 
 A single, combined connection string can be passed to ``connect()`` but this
-may cause complications if the password contains '@' or '/' characters:
+may cause complications if the password contains "@" or "/" characters:
 
 .. code-block:: python
 
@@ -329,26 +326,37 @@ If the database is using a non-default port, it must be specified:
 The Easy Connect syntax supports Oracle Database service names.  It cannot be
 used with the older System Identifiers (SID).
 
-The latest `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+The `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ syntax allows the use of
 multiple hosts or ports, along with optional entries for the wallet location,
 the distinguished name of the database server, and allows some network
 configuration options such as the connection timeout and keep-alive values to
-be set. This means that a :ref:`sqlnet.ora <optnetfiles>` file is not needed
-for some common connection scenarios. See the technical brief `Oracle Database
-Easy Connect Plus <https://download.oracle.com/ocomdocs/global/Oracle-Net-Easy
--Connect-Plus.pdf>`__ for more information.
+be set::
 
-In python-oracledb Thin mode, any unknown Easy Connect options are ignored and
-are not passed to the database.  See :ref:`Connection String Differences
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb?expire_time=2")
+
+This means that a :ref:`sqlnet.ora <optnetfiles>` file is not needed for common
+connection scenarios. See the technical brief `Oracle Database Easy Connect
+Plus <https://download.oracle.com/ocomdocs/global/Oracle-Net-Easy
+-Connect-Plus.pdf>`__ for additional information.
+
+Python-oracledb specific settings can also be passed as Easy Connect arguments.
+For example to set the statement cache size used by connections::
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb?pyo.stmtcachesize=50")
+
+See :ref:`defineconnparams` and :ref:`definepoolparams` for the settings that
+can be passed as arguments.
+
+Any Easy Connect parameters that are unknown to python-oracledb are ignored and
+not passed to the database.  See :ref:`Connection String Differences
 <diffconnstr>` for more information.
-
-In python-oracledb Thick mode, it is the Oracle Client libraries that parse the
-Easy Connect string.  Check the Easy Connect Naming method in `Oracle Net
-Service Administrator's Guide
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-B0437826-43C1-49EC-A94D-B650B6A4A6EE>`__ for the syntax to use in your
-version of the Oracle Client libraries.
 
 .. _conndescriptor:
 
@@ -385,6 +393,9 @@ For example:
 This prints::
 
     (DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost.example.com)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=orclpdb))(SECURITY=(SSL_SERVER_DN_MATCH=True)))
+
+The ``CONNECT_DATA`` parameters of a full connect descriptor that are
+unrecognized by python-oracledb are passed to the database unchanged.
 
 .. _netservice:
 
@@ -1216,12 +1227,9 @@ Note :meth:`ConnectParams.set()` has no effect after
 
 Some values such as the database host name can be specified as
 :func:`oracledb.connect()`, parameters, as part of the connect string, and in
-the ``params`` object.  If a ``dsn`` is passed, the python-oracledb :ref:`Thick
-<enablingthick>` mode will use the ``dsn`` string to connect. Otherwise, a
-connection string is internally constructed from the individual parameters and
-``params`` object values, with the individual parameters having precedence.  In
-python-oracledb's default Thin mode, a connection string is internally used
-that contains all relevant values specified.  The precedence in Thin mode is
+the ``params`` object.  If a ``dsn`` is passed, a connection string is
+internally constructed from the individual parameters and ``params`` object
+values, with the individual parameters having precedence. The precedence is
 that values in any ``dsn`` parameter override values passed as individual
 parameters, which themselves override values set in the ``params`` object.
 Similar precedence rules also apply to other values.
@@ -2454,15 +2462,12 @@ individually using the ``set()`` method:
 
 Some values such as the database host name, can be specified as
 :func:`oracledb.create_pool()` parameters, as part of the connect string, and
-in the ``params`` object.  If a ``dsn`` is passed, the python-oracledb
-:ref:`Thick <enablingthick>` mode will use the ``dsn`` string to connect.
-Otherwise, a connection string is internally constructed from the individual
-parameters and ``params`` object values, with the individual parameters having
-precedence.  In python-oracledb's default Thin mode, a connection string is
-internally used that contains all relevant values specified.  The precedence in
-Thin mode is that values in any ``dsn`` parameter override values passed as
-individual parameters, which themselves override values set in the ``params``
-object.  Similar precedence rules also apply to other values.
+in the ``params`` object.  If a ``dsn`` is passed, a connection string is
+internally constructed from the individual parameters and ``params`` object
+values, with the individual parameters having precedence. The precedence is
+that values in any ``dsn`` parameter override values passed as individual
+parameters, which themselves override values set in the ``params`` object.
+Similar precedence rules also apply to other values.
 
 .. _definepoolparams:
 

@@ -68,6 +68,13 @@ Common Changes
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
+#)  All connect strings are now parsed by the driver. Previously, only thin
+    mode parsed all connect strings and thick mode passed the connect string
+    unchanged to the Oracle Client library to parse. Parameters unrecognized by
+    the driver in Easy Connect strings are now ignored. Parameters unrecognized
+    by the driver in the ``CONNECT_DATA`` section of a full connect descriptor
+    are passed through unchanged. All other parameters in other sections of a
+    full connect deescriptor that are unrecognized by the driver are ignored.
 #)  Added attributes :attr:`DbObjectAttribute.precision`,
     :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
     provide additional metadata about

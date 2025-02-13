@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -547,7 +547,7 @@ class Connection(BaseConnection):
                 errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
             else:
                 params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs, thin)
+            dsn = params_impl.process_args(dsn, kwargs)
 
             # see if connection is being acquired from a pool
             if pool is None:
@@ -1311,7 +1311,7 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
         else:
             params_impl = params._impl.copy()
-        dsn = params_impl.process_args(dsn, kwargs, thin=True)
+        dsn = params_impl.process_args(dsn, kwargs)
 
         # see if connection is being acquired from a pool
         if pool is None:

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -187,6 +187,12 @@ cdef class ConnectParamsImpl:
         self.machine = other_params.machine
         self.osuser = other_params.osuser
         self.driver_name = other_params.driver_name
+
+    cdef str _get_connect_string(self):
+        """
+        Returns the connect string to use for the stored components.
+        """
+        return self.description_list.build_connect_string()
 
     cdef bytes _get_new_password(self):
         """
@@ -434,7 +440,7 @@ cdef class ConnectParamsImpl:
         """
         Returns a connect string generated from the parameters.
         """
-        return self.description_list.build_connect_string()
+        return self._get_connect_string()
 
     def get_full_user(self):
         """
@@ -511,7 +517,7 @@ cdef class ConnectParamsImpl:
         else:
             self.user = user
 
-    def process_args(self, str dsn, dict kwargs, bint thin):
+    def process_args(self, str dsn, dict kwargs):
         """
         Processes the arguments to connect() and create_pool().
 
@@ -519,8 +525,7 @@ cdef class ConnectParamsImpl:
             - if no user was specified in the keyword arguments and a dsn is
               specified, it is parsed to determine the user, password and
               connect string and the user and password are stored
-            - in thin mode, the connect string is then parsed into its
-              components and stored
+            - the connect string is then parsed into its components and stored
             - if no dsn was specified, one is built from the components
             - the connect string is returned
         """
@@ -529,10 +534,10 @@ cdef class ConnectParamsImpl:
         if self.user is None and not self.externalauth and dsn is not None:
             user, password, dsn = self.parse_dsn_with_credentials(dsn)
             self.set(dict(user=user, password=password))
-        if dsn is not None and thin:
+        if dsn is not None:
             self.parse_connect_string(dsn)
-        if dsn is None:
-            dsn = self.get_connect_string()
+        else:
+            dsn = self._get_connect_string()
         return dsn
 
 
@@ -767,6 +772,17 @@ cdef class Description(ConnectParamsNode):
             return f"{value_minutes}min"
         return f"{value_int}"
 
+    cdef str _value_repr(self, object value):
+        """
+        Returns the representation to use for a value. Strings are returned as
+        is but dictionaries are returned as key/value pairs in the format
+        expected by the listener.
+        """
+        if isinstance(value, str):
+            return value
+        return "".join(f"({k.upper()}={self._value_repr(v)})"
+                       for k, v in value.items())
+
     cdef str build_connect_string(self, str cid=None):
         """
         Build a connect string from the components.
@@ -829,6 +845,9 @@ cdef class Description(ConnectParamsNode):
                 temp_parts.append(f"(POOL_PURITY=SELF)")
             elif self.purity == PURITY_NEW:
                 temp_parts.append(f"(POOL_PURITY=NEW)")
+        if self.extra_connect_data_args is not None:
+            temp_parts.extend(f"({k.upper()}={self._value_repr(v)})"
+                              for k, v in self.extra_connect_data_args.items())
         if self.connection_id is not None:
             temp_parts.append(f"(CONNECTION_ID={self.connection_id})")
         if temp_parts:
@@ -904,6 +923,9 @@ cdef class Description(ConnectParamsNode):
         _set_str_param(args, "pool_boundary", self)
         _set_str_param(args, "connection_id_prefix", self)
         _set_bool_param(args, "use_tcp_fast_open", &self.use_tcp_fast_open)
+        extra_args = args.get("extra_connect_data_args")
+        if extra_args is not None:
+            self.extra_connect_data_args = extra_args
 
     def set_from_description_args(self, dict args):
         """
