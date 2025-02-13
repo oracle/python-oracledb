@@ -120,74 +120,6 @@ be shown in the DBOP_NAME column of the V$SQL_MONITOR view:
             WHERE sid = SYS_CONTEXT('USERENV', 'SID')"""):
         print(row)
 
-.. _subclassconn:
-
-Subclassing Connections
------------------------
-
-Subclassing enables applications to add "hooks" for connection and statement
-execution.  This can be used to alter or log connection and execution
-parameters, and to extend python-oracledb functionality.
-
-The example below demonstrates subclassing a connection to log SQL execution
-to a file.  This example also shows how connection credentials can be embedded
-in the custom subclass, so application code does not need to supply them.
-
-.. code-block:: python
-
-    class Connection(oracledb.Connection):
-        log_file_name = "log.txt"
-
-        def __init__(self):
-            connect_string = "hr/hr_password@dbhost.example.com/orclpdb"
-            self._log("Connect to the database")
-            return super(Connection, self).__init__(connect_string)
-
-        def _log(self, message):
-            with open(self.log_file_name, "a") as f:
-                print(message, file=f)
-
-        def execute(self, sql, parameters):
-            self._log(sql)
-            cursor = self.cursor()
-            try:
-                return cursor.execute(sql, parameters)
-            except oracledb.Error as e:
-                error_obj, = e.args
-                self._log(error_obj.message)
-                raise
-
-    connection = Connection()
-    connection.execute("""
-            select department_name
-            from departments
-            where department_id = :id""", dict(id=270))
-
-The messages logged in ``log.txt`` are::
-
-    Connect to the database
-
-                select department_name
-                from departments
-                where department_id = :id
-
-If an error occurs, perhaps due to a missing table, the log file would contain
-instead::
-
-    Connect to the database
-
-                select department_name
-                from departments
-                where department_id = :id
-    ORA-00942: table or view does not exist
-
-In production applications, be careful not to log sensitive information.
-
-See `Subclassing.py
-<https://github.com/oracle/python-oracledb/blob/main/
-samples/subclassing.py>`__ for an example.
-
-
 .. _jdwp:
 
 Debugging PL/SQL with the Java Debug Wire Protocol
@@ -216,7 +148,6 @@ Visual Studio Code <https://www.youtube.com/watch?v=wk-3hLe30kk>`_, and the
 blog post `Debugging PL/SQL with Visual Studio Code (and more)
 <https://medium.com/oracledevs/debugging-pl-sql-with-visual-studio-code-and-
 more-45631f3952cf>`_.
-
 
 .. _lowlevelsqltrace:
 

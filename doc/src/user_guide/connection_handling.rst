@@ -289,11 +289,7 @@ of Oracle Database's naming methods:
 * A :ref:`TNS Alias <netservice>` mapping to a Connect Descriptor in a
   :ref:`tnsnames.ora <optnetfiles>` file
 * An :ref:`LDAP URL <ldapurl>`
-
-The ``dsn`` can additionally refer to a :ref:`Centralized Configuration
-Provider <builtinconfigproviders>`.  The following providers are supported:
-
-* :ref:`File Configuration Provider <fileconfigprovider>`
+* A :ref:`Configuration Provider URL <configproviderurl>`
 
 Connection strings used for JDBC and Oracle SQL Developer need to be altered to
 be usable as the ``dsn`` value, see :ref:`jdbcconnstring`.
@@ -449,6 +445,41 @@ Client 23ai could connect using:
 This syntax is also usable in python-oracledb Thin mode via a :ref:`connection
 hook function <connectionhook>`, see :ref:`ldapconnections`.
 
+.. _configproviderurl:
+
+Centralized Configuration Provider URL Connection Strings
+---------------------------------------------------------
+
+A :ref:`Centralized Configuration Provider <configurationproviders>` URL
+contains the details of where the configuration information is located. The
+information that can be stored in configuration providers includes connect
+descriptors, database credentials (user name and password), and python-oracledb
+specific attributes. With this URL, python-oracledb can access the information
+stored in the configuration providers listed below and connect to Oracle
+Database:
+
+- :ref:`Oracle Cloud Infrastructure (OCI) Object Storage configuration
+  provider <ociobjstorage>`
+- :ref:`Microsoft Azure App Configuration provider <azureappconfig>`
+- :ref:`File Configuration Provider <fileconfigprovider>`
+
+The configuration provider URL can be set in the ``dsn`` parameter of
+connection functions :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+:meth:`oracledb.create_pool_async()`. This URL must begin with
+"config-<configuration-provider>" where the configuration-provider value can
+be set to *ociobject*, *azure*, or *file*, depending on the location of your
+configuration information. For example, to use connection configuration stored
+in a local file ``/opt/oracle/my-config.json``, you need to specify the ``dsn``
+parameter as shown:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                       dsn="config-file:///opt/oracle/my-config.json")
+
+See the respective configuration provider sections for more details.
+
 .. _jdbcconnstring:
 
 JDBC and Oracle SQL Developer Connection Strings
@@ -507,28 +538,466 @@ This can be referenced in python-oracledb:
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn="finance")
 
-.. _builtinconfigproviders:
+.. _configurationproviders:
 
 Centralized Configuration Providers
 ===================================
 
-Oracle Database Centralized Configuration Providers allow the storage and
-management of database connection credentials and application configuration
-information in a central location.
+Centralized Configuration Providers allow the storage and management of
+database connection credentials and application configuration information in a
+central location. These providers allow you to separately store the
+configuration information from the code of your application. The information
+that can be stored in these providers includes connect descriptors, database
+credentials such as user name and password, and python-oracledb specific
+attributes.
 
-A configuration provider is used by setting the ``dsn`` parameter of connection
-and pool creation methods to specify where the configuration is located. For
-example to use connection configuration stored in a local file
-``/opt/oracle/my-config.json``:
+You can access the information stored in configuration providers using both
+python-oracledb Thin and Thick modes. With this information, python-oracledb
+can connect to Oracle Database using :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`.
+
+The following configuration providers are supported by python-oracledb:
+
+- :ref:`Oracle Cloud Infrastructure (OCI) Object Storage <ociobjstorage>`
+- :ref:`Microsoft Azure App Configuration <azureappconfig>`
+- :ref:`File Configuration Provider <fileconfigprovider>`
+
+**Precedence of Attributes**
+
+If you have defined the values of ``user`` and ``password`` in both the
+application and the configuration provider, then the values defined in the
+application will have the higher precedence. If the ``externalauth``
+parameter is set to *True*, then the ``user`` and ``password`` values
+specified in the configuration provider is ignored.
+
+If you have defined the python-oracledb specific attributes in both the
+application and in the configuration provider, then the values defined in the
+configuration provider will have the higher precedence.
+
+.. _ociobjstorage:
+
+OCI Object Storage Configuration Provider
+-----------------------------------------
+
+The `Oracle Cloud Infrastructure (OCI) Object Storage <https://docs.oracle.com
+/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm>`__ configuration
+provider enables the storage and management of Oracle Database connection
+information in a JSON file.
+
+To use python-oracledb to access the configuration information from OCI Object
+Storage, you must install the `OCI module <https://pypi.org/project/oci/>`__,
+see :ref:`ocimodules`.
+
+The JSON configuration file must contain the ``connect_descriptor`` property.
+Optionally, you can specify the database user name, password, and
+python-oracledb specific properties in the file. The database password can also
+be stored securely as a secret using `OCI Vault <https://docs.oracle.com/en-us/
+iaas/Content/KeyManagement/Tasks/managingsecrets.htm>`__. The properties that
+can be added in the JSON file are listed below:
+
+.. list-table-with-summary:: JSON Properties for OCI Object Storage Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _oci_object_storage_sub-objects
+    :summary: The first column displays the name of the property. The second column displays the description of the property. The third column displays whether the property is required or optional.
+
+    * - Property
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user, or a dictionary containing the key "type" and password-type specific properties.
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``pyo``
+      - Python-oracledb specific properties.
+      - Optional
+
+The following sample is an example of OCI Object Storage configuration
+provider syntax::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "oci-vault",
+            "value": "oci.vaultsecret.my-secret-id"
+            "authentication": "OCI_INSTANCE_PRINCIPAL"
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+If the password key has a reference to Azure Key Vault, then you must define
+the Azure Key Vault credentials in the ``password`` property. The
+``azure_client_id`` and ``azure_tenant_id`` must be specified in the password
+property. Also, either the ``azure_client_secret`` or
+``azure_client_certificate_path`` should be specified. The password format
+should be::
+
+    "password": {
+            "type": "azure-vault",
+            "value": "<Azure Key Vault URI>",
+            "azure_tenant_id":"<tenant_id>",
+            "azure_client_id":"<client_id>",
+            "azure_client_secret": "<secret value>", or "azure_client_certificate_path" : "<azure_client_certificate_path>"
+        }
+
+.. _useociconfigprovider:
+
+Using python-oracledb with OCI Object Storage Configuration Provider
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To use python-oracledb with an OCI Object Storage configuration provider, you
+must:
+
+1. :ref:`Import the oracledb.plugins.oci_config_provider plugin
+   <importconfigociplugin>` in your code.
+
+2. :ref:`Use an OCI Object Storage connection string URL <connstringoci>`
+   in the ``dsn`` parameter of connection and pool creation methods.
+
+An example using a :ref:`standalone connection <standaloneconnection>` is
+shown below:
 
 .. code-block:: python
 
-    connection = oracledb.connect(user="hr", password=userpwd,
-                       dsn="config-file:///opt/oracle/my-config.json")
+    import oracledb.plugins.oci_config_provider
 
-The following providers are supported by python-oracledb:
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
 
-* :ref:`File Configuration Provider <fileconfigprovider>`
+    oracledb.connect(dsn=configociurl)
+
+An example using a :ref:`connection pool <connpooling>` is shown below:
+
+.. code-block:: python
+
+    import oracledb.plugins.oci_config_provider
+
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
+
+    oracledb.create_pool(dsn=configociurl)
+
+.. _importconfigociplugin:
+
+Importing ``oracledb.plugins.oci_config_provider``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You must import a :ref:`oracledb.plugins.oci_config_provider <configociplugin>`
+plugin provided by python-oracledb to access the configuration information
+stored in :ref:`OCI Object Storage <ociobjstorage>` such as database connect
+descriptor, user name, password, and python-oracledb specific attributes.
+
+Importing this plugin defines and
+:meth:`registers <oracledb.register_protocol()>` a built-in
+:ref:`connection hook function <connectionhook>` that handles :ref:`connection
+strings prefixed with config-ociobject <connstringoci>`. This function is
+internally invoked when the ``dsn`` parameter is prefixed with
+``config-ociobject`` in calls to :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`. This hook function parses the connection
+string, and extracts the following details:
+
+- URL of the OCI Object Storage endpoint
+- OCI Object Storage namespace where the JSON file is stored
+- OCI Object Storage bucket name where the JSON file is stored
+- JSON file name
+- Network service name or alias if the JSON file contains one or more aliases
+- OCI Object Storage authentication details
+
+Using the above details, the hook function accesses the configuration
+information stored in OCI Object Storage.  The hook function sets the
+connection information from OCI Object Storage in its ``connect_params``
+parameter which is a :ref:`ConnectParams <connparam>` object. This object is
+used by python-oracledb to establish a connection to Oracle Database.
+
+.. _connstringoci:
+
+Defining a Connection String URL for OCI Object Storage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You must define a connection string URL in a specific format in the ``dsn``
+property of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` to
+access the information stored in OCI Object Storage. The syntax of the OCI
+Object Storage connection string URL is::
+
+    config-ociobject:<objectstorage-name>/n/{namespaceName}/b/{bucketName}/o/
+    <objectName>[/c/<networkServiceName>][?<option1>=<value1>&<option2>=<value2>...]
+
+The parameters of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for OCI Object Storage
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _connection_string_for_oci_object_storage
+    :summary: The first row displays the name of the connection string parameter. The second row displays whether the connection string parameter is required or optional. The third row displays the description of the connection string parameter.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``config-ociobject``
+      - Indicates that the configuration provider is OCI Object Storage.
+      - Required
+    * - <objectstorage-name>
+      - The URL of OCI Object Storage endpoint.
+      - Required
+    * - <namespaceName>
+      - The OCI Object Storage namespace where the JSON file is stored.
+      - Required
+    * - <bucketName>
+      - The OCI Object Storage bucket name where the JSON file is stored.
+      - Required
+    * - <objectName>
+      - The JSON file name.
+      - Required
+    * - <networkServiceName>
+      - The network service name or alias if the JSON file contains one or more network service names.
+      - Optional
+    * - <options> and <values>
+      - The authentication method and corresponding authentication parameters to access the OCI Object Storage configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the ``option=value`` syntax of the connection string. You can specify one of the following authentication methods:
+
+        - **API Key-based Authentication**: The authentication to OCI is done using API key-related values. This is the default authentication method. To use this method, you must set the option value to OCI_DEFAULT. Note that this value is also used when no authentication value is set.
+
+         You can set optional authentication parameters for this method such as OCI_PROFILE, OCI_TENANCY, OCI_USER, OCI_FINGERPRINT, OCI_KEY_FILE, and OCI_PASS_PHRASE. See `Authentication Parameters for Oracle Cloud Infrastructure (OCI) Object Storage <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-EB94F084-0F3F-47B5-AD77-D111070F7E8D>`__. These authentication parameters can also be set in an OCI Authentication Configuration file which can be stored in a default location ~/.oci/config, or in location ~/.oraclebmc/config, or in the location specified by the OCI_CONFIG_FILE environment variable.
+
+        - **Instance Principal Authentication**: The authentication to OCI is done using VM instance credentials running on OCI. To use this method, you must set the option value to OCI_INSTANCE_PRINCIPAL. There are no optional authentication parameters for this method.
+
+        - **Resource Principal Authentication**: The authentication to OCI is done using OCI resource principals. To use this method, you must set the option value to OCI_RESOURCE_PRINCIPAL. There are no optional authentication parameters for this method.
+
+        See `OCI Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
+      - Optional
+
+You can store the authentication details in an OCI Authentication Configuration
+file which can be stored in a default location (~/.oci/config). The
+``oci_from_file()`` method will check this location for the configuration file.
+The OCI Object Storage configuration provider uses this method when the
+default authentication method is specified or when the authentication details
+are not provided in the connection string.
+
+An example of a connection string for OCI Object Storage configuration provider
+is shown below:
+
+.. code-block:: python
+
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
+
+.. _azureappconfig:
+
+Azure App Configuration Provider
+--------------------------------
+
+`Azure App Configuration <https://learn.microsoft.com/en-us/azure/azure-app-
+configuration/overview>`__ is a cloud-based service provided by Microsoft
+Azure that enables the storage and management of Oracle Database connection
+information. Your application must be registered with `Microsoft Entra ID
+<https://www.microsoft.com/en-in/security/business/identity-access/microsoft
+-entra-id>`__ (formerly Microsoft Azure Active Directory) and must have the
+required authorization permissions to access the Azure App Configuration
+provider.
+
+To use python-oracledb to access the configuration information from Azure App
+Configuration, you must install certain Microsoft Azure modules, see
+:ref:`azuremodules`.
+
+Configuration information is stored as key-value pairs in Azure App
+Configuration. You must add the connect descriptor as a key under a prefix
+based on the requirements of your application. Optionally, you can add the
+database user name, password, and python-oracledb specific properties as keys.
+The database password can be stored securely as a secret using `Azure Key Vault
+<https://learn.microsoft.com/en-us/azure/key-vault/general/overview>`__. In
+Azure App Configuration, you can add the following keys under a prefix:
+
+- <prefix>connect_descriptor (required)
+- <prefix>user (optional)
+- <prefix>password (optional)
+- <prefix>pyo(optional)
+
+The key ending with:
+
+- ``connect_descriptor`` stores the :ref:`connect descriptor <conndescriptor>`
+  as the value.
+- ``user`` stores the database user name as the value.
+- ``password`` stores the reference to the Azure Key Vault and Secret as
+  the value.
+- ``pyo`` stores the values of the python-oracledb specific properties.
+
+See `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-DBCA9021-F3E1-4B30-8F17-A98900299D73>`__ for
+more information.
+
+.. _azureappconfigexample:
+
+The following table lists the sample configuration information defined in Azure
+App Configuration as key-value pairs. Note that the key-value pairs are defined
+under the same prefix ``test/`` as an example.
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 30 70
+    :name: _azure_app_configuration_keys_and_values
+    :summary: The first row displays the name of the key defined in Azure App Configuration. The second row displays the value of the key defined in Azure App Configuration.
+
+    * - Azure App Configuration Key
+      - Value
+    * - test/connect_descriptor
+      - (description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.region.oraclecloud.com))(connect_data=(service_name=cdb1_pdb1)))
+    * - test/user
+      - scott
+    * - test/password
+      - {"uri":"https://mykeyvault.vault.azure.net/secrets/passwordsalescrm"}
+    * - test/pyo
+      - {"stmtcachesize":30, "min":2, "max":10}
+
+.. _useazureconfigprovider:
+
+Using python-oracledb with Azure App Configuration Provider
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To use python-oracledb with an Azure App Configuration provider, you must:
+
+1. :ref:`Import the
+   oracledb.plugins.azure_config_provider <importconfigazureplugin>` plugin in
+   your code.
+
+2. :ref:`Use an Azure App Configuration connection string URL
+   <connstringazure>` in the ``dsn`` parameter of connection and pool creation
+   methods.
+
+An example using a :ref:`standalone connection <standaloneconnection>` is
+shown below.
+
+.. code-block:: python
+
+    import oracledb.plugins.azure_config_provider
+
+    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
+
+    oracledb.connect(dsn=configazureurl)
+
+An example using a :ref:`connection pool <connpooling>` is shown below.
+
+.. code-block:: python
+
+    import oracledb.plugins.azure_config_provider
+
+    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
+
+    oracledb.create_pool(dsn=configazureurl)
+
+.. _importconfigazureplugin:
+
+Importing ``oracledb.plugins.azure_config_provider``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You must import a :ref:`oracledb.plugins.azure_config_provider
+<configazureplugin>` plugin provided by python-oracledb to access the
+configuration information stored in Azure App Configuration such as database
+connect descriptor, user name, password, and python-oracledb specific
+attributes.
+
+Importing this plugin defines and
+:meth:`registers <oracledb.register_protocol()>` a built-in :ref:`connection
+hook function <connectionhook>` that handles :ref:`connection strings prefixed
+with config-azure <connstringazure>`. This function is internally invoked when
+the ``dsn`` parameter is prefixed with ``config-azure`` in calls to
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. This
+hook function parses the connection string, and extracts the following details:
+
+- The URL of the Azure App Configuration endpoint
+- The key prefix to identify the connection
+- The Azure App Configuration label name
+- Azure App Configuration authentication details
+
+Using the above details, the hook function accesses the configuration
+information stored in Azure App Configuration. The hook function sets the
+connection information from Azure App Configuration in its ``connect_params``
+parameter which is a :ref:`ConnectParams <connparam>` object. This object is
+used by python-oracledb to establish a connection to Oracle Database.
+
+.. _connstringazure:
+
+Defining a Connection String URL for Azure App Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You must define a connection string URL in a specific format in the ``dsn``
+property of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` to
+access the information stored in Azure App Configuration. The syntax of the
+Azure App Configuration connection string URL is::
+
+    config-azure://<appconfigname>[?key=<prefix>&label=<value>&<option1>=<value1>&<option2>=<value2>…]
+
+The parameters of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for Azure App Configuration
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 15 25 15
+    :name: _connection_string_for_azure_app
+    :summary: The first row displays the name of the connection string parameter. The second row displays whether the connection string parameter is required or optional. The third row displays the description of the connection string parameter.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - config-azure
+      - Indicates that the configuration provider is Azure App Configuration.
+      - Required
+    * - <appconfigname>
+      - The URL of the Azure App configuration endpoint.
+      - Required
+    * - key=<prefix>
+      - A key prefix to identify the connection. You can organize configuration information under a prefix as per application requirements.
+      - Required
+    * - label=<value>
+      - The Azure App Configuration label name.
+      - Optional
+    * - <options>=<values>
+      - The authentication method and corresponding authentication parameters to access the Azure App Configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the ``option=value`` syntax of the connection string. You can specify one of the following authentication methods:
+
+        - **Default Azure Credential**: The authentication to Azure App Configuration is done as a service principal (using either a client secret or client certificate) or as a managed identity depending on which parameters are set. This authentication method also supports reading the parameters as environment variables. This is the default authentication method. To use this authentication method, you must set the option value to AZURE_DEFAULT. Note that this value is also used when no authentication value is set.
+
+         There are no required parameters for this option value. The optional parameters include AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_CLIENT_CERTIFICATE_PATH, AZURE_TENANT_ID, and AZURE_MANAGED_IDENTITY_CLIENT_ID.
+
+        - **Service Principal with Client Secret**: The authentication to Azure App Configuration is done using the client secret. To use this method, you must set the option value to AZURE_SERVICE_PRINCIPAL.
+
+         The required parameters for this option include AZURE_SERVICE_PRINCIPAL, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID. There are no optional parameters for this option value.
+
+        - **Service Principal with Client Certificate**: The authentication to Azure App Configuration is done using the client certificate. To use this method, you must set the option value to AZURE_SERVICE_PRINCIPAL.
+
+         The required parameters for this option are AZURE_SERVICE_PRINCIPAL, AZURE_CLIENT_ID, AZURE_CLIENT_CERTIFICATE_PATH, and AZURE_TENANT_ID. There are no optional parameters for this option value.
+
+        - **Managed Identity**: The authentication to Azure App Configuration is done using managed identity or managed user identity credentials. To use this method, you must set the option value to AZURE_MANAGED_IDENTITY.
+
+         If you want to use a user-assigned managed identity for authentication, then you must specify the required parameter AZURE_MANAGED_IDENTITY_CLIENT_ID. There are no optional parameters for this option value.
+
+      - Optional
+
+Note that the Azure service principal with client certificate overrides Azure
+service principal with client secret. See `Authentication Parameters for Azure
+App Configuration Store <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-1EECAD82-6CE5-4F4F-A844-C75C7AA1F907>`__ for more information.
+
+An example of a connection string for Azure App Configuration provider is shown
+below:
+
+.. code-block:: python
+
+    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
 
 .. _fileconfigprovider:
 
@@ -558,7 +1027,7 @@ the file are listed in the table below.
     :name: _file_configuration_provider
     :summary: The first column displays the name of the property. The second column displays its description. The third column displays whether the sub-object is required or optional.
 
-    * - Sub-object
+    * - Property
       - Description
       - Required or Optional
     * - ``user``
@@ -568,10 +1037,10 @@ the file are listed in the table below.
       - The password of the database user, or a dictionary containing the key "type" and password type-specific properties.
       - Optional
     * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`. The file must contain this property.
+      - The database :ref:`connection string <connstr>`.
       - Required
     * - ``pyo``
-      - Python-oracledb specific settings.
+      - Python-oracledb specific properties.
       - Optional
 
 See the `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
@@ -585,7 +1054,6 @@ more information on these sub-objects.
 
     When using the password type handler for "base64", a warning message will
     be generated: "base64 encoded passwords are insecure".
-
 
 **Sample File Configuration Provider syntax**
 
@@ -626,7 +1094,8 @@ below. The key values are user-chosen::
         }
     }
 
-**Sample Using a File Configuration Provider**
+Using python-oracledb with a File Configuration Provider
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To use a provider file, specify the ``dsn`` parameter of
 :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,

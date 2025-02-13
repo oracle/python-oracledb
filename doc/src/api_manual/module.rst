@@ -4234,3 +4234,54 @@ See :ref:`exception` for usage information.
     Boolean attribute representing whether the error is recoverable or not.
     This is False in all cases unless both Oracle Database 12.1 (or later) and
     Oracle Client 12.1 (or later) are being used.
+
+.. _oracledbplugins:
+
+Oracledb Plugins
+================
+
+The `namespace package <https://packaging.python.org/en/latest/guides/
+packaging-namespace-packages/#native-namespace-packages>`__
+``oracledb.plugins`` can contain plugins to extend the capability of
+python-oracledb.  See :ref:`customplugins`. Note that the namespace
+``oracledb.plugins.ldap_support`` is reserved for future use by the
+python-oracledb project.
+
+.. versionadded:: 3.0.0
+
+.. _configociplugin:
+
+Oracle Cloud Infrastructure (OCI) Object Storage Configuration Provider Plugin
+------------------------------------------------------------------------------
+
+``oracledb.plugins.oci_config_provider`` is a plugin that provides access to
+the configuration information stored in the :ref:`OCI Object Storage
+<ociobjstorage>` configuration provider.  Importing this plugin defines and
+:meth:`registers <oracledb.register_protocol()>` the hook function that
+handles :ref:`OCI Object Storage connection strings <connstringoci>` prefixed
+with ``config-oci``.  The hook function parses this connection string, and
+extracts the authentication details and URI details from the connection
+string. Using the information, the hook function accesses the configuration
+information in OCI Object Storage, which python-oracledb will use to connect
+to Oracle Database.  See :ref:`importconfigociplugin` for more information.
+
+.. versionadded:: 3.0.0
+
+.. _configazureplugin:
+
+Azure App Configuration Provider Plugin
+---------------------------------------
+
+``oracledb.plugins.azure_config_provider`` is a plugin that provides access to
+the configuration information stored in :ref:`Azure App Configuration
+<azureappconfig>` provider.  Importing this plugin defines and
+:meth:`registers <oracledb.register_protocol()>` the hook function that
+handles :ref:`Azure App Configuration connection string <connstringazure>`
+prefixed with ``config-azure``.  The hook function parses this connection
+string, and extracts the authentication details and URI details from the
+connection string. Using the information, the hook function accesses the
+configuration information in Azure App Configuration, which python-oracledb
+will use to connect to Oracle Database.  See :ref:`importconfigazureplugin`
+for more information.
+
+.. versionadded:: 3.0.0

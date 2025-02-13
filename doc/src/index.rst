@@ -39,6 +39,7 @@ User Guide
     user_guide/asyncio.rst
     user_guide/exception_handling.rst
     user_guide/tracing.rst
+    user_guide/extending.rst
     user_guide/troubleshooting.rst
     user_guide/appendix_a.rst
     user_guide/appendix_b.rst

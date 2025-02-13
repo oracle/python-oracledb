@@ -1023,3 +1023,48 @@ Python versions.
    version.  For example, when using Python 3.12 on macOS, install::
 
        python -m pip install oracledb-2.5.0-cp312-cp312-macosx_10_13_universal2.whl
+
+.. _configprovidermodules:
+
+Installing Configuration Provider Modules for python-oracledb
+=============================================================
+
+To use python-oracledb with :ref:`centralized configuration providers
+<configurationproviders>`, you must install the necessary module for your
+preferred configuration provider as detailed below.
+
+.. _ocimodules:
+
+Install Modules for the OCI Object Storage Configuration Provider
+-----------------------------------------------------------------
+
+For python-oracledb to work with Oracle Cloud Infrastructure (OCI) Object
+Storage configuration provider, you must install the `OCI <https://pypi.org/
+project/oci/>`__ module using::
+
+    python -m pip install oci
+
+See :ref:`ociobjstorage` for information on using this configuration provider
+with python-oracledb.
+
+.. _azuremodules:
+
+Install Modules for the Azure App Configuration Provider
+--------------------------------------------------------
+
+For python-oracledb to work with Azure App Configuration Provider, you must
+install the `Azure App Configuration <https://pypi.org/project/azure-
+appconfiguration/>`__, `Azure Core <https://pypi.org/project/azure-core/>`__,
+and `Azure Identity <https://pypi.org/project/azure-identity/>`__ modules
+using::
+
+    python -m pip install azure-appconfiguration azure-core azure-identity
+
+If your password is stored in the Azure Key vault, then you additionally need
+to install the `Azure Key Vault Secrets <https://pypi.org/project/azure-
+keyvault-secrets/>`__ module. This can be done using::
+
+    python -m pip install azure-keyvault-secrets
+
+See :ref:`azureappconfig` for information on using this configuration provider
+with python-oracledb.

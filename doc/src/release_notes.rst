@@ -17,6 +17,8 @@ oracledb 3.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added namespace package :ref:`oracledb.plugins <plugins>` for plugins that
+    can be used to extend the capability of python-oracledb.
 #)  Perform TLS server matching in python-oracledb instead of the Python SSL
     library to allow alternate names to be checked
     (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
@@ -56,8 +58,9 @@ Common Changes
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the
     python-oracledb pool cache with :meth:`oracledb.get_pool()`.
-#)  Added Centralized Configuration Provider support for :ref:`file-based
-    configurations <builtinconfigproviders>`.
+#)  Added :ref:`Centralized Configuration Provider <configurationproviders>`
+    support for Oracle Cloud Infrastructure Object Storage, Microsoft Azure App
+    Configuration, and file-based configurations.
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
