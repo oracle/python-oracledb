@@ -131,10 +131,14 @@ PoolParams Attributes
 
 .. attribute:: PoolParams.max_lifetime_session
 
-    This read-only attribute is an integer that determines the length of time
-    (in seconds) that connections can remain in the pool. If the value of this
-    attribute is *0*, then the connections may remain in the pool indefinitely.
-    The default value is *0* seconds.
+    This read-only attribute is the maximum length of time (in seconds) that a
+    pooled connection may exist since first being created. A value of *0* means
+    there is no limit. Connections become candidates for termination when they
+    are acquired or released back to the pool, and have existed for longer than
+    ``max_lifetime_session`` seconds. Connections that are in active use will
+    not be closed. In python-oracledb Thick mode, Oracle Client libraries 12.1
+    or later must be used and, prior to Oracle Client 21, cleanup only occurs
+    when the pool is accessed.
 
 .. attribute:: PoolParams.max_sessions_per_shard
 
@@ -189,10 +193,12 @@ PoolParams Attributes
 
     This read-only attribute is an integer that specifies the length of time
     (in seconds) that a connection may remain idle in the pool before it is
-    terminated. If the value of this attribute is *0*, then the connections
-    are never terminated. The default value is *0* seconds.
+    terminated. This applies only when the pool has more than ``min``
+    connections open, allowing it to shrink to the specified minimum size. The
+    default value is *0* seconds. A value of *0* means that there is no maximum
+    time.
 
-    This attribute is only supported in python-oracledb Thick mode.
+    This attribute is supported in both python-oracledb Thin and Thick modes.
 
 .. attribute:: PoolParams.wait_timeout
 

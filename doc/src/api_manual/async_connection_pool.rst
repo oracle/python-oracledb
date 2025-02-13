@@ -119,14 +119,14 @@ AsyncConnectionPool Attributes
 
 .. attribute:: AsyncConnectionPool.max_lifetime_session
 
-    This read-write attribute returns the maximum length of time (in seconds)
-    that a pooled connection may exist. Connections that are in use will not be
-    closed. They become candidates for termination only when they are released
-    back to the pool and have existed for longer than max_lifetime_session
-    seconds. Note that termination only occurs when the pool is accessed. A
-    value of *0* means that there is no maximum length of time that a pooled
-    connection may exist. This attribute is only available in Oracle Database
-    12.1 or later.
+    This read-write attribute is the maximum length of time (in seconds) that a
+    pooled connection may exist since first being created. A value of *0* means
+    there is no limit. Connections become candidates for termination when they
+    are acquired or released back to the pool, and have existed for longer than
+    ``max_lifetime_session`` seconds. Connections that are in active use will
+    not be closed. In python-oracledb Thick mode, Oracle Client libraries 12.1
+    or later must be used and, prior to Oracle Client 21, cleanup only occurs
+    when the pool is accessed.
 
 .. attribute:: AsyncConnectionPool.max_sessions_per_shard
 
@@ -189,10 +189,12 @@ AsyncConnectionPool Attributes
 
 .. attribute:: AsyncConnectionPool.timeout
 
-    This read-write attribute specifies the time (in seconds) after which idle
-    connections will be terminated in order to maintain an optimum number of
-    open connections. A value of *0* means that no idle connections are
-    terminated.
+    This read-only attribute is an integer that specifies the length of time
+    (in seconds) that a connection may remain idle in the pool before it is
+    terminated. This applies only when the pool has more than ``min``
+    connections open, allowing it to shrink to the specified minimum size. The
+    default value is *0* seconds. A value of *0* means that there is no maximum
+    time.
 
 .. attribute:: AsyncConnectionPool.username
 

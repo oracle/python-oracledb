@@ -2069,26 +2069,29 @@ regardless of how big ``increment`` is.  The pool will then continue to
 re-establish connections in a background thread.
 
 A connection pool can shrink back to its minimum size ``min`` when connections
-opened by the pool are not used by the application.  This frees up database
-resources while allowing pools to retain connections for active users.  If
-connections are idle in the pool (i.e. not currently acquired by the
-application) and are unused for longer than the pool creation attribute
-``timeout`` value, then they will be closed.  The check occurs every
-``timeout`` interval and hence in the worst case it may take twice the
-``timeout`` time to close the idle connections.  The default ``timeout`` is 0
-seconds signifying an infinite time and meaning idle connections will never be
-closed.
+opened by the pool are not used by the application. This frees up database
+resources while allowing pools to retain open connections for active users. If
+there are more than ``min`` connections open, and connections are idle in the
+pool (i.e. not currently acquired by the application) and unused for longer
+than the pool creation attribute ``timeout`` value, then they will be closed.
+The check occurs every ``timeout`` interval and hence in the worst case it may
+take twice the ``timeout`` time to close the idle connections. The default
+``timeout`` is *0* seconds signifying an infinite time and meaning idle
+connections will never be closed.
 
 The pool creation parameter ``max_lifetime_session`` also allows pools to
-shrink.  This parameter bounds the total length of time that a connection can
-exist starting from the time the pool created it.  If a connection was created
-``max_lifetime_session`` or longer seconds ago, then it will be closed when it
-is idle in the pool.  In the case when ``timeout`` and ``max_lifetime_session``
-are both set, the connection will be terminated if either the idle timeout
-happens or the max lifetime setting is exceeded.  Note that when using
-python-oracledb in Thick mode with Oracle Client libraries prior to 21c, pool
-shrinkage is only initiated when the pool is accessed so pools in fully dormant
-applications will not shrink until the application is next used.
+shrink. This parameter bounds the total length of time that a connection can
+exist starting from the time that it was created in the pool. It is mostly used
+for defensive programming to mitigate against unforeseeable problems that may
+occur with connections. If a connection was created ``max_lifetime_session`` or
+longer seconds ago, then it will be a candidate for being closed. In the case
+when ``timeout`` and ``max_lifetime_session`` are both set, the connection will
+be terminated if either the idle timeout happens or the maximum lifetime
+setting is exceeded. Note that when using python-oracledb in Thick mode with
+Oracle Client libraries prior to 21c, pool shrinkage is only initiated when the
+pool is accessed so pools in fully dormant applications will not shrink until
+the application is next used. In Thick mode, Oracle Client libraries 12.1, or
+later, are needed to use ``max_lifetime_session``.
 
 For pools created with :ref:`external authentication <extauth>`, with
 :ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp` (in
