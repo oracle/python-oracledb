@@ -287,7 +287,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes - no callback
       - Yes - no callback
     * - Transaction Guard (TG) (see :ref:`tg`)
-      - No
+      - Yes
       - Yes
       - Yes
     * - Data Guard (DG) and Active Data Guard (ADG)

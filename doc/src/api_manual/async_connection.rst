@@ -523,8 +523,7 @@ AsyncConnection Attributes
 
     .. note:
 
-        This attribute is only available when Oracle Database 12.1 or later is
-        in use
+        This attribute is only available with Oracle Database 12.1 or later.
 
 .. attribute:: AsyncConnection.max_identifier_length
 

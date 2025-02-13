@@ -161,13 +161,9 @@ Python-oracledb supports `Transaction Guard
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-A675AF7B-6FF0-460D-A6E6-C15E7C328C8F>`__ which enables Python
 application to verify the success or failure of the last transaction in the
-event of an unplanned outage. This feature is available when both client and
-database are 12.1 or higher.
-
-.. note::
-
-    The Transaction Guard feature is only supported in the python-oracledb
-    Thick mode.  See :ref:`enablingthick`.
+event of an unplanned outage. This feature requires Oracle Database 12.1 or
+higher. When using python-oracledb Thick mode, Oracle Client 12.1 or higher is
+additionally required.
 
 Using Transaction Guard helps to:
 
@@ -184,7 +180,10 @@ logical transaction id (``ltxid``) from the connection and then call a
 procedure to determine the outcome of the commit for this logical transaction
 id.
 
-Follow the steps below to use the Transaction Guard feature in Python:
+The steps below show how to use Transaction Guard in python-oracledb in a
+single-instance database. Refer to Oracle documentation if you are using `RAC
+<https://www.oracle.com/pls/ topic/lookup?ctx=dblatest&id=RACAD>`__ or standby
+databases.
 
 1.  Grant execute privileges to the database users who will be checking the
     outcome of the commit. Log in as SYSDBA and run the following command:
@@ -193,8 +192,9 @@ Follow the steps below to use the Transaction Guard feature in Python:
 
         GRANT EXECUTE ON DBMS_APP_CONT TO <username>;
 
-2.  Create a new service by executing the following PL/SQL block as SYSDBA.
-    Replace the ``<service-name>``, ``<network-name>`` and
+2.  Create a new service by calling `DBMS_SERVICE.CREATE_SERVICE
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-386E183E-D83C-48A7-8BA3-40248CFB89F4>`__
+    as SYSDBA.  Replace the ``<service-name>``, ``<network-name>`` and
     ``<retention-value>`` values with suitable values. It is important that the
     ``COMMIT_OUTCOME`` parameter be set to true for Transaction Guard to
     function properly.
@@ -210,12 +210,14 @@ Follow the steps below to use the Transaction Guard feature in Python:
         END;
         /
 
-3.  Start the service by executing the following PL/SQL block as SYSDBA:
+3.  Start the service by calling `DBMS_SERVICE.START_SERVICE
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-140B93AC-9021-4091-B797-7CA3AAB446FE>`__
+    as SYSDBA:
 
     .. code-block:: sql
 
         BEGIN
-            DBMS_SERVICE.start_service('<service-name>');
+            DBMS_SERVICE.START_SERVICE('<service-name>');
         END;
         /
 
@@ -231,12 +233,18 @@ query:
 
 In the Python application code:
 
-* Use the connection attribute :attr:`~Connection.ltxid` to determine the
+* Connect to the appropriately enabled database service. If the connection is
+  TAF, AC or TAC enabled, then do not proceed with TG.
+* Check :attr:`oracledb._Error.isrecoverable` to confirm the error is
+  recoverable. If not, do not proceed with TG.
+* Use the connection attribute :attr:`Connection.ltxid` to find the
   logical transaction id.
-* Call the ``DBMS_APP_CONT.GET_LTXID_OUTCOME`` PL/SQL procedure with the
-  logical transaction id acquired from the connection attribute.  This returns
-  a boolean value indicating if the last transaction was committed and whether
-  the last call was completed successfully or not.
+* Call the `DBMS_APP_CONT.GET_LTXID_OUTCOME
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-03CEB530-D3A5-40B1-87C8-5BF1BB5D5D54>`__
+  PL/SQL procedure with the logical transaction id.  This returns a boolean
+  value indicating if the last transaction was committed and whether the last
+  call was completed successfully or not.
+* Take any necessary action to re-do uncommitted work.
 
 See the `Transaction Guard Sample
 <https://github.com/oracle/python-oracledb/blob/main/

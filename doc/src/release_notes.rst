@@ -33,6 +33,8 @@ Thin Mode Changes
 #)  The thread that closes connection pools on interpreter shutdown is now only
     started when the first pool is created and not at module import
     (`issue 426 <https://github.com/oracle/python-oracledb/issues/426>`__).
+#)  Added support for Transaction Guard by adding support to get the value of
+    :attr:`Connection.ltxid`.
 #)  Fixed hang when attempting to use pipelining against a database that
     doesn't support the end of response flag.
 #)  Fixed hang when using asyncio and a connection is unexpectedly closed by

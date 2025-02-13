@@ -229,7 +229,7 @@ cdef class Message:
         if opcode == TNS_SERVER_PIGGYBACK_LTXID:
             buf.read_ub4(&num_bytes)
             if num_bytes > 0:
-                buf.skip_raw_bytes(num_bytes)
+                self.conn_impl._ltxid = buf.read_bytes()
         elif opcode == TNS_SERVER_PIGGYBACK_QUERY_CACHE_INVALIDATION \
                 or opcode == TNS_SERVER_PIGGYBACK_TRACE_EVENT:
             pass

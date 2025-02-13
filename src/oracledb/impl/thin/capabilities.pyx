@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -121,7 +121,8 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_LOB2] = TNS_CCAP_LOB2_QUASI | \
                 TNS_CCAP_LOB2_2GB_PREFETCH
         self.compile_caps[TNS_CCAP_TTC3] = TNS_CCAP_IMPLICIT_RESULTS | \
-                TNS_CCAP_BIG_CHUNK_CLR | TNS_CCAP_KEEP_OUT_ORDER
+                TNS_CCAP_BIG_CHUNK_CLR | TNS_CCAP_KEEP_OUT_ORDER | \
+                TNS_CCAP_LTXID
         self.compile_caps[TNS_CCAP_TTC2] = TNS_CCAP_ZLNP
         self.compile_caps[TNS_CCAP_OCI2] = TNS_CCAP_DRCP
         self.compile_caps[TNS_CCAP_CLIENT_FN] = TNS_CCAP_CLIENT_FN_MAX

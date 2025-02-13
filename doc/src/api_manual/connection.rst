@@ -774,8 +774,8 @@ Connection Attributes
     .. note:
 
         This attribute is an extension to the DB API definition. It is only
-        available when Oracle Database 12.1 or higher is in use on both the
-        server and the client.
+        available with Oracle Database 12.1 or higher. In python-oracledb Thick
+        mode, it also requires Oracle Client libraries 12.1 or higer.
 
 .. attribute:: Connection.max_identifier_length
 

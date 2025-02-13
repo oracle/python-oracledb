@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -384,6 +384,7 @@ cdef enum:
     TNS_CCAP_RPC_VERSION_MAX = 7
     TNS_CCAP_RPC_SIG_VALUE = 3
     TNS_CCAP_DBF_VERSION_MAX = 1
+    TNS_CCAP_LTXID = 0x08
     TNS_CCAP_IMPLICIT_RESULTS = 0x10
     TNS_CCAP_BIG_CHUNK_CLR = 0x20
     TNS_CCAP_KEEP_OUT_ORDER = 0x80
