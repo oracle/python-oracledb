@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -73,10 +73,7 @@ cdef class ThinVarImpl(BaseVarImpl):
                 if value is not None \
                         and not isinstance(value, (PY_TYPE_LOB,
                                                    PY_TYPE_ASYNC_LOB)):
-                    lob = conn.createlob(metadata.dbtype)
-                    if value:
-                        lob.write(value)
-                    self._values[idx] = lob
+                    self._values[idx] = conn.createlob(metadata.dbtype, value)
 
         # bind by name
         if name is not None:
