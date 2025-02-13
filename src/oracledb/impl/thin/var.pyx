@@ -32,6 +32,7 @@
 cdef class ThinVarImpl(BaseVarImpl):
     cdef:
         object _last_raw_value
+        list _coroutine_indexes
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor_impl,
                    uint32_t num_execs, object name, uint32_t pos) except -1:
@@ -44,10 +45,11 @@ cdef class ThinVarImpl(BaseVarImpl):
             ssize_t idx, num_binds, num_vars
             BindInfo bind_info
             str normalized_name
-            object value, lob
+            bint is_async
+            object value
 
         # for PL/SQL blocks, if the size of a string or bytes object exceeds
-        # 32,767 bytes it must be converted to a BLOB/CLOB; and out converter
+        # 32,767 bytes it must be converted to a BLOB/CLOB; an out converter
         # needs to be established as well to return the string in the way that
         # the user expects to get it
         if stmt._is_plsql and metadata.max_size > 32767:
@@ -67,6 +69,7 @@ cdef class ThinVarImpl(BaseVarImpl):
             self.outconverter = converter
 
         # for variables containing LOBs, create temporary LOBs, if needed
+        is_async = thin_cursor_impl._conn_impl._protocol._transport._is_async
         if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
                 or metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             for idx, value in enumerate(self._values):
@@ -74,6 +77,10 @@ cdef class ThinVarImpl(BaseVarImpl):
                         and not isinstance(value, (PY_TYPE_LOB,
                                                    PY_TYPE_ASYNC_LOB)):
                     self._values[idx] = conn.createlob(metadata.dbtype, value)
+                    if is_async:
+                        if self._coroutine_indexes is None:
+                            self._coroutine_indexes = []
+                        self._coroutine_indexes.append(idx)
 
         # bind by name
         if name is not None:

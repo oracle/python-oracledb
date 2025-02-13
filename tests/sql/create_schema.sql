@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1413,6 +1413,42 @@ create or replace package body &main_user..pkg_SessionCallback as
             end if;
             t_PropertyName := t_RequestedProps.next(t_PropertyName);
         end loop;
+    end;
+
+end;
+/
+
+create or replace package &main_user..pkg_TestLOBs as
+
+    procedure GetSize(
+        a_BLOB                          blob,
+        a_Size                          out number
+    );
+
+    procedure GetSize(
+        a_CLOB                          clob,
+        a_Size                          out number
+    );
+
+end;
+/
+
+create or replace package body &main_user..pkg_TestLOBs as
+
+    procedure GetSize(
+        a_BLOB                          blob,
+        a_Size                          out number
+    ) is
+    begin
+        a_Size := dbms_lob.getlength(a_BLOB);
+    end;
+
+    procedure GetSize(
+        a_CLOB                          clob,
+        a_Size                          out number
+    ) is
+    begin
+        a_Size := dbms_lob.getlength(a_CLOB);
     end;
 
 end;

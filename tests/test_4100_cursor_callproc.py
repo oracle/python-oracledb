@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -443,6 +443,20 @@ class TestCase(test_env.BaseTestCase):
         "4124 - test executing a function with callproc"
         with self.assertRaisesFullCode("ORA-06550"):
             self.cursor.callproc("func_Test2", ("hello", 5, True))
+
+    def test_4125(self):
+        "4125 - test calling a procedure with a string > 32767 characters"
+        data = "4125" * 16000
+        size_var = self.cursor.var(int)
+        self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+        self.assertEqual(size_var.getvalue(), len(data))
+
+    def test_4126(self):
+        "4125 - test calling a procedure with raw data > 32767 bytes"
+        data = b"4126" * 16250
+        size_var = self.cursor.var(int)
+        self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+        self.assertEqual(size_var.getvalue(), len(data))
 
 
 if __name__ == "__main__":

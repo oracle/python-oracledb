@@ -42,6 +42,9 @@ Thin Mode Changes
     doesn't support the end of response flag.
 #)  Fixed hang when using asyncio and a connection is unexpectedly closed by
     the database.
+#)  Fixed bug when using :ref:`asyncio <concurrentprogramming>` and calling a
+    stored procedure with data that exceeds 32767 bytes in length
+    (`issue 441 <https://github.com/oracle/python-oracledb/issues/441>`__).
 #)  Error ``DPY-6002: The distinguished name (DN) on the server certificate
     does not match the expected value: "{expected_dn}"`` now shows the expected
     value.

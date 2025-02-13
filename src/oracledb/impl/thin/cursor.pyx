@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -269,13 +269,30 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
             message = self._create_message(FetchMessage, cursor)
         await self._conn_impl._protocol._process_single_message(message)
 
+    async def _preprocess_execute_async(self, object conn):
+        """
+        Performs the necessary steps required before actually executing the
+        statement associated with the cursor.
+        """
+        cdef:
+            ThinVarImpl var_impl
+            BindInfo bind_info
+            ssize_t idx
+        self._preprocess_execute(conn)
+        for bind_info in self._statement._bind_info_list:
+            var_impl = bind_info._bind_var_impl
+            if var_impl._coroutine_indexes is not None:
+                for idx in var_impl._coroutine_indexes:
+                    var_impl._values[idx] = await var_impl._values[idx]
+                var_impl._coroutine_indexes = None
+
     async def execute(self, cursor):
         cdef:
             object conn = cursor.connection
             BaseAsyncProtocol protocol
             MessageWithData message
         protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        self._preprocess_execute(conn)
+        await self._preprocess_execute_async(conn)
         message = self._create_message(ExecuteMessage, cursor)
         message.num_execs = 1
         await protocol._process_single_message(message)
@@ -294,7 +311,7 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
 
         # set up message to send
         protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        self._preprocess_execute(cursor.connection)
+        await self._preprocess_execute_async(cursor.connection)
         message = self._create_message(ExecuteMessage, cursor)
         message.num_execs = num_execs
         message.batcherrors = batcherrors

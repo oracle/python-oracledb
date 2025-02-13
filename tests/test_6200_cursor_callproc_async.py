@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -118,6 +118,20 @@ class TestCase(test_env.BaseAsyncTestCase):
             await self.cursor.callfunc(
                 "func_Test", oracledb.NUMBER, [], kwargs
             )
+
+    async def test_6209(self):
+        "6209 - test calling a procedure with a string > 32767 characters"
+        data = "6209" * 16000
+        size_var = self.cursor.var(int)
+        await self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+        self.assertEqual(size_var.getvalue(), len(data))
+
+    async def test_6210(self):
+        "6210 - test calling a procedure with raw data > 32767 bytes"
+        data = b"6210" * 16250
+        size_var = self.cursor.var(int)
+        await self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+        self.assertEqual(size_var.getvalue(), len(data))
 
 
 if __name__ == "__main__":
