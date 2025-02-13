@@ -568,6 +568,7 @@ cdef class ConnectParamsImpl:
     cdef bytes _get_password(self)
     cdef str _get_private_key(self)
     cdef str _get_token(self)
+    cdef object _get_public_instance(self)
     cdef object _get_token_expires(self, str token)
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
