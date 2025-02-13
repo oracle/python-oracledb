@@ -523,7 +523,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         if message.state != TNS_TPC_TXN_STATE_ABORTED:
             errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
                               state=message.state)
-        self._transaction_context = None
 
 
 cdef class AsyncThinConnImpl(BaseThinConnImpl):
@@ -1095,4 +1094,3 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         if message.state != TNS_TPC_TXN_STATE_ABORTED:
             errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
                               state=message.state)
-        self._transaction_context = None
