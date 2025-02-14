@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -312,7 +312,7 @@ def params_repr_content(indent):
     Generates the content for the params_repr template tag.
     """
     parts = [
-        f'\n{indent}        + f"{field.name}={{self.{field.name}!r}}, "'
+        f'\n{indent}        f"{field.name}={{self.{field.name}!r}}, "'
         for field in fields
         if not field.hidden
     ]
@@ -321,10 +321,9 @@ def params_repr_content(indent):
     return (
         func_def
         + f"\n{indent}    return ("
-        + f"\n{indent}        self.__class__.__qualname__"
-        + f'\n{indent}        + "("'
+        + f'\n{indent}        self.__class__.__qualname__ + "("'
         + "".join(parts)
-        + f'\n{indent}        + ")"'
+        + f'\n{indent}        ")"'
         + f"\n{indent}    )"
     )
 
