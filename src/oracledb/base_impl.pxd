@@ -317,6 +317,7 @@ cdef class Buffer:
                                bint write_length=*) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
+    cdef int write_sb4(self, int32_t value) except -1
     cdef int write_str(self, str value) except -1
     cdef int write_uint8(self, uint8_t value) except -1
     cdef int write_uint16be(self, uint16_t value) except -1
@@ -955,10 +956,13 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleData* data,
                                           const char* encoding_errors,
                                           bint from_dbobject)
+cdef object convert_date_to_python(OracleDataBuffer *buffer)
 cdef uint16_t decode_uint16be(const char_type *buf)
 cdef uint32_t decode_uint32be(const char_type *buf)
 cdef uint16_t decode_uint16le(const char_type *buf)
 cdef uint64_t decode_uint64be(const char_type *buf)
+cdef int decode_date(const uint8_t* ptr, ssize_t num_bytes,
+                     OracleDataBuffer *buffer)
 cdef void encode_uint16be(char_type *buf, uint16_t value)
 cdef void encode_uint16le(char_type *buf, uint16_t value)
 cdef void encode_uint32be(char_type *buf, uint32_t value)

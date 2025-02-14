@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -224,6 +224,9 @@ cdef class BaseConnImpl:
         cursor_impl.arraysize = C_DEFAULTS.arraysize
         cursor_impl.prefetchrows = C_DEFAULTS.prefetchrows
         return cursor_impl
+
+    def create_msg_props_impl(self):
+        errors._raise_not_supported("creating a message property object")
 
     def create_queue_impl(self):
         errors._raise_not_supported("creating a queue")

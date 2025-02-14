@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -878,6 +878,26 @@ cdef class WriteBuffer(Buffer):
         self.write_ub4(len(packed_data))
         self.write_ub4(obj_impl.flags)      # flags
         self.write_bytes_with_length(packed_data)
+
+    cdef int write_extension_values(self, str txt_value, bytes bytes_value,
+                                    uint16_t keyword) except -1:
+        """
+        Writes extension's text value, binary value and keyword entry to the
+        buffer.
+        """
+        cdef bytes txt_value_bytes
+        if txt_value is None:
+            self.write_uint8(0)
+        else:
+            txt_value_bytes = txt_value.encode()
+            self.write_ub4(len(txt_value_bytes))
+            self.write_bytes_with_length(txt_value_bytes)
+        if bytes_value is None:
+            self.write_uint8(0)
+        else:
+            self.write_ub4(len(bytes_value))
+            self.write_bytes_with_length(bytes_value)
+        self.write_ub2(keyword)
 
     cdef int write_lob_with_length(self, BaseThinLobImpl lob_impl) except -1:
         """

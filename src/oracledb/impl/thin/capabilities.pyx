@@ -104,6 +104,7 @@ cdef class Capabilities:
                 TNS_CCAP_CTB_IMPLICIT_POOL
         self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
         self.compile_caps[TNS_CCAP_SERVER_DEFINE_CONV] = 1
+        self.compile_caps[TNS_CCAP_DEQUEUE_WITH_SELECTOR] = 1
         self.compile_caps[TNS_CCAP_TTC1] = \
                 TNS_CCAP_FAST_BVEC | TNS_CCAP_END_OF_CALL_STATUS | \
                 TNS_CCAP_IND_RCD

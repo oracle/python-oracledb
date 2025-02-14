@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -790,6 +790,26 @@ cdef class Buffer:
             self._write_more_data(self._max_size - self._pos, length)
             length -= bytes_to_write
             data += bytes_to_write
+
+    cdef int write_sb4(self, int32_t value) except -1:
+        """
+        Writes a 32-bit signed integer to the buffer in universal format.
+        """
+        cdef uint8_t sign = 0
+        if value < 0:
+            value = -value
+            sign = 0x80
+        if value == 0:
+            self.write_uint8(0)
+        elif value <= UINT8_MAX:
+            self.write_uint8(1 | sign)
+            self.write_uint8(<uint8_t> value)
+        elif value <= UINT16_MAX:
+            self.write_uint8(2 | sign)
+            self.write_uint16be(<uint16_t> value)
+        else:
+            self.write_uint8(4 | sign)
+            self.write_uint32be(value)
 
     cdef int write_str(self, str value) except -1:
         """

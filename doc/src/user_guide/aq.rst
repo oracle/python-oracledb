@@ -15,10 +15,6 @@ receiving of various payloads, such as RAW values, JSON, JMS, and objects.
 Transactional Event Queues use a highly optimized implementation of Advanced
 Queuing. They were previously called AQ Sharded Queues.
 
-.. note::
-
-    TxEventQ and AQ Classic queues are only supported in python-oracledb Thick
-    mode.  See :ref:`enablingthick`.
 
 Python-oracledb API calls are the same for Transactional Event Queues and
 Classic Queues, however there are differences in support for some payload
@@ -31,10 +27,17 @@ types.
 - The JSON payload requires Oracle Client libraries 21c (or later) and Oracle
   Database 21c (or later).
 
-There are examples of AQ Classic Queues in the `GitHub examples
+JSON and JMS payloads, array message queuing and dequeuing operations, and
+:ref:`Recipient Lists <reciplists>` are only supported in python-oracledb
+:ref:`Thick mode <enablingthick>`.
+
+There are examples of AQ Classic Queues in the `GitHub samples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
 
 **Transactional Event Queue Support**
+
+Transactional Event Queues are only supported in python-oracledb :ref:`Thick
+mode <enablingthick>`.
 
 - RAW and named Oracle object payloads are supported for single and array
   message enqueuing and dequeuing when using Oracle Client 19c (or later) and
@@ -55,7 +58,15 @@ Creating a Queue
 
 Before being used in applications, queues need to be created in the database.
 
-**Using RAW Payloads**
+To experiment with queueing, you can grant yourself privileges, for example in
+SQL*Plus as a DBA user:
+
+.. code-block:: sql
+
+    grant aq_administrator_role, aq_user_role to &&username;
+    grant execute on dbms_aq to &&username;
+
+**Creating RAW Payload Queues**
 
 To use SQL*Plus to create a Classic Queue for the RAW payload which is suitable
 for sending string or bytes messages:
@@ -79,7 +90,7 @@ To create a Transactional Event Queue for RAW payloads:
     end;
     /
 
-**Using JSON Payloads**
+**Creating JSON Payload Queues**
 
 Queues can also be created for JSON payloads. For example, to create a Classic
 Queue in SQL*Plus:
@@ -99,7 +110,7 @@ Enqueuing Messages
 To send messages in Python, you connect and get a :ref:`queue <queue>`. The
 queue can then be used for enqueuing, dequeuing, or for both.
 
-**Using RAW Payloads**
+**Enqueuing RAW Payloads**
 
 You can connect to the database and get the queue that was created with RAW
 payload type by using:
@@ -123,13 +134,14 @@ messages:
     connection.commit()
 
 Since the queue is a RAW queue, strings are internally encoded to bytes using
-``message.encode()`` before being enqueued.
+`encode() <https://docs.python.org/3/library/stdtypes.html#str.encode>`__
+before being enqueued.
 
-The use of :meth:`~Connection.commit()` means that messages are sent only when
-any database transaction related to them is committed. This behavior can be
-altered, see :ref:`aqoptions`.
+The use of :meth:`~Connection.commit()` allows messages to be sent only when
+any database transaction related to them is committed. This default behavior
+can be altered, see :ref:`aqoptions`.
 
-**Using JSON Payloads**
+**Enqueuing JSON Payloads**
 
 You can connect to the database and get the queue that was created with JSON
 payload type by using:
@@ -162,9 +174,11 @@ Dequeuing Messages
 ==================
 
 Dequeuing is performed similarly. To dequeue a message call the method
-:meth:`~Queue.deqone()` as shown in the examples below.
+:meth:`~Queue.deqone()` as shown in the examples below.  This returns a
+:ref:`MessageProperties <msgproperties>` object containing the message payload
+and related attributes.
 
-**Using RAW Payloads**
+**Dequeuing RAW Payloads**
 
 .. code-block:: python
 
@@ -174,9 +188,21 @@ Dequeuing is performed similarly. To dequeue a message call the method
     print(message.payload.decode())
 
 Note that if the message is expected to be a string, the bytes must be decoded
-by the application using ``message.payload.decode()``, as shown.
+by the application using `decode()
+<https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__, as shown.
 
-**Using JSON Payloads**
+If there are no messages in the queue, :meth:`~Queue.deqone()` will wait for
+one to be enqueued.  This default behavior can be altered, see
+:ref:`aqoptions`.
+
+Various :ref:`message properties <msgproperties>` can be accessed.  For example
+to show the :attr:`~MessageProperties.msgid` of a dequeued message:
+
+.. code-block:: python
+
+    print(message.msgid.hex())
+
+**Dequeuing JSON Payloads**
 
 .. code-block:: python
 

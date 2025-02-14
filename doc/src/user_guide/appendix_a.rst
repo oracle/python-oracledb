@@ -248,7 +248,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Oracle Transactional Event Queues and Advanced Queuing (AQ) (see :ref:`aqusermanual`)
-      - No
+      - Yes - RAW and named Oracle object payloads
       - Yes
       - Yes
     * - Call timeouts (see :attr:`Connection.call_timeout`)

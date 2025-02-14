@@ -358,6 +358,7 @@ ERR_UNEXPECTED_XML_TYPE = 5007
 ERR_UNKNOWN_SERVER_PIGGYBACK = 5009
 ERR_UNKNOWN_TRANSACTION_STATE = 5010
 ERR_UNEXPECTED_PIPELINE_FAILURE = 5011
+ERR_NOT_IMPLEMENTED = 5012
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -713,6 +714,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_NO_STATEMENT_PREPARED: "statement must be prepared first",
     ERR_NOT_A_QUERY: "the executed statement does not return rows",
     ERR_NOT_CONNECTED: "not connected to database",
+    ERR_NOT_IMPLEMENTED: "not implemented",
     ERR_NUMBER_STRING_OF_ZERO_LENGTH: "invalid number: zero length string",
     ERR_NUMBER_STRING_TOO_LONG: "invalid number: string too long",
     ERR_NUMBER_WITH_EMPTY_EXPONENT: "invalid number: empty exponent",

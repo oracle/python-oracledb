@@ -88,6 +88,10 @@ from .base_impl cimport (
     BaseDbObjectAttrImpl,
     BaseDbObjectImpl,
     BaseDbObjectTypeImpl,
+    BaseDeqOptionsImpl,
+    BaseEnqOptionsImpl,
+    BaseMsgPropsImpl,
+    BaseQueueImpl,
     BaseLobImpl,
     BaseParser,
     BasePoolImpl,
@@ -106,6 +110,7 @@ from .base_impl cimport (
     Buffer,
     ConnectParamsImpl,
     convert_oracle_data_to_python,
+    convert_date_to_python,
     CS_FORM_IMPLICIT,
     CS_FORM_NCHAR,
     DbType,
@@ -169,6 +174,7 @@ from .base_impl cimport (
     TNS_NULL_LENGTH_INDICATOR,
     decode_uint16be,
     decode_uint32be,
+    decode_date,
     VectorDecoder,
     VectorEncoder,
     encode_uint16be,
@@ -199,6 +205,7 @@ include "impl/thin/packet.pyx"
 include "impl/thin/data_types.pyx"
 include "impl/thin/messages.pyx"
 include "impl/thin/protocol.pyx"
+include "impl/thin/queue.pyx"
 include "impl/thin/connection.pyx"
 include "impl/thin/statement.pyx"
 include "impl/thin/statement_cache.pyx"

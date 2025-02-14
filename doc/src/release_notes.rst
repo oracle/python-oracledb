@@ -17,6 +17,8 @@ oracledb 3.0.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added :ref:`Oracle Advanced Queuing <aqusermanual>` support for single
+    enqueue and dequeue of RAW and Oracle object payload types.
 #)  Added namespace package :ref:`oracledb.plugins <plugins>` for plugins that
     can be used to extend the capability of python-oracledb.
 #)  Added support for property :attr:`ConnectionPool.max_lifetime_session`

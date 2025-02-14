@@ -438,6 +438,15 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             self._force_close()
             raise
 
+    def create_msg_props_impl(self):
+        cdef ThinMsgPropsImpl impl
+        impl = ThinMsgPropsImpl()
+        impl._conn_impl = self
+        return impl
+
+    def create_queue_impl(self):
+        return ThinQueueImpl.__new__(ThinQueueImpl)
+
     def create_temp_lob_impl(self, DbType dbtype):
         cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)
         lob_impl.create_temp()

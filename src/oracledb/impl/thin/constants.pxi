@@ -58,6 +58,57 @@ cdef enum:
     TNS_MARKER_TYPE_RESET = 2
     TNS_MARKER_TYPE_INTERRUPT = 3
 
+# AQ delivery modes
+cdef enum:
+    TNS_AQ_MSG_BUFFERED = 2
+    TNS_AQ_MSG_PERSISTENT = 1
+    TNS_AQ_MSG_PERSISTENT_OR_BUFFERED = 3
+
+# AQ dequeue modes
+cdef enum:
+    TNS_AQ_DEQ_BROWSE = 1
+    TNS_AQ_DEQ_LOCKED = 2
+    TNS_AQ_DEQ_REMOVE = 3
+    TNS_AQ_DEQ_REMOVE_NODATA = 4
+
+# AQ dequeue navigation modes
+cdef enum:
+    TNS_AQ_DEQ_FIRST_MSG = 1
+    TNS_AQ_DEQ_NEXT_MSG = 3
+    TNS_AQ_DEQ_NEXT_TRANSACTION = 2
+
+# AQ dequeue visibility modes
+cdef enum:
+    TNS_AQ_DEQ_IMMEDIATE = 1
+    TNS_AQ_DEQ_ON_COMMIT = 2
+
+# AQ dequeue wait modes
+cdef enum:
+    TNS_AQ_DEQ_NO_WAIT = 0
+    TNS_AQ_DEQ_WAIT_FOREVER = <uint32_t>-1
+
+# AQ enqueue visibility modes
+cdef enum:
+    TNS_AQ_ENQ_IMMEDIATE = 1
+    TNS_AQ_ENQ_ON_COMMIT = 2
+
+# AQ message states
+cdef enum:
+    TNS_AQ_MSG_EXPIRED = 3
+    TNS_AQ_MSG_PROCESSED = 2
+    TNS_AQ_MSG_READY = 0
+    TNS_AQ_MSG_WAITING = 1
+
+# AQ other constants
+cdef enum:
+    TNS_AQ_MSG_NO_DELAY = 0
+    TNS_AQ_MSG_NO_EXPIRATION = -1
+
+# AQ flags
+cdef enum:
+    TNS_KPD_AQ_BUFMSG = 0x02
+    TNS_KPD_AQ_EITHER = 0x10
+
 # errors
 cdef enum:
     TNS_ERR_INCONSISTENT_DATA_TYPES = 932
@@ -69,6 +120,7 @@ cdef enum:
     TNS_ERR_SESSION_SHUTDOWN = 12572
     TNS_ERR_ARRAY_DML_ERRORS = 24381
     TNS_ERR_EXCEEDED_IDLE_TIME = 2396
+    TNS_ERR_NO_MESSAGES_FOUND = 25228
 
 # message types
 cdef enum:
@@ -286,6 +338,8 @@ cdef enum:
     TNS_FUNC_EXECUTE = 94
     TNS_FUNC_FETCH = 5
     TNS_FUNC_LOB_OP = 96
+    TNS_FUNC_AQ_ENQ = 121
+    TNS_FUNC_AQ_DEQ = 122
     TNS_FUNC_LOGOFF = 9
     TNS_FUNC_PING = 147
     TNS_FUNC_PIPELINE_BEGIN = 199
@@ -329,6 +383,7 @@ cdef enum:
     TNS_CCAP_FEATURE_BACKPORT = 5
     TNS_CCAP_FIELD_VERSION = 7
     TNS_CCAP_SERVER_DEFINE_CONV = 8
+    TNS_CCAP_DEQUEUE_WITH_SELECTOR = 9
     TNS_CCAP_TTC1 = 15
     TNS_CCAP_OCI1 = 16
     TNS_CCAP_TDS_VERSION = 17
@@ -470,6 +525,13 @@ cdef enum:
     TNS_PIPELINE_MODE_CONTINUE_ON_ERROR = 1
     TNS_PIPELINE_MODE_ABORT_ON_ERROR = 2
 
+# AQ extension keywords
+cdef enum:
+    TNS_AQ_EXT_KEYWORD_AGENT_NAME = 64
+    TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS = 65
+    TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL = 66
+    TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID = 69
+
 # session state flags
 cdef enum:
     TNS_SESSION_STATE_REQUEST_BEGIN = 0x04
@@ -487,6 +549,7 @@ cdef enum:
     TNS_SERVER_CONVERTS_CHARS = 0x01
     TNS_JSON_MAX_LENGTH = 32 * 1024 * 1024
     TNS_VECTOR_MAX_LENGTH = 1 * 1024 * 1024
+    TNS_AQ_MESSAGE_ID_LENGTH = 16
 
 # base 64 encoding alphabet
 cdef bytes TNS_BASE64_ALPHABET = \

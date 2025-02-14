@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,7 +35,6 @@ import oracledb
 import test_env
 
 
-@unittest.skipIf(test_env.get_is_thin(), "thin mode doesn't support AQ yet")
 class TestCase(test_env.BaseTestCase):
     book_type_name = "UDT_BOOK"
     book_queue_name = "TEST_BOOK_QUEUE"
@@ -253,6 +252,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(props)
         self.conn.commit()
         props = queue.deqone()
+        other_conn.commit()
         self.assertIsNotNone(props)
 
     def test_2709(self):
@@ -375,6 +375,9 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertIsNone(props)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(), "Thin mode doesn't support transformation yet"
+    )
     def test_2714(self):
         "2714 - test dequeue transformation"
         queue = self.get_and_clear_queue(
@@ -399,6 +402,9 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(), "Thin mode doesn't support transformation yet"
+    )
     def test_2715(self):
         "2715 - test enqueue transformation"
         queue = self.get_and_clear_queue(
@@ -463,6 +469,9 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.msgid, actual_msgid)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(), "Thin mode doesn't support recipient list yet"
+    )
     def test_2719(self):
         "2719 - verify use of recipients property"
         books_type = self.conn.gettype(self.book_type_name)
@@ -486,6 +495,9 @@ class TestCase(test_env.BaseTestCase):
         props1 = queue.deqone()
         self.assertIsNone(props1)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(), "thin mode doesn't support notification yet"
+    )
     def test_2720(self):
         "2720 - verify attributes of AQ message which spawned notification"
         if self.is_on_oracle_cloud(self.conn):
@@ -524,6 +536,10 @@ class TestCase(test_env.BaseTestCase):
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support JSON payload for AQ yet",
+    )
     def test_2721(self):
         "2721 - test enqueuing and dequeuing JSON payloads"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
@@ -542,6 +558,10 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(results, self.json_data)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "thin mode doesn't support JSON payload for AQ yet",
+    )
     def test_2722(self):
         "2722 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
@@ -616,6 +636,10 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             queue.deqoptions.deliverymode
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "Thin mode doesn't support enqmany and deqmany yet",
+    )
     def test_2729(self):
         "2729 - test correlation deqoption"
         queue = self.get_and_clear_queue(
@@ -643,6 +667,10 @@ class TestCase(test_env.BaseTestCase):
         correlated_messages = queue.deqmany(num_messages + 1)
         self.assertEqual(len(correlated_messages), num_messages)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "Thin mode doesn't support enqmany and deqmany yet",
+    )
     def test_2730(self):
         "2730 - test correlation deqoption with pattern-matching characters"
         queue = self.get_and_clear_queue(
@@ -660,6 +688,10 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         self.assertEqual(len(messages), 2)
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "Thin mode doesn't support enqmany and deqmany yet",
+    )
     def test_2731(self):
         "2731 - test condition deqoption with priority"
         queue = self.get_and_clear_queue(
@@ -687,6 +719,10 @@ class TestCase(test_env.BaseTestCase):
             data = book.TITLE, book.AUTHORS, book.PRICE
             self.assertEqual(data, self.book_data[ix])
 
+    @unittest.skipIf(
+        test_env.get_is_thin(),
+        "Thin mode doesn't support enqmany and deqmany yet",
+    )
     def test_2732(self):
         "2732 - test mode deqoption with DEQ_REMOVE_NODATA"
         queue = self.get_and_clear_queue(
