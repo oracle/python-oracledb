@@ -23,25 +23,25 @@ Thin Mode Changes
     can be used to extend the capability of python-oracledb.
 #)  Added support for property :attr:`ConnectionPool.max_lifetime_session`
     (`issue 410 <https://github.com/oracle/python-oracledb/issues/410>`__).
-#)  Perform TLS server matching in python-oracledb instead of the Python SSL
-    library to allow alternate names to be checked
-    (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
 #)  Added parameter :data:`ConnectParams.use_sni` to specify that the TLS SNI
     extension should be used to reduce the number of TLS neegotiations that are
     needed to connect to the database.
-#)  Improved support for planned database maintenance by internally sending
-    explicit request boundaries when using python-oracledb connection pools.
 #)  Added parameter :data:`ConnectParams.instance_name` to specify the instance
     name to use when connecting to the database. Added support for setting the
     instance name in :ref:`Easy Connect strings <easyconnect>`.
+#)  Added support for Transaction Guard by adding support to get the values of
+    :attr:`Connection.ltxid` and :attr:`oracledb._Error.isrecoverable`.
+#)  Improved support for planned database maintenance by internally sending
+    explicit request boundaries when using python-oracledb connection pools.
+#)  Perform TLS server matching in python-oracledb instead of the Python SSL
+    library to allow alternate names to be checked
+    (`issue 415 <https://github.com/oracle/python-oracledb/issues/415>`__).
 #)  Host names are now resolved to IP addresses in python-oracledb instead of
     the Python libraries. Address list load balancing and failover settings
     will be used when establishing connections.
 #)  The thread that closes connection pools on interpreter shutdown is now only
     started when the first pool is created and not at module import
     (`issue 426 <https://github.com/oracle/python-oracledb/issues/426>`__).
-#)  Added support for Transaction Guard by adding support to get the values of
-    :attr:`Connection.ltxid` and :attr:`oracledb._Error.isrecoverable`.
 #)  Fixed hang when attempting to use pipelining against a database that
     doesn't support the end of response flag.
 #)  Fixed hang when using asyncio and a connection is unexpectedly closed by
@@ -102,6 +102,10 @@ Common Changes
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
+#)  Added attributes :attr:`DbObjectAttribute.precision`,
+    :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
+    provide additional metadata about
+    :ref:`database object attributes <dbobjectattr>`.
 #)  Set the default value of :attr:`defaults.config_dir` to
     ``$ORACLE_HOME/network/admin`` if the environment variable ``ORACLE_HOME``
     is set.
@@ -115,10 +119,6 @@ Common Changes
     :ref:`full connect descriptor <conndescriptor>` are passed through
     unchanged. All other parameters in other sections of a full connect
     descriptor that are unrecognized by the driver are ignored.
-#)  Added attributes :attr:`DbObjectAttribute.precision`,
-    :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
-    provide additional metadata about
-    :ref:`database object attributes <dbobjectattr>`.
 #)  Fixed bug where some :ref:`DbObject <dbobjecttype>` attributes for database
     objects defined using ANSI names (including FLOAT and REAL) may have shown
     as integers.
