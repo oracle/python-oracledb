@@ -1781,6 +1781,44 @@ class AsyncConnection(BaseConnection):
             cursor.rowfactory = rowfactory
             return await cursor.fetchall()
 
+    async def fetch_df_all(
+        self,
+        statement: str,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        arraysize: Optional[int] = None,
+    ):
+        """
+        Fetch all data as OracleDataFrame.
+        """
+        cursor = self.cursor()
+        cursor._impl.fetching_arrow = True
+        if arraysize is not None:
+            cursor.arraysize = arraysize
+        cursor.prefetchrows = cursor.arraysize
+        await cursor.execute(statement, parameters)
+        return await cursor._impl.fetch_df_all(cursor)
+
+    async def fetch_df_batches(
+        self,
+        statement: str,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        size: Optional[int] = None,
+    ):
+        """
+        Fetch data in batches. Each batch is an OracleDataFrame
+        """
+        cursor = self.cursor()
+        cursor._impl.fetching_arrow = True
+        if size is not None:
+            cursor.arraysize = size
+        cursor.prefetchrows = cursor.arraysize
+        await cursor.execute(statement, parameters)
+        if size is None:
+            yield await cursor._impl.fetch_df_all(cursor)
+        else:
+            async for df in cursor._impl.fetch_df_batches(cursor, size):
+                yield df
+
     async def fetchmany(
         self,
         statement: str,

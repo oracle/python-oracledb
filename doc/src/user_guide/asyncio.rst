@@ -171,7 +171,9 @@ You can also use shortcut methods on the :ref:`asyncconnobj` object such as
 :meth:`AsyncConnection.execute()` or
 :meth:`AsyncConnection.executemany()`. Rows can be fetched using one of the
 shortcut methods :meth:`AsyncConnection.fetchone()`,
-:meth:`AsyncConnection.fetchmany()`, or :meth:`AsyncConnection.fetchall()`.
+:meth:`AsyncConnection.fetchmany()`, :meth:`AsyncConnection.fetchall()`,
+:meth:`AsyncConnection.fetch_df_all()`, or
+:meth:`AsyncConnection.fetch_df_batches()`.
 
 An example of using :meth:`AsyncConnection.fetchall()`:
 

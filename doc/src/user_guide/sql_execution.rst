@@ -13,7 +13,9 @@ executed. Statements are executed using one of these methods
 :meth:`Cursor.execute()`, :meth:`Cursor.executemany()`,
 :meth:`Connection.fetch_df_all()`, :meth:`Connection.fetch_df_batches()`,
 :meth:`AsyncCursor.execute()`, :meth:`AsyncCursor.executemany()`,
-:meth:`AsyncConnection.execute()`, :meth:`AsyncConnection.executemany()`, or
+:meth:`AsyncConnection.execute()`, :meth:`AsyncConnection.executemany()`,
+:meth:`AsyncConnection.fetch_df_all()`,
+:meth:`AsyncConnection.fetch_df_batches()`, or
 :meth:`AsyncConnection.run_pipeline()`.
 
 This chapter discusses python-oracledb's synchronous methods. The asynchronous

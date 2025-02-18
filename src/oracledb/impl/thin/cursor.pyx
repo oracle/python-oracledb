@@ -340,6 +340,27 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
             await protocol._process_single_message(message)
         self.warning = message.warning
 
+    async def fetch_df_all(self, cursor):
+        """
+        Internal method used for fetching all data as OracleDataFrame
+        """
+        while self._more_rows_to_fetch:
+            await self._fetch_rows_async(cursor)
+        return self._finish_building_arrow_arrays()
+
+    async def fetch_df_batches(self, cursor, int batch_size):
+        """
+        Internal method used for fetching next batch as OracleDataFrame.
+        """
+        # Return the prefetched batch
+        yield self._finish_building_arrow_arrays()
+
+        while self._more_rows_to_fetch:
+            self._create_arrow_arrays()
+            await self._fetch_rows_async(cursor)
+            if self._buffer_rowcount > 0:
+                yield self._finish_building_arrow_arrays()
+
     async def fetch_next_row(self, cursor):
         """
         Internal method used for fetching the next row from a cursor.

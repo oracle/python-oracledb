@@ -124,6 +124,61 @@ AsyncConnection Methods
     This is a shortcut for calling :meth:`AsyncConnection.cursor()`,
     :meth:`AsyncCursor.executemany()`, and then :meth:`AsyncCursor.close()`.
 
+.. method:: AsyncConnection.fetch_df_all(statement, parameters=None, \
+            arraysize=None)
+
+    Fetches all rows of the SQL query ``statement``, returning them in an
+    :ref:`OracleDataFrame <oracledataframeobj>` object. An empty
+    OracleDataFrame is returned if there are no rows available.
+
+    The ``parameters`` parameter can be a list of tuples, where each tuple item
+    maps to one :ref:`bind variable placeholder <bind>` in ``statement``. It
+    can also be a list of dictionaries, where the keys match the bind variable
+    placeholder names in ``statement``.
+
+    The ``arraysize`` parameter can be specified to tune performance of fetching
+    data across the network. It defaults to :attr:`defaults.arraysize`.
+    Internally, the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is
+    always set to the value of the explicit or default ``arraysize`` parameter
+    value.
+
+    See :ref:`dataframeformat` for the supported data types and examples.
+
+    .. note::
+
+        The data frame support in python-oracledb 3.0.0 is a pre-release and
+        may change in the next version.
+
+    .. versionadded:: 3.0.0
+
+.. method:: AsyncConnection.fetch_df_batches(statement, parameters=None, \
+            size=None)
+
+    This returns an iterator yielding the next ``size`` rows of the SQL query
+    ``statement`` in each iteration as an :ref:`OracleDataFrame
+    <oracledataframeobj>` object. An empty OracleDataFrame is returned if there
+    are no rows available.
+
+    The ``parameters`` parameter can be a list of tuples, where each tuple item
+    maps to one :ref:`bind variable placeholder <bind>` in ``statement``. It
+    can also be a list of dictionaries, where the keys match the bind variable
+    placeholder names in ``statement``.
+
+    The ``size`` parameter controls the number of records fetched in each
+    batch. It defaults to :attr:`defaults.arraysize`. Internally, the
+    ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
+    :attr:`Cursor.prefetchrows` sizes are always set to the value of the
+    explicit or default ``size`` parameter value.
+
+    See :ref:`dataframeformat` for the supported data types and examples.
+
+    .. note::
+
+        The data frame support in python-oracledb 3.0.0 is a pre-release and
+        may change in the next version.
+
+    .. versionadded:: 3.0.0
+
 .. method:: AsyncConnection.fetchall(statement, parameters=None, \
                 arraysize=None, rowfactory=None)
 
