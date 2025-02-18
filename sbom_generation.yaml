@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
 
 # This OCI DevOps build specification file [1] generates a Software Bill of Materials (SBOM) of the repository.
 # The file is needed to run checks for third-party vulnerabilities and business approval according to Oracle’s GitHub policies.
