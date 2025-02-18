@@ -36,24 +36,23 @@
 import collections
 import functools
 import ssl
+from typing import Any, Callable, Type, Optional, Union
 
 import oracledb
 
 from . import __name__ as MODULE_NAME
 
-from typing import Any, Callable, Type, Union, Optional
-from . import constants, driver_mode, errors
-from . import base_impl, thick_impl, thin_impl
+from . import base_impl, constants, driver_mode, errors, thick_impl, thin_impl
 from . import pool as pool_module
-from .pipeline import Pipeline
+from .aq import Queue, MessageProperties
+from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
 from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
-from .lob import AsyncLOB, LOB
-from .subscr import Subscription
-from .aq import Queue, MessageProperties
-from .soda import SodaDatabase
 from .dbobject import DbObjectType, DbObject
-from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
+from .lob import AsyncLOB, LOB
+from .pipeline import Pipeline
+from .soda import SodaDatabase
+from .subscr import Subscription
 
 # named tuple used for representing global transactions
 Xid = collections.namedtuple(
