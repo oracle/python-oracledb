@@ -224,9 +224,6 @@ AsyncConnection Methods
 
     .. note::
 
-        In this release, pipelining support is experimental and subject to
-        change.
-
         True pipelining requires Oracle Database 23ai.
 
         When you connect to an older database, operations are sequentially

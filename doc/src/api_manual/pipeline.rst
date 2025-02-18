@@ -4,10 +4,6 @@
 API: Pipeline Objects
 *********************
 
-.. note::
-
-    In this release, pipelining support is experimental and subject to change.
-
 Pipelining is only supported in python-oracledb Thin mode with
 :ref:`asyncio <concurrentprogramming>`. See :ref:`pipelining` for more
 information about pipelining.

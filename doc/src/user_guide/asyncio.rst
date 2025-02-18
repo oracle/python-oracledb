@@ -300,10 +300,6 @@ and can destroy transactional consistency.
 Pipelining Database Operations
 ==============================
 
-.. note::
-
-    In this release, pipelining support is experimental and subject to change.
-
 Pipelining allows an application to send multiple, independent statements to
 Oracle Database with one call. The database can be kept busy without waiting
 for the application to receive a result set and send the next statement.  While

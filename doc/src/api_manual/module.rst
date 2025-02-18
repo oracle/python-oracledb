@@ -1148,11 +1148,6 @@ Oracledb Methods
     Creates a :ref:`pipeline object <pipelineobjs>` which can be used to
     process a set of operations against a database.
 
-    .. note::
-
-        In this release, pipelining support is experimental and subject to
-        change.
-
     .. versionadded:: 2.4.0
 
 .. function:: create_pool(dsn=None, pool_class=oracledb.ConnectionPool, \
@@ -3259,10 +3254,6 @@ Pipeline Operation Types
 These constants belong to the enumeration called ``PipelineOpType``. The
 pipelining constants listed below are used to identify the type of operation
 added. They are possible values for the :attr:`PipelineOp.op_type` attribute.
-
-.. note::
-
-    In this release, pipelining support is experimental and subject to change.
 
 .. versionadded:: 2.4.0
 
