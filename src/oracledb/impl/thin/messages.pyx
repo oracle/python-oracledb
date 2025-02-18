@@ -2410,6 +2410,8 @@ cdef class DeqMessage(Message):
             if num_bytes > 0:
                 ptr = buf._get_raw(num_bytes)
                 self.props_impl.enq_txn_id = ptr[:num_bytes]
+            else:
+                self.props_impl.enq_txn_id = None
             buf.read_ub4(&num_extensions)               # number of extensions
             if num_extensions > 0:
                 buf.skip_ub1()
@@ -2544,8 +2546,10 @@ cdef class DeqMessage(Message):
             buf.write_ub4(0)                    # condition length
         buf.write_uint8(0)                      # extensions
         buf.write_ub4(0)                        # number of extensions
-        buf.write_uint8(0)                      # JSON payload
-        buf.write_ub4(-1)                       # shard id
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_20_1:
+            buf.write_uint8(0)                  # JSON payload
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_21_1:
+            buf.write_ub4(-1)                   # shard id
 
         buf.write_bytes_with_length(queue_name_bytes)
         if consumer_name_bytes is not None:
@@ -2610,9 +2614,13 @@ cdef class EnqMessage(Message):
             exceptionq_bytes = self.props_impl.exceptionq.encode()
             buf.write_ub4(len(exceptionq_bytes))
             buf.write_bytes_with_length(exceptionq_bytes)
-        buf.write_ub4(self.props_impl.state)
+        buf.write_ub4(self.props_impl.state)    # message state
         buf.write_ub4(0)                        # enqueue time length
-        buf.write_ub4(0)                        # enqueue transaction id length
+        if self.props_impl.enq_txn_id is None:
+            buf.write_ub4(0)                    # enqueue txn id length
+        else:
+            buf.write_ub4(len(self.props_impl.enq_txn_id))
+            buf.write_bytes_with_length(self.props_impl.enq_txn_id)
         buf.write_ub4(4)                        # number of extensions
         buf.write_uint8(0x0e)                   # unknown extra byte
         buf.write_extension_values(None, None, TNS_AQ_EXT_KEYWORD_AGENT_NAME)
@@ -2625,7 +2633,8 @@ cdef class EnqMessage(Message):
         buf.write_ub4(0)                        # cscn
         buf.write_ub4(0)                        # dscn
         buf.write_ub4(0)                        # flags
-        buf.write_ub4(0xffffffffl)              # shard id
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_21_1:
+            buf.write_ub4(0xffffffffl)          # shard id
 
         if self.props_impl.recipients is None:
             buf.write_uint8(0)                  # recipients (pointer)
@@ -2655,7 +2664,7 @@ cdef class EnqMessage(Message):
         buf.write_uint8(1)                      # return message id (pointer)
         buf.write_ub4(TNS_AQ_MESSAGE_ID_LENGTH) # return message id length
         enq_flags = 0
-        if (self.enq_options_impl.delivery_mode == TNS_AQ_MSG_BUFFERED):
+        if self.enq_options_impl.delivery_mode == TNS_AQ_MSG_BUFFERED:
             enq_flags |= TNS_KPD_AQ_BUFMSG
         buf.write_ub4(enq_flags)                # enqueue flags
         buf.write_uint8(0)                      # extensions 1 (pointer)
@@ -2675,10 +2684,11 @@ cdef class EnqMessage(Message):
         buf.write_ub4(0)                        # sender address length
         buf.write_uint8(0)                      # sender charset id (pointer)
         buf.write_uint8(0)                      # sender ncharset id (pointer)
-        if self.queue_impl.is_json:
-            buf.write_uint8(1)                  # JSON payload (pointer)
-        else:
-            buf.write_uint8(0)                  # JSON payload (pointer)
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_20_1:
+            if self.queue_impl.is_json:
+                buf.write_uint8(1)              # JSON payload (pointer)
+            else:
+                buf.write_uint8(0)              # JSON payload (pointer)
 
         buf.write_bytes_with_length(queue_name_bytes)
         buf.write_bytes(self.props_impl.toid)
