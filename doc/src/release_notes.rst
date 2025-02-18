@@ -142,6 +142,10 @@ Common Changes
 #)  All Oracle errors that result in the connection no longer being usable will
     be raised as ``DPY-4011: the database or network closed the connection``
     with the underlying reason being included in the error message.
+#)  Fix typing issue with :meth:`oracledb.connect()`,
+    :meth:`oracledb.connect_async()`, :meth:`oracledb.create_pool()` and
+    :meth:`oracledb.create_pool_async()`
+    (`issue 438 <https://github.com/oracle/python-oracledb/issues/438>`__).
 #)  Error ``DPY-2053: python-oracledb thin mode cannot be used because thick
     mode has already been enabled`` is now raised when attempting to use
     asyncio in thick mode

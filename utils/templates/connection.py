@@ -1204,7 +1204,9 @@ class Connection(BaseConnection):
         subscr._impl.unsubscribe(self._impl)
 
 
-def _connection_factory(f):
+def _connection_factory(
+    f: Callable[..., Connection]
+) -> Callable[..., Connection]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
     calling the original function (which does nothing), then creates and
@@ -1775,7 +1777,9 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_rollback(xid)
 
 
-def _async_connection_factory(f):
+def _async_connection_factory(
+    f: Callable[..., AsyncConnection]
+) -> Callable[..., AsyncConnection]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
     calling the original function (which does nothing), then creates and

@@ -569,7 +569,9 @@ class ConnectionPool(BaseConnectionPool):
             self.ping_interval = ping_interval
 
 
-def _pool_factory(f):
+def _pool_factory(
+    f: Callable[..., ConnectionPool]
+) -> Callable[..., ConnectionPool]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
     calling the original function (which does nothing), then creates and
@@ -1097,7 +1099,9 @@ class AsyncConnectionPool(BaseConnectionPool):
         await connection.close()
 
 
-def _async_pool_factory(f):
+def _async_pool_factory(
+    f: Callable[..., AsyncConnectionPool]
+) -> Callable[..., AsyncConnectionPool]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
     calling the original function (which does nothing), then creates and
