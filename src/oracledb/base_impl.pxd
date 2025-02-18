@@ -570,6 +570,7 @@ cdef class ConnectParamsImpl:
         public str terminal
         public str osuser
         public str driver_name
+        public dict extra_auth_params
         public bint thick_mode_dsn_passthrough
 
     cdef int _check_credentials(self) except -1

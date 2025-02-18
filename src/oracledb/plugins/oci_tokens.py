@@ -1,0 +1,168 @@
+# -----------------------------------------------------------------------------
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+#
+# This software is dual-licensed to you under the Universal Permissive License
+# (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
+# 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose
+# either license.
+#
+# If you elect to accept the software under the Apache License, Version 2.0,
+# the following applies:
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# oci_tokens.py
+#
+# Python file defining the methods that genearates an OCI access
+# token using the OCI SDK
+# -----------------------------------------------------------------------------
+
+import oci
+import oracledb
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+
+
+def generate_token(token_auth_config, refresh=False):
+    """
+    Generates an OCI access token based on provided credentials.
+    """
+    auth_type = token_auth_config.get("authType", "").lower()
+    if auth_type == "configfilebasedauthentication":
+        return _config_file_based_authentication(token_auth_config)
+    elif auth_type == "simpleauthentication":
+        return _simple_authentication(token_auth_config)
+    else:
+        raise ValueError(f"Unrecognized authentication method: {auth_type}")
+
+
+def _get_key_pair():
+    """
+    Generates a public-private key pair for proof of possession.
+    """
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=4096,
+    )
+    private_key_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+
+    public_key_pem = (
+        private_key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+        .decode("utf-8")
+    )
+
+    if not oracledb.is_thin_mode():
+        p_key = "".join(
+            line.strip()
+            for line in private_key_pem.splitlines()
+            if not (
+                line.startswith("-----BEGIN") or line.startswith("-----END")
+            )
+        )
+        private_key_pem = p_key
+
+    return {"privateKey": private_key_pem, "publicKey": public_key_pem}
+
+
+def _config_file_based_authentication(token_auth_config):
+    """
+    Config file base authentication implementation, config parameters
+    are provided in a file.
+    """
+    file_location = token_auth_config.get(
+        "configFileLocation", oci.config.DEFAULT_LOCATION
+    )
+    profile = token_auth_config.get("profile", oci.config.DEFAULT_PROFILE)
+
+    # Load OCI config
+    config = oci.config.from_file(file_location, profile)
+    oci.config.validate_config(config)
+
+    # Initialize service client with default config file
+    client = oci.identity_data_plane.DataplaneClient(config)
+
+    key_pair = _get_key_pair()
+
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+            scope="urn:oracle:db::id::*", public_key=key_pair["publicKey"]
+        )
+    )
+
+    # access_token is a tuple holding token and private key
+    access_token = (
+        response.data.token,
+        key_pair["privateKey"],
+    )
+
+    return access_token
+
+
+def _simple_authentication(token_auth_config):
+    """
+    Simple authentication, config parameters are passed as parameters
+    """
+    config = {
+        "user": token_auth_config["user"],
+        "key_file": token_auth_config["key_file"],
+        "fingerprint": token_auth_config["fingerprint"],
+        "tenancy": token_auth_config["tenancy"],
+        "region": token_auth_config["region"],
+        "profile": token_auth_config["profile"],
+    }
+    oci.config.validate_config(config)
+
+    # Initialize service client with given configuration
+    client = oci.identity_data_plane.DataplaneClient(config)
+
+    key_pair = _get_key_pair()
+
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+            scope="urn:oracle:db::id::*", public_key=key_pair["publicKey"]
+        )
+    )
+
+    # access_token is a tuple holding token and private key
+    access_token = (
+        response.data.token,
+        key_pair["privateKey"],
+    )
+
+    return access_token
+
+
+def oci_token_hook(params: oracledb.ConnectParams):
+    """
+    OCI-specific hook for generating a token.
+    """
+    if params.extra_auth_params is not None:
+
+        def token_callback(refresh):
+            return generate_token(params.extra_auth_params, refresh)
+
+        params.set(access_token=token_callback)
+
+
+# Register the token hook for OCI
+oracledb.register_params_hook(oci_token_hook)

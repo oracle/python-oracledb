@@ -1042,6 +1042,31 @@ class TestCase(test_env.BaseTestCase):
                 with self.assertRaises(TypeError):
                     test_env.get_pool(pool_alias=alias)
 
+    def test_2455(self):
+        "2455 - test create_pool() with parameters hook"
+        pool = test_env.get_pool()
+        with pool.acquire() as conn:
+            orig_stmtcachesize = conn.stmtcachesize
+            stmtcachesize = orig_stmtcachesize + 10
+        pool.close()
+
+        def hook(params):
+            params.set(stmtcachesize=stmtcachesize)
+
+        try:
+            oracledb.register_params_hook(hook)
+            pool = test_env.get_pool()
+            with pool.acquire() as conn:
+                self.assertEqual(conn.stmtcachesize, stmtcachesize)
+            pool.close()
+        finally:
+            oracledb.unregister_params_hook(hook)
+
+        pool = test_env.get_pool()
+        with pool.acquire() as conn:
+            self.assertEqual(conn.stmtcachesize, orig_stmtcachesize)
+        pool.close()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

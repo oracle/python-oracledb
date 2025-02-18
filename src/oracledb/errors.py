@@ -280,6 +280,7 @@ ERR_PASSWORD_TYPE_HANDLER_FAILED = 2057
 ERR_PLAINTEXT_PASSWORD_IN_CONFIG = 2058
 ERR_MISSING_CONNECT_DESCRIPTOR = 2059
 ERR_ARROW_C_API_ERROR = 2060
+ERR_PARAMS_HOOK_HANDLER_FAILED = 2061
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -742,6 +743,9 @@ ERR_MESSAGE_FORMATS = {
         "OSON node type 0x{node_type:x} is not supported"
     ),
     ERR_OSON_VERSION_NOT_SUPPORTED: "OSON version {version} is not supported",
+    ERR_PARAMS_HOOK_HANDLER_FAILED: (
+        "registered handler for params hook failed"
+    ),
     ERR_PASSWORD_TYPE_HANDLER_FAILED: (
         'registered handler for password type "{password_type}" failed'
     ),

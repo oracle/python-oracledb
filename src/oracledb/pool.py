@@ -672,6 +672,7 @@ def create_pool(
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
     thick_mode_dsn_passthrough: Optional[bool] = None,
+    extra_auth_params: Optional[dict] = None,
     handle: Optional[int] = None,
 ) -> ConnectionPool:
     """
@@ -952,6 +953,10 @@ def create_pool(
       handling and locating any optional tnsnames.ora configuration file
       (default: oracledb.defaults.thick_mode_dsn_passthrough)
 
+    - extra_auth_params: a dictionary containing configuration parameters
+      necessary for Oracle Database authentication using plugins, such as the
+      Azure and OCI cloud-native authentication plugins (default: None)
+
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with
       extreme caution (default: 0)
@@ -1196,6 +1201,7 @@ def create_pool_async(
     driver_name: Optional[str] = None,
     use_sni: Optional[bool] = None,
     thick_mode_dsn_passthrough: Optional[bool] = None,
+    extra_auth_params: Optional[dict] = None,
     handle: Optional[int] = None,
 ) -> AsyncConnectionPool:
     """
@@ -1476,6 +1482,10 @@ def create_pool_async(
       applications behave similarly regarding connection string parameter
       handling and locating any optional tnsnames.ora configuration file
       (default: oracledb.defaults.thick_mode_dsn_passthrough)
+
+    - extra_auth_params: a dictionary containing configuration parameters
+      necessary for Oracle Database authentication using plugins, such as the
+      Azure and OCI cloud-native authentication plugins (default: None)
 
     - handle: an integer representing a pointer to a valid service context
       handle. This value is only used in thick mode. It should be used with

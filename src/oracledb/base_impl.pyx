@@ -117,6 +117,9 @@ REGISTERED_PROTOCOLS = {}
 # password types registered with the library
 REGISTERED_PASSWORD_TYPES = {}
 
+# params hooks registered with the library
+REGISTERED_PARAMS_HOOKS = []
+
 include "impl/base/types.pyx"
 include "impl/base/constants.pxi"
 include "impl/base/decoders.pyx"

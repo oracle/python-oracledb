@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -87,6 +87,20 @@ def params_setter(f):
     return wrapped_f
 
 
+def register_params_hook(hook_function: Callable) -> None:
+    """
+    Registers a user function to be called internally prior to connection or
+    pool creation. The hook function accepts a copy of the parameters that will
+    be used to create the pool or standalone connection and may modify them.
+    For example, the cloud native authentication plugins modify the
+    "access_token" parameter with a function that will acquire the token using
+    information found in the "extra_auth_parms" parameter.
+    """
+    if hook_function is None or not callable(hook_function):
+        raise TypeError("hook_function must be a callable and cannot be None")
+    base_impl.REGISTERED_PARAMS_HOOKS.append(hook_function)
+
+
 def register_password_type(
     password_type: str, hook_function: Callable
 ) -> None:
@@ -126,6 +140,14 @@ def register_protocol(protocol: str, hook_function: Callable) -> None:
         base_impl.REGISTERED_PROTOCOLS.pop(protocol)
     else:
         base_impl.REGISTERED_PROTOCOLS[protocol] = hook_function
+
+
+def unregister_params_hook(hook_function: Callable) -> None:
+    """
+    Unregisters a user function that was earlier registered with a call to
+    register_params_hook().
+    """
+    base_impl.REGISTERED_PARAMS_HOOKS.remove(hook_function)
 
 
 def verify_stored_proc_args(

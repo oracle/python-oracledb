@@ -103,6 +103,7 @@ cdef class ConnectParamsImpl:
         _set_str_param(args, "machine", self, check_network_character_set=True)
         _set_str_param(args, "osuser", self, check_network_character_set=True)
         _set_str_param(args, "driver_name", self)
+        _set_obj_param(args, "extra_auth_params", self)
         _set_bool_param(args, "thick_mode_dsn_passthrough",
                         &self.thick_mode_dsn_passthrough)
         self._set_access_token_param(args.get("access_token"))
@@ -191,6 +192,7 @@ cdef class ConnectParamsImpl:
         self.machine = other_params.machine
         self.osuser = other_params.osuser
         self.driver_name = other_params.driver_name
+        self.extra_auth_params = other_params.extra_auth_params
         self.thick_mode_dsn_passthrough = \
                 other_params.thick_mode_dsn_passthrough
 
@@ -557,6 +559,14 @@ cdef class ConnectParamsImpl:
             dsn = self._get_connect_string()
         elif thin or not self.thick_mode_dsn_passthrough:
             self.parse_connect_string(dsn)
+        if REGISTERED_PARAMS_HOOKS:
+            params = self._get_public_instance()
+            for hook_fn in REGISTERED_PARAMS_HOOKS:
+                try:
+                    hook_fn(params)
+                except Exception as e:
+                    errors._raise_err(errors.ERR_PARAMS_HOOK_HANDLER_FAILED,
+                                      cause=e)
         return dsn
 
 

@@ -119,6 +119,7 @@ class PoolParams(ConnectParams):
         driver_name: Optional[str] = None,
         use_sni: Optional[bool] = None,
         thick_mode_dsn_passthrough: Optional[bool] = None,
+        extra_auth_params: Optional[dict] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -380,6 +381,10 @@ class PoolParams(ConnectParams):
           configuration file (default:
           oracledb.defaults.thick_mode_dsn_passthrough)
 
+        - extra_auth_params: a dictionary containing configuration parameters
+          necessary for Oracle Database authentication using plugins, such as
+          the Azure and OCI cloud-native authentication plugins (default: None)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -448,7 +453,8 @@ class PoolParams(ConnectParams):
             f"osuser={self.osuser!r}, "
             f"driver_name={self.driver_name!r}, "
             f"use_sni={self.use_sni!r}, "
-            f"thick_mode_dsn_passthrough={self.thick_mode_dsn_passthrough!r}"
+            f"thick_mode_dsn_passthrough={self.thick_mode_dsn_passthrough!r}, "
+            f"extra_auth_params={self.extra_auth_params!r}"
             ")"
         )
 
@@ -648,6 +654,7 @@ class PoolParams(ConnectParams):
         driver_name: Optional[str] = None,
         use_sni: Optional[bool] = None,
         thick_mode_dsn_passthrough: Optional[bool] = None,
+        extra_auth_params: Optional[dict] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -889,6 +896,10 @@ class PoolParams(ConnectParams):
           mode applications behave similarly regarding connection string
           parameter handling and locating any optional tnsnames.ora
           configuration file
+
+        - extra_auth_params: a dictionary containing configuration parameters
+          necessary for Oracle Database authentication using plugins, such as
+          the Azure and OCI cloud-native authentication plugins
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

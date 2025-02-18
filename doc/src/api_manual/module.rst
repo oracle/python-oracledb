@@ -54,7 +54,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -408,6 +408,13 @@ Oracledb Methods
     python-oracledb Thick mode. The default value is the value of
     :attr:`defaults.thick_mode_dsn_passthrough`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -418,9 +425,10 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name``, ``use_sni``, and
-        ``thick_mode_dsn_passthrough`` parameters were added.  The ``pool``
-        parameter was deprecated. Use :meth:`ConnectionPool.acquire()` instead.
+        The ``pool_alias``, ``instance_name``, ``use_sni``,
+        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        were added. The ``pool`` parameter was deprecated: use
+        :meth:`ConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -467,7 +475,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -747,15 +755,22 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     The ``thick_mode_dsn_passthrough`` and ``handle`` parameters are ignored in
     python-oracledb Thin mode.
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name``, ``use_sni``, and
-        ``thick_mode_dsn_passthrough`` parameters were added. The ``pool``
-        parameter was deprecated. Use :meth:`AsyncConnectionPool.acquire()`
-        instead.
+        The ``pool_alias``, ``instance_name``, ``use_sni``,
+        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        were added. The ``pool`` parameter was deprecated: use
+        :meth:`AsyncConnectionPool.acquire()` instead.
 
     .. versionchanged:: 2.5.0
 
@@ -800,7 +815,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -1108,6 +1123,13 @@ Oracledb Methods
     python-oracledb Thick mode. The default value is the value of
     :attr:`defaults.thick_mode_dsn_passthrough`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
@@ -1115,8 +1137,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
-        parameters were added.
+        The ``instance_name``, ``use_sni``, ``thick_mode_dsn_passthrough`` and
+        ``extra_auth_params`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -1174,7 +1196,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1603,6 +1625,13 @@ Oracledb Methods
     python-oracledb Thick mode. The default value is
     :attr:`defaults.thick_mode_dsn_passthrough`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1613,8 +1642,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name``, ``use_sni``, and
-        ``thick_mode_dsn_passthrough`` parameters were added.
+        The ``pool_alias``, ``instance_name``, ``use_sni``,
+        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        were added.
 
     .. versionchanged:: 2.5.0
 
@@ -1666,7 +1696,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -2005,13 +2035,21 @@ Oracledb Methods
     is used in both the python-oracledb Thin and Thick modes.  The default is
     the value of :attr:`defaults.driver_name`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     The ``handle`` and ``thick_mode_dsn_passthrough`` parameters are ignored in
     python-oracledb Thin mode.
 
     .. versionchanged:: 3.0.0
 
-        The ``pool_alias``, ``instance_name``, ``use_sni``, and
-        ``thick_mode_dsn_passthrough`` parameters were added.
+        The ``pool_alias``, ``instance_name``, ``use_sni``,
+        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        were added.
 
     .. versionchanged:: 2.5.0
 
@@ -2230,7 +2268,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=0)
+        extra_auth_params=None, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2602,6 +2640,13 @@ Oracledb Methods
     python-oracledb Thick mode. The default value is
     :attr:`defualts.thick_mode_dsn_passthrough`.
 
+    The ``extra_auth_params`` parameter is expected to be a dictionary
+    containing the configuration parameters necessary for Oracle Database
+    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    This value is used in both the python-oracledb Thin and Thick modes. See
+    :ref:`tokenauth`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
@@ -2609,8 +2654,8 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
-        parameters were added.
+        The ``use_sni``, ``instance_name``, ``thick_mode_dsn_passthrough``,
+        ``extra_auth_params`` and ``instance_name`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -2648,6 +2693,22 @@ Oracledb Methods
     in the vector.
 
     The ``values`` parameter is the non-zero values stored in the vector.
+
+    .. versionadded:: 3.0.0
+
+.. function:: register_params_hook(hook_function)
+
+    Registers a user hook function that will be called internally by
+    python-oracledb prior to connection or pool creation. The hook function
+    accepts a copy of the parameters that will be used to create the pool or
+    standalone connection and may modify them. For example, the cloud native
+    authentication plugins modify the "access_token" parameter with a function
+    that will acquire the token using information found in the
+    "extra_auth_parms" parameter.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
 
     .. versionadded:: 3.0.0
 
@@ -2777,6 +2838,17 @@ Oracledb Methods
     Constructs an object holding a time stamp value from the given ticks value
     (number of seconds since the epoch; see the documentation of the standard
     Python time module for details).
+
+.. function:: unregister_params_hook(hook_function)
+
+    Unregisters a user function that was earlier registered with a call to
+    :meth:`oracledb.register_params_hook()`.
+
+    .. note::
+
+        This method is an extension to the DB API definition.
+
+    .. versionadded:: 3.0.0
 
 
 .. _interval_ym:
@@ -4422,5 +4494,32 @@ connection string. Using the information, the hook function accesses the
 configuration information in Azure App Configuration, which python-oracledb
 will use to connect to Oracle Database.  See :ref:`importconfigazureplugin`
 for more information.
+
+.. versionadded:: 3.0.0
+
+.. _ocicloudnativeauthplugin:
+
+Oracle Cloud Infrastructure (OCI) Cloud Native Authentication Plugin
+--------------------------------------------------------------------
+
+``oci_tokens`` is a plugin that uses the Oracle Cloud Infrastructure (OCI)
+Software Development Kit (SDK) to generate access tokens when authenticating
+with OCI Identity and Access Management (IAM) token-based authentication.
+Importing this plugin defines and
+:meth:`registers <oracledb.register_params_hook()>`, the built-in hook function
+that generates OCI IAM access tokens. See :ref:`cloudnativeauthoci`.
+
+.. versionadded:: 3.0.0
+
+.. _azurecloudnativeauthplugin:
+
+Azure Cloud Native Authentication Plugin
+----------------------------------------
+
+``azure_tokens`` is a plugin that uses the Microsoft Authentication Library
+(MSAL) to generate access tokens when authenticating with OAuth 2.0 token-based
+authentication. Importing this plugin defines and
+:meth:`registers <oracledb.register_params_hook()>`, the built-in hook function
+that generates OAuth2 access tokens. See :ref:`cloudnativeauthoauth`.
 
 .. versionadded:: 3.0.0

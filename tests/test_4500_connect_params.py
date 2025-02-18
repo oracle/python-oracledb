@@ -691,6 +691,7 @@ class TestCase(test_env.BaseTestCase):
             ("driver_name", "custom_driver"),
             ("use_sni", True),
             ("thick_mode_dsn_passthrough", True),
+            ("extra_auth_params", dict(extra1="A", extra2="B")),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]
@@ -745,6 +746,7 @@ class TestCase(test_env.BaseTestCase):
             ("driver_name", "modified_driver_name"),
             ("use_sni", False),
             ("thick_mode_dsn_passthrough", False),
+            ("extra_auth_params", dict(extra1="X", extra2="Y")),
         ]
         params.set(**dict(new_values))
         parts = [f"{name}={value!r}" for name, value in new_values]

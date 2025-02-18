@@ -64,15 +64,15 @@ ConnectParams Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=None, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        handle=None)
+        extra_auth_params=None, handle=None)
 
     Sets the values for one or more of the parameters of a ConnectParams
     object.
 
     .. versionchanged:: 3.0.0
 
-        The ``use_sni``, ``thick_mode_dsn_passthrough``, and ``instance_name``
-        parameters were added.
+        The ``use_sni``, ``thick_mode_dsn_passthrough``, ``extra_auth_params``
+        and ``instance_name`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -241,6 +241,17 @@ ConnectParams Attributes
     *True*, which may aid code auditing.
 
     This attribute is only supported in python-oracledb Thick mode.
+
+.. attribute:: ConnectParams.extra_auth_params
+
+    This read-only attribute is a dictionary containing the configuration
+    parameters necessary for Oracle Database authentication using
+    :ref:`Azure <azurecloudnativeauthplugin>` or
+    :ref:` <ocicloudnativeauthplugin>` cloud native authentication plugins.
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 3.0.0
 
 .. attribute:: ConnectParams.host
 

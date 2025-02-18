@@ -1597,6 +1597,66 @@ Calling :meth:`~oracledb.register_password_type()` with the
 ``hook_function`` parameter set to None will result in a previously
 registered user function being removed and the default behavior restored.
 
+.. _registerparamshook():
+
+Using oracledb.register_params_hook()
+-------------------------------------
+
+The :meth:`oracledb.register_params_hook()` method registers a user hook
+function that will be called internally by python-oracledb prior to connection
+or pool creation. The hook function will be invoked when
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` are
+called. The hook function accepts a copy of the parameters that will be used
+to create the pool or standalone connections and may modify them. For example,
+the cloud native authentication plugins modify the ``access_token`` parameter
+with a function that will acquire the token using the information found in the
+``extra_auth_parms`` parameter.
+
+Below is an example of registering a hook function, oci_token_hook, to
+generate OCI IAM tokens. This hook function is registered using
+:meth:`oracledb.register_params_hook()`.
+
+.. code-block:: python
+
+    def oci_token_hook(params: oracledb.ConnectParams):
+
+      if params.extra_auth_params is not None:
+
+        def token_callback(refresh):
+          return generate_token(params.extra_auth_params, refresh)
+
+        params.set(access_token=token_callback)
+
+    oracledb.register_params_hook(oci_token_hook)
+
+To unregister a user function that was earlier registered with a call to
+:meth:`oracledb.register_params_hook()`, you can use
+:meth:`oracledb.unregister_params_hook`.
+
+**register_protocol() and register_params_hook()**
+
+Consider the following example in which both
+the :meth:`oracledb.register_protocol()` and
+:meth:`oracledb.register_params_hook()` methods are used. In this example, a
+JSON file, *config.json*, is passed as a value in the ``dsn`` parameter.
+This file contains the configuration parameters necessary to establish a
+connection to Oracle Database. Additionally, the
+:ref:`oci_tokens plugin <ocicloudnativeauthplugin>` is imported to retrieve the
+access tokens.
+
+.. code-block:: python
+
+    import oracledb
+    import oracledb.plugins.oci_tokens
+
+    connection = oracledb.connect(dsn="config-file://config.json")
+
+In this example, the :meth:`oracledb.register_protocol()` registers a built-in
+hook function when the ``oracledb`` module is imported. Similarly, the
+:meth:`oracledb.register_params_hook()` method is implicitly invoked when the
+``oracledb.plugins.oci_tokens`` module is imported.
+
 .. _ldapconnections:
 
 LDAP Directory Naming
@@ -3541,6 +3601,10 @@ without getting a new token.
 The two authentication methods supported by python-oracledb are
 :ref:`Open Authorization (OAuth 2.0) <oauth2>` and :ref:`Oracle
 Cloud Infrastructure (OCI) Identity and Access Management (IAM) <iamauth>`.
+These authentication methods can use Cloud Native Authentication with the
+support of the Azure SDK or OCI SDK to generate access tokens and connect to
+Oracle Database. Alternatively, these methods can use a Python script that
+contains a class to generate access tokens to connect to Oracle Database.
 
 .. _oauth2:
 
@@ -3548,40 +3612,42 @@ Connecting Using OAuth 2.0 Token-Based Authentication
 -----------------------------------------------------
 
 Oracle Cloud Infrastructure (OCI) users can be centrally managed in a Microsoft
-Azure Active Directory (Azure AD) service. Open Authorization (OAuth 2.0) token-based
-authentication allows users to authenticate to Oracle Database using Azure AD OAuth2
-tokens. Currently, only Azure AD tokens are supported. Ensure that you have a
-Microsoft Azure account and your Oracle Database is registered with Azure AD. See
-`Configuring the Oracle Autonomous Database for Microsoft Azure AD Integration
-<https://www.oracle.com/pls/topic/lookup?ctx=db19&id=
-GUID-0A60F22D-56A3-408D-8EC8-852C38C159C0>`_ for more information.
-Both Thin and Thick modes of the python-oracledb driver support OAuth 2.0 token-based
-authentication.
+Azure Active Directory (Azure AD) service. Open Authorization (OAuth 2.0)
+token-based authentication allows users to authenticate to Oracle Database
+using Azure AD OAuth2 tokens. Ensure that you have a Microsoft Azure account
+and your Oracle Database is registered with Azure AD. See `Configuring the
+Oracle Autonomous Database for Microsoft Azure AD Integration <https://www.
+oracle.com/pls/topic/lookup?ctx=db19&id=GUID-0A60F22D-56A3-408D-8EC8-
+852C38C159C0>`_ for more information. Both Thin and Thick modes of the
+python-oracledb driver support OAuth 2.0 token-based authentication.
 
-When using python-oracledb in Thick mode, Oracle Client libraries 19.15 (or later),
-or 21.7 (or later) are needed.
+When using python-oracledb in Thick mode, Oracle Client libraries 19.15 (or
+later), or 21.7 (or later) are needed.
 
-OAuth 2.0 token-based authentication can be used for both standalone connections
-and connection pools. Tokens can be specified using the connection parameter
-introduced in python-oracledb 1.1. Users of earlier python-oracledb versions
-can alternatively use
-:ref:`OAuth 2.0 Token-Based Authentication Connection Strings<oauth2connstr>`.
+Standalone connections and pooled connections can be created in python-oracledb
+Thick and Thin modes using OAuth 2.0 token-based authentication. This can be
+done or by using a class such as the :ref:`TokenHandlerOAuth Class
+<oauthhandler>` or by using python-oracledb's :ref:`Azure Cloud Native
+Authentication Plugin (azure_tokens) <cloudnativeauthoauth>`. Tokens can be
+specified using the connection parameter introduced in python-oracledb 1.1.
+Users of earlier python-oracledb versions can alternatively use
+:ref:`OAuth 2.0 Token-Based Authentication Connection Strings <oauth2connstr>`.
 
 OAuth2 Token Generation And Extraction
 ++++++++++++++++++++++++++++++++++++++
 
-There are different ways to retrieve Azure AD OAuth2 tokens. Some of the ways to
-retrieve the OAuth2 tokens are detailed in `Examples of Retrieving Azure AD OAuth2
-Tokens <https://www.oracle.com/pls/topic/lookup?ctx=db19&id=
-GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can also retrieve Azure AD OAuth2
-tokens by using `Azure Identity client library for Python
-<https://docs.microsoft.com/en-us/python/api/overview/azure/identity-readme?view=
-azure-python>`_.
+There are different ways to retrieve Azure AD OAuth2 tokens. You can use
+python-oracledb's :ref:`azure_tokens <cloudnativeauthoauth>` plugin to generate
+tokens. Some of the other ways to retrieve OAuth2 tokens are detailed in
+`Examples of Retrieving Azure AD OAuth2 Tokens <https://www.oracle.com/pls/
+topic/lookup?ctx=db19&id=GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can
+also retrieve Azure AD OAuth2 tokens by using `Azure Identity client library
+for Python <https://docs.microsoft.com/en-us/python/api/overview/azure/
+identity-readme?view=azure-python>`_.
 
 .. _oauthhandler:
 
-Example of Using a TokenHandlerOAuth Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Example of Using a TokenHandlerOAuth Class**
 
 Here, as an example, we are using a Python script to automate the
 process of generating and reading the Azure AD OAuth2 tokens.
@@ -3627,108 +3693,113 @@ process of generating and reading the Azure AD OAuth2 tokens.
                     f.write(self.token)
             return self.token
 
-The TokenHandlerOAuth class uses a callable to generate and read the OAuth2
-tokens. When the callable in the TokenHandlerAuth class is invoked for the
+The TokenHandlerOAuth class uses a callable to generate and read OAuth2
+tokens. When the callable in the TokenHandlerOAuth class is invoked for the
 first time to create a standalone connection or pool, the ``refresh`` parameter
-is False which allows the callable to return a cached token, if desired. The
+is *False* which allows the callable to return a cached token, if desired. The
 expiry date is then extracted from this token and compared with the current
 date. If the token has not expired, then it will be used directly. If the token
 has expired, the callable is invoked the second time with the ``refresh``
-parameter set to True.
+parameter set to *True*.
 
-See :ref:`curl` for an alternative way to generate the tokens.
+The TokenHandlerOAuth class defined here is used in the examples shown in
+:ref:`conncreationoauth2`.
 
-Standalone Connection Creation with OAuth2 Access Tokens
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+**Example of Using a Curl Command**
 
-For OAuth 2.0 Token-Based Authentication, the ``access_token`` connection parameter
-must be specified. This parameter should be a string (or a callable that returns a
-string) specifying an Azure AD OAuth2 token.
+See using a :ref:`curl <curl>` command for an alternative way to generate the
+tokens.
 
-Standalone connections can be created in the python-oracledb Thick and Thin modes
-using OAuth 2.0 token-based authentication. In the examples below, the
-``access_token`` parameter is set to a callable.
+.. _conncreationoauth2:
 
-**In python-oracledb Thin mode**
+Connection Creation with OAuth2 Access Tokens
++++++++++++++++++++++++++++++++++++++++++++++
 
-When connecting to Oracle Cloud Database with mutual TLS (mTLS) using OAuth2
-tokens in the python-oracledb Thin mode, you need to explicitly set the
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.connect`. See, :ref:`autonomousdb`.
-The following example shows a standalone connection creation using OAuth 2.0 token
-based authentication in the python-oracledb Thin mode. For information on
-TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
-
-.. code:: python
-
-    connection = oracledb.connect(access_token=TokenHandlerOAuth(),
-                                  dsn=mydb_low,
-                                  config_dir="path_to_extracted_wallet_zip",
-                                  wallet_location="location_of_pem_file",
-                                  wallet_password=wp)
-
-**In python-oracledb Thick mode**
-
-In the python-oracledb Thick mode, you can create a standalone connection using
-OAuth2 tokens as shown in the example below. For information on
-TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
-
-.. code:: python
-
-    connection = oracledb.connect(access_token=TokenHandlerOAuth(),
-                                  externalauth=True,
-                                  dsn=mydb_low)
-
-Connection Pool Creation with OAuth2 Access Tokens
-++++++++++++++++++++++++++++++++++++++++++++++++++
-
-For OAuth 2.0 Token-Based Authentication, the ``access_token`` connection
+For OAuth 2.0 Token-Based Authentication using a class such as the
+:ref:`TokenHandlerOAuth class <oauthhandler>`, the ``access_token`` connection
 parameter must be specified. This parameter should be a string (or a callable
-that returns a string) specifying an Azure AD OAuth2 token.
+that returns a string) specifying an Azure AD OAuth2 token. In the examples
+used below, the ``access_token`` parameter is set to a callable.
 
-The ``externalauth`` parameter must be set to True in the python-oracledb Thick
-mode.  The ``homogeneous`` parameter must be set to True in both the
-python-oracledb Thin and Thick modes.
+The examples used in the subsequent sections use the
+:ref:`TokenHandlerOAuth class <oauthhandler>` to generate OAuth2 tokens to
+connect to Oracle Autonomous Database with mutual TLS (mTLS). See
+:ref:`autonomousdb`.
 
-Connection pools can be created in the python-oracledb Thick and Thin modes
-using OAuth 2.0 token-based authentication. In the examples below, the
-``access_token`` parameter is set to a callable.
+**Standalone Connections in Thin Mode Using OAuth2 Tokens**
+
+When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``access_token``, ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters of
+:func:`~oracledb.connect`. For example:
+
+.. code:: python
+
+    connection = oracledb.connect(
+        access_token=TokenHandlerOAuth(),
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp)
+
+**Connection Pools in Thin Mode Using OAuth2 Tokens**
+
+When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``access_token``, ``homogeneous``,
+``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
+:func:`~oracledb.create_pool`. For example:
+
+.. code:: python
+
+    connection = oracledb.create_pool(
+        access_token=TokenHandlerOAuth(),
+        homogeneous=True, # must always be True for connection pools
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp
+        min=1, max=5, increment=2)
 
 Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
-the current token has expired. In such case, the callable should return a
+the current token has expired. In such a case, the callable should return a
 string specifying the new, valid Azure AD OAuth2 token.
 
-**In python-oracledb Thin mode**
+**Standalone Connections Thick Mode Using OAuth2 Tokens**
 
-When connecting to Oracle Cloud Database with mutual TLS (mTLS) using OAuth2
-tokens in the python-oracledb Thin mode, you need to explicitly set the
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.create_pool`. See, :ref:`autonomousdb`.
-The following example shows a connection pool creation using OAuth 2.0 token
-based authentication in the python-oracledb Thin mode. For information on
-TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
+When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>`
+to generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick
+mode, you need to explicitly set the ``access_token`` and ``externalAuth``
+parameters of :func:`~oracledb.connect`. For example:
 
 .. code:: python
 
-    connection = oracledb.create_pool(access_token=TokenHandlerOAuth(),
-                                      homogeneous=True, dsn=mydb_low,
-                                      config_dir="path_to_extracted_wallet_zip",
-                                      wallet_location="location_of_pem_file",
-                                      wallet_password=wp
-                                      min=1, max=5, increment=2)
+    connection = oracledb.connect(
+        access_token=TokenHandlerOAuth(),
+        externalauth=True, # must always be True in Thick mode
+        dsn=mydb_low)
 
-**In python-oracledb Thick mode**
+**Connection Pools in Thick Mode Using OAuth2 Tokens**
 
-In the python-oracledb Thick mode, you can create a connection pool using
-OAuth2 tokens as shown in the example below. For information on
-TokenHandlerOAuth() used in the example, see :ref:`oauthhandler`.
+When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
+you need to explicitly set the ``access_token``, ``externalauth``, and
+``homogeneous`` parameters of :func:`~oracledb.create_pool`. For example:
 
 .. code:: python
 
-    pool = oracledb.create_pool(access_token=TokenHandlerOAuth(),
-                                externalauth=True, homogeneous=True,
-                                dsn=mydb_low, min=1, max=5, increment=2)
+    pool = oracledb.create_pool(
+        access_token=TokenHandlerOAuth(),
+        externalauth=True, # must always be True in Thick mode
+        homogeneous=True,  # must always be True in connection pools
+        dsn=mydb_low, min=1, max=5, increment=2)
+
+Note that the ``access_token`` parameter should be set to a callable. This is
+useful when the connection pool needs to expand and create new connections but
+the current token has expired. In such a case, the callable should return a
+string specifying the new, valid Azure AD OAuth2 token.
 
 .. _oauth2connstr:
 
@@ -3747,7 +3818,7 @@ introduced in python-oracledb 1.1 instead. See
     the python-oracledb Thick mode. See :ref:`enablingthick`.
 
 There are different ways to retrieve Azure AD OAuth2 tokens. Some of the ways to
-retrieve the OAuth2 tokens are detailed in `Examples of Retrieving Azure AD OAuth2
+retrieve OAuth2 tokens are detailed in `Examples of Retrieving Azure AD OAuth2
 Tokens <https://www.oracle.com/pls/topic/lookup?ctx=db19&id=
 GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can also retrieve Azure AD OAuth2
 tokens by using `Azure Identity client library for Python
@@ -3756,8 +3827,7 @@ azure-python>`_.
 
 .. _curl:
 
-Example of Using a Curl Command
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Example of Using a Curl Command**
 
 Here, as an example, we are using Curl with a Resource Owner
 Password Credential (ROPC) Flow, that is, a ``curl`` command is used against
@@ -3774,8 +3844,8 @@ This command generates a JSON response with token type, expiration, and access
 token values. The JSON response needs to be parsed so that only the access
 token is written and stored in a file. You can save the value of
 ``access_token`` generated to a file and set ``TOKEN_LOCATION`` to the location
-of token file. See :ref:`oauthhandler` for an example of using the
-TokenHandlerOAuth class to generate and read tokens.
+of token file. See :ref:`TokenHandlerOAuth class <oauthhandler>` for an example
+of using this class to generate and read tokens.
 
 The Oracle Net parameters ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` must be set when
 you are using the connection string syntax. Also, the ``PROTOCOL``
@@ -3824,6 +3894,152 @@ Connection pool example:
 
     connection = pool.acquire()
 
+.. _cloudnativeauthoauth:
+
+Azure Cloud Native Authentication with azure_tokens Plugin
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+With cloud native authentication, python-oracledb can automatically generate
+and refresh OAuth2 tokens when required with the support of the
+`Microsoft Authentication Library (MSAL) <https://learn.microsoft.com/en-us/
+entra/msal/python/?view=msal-py-latest>`__. This provides enhanced security
+since it removes the need to use static user credentials.
+
+You can use python-oracledb's Azure Cloud Native Authentication plugin,
+:ref:`azure_tokens <azurecloudnativeauthplugin>`, with MSAL to generate OAuth2
+tokens. To use Azure cloud native authentication, you must import this plugin
+using:
+
+.. code-block:: python
+
+    import oracledb.plugins.azure_tokens
+
+Importing the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin defines
+and registers a built-in hook function that generates OAuth2 tokens. This
+function is internally invoked when the ``extra_auth_params`` is specified in
+calls to :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`.
+This hook function sets the ``access_token`` parameter of
+:ref:`ConnectParams object <connparam>` to a callable which uses the
+configuration parameters specified to generate OAuth2 tokens.
+
+For OAuth 2.0 Token-Based Authentication with the
+:ref:`azure_tokens <azurecloudnativeauthplugin>` plugin, the
+``extra_auth_params`` connection parameter must be specified. This parameter
+should be a dictionary containing the configuration parameters necessary for
+Oracle Database authentication. For information on the Azure specific
+configuration parameters used in the ``extra_auth_params`` parameter, see
+`MSAL <https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-
+latest>`__.
+
+The examples used in the subsequent sections use the
+:ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to generate OAuth2
+tokens to connect to Oracle Autonomous Database with mutual TLS (mTLS). See
+:ref:`autonomousdb`.
+
+**Standalone Connections in Thin Mode Using OAuth2 Tokens**
+
+When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``extra_auth_params``, ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameter of
+:func:`~oracledb.connect`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.azure_tokens
+
+    token_based_auth = {
+        "authType": <Azure Auth Type>, # Azure specific configuration
+        "authority": <authority>,      # parameters to be set when using
+        "clientId": <clientId>,        # azure_tokens plugin
+        "clientSecret": <clientSecret>,
+        "scopes": <scopes>
+    }
+
+    connection = oracledb.connect(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params=token_based_auth)
+
+**Connection Pools in Thin Mode Using OAuth2 Tokens**
+
+When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``homogeneous``, ``extra_auth_params``,
+``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
+:func:`~oracledb.create_pool`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.azure_tokens
+
+    token_based_auth = {
+        "authType": <Azure Auth Type>, # Azure specific configuration
+        "authority": <authority>,      # parameters to be set when using
+        "clientId": <clientId>,        # azure_tokens plugin
+        "clientSecret": <clientSecret>,
+        "scopes": <scopes>
+    }
+
+    connection = oracledb.create_pool(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        homogeneous=true,          # must always be True for connection pools
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params=token_based_auth)
+
+**Standalone Connections Thick Mode Using OAuth2 Tokens**
+
+When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
+you need to explicitly set the ``extra_auth_params`` and ``externalauth``
+parameter of :func:`~oracledb.connect`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.azure_tokens
+
+    token_based_auth = {
+        "authType": <Azure Auth Type>, # Azure specific configuration
+        "authority": <authority>,      # parameters to be set when using
+        "clientId": <clientId>,        # azure_tokens plugin
+        "clientSecret": <clientSecret>,
+        "scopes": <scopes>
+    }
+
+    connection = oracledb.connect(
+        externalauth=True,  # must always be True in Thick mode
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth)
+
+**Connection Pools in Thick Mode Using OAuth2 Tokens**
+
+When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
+generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
+you need to explicitly set the ``extra_auth_params``, ``externalauth``, and
+``homogeneous`` parameters of :func:`~oracledb.create_pool`.
+
+.. code:: python
+
+    import oracledb.plugins.azure_tokens
+
+    token_based_auth = {
+        "authType": <Azure Auth Type>, # Azure specific configuration
+        "authority": <authority>,      # parameters to be set when using
+        "clientId": <clientId>,        # azure_tokens plugin
+        "clientSecret": <clientSecret>,
+        "scopes": <scopes>
+    }
+
+    connection = oracledb.create_pool(
+        externalauth=True, # must always be True in Thick mode
+        homogeneous=True,  # must always be True for connection pools
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth)
 
 .. _iamauth:
 
@@ -3832,24 +4048,31 @@ Connecting Using OCI IAM Token-Based Authentication
 
 Oracle Cloud Infrastructure (OCI) Identity and Access Management (IAM) provides
 its users with a centralized database authentication and authorization system.
-Using this authentication method, users can use the database access token issued
-by OCI IAM to authenticate to the Oracle Cloud Database. Both Thin and Thick modes
-of the python-oracledb driver support OCI IAM token-based authentication.
+Using this authentication method, users can use the database access token
+issued by OCI IAM to authenticate to the Oracle Autonomous Database. Both Thin
+and Thick modes of the python-oracledb driver support OCI IAM token-based
+authentication.
 
 When using python-oracledb in Thick mode, Oracle Client libraries 19.14 (or later),
 or 21.5 (or later) are needed.
 
-OCI IAM token-based authentication can be used for both standalone connections and
-connection pools. Tokens can be specified using the connection parameter
-introduced in python-oracledb 1.1. Users of earlier python-oracledb versions
-can alternatively use :ref:`OCI IAM Token-Based Authentication Connection Strings
-<iamauthconnstr>`.
+Standalone connections and pooled connections can be created in python-oracledb
+Thick and Thin modes using OCI IAM token-based authentication. This can be done
+by using a class such as a :ref:`TokenHandlerIAM class <iamhandler>` or by
+using python-oracledb's :ref:`OCI Cloud Native Authentication Plugin
+(oci_tokens) <cloudnativeauthoci>`. Tokens can be specified using the
+connection parameter introduced in python-oracledb 1.1. Users of earlier
+python-oracledb versions can alternatively use
+:ref:`OCI IAM Token-Based Authentication Connection Strings <iamauthconnstr>`.
 
 OCI IAM Token Generation and Extraction
 +++++++++++++++++++++++++++++++++++++++
 
-Authentication tokens can be generated through execution of an Oracle Cloud
-Infrastructure command line interface (OCI-CLI) command ::
+Authentication tokens can be generated using python-oracledb's
+:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin.
+
+Alternatively, authentication tokens can be generated through execution of an
+Oracle Cloud Infrastructure command line interface (OCI-CLI) command ::
 
     oci iam db-token get
 
@@ -3858,11 +4081,10 @@ It will contain the token and private key files needed by python-oracledb.
 
 .. _iamhandler:
 
-Example of Using a TokenHandlerIAM Class
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Example of Using a TokenHandlerIAM Class**
 
 Here, as an example, we are using a Python script to automate the process of
-generating and reading the OCI IAM tokens.
+generating and reading OCI IAM tokens.
 
 .. code:: python
 
@@ -3902,108 +4124,107 @@ generating and reading the OCI IAM tokens.
                                           '-----END PRIVATE KEY-----')]
                     self.private_key = "".join(lines)
 
-The TokenHandlerIAM class uses a callable to generate and read the OCI IAM
-tokens. When the callable in the TokenHandlerIAM class is invoked for the first
-time to create a standalone connection or pool, the ``refresh`` parameter is
-False which allows the callable to return a cached token, if desired. The
+The TokenHandlerIAM class uses a callable to generate and read OCI IAM tokens.
+When the callable in the TokenHandlerIAM class is invoked for the first time
+to create a standalone connection or pool, the ``refresh`` parameter is
+*False* which allows the callable to return a cached token, if desired. The
 expiry date is then extracted from this token and compared with the current
 date. If the token has not expired, then it will be used directly. If the token
 has expired, the callable is invoked the second time with the ``refresh``
-parameter set to True.
+parameter set to *True*.
 
-Standalone Connection Creation with OCI IAM Access Tokens
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+The TokenHandlerIAM class defined here is used in the examples shown in
+:ref:`conncreationociiam`.
 
-For OCI IAM Token-Based Authentication, the ``access_token`` connection parameter
-must be specified. This parameter should be a 2-tuple (or a callable that returns
-a 2-tuple) containing the token and private key.
+.. _conncreationociiam:
 
-Standalone connections can be created in the python-oracledb Thick and Thin modes
-using OCI IAM token-based authentication. In the examples below, the
-``access_token`` parameter is set to a callable.
+Connection Creation with OCI IAM Access Tokens
+++++++++++++++++++++++++++++++++++++++++++++++
 
-**In python-oracledb Thin mode**
-
-When connecting to Oracle Cloud Database with mutual TLS (mTLS) using OCI IAM
-tokens in the python-oracledb Thin mode, you need to explicitly set the
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.connect`. See, :ref:`autonomousdb`.
-The following example shows a standalone connection creation using OCI IAM token
-based authentication in the python-oracledb Thin mode. For information on
-TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
-
-.. code:: python
-
-    connection = oracledb.connect(access_token=TokenHandlerIAM(),
-                                  dsn=mydb_low,
-                                  config_dir="path_to_extracted_wallet_zip",
-                                  wallet_location="location_of_pem_file",
-                                  wallet_password=wp)
-
-**In python-oracledb Thick mode**
-
-In the python-oracledb Thick mode, you can create a standalone connection using
-OCI IAM tokens as shown in the example below. For information on
-TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
-
-.. code:: python
-
-    connection = oracledb.connect(access_token=TokenHandlerIAM(),
-                                  externalauth=True,
-                                  dsn=mydb_low)
-
-Connection Pool Creation with OCI IAM Access Tokens
-+++++++++++++++++++++++++++++++++++++++++++++++++++
-
-For OCI IAM Token-Based Authentication, the ``access_token`` connection
+For OCI IAM Token-Based Authentication with a class such as the
+:ref:`TokenHandlerIAM class <iamhandler>`, the ``access_token`` connection
 parameter must be specified. This parameter should be a 2-tuple (or a callable
-that returns a 2-tuple) containing the token and private key.
+that returns a 2-tuple) containing the token and private key. In the examples
+used below, the ``access_token`` parameter is set to a callable.
 
-The ``externalauth`` parameter must be set to True in the python-oracledb Thick
-mode.  The ``homogeneous`` parameter must be set to True in both the
-python-oracledb Thin and Thick modes.
+The examples used in the subsequent sections use the
+:ref:`TokenHandlerIAM class <iamhandler>` to generate OCI IAM tokens to connect
+to Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
-Connection pools can be created in the python-oracledb Thick and Thin modes
-using OCI IAM token-based authentication. In the examples below, the
-``access_token`` parameter is set to a callable.
+**Standalone Connections in Thin Mode Using OCI IAM Tokens**
+
+When using a class such as the :ref:`TokenHandlerIAM class <iamhandler>` to
+generate OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you
+need to explicitly set the ``access_token``, ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters of
+:func:`~oracledb.connect`. For example:
+
+.. code:: python
+
+    connection = oracledb.connect(
+        access_token=TokenHandlerIAM(),
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp)
+
+**Connection Pools in Thin Mode Using OCI IAM Tokens**
+
+When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
+generate OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you
+need to explicitly set the ``access_token``, ``homogeneous``, ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters of
+:func:`~oracledb.create_pool`. For example:
+
+.. code:: python
+
+    connection = oracledb.create_pool(
+        access_token=TokenHandlerIAM(),
+        homogeneous=True, # must always be set to True for connection pools
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp
+        min=1, max=5, increment=2)
 
 Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
-the current token has expired. In such case, the callable should return a
-2-tuple (token, private key) specifying the new, valid access token.
+the current token has expired. In such a case, the callable should return a
+string specifying the new, valid access token.
 
-**In python-oracledb Thin mode**
+**Standalone Connections in Thick Mode Using OCI IAM Tokens**
 
-When connecting to Oracle Cloud Database with mutual TLS (mTLS) using OCI IAM
-tokens in the python-oracledb Thin mode, you need to explicitly set the
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.create_pool`. See, :ref:`autonomousdb`.
-The following example shows a connection pool creation using OCI IAM token
-based authentication in the python-oracledb Thin mode. For information on
-TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
+When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
+generate OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode,
+you need to explicitly set the ``access_token`` and ``externalAuth`` parameters
+of :func:`~oracledb.connect`. For example:
 
 .. code:: python
 
-    connection = oracledb.connect(access_token=TokenHandlerIAM(),
-                                  homogeneous=True, dsn=mydb_low,
-                                  config_dir="path_to_extracted_wallet_zip",
-                                  wallet_location="location_of_pem_file",
-                                  wallet_password=wp
-                                  min=1, max=5, increment=2)
+    connection = oracledb.connect(
+        access_token=TokenHandlerIAM(),
+        externalauth=True, # must always be True in Thick mode
+        dsn=mydb_low)
 
-**In python-oracledb Thick mode**
+**Connection Pools in Thick Mode Using OCI IAM Tokens**
 
-In the python-oracledb Thick mode, you can create a connection pool using
-OCI IAM tokens as shown in the example below. For information on
-TokenHandlerIAM() used in the example, see :ref:`iamhandler`.
+When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
+generate OCI IAM tokens to connect to Oracle Cloud Database in Thick mode, you
+need to explicitly set the ``access_token``, ``externalauth``, and
+``homogeneous`` parameters of :func:`oracledb.create_pool`. For example:
 
 .. code:: python
 
-    pool = oracledb.create_pool(access_token=TokenHandlerIAM(),
-                                externalauth=True,
-                                homogeneous=True,
-                                dsn=mydb_low,
-                                min=1, max=5, increment=2)
+    pool = oracledb.create_pool(
+        access_token=TokenHandlerIAM(),
+        externalauth=True, # must always be True in Thick mode
+        homogeneous=True,  # must always be True in connection pools
+        dsn=mydb_low, min=1, max=5, increment=2)
+
+Note that the ``access_token`` parameter should be set to a callable. This is
+useful when the connection pool needs to expand and create new connections but
+the current token has expired. In such a case, the callable should return a
+string specifying the new, valid access token.
 
 .. _iamauthconnstr:
 
@@ -4083,6 +4304,151 @@ Connection pool example:
 
     connection = pool.acquire()
 
+.. _cloudnativeauthoci:
+
+OCI Cloud Native Authentication with oci_tokens Plugin
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+With cloud native authentication, python-oracledb can automatically generate
+and refresh OCI IAM tokens when required with the support of the
+`Oracle Cloud Infrastructure (OCI) Software Development Kit (SDK)
+<https://docs.oracle.com/en-us/iaas/tools/python/2.144.1/installation.html>`__.
+This provides enhanced security since it removes the need to use static user
+credentials.
+
+You can use python-oracledb's OCI Cloud Native Authentication plugin,
+:ref:`oci_tokens <ocicloudnativeauthplugin>`, with OCI SDK to generate OCI IAM
+tokens. To use OCI cloud native authentication, you must import this plugin
+using:
+
+.. code-block:: python
+
+    import oracledb.plugins.oci_tokens
+
+Importing the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin defines and
+registers a built-in hook function that generates OCI IAM tokens. This function
+is internally invoked when the ``extra_auth_params`` is specified in calls to
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`.
+This hook function sets the ``access_token`` parameter of
+:ref:`ConnectParams object <connparam>` to a callable which uses the
+configuration parameters specified to generate OCI IAM tokens.
+
+For OCI IAM Token-Based Authentication with the
+:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin, the
+``extra_auth_params`` connection parameter must be specified. This parameter
+should be a dictionary containing the configuration parameters necessary for
+Oracle Database authentication. For information on the OCI specific
+configuration parameters used in the ``extra_auth_params`` parameter, see
+`OCI SDK <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig
+.htm>`__.
+
+The examples used in the subsequent sections use the
+:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate OCI IAM tokens
+to connect to Oracle Autonomous Database with mutual TLS (mTLS). See
+:ref:`autonomousdb`.
+
+**Standalone Connections in Thin Mode Using OCI IAM Tokens**
+
+When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
+OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode, you need
+to explicitly set the ``config_dir``, ``wallet_location``, ``wallet_password``
+and ``extra_auth_params`` parameters of :func:`~oracledb.connect`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.oci_tokens
+
+    token_based_auth = {                             # OCI specific configuration
+        "authType": "configfilebasedauthentication", # parameters to be set when using
+        "profile": <profile>,                        # oci_tokens plugin with authType
+        "configFileLocation": <filelocation>,        # configfilebasedauthentication
+    }
+
+    connection = oracledb.connect(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params=token_based_auth)
+
+**Connection Pools in Thin Mode Using OCI IAM Tokens**
+
+When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
+OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you need to
+explicitly set the ``config_dir``, ``homogeneous``, ``wallet_location``,
+``wallet_password``, and ``extra_auth_params`` parameters of
+:func:`~oracledb.create_pool`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.oci_tokens
+
+    token_based_auth = {
+        "authType": "simpleauthentication", # OCI specific configuration
+        "user": <user>,                     # parameters to be set when using
+        "key_file": <key_file>,             # oci_tokens plugin with authType
+        "fingerprint": <fingerprint>,       # simpleAuthentication
+        "tenancy": <tenancy>,
+        "region": <region>,
+        "profile": <profile>
+    }
+
+    connection = oracledb.create_pool(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        homogeneous=true,           # must always be True for connection pools
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params=token_based_auth)
+
+**Standalone Connections in Thick Mode Using OCI IAM Tokens**
+
+When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
+OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode, you need
+to explicitly set the ``externalauth`` and ``extra_auth_params`` parameters of
+:func:`oracledb.connect`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.oci_tokens
+
+    token_based_auth = {
+        "authType": "simpleauthentication", # OCI specific configuration
+        "user": <user>,                     # parameters to be set when using
+        "key_file": <key_file>,             # oci_tokens plugin with authType
+        "fingerprint": <fingerprint>,       # simpleAuthentication
+        "tenancy": <tenancy>,
+        "region": <region>,
+        "profile": <profile>
+    }
+    connection = oracledb.connect(
+        externalauth=True,
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth)
+
+**Connection Pools in Thick Mode Using OCI IAM Tokens**
+
+When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
+OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode, you
+need to explicitly set the ``externalauth``, ``homogeneous``, and
+``extra_auth_params`` parameters of :func:`~oracledb.create_pool`. For example:
+
+.. code:: python
+
+    import oracledb.plugins.oci_tokens
+
+    token_based_auth = {                             # OCI specific configuration
+        "authType": "configfilebasedauthentication", # parameters to be set when using
+        "profile": <profile>,                        # oci_tokens plugin with authType
+        "configFileLocation": <filelocation>,        # configfilebasedauthentication
+    }
+
+    connection = oracledb.create_pool(
+        externalauth=True, # must always be True in Thick mode
+        homogeneous=True,  # must always be True for connection pools
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth)
 
 Privileged Connections
 ======================
@@ -4645,7 +5011,7 @@ connection strings, wallet locations, and wallet password (if required) in each
 .. code-block:: python
 
     connection = oracledb.connect(user=user_name, password=userpw, dsn=dsn,
-                                  config_dir="path_to_extracted_wallet_zip",
+                                  config_dir="path_to_unzipped_wallet",
                                   wallet_location="location_of_pem_file",
                                   wallet_password=walletpw)
 
@@ -4664,7 +5030,7 @@ containing the ``MY_WALLET_DIRECTORY`` option needs to be created:
 .. code-block:: python
 
     dsn = "mydb_high"   # one of the network aliases from tnsnames.ora
-    params = oracledb.ConnectParams(config_dir="path_to_extracted_wallet_zip",
+    params = oracledb.ConnectParams(config_dir="path_to_unzipped_wallet",
                                     wallet_location="path_location_of_sso_file")
     params.parse_connect_string(dsn)
     dsn = params.get_connect_string()

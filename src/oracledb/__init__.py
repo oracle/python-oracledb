@@ -287,8 +287,10 @@ from .driver_mode import is_thin_mode as is_thin_mode
 
 from .utils import (
     enable_thin_mode as enable_thin_mode,
+    register_params_hook as register_params_hook,
     register_password_type as register_password_type,
     register_protocol as register_protocol,
+    unregister_params_hook as unregister_params_hook,
 )
 
 from .thick_impl import (

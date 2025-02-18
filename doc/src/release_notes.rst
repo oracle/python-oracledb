@@ -108,6 +108,19 @@ Common Changes
 #)  Added :meth:`oracledb.register_password_type()` to allow users to register
     a function that will be called when a password is supplied as a dictionary
     containing the key "type".
+#)  Added :ref:`cloud native authentication <tokenauth>` support through the
+    integration of Oracle Cloud Infrastructure (OCI) SDK and Azure SDK.
+#)  Added parameter ``extra_auth_params`` to :meth:`oracledb.connect()`,
+    :meth:`oracledb.connect_async()`, :meth:`oracledb.create_pool()`,
+    and :meth:`oracledb.create_pool_async()` which is used to specify the
+    configuration parameters required for cloud native authentication.
+#)  Added :meth:`oracledb.register_params_hook()` and
+    :meth:`oracledb.unregister_params_hook()` which allow users to register or
+    unregister a function that manipulates the parameters used for creating
+    pools or standalone connections. See
+    :ref:`oci_tokens <ocicloudnativeauthplugin>` and
+    :ref:`azure_tokens <azurecloudnativeauthplugin>` plugins which make use of
+    this functionality.
 #)  Added attributes :attr:`DbObjectAttribute.precision`,
     :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
     provide additional metadata about

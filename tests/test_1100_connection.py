@@ -935,6 +935,25 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(cursor.fetchone()[0], edition.upper())
         self.assertEqual(conn.edition, edition)
 
+    def test_1156(self):
+        "1156 - test connect() with parameters hook"
+        conn = test_env.get_connection()
+        orig_stmtcachesize = conn.stmtcachesize
+        stmtcachesize = orig_stmtcachesize + 10
+
+        def hook(params):
+            params.set(stmtcachesize=stmtcachesize)
+
+        try:
+            oracledb.register_params_hook(hook)
+            conn = test_env.get_connection()
+            self.assertEqual(conn.stmtcachesize, stmtcachesize)
+        finally:
+            oracledb.unregister_params_hook(hook)
+
+        conn = test_env.get_connection()
+        self.assertEqual(conn.stmtcachesize, orig_stmtcachesize)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
