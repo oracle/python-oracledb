@@ -102,7 +102,6 @@ def _initialize():
             module_name = f"oracledb.plugins.{name}"
             print("importing module", module_name)
             importlib.import_module(module_name)
-    get_connection()
 
 
 def get_value(name, label, default_value=None, password=False):
