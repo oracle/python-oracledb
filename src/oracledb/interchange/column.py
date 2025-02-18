@@ -28,16 +28,16 @@
 # Implements the Column class as documented in DataFrame API
 # -----------------------------------------------------------------------------
 
-from typing import Any, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 from .buffer import OracleColumnBuffer
 from .protocol import (
+    CategoricalDescription,
     Column,
     Dtype,
     ColumnBuffers,
     ColumnNullType,
     DtypeKind,
-    Endianness,
 )
 
 from .nanoarrow_bridge import (
@@ -88,7 +88,7 @@ class OracleColumn(Column):
         offsets_buffer = OracleColumnBuffer(
             size_in_bytes=size_bytes, address=address, buffer_type="offsets"
         )
-        dtype = (DtypeKind.INT, 32, "i", Endianness.NATIVE)
+        dtype = (DtypeKind.INT, 32, "i", "=")
         return offsets_buffer, dtype
 
     def _validity_buffer(self):
@@ -99,11 +99,17 @@ class OracleColumn(Column):
         validity_buffer = OracleColumnBuffer(
             size_in_bytes=size_bytes, address=address, buffer_type="validity"
         )
-        dtype = (DtypeKind.BOOL, 1, "b", Endianness.NATIVE)
+        dtype = (DtypeKind.BOOL, 1, "b", "=")
         return validity_buffer, dtype
 
+    def describe_categorical(self) -> CategoricalDescription:
+        """
+        Returns a description of a categorical data type.
+        """
+        raise NotImplementedError()
+
     @property
-    def describe_null(self) -> tuple[ColumnNullType, Optional[int]]:
+    def describe_null(self) -> Tuple[ColumnNullType, Optional[int]]:
         """
         Returns a description of the null representation used by the column.
         """
@@ -119,29 +125,29 @@ class OracleColumn(Column):
         information on the storage format and the type of data in the column.
         """
         if self.ora_arrow_array.arrow_type == NANOARROW_TYPE_INT64:
-            return (DtypeKind.INT, 64, "l", Endianness.NATIVE)
+            return (DtypeKind.INT, 64, "l", "=")
         elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_DOUBLE:
-            return (DtypeKind.FLOAT, 64, "g", Endianness.NATIVE)
+            return (DtypeKind.FLOAT, 64, "g", "=")
         elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_FLOAT:
-            return (DtypeKind.FLOAT, 64, "g", Endianness.NATIVE)
+            return (DtypeKind.FLOAT, 64, "g", "=")
         elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_STRING:
-            return (DtypeKind.STRING, 8, "u", Endianness.NATIVE)
+            return (DtypeKind.STRING, 8, "u", "=")
         elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_TIMESTAMP:
             if self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_MICRO:
-                return (DtypeKind.DATETIME, 64, "tsu:", Endianness.NATIVE)
+                return (DtypeKind.DATETIME, 64, "tsu:", "=")
             elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_SECOND:
-                return (DtypeKind.DATETIME, 64, "tss:", Endianness.NATIVE)
+                return (DtypeKind.DATETIME, 64, "tss:", "=")
             elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_MILLI:
-                return (DtypeKind.DATETIME, 64, "tsm:", Endianness.NATIVE)
+                return (DtypeKind.DATETIME, 64, "tsm:", "=")
             elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_NANO:
-                return (DtypeKind.DATETIME, 64, "tsn:", Endianness.NATIVE)
+                return (DtypeKind.DATETIME, 64, "tsn:", "=")
         elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_DECIMAL128:
             array = self.ora_arrow_array
             return (
                 DtypeKind.DECIMAL,
                 128,
                 f"d:{array.precision}.{array.scale}",
-                Endianness.NATIVE,
+                "=",
             )
 
     def get_buffers(self) -> ColumnBuffers:
@@ -166,7 +172,7 @@ class OracleColumn(Column):
         yield self
 
     @property
-    def metadata(self) -> dict[str, Any]:
+    def metadata(self) -> Dict[str, Any]:
         """
         Returns metadata about the column.
         """

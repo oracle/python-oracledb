@@ -29,7 +29,7 @@
 # https://data-apis.org/dataframe-protocol/latest/API.html
 # -----------------------------------------------------------------------------
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from .column import OracleColumn
 
@@ -149,3 +149,15 @@ class OracleDataFrame(DataFrame):
         Returns the number of rows in the data frame.
         """
         return self._rows
+
+    def select_columns(self, indices: Sequence[int]) -> "DataFrame":
+        """
+        Create a new DataFrame by selecting a subset of columns by index.
+        """
+        raise NotImplementedError()
+
+    def select_columns_by_name(self, names: Sequence[str]) -> "DataFrame":
+        """
+        Create a new DataFrame by selecting a subset of columns by name.
+        """
+        raise NotImplementedError()

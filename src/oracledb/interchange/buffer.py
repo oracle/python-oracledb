@@ -28,6 +28,8 @@
 # Implements the Buffer class as documented in DataFrame API
 # -----------------------------------------------------------------------------
 
+from typing import Tuple
+
 from .protocol import (
     Buffer,
     DlpackDeviceType,
@@ -53,7 +55,7 @@ class OracleColumnBuffer(Buffer):
         """
         raise NotImplementedError("__dlpack__")
 
-    def __dlpack_device__(self) -> tuple[DlpackDeviceType, None]:
+    def __dlpack_device__(self) -> Tuple[DlpackDeviceType, None]:
         """
         Device type and device ID for where the data
         in the buffer resides
