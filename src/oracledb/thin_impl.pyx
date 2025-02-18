@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -110,6 +110,7 @@ from .base_impl cimport (
     Buffer,
     ConnectParamsImpl,
     convert_oracle_data_to_python,
+    convert_oracle_data_to_arrow,
     convert_date_to_python,
     CS_FORM_IMPLICIT,
     CS_FORM_NCHAR,

@@ -5,12 +5,19 @@ Executing SQL
 *************
 
 Executing SQL statements is the primary way in which a Python application
-communicates with Oracle Database.  Statements are executed using the methods
-:meth:`Cursor.execute()` or :meth:`Cursor.executemany()`.  Statements include
-queries, Data Manipulation Language (DML), and Data Definition Language (DDL).
-A few other `specialty statements
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-E1749EF5-2264-44DF-99EF-AEBEB943BED6>`__ can also be executed.
+communicates with Oracle Database. Statements include queries, Data
+Manipulation Language (DML), and Data Definition Language (DDL).  A few other
+`specialty statements <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-E1749EF5-2264-44DF-99EF-AEBEB943BED6>`__ can also be
+executed. Statements are executed using one of these methods
+:meth:`Cursor.execute()`, :meth:`Cursor.executemany()`,
+:meth:`Connection.fetch_df_all()`, :meth:`Connection.fetch_df_batches()`,
+:meth:`AsyncCursor.execute()`, :meth:`AsyncCursor.executemany()`,
+:meth:`AsyncConnection.execute()`, :meth:`AsyncConnection.executemany()`, or
+:meth:`AsyncConnection.run_pipeline()`.
+
+This chapter discusses python-oracledb's synchronous methods. The asynchronous
+methods and pipelining functionality are discussed in detail in :ref:`asyncio`.
 
 PL/SQL statements are discussed in :ref:`plsqlexecution`.  Other chapters
 contain information on specific data types and features.  See :ref:`batchstmnt`,
@@ -18,8 +25,9 @@ contain information on specific data types and features.  See :ref:`batchstmnt`,
 
 Python-oracledb can be used to execute individual statements, one at a time.
 Once a statement has finished execution, only then will the next statement
-execute. If you try to execute statements concurrently, the statements are
-queued and run consecutively in the order they are in the code.
+execute. If you try to execute statements concurrently in a single connection,
+the statements are queued and run consecutively in the order they are executed
+in the application code.
 
 Python-oracledb does not read SQL*Plus ".sql" files.  To read SQL files, use a
 technique like the one in ``run_sql_script()`` in `samples/sample_env.py
@@ -30,7 +38,7 @@ SQL statements should not contain a trailing semicolon (";") or forward slash
 
 .. code-block:: python
 
-    cursor.execute("select * from MyTable;")
+    cursor.execute("select * from MyTable;")   # fails due to semicolon
 
 This is correct:
 
@@ -42,8 +50,8 @@ This is correct:
 SQL Queries
 ===========
 
-Queries (statements beginning with SELECT or WITH) can only be executed using
-the method :meth:`Cursor.execute()`.  Rows can then be iterated over, or can be
+Queries (statements beginning with SELECT or WITH) can be executed using the
+method :meth:`Cursor.execute()`.  Rows can then be iterated over, or can be
 fetched using one of the methods :meth:`Cursor.fetchone()`,
 :meth:`Cursor.fetchmany()` or :meth:`Cursor.fetchall()`.  There is a
 :ref:`default type mapping <defaultfetchtypes>` to Python types that can be
@@ -52,9 +60,10 @@ optionally :ref:`overridden <outputtypehandlers>`.
 .. IMPORTANT::
 
     Interpolating or concatenating user data with SQL statements, for example
-    ``cursor.execute("SELECT * FROM mytab WHERE mycol = '" + myvar + "'")``, is a security risk
-    and impacts performance.  Use :ref:`bind variables <bind>` instead. For
-    example, ``cursor.execute("SELECT * FROM mytab WHERE mycol = :mybv", mybv=myvar)``.
+    ``cursor.execute("SELECT * FROM mytab WHERE mycol = '" + myvar + "'")`` is
+    a security risk and impacts performance.  Use :ref:`bind variables <bind>`
+    instead, for example ``cursor.execute("SELECT * FROM mytab WHERE mycol =
+    :mybv", mybv=myvar)``.
 
 .. _fetching:
 
@@ -119,6 +128,8 @@ Rows can be fetched in various ways.
 
   The fetch methods return data as tuples.  To return results as dictionaries, see
   :ref:`rowfactories`.
+
+- Data can also be fetched in Arrow data format, see :ref:`dataframeformat`.
 
 Closing Cursors
 ---------------
@@ -547,7 +558,7 @@ Oracle Database uses decimal numbers and these cannot be converted seamlessly
 to binary number representations like Python floats. In addition, the range of
 Oracle numbers exceeds that of floating point numbers. Python has decimal
 objects which do not have these limitations. In python-oracledb you can set
-``oracledb.defaults.fetch_decimals`` so that Decimals are returned to the
+:attr:`defaults.fetch_decimals` so that Decimals are returned to the
 application, ensuring that numeric precision is not lost when fetching certain
 numbers.
 
@@ -579,7 +590,7 @@ This displays ``7.1 * 3 = 21.3``
 See `samples/return_numbers_as_decimals.py
 <https://github.com/oracle/python-oracledb/blob/main/samples/return_numbers_as_decimals.py>`__
 
-An equivalent, longer, older coding idiom to :attr:`Defaults.fetch_decimals` is
+An equivalent, longer, older coding idiom to :attr:`defaults.fetch_decimals` is
 to use an :ref:`output type handler <outputtypehandlers>` do the conversion.
 
 .. code-block:: python
@@ -722,6 +733,326 @@ Other information on using Oracle objects is in :ref:`Using Bind Variables
 Performance-sensitive applications should consider using scalar types instead of
 objects. If you do use objects, avoid calling :meth:`Connection.gettype()`
 unnecessarily, and avoid objects with large numbers of attributes.
+
+.. _dataframeformat:
+
+Fetching using the DataFrame Interchange Protocol
+-------------------------------------------------
+
+Python-oracledb can fetch directly to the `Python DataFrame Interchange
+Protocol <https://data-apis.org/dataframe-protocol/latest/index.html>`__
+format. This then allows zero-copy data interchanges between Python data frame
+libraries. It is an efficient way to work with data using Python libraries such
+as `Apache Arrow <https://arrow.apache.org/>`__, `Pandas
+<https://pandas.pydata.org>`__, `Polars <https://pola.rs/>`__, `NumPy
+<https://numpy.org/>`__, `PyTorch <https://pytorch.org/>`__, or to write files
+in `Apache Parquet <https://parquet.apache.org/>`__ format.
+
+.. note::
+
+    The data frame support in python-oracledb 3.0.0 is a pre-release and may
+    change in the next version.
+
+The method :meth:`Connection.fetch_df_all()` fetches all rows from a query.
+The method :meth:`Connection.fetch_df_batches()` implements an iterator for
+fetching batches of rows. The methods return :ref:`OracleDataFrame
+<oracledataframeobj>` objects, whose :ref:`methods <oracledataframemeth>`
+implement the Python DataFrame Interchange Protocol `DataFrame API Interface
+<https://data-apis.org/dataframe-protocol/latest/API.html>`__.
+
+For example, to fetch all rows from a query and print some information about
+the results:
+
+.. code-block:: python
+
+    sql = "select * from departments"
+    # Adjust arraysize to tune the query fetch performance
+    odf = connection.fetch_df_all(statement=sql, arraysize=100)
+
+    print(odf.odf.column_names())
+    print(f"{odf.num_columns()} columns")
+    print(f"{odf.num_rows()} rows")
+
+With Oracle Database's standard DEPARTMENTS table, this would display::
+
+    ['DEPARTMENT_ID', 'DEPARTMENT_NAME', 'MANAGER_ID', 'LOCATION_ID']
+    4 columns
+    27 rows
+
+To do more extensive operations on an :ref:`OracleDataFrame
+<oracledataframeobj>`, it can be converted to an appropriate library class, and
+then methods of that library can be used.  For example it could be converted to
+a `Pandas DataFrame <https://pandas.pydata.org/docs/reference/api/pandas.
+DataFrame.html#pandas.DataFrame>`__, or to a `PyArrow table
+<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__ as shown
+later.
+
+**Data Frame Type Mapping**
+
+Internally, python-oracledb's :ref:`OracleDataFrame <oracledataframeobj>`
+support makes use of `Apache nanoarrow <https://arrow.apache.org/nanoarrow/>`__
+libraries to build data frames.
+
+The following data type mapping occurs from Oracle Database types to the Arrow
+types used in OracleDataFrame objects.  Querying any other types from Oracle
+Database will result in an exception.
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 1 1
+    :align: left
+    :summary: The first column is the Oracle Database type. The second column is the Arrow data type used in the OracleDataFrame object.
+
+    * - Oracle Database Type
+      - Arrow Data Type
+    * - DB_TYPE_NUMBER
+      - DECIMAL128, INT64, or DOUBLE. See notes below
+    * - DB_TYPE_CHAR
+      - STRING
+    * - DB_TYPE_VARCHAR
+      - STRING
+    * - DB_TYPE_BINARY_FLOAT
+      - FLOAT
+    * - DB_TYPE_BINARY_DOUBLE
+      - DOUBLE
+    * - DB_TYPE_BOOLEAN
+      - BOOLEAN
+    * - DB_TYPE_DATE
+      - TIMESTAMP
+    * - DB_TYPE_TIMESTAMP
+      - TIMESTAMP
+    * - DB_TYPE_TIMESTAMP_LTZ
+      - TIMESTAMP
+    * - DB_TYPE_TIMESTAMP_TZ
+      - TIMESTAMP
+
+
+When converting Oracle Database NUMBERs, if :attr:`defaults.fetch_decimals` is
+*True*, the Arrow data type is DECIMAL128. Note Arrow's DECIMAL128 format only
+supports precision of up to 38 decimal digits. Else, if the Oracle number data
+type has scale of 0, and precision less than or equal to 18, then the Arrow
+data type is INT64. In all other cases, the Arrow data type is DOUBLE.
+
+The Arrow TIMESTAMP for Oracle Database DATEs will have a time unit of
+"seconds". For Oracle Database TIMESTAMP types, the time unit depends on the
+Oracle type's fractional precision:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 1 1
+    :align: left
+    :summary: The first column is the Oracle Database TIMESTAMP-type fractional second precision. The second column is the resulting Arrow TIMESTAMP time unit.
+
+    * - Oracle Database TIMESTAMP fractional second precision range
+      - Arrow TIMESTAMP time unit
+    * - 0
+      - seconds
+    * - 1 - 3
+      - milliseconds
+    * - 4 - 6
+      - microconds
+    * - 7 - 9
+      - nanoseconds
+
+Arrow TIMESTAMPs will not have timezone data.
+
+**Inserting OracleDataFrames into Oracle Database**
+
+To insert data currently in :ref:`OracleDataFrame <oracledataframeobj>` format
+into Oracle Database requires it to be converted.  For example, you could
+convert it into a Pandas DataFrame for insert with the Pandas method
+``to_sql()``. Or convert into a Python list via the PyArrow
+``Table.to_pylist()`` method and then use standard python-oracledb
+functionality to execute a SQL INSERT statement.
+
+Creating PyArrow Tables
++++++++++++++++++++++++
+
+An example that creates and uses a `PyArrow Table
+<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__ is:
+
+.. code-block:: python
+
+    # Get an OracleDataFrame
+    # Adjust arraysize to tune the query fetch performance
+    sql = "select id, name from SampleQueryTab order by id"
+    odf = connection.fetch_df_all(statement=sql, arraysize=100)
+
+    # Create a PyArrow table
+    pyarrow_table = pyarrow.Table.from_arrays(
+        arrays=odf.column_arrays(), names=odf.column_names()
+    )
+
+    print("\nNumber of rows and columns:")
+    (r, c) = pyarrow_table.shape
+    print(f"{r} rows, {c} columns")
+
+This makes use of :meth:`OracleDataFrame.column_arrays()` which returns a list
+of :ref:`OracleArrowArray Objects <oraclearrowarrayobj>`.
+
+See `samples/dataframe_pyarrow.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/dataframe_pyarrow.py>`__ for a runnable example.
+
+Creating Pandas DataFrames
+++++++++++++++++++++++++++
+
+An example that creates and uses a `Pandas DataFrame <https://pandas.pydata.
+org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__ is:
+
+.. code-block:: python
+
+    import pandas
+
+    # Get an OracleDataFrame
+    # Adjust arraysize to tune the query fetch performance
+    sql = "select * from mytable where id = :1"
+    myid = 12345  # the bind variable value
+    odf = connection.fetch_df_all(statement=sql, parameters=[myid], arraysize=1000)
+
+    # Get a Pandas DataFrame from the data.
+    # This is a zero copy call
+    df = pandas.api.interchange.from_dataframe(odf)
+
+    # Perform various Pandas operations on the DataFrame
+    print(df.T)        # transform
+    print(df.tail(3))  # last three rows
+
+Using python-oracledb to fetch the interchange format will be more efficient
+than using the Pandas ``read_sql()`` method.
+
+See `samples/dataframe_pandas.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/dataframe_pandas.py>`__ for a runnable example.
+
+Creating Polars Series
+++++++++++++++++++++++
+
+An example that creates and uses a `Polars Series
+<https://docs.pola.rs/api/python/stable/reference/series/index.html>`__ is:
+
+.. code-block:: python
+
+    import pyarrow
+    import polars
+
+    # Get an OracleDataFrame
+    # Adjust arraysize to tune the query fetch performance
+    sql = "select id from SampleQueryTab order by id"
+    odf = connection.fetch_df_all(statement=sql, arraysize=100)
+
+    # Convert to a Polars Series
+    pyarrow_array = pyarrow.array(odf.get_column_by_name("ID"))
+    p = polars.from_arrow(pyarrow_array)
+
+    # Perform various Polars operations on the Series
+    print(p.sum())
+    print(p.log10())
+
+See `samples/dataframe_polars.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/dataframe_polars.py>`__ for a runnable example.
+
+Writing Apache Parquet Files
+++++++++++++++++++++++++++++
+
+To write output in `Apache Parquet <https://parquet.apache.org/>`__ file
+format, you can use data frames as an efficient intermediary. Use the
+:meth:`Connection.fetch_df_batches()` iterator and convert to a `PyArrow Table
+<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__ that can
+be written by the PyArrow library.
+
+.. code-block:: python
+
+    import pyarrow
+    import pyarrow.parquet as pq
+
+    FILE_NAME = "sample.parquet"
+
+    # Tune the fetch batch size for your query
+    BATCH_SIZE = 10000
+
+    sql = "select * from mytable"
+    pqwriter = None
+    for odf in connection.fetch_df_batches(statement=sql, size=BATCH_SIZE):
+
+        # Get a PyArrow table from the query results
+        pyarrow_table = pyarrow.Table.from_arrays(
+            arrays=odf.column_arrays(), names=odf.column_names()
+        )
+
+        if not pqwriter:
+            pqwriter = pq.ParquetWriter(FILE_NAME, pyarrow_table.schema)
+
+        pqwriter.write_table(pyarrow_table)
+
+    pqwriter.close()
+
+See `samples/dataframe_parquet_write.py <https://github.com/oracle/
+python-oracledb/blob/main/samples/dataframe_parquet_write.py>`__
+for a runnable example.
+
+The DLPack Protocol
++++++++++++++++++++
+
+The DataFrame format facilitates working with query results as
+tensors. Conversion can be done using the standard `DLPack Protocol
+<https://arrow.apache.org/docs/python/dlpack.html>`__ implemented by PyArrow.
+
+**Using NumPy Arrays**
+
+For example, to convert to `NumPy <https://numpy.org/>`__ ``ndarray`` format:
+
+.. code-block:: python
+
+    import pyarrow
+    import numpy
+
+    SQL = "select id from SampleQueryTab order by id"
+
+    # Get an OracleDataFrame
+    # Adjust arraysize to tune the query fetch performance
+    odf = connection.fetch_df_all(statement=SQL, arraysize=100)
+
+    # Convert to an ndarray via the Python DLPack specification
+    pyarrow_array = pyarrow.array(odf.get_column_by_name("ID"))
+    np = numpy.from_dlpack(pyarrow_array)
+
+    # Perform various numpy operations on the ndarray
+
+    print(numpy.sum(np))
+    print(numpy.log10(np))
+
+
+See `samples/dataframe_numpy.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/dataframe_numpy.py>`__ for a runnable example.
+
+**Using Torch**
+
+An example of working with data as a `Torch tensor
+<https://pytorch.org/docs/stable/tensors.html>`__ is:
+
+.. code-block:: python
+
+    import pyarrow
+    import torch
+
+    SQL = "select id from SampleQueryTab order by id"
+
+    # Get an OracleDataFrame
+    # Adjust arraysize to tune the query fetch performance
+    odf = connection.fetch_df_all(statement=SQL, arraysize=100)
+
+    # Convert to a Torch tensor via the Python DLPack specification
+    pyarrow_array = pyarrow.array(odf.get_column_by_name("ID"))
+    tt = torch.from_dlpack(pyarrow_array)
+
+    # Perform various Torch operations on the tensor
+
+    print(torch.sum(tt))
+    print(torch.log10(tt))
+
+See `samples/dataframe_torch.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/dataframe_torch.py>`__ for a runnable example.
 
 .. _rowlimit:
 

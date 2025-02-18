@@ -68,6 +68,94 @@ cdef object convert_interval_ym_to_python(OracleDataBuffer *buffer):
     return PY_TYPE_INTERVAL_YM(value.years, value.months)
 
 
+cdef int convert_number_to_arrow_decimal(OracleArrowArray arrow_array,
+                                         OracleDataBuffer *buffer) except -1:
+    """
+    Converts a NUMBER value stored in the buffer to Arrow DECIMAL128.
+    """
+    cdef:
+        char_type c
+        bint has_sign = 0
+        char_type digits[39] # 38 digits + sign
+        OracleNumber *value = &buffer.as_number
+        uint8_t num_chars = 0, decimal_point_index = 0, allowed_max_chars = 0
+        int64_t actual_scale = 0
+
+    if value.chars[0] == 45: # minus sign
+        has_sign = True
+
+    if value.is_integer:
+        if has_sign:
+            allowed_max_chars = 39
+        else:
+            allowed_max_chars = 38
+    else: # decimal point
+        if has_sign:
+            allowed_max_chars = 40
+        else:
+            allowed_max_chars = 39
+
+    # Arrow Decimal128 can only represent values with 38 decimal digits
+    if value.is_max_negative_value or value.num_chars > allowed_max_chars:
+        raise ValueError("Value cannot be represented as "
+                         "Arrow Decimal128")
+    if value.is_integer:
+        arrow_array.append_decimal(value.chars, value.num_chars)
+    else:
+        for i in range(value.num_chars):
+            c = value.chars[i]
+            # count all characters except the decimal point
+            if c != 46:
+                digits[num_chars] = c
+                num_chars += 1
+            else:
+                decimal_point_index = i
+
+        # Append any trailing zeros.
+        actual_scale = num_chars - decimal_point_index
+        for i in range(abs(arrow_array.scale) - actual_scale):
+            digits[num_chars] = b'0'
+            num_chars += 1
+        arrow_array.append_decimal(digits, num_chars)
+
+
+
+cdef int convert_number_to_arrow_double(OracleArrowArray arrow_array,
+                                        OracleDataBuffer *buffer) except -1:
+    """
+    Converts a NUMBER value stored in the buffer to Arrow DOUBLE.
+    """
+    cdef OracleNumber *value = &buffer.as_number
+    if value.is_max_negative_value:
+        arrow_array.append_double(-1.0e126)
+    else:
+        arrow_array.append_double(atof(value.chars[:value.num_chars]))
+
+
+cdef int convert_number_to_arrow_int64(OracleArrowArray arrow_array,
+                                       OracleDataBuffer *buffer) except -1:
+    """
+    Converts a NUMBER value stored in the buffer to Arrow INT64.
+    """
+    cdef OracleNumber *value = &buffer.as_number
+    arrow_array.append_int64(atoi(value.chars[:value.num_chars]))
+
+
+cdef int convert_number_to_arrow_string(OracleArrowArray arrow_array,
+                                        OracleDataBuffer *buffer) except -1:
+    """
+    Converts a NUMBER value stored in the buffer to Arrow string.
+    """
+    cdef:
+        OracleNumber *value = &buffer.as_number
+        char* ptr
+    if value.is_max_negative_value:
+        ptr = "-1e126"
+        arrow_array.append_bytes(ptr, 6)
+    else:
+        arrow_array.append_bytes(value.chars, value.num_chars)
+
+
 cdef object convert_number_to_python_decimal(OracleDataBuffer *buffer):
     """
     Converts a NUMBER value stored in the buffer to Python decimal.Decimal().
@@ -129,6 +217,45 @@ cdef object convert_str_to_python(OracleDataBuffer *buffer, uint8_t csfrm,
     if csfrm == CS_FORM_IMPLICIT:
         return rb.ptr[:rb.num_bytes].decode(ENCODING_UTF8, encoding_errors)
     return rb.ptr[:rb.num_bytes].decode(ENCODING_UTF16, encoding_errors)
+
+
+cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
+                                      OracleMetadata to_metadata,
+                                      OracleData* data,
+                                      OracleArrowArray arrow_array) except -1:
+    """
+    Converts the value stored in OracleData to Arrow format.
+    """
+    cdef:
+        ArrowType arrow_type
+        uint32_t db_type_num
+        OracleRawBytes* rb
+        int64_t ts
+
+    # NULL values
+    if data.is_null:
+        return arrow_array.append_null()
+
+    arrow_type = to_metadata._arrow_type
+    db_type_num = from_metadata.dbtype.num
+    if arrow_type == NANOARROW_TYPE_INT64:
+        convert_number_to_arrow_int64(arrow_array, &data.buffer)
+    elif arrow_type == NANOARROW_TYPE_DOUBLE:
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            convert_number_to_arrow_double(arrow_array, &data.buffer)
+        else:
+            arrow_array.append_double(data.buffer.as_double)
+    elif arrow_type == NANOARROW_TYPE_FLOAT:
+        arrow_array.append_float(data.buffer.as_float)
+    elif arrow_type == NANOARROW_TYPE_STRING:
+        rb = &data.buffer.as_raw_bytes
+        arrow_array.append_bytes(<void*> rb.ptr, rb.num_bytes)
+    elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
+        ts = int(convert_date_to_python(&data.buffer).timestamp() *
+                 arrow_array.factor)
+        arrow_array.append_int64(ts)
+    elif arrow_type == NANOARROW_TYPE_DECIMAL128:
+        convert_number_to_arrow_decimal(arrow_array, &data.buffer)
 
 
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,

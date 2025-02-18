@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -53,6 +53,40 @@ cdef class OracleMetadata:
                     self._py_type_num = PY_TYPE_NUM_INT
                 else:
                     self._py_type_num = PY_TYPE_NUM_FLOAT
+
+    cdef int _set_arrow_type(self) except -1:
+        """
+        Determine the arrow type to use for the data.
+        """
+        cdef:
+            uint8_t py_type_num = self._py_type_num
+            uint32_t db_type_num = self.dbtype.num
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            if py_type_num == PY_TYPE_NUM_DECIMAL:
+                self._arrow_type = NANOARROW_TYPE_DECIMAL128
+            elif py_type_num == PY_TYPE_NUM_STR:
+                self._arrow_type = NANOARROW_TYPE_STRING
+            elif py_type_num == PY_TYPE_NUM_INT and self.scale == 0 \
+                    and self.precision <= 18:
+                self._arrow_type = NANOARROW_TYPE_INT64
+            else:
+                self._arrow_type = NANOARROW_TYPE_DOUBLE
+        elif db_type_num in (DB_TYPE_NUM_CHAR, DB_TYPE_NUM_VARCHAR):
+            self._arrow_type = NANOARROW_TYPE_STRING
+        elif db_type_num == DB_TYPE_NUM_BINARY_FLOAT:
+            self._arrow_type = NANOARROW_TYPE_FLOAT
+        elif db_type_num == DB_TYPE_NUM_BINARY_DOUBLE:
+            self._arrow_type = NANOARROW_TYPE_DOUBLE
+        elif db_type_num == DB_TYPE_NUM_BOOLEAN:
+            self._arrow_type = NANOARROW_TYPE_BOOL
+        elif db_type_num in (DB_TYPE_NUM_DATE,
+                             DB_TYPE_NUM_TIMESTAMP,
+                             DB_TYPE_NUM_TIMESTAMP_LTZ,
+                             DB_TYPE_NUM_TIMESTAMP_TZ):
+            self._arrow_type = NANOARROW_TYPE_TIMESTAMP
+        else:
+            errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_TYPE,
+                              db_type_name=self.dbtype.name)
 
     cdef OracleMetadata copy(self):
         """

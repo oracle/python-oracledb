@@ -279,6 +279,7 @@ ERR_PROTOCOL_HANDLER_FAILED = 2056
 ERR_PASSWORD_TYPE_HANDLER_FAILED = 2057
 ERR_PLAINTEXT_PASSWORD_IN_CONFIG = 2058
 ERR_MISSING_CONNECT_DESCRIPTOR = 2059
+ERR_ARROW_C_API_ERROR = 2060
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -310,6 +311,7 @@ ERR_OPERATION_ONLY_SUPPORTED_ON_BFILE = 3026
 ERR_CURSOR_DIFF_CONNECTION = 3027
 ERR_UNSUPPORTED_PIPELINE_OPERATION = 3028
 ERR_INVALID_NETWORK_NAME = 3029
+ERR_ARROW_UNSUPPORTED_DATA_TYPE = 3030
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -852,5 +854,12 @@ ERR_MESSAGE_FORMATS = {
     WRN_COMPILATION_ERROR: "creation succeeded with compilation errors",
     ERR_INVALID_NETWORK_NAME: (
         '"{name}" includes characters that are not allowed'
+    ),
+    ERR_ARROW_UNSUPPORTED_DATA_TYPE: (
+        "conversion from Oracle Database type {db_type_name} to Apache "
+        "Arrow format is not supported"
+    ),
+    ERR_ARROW_C_API_ERROR: (
+        "Arrow C Data Interface operation failed with error code {code}"
     ),
 }

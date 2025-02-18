@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -38,8 +38,23 @@ cimport cpython.datetime as cydatetime
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 from libc.stdint cimport UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX
+from libc.stdlib cimport atoi, atof
 from libc.string cimport memcpy
 from cpython cimport array
+
+from .interchange.nanoarrow_bridge cimport (
+    NANOARROW_TIME_UNIT_SECOND,
+    NANOARROW_TIME_UNIT_MILLI,
+    NANOARROW_TIME_UNIT_MICRO,
+    NANOARROW_TIME_UNIT_NANO,
+    NANOARROW_TYPE_BOOL,
+    NANOARROW_TYPE_DECIMAL128,
+    NANOARROW_TYPE_DOUBLE,
+    NANOARROW_TYPE_FLOAT,
+    NANOARROW_TYPE_INT64,
+    NANOARROW_TYPE_STRING,
+    NANOARROW_TYPE_TIMESTAMP,
+)
 
 import array
 
@@ -65,6 +80,7 @@ cdef type PY_TYPE_ASYNC_CURSOR
 cdef type PY_TYPE_ASYNC_LOB
 cdef type PY_TYPE_BOOL = bool
 cdef type PY_TYPE_CURSOR
+cdef object PY_TYPE_DATAFRAME
 cdef type PY_TYPE_DATE = datetime.date
 cdef type PY_TYPE_DATETIME = datetime.datetime
 cdef type PY_TYPE_DECIMAL = decimal.Decimal

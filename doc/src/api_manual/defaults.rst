@@ -128,6 +128,10 @@ Defaults Attributes
     The default value for :attr:`Cursor.prefetchrows`. This is a query tuning
     attribute, see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
+    This attribute is ignored when using :meth:`Connection.fetch_df_all()` or
+    :meth:`Connection.fetch_df_batches()` since these methods always set the
+    internal prefetch size to the relevant arraysize or size value.
+
     This attribute has an initial value of *2*.
 
 .. attribute:: defaults.program

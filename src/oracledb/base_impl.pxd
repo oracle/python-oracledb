@@ -33,9 +33,16 @@
 
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
+from libc.stdlib cimport abs
 from cpython cimport array
 
 ctypedef unsigned char char_type
+
+from .interchange.nanoarrow_bridge cimport (
+    ArrowTimeUnit,
+    ArrowType,
+    OracleArrowArray,
+)
 
 cdef enum:
     PY_TYPE_NUM_ARRAY = 13
@@ -438,9 +445,11 @@ cdef class OracleMetadata:
         readonly uint32_t vector_dimensions
         readonly uint8_t vector_format
         readonly uint8_t vector_flags
+        ArrowType _arrow_type
         uint8_t _py_type_num
 
     cdef int _finalize_init(self) except -1
+    cdef int _set_arrow_type(self) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
     cdef OracleMetadata from_type(object typ)
@@ -654,6 +663,7 @@ cdef class BaseCursorImpl:
         public type bind_style
         public dict bind_vars_by_name
         public object warning
+        public bint fetching_arrow
         uint32_t _buffer_rowcount
         uint32_t _buffer_index
         uint32_t _fetch_array_size
@@ -691,6 +701,9 @@ cdef class BaseCursorImpl:
     cdef int _verify_var(self, object var) except -1
     cdef int bind_many(self, object cursor, list parameters) except -1
     cdef int bind_one(self, object cursor, object parameters) except -1
+    cdef object _finish_building_arrow_arrays(self)
+    cdef int _create_arrow_arrays(self) except -1
+
 
 
 cdef class BaseVarImpl:
@@ -709,6 +722,7 @@ cdef class BaseVarImpl:
         BaseConnImpl _conn_impl
         OracleMetadata _fetch_metadata
         list _values
+        OracleArrowArray _arrow_array
         bint _is_value_set
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor,
@@ -718,6 +732,7 @@ cdef class BaseVarImpl:
     cdef int _check_and_set_value(self, uint32_t pos, object value,
                                   bint* was_set) except -1
     cdef DbType _check_fetch_conversion(self)
+    cdef int _create_arrow_array(self) except -1
     cdef int _finalize_init(self) except -1
     cdef DbType _get_adjusted_type(self, uint8_t ora_type_num)
     cdef list _get_array_value(self)
@@ -951,6 +966,10 @@ cdef struct OracleData:
     OracleDataBuffer buffer
 
 
+cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
+                                      OracleMetadata to_metadatda,
+                                      OracleData* data,
+                                      OracleArrowArray arrow_array) except -1
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleMetadata to_metadatda,
                                           OracleData* data,

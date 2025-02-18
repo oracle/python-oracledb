@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,13 +64,16 @@ from .base_impl cimport (
     BaseVarImpl,
     BindVar,
     C_DEFAULTS,
+    char_type,
     ConnectParamsImpl,
+    convert_oracle_data_to_arrow,
     DbType,
     DB_TYPE_NUM_CURSOR,
     DRIVER_NAME,
     DRIVER_VERSION,
     DRIVER_INSTALLATION_URL,
     ENCODING_UTF8,
+    OracleData,
     OracleMetadata,
     PURITY_DEFAULT,
     PY_TYPE_DATE,

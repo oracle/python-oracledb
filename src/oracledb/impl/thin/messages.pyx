@@ -754,6 +754,10 @@ cdef class MessageWithData(Message):
                                               var_impl._fetch_metadata)
             statement._last_output_type_handler = type_handler
 
+        # Create OracleArrowArray if fetching arrow is enabled
+        if cursor_impl.fetching_arrow:
+            cursor_impl._create_arrow_arrays()
+
         # the list of output variables is equivalent to the fetch variables
         self.out_var_impls = cursor_impl.fetch_var_impls
 
@@ -838,10 +842,15 @@ cdef class MessageWithData(Message):
             buf.read_oracle_data(metadata, &data, from_dbobject=False)
             if metadata.dbtype._csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()
-            column_value = convert_oracle_data_to_python(
-                metadata, var_impl.metadata, &data, var_impl._encoding_errors,
-                from_dbobject=False
-            )
+            if self.cursor_impl.fetching_arrow:
+                convert_oracle_data_to_arrow(
+                    metadata, var_impl.metadata, &data, var_impl._arrow_array
+                )
+            else:
+                column_value = convert_oracle_data_to_python(
+                    metadata, var_impl.metadata, &data,
+                    var_impl._encoding_errors, from_dbobject=False
+                )
         if not self.in_fetch:
             buf.read_sb4(&actual_num_bytes)
             if actual_num_bytes < 0 and ora_type_num == ORA_TYPE_NUM_BOOLEAN:
@@ -2116,6 +2125,8 @@ cdef class ExecuteMessage(MessageWithData):
                 self.cursor_impl._set_fetch_array_size(num_iters)
                 if num_iters > 0 and not stmt._no_prefetch:
                     options |= TNS_EXEC_OPTION_FETCH
+                    if self.cursor_impl.fetching_arrow:
+                        options |= TNS_EXEC_OPTION_NO_COMPRESSED_FETCH
         if not stmt._is_plsql and not self.parse_only:
             options |= TNS_EXEC_OPTION_NOT_PLSQL
         elif stmt._is_plsql and num_params > 0:
@@ -2239,6 +2250,8 @@ cdef class ExecuteMessage(MessageWithData):
                       and not info._is_return_bind]
         if self.function_code == TNS_FUNC_REEXECUTE_AND_FETCH:
             exec_flags_1 |= TNS_EXEC_OPTION_EXECUTE
+            if self.cursor_impl.fetching_arrow:
+                exec_flags_1 |= TNS_EXEC_OPTION_NO_COMPRESSED_FETCH
             num_iters = self.cursor_impl.prefetchrows
             self.cursor_impl._set_fetch_array_size(num_iters)
         else:

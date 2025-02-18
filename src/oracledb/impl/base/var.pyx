@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -246,6 +246,28 @@ cdef class BaseVarImpl:
         errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
                           input_type=self._fetch_metadata.dbtype.name,
                           output_type=self.metadata.dbtype.name)
+
+    cdef int _create_arrow_array(self) except -1:
+        """
+        Creates an Arrow array based on the type information selected by the
+        user.
+        """
+        cdef ArrowTimeUnit time_unit = NANOARROW_TIME_UNIT_SECOND
+        self.metadata._set_arrow_type()
+        if self.metadata._arrow_type == NANOARROW_TYPE_TIMESTAMP:
+            if self.metadata.scale > 0 and self.metadata.scale <= 3:
+                time_unit = NANOARROW_TIME_UNIT_MILLI
+            elif self.metadata.scale > 3 and self.metadata.scale <= 6:
+                time_unit = NANOARROW_TIME_UNIT_MICRO
+            elif self.metadata.scale > 6 and self.metadata.scale <= 9:
+                time_unit = NANOARROW_TIME_UNIT_NANO
+        self._arrow_array = OracleArrowArray(
+            arrow_type=self.metadata._arrow_type,
+            name=self.metadata.name,
+            precision=self.metadata.precision,
+            scale=self.metadata.scale,
+            time_unit=time_unit,
+        )
 
     cdef int _finalize_init(self) except -1:
         """

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -31,6 +31,14 @@ from setuptools import setup, Extension
 # base source directory
 source_dir = os.path.join("src", "oracledb")
 
+# determine the nanoarrow bridge dependent source files (included)
+base_dir = os.path.join(source_dir, "interchange")
+nanoarrow_bridge_depends = [
+    os.path.join(base_dir, "nanoarrow", "nanoarrow.c"),
+    os.path.join(base_dir, "nanoarrow", "nanoarrow.h"),
+]
+nanoarrow_bridge_pxd = os.path.join(base_dir, "nanoarrow_bridge.pxd")
+
 # determine the base implementation dependent source files (included)
 impl_dir = os.path.join(source_dir, "impl", "base")
 base_depends = [
@@ -39,7 +47,7 @@ base_depends = [
     if n.endswith(".pyx")
 ]
 base_pxd = os.path.join(source_dir, "base_impl.pxd")
-base_depends.append(base_pxd)
+base_depends.extend([base_pxd, nanoarrow_bridge_pxd])
 
 # determine the thick mode dependent source files (included)
 impl_dir = os.path.join(source_dir, "impl", "thick")
@@ -91,20 +99,32 @@ setup(
         Extension(
             "oracledb.base_impl",
             sources=["src/oracledb/base_impl.pyx"],
+            include_dirs=["src/oracledb/interchange/nanoarrow"],
             depends=base_depends,
             extra_compile_args=extra_compile_args,
         ),
         Extension(
             "oracledb.thin_impl",
             sources=["src/oracledb/thin_impl.pyx"],
+            include_dirs=["src/oracledb/interchange/nanoarrow"],
             depends=thin_depends,
             extra_compile_args=extra_compile_args,
         ),
         Extension(
             "oracledb.thick_impl",
             sources=["src/oracledb/thick_impl.pyx"],
-            include_dirs=["src/oracledb/impl/thick/odpi/include"],
+            include_dirs=[
+                "src/oracledb/impl/thick/odpi/include",
+                "src/oracledb/interchange/nanoarrow",
+            ],
             depends=thick_depends,
+            extra_compile_args=extra_compile_args,
+        ),
+        Extension(
+            "oracledb.interchange.nanoarrow_bridge",
+            sources=["src/oracledb/interchange/nanoarrow_bridge.pyx"],
+            include_dirs=["src/oracledb/interchange/nanoarrow"],
+            depends=nanoarrow_bridge_depends,
             extra_compile_args=extra_compile_args,
         ),
     ]

@@ -88,6 +88,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added new methods :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()` to fetch data as DataFrames
+    compliant with the Python DataFrame Interchange protocol.  See
+    :ref:`dataframeformat`.
 #)  Added support for Oracle Database 23ai SPARSE vectors.
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the

@@ -311,6 +311,17 @@ The ``arraysize`` value can also be set before calling the procedure:
 
 Also see `Avoiding Premature Prefetching`_.
 
+Tuning Fetching for DataFrames
+------------------------------
+
+When fetching :ref:`data frames <dataframeformat>` with
+:meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`,
+tuning of data transfer across the network is controlled by the methods
+``arraysize`` or ``size`` parameters, respectively.
+
+Any :attr:`defaults.prefetchrows` value is ignored since these methods always
+set the internal prefetch size to the relevant ``arraysize`` or ``size`` value.
+
 Database Round-trips
 ====================
 

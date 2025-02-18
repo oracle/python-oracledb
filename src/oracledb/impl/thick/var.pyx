@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -340,6 +340,84 @@ cdef class ThickVarImpl(BaseVarImpl):
             cpython.Py_INCREF(element_value)
             cpython.PyList_SET_ITEM(return_value, i, element_value)
         return return_value
+
+    cdef int _transform_element_to_arrow(self, uint32_t pos):
+        """
+        Transforms a single element from the value supplied by ODPI-C to its
+        equivalent Arrow format.
+        """
+        cdef:
+            dpiData *data = &self._data[pos]
+            uint32_t ora_type_num
+            OracleData ora_data
+            dpiBytes *as_bytes
+        ora_data.is_null = data.isNull
+        if not data.isNull:
+            ora_type_num = self._fetch_metadata.dbtype.num
+            if ora_type_num == DPI_ORACLE_TYPE_NATIVE_DOUBLE:
+                ora_data.buffer.as_double = data.value.asDouble
+            elif ora_type_num == DPI_ORACLE_TYPE_NATIVE_FLOAT:
+                ora_data.buffer.as_float = data.value.asFloat
+            elif ora_type_num == DPI_ORACLE_TYPE_BOOLEAN:
+                ora_data.buffer.as_bool = data.value.asBoolean
+            elif ora_type_num in (
+                DPI_ORACLE_TYPE_CHAR,
+                DPI_ORACLE_TYPE_LONG_VARCHAR,
+                DPI_ORACLE_TYPE_LONG_RAW,
+                DPI_ORACLE_TYPE_RAW,
+                DPI_ORACLE_TYPE_VARCHAR,
+            ):
+                as_bytes = &data.value.asBytes;
+                ora_data.buffer.as_raw_bytes.ptr = \
+                        <const char_type *> as_bytes.ptr;
+                ora_data.buffer.as_raw_bytes.num_bytes = as_bytes.length;
+            elif ora_type_num in (
+                DPI_ORACLE_TYPE_DATE,
+                DPI_ORACLE_TYPE_TIMESTAMP,
+                DPI_ORACLE_TYPE_TIMESTAMP_LTZ,
+                DPI_ORACLE_TYPE_TIMESTAMP_TZ,
+            ):
+                ora_data.buffer.as_date.year = data.value.asTimestamp.year;
+                ora_data.buffer.as_date.month = data.value.asTimestamp.month;
+                ora_data.buffer.as_date.day = data.value.asTimestamp.day;
+                ora_data.buffer.as_date.hour = data.value.asTimestamp.hour;
+                ora_data.buffer.as_date.minute = data.value.asTimestamp.minute;
+                ora_data.buffer.as_date.second = data.value.asTimestamp.second;
+                ora_data.buffer.as_date.fsecond = \
+                        data.value.asTimestamp.fsecond // 1000;
+                ora_data.buffer.as_date.tz_hour_offset = \
+                        data.value.asTimestamp.tzHourOffset;
+                ora_data.buffer.as_date.tz_minute_offset = \
+                        data.value.asTimestamp.tzMinuteOffset;
+            elif ora_type_num == DPI_ORACLE_TYPE_INTERVAL_DS:
+                ora_data.buffer.as_interval_ds.days = \
+                        data.value.asIntervalDS.days;
+                ora_data.buffer.as_interval_ds.hours = \
+                        data.value.asIntervalDS.hours;
+                ora_data.buffer.as_interval_ds.minutes = \
+                        data.value.asIntervalDS.minutes;
+                ora_data.buffer.as_interval_ds.seconds = \
+                        data.value.asIntervalDS.seconds;
+                ora_data.buffer.as_interval_ds.fseconds = \
+                        data.value.asIntervalDS.fseconds;
+            elif ora_type_num == DPI_ORACLE_TYPE_INTERVAL_YM:
+                ora_data.buffer.as_interval_ym.years = \
+                        data.value.asIntervalYM.years;
+                ora_data.buffer.as_interval_ym.months = \
+                        data.value.asIntervalYM.months;
+            elif ora_type_num == DPI_ORACLE_TYPE_NUMBER:
+                as_bytes = &data.value.asBytes;
+                ora_data.buffer.as_number.is_max_negative_value = 0;
+                ora_data.buffer.as_number.is_integer = \
+                        memchr(as_bytes.ptr, b'.', as_bytes.length) == NULL;
+                memcpy(ora_data.buffer.as_number.chars, as_bytes.ptr,
+                        as_bytes.length);
+                ora_data.buffer.as_number.num_chars = as_bytes.length;
+            else:
+                errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
+                                  name=self._fetch_metadata.dbtype.name)
+        convert_oracle_data_to_arrow(self._fetch_metadata, self.metadata,
+                                     &ora_data, self._arrow_array)
 
     cdef object _transform_element_to_python(self, uint32_t pos,
                                              dpiData *data):

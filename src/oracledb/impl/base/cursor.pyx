@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -234,6 +234,8 @@ cdef class BaseCursorImpl:
 
         # finalize variable and store in arrays
         var_impl._finalize_init()
+        if self.fetching_arrow:
+            var_impl._create_arrow_array()
         self.fetch_var_impls[pos] = var_impl
         return var_impl
 
@@ -357,6 +359,12 @@ cdef class BaseCursorImpl:
             self.bind_vars = None
             self.bind_vars_by_name = None
             self.bind_style = None
+
+    cdef int _create_arrow_arrays(self) except -1:
+        cdef BaseVarImpl var_impl
+        for var_impl in self.fetch_var_impls:
+            if var_impl._arrow_array is None:
+                var_impl._create_arrow_array()
 
     def _prepare_for_execute(self, object cursor, str statement,
                              object parameters, object keyword_parameters):
@@ -502,6 +510,19 @@ cdef class BaseCursorImpl:
         self._bind_values(cursor, type_handler, parameters, num_rows, row_num,
                           defer_type_assignment)
 
+    cdef object _finish_building_arrow_arrays(self):
+        """
+        Flush all buffers and return an Oracle Data frame.
+        """
+        cdef:
+            BaseVarImpl var_impl
+            list columns = []
+        for var_impl in self.fetch_var_impls:
+            var_impl._arrow_array.finish_building()
+            columns.append(var_impl._arrow_array)
+            var_impl._arrow_array = None
+        return PY_TYPE_DATAFRAME(columns)
+
     def close(self, bint in_del=False):
         """
         Closes the cursor and makes it unusable for further operations.
@@ -550,6 +571,35 @@ cdef class BaseCursorImpl:
             self._fetch_rows(cursor)
         if self._buffer_rowcount > 0:
             return self._create_row()
+
+    def fetch_df_all(self, cursor):
+        """
+        Internal method used for fetching all data as OracleDataFrame
+        """
+        while self._more_rows_to_fetch:
+            self._fetch_rows(cursor)
+        return self._finish_building_arrow_arrays()
+
+    def fetch_df_batches(self, cursor, int batch_size):
+        """
+        Internal method used for fetching next batch as OracleDataFrame
+        cursor.arraysize = batchsize
+        """
+        cdef:
+            BaseConnImpl conn_impl = self._get_conn_impl()
+            bint returned = False
+
+        # Return the prefetched batch (thin mode)
+        if conn_impl.thin:
+            returned = True
+            yield self._finish_building_arrow_arrays()
+
+        while self._more_rows_to_fetch:
+            self._create_arrow_arrays()
+            self._fetch_rows(cursor)
+            if not returned or self._buffer_rowcount > 0:
+                returned = True
+                yield self._finish_building_arrow_arrays()
 
     def get_array_dml_row_counts(self):
         errors._raise_not_supported("getting a list of array DML row counts")

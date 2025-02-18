@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -151,6 +151,8 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         self._buffer_index = 0
         self._buffer_rowcount = num_rows_in_buffer
         self._more_rows_to_fetch = more_rows_to_fetch
+        if self.fetching_arrow:
+            self._populate_arrow_arrays()
 
     cdef BaseConnImpl _get_conn_impl(self):
         """
@@ -249,6 +251,17 @@ cdef class ThickCursorImpl(BaseCursorImpl):
                                                      self.prefetchrows)
         if status < 0:
             _raise_from_odpi()
+
+    cdef int _populate_arrow_arrays(self) except -1:
+        """
+        Populate Arrow arrays with fetched data.
+        """
+        cdef:
+            ThickVarImpl var_impl
+            uint32_t i
+        for var_impl in self.fetch_var_impls:
+            for i in range(self._buffer_rowcount):
+                var_impl._transform_element_to_arrow(i)
 
     def _set_oci_attr(self, uint32_t attr_num, uint32_t attr_type,
                       object value):

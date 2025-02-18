@@ -223,6 +223,7 @@ def init_base_impl(package):
         PY_TYPE_ASYNC_LOB, \
         PY_TYPE_CONNECT_PARAMS, \
         PY_TYPE_CURSOR, \
+        PY_TYPE_DATAFRAME, \
         PY_TYPE_DB_OBJECT, \
         PY_TYPE_DB_OBJECT_TYPE, \
         PY_TYPE_FETCHINFO, \
@@ -248,6 +249,7 @@ def init_base_impl(package):
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
     PY_TYPE_CONNECT_PARAMS = package.ConnectParams
     PY_TYPE_CURSOR = package.Cursor
+    PY_TYPE_DATAFRAME = package.OracleDataFrame
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
     PY_TYPE_FETCHINFO = package.FetchInfo

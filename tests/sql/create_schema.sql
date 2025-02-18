@@ -379,6 +379,19 @@ create table &main_user..PlsqlSessionCallbacks (
 )
 /
 
+create table &main_user..TestDataframe (
+    Id                                  number(9),
+    FirstName                           varchar2(100),
+    LastName                            varchar2(100),
+    City                                varchar2(100),
+    Country                             varchar2(100),
+    DateOfBirth                         date,
+    Salary                              number(9, 2),
+    CreditScore                         number(3, 0),
+    LastUpdated                         timestamp
+)
+/
+
 -- create queue table and queues for testing advanced queuing
 begin
 
