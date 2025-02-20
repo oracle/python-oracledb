@@ -411,6 +411,8 @@ cdef class Buffer:
         cdef ssize_t num_bytes_this_time
         while num_bytes > 0:
             num_bytes_this_time = min(num_bytes, self.bytes_left())
+            if num_bytes_this_time == 0:
+                num_bytes_this_time = num_bytes
             self._get_raw(num_bytes_this_time)
             num_bytes -= num_bytes_this_time
 
