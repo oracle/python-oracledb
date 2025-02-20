@@ -743,12 +743,13 @@ Fetching using the DataFrame Interchange Protocol
 
 Python-oracledb can fetch directly to the `Python DataFrame Interchange
 Protocol <https://data-apis.org/dataframe-protocol/latest/index.html>`__
-format. This then allows zero-copy data interchanges between Python data frame
-libraries. It is an efficient way to work with data using Python libraries such
-as `Apache Arrow <https://arrow.apache.org/>`__, `Pandas
-<https://pandas.pydata.org>`__, `Polars <https://pola.rs/>`__, `NumPy
-<https://numpy.org/>`__, `PyTorch <https://pytorch.org/>`__, or to write files
-in `Apache Parquet <https://parquet.apache.org/>`__ format.
+format. This can reduce application memory requirements and allow zero-copy
+data interchanges between Python data frame libraries. It is an efficient way
+to work with data using Python libraries such as `Apache Arrow
+<https://arrow.apache.org/>`__, `Pandas <https://pandas.pydata.org>`__, `Polars
+<https://pola.rs/>`__, `NumPy <https://numpy.org/>`__, `PyTorch
+<https://pytorch.org/>`__, or to write files in `Apache Parquet
+<https://parquet.apache.org/>`__ format.
 
 .. note::
 
@@ -914,7 +915,6 @@ org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__ is:
     odf = connection.fetch_df_all(statement=sql, parameters=[myid], arraysize=1000)
 
     # Get a Pandas DataFrame from the data.
-    # This is a zero copy call
     df = pandas.api.interchange.from_dataframe(odf)
 
     # Perform various Pandas operations on the DataFrame

@@ -96,7 +96,8 @@ Common Changes
     :meth:`AsyncConnection.fetch_df_batches()` to fetch data as DataFrames
     compliant with the Python DataFrame Interchange protocol.  See
     :ref:`dataframeformat`.
-#)  Added support for Oracle Database 23.7 SPARSE vectors.
+#)  Added support for Oracle Database 23.7
+    :ref:`SPARSE vectors <sparsevectors>`.
 #)  Added support for :ref:`naming and caching connection pools
     <connpoolcache>` during creation, and retrieving them later from the
     python-oracledb pool cache with :meth:`oracledb.get_pool()`.

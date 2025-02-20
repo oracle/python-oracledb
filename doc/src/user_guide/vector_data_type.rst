@@ -218,14 +218,30 @@ Using SPARSE Vectors
 ====================
 
 A Sparse vector is a vector which has zero value for most of its dimensions.
-This vector only physically stores the non-zero values. A sparse vector is
-supported when you are using Oracle Database 23.7 or later.
+This vector only physically stores the non-zero values. For more information
+on sparse vectors, see the `Oracle AI Vector search User's Guide <https://
+www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-6015566C-3277-4A3C-8DD0-
+08B346A05478>`__.
 
-Sparse vectors can store the total number of dimensions, an array of indices,
-and an array of values. The storage formats that can be used with sparse
-vectors are float32, float64, and int8. Note that the binary storage format
-cannot be used with sparse vectors. You can define a column for a sparse
-vector using the following format::
+Sparse vectors are supported when you are using Oracle Database 23.7 or later.
+
+Sparse vectors are represented by the total number of vector dimensions, an
+array of indices, and an array of values where each value's location in the
+vector is indicated by the corresponding indices array position. All other
+vector values are treated as zero.  The storage formats that can be used with
+sparse vectors are float32, float64, and int8. Note that the binary storage
+format cannot be used with sparse vectors.
+
+For example, a string representation could be::
+
+    [25, [5, 8, 11], [25.25, 6.125, 8.25]]
+
+In this example, the sparse vector has 25 dimensions. Only indices 5, 8, and 11
+have values which are 25.25, 6.125, and 8.25 respectively. All of the other
+values are zero.
+
+In Oracle Database, you can define a column for a sparse vector using the
+following format::
 
     VECTOR(number_of_dimensions, dimension_storage_format, sparse)
 
@@ -239,7 +255,7 @@ For example, to create a table with three columns for sparse vectors:
         int8sparsecol vector(35, int8, sparse)
     )
 
-In this example the:
+In this example:
 
 - The float32sparsecol column can store sparse vector data of 25 dimensions
   where each dimension value is a 32-bit floating-point number.
@@ -256,18 +272,9 @@ Inserting SPARSE Vectors
 ------------------------
 
 With python-oracledb, sparse vector data can be inserted using
-:ref:`SparseVector objects <sparsevectorsobj>`. You can specify the number of
-dimensions, an array of indices, and an array of values as the data for a
-sparse vector. For example, the string representation is::
-
-    [25, [5,8,11], [25.25, 6.125, 8.25]]
-
-In this example, the sparse vector has 25 dimensions. Only indices 5, 8, and
-11 have values 25.25, 6.125, and 8.25 respectively. All of the other values
-are zero.
-
-The SparseVector objects are used as bind values when inserting sparse vector
-columns. For example:
+:ref:`SparseVector objects <sparsevectorsobj>`.  The SparseVector objects are
+used when fetching vectors, and as bind values when inserting sparse vector
+columns. For example to insert data:
 
 .. code-block:: python
 
@@ -289,7 +296,7 @@ columns. For example:
     )
 
     cursor.execute(
-        "insert into vector_sparse_table (:1, :2, :3)",
+        "insert into vector_sparse_table values (:1, :2, :3)",
         [float32_val, float64_val, int8_val]
     )
 
@@ -298,22 +305,42 @@ columns. For example:
 Fetching Sparse Vectors
 -----------------------
 
-With python-oracledb, sparse vector columns are fetched in the same format
-accepted by Oracle Database by using the str() function. For example:
+With python-oracledb, sparse vector columns are fetched as :ref:`SparseVector
+objects <sparsevectorsobj>`:
 
 .. code-block:: python
 
-    cursor.execute("select * from vec_sparse")
-    for float32_val, float64_val, int8_val in cursor:
-        print("float32:", str(float32_val))
-        print("float64:", str(float64_val))
-        print("int8:", str(int8_val))
+    cursor.execute("select * from vector_sparse_table")
+    for row in cursor:
+       print(row)
 
-This prints the following output::
+
+This prints::
+
+    (oracledb.SparseVector(25, array('I', [6, 10, 18]), array('f', [26.25, 129.625, 579.875])),
+     oracledb.SparseVector(30, array('I', [9, 16, 24]), array('d', [19.125, 78.5, 977.375])),
+     oracledb.SparseVector(35, array('I', [10, 20, 30]), array('b', [26, 125, -37])))
+
+Depending on context, the SparseVector type will be treated as a string:
+
+.. code-block:: python
+
+    cursor.execute("select * from vector_sparse_table")
+    for float32_val, float64_val, int8_val in cursor:
+        print("float32:", float32_val)
+        print("float64:", float64_val)
+        print("int8:", int8_val)
+
+This prints::
 
     float32: [25, [6, 10, 18], [26.25, 129.625, 579.875]]
     float64: [30, [9, 16, 24], [19.125, 78.5, 977.375]]
     int8: [35, [10, 20, 30], [26, 125, -37]]
+
+Values can also be explicitly passed to `str()
+<https://docs.python.org/3/library/stdtypes.html#str>`__, if needed.
+
+**SPARSE Vector Metadata**
 
 The :ref:`FetchInfo <fetchinfoobj>` object that is returned as part of the
 fetched metadata contains attributes :attr:`FetchInfo.vector_dimensions`,

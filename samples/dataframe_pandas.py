@@ -51,7 +51,6 @@ SQL = "select id, name from SampleQueryTab order by id"
 odf = connection.fetch_df_all(statement=SQL, arraysize=100)
 
 # Get a Pandas DataFrame from the data.
-# This is a zero copy call
 df = pandas.api.interchange.from_dataframe(odf)
 
 # Perform various Pandas operations on the DataFrame
