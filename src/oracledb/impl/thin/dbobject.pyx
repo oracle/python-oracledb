@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -76,6 +76,8 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         self.read_ub1(flags)
         self.read_ub1(version)
         self.skip_length()
+        if flags[0] & TNS_OBJ_IS_DEGENERATE:
+            errors._raise_not_supported("DbObject stored in a LOB")
         if flags[0] & TNS_OBJ_NO_PREFIX_SEG:
             return 0
         self.read_length(&prefix_seg_length)
