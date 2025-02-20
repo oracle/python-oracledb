@@ -771,7 +771,7 @@ the results:
     # Adjust arraysize to tune the query fetch performance
     odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
-    print(odf.odf.column_names())
+    print(odf.column_names())
     print(f"{odf.num_columns()} columns")
     print(f"{odf.num_rows()} rows")
 
