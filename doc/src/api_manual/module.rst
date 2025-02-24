@@ -2735,13 +2735,20 @@ Oracledb Methods
 
 .. function:: register_params_hook(hook_function)
 
-    Registers a user hook function that will be called internally by
+    Registers a user parameter hook function that will be called internally by
     python-oracledb prior to connection or pool creation. The hook function
     accepts a copy of the parameters that will be used to create the pool or
     standalone connection and may modify them. For example, the cloud native
     authentication plugins modify the "access_token" parameter with a function
     that will acquire the token using information found in the
     "extra_auth_parms" parameter.
+
+    Multiple hooks may be registered. They will be invoked in order of
+    registration.
+
+    To unregister a user function, use :meth:`oracledb.unregister_params_hook`.
+
+    See :ref:`registerparamshook`.
 
     .. note::
 
@@ -2751,7 +2758,7 @@ Oracledb Methods
 
 .. function:: register_password_type(password_type, hook_function)
 
-    Registers a user hook function that will be called internally by
+    Registers a user password hook function that will be called internally by
     python-oracledb when a password is supplied as a dictionary containing the
     given ``password_type`` as the key "type". The hook function is called for
     passwords specified as the ``password``, ``newpassword`` and
@@ -2776,7 +2783,7 @@ Oracledb Methods
 
 .. function:: register_protocol(protocol, hook_function)
 
-    Registers a user hook function that will be called internally by
+    Registers a user protocol hook function that will be called internally by
     python-oracledb Thin mode prior to connection or pool creation.  The hook
     function will be invoked when :func:`oracledb.connect`,
     :func:`oracledb.create_pool`, :meth:`oracledb.connect_async()`, or
@@ -2837,7 +2844,7 @@ Oracledb Methods
     parameter set to *None* will result in a previously registered user function
     being removed and the default behavior restored.
 
-    See :ref:`connectionhook` for more information.
+    See :ref:`registerprotocolhook` for more information.
 
     .. note::
 
@@ -2878,8 +2885,8 @@ Oracledb Methods
 
 .. function:: unregister_params_hook(hook_function)
 
-    Unregisters a user function that was earlier registered with a call to
-    :meth:`oracledb.register_params_hook()`.
+    Unregisters a user parameter function that was earlier registered with a
+    call to :meth:`oracledb.register_params_hook()`.
 
     .. note::
 
@@ -4495,6 +4502,11 @@ python-oracledb.  See :ref:`customplugins`. Note that the namespace
 ``oracledb.plugins.ldap_support`` is reserved for future use by the
 python-oracledb project.
 
+To use the python-oracledb plugins in your application, import using
+``import oracledb.plugins.<name of plugin>``, for example::
+
+    import oracledb.plugins.oci_config_provider
+
 .. versionadded:: 3.0.0
 
 .. _configociplugin:
@@ -4502,21 +4514,21 @@ python-oracledb project.
 Oracle Cloud Infrastructure (OCI) Object Storage Configuration Provider Plugin
 ------------------------------------------------------------------------------
 
-``oracledb.plugins.oci_config_provider`` is a plugin that provides access to
+``oci_config_provider`` is a plugin that can be imported to provide access to
 database connection credentials and application configuration information
 stored in the :ref:`OCI Object Storage configuration provider
 <ociobjstorageprovider>`.
 
-Importing this plugin defines and registers a pre-defined hook function with
-:meth:`oracledb.register_protocol()` to handle connection strings which have
-the prefix ``config-ociobject``, see :ref:`OCI Object Storage connection
-strings <connstringoci>`. The hook function parses these connection strings and
-gets the stored configuration information. Python-oracledb then uses this
-information to connect to Oracle Database.
+This plugin is implemented as a :ref:`connection protocol hook function
+<registerprotocolhook>` to handle connection strings which have the prefix
+``config-ociobject``, see :ref:`OCI Object Storage connection strings
+<connstringoci>`. The plugin parses these connection strings and gets the
+stored configuration information. Python-oracledb then uses this information to
+connect to Oracle Database.
 
 To use this plugin in python-oracledb Thick mode, you must set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
-:meth:`ConnectParams.parse_connect_string()`.
+:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
 See :ref:`ociobjstorageprovider` for more information.
 
@@ -4527,21 +4539,21 @@ See :ref:`ociobjstorageprovider` for more information.
 Azure App Configuration Provider Plugin
 ---------------------------------------
 
-``oracledb.plugins.azure_config_provider`` is a plugin that provides access to
+``azure_config_provider`` is a plugin that can be imported to provide access to
 database connection credentials and application configuration information
 stored in the :ref:`Azure App Configuration provider
 <azureappstorageprovider>`.
 
-Importing this plugin defines and registers a pre-defined hook function with
-:meth:`oracledb.register_protocol()` to handle connection strings which have
-the prefix ``config-azure``, see :ref:`Azure App Configuration connection
-strings <connstringazure>`.  The hook function parses these connection strings
-and gets the stored configuration information. Python-oracledb then uses this
-information to connect to Oracle Database.
+This plugin is implemented as a :ref:`connection protocol hook function
+<registerprotocolhook>` to handle connection strings which have the prefix
+``config-azure``, see :ref:`Azure App Configuration connection strings
+<connstringazure>`. The plugin parses these connection strings and gets the
+stored configuration information. Python-oracledb then uses this information to
+connect to Oracle Database.
 
 To use this plugin in python-oracledb Thick mode, you must set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
-:meth:`ConnectParams.parse_connect_string()`.
+:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
 See :ref:`azureappstorageprovider` for more information.
 
@@ -4552,12 +4564,18 @@ See :ref:`azureappstorageprovider` for more information.
 Oracle Cloud Infrastructure (OCI) Cloud Native Authentication Plugin
 --------------------------------------------------------------------
 
-``oci_tokens`` is a plugin that uses the Oracle Cloud Infrastructure (OCI)
-Software Development Kit (SDK) to generate access tokens when authenticating
-with OCI Identity and Access Management (IAM) token-based authentication.
-Importing this plugin defines and
-:meth:`registers <oracledb.register_params_hook()>`, the built-in hook function
-that generates OCI IAM access tokens. See :ref:`cloudnativeauthoci`.
+``oci_tokens`` is a plugin that can be imported to use the `Oracle Cloud
+Infrastructure (OCI) Software Development Kit (SDK)
+<https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm>`__ for
+generating access tokens when authenticating with OCI Identity and Access
+Management (IAM) token-based authentication.
+
+This plugin is implemented as a :ref:`parameter hook function
+<registerparamshook>` which uses the ``extra_auth_params`` parameter values of
+your connection and pool creation calls to generate OCI IAM access tokens.
+Python-oracledb then uses these tokens to connect to Oracle Database.
+
+See :ref:`cloudnativeauthoci` for more information.
 
 .. versionadded:: 3.0.0
 
@@ -4566,10 +4584,17 @@ that generates OCI IAM access tokens. See :ref:`cloudnativeauthoci`.
 Azure Cloud Native Authentication Plugin
 ----------------------------------------
 
-``azure_tokens`` is a plugin that uses the Microsoft Authentication Library
-(MSAL) to generate access tokens when authenticating with OAuth 2.0 token-based
-authentication. Importing this plugin defines and
-:meth:`registers <oracledb.register_params_hook()>`, the built-in hook function
-that generates OAuth2 access tokens. See :ref:`cloudnativeauthoauth`.
+``azure_tokens`` is a plugin that can be imported to use the `Microsoft
+Authentication Library (MSAL)
+<https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py- latest>`__
+for generating access tokens when authenticating with OAuth 2.0 token-based
+authentication.
+
+This plugin is implemented as a :ref:`parameter hook function
+<registerparamshook>` which uses the ``extra_auth_params`` parameter values of
+your connection and pool creation calls to generate OAuth2 access tokens.
+Python-oracledb then uses these tokens to connect to Oracle Database.
+
+See :ref:`cloudnativeauthoauth` for more information.
 
 .. versionadded:: 3.0.0

@@ -459,22 +459,27 @@ Reference <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
 LDAP URL Connection Strings
 ---------------------------
 
-Oracle Client 23ai introduced support for LDAP URLs to be used as connection
-strings. This syntax removes the need for external ``ldap.ora`` and
-``sqlnet.ora`` files.  See the technical brief `Oracle Client 23ai LDAP URL
-Syntax <https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.
-pdf>`__.  For example, python-oracledb Thick mode applications using Oracle
-Client 23ai could connect using:
+The python-oracledb connection string can be an LDAP URL like:
 
 .. code-block:: python
 
     ldapurl = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
     connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
 
-This syntax is also usable in python-oracledb Thin mode via a :ref:`connection
-hook function <connectionhook>`, see :ref:`ldapconnections`. In
-python-oracledb Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is
-*False*, a connection hook function is also required.
+This syntax removes the need for external LDAP and ``sqlnet.ora`` configuration
+files. See the technical brief `Oracle Client 23ai LDAP URL Syntax
+<https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.pdf>`__.
+
+In python-oracledb Thin mode, an additional :ref:`connection protocol hook
+function <registerprotocolhook>` is required to handle this connection
+protocol, see :ref:`ldapconnections`. A connection protocol hook function is
+also required in python-oracledb Thick mode if
+:attr:`defaults.thick_mode_dsn_passthrough` is *False*.
+
+To use LDAP URLs in python-oracledb Thick mode applications when
+:attr:`defaults.thick_mode_dsn_passthrough` is *True*, the Oracle Client
+libraries must be 23.4, or later.
+
 
 .. _configproviderurl:
 
@@ -910,17 +915,17 @@ The following configuration providers are supported by python-oracledb:
   <azureappstorageprovider>`
 
 To use python-oracledb :ref:`Centralized Configuration Provider
-<configurationproviders>` functionality in Thick mode, you must set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
-:meth:`ConnectParams.parse_connect_string()`.
+<configurationproviders>` functionality in Thick mode, you should set
+:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
-In Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is *True*, it
-is the Oracle Client libraries that access the configuration provider when
-python-oracledb connection or pool creation methods are invoked. Any
-python-oracledb parameter section will be ignored. Any Oracle Client Interface
-parameter section should be removed from the configuration because its values
-may be different to those that python-oracledb assumes, and will cause
-undefined behavior.
+Note: In Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is
+*True*, it is the Oracle Client libraries that access the configuration
+provider when python-oracledb connection or pool creation methods are
+invoked. Any python-oracledb parameter section will be ignored. Any Oracle
+Client Interface parameter section should be *removed* from the configuration
+because its values may be different to those that python-oracledb assumes, and
+will cause undefined behavior.
 
 **Precedence of Attributes**
 
@@ -1111,7 +1116,7 @@ To use an OCI Object Storage Centralized Configuration Provider, you must:
    <ociconfigparams>` for the configuration information that can be added.
 
 2. Install the Python `OCI <https://pypi.org/project/oci/>`__ module, see
-   :ref:`ocimodules`.
+   :ref:`ociccpmodules`.
 
 3. Import the :ref:`oracledb.plugins.oci_config_provider <configociplugin>`
    plugin in your application.
@@ -1308,7 +1313,7 @@ To use python-oracledb with Azure App Configuration, you must:
    Provider. See :ref:`Azure App Centralized Configuration Provider Parameters
    <azureconfigparams>`.
 
-2. Install the Azure App modules, see :ref:`azuremodules`.
+2. Install the Azure App modules, see :ref:`azureccpmodules`.
 
 3. Import the :ref:`oracledb.plugins.azure_config_provider <configazureplugin>`
    plugin in your application.
@@ -1537,7 +1542,7 @@ Using the ConnectParams Builder Class
 The :ref:`ConnectParams class <connparam>` allows you to define connection
 parameters in a single place.  The :func:`oracledb.ConnectParams()` function
 returns a :ref:`ConnectParams <connparam>` object.  The object can be passed to
-:func:`oracledb.connect()`. For example:
+:func:`oracledb.connect()` or :meth:`oracledb.connect_async()`. For example:
 
 .. code-block:: python
 
@@ -1545,9 +1550,11 @@ returns a :ref:`ConnectParams <connparam>` object.  The object can be passed to
                                 host="dbhost", port=1521, service_name="orclpdb")
     connection = oracledb.connect(params=cp)
 
+For connection pools, see :ref:`usingpoolparams`.
+
 The use of the ConnectParams class is optional because you can pass the same
-parameters directly to :func:`~oracledb.connect()`.  For example, the code above
-is equivalent to:
+parameters directly to :func:`~oracledb.connect()`.  For example, the code
+above is equivalent to:
 
 .. code-block:: python
 
@@ -1579,13 +1586,17 @@ individual parameters, and ``params`` object values. The precedence is that
 values in a ``dsn`` parameter override values passed as individual parameters,
 which themselves override values set in the ``params`` object.
 
-To parse a connection string and store components as attributes:
+To parse a connection string and store its components as attributes of a
+ConnectParams instance, use :meth:`ConnectParams.parse_connect_string()`. For
+example:
 
 .. code-block:: python
 
     dsn = "host.example.com:1522/orclpdb?transport_connect_timeout=15&pyo.stmtcachesize=30"
     cp = oracledb.ConnectParams()
     cp.parse_connect_string(dsn)
+
+    connection = oracledb.connect(user="hr", password=userpwd, params=cp)
 
 Most parameter values of :func:`oracledb.ConnectParams()` are gettable as
 attributes. For example, to get the stored host name:
@@ -1611,18 +1622,22 @@ You can set individual default attributes using :meth:`ConnectParams.set()`:
 Note :meth:`ConnectParams.set()` has no effect after
 :meth:`ConnectParams.parse_connect_string()` has been called.
 
-The :meth:`ConnectParams.parse_dsn_with_credentials()` can be used to extract
-the username, password and connection string from a DSN:
+The method :meth:`ConnectParams.parse_dsn_with_credentials()` can be used to
+extract the username, password, and connection string from a DSN:
 
 .. code-block:: python
 
     cp = oracledb.ConnectParams()
     (un,pw,cs) = cp.parse_dsn_with_credentials("scott/tiger@localhost/orclpdb")
 
-Empty values are returned as ``None``.
+    print(un)   # scott
+    print(pw)   # tiger
+    print(cs)   # localhost/orclpdb
 
-The :meth:`ConnectParams.get_network_service_names()` can be used to get a list
-of the network service names that are defined in the :ref:`tnsnames.ora
+Any component not found in the DSN is returned as *None*.
+
+The method :meth:`ConnectParams.get_network_service_names()` can be used to get
+a list of the network service names that are defined in the :ref:`tnsnames.ora
 <optnetfiles>` file. The directory that contains file can be specified in the
 :attr:`~ConnectParams.config_dir` attribute.
 
@@ -1632,7 +1647,7 @@ of the network service names that are defined in the :ref:`tnsnames.ora
                                 config_dir="/opt/oracle/config")
     cp.get_network_service_names()
 
-If the :meth:`ConnectParams.get_network_service_names()` method is called but a
+If :meth:`ConnectParams.get_network_service_names()` is called but a
 :ref:`tnsnames.ora <optnetfiles>` file does not exist, then an error such as
 the following is returned::
 
@@ -1643,42 +1658,47 @@ error is returned::
 
     DPY-4027: no configuration directory specified
 
-When creating a standalone connection or connection pool the equivalent
-internal extraction is done automatically when a value is passed to the ``dsn``
-parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
-no value is passed to the ``user`` password.
+When creating a standalone connection (or connection pool with a
+:ref:`PoolParams class <poolparam>`) the equivalent internal extraction is done
+automatically when a value is passed for the ``dsn`` parameter of
+:meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+:meth:`oracledb.create_pool()`, or :meth:`oracledb.create_pool_async()` but no
+value is passed for the ``user`` parameter.
 
 .. _connectionhook:
 
 Connection Hook Functions
 =========================
 
-Python-oracledb supports hook functions that can be used to customize
-connection logic.
+Python-oracledb supports protocol, password, and parameter hook functions that
+can be used to customize connection logic.
 
-Using oracledb.register_protocol()
-----------------------------------
+.. _registerprotocolhook:
 
-The :meth:`oracledb.register_protocol()` method registers a user hook function
-that will be called internally by python-oracledb Thin mode prior to connection
-or pool creation.  The hook function will be invoked when
+Using Protocol Hook Functions
+-----------------------------
+
+The :meth:`oracledb.register_protocol()` method registers a user protocol hook
+function that will be called internally by python-oracledb Thin mode prior to
+connection or pool creation.  The hook function will be invoked when
 :func:`oracledb.connect`, :func:`oracledb.create_pool`,
 :meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` are
 called with a ``dsn`` parameter value prefixed with a specified protocol.  Your
 hook function is expected to construct valid connection details, which
 python-oracledb will use to complete the connection or pool creation.
 
-You can also make use of a hook function in python-oracledb Thick mode
+You can also make use of a protocol hook function in python-oracledb Thick mode
 connection calls by setting :attr:`defaults.thick_mode_dsn_passthrough` to
-*False*.
+*False*. Alternatively use :meth:`ConnectParams.parse_connect_string()`, see
+:ref:`usingconnparams`.
 
 For example, the following hook function handles connection strings prefixed
-with ``tcp://``.  When :func:`oracledb.connect()` is called, the sample hook is
-invoked internally. It prints the parameters, and sets the connection
-information in the ``params`` parameter (without passing the ``tcp://`` prefix
-to :meth:`~ConnectParams.parse_connect_string()` otherwise recursion would
-occur).  This modified ConnectParams object is used by python-oracledb to
-establish the database connection:
+with the ``tcp://`` protocol. When :func:`oracledb.connect()` is called, the
+sample hook is invoked internally. It prints the parameters, and sets the
+connection information in the ``params`` parameter (without passing the
+``tcp://`` prefix to :meth:`~ConnectParams.parse_connect_string()` otherwise
+recursion would occur).  This modified ConnectParams object is used by
+python-oracledb to establish the database connection:
 
 .. code-block:: python
 
@@ -1706,9 +1726,9 @@ The ``params`` :ref:`attributes <connparamsattr>` can be set with
 
 See :ref:`ldapconnections` for a fuller example.
 
-Internal hook functions for the “tcp” and “tcps” protocols are pre-registered
-but can be overridden, if needed.  If any other protocol has not been
-registered, then connecting will result in an error.
+Internal protocol hook functions for the "tcp" and "tcps" protocols are
+pre-registered but can be overridden, if needed.  If any other protocol has not
+been registered, then connecting will result in an error.
 
 Calling :meth:`~oracledb.register_protocol()` with the ``hook_function``
 parameter set to None will result in a previously registered user function
@@ -1716,8 +1736,9 @@ being removed and the default behavior restored.
 
 **Connection Hooks and parse_connect_string()**
 
-A registered user hook function will also be invoked in python-oracledb Thin or
-Thick modes when :meth:`ConnectParams.parse_connect_string()` is called with a
+A registered user protocol hook function will also be invoked in
+python-oracledb Thin or Thick modes when
+:meth:`ConnectParams.parse_connect_string()` is called with a
 ``connect_string`` parameter beginning with the registered protocol.  The hook
 function ``params`` value will be the invoking ConnectParams instance that you
 can update using :meth:`ConnectParams.set()` or
@@ -1740,8 +1761,8 @@ prints::
     host is localhost, port is 1234, service name is orclpdb
 
 If you have an application that can run in either python-oracledb Thin or Thick
-modes, and you want a registered connection hook function to be used in both
-modes, your connection code can be like:
+modes, and you want a registered connection protocol hook function to be used
+in both modes, your connection code can be like:
 
 .. code-block:: python
 
@@ -1753,21 +1774,23 @@ modes, your connection code can be like:
 
 .. _registerpasswordtype:
 
-Using oracledb.register_password_type()
----------------------------------------
+Using Password Hook Functions
+-----------------------------
 
-The :meth:`oracledb.register_password_type()` method registers a user hook
-function that will be called internally by python-oracledb prior to connection
-or pool creation by :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. If
-the ``password``, ``newpassword``, or ``wallet_password`` parameters to those
-methods are a dictionary containing the key "type", then the registered user
-hook function for the specific type will be invoked.  Your hook function is
-expected to accept the dictionary and return the actual password string.
+The :meth:`oracledb.register_password_type()` method registers a user password
+hook function that will be called internally by python-oracledb prior to
+connection or pool creation when :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` are called. If the ``password``,
+``newpassword``, or ``wallet_password`` parameters to those methods are a
+dictionary containing the key "type", then the registered user password hook
+function for the specific type will be invoked.  Your hook function is expected
+to accept the dictionary and return the actual password string.
 
-Below is an example of a hook function that handles passwords of type base64
-stored in a dict like "dict(type='base64', value='dGlnZXI=')".  Note this
-specific hook function is already included and registered in python-oracledb:
+Below is an example of a password hook function that handles passwords of type
+base64 stored in a dict like "dict(type='base64', value='dGlnZXI=')".  Note
+this specific hook function is already included and registered in
+python-oracledb:
 
 .. code-block:: python
 
@@ -1788,20 +1811,20 @@ connection to the database:
                                   dsn="localhost/orclpdb")
 
 Calling :meth:`~oracledb.register_password_type()` with the ``hook_function``
-parameter set to None will result in a previously registered user function
+parameter set to *None* will result in a previously registered user function
 being removed.
 
-.. _registerparamshook():
+.. _registerparamshook:
 
-Using oracledb.register_params_hook()
--------------------------------------
+Using Parameter Hook Functions
+------------------------------
 
-The :meth:`oracledb.register_params_hook()` method registers a user hook
-function that will be called internally by python-oracledb prior to connection
-or pool creation when :meth:`oracledb.connect()`,
+The :meth:`oracledb.register_params_hook()` method registers a user parameter
+hook function that will be called internally by python-oracledb prior to
+connection or pool creation when :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
-:meth:`oracledb.create_pool_async()` are called. Your hook function should
-accept a copy of the parameters that will be used to create the pool or
+:meth:`oracledb.create_pool_async()` are called. Your parameter hook function
+should accept a copy of the parameters that will be used to create the pool or
 standalone connections. The function can access and modify them in any way
 necessary to allow python-oracledb to subsequently complete the connection or
 pool creation request.
@@ -1814,7 +1837,7 @@ in a connection method's ``extra_auth_params`` parameter and modifies the
 token needed to complete a connection. Refer to the complete plugin
 implementation in `oci_tokens.py <https://github.com/oracle/python-oracledb/
 blob/main/src/oracledb/plugins/oci_tokens.py>`__. The key code section showing
-registering of a hook function is:
+registering of a parameter hook function is:
 
 .. code-block:: python
 
@@ -1870,32 +1893,44 @@ Database Clients for OID and OUD Directory Naming
 and `Configuring Oracle Database Clients for Microsoft Active Directory Naming
 <https://www.oracle.com/a/otn/docs/database/oracle-net-active-directory-naming.pdf>`__.
 
-**Thick Mode**
+The DSN for LDAP connections can be an alias, as shown in the above references.
+Alternatively it can be an LDAP URL. The URL syntax removes the need for
+external LDAP and ``sqlnet.ora`` configuration files. See the technical brief
+`Oracle Client 23ai LDAP URL Syntax
+<https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.  pdf>`__.
 
-Once a directory server is configured, python-oracledb Thick mode applications
-can use the desired LDAP alias as the connection DSN.
+**Python-oracledb Thick Mode LDAP Aliases**
 
-Oracle Client 23ai introduced support for LDAP URLs to be used as connection
-strings. This syntax removes the need for external ``ldap.ora`` and
-``sqlnet.ora`` files.  See the technical brief `Oracle Client 23ai LDAP URL
-Syntax <https://www.oracle.com/a/otn/docs/database/oracle-net-23ai-ldap-url.
-pdf>`__.  For example, python-oracledb Thick mode applications using Oracle
-Client 23ai could connect using:
+Once a directory server is configured, and necessary configuration files have
+been created as explained in the above references, python-oracledb Thick mode
+applications can use the LDAP alias as the python-oracledb connection DSN:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="scott", password=pw, dsn="myLdapAlias")
+
+**Python-oracledb Thick Mode LDAP URLs**
+
+Python-oracledb Thick mode applications using Oracle Client 23.4, or later, can
+connect with an LDAP URL. For example:
 
 .. code-block:: python
 
     ldapurl = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
     connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
 
-Note when :attr:`defaults.thick_mode_dsn_passthrough` is *False*, a connection
-hook function as shown below for python-oracledb Thin mode is required.
+To use an LDAP URL in python-oracledb Thick mode when
+:attr:`defaults.thick_mode_dsn_passthrough` is *False*, a connection hook
+function is required as shown below for Thin mode. This lets LDAP URLs be
+utilized when python-oracledb uses any supported Oracle Client library version.
 
-**Thin Mode**
+**Python-oracledb Thin Mode LDAP URLs**
 
-To use LDAP in python-oracledb Thin mode, specify an LDAP URL as the DSN and
-call :meth:`oracledb.register_protocol()` to register your own user
-:ref:`connection hook function <connectionhook>` that gets the connect
-string from your LDAP server.
+To use LDAP in python-oracledb Thin mode, call
+:meth:`oracledb.register_protocol()` to register your own user :ref:`connection
+protocol hook function <registerprotocolhook>` that gets the database
+connection string from your LDAP server. Your application can then specify an
+LDAP URL as the DSN in connection and pool creation calls.
 
 For example:
 
@@ -1927,8 +1962,8 @@ For example:
                  dsn="ldap://ldapserver/dbname,cn=OracleContext,dc=dom,dc=com")
 
 You can modify or extend this as needed, for example to use an LDAP module that
-satisfies your business and security requirements, or to cache the response
-from the LDAP server.
+satisfies your business and security requirements, to handled LDAPS, or to
+cache the response from the LDAP server.
 
 .. _appcontext:
 
@@ -2700,9 +2735,10 @@ Using the PoolParams Builder Class
 The :ref:`PoolParams class <poolparam>` allows you to define connection and
 pool parameters in a single place.  The :func:`oracledb.PoolParams()` function
 returns a :ref:`PoolParams <poolparam>` object.  This is a subclass of the
-:ref:`ConnectParams class <connparam>` with additional pool-specific attributes
-such as the pool size.  A ``PoolParams`` object can be passed to
-:func:`oracledb.create_pool()`. For example:
+:ref:`ConnectParams class <connparam>` (see :ref:`usingconnparams`) with
+additional pool-specific attributes such as the maximum pool size. A
+``PoolParams`` object can be passed to :func:`oracledb.create_pool()`. For
+example:
 
 .. code-block:: python
 
@@ -3938,8 +3974,7 @@ With Cloud Native Authentication, python-oracledb's :ref:`azure_tokens
 <azurecloudnativeauthplugin>` plugin can automatically generate and refresh
 OAuth2 tokens when required with the support of the `Microsoft Authentication
 Library (MSAL) <https://learn.microsoft.com/en-us/
-entra/msal/python/?view=msal-py-latest>`__. This provides enhanced security
-since it removes the need to use static user credentials.
+entra/msal/python/?view=msal-py-latest>`__.
 
 The :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin can be imported
 like:
@@ -3948,30 +3983,31 @@ like:
 
     import oracledb.plugins.azure_tokens
 
-The plugin defines and registers a built-in hook function that generates OAuth2
-tokens. The function is internally invoked when the parameter
-``extra_auth_params`` is specified in calls to :meth:`oracledb.connect()`,
+The plugin has a Python package dependency which needs to be installed
+separately before the plugin can be used, see :ref:`azuretokenmodules`.
+
+The ``azure_tokens`` plugin defines and registers a :ref:`parameter hook
+<registerparamshook>` function which uses the connection parameter
+``extra_auth_params`` passed to :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
-:meth:`oracledb.create_pool_async()`. This hook function sets the
-``access_token`` parameter of the :ref:`ConnectParams object <connparam>` to a
-callable which uses the configuration parameters specified to generate OAuth2
-tokens.
+:meth:`oracledb.create_pool_async()`. Using this parameter's values, the hook
+function sets the ``access_token`` parameter of a :ref:`ConnectParams object
+<connparam>` to a callable which generates an OAuth2 token. Python-oracledb
+then acquires and uses a token to transparently complete connection or pool
+creation calls.
 
-For OAuth 2.0 Token-Based Authentication with the :ref:`azure_tokens
-<azurecloudnativeauthplugin>` plugin, the ``extra_auth_params`` connection
-parameter must be specified. This parameter should be a dictionary containing
-the configuration parameters necessary to retrieve a token for Oracle Database
-authentication. The Azure specific configuration parameters that can be
-specified in ``extra_auth_params`` are:
+For OAuth 2.0 Token-Based Authentication connection and pool creation, the
+``extra_auth_params`` parameter should be a dictionary with keys as shown in
+the following table.
 
-.. list-table-with-summary:: Azure Cloud Native Authentication Configuration Parameters
+.. list-table-with-summary:: Azure Cloud Native Authentication Configuration Keys
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 10 30 10
     :name: _azure_configuration_parameters
-    :summary: The first column displays the parameter. The second column displays the description of the parameter. The third column displays whether the parameter is required or optional.
+    :summary: The first column displays the dictionary key. The second column displays the description of the key. The third column displays whether the parameter is required or optional.
 
-    * - Parameter
+    * - Key
       - Description
       - Required or Optional
     * - ``auth_type``
@@ -4388,9 +4424,7 @@ With Cloud Native Authentication, python-oracledb's :ref:`oci_tokens
 <ocicloudnativeauthplugin>` plugin can automatically generate and refresh OCI
 IAM tokens when required with the support of the `Oracle Cloud Infrastructure
 (OCI) Software Development Kit (SDK)
-<https://docs.oracle.com/en-us/iaas/tools/python/2.144.1/installation.html>`__.
-This provides enhanced security since it removes the need to use static user
-credentials.
+<https://docs.oracle.com/en-us/iaas/tools/python/latest/index.html>`__.
 
 The :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin can be imported
 like:
@@ -4399,30 +4433,36 @@ like:
 
     import oracledb.plugins.oci_tokens
 
-This plugin defines and registers a built-in hook function that generates OCI
-IAM tokens. The function is internally invoked when the parameter
-``extra_auth_params`` is specified in calls to :meth:`oracledb.connect()`,
+The plugin has a Python package dependency which needs to be installed
+separately before the plugin can be used, see :ref:`ocitokenmodules`.
+
+The ``oci_tokens`` plugin defines and registers a :ref:`parameter hook
+<registerparamshook>` function which uses the connetion parameter
+``extra_auth_params`` passed to :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
-:meth:`oracledb.create_pool_async()`. This hook function sets the
-``access_token`` parameter of :ref:`ConnectParams object <connparam>` to a
-callable which uses the configuration parameters specified to generate OCI IAM
-tokens.
+:meth:`oracledb.create_pool_async()`. Using this parameter's values, the hook
+function sets the ``access_token`` parameter of a :ref:`ConnectParams object
+<connparam>` to a callable which generates an OCI IAM token. Python-oracledb
+then acquires and uses a token to transparently complete connection or pool
+creation calls.
 
-For OCI IAM Token-Based Authentication with the :ref:`oci_tokens
-<ocicloudnativeauthplugin>` plugin, the ``extra_auth_params`` connection
-parameter must be specified. This parameter should be a dictionary containing
-the configuration parameters necessary to retrieve a token for Oracle Database
-authentication. The OCI specific configuration parameters that can be specified
-in ``extra_auth_params`` are:
+The ``extra_auth_params`` connection parameter should be a dictionary
+containing the configuration parameters necessary to retrieve a token for
+Oracle Database authentication. The OCI specific configuration parameters that
+can be specified in ``extra_auth_params`` are:
 
-.. list-table-with-summary:: OCI Cloud Native Authentication Configuration Parameters
+For OCI Cloud Native Authentication connection and pool creation, the
+``extra_auth_params`` parameter should be a dictionary with keys as shown in
+the following table.
+
+.. list-table-with-summary:: OCI Cloud Native Authentication Configuration Keys
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 10 25 15
     :name: _oci_configuration_parameters
-    :summary: The first column displays the name of the parameter. The second column displays its description. The third column displays whether the attribute is required or optional.
+    :summary: The first column displays the name of the dictionary key. The second column displays its description. The third column displays whether the attribute is required or optional.
 
-    * - Parameter
+    * - Key
       - Description
       - Required or Optional
     * - ``auth_type``

@@ -1029,25 +1029,25 @@ Python versions.
 Installing Centralized Configuration Provider Modules for python-oracledb
 =========================================================================
 
-To use python-oracledb with :ref:`centralized configuration providers
-<configurationproviders>`, you must install the necessary module for your
-preferred configuration provider as detailed below.
+To use python-oracledb with a :ref:`centralized configuration provider
+<configurationproviders>`, you must install the necessary modules for your
+preferred provider as detailed below.
 
-.. _ocimodules:
+.. _ociccpmodules:
 
 Install Modules for the OCI Object Storage Centralized Configuration Provider
 -----------------------------------------------------------------------------
 
 For python-oracledb to use an :ref:`Oracle Cloud Infrastructure (OCI) Object
 Storage configuration provider <ociobjstorageprovider>`, you must install the
-`OCI <https://pypi.org/ project/oci/>`__ module::
+`OCI <https://pypi.org/project/oci/>`__ package::
 
     python -m pip install oci
 
 See :ref:`ociobjstorageprovider` for information on using this configuration
 provider with python-oracledb.
 
-.. _azuremodules:
+.. _azureccpmodules:
 
 Install Modules for the Azure App Centralized Configuration Provider
 --------------------------------------------------------------------
@@ -1056,15 +1056,57 @@ For python-oracledb to use an :ref:`Azure App Configuration Provider
 <azureappstorageprovider>`, you must install the `Azure App Configuration
 <https://pypi.org/project/azure-appconfiguration/>`__, `Azure Core
 <https://pypi.org/project/azure-core/>`__, and `Azure Identity
-<https://pypi.org/project/azure-identity/>`__ modules::
+<https://pypi.org/project/azure-identity/>`__ packages::
 
     python -m pip install azure-appconfiguration azure-core azure-identity
 
 If your password is stored in the Azure Key vault, then you additionally need
 to install the `Azure Key Vault Secrets <https://pypi.org/project/azure-
-keyvault-secrets/>`__ module::
+keyvault-secrets/>`__ package::
 
     python -m pip install azure-keyvault-secrets
 
 See :ref:`azureappstorageprovider` for information on using this configuration
 provider with python-oracledb.
+
+Installing Cloud Native Authentication Modules for python-oracledb
+==================================================================
+
+To use a python-oracledb Cloud Native Authentication plugin, you must install
+the necessary modules for your preferred plugin, as detailed below.
+
+.. _ocitokenmodules:
+
+Install Modules for the OCI Cloud Native Authentication Plugin
+--------------------------------------------------------------
+
+For python-oracledb to use the OCI Cloud Native Authentication Plugin, you must
+install the `Python SDK for Oracle Cloud Infrastructure
+<https://pypi.org/project/oci/>`__ package::
+
+    python -m pip install oci
+
+Review the `OCI SDK installation instructions
+<https://docs.oracle.com/en-us/iaas/tools/python/latest/installation.html>`__
+as needed.
+
+See :ref:`cloudnativeauthoci` for more information on using the plugin in
+python-oracledb.
+
+.. _azuretokenmodules:
+
+Install Modules for the Azure Cloud Native Authentication Plugin
+----------------------------------------------------------------
+
+For python-oracledb to use the Azure Cloud Native Authentication Plugin, you
+must install the `Microsoft Authentication Library (MSAL) for Python
+<https://pypi.org/project/msal/>`__ package::
+
+    python -m pip install msal
+
+Review the `Microsoft MSAL installation instructions
+<https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-latest#install-the-package>`__
+as needed.
+
+See :ref:`cloudnativeauthoauth` for more information on using the plugin in
+python-oracledb.
