@@ -29,10 +29,11 @@
 # store from OCI Object Storage.
 # -----------------------------------------------------------------------------
 
-import re
+import base64
 import json
 import oci
 import oracledb
+import re
 
 from urllib.parse import urlparse, parse_qs
 
@@ -212,7 +213,9 @@ def password_type_oci_vault_hook(args):
     get_secret_bundle_response = secret_client_oci.get_secret_bundle(
         **get_secret_bundle_request
     )
-    return get_secret_bundle_response.data.secret_bundle_content.content
+    # decoding the vault content
+    b64content = get_secret_bundle_response.data.secret_bundle_content.content
+    return base64.b64decode(b64content).decode()
 
 
 def _retrieve_region(objservername):
