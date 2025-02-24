@@ -90,10 +90,11 @@ PARAMETERS = {}
 def _initialize():
     """
     Performs initialization of the test environment. This ensures the desired
-    mode is set, imports any required plugins and establishes a test
-    connection to ensure that the supplied credentials are correct.
+    mode is set and imports any required plugins.
     """
-    if not get_is_thin():
+    if PARAMETERS.get("INITIALIZED"):
+        return
+    if not get_is_thin() and oracledb.is_thin_mode():
         oracledb.init_oracle_client()
         oracledb.defaults.thick_mode_dsn_passthrough = False
     plugin_names = os.environ.get("PYO_TEST_PLUGINS")
@@ -102,6 +103,7 @@ def _initialize():
             module_name = f"oracledb.plugins.{name}"
             print("importing module", module_name)
             importlib.import_module(module_name)
+    PARAMETERS["INITIALIZED"] = True
 
 
 def get_value(name, label, default_value=None, password=False):
@@ -109,7 +111,6 @@ def get_value(name, label, default_value=None, password=False):
         return PARAMETERS[name]
     except KeyError:
         pass
-    requires_initialization = len(PARAMETERS) == 0
     env_name = "PYO_TEST_" + name
     value = os.environ.get(env_name)
     if value is None:
@@ -123,12 +124,11 @@ def get_value(name, label, default_value=None, password=False):
     if not value:
         value = default_value
     PARAMETERS[name] = value
-    if requires_initialization:
-        _initialize()
     return value
 
 
 def get_admin_connection(use_async=False):
+    _initialize()
     admin_user = get_value("ADMIN_USER", "Administrative user", "admin")
     admin_password = get_value(
         "ADMIN_PASSWORD", f"Password for {admin_user}", password=True
@@ -229,6 +229,7 @@ def get_client_version():
         if get_is_thin():
             value = (23, 7)
         else:
+            _initialize()
             value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
     return value
@@ -247,6 +248,7 @@ def get_connect_params():
 
 
 def get_connection(dsn=None, use_async=False, **kwargs):
+    _initialize()
     if dsn is None:
         dsn = get_connect_string()
     method = oracledb.connect_async if use_async else oracledb.connect
@@ -316,6 +318,7 @@ def get_main_user():
 
 
 def get_pool(use_async=False, **kwargs):
+    _initialize()
     method = oracledb.create_pool_async if use_async else oracledb.create_pool
     return method(dsn=get_connect_string(), params=get_pool_params(), **kwargs)
 
