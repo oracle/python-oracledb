@@ -62,35 +62,32 @@ queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
 queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
 
 # enqueue a few messages
-with connection.cursor() as cursor:
-    print("Enqueuing messages...")
-    for data in PAYLOAD_DATA:
-        print(data)
-        queue.enqone(connection.msgproperties(payload=data))
-    connection.commit()
-    print()
+print("Enqueuing messages...")
+for data in PAYLOAD_DATA:
+    print(data)
+    queue.enqone(connection.msgproperties(payload=data))
+connection.commit()
+print()
 
 # dequeue the messages for consumer A
-with connection.cursor() as cursor:
-    print("Dequeuing the messages for consumer A...")
-    queue.deqoptions.consumername = "SUBSCRIBER_A"
-    while True:
-        props = queue.deqone()
-        if not props:
-            break
-        print(props.payload.decode())
-    connection.commit()
-    print()
+print("Dequeuing the messages for consumer A...")
+queue.deqoptions.consumername = "SUBSCRIBER_A"
+while True:
+    props = queue.deqone()
+    if not props:
+        break
+    print(props.payload.decode())
+connection.commit()
+print()
 
 # dequeue the message for consumer B
-with connection.cursor() as cursor:
-    print("Dequeuing the messages for consumer B...")
-    queue.deqoptions.consumername = "SUBSCRIBER_B"
-    while True:
-        props = queue.deqone()
-        if not props:
-            break
-        print(props.payload.decode())
-    connection.commit()
+print("Dequeuing the messages for consumer B...")
+queue.deqoptions.consumername = "SUBSCRIBER_B"
+while True:
+    props = queue.deqone()
+    if not props:
+        break
+    print(props.payload.decode())
+connection.commit()
 
 print("\nDone.")

@@ -56,31 +56,28 @@ connection = oracledb.connect(
 )
 
 # create a queue
-with connection.cursor() as cursor:
-    queue = connection.queue(QUEUE_NAME)
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+queue = connection.queue(QUEUE_NAME)
+queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
 
-    # dequeue all existing messages to ensure the queue is empty, just so that
-    # the results are consistent
-    while queue.deqone():
-        pass
+# dequeue all existing messages to ensure the queue is empty, just so that
+# the results are consistent
+while queue.deqone():
+    pass
 
 # enqueue a few messages
 print("Enqueuing messages...")
-with connection.cursor() as cursor:
-    for data in PAYLOAD_DATA:
-        print(data)
-        queue.enqone(connection.msgproperties(payload=data))
-    connection.commit()
+for data in PAYLOAD_DATA:
+    print(data)
+    queue.enqone(connection.msgproperties(payload=data))
+connection.commit()
 
 # dequeue the messages
 print("\nDequeuing messages...")
-with connection.cursor() as cursor:
-    while True:
-        props = queue.deqone()
-        if not props:
-            break
-        print(props.payload.decode())
-    connection.commit()
-    print("\nDone.")
+while True:
+    props = queue.deqone()
+    if not props:
+        break
+    print(props.payload.decode())
+connection.commit()
+print("\nDone.")
