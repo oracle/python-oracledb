@@ -46,6 +46,7 @@ connection = oracledb.connect(
 )
 
 # -----------------------------------------------------------------------------
+#
 # Creating a PyArrow table
 
 SQL1 = "select id, name from SampleQueryTab order by id"
@@ -72,6 +73,7 @@ print("\nNumber of rows and columns:")
 print(f"{r} rows, {c} columns")
 
 # -----------------------------------------------------------------------------
+#
 # Creating a PyArrow array
 
 SQL2 = "select id from SampleQueryTab order by id"

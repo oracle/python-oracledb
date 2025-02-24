@@ -907,6 +907,7 @@ org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__ is:
 .. code-block:: python
 
     import pandas
+    import pyarrow
 
     # Get an OracleDataFrame
     # Adjust arraysize to tune the query fetch performance
@@ -915,7 +916,9 @@ org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__ is:
     odf = connection.fetch_df_all(statement=sql, parameters=[myid], arraysize=1000)
 
     # Get a Pandas DataFrame from the data.
-    df = pandas.api.interchange.from_dataframe(odf)
+    df = pyarrow.Table.from_arrays(
+        odf.column_arrays(), names=odf.column_names()
+    ).to_pandas()
 
     # Perform various Pandas operations on the DataFrame
     print(df.T)        # transform

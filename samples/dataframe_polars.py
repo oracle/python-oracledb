@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # dataframe_polars.py
 #
-# Shows how to use connection.fetch_df_all() to efficiently put data into a
-# Polars Series
+# Shows how to use connection.fetch_df_all() to efficiently put data into
+# Polars DataFrames and Series.
 # -----------------------------------------------------------------------------
 
 import pyarrow
@@ -46,11 +46,39 @@ connection = oracledb.connect(
     params=sample_env.get_connect_params(),
 )
 
-SQL = "select id from SampleQueryTab order by id"
+# -----------------------------------------------------------------------------
+#
+# Polars DataFrame
+
+SQL1 = "select * from SampleQueryTab order by id"
 
 # Get an OracleDataFrame
 # Adjust arraysize to tune the query fetch performance
-odf = connection.fetch_df_all(statement=SQL, arraysize=100)
+odf = connection.fetch_df_all(statement=SQL1, arraysize=100)
+
+# Convert to a Polars DataFrame
+pyarrow_table = pyarrow.Table.from_arrays(
+    odf.column_arrays(), names=odf.column_names()
+)
+p = polars.from_arrow(pyarrow_table)
+
+print(type(p))  # <class 'polars.dataframe.frame.DataFrame'>
+
+r, c = p.shape
+print(f"{r} rows, {c} columns")
+
+print("\nSum:")
+print(p.sum())
+
+# -----------------------------------------------------------------------------
+#
+# Polars Series
+
+SQL2 = "select id from SampleQueryTab order by id"
+
+# Get an OracleDataFrame
+# Adjust arraysize to tune the query fetch performance
+odf = connection.fetch_df_all(statement=SQL2, arraysize=100)
 
 # Convert to a Polars Series
 pyarrow_array = pyarrow.array(odf.get_column_by_name("ID"))
@@ -58,7 +86,8 @@ p = polars.from_arrow(pyarrow_array)
 
 print(type(p))  # <class 'polars.series.series.Series'>
 
-# Perform various Polars operations on the Series
+(r,) = p.shape
+print(f"{r} rows")
 
 print("\nSum:")
 print(p.sum())

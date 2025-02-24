@@ -30,6 +30,8 @@
 # -----------------------------------------------------------------------------
 
 import pandas
+import pyarrow
+
 import oracledb
 import sample_env
 
@@ -46,12 +48,18 @@ connection = oracledb.connect(
 
 SQL = "select id, name from SampleQueryTab order by id"
 
+# -----------------------------------------------------------------------------
+#
+# Fetching all records
+
 # Get an OracleDataFrame.
 # Adjust arraysize to tune the query fetch performance
 odf = connection.fetch_df_all(statement=SQL, arraysize=100)
 
-# Get a Pandas DataFrame from the data.
-df = pandas.api.interchange.from_dataframe(odf)
+# Get a Pandas DataFrame from the data
+df = pyarrow.Table.from_arrays(
+    odf.column_arrays(), names=odf.column_names()
+).to_pandas()
 
 # Perform various Pandas operations on the DataFrame
 
@@ -68,8 +76,8 @@ print("\nTransform:")
 print(df.T)
 
 # -----------------------------------------------------------------------------
-
-# An example of batch fetching
+#
+# Batch record fetching
 #
 # Note that since this particular example ends up with all query rows being
 # held in memory, it would be more efficient to use fetch_df_all() as shown
@@ -81,9 +89,14 @@ df = pandas.DataFrame()
 # Tune 'size' for your data set. Here it is small to show the batch fetch
 # behavior on the sample table.
 for odf in connection.fetch_df_batches(statement=SQL, size=10):
-    df_b = pandas.api.interchange.from_dataframe(odf)
+    df_b = pyarrow.Table.from_arrays(
+        odf.column_arrays(), names=odf.column_names()
+    ).to_pandas()
     print(f"Appending {df_b.shape[0]} rows")
     df = pandas.concat([df, df_b], ignore_index=True)
+
+r, c = df.shape
+print(f"{r} rows, {c} columns")
 
 print("\nLast three rows:")
 print(df.tail(3))
