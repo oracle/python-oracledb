@@ -476,6 +476,7 @@ cdef enum:
     TNS_RCAP_COMPAT_81 = 2
     TNS_RCAP_TTC_ZERO_COPY = 0x01
     TNS_RCAP_TTC_32K = 0x04
+    TNS_RCAP_TTC_SESSION_STATE_OPS = 0x10
 
 # verifier types
 cdef enum:

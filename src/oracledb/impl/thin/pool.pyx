@@ -200,8 +200,9 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         list of busy connections and is marked as being in a request.
         """
         self._busy_conn_impls.append(conn_impl)
-        conn_impl._session_state_desired = TNS_SESSION_STATE_REQUEST_BEGIN
-        conn_impl._in_request = True
+        if conn_impl._protocol._caps.supports_request_boundaries:
+            conn_impl._session_state_desired = TNS_SESSION_STATE_REQUEST_BEGIN
+            conn_impl._in_request = True
         return conn_impl
 
     cdef int _post_create_conn_impl(self,

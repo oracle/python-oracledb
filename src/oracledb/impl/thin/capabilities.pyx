@@ -44,6 +44,7 @@ cdef class Capabilities:
         bint supports_oob_check
         bint supports_end_of_response
         bint supports_pipelining
+        bint supports_request_boundaries
         uint32_t sdu
 
     def __init__(self):
@@ -74,6 +75,8 @@ cdef class Capabilities:
         if server_caps[TNS_CCAP_FIELD_VERSION] < self.ttc_field_version:
             self.ttc_field_version = server_caps[TNS_CCAP_FIELD_VERSION]
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
+        if server_caps[TNS_CCAP_TTC4] & TNS_CCAP_EXPLICIT_BOUNDARY:
+            self.supports_request_boundaries = True
 
     @cython.boundscheck(False)
     cdef void _adjust_for_server_runtime_caps(self, bytearray server_caps):
@@ -81,6 +84,8 @@ cdef class Capabilities:
             self.max_string_size = 32767
         else:
             self.max_string_size = 4000
+        if not (server_caps[TNS_RCAP_TTC] & TNS_RCAP_TTC_SESSION_STATE_OPS):
+            self.supports_request_boundaries = False
 
     cdef int _check_ncharset_id(self) except -1:
         """
