@@ -572,6 +572,7 @@ cdef class ConnectParamsImpl:
         public str driver_name
         public dict extra_auth_params
         public bint thick_mode_dsn_passthrough
+        public str _config_cache_key
 
     cdef int _check_credentials(self) except -1
     cdef int _copy(self, ConnectParamsImpl other_params) except -1

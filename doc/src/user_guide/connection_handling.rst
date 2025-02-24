@@ -1123,10 +1123,10 @@ To use an OCI Object Storage Centralized Configuration Provider, you must:
 
 **OCI Object Storage Centralized Configuration Provider JSON File Syntax**
 
-The stored JSON configuration file must contain a ``connect_descriptor``
-property.  Optionally, you can specify the database user name, password, a
-cache time, and python-oracledb attributes. The database password can also be
-stored securely using `OCI Vault <https://docs.oracle.com/en-us/iaas/Content/
+The stored JSON configuration file must contain a ``connect_descriptor`` key.
+Optionally, you can specify the database user name, password, a cache time, and
+python-oracledb attributes. The database password can also be stored securely
+using `OCI Vault <https://docs.oracle.com/en-us/iaas/Content/
 KeyManagement/Tasks/managingsecrets.htm>`__ or `Azure Key Vault
 <https://learn.microsoft.com/en-us /azure/key-vault/general/overview>`__. The
 keys that can be in the JSON file are listed below.
@@ -1136,9 +1136,9 @@ keys that can be in the JSON file are listed below.
     :class: wy-table-responsive
     :widths: 15 25 15
     :name: _oci_object_storage_sub-objects
-    :summary: The first column displays the name of the property. The second column displays the description of the property. The third column displays whether the property is required or optional.
+    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
 
-    * - Property
+    * - Key
       - Description
       - Required or Optional
     * - ``user``
@@ -1237,7 +1237,7 @@ syntax is::
     }
 
 Passwords can optionally be stored using the Azure Key Vault. To do this, you
-must define the Azure Key Vault credentials in the ``password`` property. In
+must define the Azure Key Vault credentials in the ``password`` key. In
 this, the ``azure_client_id`` and ``azure_tenant_id`` must be specified. Also,
 either ``azure_client_secret`` or ``azure_client_certificate_path`` should be
 specified. For example::
@@ -1393,7 +1393,7 @@ The keys that can be added in Azure App Configuration are listed below:
 **Azure App Centralized Configuration Provider DSN Syntax**
 
 You must define a connection string URL in a specific format in the ``dsn``
-property of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+parameter of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
 :meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` to
 access the information stored in Azure App Configuration. The syntax is::
 
@@ -1834,7 +1834,7 @@ Your code might then try to connect like:
 .. code-block:: python
 
     token_based_auth = {
-        "authType": "simpleauthentication",
+        "auth_type": "SimpleAuthentication",
         "user": <user>,
         "key_file": <key_file>,
         "fingerprint": <fingerprint>,
@@ -3934,36 +3934,35 @@ Connection pool example:
 Azure Cloud Native Authentication with the azure_tokens Plugin
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-With Cloud Native Authentication, python-oracledb can automatically generate
-and refresh OAuth2 tokens when required with the support of the
-`Microsoft Authentication Library (MSAL) <https://learn.microsoft.com/en-us/
+With Cloud Native Authentication, python-oracledb's :ref:`azure_tokens
+<azurecloudnativeauthplugin>` plugin can automatically generate and refresh
+OAuth2 tokens when required with the support of the `Microsoft Authentication
+Library (MSAL) <https://learn.microsoft.com/en-us/
 entra/msal/python/?view=msal-py-latest>`__. This provides enhanced security
 since it removes the need to use static user credentials.
 
-You can use python-oracledb's Azure Cloud Native Authentication plugin,
-:ref:`azure_tokens <azurecloudnativeauthplugin>`, with MSAL to generate OAuth2
-tokens. To use Azure cloud native authentication, you must import this plugin
-using:
+The :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin can be imported
+like:
 
 .. code-block:: python
 
     import oracledb.plugins.azure_tokens
 
-Importing the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin defines
-and registers a built-in hook function that generates OAuth2 tokens. This
-function is internally invoked when the ``extra_auth_params`` is specified in
-calls to :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`.
-This hook function sets the ``access_token`` parameter of
-:ref:`ConnectParams object <connparam>` to a callable which uses the
-configuration parameters specified to generate OAuth2 tokens.
+The plugin defines and registers a built-in hook function that generates OAuth2
+tokens. The function is internally invoked when the parameter
+``extra_auth_params`` is specified in calls to :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`. This hook function sets the
+``access_token`` parameter of the :ref:`ConnectParams object <connparam>` to a
+callable which uses the configuration parameters specified to generate OAuth2
+tokens.
 
-For OAuth 2.0 Token-Based Authentication with the
-:ref:`azure_tokens <azurecloudnativeauthplugin>` plugin, the
-``extra_auth_params`` connection parameter must be specified. This parameter
-should be a dictionary containing the configuration parameters necessary for
-Oracle Database authentication. The Azure specific configuration parameters
-that can be specified in ``extra_auth_params`` are:
+For OAuth 2.0 Token-Based Authentication with the :ref:`azure_tokens
+<azurecloudnativeauthplugin>` plugin, the ``extra_auth_params`` connection
+parameter must be specified. This parameter should be a dictionary containing
+the configuration parameters necessary to retrieve a token for Oracle Database
+authentication. The Azure specific configuration parameters that can be
+specified in ``extra_auth_params`` are:
 
 .. list-table-with-summary:: Azure Cloud Native Authentication Configuration Parameters
     :header-rows: 1
@@ -3975,22 +3974,22 @@ that can be specified in ``extra_auth_params`` are:
     * - Parameter
       - Description
       - Required or Optional
-    * - ``authType``
+    * - ``auth_type``
       - The authentication type.
 
-        This must be the string ``AzureServicePrincipal``. This type acquires Azure service principal access tokens through the client credential flow.
+        This must be the string "AzureServicePrincipal". This type makes the plugin acquire Azure service principal access tokens through a client credential flow.
       - Required
     * - ``authority``
       - This parameter must be set as a string in the URI format with the tenant ID, for example ``https://{identity provider instance}/{tenantId}``.
 
         The tenantId is the directory tenant against which the application operates, in either GUID or domain-name format.
       - Required
-    * - ``clientId``
+    * - ``client_id``
       - The application ID that is assigned to your application.
 
         This information can be found in the portal where the application was registered.
       - Required
-    * - ``clientSecret``
+    * - ``client_credential``
       - The client secret that was generated for your application in the application registration portal.
       - Required
     * - ``scopes``
@@ -3999,14 +3998,19 @@ that can be specified in ``extra_auth_params`` are:
         It should be the resource identifier (application ID URI) of the desired resource, with the suffix ".default". For example, ``https://{uri}/clientID/.default``.
       - Required
 
+All keys and values other than ``auth_type`` are used by the `Microsoft
+Authentication Library (MSAL) <https://learn.microsoft.com/en-us/
+entra/msal/python/?view=msal-py-latest>`__ API calls in the plugin.  The plugin
+implementation can be seen in `plugins/azure_tokens.py
+<https://github.com/oracle/python-oracledb/blob/main/src/oracledb/plugins/azure_tokens.py>`__.
+
 For information on the Azure specific configuration parameters, see `MSAL
 <https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client
 -creds-grant-flow>`__.
 
-The examples used in the subsequent sections use the
-:ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to generate OAuth2
-tokens to connect to Oracle Autonomous Database with mutual TLS (mTLS). See
-:ref:`autonomousdb`.
+The examples in the subsequent sections use the :ref:`azure_tokens
+<azurecloudnativeauthplugin>` plugin to generate OAuth2 tokens to connect to
+Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
 **Standalone Connections in Thin Mode Using OAuth2 Tokens**
 
@@ -4021,10 +4025,10 @@ you need to explicitly set the ``extra_auth_params``, ``config_dir``,
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "authType": <Azure Auth Type>, # Azure specific configuration
-        "authority": <authority>,      # parameters to be set when using
-        "clientId": <clientId>,        # azure_tokens plugin
-        "clientSecret": <clientSecret>,
+        "auth_type": "AzureServicePrincipal", # Azure specific configuration
+        "authority": <authority>,             # parameters to be set when using
+        "client_id": <client_id>,             # the azure_tokens plugin
+        "client_credential": <client_credential>,
         "scopes": <scopes>
     }
 
@@ -4048,10 +4052,10 @@ you need to explicitly set the ``homogeneous``, ``extra_auth_params``,
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "authType": <Azure Auth Type>, # Azure specific configuration
-        "authority": <authority>,      # parameters to be set when using
-        "clientId": <clientId>,        # azure_tokens plugin
-        "clientSecret": <clientSecret>,
+        "auth_type": "AzureServicePrincipal", # Azure specific configuration
+        "authority": <authority>,             # parameters to be set when using
+        "client_id": <client_id>,             # the azure_tokens plugin
+        "client_credential": <client_credential>,
         "scopes": <scopes>
     }
 
@@ -4075,10 +4079,10 @@ parameter of :func:`~oracledb.connect`. For example:
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "authType": <Azure Auth Type>, # Azure specific configuration
-        "authority": <authority>,      # parameters to be set when using
-        "clientId": <clientId>,        # azure_tokens plugin
-        "clientSecret": <clientSecret>,
+        "auth_type": "AzureServicePrincipal", # Azure specific configuration
+        "authority": <authority>,             # parameters to be set when using
+        "client_id": <client_id>,             # the azure_tokens plugin
+        "client_credential": <client_credential>,
         "scopes": <scopes>
     }
 
@@ -4099,10 +4103,10 @@ you need to explicitly set the ``extra_auth_params``, ``externalauth``, and
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "authType": <Azure Auth Type>, # Azure specific configuration
-        "authority": <authority>,      # parameters to be set when using
-        "clientId": <clientId>,        # azure_tokens plugin
-        "clientSecret": <clientSecret>,
+        "auth_type": "AzureServicePrincipal", # Azure specific configuration
+        "authority": <authority>,             # parameters to be set when using
+        "client_id": <client_id>,             # the azure_tokens plugin
+        "client_credential": <client_credential>,
         "scopes": <scopes>
     }
 
@@ -4380,37 +4384,36 @@ Connection pool example:
 OCI Cloud Native Authentication with the oci_tokens Plugin
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-With Cloud Native Authentication, python-oracledb can automatically generate
-and refresh OCI IAM tokens when required with the support of the
-`Oracle Cloud Infrastructure (OCI) Software Development Kit (SDK)
+With Cloud Native Authentication, python-oracledb's :ref:`oci_tokens
+<ocicloudnativeauthplugin>` plugin can automatically generate and refresh OCI
+IAM tokens when required with the support of the `Oracle Cloud Infrastructure
+(OCI) Software Development Kit (SDK)
 <https://docs.oracle.com/en-us/iaas/tools/python/2.144.1/installation.html>`__.
 This provides enhanced security since it removes the need to use static user
 credentials.
 
-You can use python-oracledb's OCI Cloud Native Authentication plugin,
-:ref:`oci_tokens <ocicloudnativeauthplugin>`, with OCI SDK to generate OCI IAM
-tokens. To use OCI cloud native authentication, you must import this plugin
-using:
+The :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin can be imported
+like:
 
 .. code-block:: python
 
     import oracledb.plugins.oci_tokens
 
-Importing the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin defines and
-registers a built-in hook function that generates OCI IAM tokens. This function
-is internally invoked when the ``extra_auth_params`` is specified in calls to
-:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`.
-This hook function sets the ``access_token`` parameter of
-:ref:`ConnectParams object <connparam>` to a callable which uses the
-configuration parameters specified to generate OCI IAM tokens.
+This plugin defines and registers a built-in hook function that generates OCI
+IAM tokens. The function is internally invoked when the parameter
+``extra_auth_params`` is specified in calls to :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`. This hook function sets the
+``access_token`` parameter of :ref:`ConnectParams object <connparam>` to a
+callable which uses the configuration parameters specified to generate OCI IAM
+tokens.
 
-For OCI IAM Token-Based Authentication with the
-:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin, the
-``extra_auth_params`` connection parameter must be specified. This parameter
-should be a dictionary containing the configuration parameters necessary for
-Oracle Database authentication. The OCI specific configuration parameters that
-can be specified in ``extra_auth_params`` are:
+For OCI IAM Token-Based Authentication with the :ref:`oci_tokens
+<ocicloudnativeauthplugin>` plugin, the ``extra_auth_params`` connection
+parameter must be specified. This parameter should be a dictionary containing
+the configuration parameters necessary to retrieve a token for Oracle Database
+authentication. The OCI specific configuration parameters that can be specified
+in ``extra_auth_params`` are:
 
 .. list-table-with-summary:: OCI Cloud Native Authentication Configuration Parameters
     :header-rows: 1
@@ -4422,58 +4425,63 @@ can be specified in ``extra_auth_params`` are:
     * - Parameter
       - Description
       - Required or Optional
-    * - ``authType``
-      - The authentication type. The value should be the string "ConfigFileBasedAuthentication" or "SimpleAuthentication".
+    * - ``auth_type``
+      - The authentication type. The value should be the string "ConfigFileAuthentication" or "SimpleAuthentication".
 
-        In File Based Authentication, the location of the configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
+        In Configuration File Authentication, the location of the configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
 
         In Simple Authentication, the individual configuration parameters can be provided at runtime.
       - Required
     * - ``user``
       - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
       - Required
     * - ``key_file``
       - The full path and filename of the private key.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
       - Required
     * - ``fingerprint``
       - The fingerprint associated with the public key that has been added to this user.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
       - Required
     * - ``tenancy``
       - The OCID of your tenancy. For example, *ocid1.tenancy.oc1..<unique_ID>*.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
       - Required
     * - ``region``
       - The Oracle Cloud Infrastructure region. For example, *ap-mumbai-1*.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
       - Required
     * - ``profile``
       - The configuration profile name to load.
 
         Multiple profiles can be created, each with distinct values for necessary parameters. If not specified, the DEFAULT profile is used.
 
-        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication* or *configFileBasedAuthentication*. If it is not specified in *configFileBasedAuthentication*, the default value is taken.
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication" or "ConfigFileAuthentication". If it is not specified when using "ConfigFileAuthentication", the default value is taken.
       - Required
-    * - ``configFileLocation``
+    * - ``file_location``
       - The configuration file location. The default value is *~/.oci/config*.
 
-        This parameter can be specified when the value of the ``authType`` property is *configFileBasedAuthentication*.
+        This parameter can be specified when the value of the ``auth_type`` key is "ConfigFileAuthentication".
       - Optional
+
+All keys and values other than ``auth_type`` are used by the `OCI SDK
+<https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm>`__ API
+calls in the plugin.  The plugin implementation can be seen in
+`plugins/oci_tokens.py
+<https://github.com/oracle/python-oracledb/blob/main/src/oracledb/plugins/oci_tokens.py>`__.
 
 For information on the OCI specific configuration parameters, see `OCI SDK
 <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm>`__.
 
-The examples used in the subsequent sections use the
-:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate OCI IAM tokens
-to connect to Oracle Autonomous Database with mutual TLS (mTLS). See
-:ref:`autonomousdb`.
+The examples in the subsequent sections use the :ref:`oci_tokens
+<ocicloudnativeauthplugin>` plugin to generate OCI IAM tokens to connect to
+Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
 **Standalone Connections in Thin Mode Using OCI IAM Tokens**
 
@@ -4487,9 +4495,9 @@ and ``extra_auth_params`` parameters of :func:`~oracledb.connect`. For example:
     import oracledb.plugins.oci_tokens
 
     token_based_auth = {                             # OCI specific configuration
-        "authType": "configfilebasedauthentication", # parameters to be set when using
-        "profile": <profile>,                        # oci_tokens plugin with authType
-        "configFileLocation": <filelocation>,        # configfilebasedauthentication
+        "auth_type": "ConfigFileAuthentication",     # parameters to be set when using
+        "profile": <profile>,                        # the oci_tokens plugin with
+        "file_location": <filelocation>,             # configuration file authentication
     }
 
     connection = oracledb.connect(
@@ -4512,10 +4520,10 @@ explicitly set the ``config_dir``, ``homogeneous``, ``wallet_location``,
     import oracledb.plugins.oci_tokens
 
     token_based_auth = {
-        "authType": "simpleauthentication", # OCI specific configuration
-        "user": <user>,                     # parameters to be set when using
-        "key_file": <key_file>,             # oci_tokens plugin with authType
-        "fingerprint": <fingerprint>,       # simpleAuthentication
+        "auth_type": "SimpleAuthentication", # OCI specific configuration
+        "user": <user>,                      # parameters to be set when using
+        "key_file": <key_file>,              # the oci_tokens plugin with
+        "fingerprint": <fingerprint>,        # simple authentication
         "tenancy": <tenancy>,
         "region": <region>,
         "profile": <profile>
@@ -4541,10 +4549,10 @@ to explicitly set the ``externalauth`` and ``extra_auth_params`` parameters of
     import oracledb.plugins.oci_tokens
 
     token_based_auth = {
-        "authType": "simpleauthentication", # OCI specific configuration
-        "user": <user>,                     # parameters to be set when using
-        "key_file": <key_file>,             # oci_tokens plugin with authType
-        "fingerprint": <fingerprint>,       # simpleAuthentication
+        "auth_type": "SimpleAuthentication", # OCI specific configuration
+        "user": <user>,                      # parameters to be set when using
+        "key_file": <key_file>,              # the oci_tokens plugin with
+        "fingerprint": <fingerprint>,        # simple authentication
         "tenancy": <tenancy>,
         "region": <region>,
         "profile": <profile>
@@ -4566,9 +4574,9 @@ need to explicitly set the ``externalauth``, ``homogeneous``, and
     import oracledb.plugins.oci_tokens
 
     token_based_auth = {                             # OCI specific configuration
-        "authType": "configfilebasedauthentication", # parameters to be set when using
-        "profile": <profile>,                        # oci_tokens plugin with authType
-        "configFileLocation": <filelocation>,        # configfilebasedauthentication
+        "auth_type": "ConfigFileAuthentication",     # parameters to be set when using
+        "profile": <profile>,                        # the oci_tokens plugin with
+        "file_location": <filelocation>,             # configuration file authentication
     }
 
     connection = oracledb.create_pool(

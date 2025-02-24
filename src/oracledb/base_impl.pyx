@@ -59,6 +59,7 @@ from .interchange.nanoarrow_bridge cimport (
 import array
 
 import base64
+import copy
 import datetime
 import decimal
 import getpass
@@ -71,6 +72,7 @@ import socket
 import ssl
 import string
 import sys
+import time
 import warnings
 
 cydatetime.import_datetime()

@@ -25,8 +25,7 @@
 # -----------------------------------------------------------------------------
 # azure_tokens.py
 #
-# Python file defining the methods that generates an OAuth access token
-# using the MSAL SDK
+# Methods that generates an OAuth2 access token using the MSAL SDK
 # -----------------------------------------------------------------------------
 
 import msal
@@ -37,11 +36,14 @@ def generate_token(token_auth_config, refresh=False):
     """
     Generates an Azure access token based on provided credentials.
     """
-    auth_type = token_auth_config.get("authType", "").lower()
+    user_auth_type = token_auth_config.get("auth_type") or ""
+    auth_type = user_auth_type.lower()
     if auth_type == "azureserviceprincipal":
         return _service_principal_credentials(token_auth_config)
     else:
-        raise ValueError(f"Unrecognized authentication method: {auth_type}")
+        raise ValueError(
+            f"Unrecognized auth_type authentication method: {user_auth_type}"
+        )
 
 
 def _service_principal_credentials(token_auth_config):
@@ -50,8 +52,8 @@ def _service_principal_credentials(token_auth_config):
     """
     msal_config = {
         "authority": token_auth_config["authority"],
-        "client_id": token_auth_config["clientId"],
-        "client_credential": token_auth_config["clientSecret"],
+        "client_id": token_auth_config["client_id"],
+        "client_credential": token_auth_config["client_credential"],
     }
     # Initialize the Confidential Client Application
     cca = msal.ConfidentialClientApplication(**msal_config)

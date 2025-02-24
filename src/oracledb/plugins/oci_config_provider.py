@@ -86,6 +86,7 @@ def _get_config(parameters, connect_params):
         settings, "connect_descriptor"
     )
 
+    # user and password
     if connect_params.user is None:
         config["user"] = settings.get("user")
         if "password" in settings:
@@ -97,10 +98,16 @@ def _get_config(parameters, connect_params):
             # password should be stored in JSON and not plain text.
             config["password"] = pwd
 
+    # config cache settings
+    config["config_time_to_live"] = settings.get("config_time_to_live")
+    config["config_time_to_live_grace_period"] = settings.get(
+        "config_time_to_live_grace_period"
+    )
+
     # pyo parameters settings
     config["pyo"] = settings.get("pyo", None)
 
-    # parse connect string and set requested parameters
+    # set the configuration
     connect_params.set_from_config(config)
 
 

@@ -159,6 +159,10 @@ EXTENDED_PARAM_NAMES = set([
 
 ])
 
+# this cache stores the configurations acquired from one of the configuration
+# stores
+cdef dict cached_configs = {}
+
 # add all of the common parameters to the extended parameters using the
 # python-oracledb specific name
 for name in COMMON_PARAM_NAMES:
@@ -227,6 +231,43 @@ cdef class BaseParser:
             self.temp_pos += 1
 
 
+cdef int update_config_cache(str config_cache_key, dict config) except -1:
+    """
+    Updates the cache with the specified configuration.
+    """
+    cdef:
+        double current_time, soft_expiry_time, hard_expiry_time
+        uint32_t time_to_live, time_to_live_grace_period
+        object setting
+
+    # the config can include config_time_to_live; the default value is 86400
+    # (24 hours); an explicit value of 0 disables caching
+    setting = config.get("config_time_to_live")
+    if setting is None:
+        time_to_live = 86400
+    else:
+        time_to_live = int(setting)
+    if time_to_live == 0:
+        return 0
+
+    # the config settings can also include config_time_to_live_grace_period;
+    # the default value is 1800 (30 minutes)
+    setting = config.get("config_time_to_live_grace_period")
+    if setting is None:
+        time_to_live_grace_period = 1800
+    else:
+        time_to_live_grace_period = int(setting)
+
+    # calculate soft and hard expiry times and keep them with the config
+    current_time = time.monotonic()
+    soft_expiry_time = current_time + time_to_live
+    hard_expiry_time = soft_expiry_time + time_to_live_grace_period
+    config = copy.deepcopy(config)
+    config["config_cache_soft_expiry_time"] = soft_expiry_time
+    config["config_cache_hard_expiry_time"] = hard_expiry_time
+    cached_configs[config_cache_key] = config
+
+
 cdef class ConnectStringParser(BaseParser):
 
     cdef:
@@ -236,6 +277,48 @@ cdef class ConnectStringParser(BaseParser):
         Address template_address
         Description description
         dict parameters
+
+    cdef int _call_protocol_hook(self, str protocol, str arg,
+                                 object fn) except -1:
+        """
+        Check if the config cache has an entry; if an extry exists and it has
+        not expired, use it; otherwise, call the protocol hook function.
+        """
+        cdef:
+            double current_time = 0, expiry_time = 0
+            dict config
+
+        # check to see if the cache has a value and that it has not reached the
+        # soft expiry time
+        config = cached_configs.get(self.data_as_str)
+        if config is not None:
+            current_time = time.monotonic()
+            expiry_time = config["config_cache_soft_expiry_time"]
+            if current_time <= expiry_time:
+                self.params_impl.set_from_config(config, update_cache=False)
+                return 0
+
+        # call the protocol hook function; the cache key is set on the
+        # parameters instance so that calls by the hook function to
+        # set_from_config() will update the cache
+        params = self.params_impl._get_public_instance()
+        self.params_impl._config_cache_key = self.data_as_str
+        try:
+            fn(protocol, arg, params)
+        except Exception as e:
+
+            # if the hook fails but a config exists in the cache and the hard
+            # expiry time has not been reached the existing config is used
+            if config is not None:
+                expiry_time = config["config_cache_hard_expiry_time"]
+                if current_time <= expiry_time:
+                    self.params_impl.set_from_config(config, update_cache=False)
+                    return 0
+                del cached_configs[self.params_impl._config_cache_key]
+            errors._raise_err(errors.ERR_PROTOCOL_HANDLER_FAILED,
+                              protocol=protocol, arg=arg, cause=e)
+        finally:
+            self.params_impl._config_cache_key = None
 
     cdef bint _is_host_or_service_name_char(self, Py_UCS4 ch):
         """
@@ -377,19 +460,14 @@ cdef class ConnectStringParser(BaseParser):
         Parses an easy connect string.
         """
         cdef:
-            object params, fn
+            object fn
             str protocol, arg
         protocol = self._parse_easy_connect_protocol()
         if protocol is not None:
             fn = REGISTERED_PROTOCOLS.get(protocol)
             if fn is not None:
                 arg = self.data_as_str[self.temp_pos:]
-                params = self.params_impl._get_public_instance()
-                try:
-                    fn(protocol, arg, params)
-                except Exception as e:
-                    errors._raise_err(errors.ERR_PROTOCOL_HANDLER_FAILED,
-                                      protocol=protocol, arg=arg, cause=e)
+                self._call_protocol_hook(protocol, arg, fn)
                 self.description_list = self.params_impl.description_list
                 self.pos = self.num_chars
                 return 0

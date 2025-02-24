@@ -25,8 +25,7 @@
 # -----------------------------------------------------------------------------
 # oci_tokens.py
 #
-# Python file defining the methods that genearates an OCI access
-# token using the OCI SDK
+# Methods that generates an OCI access token using the OCI SDK
 # -----------------------------------------------------------------------------
 
 import oci
@@ -39,13 +38,16 @@ def generate_token(token_auth_config, refresh=False):
     """
     Generates an OCI access token based on provided credentials.
     """
-    auth_type = token_auth_config.get("authType", "").lower()
-    if auth_type == "configfilebasedauthentication":
+    user_auth_type = token_auth_config.get("auth_type") or ""
+    auth_type = user_auth_type.lower()
+    if auth_type == "configfileauthentication":
         return _config_file_based_authentication(token_auth_config)
     elif auth_type == "simpleauthentication":
         return _simple_authentication(token_auth_config)
     else:
-        raise ValueError(f"Unrecognized authentication method: {auth_type}")
+        raise ValueError(
+            f"Unrecognized auth_type authentication method {user_auth_type}"
+        )
 
 
 def _get_key_pair():
@@ -81,16 +83,16 @@ def _get_key_pair():
         )
         private_key_pem = p_key
 
-    return {"privateKey": private_key_pem, "publicKey": public_key_pem}
+    return {"private_key": private_key_pem, "public_key": public_key_pem}
 
 
 def _config_file_based_authentication(token_auth_config):
     """
-    Config file base authentication implementation, config parameters
+    Config file base authentication implementation: config parameters
     are provided in a file.
     """
     file_location = token_auth_config.get(
-        "configFileLocation", oci.config.DEFAULT_LOCATION
+        "file_location", oci.config.DEFAULT_LOCATION
     )
     profile = token_auth_config.get("profile", oci.config.DEFAULT_PROFILE)
 
@@ -105,14 +107,14 @@ def _config_file_based_authentication(token_auth_config):
 
     response = client.generate_scoped_access_token(
         generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
-            scope="urn:oracle:db::id::*", public_key=key_pair["publicKey"]
+            scope="urn:oracle:db::id::*", public_key=key_pair["public_key"]
         )
     )
 
     # access_token is a tuple holding token and private key
     access_token = (
         response.data.token,
-        key_pair["privateKey"],
+        key_pair["private_key"],
     )
 
     return access_token
@@ -120,7 +122,7 @@ def _config_file_based_authentication(token_auth_config):
 
 def _simple_authentication(token_auth_config):
     """
-    Simple authentication, config parameters are passed as parameters
+    Simple authentication: config parameters are passed as parameters
     """
     config = {
         "user": token_auth_config["user"],
@@ -139,14 +141,14 @@ def _simple_authentication(token_auth_config):
 
     response = client.generate_scoped_access_token(
         generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
-            scope="urn:oracle:db::id::*", public_key=key_pair["publicKey"]
+            scope="urn:oracle:db::id::*", public_key=key_pair["public_key"]
         )
     )
 
     # access_token is a tuple holding token and private key
     access_token = (
         response.data.token,
-        key_pair["privateKey"],
+        key_pair["private_key"],
     )
 
     return access_token

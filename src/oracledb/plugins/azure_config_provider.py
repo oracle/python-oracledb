@@ -181,7 +181,6 @@ def _process_config(parameters, connect_params):
     )
     config["user"] = _get_setting(client, key, "user", label, required=False)
     pwd = _get_setting(client, key, "password", label, required=False)
-
     if pwd is not None:
         try:
             pwd = json.loads(pwd)
@@ -193,8 +192,14 @@ def _process_config(parameters, connect_params):
                 " containing Azure Vault details."
             )
             raise Exception(message)
-
     config["password"] = pwd
+    config["config_time_to_live"] = _get_setting(
+        client, key, "config_time_to_live", label, required=False
+    )
+    config["config_time_to_live_grace_period"] = _get_setting(
+        client, key, "config_time_to_live_grace_period", label, required=False
+    )
+
     # get the python-oracledb specific parameters
     settings = _get_setting(client, key, "pyo", label, required=False)
     if settings is not None:
