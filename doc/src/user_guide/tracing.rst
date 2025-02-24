@@ -251,7 +251,17 @@ can be used to show the current mode of a python-oracledb connection or pool,
 respectively. The method :meth:`oracledb.is_thin_mode()` can also be used, but
 review its usage notes about when its return value may change.
 
-The python-oracledb version can be shown with :data:`oracledb.__version__`.
+For example, to show the mode used by a connection:
+
+.. code-block:: python
+
+    print(connection.thin)
+
+The python-oracledb version can be shown with :data:`oracledb.__version__`:
+
+.. code-block:: python
+
+    print(oracledb.__version__)
 
 Version and mode information can also be seen in the Oracle Database data
 dictionary table V$SESSION_CONNECT_INFO:

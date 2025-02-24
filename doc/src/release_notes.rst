@@ -81,12 +81,15 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
-#)  The value of :attr:`defaults.config_dir` is now calculated from the
-    location of the Oracle Client shared library on some platforms. If a value
-    is supplied to the ``config_dir`` parameter of
-    :meth:`oracledb.init_oracle_client()`, then the value of
-    :attr:`defaults.config_dir` is set to that value after the call completes
-    successfully.
+#)  At successful completion of a call to :meth:`oracledb.init_oracle_client()`,
+    the value of :attr:`defaults.config_dir` may get set by python-oracledb in
+    some cases. For example it might be set to the configuration directory that
+    is relative to the loaded Oracle Client libraries.
+#)  Connect string parsing and :ref:`tnsnames.ora <optnetfiles>` file handling
+    can be configured with the new parameter
+    :attr:`defaults.thick_mode_dsn_passthrough` which can be helpful for
+    application portability. When it is `False`, python-oracledb Thick mode
+    behaves similarly to Thin mode.
 #)  Fixed bug that caused :attr:`oracledb._Error.isrecoverable` to always be
     `False`.
 
@@ -127,9 +130,9 @@ Common Changes
     :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
     provide additional metadata about
     :ref:`database object attributes <dbobjectattr>`.
-#)  Set the default value of :attr:`defaults.config_dir` to
+#)  The attribute :attr:`defaults.config_dir` is now set to
     ``$ORACLE_HOME/network/admin`` if the environment variable ``ORACLE_HOME``
-    is set.
+    is set and ``TNS_ADMIN`` is *not* set.
 #)  All connect strings are parsed by the driver if the new parameter
     ``thick_mode_dsn_passthrough`` is set to *True*. Previously, only Thin
     mode parsed all connect strings and Thick mode passed the connect string

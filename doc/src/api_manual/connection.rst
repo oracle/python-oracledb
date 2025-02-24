@@ -140,11 +140,11 @@ Connection Methods
     can also be a list of dictionaries, where the keys match the bind variable
     placeholder names in ``statement``.
 
-    The ``arraysize`` parameter can specified to tune performance of fetching
-    data across the network. It defaults to :attr:`defaults.arraysize`.
-    Internally, the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is
-    always set to the value of the explicit or default ``arraysize`` parameter
-    value.
+    The ``arraysize`` parameter can be specified to tune performance of
+    fetching data across the network. It defaults to
+    :attr:`defaults.arraysize`. Internally, the ``fetch_df_all()``'s
+    :attr:`Cursor.prefetchrows` size is always set to the value of the explicit
+    or default ``arraysize`` parameter value.
 
     See :ref:`dataframeformat` for the supported data types and examples.
 
@@ -170,7 +170,7 @@ Connection Methods
 
     The ``size`` parameter controls the number of records fetched in each
     batch. It defaults to :attr:`defaults.arraysize`. Internally, the
-    ``fetch_df_batches()``'s :attr:`Cursor.arraysize`. and
+    ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
     :attr:`Cursor.prefetchrows` sizes are always set to the value of the
     explicit or default ``size`` parameter value.
 

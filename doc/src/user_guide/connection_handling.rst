@@ -58,12 +58,6 @@ a connection can take, or enabling :ref:`network encryption <netencrypt>`.
        reference Oracle environment variables ``ORACLE_SID``, ``TWO_TASK``,
        or ``LOCAL``.
 
-.. note::
-
-       When using python-oracledb in Thin mode, the ``tnsnames.ora`` file will not
-       be automatically located.  The file's directory must explicitly be passed
-       to the application, see :ref:`optnetfiles`.
-
 .. _standaloneconnection:
 
 Standalone Connections
@@ -120,23 +114,6 @@ listener port can also be passed:
     connection = oracledb.connect(user="hr", password=userpwd,
                                   host="localhost", port=1521, service_name="orclpdb")
 
-If you like to encapsulate values, parameters can be passed using a
-:ref:`ConnectParams Object <usingconnparams>`:
-
-.. code-block:: python
-
-    params = oracledb.ConnectParams(host="my_host", port=my_port, service_name="my_service_name")
-    conn = oracledb.connect(user="my_user", password="my_password", params=params)
-
-Some values such as the database host name can be specified as ``connect()``
-parameters, as part of the connect string, and in the ``params`` object. If a
-``dsn`` is passed, a connection string is internally constructed from the
-individual parameters and ``params`` object values, with the individual
-parameters having precedence. The precedence is that values in any ``dsn``
-parameter override values passed as individual parameters, which themselves
-override values set in the ``params`` object. Similar precedence rules also
-apply to other values.
-
 A single, combined connection string can be passed to ``connect()`` but this
 may cause complications if the password contains "@" or "/" characters:
 
@@ -150,6 +127,21 @@ may cause complications if the password contains "@" or "/" characters:
 
     dsn = f'{username}/{userpwd}@{host}:{port}/{service_name}'
     connection = oracledb.connect(dsn)
+
+If you like to encapsulate values, parameters can be passed using a
+:ref:`ConnectParams Object <usingconnparams>`:
+
+.. code-block:: python
+
+    params = oracledb.ConnectParams(host="my_host", port=my_port, service_name="my_service_name")
+    conn = oracledb.connect(user="my_user", password="my_password", params=params)
+
+Some values such as the database host name can be specified as ``connect()``
+parameters, as part of the ``dsn`` connection string, and in the ``params``
+object. A final connection string is internally constructed from any ``dsn``,
+individual parameters, and ``params`` object values. The precedence is that
+values in a ``dsn`` parameter override values passed as individual parameters,
+which themselves override values set in the ``params`` object.
 
 Closing Connections
 +++++++++++++++++++
@@ -283,7 +275,7 @@ of Oracle Database's naming methods:
 
 * An Oracle :ref:`Easy Connect <easyconnect>` string
 * A :ref:`Connect Descriptor <conndescriptor>`
-* A :ref:`TNS Alias <netservice>` mapping to a Connect Descriptor in a
+* A :ref:`TNS Alias <netservice>` mapping to a Connect Descriptor stored in a
   :ref:`tnsnames.ora <optnetfiles>` file
 * An :ref:`LDAP URL <ldapurl>`
 * A :ref:`Configuration Provider URL <configproviderurl>`
@@ -303,9 +295,22 @@ Easy Connect Syntax for Connection Strings
 An `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-59956F00-4996-4943-8D8B-9720DC67AD5D>`__ string is often the simplest
 connection string to use in the data source name parameter ``dsn`` of
-connection functions such as :meth:`oracledb.connect()` and
-:meth:`oracledb.create_pool()`.  This method does not need configuration files
-such as :ref:`tnsnames.ora <optnetfiles>`.
+connection functions such as :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+:meth:`oracledb.create_pool_async()`.
+
+Using Easy Connect strings means that an external :ref:`tnsnames.ora
+<optnetfiles>` configuration file is not needed.
+
+The Easy Connect syntax in python-oracledb is::
+
+    [[protocol:]//]host1{,host12}[:port1]{,host2:port2}{;host1{,host12}[:port1]}[/[service_name][:server][/instance_name]][?parameter_name=value{&parameter_name=value}]
+
+See the `Database Net Services Administrator's Guide
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__
+and the technical brief `Oracle Database Easy Connect Plus
+<https://download.oracle.com/ocomdocs/global/Oracle-Net-Easy
+-Connect-Plus.pdf>`__ for more details.
 
 For example, to connect to the Oracle Database service ``orclpdb`` that is
 running on the host ``dbhost.example.com`` with the default Oracle
@@ -326,37 +331,38 @@ If the database is using a non-default port, it must be specified:
 The Easy Connect syntax supports Oracle Database service names.  It cannot be
 used with the older System Identifiers (SID).
 
-The `Easy Connect <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ syntax allows the use of
-multiple hosts or ports, along with optional entries for the wallet location,
-the distinguished name of the database server, and allows some network
-configuration options such as the connection timeout and keep-alive values to
-be set::
+**Oracle Net Settings in Easy Connect Strings**
+
+The Easy Connect syntax allows some `Oracle Network and database
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-8C85D289-6AF3-41BC-848B-BF39D32648BA>`__ configuration options to be
+set. This means that a :ref:`sqlnet.ora <optnetfiles>` file is not needed for
+common connection scenarios.
+
+For example, to set a connection timeout and keep-alive value:
 
 .. code-block:: python
 
     connection = oracledb.connect(user="hr", password=userpwd,
-                                  dsn="dbhost.example.com/orclpdb?expire_time=2")
+                 dsn="dbhost.example.com/orclpdb?transport_connect_timeout=10&expire_time=2")
 
-This means that a :ref:`sqlnet.ora <optnetfiles>` file is not needed for common
-connection scenarios. See the technical brief `Oracle Database Easy Connect
-Plus <https://download.oracle.com/ocomdocs/global/Oracle-Net-Easy
--Connect-Plus.pdf>`__ for additional information.
 
-Python-oracledb specific settings can also be passed as Easy Connect arguments.
-For example to set the statement cache size used by connections::
+For more information, see :ref:`connectdesckeywords`. Any Easy Connect
+parameters that are not known to python-oracledb are ignored and not passed to
+the database.
+
+**Python-oracledb Settings in Easy Connect Strings**
+
+Many python-oracledb connection method API arguments can alternatively be
+passed as Easy Connect parameters with a "pyo."  prefix.  For example, to set
+the statement cache size used by connections:
 
 .. code-block:: python
 
     connection = oracledb.connect(user="hr", password=userpwd,
                                   dsn="dbhost.example.com/orclpdb?pyo.stmtcachesize=50")
 
-See :ref:`defineconnparams` and :ref:`definepoolparams` for the settings that
-can be passed as arguments.
-
-Any Easy Connect parameters that are unknown to python-oracledb are ignored and
-not passed to the database.  See :ref:`Connection String Differences
-<diffconnstr>` for more information.
+See :ref:`pyoparams` for the usable attributes.
 
 .. _conndescriptor:
 
@@ -392,10 +398,14 @@ For example:
 
 This prints::
 
-    (DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost.example.com)(PORT=1521)))(CONNECT_DATA=(SERVICE_NAME=orclpdb))(SECURITY=(SSL_SERVER_DN_MATCH=True)))
+    (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=dbhost.example.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orclpdb)))
 
-The ``CONNECT_DATA`` parameters of a full connect descriptor that are
-unrecognized by python-oracledb are passed to the database unchanged.
+Syntax is shown in the `Database Net Services Reference
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-012BCA50-70FC-4951-9473-B6089718FF1C>`__.
+
+Any ``DESCRIPTION``, ``CONNECT_DATA`` and ``SECURITY`` parameters of a full
+connect descriptor that are unrecognized by python-oracledb are passed to the
+database unchanged.
 
 .. _netservice:
 
@@ -404,9 +414,11 @@ TNS Aliases for Connection Strings
 
 :ref:`Connect Descriptors <conndescriptor>` are commonly stored in a
 :ref:`tnsnames.ora <optnetfiles>` file and associated with a TNS Alias.  This
-alias can be used directly for the data source name parameter ``dsn`` of
-:meth:`oracledb.connect()` and :meth:`oracledb.create_pool()`.  For example,
-given a file ``/opt/oracle/config/tnsnames.ora`` with the following contents::
+:ref:alias can be used directly for the data source name parameter ``dsn`` of
+:ref::meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:ref::meth:`oracledb.connect_async()`, and
+:ref::meth:`oracledb.create_pool_async()`.  For example, given a file
+:ref:``/opt/oracle/config/tnsnames.ora`` with the following contents::
 
     ORCLPDB =
       (DESCRIPTION =
@@ -417,18 +429,24 @@ given a file ``/opt/oracle/config/tnsnames.ora`` with the following contents::
         )
       )
 
-Then you could connect in python-oracledb Thin mode by passing the TNS Alias
-"ORCLPDB" (case insensitive) as the ``dsn`` value:
+Then you could connect by passing the TNS Alias "ORCLPDB" (case insensitive) as
+the ``dsn`` value:
 
 .. code-block:: python
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
                                   config_dir="/opt/oracle/config")
 
-More options for how python-oracledb locates ``tnsnames.ora`` files are
-detailed in :ref:`optnetfiles`.  Note that in python-oracledb Thick mode, the
-configuration directory must be set during initialization, not at connection
-time.
+In python-oracledb Thick mode, the configuration directory can also be set
+during library initialization:
+
+.. code-block:: python
+
+    oracledb.init_oracle_client(config_dir="/opt/oracle/config")
+    connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb")
+
+More options for how python-oracledb locates :ref:`tnsnames.ora <optnetfiles>`
+files are detailed in :ref:`usingconfigfiles`.
 
 TNS Aliases may also be resolved by :ref:`LDAP <ldapconnections>`.
 
@@ -454,7 +472,9 @@ Client 23ai could connect using:
     connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
 
 This syntax is also usable in python-oracledb Thin mode via a :ref:`connection
-hook function <connectionhook>`, see :ref:`ldapconnections`.
+hook function <connectionhook>`, see :ref:`ldapconnections`. In
+python-oracledb Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is
+*False*, a connection hook function is also required.
 
 .. _configproviderurl:
 
@@ -462,34 +482,52 @@ Centralized Configuration Provider URL Connection Strings
 ---------------------------------------------------------
 
 A :ref:`Centralized Configuration Provider <configurationproviders>` URL
-contains the details of where the configuration information is located. The
-information that can be stored in configuration providers includes connect
-descriptors, database credentials (user name and password), and python-oracledb
-specific attributes. With this URL, python-oracledb can access the information
-stored in the configuration providers listed below and connect to Oracle
-Database:
+connection string allows python-oracledb configuration information to be stored
+centrally in OCI Object Storage, using Azure App Configuration, or in a local
+file. Given a provider URL, python-oracledb will access the information stored
+in the configuration provider and use it to connect to Oracle Database.
 
-- :ref:`Oracle Cloud Infrastructure (OCI) Object Storage configuration
-  provider <ociobjstorage>`
-- :ref:`Microsoft Azure App Configuration provider <azureappconfig>`
-- :ref:`File Configuration Provider <fileconfigprovider>`
+The database connect descriptor and any database credentials stored in a
+configuration provider will be used by any language driver that accesses the
+configuration. Other driver-specific sections can exist. Python-oracledb will
+take settings that are in a section with the prefix "pyo", and will ignore
+other sections.
 
-The configuration provider URL can be set in the ``dsn`` parameter of
-connection functions :meth:`oracledb.connect()`,
-:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
-:meth:`oracledb.create_pool_async()`. This URL must begin with
-"config-<configuration-provider>" where the configuration-provider value can
-be set to *ociobject*, *azure*, or *file*, depending on the location of your
-configuration information. For example, to use connection configuration stored
-in a local file ``/opt/oracle/my-config.json``, you need to specify the ``dsn``
-parameter as shown:
+For example, to use connection configuration stored in a local file
+``/opt/oracle/my-config.json``:
+
+.. code-block:: json
+
+    {
+      "connect_descriptor": "localhost/orclpdb",
+      "pyo": {
+        "min": 5,
+        "max": 10,
+        "increment": 2
+        "stmtcachesize": 4
+      }
+    }
+
+You could use this to create a connection pool by specifying the ``dsn``
+connection string parameter as:
 
 .. code-block:: python
 
-    connection = oracledb.connect(user="hr", password=userpwd,
-                       dsn="config-file:///opt/oracle/my-config.json")
+    pool = oracledb.create_pool(user="hr", password=userpwd,
+                                dsn="config-file:///opt/oracle/my-config.json")
 
-See the respective configuration provider sections for more details.
+
+The pool will be created using the pool settings from the configuration.
+
+The Centralized Configuration Provider URL must begin with
+"config-<configuration-provider>://" where the configuration-provider value can
+be set to *ociobject*, *azure*, or *file*, depending on the location of your
+configuration information.
+
+See :ref:`configurationproviders` for more information, particularly regarding
+using python-oracledb Thick mode.
+
+The valid keys for the "pyo" object are shown in :ref:`pyoparams`.
 
 .. _jdbcconnstring:
 
@@ -549,65 +587,551 @@ This can be referenced in python-oracledb:
 
     connection = oracledb.connect(user="hr", password=userpwd, dsn="finance")
 
+.. _connectdesckeywords:
+
+Oracle Net Connect Descriptor and Easy Connect Keywords
+-------------------------------------------------------
+
+Easy Connect syntax is described in :ref:`easyconnect`.
+
+Connect Descriptor keywords are shown in the `Database Net Services Reference
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7F967CE5-5498-427C-9390-4A5C6767ADAA>`__.
+
+**Notes on specific keywords**
+
+The ``POOL_CONNECTION_CLASS`` or ``POOL_PURITY`` values will only work when
+connected to Oracle Database 21c, or later. Note if ``POOL_PURITY=SELF`` is
+used in a connect string, then python-oracledb Thick mode applications will
+ignore the action to drop the session when attempting to remove an unusable
+connections from a pool in some uncommon error cases. It is recommended to
+avoid using ``POOL_PURITY=SELF`` in a connect string with python-oracledb Thick
+mode. Instead, code python-oracledb Thick mode applications to explicitly
+specify the purity and connection class as attributes.
+
+The ``ENABLE=BROKEN`` connect descriptor option is not supported by
+python-oracledb Thin mode. Use ``EXPIRE_TIME`` instead.
+
+If a name is given as a connect string, then python-oracledb will consider it
+as a Net Service Name and not as the minimal Easy Connect string of a hostname.
+The given connect string will be looked up in a :ref:`tnsnames.ora
+<optnetfiles>` file. If supporting a bare name as a hostname is important to
+you in python-oracledb, then you can alter the connection string to include a
+protocol such as ``tcp://hostname``, or a port number such as
+``hostname:1521``.
+
+In python-oracledb Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough`
+is *False*, any ``DESCRIPTION``, ``CONNECT_DATA`` and ``SECURITY`` parameters
+of a full connect descriptor that are unrecognized by python-oracledb are
+passed to the database unchanged. Any Easy Connect parameters that are not
+known to python-oracledb are discarded and not passed to the database.
+
+.. _pyoparams:
+
+Python-oracledb Parameters Settable in Easy Connect Strings or Central Configuration Providers
+----------------------------------------------------------------------------------------------
+
+Some python-oracledb connection and pool creation parameters can be set in
+:ref:`Easy Connect strings <easyconnect>` or via a :ref:`Centralized
+Configuration Provider <configurationproviders>`.  This is an alternative to
+passing explicit arguments to :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`. This allows application behavior to be
+changed without needing application code to be updated.
+
+The parameters are shown below in :ref:`this table
+<params_ez_config_provider>`.  Parameters have a "pyo." prefix or are under a
+"pyo" key. Each of these parameters that is defined in an Easy Connect string
+or via a Centralized Configuration Provider will take precedence over the value
+passed as the equivalent python-oracledb API parameter.
+
+Parameters that apply to :ref:`pool creation <connpooling>` will be ignored if
+they are used in the context of :ref:`standalone connections
+<standaloneconnection>`.  Parameters with unknown names will be ignored in both
+cases.
+
+**Python-oracledb Parameters in Easy Connect Strings**
+
+The Easy Connect parameter names are similar to the python-oracledb method
+argument names, but have a "pyo."  prefix. For example:
+
+.. code-block:: python
+
+    cs = "host.example.com:1522/orclpdb?pyo.stmtcachesize=30&pyo.mode=SYSDBA"
+    connection = oracledb.connect(user="hr", password=userpwd, dsn=cs)
+
+is the same as:
+
+.. code-block:: python
+
+    cs = "host.example.com:1522/orclpdb"
+    connection = oracledb.connect(user="hr", password=userpwd, dsn=cs,
+                       stmtcachesize=30, mode=oracledb.AuthMode.SYSDBA)
+
+If a parameter is specified multiple times in an Easy Connect string, then the
+last value of that parameter is used. For example, in
+"localhost/orclpdb?pyo.sdu=10&pyo.sdu=20" the SDU is set to 20.
+
+Note some Oracle Net parameters can also be prefixed with "pyo.".
+
+Parameters with the prefix "pyo." can only be used in Easy Connect strings and
+not in :ref:`Connect Descriptors <conndescriptor>`.
+
+**Python-oracledb Parameters in Configuration Providers**
+
+With the :ref:`File Centralized Configuration Provider <fileconfigprovider>` or
+:ref:`OCI Object Storage Centralized Configuration Provider
+<ociobjstorageprovider>`, the settable python-oracledb driver attributes should
+be in the JSON file under the key "pyo". An example is:
+
+.. code-block:: json
+
+    {
+      "connect_descriptor": "localhost/orclpdb",
+      "pyo": {
+        "min": 5,
+        "max": 10,
+        "increment": 2
+        "stmtcachesize": 4
+      }
+    }
+
+With :ref:`Azure App Configuration <azureappstorageprovider>`, values are set
+using a key such as "<prefix>/pyo/<key name>". This is similar to how `Oracle
+Call Interface
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=LNOCI>`__ settings use
+the key "<prefix>/oci/<key name>" as shown in `Oracle Net Service
+Administrator’s Guide <https://www.oracle.com/pls/topic
+/lookup?ctx=dblatest&id=GUID-97E22A68-6FE3-4FE9-98A9-90E5BF83E9EC>`__.
+
+.. _params_ez_config_provider:
+
+**Parameter Names**
+
+When used in Easy Connect Strings, the parameter names should be prefixed with
+"pyo.".  When used in a Centralized Configuration Provider, the parameter
+names are used to form the key names under a parent "pyo" key or with a "pyo/"
+prefix. The names are case insensitive.
+
+.. list-table-with-summary:: Python-oracledb parameters usable in Easy Connect Strings or Centralized Configuration Providers
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :name:  _params_ez_config_provider_table
+    :summary: The first column displays the base parameter name. The second column displays the type of the parameter. The third column displays the equivalent API parameter name. The fourth column contains notes.
+
+    * - Base Parameter Name
+      - Type/Value
+      - Equivalent python-oracledb Connection Parameter Name
+      - Notes
+    * - ``CCLASS``
+      - String
+      - ``cclass``
+      - No relevant notes
+    * - ``CONNECTION_ID_PREFIX``
+      - String
+      - ``connection_id_prefix``
+      - No relevant notes
+    * - ``DISABLE_OOB``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``disable_oob``
+      - No relevant notes
+    * - ``DRIVER_NAME``
+      - String
+      - ``driver_name``
+      - No relevant notes
+    * - ``EDITION``
+      - String
+      - ``edition``
+      - No relevant notes
+    * - ``EVENTS``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``events``
+      - No relevant notes
+    * - ``EXPIRE_TIME``
+      - Integer
+      - ``expire_time``
+      - No relevant notes
+    * - ``EXTERNALAUTH``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``externalauth``
+      - No relevant notes
+    * - ``EXTRA_AUTH_PARAMS``
+      - A dictionary containing the configuration parameters necessary for Oracle Database authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure <cloudnativeauthoauth>` cloud native authentication plugins.
+      - ``extra_auth_params``
+      - For use by Centralized Configuration Providers only
+    * - ``GETMODE``
+      - String, values may be one of *FORCEGET*, *NOWAIT*, *WAIT*, or *TIMEDWAIT* mapping to :ref:`connpoolmodes`.
+      - ``getmode``
+      - Pool creation only
+    * - ``HOMOGENEOUS``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``homogeneous``
+      - Pool creation only
+    * - ``HTTPS_PROXY``
+      - String
+      - ``https_proxy``
+      - No relevant notes
+    * - ``HTTPS_PROXY_PORT``
+      - Integer
+      - ``https_proxy_port``
+      - No relevant notes
+    * - ``INCREMENT``
+      - Integer
+      - ``increment``
+      - Pool creation only
+    * - ``MACHINE``
+      - String
+      - ``machine``
+      - No relevant notes
+    * - ``MAX``
+      - Integer
+      - ``max``
+      - Pool creation only
+    * - ``MAX_LIFETIME_SESSION``
+      - Integer
+      - ``max_lifetime_session``
+      - Pool creation only
+    * - ``MAX_SESSIONS_PER_SHARD``
+      - Integer
+      - ``max_sessions_per_shard``
+      - Pool creation only
+    * - ``MIN``
+      - Integer
+      - ``min``
+      - Pool creation only
+    * - ``MODE``
+      - String, values may be one of *DEFAULT*, *PRELIM*, *SYSASM*, *SYSBKP*, *SYSDBA*, *SYSDGD*, *SYSKMT*, *SYSOPER*, or *SYSRAC* mapping to :ref:`connection-authorization-modes`.
+      - ``mode``
+      - No relevant notes
+    * - ``OSUSER``
+      - String
+      - ``osuser``
+      - No relevant notes
+    * - ``PING_INTERVAL``
+      - Integer
+      - ``ping_interval``
+      - Pool creation only
+    * - ``PING_TIMEOUT``
+      - Integer
+      - ``ping_timeout``
+      - Pool creation only
+    * - ``POOL_BOUNDARY``
+      - String
+      - ``pool_boundary``
+      - No relevant notes
+    * - ``PROGRAM``
+      - String
+      - ``program``
+      - No relevant notes
+    * - ``PURITY``
+      - String, values may be one of *DEFAULT*, *NEW*, or *SELF* mapping to :ref:`drcppurityconsts`.
+      - ``purity``
+      - No relevant notes
+    * - ``RETRY_COUNT``
+      - Integer
+      - ``retry_count``
+      - No relevant notes
+    * - ``RETRY_DELAY``
+      - Integer
+      - ``retry_delay``
+      - No relevant notes
+    * - ``SDU``
+      - Integer
+      - ``sdu``
+      - No relevant notes
+    * - ``SODA_METADATA_CACHE``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``soda_metadata_cache``
+      - Pool creation only
+    * - ``SSL_SERVER_CERT_DN``
+      - String
+      - ``ssl_server_cert_dn``
+      - No relevant notes
+    * - ``SSL_SERVER_DN_MATCH``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``ssl_server_dn_match``
+      - No relevant notes
+    * - ``STMTCACHESIZE``
+      - Integer
+      - ``stmtcachesize``
+      - No relevant notes
+    * - ``TCP_CONNECT_TIMEOUT``
+      - Integer
+      - ``tcp_connect_timeout``
+      - No relevant notes
+    * - ``TERMINAL``
+      - String
+      - ``terminal``
+      - No relevant notes
+    * - ``TIMEOUT``
+      - Integer
+      - ``timeout``
+      - Pool creation only
+    * - ``USE_TCP_FAST_OPEN``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``use_tcp_fast_open``
+      - No relevant notes
+    * - ``USE_SNI``
+      - String representing a boolean. Values may be one of *on* or *off*, *true* or *false*, *yes* or *no* (case insensitive).
+      - ``use_sni``
+      - No relevant notes
+    * - ``WAIT_TIMEOUT``
+      - Integer
+      - ``wait_timeout``
+      - Pool creation only
+    * - ``WALLET_LOCATION``
+      - String
+      - ``wallet_location``
+      - Not recommended for use in Configuration Providers because the path name may not be valid on any particular application host.
+
 .. _configurationproviders:
 
 Centralized Configuration Providers
 ===================================
 
-Centralized Configuration Providers allow the storage and management of
-database connection credentials and application configuration information in a
-central location. These providers allow you to separately store the
-configuration information from the code of your application. The information
-that can be stored in these providers includes connect descriptors, database
-credentials such as user name and password, and python-oracledb specific
-attributes.
-
-You can access the information stored in configuration providers using both
-python-oracledb Thin and Thick modes. With this information, python-oracledb
-can connect to Oracle Database using :meth:`oracledb.connect()`,
-:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+`Centralized Configuration Providers <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-E5D6E5D9-654C-4A11-90F8-2A79C58ABD38>`__ allow the storage
+and management of database connection credentials and application configuration
+information in a central location. Providers allow you to separately store
+configuration information from the code of your application. The values that
+can be stored includes the database connection string, database credentials, a
+cache time, and python-oracledb specific attributes such as connection pool
+settings. Python-oracledb can use the centrally stored information to connect
+to Oracle Database with :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
 :meth:`oracledb.create_pool_async()`.
 
 The following configuration providers are supported by python-oracledb:
 
-- :ref:`Oracle Cloud Infrastructure (OCI) Object Storage <ociobjstorage>`
-- :ref:`Microsoft Azure App Configuration <azureappconfig>`
-- :ref:`File Configuration Provider <fileconfigprovider>`
+- :ref:`File Centralized Configuration Provider <fileconfigprovider>`
+- :ref:`Oracle Cloud Infrastructure (OCI) Object Storage Centralized
+  Configuration Provider <ociobjstorageprovider>`
+- :ref:`Microsoft Azure App Centralized Configuration Provider
+  <azureappstorageprovider>`
+
+To use python-oracledb :ref:`Centralized Configuration Provider
+<configurationproviders>` functionality in Thick mode, you must set
+:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
+:meth:`ConnectParams.parse_connect_string()`.
+
+In Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is *True*, it
+is the Oracle Client libraries that access the configuration provider when
+python-oracledb connection or pool creation methods are invoked. Any
+python-oracledb parameter section will be ignored. Any Oracle Client Interface
+parameter section should be removed from the configuration because its values
+may be different to those that python-oracledb assumes, and will cause
+undefined behavior.
 
 **Precedence of Attributes**
 
-If you have defined the values of ``user`` and ``password`` in both the
+Defining attributes in multiple places is not recommended. However, if
+you have defined the values of ``user`` and ``password`` in both the
 application and the configuration provider, then the values defined in the
-application will have the higher precedence. If the ``externalauth``
-parameter is set to *True*, then the ``user`` and ``password`` values
-specified in the configuration provider is ignored.
+application will have the higher precedence. If the ``externalauth`` parameter
+is set to *True*, then the ``user`` and ``password`` values specified in the
+configuration provider are ignored.
 
-If you have defined the python-oracledb specific attributes in both the
-application and in the configuration provider, then the values defined in the
-configuration provider will have the higher precedence.
+If other python-oracledb connection attributes have been defined in both the
+application and the configuration provider, then the values defined in the
+configuration provider will have higher precedence.
 
-.. _ociobjstorage:
+If you are using Thick mode, and have defined python-oracledb attributes in an
+``oraaccess.xml`` file (see :ref:`optclientfiles`), the configuration provider,
+and the application, then the values defined in the configuration provider will
+have the higher precedence followed by the ``oraaccess.xml`` file settings, and
+then application settings.
 
-OCI Object Storage Configuration Provider
------------------------------------------
+.. _fileconfigprovider:
 
-The `Oracle Cloud Infrastructure (OCI) Object Storage <https://docs.oracle.com
-/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm>`__ configuration
-provider enables the storage and management of Oracle Database connection
-information in a JSON file.
+Using a File Centralized Configuration Provider
+-----------------------------------------------
 
-To use python-oracledb to access the configuration information from OCI Object
-Storage, you must install the `OCI module <https://pypi.org/project/oci/>`__,
-see :ref:`ocimodules`.
+The File Centralized Configuration Provider enables the storage and management
+of Oracle Database connection information using local files.
 
-The JSON configuration file must contain the ``connect_descriptor`` property.
-Optionally, you can specify the database user name, password, and
-python-oracledb specific properties in the file. The database password can also
-be stored securely as a secret using `OCI Vault <https://docs.oracle.com/en-us/
-iaas/Content/KeyManagement/Tasks/managingsecrets.htm>`__. The properties that
-can be added in the JSON file are listed below:
+To use a File Centralized Configuration Provider, you must:
 
-.. list-table-with-summary:: JSON Properties for OCI Object Storage Configuration Provider
+1. Store the connection information in a JSON file on your local file system.
+
+2. Set the path to the file in the ``dsn`` parameter of connection and pool
+   creation methods.
+
+**File Centralized Configuration Provider JSON File Syntax**
+
+The configuration file must contain at least a ``connect_descriptor`` key to
+specify the database connection string. Optionally, you can store the database
+user name, password, a cache time, and :ref:`python-oracledb settings
+<pyoparams>`. The keys that can be stored in the file are:
+
+.. list-table-with-summary:: JSON keys for the File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _file_configuration_provider
+    :summary: The first column displays the name of the key. The second column displays its description. The third column displays whether the key is required or optional.
+
+    * - Key
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user as a dictionary containing the key "type" and password type-specific keys.
+
+        .. warning::
+
+            Storing passwords in the configuration file should only ever be used in development or test environments.
+
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``config_time_to_live``
+      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - Optional
+    * - ``config_time_to_live_grace_period``
+      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
+
+See the `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
+more information on the generic provider sub-objects usable in JSON files.
+
+Multiple configurations can be defined by specifying the above keys under
+user-chosen, top-level keys, see the example further below.
+
+**File Centralized Configuration Provider DSN Syntax**
+
+To use a file provider, specify the ``dsn`` parameter of
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` using
+the following format::
+
+    config-file://<file-path-and-name>[?key=<key_name>]
+
+The elements of the ``dsn`` parameter are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for File Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 20 60
+    :name: _connection_string_for_file_configuration_provider
+    :summary: The first column displays the name of the connection string parameter. The second column displays the description of the connection string parameter.
+
+    * - Parameter
+      - Description
+    * - ``config-file``
+      - Indicates that the centralized configuration provider is a file in your local system.
+    * - <file-name>
+      - The file path and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the connection or pool creation ``config_dir`` parameter, or :attr:`defaults.config_dir` value, to create an absolute path.
+    * - ``key``
+      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key value. If not specified, the file is assumed to contain a single configuration. See the example further below.
+
+**File Configuration Provider Examples**
+
+An example of File Configuration Provider file syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "base64",
+            "value": "dGlnZXI="
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+This encodes the password as base64.  See :ref:`ociobjstorageprovider` for
+other password examples. Plaintext passwords are not supported.
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+If you have this configuration file in ``/opt/oracle/my-config1.json``, you
+could use it like:
+
+.. code-block:: python
+
+    connection = oracledb.connect(dsn="config-file:///opt/oracle/my-config1.json")
+
+Multiple configurations can be defined by specifying user-chosen top-level
+keys::
+
+    {
+        "production": {
+            "connect_descriptor": "localhost/orclpdb"
+        },
+        "testing": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "scott",
+            "password": {
+                "type": "base64",
+                "value": "dGlnZXI="
+            }
+        }
+    }
+
+If you have this configuration file in ``/opt/oracle/my-config2.json``, you
+could use it like:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                 dsn="config-file:///opt/oracle/my-config2.json?key=production")
+
+
+.. _ociobjstorageprovider:
+
+Using an OCI Object Storage Centralized Configuration Provider
+--------------------------------------------------------------
+
+The Oracle Cloud Infrastructure (OCI) `Object Storage configuration provider
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-
+40B3-87FC-C70D6DAF780E>`__ enables the storage and management of Oracle
+Database connection information as JSON in `OCI Object Storage <https://docs.
+oracle.com/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm>`__.
+
+To use an OCI Object Storage Centralized Configuration Provider, you must:
+
+1. Upload a JSON file that contains the connection information into an OCI
+   Object Storage Bucket. See `Uploading an Object Storage Object to a Bucket
+   <https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/managingobjects_
+   topic-To_upload_objects_to_a_bucket.htm>`__ and the `Oracle Net Service
+   Administrator’s Guide <https://www.oracle.com/pls/topic/lookup?ctx=
+   dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for the steps.
+   See :ref:`OCI Object Storage Centralized Configuration Provider Parameters
+   <ociconfigparams>` for the configuration information that can be added.
+
+2. Install the Python `OCI <https://pypi.org/project/oci/>`__ module, see
+   :ref:`ocimodules`.
+
+3. Import the :ref:`oracledb.plugins.oci_config_provider <configociplugin>`
+   plugin in your application.
+
+4. :ref:`Use an OCI Object Storage connection string URL <connstringoci>`
+   in the ``dsn`` parameter of connection and pool creation methods.
+
+.. _ociconfigparams:
+
+**OCI Object Storage Centralized Configuration Provider JSON File Syntax**
+
+The stored JSON configuration file must contain a ``connect_descriptor``
+property.  Optionally, you can specify the database user name, password, a
+cache time, and python-oracledb attributes. The database password can also be
+stored securely using `OCI Vault <https://docs.oracle.com/en-us/iaas/Content/
+KeyManagement/Tasks/managingsecrets.htm>`__ or `Azure Key Vault
+<https://learn.microsoft.com/en-us /azure/key-vault/general/overview>`__. The
+keys that can be in the JSON file are listed below.
+
+.. list-table-with-summary:: JSON Keys for OCI Object Storage Configuration Provider
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 15 25 15
@@ -621,131 +1145,34 @@ can be added in the JSON file are listed below:
       - The database user name.
       - Optional
     * - ``password``
-      - The password of the database user, or a dictionary containing the key "type" and password-type specific properties.
+      - The password of the database user as a dictionary containing the key "type" and password type-specific keys.
       - Optional
     * - ``connect_descriptor``
       - The database :ref:`connection string <connstr>`.
       - Required
-    * - ``pyo``
-      - Python-oracledb specific properties.
+    * - ``config_time_to_live``
+      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
       - Optional
-
-The following sample is an example of OCI Object Storage configuration
-provider syntax::
-
-    {
-        "user": "scott",
-        "password": {
-            "type": "oci-vault",
-            "value": "oci.vaultsecret.my-secret-id"
-            "authentication": "OCI_INSTANCE_PRINCIPAL"
-        },
-        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
-        "pyo": {
-            "stmtcachesize": 30,
-            "min": 2,
-            "max": 10
-        }
-    }
-
-If the password key has a reference to Azure Key Vault, then you must define
-the Azure Key Vault credentials in the ``password`` property. The
-``azure_client_id`` and ``azure_tenant_id`` must be specified in the password
-property. Also, either the ``azure_client_secret`` or
-``azure_client_certificate_path`` should be specified. The password format
-should be::
-
-    "password": {
-            "type": "azure-vault",
-            "value": "<Azure Key Vault URI>",
-            "azure_tenant_id":"<tenant_id>",
-            "azure_client_id":"<client_id>",
-            "azure_client_secret": "<secret value>", or "azure_client_certificate_path" : "<azure_client_certificate_path>"
-        }
-
-.. _useociconfigprovider:
-
-Using python-oracledb with OCI Object Storage Configuration Provider
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-To use python-oracledb with an OCI Object Storage configuration provider, you
-must:
-
-1. :ref:`Import the oracledb.plugins.oci_config_provider plugin
-   <importconfigociplugin>` in your code.
-
-2. :ref:`Use an OCI Object Storage connection string URL <connstringoci>`
-   in the ``dsn`` parameter of connection and pool creation methods.
-
-An example using a :ref:`standalone connection <standaloneconnection>` is
-shown below:
-
-.. code-block:: python
-
-    import oracledb.plugins.oci_config_provider
-
-    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
-
-    oracledb.connect(dsn=configociurl)
-
-An example using a :ref:`connection pool <connpooling>` is shown below:
-
-.. code-block:: python
-
-    import oracledb.plugins.oci_config_provider
-
-    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
-
-    oracledb.create_pool(dsn=configociurl)
-
-.. _importconfigociplugin:
-
-Importing ``oracledb.plugins.oci_config_provider``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You must import a :ref:`oracledb.plugins.oci_config_provider <configociplugin>`
-plugin provided by python-oracledb to access the configuration information
-stored in :ref:`OCI Object Storage <ociobjstorage>` such as database connect
-descriptor, user name, password, and python-oracledb specific attributes.
-
-Importing this plugin defines and
-:meth:`registers <oracledb.register_protocol()>` a built-in
-:ref:`connection hook function <connectionhook>` that handles :ref:`connection
-strings prefixed with config-ociobject <connstringoci>`. This function is
-internally invoked when the ``dsn`` parameter is prefixed with
-``config-ociobject`` in calls to :meth:`oracledb.connect()`,
-:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
-:meth:`oracledb.create_pool_async()`. This hook function parses the connection
-string, and extracts the following details:
-
-- URL of the OCI Object Storage endpoint
-- OCI Object Storage namespace where the JSON file is stored
-- OCI Object Storage bucket name where the JSON file is stored
-- JSON file name
-- Network service name or alias if the JSON file contains one or more aliases
-- OCI Object Storage authentication details
-
-Using the above details, the hook function accesses the configuration
-information stored in OCI Object Storage.  The hook function sets the
-connection information from OCI Object Storage in its ``connect_params``
-parameter which is a :ref:`ConnectParams <connparam>` object. This object is
-used by python-oracledb to establish a connection to Oracle Database.
+    * - ``config_time_to_live_grace_period``
+      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
 
 .. _connstringoci:
 
-Defining a Connection String URL for OCI Object Storage
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**OCI Object Storage Centralized Configuration Provider DSN Syntax**
 
-You must define a connection string URL in a specific format in the ``dsn``
-property of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` to
-access the information stored in OCI Object Storage. The syntax of the OCI
-Object Storage connection string URL is::
+The ``dsn`` parameter for :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` calls should use a connection string URL
+in the format::
 
     config-ociobject:<objectstorage-name>/n/{namespaceName}/b/{bucketName}/o/
     <objectName>[/c/<networkServiceName>][?<option1>=<value1>&<option2>=<value2>...]
 
-The parameters of the connection string are detailed in the table below.
+The elements of the connection string are detailed in the table below.
 
 .. list-table-with-summary:: Connection String Parameters for OCI Object Storage
     :header-rows: 1
@@ -775,186 +1202,206 @@ The parameters of the connection string are detailed in the table below.
     * - <networkServiceName>
       - The network service name or alias if the JSON file contains one or more network service names.
       - Optional
-    * - <options> and <values>
-      - The authentication method and corresponding authentication parameters to access the OCI Object Storage configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the ``option=value`` syntax of the connection string. You can specify one of the following authentication methods:
+    * - <option>=<value>
+      - The authentication method and its corresponding parameters to access the OCI Object Storage configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the connection string. You can specify one of the following authentication methods:
 
-        - **API Key-based Authentication**: The authentication to OCI is done using API key-related values. This is the default authentication method. To use this method, you must set the option value to OCI_DEFAULT. Note that this value is also used when no authentication value is set.
+        - **API Key-based Authentication**: The authentication to OCI is done using API key-related values. This is the default authentication method. Note that this method is used when no authentication value is set or by setting the option value to *OCI_DEFAULT*. The optional authentication parameters that can be set for this method include *OCI_PROFILE*, *OCI_TENANCY*, *OCI_USER*, *OCI_FINGERPRINT*, *OCI_KEY_FILE*, and *OCI_PASS_PHRASE*. These authentication parameters can also be set in an OCI Authentication Configuration file which can be stored in a default location *~/.oci/config*, or in location *~/.oraclebmc/config*, or in the location specified by the OCI_CONFIG_FILE environment variable. See `Authentication Parameters for Oracle Cloud Infrastructure (OCI) Object Storage <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-EB94F084-0F3F-47B5-AD77-D111070F7E8D>`__.
 
-         You can set optional authentication parameters for this method such as OCI_PROFILE, OCI_TENANCY, OCI_USER, OCI_FINGERPRINT, OCI_KEY_FILE, and OCI_PASS_PHRASE. See `Authentication Parameters for Oracle Cloud Infrastructure (OCI) Object Storage <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-EB94F084-0F3F-47B5-AD77-D111070F7E8D>`__. These authentication parameters can also be set in an OCI Authentication Configuration file which can be stored in a default location ~/.oci/config, or in location ~/.oraclebmc/config, or in the location specified by the OCI_CONFIG_FILE environment variable.
+        - **Instance Principal Authentication**: The authentication to OCI is done using VM instance credentials running on OCI. To use this method, set the option value to *OCI_INSTANCE_PRINCIPAL*. There are no optional authentication parameters that can be set for this method.
 
-        - **Instance Principal Authentication**: The authentication to OCI is done using VM instance credentials running on OCI. To use this method, you must set the option value to OCI_INSTANCE_PRINCIPAL. There are no optional authentication parameters for this method.
-
-        - **Resource Principal Authentication**: The authentication to OCI is done using OCI resource principals. To use this method, you must set the option value to OCI_RESOURCE_PRINCIPAL. There are no optional authentication parameters for this method.
+        - **Resource Principal Authentication**: The authentication to OCI is done using OCI resource principals. To use this method, you must set the option value to OCI_RESOURCE_PRINCIPAL. There are no optional authentication parameters that can be set for this method.
 
         See `OCI Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
       - Optional
 
-You can store the authentication details in an OCI Authentication Configuration
-file which can be stored in a default location (~/.oci/config). The
-``oci_from_file()`` method will check this location for the configuration file.
-The OCI Object Storage configuration provider uses this method when the
-default authentication method is specified or when the authentication details
-are not provided in the connection string.
+**OCI Object Storage Centralized Configuration Provider Examples**
 
-An example of a connection string for OCI Object Storage configuration provider
-is shown below:
+An example of OCI Object Centralized Storage Configuration Provider JSON file
+syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "oci-vault",
+            "uri": "oci.vaultsecret.my-secret-id"
+            "authentication": {
+                "method": "OCI_INSTANCE_PRINCIPAL"
+            }
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+Passwords can optionally be stored using the Azure Key Vault. To do this, you
+must define the Azure Key Vault credentials in the ``password`` property. In
+this, the ``azure_client_id`` and ``azure_tenant_id`` must be specified. Also,
+either ``azure_client_secret`` or ``azure_client_certificate_path`` should be
+specified. For example::
+
+    "password": {
+        "type": "azure-vault",
+        "uri": "<Azure Key Vault URI>",
+        "authentication": {
+            "azure_tenant_id": "<tenant_id>",
+            "azure_client_id": "<client_id>",
+            "azure_client_secret": "<secret value>"
+        }
+    }
+
+Or::
+
+    "password": {
+        "type": "azure-vault",
+        "uri": "<Azure Key Vault URI>",
+        "authentication": {
+            "azure_tenant_id": "<tenant_id>",
+            "azure_client_id": "<client_id>",
+            "azure_client_certificate_path": "<azure_client_certificate_path>"
+        }
+    }
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+An example of a connection string for the OCI Object Centralized Storage
+configuration provider is:
 
 .. code-block:: python
 
     configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
 
-.. _azureappconfig:
+To create a :ref:`standalone connection <standaloneconnection>` you could use
+this like:
 
-Azure App Configuration Provider
---------------------------------
+.. code-block:: python
+
+    import oracledb.plugins.oci_config_provider
+
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
+
+    connection = oracledb.connect(dsn=configociurl)
+
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(dsn=configociurl)
+
+.. _azureappstorageprovider:
+
+Using an Azure App Centralized Configuration Provider
+-----------------------------------------------------
 
 `Azure App Configuration <https://learn.microsoft.com/en-us/azure/azure-app-
 configuration/overview>`__ is a cloud-based service provided by Microsoft
-Azure that enables the storage and management of Oracle Database connection
-information. Your application must be registered with `Microsoft Entra ID
-<https://www.microsoft.com/en-in/security/business/identity-access/microsoft
--entra-id>`__ (formerly Microsoft Azure Active Directory) and must have the
-required authorization permissions to access the Azure App Configuration
-provider.
+Azure. It can be used for storage and management of Oracle Database connection
+information as key-value pairs.
 
-To use python-oracledb to access the configuration information from Azure App
-Configuration, you must install certain Microsoft Azure modules, see
-:ref:`azuremodules`.
+To use python-oracledb with Azure App Configuration, you must:
 
-Configuration information is stored as key-value pairs in Azure App
-Configuration. You must add the connect descriptor as a key under a prefix
-based on the requirements of your application. Optionally, you can add the
-database user name, password, and python-oracledb specific properties as keys.
-The database password can be stored securely as a secret using `Azure Key Vault
-<https://learn.microsoft.com/en-us/azure/key-vault/general/overview>`__. In
-Azure App Configuration, you can add the following keys under a prefix:
+1. Save your configuration information in your Azure App Configuration
+   Provider. See :ref:`Azure App Centralized Configuration Provider Parameters
+   <azureconfigparams>`.
 
-- <prefix>connect_descriptor (required)
-- <prefix>user (optional)
-- <prefix>password (optional)
-- <prefix>pyo(optional)
+2. Install the Azure App modules, see :ref:`azuremodules`.
 
-The key ending with:
+3. Import the :ref:`oracledb.plugins.azure_config_provider <configazureplugin>`
+   plugin in your application.
 
-- ``connect_descriptor`` stores the :ref:`connect descriptor <conndescriptor>`
-  as the value.
-- ``user`` stores the database user name as the value.
-- ``password`` stores the reference to the Azure Key Vault and Secret as
-  the value.
-- ``pyo`` stores the values of the python-oracledb specific properties.
-
-See `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
-topic/lookup?ctx=dblatest&id=GUID-DBCA9021-F3E1-4B30-8F17-A98900299D73>`__ for
-more information.
-
-.. _azureappconfigexample:
-
-The following table lists the sample configuration information defined in Azure
-App Configuration as key-value pairs. Note that the key-value pairs are defined
-under the same prefix ``test/`` as an example.
-
-.. list-table-with-summary::
-    :header-rows: 1
-    :class: wy-table-responsive
-    :align: center
-    :widths: 30 70
-    :name: _azure_app_configuration_keys_and_values
-    :summary: The first row displays the name of the key defined in Azure App Configuration. The second row displays the value of the key defined in Azure App Configuration.
-
-    * - Azure App Configuration Key
-      - Value
-    * - test/connect_descriptor
-      - (description=(retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)(host=adb.region.oraclecloud.com))(connect_data=(service_name=cdb1_pdb1)))
-    * - test/user
-      - scott
-    * - test/password
-      - {"uri":"https://mykeyvault.vault.azure.net/secrets/passwordsalescrm"}
-    * - test/pyo
-      - {"stmtcachesize":30, "min":2, "max":10}
-
-.. _useazureconfigprovider:
-
-Using python-oracledb with Azure App Configuration Provider
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-To use python-oracledb with an Azure App Configuration provider, you must:
-
-1. :ref:`Import the
-   oracledb.plugins.azure_config_provider <importconfigazureplugin>` plugin in
-   your code.
-
-2. :ref:`Use an Azure App Configuration connection string URL
+4. :ref:`Use an Azure App Configuration connection string URL
    <connstringazure>` in the ``dsn`` parameter of connection and pool creation
    methods.
 
-An example using a :ref:`standalone connection <standaloneconnection>` is
-shown below.
+.. _azureconfigparams:
 
-.. code-block:: python
+**Azure App Centralized Configuration Provider Parameters**
 
-    import oracledb.plugins.azure_config_provider
+Key-value pairs for stored connection information can be added using the
+Configuration explorer page of your Azure App Configuration. See `Create a
+key-value in Azure App Configuration <https://learn.microsoft.com/
+en-us/azure/azure-app-configuration/quickstart-azure-app-configuration-create?
+tabs=azure-portal#create-a-key-value>`__ for more information.  Alternatively,
+they can be set by making `REST <https://learn.microsoft.com/en-us/python
+/api/azure-appconfiguration/azure.appconfiguration.azureappconfigurationclient
+?view=azure-python#azure-appconfiguration-azureappconfigurationclient-add-
+configuration-setting>`__ calls.  Also see the `Oracle Net Service
+Administrator’s Guide <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id
+=GUID-FCCF1C8D-E4E9-4061-BEE5-5F21654BAC18>`__.
 
-    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
+You can organize the key-value pairs under a prefix based on your
+application's needs. For example, if you have two applications, Sales and
+Human Resources, then you can store the relevant configuration information
+under the prefix *sales* and the prefix *hr*.
 
-    oracledb.connect(dsn=configazureurl)
+The key-value pairs must contain the key ``connect_descriptor`` which specifies
+the database connection string. This can be set using a prefix as
+"<prefix>/connect_descriptor", for example, *sales/connect_descriptor*.
 
-An example using a :ref:`connection pool <connpooling>` is shown below.
+You can additionally store the database user name using a key such as
+"<prefix>/user", and store the password using "<prefix>/password". For example,
+*sales/user* and *sales/password*. The database password can also be stored
+securely using `Azure Key Vault <https://learn.microsoft.com/en-us
+/azure/key-vault/general/overview>`__.  A cache time can optionally be stored
+using "<prefix>/config_time_to_live". For example, *sales/60000*. See
+:ref:`conncaching`.
 
-.. code-block:: python
+Optional python-oracledb settings can be set using a key such as
+"<prefix>/pyo/<key name>", for example *sales/pyo/min*. This is similar to how
+`Oracle Call Interface <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=LNOCI>`__ settings use keys like "<prefix>/oci/<key name>" as shown in
+`Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-97E22A68-6FE3-4FE9-98A9-90E5BF83E9EC>`__.
 
-    import oracledb.plugins.azure_config_provider
+The keys that can be added in Azure App Configuration are listed below:
 
-    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
+.. list-table-with-summary:: Keys for Azure App Configuration
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _azure_app_configuration_keys
+    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
 
-    oracledb.create_pool(dsn=configazureurl)
-
-.. _importconfigazureplugin:
-
-Importing ``oracledb.plugins.azure_config_provider``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-You must import a :ref:`oracledb.plugins.azure_config_provider
-<configazureplugin>` plugin provided by python-oracledb to access the
-configuration information stored in Azure App Configuration such as database
-connect descriptor, user name, password, and python-oracledb specific
-attributes.
-
-Importing this plugin defines and
-:meth:`registers <oracledb.register_protocol()>` a built-in :ref:`connection
-hook function <connectionhook>` that handles :ref:`connection strings prefixed
-with config-azure <connstringazure>`. This function is internally invoked when
-the ``dsn`` parameter is prefixed with ``config-azure`` in calls to
-:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. This
-hook function parses the connection string, and extracts the following details:
-
-- The URL of the Azure App Configuration endpoint
-- The key prefix to identify the connection
-- The Azure App Configuration label name
-- Azure App Configuration authentication details
-
-Using the above details, the hook function accesses the configuration
-information stored in Azure App Configuration. The hook function sets the
-connection information from Azure App Configuration in its ``connect_params``
-parameter which is a :ref:`ConnectParams <connparam>` object. This object is
-used by python-oracledb to establish a connection to Oracle Database.
+    * - Key
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Azure Key Vault, this can be the URI to the vault containing the secret key, specified using the key "uri"
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``config_time_to_live``
+      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - Optional
+    * - ``config_time_to_live_grace_period``
+      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
 
 .. _connstringazure:
 
-Defining a Connection String URL for Azure App Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**Azure App Centralized Configuration Provider DSN Syntax**
 
 You must define a connection string URL in a specific format in the ``dsn``
 property of :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
 :meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` to
-access the information stored in Azure App Configuration. The syntax of the
-Azure App Configuration connection string URL is::
+access the information stored in Azure App Configuration. The syntax is::
 
-    config-azure://<appconfigname>[?key=<prefix>&label=<value>&<option1>=<value1>&<option2>=<value2>…]
+    config-azure://<appconfigname>[?key=<prefix>&label=<value>&<option1>=<value1>&<option2>=<value2>...]
 
-The parameters of the connection string are detailed in the table below.
+The elements of the connection string are detailed in the table below.
 
-.. list-table-with-summary:: Connection String Parameters for Azure App Configuration
+.. list-table-with-summary:: Connection String Parameters for Azure App Centralized Configuration Provider
     :header-rows: 1
     :class: wy-table-responsive
     :align: center
@@ -969,7 +1416,7 @@ The parameters of the connection string are detailed in the table below.
       - Indicates that the configuration provider is Azure App Configuration.
       - Required
     * - <appconfigname>
-      - The URL of the Azure App configuration endpoint.
+      - The URL of the Azure App Configuration endpoint.
       - Required
     * - key=<prefix>
       - A key prefix to identify the connection. You can organize configuration information under a prefix as per application requirements.
@@ -977,179 +1424,110 @@ The parameters of the connection string are detailed in the table below.
     * - label=<value>
       - The Azure App Configuration label name.
       - Optional
-    * - <options>=<values>
-      - The authentication method and corresponding authentication parameters to access the Azure App Configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the ``option=value`` syntax of the connection string. You can specify one of the following authentication methods:
+    * - <option>=<value>
+      - The authentication method and its corresponding parameters to access the Azure App Configuration provider. Depending on the specified authentication method, you must also set the corresponding authentication parameters in the connection string. You can specify one of the following authentication methods:
 
-        - **Default Azure Credential**: The authentication to Azure App Configuration is done as a service principal (using either a client secret or client certificate) or as a managed identity depending on which parameters are set. This authentication method also supports reading the parameters as environment variables. This is the default authentication method. To use this authentication method, you must set the option value to AZURE_DEFAULT. Note that this value is also used when no authentication value is set.
+        - **Default Azure Credential**: The authentication to Azure App Configuration is done as a service principal (using either a client secret or client certificate) or as a managed identity depending on which parameters are set. This authentication method also supports reading the parameters as environment variables. This is the default authentication method. This method is used when no authentication value is set or by setting the option value to *AZURE_DEFAULT*. The optional parameters that can be set for this option include *AZURE_CLIENT_ID*, *AZURE_CLIENT_SECRET*, *AZURE_CLIENT_CERTIFICATE_PATH*, *AZURE_TENANT_ID*, and *AZURE_MANAGED_IDENTITY_CLIENT_ID*.
 
-         There are no required parameters for this option value. The optional parameters include AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_CLIENT_CERTIFICATE_PATH, AZURE_TENANT_ID, and AZURE_MANAGED_IDENTITY_CLIENT_ID.
+        - **Service Principal with Client Secret**: The authentication to Azure App Configuration is done using the client secret. To use this method, you must set the option value to *AZURE_SERVICE_PRINCIPAL*. The required parameters that must be set for this option include *AZURE_SERVICE_PRINCIPAL*, *AZURE_CLIENT_ID*, *AZURE_CLIENT_SECRET*, and *AZURE_TENANT_ID*.
 
-        - **Service Principal with Client Secret**: The authentication to Azure App Configuration is done using the client secret. To use this method, you must set the option value to AZURE_SERVICE_PRINCIPAL.
+        - **Service Principal with Client Certificate**: The authentication to Azure App Configuration is done using the client certificate. To use this method, you must set the option value to *AZURE_SERVICE_PRINCIPAL*. The required parameters that must be set for this option are *AZURE_SERVICE_PRINCIPAL*, *AZURE_CLIENT_ID*, *AZURE_CLIENT_CERTIFICATE_PATH*, and *AZURE_TENANT_ID*.
 
-         The required parameters for this option include AZURE_SERVICE_PRINCIPAL, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, and AZURE_TENANT_ID. There are no optional parameters for this option value.
+        - **Managed Identity**: The authentication to Azure App Configuration is done using managed identity or managed user identity credentials. To use this method, you must set the option value to *AZURE_MANAGED_IDENTITY*. If you want to use a user-assigned managed identity for authentication, then you must specify the required parameter *AZURE_MANAGED_IDENTITY_CLIENT_ID*.
 
-        - **Service Principal with Client Certificate**: The authentication to Azure App Configuration is done using the client certificate. To use this method, you must set the option value to AZURE_SERVICE_PRINCIPAL.
-
-         The required parameters for this option are AZURE_SERVICE_PRINCIPAL, AZURE_CLIENT_ID, AZURE_CLIENT_CERTIFICATE_PATH, and AZURE_TENANT_ID. There are no optional parameters for this option value.
-
-        - **Managed Identity**: The authentication to Azure App Configuration is done using managed identity or managed user identity credentials. To use this method, you must set the option value to AZURE_MANAGED_IDENTITY.
-
-         If you want to use a user-assigned managed identity for authentication, then you must specify the required parameter AZURE_MANAGED_IDENTITY_CLIENT_ID. There are no optional parameters for this option value.
-
+        See `Authentication Parameters for Azure App Configuration Store <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1EECAD82-6CE5-4F4F-A844-C75C7AA1F907>`__ for more information. Note that the Azure service principal with client certificate overrides Azure service principal with client secret.
       - Optional
 
-Note that the Azure service principal with client certificate overrides Azure
-service principal with client secret. See `Authentication Parameters for Azure
-App Configuration Store <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-1EECAD82-6CE5-4F4F-A844-C75C7AA1F907>`__ for more information.
+**Azure App Centralized Configuration Examples**
 
-An example of a connection string for Azure App Configuration provider is shown
-below:
+.. _azureappconfigexample:
+
+The following table shows sample configuration information defined using the
+Configuration explorer page of your Azure App Configuration provider. The
+example uses the prefix ``test/``.
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :widths: 30 70
+    :name: _azure_app_configuration_keys_and_values
+    :summary: The first row displays the name of the key defined in Azure App Configuration. The second row displays the value of the key defined in Azure App Configuration.
+
+    * - Sample Azure App Configuration Key
+      - Sample Value
+    * - test/connect_descriptor
+      - ``dbhost.example.com:1522/orclpdb``
+    * - test/user
+      - ``scott``
+    * - test/password
+      - ``{"uri":"https://mykeyvault.vault.azure.net/secrets/passwordsales"}``
+    * - test/pyo/max
+      - ``20``
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+An example of a connection string for the Azure App Configuration provider is:
 
 .. code-block:: python
 
     configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
 
-.. _fileconfigprovider:
+.. _useazureconfigprovider:
 
-Connecting Using the File Configuration Provider
-------------------------------------------------
+An example using a :ref:`standalone connection <standaloneconnection>` is:
 
-The file configuration provider enables the storage and management of Oracle
-Database connection information as JSON in a file on your local file system.
+.. code-block:: python
 
-When a connection or pool creation method is called with the prefix
-``config-file://`` for its ``dsn`` parameter, a built-in :ref:`connection hook
-function <connectionhook>` is internally invoked. This function parses the DSN
-and loads the configuration information which is stored in the specified file
-as JSON.  The hook function sets the connection information in its
-``connect_params`` parameter. This :ref:`ConnectParams <connparam>` object is
-used by python-oracledb to establish a connection to Oracle Database.
+    import oracledb.plugins.azure_config_provider
 
-The configuration file must contain at least the database connection
-string. Optionally, you can add the database user name, password, and
-python-oracledb specific properties. The JSON properties that can be added to
-the file are listed in the table below.
+    configazureurl = "config-azure://aznetnamingappconfig.azconfig.io/?key=test/&azure_client_id=123-456&azure_client_secret=MYSECRET&azure_tenant_id=789-123"
 
-.. list-table-with-summary:: JSON properties for the File Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _file_configuration_provider
-    :summary: The first column displays the name of the property. The second column displays its description. The third column displays whether the sub-object is required or optional.
+    oracledb.connect(dsn=configazureurl)
 
-    * - Property
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user, or a dictionary containing the key "type" and password type-specific properties.
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``pyo``
-      - Python-oracledb specific properties.
-      - Optional
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
 
-See the `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
-topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
-more information on these sub-objects.
+.. code-block:: python
 
-.. warning::
+    oracledb.create_pool(dsn=configazureurl)
 
-    Storing passwords in the configuration file should only ever be used in
-    development or test environments.
+.. _conncaching:
 
-    When using the password type handler for "base64", a warning message will
-    be generated: "base64 encoded passwords are insecure".
+Caching Configuration Information
+---------------------------------
 
-**Sample File Configuration Provider syntax**
+Python-oracledb caches configurations obtained from Centralized Configuration
+Providers to reduce access overheads.
 
-.. _singlefileconfiguration:
+You can use the ``config_time_to_live`` configuration key to specify the number
+of seconds that python-oracledb should keep the information cached. The default
+time is 86,400 seconds (24 hours).
 
-The following sample is an example of the File Configuration Provider syntax::
+When ``config_time_to_live`` is reached, the configuration is considered to be
+"softly expired" and subsequent python-oracledb connections will attempt to
+obtain the configuration again from the configuration provider. If it cannot be
+retrieved, python-oracledb will continue to use the previous configuration for
+up to ``config_time_to_live_grace_period`` seconds which defaults to 1,800
+seconds (30 minutes). After this grace period the cached configuration fully
+expires. Future connection attempts will try to retrieve the configuration from
+the provider but will fail if the new configuration cannot be obtained.
+
+An example of changing the cache time to 12 hours with an additional grace time
+of 10 minutes for the File or OCI Object Storage Centralized Configuration
+Providers is::
 
     {
-        "user": "scott",
-        "password": {
-            "type": "base64",
-            "value": "dGlnZXI="
-        },
         "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "config_time_to_live": 43200,
+        "config_time_to_live_grace_period": 600,
         "pyo": {
             "stmtcachesize": 30,
             "min": 2,
             "max": 10
         }
     }
-
-.. _multiplefileconfigurations:
-
-Multiple configurations can be defined by using keys as shown in the example
-below. The key values are user-chosen::
-
-    {
-        "production": {
-            "connect_descriptor": "localhost/orclpdb"
-        },
-        "testing": {
-            "connect_descriptor": "localhost/orclpdb",
-            "user": "scott",
-            "password": {
-                "type": "base64",
-                "value": "dGlnZXI="
-            }
-        }
-    }
-
-Using python-oracledb with a File Configuration Provider
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-To use a provider file, specify the ``dsn`` parameter of
-:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` using
-the following format::
-
-    config-file://<file-path-and-name>[?key=<key>]
-
-The parameters of the ``dsn`` parameter are detailed in the table below.
-
-.. list-table-with-summary:: Connection String Parameters for File Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 20 60
-    :name: _connection_string_for_file_configuration_provider
-    :summary: The first column displays the name of the connection string parameter. The second column displays the description of the connection string parameter.
-
-    * - Parameter
-      - Description
-    * - ``config-file``
-      - Indicates that the centralized configuration provider is a file in your local system.
-    * - <file-name>
-      - The file path (absolute or relative path) and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the ``config_dir`` value to create an absolute path.
-    * - ``key``
-      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key. If not specified, the file is assumed to contain a single configuration.
-
-For example, if you have a configuration file in
-``/opt/oracle/my-config1.json`` with a :ref:`single configuration
-<singlefileconfiguration>` you could use it like:
-
-.. code-block:: python
-
-    connection = oracledb.connect(user="hr", password=userpwd,
-                       dsn="config-file:///opt/oracle/my-config1.json")
-
-If you have a configuration file in ``/opt/oracle/my-config2.json`` with
-:ref:`multiple configurations <multiplefileconfigurations>` you could use it like:
-
-.. code-block:: python
-
-    connection = oracledb.connect(user="hr", password=userpwd,
-                 dsn="config-file:///opt/oracle/my-config2.json?key=production")
-
 
 .. _usingconnparams:
 
@@ -1158,7 +1536,7 @@ Using the ConnectParams Builder Class
 
 The :ref:`ConnectParams class <connparam>` allows you to define connection
 parameters in a single place.  The :func:`oracledb.ConnectParams()` function
-returns a ``ConnectParams`` object.  The object can be passed to
+returns a :ref:`ConnectParams <connparam>` object.  The object can be passed to
 :func:`oracledb.connect()`. For example:
 
 .. code-block:: python
@@ -1194,12 +1572,20 @@ string from a ConnectParams object:
     dsn = cp.get_connect_string()
     connection = oracledb.connect(user="hr", password=userpwd, dsn=dsn)
 
+Some values such as the database host name can be specified as ``connect()``
+parameters, as part of the ``dsn`` connection string, and in the ``params``
+object. A final connection string is internally constructed from any ``dsn``,
+individual parameters, and ``params`` object values. The precedence is that
+values in a ``dsn`` parameter override values passed as individual parameters,
+which themselves override values set in the ``params`` object.
+
 To parse a connection string and store components as attributes:
 
 .. code-block:: python
 
+    dsn = "host.example.com:1522/orclpdb?transport_connect_timeout=15&pyo.stmtcachesize=30"
     cp = oracledb.ConnectParams()
-    cp.parse_connect_string("host.example.com:1522/orclpdb")
+    cp.parse_connect_string(dsn)
 
 Most parameter values of :func:`oracledb.ConnectParams()` are gettable as
 attributes. For example, to get the stored host name:
@@ -1225,15 +1611,6 @@ You can set individual default attributes using :meth:`ConnectParams.set()`:
 Note :meth:`ConnectParams.set()` has no effect after
 :meth:`ConnectParams.parse_connect_string()` has been called.
 
-Some values such as the database host name can be specified as
-:func:`oracledb.connect()`, parameters, as part of the connect string, and in
-the ``params`` object.  If a ``dsn`` is passed, a connection string is
-internally constructed from the individual parameters and ``params`` object
-values, with the individual parameters having precedence. The precedence is
-that values in any ``dsn`` parameter override values passed as individual
-parameters, which themselves override values set in the ``params`` object.
-Similar precedence rules also apply to other values.
-
 The :meth:`ConnectParams.parse_dsn_with_credentials()` can be used to extract
 the username, password and connection string from a DSN:
 
@@ -1244,11 +1621,10 @@ the username, password and connection string from a DSN:
 
 Empty values are returned as ``None``.
 
-The :meth:`ConnectParams.get_network_service_names()` can be used to get a
-list of the network service names that are defined in the
-:ref:`tnsnames.ora <optnetfiles>` file. The directory that contains the
-tnsnames.ora file can be specified in the :attr:`~ConnectParams.config_dir`
-attribute.
+The :meth:`ConnectParams.get_network_service_names()` can be used to get a list
+of the network service names that are defined in the :ref:`tnsnames.ora
+<optnetfiles>` file. The directory that contains file can be specified in the
+:attr:`~ConnectParams.config_dir` attribute.
 
 .. code-block:: python
 
@@ -1256,9 +1632,9 @@ attribute.
                                 config_dir="/opt/oracle/config")
     cp.get_network_service_names()
 
-If the :meth:`ConnectParams.get_network_service_names()` method is called but
-a tnsnames.ora file does not exist, then an error such as the following is
-returned::
+If the :meth:`ConnectParams.get_network_service_names()` method is called but a
+:ref:`tnsnames.ora <optnetfiles>` file does not exist, then an error such as
+the following is returned::
 
     DPY-4026: file tnsnames.ora not found in /opt/oracle/config
 
@@ -1272,202 +1648,16 @@ internal extraction is done automatically when a value is passed to the ``dsn``
 parameter of :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` but
 no value is passed to the ``user`` password.
 
-.. _defineconnparams:
-
-Defining ConnectParams Parameters in a Connection String
---------------------------------------------------------
-
-You can specify certain common parameters of the :ref:`ConnectParams object
-<connparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
-be done by using the question mark symbol (?) to indicate the start of the
-parameter-value pairs and the ampersand symbol (&) to delimit each
-parameter-value pair. For example:
-
-.. code-block:: python
-
-    cp = oracledb.ConnectParams()
-    cp.parse_connect_string("host.example.com:1522/orclpdb?transport_connect_timeout=15&retry_count=5&retry_delay=5")
-
-The common ConnectParams parameters that can be set in a connection string are
-listed in the table below:
-
-.. list-table-with-summary:: Common ConnectParams Parameters
-    :header-rows: 1
-    :class: wy-table-responsive
-    :align: center
-    :widths: 10 10 10
-    :name: _common_parameters
-    :summary: The first column displays the name of the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
-
-    * - Connect String Parameter Name
-      - Python Parameter Name
-      - Type
-    * - EXPIRE_TIME
-      - :attr:`~ConnectParams.expire_time`
-      - integer
-    * - HTTPS_PROXY
-      - :attr:`~ConnectParams.https_proxy`
-      - string
-    * - HTTPS_PROXY_PORT
-      - :attr:`~ConnectParams.https_proxy_port`
-      - integer
-    * - POOL_BOUNDARY
-      - :attr:`~ConnectParams.pool_boundary`
-      - string
-    * - POOL_CONNECTION_CLASS
-      - :attr:`~ConnectParams.cclass`
-      - string
-    * - POOL_PURITY
-      - :attr:`~ConnectParams.purity`
-      - oracledb.Purity
-    * - RETRY_COUNT
-      - :attr:`~ConnectParams.retry_count`
-      - integer
-    * - RETRY_DELAY
-      - :attr:`~ConnectParams.retry_delay`
-      - integer
-    * - SDU
-      - :attr:`~ConnectParams.sdu`
-      - integer
-    * - SSL_SERVER_DN_MATCH
-      - :attr:`~ConnectParams.ssl_server_dn_match`
-      - boolean
-    * - SSL_SERVER_CERT_DN
-      - :attr:`~ConnectParams.ssl_server_cert_dn`
-      - string
-    * - TRANSPORT_CONNECT_TIMEOUT
-      - :attr:`~ConnectParams.tcp_connect_timeout`
-      - integer
-    * - WALLET_LOCATION
-      - :attr:`~ConnectParams.wallet_location`
-      - string
-
-Also, you can specify additional parameters of the :ref:`ConnectParams object
-<connparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
-be done by using the question mark symbol (?) to indicate the start of the
-parameter-value pairs and the ampersand symbol (&) to delimit each
-parameter-value pair. Addiitionally, you must define each parameter name with
-the prefix "pyo.". For example:
-
-.. code-block:: python
-
-    cp = oracledb.ConnectParams()
-    cp.parse_connect_string("host.example.com:1522/orclpdb?pyo.stmtcachesize=30&pyo.mode=SYSDBA")
-
-Note that these parameters can only be added in Easy Connect strings and not
-in :ref:`Connect Descriptors <conndescriptor>`.
-
-The ConnectParams parameters that can be set in a connection string with the
-prefix "pyo."" are listed in the table below:
-
-.. list-table-with-summary:: Additional ConnectParams Parameters
-    :header-rows: 1
-    :class: wy-table-responsive
-    :align: center
-    :widths: 10 10 10
-    :name: _additional_connectparams_parameters
-    :summary: The first column displays the name of the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
-
-    * - Connect String Parameter Name
-      - Python Parameter Name
-      - Type
-    * - PYO.CCLASS
-      - :attr:`ConnectParams.cclass`
-      - string
-    * - PYO.CONNECTION_ID_PREFIX
-      - :attr:`ConnectParams.connection_id_prefix`
-      - string
-    * - PYO.DISABLE_OOB
-      - :attr:`ConnectParams.disable_oob`
-      - boolean
-    * - PYO.DRIVER_NAME
-      - :attr:`~ConnectParams.driver_name`
-      - string
-    * - PYO.EDITION
-      - :attr:`~ConnectParams.edition`
-      - string
-    * - PYO.EVENTS
-      - :attr:`~ConnectParams.events`
-      - boolean
-    * - PYO.EXPIRE_TIME
-      - :attr:`~ConnectParams.expire_time`
-      - integer
-    * - PYO.EXTERNALAUTH
-      - :attr:`~ConnectParams.externalauth`
-      - boolean
-    * - PYO.HTTPS_PROXY
-      - :attr:`~ConnectParams.https_proxy`
-      - string
-    * - PYO.HTTPS_PROXY_PORT
-      - :attr:`~ConnectParams.https_proxy_port`
-      - integer
-    * - PYO.MACHINE
-      - :attr:`~ConnectParams.machine`
-      - string
-    * - PYO.MODE
-      - :attr:`~ConnectParams.mode`
-      - oracledb.AuthMode
-    * - PYO.OSUSER
-      - :attr:`~ConnectParams.osuser`
-      - string
-    * - PYO.POOL_BOUNDARY
-      - :attr:`~ConnectParams.pool_boundary`
-      - string
-    * - PYO.PROGRAM
-      - :attr:`~ConnectParams.program`
-      - string
-    * - PYO.PURITY
-      - :attr:`~ConnectParams.purity`
-      - oracledb.Purity
-    * - PYO.RETRY_COUNT
-      - :attr:`~ConnectParams.retry_count`
-      - integer
-    * - PYO.RETRY_DELAY
-      - :attr:`~ConnectParams.retry_delay`
-      - integer
-    * - PYO.SDU
-      - :attr:`~ConnectParams.sdu`
-      - integer
-    * - PYO.SSL_SERVER_CERT_DN
-      - :attr:`~ConnectParams.ssl_server_cert_dn`
-      - string
-    * - PYO.SSL_SERVER_DN_MATCH
-      - :attr:`~ConnectParams.ssl_server_dn_match`
-      - boolean
-    * - PYO.STMTCACHESIZE
-      - :attr:`~ConnectParams.stmtcachesize`
-      - integer
-    * - PYO.TCP_CONNECT_TIMEOUT
-      - :attr:`~ConnectParams.tcp_connect_timeout`
-      - integer
-    * - PYO.TERMINAL
-      - :attr:`~ConnectParams.terminal`
-      - string
-    * - PYO.USE_TCP_FAST_OPEN
-      - :attr:`~ConnectParams.use_tcp_fast_open`
-      - boolean
-    * - PYO.WALLET_LOCATION
-      - :attr:`~ConnectParams.wallet_location`
-      - string
-
-If a common or additional parameter is specified multiple times in a connect
-string, then the last value of that parameter is considered as the value. For
-example, if the ``sdu`` parameter is specified multiple times in the connect
-string like this "sdu=5&sdu=10&pyo.sdu=15&sdu=20", then the value 20 is
-considered as the value of the this parameter.
-
-Note that the Connect String parameter names for the common and additional
-parameters are not case-sensitive. The boolean values may use one of the
-strings "on" or "off", "true" or "false", or "yes" or "no". The enumerated
-values use the enumerated name and are converted to uppercase before they are
-looked up in the enumeration. For example,
-:data:`oracledb.AuthMode.SYSDBA <oracledb.AUTH_MODE_SYSDBA>` would be
-specified as SYSDBA.
-
 .. _connectionhook:
 
 Connection Hook Functions
 =========================
+
+Python-oracledb supports hook functions that can be used to customize
+connection logic.
+
+Using oracledb.register_protocol()
+----------------------------------
 
 The :meth:`oracledb.register_protocol()` method registers a user hook function
 that will be called internally by python-oracledb Thin mode prior to connection
@@ -1477,6 +1667,10 @@ or pool creation.  The hook function will be invoked when
 called with a ``dsn`` parameter value prefixed with a specified protocol.  Your
 hook function is expected to construct valid connection details, which
 python-oracledb will use to complete the connection or pool creation.
+
+You can also make use of a hook function in python-oracledb Thick mode
+connection calls by setting :attr:`defaults.thick_mode_dsn_passthrough` to
+*False*.
 
 For example, the following hook function handles connection strings prefixed
 with ``tcp://``.  When :func:`oracledb.connect()` is called, the sample hook is
@@ -1488,11 +1682,11 @@ establish the database connection:
 
 .. code-block:: python
 
-    def myhook(protocol, arg, params):
-        print(f"In myhook: protocol={protocol} arg={arg}")
+    def myprotocolhook(protocol, arg, params):
+        print(f"In myprotocolhook: protocol={protocol} arg={arg}")
         params.parse_connect_string(arg)
 
-    oracledb.register_protocol("tcp", myhook)
+    oracledb.register_protocol("tcp", myprotocolhook)
 
     connection = oracledb.connect(user="scott", password=userpwd,
                                   dsn="tcp://localhost/orclpdb")
@@ -1503,7 +1697,7 @@ establish the database connection:
 
 The output would be::
 
-    In myhook: protocol=tcp arg=localhost/orclpdb
+    In myprotocolhook: protocol=tcp arg=localhost/orclpdb
     SCOTT
 
 The ``params`` :ref:`attributes <connparamsattr>` can be set with
@@ -1529,7 +1723,7 @@ function ``params`` value will be the invoking ConnectParams instance that you
 can update using :meth:`ConnectParams.set()` or
 :meth:`ConnectParams.parse_connect_string()`.
 
-For example, with the hook ``myhook`` shown previously, then the code:
+For example, with the hook ``myprotocolhook`` shown previously, then the code:
 
 .. code-block:: python
 
@@ -1542,7 +1736,7 @@ For example, with the hook ``myhook`` shown previously, then the code:
 prints::
 
     host is None, port is 1234, service name is None
-    In myhook: protocol=tcp arg=localhost/orclpdb
+    In myprotocolhook: protocol=tcp arg=localhost/orclpdb
     host is localhost, port is 1234, service name is orclpdb
 
 If you have an application that can run in either python-oracledb Thin or Thick
@@ -1568,12 +1762,12 @@ or pool creation by :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
 :meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. If
 the ``password``, ``newpassword``, or ``wallet_password`` parameters to those
 methods are a dictionary containing the key "type", then the registered user
-hook function will be invoked.  Your hook function is expected to accept the
-dictionary and return the actual password string.
+hook function for the specific type will be invoked.  Your hook function is
+expected to accept the dictionary and return the actual password string.
 
-Below is an example of a hook function that handles passwords of type base64.
-Note this specific hook function is already included and registered in
-python-oracledb:
+Below is an example of a hook function that handles passwords of type base64
+stored in a dict like "dict(type='base64', value='dGlnZXI=')".  Note this
+specific hook function is already included and registered in python-oracledb:
 
 .. code-block:: python
 
@@ -1593,9 +1787,9 @@ connection to the database:
                                   password=dict(type="base64", value="dGlnZXI="),
                                   dsn="localhost/orclpdb")
 
-Calling :meth:`~oracledb.register_password_type()` with the
-``hook_function`` parameter set to None will result in a previously
-registered user function being removed and the default behavior restored.
+Calling :meth:`~oracledb.register_password_type()` with the ``hook_function``
+parameter set to None will result in a previously registered user function
+being removed.
 
 .. _registerparamshook():
 
@@ -1604,18 +1798,23 @@ Using oracledb.register_params_hook()
 
 The :meth:`oracledb.register_params_hook()` method registers a user hook
 function that will be called internally by python-oracledb prior to connection
-or pool creation. The hook function will be invoked when
-:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()` are
-called. The hook function accepts a copy of the parameters that will be used
-to create the pool or standalone connections and may modify them. For example,
-the cloud native authentication plugins modify the ``access_token`` parameter
-with a function that will acquire the token using the information found in the
-``extra_auth_parms`` parameter.
+or pool creation when :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` are called. Your hook function should
+accept a copy of the parameters that will be used to create the pool or
+standalone connections. The function can access and modify them in any way
+necessary to allow python-oracledb to subsequently complete the connection or
+pool creation request.
 
-Below is an example of registering a hook function, oci_token_hook, to
-generate OCI IAM tokens. This hook function is registered using
-:meth:`oracledb.register_params_hook()`.
+Pre-supplied python-oracledb plugins such as the :ref:`OCI Cloud Native
+Authentication Plugin (oci_tokens) <cloudnativeauthoci>` make use of
+:meth:`oracledb.register_params_hook()`. This plugin uses the information found
+in a connection method's ``extra_auth_params`` parameter and modifies the
+``access_token`` parameter with a function that will acquire the authentication
+token needed to complete a connection. Refer to the complete plugin
+implementation in `oci_tokens.py <https://github.com/oracle/python-oracledb/
+blob/main/src/oracledb/plugins/oci_tokens.py>`__. The key code section showing
+registering of a hook function is:
 
 .. code-block:: python
 
@@ -1630,32 +1829,34 @@ generate OCI IAM tokens. This hook function is registered using
 
     oracledb.register_params_hook(oci_token_hook)
 
-To unregister a user function that was earlier registered with a call to
-:meth:`oracledb.register_params_hook()`, you can use
-:meth:`oracledb.unregister_params_hook`.
-
-**register_protocol() and register_params_hook()**
-
-Consider the following example in which both
-the :meth:`oracledb.register_protocol()` and
-:meth:`oracledb.register_params_hook()` methods are used. In this example, a
-JSON file, *config.json*, is passed as a value in the ``dsn`` parameter.
-This file contains the configuration parameters necessary to establish a
-connection to Oracle Database. Additionally, the
-:ref:`oci_tokens plugin <ocicloudnativeauthplugin>` is imported to retrieve the
-access tokens.
+Your code might then try to connect like:
 
 .. code-block:: python
 
-    import oracledb
-    import oracledb.plugins.oci_tokens
+    token_based_auth = {
+        "authType": "simpleauthentication",
+        "user": <user>,
+        "key_file": <key_file>,
+        "fingerprint": <fingerprint>,
+        "tenancy": <tenancy>,
+        "region": <region>,
+        "profile": <profile>
+    }
 
-    connection = oracledb.connect(dsn="config-file://config.json")
+    connection = oracledb.connect(
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth)
 
-In this example, the :meth:`oracledb.register_protocol()` registers a built-in
-hook function when the ``oracledb`` module is imported. Similarly, the
-:meth:`oracledb.register_params_hook()` method is implicitly invoked when the
-``oracledb.plugins.oci_tokens`` module is imported.
+To unregister a user function that was earlier registered, you can use
+:meth:`oracledb.unregister_params_hook`.
+
+If you have registered user hook methods with
+:meth:`oracledb.register_protocol()` and
+:meth:`oracledb.register_params_hook`, then the method registered with
+:meth:`oracledb.register_protocol()` is invoked first during connection or pool
+creation calls. If you call :meth:`ConnectParams.parse_connect_string()`, the
+registered protocol hook method will be called but the parameter hook will not
+be.
 
 .. _ldapconnections:
 
@@ -1685,6 +1886,9 @@ Client 23ai could connect using:
 
     ldapurl = "ldaps://ldapserver.example.com/cn=orcl,cn=OracleContext,dc=example,dc=com"
     connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
+
+Note when :attr:`defaults.thick_mode_dsn_passthrough` is *False*, a connection
+hook function as shown below for python-oracledb Thin mode is required.
 
 **Thin Mode**
 
@@ -1759,7 +1963,7 @@ lookup?ctx=dblatest&id=GUID-6745DB10-F540-45D7-9761-9E8F342F1435>`__.
 
 A context has a namespace and a key-value pair. The namespace CLIENTCONTEXT is
 reserved for use with client session-based application contexts. Contexts are
-set during connection as an array of 3-tuple containing string values for the
+set during connection as an array of 3-tuples containing string values for the
 namespace, key, and value.  For example:
 
 .. code-block:: python
@@ -1898,11 +2102,12 @@ immediately.
                                 min=2, max=5, increment=1,
                                 getmode=oracledb.POOL_GETMODE_NOWAIT)
 
-Note that when using this option value in Thick mode with Oracle Client
-libraries 12.2 or earlier, the :meth:`~ConnectionPool.acquire()` call will
-still wait if the pool can grow.  However, you will get an error immediately if
-the pool is at its maximum size.  With newer Oracle Client libraries and with
-Thin mode, an error will be returned if the pool has to, or cannot, grow.
+Note that when using this option value in python-oracledb Thick mode with
+Oracle Client libraries 12.2 or earlier, the :meth:`~ConnectionPool.acquire()`
+call will still wait if the pool can grow.  However, you will get an error
+immediately if the pool is at its maximum size.  With newer Oracle Client
+libraries and with Thin mode, an error will be returned if the pool has to, or
+cannot, grow.
 
 Returning Connections to a Pool
 +++++++++++++++++++++++++++++++
@@ -2494,9 +2699,9 @@ Using the PoolParams Builder Class
 
 The :ref:`PoolParams class <poolparam>` allows you to define connection and
 pool parameters in a single place.  The :func:`oracledb.PoolParams()` function
-returns a ``PoolParams`` object.  This is a subclass of the :ref:`ConnectParams
-class <connparam>` with additional pool-specific attributes such as the pool
-size.  A ``PoolParams`` object can be passed to
+returns a :ref:`PoolParams <poolparam>` object.  This is a subclass of the
+:ref:`ConnectParams class <connparam>` with additional pool-specific attributes
+such as the pool size.  A ``PoolParams`` object can be passed to
 :func:`oracledb.create_pool()`. For example:
 
 .. code-block:: python
@@ -2514,6 +2719,14 @@ above is equivalent to:
     pool = oracledb.create_pool(user="hr", password=userpw, dsn="dbhost.example.com/orclpdb",
                                 min=1, max=2, increment=1)
 
+Some values such as the database host name can be specified as
+:func:`oracledb.create_pool()` parameters, as part of the ``dsn`` connection
+string, and in the ``params`` object. A final connection string is internally
+constructed from any ``dsn``, individual parameters, and ``params`` object
+values. The precedence is that values in a ``dsn`` parameter override values
+passed as individual parameters, which themselves override values set in the
+``params`` object.
+
 Most PoolParams arguments are gettable as properties.  They may be set
 individually using the ``set()`` method:
 
@@ -2522,184 +2735,6 @@ individually using the ``set()`` method:
     pp = oracledb.PoolParams()
     pp.set(min=5)
     print(pp.min) # 5
-
-Some values such as the database host name, can be specified as
-:func:`oracledb.create_pool()` parameters, as part of the connect string, and
-in the ``params`` object.  If a ``dsn`` is passed, a connection string is
-internally constructed from the individual parameters and ``params`` object
-values, with the individual parameters having precedence. The precedence is
-that values in any ``dsn`` parameter override values passed as individual
-parameters, which themselves override values set in the ``params`` object.
-Similar precedence rules also apply to other values.
-
-.. _definepoolparams:
-
-Defining PoolParams Parameters in a Connection String
------------------------------------------------------
-
-You can specify certain common parameters of the :ref:`PoolParams object
-<poolparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
-be done by using the question mark symbol (?) to indicate the start of the
-parameter-value pairs and the ampersand symbol (&) to delimit each
-parameter-value pair. See :ref:`_common_parameters` for the list of common
-parameters.
-
-Also, you can specify additional parameters of the :ref:`PoolParams object
-<poolparam>` directly in an :ref:`Easy Connect string <easyconnect>`. This can
-be done by using the question mark symbol (?) to indicate the start of the
-parameter-value pairs and the ampersand symbol (&) to delimit each
-parameter-value pair. Additionally, you must define each parameter name with
-the prefix "pyo.". For example:
-
-.. code-block:: python
-
-    pp = oracledb.PoolParams()
-    pp.parse_connect_string("host.example.com:1522/orclpdb?pyo.max=10&pyo.increment=2")
-
-Note that these parameters can only be added in Easy Connect strings and not in
-:ref:`Connect Descriptors <conndescriptor>`.
-
-The PoolParams parameters that can be set in a connection string with the
-prefix "pyo."" are listed in the table below:
-
-.. list-table-with-summary::
-    :header-rows: 1
-    :class: wy-table-responsive
-    :align: center
-    :widths: 10 10 10
-    :summary: The first column displays the connect string parameter name. The second column displays the Python parameter name. The third column displays the type of the parameter.
-
-    * - Connect String Parameter Name
-      - Python Parameter Name
-      - Type
-    * - PYO.CCLASS
-      - :attr:`ConnectParams.cclass`
-      - string
-    * - PYO.CONNECTION_ID_PREFIX
-      - :attr:`ConnectParams.connection_id_prefix`
-      - string
-    * - PYO.DISABLE_OOB
-      - :attr:`ConnectParams.disable_oob`
-      - boolean
-    * - PYO.DRIVER_NAME
-      - :attr:`ConnectParams.driver_name`
-      - string
-    * - PYO.EDITION
-      - :attr:`ConnectParams.edition`
-      - string
-    * - PYO.EVENTS
-      - :attr:`ConnectParams.events`
-      - boolean
-    * - PYO.EXPIRE_TIME
-      - :attr:`ConnectParams.expire_time`
-      - integer
-    * - PYO.EXTERNALAUTH
-      - :attr:`ConnectParams.externalauth`
-      - boolean
-    * - PYO.GETMODE
-      - :attr:`PoolParams.getmode`
-      - oracledb.PoolGetMode
-    * - PYO.HOMOGENEOUS
-      - :attr:`PoolParams.homogeneous`
-      - boolean
-    * - PYO.HTTPS_PROXY
-      - :attr:`ConnectParams.https_proxy`
-      - string
-    * - PYO.HTTPS_PROXY_PORT
-      - :attr:`ConnectParams.https_proxy_port`
-      - integer
-    * - PYO.INCREMENT
-      - :attr:`PoolParams.increment`
-      - integer
-    * - PYO.MACHINE
-      - :attr:`ConnectParams.machine`
-      - string
-    * - PYO.MAX
-      - :attr:`PoolParams.max`
-      - integer
-    * - PYO.MAX_LIFETIME_SESSION
-      - :attr:`PoolParams.max_lifetime_session`
-      - integer
-    * - PYO.MAX_SESSIONS_PER_SHARD
-      - :attr:`PoolParams.max_sessions_per_shard`
-      - integer
-    * - PYO.MIN
-      - :attr:`PoolParams.min`
-      - integer
-    * - PYO.MODE
-      - :attr:`ConnectParams.mode`
-      - oracledb.AuthMode
-    * - PYO.OSUSER
-      - :attr:`ConnectParams.osuser`
-      - string
-    * - PYO_PING_INTERVAL
-      - :attr:`PoolParams.ping_interval`
-      - integer
-    * - PYO.PING_TIMEOUT
-      - :attr:`PoolParams.ping_timeout`
-      - integer
-    * - PYO.POOL_BOUNDARY
-      - :attr:`ConnectParams.pool_boundary`
-      - string
-    * - PYO.PROGRAM
-      - :attr:`ConnectParams.program`
-      - string
-    * - PYO.PURITY
-      - :attr:`ConnectParams.purity`
-      - oracledb.Purity
-    * - PYO.RETRY_COUNT
-      - :attr:`ConnectParams.retry_count`
-      - integer
-    * - PYO.RETRY_DELAY
-      - :attr:`ConnectParams.retry_delay`
-      - integer
-    * - PYO.SDU
-      - :attr:`ConnectParams.sdu`
-      - integer
-    * - PYO.SODA_METADATA_CACHE
-      - :attr:`PoolParams.soda_metadata_cache`
-      - boolean
-    * - PYO.SSL_SERVER_CERT_DN
-      - :attr:`ConnectParams.ssl_server_cert_dn`
-      - string
-    * - PYO.SSL_SERVER_DN_MATCH
-      - :attr:`ConnectParams.ssl_server_dn_match`
-      - boolean
-    * - PYO.STMTCACHESIZE
-      - :attr:`ConnectParams.stmtcachesize`
-      - integer
-    * - PYO.TCP_CONNECT_TIMEOUT
-      - :attr:`ConnectParams.tcp_connect_timeout`
-      - integer
-    * - PYO.TERMINAL
-      - :attr:`ConnectParams.terminal`
-      - string
-    * - PYO.TIMEOUT
-      - :attr:`PoolParams.timeout`
-      - integer
-    * - PYO.USE_TCP_FAST_OPEN
-      - :attr:`ConnectParams.use_tcp_fast_open`
-      - boolean
-    * - PYO.WAIT_TIMEOUT
-      - :attr:`PoolParams.wait_timeout`
-      - integer
-    * - PYO.WALLET_LOCATION
-      - :attr:`ConnectParams.wallet_location`
-      - string
-
-If a common or additional parameter is specified multiple times in a connect
-string, then the last value of that parameter is considered as the value. For
-example, if the ``sdu`` parameter is specified multiple times in the connect
-string like this "sdu=5&sdu=10&pyo.sdu=15&sdu=20", then the value 20 is
-considered as the value of the this parameter.
-
-Note that the Connect String parameter names for the common and additional
-parameters are not case-sensitive. The boolean values may use one of the
-strings "on" or "off", "true" or "false", or "yes" or "no". The enumerated
-values use the enumerated name and are converted to uppercase before they are
-looked up in the enumeration. For example,
-:data:`oracledb.AuthMode.SYSDBA <oracledb.AUTH_MODE_SYSDBA>` would be
-specified as SYSDBA.
 
 .. _drcp:
 
@@ -2858,7 +2893,7 @@ To request a DRCP pooled server, you can:
 
 - Alternatively, add ``(SERVER=POOLED)`` to the :ref:`Connect Descriptor
   <conndescriptor>` such as used in an Oracle Network configuration file
-  ``tnsnames.ora``::
+  :ref:`tnsnames.ora <optnetfiles>`::
 
     customerpool = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)
               (HOST=dbhost.example.com)
@@ -3413,8 +3448,8 @@ your DBA, skip to step 3.
         mkstore -wrl "/home/oracle/wallet_dir" -listCredential
 
 3.  Skip this step if the wallet was created using an Easy Connect String.
-    Otherwise, add an entry in :ref:`tnsnames.ora <optnetfiles>` for the connect
-    name as follows::
+    Otherwise, add an entry in :ref:`tnsnames.ora <optnetfiles>` for the
+    connect name as follows::
 
         mynetalias =
             (DESCRIPTION =
@@ -3450,7 +3485,7 @@ With an Oracle wallet configured, and readable by you, your scripts
 can connect to Oracle Database with:
 
 - Standalone connections by setting the ``externalauth`` parameter to *True*
-  in :meth:`oracledb.connect()` as shown below:
+  in :meth:`oracledb.connect()`:
 
   .. code-block:: python
 
@@ -3626,12 +3661,12 @@ later), or 21.7 (or later) are needed.
 
 Standalone connections and pooled connections can be created in python-oracledb
 Thick and Thin modes using OAuth 2.0 token-based authentication. This can be
-done or by using a class such as the :ref:`TokenHandlerOAuth Class
+done or by using a class such as the example :ref:`TokenHandlerOAuth Class
 <oauthhandler>` or by using python-oracledb's :ref:`Azure Cloud Native
 Authentication Plugin (azure_tokens) <cloudnativeauthoauth>`. Tokens can be
 specified using the connection parameter introduced in python-oracledb 1.1.
-Users of earlier python-oracledb versions can alternatively use
-:ref:`OAuth 2.0 Token-Based Authentication Connection Strings <oauth2connstr>`.
+Users of earlier python-oracledb versions can alternatively use :ref:`OAuth 2.0
+Token-Based Authentication Connection Strings <oauth2connstr>`.
 
 OAuth2 Token Generation And Extraction
 ++++++++++++++++++++++++++++++++++++++
@@ -3647,10 +3682,10 @@ identity-readme?view=azure-python>`_.
 
 .. _oauthhandler:
 
-**Example of Using a TokenHandlerOAuth Class**
+**Example of Generating an OAuth2 Token**
 
-Here, as an example, we are using a Python script to automate the
-process of generating and reading the Azure AD OAuth2 tokens.
+An example of automating the process of generating and reading Azure AD OAuth2
+tokens is:
 
 .. code:: python
 
@@ -3715,7 +3750,7 @@ tokens.
 Connection Creation with OAuth2 Access Tokens
 +++++++++++++++++++++++++++++++++++++++++++++
 
-For OAuth 2.0 Token-Based Authentication using a class such as the
+For OAuth 2.0 Token-Based Authentication using a class such as the sample
 :ref:`TokenHandlerOAuth class <oauthhandler>`, the ``access_token`` connection
 parameter must be specified. This parameter should be a string (or a callable
 that returns a string) specifying an Azure AD OAuth2 token. In the examples
@@ -3845,7 +3880,7 @@ token values. The JSON response needs to be parsed so that only the access
 token is written and stored in a file. You can save the value of
 ``access_token`` generated to a file and set ``TOKEN_LOCATION`` to the location
 of token file. See :ref:`TokenHandlerOAuth class <oauthhandler>` for an example
-of using this class to generate and read tokens.
+of generating tokens.
 
 The Oracle Net parameters ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` must be set when
 you are using the connection string syntax. Also, the ``PROTOCOL``
@@ -3896,10 +3931,10 @@ Connection pool example:
 
 .. _cloudnativeauthoauth:
 
-Azure Cloud Native Authentication with azure_tokens Plugin
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Azure Cloud Native Authentication with the azure_tokens Plugin
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-With cloud native authentication, python-oracledb can automatically generate
+With Cloud Native Authentication, python-oracledb can automatically generate
 and refresh OAuth2 tokens when required with the support of the
 `Microsoft Authentication Library (MSAL) <https://learn.microsoft.com/en-us/
 entra/msal/python/?view=msal-py-latest>`__. This provides enhanced security
@@ -3927,10 +3962,46 @@ For OAuth 2.0 Token-Based Authentication with the
 :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin, the
 ``extra_auth_params`` connection parameter must be specified. This parameter
 should be a dictionary containing the configuration parameters necessary for
-Oracle Database authentication. For information on the Azure specific
-configuration parameters used in the ``extra_auth_params`` parameter, see
-`MSAL <https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-
-latest>`__.
+Oracle Database authentication. The Azure specific configuration parameters
+that can be specified in ``extra_auth_params`` are:
+
+.. list-table-with-summary:: Azure Cloud Native Authentication Configuration Parameters
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 10 30 10
+    :name: _azure_configuration_parameters
+    :summary: The first column displays the parameter. The second column displays the description of the parameter. The third column displays whether the parameter is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``authType``
+      - The authentication type.
+
+        This must be the string ``AzureServicePrincipal``. This type acquires Azure service principal access tokens through the client credential flow.
+      - Required
+    * - ``authority``
+      - This parameter must be set as a string in the URI format with the tenant ID, for example ``https://{identity provider instance}/{tenantId}``.
+
+        The tenantId is the directory tenant against which the application operates, in either GUID or domain-name format.
+      - Required
+    * - ``clientId``
+      - The application ID that is assigned to your application.
+
+        This information can be found in the portal where the application was registered.
+      - Required
+    * - ``clientSecret``
+      - The client secret that was generated for your application in the application registration portal.
+      - Required
+    * - ``scopes``
+      - This parameter represents the value of the scope for the request.
+
+        It should be the resource identifier (application ID URI) of the desired resource, with the suffix ".default". For example, ``https://{uri}/clientID/.default``.
+      - Required
+
+For information on the Azure specific configuration parameters, see `MSAL
+<https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client
+-creds-grant-flow>`__.
 
 The examples used in the subsequent sections use the
 :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to generate OAuth2
@@ -4058,12 +4129,12 @@ or 21.5 (or later) are needed.
 
 Standalone connections and pooled connections can be created in python-oracledb
 Thick and Thin modes using OCI IAM token-based authentication. This can be done
-by using a class such as a :ref:`TokenHandlerIAM class <iamhandler>` or by
-using python-oracledb's :ref:`OCI Cloud Native Authentication Plugin
+by using a class like the sample :ref:`TokenHandlerIAM class <iamhandler>` or
+by using python-oracledb's :ref:`OCI Cloud Native Authentication Plugin
 (oci_tokens) <cloudnativeauthoci>`. Tokens can be specified using the
 connection parameter introduced in python-oracledb 1.1. Users of earlier
-python-oracledb versions can alternatively use
-:ref:`OCI IAM Token-Based Authentication Connection Strings <iamauthconnstr>`.
+python-oracledb versions can alternatively use :ref:`OCI IAM Token-Based
+Authentication Connection Strings <iamauthconnstr>`.
 
 OCI IAM Token Generation and Extraction
 +++++++++++++++++++++++++++++++++++++++
@@ -4081,7 +4152,7 @@ It will contain the token and private key files needed by python-oracledb.
 
 .. _iamhandler:
 
-**Example of Using a TokenHandlerIAM Class**
+**Example of Generating an IAM Token**
 
 Here, as an example, we are using a Python script to automate the process of
 generating and reading OCI IAM tokens.
@@ -4141,7 +4212,7 @@ The TokenHandlerIAM class defined here is used in the examples shown in
 Connection Creation with OCI IAM Access Tokens
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-For OCI IAM Token-Based Authentication with a class such as the
+For OCI IAM Token-Based Authentication with a class such as the sample
 :ref:`TokenHandlerIAM class <iamhandler>`, the ``access_token`` connection
 parameter must be specified. This parameter should be a 2-tuple (or a callable
 that returns a 2-tuple) containing the token and private key. In the examples
@@ -4306,10 +4377,10 @@ Connection pool example:
 
 .. _cloudnativeauthoci:
 
-OCI Cloud Native Authentication with oci_tokens Plugin
-++++++++++++++++++++++++++++++++++++++++++++++++++++++
+OCI Cloud Native Authentication with the oci_tokens Plugin
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-With cloud native authentication, python-oracledb can automatically generate
+With Cloud Native Authentication, python-oracledb can automatically generate
 and refresh OCI IAM tokens when required with the support of the
 `Oracle Cloud Infrastructure (OCI) Software Development Kit (SDK)
 <https://docs.oracle.com/en-us/iaas/tools/python/2.144.1/installation.html>`__.
@@ -4338,10 +4409,66 @@ For OCI IAM Token-Based Authentication with the
 :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin, the
 ``extra_auth_params`` connection parameter must be specified. This parameter
 should be a dictionary containing the configuration parameters necessary for
-Oracle Database authentication. For information on the OCI specific
-configuration parameters used in the ``extra_auth_params`` parameter, see
-`OCI SDK <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig
-.htm>`__.
+Oracle Database authentication. The OCI specific configuration parameters that
+can be specified in ``extra_auth_params`` are:
+
+.. list-table-with-summary:: OCI Cloud Native Authentication Configuration Parameters
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 10 25 15
+    :name: _oci_configuration_parameters
+    :summary: The first column displays the name of the parameter. The second column displays its description. The third column displays whether the attribute is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``authType``
+      - The authentication type. The value should be the string "ConfigFileBasedAuthentication" or "SimpleAuthentication".
+
+        In File Based Authentication, the location of the configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
+
+        In Simple Authentication, the individual configuration parameters can be provided at runtime.
+      - Required
+    * - ``user``
+      - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+      - Required
+    * - ``key_file``
+      - The full path and filename of the private key.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+      - Required
+    * - ``fingerprint``
+      - The fingerprint associated with the public key that has been added to this user.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+      - Required
+    * - ``tenancy``
+      - The OCID of your tenancy. For example, *ocid1.tenancy.oc1..<unique_ID>*.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+      - Required
+    * - ``region``
+      - The Oracle Cloud Infrastructure region. For example, *ap-mumbai-1*.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication*.
+      - Required
+    * - ``profile``
+      - The configuration profile name to load.
+
+        Multiple profiles can be created, each with distinct values for necessary parameters. If not specified, the DEFAULT profile is used.
+
+        This parameter can be specified when the value of the ``authType`` property is *simpleAuthentication* or *configFileBasedAuthentication*. If it is not specified in *configFileBasedAuthentication*, the default value is taken.
+      - Required
+    * - ``configFileLocation``
+      - The configuration file location. The default value is *~/.oci/config*.
+
+        This parameter can be specified when the value of the ``authType`` property is *configFileBasedAuthentication*.
+      - Optional
+
+For information on the OCI specific configuration parameters, see `OCI SDK
+<https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdkconfig.htm>`__.
 
 The examples used in the subsequent sections use the
 :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate OCI IAM tokens
@@ -4462,7 +4589,7 @@ The example below shows how to connect to Oracle Database as SYSDBA:
 
     connection = oracledb.connect(user="sys", password=syspwd,
                                   dsn="dbhost.example.com/orclpdb",
-                                  mode=oracledb.AUTH_MODE_SYSDBA)
+                                  mode=oracledb.AuthMode.SYSDBA)  # or mode=oracledb.AUTH_MODE_SYSDBA
 
     with connection.cursor() as cursor:
         cursor.execute("GRANT SYSOPER TO hr")
@@ -4477,15 +4604,15 @@ This is equivalent to executing the following in SQL*Plus:
 
 In python-oracledb Thick mode, when python-oracledb uses Oracle Client
 libraries from a database software installation, you can use "bequeath"
-connections to databases that are also using the same libraries.  Do this by
-setting the standard Oracle environment variables such as ``ORACLE_HOME`` and
-``ORACLE_SID`` and connecting in Python like:
+connections to databases that are also using the same Oracle libraries.  Do
+this by setting the standard Oracle environment variables such as
+``ORACLE_HOME`` and ``ORACLE_SID`` and connecting in Python like:
 
 .. code-block:: python
 
     oracledb.init_oracle_client()
 
-    conn = oracledb.connect(mode=oracledb.SYSDBA)
+    conn = oracledb.connect(mode=oracledb.AuthMode.SYSDBA)
 
 This is equivalent to executing the following in SQL*Plus:
 
@@ -4692,8 +4819,9 @@ example, to connect as the ADMIN user:
 
 
 You can download the ADB connection wallet using the **DB Connection** button
-and extract the ``tnsnames.ora`` file, or create one yourself if you prefer to
-keep connections strings out of application code, see :ref:`netservice`.
+and extract the :ref:`tnsnames.ora <optnetfiles>` file, or create one yourself
+if you prefer to keep connections strings out of application code, see
+:ref:`netservice`.
 
 You may be interested in the blog post `Easy wallet-less connections to Oracle
 Autonomous Databases in Python
@@ -4735,13 +4863,14 @@ Unzip the wallet zip file and move the required files to a location such as
 ``/opt/OracleCloud/MYDB``.
 
 Connection can be made using your database credentials and setting the ``dsn``
-parameter to the desired network alias from the ``tnsnames.ora`` file.  The
-``config_dir`` parameter indicates the directory containing ``tnsnames.ora``.
-The ``wallet_location`` parameter is the directory containing the PEM file.  In
-this example the files are in the same directory.  The ``wallet_password``
-parameter should be set to the password created in the cloud console when
-downloading the wallet. For example, to connect as the ADMIN user using the
-``mydb_low`` network service name:
+parameter to the desired network alias from the :ref:`tnsnames.ora
+<optnetfiles>` file.  The ``config_dir`` parameter indicates the directory
+containing :ref:`tnsnames.ora <optnetfiles>`.  The ``wallet_location``
+parameter is the directory containing the PEM file.  In this example the files
+are in the same directory.  The ``wallet_password`` parameter should be set to
+the password created in the cloud console when downloading the wallet. For
+example, to connect as the ADMIN user using the ``mydb_low`` network service
+name:
 
 .. code-block:: python
 
@@ -4769,9 +4898,9 @@ files:
   wallet files in ``$HOME/instantclient_19_15/network/admin/``.
 
   Connection can be made using your database credentials and setting the
-  ``dsn`` parameter to the desired network alias from the ``tnsnames.ora``
-  file.  For example, to connect as the ADMIN user using the ``mydb_low``
-  network service name:
+  ``dsn`` parameter to the desired network alias from the :ref:`tnsnames.ora
+  <optnetfiles>` file.  For example, to connect as the ADMIN user using the
+  ``mydb_low`` network service name:
 
   .. code-block:: python
 
@@ -4818,8 +4947,8 @@ When python-oracledb is using Oracle Client libraries 19c, or later, you can
 optionally use :ref:`Easy Connect <easyconnect>` syntax to connect to Oracle
 Autonomous Database.
 
-The mapping from the cloud ``tnsnames.ora`` entries to an Easy Connect string
-is::
+The mapping from the cloud :ref:`tnsnames.ora <optnetfiles>` entries to an Easy
+Connect string is::
 
     protocol://host:port/service_name?wallet_location=/my/dir&retry_count=N&retry_delay=N
 
@@ -4962,8 +5091,8 @@ port parameters available in your :ref:`connection string <connstr>`.
 
 - Alternatively, update the :ref:`Connect Descriptor <conndescriptor>` (either
   being passed directly during connection or contained in your
-  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a :ref:`tnsnames.ora
-  <optnetfiles>` file, a modified entry might look like::
+  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a
+  :ref:`tnsnames.ora <optnetfiles>` file, a modified entry might look like::
 
       mydb_low = (description=
                    (address=
@@ -4980,8 +5109,8 @@ port parameters available in your :ref:`connection string <connstr>`.
 
 - Alternatively, update the :ref:`Connect Descriptor <conndescriptor>` (either
   being passed directly during connection or contained in your
-  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a :ref:`tnsnames.ora
-  <optnetfiles>` file, a modified entry might look like::
+  :ref:`tnsnames.ora <optnetfiles>` file). If you are using a
+  :ref:`tnsnames.ora <optnetfiles>` file, a modified entry might look like::
 
       mydb_low = (description=
                    (address=

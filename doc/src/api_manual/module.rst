@@ -284,10 +284,8 @@ Oracledb Methods
     mode. The default value is *False*.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. This value
-    is only used in python-oracledb Thin mode. The default is the value of
-    :attr:`defaults.config_dir`. For python-oracledb Thick mode, use the
-    ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
+    directory in which :ref:`optional configuration files <optconfigfiles>` are
+    found. The default is the value of :attr:`defaults.config_dir`.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -369,10 +367,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -406,13 +406,14 @@ Oracledb Methods
     are parsed by python-oracledb itself and a generated connect descriptor is
     sent to the Oracle Client libraries. This value is only used in the
     python-oracledb Thick mode. The default value is the value of
-    :attr:`defaults.thick_mode_dsn_passthrough`.
+    :attr:`defaults.thick_mode_dsn_passthrough`. For more information, see
+    :ref:`usingconfigfiles`.
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
-    This value is used in both the python-oracledb Thin and Thick modes. See
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.  This value is
+    used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
@@ -426,7 +427,7 @@ Oracledb Methods
     .. versionchanged:: 3.0.0
 
         The ``pool_alias``, ``instance_name``, ``use_sni``,
-        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        ``thick_mode_dsn_passthrough``, and ``extra_auth_params`` parameters
         were added. The ``pool`` parameter was deprecated: use
         :meth:`ConnectionPool.acquire()` instead.
 
@@ -653,8 +654,8 @@ Oracledb Methods
     The ``matchanytag`` parameter is ignored in the python-oracledb Thin mode.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. The
-    default is the value of :attr:`defaults.config_dir`.
+    directory in which :ref:`optional configuration files <optconfigfiles>` are
+    found. The default is the value of :attr:`defaults.config_dir`.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -725,10 +726,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -757,8 +760,8 @@ Oracledb Methods
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.
     This value is used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
@@ -768,7 +771,7 @@ Oracledb Methods
     .. versionchanged:: 3.0.0
 
         The ``pool_alias``, ``instance_name``, ``use_sni``,
-        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        ``thick_mode_dsn_passthrough``, and ``extra_auth_params`` parameters
         were added. The ``pool`` parameter was deprecated: use
         :meth:`AsyncConnectionPool.acquire()` instead.
 
@@ -999,10 +1002,8 @@ Oracledb Methods
     connection from a pool. The default value is *False*.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. This value
-    is only used in python-oracledb Thin mode. The default is the value of
-    :attr:`defaults.config_dir`.  For python-oracledb Thick mode, use
-    the ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
+    directory in which the :ref:`tnsnames.ora <optnetfiles>` configuration file
+    is located.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -1084,10 +1085,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -1121,13 +1124,14 @@ Oracledb Methods
     are parsed by python-oracledb itself and a generated connect descriptor is
     sent to the Oracle Client libraries. This value is only used in the
     python-oracledb Thick mode. The default value is the value of
-    :attr:`defaults.thick_mode_dsn_passthrough`.
+    :attr:`defaults.thick_mode_dsn_passthrough`. For more information, see
+    :ref:`usingconfigfiles`.
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
-    This value is used in both the python-oracledb Thin and Thick modes. See
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.  This value is
+    used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
     The ``handle`` parameter is expected to be an integer which represents a
@@ -1501,10 +1505,8 @@ Oracledb Methods
     mode.  The default value is *False*.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. This value
-    is only used in python-oracledb Thin mode. The default is the value of
-    :attr:`defaults.config_dir`. For python-oracledb Thick mode, use
-    the ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
+    directory in which the :ref:`tnsnames.ora <optnetfiles>` configuration file
+    is located. The default is the value of :attr:`defaults.config_dir`.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -1586,10 +1588,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -1623,13 +1627,14 @@ Oracledb Methods
     are parsed by python-oracledb itself and a generated connect descriptor is
     sent to the Oracle Client libraries. This value is only used in the
     python-oracledb Thick mode. The default value is
-    :attr:`defaults.thick_mode_dsn_passthrough`.
+    :attr:`defaults.thick_mode_dsn_passthrough`. For more information, see
+    :ref:`usingconfigfiles`.
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
-    This value is used in both the python-oracledb Thin and Thick modes. See
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.  This value is
+    used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
@@ -1643,7 +1648,7 @@ Oracledb Methods
     .. versionchanged:: 3.0.0
 
         The ``pool_alias``, ``instance_name``, ``use_sni``,
-        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        ``thick_mode_dsn_passthrough``, and ``extra_auth_params`` parameters
         were added.
 
     .. versionchanged:: 2.5.0
@@ -1933,8 +1938,8 @@ Oracledb Methods
     The ``matchanytag`` parameter is ignored in the python-oracledb Thin mode.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. The
-    default is the value of :attr:`defaults.config_dir`.
+    directory in which the :ref:`tnsnames.ora <optnetfiles>` configuration file
+    is located.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -2005,10 +2010,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -2037,9 +2044,9 @@ Oracledb Methods
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
-    This value is used in both the python-oracledb Thin and Thick modes. See
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.  This value is
+    used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
     The ``handle`` and ``thick_mode_dsn_passthrough`` parameters are ignored in
@@ -2048,7 +2055,7 @@ Oracledb Methods
     .. versionchanged:: 3.0.0
 
         The ``pool_alias``, ``instance_name``, ``use_sni``,
-        ``thick_mode_dsn_passthrough`` and ``extra_auth_params`` parameters
+        ``thick_mode_dsn_passthrough``, and ``extra_auth_params`` parameters
         were added.
 
     .. versionchanged:: 2.5.0
@@ -2133,15 +2140,17 @@ Oracledb Methods
         error_url=None, driver_name=None)
 
     Enables python-oracledb Thick mode by initializing the Oracle Client
-    library, see :ref:`enablingthick`.  The method must be called before any
-    standalone connection or pool is created.  If a connection or pool is first
-    created in Thin mode, then ``init_oracle_client()`` will raise an exception
-    and Thick mode cannot be enabled.
+    library, see :ref:`enablingthick`. If a standalone connection or pool has
+    already been created in Thin mode, ``init_oracle_client()`` will raise an
+    exception and python-oracledb will remain in Thin mode.
+
+    If a standalone connection or pool has *not* already been created in Thin
+    mode, but ``init_oracle_client()`` raises an exception, python-oracledb
+    will remain in Thin mode but further calls to ``init_oracle_client()`` can
+    be made, if desired.
 
     The ``init_oracle_client()`` method can be called multiple times in each
     Python process as long as the arguments are the same each time.
-
-    See :ref:`initialization` for more information.
 
     The ``lib_dir`` parameter is a string or a bytes object that specifies the
     directory containing Oracle Client libraries.  If the ``lib_dir`` parameter
@@ -2192,9 +2201,36 @@ Oracledb Methods
     python-oracledb Thick mode is like "python-oracledb thk : <version>". See
     :ref:`otherinit`.
 
+    At successful completion of a call to ``oracledb.init_oracle_client()``,
+    the attribute :attr:`defaults.config_dir` will be set as determined below
+    (first one wins):
+
+    - the value of the ``oracledb.init_oracle_client()`` parameter
+      ``config_dir``, if one was passed.
+
+    - the value of :attr:`defaults.config_dir` if it has one. I.e.
+      :attr:`defaults.config_dir` remains unchanged after
+      ``oracledb.init_oracle_client()`` completes.
+
+    - the value of the environment variable ``$TNS_ADMIN``, if it is set.
+
+    - the value of ``$ORACLE_HOME/network/admin`` if the environment variable
+      ``$ORACLE_HOME`` is set.
+
+    - the directory of the loaded Oracle Client library, appended with
+      ``network/admin``. Note this directory is not determinable on AIX.
+
+    - otherwise the value *None* is used. (Leaving :attr:`defaults.config_dir`
+      unchanged).
+
     .. note::
 
         This method is an extension to the DB API definition.
+
+    .. versionchanged:: 3.0.0
+
+        At completion of the method, the value of :attr:`defaults.config_dir`
+        may get changed by python-oracledb.
 
     .. versionchanged:: 2.5.0
 
@@ -2204,7 +2240,6 @@ Oracledb Methods
         for Python 3.11 and higher; for all other versions, the encoding
         "utf-8" is used.  These values may also be supplied as a ``bytes``
         object, in which case they will be used as is.
-
 
 .. function:: is_thin_mode()
 
@@ -2235,7 +2270,8 @@ Oracledb Methods
 
     Returns a string suitable for use as the ``dsn`` parameter for
     :meth:`~oracledb.connect()`. This string is identical to the strings that
-    are defined by the Oracle names server or defined in the tnsnames.ora file.
+    are defined by the Oracle names server or defined in the ``tnsnames.ora``
+    file.
 
     .. deprecated:: python-oracledb 1.0
 
@@ -2516,10 +2552,8 @@ Oracledb Methods
     connection from a pool. The default value is *False*.
 
     The ``config_dir`` parameter is expected to be a string that indicates the
-    directory in which configuration files (tnsnames.ora) are found. This value
-    is only used in python-oracledb Thin mode. The default is the value of
-    :attr:`defaults.config_dir`. For python-oracledb Thick mode, use the
-    ``config_dir`` parameter of :func:`oracledb.init_oracle_client()`.
+    directory in which the :ref:`tnsnames.ora <optnetfiles>` configuration file
+    is located.
 
     The ``appcontext`` parameter is expected to be a list of 3-tuples that
     identifies the application context used by the connection. This parameter
@@ -2601,10 +2635,12 @@ Oracledb Methods
     required.
 
     The ``use_sni`` parameter is expected to be a boolean which indicates
-    whether to use the TLS Server Name Indicator (SNI) extension to bypass the
+    whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
-    used in both python-oracledb Thin and Thick modes. The default value is
-    False.
+    used in both python-oracledb Thin and Thick modes. This parameter requires
+    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
+    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
     name of the executable program or application connected to Oracle
@@ -2638,13 +2674,14 @@ Oracledb Methods
     are parsed by python-oracledb itself and a generated connect descriptor is
     sent to the Oracle Client libraries. This value is only used in the
     python-oracledb Thick mode. The default value is
-    :attr:`defualts.thick_mode_dsn_passthrough`.
+    :attr:`defualts.thick_mode_dsn_passthrough`. For more information, see
+    :ref:`usingconfigfiles`.
 
     The ``extra_auth_params`` parameter is expected to be a dictionary
     containing the configuration parameters necessary for Oracle Database
-    authentication using :ref:`Azure <azurecloudnativeauthplugin>` or
-    :ref:`OCI <ocicloudnativeauthplugin>` cloud native authentication plugins.
-    This value is used in both the python-oracledb Thin and Thick modes. See
+    authentication using :ref:`OCI <cloudnativeauthoci>` or :ref:`Azure
+    <cloudnativeauthoauth>` cloud native authentication plugins.  This value is
+    used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
     The ``handle`` parameter is expected to be an integer which represents a
@@ -2655,7 +2692,7 @@ Oracledb Methods
     .. versionchanged:: 3.0.0
 
         The ``use_sni``, ``instance_name``, ``thick_mode_dsn_passthrough``,
-        ``extra_auth_params`` and ``instance_name`` parameters were added.
+        ``extra_auth_params``, and ``instance_name`` parameters were added.
 
     .. versionchanged:: 2.5.0
 
@@ -4466,15 +4503,22 @@ Oracle Cloud Infrastructure (OCI) Object Storage Configuration Provider Plugin
 ------------------------------------------------------------------------------
 
 ``oracledb.plugins.oci_config_provider`` is a plugin that provides access to
-the configuration information stored in the :ref:`OCI Object Storage
-<ociobjstorage>` configuration provider.  Importing this plugin defines and
-:meth:`registers <oracledb.register_protocol()>` the hook function that
-handles :ref:`OCI Object Storage connection strings <connstringoci>` prefixed
-with ``config-oci``.  The hook function parses this connection string, and
-extracts the authentication details and URI details from the connection
-string. Using the information, the hook function accesses the configuration
-information in OCI Object Storage, which python-oracledb will use to connect
-to Oracle Database.  See :ref:`importconfigociplugin` for more information.
+database connection credentials and application configuration information
+stored in the :ref:`OCI Object Storage configuration provider
+<ociobjstorageprovider>`.
+
+Importing this plugin defines and registers a pre-defined hook function with
+:meth:`oracledb.register_protocol()` to handle connection strings which have
+the prefix ``config-ociobject``, see :ref:`OCI Object Storage connection
+strings <connstringoci>`. The hook function parses these connection strings and
+gets the stored configuration information. Python-oracledb then uses this
+information to connect to Oracle Database.
+
+To use this plugin in python-oracledb Thick mode, you must set
+:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
+:meth:`ConnectParams.parse_connect_string()`.
+
+See :ref:`ociobjstorageprovider` for more information.
 
 .. versionadded:: 3.0.0
 
@@ -4484,16 +4528,22 @@ Azure App Configuration Provider Plugin
 ---------------------------------------
 
 ``oracledb.plugins.azure_config_provider`` is a plugin that provides access to
-the configuration information stored in :ref:`Azure App Configuration
-<azureappconfig>` provider.  Importing this plugin defines and
-:meth:`registers <oracledb.register_protocol()>` the hook function that
-handles :ref:`Azure App Configuration connection string <connstringazure>`
-prefixed with ``config-azure``.  The hook function parses this connection
-string, and extracts the authentication details and URI details from the
-connection string. Using the information, the hook function accesses the
-configuration information in Azure App Configuration, which python-oracledb
-will use to connect to Oracle Database.  See :ref:`importconfigazureplugin`
-for more information.
+database connection credentials and application configuration information
+stored in the :ref:`Azure App Configuration provider
+<azureappstorageprovider>`.
+
+Importing this plugin defines and registers a pre-defined hook function with
+:meth:`oracledb.register_protocol()` to handle connection strings which have
+the prefix ``config-azure``, see :ref:`Azure App Configuration connection
+strings <connstringazure>`.  The hook function parses these connection strings
+and gets the stored configuration information. Python-oracledb then uses this
+information to connect to Oracle Database.
+
+To use this plugin in python-oracledb Thick mode, you must set
+:attr:`defaults.thick_mode_dsn_passthrough` to *False* or explicitly call
+:meth:`ConnectParams.parse_connect_string()`.
+
+See :ref:`azureappstorageprovider` for more information.
 
 .. versionadded:: 3.0.0
 

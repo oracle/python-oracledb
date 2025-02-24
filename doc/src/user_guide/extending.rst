@@ -80,19 +80,19 @@ samples/subclassing.py>`__ for an example.
 Python-oracledb Plugins
 =======================
 
-Plugins simplify extending python-oracledb functionality and the
-distribution of modules. The plugin mechanism lets these plugins use large
-Python modules without requiring python-oracledb users to install these
-modules. You can use plugins to extend python-oracledb with
-your own `namespace package <https://packaging.python.org/en/latest/guides/
+Plugins simplify extending python-oracledb functionality and the distribution
+of modules. The plugin mechanism lets these plugins use large Python modules
+without requiring python-oracledb users to install these modules. You can use
+plugins to extend python-oracledb with your own `namespace package
+<https://packaging.python.org/en/latest/guides/
 packaging-namespace-packages/#native-namespace-packages>`__. Python-oracledb
 provides two plugins ``oracledb.plugins.oci_config_provider`` and
 ``oracledb.plugins.azure_config_provider`` which allow you to access the
 configuration information stored in OCI Object Storage and Azure App
 Configuration respectively, and connect to Oracle Database. See
-:ref:`ociobjstorage` and :ref:`azureappconfig` for more information. Note
-that the namespace ``oracledb.plugins.ldap_support`` is reserved for future
-use by the python-oracledb project.
+:ref:`ociobjstorageprovider` and :ref:`azureappstorageprovider` for more
+information. Note that the namespace ``oracledb.plugins.ldap_support`` is
+reserved for future use by the python-oracledb project.
 
 .. _customplugins:
 

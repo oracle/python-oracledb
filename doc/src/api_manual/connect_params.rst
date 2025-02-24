@@ -145,13 +145,8 @@ ConnectParams Attributes
 .. attribute:: ConnectParams.config_dir
 
     This read-only attribute is a string that identifies the directory in which
-    the configuration files such as tnsnames.ora are found. The default is the
-    value of :attr:`defaults.config_dir`.
-
-    This attribute is only supported in python-oracledb Thin mode.
-
-    For python-oracledb Thick mode, use the ``config_dir`` parameter of
-    :meth:`oracledb.init_oracle_client()`.
+    the :ref:`optional configuration files <optconfigfiles>` are found. The
+    default is the value of :attr:`defaults.config_dir`.
 
 .. attribute:: ConnectParams.connection_id_prefix
 

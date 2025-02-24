@@ -147,6 +147,10 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes - mostly supported. Unknown settings are ignored and not passed to Oracle Database.
       - Yes
       - Yes
+    * - Centralized Configuration Providers (see :ref:`configurationproviders`)
+      - Yes
+      - Yes
+      - No
     * - One-way TLS connections (see :ref:`onewaytls`)
       - Yes
       - Yes
@@ -317,7 +321,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
     * - Two-phase Commit (TPC) (see :ref:`tpc`)
       - Yes
-      - Yes - improved support
+      - Yes
       - Yes - limited support
     * - REF CURSORs and Nested Cursors
       - Yes

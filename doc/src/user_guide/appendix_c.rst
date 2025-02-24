@@ -265,7 +265,7 @@ Advanced Queuing (AQ) Differences from cx_Oracle
 
 Use the new :ref:`Advanced Queuing (AQ) <aqusermanual>` API instead of the
 older API which was deprecated in cx_Oracle 7.2 and is not available in
-python-oracledb. Note that AQ is only available in python-oracledb Thick mode.
+python-oracledb.
 
 Replace:
 
@@ -598,12 +598,20 @@ addition to the common :ref:`commonupgrade`:
 
 2. If the ``config_dir`` parameter of :func:`~oracledb.init_oracle_client` had
    been used, then set the new :attr:`defaults.config_dir` attribute to the
-   desired value or set the ``config_dir`` parameter when connecting.  For
-   example:
+   desired value or set the ``config_dir`` parameter in your connection or pool
+   creation method call.  For example:
 
    .. code-block:: python
 
        oracledb.defaults.config_dir = "/opt/oracle/config"
+
+   or
+
+   .. code-block:: python
+
+       connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
+                                     config_dir="/opt/oracle/config")
+
 
    Also, see :ref:`sqlnetclientconfig`.
 
@@ -660,9 +668,10 @@ addition to the common :ref:`commonupgrade`:
    The requirement to call ``init_oracle_client()`` means that Oracle Client
    library loading is not automatically deferred until the driver is first
    used, such as when a connection is opened. The application must explicitly
-   manage this, if deferral is required.  In python-oracledb,
-   ``init_oracle_client()`` can be called multiple times in a Python process
-   as long as arguments are the same.
+   manage this if deferral is required.
+
+   In python-oracledb, ``init_oracle_client()`` can be called multiple times in
+   a Python process as long as the arguments are the same.
 
    Note that on Linux and related operating systems, the
    ``init_oracle_client()`` parameter ``lib_dir`` should not be
@@ -717,7 +726,7 @@ You can then choose what mode is in use by setting the environment variable
 
 Output shows the python-oracledb Thin mode was used::
 
-    python-oracledb thn : 1.0.0
+    python-oracledb thn : 3.0.0
 
 You can customize ``oracledb_upgrade.py`` to your needs.  For example, if your
 connection and pool creation calls always use keyword parameters, you can

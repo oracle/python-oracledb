@@ -29,13 +29,30 @@ Defaults Attributes
 
 .. attribute:: defaults.config_dir
 
-    The directory in which optional configuration files such as
-    ``tnsnames.ora`` will be read in python-oracledb Thin mode.  This attribute
-    takes its initial value from the environment variable ``TNS_ADMIN``.
+    The directory in which the optional configuration file ``tnsnames.ora``
+    will be read in python-oracledb Thin mode.
 
-    This attribute is not used by the python-oracledb Thick mode: the usual
-    Oracle Client search path behavior for configuration files is followed, see
+    At time of ``import oracledb`` the value of
+    ``oracledb.defaults.config_dir`` will be set to (first one wins):
+
+    - the value of ``$TNS_ADMIN``, if ``TNS_ADMIN`` is set.
+
+    - ``$ORACLE_HOME/network/admin``, if ``$ORACLE_HOME`` is set.
+
+    Otherwise, ``oracledb.defaults.config_dir`` will not be set.
+
+    This attribute is used in python-oracledb Thin mode.  It is also used in
+    Thick mode if :attr:`defaults.thick_mode_dsn_passthrough` is *False*, see
     :ref:`optnetfiles`.
+
+    .. versionchanged:: 3.0.0
+
+        The directory ``$ORACLE_HOME/network/admin`` was added to the
+        heuristic.
+
+        At completion of a call to :meth:`oracledb.init_oracle_client()` in
+        Thick mode, the value of :attr:`defaults.config_dir` may get changed
+        by python-oracledb.
 
 .. attribute:: defaults.driver_name
 
@@ -169,27 +186,49 @@ Defaults Attributes
 
 .. attribute:: defaults.thick_mode_dsn_passthrough
 
-    The default value that determines whether :ref:`connection strings
-    <connstr>` passed to :meth:`oracledb.connect()` and
-    :meth:`oracledb.create_pool()` in python-oracledb Thick mode will be parsed
-    by Oracle Client libraries or by python-oracledb itself.
+    The value that determines whether :ref:`connection strings <connstr>`
+    passed as the ``dsn`` parameter to :meth:`oracledb.connect()`,
+    :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
+    :meth:`oracledb.create_pool_async()` in python-oracledb Thick mode will be
+    parsed by Oracle Client libraries or by python-oracledb itself.
 
-    When the value of this attribute is *True*, then connection strings passed
-    to these methods will be sent unchanged to the Oracle Client libraries.
+    When ``thick_mode_dsn_passthrough`` is the default value `True`, the
+    behavior of python-oracledb 2.5 and earlier versions occurs: Thick mode
+    passes connect strings unchanged to the Oracle Client libraries to
+    handle. Those libraries have their own heuristics for locating the optional
+    :ref:`tnsnames.ora <optnetfiles>`, if used.
 
-    Setting this attribute to *False* makes Thick and Thin mode applications
-    behave similarly regarding connection string parameter handling and
-    locating any optional :ref:`tnsnames.ora files <optnetfiles>` configuration
-    file, see :ref:`usingconfigfiles`. Connection strings used in connection
-    and pool creation methods in Thick mode are parsed by python-oracledb
-    itself and a generated connect descriptor is sent to the Oracle Client
-    libraries. The location of any optional :ref:`tnsnames.ora file
-    <optnetfiles>` used to resolve a :ref:`TNS Alias <netservice>` is
-    determined by python-oracledb heuristics instead of by the Oracle Client
-    libraries.
+    When ``thick_mode_dsn_passthrough`` is `False`, python-oracledb Thick mode
+    behaves similarly to Thin mode, which can be helpful for applications that
+    may be run in either mode:
+
+    - The search path used to locate and read any optional :ref:`tnsnames.ora
+      <optnetfiles>` file is handled in the python-oracledb driver. Different
+      :ref:`tnsnames.ora <optnetfiles>` files can be used by each
+      connection. Note loading of optional Thick mode files such as
+      ``sqlnet.ora`` and ``oraaccess.xml`` is always handled by Oracle Client
+      libraries regardless of the value of ``thick_mode_dsn_passthrough``
+      because it is those libraries that use these files.
+
+    - All connect strings will be parsed by the python-oracledb driver and a
+      generated connect descriptor is sent to the database. Parameters
+      unrecognized by python-oracledb in :ref:`Easy Connect strings
+      <easyconnect>` are discarded. In :ref:`full connect descriptors
+      <conndescriptor>` passed explicitly as the ``dsn`` parameter value or
+      stored in a :ref:`tnsnames.ora <optnetfiles>` file, any parameters that
+      are unrecognized by python-oracledb in the ``DESCRIPTION``,
+      ``CONNECT_DATA`` and ``SECURITY`` sections will be passed through to the
+      database unchanged, while unrecognized parameters in other sections are
+      discarded.
+
+    - If a :ref:`Centralized Configuration Provider <configurationproviders>`
+      is used for connection configuration, any :ref:`python-oracledb parameter
+      values <pyoparams>` in the configuration will be used.
+
+    The value of ``thick_mode_dsn_passthrough`` is ignored in python-oracledb
+    Thin mode, which always parses all connect strings (including reading a
+    :ref:`tnsnames.ora <optnetfiles>` file, if required).
 
     This attribute has an initial value of *True*.
-
-    This attribute is ignored in python-oracledb Thin mode.
 
     .. versionadded:: 3.0.0

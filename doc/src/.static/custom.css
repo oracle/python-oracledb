@@ -1,4 +1,7 @@
-/* Added code to display tables without horizontal scrollbars */
+/* Added code to display tables without horizontal scrollbars
+add an extra line between two paragraphs and define the line
+spacing in tables */
 .wy-table-responsive table td, .wy-table-responsive table th {
-    white-space: normal;
+    white-space: pre-wrap;
+    line-height: 10pt;
 }

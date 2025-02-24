@@ -22,7 +22,7 @@ If you are upgrading a cx_Oracle application to python-oracledb, then refer to
 Enabling python-oracledb Thick mode
 ===================================
 
-To change from the default Thin mode to the Thick mode:
+To change from the default python-oracledb Thin mode to Thick mode:
 
 1. Oracle Client libraries must be available to handle communication to your
    database.  These need to be installed separately, see :ref:`installation`.
@@ -99,7 +99,7 @@ More details and options are shown in the later sections:
 - If Oracle Client libraries cannot be loaded then
   :meth:`~oracledb.init_oracle_client()` will raise an error ``DPI-1047:
   Oracle Client library cannot be loaded``.  To resolve this, review the
-  platform-specific instructions below or see :ref:`runtimetroubleshooting`.
+  platform-specific instructions below or see :ref:`DPI-1047 <dpi1047>`.
   Alternatively, remove the call to :meth:`~oracledb.init_oracle_client()` and
   use Thin mode. The features supported by Thin mode can be found in
   :ref:`driverdiff`.
@@ -291,8 +291,8 @@ Client libraries installed in unsafe paths, such as from a user directory.  You
 may need to install the Oracle Client libraries under a directory like ``/opt``
 or ``/usr/local``.
 
-Tracing Oracle Client Libraries Loading
----------------------------------------
+Tracing Oracle Client Library Loading
+-------------------------------------
 
 To trace the loading of Oracle Client libraries, the environment variable
 ``DPI_DEBUG_LEVEL`` can be set to 64 before starting Python.  At a Windows
@@ -376,24 +376,18 @@ Optional Oracle Configuration Files
 Optional Oracle Net Configuration Files
 ---------------------------------------
 
-Optional Oracle Net configuration files may be read by python-oracledb.  These
-files affect connections and applications.  The common files are:
+Optional Oracle Net configuration files may be read when connecting or creating
+connection pools. These files affect connection behavior. The common files are:
 
-* ``tnsnames.ora``: A configuration file that defines databases addresses
-  for establishing connections. See :ref:`Net Service Name for Connection
-  Strings <netservice>`.
+* ``tnsnames.ora``: A configuration file that defines databases aliases and
+  their related connection configuration information used for establishing
+  connections. See :ref:`TNS Aliases for Connection Strings <netservice>`.
 
-* ``sqlnet.ora``: A profile configuration file that may contain information on
-  features such as connection failover, network encryption, logging, and
-  tracing.  The files should be in a directory accessible to Python, not on the
-  database server host.  See `Oracle Net Services Reference
-  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-  id=GUID-19423B71-3F6C-430F-84CC-18145CC2A818>`__ for more information.
-
-  The ``sqlnet.ora`` file is only used in the python-oracledb Thick mode. See
-  :ref:`enablingthick`. In the python-oracledb Thin mode, many of the
-  equivalent settings can be defined as connection time parameters, for
-  example by using the :ref:`ConnectParams Class <connparam>`.
+* ``sqlnet.ora``: A configuration file that contains settings for features such
+  as connection failover, network encryption, logging, and tracing. The
+  ``sqlnet.ora`` file is only used in python-oracledb Thick mode. See
+  :ref:`enablingthick`. In python-oracledb Thin mode, many of the equivalent
+  settings can be defined as connection time parameters.
 
 See :ref:`usingconfigfiles` to understand how python-oracledb locates the
 files.
@@ -406,17 +400,11 @@ Optional Oracle Client Configuration File
 When python-oracledb Thick mode uses Oracle Client libraries version 12.1 or
 later, an optional client parameter file called ``oraaccess.xml`` can be used
 to configure some behaviors of those libraries, such as statement caching and
-prefetching.  This can be useful if the application cannot be altered.  The
-file is read from the same directory as the `Optional Oracle Net Configuration
-Files`_.
+prefetching.  This can be useful to change application behavior if the
+application code cannot be altered.
 
-.. note::
-
-    The ``oraaccess.xml`` file is only used in the python-oracledb Thick mode.
-    See :ref:`enablingthick`.
-
-A sample ``oraaccess.xml`` file that sets the Oracle client 'prefetch' value to
-1000 rows.  This value affects every SQL query in the application::
+A sample ``oraaccess.xml`` file that sets the Oracle client ':ref:`prefetch
+<tuningfetch>`' value to 1000 rows for every query in the application is::
 
     <?xml version="1.0"?>
      <oraaccess xmlns="http://xmlns.oracle.com/oci/oraaccess"
@@ -429,8 +417,6 @@ A sample ``oraaccess.xml`` file that sets the Oracle client 'prefetch' value to
         </prefetch>
       </default_parameters>
     </oraaccess>
-
-See :ref:`tuningfetch` for information about prefetching.
 
 The ``oraaccess.xml`` file has other uses including:
 
@@ -446,7 +432,10 @@ Refer to the documentation on `oraaccess.xml <https://www.oracle.com/pls/topic
 for more details.
 
 See :ref:`usingconfigfiles` to understand how python-oracledb locates the
-files.
+file.
+
+For another way to set some python-oracledb behaviors without changing
+application code, see :ref:`pyoparams`.
 
 .. _usingconfigfiles:
 
@@ -454,57 +443,72 @@ Using Optional Oracle Configuration Files
 -----------------------------------------
 
 If you use optional Oracle configuration files such as ``tnsnames.ora``,
-``sqlnet.ora`` or ``oraaccess.xml``, then put the files in an accessible
-directory and follow the Thin or Thick mode instructions below.
+``sqlnet.ora``, or ``oraaccess.xml`` to configure your connections, then put
+the files in a directory accessible to python-oracledb and follow steps shown
+below.
 
-The files should be in a directory accessible to Python, not on the database
-server host.
+Note that the :ref:`Easy Connect syntax <easyconnect>` can set many common
+configuration options without needing ``tnsnames.ora``, ``sqlnet.ora``, or
+``oraaccess.xml`` files.
 
-**For python-oracledb Thin mode**
+**Locating tnsnames.ora in python-oracledb Thin mode**
 
-In python-oracledb Thin mode, you must specify the directory that contains the
-``tnsnames.ora`` file by either:
+Python-oracledb will read a ``tnsnames.ora`` file when a :ref:`TNS Alias
+<netservice>` is used for the ``dsn`` parameter of :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()`. Only one ``tnsnames.ora`` file is
+read. If the TNS Alias is not found in that file, then connection will fail.
+Thin mode does not read other configuration files such as ``sqlnet.ora`` or
+``oraaccess.xml``.
 
-- Setting the `TNS_ADMIN <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
-  &id=GUID-12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__ environment variable to the
-  directory containing the file.
+In python-oracledb Thin mode, you should explicitly specify the directory
+because some traditional "default" locations such as
+``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle Database home)
+or the Windows registry are not automatically used.
 
-- Or setting :attr:`defaults.config_dir` to the directory containing the file.
-  For example:
+The directory used to locate ``tnsnames.ora`` is determined as follows (first
+one wins):
+
+- the value of the method parameter ``config_dir``
 
   .. code-block:: python
 
-        import oracledb
+      connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
+                                    config_dir="/opt/oracle/config")
 
-        oracledb.defaults.config_dir = "/opt/oracle/config"
-
-- Or setting the ``config_dir`` parameter to the directory containing the file
-  when :func:`connecting <oracledb.connect()>` or creating a
-  :func:`connection pool <oracledb.create_pool()>`. For example:
+- the value in the ``config_dir`` attribute of the method parameter ``params``
 
   .. code-block:: python
 
-        connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb",
-                                  config_dir="/opt/oracle/config")
+      params = oracledb.ConnectParams(config_dir="/opt/oracle/config")
+      connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb", params=params)
 
-On Windows, when the path contains backslashes, use a 'raw' string like
-``r"C:\instantclient_23_5"``.
+- the value of :attr:`defaults.config_dir`, which may have been set explicitly
+  to a directory, or internally set during initialization to ``$TNS_ADMIN`` or
+  ``$ORACLE_HOME/network/admin``.
 
-.. note::
+  .. code-block:: python
 
-    In Thin mode, you must explicitly set the directory because traditional
-    "default" locations such as the Instant Client ``network/admin/``
-    subdirectory, or ``$ORACLE_HOME/network/admin/``, or
-    ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle Database
-    home) are not automatically looked in.
+      oracledb.defaults.config_dir = "/opt/oracle/config"
+      connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb")
 
-**For python-oracledb Thick mode**
+This order also applies to python-oracledb Thick mode when
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough` is *False*.
 
-In python-oracledb Thick mode, the directory containing the optional files can
-be explicitly specified or a default location will be used. Do one of:
+**Locating tnsnames.ora, sqlnet.ora or oraaccess.xml in python-oracledb Thick mode**
 
-- Set the ``config_dir`` parameter to the directory containing the files
-  in the :meth:`oracledb.init_oracle_client()` call:
+In python-oracledb Thick mode, the directory containing the optional Oracle
+Client configuration files such as ``tnsnames.ora``, ``sqlnet.ora``, and
+``oraaccess.xml`` can be explicitly specified, otherwise the Oracle Client
+libraries will use a heuristic to locate the directory.
+
+If :attr:`oracledb.defaults.thick_mode_dsn_passthrough` is *False*, then the
+following applies to all files except ``tnsnames.ora``.
+
+The configuration file directory is determined as follows:
+
+- From the ``config_dir`` parameter in the
+  :meth:`oracledb.init_oracle_client()` call:
 
   .. code-block:: python
 
@@ -513,15 +517,15 @@ be explicitly specified or a default location will be used. Do one of:
   On Windows, when the path contains backslashes, use a 'raw' string like
   ``r"C:\instantclient_23_5"``.
 
-.. note::
-
-    In python-oracledb Thick mode, once an application has created its first
-    connection, trying to change the configuration directory will not have any
-    effect.
-
 - If :meth:`~oracledb.init_oracle_client()` is called to enable Thick mode but
-  ``config_dir`` is not specified, then default directories are searched for the
-  configuration files.  They include:
+  ``config_dir`` is not specified, then default directories are searched for
+  the configuration files. This is platform specific and controlled by Oracle
+  Client. Directories include:
+
+  - Your home directory, using ``$HOME/.tnsnames.ora`` and ``$HOME/.sqlnet.ora``
+
+  - The directory ``/var/opt/oracle`` on Solaris, and ``/etc`` on other UNIX
+    platforms.
 
   - The directory specified by the `TNS_ADMIN <https://www.oracle.com/pls/
     topic/lookup?ctx=dblatest&id=GUID-12C94B15-2CE1-4B98-9D0C-8226A9DDF4CB>`__
@@ -539,40 +543,68 @@ be explicitly specified or a default location will be used. Do one of:
     installation, in ``$ORACLE_HOME/network/admin`` or
     ``$ORACLE_BASE_HOME/network/admin``.
 
-Note that the :ref:`easyconnect` can set many common configuration options
-without needing ``tnsnames.ora`` or ``sqlnet.ora`` files.
+On Windows, in a full database install, the Windows registry may be also be
+consulted by Oracle Client.
 
-The section :ref:`Network Configuration <hanetwork>` has additional information
-about Oracle Net configuration.
+For information about the search path see `Oracle Net Services Reference
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+19423B71-3F6C-430F-84CC-18145CC2A818>`__ for more information.
+
+The documentation :ref:`Network Configuration <hanetwork>` has additional
+information about some specific Oracle Net configuration useful for
+applications.
+
+**Setting thick_mode_dsn_passthrough**
+
+When :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` is *True*,
+it is the Oracle Client libraries that locate and read any optional
+``tnsnames.ora`` configuration. This was always the behavior of python-oracledb
+Thick mode in versions prior to 3.0, and is the default in python-oracledb 3.0
+and later.
+
+Setting :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` to
+*False* makes Thick mode use the same heuristics as Thin mode regarding
+connection string parameter handling and reading any optional ``tnsnames.ora``
+configuration file.
+
+Files such as ``sqlnet.ora`` and ``oraaccess.xml`` are only used by Thick
+mode. They are always located and read by Oracle Client libraries regardless of
+the :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` value. The
+directory search heuristic is determined by the Oracle Client libraries at the
+time :meth:`oracledb.init_oracle_client()` is called, as shown above.
+
+The :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` value is
+ignored in Thin mode.
 
 .. _envset:
 
-Oracle Environment Variables for python-oracledb Thick Mode
-===========================================================
+Oracle Environment Variables for python-oracledb
+================================================
 
 Some common environment variables that influence python-oracledb are shown
 below.  The variables that may be needed depend on how Python is installed, how
 you connect to the database, and what optional settings are desired.  It is
 recommended to set Oracle variables in the environment before calling Python.
 However, they may also be set in the application with ``os.putenv()`` before the
-first connection is established.  System environment variables like
-``LD_LIBRARY_PATH`` must be set before Python starts.
+first connection is established.
 
 .. note::
 
-    The variables listed below are only supported in the python-oracledb Thick
-    mode, with the exception of ``TNS_ADMIN`` and ``ORA_SDTZ`` which are also
-    supported in the python-oracledb Thin mode.
+    System environment variables such as ``LD_LIBRARY_PATH`` must be set before
+    Python starts.
 
-.. list-table-with-summary:: Common Oracle environment variables
+The common environment variables listed below are supported in python-oracledb.
+
+.. list-table-with-summary:: Common Oracle environment variables supported by python-oracledb
     :header-rows: 1
     :class: wy-table-responsive
-    :widths: 1 2
-    :summary: The first column displays the Oracle Environment Variable. The second column, Purpose, describes what the environment variableis used for.
-    :align: left
+    :widths: 20 40 10
+    :name: _oracle_environment_variables
+    :summary: The first column displays the Oracle Environment Variable. The second column, Purpose, describes what the environment variableis used for. The third column displays whether the environment variable can be used in python-oracledb Thin mode, Thick mode or both.
 
-    * - Oracle Environment Variables
+    * - Oracle Environment Variable
       - Purpose
+      - Python-oracledb Mode
     * - LD_LIBRARY_PATH
       - The library search path for platforms like Linux should include the
         Oracle libraries, for example ``$ORACLE_HOME/lib`` or
@@ -580,33 +612,42 @@ first connection is established.  System environment variables like
         libraries are located by an alternative method, such as with
         ``ldconfig``. On other UNIX platforms, you may need to set an OS
         specific equivalent such as ``LIBPATH`` or ``SHLIB_PATH``.
-    * - PATH
-      - The library search path for Windows should include the location where
-        ``OCI.DLL`` is found.  Not needed if you set ``lib_dir`` in a call to
-        :meth:`oracledb.init_oracle_client()`
-    * - TNS_ADMIN
-      - The directory of optional Oracle Client configuration files such as
-        ``tnsnames.ora`` and ``sqlnet.ora``. Not needed if the configuration
-        files are in a default location or if ``config_dir`` was not used in
-        :meth:`oracledb.init_oracle_client()`.  See :ref:`optnetfiles`.
-    * - ORA_SDTZ
-      - The default session time zone.
-    * - ORA_TZFILE
-      - The name of the Oracle time zone file to use. See :ref:`timezonefiles`.
-    * - ORACLE_HOME
-      - The directory containing the Oracle Database software. The directory
-        and various configuration files must be readable by the Python process.
-        This variable should not be set if you are using Oracle Instant Client.
+      - Thick
+    * - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT
+      - Often set in Python applications to force a consistent date format
+        independent of the locale. The variables are ignored if the environment
+        variable ``NLS_LANG`` is not set.
+      - Thick
     * - NLS_LANG
       - Determines the 'national language support' globalization options for
         python-oracledb. Note that from cx_Oracle 8, the character set component is
         ignored and only the language and territory components of ``NLS_LANG``
         are used. The character set can instead be specified during connection
         or connection pool creation. See :ref:`globalization`.
-    * - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT
-      - Often set in Python applications to force a consistent date format
-        independent of the locale. The variables are ignored if the environment
-        variable ``NLS_LANG`` is not set.
+      - Thick
+    * - ORA_SDTZ
+      - The default session time zone.
+      - Both
+    * - ORA_TZFILE
+      - The name of the Oracle time zone file to use. See :ref:`timezonefiles`.
+      - Thick
+    * - ORACLE_HOME
+      - The directory containing the Oracle Database software. The directory
+        and various configuration files must be readable by the Python process.
+        This variable should not be set if you are using Oracle Instant Client.
+      - Thick
+    * - PATH
+      - The library search path for Windows should include the location where
+        ``OCI.DLL`` is found.  Not needed if you set ``lib_dir`` in a call to
+        :meth:`oracledb.init_oracle_client()`.
+      - Thick
+    * - TNS_ADMIN
+      - The directory of optional Oracle Client configuration files such as
+        ``tnsnames.ora`` and ``sqlnet.ora``. Generally not needed if the
+        configuration files are in a default location, or if ``config_dir`` was
+        not used in :meth:`oracledb.init_oracle_client()`.  See
+        :ref:`optnetfiles`.
+      - Both
 
 .. _otherinit:
 
@@ -629,7 +670,7 @@ shown in Oracle Database views like V$SESSION_CONNECT_INFO.  If this
 parameter is not specified, then the value specified in the
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute is used.
 If the value of this attribute is None, then a value like
-``python-oracledb thk : 1.2.0`` is shown, see :ref:`vsessconinfo`.
+``python-oracledb thk : 3.0.0`` is shown, see :ref:`vsessconinfo`.
 
 The ``error_url`` string will be shown in the exception raised if
 ``init_oracle_client()`` cannot load the Oracle Client libraries.  This allows
@@ -645,23 +686,24 @@ Migrating from python-oracledb Thick Mode to python-oracledb Thin Mode
 Changing an application that currently uses :ref:`Thick mode <enablingthick>`
 to use Thin mode requires the removal of calls to
 :func:`oracledb.init_oracle_client()` and an application restart.  Other small
-changes may be required.
+changes may be required:
 
-All connections in a python-oracledb application must use the same mode.
-
-If you have been using python-oracledb in Thick mode, you can use Thin mode by:
-
-1. Reviewing :ref:`featuresummary` and :ref:`driverdiff` for code changes that
-   may be needed.  Also read :ref:`toggling`.
-
-2. Removing all calls to :func:`oracledb.init_oracle_client` from the
+1. Remove *all* calls to :func:`oracledb.init_oracle_client` from the
    application.
 
-3. Make other necessary changes identified in step 1.
+2. Review :ref:`featuresummary` and :ref:`driverdiff` for code changes that
+   may be needed.
 
-4. When you are satisfied, you can optionally remove Oracle Client
-   libraries. For example, delete your Oracle Instant Client directory.
+3. Restart your application.
 
-You can validate the python-oracledb mode by querying the CLIENT_DRIVER
-column of V$SESSION_CONNECT_INFO and verifying if the value of the column
-begins with the text ``python-oracledb thn``. See :ref:`vsessconinfo`.
+4. Test and validate your application behavior.
+
+When you are satisfied, you can optionally remove Oracle Client libraries. For
+example, delete your Oracle Instant Client directory.
+
+You can validate the python-oracledb mode by checking :attr:`Connection.thin`,
+:attr:`ConnectionPool.thin`, or by querying the CLIENT_DRIVER column of
+V$SESSION_CONNECT_INFO and verifying if the value of the column begins with the
+text ``python-oracledb thn``. See :ref:`vsessconinfo`.
+
+Note all connections in a python-oracledb application must use the same mode.
