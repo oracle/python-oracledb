@@ -75,7 +75,7 @@ class Defaults:
         return self._impl.fetch_lobs
 
     @fetch_lobs.setter
-    def fetch_lobs(self, value: str):
+    def fetch_lobs(self, value: bool):
         self._impl.fetch_lobs = value
 
     @property
@@ -87,7 +87,7 @@ class Defaults:
         return self._impl.fetch_decimals
 
     @fetch_decimals.setter
-    def fetch_decimals(self, value: str):
+    def fetch_decimals(self, value: bool):
         self._impl.fetch_decimals = value
 
     @property

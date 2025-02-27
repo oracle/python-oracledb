@@ -154,6 +154,9 @@ Common Changes
     :meth:`oracledb.connect_async()`, :meth:`oracledb.create_pool()` and
     :meth:`oracledb.create_pool_async()`
     (`issue 438 <https://github.com/oracle/python-oracledb/issues/438>`__).
+#)  Fix typing issues with setters for :attr:`defaults.fetch_lobs` and
+    :attr:`defaults.fetch_decimals`
+    (`issue 458 <https://github.com/oracle/python-oracledb/issues/458>`__).
 #)  Error ``DPY-2053: python-oracledb thin mode cannot be used because thick
     mode has already been enabled`` is now raised when attempting to use
     asyncio in thick mode
