@@ -1,12 +1,12 @@
-.. _oracledataframeobj:
+.. _oracledataframe:
 
 ****************
 API: Data Frames
 ****************
 
-Python-oracledb can fetch directly to the `Python DataFrame Interchange
-Protocol <https://data-apis.org/dataframe-protocol/latest/index.html>`__
-format.
+Python-oracledb can fetch directly to data frames that expose an Apache Arrow
+PyCapsule Interface. These can be used by many numerical and data analysis
+libraries.
 
 See :ref:`dataframeformat` for more information, including the type mapping
 from Oracle Database types to Arrow data types.
@@ -16,11 +16,17 @@ from Oracle Database types to Arrow data types.
     The data frame support in python-oracledb 3.0.0 is a pre-release and may
     change in the next version.
 
+.. _oracledataframeobj:
+
 OracleDataFrame Objects
 =======================
 
 OracleDataFrame objects are returned from the methods
 :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`.
+
+Each column in OracleDataFrame exposes an `Apache Arrow PyCapsule
+<https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html>`__
+interface, giving access to the underlying Arrow array.
 
 The OracleDataFrame object is an extension to the DB API.
 
