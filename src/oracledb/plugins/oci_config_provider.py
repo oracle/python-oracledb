@@ -55,7 +55,7 @@ def _get_config(parameters, connect_params):
     config = {}
 
     credential, signer = _get_credential(parameters)
-    auth_method = parameters.get("auth")
+    auth_method = parameters.get("authentication")
     if auth_method is not None:
         auth_method = auth_method.upper()
 
