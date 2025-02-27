@@ -575,7 +575,7 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
     async def test_6335(self):
-        "4535 - kill connection with open cursor"
+        "6335 - kill connection with open cursor"
         admin_conn = await test_env.get_admin_connection_async()
         conn = await test_env.get_connection_async()
         self.assertEqual(conn.is_healthy(), True)
@@ -864,7 +864,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(fetched_value, value)
 
     async def test_6351(self):
-        "4360 - fetch JSON columns as Python objects"
+        "6351 - fetch JSON columns as Python objects"
         expected_data = [
             (1, [1, 2, 3], [4, 5, 6], [7, 8, 9]),
             (2, None, None, None),

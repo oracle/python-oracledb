@@ -476,6 +476,50 @@ class TestCase(test_env.BaseTestCase):
             DATASET_2, batch_size=len(DATASET_2), num_batches=1
         )
 
+    def test_8018(self):
+        "8018 - verify get_column() returns the correct value"
+        self.__check_interop()
+        self.__populate_table(DATASET_1)
+        statement = "select * from TestDataFrame order by Id"
+        ora_df = self.conn.fetch_df_all(statement)
+        array = pyarrow.array(ora_df.get_column(1))
+        self.assertEqual(array.to_pylist(), ["John", "Big"])
+
+    def test_8019(self):
+        "8019 - verify OracleColumn and get_buffers"
+        self.__populate_table(DATASET_1)
+        statement = "select * from TestDataFrame order by Id"
+        ora_df = self.conn.fetch_df_all(statement)
+        ora_col = ora_df.get_column(1)
+        self.assertEqual(ora_col.num_chunks(), 1)
+        self.assertEqual(ora_col.size(), 2)
+
+        buffers = ora_col.get_buffers()
+        self.assertEqual(len(buffers), 3)
+        self.assertIsNotNone(buffers["data"])
+        self.assertIsNotNone(buffers["offsets"])
+        self.assertIsNone(buffers["validity"])
+
+    def test_8020(self):
+        "8020 - verify  OracleColumn Attributes"
+        self.__populate_table(DATASET_2)
+        statement = "select * from TestDataFrame order by Id"
+        ora_df = self.conn.fetch_df_all(statement)
+
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.describe_null[0], 0)
+        self.assertEqual(ora_col.dtype[0], 0)
+        metadata = {"name": "ID", "size": 2, "num_chunks": 1}
+        self.assertEqual(metadata, ora_col.metadata)
+        self.assertEqual(ora_col.null_count, 0)
+
+        ora_col = ora_df.get_column(4)
+        self.assertEqual(ora_col.describe_null[0], 3)
+        self.assertEqual(ora_col.dtype[0], 21)
+        metadata = {"name": "COUNTRY", "size": 2, "num_chunks": 1}
+        self.assertEqual(metadata, ora_col.metadata)
+        self.assertEqual(ora_col.null_count, 1)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

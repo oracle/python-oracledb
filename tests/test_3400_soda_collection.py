@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -360,6 +360,10 @@ class TestCase(test_env.BaseTestCase):
         coll.truncate()
         self.assertEqual(coll.find().count(), 0)
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (19, 11),
+        "client version not supported.. min required 19.11",
+    )
     def test_3414(self):
         "3414 - verify hints are reflected in the executed SQL statement"
         soda_db = self.get_soda_database()
@@ -755,6 +759,10 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("ORA-40734"):
             coll.find().keys(keys).replaceOneAndGet({"data": "new"})
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (19, 9),
+        "client version not supported.. min required 19.9",
+    )
     def test_3435(self):
         "3435 - test writting a read-only collection"
         soda_db = self.get_soda_database()
