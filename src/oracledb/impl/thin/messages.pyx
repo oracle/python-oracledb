@@ -1163,6 +1163,15 @@ cdef class MessageWithData(Message):
                 for j in range(num_rows):
                     values[j] = self._process_column_data(buf, var_impl, j)
                 var_impl._values[self.row_index] = values
+            elif self.cursor_impl.fetching_arrow:
+                if self._is_duplicate_data(i):
+                    if var_impl._last_arrow_array is None:
+                        var_impl._last_arrow_array = var_impl._arrow_array
+                    var_impl._arrow_array.append_last_value(
+                        var_impl._last_arrow_array
+                    )
+                else:
+                    self._process_column_data(buf, var_impl, self.row_index)
             elif self._is_duplicate_data(i):
                 if self.row_index == 0 and var_impl.outconverter is not None:
                     value = var_impl._last_raw_value
@@ -1397,8 +1406,11 @@ cdef class MessageWithData(Message):
         for var_impl in self.out_var_impls:
             if var_impl is None or var_impl.outconverter is None:
                 continue
-            var_impl._last_raw_value = \
-                    var_impl._values[self.cursor_impl._last_row_index]
+            if self.cursor_impl.fetching_arrow:
+                var_impl._last_arrow_array = var_impl._arrow_array
+            else:
+                var_impl._last_raw_value = \
+                        var_impl._values[self.cursor_impl._last_row_index]
             if var_impl.is_array:
                 num_elements = var_impl.num_elements_in_array
             else:
@@ -1431,8 +1443,11 @@ cdef class MessageWithData(Message):
         for var_impl in self.out_var_impls:
             if var_impl is None or var_impl.outconverter is None:
                 continue
-            var_impl._last_raw_value = \
-                    var_impl._values[self.cursor_impl._last_row_index]
+            if self.cursor_impl.fetching_arrow:
+                var_impl._last_arrow_array = var_impl._arrow_array
+            else:
+                var_impl._last_raw_value = \
+                        var_impl._values[self.cursor_impl._last_row_index]
             if var_impl.is_array:
                 num_elements = var_impl.num_elements_in_array
             else:
@@ -2125,8 +2140,6 @@ cdef class ExecuteMessage(MessageWithData):
                 self.cursor_impl._set_fetch_array_size(num_iters)
                 if num_iters > 0 and not stmt._no_prefetch:
                     options |= TNS_EXEC_OPTION_FETCH
-                    if self.cursor_impl.fetching_arrow:
-                        options |= TNS_EXEC_OPTION_NO_COMPRESSED_FETCH
         if not stmt._is_plsql and not self.parse_only:
             options |= TNS_EXEC_OPTION_NOT_PLSQL
         elif stmt._is_plsql and num_params > 0:
@@ -2250,8 +2263,6 @@ cdef class ExecuteMessage(MessageWithData):
                       and not info._is_return_bind]
         if self.function_code == TNS_FUNC_REEXECUTE_AND_FETCH:
             exec_flags_1 |= TNS_EXEC_OPTION_EXECUTE
-            if self.cursor_impl.fetching_arrow:
-                exec_flags_1 |= TNS_EXEC_OPTION_NO_COMPRESSED_FETCH
             num_iters = self.cursor_impl.prefetchrows
             self.cursor_impl._set_fetch_array_size(num_iters)
         else:

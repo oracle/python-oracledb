@@ -32,6 +32,7 @@
 cdef class ThinVarImpl(BaseVarImpl):
     cdef:
         object _last_raw_value
+        OracleArrowArray _last_arrow_array
         list _coroutine_indexes
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor_impl,

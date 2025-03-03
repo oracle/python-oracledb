@@ -30,7 +30,7 @@
 cimport cpython
 
 from libc.stdint cimport uintptr_t
-from libc.string cimport strlen, strchr
+from libc.string cimport memcpy, strlen, strchr
 from cpython.pycapsule cimport PyCapsule_New
 
 from .. import errors
@@ -48,6 +48,10 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     cdef struct ArrowArrayView:
         ArrowBufferView *buffer_views
+
+    cdef struct ArrowBuffer:
+        uint8_t *data
+        int64_t size_bytes
 
     cdef struct ArrowDecimal:
         pass
@@ -73,6 +77,7 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowArrayAppendInt(ArrowArray* array, int64_t value)
     ArrowErrorCode ArrowArrayAppendDecimal(ArrowArray* array,
                                            const ArrowDecimal* value)
+    ArrowBuffer* ArrowArrayBuffer(ArrowArray* array, int64_t i)
     ArrowErrorCode ArrowArrayFinishBuildingDefault(ArrowArray* array,
                                                    ArrowError* error)
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
@@ -99,6 +104,7 @@ cdef extern from "nanoarrow/nanoarrow.c":
                                 int64_t n, char recursive)
     void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
                           int32_t precision, int32_t scale)
+    void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
     ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
                                          ArrowStringView value)
 
@@ -242,6 +248,56 @@ cdef class OracleArrowArray:
         Append a value of type int64_t to the array.
         """
         _check_nanoarrow(ArrowArrayAppendInt(self.arrow_array, value))
+
+    cdef int append_last_value(self, OracleArrowArray array) except -1:
+        """
+        Appends the last value of the given array to this array.
+        """
+        cdef:
+            int32_t start_offset, end_offset
+            ArrowBuffer *offsets_buffer
+            ArrowBuffer *data_buffer
+            ArrowDecimal decimal
+            int64_t *as_int64
+            int32_t *as_int32
+            double *as_double
+            float *as_float
+            int64_t index
+            uint8_t *ptr
+            void* temp
+        index = array.arrow_array.length - 1
+        if array.arrow_type in (NANOARROW_TYPE_INT64, NANOARROW_TYPE_TIMESTAMP):
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            as_int64 = <int64_t*> data_buffer.data
+            self.append_int64(as_int64[index])
+        elif array.arrow_type == NANOARROW_TYPE_DOUBLE:
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            as_double = <double*> data_buffer.data
+            self.append_double(as_double[index])
+        elif array.arrow_type == NANOARROW_TYPE_FLOAT:
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            as_float = <float*> data_buffer.data
+            self.append_double(as_float[index])
+        elif array.arrow_type == NANOARROW_TYPE_DECIMAL128:
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            ArrowDecimalInit(&decimal, 128, self.precision, self.scale)
+            ptr = data_buffer.data + index * 16
+            ArrowDecimalSetBytes(&decimal, ptr)
+            _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array,
+                                                     &decimal))
+        elif array.arrow_type == NANOARROW_TYPE_STRING:
+            offsets_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 2)
+            as_int32 = <int32_t*> offsets_buffer.data
+            start_offset = as_int32[index]
+            end_offset = as_int32[index + 1]
+            temp = cpython.PyMem_Malloc(end_offset - start_offset)
+            memcpy(temp, &data_buffer.data[start_offset],
+                   end_offset - start_offset)
+            try:
+                self.append_bytes(temp, end_offset - start_offset)
+            finally:
+                cpython.PyMem_Free(temp)
 
     cdef int append_null(self) except -1:
         """

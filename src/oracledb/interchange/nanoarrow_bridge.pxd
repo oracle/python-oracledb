@@ -91,5 +91,6 @@ cdef class OracleArrowArray:
     cdef int append_double(self, double value) except -1
     cdef int append_float(self, float value) except -1
     cdef int append_int64(self, int64_t value) except -1
+    cdef int append_last_value(self, OracleArrowArray array) except -1
     cdef int append_null(self) except -1
     cdef int finish_building(self) except -1

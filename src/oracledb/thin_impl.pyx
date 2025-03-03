@@ -192,6 +192,10 @@ from .base_impl import (
     DB_TYPE_XMLTYPE,
 )
 
+from .interchange.nanoarrow_bridge cimport (
+    OracleArrowArray,
+)
+
 ctypedef unsigned char char_type
 
 # flag whether the cryptography package exists
