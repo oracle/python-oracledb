@@ -21,6 +21,8 @@ Thin Mode Changes
     enqueue and dequeue of RAW and Oracle object payload types.
 #)  Improved error message when the cryptography package cannot be imported
     (`issue 455 <https://github.com/oracle/python-oracledb/issues/455>`__).
+#)  Fixed decoding of nested PL/SQL records
+    (`issue 456 <https://github.com/oracle/python-oracledb/issues/456>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

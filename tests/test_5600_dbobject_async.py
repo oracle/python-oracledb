@@ -629,6 +629,23 @@ class TestCase(test_env.BaseAsyncTestCase):
             with self.assertRaisesFullCode("DPY-2035"):
                 await conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
 
+    async def test_5619(self):
+        "5619 - test nested records"
+        options = [(None, None), (1, None), (None, 2), (1, 2)]
+        typ = await self.conn.gettype("PKG_TESTNESTEDRECORDS.UDT_OUTER")
+        for option in options:
+            with self.subTest(option=option):
+                value1, value2 = option
+                obj = await self.cursor.callfunc(
+                    "pkg_TestNestedRecords.GetOuter", typ, (value1, value2)
+                )
+                self.assertIsNotNone(obj.INNER1)
+                self.assertIsNone(obj.INNER1.ATTR1)
+                self.assertEqual(obj.INNER1.ATTR2, value1)
+                self.assertIsNotNone(obj.INNER2)
+                self.assertIsNone(obj.INNER2.ATTR1)
+                self.assertEqual(obj.INNER2.ATTR2, value2)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

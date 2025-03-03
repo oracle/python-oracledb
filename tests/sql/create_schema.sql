@@ -1321,6 +1321,42 @@ create or replace package body &main_user..pkg_TestRecords as
 end;
 /
 
+create or replace package &main_user..pkg_TestNestedRecords as
+
+    type udt_Inner is record (
+        Attr1                           number,
+        Attr2                           number
+    );
+
+    type udt_Outer is record (
+        Inner1                          udt_Inner,
+        Inner2                          udt_Inner
+    );
+
+    function GetOuter (
+        a_Value1                        number,
+        a_Value2                        number
+    ) return udt_Outer;
+
+end;
+/
+
+create or replace package body &main_user..pkg_TestNestedRecords as
+
+    function GetOuter (
+        a_Value1                        number,
+        a_Value2                        number
+    ) return udt_Outer is
+        t_Outer                         udt_Outer;
+    begin
+        t_Outer.Inner1.Attr2 := a_Value1;
+        t_Outer.Inner2.Attr2 := a_Value2;
+        return t_Outer;
+    end;
+
+end;
+/
+
 create or replace package &main_user..pkg_SessionCallback as
 
     procedure TheCallback (

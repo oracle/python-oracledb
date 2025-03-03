@@ -53,14 +53,16 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         self.write_length(num_bytes)
         self.write_raw(ptr, <uint32_t> num_bytes)
 
-    cdef int get_is_atomic_null(self, bint* is_null) except -1:
+    cdef int get_is_atomic_null(self, bint is_collection,
+                                bint* is_null) except -1:
         """
         Reads the next byte and checks to see if the value is atomically null.
         If not, the byte is returned to the buffer for further processing.
         """
         cdef uint8_t value
         self.read_ub1(&value)
-        if value in (TNS_OBJ_ATOMIC_NULL, TNS_NULL_LENGTH_INDICATOR):
+        if value == TNS_OBJ_ATOMIC_NULL \
+                or (is_collection and value == TNS_NULL_LENGTH_INDICATOR):
             is_null[0] = True
         else:
             is_null[0] = False
@@ -352,12 +354,12 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             uint8_t ora_type_num = metadata.dbtype._ora_type_num
             uint8_t csfrm = metadata.dbtype._csfrm
             DbObjectPickleBuffer xml_buf
+            bint is_null, is_collection
             BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
             OracleData data
             bytes locator
-            bint is_null
             type cls
         if ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
@@ -372,7 +374,9 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                     else PY_TYPE_LOB
             return cls._from_impl(lob_impl)
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
-            buf.get_is_atomic_null(&is_null)
+            is_collection = \
+                    metadata.objtype.is_collection or self.type.is_collection
+            buf.get_is_atomic_null(is_collection, &is_null)
             if is_null:
                 return None
             if metadata.objtype is None:
@@ -381,7 +385,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                 return xml_buf.read_xmltype(self.type._conn_impl)
             obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
             obj_impl.type = metadata.objtype
-            if metadata.objtype.is_collection or self.type.is_collection:
+            if is_collection:
                 obj_impl.packed_data = buf.read_bytes()
             else:
                 obj_impl._unpack_data_from_buf(buf)
