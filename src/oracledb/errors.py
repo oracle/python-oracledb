@@ -710,7 +710,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_NO_CREDENTIALS: "no credentials specified",
     ERR_NO_CRYPTOGRAPHY_PACKAGE: (
         "python-oracledb thin mode cannot be used because the "
-        "cryptography package is not installed"
+        "cryptography package cannot be imported"
     ),
     ERR_NO_STATEMENT: "no statement specified and no prior statement prepared",
     ERR_NO_STATEMENT_EXECUTED: "no statement executed",

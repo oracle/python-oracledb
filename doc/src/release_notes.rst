@@ -19,6 +19,8 @@ Thin Mode Changes
 
 #)  Added Async :ref:`Oracle Advanced Queuing <asyncaq>` support for single
     enqueue and dequeue of RAW and Oracle object payload types.
+#)  Improved error message when the cryptography package cannot be imported
+    (`issue 455 <https://github.com/oracle/python-oracledb/issues/455>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

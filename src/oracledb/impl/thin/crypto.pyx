@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,8 +35,8 @@ try:
     from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
     from cryptography.hazmat.primitives.asymmetric import padding
     from cryptography.hazmat.primitives.kdf import pbkdf2
-except ImportError:
-    HAS_CRYPTOGRAPHY = False
+except Exception as e:
+    CRYPTOGRAPHY_IMPORT_ERROR = e
 
 
 DN_REGEX = '(?:^|,\s?)(?:(?P<name>[A-Z]+)=(?P<val>"(?:[^"]|"")+"|[^,]+))+'

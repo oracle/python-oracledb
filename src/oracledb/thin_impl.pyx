@@ -195,7 +195,7 @@ from .base_impl import (
 ctypedef unsigned char char_type
 
 # flag whether the cryptography package exists
-cdef bint HAS_CRYPTOGRAPHY = True
+cdef object CRYPTOGRAPHY_IMPORT_ERROR = None
 
 include "impl/thin/constants.pxi"
 include "impl/thin/utils.pyx"

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -87,6 +87,15 @@ cdef str _get_connect_data(Description description, str connection_id, ConnectPa
     else:
         description.connection_id = connection_id
     return description.build_connect_string(cid)
+
+
+cdef int _check_cryptography() except -1:
+    """
+    Checks to see that the cryptography package was imported successfully.
+    """
+    if CRYPTOGRAPHY_IMPORT_ERROR is not None:
+        errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE,
+                          str(CRYPTOGRAPHY_IMPORT_ERROR))
 
 
 def init_thin_impl(package):

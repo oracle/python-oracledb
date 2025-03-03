@@ -56,8 +56,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         bint _open
 
     def __init__(self, str dsn, PoolParamsImpl params):
-        if not HAS_CRYPTOGRAPHY:
-            errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
+        _check_cryptography()
         params._check_credentials()
         self.connect_params = params
         self.username = params.user

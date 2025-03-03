@@ -76,8 +76,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         uint8_t _session_state_desired
 
     def __init__(self, str dsn, ConnectParamsImpl params):
-        if not HAS_CRYPTOGRAPHY:
-            errors._raise_err(errors.ERR_NO_CRYPTOGRAPHY_PACKAGE)
+        _check_cryptography()
         BaseConnImpl.__init__(self, dsn, params)
         self.thin = True
 
