@@ -3,7 +3,7 @@
 
 <!--
 
-Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 
 This software is dual-licensed to you under the Universal Permissive License
 (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -75,7 +75,7 @@ limitations under the License.
           href="https://www.python.org/" >Python programming language</a>
           extension module allowing Python programs to connect to <a
           href="https://www.oracle.com/database/" >Oracle Database</a>.
-          Python-oracledb is the new name for Oracle's popular cx_Oracle
+          Python-oracledb is the successor to the now obsolete cx_Oracle
           driver.
 
           </p>
@@ -84,16 +84,16 @@ limitations under the License.
           <img width="85%" src="./python-oracledb-arch.jpg">
           </p>
 
-	  <p>
+          <p>
 
-	  Connections between python-oracledb and Oracle Database are used for
-	  executing SQL and PL/SQL, for calling SODA NoSQL-style APIs, for
-	  receiving database notifications and messages, and for starting and
-	  stopping the database.
+          Connections between python-oracledb and Oracle Database are used for
+          executing SQL and PL/SQL, for calling SODA NoSQL-style APIs, for
+          receiving database notifications and messages, and for starting and
+          stopping the database.
 
-	  </p>
+          </p>
 
-	  <p>
+          <p>
 
           Synchronous and concurrent <a
           href="https://docs.python.org/3/library/asyncio.html" >asyncio</a>
@@ -189,7 +189,7 @@ limitations under the License.
 
               <p>Source code is also available.</p>
 
-	      <p>Previous versions of python-oracledb supported older Python versions.</p>
+              <p>Previous versions of python-oracledb supported older Python versions.</p>
 
             </li>
 
@@ -308,6 +308,10 @@ limitations under the License.
       <li><p>Extensive Oracle data type support, including VECTOR, JSON and
       large object support (CLOB and BLOB).</p></li>
 
+      <li><p>Support for fetching to data frames for efficient use with Python
+      DataFrame libraries and formats such as PyArrow, NumPy, Pandas, Polars,
+      PyTorch, and Apache Parquet.</p></li>
+
       <li><p>Direct binding to SQL objects.  One great use case is binding
       Python objects to Oracle Spatial SDO objects.</p></li>
 
@@ -365,6 +369,8 @@ limitations under the License.
       <li><p>External Authentication.</p></li>
 
       <li><p>Token Authentication.</p></li>
+
+      <li><p>Centralized Configuration Provider support.</p></li>
 
       <li><p>Oracle Database startup and shutdown.</p></li>
 
