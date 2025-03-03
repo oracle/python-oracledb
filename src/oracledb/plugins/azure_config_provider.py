@@ -47,6 +47,15 @@ from azure.identity import (
 )
 
 
+def _get_authentication_method(parameters):
+    auth_method = parameters.get("authentication", parameters.get("method"))
+    if auth_method is not None:
+        auth_method = auth_method.upper()
+        if auth_method == "AZURE_DEFAULT":
+            auth_method = None
+    return auth_method
+
+
 def _get_credential(parameters):
     """
     Returns the appropriate credential given the input supplied by the original
@@ -54,13 +63,9 @@ def _get_credential(parameters):
     """
 
     tokens = []
-    auth = parameters.get("authentication")
-    if auth is not None:
-        auth = auth.upper()
-        if auth == "AZURE_DEFAULT":
-            auth = None
+    auth_method = _get_authentication_method(parameters)
 
-    if auth is None or auth == "AZURE_SERVICE_PRINCIPAL":
+    if auth_method is None or auth_method == "AZURE_SERVICE_PRINCIPAL":
         if "azure_client_secret" in parameters:
             tokens.append(
                 ClientSecretCredential(
@@ -69,7 +74,7 @@ def _get_credential(parameters):
                     _get_required_parameter(parameters, "azure_client_secret"),
                 )
             )
-        if "azure_client_certificate_path" in parameters:
+        elif "azure_client_certificate_path" in parameters:
             tokens.append(
                 CertificateCredential(
                     _get_required_parameter(parameters, "azure_tenant_id"),
@@ -79,13 +84,15 @@ def _get_credential(parameters):
                     ),
                 )
             )
-    if auth is None or auth == "AZURE_MANAGED_IDENTITY":
+    if auth_method is None or auth_method == "AZURE_MANAGED_IDENTITY":
         client_id = parameters.get("azure_managed_identity_client_id")
         if client_id is not None:
             tokens.append(ManagedIdentityCredential(client_id=client_id))
 
     if len(tokens) == 0:
-        message = "Authentication options not available in Connection String"
+        message = (
+            "Authentication options were not available in Connection String"
+        )
         raise Exception(message)
     elif len(tokens) == 1:
         return tokens[0]
@@ -93,11 +100,63 @@ def _get_credential(parameters):
     return ChainedTokenCredential(*tokens)
 
 
-def _get_required_parameter(parameters, name):
+def _get_password(pwd_string, parameters):
+    try:
+        pwd = json.loads(pwd_string)
+    except json.JSONDecodeError:
+        message = (
+            "Password is expected to be JSON"
+            " containing Azure Vault details."
+        )
+        raise Exception(message)
+
+    pwd["value"] = pwd.pop("uri")
+    pwd["type"] = "azurevault"
+
+    # make authentication section
+    pwd["authentication"] = authentication = {}
+
+    authentication["method"] = auth_method = _get_authentication_method(
+        parameters
+    )
+
+    if auth_method is None or auth_method == "AZURE_SERVICE_PRINCIPAL":
+        if "azure_client_secret" in parameters:
+            authentication["azure_tenant_id"] = _get_required_parameter(
+                parameters, "azure_tenant_id"
+            )
+            authentication["azure_client_id"] = _get_required_parameter(
+                parameters, "azure_client_id"
+            )
+            authentication["azure_client_secret"] = _get_required_parameter(
+                parameters, "azure_client_secret"
+            )
+
+        elif "azure_client_certificate_path" in parameters:
+            authentication["azure_tenant_id"] = (
+                _get_required_parameter(parameters, "azure_tenant_id"),
+            )
+            authentication["azure_client_id"] = (
+                _get_required_parameter(parameters, "azure_client_id"),
+            )
+            authentication["azure_client_certificate_path"] = (
+                _get_required_parameter(
+                    parameters, "azure_client_certificate_path"
+                )
+            )
+
+    if auth_method is None or auth_method == "AZURE_MANAGED_IDENTITY":
+        authentication["azure_managed_identity_client_id"] = parameters.get(
+            "azure_managed_identity_client_id"
+        )
+    return pwd
+
+
+def _get_required_parameter(parameters, name, location="connection string"):
     try:
         return parameters[name]
     except KeyError:
-        message = f'Parameter named "{name}" missing from connection string'
+        message = f'Parameter named "{name}" is missing from {location}'
         raise Exception(message) from None
 
 
@@ -134,7 +193,7 @@ def _parse_parameters(protocol_arg: str) -> dict:
 
 
 def password_type_azure_vault_hook(args):
-    uri = _get_required_parameter(args, "uri")
+    uri = _get_required_parameter(args, "value", '"password" key section')
     credential = args.get("credential")
 
     if credential is None:
@@ -144,7 +203,7 @@ def password_type_azure_vault_hook(args):
         auth = args.get("authentication")
         if auth is None:
             raise Exception(
-                "Azure Vault authentication details are not provided."
+                "Azure Vault authentication details were not provided."
             )
         credential = _get_credential(auth)
 
@@ -182,17 +241,8 @@ def _process_config(parameters, connect_params):
     config["user"] = _get_setting(client, key, "user", label, required=False)
     pwd = _get_setting(client, key, "password", label, required=False)
     if pwd is not None:
-        try:
-            pwd = json.loads(pwd)
-            pwd["type"] = "azure-vault"
-            pwd["credential"] = credential
-        except json.JSONDecodeError:
-            message = (
-                "Password is expected to be JSON"
-                " containing Azure Vault details."
-            )
-            raise Exception(message)
-    config["password"] = pwd
+        config["password"] = _get_password(pwd, parameters)
+
     config["config_time_to_live"] = _get_setting(
         client, key, "config_time_to_live", label, required=False
     )
@@ -217,5 +267,5 @@ def config_azure_hook(protocol, protocol_arg, connect_params):
     _process_config(parameters, connect_params)
 
 
-oracledb.register_password_type("azure-vault", password_type_azure_vault_hook)
+oracledb.register_password_type("azurevault", password_type_azure_vault_hook)
 oracledb.register_protocol("config-azure", config_azure_hook)

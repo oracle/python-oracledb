@@ -90,13 +90,11 @@ def _get_config(parameters, connect_params):
     if connect_params.user is None:
         config["user"] = settings.get("user")
         if "password" in settings:
-            pwd = settings["password"]
-            if settings["password"]["type"] == "oci-vault":
-                pwd["credential"] = credential
-                pwd["auth"] = auth_method
-
-            # password should be stored in JSON and not plain text.
-            config["password"] = pwd
+            config["password"] = pwd = settings["password"]
+            if pwd["type"] == "ocivault":
+                authentication = pwd.setdefault("authentication", {})
+                authentication.setdefault("method", auth_method)
+                authentication["credential"] = credential
 
     # config cache settings
     config["config_time_to_live"] = settings.get("config_time_to_live")
@@ -116,12 +114,18 @@ def _get_credential(parameters):
     Returns the appropriate credential given the input supplied by the original
     connect string.
     """
-    auth = parameters.get("authentication")
-    if auth is not None:
-        auth = auth.upper()
+    auth_method = parameters.get("authentication", parameters.get("method"))
+
+    if auth_method is not None:
+        auth_method = auth_method.upper()
+
+    # if region is not in connection string, retrieve from object server name.
+    region = parameters.get(
+        "oci_region", _retrieve_region(parameters.get("objservername"))
+    )
 
     try:
-        if auth is None or auth == "OCI_DEFAULT":
+        if auth_method is None or auth_method == "OCI_DEFAULT":
             # Default Authentication
             # default path ~/.oci/config
             return oci_from_file(), None
@@ -136,30 +140,30 @@ def _get_credential(parameters):
                 fingerprint=parameters["oci_fingerprint"],
                 key_file=parameters["oci_key_file"],
                 private_key_content=public_key,
-                region=_retrieve_region(parameters.get("objservername")),
+                region=region,
             )
             return provider, None
 
-    if auth == "OCI_INSTANCE_PRINCIPAL":
+    if auth_method == "OCI_INSTANCE_PRINCIPAL":
         signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
         return (
-            dict(region=_retrieve_region(parameters.get("objservername"))),
+            dict(region=region),
             signer,
         )
 
-    elif auth == "OCI_RESOURCE_PRINCIPAL":
-        rps = oci.auth.signers.get_resource_principals_signer()
-        return {}, rps
+    elif auth_method == "OCI_RESOURCE_PRINCIPAL":
+        signer = oci.auth.signers.get_resource_principals_signer()
+        return {}, signer
     else:
-        msg = "Authentication options not available in Connection String"
+        msg = "Authentication options were not available in Connection String"
         raise Exception(msg)
 
 
-def _get_required_parameter(parameters, name):
+def _get_required_parameter(parameters, name, location="connection string"):
     try:
         return parameters[name]
     except KeyError:
-        message = f'Parameter named "{name}" missing from connect string'
+        message = f'Parameter named "{name}" is missing from {location}'
         raise Exception(message) from None
 
 
@@ -186,23 +190,24 @@ def _parse_parameters(protocol_arg: str) -> dict:
 
 
 def password_type_oci_vault_hook(args):
-    secret_id = args.get("uri")
-    credential = args.get("credential")
+    secret_id = _get_required_parameter(
+        args, "value", '"password" key section'
+    )
+    authentication = args.get("authentication")
+    if authentication is None:
+        raise Exception(
+            "OCI Key Vault authentication details were not provided."
+        )
 
     # if credentials are not present, create credentials with given
     # authentication details.
+    credential = authentication.get("credential")
     if credential is None:
-        auth = _get_required_parameter(args, "auth")
-        if auth is None:
-            raise Exception(
-                "OCI Key Vault authentication details are not provided."
-            )
-        credential, signer = _get_credential(auth)
-    auth_method = args.get("auth")
+        credential, signer = _get_credential(authentication)
 
+    auth_method = authentication.get("method")
     if auth_method is not None:
         auth_method = auth_method.upper()
-
     if auth_method is None or auth_method == "OCI_DEFAULT":
         secret_client_oci = oci_secrets_client(credential)
     elif auth_method == "OCI_INSTANCE_PRINCIPAL":
@@ -216,9 +221,8 @@ def password_type_oci_vault_hook(args):
             config=credential, signer=signer
         )
 
-    get_secret_bundle_request = {"secret_id": secret_id}
     get_secret_bundle_response = secret_client_oci.get_secret_bundle(
-        **get_secret_bundle_request
+        secret_id=secret_id
     )
     # decoding the vault content
     b64content = get_secret_bundle_response.data.secret_bundle_content.content
@@ -226,8 +230,9 @@ def password_type_oci_vault_hook(args):
 
 
 def _retrieve_region(objservername):
-    arr = objservername.split(".")
-    return arr[1].lower().replace("_", "-")
+    if objservername is not None:
+        arr = objservername.split(".")
+        return arr[1].lower().replace("_", "-")
 
 
 def _stream_to_string(stream):
@@ -244,5 +249,5 @@ def config_oci_hook(
     _get_config(parameters, connect_params)
 
 
-oracledb.register_password_type("oci-vault", password_type_oci_vault_hook)
+oracledb.register_password_type("ocivault", password_type_oci_vault_hook)
 oracledb.register_protocol("config-ociobject", config_oci_hook)

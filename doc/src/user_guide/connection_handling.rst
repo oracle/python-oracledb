@@ -1227,8 +1227,8 @@ syntax is::
     {
         "user": "scott",
         "password": {
-            "type": "oci-vault",
-            "uri": "oci.vaultsecret.my-secret-id"
+            "type": "ocivault",
+            "value": "oci.vaultsecret.my-secret-id"
             "authentication": {
                 "method": "OCI_INSTANCE_PRINCIPAL"
             }
@@ -1241,15 +1241,16 @@ syntax is::
         }
     }
 
-Passwords can optionally be stored using the Azure Key Vault. To do this, you
-must define the Azure Key Vault credentials in the ``password`` key. In
-this, the ``azure_client_id`` and ``azure_tenant_id`` must be specified. Also,
-either ``azure_client_secret`` or ``azure_client_certificate_path`` should be
-specified. For example::
+Passwords can optionally be stored using the Azure Key Vault. To do this,
+you must ``import oracledb.plugins.azure_config_provider`` in your application and you must
+define the Azure Key Vault credentials in the ``password`` key.
+In this, the ``azure_client_id`` and ``azure_tenant_id`` must be specified.
+Also, either ``azure_client_secret`` or ``azure_client_certificate_path``
+should be specified. For example::
 
     "password": {
-        "type": "azure-vault",
-        "uri": "<Azure Key Vault URI>",
+        "type": "azurevault",
+        "value": "<Azure Key Vault URI>",
         "authentication": {
             "azure_tenant_id": "<tenant_id>",
             "azure_client_id": "<client_id>",
@@ -1260,8 +1261,8 @@ specified. For example::
 Or::
 
     "password": {
-        "type": "azure-vault",
-        "uri": "<Azure Key Vault URI>",
+        "type": "azurevault",
+        "value": "<Azure Key Vault URI>",
         "authentication": {
             "azure_tenant_id": "<tenant_id>",
             "azure_client_id": "<client_id>",
@@ -1277,7 +1278,7 @@ configuration provider is:
 
 .. code-block:: python
 
-    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?authentication=oci_default&oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
 
 To create a :ref:`standalone connection <standaloneconnection>` you could use
 this like:
@@ -1286,7 +1287,7 @@ this like:
 
     import oracledb.plugins.oci_config_provider
 
-    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
+    configociurl = "config-ociobject://abc.oraclecloud.com/n/abcnamespace/b/abcbucket/o/abcobject?authentication=oci_default&oci_tenancy=abc123&oci_user=ociuser1&oci_fingerprint=ab:14:ba:13&oci_key_file=ociabc/ocikeyabc.pem"
 
     connection = oracledb.connect(dsn=configociurl)
 
