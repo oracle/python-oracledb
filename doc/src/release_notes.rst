@@ -30,6 +30,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Internal change: avoid memory allocation/free cycles for decimal data when
+    calling :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()`.
+
 
 oracledb 3.0.0 (March 2025)
 ---------------------------

@@ -61,13 +61,6 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TIME_UNIT_MICRO
         NANOARROW_TIME_UNIT_NANO
 
-    cdef struct ArrowStringView:
-        const char* data
-        int64_t size_bytes
-
-    cdef struct ArrowDecimal:
-        pass
-
 
 cdef class OracleArrowArray:
     """
@@ -94,9 +87,9 @@ cdef class OracleArrowArray:
 
     cdef str _schema_to_string(self)
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
+    cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
     cdef int append_float(self, float value) except -1
     cdef int append_int64(self, int64_t value) except -1
     cdef int append_null(self) except -1
-    cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int finish_building(self) except -1

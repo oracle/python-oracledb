@@ -49,8 +49,15 @@ cdef extern from "nanoarrow/nanoarrow.c":
     cdef struct ArrowArrayView:
         ArrowBufferView *buffer_views
 
+    cdef struct ArrowDecimal:
+        pass
+
     cdef struct ArrowError:
         pass
+
+    cdef struct ArrowStringView:
+        const char* data
+        int64_t size_bytes
 
     cdef ArrowErrorCode NANOARROW_OK
 
@@ -64,13 +71,13 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowArrayAppendDouble(ArrowArray* array, double value)
     ArrowErrorCode ArrowArrayAppendNull(ArrowArray* array, int64_t n)
     ArrowErrorCode ArrowArrayAppendInt(ArrowArray* array, int64_t value)
-    ArrowErrorCode ArrowArrayAppendDecimal(ArrowArray * array,
-                                           const ArrowDecimal * value)
+    ArrowErrorCode ArrowArrayAppendDecimal(ArrowArray* array,
+                                           const ArrowDecimal* value)
     ArrowErrorCode ArrowArrayFinishBuildingDefault(ArrowArray* array,
                                                    ArrowError* error)
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
                                      int64_t additional_size_elements)
-    inline ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
+    ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
     ArrowErrorCode ArrowArrayViewInitFromSchema(ArrowArrayView* array_view,
                                                 const ArrowSchema* schema,
                                                 ArrowError* error)
@@ -90,9 +97,9 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowSchemaSetName(ArrowSchema* schema, const char* name)
     int64_t ArrowSchemaToString(const ArrowSchema* schema, char* out,
                                 int64_t n, char recursive)
-    void ArrowDecimalInit(ArrowDecimal * decimal, int32_t bitwidth,
+    void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
                           int32_t precision, int32_t scale)
-    ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal * decimal,
+    ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
                                          ArrowStringView value)
 
 
@@ -200,6 +207,24 @@ cdef class OracleArrowArray:
         data.size_bytes = num_bytes
         _check_nanoarrow(ArrowArrayAppendBytes(self.arrow_array, data))
 
+    cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1:
+        """
+        Append a value of type ArrowDecimal to the array
+
+        Arrow decimals are fixed-point decimal numbers encoded as a
+        scaled integer. decimal128(7, 3) can exactly represent the numbers
+        1234.567 and -1234.567 encoded internally as the 128-bit integers
+        1234567 and -1234567, respectively.
+        """
+        cdef:
+            ArrowStringView decimal_view
+            ArrowDecimal decimal
+        decimal_view.data = <char*> ptr
+        decimal_view.size_bytes = num_bytes
+        ArrowDecimalInit(&decimal, 128, self.precision, self.scale)
+        _check_nanoarrow(ArrowDecimalSetDigits(&decimal, decimal_view))
+        _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array, &decimal))
+
     cdef int append_double(self, double value) except -1:
         """
         Append a value of type double to the array.
@@ -223,32 +248,6 @@ cdef class OracleArrowArray:
         Append a null value to the array.
         """
         _check_nanoarrow(ArrowArrayAppendNull(self.arrow_array, 1))
-
-    cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1:
-        """
-        Append a value of type ArrowDecimal to the array
-
-        Arrow decimals are fixed-point decimal numbers encoded as a
-        scaled integer. decimal128(7, 3) can exactly represent the numbers
-        1234.567 and -1234.567 encoded internally as the 128-bit integers
-        1234567 and -1234567, respectively
-
-        """
-        cdef:
-            int64_t i = 0, j = 0
-            char* digits = <char *>ptr
-            ArrowStringView decimal_view
-            ArrowDecimal * decimal = \
-                <ArrowDecimal *> cpython.PyMem_Malloc(sizeof(ArrowDecimal))
-
-        try:
-            decimal_view.data = digits
-            decimal_view.size_bytes = num_bytes
-            ArrowDecimalInit(decimal, 128, self.precision, self.scale)
-            _check_nanoarrow(ArrowDecimalSetDigits(decimal, decimal_view))
-            _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array, decimal))
-        finally:
-            cpython.PyMem_Free(decimal)
 
     cdef int finish_building(self) except -1:
         """
