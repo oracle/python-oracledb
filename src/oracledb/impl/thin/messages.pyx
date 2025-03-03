@@ -2487,7 +2487,7 @@ cdef class DeqMessage(Message):
                 else:
                     self.props_impl.payload = b''
             ptr = buf._get_raw(TNS_AQ_MESSAGE_ID_LENGTH)
-            self.props_impl.msgid =ptr[:TNS_AQ_MESSAGE_ID_LENGTH]
+            self.props_impl.msgid = ptr[:TNS_AQ_MESSAGE_ID_LENGTH]
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """
@@ -2702,7 +2702,7 @@ cdef class EnqMessage(Message):
                 buf.write_uint8(0)              # JSON payload (pointer)
 
         buf.write_bytes_with_length(queue_name_bytes)
-        buf.write_bytes(self.props_impl.toid)
+        buf.write_bytes(self.queue_impl.payload_toid)
         if not self.queue_impl.is_json:
             if self.queue_impl.payload_type is not None:
                 buf.write_dbobject(self.props_impl.payloadObject)

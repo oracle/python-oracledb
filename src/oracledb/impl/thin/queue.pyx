@@ -43,7 +43,6 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
             ThinMsgPropsImpl props_impl
             DeqMessage message
         props_impl = ThinMsgPropsImpl()
-        props_impl._initialize(self)
         message = self._conn_impl._create_message(DeqMessage)
         message.queue_impl = self
         message.deq_options_impl = self.deq_options_impl
@@ -323,7 +322,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         bytes msgid
         int32_t state
         object payloadObject
-        bytes toid
         int32_t version
         BaseThinConnImpl _conn_impl
         bytes enq_txn_id
@@ -338,13 +336,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         self.recipients = []
         self.version = 1
         self.sender_agent_protocol = 0
-
-    cdef int _initialize(self, BaseThinQueueImpl queue_impl) except -1:
-        """
-        Internal method to initialize the message properties.
-        """
-        self._conn_impl = queue_impl._conn_impl
-        self.toid = queue_impl.payload_toid
 
     def get_num_attempts(self):
         """
@@ -435,7 +426,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         Internal method for setting the payload from bytes.
         """
         self.payloadObject = value
-        self.toid = bytes([0]*15+[0x17])
 
     def set_payload_object(self, ThinDbObjectImpl value):
         """
@@ -444,7 +434,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         if not isinstance(value, ThinDbObjectImpl):
             raise TypeError("Expected ThinDbObjectImpl instance.")
         self.payloadObject = value
-        self.toid = value.toid[4:20]
 
     def set_priority(self, int32_t value):
         """
