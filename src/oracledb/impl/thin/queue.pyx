@@ -29,13 +29,28 @@
 # thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-cdef class ThinQueueImpl(BaseQueueImpl):
+cdef class BaseThinQueueImpl(BaseQueueImpl):
 
     cdef:
-        ThinConnImpl _conn_impl
+        BaseThinConnImpl _conn_impl
         bytes payload_toid
 
-    cdef Message _create_enq_message(self, ThinMsgPropsImpl props_impl):
+    cdef DeqMessage _create_deq_message(self):
+        """
+        Create the message for dequeuing a payload.
+        """
+        cdef:
+            ThinMsgPropsImpl props_impl
+            DeqMessage message
+        props_impl = ThinMsgPropsImpl()
+        props_impl._initialize(self)
+        message = self._conn_impl._create_message(DeqMessage)
+        message.queue_impl = self
+        message.deq_options_impl = self.deq_options_impl
+        message.props_impl = props_impl
+        return message
+
+    cdef EnqMessage _create_enq_message(self, ThinMsgPropsImpl props_impl):
         """
         Create the message for enqueuing the provided payload.
         """
@@ -46,35 +61,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         message.props_impl = props_impl
         return message
 
-    def deq_one(self):
-        """
-        Internal method for dequeuing a single message from a queue.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            DeqMessage message
-            ThinMsgPropsImpl props_impl
-        props_impl = ThinMsgPropsImpl()
-        props_impl._initialize(self)
-        message = self._conn_impl._create_message(DeqMessage)
-        message.queue_impl = self
-        message.deq_options_impl = self.deq_options_impl
-        message.props_impl = props_impl
-        protocol._process_single_message(message)
-        if not message.no_msg_found:
-            return message.props_impl
-
-    def enq_one(self, ThinMsgPropsImpl props_impl):
-        """
-        Internal method for enqueuing a single message into a queue.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            Message message
-        message = self._create_enq_message(props_impl)
-        protocol._process_single_message(message)
-
-    def initialize(self, ThinConnImpl conn_impl, str name,
+    def initialize(self, BaseThinConnImpl conn_impl, str name,
                    ThinDbObjectTypeImpl payload_type, bint is_json):
         """
         Internal method for initializing the queue.
@@ -91,6 +78,58 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         else:
             self.payload_toid = bytes([0]*15+[0x17])
         self.name = name
+
+
+cdef class ThinQueueImpl(BaseThinQueueImpl):
+
+    def deq_one(self):
+        """
+        Internal method for dequeuing a single message from a queue.
+        """
+        cdef:
+            Protocol protocol = <Protocol> self._conn_impl._protocol
+            DeqMessage message
+        message = self._create_deq_message()
+        protocol._process_single_message(message)
+        if not message.no_msg_found:
+            return message.props_impl
+
+    def enq_one(self, ThinMsgPropsImpl props_impl):
+        """
+        Internal method for enqueuing a single message into a queue.
+        """
+        cdef:
+            Protocol protocol = <Protocol> self._conn_impl._protocol
+            EnqMessage message
+        message = self._create_enq_message(props_impl)
+        protocol._process_single_message(message)
+
+
+cdef class AsyncThinQueueImpl(BaseThinQueueImpl):
+
+    async def deq_one(self):
+        """
+        Internal method for dequeuing a single message from a queue.
+        """
+        cdef:
+            BaseAsyncProtocol protocol
+            DeqMessage message
+        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
+        message = self._create_deq_message()
+        await protocol._process_single_message(message)
+        if not message.no_msg_found:
+            return message.props_impl
+
+    async def enq_one(self, ThinMsgPropsImpl props_impl):
+        """
+        Internal method for enqueuing a single message into a queue.
+        """
+        cdef:
+            BaseAsyncProtocol protocol
+            EnqMessage message
+        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
+        message = self._create_enq_message(props_impl)
+        await protocol._process_single_message(message)
 
 
 cdef class ThinDeqOptionsImpl(BaseDeqOptionsImpl):
@@ -286,7 +325,7 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         object payloadObject
         bytes toid
         int32_t version
-        ThinConnImpl _conn_impl
+        BaseThinConnImpl _conn_impl
         bytes enq_txn_id
         bytes sender_agent_name
         bytes sender_agent_address
@@ -300,7 +339,7 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         self.version = 1
         self.sender_agent_protocol = 0
 
-    cdef int _initialize(self, ThinQueueImpl queue_impl) except -1:
+    cdef int _initialize(self, BaseThinQueueImpl queue_impl) except -1:
         """
         Internal method to initialize the message properties.
         """

@@ -2347,7 +2347,7 @@ cdef class FetchMessage(MessageWithData):
 @cython.final
 cdef class DeqMessage(Message):
     cdef:
-        ThinQueueImpl queue_impl
+        BaseThinQueueImpl queue_impl
         ThinDeqOptionsImpl deq_options_impl
         ThinMsgPropsImpl props_impl
         bint no_msg_found
@@ -2566,7 +2566,7 @@ cdef class DeqMessage(Message):
 @cython.final
 cdef class EnqMessage(Message):
     cdef:
-        ThinQueueImpl queue_impl
+        BaseThinQueueImpl queue_impl
         ThinEnqOptionsImpl enq_options_impl
         ThinMsgPropsImpl props_impl
 

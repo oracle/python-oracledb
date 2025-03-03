@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ from . import errors
 from .dbobject import DbObject, DbObjectType
 
 
-class Queue:
+class BaseQueue:
     @classmethod
     def _from_impl(cls, connection, impl):
         queue = cls.__new__(cls)
@@ -64,35 +64,6 @@ class Queue:
         """
         return self._connection
 
-    def deqmany(self, max_num_messages: int) -> list:
-        """
-        Dequeues up to the specified number of messages from the queue and
-        returns a list of these messages.
-        """
-        message_impls = self._impl.deq_many(max_num_messages)
-        return [MessageProperties._from_impl(impl) for impl in message_impls]
-
-    def deqMany(self, max_num_messages: int) -> List["MessageProperties"]:
-        """
-        Deprecated: use deqmany() instead.
-        """
-        return self.deqmany(max_num_messages)
-
-    def deqone(self) -> Union["MessageProperties", None]:
-        """
-        Dequeues at most one message from the queue and returns it. If no
-        message is dequeued, None is returned.
-        """
-        message_impl = self._impl.deq_one()
-        if message_impl is not None:
-            return MessageProperties._from_impl(message_impl)
-
-    def deqOne(self) -> Union["MessageProperties", None]:
-        """
-        Deprecated: use deqone() instead.
-        """
-        return self.deqone()
-
     @property
     def deqoptions(self) -> "DeqOptions":
         """
@@ -107,44 +78,6 @@ class Queue:
         Deprecated: use deqoptions instead.
         """
         return self.deqoptions
-
-    def enqmany(self, messages: list) -> None:
-        """
-        Enqueues multiple messages into the queue. The messages parameter must
-        be a sequence containing message property objects which have all had
-        their payload attribute set to a value that the queue supports.
-
-        Warning: calling this function in parallel on different connections
-        acquired from the same pool may fail due to Oracle bug 29928074. Ensure
-        that this function is not run in parallel, use standalone connections
-        or connections from different pools, or make multiple calls to
-        enqOne() instead. The function Queue.deqMany() call is not affected.
-        """
-        for message in messages:
-            self._verify_message(message)
-        message_impls = [m._impl for m in messages]
-        self._impl.enq_many(message_impls)
-
-    def enqMany(self, messages: list) -> None:
-        """
-        Deprecated: use enqmany() instead.
-        """
-        return self.enqmany(messages)
-
-    def enqone(self, message: "MessageProperties") -> None:
-        """
-        Enqueues a single message into the queue. The message must be a message
-        property object which has had its payload attribute set to a value that
-        the queue supports.
-        """
-        self._verify_message(message)
-        self._impl.enq_one(message._impl)
-
-    def enqOne(self, message: "MessageProperties") -> None:
-        """
-        Deprecated: use enqone() instead.
-        """
-        return self.enqone(message)
 
     @property
     def enqoptions(self) -> "EnqOptions":
@@ -189,6 +122,97 @@ class Queue:
         Deprecated: use payload_type instead.
         """
         return self.payload_type
+
+
+class Queue(BaseQueue):
+
+    def deqmany(self, max_num_messages: int) -> list:
+        """
+        Dequeues up to the specified number of messages from the queue and
+        returns a list of these messages.
+        """
+        message_impls = self._impl.deq_many(max_num_messages)
+        return [MessageProperties._from_impl(impl) for impl in message_impls]
+
+    def deqMany(self, max_num_messages: int) -> List["MessageProperties"]:
+        """
+        Deprecated: use deqmany() instead.
+        """
+        return self.deqmany(max_num_messages)
+
+    def deqone(self) -> Union["MessageProperties", None]:
+        """
+        Dequeues at most one message from the queue and returns it. If no
+        message is dequeued, None is returned.
+        """
+        message_impl = self._impl.deq_one()
+        if message_impl is not None:
+            return MessageProperties._from_impl(message_impl)
+
+    def deqOne(self) -> Union["MessageProperties", None]:
+        """
+        Deprecated: use deqone() instead.
+        """
+        return self.deqone()
+
+    def enqmany(self, messages: list) -> None:
+        """
+        Enqueues multiple messages into the queue. The messages parameter must
+        be a sequence containing message property objects which have all had
+        their payload attribute set to a value that the queue supports.
+
+        Warning: calling this function in parallel on different connections
+        acquired from the same pool may fail due to Oracle bug 29928074. Ensure
+        that this function is not run in parallel, use standalone connections
+        or connections from different pools, or make multiple calls to
+        enqOne() instead. The function Queue.deqMany() call is not affected.
+        """
+        for message in messages:
+            self._verify_message(message)
+        message_impls = [m._impl for m in messages]
+        self._impl.enq_many(message_impls)
+
+    def enqMany(self, messages: list) -> None:
+        """
+        Deprecated: use enqmany() instead.
+        """
+        return self.enqmany(messages)
+
+    def enqone(self, message: "MessageProperties") -> None:
+        """
+        Enqueues a single message into the queue. The message must be a message
+        property object which has had its payload attribute set to a value that
+        the queue supports.
+        """
+        self._verify_message(message)
+        self._impl.enq_one(message._impl)
+
+    def enqOne(self, message: "MessageProperties") -> None:
+        """
+        Deprecated: use enqone() instead.
+        """
+        return self.enqone(message)
+
+
+class AsyncQueue(BaseQueue):
+
+    async def deqone(self) -> Union["MessageProperties", None]:
+        """
+        Dequeues at most one message from the queue and returns it. If no
+        message is dequeued, None is returned.
+        """
+        message_impl = await self._impl.deq_one()
+        if message_impl is not None:
+            return MessageProperties._from_impl(message_impl)
+
+    async def enqone(self, message: "MessageProperties") -> None:
+        """
+        Enqueues a single message into the queue. The message must be a message
+        property object which has had its payload attribute set to a value that
+        the queue supports.
+        """
+        self._verify_message(message)
+        await self._impl.enq_one(message._impl)
 
 
 class DeqOptions:

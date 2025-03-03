@@ -253,9 +253,35 @@ AsyncConnection Methods
     use :meth:`AsyncConnection.ping()` which performs a :ref:`round-trip
     <roundtrips>` to the database.
 
+.. method:: AsyncConnection.msgproperties(payload, correlation, delay, exceptionq, expiration, priority)
+
+    Creates and returns a message properties object that contains the
+    properties of messages used in advanced queuing. See
+    :ref:`asyncmsgproperties` for more information.
+
+    Each of the parameters are optional. If specified, they act as a shortcut
+    for setting each of the equivalently named properties.
+
+    .. versionadded:: 3.1.0
+
 .. method:: AsyncConnection.ping()
 
     Pings the database to verify if the connection is valid.
+
+.. method:: AsyncConnection.queue(name, payload_type=None)
+
+    Creates a :ref:`queue <asyncqueue>` which is used to enqueue and dequeue
+    messages in Advanced Queuing.
+
+    The ``name`` parameter is expected to be a string identifying the queue in
+    which messages are to be enqueued or dequeued.
+
+    The ``payload_type`` parameter, if specified, is expected to be an
+    :ref:`object type <dbobjecttype>` that identifies the type of payload the
+    queue expects. If the string "JSON" is specified, JSON data is enqueued and
+    dequeued. If not specified, RAW data is enqueued and dequeued.
+
+    .. versionadded:: 3.1.0
 
 .. method:: AsyncConnection.rollback()
 

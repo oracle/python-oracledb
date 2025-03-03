@@ -17,6 +17,9 @@ oracledb 3.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added Async :ref:`Oracle Advanced Queuing <asyncaq>` support for single
+    enqueue and dequeue of RAW and Oracle object payload types.
+
 Thick Mode Changes
 ++++++++++++++++++
 

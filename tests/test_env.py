@@ -733,6 +733,24 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
             del self.cursor
             del self.conn
 
+    async def get_and_clear_queue(
+        self,
+        queue_name,
+        payload_type=None,
+        message="not supported with this client/server combination",
+    ):
+        if payload_type == "JSON":
+            self.skipTest(message)
+        elif isinstance(payload_type, str):
+            payload_type = await self.conn.gettype(payload_type)
+        queue = self.conn.queue(queue_name, payload_type)
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        while await queue.deqone():
+            pass
+        return self.conn.queue(queue_name, payload_type)
+
     async def get_db_object_as_plain_object(self, obj):
         if obj.type.iscollection:
             element_values = []

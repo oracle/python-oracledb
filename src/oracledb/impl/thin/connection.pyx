@@ -206,6 +206,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def cancel(self):
         self._protocol._break_external()
 
+    def create_msg_props_impl(self):
+        cdef ThinMsgPropsImpl impl
+        impl = ThinMsgPropsImpl()
+        impl._conn_impl = self
+        return impl
+
     def get_call_timeout(self):
         return self._call_timeout
 
@@ -437,12 +443,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         except:
             self._force_close()
             raise
-
-    def create_msg_props_impl(self):
-        cdef ThinMsgPropsImpl impl
-        impl = ThinMsgPropsImpl()
-        impl._conn_impl = self
-        return impl
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
@@ -959,6 +959,12 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         except:
             self._force_close()
             raise
+
+    def create_queue_impl(self):
+        """
+        Create and return the implementation object to use for AQ queuing.
+        """
+        return AsyncThinQueueImpl.__new__(AsyncThinQueueImpl)
 
     async def create_temp_lob_impl(self, DbType dbtype):
         cdef AsyncThinLobImpl lob_impl = self._create_lob_impl(dbtype)

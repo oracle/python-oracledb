@@ -42,7 +42,7 @@ from . import __name__ as MODULE_NAME
 
 from . import base_impl, constants, driver_mode, errors, thick_impl, thin_impl
 from . import pool as pool_module
-from .aq import Queue, MessageProperties
+from .aq import AsyncQueue, Queue, MessageProperties
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
 from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
@@ -379,6 +379,80 @@ class BaseConnection:
         self._verify_connected()
         self._impl.set_module(value)
 
+    def msgproperties(
+        self,
+        payload: Optional[Union[bytes, str, DbObject]] = None,
+        correlation: Optional[str] = None,
+        delay: Optional[int] = None,
+        exceptionq: Optional[str] = None,
+        expiration: Optional[int] = None,
+        priority: Optional[int] = None,
+        recipients: Optional[list] = None,
+    ) -> MessageProperties:
+        """
+        Create and return a message properties object. If the parameters are
+        not None, they act as a shortcut for setting each of the equivalently
+        named properties.
+        """
+        impl = self._impl.create_msg_props_impl()
+        props = MessageProperties._from_impl(impl)
+        if payload is not None:
+            props.payload = payload
+        if correlation is not None:
+            props.correlation = correlation
+        if delay is not None:
+            props.delay = delay
+        if exceptionq is not None:
+            props.exceptionq = exceptionq
+        if expiration is not None:
+            props.expiration = expiration
+        if priority is not None:
+            props.priority = priority
+        if recipients is not None:
+            props.recipients = recipients
+        return props
+
+    def queue(
+        self,
+        name: str,
+        payload_type: Optional[Union[DbObjectType, str]] = None,
+        *,
+        payloadType: Optional[DbObjectType] = None,
+    ) -> Queue:
+        """
+        Creates and returns a queue which is used to enqueue and dequeue
+        messages in Advanced Queueing (AQ).
+
+        The name parameter is expected to be a string identifying the queue in
+        which messages are to be enqueued or dequeued.
+
+        The payload_type parameter, if specified, is expected to be an
+        object type that identifies the type of payload the queue expects.
+        If the string "JSON" is specified, JSON data is enqueued and dequeued.
+        If not specified, RAW data is enqueued and dequeued.
+        """
+        self._verify_connected()
+        payload_type_impl = None
+        is_json = False
+        if payloadType is not None:
+            if payload_type is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="payloadType",
+                    new_name="payload_type",
+                )
+            payload_type = payloadType
+        if payload_type is not None:
+            if payload_type == "JSON":
+                is_json = True
+            elif not isinstance(payload_type, DbObjectType):
+                raise TypeError("expecting DbObjectType")
+            else:
+                payload_type_impl = payload_type._impl
+        impl = self._impl.create_queue_impl()
+        impl.initialize(self._impl, name, payload_type_impl, is_json)
+        return self._create_queue(impl)
+
     @property
     def outputtypehandler(self) -> Callable:
         """
@@ -600,6 +674,13 @@ class Connection(BaseConnection):
             self._impl.close(in_del=True)
             self._impl = None
 
+    def _create_queue(self, impl):
+        """
+        Returns a queue object that the user can use to dequeue and enqueue
+        messages.
+        """
+        return Queue._from_impl(self, impl)
+
     def _get_oci_attr(
         self, handle_type: int, attr_num: int, attr_type: int
     ) -> Any:
@@ -784,39 +865,6 @@ class Connection(BaseConnection):
         """
         return 4
 
-    def msgproperties(
-        self,
-        payload: Optional[Union[bytes, str, DbObject]] = None,
-        correlation: Optional[str] = None,
-        delay: Optional[int] = None,
-        exceptionq: Optional[str] = None,
-        expiration: Optional[int] = None,
-        priority: Optional[int] = None,
-        recipients: Optional[list] = None,
-    ) -> MessageProperties:
-        """
-        Create and return a message properties object. If the parameters are
-        not None, they act as a shortcut for setting each of the equivalently
-        named properties.
-        """
-        impl = self._impl.create_msg_props_impl()
-        props = MessageProperties._from_impl(impl)
-        if payload is not None:
-            props.payload = payload
-        if correlation is not None:
-            props.correlation = correlation
-        if delay is not None:
-            props.delay = delay
-        if exceptionq is not None:
-            props.exceptionq = exceptionq
-        if expiration is not None:
-            props.expiration = expiration
-        if priority is not None:
-            props.priority = priority
-        if recipients is not None:
-            props.recipients = recipients
-        return props
-
     def ping(self) -> None:
         """
         Pings the database to verify the connection is valid.
@@ -837,47 +885,6 @@ class Connection(BaseConnection):
         """
         self._verify_connected()
         return self._impl.proxy_user
-
-    def queue(
-        self,
-        name: str,
-        payload_type: Optional[Union[DbObjectType, str]] = None,
-        *,
-        payloadType: Optional[DbObjectType] = None,
-    ) -> Queue:
-        """
-        Creates and returns a queue which is used to enqueue and dequeue
-        messages in Advanced Queueing (AQ).
-
-        The name parameter is expected to be a string identifying the queue in
-        which messages are to be enqueued or dequeued.
-
-        The payload_type parameter, if specified, is expected to be an
-        object type that identifies the type of payload the queue expects.
-        If the string "JSON" is specified, JSON data is enqueued and dequeued.
-        If not specified, RAW data is enqueued and dequeued.
-        """
-        self._verify_connected()
-        payload_type_impl = None
-        is_json = False
-        if payloadType is not None:
-            if payload_type is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="payloadType",
-                    new_name="payload_type",
-                )
-            payload_type = payloadType
-        if payload_type is not None:
-            if payload_type == "JSON":
-                is_json = True
-            elif not isinstance(payload_type, DbObjectType):
-                raise TypeError("expecting DbObjectType")
-            else:
-                payload_type_impl = payload_type._impl
-        impl = self._impl.create_queue_impl()
-        impl.initialize(self._impl, name, payload_type_impl, is_json)
-        return Queue._from_impl(self, impl)
 
     def rollback(self) -> None:
         """
@@ -1387,6 +1394,13 @@ class AsyncConnection(BaseConnection):
             impl.invoke_session_callback = False
 
         return self
+
+    def _create_queue(self, impl):
+        """
+        Returns a queue object that the user can use to dequeue and enqueue
+        messages.
+        """
+        return AsyncQueue._from_impl(self, impl)
 
     def _verify_can_execute(
         self, parameters: Any, keyword_parameters: Any

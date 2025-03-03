@@ -15,7 +15,6 @@ receiving of various payloads, such as RAW values, JSON, JMS, and objects.
 Transactional Event Queues use a highly optimized implementation of Advanced
 Queuing. They were previously called AQ Sharded Queues.
 
-
 Python-oracledb API calls are the same for Transactional Event Queues and
 Classic Queues, however there are differences in support for some payload
 types.
@@ -113,14 +112,15 @@ queue can then be used for enqueuing, dequeuing, or for both.
 **Enqueuing RAW Payloads**
 
 You can connect to the database and get the queue that was created with RAW
-payload type by using:
+payload type by using :meth:`Connection.queue()` or
+:meth:`AsyncConnection.queue()`. For example:
 
 .. code-block:: python
 
     queue = connection.queue("DEMO_RAW_QUEUE")
 
-Now messages can be queued using :meth:`~Queue.enqone()`.  To send three
-messages:
+Now messages can be queued using :meth:`Queue.enqone()` or
+:meth:`AsyncQueue.enqone()`.  To send three messages:
 
 .. code-block:: python
 
@@ -137,9 +137,9 @@ Since the queue is a RAW queue, strings are internally encoded to bytes using
 `encode() <https://docs.python.org/3/library/stdtypes.html#str.encode>`__
 before being enqueued.
 
-The use of :meth:`~Connection.commit()` allows messages to be sent only when
-any database transaction related to them is committed. This default behavior
-can be altered, see :ref:`aqoptions`.
+The use of :meth:`Connection.commit()` or :meth:`AsyncConnection.commit()`
+allows messages to be sent only when any database transaction related to them
+is committed. This default behavior can be altered, see :ref:`aqoptions`.
 
 **Enqueuing JSON Payloads**
 
@@ -173,12 +173,14 @@ Now the message can be enqueued using :meth:`~Queue.enqone()`.
 Dequeuing Messages
 ==================
 
-Dequeuing is performed similarly. To dequeue a message call the method
-:meth:`~Queue.deqone()` as shown in the examples below.  This returns a
+Dequeuing is performed similarly as shown in the examples below. This returns a
 :ref:`MessageProperties <msgproperties>` object containing the message payload
 and related attributes.
 
 **Dequeuing RAW Payloads**
+
+To dequeue a message, call the method :meth:`Queue.deqone()` or
+:meth:`AsyncQueue.deqone()`. For example:
 
 .. code-block:: python
 
@@ -191,9 +193,9 @@ Note that if the message is expected to be a string, the bytes must be decoded
 by the application using `decode()
 <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__, as shown.
 
-If there are no messages in the queue, :meth:`~Queue.deqone()` will wait for
-one to be enqueued.  This default behavior can be altered, see
-:ref:`aqoptions`.
+If there are no messages in the queue, :meth:`Queue.deqone()` or
+:meth:`AsyncQueue.deqone()` will wait for one to be enqueued.  This default
+behavior can be altered, see :ref:`aqoptions`.
 
 Various :ref:`message properties <msgproperties>` can be accessed.  For example
 to show the :attr:`~MessageProperties.msgid` of a dequeued message:
@@ -203,6 +205,8 @@ to show the :attr:`~MessageProperties.msgid` of a dequeued message:
     print(message.msgid.hex())
 
 **Dequeuing JSON Payloads**
+
+To dequeue a message, call the method :meth:`Queue.deqone()`, for example:
 
 .. code-block:: python
 
@@ -236,7 +240,8 @@ And a queue that accepts this type:
     end;
     /
 
-You can enqueue messages:
+You can enqueue messages using :meth:`Queue.enqone()` or
+:meth:`AsyncQueue.enqone()`, for example:
 
 .. code-block:: python
 
@@ -251,7 +256,8 @@ You can enqueue messages:
     queue.enqone(connection.msgproperties(payload=book))
     connection.commit()
 
-Dequeuing can be done like this:
+Dequeuing can be done with :meth:`Queue.deqone()` or
+:meth:`AsyncQueue.deqone()` like this:
 
 .. code-block:: python
 
