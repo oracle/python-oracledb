@@ -281,6 +281,7 @@ ERR_PLAINTEXT_PASSWORD_IN_CONFIG = 2058
 ERR_MISSING_CONNECT_DESCRIPTOR = 2059
 ERR_ARROW_C_API_ERROR = 2060
 ERR_PARAMS_HOOK_HANDLER_FAILED = 2061
+ERR_PAYLOAD_CANNOT_BE_ENQUEUED = 2062
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -748,6 +749,10 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_PASSWORD_TYPE_HANDLER_FAILED: (
         'registered handler for password type "{password_type}" failed'
+    ),
+    ERR_PAYLOAD_CANNOT_BE_ENQUEUED: (
+        "payload cannot be enqueued since it does not match the payload type "
+        "supported by the queue"
     ),
     ERR_PLAINTEXT_PASSWORD_IN_CONFIG: (
         "password in configuration must specify a type"

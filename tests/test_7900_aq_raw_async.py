@@ -393,6 +393,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(queue.enqOptions, queue.enqoptions)
         self.assertEqual(queue.deqOptions, queue.deqoptions)
 
+    async def test_7924(self):
+        "7924 - test wrong payload type"
+        queue = await self.get_and_clear_queue("TEST_RAW_QUEUE")
+        typ = await self.conn.gettype("UDT_BOOK")
+        obj = typ.newobject()
+        props = self.conn.msgproperties(payload=obj)
+        with self.assertRaisesFullCode("DPY-2062"):
+            await queue.enqone(props)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

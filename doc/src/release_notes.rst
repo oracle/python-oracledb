@@ -37,6 +37,13 @@ Common Changes
       from one row to the next
     - avoid memory allocation/free cycles for decimal data
 
+#)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
+    payload type supported by the queue`` is now raised when the payload of a
+    message being enqueued is not supported by the queue. Previously,
+    python-oracledb Thick mode raised the error ``DPI-1071: payload type in
+    message properties must match the payload type of the queue`` and thin mode
+    raised an internal error.
+
 
 oracledb 3.0.0 (March 2025)
 ---------------------------

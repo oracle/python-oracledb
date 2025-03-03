@@ -567,7 +567,7 @@ class TestCase(test_env.BaseTestCase):
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
         string_message = "This is a string message"
         props = self.conn.msgproperties(payload=string_message)
-        with self.assertRaisesFullCode("DPI-1071"):
+        with self.assertRaisesFullCode("DPY-2062"):
             queue.enqone(props)
 
     def test_2723(self):
@@ -766,6 +766,20 @@ class TestCase(test_env.BaseTestCase):
         queue.enqOne(self.conn.msgproperties(value))
         props = queue.deqOne()
         self.assertEqual(props.payload, value)
+
+    def test_2736(self):
+        "2736 - test enqueuing to an object queue with the wrong payload"
+        queue = self.get_and_clear_queue(
+            self.book_queue_name, self.book_type_name
+        )
+        props = self.conn.msgproperties(payload="A string")
+        with self.assertRaisesFullCode("DPY-2062"):
+            queue.enqone(props)
+        typ = self.conn.gettype("UDT_SUBOBJECT")
+        obj = typ.newobject()
+        props = self.conn.msgproperties(payload=obj)
+        with self.assertRaisesFullCode("DPY-2062"):
+            queue.enqone(props)
 
 
 if __name__ == "__main__":

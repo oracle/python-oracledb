@@ -200,7 +200,7 @@ class TestCase(test_env.BaseTestCase):
         "2808 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
         props = self.conn.msgproperties(payload="string message")
-        with self.assertRaisesFullCode("DPI-1071"):
+        with self.assertRaisesFullCode("DPY-2062"):
             queue.enqmany([props, props])
 
     def test_2809(self):

@@ -56,6 +56,18 @@ class BaseQueue:
             raise TypeError("expecting MessageProperties object")
         if message.payload is None:
             errors._raise_err(errors.ERR_MESSAGE_HAS_NO_PAYLOAD)
+        if isinstance(self.payload_type, DbObjectType):
+            if (
+                not isinstance(message.payload, DbObject)
+                or message.payload.type != self.payload_type
+            ):
+                errors._raise_err(errors.ERR_PAYLOAD_CANNOT_BE_ENQUEUED)
+        elif self.payload_type == "JSON":
+            if not isinstance(message.payload, (dict, list)):
+                errors._raise_err(errors.ERR_PAYLOAD_CANNOT_BE_ENQUEUED)
+        else:
+            if not isinstance(message.payload, (str, bytes)):
+                errors._raise_err(errors.ERR_PAYLOAD_CANNOT_BE_ENQUEUED)
 
     @property
     def connection(self) -> "connection_module.Connection":

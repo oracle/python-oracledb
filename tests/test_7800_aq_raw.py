@@ -395,6 +395,15 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqOne()
         self.assertEqual(props.payload, value)
 
+    def test_7825(self):
+        "7825 - test wrong payload type"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        typ = self.conn.gettype("UDT_BOOK")
+        obj = typ.newobject()
+        props = self.conn.msgproperties(payload=obj)
+        with self.assertRaisesFullCode("DPY-2062"):
+            queue.enqone(props)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
