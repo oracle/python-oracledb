@@ -489,6 +489,12 @@ class TestCase(test_env.BaseAsyncTestCase):
             DATASET_2, batch_size=len(DATASET_2), num_batches=1
         )
 
+    async def test_8118(self):
+        "8118 - batches with size that has duplicate rows across batches"
+        await self.__test_df_batches_interop(
+            DATASET_4, batch_size=3, num_batches=2
+        )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

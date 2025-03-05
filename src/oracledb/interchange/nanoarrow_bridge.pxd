@@ -41,7 +41,7 @@ cdef extern from "nanoarrow.h":
         int64_t null_count
         int64_t offset
         int64_t n_buffers
-        void (*release)(ArrowSchema *)
+        void (*release)(ArrowArray*)
 
     cdef struct ArrowSchema:
         void (*release)(ArrowSchema*)
@@ -84,6 +84,7 @@ cdef class OracleArrowArray:
         double factor
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
+        void (*actual_array_release)(ArrowArray*) noexcept
 
     cdef str _schema_to_string(self)
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1

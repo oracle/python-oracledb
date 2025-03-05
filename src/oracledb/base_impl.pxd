@@ -736,6 +736,7 @@ cdef class BaseVarImpl:
     cdef DbType _check_fetch_conversion(self)
     cdef int _create_arrow_array(self) except -1
     cdef int _finalize_init(self) except -1
+    cdef OracleArrowArray _finish_building_arrow_array(self)
     cdef DbType _get_adjusted_type(self, uint8_t ora_type_num)
     cdef list _get_array_value(self)
     cdef object _get_scalar_value(self, uint32_t pos)

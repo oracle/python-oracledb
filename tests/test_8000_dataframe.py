@@ -521,6 +521,10 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(metadata, ora_col.metadata)
         self.assertEqual(ora_col.null_count, 1)
 
+    def test_8021(self):
+        "8021 - batches with size that has duplicate rows across batches"
+        self.__test_df_batches_interop(DATASET_4, batch_size=3, num_batches=2)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

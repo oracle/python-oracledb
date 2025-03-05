@@ -518,9 +518,7 @@ cdef class BaseCursorImpl:
             BaseVarImpl var_impl
             list columns = []
         for var_impl in self.fetch_var_impls:
-            var_impl._arrow_array.finish_building()
-            columns.append(var_impl._arrow_array)
-            var_impl._arrow_array = None
+            columns.append(var_impl._finish_building_arrow_array())
         return PY_TYPE_DATAFRAME(columns)
 
     def close(self, bint in_del=False):

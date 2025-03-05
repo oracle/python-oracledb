@@ -1165,13 +1165,12 @@ cdef class MessageWithData(Message):
                 var_impl._values[self.row_index] = values
             elif self.cursor_impl.fetching_arrow:
                 if self._is_duplicate_data(i):
-                    if var_impl._last_arrow_array is None:
-                        var_impl._last_arrow_array = var_impl._arrow_array
                     var_impl._arrow_array.append_last_value(
                         var_impl._last_arrow_array
                     )
                 else:
                     self._process_column_data(buf, var_impl, self.row_index)
+                var_impl._last_arrow_array = None
             elif self._is_duplicate_data(i):
                 if self.row_index == 0 and var_impl.outconverter is not None:
                     value = var_impl._last_raw_value
@@ -1406,9 +1405,7 @@ cdef class MessageWithData(Message):
         for var_impl in self.out_var_impls:
             if var_impl is None or var_impl.outconverter is None:
                 continue
-            if self.cursor_impl.fetching_arrow:
-                var_impl._last_arrow_array = var_impl._arrow_array
-            else:
+            if not self.cursor_impl.fetching_arrow:
                 var_impl._last_raw_value = \
                         var_impl._values[self.cursor_impl._last_row_index]
             if var_impl.is_array:
@@ -1443,9 +1440,7 @@ cdef class MessageWithData(Message):
         for var_impl in self.out_var_impls:
             if var_impl is None or var_impl.outconverter is None:
                 continue
-            if self.cursor_impl.fetching_arrow:
-                var_impl._last_arrow_array = var_impl._arrow_array
-            else:
+            if not self.cursor_impl.fetching_arrow:
                 var_impl._last_raw_value = \
                         var_impl._values[self.cursor_impl._last_row_index]
             if var_impl.is_array:

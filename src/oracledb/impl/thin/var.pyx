@@ -113,6 +113,17 @@ cdef class ThinVarImpl(BaseVarImpl):
         BaseVarImpl._finalize_init(self)
         self._values = [None] * self.num_elements
 
+    cdef OracleArrowArray _finish_building_arrow_array(self):
+        """
+        Finish building the Arrow array associated with the variable and then
+        return that array (after clearing it in the variable so that a new
+        array will be built if more rows are fetched). In thin mode, the
+        duplicate row handling requires the last array to be retained, so do
+        that here.
+        """
+        self._last_arrow_array = BaseVarImpl._finish_building_arrow_array(self)
+        return self._last_arrow_array
+
     cdef list _get_array_value(self):
         """
         Internal method to return the value of the array.

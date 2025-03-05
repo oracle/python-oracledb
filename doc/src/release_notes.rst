@@ -32,12 +32,15 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Improved the performance of :meth:`Connection.fetch_df_all()` and
+#)  Improved the performance and memory management of
+    :meth:`Connection.fetch_df_all()` and
     :meth:`Connection.fetch_df_batches()`:
 
     - more efficient processing when a significant amount of data is duplicated
       from one row to the next
     - avoid memory allocation/free cycles for decimal data
+    - eliminated memory leak if OracleDataFrame is not converted to an external
+      data frame
 
 #)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
     payload type supported by the queue`` is now raised when the payload of a

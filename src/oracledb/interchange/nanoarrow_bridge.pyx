@@ -118,21 +118,30 @@ cdef int _check_nanoarrow(int code) except -1:
         errors._raise_err(errors.ERR_ARROW_C_API_ERROR, code=code)
 
 
-cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
-    cdef ArrowSchema * schema = <ArrowSchema *> cpython.PyCapsule_GetPointer(
-        schema_capsule, 'arrow_schema'
-    )
-    if schema.release != NULL:
-        ArrowSchemaRelease(schema)
+cdef void array_deleter(ArrowArray *array) noexcept:
+    """
+    Called when an external library calls the release for an Arrow array. This
+    method simply marks the release as completed but doesn't actually do it, so
+    that the handling of duplicate rows can still make use of the array, even
+    if the external library no longer requires it!
+    """
+    array.release = NULL
 
 
 cdef void pycapsule_array_deleter(object array_capsule) noexcept:
-    cdef ArrowArray * array = <ArrowArray *> cpython.PyCapsule_GetPointer(
-        array_capsule, 'arrow_array'
+    cdef ArrowArray* array = <ArrowArray*> cpython.PyCapsule_GetPointer(
+        array_capsule, "arrow_array"
     )
-    # Do not invoke the deleter on a used/moved capsule
     if array.release != NULL:
         ArrowArrayRelease(array)
+
+
+cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
+    cdef ArrowSchema* schema = <ArrowSchema*> cpython.PyCapsule_GetPointer(
+        schema_capsule, "arrow_schema"
+    )
+    if schema.release != NULL:
+        ArrowSchemaRelease(schema)
 
 
 cdef class OracleArrowArray:
@@ -179,8 +188,14 @@ cdef class OracleArrowArray:
 
     def __dealloc__(self):
         if self.arrow_array != NULL:
+            if self.arrow_array.release == NULL:
+                self.arrow_array.release = self.actual_array_release
+            if self.arrow_array.release != NULL:
+                ArrowArrayRelease(self.arrow_array)
             cpython.PyMem_Free(self.arrow_array)
         if self.arrow_schema != NULL:
+            if self.arrow_schema.release != NULL:
+                ArrowSchemaRelease(self.arrow_schema)
             cpython.PyMem_Free(self.arrow_schema)
 
     def __len__(self):
@@ -265,6 +280,8 @@ cdef class OracleArrowArray:
             int64_t index
             uint8_t *ptr
             void* temp
+        if array is None:
+            array = self
         index = array.arrow_array.length - 1
         if array.arrow_type in (NANOARROW_TYPE_INT64, NANOARROW_TYPE_TIMESTAMP):
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
@@ -383,6 +400,8 @@ cdef class OracleArrowArray:
         array_capsule = PyCapsule_New(
             self.arrow_array, 'arrow_array', &pycapsule_array_deleter
         )
+        self.actual_array_release = self.arrow_array.release
+        self.arrow_array.release = array_deleter
         schema_capsule = PyCapsule_New(
             self.arrow_schema, "arrow_schema", &pycapsule_schema_deleter
         )

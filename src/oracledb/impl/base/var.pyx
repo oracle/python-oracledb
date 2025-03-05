@@ -277,6 +277,17 @@ cdef class BaseVarImpl:
         if self.num_elements == 0:
             self.num_elements = 1
 
+    cdef OracleArrowArray _finish_building_arrow_array(self):
+        """
+        Finish building the Arrow array associated with the variable and then
+        return that array (after clearing it in the variable so that a new
+        array will be built if more rows are fetched).
+        """
+        cdef OracleArrowArray array = self._arrow_array
+        array.finish_building()
+        self._arrow_array = None
+        return array
+
     cdef DbType _get_adjusted_type(self, uint8_t ora_type_num):
         """
         Returns an adjusted type based on the desired Oracle type and the
