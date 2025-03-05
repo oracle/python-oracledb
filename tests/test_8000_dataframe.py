@@ -273,6 +273,7 @@ class TestCase(test_env.BaseTestCase):
             "LASTUPDATED",
         ]
         pa_tab = pyarrow.Table.from_arrays(arrays, names=names)
+        pa_tab.validate(full=True)
         return pa_tab.to_pandas()
 
     def __get_data_from_df(self, df):
