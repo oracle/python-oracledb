@@ -536,10 +536,6 @@ class TestCase(test_env.BaseTestCase):
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support JSON payload for AQ yet",
-    )
     def test_2721(self):
         "2721 - test enqueuing and dequeuing JSON payloads"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
@@ -558,10 +554,6 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(results, self.json_data)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support JSON payload for AQ yet",
-    )
     def test_2722(self):
         "2722 - test enqueuing to a JSON queue without a JSON payload"
         queue = self.get_and_clear_queue(self.json_queue_name, "JSON")

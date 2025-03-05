@@ -906,12 +906,14 @@ cdef class WriteBuffer(Buffer):
         self.write_ub4(len(lob_impl._locator))
         self.write_bytes_with_length(lob_impl._locator)
 
-    cdef int write_qlocator(self, uint64_t data_length) except -1:
+    cdef int write_qlocator(self, uint64_t data_length,
+                            bint write_length=True) except -1:
         """
         Writes a QLocator. QLocators are always 40 bytes in length.
         """
         self.write_ub4(40)                  # QLocator length
-        self.write_uint8(40)                # chunk length
+        if write_length:
+            self.write_uint8(40)            # chunk length
         self.write_uint16be(38)             # QLocator length less 2 bytes
         self.write_uint16be(TNS_LOB_QLOCATOR_VERSION)
         self.write_uint8(TNS_LOB_LOC_FLAGS_VALUE_BASED | \
@@ -927,14 +929,15 @@ cdef class WriteBuffer(Buffer):
         self.write_uint64be(0)              # unused
         self.write_uint64be(0)              # unused
 
-    cdef object write_oson(self, value, ssize_t max_fname_size):
+    cdef object write_oson(self, value, ssize_t max_fname_size,
+                           bint write_length=True):
         """
         Encodes the given value to OSON and then writes that to the buffer.
         it.
         """
         cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
         encoder.encode(value, max_fname_size)
-        self.write_qlocator(encoder._pos)
+        self.write_qlocator(encoder._pos, write_length)
         self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 
     cdef int write_seq_num(self) except -1:

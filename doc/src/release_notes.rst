@@ -17,6 +17,8 @@ oracledb 3.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added :ref:`Oracle Advanced Queuing <aqusermanual>` support for single
+    enqueue and dequeue of JSON payloads.
 #)  Added Async :ref:`Oracle Advanced Queuing <asyncaq>` support for single
     enqueue and dequeue of RAW and Oracle object payload types.
 #)  Improved error message when the cryptography package cannot be imported

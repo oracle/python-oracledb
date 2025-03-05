@@ -2462,14 +2462,13 @@ cdef class DeqMessage(Message):
             buf.read_ub4(&num_bytes)                    # num recipients
             if num_bytes > 0:
                 errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
-            if (not self.queue_impl.is_json and
-                    self.queue_impl.payload_type is not None):
+            if self.queue_impl.payload_type is not None:
                 type_impl = self.queue_impl.payload_type
                 obj_impl = buf.read_dbobject(type_impl)
                 if obj_impl is None:
                     obj_impl = type_impl.create_new_object()
                 self.props_impl.payload = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-            elif self.queue_impl.payload_type is None:
+            else:
                 buf.read_ub4(&num_bytes)                    # TOID len
                 if num_bytes > 0:
                     buf.skip_raw_bytes(num_bytes)
@@ -2484,8 +2483,12 @@ cdef class DeqMessage(Message):
                 buf.skip_ub2()                              # flags
                 if imageLength > 0:
                     self.props_impl.payload = buf.read_bytes()[4:imageLength]
+                    if self.queue_impl.is_json:
+                        self.props_impl.payload = \
+                            self.conn_impl.decode_oson(self.props_impl.payload)
                 else:
-                    self.props_impl.payload = b''
+                    if not self.queue_impl.is_json:
+                        self.props_impl.payload = b''
             ptr = buf._get_raw(TNS_AQ_MESSAGE_ID_LENGTH)
             self.props_impl.msgid = ptr[:TNS_AQ_MESSAGE_ID_LENGTH]
 
@@ -2708,6 +2711,9 @@ cdef class EnqMessage(Message):
                 buf.write_dbobject(self.props_impl.payloadObject)
             else:
                 buf.write_bytes(self.props_impl.payloadObject)
+        if self.queue_impl.is_json:
+            buf.write_oson(self.props_impl.payloadObject,
+                self.conn_impl._oson_max_fname_size, False)
 
 
 @cython.final

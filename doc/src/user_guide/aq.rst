@@ -21,12 +21,12 @@ types.
 
 **Classic Queue Support**
 
-- RAW, named Oracle objects, and JMS payloads are supported.
+- RAW, named Oracle objects, JSON, and JMS payloads are supported.
 
-- The JSON payload requires Oracle Client libraries 21c (or later) and Oracle
-  Database 21c (or later).
+- JSON payloads require Oracle Database 21c (or later). In python-oracle Thick
+  mode, Oracle Client libraries 21c (or later) are also needed.
 
-JSON and JMS payloads, array message queuing and dequeuing operations, and
+JMS payloads, array message queuing and dequeuing operations, and
 :ref:`Recipient Lists <reciplists>` are only supported in python-oracledb
 :ref:`Thick mode <enablingthick>`.
 

@@ -71,7 +71,7 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
         self.enq_options_impl = ThinEnqOptionsImpl()
         self.payload_type = payload_type
         if self.is_json:
-            errors._raise_not_supported("JSON payload in AQ")
+            self.payload_toid = bytes([0]*15+[0x47])
         elif self.payload_type is not None:
             self.payload_toid = payload_type.oid
         else:
@@ -434,6 +434,12 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         if not isinstance(value, ThinDbObjectImpl):
             raise TypeError("Expected ThinDbObjectImpl instance.")
         self.payloadObject = value
+
+    def set_payload_json(self, object json_val):
+        """
+        Internal method for setting the payload from a JSON object
+        """
+        self.payloadObject = json_val
 
     def set_priority(self, int32_t value):
         """
