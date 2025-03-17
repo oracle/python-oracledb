@@ -1479,6 +1479,12 @@ create or replace package &main_user..pkg_TestLOBs as
         a_Size                          out number
     );
 
+    procedure TestInOut (
+        a_CLOB                          in out clob,
+        a_SearchValue                   varchar2,
+        a_ReplaceValue                  varchar2
+    );
+
 end;
 /
 
@@ -1498,6 +1504,17 @@ create or replace package body &main_user..pkg_TestLOBs as
     ) is
     begin
         a_Size := dbms_lob.getlength(a_CLOB);
+    end;
+
+    procedure TestInOut (
+        a_CLOB                          in out clob,
+        a_SearchValue                   varchar2,
+        a_ReplaceValue                  varchar2
+    ) is
+    begin
+        if a_SearchValue is not null then
+            a_CLOB := replace(a_CLOB, a_SearchValue, a_ReplaceValue);
+        end if;
     end;
 
 end;

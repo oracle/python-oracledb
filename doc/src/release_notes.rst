@@ -27,6 +27,8 @@ Thin Mode Changes
     (`issue 456 <https://github.com/oracle/python-oracledb/issues/456>`__).
 #)  Fixed wildcard matching of domains in Subject Alternative Names
     (`issue 462 <https://github.com/oracle/python-oracledb/issues/462>`__).
+#)  Fixed bug when binding a temporary LOB IN/OUT to a PL/SQL procedure
+    (`issue 468 <https://github.com/oracle/python-oracledb/issues/468>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -893,8 +893,11 @@ cdef class MessageWithData(Message):
         elif ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):
+            if not self.in_fetch:
+                column_value = var_impl._values[pos]
             column_value = buf.read_lob_with_length(self.conn_impl,
-                                                    metadata.dbtype)
+                                                    metadata.dbtype,
+                                                    column_value)
         elif ora_type_num == ORA_TYPE_NUM_JSON:
             column_value = buf.read_oson()
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:

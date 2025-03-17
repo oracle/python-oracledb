@@ -475,7 +475,7 @@ cdef class ReadBuffer(Buffer):
             return decoder.decode(data)
 
     cdef object read_lob_with_length(self, BaseThinConnImpl conn_impl,
-                                     DbType dbtype):
+                                     DbType dbtype, object lob):
         """
         Read a LOB locator from the buffer and return a LOB object containing
         it.
@@ -484,6 +484,7 @@ cdef class ReadBuffer(Buffer):
             uint32_t chunk_size, num_bytes
             BaseThinLobImpl lob_impl
             uint64_t size
+            bytes locator
             type cls
         self.read_ub4(&num_bytes)
         if num_bytes > 0:
@@ -492,15 +493,21 @@ cdef class ReadBuffer(Buffer):
             else:
                 self.read_ub8(&size)
                 self.read_ub4(&chunk_size)
-            lob_impl = conn_impl._create_lob_impl(dbtype, self.read_bytes())
+            locator = self.read_bytes()
+            if lob is None:
+                lob_impl = conn_impl._create_lob_impl(dbtype, locator)
+                cls = PY_TYPE_ASYNC_LOB \
+                        if conn_impl._protocol._transport._is_async \
+                        else PY_TYPE_LOB
+                lob = cls._from_impl(lob_impl)
+            else:
+                lob_impl = lob._impl
+                lob_impl._locator = locator
             lob_impl._size = size
             lob_impl._chunk_size = chunk_size
             lob_impl._has_metadata = \
                     dbtype._ora_type_num != ORA_TYPE_NUM_BFILE
-            cls = PY_TYPE_ASYNC_LOB \
-                    if conn_impl._protocol._transport._is_async \
-                    else PY_TYPE_LOB
-            return cls._from_impl(lob_impl)
+            return lob
 
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL:
         """

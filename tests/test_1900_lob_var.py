@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -613,6 +613,29 @@ class TestCase(test_env.BaseTestCase):
             lob = self.conn.createlob(typ, "Some data for test 1938")
             var.setvalue(0, lob)
             self.assertIs(var.getvalue(), lob)
+
+    def test_1939(self):
+        "1939 - temporary LOB in/out without modification"
+        value = "test - 1939"
+        var = self.cursor.var(oracledb.DB_TYPE_CLOB)
+        var.setvalue(0, value)
+        self.assertEqual(var.getvalue().read(), value)
+        self.cursor.callproc("pkg_TestLOBs.TestInOut", [var, None, None])
+        self.assertEqual(var.getvalue().read(), value)
+
+    def test_1940(self):
+        "1940 - temporary LOB in/out with modification"
+        search_value = "test"
+        replace_value = "replaced"
+        initial_value = f"{search_value} - 1939"
+        final_value = f"{replace_value} - 1939"
+        var = self.cursor.var(oracledb.DB_TYPE_CLOB)
+        var.setvalue(0, initial_value)
+        self.assertEqual(var.getvalue().read(), initial_value)
+        self.cursor.callproc(
+            "pkg_TestLOBs.TestInOut", [var, search_value, replace_value]
+        )
+        self.assertEqual(var.getvalue().read(), final_value)
 
 
 if __name__ == "__main__":
