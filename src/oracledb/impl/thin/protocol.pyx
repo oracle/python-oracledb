@@ -406,13 +406,16 @@ cdef class Protocol(BaseProtocol):
                                   "socket timed out while recovering from " \
                                   "previous socket timeout")
             raise
+        except MarkerDetected:
+            self._reset()
+            message.process(self._read_buf)
         except Exception as e:
             if not self._in_connect \
                     and self._write_buf._packet_sent \
                     and self._read_buf._transport is not None \
                     and self._read_buf._transport._transport is not None:
                 self._send_marker(self._write_buf, TNS_MARKER_TYPE_BREAK)
-                self._reset(message)
+                self._reset()
             raise
         if message.flush_out_binds:
             self._write_buf.start_request(TNS_PACKET_TYPE_DATA)
@@ -465,7 +468,7 @@ cdef class Protocol(BaseProtocol):
         finally:
             buf._check_request_boundary = orig_check_request_boundary
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
-            self._reset(message)
+            self._reset()
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             self._write_buf._packet_sent = False
             buf.skip_raw_bytes(2)
@@ -476,7 +479,7 @@ cdef class Protocol(BaseProtocol):
                 ptr = buf.read_raw_bytes(refuse_message_len)
                 message.error_info.message = ptr[:refuse_message_len].decode()
 
-    cdef int _reset(self, Message message) except -1:
+    cdef int _reset(self) except -1:
         cdef uint8_t marker_type, packet_type
 
         # send reset marker
@@ -766,6 +769,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                                   "socket timed out while recovering from " \
                                   "previous socket timeout")
             raise
+        except MarkerDetected:
+            await self._reset()
+            message.process(self._read_buf)
         except:
             if not self._in_connect \
                     and self._write_buf._packet_sent \

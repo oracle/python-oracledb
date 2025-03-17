@@ -29,6 +29,9 @@ Thin Mode Changes
     (`issue 462 <https://github.com/oracle/python-oracledb/issues/462>`__).
 #)  Fixed bug when binding a temporary LOB IN/OUT to a PL/SQL procedure
     (`issue 468 <https://github.com/oracle/python-oracledb/issues/468>`__).
+#)  Fixed bug when an error is reported by the server in the middle of a
+    response to a client request
+    (`issue 472 <https://github.com/oracle/python-oracledb/issues/472>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -978,6 +978,32 @@ class TestCase(test_env.BaseTestCase):
             oracledb.unregister_params_hook(hook2)
             oracledb.unregister_params_hook(hook3)
 
+    def test_1158(self):
+        "1158 - test error in the middle of a database response"
+        conn = test_env.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        data = [(i + 1, 2 if i < 1499 else 0) for i in range(1500)]
+        cursor.executemany(
+            "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)",
+            data,
+        )
+        conn.commit()
+        cursor.arraysize = 1500
+        with self.assertRaisesFullCode("ORA-01476"):
+            cursor.execute(
+                """
+                select IntCol, 1 / NumberCol
+                from TestTempTable
+                where IntCol < 1500
+                union all
+                select IntCol, 1 / NumberCol
+                from TestTempTable
+                where IntCol = 1500
+                """
+            )
+            cursor.fetchall()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

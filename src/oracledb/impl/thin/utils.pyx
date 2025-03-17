@@ -31,6 +31,9 @@
 class OutOfPackets(Exception):
     pass
 
+class MarkerDetected(Exception):
+    pass
+
 class ConnectConstants:
 
     def __init__(self):

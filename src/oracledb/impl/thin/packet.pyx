@@ -271,7 +271,7 @@ cdef class ReadBuffer(Buffer):
         # if no bytes are left in the buffer, a new packet needs to be fetched
         # before anything else can take place
         if self._pos == self._size:
-            self.wait_for_packets_sync()
+            self.wait_for_packets_sync(check_marker=True)
 
         # if there is enough room in the buffer to satisfy the number of bytes
         # requested, return a pointer to the current location and advance the
@@ -306,7 +306,7 @@ cdef class ReadBuffer(Buffer):
         while num_bytes > 0:
 
             # advance to next packet
-            self.wait_for_packets_sync()
+            self.wait_for_packets_sync(check_marker=True)
 
             # copy data into the chunked buffer or split buffer, as appropriate
             source_ptr = &self._data[self._pos]
@@ -739,12 +739,16 @@ cdef class ReadBuffer(Buffer):
             await self._waiter
         self._start_packet()
 
-    cdef int wait_for_packets_sync(self) except -1:
+    cdef int wait_for_packets_sync(self, bint check_marker=False) except -1:
         """
         Wait for packets to arrive in response to the request that was sent to
         the database (synchronously). If no packets are available and we are
         using asyncio, raise an exception so that processing can be restarted
-        once packets have arrived.
+        once packets have arrived. If the check_marker flag is set and a marker
+        is detected, throw an exception so that the protocol can process it
+        accordingly. This is required because the server can send a marker
+        packet in the middle of the data packets that form the response to the
+        client's request.
         """
         cdef:
             bint notify_waiter
@@ -758,6 +762,9 @@ cdef class ReadBuffer(Buffer):
                 if notify_waiter:
                     break
         self._start_packet()
+        if check_marker \
+                and self._current_packet.packet_type == TNS_PACKET_TYPE_MARKER:
+            raise MarkerDetected()
 
     async def wait_for_response_async(self):
         """

@@ -718,6 +718,32 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(fetched_edition, edition.upper())
         self.assertEqual(conn.edition, edition)
 
+    async def test_5356(self):
+        "5356 - test error in the middle of a database response"
+        conn = await test_env.get_connection_async()
+        cursor = conn.cursor()
+        await cursor.execute("truncate table TestTempTable")
+        data = [(i + 1, 2 if i < 1499 else 0) for i in range(1500)]
+        await cursor.executemany(
+            "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)",
+            data,
+        )
+        await conn.commit()
+        cursor.arraysize = 1500
+        with self.assertRaisesFullCode("ORA-01476"):
+            await cursor.execute(
+                """
+                select IntCol, 1 / NumberCol
+                from TestTempTable
+                where IntCol < 1500
+                union all
+                select IntCol, 1 / NumberCol
+                from TestTempTable
+                where IntCol = 1500
+                """
+            )
+            await cursor.fetchall()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
