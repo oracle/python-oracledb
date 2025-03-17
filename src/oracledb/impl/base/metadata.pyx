@@ -62,7 +62,7 @@ cdef class OracleMetadata:
             uint8_t py_type_num = self._py_type_num
             uint32_t db_type_num = self.dbtype.num
         if db_type_num == DB_TYPE_NUM_NUMBER:
-            if py_type_num == PY_TYPE_NUM_DECIMAL:
+            if py_type_num == PY_TYPE_NUM_DECIMAL and self.precision > 0:
                 self._arrow_type = NANOARROW_TYPE_DECIMAL128
             elif py_type_num == PY_TYPE_NUM_STR:
                 self._arrow_type = NANOARROW_TYPE_STRING

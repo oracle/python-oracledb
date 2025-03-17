@@ -495,6 +495,19 @@ class TestCase(test_env.BaseAsyncTestCase):
             DATASET_4, batch_size=3, num_batches=2
         )
 
+    async def test_8119(self):
+        "8119 - fetch_decimals without precision and scale specified"
+        data = [(1.0,)]
+        self.__check_interop()
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            ora_df = await self.conn.fetch_df_all("select 1.0 from dual")
+            fetched_tab = pyarrow.Table.from_arrays(
+                ora_df.column_arrays(), names=ora_df.column_names()
+            )
+            fetched_df = fetched_tab.to_pandas()
+            fetched_data = self.__get_data_from_df(fetched_df)
+            self.assertEqual(fetched_data, data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

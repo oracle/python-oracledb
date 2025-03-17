@@ -42,6 +42,10 @@ Common Changes
     - eliminated memory leak if OracleDataFrame is not converted to an external
       data frame
 
+#)  Fixed bug when NUMBER data is fetched with
+    :meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`
+    that does not have precision or scale specified and
+    :attr:`defaults.fetch_decimals` is set to *True*.
 #)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
     payload type supported by the queue`` is now raised when the payload of a
     message being enqueued is not supported by the queue. Previously,
