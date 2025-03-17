@@ -850,7 +850,9 @@ Connection Attributes
 
     This read-only attribute specifies the maximum number of cursors that the
     database can have open concurrently. It is the same value returned by the
-    SQL ``SELECT VALUE FROM V$PARAMETER WHERE NAME = 'open_cursors'``.
+    SQL ``SELECT VALUE FROM V$PARAMETER WHERE NAME = 'open_cursors'``. When
+    using python-oracledb Thick mode, Oracle Client libraries 12.1 (or later)
+    are required.
 
     .. versionadded:: 2.0.0
 

@@ -29,6 +29,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Improved error message when getting :attr:`Connection.max_open_cursors`
+    when using Oracle Client libraries 11.2.
+
 Common Changes
 ++++++++++++++
 
