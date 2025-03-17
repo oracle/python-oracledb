@@ -64,8 +64,10 @@ Common Changes
     :attr:`defaults.fetch_decimals` is set to *True*.
 #)  Fixed bug when binding a variable that was previously bound as an output
     variable in a DML RETURNING statement.
-#)  An error message that links to documention on setting up a protocol hook
-    function is now returned for "ldap" and "ldaps" connection strings.
+#)  An error message that links to :ref:`documentation <ldapconnections>` on
+    setting up a protocol hook function is now returned for LDAP and LDAPS URL
+    connection strings in python-oracledb thin mode, or when
+    :attr:`defaults.thick_mode_dsn_passthrough` is *False*.
 #)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
     payload type supported by the queue`` is now raised when the payload of a
     message being enqueued is not supported by the queue. Previously,
@@ -2743,9 +2745,9 @@ cx_Oracle 5.3 (March 2017)
     versions of the gcc compiler for Cygwin.
 #)  Simplified test suite by combining Python 2 and 3 scripts into one script
     and separated out 12.1 features into a single script.
-#)  Updated samples to use code that works on both Python 2 and 3
+#)  Updated samples to use code that works on both Python 2 and 3.
 #)  Added support for pickling/unpickling error objects
-    (`Issue #23 <https://bitbucket.org/anthony_tuininga/cx_oracle/issues/23>`__)
+    (Bitbucket Issue #23).
 #)  Dropped support for callbacks on OCI functions.
 #)  Removed deprecated types UNICODE, FIXED_UNICODE and LONG_UNICODE (use
     NCHAR, FIXED_NCHAR and LONG_NCHAR instead).
@@ -2821,10 +2823,10 @@ cx_Oracle 5.2 (June 2015)
 #)  Removed remaining remnants of support Oracle 9i.
 #)  Added __version__ attribute to conform with PEP 396.
 #)  Ensure that sessions are released to the pool when calling
-    connection.close()
-    (`Issue #2 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/2>`__)
+    connection.close().
+    (Bitbucket Issue #2).
 #)  Fixed handling of datetime intervals
-    (`Issue #7 <https://bitbucket.org/anthony_tuininga/cx_oracle/issue/7>`__)
+    (Bitbucket Issue #7).
 
 
 cx_Oracle 5.1.3 (May 2014)

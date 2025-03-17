@@ -824,13 +824,14 @@ Oracle Database will result in an exception.
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 1 1
+    :width: 100%
     :align: left
     :summary: The first column is the Oracle Database type. The second column is the Arrow data type used in the OracleDataFrame object.
 
     * - Oracle Database Type
       - Arrow Data Type
     * - DB_TYPE_NUMBER
-      - DECIMAL128, INT64, or DOUBLE. See notes below
+      - DECIMAL128, INT64, or DOUBLE
     * - DB_TYPE_CHAR
       - STRING
     * - DB_TYPE_VARCHAR
@@ -850,33 +851,44 @@ Oracle Database will result in an exception.
     * - DB_TYPE_TIMESTAMP_TZ
       - TIMESTAMP
 
-When converting Oracle Database NUMBERs, if :attr:`defaults.fetch_decimals` is
-*True*, the Arrow data type is DECIMAL128. Note Arrow's DECIMAL128 format only
-supports precision of up to 38 decimal digits. Else, if the Oracle number data
-type has scale of 0, and precision less than or equal to 18, then the Arrow
-data type is INT64. In all other cases, the Arrow data type is DOUBLE.
+When converting Oracle Database NUMBERs:
 
-The Arrow TIMESTAMP for Oracle Database DATEs will have a time unit of
-"seconds". For Oracle Database TIMESTAMP types, the time unit depends on the
-Oracle type's fractional precision:
+- If the column has been created without a precision and scale, then the Arrow
+  data type will be DOUBLE.
 
-.. list-table-with-summary::
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 1 1
-    :align: left
-    :summary: The first column is the Oracle Database TIMESTAMP-type fractional second precision. The second column is the resulting Arrow TIMESTAMP time unit.
+- If :attr:`defaults.fetch_decimals` is set to *True*, then the Arrow data
+  type is DECIMAL128.
 
-    * - Oracle Database TIMESTAMP fractional second precision range
-      - Arrow TIMESTAMP time unit
-    * - 0
-      - seconds
-    * - 1 - 3
-      - milliseconds
-    * - 4 - 6
-      - microconds
-    * - 7 - 9
-      - nanoseconds
+- If the column has been created with a scale of *0*, and a precision value
+  that is less than or equal to *18*, then the Arrow data type is INT64.
+
+- In all other cases, the Arrow data type is DOUBLE.
+
+When converting Oracle Database DATEs and TIMESTAMPs:
+
+- For Oracle Database DATE types, the Arrow TIMESTAMP will have a time unit of
+  "seconds".
+
+- For Oracle Database TIMESTAMP types, the Arrow TIMESTAMP time unit depends on
+  the Oracle type's fractional precision as shown in the table below:
+
+  .. list-table-with-summary::
+      :header-rows: 1
+      :class: wy-table-responsive
+      :widths: 1 1
+      :align: left
+      :summary: The first column is the Oracle Database TIMESTAMP-type fractional second precision. The second column is the resulting Arrow TIMESTAMP time unit.
+
+      * - Oracle Database TIMESTAMP fractional second precision range
+        - Arrow TIMESTAMP time unit
+      * - 0
+        - seconds
+      * - 1 - 3
+        - milliseconds
+      * - 4 - 6
+        - microconds
+      * - 7 - 9
+        - nanoseconds
 
 Arrow TIMESTAMPs will not have timezone data.
 

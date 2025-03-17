@@ -20,10 +20,11 @@ See [python-oracledb Installation][installation].
 
 - Python versions 3.8 through 3.13.
 
-  Prebuilt packages are available for these Python versions on Windows, on
-  macOS and on Linux.
+  Pre-built packages are available on [PyPI][pypi] and other repositories.
 
   Source code is also available.
+
+  Previous versions of python-oracledb supported older Python versions.
 
 - Oracle Client libraries are *optional*.
 
@@ -98,3 +99,4 @@ See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and
 [installation]: https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
 [features]: https://oracle.github.io/python-oracledb/#features
 [concurrent]: https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html
+[pypi]: https://pypi.org/project/oracledb

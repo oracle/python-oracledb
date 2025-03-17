@@ -252,7 +252,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Oracle Transactional Event Queues and Advanced Queuing (AQ) (see :ref:`aqusermanual`)
-      - Yes - only "Classic" queue is supported (RAW, named Oracle object, and JSON payloads)
+      - Yes - only "Classic" queues are supported (RAW, named Oracle object, and JSON payloads)
       - Yes
       - Yes
     * - Call timeouts (see :attr:`Connection.call_timeout`)

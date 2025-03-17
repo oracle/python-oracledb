@@ -823,14 +823,18 @@ Connection Attributes
 
     This read-only attribute returns the logical transaction id for the
     connection. It is used within Oracle Transaction Guard as a means of
-    ensuring that transactions are not duplicated. See the Oracle documentation
-    and the provided sample for more information.
+    ensuring that transactions are not duplicated. See :ref:`tg` for more
+    information.
 
-    .. note:
+    .. versionchanged:: 3.0.0
+
+        This attribute was added to python-oracledb Thin mode.
+
+    .. note::
 
         This attribute is an extension to the DB API definition. It is only
-        available with Oracle Database 12.1 or higher. In python-oracledb Thick
-        mode, it also requires Oracle Client libraries 12.1 or higer.
+        available with Oracle Database 12.1 or later. In python-oracledb Thick
+        mode, it also requires Oracle Client libraries 12.1 or later.
 
 .. attribute:: Connection.max_identifier_length
 

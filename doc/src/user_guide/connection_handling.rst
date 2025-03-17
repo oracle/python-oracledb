@@ -488,7 +488,7 @@ Centralized Configuration Provider URL Connection Strings
 
 A :ref:`Centralized Configuration Provider <configurationproviders>` URL
 connection string allows python-oracledb configuration information to be stored
-centrally in OCI Object Storage, using Azure App Configuration, or in a local
+centrally in OCI Object Storage, in Azure App Configuration, or in a local
 file. Given a provider URL, python-oracledb will access the information stored
 in the configuration provider and use it to connect to Oracle Database.
 
@@ -600,7 +600,8 @@ Oracle Net Connect Descriptor and Easy Connect Keywords
 Easy Connect syntax is described in :ref:`easyconnect`.
 
 Connect Descriptor keywords are shown in the `Database Net Services Reference
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7F967CE5-5498-427C-9390-4A5C6767ADAA>`__.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7F967CE5-5498-
+427C-9390-4A5C6767ADAA>`__.
 
 **Notes on specific keywords**
 
@@ -702,10 +703,9 @@ be in the JSON file under the key "pyo". An example is:
 
 With :ref:`Azure App Configuration <azureappstorageprovider>`, values are set
 using a key such as "<prefix>/pyo/<key name>". This is similar to how `Oracle
-Call Interface
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=LNOCI>`__ settings use
-the key "<prefix>/oci/<key name>" as shown in `Oracle Net Service
-Administrator’s Guide <https://www.oracle.com/pls/topic
+Call Interface <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=LNOCI>`__ settings use the key "<prefix>/oci/<key name>" as shown in
+`Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/topic
 /lookup?ctx=dblatest&id=GUID-97E22A68-6FE3-4FE9-98A9-90E5BF83E9EC>`__.
 
 .. _params_ez_config_provider:
@@ -993,10 +993,10 @@ user name, password, a cache time, and :ref:`python-oracledb settings
       - The database :ref:`connection string <connstr>`.
       - Required
     * - ``config_time_to_live``
-      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
       - Optional
     * - ``config_time_to_live_grace_period``
-      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
       - Optional
     * - ``pyo``
       - See :ref:`pyoparams`.
@@ -1156,10 +1156,10 @@ keys that can be in the JSON file are listed below.
       - The database :ref:`connection string <connstr>`.
       - Required
     * - ``config_time_to_live``
-      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
       - Optional
     * - ``config_time_to_live_grace_period``
-      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
       - Optional
     * - ``pyo``
       - See :ref:`pyoparams`.
@@ -1184,7 +1184,7 @@ The elements of the connection string are detailed in the table below.
     :class: wy-table-responsive
     :widths: 15 25 15
     :name: _connection_string_for_oci_object_storage
-    :summary: The first row displays the name of the connection string parameter. The second row displays whether the connection string parameter is required or optional. The third row displays the description of the connection string parameter.
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
 
     * - Parameter
       - Description
@@ -1242,11 +1242,12 @@ syntax is::
     }
 
 Passwords can optionally be stored using the Azure Key Vault. To do this,
-you must ``import oracledb.plugins.azure_config_provider`` in your application and you must
-define the Azure Key Vault credentials in the ``password`` key.
-In this, the ``azure_client_id`` and ``azure_tenant_id`` must be specified.
-Also, either ``azure_client_secret`` or ``azure_client_certificate_path``
-should be specified. For example::
+you must import the :ref:`oracledb.plugins.azure_config_provider
+<configazureplugin>` python-oracledb plugin in your application and you must
+define the Azure Key Vault credentials in the ``password`` key. In this, the
+``azure_client_id`` and ``azure_tenant_id`` must be specified. Also, either
+``azure_client_secret`` or ``azure_client_certificate_path`` should be
+specified. For example::
 
     "password": {
         "type": "azurevault",
@@ -1385,10 +1386,10 @@ The keys that can be added in Azure App Configuration are listed below:
       - The database :ref:`connection string <connstr>`.
       - Required
     * - ``config_time_to_live``
-      - How many seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
       - Optional
     * - ``config_time_to_live_grace_period``
-      - How many seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
       - Optional
     * - ``pyo``
       - See :ref:`pyoparams`.
@@ -1413,7 +1414,7 @@ The elements of the connection string are detailed in the table below.
     :align: center
     :widths: 15 25 15
     :name: _connection_string_for_azure_app
-    :summary: The first row displays the name of the connection string parameter. The second row displays whether the connection string parameter is required or optional. The third row displays the description of the connection string parameter.
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
 
     * - Parameter
       - Description
@@ -3684,14 +3685,15 @@ Connecting Using OAuth 2.0 Token-Based Authentication
 -----------------------------------------------------
 
 Oracle Cloud Infrastructure (OCI) users can be centrally managed in a Microsoft
-Azure Active Directory (Azure AD) service. Open Authorization (OAuth 2.0)
-token-based authentication allows users to authenticate to Oracle Database
-using Azure AD OAuth2 tokens. Ensure that you have a Microsoft Azure account
-and your Oracle Database is registered with Azure AD. See `Configuring the
-Oracle Autonomous Database for Microsoft Azure AD Integration <https://www.
-oracle.com/pls/topic/lookup?ctx=db19&id=GUID-0A60F22D-56A3-408D-8EC8-
-852C38C159C0>`_ for more information. Both Thin and Thick modes of the
-python-oracledb driver support OAuth 2.0 token-based authentication.
+Entra ID (formerly Microsoft Azure Active Directory) service. Open
+Authorization (OAuth 2.0) token-based authentication allows users to
+authenticate to Oracle Database using Entra ID OAuth2 tokens. Ensure that you
+have a Microsoft Azure account and your Oracle Database is registered with
+Microsoft Entra ID. See `Configuring the Oracle Database for Microsoft Entra
+ID Integration <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-0A60F22D-56A3-408D-8EC8-852C38C159C0>`_ for more information. Both Thin
+and Thick modes of the python-oracledb driver support OAuth 2.0 token-based
+authentication.
 
 When using python-oracledb in Thick mode, Oracle Client libraries 19.15 (or
 later), or 21.7 (or later) are needed.
@@ -3708,20 +3710,20 @@ Token-Based Authentication Connection Strings <oauth2connstr>`.
 OAuth2 Token Generation And Extraction
 ++++++++++++++++++++++++++++++++++++++
 
-There are different ways to retrieve Azure AD OAuth2 tokens. You can use
+There are different ways to retrieve Entra ID OAuth2 tokens. You can use
 python-oracledb's :ref:`azure_tokens <cloudnativeauthoauth>` plugin to generate
 tokens. Some of the other ways to retrieve OAuth2 tokens are detailed in
-`Examples of Retrieving Azure AD OAuth2 Tokens <https://www.oracle.com/pls/
-topic/lookup?ctx=db19&id=GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can
-also retrieve Azure AD OAuth2 tokens by using `Azure Identity client library
-for Python <https://docs.microsoft.com/en-us/python/api/overview/azure/
+`Examples of Retrieving Entra ID OAuth2 Tokens <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You
+can also retrieve Entra ID OAuth2 tokens by using `Azure Identity client
+library for Python <https://docs.microsoft.com/en-us/python/api/overview/azure/
 identity-readme?view=azure-python>`_.
 
 .. _oauthhandler:
 
 **Example of Generating an OAuth2 Token**
 
-An example of automating the process of generating and reading Azure AD OAuth2
+An example of automating the process of generating and reading Entra ID OAuth2
 tokens is:
 
 .. code:: python
@@ -3790,7 +3792,7 @@ Connection Creation with OAuth2 Access Tokens
 For OAuth 2.0 Token-Based Authentication using a class such as the sample
 :ref:`TokenHandlerOAuth class <oauthhandler>`, the ``access_token`` connection
 parameter must be specified. This parameter should be a string (or a callable
-that returns a string) specifying an Azure AD OAuth2 token. In the examples
+that returns a string) specifying an Entra ID OAuth2 token. In the examples
 used below, the ``access_token`` parameter is set to a callable.
 
 The examples used in the subsequent sections use the
@@ -3837,7 +3839,7 @@ you need to explicitly set the ``access_token``, ``homogeneous``,
 Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
 the current token has expired. In such a case, the callable should return a
-string specifying the new, valid Azure AD OAuth2 token.
+string specifying the new, valid Entra ID OAuth2 token.
 
 **Standalone Connections Thick Mode Using OAuth2 Tokens**
 
@@ -3871,7 +3873,7 @@ you need to explicitly set the ``access_token``, ``externalauth``, and
 Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
 the current token has expired. In such a case, the callable should return a
-string specifying the new, valid Azure AD OAuth2 token.
+string specifying the new, valid Entra ID OAuth2 token.
 
 .. _oauth2connstr:
 
@@ -3889,10 +3891,10 @@ introduced in python-oracledb 1.1 instead. See
     OAuth 2.0 Token-Based Authentication Connection Strings is only supported in
     the python-oracledb Thick mode. See :ref:`enablingthick`.
 
-There are different ways to retrieve Azure AD OAuth2 tokens. Some of the ways to
-retrieve OAuth2 tokens are detailed in `Examples of Retrieving Azure AD OAuth2
-Tokens <https://www.oracle.com/pls/topic/lookup?ctx=db19&id=
-GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can also retrieve Azure AD OAuth2
+There are different ways to retrieve Entra ID OAuth2 tokens. Some of the ways to
+retrieve OAuth2 tokens are detailed in `Examples of Retrieving Entra ID OAuth2
+Tokens <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-3128BDA4-A233-48D8-A2B1-C8380DBDBDCF>`_. You can also retrieve Entra ID OAuth2
 tokens by using `Azure Identity client library for Python
 <https://docs.microsoft.com/en-us/python/api/overview/azure/identity-readme?view=
 azure-python>`_.
@@ -3903,7 +3905,7 @@ azure-python>`_.
 
 Here, as an example, we are using Curl with a Resource Owner
 Password Credential (ROPC) Flow, that is, a ``curl`` command is used against
-the Azure AD API to get the Azure AD OAuth2 token::
+the Entra ID API to get the Entra ID OAuth2 token::
 
     curl -X POST -H 'Content-Type: application/x-www-form-urlencoded'
     https://login.microsoftonline.com/your_tenant_id/oauth2/v2.0/token
@@ -4266,8 +4268,8 @@ to Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 **Standalone Connections in Thin Mode Using OCI IAM Tokens**
 
 When using a class such as the :ref:`TokenHandlerIAM class <iamhandler>` to
-generate OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you
-need to explicitly set the ``access_token``, ``config_dir``,
+generate OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``access_token``, ``config_dir``,
 ``wallet_location``, and ``wallet_password`` parameters of
 :func:`~oracledb.connect`. For example:
 
@@ -4283,9 +4285,9 @@ need to explicitly set the ``access_token``, ``config_dir``,
 **Connection Pools in Thin Mode Using OCI IAM Tokens**
 
 When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
-generate OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you
-need to explicitly set the ``access_token``, ``homogeneous``, ``config_dir``,
-``wallet_location``, and ``wallet_password`` parameters of
+generate OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode,
+you need to explicitly set the ``access_token``, ``homogeneous``,
+``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
 :func:`~oracledb.create_pool`. For example:
 
 .. code:: python
@@ -4321,8 +4323,8 @@ of :func:`~oracledb.connect`. For example:
 **Connection Pools in Thick Mode Using OCI IAM Tokens**
 
 When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
-generate OCI IAM tokens to connect to Oracle Cloud Database in Thick mode, you
-need to explicitly set the ``access_token``, ``externalauth``, and
+generate OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode,
+you need to explicitly set the ``access_token``, ``externalauth``, and
 ``homogeneous`` parameters of :func:`oracledb.create_pool`. For example:
 
 .. code:: python
@@ -4438,7 +4440,7 @@ The plugin has a Python package dependency which needs to be installed
 separately before the plugin can be used, see :ref:`ocitokenmodules`.
 
 The ``oci_tokens`` plugin defines and registers a :ref:`parameter hook
-<registerparamshook>` function which uses the connetion parameter
+<registerparamshook>` function which uses the connection parameter
 ``extra_auth_params`` passed to :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
 :meth:`oracledb.create_pool_async()`. Using this parameter's values, the hook
@@ -4446,11 +4448,6 @@ function sets the ``access_token`` parameter of a :ref:`ConnectParams object
 <connparam>` to a callable which generates an OCI IAM token. Python-oracledb
 then acquires and uses a token to transparently complete connection or pool
 creation calls.
-
-The ``extra_auth_params`` connection parameter should be a dictionary
-containing the configuration parameters necessary to retrieve a token for
-Oracle Database authentication. The OCI specific configuration parameters that
-can be specified in ``extra_auth_params`` are:
 
 For OCI Cloud Native Authentication connection and pool creation, the
 ``extra_auth_params`` parameter should be a dictionary with keys as shown in
@@ -4551,8 +4548,8 @@ and ``extra_auth_params`` parameters of :func:`~oracledb.connect`. For example:
 **Connection Pools in Thin Mode Using OCI IAM Tokens**
 
 When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
-OCI IAM tokens to connect to Oracle Cloud Database in Thin mode, you need to
-explicitly set the ``config_dir``, ``homogeneous``, ``wallet_location``,
+OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode, you need
+to explicitly set the ``config_dir``, ``homogeneous``, ``wallet_location``,
 ``wallet_password``, and ``extra_auth_params`` parameters of
 :func:`~oracledb.create_pool`. For example:
 

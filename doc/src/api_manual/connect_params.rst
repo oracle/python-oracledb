@@ -410,7 +410,7 @@ ConnectParams Attributes
     throughput for large queries or bulk data loads, but at the cost of higher
     memory use. The SDU size that will actually be used is negotiated down to
     the lower of this value and the database network SDU configuration value.
-    See the `SQL*Net documentation
+    See the `Database Net Services documentation
     <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
     id=GUID-86D61D6F-AD26-421A-BABA-77949C8A2B04>`__ for more details.
 

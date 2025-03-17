@@ -325,9 +325,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is *8192* bytes.
@@ -370,8 +370,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
@@ -685,9 +686,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. The default value is *8192* bytes.
 
@@ -729,8 +730,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
@@ -1043,9 +1045,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is *8192* bytes.
@@ -1088,8 +1090,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
@@ -1546,9 +1549,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is *8192* bytes.
@@ -1591,8 +1594,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
@@ -1969,9 +1973,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. The default value is *8192* bytes.
 
@@ -2013,8 +2017,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the
@@ -2593,9 +2598,9 @@ Oracledb Methods
     requested size of the Session Data Unit (SDU), in bytes. The value tunes
     internal buffers used for communication to the database. Bigger values can
     increase throughput for large queries or bulk data loads, but at the cost
-    of higher memory use. The SDU size that will actually be used is
-    negotiated down to the lower of this value and the database network SDU
-    configuration value. See the `SQL*Net documentation <https://www.oracle.
+    of higher memory use. The SDU size that will actually be used is negotiated
+    down to the lower of this value and the database network SDU configuration
+    value. See the `Database Net Services documentation <https://www.oracle.
     com/pls/topic/lookup?ctx=dblatest&id=GUID-86D61D6F-AD26-421A-BABA-
     77949C8A2B04>`__ for more details. This value is used in both the
     python-oracledb Thin and Thick modes. The default value is *8192* bytes.
@@ -2638,8 +2643,9 @@ Oracledb Methods
     whether to use the TLS Server Name Indication (SNI) extension to bypass the
     second TLS negotiation that would otherwise be required. This parameter is
     used in both python-oracledb Thin and Thick modes. This parameter requires
-    Oracle Database 23.7. The default value is *False*. See the `SQL*Net
-    documentation <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+    Oracle Database 23.7. The default value is *False*. See the `Database Net
+    Services documentation
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
     GUID-E98F42D0-DC9D-4B52-9C66-6DE7EC5F64D6>`__ for more details.
 
     The ``program`` parameter is expected to be a string which specifies the

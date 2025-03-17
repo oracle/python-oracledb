@@ -225,6 +225,10 @@ ConnectionPool Attributes
     or later must be used and, prior to Oracle Client 21, cleanup only occurs
     when the pool is accessed.
 
+    .. versionchanged:: 3.0.0
+
+        This attribute was added to python-oracledb Thin mode.
+
 .. attribute:: ConnectionPool.max_sessions_per_shard
 
     This read-write attribute returns the number of sessions that can be
