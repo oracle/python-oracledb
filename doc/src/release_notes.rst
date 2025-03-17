@@ -31,8 +31,12 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug resulting in a segfault when unable to load the Oracle Client
+    libraries
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 #)  Improved error message when getting :attr:`Connection.max_open_cursors`
-    when using Oracle Client libraries 11.2.
+    when using Oracle Client libraries 11.2
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 
 Common Changes
 ++++++++++++++
