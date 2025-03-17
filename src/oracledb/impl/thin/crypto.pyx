@@ -42,6 +42,45 @@ except Exception as e:
 DN_REGEX = '(?:^|,\s?)(?:(?P<name>[A-Z]+)=(?P<val>"(?:[^"]|"")+"|[^,]+))+'
 PEM_WALLET_FILE_NAME = "ewallet.pem"
 
+def _name_matches(name_to_check, cert_name):
+    """
+    Returns a boolean indicating if the name to check matches with the
+    certificate name. The certificate name may contain a wildcard (*)
+    character.
+    """
+
+    # check for a full match (case insensitive)
+    cert_name = cert_name.lower()
+    name_to_check = name_to_check.lower()
+    if name_to_check == cert_name:
+        return True
+
+    # ensure that more than one label exists in both the name to check and the
+    # certificate name
+    check_pos = name_to_check.find(".")
+    cert_pos = cert_name.find(".")
+    if check_pos <= 0 or cert_pos <= 0:
+        return False
+
+    # ensure that the right hand labels all match
+    if name_to_check[check_pos:] != cert_name[cert_pos:]:
+        return False
+
+    # match wildcards, if applicable
+    cert_label = cert_name[:cert_pos]
+    check_label = name_to_check[:check_pos]
+    if cert_label == "*":
+        return True
+    elif cert_label.startswith("*"):
+        return check_label.endswith(cert_label[1:])
+    elif cert_label.endswith("*"):
+        return check_label.startswith(cert_label[:-1])
+    wildcard_pos = cert_name.find("*")
+    if wildcard_pos < 0:
+        return False
+    return check_label.startswith(cert_label[:wildcard_pos]) \
+            and check_label.endswith(cert_label[wildcard_pos + 1:])
+
 
 def check_server_dn(sock, expected_dn, expected_name):
     """
@@ -58,20 +97,20 @@ def check_server_dn(sock, expected_dn, expected_name):
             errors._raise_err(errors.ERR_INVALID_SERVER_CERT_DN,
                               expected_dn=expected_dn)
     else:
-        for name in cert.subject.get_attributes_for_oid(
-            x509.oid.NameOID.COMMON_NAME
-        ):
-            if name.value == expected_name:
-                return
         try:
             ext = cert.extensions.get_extension_for_oid(
                 x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME
             )
             for name in ext.value.get_values_for_type(x509.DNSName):
-                if name == expected_name:
+                if _name_matches(expected_name, name):
                     return
         except x509.ExtensionNotFound:
             pass
+        for name in cert.subject.get_attributes_for_oid(
+            x509.oid.NameOID.COMMON_NAME
+        ):
+            if _name_matches(expected_name, name.value):
+                return
         errors._raise_err(errors.ERR_INVALID_SERVER_NAME,
                           expected_name=expected_name)
 

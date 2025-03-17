@@ -25,6 +25,8 @@ Thin Mode Changes
     (`issue 455 <https://github.com/oracle/python-oracledb/issues/455>`__).
 #)  Fixed decoding of nested PL/SQL records
     (`issue 456 <https://github.com/oracle/python-oracledb/issues/456>`__).
+#)  Fixed wildcard matching of domains in Subject Alternative Names
+    (`issue 462 <https://github.com/oracle/python-oracledb/issues/462>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
