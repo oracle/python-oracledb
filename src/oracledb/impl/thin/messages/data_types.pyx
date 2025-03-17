@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,8 +25,9 @@
 #------------------------------------------------------------------------------
 # data_types.pyx
 #
-# Cython file defining the data type array sent to the database server during
-# connect (embedded in thin_impl.pyx).
+# Cython file defining the messages sent to the database and the responses that
+# are received by the client for establishing data type formats (embedded in
+# thin_impl.pyx).
 #------------------------------------------------------------------------------
 
 ctypedef struct DataType:
@@ -666,3 +667,46 @@ cdef DataType[319] DATA_TYPES = [
     [TNS_DATA_TYPE_PLOP, TNS_DATA_TYPE_PLOP, TNS_TYPE_REP_UNIVERSAL],
     [0, 0, 0]
 ]
+
+
+@cython.final
+cdef class DataTypesMessage(Message):
+
+    cdef int _process_message(self, ReadBuffer buf,
+                              uint8_t message_type) except -1:
+        cdef uint16_t data_type, conv_data_type
+        while True:
+            buf.read_uint16be(&data_type)
+            if data_type == 0:
+                break
+            buf.read_uint16be(&conv_data_type)
+            if conv_data_type != 0:
+                buf.skip_raw_bytes(4)
+        if not buf._caps.supports_end_of_response:
+            self.end_of_response = True
+
+    cdef int _write_message(self, WriteBuffer buf) except -1:
+        cdef:
+            DataType* data_type
+            int i
+
+        # write character set and capabilities
+        buf.write_uint8(TNS_MSG_TYPE_DATA_TYPES)
+        buf.write_uint16le(TNS_CHARSET_UTF8)
+        buf.write_uint16le(TNS_CHARSET_UTF8)
+        buf.write_uint8(TNS_ENCODING_MULTI_BYTE | TNS_ENCODING_CONV_LENGTH)
+        buf.write_bytes_with_length(bytes(buf._caps.compile_caps))
+        buf.write_bytes_with_length(bytes(buf._caps.runtime_caps))
+
+        # write data types
+        i = 0
+        while True:
+            data_type = &DATA_TYPES[i]
+            if data_type.data_type == 0:
+                break
+            i += 1
+            buf.write_uint16be(data_type.data_type)
+            buf.write_uint16be(data_type.conv_data_type)
+            buf.write_uint16be(data_type.representation)
+            buf.write_uint16be(0)
+        buf.write_uint16be(0)

@@ -117,6 +117,25 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         message._initialize(self)
         return message
 
+    cdef AuthMessage _create_change_password_message(self, str old_password,
+                                                     str new_password):
+        """
+        Creates a change password message which is an authentication message
+        with different attributes set.
+        """
+        cdef AuthMessage message
+        message = self._create_message(AuthMessage)
+        message.change_password = True
+        message.function_code = TNS_FUNC_AUTH_PHASE_TWO
+        message.user_bytes = self.username.encode()
+        message.user_bytes_len = len(message.user_bytes)
+        message.auth_mode = TNS_AUTH_MODE_WITH_PASSWORD | \
+                TNS_AUTH_MODE_CHANGE_PASSWORD
+        message.password = old_password.encode()
+        message.newpassword = new_password.encode()
+        message.resend = False
+        return message
+
     cdef TransactionChangeStateMessage _create_tpc_commit_message(
             self, object xid, bint one_phase
     ):
@@ -410,10 +429,9 @@ cdef class ThinConnImpl(BaseThinConnImpl):
     def change_password(self, str old_password, str new_password):
         cdef:
             Protocol protocol = <Protocol> self._protocol
-            ChangePasswordMessage message
-        message = self._create_message(ChangePasswordMessage)
-        message.password = old_password.encode()
-        message.newpassword = new_password.encode()
+            Message message
+        message = self._create_change_password_message(old_password,
+                                                       new_password)
         protocol._process_single_message(message)
 
     def close(self, bint in_del=False):
@@ -919,10 +937,9 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
     async def change_password(self, str old_password, str new_password):
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            ChangePasswordMessage message
-        message = self._create_message(ChangePasswordMessage)
-        message.password = old_password.encode()
-        message.newpassword = new_password.encode()
+            Message message
+        message = self._create_change_password_message(old_password,
+                                                       new_password)
         await protocol._process_single_message(message)
 
     async def close(self, bint in_del=False):
