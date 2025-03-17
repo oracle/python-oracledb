@@ -740,7 +740,8 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
         message="not supported with this client/server combination",
     ):
         if payload_type == "JSON":
-            self.skipTest(message)
+            if get_server_version() < (21, 0):
+                self.skipTest(message)
         elif isinstance(payload_type, str):
             payload_type = await self.conn.gettype(payload_type)
         queue = self.conn.queue(queue_name, payload_type)

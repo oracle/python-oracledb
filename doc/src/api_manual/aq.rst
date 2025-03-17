@@ -21,7 +21,7 @@ used to enqueue and dequeue messages.
 Queue Methods
 -------------
 
-.. method:: Queue.deqmany(maxMessages)
+.. method:: Queue.deqmany(max_num_messages)
 
     Dequeues up to the specified number of messages from the queue and returns
     a list of these messages. Each element of the returned list is a
@@ -50,12 +50,14 @@ Queue Methods
 
     .. warning::
 
-        Prior to Oracle Database 21c, calling this function in parallel on
-        different connections acquired from the same pool may fail due to
-        Oracle bug 29928074. Either ensure that this function is not run in
-        parallel, use standalone connections or connections from different
-        pools, or make multiple calls to :meth:`Queue.enqone()` instead. The
-        function :meth:`Queue.deqmany()` call is not affected.
+        In python-oracledb Thick mode using Oracle Client libraries prior to
+        21c, calling :meth:`Queue.enqmany()` in parallel on different
+        connections acquired from the same connection pool may fail due to
+        Oracle bug 29928074. To avoid this, do one of: upgrade the client
+        libraries, ensure that :meth:`Queue.enqmany()` is not run in parallel,
+        use standalone connections or connections from different pools, or make
+        multiple calls to :meth:`Queue.enqone()`. The function
+        :meth:`Queue.deqmany()` call is not affected.
 
     For consistency and compliance with the PEP 8 naming style, the name of
     the method was changed from `enqMany()`. The old name will continue

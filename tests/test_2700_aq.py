@@ -628,10 +628,6 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             queue.deqoptions.deliverymode
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "Thin mode doesn't support enqmany and deqmany yet",
-    )
     def test_2729(self):
         "2729 - test correlation deqoption"
         queue = self.get_and_clear_queue(
@@ -659,10 +655,6 @@ class TestCase(test_env.BaseTestCase):
         correlated_messages = queue.deqmany(num_messages + 1)
         self.assertEqual(len(correlated_messages), num_messages)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "Thin mode doesn't support enqmany and deqmany yet",
-    )
     def test_2730(self):
         "2730 - test correlation deqoption with pattern-matching characters"
         queue = self.get_and_clear_queue(
@@ -680,10 +672,6 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         self.assertEqual(len(messages), 2)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "Thin mode doesn't support enqmany and deqmany yet",
-    )
     def test_2731(self):
         "2731 - test condition deqoption with priority"
         queue = self.get_and_clear_queue(
@@ -711,10 +699,6 @@ class TestCase(test_env.BaseTestCase):
             data = book.TITLE, book.AUTHORS, book.PRICE
             self.assertEqual(data, self.book_data[ix])
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "Thin mode doesn't support enqmany and deqmany yet",
-    )
     def test_2732(self):
         "2732 - test mode deqoption with DEQ_REMOVE_NODATA"
         queue = self.get_and_clear_queue(

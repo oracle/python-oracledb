@@ -180,7 +180,7 @@ class Queue(BaseQueue):
         acquired from the same pool may fail due to Oracle bug 29928074. Ensure
         that this function is not run in parallel, use standalone connections
         or connections from different pools, or make multiple calls to
-        enqOne() instead. The function Queue.deqMany() call is not affected.
+        enqone() instead. The function Queue.deqmany() call is not affected.
         """
         for message in messages:
             self._verify_message(message)
@@ -211,6 +211,14 @@ class Queue(BaseQueue):
 
 class AsyncQueue(BaseQueue):
 
+    async def deqmany(self, max_num_messages: int) -> list:
+        """
+        Dequeues up to the specified number of messages from the queue and
+        returns a list of these messages.
+        """
+        message_impls = await self._impl.deq_many(max_num_messages)
+        return [MessageProperties._from_impl(impl) for impl in message_impls]
+
     async def deqone(self) -> Union["MessageProperties", None]:
         """
         Dequeues at most one message from the queue and returns it. If no
@@ -219,6 +227,23 @@ class AsyncQueue(BaseQueue):
         message_impl = await self._impl.deq_one()
         if message_impl is not None:
             return MessageProperties._from_impl(message_impl)
+
+    async def enqmany(self, messages: list) -> None:
+        """
+        Enqueues multiple messages into the queue. The messages parameter must
+        be a sequence containing message property objects which have all had
+        their payload attribute set to a value that the queue supports.
+
+        Warning: calling this function in parallel on different connections
+        acquired from the same pool may fail due to Oracle bug 29928074. Ensure
+        that this function is not run in parallel, use standalone connections
+        or connections from different pools, or make multiple calls to
+        enqone() instead. The function Queue.deqmany() call is not affected.
+        """
+        for message in messages:
+            self._verify_message(message)
+        message_impls = [m._impl for m in messages]
+        await self._impl.enq_many(message_impls)
 
     async def enqone(self, message: "MessageProperties") -> None:
         """

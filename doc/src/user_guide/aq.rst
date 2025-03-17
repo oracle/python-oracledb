@@ -26,9 +26,8 @@ types.
 - JSON payloads require Oracle Database 21c (or later). In python-oracle Thick
   mode, Oracle Client libraries 21c (or later) are also needed.
 
-JMS payloads, array message queuing and dequeuing operations, and
-:ref:`Recipient Lists <reciplists>` are only supported in python-oracledb
-:ref:`Thick mode <enablingthick>`.
+JMS payloads and :ref:`Recipient Lists <reciplists>` are only supported in
+python-oracledb :ref:`Thick mode <enablingthick>`.
 
 There are examples of AQ Classic Queues in the `GitHub samples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
@@ -343,8 +342,9 @@ message will be dropped from the queue.
 Bulk Enqueue and Dequeue
 ========================
 
-The :meth:`~Queue.enqmany()` and :meth:`~Queue.deqmany()` methods can be used
-for efficient bulk message handling.
+The :meth:`Queue.enqmany()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.enqmany()`, and :meth:`AsyncQueue.deqmany()` methods can be
+used for efficient bulk message handling.
 
 The :meth:`~Queue.enqmany()` method is similar to :meth:`~Queue.enqone()` but
 accepts an array of messages:
@@ -362,16 +362,18 @@ accepts an array of messages:
 
 .. warning::
 
-    Calling :meth:`~Queue.enqmany()` in parallel on different connections
-    acquired from the same pool may fail due to Oracle bug 29928074. To avoid
-    this, ensure that :meth:`~Queue.enqmany()` is not run in parallel, use
-    standalone connections or connections from different pools, or make
-    multiple calls to :meth:`~Queue.enqone()` instead. The function
-    :meth:`~Queue.deqmany()` call is not affected.
+    In python-oracledb Thick mode using Oracle Client libraries prior to 21c,
+    calling :meth:`Queue.enqmany()` in parallel on different connections
+    acquired from the same connection pool may fail due to Oracle
+    bug 29928074. To avoid this, do one of: upgrade the client libraries,
+    ensure that :meth:`Queue.enqmany()` is not run in parallel, use standalone
+    connections or connections from different pools, or make multiple calls to
+    :meth:`Queue.enqone()`. The function :meth:`Queue.deqmany()` call is not
+    affected.
 
-To dequeue multiple messages at one time, use :meth:`~Queue.deqmany()`.  This
-takes an argument specifying the maximum number of messages to dequeue at one
-time:
+To dequeue multiple messages at one time, use :meth:`Queue.deqmany()` or
+:meth:`AsyncQueue.deqmany()`.  This takes an argument specifying the maximum
+number of messages to dequeue at one time:
 
 .. code-block:: python
 

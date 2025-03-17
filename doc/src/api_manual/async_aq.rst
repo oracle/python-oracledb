@@ -23,11 +23,24 @@ are used to enqueue and dequeue messages.
 AsyncQueue Methods
 ------------------
 
+.. method:: AsyncQueue.deqmany(max_num_messages)
+
+    Dequeues up to the specified number of messages from the queue and returns
+    a list of these messages. Each element of the returned list is a
+    :ref:`message property <msgproperties>` object.
+
 .. method:: AsyncQueue.deqone()
 
     Dequeues at most one message from the queue. If a message is dequeued, it
     will be a :ref:`message property <asyncmsgproperties>` object; otherwise,
     the value *None* will be returned.
+
+.. method:: AsyncQueue.enqmany(messages)
+
+    Enqueues multiple messages into the queue. The ``messages`` parameter must
+    be a sequence containing :ref:`message property <msgproperties>` objects
+    which have all had their payload attribute set to a value that the queue
+    supports.
 
 .. method:: AsyncQueue.enqone(message)
 
