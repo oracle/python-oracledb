@@ -207,16 +207,12 @@ cdef class AuthMessage(Message):
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         cdef:
             uint16_t num_params, i
-            uint32_t num_bytes
             str key, value
         buf.read_ub2(&num_params)
         for i in range(num_params):
-            buf.skip_ub4()
-            key = buf.read_str(CS_FORM_IMPLICIT)
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                value = buf.read_str(CS_FORM_IMPLICIT)
-            else:
+            key = buf.read_str_with_length()
+            value = buf.read_str_with_length()
+            if value is None:
                 value = ""
             if key == "AUTH_VFR_DATA":
                 buf.read_ub4(&self.verifier_type)

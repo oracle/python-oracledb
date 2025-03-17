@@ -223,6 +223,16 @@ cdef class Buffer:
         if ptr != NULL:
             return ptr[:num_bytes]
 
+    cdef object read_bytes_with_length(self):
+        """
+        Reads a length from the buffer and then, if the length is non-zero,
+        reads bytes from the buffer and returns it.
+        """
+        cdef uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            return self.read_bytes()
+
     cdef int read_int32be(self, int32_t *value) except -1:
         """
         Read a signed 32-bit integer in big endian order from the buffer.
@@ -334,6 +344,16 @@ cdef class Buffer:
             if csfrm == CS_FORM_IMPLICIT:
                 return ptr[:num_bytes].decode(ENCODING_UTF8, encoding_errors)
             return ptr[:num_bytes].decode(ENCODING_UTF16, encoding_errors)
+
+    cdef object read_str_with_length(self):
+        """
+        Reads a length from the buffer and then, if the length is non-zero,
+        reads string from the buffer and returns it.
+        """
+        cdef uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            return self.read_str(CS_FORM_IMPLICIT)
 
     cdef int read_ub1(self, uint8_t *value) except -1:
         """

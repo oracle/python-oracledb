@@ -283,6 +283,7 @@ cdef class Buffer:
                                          ssize_t num_bytes) except -1
     cdef inline ssize_t bytes_left(self)
     cdef object read_bytes(self)
+    cdef object read_bytes_with_length(self)
     cdef int read_int32be(self, int32_t *value) except -1
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
@@ -295,6 +296,7 @@ cdef class Buffer:
     cdef int read_oracle_data(self, OracleMetadata metadata,
                               OracleData* data, bint from_dbobject) except -1
     cdef object read_str(self, int csfrm, const char* encoding_errors=*)
+    cdef object read_str_with_length(self)
     cdef int read_ub1(self, uint8_t *value) except -1
     cdef int read_ub2(self, uint16_t *value) except -1
     cdef int read_ub4(self, uint32_t *value) except -1

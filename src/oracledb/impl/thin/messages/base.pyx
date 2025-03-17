@@ -253,7 +253,7 @@ cdef class Message:
         Process metadata from the buffer and return it.
         """
         cdef:
-            uint32_t num_bytes, uds_flags, num_annotations, i
+            uint32_t uds_flags, num_annotations, i
             ThinDbObjectTypeImpl typ_impl
             str schema, name, key, value
             uint8_t ora_type_num, csfrm
@@ -269,9 +269,7 @@ cdef class Message:
         buf.read_ub4(&metadata.buffer_size)
         buf.skip_ub4()                      # max number of array elements
         buf.skip_ub8()                      # cont flags
-        buf.read_ub4(&num_bytes)            # OID
-        if num_bytes > 0:
-            oid = buf.read_bytes()
+        oid = buf.read_bytes_with_length()
         buf.skip_ub2()                      # version
         buf.skip_ub2()                      # character set id
         buf.read_ub1(&csfrm)                # character set form
@@ -284,26 +282,16 @@ cdef class Message:
         buf.read_ub1(&nulls_allowed)
         metadata.nulls_allowed = nulls_allowed
         buf.skip_ub1()                      # v7 length of name
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            metadata.name = buf.read_str(CS_FORM_IMPLICIT)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            schema = buf.read_str(CS_FORM_IMPLICIT)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            name = buf.read_str(CS_FORM_IMPLICIT)
+        metadata.name = buf.read_str_with_length()
+        schema = buf.read_str_with_length()
+        name = buf.read_str_with_length()
         buf.skip_ub2()                      # column position
         buf.read_ub4(&uds_flags)
         metadata.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
         metadata.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                metadata.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                metadata.domain_name = buf.read_str(CS_FORM_IMPLICIT)
+            metadata.domain_schema = buf.read_str_with_length()
+            metadata.domain_name = buf.read_str_with_length()
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
             buf.read_ub4(&num_annotations)
             if num_annotations > 0:
@@ -312,12 +300,9 @@ cdef class Message:
                 buf.read_ub4(&num_annotations)
                 buf.skip_ub1()
                 for i in range(num_annotations):
-                    buf.skip_ub4()          # length of key
-                    key = buf.read_str(CS_FORM_IMPLICIT)
-                    buf.read_ub4(&num_bytes)
-                    if num_bytes > 0:
-                        value = buf.read_str(CS_FORM_IMPLICIT)
-                    else:
+                    key = buf.read_str_with_length()
+                    value = buf.read_str_with_length()
+                    if value is None:
                         value = ""
                     metadata.annotations[key] = value
                     buf.skip_ub4()          # flags
@@ -348,9 +333,7 @@ cdef class Message:
             uint8_t opcode
         buf.read_ub1(&opcode)
         if opcode == TNS_SERVER_PIGGYBACK_LTXID:
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                self.conn_impl._ltxid = buf.read_bytes()
+            self.conn_impl._ltxid = buf.read_bytes_with_length()
         elif opcode == TNS_SERVER_PIGGYBACK_QUERY_CACHE_INVALIDATION \
                 or opcode == TNS_SERVER_PIGGYBACK_TRACE_EVENT:
             pass

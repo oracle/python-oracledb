@@ -62,10 +62,10 @@ cdef class DeqMessage(Message):
         """
         cdef:
             uint32_t num_bytes, num_extensions, i
+            bytes text_value, binary_value, value
             ssize_t temp_num_bytes
             const char_type *ptr
-            uint16_t temp16, keyword
-            bytes temp
+            uint16_t keyword
             OracleData data
             uint32_t imageLength
             ThinDbObjectImpl obj_impl
@@ -75,57 +75,33 @@ cdef class DeqMessage(Message):
             buf.read_sb4(&self.props_impl.priority)      # priority
             buf.read_sb4(&self.props_impl.delay)         # delay
             buf.read_sb4(&self.props_impl.expiration)    # expiration
-            # correlation id
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
-                self.props_impl.correlation = ptr[:temp_num_bytes].decode()
+            self.props_impl.correlation = buf.read_str_with_length()
             buf.read_sb4(&self.props_impl.num_attempts)
-            # exception queue name
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
-                self.props_impl.exceptionq = ptr[:temp_num_bytes].decode()
+            self.props_impl.exceptionq = buf.read_str_with_length()
             buf.read_sb4(&self.props_impl.state)
             buf.read_ub4(&num_bytes)                    # enqueue time
             if num_bytes > 0:
                 buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
                 decode_date(ptr, temp_num_bytes, &data.buffer)
                 self.props_impl.enq_time = convert_date_to_python(&data.buffer)
-            buf.read_ub4(&num_bytes)                    # transaction id
-            if num_bytes > 0:
-                ptr = buf._get_raw(num_bytes)
-                self.props_impl.enq_txn_id = ptr[:num_bytes]
-            else:
-                self.props_impl.enq_txn_id = None
+            self.props_impl.enq_txn_id = buf.read_bytes_with_length()
             buf.read_ub4(&num_extensions)               # number of extensions
             if num_extensions > 0:
                 buf.skip_ub1()
                 for i in range(num_extensions):
-                    temp = None
-                    temp16 = 0
-                    buf.read_ub4(&num_bytes)            # text value length
-                    if num_bytes > 0:
-                        buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
-                        temp = ptr[:temp_num_bytes]
-                        temp16 = temp_num_bytes
-                    buf.read_ub4(&num_bytes)            # binary value length
-                    if num_bytes > 0:
-                        buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
-                        temp = ptr[:temp_num_bytes]
+                    text_value = buf.read_bytes_with_length()
+                    binary_value = buf.read_bytes_with_length()
+                    value = text_value or binary_value
                     buf.read_ub2(&keyword)              # extension keyword
-                    if (keyword == TNS_AQ_EXT_KEYWORD_AGENT_NAME and
-                            temp is not None and temp16 > 0):
-                        self.props_impl.sender_agent_name = temp
-                    if (keyword == TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS and
-                            temp is not None and temp16 > 0):
-                        self.props_impl.sender_agent_address = temp
-                    if (keyword == TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL and
-                            temp is not None):
-                        self.props_impl.sender_agent_protocol = temp
-                    if (keyword == TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID and
-                            temp is not None):
-                        self.props_impl.original_msg_id = temp
+                    if value is not None:
+                        if keyword == TNS_AQ_EXT_KEYWORD_AGENT_NAME:
+                            self.props_impl.sender_agent_name = value
+                        elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS:
+                            self.props_impl.sender_agent_address = value
+                        elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL:
+                            self.props_impl.sender_agent_protocol = value
+                        elif keyword == TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID:
+                            self.props_impl.original_msg_id = value
             buf.read_ub4(&num_bytes)                    # user properties
             if num_bytes > 0:
                 errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
