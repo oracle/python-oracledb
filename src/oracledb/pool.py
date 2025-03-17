@@ -844,7 +844,7 @@ def create_pool(
     - ssl_server_cert_dn: the distinguished name (DN) which should be matched
       with the server. This value is ignored if the ssl_server_dn_match
       parameter is not set to the value True. If specified this value is used
-      for any verfication. Otherwise the hostname will be used. (default: None)
+      for any verfication. Otherwise the hostname will be used (default: None)
 
     - wallet_location: the directory where the wallet can be found. In thin
       mode this must be the directory containing the PEM-encoded wallet file
@@ -876,7 +876,7 @@ def create_pool(
 
     - matchanytag: boolean specifying whether any tag can be used when
       acquiring a connection from the pool. This value is only used in thick
-      mode. (default: False)
+      mode (default: False)
 
     - config_dir: directory in which the optional tnsnames.ora configuration
       file is located. This value is only used in thin mode. For thick mode use
@@ -1376,7 +1376,7 @@ def create_pool_async(
     - ssl_server_cert_dn: the distinguished name (DN) which should be matched
       with the server. This value is ignored if the ssl_server_dn_match
       parameter is not set to the value True. If specified this value is used
-      for any verfication. Otherwise the hostname will be used. (default: None)
+      for any verfication. Otherwise the hostname will be used (default: None)
 
     - wallet_location: the directory where the wallet can be found. In thin
       mode this must be the directory containing the PEM-encoded wallet file
@@ -1408,7 +1408,7 @@ def create_pool_async(
 
     - matchanytag: boolean specifying whether any tag can be used when
       acquiring a connection from the pool. This value is only used in thick
-      mode. (default: False)
+      mode (default: False)
 
     - config_dir: directory in which the optional tnsnames.ora configuration
       file is located. This value is only used in thin mode. For thick mode use
