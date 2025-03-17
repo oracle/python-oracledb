@@ -45,6 +45,7 @@ cdef class _OracleErrorInfo:
 cdef class Message:
     cdef:
         BaseThinConnImpl conn_impl
+        BaseThinDbObjectTypeCache type_cache
         PipelineOpResultImpl pipeline_result_impl
         _OracleErrorInfo error_info
         uint8_t message_type
@@ -246,6 +247,96 @@ cdef class Message:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,
                               message_type=message_type,
                               position=buf._pos - 1)
+
+    cdef OracleMetadata _process_metadata(self, ReadBuffer buf):
+        """
+        Process metadata from the buffer and return it.
+        """
+        cdef:
+            uint32_t num_bytes, uds_flags, num_annotations, i
+            ThinDbObjectTypeImpl typ_impl
+            str schema, name, key, value
+            uint8_t ora_type_num, csfrm
+            OracleMetadata metadata
+            uint8_t nulls_allowed
+            int cache_num
+            bytes oid
+        buf.read_ub1(&ora_type_num)
+        metadata = OracleMetadata.__new__(OracleMetadata)
+        buf.skip_ub1()                      # flags
+        buf.read_sb1(&metadata.precision)
+        buf.read_sb1(&metadata.scale)
+        buf.read_ub4(&metadata.buffer_size)
+        buf.skip_ub4()                      # max number of array elements
+        buf.skip_ub8()                      # cont flags
+        buf.read_ub4(&num_bytes)            # OID
+        if num_bytes > 0:
+            oid = buf.read_bytes()
+        buf.skip_ub2()                      # version
+        buf.skip_ub2()                      # character set id
+        buf.read_ub1(&csfrm)                # character set form
+        metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        buf.read_ub4(&metadata.max_size)
+        if ora_type_num == ORA_TYPE_NUM_RAW:
+            metadata.max_size = metadata.buffer_size
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
+            buf.skip_ub4()                  # oaccolid
+        buf.read_ub1(&nulls_allowed)
+        metadata.nulls_allowed = nulls_allowed
+        buf.skip_ub1()                      # v7 length of name
+        buf.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            metadata.name = buf.read_str(CS_FORM_IMPLICIT)
+        buf.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            schema = buf.read_str(CS_FORM_IMPLICIT)
+        buf.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            name = buf.read_str(CS_FORM_IMPLICIT)
+        buf.skip_ub2()                      # column position
+        buf.read_ub4(&uds_flags)
+        metadata.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
+        metadata.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
+            buf.read_ub4(&num_bytes)
+            if num_bytes > 0:
+                metadata.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
+            buf.read_ub4(&num_bytes)
+            if num_bytes > 0:
+                metadata.domain_name = buf.read_str(CS_FORM_IMPLICIT)
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
+            buf.read_ub4(&num_annotations)
+            if num_annotations > 0:
+                buf.skip_ub1()
+                metadata.annotations = {}
+                buf.read_ub4(&num_annotations)
+                buf.skip_ub1()
+                for i in range(num_annotations):
+                    buf.skip_ub4()          # length of key
+                    key = buf.read_str(CS_FORM_IMPLICIT)
+                    buf.read_ub4(&num_bytes)
+                    if num_bytes > 0:
+                        value = buf.read_str(CS_FORM_IMPLICIT)
+                    else:
+                        value = ""
+                    metadata.annotations[key] = value
+                    buf.skip_ub4()          # flags
+                buf.skip_ub4()              # flags
+        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_4:
+            buf.read_ub4(&metadata.vector_dimensions)
+            buf.read_ub1(&metadata.vector_format)
+            buf.read_ub1(&metadata.vector_flags)
+        if ora_type_num == ORA_TYPE_NUM_OBJECT:
+            if self.type_cache is None:
+                cache_num = self.conn_impl._dbobject_type_cache_num
+                self.type_cache = get_dbobject_type_cache(cache_num)
+            typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
+                                                         name)
+            if typ_impl.is_xml_type:
+                metadata.dbtype = DB_TYPE_XMLTYPE
+            else:
+                metadata.objtype = typ_impl
+        return metadata
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         raise NotImplementedError()
@@ -616,7 +707,6 @@ cdef class Message:
 
 cdef class MessageWithData(Message):
     cdef:
-        BaseThinDbObjectTypeCache type_cache
         BaseThinCursorImpl cursor_impl
         array.array bit_vector_buf
         const char_type *bit_vector
@@ -868,94 +958,6 @@ cdef class MessageWithData(Message):
             buf.skip_ub4()                  # return code
         return column_value
 
-    cdef OracleMetadata _process_column_info(self, ReadBuffer buf,
-                                             BaseThinCursorImpl cursor_impl):
-        cdef:
-            uint32_t num_bytes, uds_flags, num_annotations, i
-            ThinDbObjectTypeImpl typ_impl
-            str schema, name, key, value
-            uint8_t ora_type_num, csfrm
-            OracleMetadata metadata
-            uint8_t nulls_allowed
-            int cache_num
-            bytes oid
-        buf.read_ub1(&ora_type_num)
-        metadata = OracleMetadata.__new__(OracleMetadata)
-        buf.skip_ub1()                      # flags
-        buf.read_sb1(&metadata.precision)
-        buf.read_sb1(&metadata.scale)
-        buf.read_ub4(&metadata.buffer_size)
-        buf.skip_ub4()                      # max number of array elements
-        buf.skip_ub8()                      # cont flags
-        buf.read_ub4(&num_bytes)            # OID
-        if num_bytes > 0:
-            oid = buf.read_bytes()
-        buf.skip_ub2()                      # version
-        buf.skip_ub2()                      # character set id
-        buf.read_ub1(&csfrm)                # character set form
-        metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
-        buf.read_ub4(&metadata.max_size)
-        if ora_type_num == ORA_TYPE_NUM_RAW:
-            metadata.max_size = metadata.buffer_size
-        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_12_2:
-            buf.skip_ub4()                  # oaccolid
-        buf.read_ub1(&nulls_allowed)
-        metadata.nulls_allowed = nulls_allowed
-        buf.skip_ub1()                      # v7 length of name
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            metadata.name = buf.read_str(CS_FORM_IMPLICIT)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            schema = buf.read_str(CS_FORM_IMPLICIT)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            name = buf.read_str(CS_FORM_IMPLICIT)
-        buf.skip_ub2()                      # column position
-        buf.read_ub4(&uds_flags)
-        metadata.is_json = uds_flags & TNS_UDS_FLAGS_IS_JSON
-        metadata.is_oson = uds_flags & TNS_UDS_FLAGS_IS_OSON
-        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                metadata.domain_schema = buf.read_str(CS_FORM_IMPLICIT)
-            buf.read_ub4(&num_bytes)
-            if num_bytes > 0:
-                metadata.domain_name = buf.read_str(CS_FORM_IMPLICIT)
-        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_3:
-            buf.read_ub4(&num_annotations)
-            if num_annotations > 0:
-                buf.skip_ub1()
-                metadata.annotations = {}
-                buf.read_ub4(&num_annotations)
-                buf.skip_ub1()
-                for i in range(num_annotations):
-                    buf.skip_ub4()          # length of key
-                    key = buf.read_str(CS_FORM_IMPLICIT)
-                    buf.read_ub4(&num_bytes)
-                    if num_bytes > 0:
-                        value = buf.read_str(CS_FORM_IMPLICIT)
-                    else:
-                        value = ""
-                    metadata.annotations[key] = value
-                    buf.skip_ub4()          # flags
-                buf.skip_ub4()              # flags
-        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_4:
-            buf.read_ub4(&metadata.vector_dimensions)
-            buf.read_ub1(&metadata.vector_format)
-            buf.read_ub1(&metadata.vector_flags)
-        if ora_type_num == ORA_TYPE_NUM_OBJECT:
-            if self.type_cache is None:
-                cache_num = self.conn_impl._dbobject_type_cache_num
-                self.type_cache = get_dbobject_type_cache(cache_num)
-            typ_impl = self.type_cache.get_type_for_info(oid, schema, None,
-                                                         name)
-            if typ_impl.is_xml_type:
-                metadata.dbtype = DB_TYPE_XMLTYPE
-            else:
-                metadata.objtype = typ_impl
-        return metadata
-
     cdef int _process_describe_info(self, ReadBuffer buf,
                                     object cursor,
                                     BaseThinCursorImpl cursor_impl) except -1:
@@ -976,7 +978,7 @@ cdef class MessageWithData(Message):
         type_handler = cursor_impl._get_output_type_handler(&uses_metadata)
         conn = self.cursor.connection
         for i in range(cursor_impl._num_columns):
-            metadata = self._process_column_info(buf, cursor_impl)
+            metadata = self._process_metadata(buf)
             if prev_fetch_var_impls is not None \
                     and i < len(prev_fetch_var_impls):
                 self._adjust_metadata(prev_fetch_var_impls[i], metadata)
