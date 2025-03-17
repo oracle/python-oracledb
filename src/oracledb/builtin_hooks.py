@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -66,6 +66,28 @@ def config_provider_file_hook(protocol, protocol_arg, connect_params):
 
 
 register_protocol("config-file", config_provider_file_hook)
+
+
+def ldap_hook(protocol, arg, params):
+    """
+    Default hook for LDAP which simply points the user to the documentation
+    which explains how they can write their own hook for LDAP.
+    This hook is needed for python-oracledb Thin mode,or when
+    defaults.thick_mode_dsn_passthrough is False in Thick mode.
+    """
+    doc_url = (
+        "https://python-oracledb.readthedocs.io/en/latest"
+        "/user_guide/connection_handling.html#ldap-directory-naming"
+    )
+    message = (
+        f"To use an LDAP URL in python-oracledb, "
+        f"register an LDAP resolution function as shown in {doc_url}"
+    )
+    raise Exception(message)
+
+
+register_protocol("ldap", ldap_hook)
+register_protocol("ldaps", ldap_hook)
 
 
 def password_type_base64_hook(args):

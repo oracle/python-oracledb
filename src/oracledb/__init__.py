@@ -320,7 +320,7 @@ from .interchange.dataframe import (
     OracleDataFrame as OracleDataFrame,
 )
 
-from . import config_providers
+from . import builtin_hooks
 
 IntervalYM = collections.namedtuple("IntervalYM", ["years", "months"])
 
@@ -339,7 +339,7 @@ del package
 del (
     aq,  # noqa
     base_impl,  # noqa
-    config_providers,  # noqa
+    builtin_hooks,  # noqa
     connect_params,  # noqa
     connection,  # noqa
     constants,  # noqa
