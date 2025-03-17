@@ -68,6 +68,9 @@ class BaseQueue:
         else:
             if not isinstance(message.payload, (str, bytes)):
                 errors._raise_err(errors.ERR_PAYLOAD_CANNOT_BE_ENQUEUED)
+        if self.connection.thin:
+            if message.recipients:
+                errors._raise_not_supported("specifying AQ message recipients")
 
     @property
     def connection(self) -> "connection_module.Connection":

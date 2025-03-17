@@ -23,7 +23,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# deq.pyx
+# aq_deq.pyx
 #
 # Cython file defining the messages that are sent to the database and the
 # responses that are received by the client for dequeuing an AQ message
@@ -31,12 +31,9 @@
 #------------------------------------------------------------------------------
 
 @cython.final
-cdef class DeqMessage(Message):
+cdef class AqDeqMessage(AqBaseMessage):
     cdef:
-        BaseThinQueueImpl queue_impl
-        ThinDeqOptionsImpl deq_options_impl
         ThinMsgPropsImpl props_impl
-        bint no_msg_found
 
     cdef int _initialize_hook(self) except -1:
         """
@@ -44,104 +41,22 @@ cdef class DeqMessage(Message):
         """
         self.function_code = TNS_FUNC_AQ_DEQ
 
-    cdef int _process_error_info(self, ReadBuffer buf) except -1:
-        """
-        Process error information from the buffer. If the error that indicates
-        that no messages were received is detected, the error is cleared and
-        the flag set so that the dequeue can handle that case.
-        """
-        Message._process_error_info(self, buf)
-        if self.error_info.num == TNS_ERR_NO_MESSAGES_FOUND:
-            self.error_info.num = 0
-            self.error_occurred = False
-            self.no_msg_found = True
-
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         """
         Process the return parameters of the AQ Dequeue request.
         """
         cdef:
-            uint32_t num_bytes, num_extensions, i
-            bytes text_value, binary_value, value
-            ssize_t temp_num_bytes
-            const char_type *ptr
+            uint32_t num_bytes
             uint16_t keyword
-            OracleData data
             uint32_t imageLength
             ThinDbObjectImpl obj_impl
             ThinDbObjectTypeImpl type_impl
         buf.read_ub4(&num_bytes)
         if num_bytes > 0:
-            buf.read_sb4(&self.props_impl.priority)      # priority
-            buf.read_sb4(&self.props_impl.delay)         # delay
-            buf.read_sb4(&self.props_impl.expiration)    # expiration
-            self.props_impl.correlation = buf.read_str_with_length()
-            buf.read_sb4(&self.props_impl.num_attempts)
-            self.props_impl.exceptionq = buf.read_str_with_length()
-            buf.read_sb4(&self.props_impl.state)
-            buf.read_ub4(&num_bytes)                    # enqueue time
-            if num_bytes > 0:
-                buf.read_raw_bytes_and_length(&ptr, &temp_num_bytes)
-                decode_date(ptr, temp_num_bytes, &data.buffer)
-                self.props_impl.enq_time = convert_date_to_python(&data.buffer)
-            self.props_impl.enq_txn_id = buf.read_bytes_with_length()
-            buf.read_ub4(&num_extensions)               # number of extensions
-            if num_extensions > 0:
-                buf.skip_ub1()
-                for i in range(num_extensions):
-                    text_value = buf.read_bytes_with_length()
-                    binary_value = buf.read_bytes_with_length()
-                    value = text_value or binary_value
-                    buf.read_ub2(&keyword)              # extension keyword
-                    if value is not None:
-                        if keyword == TNS_AQ_EXT_KEYWORD_AGENT_NAME:
-                            self.props_impl.sender_agent_name = value
-                        elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS:
-                            self.props_impl.sender_agent_address = value
-                        elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL:
-                            self.props_impl.sender_agent_protocol = value
-                        elif keyword == TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID:
-                            self.props_impl.original_msg_id = value
-            buf.read_ub4(&num_bytes)                    # user properties
-            if num_bytes > 0:
-                errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
-            buf.skip_ub4()                              # csn
-            buf.skip_ub4()                              # dsn
-            buf.skip_ub4()                              # flags
-            if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_21_1:
-                buf.skip_ub4()                          # shard number
-            buf.read_ub4(&num_bytes)                    # num recipients
-            if num_bytes > 0:
-                errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
-            if self.queue_impl.payload_type is not None:
-                type_impl = self.queue_impl.payload_type
-                obj_impl = buf.read_dbobject(type_impl)
-                if obj_impl is None:
-                    obj_impl = type_impl.create_new_object()
-                self.props_impl.payload = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-            else:
-                buf.read_ub4(&num_bytes)                    # TOID len
-                if num_bytes > 0:
-                    buf.skip_raw_bytes(num_bytes)
-                buf.read_ub4(&num_bytes)                    # OID len
-                if num_bytes > 0:
-                    buf.skip_raw_bytes(num_bytes)
-                buf.read_ub4(&num_bytes)                    # snapshot
-                if num_bytes > 0:
-                    buf.skip_raw_bytes(num_bytes)
-                buf.skip_ub2()                              # version no
-                buf.read_ub4(&imageLength)                  # image len
-                buf.skip_ub2()                              # flags
-                if imageLength > 0:
-                    self.props_impl.payload = buf.read_bytes()[4:imageLength]
-                    if self.queue_impl.is_json:
-                        self.props_impl.payload = \
-                            self.conn_impl.decode_oson(self.props_impl.payload)
-                else:
-                    if not self.queue_impl.is_json:
-                        self.props_impl.payload = b''
-            ptr = buf._get_raw(TNS_AQ_MESSAGE_ID_LENGTH)
-            self.props_impl.msgid = ptr[:TNS_AQ_MESSAGE_ID_LENGTH]
+            self._process_msg_props(buf, self.props_impl)
+            self.props_impl.recipients = self._process_recipients(buf)
+            self.props_impl.payload = self._process_payload(buf)
+            self.props_impl.msgid = self._process_msg_id(buf)
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """
@@ -190,10 +105,10 @@ cdef class DeqMessage(Message):
             buf.write_ub4(0)                    # correlation id len
         buf.write_uint8(1)                      # toid of payload
         buf.write_ub4(16)                       # toid length
-        buf.write_ub2(self.props_impl.version)  # version of type
+        buf.write_ub2(TNS_AQ_MESSAGE_VERSION)
         buf.write_uint8(1)                      # payload
         buf.write_uint8(1)                      # return msg id
-        buf.write_ub4(16)                       # mesg id length
+        buf.write_ub4(TNS_AQ_MESSAGE_ID_LENGTH)
         deq_flags = 0
         delivery_mode = self.deq_options_impl.delivery_mode
         if (delivery_mode == TNS_AQ_MSG_BUFFERED):

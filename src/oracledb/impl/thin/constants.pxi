@@ -551,6 +551,7 @@ cdef enum:
     TNS_JSON_MAX_LENGTH = 32 * 1024 * 1024
     TNS_VECTOR_MAX_LENGTH = 1 * 1024 * 1024
     TNS_AQ_MESSAGE_ID_LENGTH = 16
+    TNS_AQ_MESSAGE_VERSION = 1
 
 # base 64 encoding alphabet
 cdef bytes TNS_BASE64_ALPHABET = \

@@ -35,26 +35,26 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
         BaseThinConnImpl _conn_impl
         bytes payload_toid
 
-    cdef DeqMessage _create_deq_message(self):
+    cdef AqDeqMessage _create_deq_message(self):
         """
         Create the message for dequeuing a payload.
         """
         cdef:
             ThinMsgPropsImpl props_impl
-            DeqMessage message
+            AqDeqMessage message
         props_impl = ThinMsgPropsImpl()
-        message = self._conn_impl._create_message(DeqMessage)
+        message = self._conn_impl._create_message(AqDeqMessage)
         message.queue_impl = self
         message.deq_options_impl = self.deq_options_impl
         message.props_impl = props_impl
         return message
 
-    cdef EnqMessage _create_enq_message(self, ThinMsgPropsImpl props_impl):
+    cdef AqEnqMessage _create_enq_message(self, ThinMsgPropsImpl props_impl):
         """
         Create the message for enqueuing the provided payload.
         """
-        cdef EnqMessage message
-        message = self._conn_impl._create_message(EnqMessage)
+        cdef AqEnqMessage message
+        message = self._conn_impl._create_message(AqEnqMessage)
         message.queue_impl = self
         message.enq_options_impl = self.enq_options_impl
         message.props_impl = props_impl
@@ -87,7 +87,7 @@ cdef class ThinQueueImpl(BaseThinQueueImpl):
         """
         cdef:
             Protocol protocol = <Protocol> self._conn_impl._protocol
-            DeqMessage message
+            AqDeqMessage message
         message = self._create_deq_message()
         protocol._process_single_message(message)
         if not message.no_msg_found:
@@ -99,7 +99,7 @@ cdef class ThinQueueImpl(BaseThinQueueImpl):
         """
         cdef:
             Protocol protocol = <Protocol> self._conn_impl._protocol
-            EnqMessage message
+            AqEnqMessage message
         message = self._create_enq_message(props_impl)
         protocol._process_single_message(message)
 
@@ -112,7 +112,7 @@ cdef class AsyncThinQueueImpl(BaseThinQueueImpl):
         """
         cdef:
             BaseAsyncProtocol protocol
-            DeqMessage message
+            AqDeqMessage message
         protocol = <BaseAsyncProtocol> self._conn_impl._protocol
         message = self._create_deq_message()
         await protocol._process_single_message(message)
@@ -125,7 +125,7 @@ cdef class AsyncThinQueueImpl(BaseThinQueueImpl):
         """
         cdef:
             BaseAsyncProtocol protocol
-            EnqMessage message
+            AqEnqMessage message
         protocol = <BaseAsyncProtocol> self._conn_impl._protocol
         message = self._create_enq_message(props_impl)
         await protocol._process_single_message(message)
@@ -321,8 +321,7 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         cydatetime.datetime enq_time
         bytes msgid
         int32_t state
-        object payloadObject
-        int32_t version
+        object payload_obj
         BaseThinConnImpl _conn_impl
         bytes enq_txn_id
         bytes sender_agent_name
@@ -334,7 +333,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         self.delay = TNS_AQ_MSG_NO_DELAY
         self.expiration = TNS_AQ_MSG_NO_EXPIRATION
         self.recipients = []
-        self.version = 1
         self.sender_agent_protocol = 0
 
     def get_num_attempts(self):
@@ -425,7 +423,7 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         """
         Internal method for setting the payload from bytes.
         """
-        self.payloadObject = value
+        self.payload_obj = value
 
     def set_payload_object(self, ThinDbObjectImpl value):
         """
@@ -433,13 +431,13 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         """
         if not isinstance(value, ThinDbObjectImpl):
             raise TypeError("Expected ThinDbObjectImpl instance.")
-        self.payloadObject = value
+        self.payload_obj = value
 
     def set_payload_json(self, object json_val):
         """
         Internal method for setting the payload from a JSON object
         """
-        self.payloadObject = json_val
+        self.payload_obj = json_val
 
     def set_priority(self, int32_t value):
         """

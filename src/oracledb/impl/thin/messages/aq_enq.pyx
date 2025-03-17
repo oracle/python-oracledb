@@ -23,7 +23,7 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# enq.pyx
+# aq_enq.pyx
 #
 # Cython file defining the messages that are sent to the database and the
 # responses that are received by the client for enqueuing an AQ message
@@ -31,10 +31,8 @@
 #------------------------------------------------------------------------------
 
 @cython.final
-cdef class EnqMessage(Message):
+cdef class AqEnqMessage(AqBaseMessage):
     cdef:
-        BaseThinQueueImpl queue_impl
-        ThinEnqOptionsImpl enq_options_impl
         ThinMsgPropsImpl props_impl
 
     cdef int _initialize_hook(self) except -1:
@@ -65,57 +63,16 @@ cdef class EnqMessage(Message):
         queue_name_bytes = self.queue_impl.name.encode()
         buf.write_uint8(1)                      # queue name (pointer)
         buf.write_ub4(len(queue_name_bytes))    # queue name length
-        buf.write_ub4(self.props_impl.priority)
-        buf.write_ub4(self.props_impl.delay)
-        buf.write_sb4(self.props_impl.expiration)
-        if self.props_impl.correlation is None:
-            buf.write_ub4(0)                    # correlation
-        else:
-            correlation_bytes = self.props_impl.correlation.encode()
-            buf.write_ub4(len(correlation_bytes))
-            buf.write_bytes_with_length(correlation_bytes)
-        buf.write_ub4(0)                        # number of attempts
-        if self.props_impl.exceptionq is None:
-            buf.write_ub4(0)                    # exception queue
-        else:
-            exceptionq_bytes = self.props_impl.exceptionq.encode()
-            buf.write_ub4(len(exceptionq_bytes))
-            buf.write_bytes_with_length(exceptionq_bytes)
-        buf.write_ub4(self.props_impl.state)    # message state
-        buf.write_ub4(0)                        # enqueue time length
-        if self.props_impl.enq_txn_id is None:
-            buf.write_ub4(0)                    # enqueue txn id length
-        else:
-            buf.write_ub4(len(self.props_impl.enq_txn_id))
-            buf.write_bytes_with_length(self.props_impl.enq_txn_id)
-        buf.write_ub4(4)                        # number of extensions
-        buf.write_uint8(0x0e)                   # unknown extra byte
-        buf.write_extension_values(None, None, TNS_AQ_EXT_KEYWORD_AGENT_NAME)
-        buf.write_extension_values(None, None, TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS)
-        buf.write_extension_values(None, b'\x00',
-                                 TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL)
-        buf.write_extension_values(None, None,
-                                 TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID)
-        buf.write_ub4(0)                        # user property
-        buf.write_ub4(0)                        # cscn
-        buf.write_ub4(0)                        # dscn
-        buf.write_ub4(0)                        # flags
-        if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_21_1:
-            buf.write_ub4(0xffffffffl)          # shard id
-
-        if self.props_impl.recipients is None:
-            buf.write_uint8(0)                  # recipients (pointer)
-            buf.write_ub4(0)                    # number of key/value pairs
-        else:
-            buf.write_uint8(1)
-            buf.write_ub4(len(self.props_impl.recipients) * 3)
+        self._write_msg_props(buf, self.props_impl)
+        buf.write_uint8(0)                      # recipients (pointer)
+        buf.write_ub4(0)                        # number of key/value pairs
         buf.write_ub4(self.enq_options_impl.visibility)
         buf.write_uint8(0)                      # relative message id
         buf.write_ub4(0)                        # relative message length
         buf.write_ub4(0)                        # sequence deviation
         buf.write_uint8(1)                      # TOID of payload (pointer)
         buf.write_ub4(16)                       # TOID of payload length
-        buf.write_ub2(self.props_impl.version)
+        buf.write_ub2(TNS_AQ_MESSAGE_VERSION)
         if self.queue_impl.is_json:
             buf.write_uint8(0)                  # payload (pointer)
             buf.write_uint8(0)                  # RAW payload (pointer)
@@ -127,7 +84,7 @@ cdef class EnqMessage(Message):
         else:
             buf.write_uint8(0)                  # payload (pointer)
             buf.write_uint8(1)                  # RAW payload (pointer)
-            buf.write_ub4(len(self.props_impl.payloadObject))
+            buf.write_ub4(len(self.props_impl.payload_obj))
         buf.write_uint8(1)                      # return message id (pointer)
         buf.write_ub4(TNS_AQ_MESSAGE_ID_LENGTH) # return message id length
         enq_flags = 0
@@ -159,11 +116,4 @@ cdef class EnqMessage(Message):
 
         buf.write_bytes_with_length(queue_name_bytes)
         buf.write_bytes(self.queue_impl.payload_toid)
-        if not self.queue_impl.is_json:
-            if self.queue_impl.payload_type is not None:
-                buf.write_dbobject(self.props_impl.payloadObject)
-            else:
-                buf.write_bytes(self.props_impl.payloadObject)
-        if self.queue_impl.is_json:
-            buf.write_oson(self.props_impl.payloadObject,
-                self.conn_impl._oson_max_fname_size, False)
+        self._write_payload(buf, self.props_impl)
