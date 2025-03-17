@@ -276,6 +276,7 @@ cdef class BaseVarImpl:
         self.metadata._finalize_init()
         if self.num_elements == 0:
             self.num_elements = 1
+        self._has_returned_data = False
 
     cdef OracleArrowArray _finish_building_arrow_array(self):
         """

@@ -1163,6 +1163,7 @@ cdef class MessageWithData(Message):
                 for j in range(num_rows):
                     values[j] = self._process_column_data(buf, var_impl, j)
                 var_impl._values[self.row_index] = values
+                var_impl._has_returned_data = True
             elif self.cursor_impl.fetching_arrow:
                 if self._is_duplicate_data(i):
                     var_impl._arrow_array.append_last_value(

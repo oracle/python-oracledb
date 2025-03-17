@@ -34,7 +34,6 @@ cdef class ThickVarImpl(BaseVarImpl):
         dpiVar *_handle
         dpiData *_data
         StringBuffer _buf
-        bint _get_returned_data
         object _conn
 
     def __dealloc__(self):
@@ -71,7 +70,7 @@ cdef class ThickVarImpl(BaseVarImpl):
                                  self._handle) < 0:
                 _raise_from_odpi()
         if thick_cursor_impl._stmt_info.isReturning and not self._is_value_set:
-            self._get_returned_data = True
+            self._has_returned_data = True
         self._is_value_set = False
 
     cdef int _create_handle(self) except -1:
@@ -180,7 +179,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         cdef:
             uint32_t num_returned_rows
             dpiData *returned_data
-        if self._get_returned_data:
+        if self._has_returned_data:
             if dpiVar_getReturnedData(self._handle, pos, &num_returned_rows,
                                       &returned_data) < 0:
                 _raise_from_odpi()

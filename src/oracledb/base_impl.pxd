@@ -725,6 +725,7 @@ cdef class BaseVarImpl:
         OracleMetadata _fetch_metadata
         list _values
         OracleArrowArray _arrow_array
+        bint _has_returned_data
         bint _is_value_set
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor,

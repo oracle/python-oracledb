@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -539,6 +539,20 @@ class TestCase(test_env.BaseTestCase):
         """
         with self.assertRaisesFullCode("DPY-2048"):
             self.cursor.execute(sql, id_val=1, str_val=str_val)
+
+    def test_1624(self):
+        "1624 - use bind variable in new statement after RETURNING statement"
+        self.cursor.execute("truncate table TestTempTable")
+        sql = (
+            "insert into TestTempTable (IntCol) values (:in_val)"
+            "returning IntCol + 15 into :out_val"
+        )
+        out_val = self.cursor.var(int, arraysize=5)
+        self.cursor.execute(sql, in_val=25, out_val=out_val)
+        self.assertEqual(out_val.getvalue(), [40])
+        sql = "begin :out_val := :in_val + 35; end;"
+        self.cursor.execute(sql, in_val=35, out_val=out_val)
+        self.assertEqual(out_val.getvalue(), 70)
 
 
 if __name__ == "__main__":

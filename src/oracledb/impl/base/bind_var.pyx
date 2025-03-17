@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -97,6 +97,8 @@ cdef class BindVar:
             if isinstance(typ, PY_TYPE_VAR):
                 self.var = typ
                 self.var_impl = typ._impl
+                if self.var_impl._has_returned_data:
+                    self.var_impl._finalize_init()
             else:
                 self._create_var_from_type(conn, cursor_impl, typ)
 
@@ -121,6 +123,8 @@ cdef class BindVar:
             if value is not self.var:
                 self.var = value
                 self.var_impl = value._impl
+                if self.var_impl._has_returned_data:
+                    self.var_impl._finalize_init()
             return 0
 
         # if a variable already exists check to see if the value can be set on

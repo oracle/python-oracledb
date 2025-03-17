@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -517,6 +517,20 @@ class TestCase(test_env.BaseAsyncTestCase):
         out_val = self.cursor.var(int, arraysize=5)
         await self.cursor.execute(sql, in_val=25, out_val=out_val)
         self.assertEqual(out_val.getvalue(), [25])
+
+    async def test_5922(self):
+        "5922 - use bind variable in new statement after RETURNING statement"
+        await self.cursor.execute("truncate table TestTempTable")
+        sql = (
+            "insert into TestTempTable (IntCol) values (:in_val)"
+            "returning IntCol + 15 into :out_val"
+        )
+        out_val = self.cursor.var(int, arraysize=5)
+        await self.cursor.execute(sql, in_val=25, out_val=out_val)
+        self.assertEqual(out_val.getvalue(), [40])
+        sql = "begin :out_val := :in_val + 35; end;"
+        await self.cursor.execute(sql, in_val=35, out_val=out_val)
+        self.assertEqual(out_val.getvalue(), 70)
 
 
 if __name__ == "__main__":
