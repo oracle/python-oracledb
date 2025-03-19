@@ -141,21 +141,6 @@ cdef int convert_number_to_arrow_int64(OracleArrowArray arrow_array,
     arrow_array.append_int64(atoi(value.chars[:value.num_chars]))
 
 
-cdef int convert_number_to_arrow_string(OracleArrowArray arrow_array,
-                                        OracleDataBuffer *buffer) except -1:
-    """
-    Converts a NUMBER value stored in the buffer to Arrow string.
-    """
-    cdef:
-        OracleNumber *value = &buffer.as_number
-        char* ptr
-    if value.is_max_negative_value:
-        ptr = "-1e126"
-        arrow_array.append_bytes(ptr, 6)
-    else:
-        arrow_array.append_bytes(value.chars, value.num_chars)
-
-
 cdef object convert_number_to_python_decimal(OracleDataBuffer *buffer):
     """
     Converts a NUMBER value stored in the buffer to Python decimal.Decimal().
