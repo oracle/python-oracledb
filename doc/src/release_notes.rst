@@ -44,6 +44,9 @@ Thick Mode Changes
 #)  Improved error message when getting :attr:`Connection.max_open_cursors`
     when using Oracle Client libraries 11.2
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+#)  Improved error message when attempting to work with sparse vectors using
+    Oracle Client libraries 23.6 or earlier
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 
 Common Changes
 ++++++++++++++
