@@ -336,11 +336,10 @@ cdef class OracleArrowArray:
         cdef:
             int64_t n_buffers = self.arrow_array.n_buffers
             ArrowBufferView *buffer
-            ArrowArrayView *view
-        view = <ArrowArrayView*> cpython.PyMem_Malloc(sizeof(ArrowArrayView))
-        _check_nanoarrow(ArrowArrayViewInitFromSchema(view, self.arrow_schema,
+            ArrowArrayView view
+        _check_nanoarrow(ArrowArrayViewInitFromSchema(&view, self.arrow_schema,
                                                       NULL))
-        _check_nanoarrow(ArrowArrayViewSetArray(view, self.arrow_array, NULL))
+        _check_nanoarrow(ArrowArrayViewSetArray(&view, self.arrow_array, NULL))
 
         # initialize all buffers to None to begin with
         buffers = {

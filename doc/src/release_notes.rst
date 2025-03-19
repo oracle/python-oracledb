@@ -57,6 +57,7 @@ Common Changes
     - avoid memory allocation/free cycles for decimal data
     - eliminated memory leak if OracleDataFrame is not converted to an external
       data frame
+    - eliminated small memory leak with production of all data frames
 
 #)  Fixed bug when NUMBER data is fetched with
     :meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`
