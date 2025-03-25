@@ -6,7 +6,9 @@ API: AsyncLOB Objects
 
 An AsyncLOB object can be created with :meth:`AsyncConnection.createlob()`.
 Also, this object is returned whenever Oracle :data:`CLOB`, :data:`BLOB` and
-:data:`BFILE` columns are fetched. This object is an extension to the DB API.
+:data:`BFILE` columns are fetched.
+
+.. dbapiobjectextension::
 
 See :ref:`lobdata` for more information about using LOBs.
 

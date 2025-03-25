@@ -4,9 +4,7 @@
 API: Subscription Objects
 *************************
 
-.. note::
-
-    This object is an extension the DB API.
+.. dbapiobjectextension::
 
 Subscription Methods
 ====================
@@ -104,10 +102,8 @@ Subscription Attributes
 Message Objects
 ---------------
 
-.. note::
-
-    This object is created internally when notification is received and passed
-    to the callback procedure specified when a subscription is created.
+Message objects are created when a notification is received. They are passed to
+the callback procedure specified when a subscription is created.
 
 .. attribute:: Message.consumer_name
 
@@ -190,11 +186,9 @@ Message Objects
 MessageTable Objects
 --------------------
 
-.. note::
-
-    This object is created internally for each table changed when notification
-    is received and is found in the tables attribute of message objects, and
-    the tables attribute of message query objects.
+MessageTable objects are created when a notification is received for each table
+change. They are accessed in the tables attribute of message objects, and the
+tables attribute of message query objects.
 
 
 .. attribute:: MessageTable.name
@@ -219,11 +213,9 @@ MessageTable Objects
 MessageRow Objects
 ------------------
 
-.. note::
-
-    This object is created internally for each row changed on a table when
-    notification is received and is found in the rows attribute of message
-    table objects.
+MessageRow objects are created when a notification is received for each row
+changed in a table. They are found in the rows attribute of message table
+objects.
 
 
 .. attribute:: MessageRow.operation
@@ -240,11 +232,9 @@ MessageRow Objects
 MessageQuery Objects
 --------------------
 
-.. note::
-
-    This object is created internally for each query result set changed when
-    notification is received and is found in the queries attribute of message
-    objects.
+A MessageQuery object is created when a notification is received for a query
+result set change. This object is found in the queries attribute of message
+objects.
 
 
 .. attribute:: MessageQuery.id

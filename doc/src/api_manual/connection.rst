@@ -20,18 +20,14 @@ Connection Methods
 
     The entry point for the connection as a context manager. It returns itself.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.__exit__()
 
     The exit point for the connection as a context manager. This will close
     the connection and roll back any uncommitted transaction.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.begin([formatId, transactionId, branchId])
 
@@ -48,26 +44,20 @@ Connection Methods
 
     Use the method :meth:`Connection.tpc_begin()` instead.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.cancel()
 
     Breaks a long-running statement.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.changepassword(oldpassword, newpassword)
 
     Changes the password for the user to which the connection is
     connected.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.close()
 
@@ -102,9 +92,7 @@ Connection Methods
 
         The parameter ``data`` was added.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.cursor(scrollable=False)
 
@@ -155,9 +143,7 @@ Connection Methods
         The data frame support in python-oracledb 3.1 is a pre-release and may
         change in a future version.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 3.0.0
 
@@ -189,9 +175,7 @@ Connection Methods
         The data frame support in python-oracledb 3.1 is a pre-release and may
         change in a future version.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 3.0.0
 
@@ -204,9 +188,7 @@ Connection Methods
     ctx=dblatest&id=GUID-BE42F8D3-B86B-43B4-B2A3-5760A4DF79FB>`__  for
     additional information on SODA.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.gettype(name)
 
@@ -214,9 +196,7 @@ Connection Methods
     be used to create objects which can be bound to cursors created by this
     connection.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.is_healthy()
 
@@ -247,9 +227,7 @@ Connection Methods
     Each of the parameters are optional. If specified, they act as a shortcut
     for setting each of the equivalently named properties.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.ping()
 
@@ -261,9 +239,7 @@ Connection Methods
     Note connection pools will perform the same health check automatically,
     based on configuration settings. See :ref:`poolhealth`.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.prepare()
 
@@ -275,9 +251,7 @@ Connection Methods
 
     Use the method :meth:`Connection.tpc_prepare()` instead.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.queue(name, payload_type=None)
 
@@ -296,9 +270,7 @@ Connection Methods
     parameter ``payloadType`` was renamed to ``payload_type``. The old name
     will continue to work as a keyword parameter for a period of time.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.rollback()
 
@@ -323,9 +295,7 @@ Connection Methods
         cursor.execute("alter database dismount")
         connection.shutdown(mode = oracledb.DBSHUTDOWN_FINAL)
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 
 .. method:: Connection.startup(force=False, restrict=False, pfile=None)
@@ -353,9 +323,7 @@ Connection Methods
         cursor.execute("alter database mount")
         cursor.execute("alter database open")
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Connection.subscribe(namespace=oracledb.SUBSCR_NAMESPACE_DBCHANGE, \
                 protocol=oracledb.SUBSCR_PROTO_OCI, callback=None, timeout=0, \
@@ -436,9 +404,7 @@ Connection Methods
     ``clientInitiated`` was renamed to ``client_initiated``. The old names will
     continue to work as keyword parameters for a period of time.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. note::
 
@@ -651,9 +617,7 @@ Connection Attributes
     is a string attribute but the value *None* is accepted and treated as an
     empty string.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.autocommit
 
@@ -661,15 +625,16 @@ Connection Attributes
     When autocommit mode is on, all statements are committed as soon as they
     have completed executing.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.call_timeout
 
     This read-write attribute specifies the amount of time (in milliseconds)
     that a single round-trip to the database may take before a timeout will
     occur. A value of *0* means that no timeout will take place.
+
+    In python-oracledb Thick mode, this attribute is only available in Oracle
+    Client 18c or later.
 
     If a timeout occurs, the error ``DPI-1067`` will be returned if the
     connection is still usable.  Alternatively the error ``DPI-1080`` will be
@@ -680,28 +645,21 @@ Connection Attributes
     will continue to work for a period of time.  The error ``DPI-1080`` was
     also introduced in this release.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition and is only
-        available in Oracle Client 18c and higher.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.client_identifier
 
     This write-only attribute sets the CLIENT_IDENTIFIER column in the
     V$SESSION view.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.clientinfo
 
     This write-only attribute sets the CLIENT_INFO column in the V$SESSION
     view.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.current_schema
 
@@ -711,9 +669,7 @@ Connection Attributes
     the next call that does a round trip to the server. The value is placed
     before unqualified database objects in SQL statements you then execute.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.db_domain
 
@@ -721,11 +677,9 @@ Connection Attributes
     associated with the connection. It is the same value returned by the SQL
     ``SELECT value FROM V$PARAMETER WHERE NAME = 'db_domain'``.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.db_name
 
@@ -733,11 +687,9 @@ Connection Attributes
     the connection. It is the same value returned by the SQL
     ``SELECT NAME FROM V$DATABASE``.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.dbop
 
@@ -745,18 +697,14 @@ Connection Attributes
     monitored. This can be viewed in the DBOP_NAME column of the
     V$SQL_MONITOR view.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.dsn
 
     This read-only attribute returns the TNS entry of the database to which a
     connection has been established.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.econtext_id
 
@@ -769,18 +717,14 @@ Connection Attributes
     This read-only attribute gets the session edition and is only available
     with Oracle Database 11.2, or later.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.external_name
 
     This read-write attribute specifies the external name that is used by the
     connection when logging distributed transactions.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.handle
 
@@ -790,9 +734,7 @@ Connection Attributes
 
     This property is only relevant in the python-oracledb Thick mode.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.inputtypehandler
 
@@ -806,9 +748,7 @@ Connection Attributes
 
     See :ref:`inputtypehandlers`.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.instance_name
 
@@ -816,20 +756,16 @@ Connection Attributes
     associated with the connection. It is the same value as the SQL expression
     ``sys_context('userenv', 'instance_name')``.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 1.4.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.internal_name
 
     This read-write attribute specifies the internal name that is used by the
     connection when logging distributed transactions.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.ltxid
 
@@ -838,15 +774,15 @@ Connection Attributes
     ensuring that transactions are not duplicated. See :ref:`tg` for more
     information.
 
+    This is only available with Oracle Database 12.1 or later. In
+    python-oracledb Thick mode, it also requires Oracle Client libraries 12.1
+    or later.
+
+    .. dbapiattributeextension::
+
     .. versionchanged:: 3.0.0
 
         This attribute was added to python-oracledb Thin mode.
-
-    .. note::
-
-        This attribute is an extension to the DB API definition. It is only
-        available with Oracle Database 12.1 or later. In python-oracledb Thick
-        mode, it also requires Oracle Client libraries 12.1 or later.
 
 .. attribute:: Connection.max_identifier_length
 
@@ -870,11 +806,9 @@ Connection Attributes
     using python-oracledb Thick mode, Oracle Client libraries 12.1 (or later)
     are required.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.module
 
@@ -882,10 +816,7 @@ Connection Attributes
     The maximum length for this string is 48 and if you exceed this length you
     will get ``ORA-24960``.
 
-    .. note:
-
-        This attribute is an extension to the DB API definition.
-
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.outputtypehandler
 
@@ -904,20 +835,16 @@ Connection Attributes
         ``handler(cursor, name, default_type, length, precision, scale)`` will
         still work but is deprecated and will be removed in a future version.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.proxy_user
 
     This read-only attribute returns the name of the user which was used as a
     proxy when creating the connection to the database.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.sdu
 
@@ -927,11 +854,9 @@ Connection Attributes
     network configuration. It is available only in the python-oracledb Thin
     mode.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.serial_num
 
@@ -940,17 +865,15 @@ Connection Attributes
     ``SELECT SERIAL# FROM V$SESSION WHERE SID=SYS_CONTEXT('USERENV', 'SID')``.
     It is available only in python-oracledb Thin mode.
 
+
+    For applications using :ref:`drcp`, the ``serial_num`` attribute may not
+    contain the current session state until a round-trip is made to the
+    database after acquiring a session.  It is recommended to not use this
+    attribute if your application uses DRCP but may not perform a round-trip.
+
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.5.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-        For applications using :ref:`drcp`, the ``serial_num`` attribute may
-        not contain the current session state until a round-trip is made to the
-        database after acquiring a session.  It is recommended to not use this
-        attribute if your application uses DRCP but may not perform a
-        round-trip.
 
 .. attribute:: Connection.service_name
 
@@ -958,11 +881,9 @@ Connection Attributes
     associated with the connection.  This is the same value returned by the SQL
     ``SELECT SYS_CONTEXT('USERENV', 'SERVICE_NAME') FROM DUAL``.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.session_id
 
@@ -971,17 +892,14 @@ Connection Attributes
     ``SELECT SYS_CONTEXT('USERENV', 'SID') FROM DUAL``. It is available
     only in python-oracledb Thin mode.
 
+    For applications using :ref:`drcp`, the ``session_id`` attribute may not
+    contain the current session state until a round-trip is made to the
+    database after acquiring a session.  It is recommended to not use this
+    attribute if your application uses DRCP but may not perform a round-trip.
+
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.5.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-        For applications using :ref:`drcp`, the ``session_id`` attribute may
-        not contain the current session state until a round-trip is made to the
-        database after acquiring a session.  It is recommended to not use this
-        attribute if your application uses DRCP but may not perform a
-        round-trip.
 
 .. attribute:: Connection.stmtcachesize
 
@@ -993,9 +911,7 @@ Connection Attributes
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.tag
 
@@ -1010,9 +926,7 @@ Connection Attributes
     pool it will be used to retag the session. This value can be overridden in
     the call to :meth:`ConnectionPool.release()`.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.thin
 
@@ -1020,44 +934,37 @@ Connection Attributes
     established with the python-oracledb Thin mode (*True*) or python-oracledb
     Thick mode (*False*).
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.transaction_in_progress
 
     This read-only attribute specifies whether a transaction is currently in
     progress on the database associated with the connection.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Connection.username
 
     This read-only attribute returns the name of the user which established the
     connection to the database.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Connection.version
 
     This read-only attribute returns the version of the database to which a
     connection has been established.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
     .. note::
 
-        If you connect to Oracle Database 18 or higher using Oracle Client
-        libraries 12.2 or lower you will only receive the base version (such as
-        18.0.0.0.0) instead of the full version (such as 18.3.0.0.0).
+        If you connect to Oracle Database 18 (or higher) in python-oracledb
+        Thick mode using Oracle Client libraries 12.2 (or lower) you will only
+        receive the base version (such as 18.0.0.0.0) instead of the full
+        version (such as 18.3.0.0.0).
 
 .. attribute:: Connection.warning
 
@@ -1084,8 +991,6 @@ Connection Attributes
 
     If no warning was generated the value *None* is returned.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.

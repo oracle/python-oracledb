@@ -13,27 +13,19 @@ Cursor Methods
 
     The entry point for the cursor as a context manager. It returns itself.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
-
+    .. dbapimethodextension::
 
 .. method:: Cursor.__exit__()
 
     The exit point for the cursor as a context manager. It closes the cursor.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. method:: Cursor.__iter__()
 
     Returns the cursor itself to be used as an iterator.
 
-    .. note::
-
-        This method is an extension to the DB API definition but it is
-        mentioned in PEP 249 as an optional extension.
+    .. dbapimethodextension:: It is mentioned in PEP 249 as an optional extension.
 
 .. method:: Cursor.arrayvar(typ, value, [size])
 
@@ -53,18 +45,14 @@ Cursor Methods
     `example <https://github.com/oracle/python-oracledb/blob/main/
     samples/plsql_collection.py>`__ needs to be used.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 .. method:: Cursor.bindnames()
 
     Returns the list of bind variable names bound to the statement. Note that a
     statement must have been prepared first.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 .. method:: Cursor.callfunc(name, return_type, parameters=[], \
         keyword_parameters={})
@@ -88,9 +76,7 @@ Cursor Methods
     ``keywordParameters`` was renamed to ``keyword_parameters``. The old name
     will continue to work for a period of time.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
     .. note::
 
@@ -262,10 +248,9 @@ Cursor Methods
     corresponding to the number of rows affected by the DML statement for each
     element of the array passed to :meth:`Cursor.executemany()`.
 
-    .. note::
+    This method is only available for Oracle Database 12.1 and later.
 
-        The DB API definition does not define this method and it is only
-        available for Oracle 12.1 and later.
+    .. dbapimethodextension::
 
 .. method:: Cursor.getbatcherrors()
 
@@ -274,9 +259,7 @@ Cursor Methods
     list of Error objects, one error for each iteration that failed. The offset
     can be determined by looking at the offset attribute of the error object.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 .. method:: Cursor.getimplicitresults()
 
@@ -292,12 +275,12 @@ Cursor Methods
     python-oracledb :ref:`Thick <enablingthick>` mode, Oracle Client 12.1 (or
     later) is additionally required.
 
-    .. note::
+    .. dbapimethodextension::
 
-        The DB API definition does not define this method. It is most like the
-        DB API method nextset(), but unlike that method (which requires that
-        the next result set overwrite the current result set), this method
-        returns cursors which can be fetched independently of each other.
+       It is most like the DB API method nextset(), but unlike that method
+       (which requires that the next result set overwrite the current result
+       set), this method returns cursors which can be fetched independently of
+       each other.
 
 .. method:: Cursor.parse(statement)
 
@@ -305,9 +288,7 @@ Cursor Methods
     (parsing step is done automatically by Oracle when a statement is
     :meth:`executed <Cursor.execute>`).
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
     .. note::
 
@@ -333,9 +314,7 @@ Cursor Methods
 
     See :ref:`Statement Caching <stmtcache>` for more information.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 .. method:: Cursor.scroll(value=0, mode="relative")
 
@@ -351,10 +330,7 @@ Cursor Methods
     An error is raised if the mode is *relative* or *absolute* and the scroll
     operation would position the cursor outside of the result set.
 
-    .. note::
-
-        This method is an extension to the DB API definition but it is
-        mentioned in PEP 249 as an optional extension.
+    .. dbapimethodextension:: It is mentioned in PEP 249 as an optional extension.
 
 .. method:: Cursor.setinputsizes(*args, **keywordArgs)
 
@@ -485,9 +461,7 @@ Cursor Methods
 
         The ``convert_nulls`` parameter was added.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 Cursor Attributes
 =================
@@ -519,19 +493,14 @@ Cursor Attributes
     name. Care should be taken when referencing this attribute. In particular,
     elements should not be removed or replaced.
 
-    .. note::
-
-        The DB API definition does not define this attribute.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.connection
 
     This read-only attribute returns a reference to the connection object on
     which the cursor was created.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition but it is
-        mentioned in PEP 249 as an optional extension.
+    .. dbapimethodextension:: It is mentioned in PEP 249 as an optional extension.
 
 .. attribute:: Cursor.description
 
@@ -554,9 +523,7 @@ Cursor Attributes
     referencing this attribute. In particular, elements should not be removed
     or replaced.
 
-    .. note::
-
-        The DB API definition does not define this attribute.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.inputtypehandler
 
@@ -570,9 +537,7 @@ Cursor Attributes
 
     See :ref:`inputtypehandlers`.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.lastrowid
 
@@ -591,15 +556,13 @@ Cursor Attributes
 
     See :ref:`outputtypehandlers`.
 
+    .. dbapiattributeextension::
+
     .. versionchanged:: 1.4.0
 
         The method signature was changed. The previous signature
         handler(cursor, name, default_type, length, precision, scale) will
         still work but is deprecated and will be removed in a future version.
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
 
 .. attribute:: Cursor.prefetchrows
 
@@ -618,9 +581,7 @@ Cursor Attributes
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
-    .. note::
-
-        The DB API definition does not define this method.
+    .. dbapimethodextension::
 
 .. attribute:: Cursor.rowcount
 
@@ -640,9 +601,7 @@ Cursor Attributes
 
     See :ref:`rowfactories`.
 
-    .. note::
-
-        The DB API definition does not define this attribute.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.scrollable
 
@@ -652,9 +611,7 @@ Cursor Attributes
     attribute is checked and the corresponding mode set in Oracle when calling
     the method :meth:`Cursor.execute()`.
 
-    .. note::
-
-        The DB API definition does not define this attribute.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.statement
 
@@ -662,9 +619,7 @@ Cursor Attributes
     prepared with :meth:`Cursor.prepare()` or executed with
     :meth:`Cursor.execute()`.
 
-    .. note::
-
-        The DB API definition does not define this attribute.
+    .. dbapiattributeextension::
 
 .. attribute:: Cursor.warning
 
@@ -678,8 +633,6 @@ Cursor Attributes
 
     See :ref:`plsqlwarning` for more information.
 
+    .. dbapiattributeextension::
+
     .. versionadded:: 2.0.0
-
-    .. note::
-
-        The DB API definition does not define this attribute.

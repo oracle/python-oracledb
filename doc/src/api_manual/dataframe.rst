@@ -28,7 +28,7 @@ Each column in OracleDataFrame exposes an `Apache Arrow PyCapsule
 <https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html>`__
 interface, giving access to the underlying Arrow array.
 
-The OracleDataFrame object is an extension to the DB API.
+.. dbapiobjectextension::
 
 .. versionadded:: 3.0.0
 

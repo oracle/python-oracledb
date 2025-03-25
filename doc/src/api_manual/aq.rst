@@ -6,10 +6,6 @@ API: Advanced Queuing (AQ)
 
 See :ref:`aqusermanual` for more information about using AQ in python-oracledb.
 
-.. note::
-
-    All of these objects are extensions to the DB API.
-
 .. _queue:
 
 Queue Objects
@@ -17,6 +13,8 @@ Queue Objects
 
 These objects are created using the :meth:`Connection.queue()` method and are
 used to enqueue and dequeue messages.
+
+.. dbapiobjectextension::
 
 Queue Methods
 -------------
@@ -119,12 +117,10 @@ Queue Attributes
 Dequeue Options
 ===============
 
-.. note::
+These objects are used to configure how messages are dequeued from queues.
+An instance of this object is found in the attribute :attr:`Queue.deqOptions`.
 
-    These objects are used to configure how messages are dequeued from queues.
-    An instance of this object is found in the attribute
-    :attr:`Queue.deqOptions`.
-
+.. dbapiobjectextension::
 
 .. attribute:: DeqOptions.condition
 
@@ -214,12 +210,10 @@ Dequeue Options
 Enqueue Options
 ===============
 
-.. note::
+These objects are used to configure how messages are enqueued into queues. An
+instance of this object is found in the attribute :attr:`Queue.enqOptions`.
 
-    These objects are used to configure how messages are enqueued into queues.
-    An instance of this object is found in the attribute
-    :attr:`Queue.enqOptions`.
-
+.. dbapiobjectextension::
 
 .. attribute:: EnqOptions.deliverymode
 
@@ -249,14 +243,13 @@ Enqueue Options
 Message Properties
 ==================
 
-.. note::
+These objects are used to identify the properties of messages that are enqueued
+and dequeued in queues. They are created by the method
+:meth:`Connection.msgproperties()`.  They are used by the methods
+:meth:`Queue.enqone()` and :meth:`Queue.enqmany()` and returned by the methods
+:meth:`Queue.deqone()` and :meth:`Queue.deqmany()`.
 
-    These objects are used to identify the properties of messages that are
-    enqueued and dequeued in queues. They are created by the method
-    :meth:`Connection.msgproperties()`.  They are used by the methods
-    :meth:`Queue.enqone()` and :meth:`Queue.enqmany()` and
-    returned by the methods :meth:`Queue.deqone()` and :meth:`Queue.deqmany()`.
-
+.. dbapiobjectextension::
 
 .. attribute:: MessageProperties.attempts
 

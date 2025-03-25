@@ -7,10 +7,10 @@ API: LOB Objects
 A LOB object can be created with :meth:`Connection.createlob()`. See
 :ref:`lobdata` for more information about using LOBs.
 
-.. note::
+This object is returned by default whenever Oracle :data:`CLOB`, :data:`BLOB`
+and :data:`BFILE` columns are fetched.
 
-    This object is an extension the DB API. It is returned whenever Oracle
-    :data:`CLOB`, :data:`BLOB` and :data:`BFILE` columns are fetched.
+.. dbapiobjectextension::
 
 LOB Methods
 ===========

@@ -8,8 +8,9 @@ An AsyncConnection object can be created with :meth:`oracledb.connect_async()`
 or with :meth:`AsyncConnectionPool.acquire()`. AsyncConnections support use of
 concurrent programming with `asyncio <https://docs.python.org/3/library/
 asyncio.html>`__. Unless explicitly noted as synchronous, the AsyncConnection
-methods should be used with ``await``. This object is an extension to the DB
-API.
+methods should be used with ``await``.
+
+.. dbapiobjectextension::
 
 .. versionadded:: 2.0.0
 
@@ -647,20 +648,18 @@ AsyncConnection Attributes
 
     This read-only attribute specifies the session serial number associated with
     the connection. It is the same value returned by the SQL
-    ``SELECT SERIAL# FROM V$SESSION``. It is available only in python-oracledb
-    Thin mode.
+    ``SELECT SERIAL# FROM V$SESSION``.
+
+    It is available only in python-oracledb Thin mode.
+
+    For applications using :ref:`drcp`, the ``serial_num`` attribute may not
+    contain the current session state until a round-trip is made to the
+    database after acquiring a session.  It is recommended to not use this
+    attribute if your application uses DRCP but may not perform a round-trip.
+
+    .. dbapiattributeextension::
 
     .. versionadded:: 2.5.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-        For applications using :ref:`drcp`, the ``serial_num`` attribute may
-        not contain the current session state until a round-trip is made to the
-        database after acquiring a session.  It is recommended to not use this
-        attribute if your application uses DRCP but may not perform a
-        round-trip.
 
 .. attribute:: AsyncConnection.service_name
 
@@ -672,20 +671,19 @@ AsyncConnection Attributes
 
     This read-only attribute specifies the session identifier associated with
     the connection. It is the same value returned by the SQL
-    ``SELECT SID FROM V$SESSION``. It is available only in python-oracledb
-    Thin mode.
+    ``SELECT SID FROM V$SESSION``.
+
+    It is available only in python-oracledb Thin mode.
+
+    For applications using :ref:`drcp`, the ``session_id`` attribute may
+    not contain the current session state until a round-trip is made to the
+    database after acquiring a session.  It is recommended to not use this
+    attribute if your application uses DRCP but may not perform a
+    round-trip.
+
+    .. dbapiattributeextension::
 
     .. versionadded:: 2.5.0
-
-    .. note::
-
-        This attribute is an extension to the DB API definition.
-
-        For applications using :ref:`drcp`, the ``session_id`` attribute may
-        not contain the current session state until a round-trip is made to the
-        database after acquiring a session.  It is recommended to not use this
-        attribute if your application uses DRCP but may not perform a
-        round-trip.
 
 .. attribute:: AsyncConnection.stmtcachesize
 

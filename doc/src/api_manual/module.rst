@@ -31,9 +31,7 @@ Oracledb Methods
     is, if :func:`oracledb.init_oracle_client()` is not called first, then an
     exception will be thrown.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. function:: connect(dsn=None, pool=None, pool_alias=None, conn_class=None, \
         params=None, user=None, proxy_user=None, password=None, \
@@ -2093,10 +2091,7 @@ Oracledb Methods
     Constructor for creating a cursor.  Returns a new
     :ref:`cursor object <cursorobj>` using the connection.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
-
+    .. dbapimethodextension::
 
 .. function:: Date(year, month, day)
 
@@ -2228,9 +2223,7 @@ Oracledb Methods
     - otherwise the value *None* is used. (Leaving :attr:`defaults.config_dir`
       unchanged).
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionchanged:: 3.0.0
 
@@ -2263,9 +2256,7 @@ Oracledb Methods
     mode. The attribute :attr:`ConnectionPool.thin` can be used to check a
     pool's mode.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 1.1.0
 
@@ -2282,9 +2273,7 @@ Oracledb Methods
 
     Use the :meth:`oracledb.ConnectParams()` method instead.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
 .. function:: PoolParams(min=1, max=2, increment=1, connectiontype=None, \
         getmode=oracledb.POOL_GETMODE_WAIT, homogeneous=True, timeout=0, \
@@ -2756,9 +2745,7 @@ Oracledb Methods
 
     See :ref:`registerparamshook`.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 3.0.0
 
@@ -2781,9 +2768,7 @@ Oracledb Methods
 
     See :ref:`registerpasswordtype`.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 3.0.0
 
@@ -2852,9 +2837,7 @@ Oracledb Methods
 
     See :ref:`registerprotocolhook` for more information.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 2.5.0
 
@@ -2894,9 +2877,7 @@ Oracledb Methods
     Unregisters a user parameter function that was earlier registered with a
     call to :meth:`oracledb.register_params_hook()`.
 
-    .. note::
-
-        This method is an extension to the DB API definition.
+    .. dbapimethodextension::
 
     .. versionadded:: 3.0.0
 
@@ -2936,9 +2917,7 @@ Oracledb __future__ Object
 Special object that contains attributes which control the behavior of
 python-oracledb, allowing for opting in for new features.
 
-.. note::
-
-    This method is an extension to the DB API definition.
+.. dbapimethodextension::
 
 .. _constants:
 
@@ -2972,27 +2951,30 @@ General
 
     String constant stating the version of the module. Currently '|release|'.
 
-    .. note::
-
-        This attribute is an extension to the DB API definition.
+    .. dbapiattributeextension::
 
 
 Advanced Queuing: Delivery Modes
 --------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~DeqOptions.deliverymode` attribute of the
+The AQ Delivery mode constants are possible values for the
+:attr:`~DeqOptions.deliverymode` attribute of the
 :ref:`dequeue options object <deqoptions>` passed as the ``options`` parameter
-to the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods as well as the
-:attr:`~EnqOptions.deliverymode` attribute of the
+to the :meth:`Queue.deqone()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.deqone()`, and :meth:`AsyncQueue.deqmany()`  methods as well
+as the :attr:`~EnqOptions.deliverymode` attribute of the
 :ref:`enqueue options object <enqoptions>` passed as the ``options`` parameter
-to the :meth:`Queue.enqone()` or :meth:`Queue.enqmany()` methods. They are also
-possible values for the :attr:`~MessageProperties.deliverymode` attribute of
-the :ref:`message properties object <msgproperties>` passed as the
-``msgproperties`` parameter to the :meth:`Queue.deqone()` or
-:meth:`Queue.deqmany()` and :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
-methods.
+to the :meth:`Queue.enqone()`, :meth:`Queue.enqmany()`,
+:meth:`AsyncQueue.enqone()`, and :meth:`AsyncQueue.enqmany()` methods. They are
+also possible values for the :attr:`~MessageProperties.deliverymode` attribute
+of the :ref:`message properties object <msgproperties>` passed as the
+``msgproperties`` parameter to the :meth:`Queue.deqone()`,
+:meth:`Queue.deqmany()`, :meth:`AsyncQueue.deqone()`, or
+:meth:`AsyncQueue.deqmany()`, and :meth:`Queue.enqone()`,
+:meth:`Queue.enqmany()`, :meth:`AsyncQueue.enqone()`, or
+:meth:`AsyncQueue.enqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: MSG_BUFFERED
 
@@ -3015,11 +2997,13 @@ methods.
 Advanced Queuing: Dequeue Modes
 -------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~DeqOptions.mode` attribute of the
+The AQ Dequeue mode constants are possible values for the
+:attr:`~DeqOptions.mode` attribute of the
 :ref:`dequeue options object <deqoptions>`. This object is the ``options``
-parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
+parameter for the :meth:`Queue.deqone()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.deqone()`, or :meth:`AsyncQueue.deqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: DEQ_BROWSE
 
@@ -3050,11 +3034,13 @@ parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
 Advanced Queuing: Dequeue Navigation Modes
 ------------------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~DeqOptions.navigation` attribute of the
+The AQ Dequeue Navigation mode constants are possible values for the
+:attr:`~DeqOptions.navigation` attribute of the
 :ref:`dequeue options object <deqoptions>`. This object is the ``options``
-parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
+parameter for the :meth:`Queue.deqone()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.deqone()`, or :meth:`AsyncQueue.deqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: DEQ_FIRST_MSG
 
@@ -3083,11 +3069,13 @@ parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
 Advanced Queuing: Dequeue Visibility Modes
 ------------------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~DeqOptions.visibility` attribute of the
+The AQ Dequeue Visibility mode constants are possible values for the
+:attr:`~DeqOptions.visibility` attribute of the
 :ref:`dequeue options object <deqoptions>`. This object is the ``options``
-parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
+parameter for the :meth:`Queue.deqone()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.deqone()`, or :meth:`AsyncQueue.deqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: DEQ_IMMEDIATE
 
@@ -3104,11 +3092,13 @@ parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
 Advanced Queuing: Dequeue Wait Modes
 ------------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~DeqOptions.wait` attribute of the
+The AQ Dequeue Wait mode constants are possible values for the
+:attr:`~DeqOptions.wait` attribute of the
 :ref:`dequeue options object <deqoptions>`. This object is the ``options``
-parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
+parameter for the :meth:`Queue.deqone()`, :meth:`Queue.deqmany()`,
+:meth:`AsyncQueue.deqone()`, or :meth:`AsyncQueue.deqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: DEQ_NO_WAIT
 
@@ -3125,11 +3115,13 @@ parameter for the :meth:`Queue.deqone()` or :meth:`Queue.deqmany()` methods.
 Advanced Queuing: Enqueue Visibility Modes
 ------------------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~EnqOptions.visibility` attribute of the
+The AQ Enqueue Visibility mode constants are possible values for the
+:attr:`~EnqOptions.visibility` attribute of the
 :ref:`enqueue options object <enqoptions>`. This object is the ``options``
-parameter for the :meth:`Queue.enqone()` or :meth:`Queue.enqmany()` methods.
+parameter for the :meth:`Queue.enqone()`, :meth:`Queue.enqmany()`,
+:meth:`AsyncQueue.enqone()`, or :meth:`AsyncQueue.enqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: ENQ_IMMEDIATE
 
@@ -3146,13 +3138,16 @@ parameter for the :meth:`Queue.enqone()` or :meth:`Queue.enqmany()` methods.
 Advanced Queuing: Message States
 --------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`~MessageProperties.state` attribute of the
+The AQ Message state constants are possible values for the
+:attr:`~MessageProperties.state` attribute of the
 :ref:`message properties object <msgproperties>`. This object is the
-``msgproperties`` parameter for the :meth:`Queue.deqone()` or
-:meth:`Queue.deqmany()`, and :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
-methods.
+``msgproperties`` parameter for the :meth:`Queue.deqone()`,
+:meth:`Queue.deqmany()`, :meth:`AsyncQueue.deqone()` or
+:meth:`AsyncQueue.deqmany()` and :meth:`Queue.enqone()`,
+:meth:`Queue.enqmany()`, :meth:`AsyncQueue.enqone()`, or
+:meth:`AsyncQueue.enqmany()` methods.
 
+.. dbapiconstantextension::
 
 .. data:: MSG_EXPIRED
 
@@ -3177,12 +3172,12 @@ methods.
     reached.
 
 
-Advanced Queuing: Other
------------------------
+Advanced Queuing: Other Constants
+---------------------------------
 
-These constants are extensions to the DB API definition. They are special
-constants used in advanced queuing.
+This section contains other constants that are used for Advanced Queueing.
 
+.. dbapiconstantextension::
 
 .. data:: MSG_NO_DELAY
 
@@ -3211,12 +3206,13 @@ constants used in advanced queuing.
 Connection Authorization Modes
 ------------------------------
 
-These constants belong to the enumeration called ``AuthMode``. They are
-possible values for the ``mode`` parameters of :meth:`oracledb.connect()`,
-:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, and
-:meth:`oracledb.create_pool_async()`.  They have deprecated the authorization
-modes used in cx_Oracle 8.3. The constants are extensions to the DB API
-definition.
+The Connection Authorization mode constants belong to the enumeration called
+``AuthMode``. They are possible values for the ``mode`` parameters of
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, and :meth:`oracledb.create_pool_async()`.
+These constants have deprecated the authorization modes used in cx_Oracle 8.3.
+
+.. dbapiconstantextension::
 
 .. versionchanged:: 2.3.0
 
@@ -3373,9 +3369,10 @@ definition.
 Pipeline Operation Types
 ------------------------
 
-These constants belong to the enumeration called ``PipelineOpType``. The
-pipelining constants listed below are used to identify the type of operation
-added. They are possible values for the :attr:`PipelineOp.op_type` attribute.
+The Pipeline Operation type constants belong to the enumeration called
+``PipelineOpType``. The pipelining constants listed below are used to identify
+the type of operation added. They are possible values for the
+:attr:`PipelineOp.op_type` attribute.
 
 .. versionadded:: 2.4.0
 
@@ -3447,9 +3444,10 @@ added. They are possible values for the :attr:`PipelineOp.op_type` attribute.
 Database Shutdown Modes
 -----------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``mode`` parameter of the :meth:`Connection.shutdown()` method.
+The Database Shutdown mode constants are possible values for the ``mode``
+parameter of the :meth:`Connection.shutdown()` method.
 
+.. dbapiconstantextension::
 
 .. data:: DBSHUTDOWN_ABORT
 
@@ -3490,10 +3488,11 @@ values for the ``mode`` parameter of the :meth:`Connection.shutdown()` method.
 Event Types
 -----------
 
-These constants are extensions to the DB API definition. They are possible
-values for the :attr:`Message.type` attribute of the messages that are sent
-for subscriptions created by the :meth:`Connection.subscribe()` method.
+The Event type constants are possible values for the :attr:`Message.type`
+attribute of the messages that are sent for subscriptions created by the
+:meth:`Connection.subscribe()` method.
 
+.. dbapiconstantextension::
 
 .. data:: EVENT_AQ
 
@@ -3548,12 +3547,13 @@ for subscriptions created by the :meth:`Connection.subscribe()` method.
 Operation Codes
 ---------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``operations`` parameter for the :meth:`Connection.subscribe()`
-method. One or more of these values can be OR'ed together. These values are
-also used by the :attr:`MessageTable.operation` or
-:attr:`MessageQuery.operation` attributes of the messages that are sent.
+The Operation code constants are possible values for the ``operations``
+parameter for the :meth:`Connection.subscribe()` method. One or more of these
+values can be OR'ed together. These values are also used by the
+:attr:`MessageTable.operation` or :attr:`MessageQuery.operation` attributes of
+the messages that are sent.
 
+.. dbapiconstantextension::
 
 .. data:: OPCODE_ALLOPS
 
@@ -3603,12 +3603,13 @@ also used by the :attr:`MessageTable.operation` or
 Connection Pool Get Modes
 -------------------------
 
-These constants belong to the enumeration called ``PoolGetMode``. They are
-possible values for the ``getmode`` parameters of
+The Connection Pool Get mode constants belong to the enumeration called
+``PoolGetMode``. They are possible values for the ``getmode`` parameters of
 :meth:`oracledb.create_pool()`, :meth:`oracledb.create_pool_async()`,
-:meth:`PoolParams.set()`, and for related attributes. They have deprecated the
-Session Pool mode constants that were used in cx_Oracle 8.3. The constants are
-extensions to the DB API definition
+:meth:`PoolParams.set()`, and for related attributes. These constants have
+deprecated the Session Pool mode constants that were used in cx_Oracle 8.3.
+
+.. dbapiconstantextension::
 
 .. versionchanged:: 2.3.0
 
@@ -3680,12 +3681,14 @@ extensions to the DB API definition
 Connection Pool Purity Constants
 --------------------------------
 
-These constants belong to the enumeration called ``Purity``. They are possible
-values for the :ref:`drcp` ``purity`` parameter of
-:meth:`oracledb.create_pool()`, :meth:`ConnectionPool.acquire()`, and
-:meth:`oracledb.connect()`. They have deprecated the Session Pool purity
-constants that were used in cx_Oracle 8.3. The constants are extensions to the
-DB API definition.
+The Connection Pool Purity constants belong to the enumeration called
+``Purity``. They are possible values for the :ref:`drcp` ``purity`` parameter
+of :meth:`oracledb.create_pool()`, :meth:`ConnectionPool.acquire()`,
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool_async()`, and
+:meth:`oracledb.connect_async()`. These constants have deprecated the Session
+Pool purity constants that were used in cx_Oracle 8.3.
+
+.. dbapiconstantextension::
 
 .. versionchanged:: 2.3.0
 
@@ -3728,9 +3731,10 @@ DB API definition.
 Subscription Grouping Classes
 -----------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``groupingClass`` parameter of the :meth:`Connection.subscribe()`
-method.
+The Subscription Grouping Class constants are possible values for the
+``groupingClass`` parameter of the :meth:`Connection.subscribe()` method.
+
+.. dbapiconstantextension::
 
 .. data:: SUBSCR_GROUPING_CLASS_TIME
 
@@ -3741,9 +3745,10 @@ method.
 Subscription Grouping Types
 ---------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``groupingType`` parameter of the :meth:`Connection.subscribe()`
-method.
+The Subscription Grouping Type constants are possible values for the
+``groupingType`` parameter of the :meth:`Connection.subscribe()` method.
+
+.. dbapiconstantextension::
 
 .. data:: SUBSCR_GROUPING_TYPE_SUMMARY
 
@@ -3763,9 +3768,10 @@ method.
 Subscription Namespaces
 -----------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``namespace`` parameter of the :meth:`Connection.subscribe()`
-method.
+The Subscription Namespace constants are possible values for the ``namespace``
+parameter of the :meth:`Connection.subscribe()` method.
+
+.. dbapiconstantextension::
 
 .. data:: SUBSCR_NAMESPACE_AQ
 
@@ -3783,9 +3789,10 @@ method.
 Subscription Protocols
 ----------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``protocol`` parameter of the :meth:`Connection.subscribe()`
-method.
+The Subscription Protocol constants are possible values for the ``protocol``
+parameter of the :meth:`Connection.subscribe()` method.
+
+.. dbapiconstantextension::
 
 .. data:: SUBSCR_PROTO_CALLBACK
 
@@ -3831,9 +3838,11 @@ method.
 Subscription Quality of Service
 -------------------------------
 
-These constants are extensions to the DB API definition. They are possible
-values for the ``qos`` parameter of the :meth:`Connection.subscribe()` method.
-One or more of these values can be OR'ed together.
+The Subscription Quality of Service constants are possible values for the
+``qos`` parameter of the :meth:`Connection.subscribe()` method. One or more of
+these values can be OR'ed together.
+
+.. dbapiconstantextension::
 
 .. data:: SUBSCR_QOS_BEST_EFFORT
 

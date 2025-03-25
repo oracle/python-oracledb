@@ -5,8 +5,9 @@ API: AsyncConnectionPool Objects
 ********************************
 
 An AsyncConnectionPool object can be created with
-:meth:`oracledb.create_pool_async()`. This object is an extension to the DB
-API.
+:meth:`oracledb.create_pool_async()`.
+
+.. dbapiobjectextension::
 
 .. versionadded:: 2.0.0
 

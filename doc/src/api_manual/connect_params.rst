@@ -4,12 +4,10 @@
 API: ConnectParams Objects
 **************************
 
-.. note::
+The ConnectParams objects are created by :meth:`oracledb.ConnectParams()`.
+See :ref:`usingconnparams` for more information.
 
-    This object is an extension to the DB API.
-
-These objects are created by :meth:`oracledb.ConnectParams()`.  See
-:ref:`usingconnparams` for more information.
+.. dbapiobjectextension::
 
 .. _connparamsmeth:
 

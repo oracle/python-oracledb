@@ -6,7 +6,9 @@ API: AsyncCursor Objects
 
 An AsyncCursor object can be created with :meth:`AsyncConnection.cursor()`.
 Unless explicitly noted as synchronous, the AsyncCursor methods should be used
-with ``await``. This object is an extension to the DB API.
+with ``await``.
+
+.. dbapiobjectextension::
 
 .. versionadded:: 2.0.0
 
@@ -339,11 +341,6 @@ AsyncCursor Methods
 
     An error is raised if the mode is *relative* or *absolute* and the scroll
     operation would position the cursor outside of the result set.
-
-    .. note::
-
-        This method is an extension to the DB API definition but it is
-        mentioned in PEP 249 as an optional extension.
 
 .. method:: AsyncCursor.setoutputsize(size, [column])
 

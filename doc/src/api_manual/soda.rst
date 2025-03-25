@@ -80,9 +80,10 @@ the specification in the collection metadata``.
 SodaDatabase Objects
 ====================
 
-The SODA Database object is an extension to the DB API. It is returned by the
-method :meth:`Connection.getSodaDatabase()`.
+SODA Database objects are returned by the method
+:meth:`Connection.getSodaDatabase()`.
 
+.. dbapiobjectextension::
 
 SodaDatabase Methods
 --------------------
@@ -161,10 +162,11 @@ SodaDatabase Methods
 SodaCollection Objects
 ======================
 
-The SODA Collection object is an extension to the DB API. It is used to
-represent SODA collections and is created by methods
-:meth:`SodaDatabase.createCollection()` and
+SODA Collection objects are used to represent SODA collections and is created
+by methods :meth:`SodaDatabase.createCollection()` and
 :meth:`SodaDatabase.openCollection()`.
+
+.. dbapiobjectextension::
 
 SodaCollection Methods
 ----------------------
@@ -370,10 +372,12 @@ SodaCollection Attributes
 SodaDoc Objects
 ===============
 
-The SODA Document object is an extension to the DB API. It is returned by the
-methods :meth:`SodaDatabase.createDocument()`,
-:meth:`SodaOperation.getDocuments()` and :meth:`SodaOperation.getOne()` as
+SODA Document objects are returned by the methods
+:meth:`SodaDatabase.createDocument()`, :meth:`SodaOperation.getDocuments()` and
+:meth:`SodaOperation.getOne()` as
 well as by iterating over :ref:`SODA document cursors <sodadoccur>`.
+
+.. dbapiobjectextension::
 
 SodaDoc Methods
 ---------------
@@ -447,10 +451,11 @@ SodaDoc Attributes
 SodaDocCursor Objects
 =====================
 
-The SODA Document Cursor object is an extension to the DB API. It is returned
-by the method :meth:`SodaOperation.getCursor()` and implements the iterator
-protocol.  Each iteration will return a :ref:`SODA document object
-<sodadoc>`.
+SODA Document Cursor objects are returned by the method
+:meth:`SodaOperation.getCursor()` and implements the iterator protocol.  Each
+iteration will return a :ref:`SODA document object <sodadoc>`.
+
+.. dbapiobjectextension::
 
 SodaDocCursor Methods
 ---------------------
@@ -467,9 +472,11 @@ SodaDocCursor Methods
 SodaOperation Objects
 =====================
 
-The SODA Operation Object is an extension to the DB API. It represents an
-operation that will be performed on all or some of the documents in a SODA
-collection. It is created by the method :meth:`SodaCollection.find()`.
+A SODA Operation object represents an operation that will be performed on all
+or some of the documents in a SODA collection. This object is created by the
+method :meth:`SodaCollection.find()`.
+
+.. dbapiobjectextension::
 
 SodaOperation Methods
 ---------------------

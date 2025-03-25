@@ -12,11 +12,9 @@ behaves as a 7-tuple containing the values for the attributes ``name``,
 and ``null_ok`` in that order. For example, if ``fetch_info`` is of type
 FetchInfo, then ``fetch_info[2]`` is the same as ``fetch_info.display_size``.
 
+.. dbapiobjectextension::
+
 .. versionadded:: 1.4.0
-
-.. note::
-
-    This object is an extension the DB API.
 
 FetchInfo Attributes
 ====================

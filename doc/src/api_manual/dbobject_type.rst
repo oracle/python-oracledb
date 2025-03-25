@@ -4,11 +4,11 @@
 API: DbObjectType Objects
 *************************
 
-.. note::
+The DbObjectType object is returned by the :meth:`Connection.gettype()` call
+and is available as the :data:`Variable.type` for variables containing Oracle
+Database objects.
 
-    This object is an extension to the DB API. It is returned by the
-    :meth:`Connection.gettype()` call and is available as the
-    :data:`Variable.type` for variables containing Oracle Database objects.
+.. dbapiobjectextension::
 
 DbObjectType Methods
 ====================
@@ -70,12 +70,11 @@ DbObjectType Attributes
 DbObject Objects
 ================
 
-.. note::
+The DbObject object is returned by the :meth:`DbObjectType.newobject()` call
+and can be bound to variables of type :data:`~oracledb.OBJECT`. Attributes can
+be retrieved and set directly.
 
-    This object is an extension to the DB API. It is returned by the
-    :meth:`DbObjectType.newobject()` call and can be bound to variables of
-    type :data:`~oracledb.OBJECT`. Attributes can be retrieved and set
-    directly.
+.. dbapiobjectextension::
 
 DbObject Methods
 ++++++++++++++++
@@ -186,11 +185,9 @@ DbObject Attributes
 DbObjectAttribute Objects
 =========================
 
-.. note::
+The elements of :attr:`DbObjectType.attributes` are instances of this type.
 
-    This object is an extension to the DB API. The elements of
-    :attr:`DbObjectType.attributes` are instances of this type.
-
+.. dbapiobjectextension::
 
 .. attribute:: DbObjectAttribute.max_size
 
