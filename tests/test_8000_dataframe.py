@@ -466,8 +466,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(col.null_count, 1)
 
     def test_8016(self):
-        "8016 - check unsupported error for LOBs"
-        statement = "select to_clob('test_8016') from dual"
+        "8016 - check unsupported error"
+        statement = "select cursor(select user from dual) from dual"
         with self.assertRaisesFullCode("DPY-3030"):
             self.conn.fetch_df_all(statement)
 
@@ -537,6 +537,48 @@ class TestCase(test_env.BaseTestCase):
             fetched_df = fetched_tab.to_pandas()
             fetched_data = self.__get_data_from_df(fetched_df)
             self.assertEqual(fetched_data, data)
+
+    def test_8023(self):
+        "8023 - fetch clob"
+        data = [("test_8023",)]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            "select to_clob('test_8023') from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
+    def test_8024(self):
+        "8024 - fetch blob"
+        data = [(b"test_8024",)]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            "select to_blob(utl_raw.cast_to_raw('test_8024')) from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
+    def test_8025(self):
+        "8025 - fetch raw"
+        data = [(b"test_8025",)]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            "select utl_raw.cast_to_raw('test_8025') from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
 
 
 if __name__ == "__main__":

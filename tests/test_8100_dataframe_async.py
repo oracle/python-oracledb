@@ -478,8 +478,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(col.null_count, 1)
 
     async def test_8116(self):
-        "8116 - check unsupported error for LOBs"
-        statement = "select to_clob('test_8116') from dual"
+        "8116 - check unsupported error"
+        statement = "select cursor(select user from dual) from dual"
         with self.assertRaisesFullCode("DPY-3030"):
             await self.conn.fetch_df_all(statement)
 

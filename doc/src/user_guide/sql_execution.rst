@@ -850,6 +850,12 @@ Oracle Database will result in an exception.
       - TIMESTAMP
     * - DB_TYPE_TIMESTAMP_TZ
       - TIMESTAMP
+    * - DB_TYPE_CLOB
+      - LARGE_STRING
+    * - DB_TYPE_BLOB
+      - LARGE_BINARY
+    * - DB_TYPE_RAW
+      - BINARY
 
 When converting Oracle Database NUMBERs:
 
@@ -863,6 +869,10 @@ When converting Oracle Database NUMBERs:
   that is less than or equal to *18*, then the Arrow data type is INT64.
 
 - In all other cases, the Arrow data type is DOUBLE.
+
+When converting Oracle Database CLOBs and BLOBs:
+
+- The LOBs must be no more than 1 GB in length.
 
 When converting Oracle Database DATEs and TIMESTAMPs:
 

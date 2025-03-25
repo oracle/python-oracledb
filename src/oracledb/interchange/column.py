@@ -45,9 +45,12 @@ from .nanoarrow_bridge import (
     NANOARROW_TIME_UNIT_MILLI,
     NANOARROW_TIME_UNIT_MICRO,
     NANOARROW_TIME_UNIT_NANO,
+    NANOARROW_TYPE_BINARY,
     NANOARROW_TYPE_DOUBLE,
     NANOARROW_TYPE_FLOAT,
     NANOARROW_TYPE_INT64,
+    NANOARROW_TYPE_LARGE_BINARY,
+    NANOARROW_TYPE_LARGE_STRING,
     NANOARROW_TYPE_STRING,
     NANOARROW_TYPE_TIMESTAMP,
     NANOARROW_TYPE_DECIMAL128,
@@ -88,7 +91,13 @@ class OracleColumn(Column):
         offsets_buffer = OracleColumnBuffer(
             size_in_bytes=size_bytes, address=address, buffer_type="offsets"
         )
-        dtype = (DtypeKind.INT, 32, "i", "=")
+        if self.ora_arrow_array.arrow_type in (
+            NANOARROW_TYPE_LARGE_STRING,
+            NANOARROW_TYPE_LARGE_BINARY,
+        ):
+            dtype = (DtypeKind.INT, 64, "l", "=")
+        else:
+            dtype = (DtypeKind.INT, 32, "i", "=")
         return offsets_buffer, dtype
 
     def _validity_buffer(self):
@@ -149,6 +158,12 @@ class OracleColumn(Column):
                 f"d:{array.precision}.{array.scale}",
                 "=",
             )
+        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_BINARY:
+            return (DtypeKind.STRING, 8, "z", "=")
+        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_LARGE_BINARY:
+            return (DtypeKind.STRING, 8, "Z", "=")
+        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_LARGE_STRING:
+            return (DtypeKind.STRING, 8, "U", "=")
 
     def get_buffers(self) -> ColumnBuffers:
         """

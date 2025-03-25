@@ -221,7 +221,7 @@ cdef class BaseCursorImpl:
             var_impl.outconverter = conn_impl.decode_oson
         elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON:
             var_impl.outconverter = self._build_json_converter_fn()
-        elif not C_DEFAULTS.fetch_lobs:
+        elif not C_DEFAULTS.fetch_lobs or self.fetching_arrow:
             if db_type_num == DB_TYPE_NUM_BLOB:
                 var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
                 var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_RAW

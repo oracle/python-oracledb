@@ -84,6 +84,12 @@ cdef class OracleMetadata:
                              DB_TYPE_NUM_TIMESTAMP_LTZ,
                              DB_TYPE_NUM_TIMESTAMP_TZ):
             self._arrow_type = NANOARROW_TYPE_TIMESTAMP
+        elif db_type_num == DB_TYPE_NUM_LONG_RAW:
+            self._arrow_type = NANOARROW_TYPE_LARGE_BINARY
+        elif db_type_num == DB_TYPE_NUM_LONG_VARCHAR:
+            self._arrow_type = NANOARROW_TYPE_LARGE_STRING
+        elif db_type_num == DB_TYPE_NUM_RAW:
+            self._arrow_type = NANOARROW_TYPE_BINARY
         else:
             errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_TYPE,
                               db_type_name=self.dbtype.name)

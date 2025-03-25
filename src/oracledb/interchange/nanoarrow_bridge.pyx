@@ -302,12 +302,32 @@ cdef class OracleArrowArray:
             ArrowDecimalSetBytes(&decimal, ptr)
             _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array,
                                                      &decimal))
-        elif array.arrow_type == NANOARROW_TYPE_STRING:
+        elif array.arrow_type in (
+                NANOARROW_TYPE_BINARY,
+                NANOARROW_TYPE_STRING
+        ):
             offsets_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             data_buffer = ArrowArrayBuffer(array.arrow_array, 2)
             as_int32 = <int32_t*> offsets_buffer.data
             start_offset = as_int32[index]
             end_offset = as_int32[index + 1]
+            temp = cpython.PyMem_Malloc(end_offset - start_offset)
+            memcpy(temp, &data_buffer.data[start_offset],
+                   end_offset - start_offset)
+            try:
+                self.append_bytes(temp, end_offset - start_offset)
+            finally:
+                cpython.PyMem_Free(temp)
+
+        elif array.arrow_type in (
+                NANOARROW_TYPE_LARGE_BINARY,
+                NANOARROW_TYPE_LARGE_STRING
+        ):
+            offsets_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 2)
+            as_int64 = <int64_t*> offsets_buffer.data
+            start_offset = as_int64[index]
+            end_offset = as_int64[index + 1]
             temp = cpython.PyMem_Malloc(end_offset - start_offset)
             memcpy(temp, &data_buffer.data[start_offset],
                    end_offset - start_offset)

@@ -232,7 +232,12 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
             arrow_array.append_double(data.buffer.as_double)
     elif arrow_type == NANOARROW_TYPE_FLOAT:
         arrow_array.append_float(data.buffer.as_float)
-    elif arrow_type == NANOARROW_TYPE_STRING:
+    elif arrow_type in (
+            NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_LARGE_BINARY,
+            NANOARROW_TYPE_LARGE_STRING
+    ):
         rb = &data.buffer.as_raw_bytes
         arrow_array.append_bytes(<void*> rb.ptr, rb.num_bytes)
     elif arrow_type == NANOARROW_TYPE_TIMESTAMP:

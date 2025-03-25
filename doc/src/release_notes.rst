@@ -62,6 +62,8 @@ Common Changes
       data frame
     - eliminated small memory leak with production of all data frames
 
+#)  Added support for CLOB, BLOB and RAW data types in
+    :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`
 #)  Fixed bug when NUMBER data is fetched with
     :meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`
     that does not have precision or scale specified and
