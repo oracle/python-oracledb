@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -23,15 +23,20 @@
 # -----------------------------------------------------------------------------
 
 """
-4200 - Module for testing scrollable cursors
+8600 - Module for testing scrollable cursors with asyncio
 """
+
+import unittest
 
 import test_env
 
 
-class TestCase(test_env.BaseTestCase):
-    def test_4200(self):
-        "4200 - test creating a scrollable cursor"
+@unittest.skipUnless(
+    test_env.get_is_thin(), "asyncio not supported in thick mode"
+)
+class TestCase(test_env.BaseAsyncTestCase):
+    async def test_8600(self):
+        "8600 - test creating a scrollable cursor"
         cursor = self.conn.cursor()
         self.assertEqual(cursor.scrollable, False)
         cursor = self.conn.cursor(True)
@@ -41,136 +46,156 @@ class TestCase(test_env.BaseTestCase):
         cursor.scrollable = False
         self.assertEqual(cursor.scrollable, False)
 
-    def test_4201(self):
-        "4201 - test scrolling absolute yields an exception (after result set)"
+    async def test_8601(self):
+        "8601 - test scrolling absolute yields an exception (after result set)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
         with self.assertRaisesFullCode("DPY-2063"):
-            cursor.scroll(12, "absolute")
+            await cursor.scroll(12, "absolute")
 
-    def test_4202(self):
-        "4202 - test scrolling absolute (when in buffers)"
+    async def test_8602(self):
+        "8602 - test scrolling absolute (when in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.prefetchrows = 0
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
         self.assertTrue(
             cursor.arraysize > 1,
             "array size must exceed 1 for this test to work correctly",
         )
-        cursor.scroll(1, mode="absolute")
-        (value,) = cursor.fetchone()
+        await cursor.scroll(1, mode="absolute")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def test_4203(self):
-        "4203 - test scrolling absolute (when not in buffers)"
+    async def test_8603(self):
+        "8603 - test scrolling absolute (when not in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.scroll(6, mode="absolute")
-        (value,) = cursor.fetchone()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.scroll(6, mode="absolute")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 7.5)
         self.assertEqual(cursor.rowcount, 6)
 
-    def test_4204(self):
-        "4204 - test scrolling to first row in result set (in buffers)"
+    async def test_8604(self):
+        "8604 - test scrolling to first row in result set (in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.prefetchrows = 0
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
-        cursor.scroll(mode="first")
-        (value,) = cursor.fetchone()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
+        await cursor.scroll(mode="first")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def test_4205(self):
-        "4205 - test scrolling to first row in result set (not in buffers)"
+    async def test_8605(self):
+        "8605 - test scrolling to first row in result set (not in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.prefetchrows = 0
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
-        cursor.fetchmany()
-        cursor.scroll(mode="first")
-        (value,) = cursor.fetchone()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
+        await cursor.fetchmany()
+        await cursor.scroll(mode="first")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 1.25)
         self.assertEqual(cursor.rowcount, 1)
 
-    def test_4206(self):
-        "4206 - test scrolling to last row in result set"
+    async def test_8606(self):
+        "8606 - test scrolling to last row in result set"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.scroll(mode="last")
-        (value,) = cursor.fetchone()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.scroll(mode="last")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 12.5)
         self.assertEqual(cursor.rowcount, 10)
 
-    def test_4207(self):
-        "4207 - test scrolling relative yields an exception (after result set)"
+    async def test_8607(self):
+        "8607 - test scrolling relative yields an exception (after result set)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
         with self.assertRaisesFullCode("DPY-2063"):
-            cursor.scroll(15)
+            await cursor.scroll(15)
 
-    def test_4208(self):
-        "4208 - test scrolling relative yields exception (before result set)"
+    async def test_8608(self):
+        "8608 - test scrolling relative yields exception (before result set)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
         with self.assertRaisesFullCode("DPY-2063"):
-            cursor.scroll(-5)
+            await cursor.scroll(-5)
 
-    def test_4209(self):
-        "4209 - test scrolling relative (when in buffers)"
+    async def test_8609(self):
+        "8609 - test scrolling relative (when in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
         cursor.prefetchrows = 0
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
         message = "array size must exceed 1 for this test to work correctly"
         self.assertTrue(cursor.arraysize > 1, message)
-        cursor.scroll(2 - cursor.rowcount)
-        (value,) = cursor.fetchone()
+        await cursor.scroll(2 - cursor.rowcount)
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 2.5)
         self.assertEqual(cursor.rowcount, 2)
 
-    def test_4210(self):
-        "4210 - test scrolling relative (when not in buffers)"
+    async def test_8610(self):
+        "8610 - test scrolling relative (when not in buffers)"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
-        cursor.fetchmany()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
+        await cursor.fetchmany()
         message = "array size must exceed 1 for this test to work correctly"
         self.assertTrue(cursor.arraysize > 1, message)
-        cursor.scroll(3 - cursor.rowcount)
-        (value,) = cursor.fetchone()
+        await cursor.scroll(3 - cursor.rowcount)
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 3.75)
         self.assertEqual(cursor.rowcount, 3)
 
-    def test_4211(self):
-        "4211 - test scrolling when there are no rows"
-        self.cursor.execute("truncate table TestTempTable")
+    async def test_8611(self):
+        "8611 - test scrolling when there are no rows"
+        await self.cursor.execute("truncate table TestTempTable")
         cursor = self.conn.cursor(scrollable=True)
-        cursor.execute("select * from TestTempTable")
-        cursor.scroll(mode="last")
-        self.assertEqual(cursor.fetchall(), [])
-        cursor.scroll(mode="first")
-        self.assertEqual(cursor.fetchall(), [])
+        await cursor.execute("select * from TestTempTable")
+        await cursor.scroll(mode="last")
+        self.assertEqual(await cursor.fetchall(), [])
+        await cursor.scroll(mode="first")
+        self.assertEqual(await cursor.fetchall(), [])
         with self.assertRaisesFullCode("DPY-2063"):
-            cursor.scroll(1, mode="absolute")
+            await cursor.scroll(1, mode="absolute")
 
-    def test_4212(self):
-        "4212 - test scrolling with differing array and fetch array sizes"
-        self.cursor.execute("truncate table TestTempTable")
+    async def test_8612(self):
+        "8612 - test scrolling with differing array and fetch array sizes"
+        await self.cursor.execute("truncate table TestTempTable")
         for i in range(30):
-            self.cursor.execute(
+            await self.cursor.execute(
                 """
                 insert into TestTempTable (IntCol, StringCol1)
                 values (:1, null)
@@ -180,44 +205,50 @@ class TestCase(test_env.BaseTestCase):
         for arraysize in range(1, 6):
             cursor = self.conn.cursor(scrollable=True)
             cursor.arraysize = arraysize
-            cursor.execute("select IntCol from TestTempTable order by IntCol")
+            await cursor.execute(
+                "select IntCol from TestTempTable order by IntCol"
+            )
             for num_rows in range(1, arraysize + 1):
-                cursor.scroll(15, "absolute")
-                rows = cursor.fetchmany(num_rows)
+                await cursor.scroll(15, "absolute")
+                rows = await cursor.fetchmany(num_rows)
                 self.assertEqual(rows[0][0], 15)
                 self.assertEqual(cursor.rowcount, 15 + num_rows - 1)
-                cursor.scroll(9)
-                rows = cursor.fetchmany(num_rows)
+                await cursor.scroll(9)
+                rows = await cursor.fetchmany(num_rows)
                 num_rows_fetched = len(rows)
                 self.assertEqual(rows[0][0], 15 + num_rows + 8)
                 self.assertEqual(
                     cursor.rowcount, 15 + num_rows + num_rows_fetched + 7
                 )
-                cursor.scroll(-12)
-                rows = cursor.fetchmany(num_rows)
+                await cursor.scroll(-12)
+                rows = await cursor.fetchmany(num_rows)
                 count = 15 + num_rows + num_rows_fetched - 5
                 self.assertEqual(rows[0][0], count)
                 count = 15 + num_rows + num_rows_fetched + num_rows - 6
                 self.assertEqual(cursor.rowcount, count)
 
-    def test_4213(self):
-        "4213 - test calling scroll() with invalid mode"
+    async def test_8613(self):
+        "8613 - test calling scroll() with invalid mode"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = self.cursor.arraysize
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchmany()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchmany()
         with self.assertRaisesFullCode("DPY-2009"):
-            cursor.scroll(mode="middle")
+            await cursor.scroll(mode="middle")
 
-    def test_4214(self):
-        "4214 - test scroll after fetching all rows"
+    async def test_8614(self):
+        "8614 - test scroll after fetching all rows"
         cursor = self.conn.cursor(scrollable=True)
         cursor.arraysize = 5
         cursor.prefetchrows = 0
-        cursor.execute("select NumberCol from TestNumbers order by IntCol")
-        cursor.fetchall()
-        cursor.scroll(5, mode="absolute")
-        (value,) = cursor.fetchone()
+        await cursor.execute(
+            "select NumberCol from TestNumbers order by IntCol"
+        )
+        await cursor.fetchall()
+        await cursor.scroll(5, mode="absolute")
+        (value,) = await cursor.fetchone()
         self.assertEqual(value, 6.25)
         self.assertEqual(cursor.rowcount, 5)
 

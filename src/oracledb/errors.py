@@ -282,6 +282,7 @@ ERR_MISSING_CONNECT_DESCRIPTOR = 2059
 ERR_ARROW_C_API_ERROR = 2060
 ERR_PARAMS_HOOK_HANDLER_FAILED = 2061
 ERR_PAYLOAD_CANNOT_BE_ENQUEUED = 2062
+ERR_SCROLL_OUT_OF_RESULT_SET = 2063
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -428,6 +429,7 @@ ERR_ORACLE_ERROR_XREF = {
 ERR_DPI_ERROR_XREF = {
     1010: ERR_NOT_CONNECTED,
     1024: (ERR_INVALID_COLL_INDEX_GET, r"at index (?P<index>\d+) does"),
+    1027: ERR_SCROLL_OUT_OF_RESULT_SET,
     1043: ERR_INVALID_NUMBER,
     1044: ERR_ORACLE_NUMBER_NO_REPR,
     1063: ERR_EXECUTE_MODE_ONLY_FOR_DML,
@@ -771,6 +773,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_PYTHON_TYPE_NOT_SUPPORTED: "Python type {typ} is not supported",
     ERR_PYTHON_VALUE_NOT_SUPPORTED: (
         'Python value of type "{type_name}" is not supported'
+    ),
+    ERR_SCROLL_OUT_OF_RESULT_SET: (
+        "scroll operation would go out of the result set"
     ),
     ERR_SELF_BIND_NOT_SUPPORTED: "binding to self is not supported",
     ERR_CONNECTION_CLOSED: "the database or network closed the connection",

@@ -625,11 +625,6 @@ rows, and to move to a particular row in a query result set. The result set is
 cached on the database server until the cursor is closed. In contrast, regular
 cursors are restricted to moving forward.
 
-.. note::
-
-  Scrollable cursors are only supported in the python-oracledb Thick mode. See
-  :ref:`enablingthick`.
-
 A scrollable cursor is created by setting the parameter ``scrollable=True``
 when creating the cursor. The method :meth:`Cursor.scroll()` is used to move to
 different locations in the result set.
@@ -655,6 +650,10 @@ Examples are:
 
     cursor.scroll(-4)
     print("SKIP BACK 4 ROWS:", cursor.fetchone())
+
+See `samples/scrollable_cursors.py <https://github.com/oracle/python-oracledb/
+blob/main/samples/scrollable_cursors.py>`__ for a runnable example.
+
 
 .. _fetchobjects:
 

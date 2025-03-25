@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -846,17 +846,17 @@ class Cursor(BaseCursor):
         Scroll the cursor in the result set to a new position according to the
         mode.
 
-        If mode is “relative” (the default value), the value is taken as an
-        offset to the current position in the result set. If set to “absolute”,
-        value states an absolute target position. If set to “first”, the cursor
-        is positioned at the first row and if set to “last”, the cursor is set
+        If mode is "relative" (the default value), the value is taken as an
+        offset to the current position in the result set. If set to "absolute",
+        value states an absolute target position. If set to "first", the cursor
+        is positioned at the first row and if set to "last", the cursor is set
         to the last row in the result set.
 
-        An error is raised if the mode is “relative” or “absolute” and the
+        An error is raised if the mode is "relative" or "absolute" and the
         scroll operation would position the cursor outside of the result set.
         """
         self._verify_open()
-        self._impl.scroll(self.connection, value, mode)
+        self._impl.scroll(self, value, mode)
 
 
 class AsyncCursor(BaseCursor):
@@ -1081,3 +1081,20 @@ class AsyncCursor(BaseCursor):
         self._verify_open()
         self._prepare(statement)
         await self._impl.parse(self)
+
+    async def scroll(self, value: int = 0, mode: str = "relative") -> None:
+        """
+        Scroll the cursor in the result set to a new position according to the
+        mode.
+
+        If mode is "relative" (the default value), the value is taken as an
+        offset to the current position in the result set. If set to "absolute",
+        value states an absolute target position. If set to "first", the cursor
+        is positioned at the first row and if set to "last", the cursor is set
+        to the last row in the result set.
+
+        An error is raised if the mode is "relative" or "absolute" and the
+        scroll operation would position the cursor outside of the result set.
+        """
+        self._verify_open()
+        await self._impl.scroll(self, value, mode)

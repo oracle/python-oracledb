@@ -37,6 +37,8 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         list _batcherrors
         list _dmlrowcounts
         list _implicit_resultsets
+        uint64_t _buffer_min_row
+        uint64_t _buffer_max_row
         uint32_t _num_columns
         uint32_t _last_row_index
         Rowid _lastrowid
@@ -59,6 +61,64 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         message._initialize(self._conn_impl)
         message.cursor = cursor
         message.cursor_impl = self
+        return message
+
+    cdef ExecuteMessage _create_execute_message(self, object cursor):
+        """
+        Creates and returns the message used to execute a statement once.
+        """
+        cdef ExecuteMessage message
+        message = self._create_message(ExecuteMessage, cursor)
+        message.num_execs = 1
+        if self.scrollable:
+            message.fetch_orientation = TNS_FETCH_ORIENTATION_CURRENT
+            message.fetch_pos = 1
+        return message
+
+    cdef ExecuteMessage _create_scroll_message(self, object cursor,
+                                               object mode, int32_t offset):
+        """
+        Creates a message object that is used to send a scroll request to the
+        database and receive back its response.
+        """
+        cdef:
+            ExecuteMessage message
+            uint32_t orientation
+            uint64_t desired_row
+
+        # check mode and calculate desired row
+        if mode == "relative":
+            if <int64_t> (self.rowcount + offset) < 1:
+                errors._raise_err(errors.ERR_SCROLL_OUT_OF_RESULT_SET)
+            orientation = TNS_FETCH_ORIENTATION_RELATIVE
+            desired_row = self.rowcount + offset
+        elif mode == "absolute":
+            orientation = TNS_FETCH_ORIENTATION_ABSOLUTE
+            desired_row = <uint64_t> offset
+        elif mode == "first":
+            orientation = TNS_FETCH_ORIENTATION_FIRST
+            desired_row = 1
+        elif mode == "last":
+            orientation = TNS_FETCH_ORIENTATION_LAST
+        else:
+            errors._raise_err(errors.ERR_WRONG_SCROLL_MODE)
+
+        # determine if the server needs to be contacted at all
+        # for "last", the server is always contacted
+        if orientation != TNS_FETCH_ORIENTATION_LAST \
+                and desired_row >= self._buffer_min_row \
+                and desired_row < self._buffer_max_row:
+            self._buffer_index = \
+                    <uint32_t> (desired_row - self._buffer_min_row)
+            self._buffer_rowcount = self._buffer_max_row - desired_row
+            self.rowcount = desired_row - 1
+            return None
+
+        # build message
+        message = self._create_message(ExecuteMessage, cursor)
+        message.scroll_operation = self._more_rows_to_fetch
+        message.fetch_orientation = orientation
+        message.fetch_pos = <uint32_t> desired_row
         return message
 
     cdef BaseVarImpl _create_var_impl(self, object conn):
@@ -125,6 +185,28 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
                 errors._raise_err(errors.ERR_MISSING_BIND_VALUE,
                                   name=bind_info._bind_name)
 
+    cdef int _post_process_scroll(self, ExecuteMessage message) except -1:
+        """
+        Called after a scroll operation has completed successfully. The row
+        count and buffer row counts and indices are updated as required.
+        """
+        if self._buffer_rowcount == 0:
+            if message.fetch_orientation not in (
+                TNS_FETCH_ORIENTATION_FIRST,
+                TNS_FETCH_ORIENTATION_LAST
+            ):
+                errors._raise_err(errors.ERR_SCROLL_OUT_OF_RESULT_SET)
+            self.rowcount = 0
+            self._more_rows_to_fetch = False
+            self._buffer_index = 0
+            self._buffer_min_row = 0
+            self._buffer_max_row = 0
+        else:
+            self.rowcount = message.error_info.rowcount - self._buffer_rowcount
+            self._buffer_min_row = self.rowcount + 1
+            self._buffer_max_row = self._buffer_min_row + self._buffer_rowcount
+            self._buffer_index = 0
+
     cdef int _set_fetch_array_size(self, uint32_t value):
         """
         Internal method for setting the fetch array size. This also ensures
@@ -182,6 +264,8 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         else:
             message = self._create_message(FetchMessage, cursor)
         protocol._process_single_message(message)
+        self._buffer_min_row = self.rowcount + 1
+        self._buffer_max_row = self._buffer_min_row + self._buffer_rowcount
 
     def execute(self, cursor):
         cdef:
@@ -189,8 +273,7 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
             object conn = cursor.connection
             MessageWithData message
         self._preprocess_execute(conn)
-        message = self._create_message(ExecuteMessage, cursor)
-        message.num_execs = 1
+        message = self._create_execute_message(cursor)
         protocol._process_single_message(message)
         self.warning = message.warning
         if self._statement._is_query:
@@ -242,6 +325,15 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         message.parse_only = True
         protocol._process_single_message(message)
 
+    def scroll(self, object cursor, int32_t offset, object mode):
+        cdef:
+            Protocol protocol = <Protocol> self._conn_impl._protocol
+            ExecuteMessage message
+        message = self._create_scroll_message(cursor, mode, offset)
+        if message is not None:
+            protocol._process_single_message(message)
+            self._post_process_scroll(message)
+
 
 cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
 
@@ -268,6 +360,7 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         else:
             message = self._create_message(FetchMessage, cursor)
         await self._conn_impl._protocol._process_single_message(message)
+        self._buffer_min_row = self.rowcount + 1
 
     async def _preprocess_execute_async(self, object conn):
         """
@@ -293,8 +386,7 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
             MessageWithData message
         protocol = <BaseAsyncProtocol> self._conn_impl._protocol
         await self._preprocess_execute_async(conn)
-        message = self._create_message(ExecuteMessage, cursor)
-        message.num_execs = 1
+        message = self._create_execute_message(cursor)
         await protocol._process_single_message(message)
         self.warning = message.warning
         if self._statement._is_query:
@@ -378,3 +470,13 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         message = self._create_message(ExecuteMessage, cursor)
         message.parse_only = True
         await protocol._process_single_message(message)
+
+    async def scroll(self, object cursor, int32_t offset, object mode):
+        cdef:
+            BaseAsyncProtocol protocol
+            MessageWithData message
+        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
+        message = self._create_scroll_message(cursor, mode, offset)
+        if message is not None:
+            await protocol._process_single_message(message)
+            self._post_process_scroll(message)

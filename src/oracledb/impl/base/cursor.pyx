@@ -664,7 +664,7 @@ cdef class BaseCursorImpl:
         """
         self._prepare(statement, tag, cache_statement)
 
-    def scroll(self, conn, value, mode):
+    def scroll(self, cursor, value, mode):
         """
         Scrolls a scrollable cursor.
         """

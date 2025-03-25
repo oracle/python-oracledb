@@ -510,7 +510,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if num_query_cols > 0:
             self._perform_define(cursor, num_query_cols)
 
-    def scroll(self, object conn, int32_t offset, object mode):
+    def scroll(self, object cursor, int32_t offset, object mode):
         cdef:
             uint32_t temp_buffer_row_index = 0, num_rows_in_buffer = 0
             bint more_rows_to_fetch = False

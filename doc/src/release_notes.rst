@@ -17,6 +17,7 @@ oracledb 3.1.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for :ref:`scrollable cursors <scrollablecursors>`.
 #)  Improved support for :ref:`Oracle Advanced Queuing <aqusermanual>`:
 
     - Added support for JSON payloads

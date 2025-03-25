@@ -326,6 +326,25 @@ AsyncCursor Methods
         :meth:`AsyncCursor.callfunc()`, the first parameter in the list refers
         to the return value of the PL/SQL function.
 
+.. method:: AsyncCursor.scroll(value=0, mode="relative")
+
+    Scrolls the cursor in the result set to a new position according to the
+    mode.
+
+    If mode is *relative* (the default value), the value is taken as an offset
+    to the current position in the result set. If set to *absolute*, value
+    states an absolute target position. If set to *first*, the cursor is
+    positioned at the first row and if set to *last*, the cursor is set to the
+    last row in the result set.
+
+    An error is raised if the mode is *relative* or *absolute* and the scroll
+    operation would position the cursor outside of the result set.
+
+    .. note::
+
+        This method is an extension to the DB API definition but it is
+        mentioned in PEP 249 as an optional extension.
+
 .. method:: AsyncCursor.setoutputsize(size, [column])
 
     This method does nothing and is retained solely for compatibility with the

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -46,11 +46,6 @@ class TestCase(test_env.BaseTestCase):
             pool.max_sessions_per_shard
         with self.assertRaisesFullCode("DPY-3001"):
             pool.max_sessions_per_shard = 2
-
-    def test_7301(self):
-        "7301 - test using a scrollable cursor"
-        with self.assertRaisesFullCode("DPY-3001"):
-            self.cursor.scroll(mode="last")
 
     def test_7302(self):
         "7302 - test connection with sharding and supersharding keys"

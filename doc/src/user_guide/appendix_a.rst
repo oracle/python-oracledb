@@ -260,7 +260,7 @@ see :ref:`driverdiff` and :ref:`compatibility`.
       - Yes
       - Yes
     * - Scrollable cursors (see :ref:`scrollablecursors`)
-      - No
+      - Yes
       - Yes
       - Yes
     * - Oracle Database startup and shutdown (see :ref:`startup`)

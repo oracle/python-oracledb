@@ -32,6 +32,10 @@
 
 @cython.final
 cdef class ExecuteMessage(MessageWithData):
+    cdef:
+        uint32_t fetch_orientation
+        uint32_t fetch_pos
+        bint scroll_operation
 
     cdef int _write_execute_message(self, WriteBuffer buf) except -1:
         """
@@ -52,7 +56,10 @@ cdef class ExecuteMessage(MessageWithData):
             options |= TNS_EXEC_OPTION_DEFINE
         elif not self.parse_only and stmt._sql is not None:
             exec_flags |= TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
-            options |= TNS_EXEC_OPTION_EXECUTE
+            if not self.scroll_operation:
+                options |= TNS_EXEC_OPTION_EXECUTE
+        if cursor_impl.scrollable:
+            exec_flags |= TNS_EXEC_FLAGS_SCROLLABLE
         if stmt._cursor_id == 0 or stmt._is_ddl:
             options |= TNS_EXEC_OPTION_PARSE
         if stmt._is_query:
@@ -161,8 +168,8 @@ cdef class ExecuteMessage(MessageWithData):
         buf.write_ub4(stmt._is_query)       # al8i4[7] is query
         buf.write_ub4(0)                    # al8i4[8]
         buf.write_ub4(exec_flags)           # al8i4[9] execute flags
-        buf.write_ub4(0)                    # al8i4[10]
-        buf.write_ub4(0)                    # al8i4[11]
+        buf.write_ub4(self.fetch_orientation) # al8i4[10] fetch orientation
+        buf.write_ub4(self.fetch_pos)       # al8i4[11] fetch pos
         buf.write_ub4(0)                    # al8i4[12]
         if stmt._requires_define:
             self._write_column_metadata(buf, self.cursor_impl.fetch_var_impls)
@@ -230,7 +237,8 @@ cdef class ExecuteMessage(MessageWithData):
                 or self.parse_only \
                 or stmt._requires_define \
                 or stmt._is_ddl \
-                or self.batcherrors:
+                or self.batcherrors \
+                or self.cursor_impl.scrollable:
             self.function_code = TNS_FUNC_EXECUTE
             self._write_execute_message(buf)
         elif stmt._is_query and self.cursor_impl.prefetchrows > 0:
