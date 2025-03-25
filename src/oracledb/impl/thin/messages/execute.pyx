@@ -38,7 +38,7 @@ cdef class ExecuteMessage(MessageWithData):
         Write the message for a full execute.
         """
         cdef:
-            uint32_t options, dml_options = 0, num_params = 0, num_iters = 1
+            uint32_t options, exec_flags = 0, num_params = 0, num_iters = 1
             Statement stmt = self.cursor_impl._statement
             BaseThinCursorImpl cursor_impl = self.cursor_impl
             list params = stmt._bind_info_list
@@ -51,7 +51,7 @@ cdef class ExecuteMessage(MessageWithData):
         if stmt._requires_define:
             options |= TNS_EXEC_OPTION_DEFINE
         elif not self.parse_only and stmt._sql is not None:
-            dml_options = TNS_EXEC_OPTION_IMPLICIT_RESULTSET
+            exec_flags = TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
             options |= TNS_EXEC_OPTION_EXECUTE
         if stmt._cursor_id == 0 or stmt._is_ddl:
             options |= TNS_EXEC_OPTION_PARSE
@@ -75,7 +75,7 @@ cdef class ExecuteMessage(MessageWithData):
         if self.batcherrors:
             options |= TNS_EXEC_OPTION_BATCH_ERRORS
         if self.arraydmlrowcounts:
-            dml_options = TNS_EXEC_OPTION_DML_ROWCOUNTS
+            exec_flags = TNS_EXEC_FLAGS_DML_ROWCOUNTS
         if self.conn_impl.autocommit and not self.parse_only:
             options |= TNS_EXEC_OPTION_COMMIT
 
@@ -160,7 +160,7 @@ cdef class ExecuteMessage(MessageWithData):
         buf.write_ub4(0)                    # al8i4[6] SCN (part 2)
         buf.write_ub4(stmt._is_query)       # al8i4[7] is query
         buf.write_ub4(0)                    # al8i4[8]
-        buf.write_ub4(dml_options)          # al8i4[9] DML row counts/implicit
+        buf.write_ub4(exec_flags)           # al8i4[9] execute flags
         buf.write_ub4(0)                    # al8i4[10]
         buf.write_ub4(0)                    # al8i4[11]
         buf.write_ub4(0)                    # al8i4[12]
@@ -174,7 +174,7 @@ cdef class ExecuteMessage(MessageWithData):
         Write the message for a re-execute.
         """
         cdef:
-            uint32_t i, exec_flags_1 = 0, exec_flags_2 = 0, num_iters
+            uint32_t i, options_1 = 0, options_2 = 0, num_iters
             Statement stmt = self.cursor_impl._statement
             list params = stmt._bind_info_list
             BindInfo info
@@ -188,19 +188,19 @@ cdef class ExecuteMessage(MessageWithData):
                       if info.bind_dir != TNS_BIND_DIR_OUTPUT \
                       and not info._is_return_bind]
         if self.function_code == TNS_FUNC_REEXECUTE_AND_FETCH:
-            exec_flags_1 |= TNS_EXEC_OPTION_EXECUTE
+            options_1 |= TNS_EXEC_OPTION_EXECUTE
             num_iters = self.cursor_impl.prefetchrows
             self.cursor_impl._set_fetch_array_size(num_iters)
         else:
             if self.conn_impl.autocommit:
-                exec_flags_2 |= TNS_EXEC_OPTION_COMMIT_REEXECUTE
+                options_2 |= TNS_EXEC_OPTION_COMMIT_REEXECUTE
             num_iters = self.num_execs
 
         self._write_function_code(buf)
         buf.write_ub4(stmt._cursor_id)
         buf.write_ub4(num_iters)
-        buf.write_ub4(exec_flags_1)
-        buf.write_ub4(exec_flags_2)
+        buf.write_ub4(options_1)
+        buf.write_ub4(options_2)
         if params:
             for i in range(self.num_execs):
                 buf.write_uint8(TNS_MSG_TYPE_ROW_DATA)
