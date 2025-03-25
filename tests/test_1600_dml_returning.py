@@ -554,6 +554,68 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, in_val=35, out_val=out_val)
         self.assertEqual(out_val.getvalue(), 70)
 
+    def test_1625(self):
+        "1625 - test DML returning with multiple LOBs returned"
+        lob_data = [
+            "Short CLOB - 1625a",
+            "Short CLOB - 1625b",
+            "Short CLOB - 1625c",
+            "Short CLOB - 1625d",
+        ]
+        all_data = [(i + 1, d) for i, d in enumerate(lob_data)]
+        self.cursor.execute("delete from TestCLOBs")
+        self.cursor.executemany(
+            "insert into TestCLOBs (IntCol, ClobCol) values (:1, :2)", all_data
+        )
+        ret_val = self.cursor.var(oracledb.DB_TYPE_CLOB)
+        self.cursor.execute(
+            """
+            update TestCLOBs set
+                ExtraNumCol1 = 1
+            where ExtraNumCol1 is null
+            returning ClobCol into :ret_val
+            """,
+            [ret_val],
+        )
+        self.conn.commit()
+        ret_lob_data = [v.read() for v in ret_val.getvalue()]
+        ret_lob_data.sort()
+        self.assertEqual(ret_lob_data, lob_data)
+
+    @unittest.skipUnless(test_env.get_is_thin(), "blocked by bug 37741324")
+    def test_1626(self):
+        "1626 - test DML returning with multiple DbObjects returned"
+        arrays = [
+            (1626, 1627, 1628),
+            (1629, 1630, 1631),
+            (1632, 1633, 1634),
+            (1635, 1636, 1637),
+        ]
+        all_data = [(i + 4, v[0], v[1], v[2]) for i, v in enumerate(arrays)]
+        self.cursor.execute("delete from TestObjects where IntCol > 3")
+        self.cursor.executemany(
+            """
+            insert into TestObjects (IntCol, ArrayCol)
+            values (:1, udt_Array(:1, :2, :3))
+            """,
+            all_data,
+        )
+        typ = self.conn.gettype("UDT_ARRAY")
+        ret_val = self.cursor.var(typ)
+        self.cursor.execute(
+            """
+            update TestObjects set
+                ObjectCol = null
+            where IntCol > 3
+            returning ArrayCol into :ret_val
+            """,
+            [ret_val],
+        )
+        self.conn.commit()
+        ret_obj_data = [tuple(v) for v in ret_val.getvalue()]
+        ret_obj_data.sort()
+        self.assertEqual(ret_obj_data, arrays)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

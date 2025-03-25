@@ -121,7 +121,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             object cursor
         cursor = self._values[pos]
         if cursor is None:
-            cursor = self._values[pos] = self._conn.cursor()
+            cursor = self._conn.cursor()
         cursor_impl = <ThickCursorImpl> cursor._impl
         if dpiStmt_addRef(dbvalue.asStmt) < 0:
             _raise_from_odpi()
@@ -138,8 +138,9 @@ cdef class ThickVarImpl(BaseVarImpl):
         """
         cdef:
             ThickDbObjectImpl obj_impl
-            object obj
-        obj = self._values[pos]
+            object obj = None
+        if not self._has_returned_data:
+            obj = self._values[pos]
         if obj is not None:
             obj_impl = <ThickDbObjectImpl> obj._impl
             if obj_impl._handle == dbvalue.asObject:
@@ -149,8 +150,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         if dpiObject_addRef(dbvalue.asObject) < 0:
             _raise_from_odpi()
         obj_impl._handle = dbvalue.asObject
-        obj = self._values[pos] = PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-        return obj
+        return PY_TYPE_DB_OBJECT._from_impl(obj_impl)
 
     cdef object _get_lob_value(self, dpiDataBuffer *dbvalue, uint32_t pos):
         """
@@ -160,16 +160,16 @@ cdef class ThickVarImpl(BaseVarImpl):
         """
         cdef:
             ThickLobImpl lob_impl
-            object lob
-        lob = self._values[pos]
+            object lob = None
+        if not self._has_returned_data:
+            lob = self._values[pos]
         if lob is not None:
             lob_impl = <ThickLobImpl> lob._impl
             if lob_impl._handle == dbvalue.asLOB:
                 return lob
         lob_impl = ThickLobImpl._create(self._conn_impl, self.metadata.dbtype,
                                         dbvalue.asLOB)
-        lob = self._values[pos] = PY_TYPE_LOB._from_impl(lob_impl)
-        return lob
+        return PY_TYPE_LOB._from_impl(lob_impl)
 
     cdef object _get_scalar_value(self, uint32_t pos):
         """
@@ -179,13 +179,21 @@ cdef class ThickVarImpl(BaseVarImpl):
         cdef:
             uint32_t num_returned_rows
             dpiData *returned_data
+            object value
         if self._has_returned_data:
             if dpiVar_getReturnedData(self._handle, pos, &num_returned_rows,
                                       &returned_data) < 0:
                 _raise_from_odpi()
             return self._transform_array_to_python(num_returned_rows,
                                                    returned_data)
-        return self._transform_element_to_python(pos, self._data)
+        value = self._transform_element_to_python(pos, self._data)
+        if self.metadata.dbtype._native_num in (
+            DPI_NATIVE_TYPE_LOB,
+            DPI_NATIVE_TYPE_OBJECT,
+            DPI_NATIVE_TYPE_STMT,
+        ):
+            self._values[pos] = value
+        return value
 
     cdef int _on_reset_bind(self, uint32_t num_rows) except -1:
         """

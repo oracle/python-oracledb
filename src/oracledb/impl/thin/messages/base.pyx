@@ -893,7 +893,7 @@ cdef class MessageWithData(Message):
         elif ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):
-            if not self.in_fetch:
+            if self.cursor_impl._statement._is_plsql:
                 column_value = var_impl._values[pos]
             column_value = buf.read_lob_with_length(self.conn_impl,
                                                     metadata.dbtype,
@@ -909,7 +909,7 @@ cdef class MessageWithData(Message):
             else:
                 obj_impl = buf.read_dbobject(typ_impl)
                 if obj_impl is not None:
-                    if not self.in_fetch:
+                    if self.cursor_impl._statement._is_plsql:
                         column_value = var_impl._values[pos]
                     if column_value is not None:
                         column_value._impl = obj_impl

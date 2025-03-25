@@ -68,6 +68,8 @@ Common Changes
 
 #)  Fixed bug when binding a variable that was previously bound as an output
     variable in a DML RETURNING statement.
+#)  Fixed bug when multiple rows containing LOBs and DbObjects are returned in
+    a DML RETURNING statement.
 #)  An error message that links to :ref:`documentation <ldapconnections>` on
     setting up a protocol hook function is now returned by default for LDAP and
     LDAPS URL connection strings in python-oracledb thin mode, or when
