@@ -33,7 +33,6 @@ jobs:
       - name: Generate script
         run: |
           echo export PYO_COMPILE_ARGS=-g0 > build.sh
-          echo /opt/python/cp38-cp38/bin/python3.8 -m build >> build.sh
           echo /opt/python/cp39-cp39/bin/python3.9 -m build >> build.sh
           echo /opt/python/cp310-cp310/bin/python3.10 -m build >> build.sh
           echo /opt/python/cp311-cp311/bin/python3.11 -m build >> build.sh
@@ -66,7 +65,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
         arch: ['x86', '']
         exclude:
           - os: macos-latest
