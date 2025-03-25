@@ -13,8 +13,8 @@ from Oracle Database types to Arrow data types.
 
 .. note::
 
-    The data frame support in python-oracledb 3.0.0 is a pre-release and may
-    change in the next version.
+    The data frame support in python-oracledb 3.1 is a pre-release and may
+    change in a future version.
 
 .. _oracledataframeobj:
 

@@ -19,9 +19,9 @@ Thin Mode Changes
 
 #)  Improved support for :ref:`Oracle Advanced Queuing <aqusermanual>`:
 
-    - added support for JSON payloads
-    - added support for bulk enqueuing and dequeuing
-    - added support for using AQ with asyncio
+    - Added support for JSON payloads
+    - Added support for bulk enqueuing and dequeuing
+    - Added support for using AQ with asyncio
 
 #)  Improved error message when the cryptography package cannot be imported
     (`issue 455 <https://github.com/oracle/python-oracledb/issues/455>`__).
@@ -51,23 +51,19 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Improved the performance and memory management of
-    :meth:`Connection.fetch_df_all()` and
-    :meth:`Connection.fetch_df_batches()`:
+#) Improvements to data frame fetching with :meth:`Connection.fetch_df_all()`
+   and :meth:`Connection.fetch_df_batches()`:
 
-    - more efficient processing when a significant amount of data is duplicated
+    - Added support for CLOB, BLOB and RAW data types
+    - Fixed bug when NUMBER data is fetched that does not have a precision or
+      scale specified and :attr:`defaults.fetch_decimals` is set to *True*.
+    - More efficient processing when a significant amount of data is duplicated
       from one row to the next
-    - avoid memory allocation/free cycles for decimal data
-    - eliminated memory leak if OracleDataFrame is not converted to an external
+    - Avoid memory allocation/free cycles for decimal data
+    - Eliminated memory leak if OracleDataFrame is not converted to an external
       data frame
-    - eliminated small memory leak with production of all data frames
+    - Eliminated small memory leak with production of each data frame
 
-#)  Added support for CLOB, BLOB and RAW data types in
-    :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`
-#)  Fixed bug when NUMBER data is fetched with
-    :meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`
-    that does not have precision or scale specified and
-    :attr:`defaults.fetch_decimals` is set to *True*.
 #)  Fixed bug when binding a variable that was previously bound as an output
     variable in a DML RETURNING statement.
 #)  An error message that links to :ref:`documentation <ldapconnections>` on

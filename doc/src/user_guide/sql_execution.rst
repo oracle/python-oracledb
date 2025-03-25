@@ -752,8 +752,8 @@ in `Apache Parquet <https://parquet.apache.org/>`__ format.
 
 .. note::
 
-    The data frame support in python-oracledb 3.0.0 is a pre-release and may
-    change in the next version.
+    The data frame support in python-oracledb 3.1 is a pre-release and may
+    change in a future version.
 
 The method :meth:`Connection.fetch_df_all()` fetches all rows from a query.
 The method :meth:`Connection.fetch_df_batches()` implements an iterator for
