@@ -115,26 +115,27 @@ Some warnings may appear while using python-oracledb in Thick or Thin mode.
 
 .. _pythwarning:
 
-Deprecated Python Versions 3.6 and 3.7 Warning
-----------------------------------------------
+Deprecated Python Version Warning
+---------------------------------
 
 **Warning:** ``Python 3.6 is no longer supported by the Python core team.
 Therefore, support for it is deprecated in python-oracledb and will be removed
 in a future release.`` (A similar warning will also be displayed for Python
-version 3.7.)
+versions 3.7 and 3.8.)
 
-**Cause:** ``import oracledb`` gives this warning because you are using Python
-version 3.6 or 3.7.  These versions are no longer maintained by the Python core
-team.
+**Cause:** ``import oracledb`` gives this warning because you are using a
+version of Python that is longer maintained by the Python core team.
 
 **Action:**  You can either:
 
-- Upgrade your Python version to 3.8 or later.
+- Upgrade your Python version to 3.9 or later.
 
 - Or you can temporarily suppress the warning by importing the
   `warnings <https://docs.python.org/3/library/warnings.html>`__ module and
   adding a call like ``warnings.filterwarnings(action='ignore',
   module="oracledb")`` *before* importing ``oracledb``.
+
+- Install an older version of python-oracledb
 
 .. _runtimetroubleshooting:
 

@@ -1,13 +1,13 @@
 [build-system]
-requires = ["setuptools >= 40.6.0", "wheel", "cython"]
+requires = ["setuptools >= 77.0.0", "wheel", "cython"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 79
-target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 required-version = 24
 
 [tool.ruff]
 line-length = 79
-target-version = "py38"
+target-version = "py39"
 exclude = ["templates"]

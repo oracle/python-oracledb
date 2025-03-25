@@ -52,8 +52,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#) Improvements to data frame fetching with :meth:`Connection.fetch_df_all()`
-   and :meth:`Connection.fetch_df_batches()`:
+#)  Dropped support for Python 3.8.
+#)  Improvements to data frame fetching with :meth:`Connection.fetch_df_all()`
+    and :meth:`Connection.fetch_df_batches()`:
 
     - Added support for CLOB, BLOB and RAW data types
     - Fixed bug when NUMBER data is fetched that does not have a precision or

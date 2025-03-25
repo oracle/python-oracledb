@@ -32,7 +32,7 @@ import collections
 import sys
 import warnings
 
-if sys.version_info[:2] < (3, 8):
+if sys.version_info[:2] < (3, 9):
     message = (
         f"Python {sys.version_info[0]}.{sys.version_info[1]} is no longer "
         "supported by the Python core team. Therefore, support for it is "
