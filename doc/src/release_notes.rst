@@ -42,11 +42,15 @@ Thick Mode Changes
 #)  Fixed bug resulting in a segfault when unable to load the Oracle Client
     libraries
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+#)  Fixed bug which resulted in error ``ORA-24328: illegal attribute value``
+    when calling :meth:`Connection.gettype()` with Oracle Client 11.2
+    libraries
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 #)  Improved error message when getting :attr:`Connection.max_open_cursors`
-    when using Oracle Client libraries 11.2
+    when using Oracle Client 11.2 libraries
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 #)  Improved error message when attempting to work with sparse vectors using
-    Oracle Client libraries 23.6 or earlier
+    Oracle Client 23.6 (or earlier) libraries
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 
 Common Changes
@@ -80,6 +84,7 @@ Common Changes
     python-oracledb Thick mode raised the error ``DPI-1071: payload type in
     message properties must match the payload type of the queue`` and thin mode
     raised an internal error.
+#)  Improved the test suite and documentation.
 
 
 oracledb 3.0.0 (March 2025)

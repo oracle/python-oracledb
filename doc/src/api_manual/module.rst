@@ -3128,6 +3128,9 @@ parameter for the :meth:`Queue.enqone()`, :meth:`Queue.enqmany()`,
     This constant is used to specify that enqueue should perform its work as
     part of an independent transaction.
 
+    The use of this constant with :ref:`bulk enqueuing <bulkenqdeq>` is only
+    supported in python-oracledb :ref:`Thick mode <enablingthick>`.
+
 
 .. data:: ENQ_ON_COMMIT
 

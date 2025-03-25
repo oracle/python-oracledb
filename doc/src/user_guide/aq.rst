@@ -26,8 +26,9 @@ types.
 - JSON payloads require Oracle Database 21c (or later). In python-oracle Thick
   mode, Oracle Client libraries 21c (or later) are also needed.
 
-JMS payloads and :ref:`Recipient Lists <reciplists>` are only supported in
-python-oracledb :ref:`Thick mode <enablingthick>`.
+The use of :data:`~oracledb.ENQ_IMMEDIATE` with bulk enqueuing, JMS payloads,
+and :ref:`Recipient Lists <reciplists>` are only supported in python-oracledb
+:ref:`Thick mode <enablingthick>`.
 
 There are examples of AQ Classic Queues in the `GitHub samples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
@@ -338,6 +339,7 @@ expiration of 60 seconds on a message:
 This means that if no dequeue operation occurs within 60 seconds then the
 message will be dropped from the queue.
 
+.. _bulkenqdeq:
 
 Bulk Enqueue and Dequeue
 ========================

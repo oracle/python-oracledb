@@ -1,8 +1,8 @@
 .. _lobdata:
 
-************************
-Using CLOB and BLOB Data
-************************
+***************************************
+Using CLOB, BLOB, NCLOB, and BFILE Data
+***************************************
 
 Oracle Database uses :ref:`LOB objects <lobobj>` to store large data such as
 text, images, videos, and other multimedia formats.  The maximum size of a LOB
@@ -11,21 +11,20 @@ text, images, videos, and other multimedia formats.  The maximum size of a LOB
 There are `four types of LOBs <https://www.oracle.com/pls/topic/lookup?ctx=
 dblatest&id=GUID-0A692C1B-1C95-4121-8F95-25BE465B87F6>`__:
 
-    * BLOB - Binary Large Object, used for storing binary data. python-oracledb
-      uses the type :attr:`oracledb.DB_TYPE_BLOB`.
     * CLOB - Character Large Object, used for storing strings in the database
       character set format. python-oracledb uses the type
       :attr:`oracledb.DB_TYPE_CLOB`.
+    * BLOB - Binary Large Object, used for storing binary data. python-oracledb
+      uses the type :attr:`oracledb.DB_TYPE_BLOB`.
     * NCLOB - National Character Large Object, used for storing strings in the
       national character set format. python-oracledb uses the type
       :attr:`oracledb.DB_TYPE_NCLOB`.
     * BFILE - External Binary File, used for referencing a file stored on the
       host operating system outside of the database. python-oracledb uses the
-      type :attr:`oracledb.DB_TYPE_BFILE`. See `BFILEs <https://www.oracle.com
-      /pls/topic/lookup?ctx=dblatest&id=GUID-D4642C92-F343-4700-9F1F-
-      486F82249FB8>`__ for more information.
+      type :attr:`oracledb.DB_TYPE_BFILE`.
 
-LOBs can be streamed to, and from, Oracle Database.
+LOBs can be permanent or temporary. They can be inserted into, and fetched
+from, Oracle Database in chunks, as mecessary.
 
 LOBs up to 1 GB in length can be also be handled directly as strings or bytes
 in python-oracledb.  This makes LOBs easy to work with, and has significant
@@ -36,7 +35,7 @@ See `GitHub <https://github.com/oracle/python-oracledb/tree/main/samples>`__
 for LOB examples.
 
 Simple Insertion of LOBs
-------------------------
+========================
 
 Consider a table with CLOB and BLOB columns:
 
@@ -69,7 +68,7 @@ Note that with this approach, LOB data is limited to 1 GB in size.
 .. _directlobs:
 
 Fetching LOBs as Strings and Bytes
-----------------------------------
+==================================
 
 CLOBs and BLOBs smaller than 1 GB can queried from the database directly as
 strings and bytes.  This can be much faster than streaming a :ref:`LOB Object
@@ -121,7 +120,7 @@ handler:
     connection.outputtypehandler = output_type_handler
 
 Streaming LOBs (Read)
----------------------
+=====================
 
 Without setting ``oracledb.defaults.fetch_lobs`` to False, or without using an
 output type handler, the CLOB and BLOB values are fetched as :ref:`LOB
@@ -168,7 +167,7 @@ repeatedly until all of the data has been read, as shown below:
 
 
 Streaming LOBs (Write)
-----------------------
+======================
 
 If a row containing a LOB is being inserted or updated, and the quantity of
 data that is to be inserted or updated cannot fit in a single block of data,
@@ -196,9 +195,8 @@ in the following code:
             offset += len(data)
     connection.commit()
 
-
 Temporary LOBs
---------------
+==============
 
 All of the examples shown thus far have made use of permanent LOBs. These are
 LOBs that are stored in the database. Oracle also supports temporary LOBs that
@@ -214,3 +212,101 @@ procedure exceeds that which can fit in a single block of data, however, you
 can use the method :meth:`Connection.createlob()` to create a temporary LOB.
 This LOB can then be read and written just like in the examples shown above for
 persistent LOBs.
+
+.. _bfiles:
+
+Using BFILEs
+============
+
+`BFILEs <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D4642C92
+-F343-4700-9F1F-486F82249FB8>`__ are objects stored in a directory in the
+Oracle Database server file system, not in the database. The database column of
+type BFILE stores a reference to this external binary file. Each BFILE column
+can reference a single external file. BFILEs are read-only data types and
+hence you cannot modify the file from within your application.
+
+Before using the BFILE data type, you must:
+
+- Create a `DIRECTORY <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+  F7440C27-C7F0-4874-8C3C-F3BC1534CBE0>`__ object which is an alias for the
+  full path to the directory containing BFILE data in the database server file
+  system. For example, you can create a DIRECTORY object by using:
+
+  .. code-block:: sql
+
+        create or replace directory my_bfile_dir as '/demo/bfiles'
+
+  In the above example, "my_bfile_dir" is the directory alias.
+  "/demo/bfiles" is the physical directory in the database server file
+  system that contains the files. It is a string containing the full path name
+  of the directory and follows the operating system rules.
+
+  To allow non-privileged users to access this directory, you can grant access
+  using:
+
+  .. code-block:: sql
+
+    grant read on directory my_bfile_dir to hr;
+
+  Ensure that the Oracle Server processes have read access to the directory.
+
+- Store the physical binary file in the directory in the database server file
+  system. For example, the binary file "my_bfile.txt" is stored in the
+  directory "/demo/bfiles".
+
+Consider the file, "/demo/bfiles/my_bfile.txt", exists on the server and
+contains the text, "This is my BFILE data". You can access the "my_bfile.txt"
+file as detailed below.
+
+The following table will be used in the subsequent examples.
+
+.. code-block:: sql
+
+    create table bfile_tbl(
+        id number,
+        bfile_data bfile
+    );
+
+**Inserting BFILEs**
+
+You must use the `BFILENAME <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-1F767077-7C26-4962-9833-1433F1749621>`__ function in an INSERT
+statement to associate a file and a BFILE column. The ``BFILENAME`` function
+takes two arguments, the directory alias and the file name. To insert a BFILE
+reference, for example:
+
+.. code-block:: python
+
+    cursor.execute("""
+        insert into bfile_tbl (id, bfile_data) values
+        (:id, bfilename(:bfiledir, :bfilename))""",
+        id=102, bfiledir="my_bfile_dir", bfilename="my_bfile.txt")
+
+    connection.commit()
+
+This inserts a reference to the file "my_bfile.txt" located in the directory
+referenced by the alias "my_bfile_dir" into the bfile_tbl table.
+
+**Fetching BFILEs**
+
+To query the bfile_tbl table and fetch the BFILE LOB locator, you can use
+the `BFILENAME <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+1F767077-7C26-4962-9833-1433F1749621>`__ function as shown below:
+
+.. code-block:: python
+
+    cursor.execute("select bfilename(:bfiledir, :bfilename) from bfile_tbl where id = :id",
+        id=102, bfiledir="my_bfile_dir", bfilename="my_bfile.txt")
+    bfile, = cursor.fetchone()
+    print(bfile.read())
+
+This will display::
+
+    This is my BFILE data
+
+This fetched LOB can use :meth:`LOB.fileexists()` to check if the file
+referenced by the BFILE type LOB exists.
+
+You can get the directory alias and file name of this fetched LOB by using
+:meth:`LOB.getfilename()`. Also, you can set the directory alias and file name
+for this fetched LOB by using :meth:`LOB.setfilename()`.
