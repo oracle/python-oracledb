@@ -23,10 +23,9 @@
 # -----------------------------------------------------------------------------
 
 """
-2700 - Module for testing AQ
+2700 - Module for testing AQ with DbObject payloads.
 """
 
-import datetime
 import decimal
 import threading
 import unittest
@@ -42,64 +41,6 @@ class TestCase(test_env.BaseTestCase):
         ("Wings of Fire", "A.P.J. Abdul Kalam", decimal.Decimal("15.75")),
         ("The Story of My Life", "Hellen Keller", decimal.Decimal("10.50")),
         ("The Chronicles of Narnia", "C.S. Lewis", decimal.Decimal("25.25")),
-    ]
-    json_queue_name = "TEST_JSON_QUEUE"
-    json_data = [
-        [
-            2.75,
-            True,
-            "Ocean Beach",
-            b"Some bytes",
-            {"keyA": 1.0, "KeyB": "Melbourne"},
-            datetime.datetime(2022, 8, 1, 0, 0),
-        ],
-        [
-            True,
-            False,
-            "String",
-            b"Some Bytes",
-            {},
-            {"name": None},
-            {"name": "John"},
-            {"age": 30},
-            {"Permanent": True},
-            {
-                "employee": {
-                    "name": "John",
-                    "age": 30,
-                    "city": "Delhi",
-                    "Parmanent": True,
-                }
-            },
-            {"employees": ["John", "Matthew", "James"]},
-            {
-                "employees": [
-                    {"employee1": {"name": "John", "city": "Delhi"}},
-                    {"employee2": {"name": "Matthew", "city": "Mumbai"}},
-                    {"employee3": {"name": "James", "city": "Bangalore"}},
-                ]
-            },
-        ],
-        [
-            datetime.datetime.today(),
-            datetime.datetime(2004, 2, 1, 3, 4, 5),
-            datetime.datetime(2020, 12, 2, 13, 29, 14),
-            datetime.timedelta(8.5),
-            datetime.datetime(2002, 12, 13, 9, 36, 0),
-            oracledb.Timestamp(2002, 12, 13, 9, 36, 0),
-            datetime.datetime(2002, 12, 13),
-        ],
-        dict(name="John", age=30, city="New York"),
-        [
-            0,
-            1,
-            25.25,
-            6088343244,
-            -9999999999999999999,
-            decimal.Decimal("0.25"),
-            decimal.Decimal("10.25"),
-            decimal.Decimal("319438950232418390.273596"),
-        ],
     ]
 
     def __deq_in_thread(self, results):
@@ -537,33 +478,7 @@ class TestCase(test_env.BaseTestCase):
         conn.unsubscribe(sub)
 
     def test_2721(self):
-        "2721 - test enqueuing and dequeuing JSON payloads"
-        queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
-        self.assertEqual(queue.payload_type, "JSON")
-        for data in self.json_data:
-            props = self.conn.msgproperties(payload=data)
-            queue.enqone(props)
-        self.conn.commit()
-        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-        results = []
-        while True:
-            props = queue.deqone()
-            if props is None:
-                break
-            results.append(props.payload)
-        self.conn.commit()
-        self.assertEqual(results, self.json_data)
-
-    def test_2722(self):
-        "2722 - test enqueuing to a JSON queue without a JSON payload"
-        queue = self.get_and_clear_queue(self.json_queue_name, "JSON")
-        string_message = "This is a string message"
-        props = self.conn.msgproperties(payload=string_message)
-        with self.assertRaisesFullCode("DPY-2062"):
-            queue.enqone(props)
-
-    def test_2723(self):
-        "2723 - test message props enqtime"
+        "2721 - test message props enqtime"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -579,8 +494,8 @@ class TestCase(test_env.BaseTestCase):
         end_date = end_date.replace(microsecond=0)
         self.assertTrue(start_date <= props.enqtime <= end_date)
 
-    def test_2724(self):
-        "2724 - test message props declared attributes"
+    def test_2722(self):
+        "2722 - test message props declared attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -597,29 +512,29 @@ class TestCase(test_env.BaseTestCase):
         for attr_name in values:
             self.assertEqual(getattr(props, attr_name), values[attr_name])
 
-    def test_2725(self):
-        "2725 - test error for invalid type for payload_type"
+    def test_2723(self):
+        "2723 - test error for invalid type for payload_type"
         self.assertRaises(
             TypeError, self.conn.queue, "THE QUEUE", payload_type=4
         )
 
-    def test_2726(self):
-        "2726 - test setting bytes to payload"
+    def test_2724(self):
+        "2724 - test setting bytes to payload"
         props = self.conn.msgproperties()
         bytes_val = b"Hello there"
         props.payload = bytes_val
         self.assertEqual(props.payload, bytes_val)
 
-    def test_2727(self):
-        "2727 - test getting queue attributes"
+    def test_2725(self):
+        "2725 - test getting queue attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
         self.assertEqual(queue.name, self.book_queue_name)
         self.assertEqual(queue.connection, self.conn)
 
-    def test_2728(self):
-        "2728 - test getting write-only attributes"
+    def test_2726(self):
+        "2726 - test getting write-only attributes"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -628,8 +543,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaises(AttributeError):
             queue.deqoptions.deliverymode
 
-    def test_2729(self):
-        "2729 - test correlation deqoption"
+    def test_2727(self):
+        "2727 - test correlation deqoption"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -655,8 +570,8 @@ class TestCase(test_env.BaseTestCase):
         correlated_messages = queue.deqmany(num_messages + 1)
         self.assertEqual(len(correlated_messages), num_messages)
 
-    def test_2730(self):
-        "2730 - test correlation deqoption with pattern-matching characters"
+    def test_2728(self):
+        "2728 - test correlation deqoption with pattern-matching characters"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -672,8 +587,8 @@ class TestCase(test_env.BaseTestCase):
         messages = queue.deqmany(5)
         self.assertEqual(len(messages), 2)
 
-    def test_2731(self):
-        "2731 - test condition deqoption with priority"
+    def test_2729(self):
+        "2729 - test condition deqoption with priority"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -699,8 +614,8 @@ class TestCase(test_env.BaseTestCase):
             data = book.TITLE, book.AUTHORS, book.PRICE
             self.assertEqual(data, self.book_data[ix])
 
-    def test_2732(self):
-        "2732 - test mode deqoption with DEQ_REMOVE_NODATA"
+    def test_2730(self):
+        "2730 - test mode deqoption with DEQ_REMOVE_NODATA"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
@@ -720,40 +635,37 @@ class TestCase(test_env.BaseTestCase):
             self.assertIsNone(message.payload.AUTHORS)
             self.assertIsNone(message.payload.PRICE)
 
-    def test_2733(self):
-        "2733 - test payload_type returns the correct value"
+    def test_2731(self):
+        "2731 - test payload_type returns the correct value"
         books_type = self.conn.gettype(self.book_type_name)
         queue = self.conn.queue(self.book_queue_name, books_type)
         self.assertEqual(queue.payload_type, books_type)
 
-        queue = self.conn.queue("TEST_RAW_QUEUE")
-        self.assertIsNone(queue.payload_type)
-
-    def test_2734(self):
-        "2734 - test deprecated attributes (enqOptions, deqOptions)"
-        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+    def test_2732(self):
+        "2732 - test deprecated attributes (enqOptions, deqOptions)"
+        books_type = self.conn.gettype(self.book_type_name)
+        queue = self.conn.queue(self.book_queue_name, books_type)
         self.assertEqual(queue.enqOptions, queue.enqoptions)
         self.assertEqual(queue.deqOptions, queue.deqoptions)
 
-    def test_2735(self):
-        "2735 - test deprecated AQ methods (enqOne, deqOne)"
-        value = b"Test 2734"
-        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
-        queue.enqOne(self.conn.msgproperties(value))
+    def test_2733(self):
+        "2733 - test deprecated AQ methods (enqOne, deqOne)"
+        books_type = self.conn.gettype(self.book_type_name)
+        queue = self.conn.queue(self.book_queue_name, books_type)
+        book = queue.payload_type.newobject()
+        book.TITLE, book.AUTHORS, book.PRICE = self.book_data[0]
+        queue.enqOne(self.conn.msgproperties(book))
         props = queue.deqOne()
-        self.assertEqual(props.payload, value)
+        book = props.payload
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        self.assertEqual(results, self.book_data[0])
 
-    def test_2736(self):
-        "2736 - test enqueuing to an object queue with the wrong payload"
+    def test_2734(self):
+        "2734 - test enqueuing to an object queue with the wrong payload"
         queue = self.get_and_clear_queue(
             self.book_queue_name, self.book_type_name
         )
         props = self.conn.msgproperties(payload="A string")
-        with self.assertRaisesFullCode("DPY-2062"):
-            queue.enqone(props)
-        typ = self.conn.gettype("UDT_SUBOBJECT")
-        obj = typ.newobject()
-        props = self.conn.msgproperties(payload=obj)
         with self.assertRaisesFullCode("DPY-2062"):
             queue.enqone(props)
 
