@@ -51,7 +51,7 @@ cdef class ExecuteMessage(MessageWithData):
         if stmt._requires_define:
             options |= TNS_EXEC_OPTION_DEFINE
         elif not self.parse_only and stmt._sql is not None:
-            exec_flags = TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
+            exec_flags |= TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
             options |= TNS_EXEC_OPTION_EXECUTE
         if stmt._cursor_id == 0 or stmt._is_ddl:
             options |= TNS_EXEC_OPTION_PARSE
@@ -75,7 +75,7 @@ cdef class ExecuteMessage(MessageWithData):
         if self.batcherrors:
             options |= TNS_EXEC_OPTION_BATCH_ERRORS
         if self.arraydmlrowcounts:
-            exec_flags = TNS_EXEC_FLAGS_DML_ROWCOUNTS
+            exec_flags |= TNS_EXEC_FLAGS_DML_ROWCOUNTS
         if self.conn_impl.autocommit and not self.parse_only:
             options |= TNS_EXEC_OPTION_COMMIT
 
