@@ -35,7 +35,7 @@ See [python-oracledb Installation][installation].
   available when optional Oracle Client libraries are loaded by
   python-oracledb.  Libraries are available in the free [Oracle Instant
   Client][instantclient] packages. Python-oracledb can use Oracle Client
-  libraries 11.2 through 21c.
+  libraries 11.2 through 23ai.
 
 - Oracle Database
 
