@@ -82,9 +82,9 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         database and receive back its response.
         """
         cdef:
+            uint64_t desired_row = 0
+            uint32_t orientation = 0
             ExecuteMessage message
-            uint32_t orientation
-            uint64_t desired_row
 
         # check mode and calculate desired row
         if mode == "relative":
