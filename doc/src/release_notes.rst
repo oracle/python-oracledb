@@ -75,6 +75,9 @@ Common Changes
       data frame
     - Eliminated small memory leak with production of each data frame
 
+#)  Made the :ref:`Azure App Centralized Configuration Provider
+    <azureappstorageprovider>` connection string suffix ".azconfig.io"
+    optional.
 #)  Fixed bug when binding a variable that was previously bound as an output
     variable in a DML RETURNING statement.
 #)  Fixed bug when multiple rows containing LOBs and DbObjects are returned in

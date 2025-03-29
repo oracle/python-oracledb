@@ -1423,7 +1423,7 @@ The elements of the connection string are detailed in the table below.
       - Indicates that the configuration provider is Azure App Configuration.
       - Required
     * - <appconfigname>
-      - The URL of the Azure App Configuration endpoint.
+      - The URL of the Azure App Configuration endpoint. The suffix ".azconfig.io" in the name is optional.
       - Required
     * - key=<prefix>
       - A key prefix to identify the connection. You can organize configuration information under a prefix as per application requirements.

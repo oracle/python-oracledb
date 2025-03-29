@@ -188,7 +188,9 @@ def _parse_parameters(protocol_arg: str) -> dict:
     parameters = {
         key.lower(): value[0] for key, value in parsed_values.items()
     }
-    parameters["appconfigname"] = protocol_arg[:pos]
+    parameters["appconfigname"] = (
+        protocol_arg[:pos].rstrip("/").rstrip(".azconfig.io") + ".azconfig.io"
+    )
     return parameters
 
 
