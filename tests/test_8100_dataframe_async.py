@@ -508,6 +508,34 @@ class TestCase(test_env.BaseAsyncTestCase):
             fetched_data = self.__get_data_from_df(fetched_df)
             self.assertEqual(fetched_data, data)
 
+    async def test_8120(self):
+        "8120 - fetch clob"
+        data = [("test_8023",)]
+        self.__check_interop()
+        ora_df = await self.conn.fetch_df_all(
+            "select to_clob('test_8023') from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
+    async def test_8121(self):
+        "8121 - fetch blob"
+        data = [(b"test_8024",)]
+        self.__check_interop()
+        ora_df = await self.conn.fetch_df_all(
+            "select to_blob(utl_raw.cast_to_raw('test_8024')) from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

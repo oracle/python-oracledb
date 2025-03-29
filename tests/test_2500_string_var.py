@@ -424,6 +424,9 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(1, short_string), (2, long_string)]
         )
 
+    @unittest.skipIf(
+        test_env.get_server_version() < (12, 2), "not supported on this server"
+    )
     def test_2528(self):
         "2528 - test issue 50 - avoid error ORA-24816"
         cursor = self.conn.cursor()

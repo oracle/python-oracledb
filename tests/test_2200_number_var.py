@@ -27,6 +27,7 @@
 """
 
 import decimal
+import unittest
 
 import oracledb
 import test_env
@@ -73,6 +74,9 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (12, 1), "not supported on this client"
+    )
     def test_2200(self):
         "2200 - test binding in a boolean"
         result = self.cursor.callfunc(

@@ -699,6 +699,9 @@ class TestCase(test_env.BaseTestCase):
         (instance_name,) = cursor.fetchone()
         self.assertEqual(conn.instance_name.upper(), instance_name)
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (18, 1), "not supported on this client"
+    )
     def test_1136(self):
         "1136 - test deprecated attributes"
         conn = test_env.get_connection()
@@ -757,7 +760,7 @@ class TestCase(test_env.BaseTestCase):
             "select sys_context('userenv', 'service_name') from dual"
         )
         (service_name,) = cursor.fetchone()
-        self.assertEqual(conn.service_name, service_name)
+        self.assertEqual(conn.service_name.upper(), service_name.upper())
 
     def test_1141(self):
         "1141 - test transaction_in_progress"

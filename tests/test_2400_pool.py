@@ -167,6 +167,9 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(fetched_value, arg_value)
         pool.close()
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (19, 1), "not supported on this client"
+    )
     def test_2400(self):
         "2400 - test getting default pool parameters"
         pool = test_env.get_pool()
@@ -231,6 +234,9 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(user, test_env.get_proxy_user().upper())
         conn.close()
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (19, 1), "not supported on this client"
+    )
     def test_2402(self):
         "2402 - test setting pool attributes"
         pool = test_env.get_pool()
@@ -670,6 +676,9 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-1002"):
             pool.acquire()
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (19, 1), "not supported on this client"
+    )
     def test_2422(self):
         "2422 - using the pool beyond max limit raises an error"
         pool = test_env.get_pool(
@@ -857,7 +866,7 @@ class TestCase(test_env.BaseTestCase):
         test_env.get_server_version() < (12, 2), "not supported on this server"
     )
     @unittest.skipIf(
-        test_env.get_client_version() < (12, 2), "not supported on this client"
+        test_env.get_client_version() < (19, 1), "not supported on this client"
     )
     def test_2438(self):
         "2438 - ensure that timed wait times out with appropriate exception"
@@ -867,6 +876,9 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-4005"):
             pool.acquire()
 
+    @unittest.skipIf(
+        test_env.get_client_version() < (18, 1), "not supported on this client"
+    )
     def test_2439(self):
         "2439 - ensure call timeout is reset on connections returned by pool"
         pool = test_env.get_pool(ping_timeout=1000, ping_interval=0)
