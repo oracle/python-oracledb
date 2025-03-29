@@ -387,6 +387,12 @@ cdef class Message:
             self.conn_impl._drcp_establish_session = False
             buf.read_ub4(&self.conn_impl._session_id)
             buf.read_ub2(&self.conn_impl._serial_num)
+        elif opcode == TNS_SERVER_PIGGYBACK_SESS_SIGNATURE:
+            buf.skip_ub2()                  # number of dtys
+            buf.skip_ub1()                  # length of dty
+            buf.skip_ub8()                  # signature flags
+            buf.skip_ub8()                  # client signature
+            buf.skip_ub8()                  # server signature
         else:
             errors._raise_err(errors.ERR_UNKNOWN_SERVER_PIGGYBACK,
                               opcode=opcode)

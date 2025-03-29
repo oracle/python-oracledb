@@ -35,6 +35,8 @@ Thin Mode Changes
 #)  Fixed bug when an error is reported by the server in the middle of a
     response to a client request
     (`issue 472 <https://github.com/oracle/python-oracledb/issues/472>`__).
+#)  Fixed bug when connecting to an AC-enabled service
+    (`issue 476 <https://github.com/oracle/python-oracledb/issues/476>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
