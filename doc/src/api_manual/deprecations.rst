@@ -11,8 +11,9 @@ and is no longer available in python-oracledb. The most recent deprecated and
 desupported features are listed first.
 
 The previous cx_Oracle deprecation announcements remain in force for
-python-oracledb.  The relevant functionality may be removed in a future version
-of python-oracledb.
+python-oracledb. The relevant functionality may be removed in a future version
+of python-oracledb. The cx_Oracle driver itself is obsolete and should not be
+used for new development.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 3.0
     :header-rows: 1
@@ -23,7 +24,8 @@ of python-oracledb.
     * - Name
       - Comments
     * - Parameter ``pool`` of :meth:`oracledb.connect()` and :meth:`oracledb.connect_async()`
-      - Use :meth:`ConnectionPool.acquire()` instead
+      - Use :meth:`ConnectionPool.acquire()`, or make use of the
+        :ref:`connection pool cache <connpoolcache>` instead
 
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1

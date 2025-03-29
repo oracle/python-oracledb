@@ -14,8 +14,8 @@ supporting the Python Database API v2.0 Specification.
 All connections in an application use the same mode.  See :ref:`vsessconinfo`
 to verify which mode is in use.
 
-If you are upgrading a cx_Oracle application to python-oracledb, then refer to
-:ref:`upgrading83` for changes that may be needed.
+If you are upgrading from the obsolete cx_Oracle driver to python-oracledb,
+then refer to :ref:`upgrading83` for changes that may be needed.
 
 .. _enablingthick:
 
@@ -606,24 +606,19 @@ The common environment variables listed below are supported in python-oracledb.
       - Purpose
       - Python-oracledb Mode
     * - LD_LIBRARY_PATH
-      - The library search path for platforms like Linux should include the
-        Oracle libraries, for example ``$ORACLE_HOME/lib`` or
-        ``/opt/instantclient_23_5``. This variable is not needed if the
-        libraries are located by an alternative method, such as with
-        ``ldconfig``. On other UNIX platforms, you may need to set an OS
-        specific equivalent such as ``LIBPATH`` or ``SHLIB_PATH``.
+      - The library search path for platforms like Linux should include the Oracle libraries, for example ``$ORACLE_HOME/lib`` or ``/opt/instantclient_23_5``.
+
+        This variable is not needed if the libraries are located by an alternative method, such as with ``ldconfig``. On other UNIX platforms, you may need to set an OS specific equivalent such as ``LIBPATH`` or ``SHLIB_PATH``.
       - Thick
     * - NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT
-      - Often set in Python applications to force a consistent date format
-        independent of the locale. The variables are ignored if the environment
-        variable ``NLS_LANG`` is not set.
+      - Often set in Python applications to force a consistent date format independent of the locale.
+
+        These variables are ignored if the environment variable ``NLS_LANG`` is not set.
       - Thick
     * - NLS_LANG
-      - Determines the 'national language support' globalization options for
-        python-oracledb. Note that from cx_Oracle 8, the character set component is
-        ignored and only the language and territory components of ``NLS_LANG``
-        are used. The character set can instead be specified during connection
-        or connection pool creation. See :ref:`globalization`.
+      - Determines the 'national language support' globalization options for python-oracledb.
+
+        Note that from cx_Oracle 8, the character set component is ignored and only the language and territory components of ``NLS_LANG`` are used. The character set can instead be specified during connection or connection pool creation. See :ref:`globalization`.
       - Thick
     * - ORA_SDTZ
       - The default session time zone.
@@ -632,21 +627,19 @@ The common environment variables listed below are supported in python-oracledb.
       - The name of the Oracle time zone file to use. See :ref:`timezonefiles`.
       - Thick
     * - ORACLE_HOME
-      - The directory containing the Oracle Database software. The directory
-        and various configuration files must be readable by the Python process.
-        This variable should not be set if you are using Oracle Instant Client.
+      - The directory containing the Oracle Database software.
+
+        The directory and various configuration files must be readable by the Python process.  This variable should not be set if you are using Oracle Instant Client.
       - Thick
     * - PATH
-      - The library search path for Windows should include the location where
-        ``OCI.DLL`` is found.  Not needed if you set ``lib_dir`` in a call to
-        :meth:`oracledb.init_oracle_client()`.
+      - The library search path for Windows should include the location where ``OCI.DLL`` is found.
+
+        This variable is not needed if you set ``lib_dir`` in a call to :meth:`oracledb.init_oracle_client()`.
       - Thick
     * - TNS_ADMIN
-      - The directory of optional Oracle Client configuration files such as
-        ``tnsnames.ora`` and ``sqlnet.ora``. Generally not needed if the
-        configuration files are in a default location, or if ``config_dir`` was
-        not used in :meth:`oracledb.init_oracle_client()`.  See
-        :ref:`optnetfiles`.
+      - The directory of optional Oracle Client configuration files such as ``tnsnames.ora`` and ``sqlnet.ora``.
+
+        Generally not needed if the configuration files are in a default location, or if ``config_dir`` was not used in :meth:`oracledb.init_oracle_client()`.  See :ref:`optnetfiles`.
       - Both
 
 .. _otherinit:

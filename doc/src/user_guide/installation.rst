@@ -980,17 +980,17 @@ Building a python-oracledb package locally
 3. With the source code available, build a python-oracledb package by running::
 
        cd python-oracledb               # the name may vary depending on the download
-       python -m pip install build
+       python -m pip install build --upgrade
        # export PYO_COMPILE_ARGS='-g0'  # optionally set any compilation arguments
        python -m build
 
    A python-oracledb wheel package is created in the ``dist`` subdirectory.
    For example when using Python 3.12 on macOS you might have the file
-   ``dist/oracledb-2.5.0-cp312-cp312-macosx_10_9_universal2.whl``.
+   ``dist/oracledb-3.1.0-cp312-cp312-macosx_14_0_arm64.whl``.
 
 4. Install this package::
 
-       python -m pip install dist/oracledb-2.5.0-cp312-cp312-macosx_10_9_universal2.whl
+       python -m pip install dist/oracledb-3.1.0-cp312-cp312-macosx_14_0_arm64.whl
 
    The package can also be installed on any computer which has the same
    architecture and Python version as the build machine.
@@ -1009,22 +1009,24 @@ Python versions.
    `ODPI-C repository <https://github.com/oracle/odpi/fork>`__, keeping the
    default name.
 
-2. In your python-oracledb fork, go to the Actions tab
+2. Optionally edit ``.github/workflows/build.yaml`` and remove platforms and
+   versions that you are not interested in. Building all packages can take some
+   time.
+
+3. In your python-oracledb fork, go to the Actions tab
    ``https://github.com/<your name>/python-oracledb/actions/``.  If this is
    your first time using Actions, confirm enabling them.
 
-3. In the "All workflows" list on the left-hand side, select the "build" entry.
+4. In the "All workflows" list on the left-hand side, select the "build" entry.
 
-4. Navigate to the "Run workflow" drop-down, select the branch to build from
+5. Navigate to the "Run workflow" drop-down, select the branch to build from
    (for example, "main"), and run the workflow.
 
-   This builds packages for all supported architectures and Python versions.
-
-5. When the build has completed, download the "python-oracledb-wheels"
+6. When the build has completed, download the "python-oracledb-wheels"
    artifact, unzip it, and install the one for your architecture and Python
    version.  For example, when using Python 3.12 on macOS, install::
 
-       python -m pip install oracledb-2.5.0-cp312-cp312-macosx_10_13_universal2.whl
+       python -m pip install oracledb-3.1.0-cp312-cp312-macosx_10_13_universal2.whl
 
 .. _configprovidermodules:
 

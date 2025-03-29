@@ -219,6 +219,8 @@ Connection Methods
     This function performs a local check. To fully check a connection's health,
     use :meth:`Connection.ping()` which performs a round-trip to the database.
 
+    .. dbapimethodextension::
+
 .. method:: Connection.msgproperties(payload, correlation, delay, exceptionq, expiration, priority)
 
     Returns an object specifying the properties of messages used in advanced
@@ -231,13 +233,17 @@ Connection Methods
 
 .. method:: Connection.ping()
 
-    Pings the database to verify if the connection is valid.
+    Pings the database to verify if the connection is valid. An exception is
+    thrown if it is not, in which case the connection should not be used by the
+    application and a new connection should be established instead.
 
     This function performs a :ref:`round-trip <roundtrips>` to the database, so
     it should not be used unnecessarily.
 
     Note connection pools will perform the same health check automatically,
     based on configuration settings. See :ref:`poolhealth`.
+
+    Also, see :meth:`Connection.is_healthy()` for a lightweight alternative.
 
     .. dbapimethodextension::
 

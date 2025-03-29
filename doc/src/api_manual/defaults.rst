@@ -83,12 +83,11 @@ Defaults Attributes
     This can help avoid issues with converting numbers from Oracle Database's
     decimal format to Python's binary format.
 
-    An output type handler such as previously required in cx_Oracle (see
-    `return_numbers_as_decimals.py <https://github.com/oracle/python-cx_Oracle/
-    blob/main/samples/return_numbers_as_decimals.py>`__) can alternatively be
-    used to adjust the returned type.  If a type handler exists and returns a
-    variable (that is, ``cursor.var(...)``), then that return variable is used.
-    If the type handler returns *None*, then the value of
+    An output type handler such as previously required in the obsolete
+    cx_Oracle driver can alternatively be used to adjust the returned type.  If
+    a type handler exists and returns a variable (that is,
+    ``cursor.var(...)``), then that return variable is used.  If the type
+    handler returns *None*, then the value of
     ``oracledb.defaults.fetch_decimals`` is used to determine whether to return
     ``decimal.Decimal`` values.
 
@@ -102,13 +101,11 @@ Defaults Attributes
     LOBs are larger than 1 GB, then this attribute should be set to *True* and
     the LOBs should be streamed.  See :ref:`lobdata`.
 
-    An output type handler such as the one previously required in cx_Oracle
-    (see `return_lobs_as_strings.py <https://github.com/oracle/
-    python-cx_Oracle/blob/main/samples/return_lobs_as_strings.py>`__) can
-    alternatively be used to adjust the returned type.  If a type handler
-    exists and returns a variable (that is, `cursor.var(...)`), then that
-    return variable is used. If the type handler returns *None*, then the value
-    of ``oracledb.defaults.fetch_lobs`` is used.
+    An output type handler such as the one previously required in the obsolete
+    cx_Oracle driver can alternatively be used to adjust the returned type.  If
+    a type handler exists and returns a variable (that is, `cursor.var(...)`),
+    then that return variable is used. If the type handler returns *None*, then
+    the value of ``oracledb.defaults.fetch_lobs`` is used.
 
     The value of ``oracledb.defaults.fetch_lobs`` does not affect LOBs returned
     as OUT binds.

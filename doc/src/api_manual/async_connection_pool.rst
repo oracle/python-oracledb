@@ -163,8 +163,6 @@ AsyncConnectionPool Attributes
     forces a ping for every :meth:`AsyncConnectionPool.acquire()` and is not
     recommended.
 
-    Prior to cx_Oracle 8.2, the ping interval was fixed at *60* seconds.
-
 .. attribute:: AsyncConnectionPool.soda_metadata_cache
 
     This read-write boolean attribute returns whether the SODA metadata cache

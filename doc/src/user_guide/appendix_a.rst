@@ -14,14 +14,14 @@ Database API v2.0 Specification `PEP 249
 enable Thick mode.
 
 The following table summarizes the Oracle Database features supported by
-python-oracledb Thin and Thick modes, and by cx_Oracle 8.3.  For more details
-see :ref:`driverdiff` and :ref:`compatibility`.
+python-oracledb Thin and Thick modes, and by the obsolete cx_Oracle driver.
+For more details see :ref:`driverdiff` and :ref:`compatibility`.
 
 .. list-table-with-summary::  Features Supported by python-oracledb and cx_Oracle 8.3
     :header-rows: 1
     :class: wy-table-responsive
     :align: center
-    :summary: The first column displays the Oracle feature. The second column indicates whether the feature is supported in the python-oracledb Thin mode. The third column indicates whether the feature is supported in the python-oracledb Thick mode. The fourth column indicates if the feature is supported in cx_Oracle 8.3.
+    :summary: The first column displays the Oracle feature. The second column indicates whether the feature is supported in python-oracledb Thin mode. The third column indicates whether the feature is supported in python-oracledb Thick mode. The fourth column indicates if the feature is supported in the obsolete cx_Oracle driver.
 
     * - Oracle Feature
       - python-oracledb Thin Mode

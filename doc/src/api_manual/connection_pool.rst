@@ -18,7 +18,7 @@ In python-oracledb, the type `pool` will show the class `oracledb.ConnectionPool
 This only affects the name.
 
 The following code will continue to work providing backward compatibility with
-cx_Oracle:
+the obsolete cx_Oracle driver:
 
 .. code-block:: python
 

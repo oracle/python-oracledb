@@ -42,7 +42,8 @@ mode. However, only one of these modes can be used in each Python process:
     :func:`oracledb.connect()` and :func:`oracledb.create_pool()` are keyword
     and not positional. This makes the python-oracledb driver compliant with
     the Python Database API specification PEP 249.  The old positional usage
-    possible in cx_Oracle will cause an error, see :ref:`connerrors`.
+    possible in the obsolete cx_Oracle driver will cause an error, see
+    :ref:`connerrors`.
 
 Connections to a Local Database
 -------------------------------
@@ -159,13 +160,13 @@ differs from the python-oracledb Thick mode in the following ways:
   established. Note that this behavior may also be true of recent versions of
   the Oracle Call Interface (OCI) Session Pool used in the Thin mode.
 
-  If the new ``getmode`` default value of :data:`~oracledb.POOL_GETMODE_WAIT` is
-  used, then this behavior will not be an issue. With this new default value, any
-  immediate :meth:`ConnectionPool.acquire()` calls will wait for the connections
-  to be created by the daemon thread. This improves the application start up time
-  when compared to the python-oracledb Thick mode and cx_Oracle 8.3 driver, where
-  :func:`oracledb.create_pool()` will not return control to the application until
-  all ``pool.min`` connections have been created.
+  If the new ``getmode`` default value of :data:`~oracledb.POOL_GETMODE_WAIT`
+  is used, then this behavior will not be an issue. With this new default
+  value, any immediate :meth:`ConnectionPool.acquire()` calls will wait for the
+  connections to be created by the daemon thread. This improves application
+  start up time when compared to the python-oracledb Thick mode, where
+  :func:`oracledb.create_pool()` will not return control to the application
+  until all ``pool.min`` connections have been created.
 
   If the old default value ``POOL_GETMODE_NOWAIT`` is required, then the application
   could check if :attr:`ConnectionPool.opened` has reached :attr:`ConnectionPool.min`
@@ -176,11 +177,10 @@ differs from the python-oracledb Thick mode in the following ways:
   current SQL executions to complete before closing the connections. All of the
   connections are then dropped from the pool and the pool is closed. Closing
   the pool in python-oracledb Thick mode could stop responding indefinitely,
-  depending on the network and Oracle Net Services timeout parameters. This is
-  also applicable to the cx_Oracle 8.3 driver. In python-oracledb Thin mode,
-  the parameter ``force=True`` disconnects each connection's socket using a
-  background thread, leaving the database to clean up its end of the
-  connections.
+  depending on the network and Oracle Net Services timeout parameters. In
+  python-oracledb Thin mode, the parameter ``force=True`` disconnects each
+  connection's socket using a background thread, leaving the database to clean
+  up its end of the connections.
 
 * In python-oracledb Thin mode, the ``cclass`` parameter value is not used to
   tag connections in the application connection pool. It is only used for :ref:`drcp`.

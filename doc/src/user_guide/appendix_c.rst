@@ -5,16 +5,17 @@ Appendix C: The python-oracledb and cx_Oracle Drivers
 *****************************************************
 
 The python-oracledb driver is the renamed, major version successor to cx_Oracle
-8.3. As a major release, the python-oracledb driver has :ref:`new features
-<releasenotes>` and some :ref:`deprecations`.  Also see :ref:`upgrading83`.
-The cx_Oracle driver is obsolete and should not be used for new development.
+8.3. The python-oracledb driver has many :ref:`new features <releasenotes>` and
+some :ref:`deprecations` compared with cx_Oracle.  Also, see
+:ref:`upgrading83`.  The cx_Oracle driver is obsolete and should not be used
+for new development.
 
 .. _compatibility:
 
 Differences between the python-oracledb and cx_Oracle Drivers
 =============================================================
 
-The differences between the cx_Oracle 8.3 and python-oracledb drivers are
+The differences between python-oracledb and the obsolete cx_Oracle driver are
 listed here.
 
 Mode differences from cx_Oracle
@@ -372,8 +373,8 @@ Example error messages are:
 Upgrading from cx_Oracle 8.3 to python-oracledb
 ===============================================
 
-This section provides the detailed steps needed to upgrade from cx_Oracle 8.3
-to python-oracledb.
+This section provides the detailed steps needed to upgrade from the obsolete
+cx_Oracle driver to python-oracledb.
 
 Things to Know Before the Upgrade
 ---------------------------------

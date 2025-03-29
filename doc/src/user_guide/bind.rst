@@ -639,9 +639,9 @@ This produces the output::
 
 Note the use of :meth:`Object.aslist()` which returns the collection element
 values in index order as a simple Python list. The indices themselves are lost
-in this approach.  Starting from cx_Oracle 7.0, the associative array can be
-turned into a Python dictionary using :meth:`Object.asdict()`. If that value
-was printed in the previous example instead, the output would be::
+in this approach. The associative array can be turned into a Python dictionary
+using :meth:`Object.asdict()`. If that value was printed in the previous
+example instead, the output would be::
 
     {-1048576: 'First element', -576: 'Second element', 284: 'Third element', 8388608: 'Fourth element'}
 
