@@ -61,6 +61,7 @@ Common Changes
     and :meth:`Connection.fetch_df_batches()`:
 
     - Added support for CLOB, BLOB and RAW data types
+    - Fixed support for BOOLEAN data type
     - Fixed bug when NUMBER data is fetched that does not have a precision or
       scale specified and :attr:`defaults.fetch_decimals` is set to *True*.
     - More efficient processing when a significant amount of data is duplicated

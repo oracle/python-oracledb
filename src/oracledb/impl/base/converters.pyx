@@ -232,6 +232,8 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
             arrow_array.append_double(data.buffer.as_double)
     elif arrow_type == NANOARROW_TYPE_FLOAT:
         arrow_array.append_float(data.buffer.as_float)
+    elif arrow_type == NANOARROW_TYPE_BOOL:
+        arrow_array.append_int64(data.buffer.as_bool)
     elif arrow_type in (
             NANOARROW_TYPE_BINARY,
             NANOARROW_TYPE_STRING,

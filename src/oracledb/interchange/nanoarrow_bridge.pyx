@@ -89,6 +89,7 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowArrayViewSetArray(ArrowArrayView* array_view,
                                           const ArrowArray* array,
                                           ArrowError* error)
+    int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
     void ArrowSchemaInit(ArrowSchema* schema)
     ArrowErrorCode ArrowSchemaInitFromType(ArrowSchema* schema, ArrowType type)
     ArrowErrorCode ArrowSchemaSetTypeDateTime(ArrowSchema* schema,
@@ -277,6 +278,7 @@ cdef class OracleArrowArray:
             int32_t *as_int32
             double *as_double
             float *as_float
+            int8_t as_bool
             int64_t index
             uint8_t *ptr
             void* temp
@@ -295,6 +297,10 @@ cdef class OracleArrowArray:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_float = <float*> data_buffer.data
             self.append_double(as_float[index])
+        elif array.arrow_type == NANOARROW_TYPE_BOOL:
+            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
+            as_bool = ArrowBitGet(data_buffer.data, index)
+            self.append_int64(as_bool)
         elif array.arrow_type == NANOARROW_TYPE_DECIMAL128:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             ArrowDecimalInit(&decimal, 128, self.precision, self.scale)

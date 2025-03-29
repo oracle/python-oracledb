@@ -536,6 +536,33 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (23, 1), "unsupported server"
+    )
+    async def test_8122(self):
+        "8122 - fetch boolean"
+        data = [(True,), (False,), (False,), (True,), (True,)]
+        self.__check_interop()
+        ora_df = await self.conn.fetch_df_all(
+            """
+            select true
+            union all
+            select false
+            union all
+            select false
+            union all
+            select true
+            union all
+            select true
+            """
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

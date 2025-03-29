@@ -27,6 +27,7 @@ Module for testing dataframes
 """
 import datetime
 import decimal
+import unittest
 
 import oracledb
 
@@ -572,6 +573,36 @@ class TestCase(test_env.BaseTestCase):
         self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             "select utl_raw.cast_to_raw('test_8025') from dual"
+        )
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
+    @unittest.skipUnless(
+        test_env.get_client_version() >= (23, 1), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.get_server_version() >= (23, 1), "unsupported server"
+    )
+    def test_8026(self):
+        "8026 - fetch boolean"
+        data = [(True,), (False,), (False,), (True,), (True,)]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            select true
+            union all
+            select false
+            union all
+            select false
+            union all
+            select true
+            union all
+            select true
+            """
         )
         fetched_tab = pyarrow.Table.from_arrays(
             ora_df.column_arrays(), names=ora_df.column_names()
