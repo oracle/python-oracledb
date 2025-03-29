@@ -35,9 +35,9 @@ cdef class LobOpMessage(Message):
     cdef:
         uint32_t operation
         BaseThinLobImpl source_lob_impl
-        BaseThinLobImpl dest_lob_impl
         uint64_t source_offset
         uint64_t dest_offset
+        uint32_t dest_length
         int64_t amount
         bint send_amount
         bint bool_flag
@@ -75,13 +75,9 @@ cdef class LobOpMessage(Message):
             num_bytes = len(self.source_lob_impl._locator)
             ptr = buf.read_raw_bytes(num_bytes)
             self.source_lob_impl._locator = ptr[:num_bytes]
-        if self.dest_lob_impl is not None:
-            num_bytes = len(self.dest_lob_impl._locator)
-            ptr = buf.read_raw_bytes(num_bytes)
-            self.dest_lob_impl._locator = ptr[:num_bytes]
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             buf.skip_ub2()                  # skip character set
-            buf.skip_raw_bytes(3)           # skip trailing flags, amount
+            buf.skip_ub1()                  # skip trailing flags
         elif self.send_amount:
             buf.read_sb8(&self.amount)
         if self.operation in (TNS_LOB_OP_IS_OPEN,
@@ -99,12 +95,8 @@ cdef class LobOpMessage(Message):
         else:
             buf.write_uint8(1)              # source pointer
             buf.write_ub4(len(self.source_lob_impl._locator))
-        if self.dest_lob_impl is None:
-            buf.write_uint8(0)              # dest pointer
-            buf.write_ub4(0)                # dest length
-        else:
-            buf.write_uint8(1)              # dest pointer
-            buf.write_ub4(len(self.dest_lob_impl._locator))
+        buf.write_uint8(0)                  # dest pointer
+        buf.write_ub4(self.dest_length)
         buf.write_ub4(0)                    # short source offset
         buf.write_ub4(0)                    # short dest offset
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
@@ -132,8 +124,6 @@ cdef class LobOpMessage(Message):
             buf.write_uint16be(0)
         if self.source_lob_impl is not None:
             buf.write_bytes(self.source_lob_impl._locator)
-        if self.dest_lob_impl is not None:
-            buf.write_bytes(self.dest_lob_impl._locator)
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             if self.source_lob_impl.dbtype._csfrm == CS_FORM_NCHAR:
                 buf._caps._check_ncharset_id()

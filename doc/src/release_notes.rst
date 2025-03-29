@@ -37,6 +37,7 @@ Thin Mode Changes
     (`issue 472 <https://github.com/oracle/python-oracledb/issues/472>`__).
 #)  Fixed bug when connecting to an AC-enabled service
     (`issue 476 <https://github.com/oracle/python-oracledb/issues/476>`__).
+#)  Fixed bug when using temporary LOBs with implicit pooling.
 
 Thick Mode Changes
 ++++++++++++++++++

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -56,8 +56,7 @@ cdef class BaseThinLobImpl(BaseLobImpl):
         self._locator = bytes(40)
         message = self._conn_impl._create_message(LobOpMessage)
         message.operation = TNS_LOB_OP_CREATE_TEMP
-        message.amount = TNS_DURATION_SESSION
-        message.send_amount = True
+        message.dest_length = TNS_DURATION_SESSION
         message.source_lob_impl = self
         message.source_offset = self.dbtype._csfrm
         message.dest_offset = self.dbtype._ora_type_num
