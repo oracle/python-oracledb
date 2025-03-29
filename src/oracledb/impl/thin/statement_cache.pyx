@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,7 +45,7 @@ cdef class StatementCache:
         Add the statement's cursor to the list of cursors that need to be
         closed.
         """
-        if stmt._cursor_id != 0:
+        if stmt._cursor_id != 0 and not stmt._is_nested:
             self._cursors_to_close[self._num_cursors_to_close] = \
                     stmt._cursor_id
             self._num_cursors_to_close += 1

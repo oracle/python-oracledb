@@ -896,6 +896,8 @@ cdef class MessageWithData(Message):
             column_value = self._create_cursor_from_describe(buf, column_value)
             cursor_impl = column_value._impl
             buf.read_ub2(&cursor_impl._statement._cursor_id)
+            if self.in_fetch:
+                cursor_impl._statement._is_nested = True
         elif ora_type_num in (ORA_TYPE_NUM_CLOB,
                               ORA_TYPE_NUM_BLOB,
                               ORA_TYPE_NUM_BFILE):

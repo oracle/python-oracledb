@@ -38,6 +38,7 @@ Thin Mode Changes
 #)  Fixed bug when connecting to an AC-enabled service
     (`issue 476 <https://github.com/oracle/python-oracledb/issues/476>`__).
 #)  Fixed bug when using temporary LOBs with implicit pooling.
+#)  Fixed bug when fetching nested cursors.
 
 Thick Mode Changes
 ++++++++++++++++++

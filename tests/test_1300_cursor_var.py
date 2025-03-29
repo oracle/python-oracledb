@@ -459,6 +459,47 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-3027"):
             self.cursor.execute(sql, [ref_cursor])
 
+    def test_1320(self):
+        "1320 - test fetching nested cursors repeatedly"
+        sql = """
+            select
+                s.Description,
+                cursor(select 'Nested String for ' || s.Description from dual)
+            from
+                (
+                    select 'Top Level String 1' as Description
+                    from dual
+                    union all
+                    select 'Top Level String 2'
+                    from dual
+                    union all
+                    select 'Top Level String 3'
+                    from dual
+                    union all
+                    select 'Top Level String 4'
+                    from dual
+                    union all
+                    select 'Top Level String 5'
+                    from dual
+                ) s"""
+
+        for i in range(3):
+            with self.conn.cursor() as cursor:
+                cursor.arraysize = 10
+                cursor.execute(sql)
+                desc, nested1 = cursor.fetchone()
+                self.assertEqual(desc, "Top Level String 1")
+                nested_rows = nested1.fetchall()
+                self.assertEqual(
+                    nested_rows, [("Nested String for Top Level String 1",)]
+                )
+                desc, nested2 = cursor.fetchone()
+                self.assertEqual(desc, "Top Level String 2")
+                nested_rows = nested2.fetchall()
+                self.assertEqual(
+                    nested_rows, [("Nested String for Top Level String 2",)]
+                )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
