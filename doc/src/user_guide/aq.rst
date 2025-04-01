@@ -15,42 +15,53 @@ receiving of various payloads, such as RAW values, JSON, JMS, and objects.
 Transactional Event Queues use a highly optimized implementation of Advanced
 Queuing. They were previously called AQ Sharded Queues.
 
+.. note::
+
+    Transactional Event Queues are only supported in python-oracledb
+    :ref:`Thick mode <enablingthick>`.
+
 Python-oracledb API calls are the same for Transactional Event Queues and
 Classic Queues, however there are differences in support for some payload
-types.
+types which are detailed below.
 
-**Classic Queue Support**
+.. list-table-with-summary:: Payload Differences Between Classic Queues and Transactional Event Queues
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 10 20 20
+    :summary: The first column displays the payload type. The second column displays whether the payload type is supported in Classic Queues. The third column displays whether the payload type is supported in Transactional Event Queues.
 
-- RAW, named Oracle objects, JSON, and JMS payloads are supported.
+    * - Payload Type
+      - Classic Queues
+      - Transactional Event Queues
+    * - RAW
+      - Supported
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and connected to Oracle Database 19c (or later).
+    * - Named Oracle Objects
+      - Supported
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and connected to Oracle Database 19c (or later).
+    * - JSON
+      - Supported when using Oracle Database 21c (or later). In python-oracle Thick mode, Oracle Client libraries 21c (or later) are also needed.
+      - Supported for single message enqueuing and dequeuing when using Oracle Client libraries 21c (or later) and Oracle Database 21c (or later).
 
-- JSON payloads require Oracle Database 21c (or later). In python-oracle Thick
-  mode, Oracle Client libraries 21c (or later) are also needed.
+        Array enqueuing and dequeuing is not supported for JSON payloads.
+    * - JMS
+      - Supported
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and Oracle Database 23ai.
 
-The use of :data:`~oracledb.ENQ_IMMEDIATE` with bulk enqueuing, JMS payloads,
-and :ref:`Recipient Lists <reciplists>` are only supported in python-oracledb
-:ref:`Thick mode <enablingthick>`.
+**Usage Notes**
 
-There are examples of AQ Classic Queues in the `GitHub samples
-<https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
-
-**Transactional Event Queue Support**
-
-Transactional Event Queues are only supported in python-oracledb :ref:`Thick
-mode <enablingthick>`.
-
-- RAW and named Oracle object payloads are supported for single and array
-  message enqueuing and dequeuing when using Oracle Client 19c (or later) and
-  connected to Oracle Database 19c (or later).
-
-- JMS payloads are supported for single and array message enqueuing and
-  dequeuing when using Oracle Client 19c (or later) and Oracle Database 23ai.
-
-- JSON payloads are supported for single message enqueuing and dequeuing when
-  using Oracle Client libraries 21c (or later) and Oracle Database 21c (or
-  later). Array enqueuing and dequeuing is not supported for JSON payloads.
+For classic queues, the use of :data:`oracledb.ENQ_IMMEDIATE` with bulk
+enqueuing, JMS payloads, and :ref:`Recipient Lists <reciplists>` are only
+supported in python-oracledb :ref:`Thick mode <enablingthick>`.
 
 Transactional Event Queues do not support :attr:`EnqOptions.transformation`,
 :attr:`DeqOptions.transformation`, or :ref:`Recipient Lists <reciplists>`.
+
+The delivery mode :data:`oracledb.MSG_BUFFERED` is not supported for bulk array
+operations in python-oracledb Thick mode.
+
+There are examples of AQ Classic Queues in the `GitHub samples
+<https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
 
 Creating a Queue
 ================
@@ -120,7 +131,7 @@ payload type by using :meth:`Connection.queue()` or
     queue = connection.queue("DEMO_RAW_QUEUE")
 
 Now messages can be queued using :meth:`Queue.enqone()` or
-:meth:`AsyncQueue.enqone()`.  To send three messages:
+:meth:`AsyncQueue.enqone()`.  For example, to send three messages:
 
 .. code-block:: python
 
@@ -144,14 +155,16 @@ is committed. This default behavior can be altered, see :ref:`aqoptions`.
 **Enqueuing JSON Payloads**
 
 You can connect to the database and get the queue that was created with JSON
-payload type by using:
+payload type by using :meth:`Connection.queue()` or
+:meth:`AsyncConnection.queue()`. For example:
 
 .. code-block:: python
 
     # The argument "JSON" indicates the queue is of JSON payload type
     queue = connection.queue("DEMO_JSON_QUEUE", "JSON")
 
-Now the message can be enqueued using :meth:`~Queue.enqone()`.
+Now the message can be enqueued using :meth:`Queue.enqone()` or
+:meth:`AsyncQueue.enqone()`, for example:
 
 .. code-block:: python
 
@@ -206,7 +219,8 @@ to show the :attr:`~MessageProperties.msgid` of a dequeued message:
 
 **Dequeuing JSON Payloads**
 
-To dequeue a message, call the method :meth:`Queue.deqone()`, for example:
+To dequeue a message, call the method :meth:`Queue.deqone()` or
+:meth:`AsyncQueue.deqone()`, for example:
 
 .. code-block:: python
 
@@ -257,7 +271,7 @@ You can enqueue messages using :meth:`Queue.enqone()` or
     connection.commit()
 
 Dequeuing can be done with :meth:`Queue.deqone()` or
-:meth:`AsyncQueue.deqone()` like this:
+:meth:`AsyncQueue.deqone()`, for example:
 
 .. code-block:: python
 
@@ -348,8 +362,8 @@ The :meth:`Queue.enqmany()`, :meth:`Queue.deqmany()`,
 :meth:`AsyncQueue.enqmany()`, and :meth:`AsyncQueue.deqmany()` methods can be
 used for efficient bulk message handling.
 
-The :meth:`~Queue.enqmany()` method is similar to :meth:`~Queue.enqone()` but
-accepts an array of messages:
+The bulk enqmany methods are similar to single message enqueue methods but
+accept an array of messages, for example:
 
 .. code-block:: python
 
@@ -374,8 +388,8 @@ accepts an array of messages:
     affected.
 
 To dequeue multiple messages at one time, use :meth:`Queue.deqmany()` or
-:meth:`AsyncQueue.deqmany()`.  This takes an argument specifying the maximum
-number of messages to dequeue at one time:
+:meth:`AsyncQueue.deqmany()`.  These take an argument specifying the maximum
+number of messages to dequeue at one time, for example:
 
 .. code-block:: python
 

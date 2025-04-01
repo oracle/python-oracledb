@@ -414,11 +414,11 @@ TNS Aliases for Connection Strings
 
 :ref:`Connect Descriptors <conndescriptor>` are commonly stored in a
 :ref:`tnsnames.ora <optnetfiles>` file and associated with a TNS Alias.  This
-:ref:alias can be used directly for the data source name parameter ``dsn`` of
-:ref::meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
-:ref::meth:`oracledb.connect_async()`, and
-:ref::meth:`oracledb.create_pool_async()`.  For example, given a file
-:ref:``/opt/oracle/config/tnsnames.ora`` with the following contents::
+alias can be used directly for the data source name parameter ``dsn`` of
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, and :meth:`oracledb.create_pool_async()`.
+For example, given a file ``/opt/oracle/config/tnsnames.ora`` with the
+following contents::
 
     ORCLPDB =
       (DESCRIPTION =

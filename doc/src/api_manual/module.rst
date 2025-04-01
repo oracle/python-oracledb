@@ -2973,9 +2973,11 @@ of the :ref:`message properties object <msgproperties>` passed as the
 
 .. data:: MSG_BUFFERED
 
-    This constant is used to specify that enqueue/dequeue operations should
-    enqueue or dequeue buffered messages.
+    This constant is used to specify that enqueue or dequeue operations should
+    enqueue or dequeue buffered messages, respectively.
 
+    This mode is not supported for bulk array operations in python-oracledb
+    Thick mode.
 
 .. data:: MSG_PERSISTENT
 
