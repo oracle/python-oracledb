@@ -64,7 +64,7 @@ Common Changes
 #)  Improvements to data frame fetching with :meth:`Connection.fetch_df_all()`
     and :meth:`Connection.fetch_df_batches()`:
 
-    - Added support for CLOB, BLOB and RAW data types
+    - Added support for CLOB, BLOB, and RAW data types
     - Fixed support for BOOLEAN data type
     - Fixed bug when NUMBER data is fetched that does not have a precision or
       scale specified and :attr:`defaults.fetch_decimals` is set to *True*.
@@ -84,13 +84,13 @@ Common Changes
     a DML RETURNING statement.
 #)  An error message that links to :ref:`documentation <ldapconnections>` on
     setting up a protocol hook function is now returned by default for LDAP and
-    LDAPS URL connection strings in python-oracledb thin mode, or when
+    LDAPS URL connection strings in python-oracledb Thin mode, or when
     :attr:`defaults.thick_mode_dsn_passthrough` is *False*.
 #)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
     payload type supported by the queue`` is now raised when the payload of a
     message being enqueued is not supported by the queue. Previously,
     python-oracledb Thick mode raised the error ``DPI-1071: payload type in
-    message properties must match the payload type of the queue`` and thin mode
+    message properties must match the payload type of the queue`` and Thin mode
     raised an internal error.
 #)  Improved the test suite and documentation.
 
@@ -243,7 +243,7 @@ Common Changes
     (`issue 458 <https://github.com/oracle/python-oracledb/issues/458>`__).
 #)  Error ``DPY-2053: python-oracledb thin mode cannot be used because thick
     mode has already been enabled`` is now raised when attempting to use
-    asyncio in thick mode
+    asyncio in Thick mode
     (`issue 448 <https://github.com/oracle/python-oracledb/issues/448>`__).
 #)  Error ``DPY-2056: registered handler for protocol "{protocol}" failed for
     arg "{arg}"`` is now raised when an exception occurs when calling the
@@ -458,8 +458,8 @@ Common Changes
     different connection. Previously, the attempt may have succeeded or may
     have failed with a number of different unexpected exceptions.
 #)  Error ``DPY-1006: cursor is not open`` is now raised consistently when
-    attempting to bind a closed cursor. Previously, thin mode would result in a
-    segfault and thick mode would result in unusual errors.
+    attempting to bind a closed cursor. Previously, Thin mode would result in a
+    segfault and Thick mode would result in unusual errors.
 
 
 oracledb 2.3.0 (July 2024)
@@ -546,7 +546,7 @@ Common Changes
     :data:`oracledb.POOL_GETMODE_TIMEDWAIT` and the timeout expires.
     Previously ``asyncio.TimeoutError`` was being raised when using
     :ref:`asyncio <asyncio>` and ``ORA-24457: OCISessionGet() could not find a
-    free session in the specified timeout period`` was being raised in thick
+    free session in the specified timeout period`` was being raised in Thick
     mode.
 #)  If both the ``sid`` and ``service_name`` parameters are specified to
     :meth:`oracledb.makedsn()`, now only the ``service_name`` parameter is
@@ -912,7 +912,7 @@ Common Changes
 #)  Error ``DPY-4029: errors in array DML exceed 65535`` is now raised when the
     number of batch errors exceeds 65535 when calling
     :meth:`Cursor.executemany()` with the parameter ``batcherrors`` set to the
-    value ``True``. Note that in thick mode this error is not raised unless the
+    value *True*. Note that in Thick mode this error is not raised unless the
     number of batch errors is a multiple of 65536; instead, the number of batch
     errors returned is modulo 65536
     (`issue 262 <https://github.com/oracle/python-oracledb/issues/262>`__).
@@ -963,8 +963,8 @@ Common Changes
     (`issue 217 <https://github.com/oracle/python-oracledb/issues/217>`__).
 #)  SQL statement parsing now raises ``DPY-2041: missing ending quote (') in
     string`` or ``DPY-2042: missing ending quote (") in identifier`` for
-    statements with the noted invalid syntax.  Previously, thick mode gave
-    ``ORA-1756`` or ``ORA-1740``, respectively, while thin mode did not throw
+    statements with the noted invalid syntax.  Previously, Thick mode gave
+    ``ORA-1756`` or ``ORA-1740``, respectively, while Thin mode did not throw
     an error.
 #)  Added missing ">" to ``repr()`` of :ref:`sodadb`.
 
@@ -1059,7 +1059,7 @@ Common Changes
 #)  Added support for fetching VARCHAR2 and LOB columns which contain JSON (and
     have the "IS JSON" check constraint enabled) in the same way as columns of
     type JSON (which requires Oracle Database 21c or higher) are fetched. In
-    thick mode this requires Oracle Client 19c or higher. The attribute
+    Thick mode this requires Oracle Client 19c or higher. The attribute
     ``oracledb.__future__.old_json_col_as_obj`` must be set to the value
     ``True`` for this behavior to occur. In version 2.0 this will become the
     normal behavior and setting this attribute will no longer be needed.
@@ -1162,7 +1162,7 @@ Thin Mode Changes
 #)  Added support for connecting to databases that accept passwords longer than
     30 UTF-8 encoded bytes.
 #)  Detect the time zone on the OS and set the session timezone using this
-    value to be consistent with thick mode
+    value to be consistent with Thick mode
     (`issue 144 <https://github.com/oracle/python-oracledb/issues/144>`__).
 #)  Improved BOOLEAN handling.
 #)  Error ``DPY-6005: cannot connect to database`` is now raised for all
@@ -1204,7 +1204,7 @@ Thin Mode Changes
       of times any session callback must be invoked, and allow connections to
       be timed out.
     - Removed packet for negotiating network services which are not supported
-      in thin mode.
+      in Thin mode.
     - Removed unneeded packet for changing the password of the connected user.
 
 
@@ -1229,22 +1229,22 @@ Common Changes
 #)  Added method :meth:`ConnectParams.parse_dsn_with_credentials()` for parsing
     a DSN that contains credentials.
 #)  Error ``DPY-2038: element at index {index} does not exist`` is now raised
-    whenever an element in a database collection is missing. Previously, thick
-    mode raised ``DPI-1024: element at index {index} does not exist`` and thin
+    whenever an element in a database collection is missing. Previously, Thick
+    mode raised ``DPI-1024: element at index {index} does not exist`` and Thin
     mode raised ``KeyError`` or ``IndexError``.
 #)  Error ``DPY-2039: given index {index} must be in the range of {min_index}
     to {max_index}`` is now raised whenever an element in a database collection
-    is set outside the bounds of the collection. Previously, thick mode raised
+    is set outside the bounds of the collection. Previously, Thick mode raised
     ``OCI-22165: given index [{index}] must be in the range of [{min_index}] to
-    [{max_index}]`` and thin mode raised ``IndexError``.
+    [{max_index}]`` and Thin mode raised ``IndexError``.
 #)  Error ``DPY-2040: parameters "batcherrors" and "arraydmlrowcounts" may only
     be true when used with insert, update, delete and merge statements`` is now
-    raised when either of the parameters `batcherrors` and `arraydmlrowcounts`
-    is set to the value `True` when calling :meth:`Cursor.executemany()`.
-    Previously, thick mode raised ``DPI-1063: modes DPI_MODE_EXEC_BATCH_ERRORS
-    and DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS can only be used with insert, update,
-    delete and merge statements`` and thin mode raised
-    ``ORA-03137: malformed TTC packet from client rejected``
+    raised when either of the parameters ``batcherrors`` and
+    ``arraydmlrowcounts`` is set to the value `True` when calling
+    :meth:`Cursor.executemany()`. Previously, Thick mode raised ``DPI-1063:
+    modes DPI_MODE_EXEC_BATCH_ERRORS and DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS can
+    only be used with insert, update, delete and merge statements`` and Thin
+    mode raised ``ORA-03137: malformed TTC packet from client rejected``
     (`issue 128 <https://github.com/oracle/python-oracledb/issues/128>`__).
 #)  Internal changes to ensure that errors taking place while raising
     exceptions are handled more gracefully.
@@ -1406,7 +1406,7 @@ Thin Mode Changes
 
 #)  Added support for getting the LOB chunk size
     (`issue 14 <https://github.com/oracle/python-oracledb/issues/14>`__).
-#)  The error `DPY-2030: LOB offset must be greater than zero` is now raised
+#)  The error ``DPY-2030: LOB offset must be greater than zero`` is now raised
     when the offset parameter to :func:`LOB.read()` is zero or negative
     (`issue 13 <https://github.com/oracle/python-oracledb/issues/13>`__).
 #)  Internally, before a connection is returned from a pool, check for control
@@ -1421,8 +1421,8 @@ Thin Mode Changes
     when connecting to a database that the listener configuration file states
     exists but actually doesn't
     (`issue 51 <https://github.com/oracle/python-oracledb/issues/51>`__).
-#)  The error `DPY-3016: python-oracledb thin mode cannot be used because the
-    cryptography package is not installed` is now raised when the cryptography
+#)  The error ``DPY-3016: python-oracledb thin mode cannot be used because the
+    cryptography package is not installed`` is now raised when the cryptography
     package is not installed, instead of an ImportError. This allows platforms
     that are not capable of building the cryptography package to still use
     Thick mode.
@@ -1458,8 +1458,8 @@ oracledb 1.0.3 (August 2022)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  The error `DPY-3015: password verifier type is not supported by
-    python-oracledb in thin mode` is now raised when
+#)  The error ``DPY-3015: password verifier type is not supported by
+    python-oracledb in thin mode`` is now raised when
     the database sends a password challenge with a verifier type that is not
     recognized, instead of `ORA-01017: invalid username/password`
     (`issue 26 <https://github.com/oracle/python-oracledb/issues/26>`__).
@@ -1525,7 +1525,7 @@ Thin Mode Changes
 #)  Fixed connection retry count handling to work in cases where the database
     listener is running but the service is down
     (`issue 3 <https://github.com/oracle/python-oracledb/issues/3>`__).
-#)  Return the same value for TIMESTAMP WITH TIME ZONE columns as thick mode
+#)  Return the same value for TIMESTAMP WITH TIME ZONE columns as Thick mode
     (`issue 7 <https://github.com/oracle/python-oracledb/issues/7>`__).
 #)  Fixed order in which bind data is sent to the server when LONG and
     non-LONG column data is interspersed
@@ -1692,10 +1692,10 @@ cx_Oracle 8.2 (May 2021)
     Initial work was done in `PR 549
     <https://github.com/oracle/python-cx_Oracle/pull/549>`__.
 #)  Enhanced dead connection detection.  If an Oracle Database error indicates
-    that a connection is no longer usable, the error `DPI-1080: connection was
-    closed by ORA-%d` is now returned.  The `%d` will be the Oracle error
+    that a connection is no longer usable, the error ``DPI-1080: connection was
+    closed by ORA-%d`` is now returned.  The `%d` will be the Oracle error
     causing the connection to be closed.  Using the connection after this will
-    give `DPI-1010: not connected`.  This behavior also applies for
+    give ``DPI-1010: not connected``.  This behavior also applies for
     :data:`Connection.call_timeout` errors that result in an unusable
     connection.
 #)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a
@@ -2177,8 +2177,8 @@ cx_Oracle 6.4.1 (July 2018)
       Oracle number format
       (`ODPI-C issue 67 <https://github.com/oracle/odpi/issues/67>`__).
 
-#)  Prevent error "cx_Oracle.ProgrammingError: positional and named binds
-    cannot be intermixed" when calling cursor.setinputsizes() without any
+#)  Prevent error ``cx_Oracle.ProgrammingError: positional and named binds
+    cannot be intermixed`` when calling cursor.setinputsizes() without any
     parameters and then calling cursor.execute() with named bind parameters
     (`issue 199 <https://github.com/oracle/python-cx_Oracle/issues/199>`__).
 
@@ -2221,7 +2221,7 @@ cx_Oracle 6.4 (July 2018)
       (`issue 193 <https://github.com/oracle/python-cx_Oracle/issues/193>`__).
     - If the statement should be deleted from the statement cache, first check
       to see that there is a statement cache currently being used; otherwise,
-      the error "ORA-24300: bad value for mode" will be raised under certain
+      the error ``ORA-24300: bad value for mode`` will be raised under certain
       conditions.
 
 #)  Added support for using the cursor as a context manager
@@ -2278,8 +2278,8 @@ cx_Oracle 6.3 (April 2018)
     - Fixed binding of LONG data (values exceeding 32KB) when using the
       function :meth:`Cursor.executemany()`.
     - Added code to verify that a CQN subscription is open before permitting it
-      to be used. Error "DPI-1060: subscription was already closed" will now be
-      raised if an attempt is made to use a subscription that was closed
+      to be used. Error ``DPI-1060: subscription was already closed`` will now
+      be raised if an attempt is made to use a subscription that was closed
       earlier.
     - Stopped attempting to unregister a CQN subscription before it was
       completely registered. This prevents errors encountered during
@@ -2345,8 +2345,8 @@ cx_Oracle 6.2 (March 2018)
     <https://oracle.github.io/odpi/doc/releasenotes.html#
     version-2-2-1-march-5-2018>`__.
 
-    - eliminate error "DPI-1054: connection cannot be closed when open
-      statements or LOBs exist" (`issue 138
+    - eliminate error ``DPI-1054: connection cannot be closed when open
+      statements or LOBs exist`` (`issue 138
       <https://github.com/oracle/python-cx_Oracle/issues/138>`__).
     - avoid a round trip to the database when a connection is released back to
       the pool by preventing a rollback from being called when no transaction
@@ -2463,7 +2463,7 @@ cx_Oracle 6.0.3 (November 2017)
     - Prevent use of uninitialized data in certain cases (`issue 77
       <https://github.com/oracle/python-cx_Oracle/issues/77>`__).
     - Attempting to ping a database earlier than 10g results in error
-      "ORA-1010: invalid OCI operation", but that implies a response from the
+      ``ORA-1010: invalid OCI operation``, but that implies a response from the
       database and therefore a successful ping, so treat it that way!
     - Correct handling of conversion of some numbers to NATIVE_FLOAT.
     - Prevent use of NaN with Oracle numbers since it produces corrupt data
@@ -2536,11 +2536,11 @@ cx_Oracle 6.0 (August 2017)
     #version-2-0-august-14-2017>`__.
 
     -   Prevent closing the connection when there are any open statements or
-        LOBs and add new error "DPI-1054: connection cannot be closed when open
-        statements or LOBs exist" when this situation is detected; this is
-        needed to prevent crashes under certain conditions when statements or
-        LOBs are being acted upon while at the same time (in another thread) a
-        connection is being closed; it also prevents leaks of statements and
+        LOBs and add new error ``DPI-1054: connection cannot be closed when
+        open statements or LOBs exist`` when this situation is detected; this
+        is needed to prevent crashes under certain conditions when statements
+        or LOBs are being acted upon while at the same time (in another thread)
+        a connection is being closed; it also prevents leaks of statements and
         LOBs when a connection is returned to a session pool.
     -   On platforms other than Windows, if the regular method for loading the
         Oracle Client libraries fails, try using $ORACLE_HOME/lib/libclntsh.so
