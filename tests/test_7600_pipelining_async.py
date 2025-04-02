@@ -798,7 +798,9 @@ class TestCase(test_env.BaseAsyncTestCase):
         pipeline2 = oracledb.create_pipeline()
         pipeline2.add_execute("insert into TestTempTable (IntCol) values (2)")
         pipeline2.add_commit()
-        pipeline2.add_fetchall("select IntCol from TestTempTable")
+        pipeline2.add_fetchall(
+            "select IntCol from TestTempTable order by IntCol"
+        )
 
         await conn1.run_pipeline(pipeline1)
         results = await conn2.run_pipeline(pipeline2)
