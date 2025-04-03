@@ -17,6 +17,9 @@ oracledb 3.2.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for using :meth:`Queue.deqmany()` with JSON payloads using
+    Oracle Database 21c.
+
 Thick Mode Changes
 ++++++++++++++++++
 

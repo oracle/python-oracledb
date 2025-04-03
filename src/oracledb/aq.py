@@ -146,7 +146,15 @@ class Queue(BaseQueue):
         Dequeues up to the specified number of messages from the queue and
         returns a list of these messages.
         """
-        message_impls = self._impl.deq_many(max_num_messages)
+        if self._impl._supports_deq_many(self._connection._impl):
+            message_impls = self._impl.deq_many(max_num_messages)
+        else:
+            message_impls = []
+            while len(message_impls) < max_num_messages:
+                message_impl = self._impl.deq_one()
+                if message_impl is None:
+                    break
+                message_impls.append(message_impl)
         return [MessageProperties._from_impl(impl) for impl in message_impls]
 
     def deqMany(self, max_num_messages: int) -> List["MessageProperties"]:

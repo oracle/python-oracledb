@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -30,6 +30,13 @@
 #------------------------------------------------------------------------------
 
 cdef class BaseQueueImpl:
+
+    def _supports_deq_many(self, BaseConnImpl conn_impl):
+        """
+        Returns a boolean indicating if array dequeue is supported or not. JSON
+        payloads are not supported by array dequeue until Oracle Database 23ai.
+        """
+        return not self.is_json or conn_impl.server_version[0] >= 23
 
     def deq_many(self, uint32_t max_num_messages):
         errors._raise_not_supported("dequeuing multiple messages")
