@@ -14,4 +14,4 @@ repos:
     rev: v0.0.291
     hooks:
     -   id: ruff
-        exclude: ^samples/
+        exclude: ^samples/tutorial/
