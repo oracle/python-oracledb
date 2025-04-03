@@ -24,9 +24,9 @@ useful tips.
 
 The python-oracledb asynchronous API is a part of the standard python-oracledb
 module. All the synchronous methods that require a round-trip to the database
-now have corresponding asynchronous counterparts. You can choose whether to
-use the synchronous API or the asynchronous API in your code. It is
-recommended to *not* use both at the same time in your application.
+have corresponding asynchronous counterparts. You can choose whether to use the
+synchronous API or the asynchronous API in your code. It is recommended to
+*not* use both at the same time in your application.
 
 The asynchronous API classes are :ref:`AsyncConnection <asyncconnobj>`,
 :ref:`AsyncConnectionPool <asyncconnpool>`,

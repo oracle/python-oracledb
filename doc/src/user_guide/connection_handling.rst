@@ -2060,12 +2060,77 @@ dblatest&id=GUID-06022729-9210-4895-BF04-6177713C65A7>`__.
 Connection Pooling
 ==================
 
-Python-oracledb's connection pooling lets applications create and maintain a
-pool of open connections to the database.  Connection pooling is available in
-both Thin and :ref:`Thick <enablingthick>` modes.  Connection pooling is
-important for performance and scalability when applications need to handle a
-large number of users who do database work for short periods of time but have
-relatively long periods when the connections are not needed.  The high
+Connection pooling can significantly improve application performance and
+scalability, allows resource sharing, and lets applications use advanced Oracle
+High Availability features.
+
+The pooling solutions available to python-oracledb applications are:
+
+- :ref:`Driver Connection Pools <driverconnpool>`: These are managed by the
+  driver layer. They provide readily available database connections that can be
+  shared by multiple users and are quick for applications to obtain.  They help
+  make applications scalable and highly available. They are created with
+  :meth:`oracledb.create_pool()` or :meth:`oracledb.create_pool_async()`.
+
+  The main use case is for applications that hold connections for relatively
+  short durations while doing database work, and that acquire and release
+  connections back to the pool as needed to do those database operations.
+  Using a driver pool is recommended for applications that need to support
+  multiple users. High availability benefits also make driver pools useful for
+  single-user applications that do infrequent database operations.
+
+- :ref:`drcp`: This is pooling of server processes on the database host so they
+  can be shared between application connections. This reduces the number of
+  server processes that the database host needs to manage.
+
+  DRCP is useful if there are large number of application connections,
+  typically from having multiple application processes, and those applications
+  do frequent connection acquire and release calls as needed to do database
+  operations.  It is recommended to use DRCP in conjunction with a driver
+  connection pool, since this reduces the number of re-authentications and
+  session memory re-allocations.
+
+- `Proxy Resident Connection Pooling (PRCP)
+  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
+  4F14-AF9B-BCC87C982DA8>`__: This is connection pooling handled by a dedicated
+  mid-tier connection proxy, `CMAN-TDM <https://download.oracle.com/
+  ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_
+  apps.pdf>`__.
+
+  This is useful for applications taking advantage of CMAN-TDM.
+
+- :ref:`implicitconnpool`: This can add pooling benefits to applications that
+  connect when they start, and only close the connection when the application
+  terminates — but relatively infrequently do database work. It makes use of
+  DRCP or PRCP, but instead of relying on the application to explicitly acquire
+  and release connections, Implicit Connection Pooling automatically detects
+  when applications are not performing database work. It then allows the
+  associated database server process to be used by another connection that
+  needs to do a database operation.
+
+  Implicit Connection Pooling is useful for legacy applications or third-party
+  code that cannot be updated to use a driver connection pool.
+
+Python-oracledb :ref:`driver connection pools <driverconnpool>` are the first
+choice for performance, scalability, and high availability.  If your database
+is under memory pressure from having too many applications opening too many
+connections, then consider either :ref:`DRCP <drcp>` or :ref:`Implicit
+Connection Pooling <implicitconnpool>`, depending on your application’s
+connection life-cycle. If you are utilizing CMAN-TDM, then using `PRCP
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+E0032017-03B1-4F14-AF9B-BCC87C982DA8>`__ can be considered.
+
+.. _driverconnpool:
+
+Driver Connection Pooling
+-------------------------
+
+Python-oracledb's driver connection pooling lets applications create and
+maintain a pool of open connections to the database.  Connection pooling is
+available in both Thin and :ref:`Thick <enablingthick>` modes.  Connection
+pooling is important for performance and scalability when applications need to
+handle a large number of users who do database work for short periods of time
+but have relatively long periods when the connections are not needed.  The high
 availability features of pools also make small pools useful for applications
 that want a few connections available for infrequent use and requires them to
 be immediately usable when acquired.  Applications that would benefit from
@@ -2081,8 +2146,8 @@ Oracle Database features, for example some advanced :ref:`high availability
 
 .. note::
 
-    Python-oracledb connection pools must be created, used and closed within
-    the same process. Sharing pools or connections across processes has
+    Python-oracledb driver connection pools must be created, used, and closed
+    within the same process. Sharing pools or connections across processes has
     unpredictable behavior.
 
     Using connection pools in multi-threaded architectures is supported.
@@ -2090,11 +2155,10 @@ Oracle Database features, for example some advanced :ref:`high availability
     Multi-process architectures that cannot be converted to threading may get
     some benefit from :ref:`drcp`.
 
-
 Creating a Connection Pool
---------------------------
+++++++++++++++++++++++++++
 
-A connection pool is created by calling :meth:`oracledb.create_pool()`.
+A driver connection pool is created by calling :meth:`oracledb.create_pool()`.
 Various pool options can be specified as described in
 :meth:`~oracledb.create_pool()` and detailed below.
 
@@ -2786,7 +2850,7 @@ sharing for applications which use a large number of connections that run in
 multiple client processes or run on multiple middle-tier application servers.
 By default, each connection from Python will use one database server process.
 DRCP allows pooling of these server processes.  This reduces the amount of
-memory required on the database host.  The DRCP pool can be shared by multiple
+memory required on the database host.  A DRCP pool can be shared by multiple
 applications.
 
 DRCP is useful for applications which share the same database credentials, have
