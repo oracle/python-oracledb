@@ -67,39 +67,10 @@ cdef class Message:
         connection" error is detected, the connection is forced closed
         immediately.
         """
-        cdef bint is_recoverable = False
         if self.error_occurred:
-            if self.error_info.num in (
-                28,     # session has been terminated
-                31,     # session marked for kill
-                376,    # file %s cannot be read at this time
-                603,    # ORACLE server session terminated
-                1012,   # not logged on
-                1033,   # ORACLE initialization or shutdown in progress
-                1034,   # the Oracle instance is not available for use
-                1089,   # immediate shutdown or close in progress
-                1090,   # shutdown in progress
-                1092,   # ORACLE instance terminated
-                1115,   # IO error reading block from file %s (block # %s)
-                2396,   # exceeded maximum idle time
-                3113,   # end-of-file on communication channel
-                3114,   # not connected to ORACLE
-                3135,   # connection lost contact
-                12153,  # TNS:not connected
-                12514,  # Service %s is not registered with the listener
-                12537,  # TNS:connection closed
-                12547,  # TNS:lost contact
-                12570,  # TNS:packet reader failure
-                12571,  # TNS:packet writer failure
-                12583,  # TNS:no reader
-                12757,  # instance does not currently know of requested service
-                16456,  # missing or invalid value
-            ):
-                is_recoverable = True
             error = errors._Error(self.error_info.message,
                                   code=self.error_info.num,
-                                  offset=self.error_info.pos,
-                                  isrecoverable=is_recoverable)
+                                  offset=self.error_info.pos)
             if error.is_session_dead:
                 self.conn_impl._protocol._force_close()
             raise error.exc_type(error)

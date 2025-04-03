@@ -902,6 +902,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         if not self._in_connect:
             self._transport = None
+            self._read_buf._transport = None
+            self._write_buf._transport = None
+            self._read_buf._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
             if self._read_buf._waiter is not None \
                     and not self._read_buf._waiter.done():
                 error = errors._create_err(errors.ERR_CONNECTION_CLOSED)
