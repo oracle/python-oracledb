@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2017, 2025, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -214,9 +214,42 @@ create or replace function myfunc(d_p in varchar2, i_p in number) return number 
   end;
 /
 
---PL/SQL procedure for plsql_proc.py
+-- PL/SQL procedure for plsql_proc.py
 create or replace procedure myproc(v1_p in number, v2_p out number) as
 begin
   v2_p := v1_p * 2;
 end;
+/
+
+-- Table for json_insert.py (requires Oracle Database 21c or later)
+begin
+  execute immediate 'drop table jtab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
+
+create table jtab (
+  id number(9) not null primary key,
+  json_data json)
+/
+
+-- Table for vector.py and vector_numpy.py
+-- (requires Oracle Database 23ai or later)
+begin
+  execute immediate 'drop table vtab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
+
+create table vtab (
+  id number(9) not null primary key,
+  v64 vector(3, float64))
 /

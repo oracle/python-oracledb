@@ -1,10 +1,10 @@
 # -----------------------------------------------------------------------------
 # drcp_query.py (Section 2.4 and 2.5)
-# Look at pool statistics of the DRCP Connection
+# Query DRCP pool statistics
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates. All rights reserved.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,9 +33,7 @@ import os
 
 # default values
 PYTHON_SYS_USER = "SYSTEM"
-PYTHON_USER = "pythondemo"
-PYTHON_CONNECT_STRING = "localhost/orclpdb"
-PYTHON_DRCP_CONNECT_STRING = "localhost/orclpdb:pooled"
+PYTHON_DRCP_CONNECT_STRING = "localhost/free"
 
 # dictionary containing all parameters; these are acquired as needed by the
 # methods below (which should be used instead of consulting this dictionary
@@ -63,7 +61,11 @@ def get_value(name, label, default_value=""):
 
 
 def get_main_user():
-    return get_value("user", "Enter the DRCP User", PYTHON_SYS_USER)
+    return get_value(
+        "user",
+        "Enter the privileged user with access to DRCP views",
+        PYTHON_SYS_USER,
+    )
 
 
 def get_main_password():
@@ -73,10 +75,10 @@ def get_main_password():
 def get_drcp_connect_string():
     connect_string = get_value(
         "DRCP_CONNECT_STRING",
-        "Enter the DRCP Connect String",
+        "Enter the connect string to access the DRCP views",
         PYTHON_DRCP_CONNECT_STRING,
     )
-    return "%s/%s@%s" % (get_main_user(), get_main_password(), connect_string)
+    return connect_string
 
 
 drcp_user = get_main_user()

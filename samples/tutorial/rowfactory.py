@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------------
-# rowfactory.py (Section 8.1)
+# rowfactory.py (Section 10.1)
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -26,6 +26,7 @@
 # limitations under the License.
 # -----------------------------------------------------------------------------
 
+import collections
 import oracledb
 import db_config
 

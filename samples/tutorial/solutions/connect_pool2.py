@@ -59,16 +59,16 @@ def Query():
         # time.sleep(1)
 
 
-numberOfThreads = 5
-threadArray = []
+number_of_threads = 5
+thread_array = []
 
-for i in range(numberOfThreads):
+for i in range(number_of_threads):
     thread = threading.Thread(name="#" + str(i), target=Query)
-    threadArray.append(thread)
+    thread_array.append(thread)
     # time.sleep(4)
     thread.start()
 
-for t in threadArray:
+for t in thread_array:
     t.join()
 
 print("All done!")

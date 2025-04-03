@@ -1,9 +1,9 @@
 # -----------------------------------------------------------------------------
-# subclass.py (Section 9.1 and 9.2)
+# subclass.py (Section 11.1 and 11.2)
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License

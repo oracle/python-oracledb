@@ -98,7 +98,7 @@ def building_in_converter(value):
 def input_type_handler(cursor, value, num_elements):
     if isinstance(value, Building):
         return cursor.var(
-            oracledb.STRING,
+            oracledb.DB_TYPE_VARCHAR,
             arraysize=num_elements,
             inconverter=building_in_converter,
         )

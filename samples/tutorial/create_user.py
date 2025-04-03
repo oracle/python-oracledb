@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,8 +34,8 @@ import os
 
 # default values
 PYTHON_USER = "pythondemo"
-PYTHON_CONNECT_STRING = "localhost/orclpdb"
-PYTHON_DRCP_CONNECT_STRING = "localhost/orclpdb:pooled"
+PYTHON_CONNECT_STRING = "localhost/freepdb1"
+PYTHON_DRCP_CONNECT_STRING = "localhost/freepdb1:pooled"
 
 # dictionary containing all parameters; these are acquired as needed by the
 # methods below (which should be used instead of consulting this dictionary

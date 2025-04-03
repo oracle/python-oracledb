@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -30,7 +30,7 @@ import oracledb
 import db_config
 
 params = oracledb.ConnectParams(
-    host="localhost", port=1521, service_name="orclpdb"
+    host="localhost", port=1521, service_name="freepdb1"
 )
 con = oracledb.connect(
     user=db_config.user, password=db_config.pw, params=params

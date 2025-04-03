@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,7 +27,7 @@
 # -----------------------------------------------------------------------------
 
 import oracledb
-import db_config_thick as db_config
+import db_config
 
 con = oracledb.connect(
     user=db_config.user, password=db_config.pw, dsn=db_config.dsn
@@ -55,9 +55,8 @@ cur.execute(
     """
 )
 
+
 # Create a Python class for an SDO
-
-
 class mySDO(object):
     def __init__(self, gtype, elemInfo, ordinates):
         self.gtype = gtype
@@ -97,9 +96,8 @@ sdo = mySDO(2003, [1, 1003, 3], [1, 1, 5, 7])  # Python object
 cur.inputtypehandler = SDOInputTypeHandler
 cur.execute("insert into testgeometry values (:1, :2)", (1, sdo))
 
+
 # Define a function to dump the contents of an Oracle object
-
-
 def dumpobject(obj, prefix="  "):
     if obj.type.iscollection:
         print(prefix, "[")

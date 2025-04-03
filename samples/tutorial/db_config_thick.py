@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -42,7 +42,7 @@ instant_client_dir = None
 # Client directory.  Note the use of the raw string r"..."  so backslashes can
 # be used as directory separators.
 if platform.system() == "Windows":
-    instant_client_dir = r"C:\Oracle\instantclient_19_14"
+    instant_client_dir = r"C:\Oracle\instantclient_23_7"
 
 # On macOS set the directory to your Instant Client directory
 if platform.system() == "Darwin":
@@ -62,7 +62,7 @@ oracledb.init_oracle_client(lib_dir=instant_client_dir)
 
 user = os.environ.get("PYTHON_USER", "pythondemo")
 
-dsn = os.environ.get("PYTHON_CONNECT_STRING", "localhost/orclpdb")
+dsn = os.environ.get("PYTHON_CONNECT_STRING", "localhost/freepdb1")
 
 pw = os.environ.get("PYTHON_PASSWORD")
 if pw is None:

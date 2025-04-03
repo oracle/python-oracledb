@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2017, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2017, 2025, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -26,7 +26,7 @@
 def user = "pythondemo"
 
 -- Default database connection string
-def connect_string = "localhost/orclpdb"
+def connect_string = "localhost/freepdb1"
 
 -- Prompt for the password
 accept pw char prompt 'Enter database password for &user: ' hide
