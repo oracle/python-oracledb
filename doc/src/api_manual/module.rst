@@ -2664,7 +2664,7 @@ Oracledb Methods
     are parsed by python-oracledb itself and a generated connect descriptor is
     sent to the Oracle Client libraries. This value is only used in the
     python-oracledb Thick mode. The default value is
-    :attr:`defualts.thick_mode_dsn_passthrough`. For more information, see
+    :attr:`defaults.thick_mode_dsn_passthrough`. For more information, see
     :ref:`usingconfigfiles`.
 
     The ``extra_auth_params`` parameter is expected to be a dictionary

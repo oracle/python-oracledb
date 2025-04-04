@@ -237,7 +237,7 @@ static uint8_t* ArrowBufferDeallocatorReallocate(struct ArrowBufferAllocator* al
                           "ArrowBufferDeallocator()");
 #endif
 
-  // In release mode, ensure the the deallocator is called exactly
+  // In release mode, ensure the deallocator is called exactly
   // once using the pointer it was given and return NULL, which
   // will trigger the caller to return ENOMEM.
   allocator->free(allocator, ptr, old_size);

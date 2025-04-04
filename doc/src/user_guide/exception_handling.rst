@@ -84,7 +84,7 @@ in the examples below:
     DPY-4010: a bind variable replacement value for placeholder ":1" was not provided
 
 * Connection messages: The python-oracledb Thin mode connection and networking
-  is handled by Python itself.  Some errors portable accross operating systems
+  is handled by Python itself.  Some errors portable across operating systems
   and Python versions have DPY-prefixed errors displayed by python-oracledb.
   Other messages are returned directly from Python and may vary accordingly.
   The traditional Oracle connection errors with prefix "ORA" are not shown. For
