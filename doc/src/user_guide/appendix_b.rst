@@ -148,7 +148,7 @@ differs from the python-oracledb Thick mode in the following ways:
   ``handle`` parameters.  The parameters that are ignored in the Thick mode
   include ``wallet_password``, ``disable_oob``, and ``debug_jdwp`` parameters.
 
-* The python-oracledb Thin mode only suppports :ref:`homogeneous
+* The python-oracledb Thin mode only supports :ref:`homogeneous
   <connpooltypes>` pools.
 
 * The python-oracledb Thin mode creates connections in a daemon thread and so

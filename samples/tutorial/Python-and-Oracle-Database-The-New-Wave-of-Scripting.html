@@ -860,7 +860,7 @@ print("All done!")
     <code>numberOfThreads</code>. </p>
 
     <p>Try changing <code>getmode</code> to
-    <code>oracledb.POOL_GETMODE_NOWAIT</code>, reducing the maxium pool size to
+    <code>oracledb.POOL_GETMODE_NOWAIT</code>, reducing the maximum pool size to
     2, and increasing the number of threads to 3.  When
     <code>number_of_threads</code> exceeds the maximum size of the pool, the
     <code>acquire()</code> call will now generate an error such as
@@ -1073,7 +1073,7 @@ Done.</pre>
     <code>oracledb.PURITY_NEW</code> to see the effect on the DRCP NUM_MISSES
     statistic.</p>
 
-    <p>Another experiement is to include the <code>time</code> module at the
+    <p>Another experiment is to include the <code>time</code> module at the
     file top:</p>
 
     <pre>
@@ -2496,7 +2496,7 @@ for row in cur:
 
 <p>This uses <code>gettype()</code> to get the database types of the SDO
 and its object attributes. The <code>newobject()</code> calls create
-Python representations of those objects. The python object atributes are
+Python representations of those objects. The python object attributes are
 then set.  Oracle VARRAY types such as SDO_ELEM_INFO_ARRAY are set with
 <code>extend()</code>.</p>
 
@@ -3230,7 +3230,7 @@ asyncio.run(main())
 </pre>
 
     <p>Connection is established using <code>oracledb.connect_async()</code>.
-    Asynchronous methods are awated.</p>
+    Asynchronous methods are awaited.</p>
 
     <p>The script creates a pipeline with <code>create_pipeline()</code> and
     adds two database operations.  The use of <code>asyncio.gather()</code>
@@ -3265,7 +3265,7 @@ Client libraries (such as from Oracle Instant Client) to handle network
 connectivity to Oracle Database.  There are some additional features these
 libraries provide which are therefore only available in python-oracledb Thick
 mode. The next example shows one of these. Other Oracle Database features that
-require python-oracledb Thick mode include Application Continurity, and
+require python-oracledb Thick mode include Application Continuity, and
 Continuous Query Notification. <em>Documentation link for further reading: <a
 href="https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enabling-python-oracledb-thick-mode"
 >Enabling python-oracledb Thick mode</a></em>.</p>
@@ -3785,7 +3785,7 @@ import sys</pre>
 These can be installed from PyPI, for example from <a
 href="https://pypi.org/project/oracledb/" >pypi.org/project/oracledb/</a> (as
 shown in the tutorial <a href="#setup" >setup</a> instructions). In some
-enviroments you may prefer to install using a package repository such as <a
+environments you may prefer to install using a package repository such as <a
 href="https://yum.oracle.com/oracle-linux-python.html" >yum.oracle.com</a> for
 Oracle Linux.</p>
 

@@ -16,7 +16,7 @@ Subclassing Connections
 =======================
 
 Subclassing enables applications to change python-oracledb, for example by
-extending connection and statement execution behvior. This can be used to
+extending connection and statement execution behavior. This can be used to
 alter, or log, connection and execution parameters, or to further change
 python-oracledb functionality.
 
@@ -220,7 +220,7 @@ strings prefixed with "myprefix://".
         In myhookfunc: protocol=myprefix arg=localhost/orclpdb1
         host=localhost, port=1521, service name=orclpdb1
 
-7. To uninstall the plugin, simply remove the packge::
+7. To uninstall the plugin, simply remove the package::
 
        python -m pip uninstall myplugin
 

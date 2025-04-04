@@ -127,7 +127,7 @@ def is_thin_mode() -> bool:
     oracledb.init_oracle_client() is called successfully, then a subsequent
     call to is_thin_mode() will return False indicating that Thick mode is
     enabled.  Once the first standalone connection or connection pool is
-    created succesfully, or a call to oracledb.init_oracle_client() is made
+    created successfully, or a call to oracledb.init_oracle_client() is made
     successfully, then python-oracledb's mode is fixed and the value returned
     by is_thin_mode() will never change for the lifetime of the process.
 

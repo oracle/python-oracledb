@@ -78,7 +78,7 @@ thin_depends = [
 thin_depends.append(base_pxd)
 
 # if the platform is macOS:
-#  - target the minimim OS version that current Python packages work with.
+#  - target the minimum OS version that current Python packages work with.
 #    (Use 'otool -l /path/to/python' and look for 'version' in the
 #    LC_VERSION_MIN_MACOSX section)
 #  - add argument required for cross-compilation for both x86_64 and arm64
