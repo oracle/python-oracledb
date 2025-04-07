@@ -17,11 +17,12 @@ oracledb 3.2.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for using :meth:`Queue.deqmany()` with JSON payloads using
-    Oracle Database 21c.
+#)  Emulate support for :meth:`Queue.deqmany()` with JSON payloads when using
+    Oracle Database 21c by internally calling :meth:`Queue.deqone()` as many
+    times as needed.
 #)  Fixed bug with some databases when a connection is killed. In some
-    scenarios the :meth:`Connection.is_healthy()` would have incorrectly
-    returned the value *True* and in other cases a possible hang could occur.
+    scenarios :meth:`Connection.is_healthy()` would have incorrectly returned
+    the value *True* and in other cases a possible hang could occur.
 
 Thick Mode Changes
 ++++++++++++++++++
