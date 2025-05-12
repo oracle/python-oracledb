@@ -301,11 +301,15 @@ cdef class BaseCursorImpl:
         """
         Return the output type handler to use for the cursor. If one is not
         directly defined on the cursor then the one defined on the connection
-        is used instead.
+        is used instead. When fetching Arrow data, however, no output type
+        handlers are used since for most data no conversion to Python objects
+        ever takes place.
         """
         cdef:
             BaseConnImpl conn_impl
             object type_handler
+        if self.fetching_arrow:
+            return None
         if self.outputtypehandler is not None:
             type_handler = self.outputtypehandler
         else:
