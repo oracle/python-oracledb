@@ -39,6 +39,10 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     ctypedef int ArrowErrorCode
 
+    cdef struct ArrowBuffer:
+        uint8_t *data
+        int64_t size_bytes
+
     cdef union ArrowBufferViewData:
         const void* data
 
@@ -48,10 +52,6 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     cdef struct ArrowArrayView:
         ArrowBufferView *buffer_views
-
-    cdef struct ArrowBuffer:
-        uint8_t *data
-        int64_t size_bytes
 
     cdef struct ArrowDecimal:
         pass
@@ -65,21 +65,19 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     cdef ArrowErrorCode NANOARROW_OK
 
-    void ArrowArrayRelease(ArrowArray *array)
-    void ArrowSchemaRelease(ArrowSchema *schema)
-
-    ArrowErrorCode ArrowArrayInitFromType(ArrowArray* array,
-                                          ArrowType storage_type)
     ArrowErrorCode ArrowArrayAppendBytes(ArrowArray* array,
                                          ArrowBufferView value)
-    ArrowErrorCode ArrowArrayAppendDouble(ArrowArray* array, double value)
-    ArrowErrorCode ArrowArrayAppendNull(ArrowArray* array, int64_t n)
-    ArrowErrorCode ArrowArrayAppendInt(ArrowArray* array, int64_t value)
     ArrowErrorCode ArrowArrayAppendDecimal(ArrowArray* array,
                                            const ArrowDecimal* value)
+    ArrowErrorCode ArrowArrayAppendDouble(ArrowArray* array, double value)
+    ArrowErrorCode ArrowArrayAppendInt(ArrowArray* array, int64_t value)
+    ArrowErrorCode ArrowArrayAppendNull(ArrowArray* array, int64_t n)
     ArrowBuffer* ArrowArrayBuffer(ArrowArray* array, int64_t i)
     ArrowErrorCode ArrowArrayFinishBuildingDefault(ArrowArray* array,
                                                    ArrowError* error)
+    ArrowErrorCode ArrowArrayInitFromType(ArrowArray* array,
+                                          ArrowType storage_type)
+    void ArrowArrayRelease(ArrowArray *array)
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
                                      int64_t additional_size_elements)
     ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
@@ -90,8 +88,15 @@ cdef extern from "nanoarrow/nanoarrow.c":
                                           const ArrowArray* array,
                                           ArrowError* error)
     int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
+    void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
+                          int32_t precision, int32_t scale)
+    void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
+    ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
+                                         ArrowStringView value)
     void ArrowSchemaInit(ArrowSchema* schema)
     ArrowErrorCode ArrowSchemaInitFromType(ArrowSchema* schema, ArrowType type)
+    void ArrowSchemaRelease(ArrowSchema *schema)
+    ArrowErrorCode ArrowSchemaSetName(ArrowSchema* schema, const char* name)
     ArrowErrorCode ArrowSchemaSetTypeDateTime(ArrowSchema* schema,
                                               ArrowType arrow_type,
                                               ArrowTimeUnit time_unit,
@@ -100,15 +105,8 @@ cdef extern from "nanoarrow/nanoarrow.c":
                                              ArrowType type,
                                              int32_t decimal_precision,
                                              int32_t decimal_scale)
-    ArrowErrorCode ArrowSchemaSetName(ArrowSchema* schema, const char* name)
     int64_t ArrowSchemaToString(const ArrowSchema* schema, char* out,
                                 int64_t n, char recursive)
-    void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
-                          int32_t precision, int32_t scale)
-    void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
-    ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
-                                         ArrowStringView value)
-
 
 cdef int _check_nanoarrow(int code) except -1:
     """
