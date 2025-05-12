@@ -31,7 +31,6 @@ cimport cpython
 
 from libc.stdint cimport uintptr_t
 from libc.string cimport memcpy, strlen, strchr
-from cpython.pycapsule cimport PyCapsule_New
 
 from .. import errors
 
@@ -39,9 +38,15 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     ctypedef int ArrowErrorCode
 
+    ctypedef void (*ArrowBufferDeallocatorCallback)
+
+    cdef struct ArrowBufferAllocator:
+        void *private_data
+
     cdef struct ArrowBuffer:
         uint8_t *data
         int64_t size_bytes
+        ArrowBufferAllocator allocator
 
     cdef union ArrowBufferViewData:
         const void* data
@@ -65,6 +70,8 @@ cdef extern from "nanoarrow/nanoarrow.c":
 
     cdef ArrowErrorCode NANOARROW_OK
 
+    ArrowErrorCode ArrowArrayAllocateChildren(ArrowArray *array,
+                                              int64_t n_children)
     ArrowErrorCode ArrowArrayAppendBytes(ArrowArray* array,
                                          ArrowBufferView value)
     ArrowErrorCode ArrowArrayAppendDecimal(ArrowArray* array,
@@ -88,11 +95,15 @@ cdef extern from "nanoarrow/nanoarrow.c":
                                           const ArrowArray* array,
                                           ArrowError* error)
     int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
+    ArrowBufferAllocator ArrowBufferDeallocator(ArrowBufferDeallocatorCallback,
+                                                void *private_data)
     void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
                           int32_t precision, int32_t scale)
     void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
     ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
                                          ArrowStringView value)
+    ArrowErrorCode ArrowSchemaDeepCopy(const ArrowSchema *schema,
+                                       ArrowSchema *schema_out)
     void ArrowSchemaInit(ArrowSchema* schema)
     ArrowErrorCode ArrowSchemaInitFromType(ArrowSchema* schema, ArrowType type)
     void ArrowSchemaRelease(ArrowSchema *schema)
@@ -117,22 +128,13 @@ cdef int _check_nanoarrow(int code) except -1:
         errors._raise_err(errors.ERR_ARROW_C_API_ERROR, code=code)
 
 
-cdef void array_deleter(ArrowArray *array) noexcept:
-    """
-    Called when an external library calls the release for an Arrow array. This
-    method simply marks the release as completed but doesn't actually do it, so
-    that the handling of duplicate rows can still make use of the array, even
-    if the external library no longer requires it!
-    """
-    array.release = NULL
-
-
 cdef void pycapsule_array_deleter(object array_capsule) noexcept:
     cdef ArrowArray* array = <ArrowArray*> cpython.PyCapsule_GetPointer(
         array_capsule, "arrow_array"
     )
     if array.release != NULL:
         ArrowArrayRelease(array)
+    cpython.PyMem_Free(array)
 
 
 cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
@@ -141,6 +143,65 @@ cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
     )
     if schema.release != NULL:
         ArrowSchemaRelease(schema)
+    cpython.PyMem_Free(schema)
+
+
+cdef void arrow_buffer_dealloc_callback(ArrowBufferAllocator *allocator,
+                                        uint8_t *ptr, int64_t size):
+    """
+    ArrowBufferDeallocatorCallback for an ArrowBuffer borrowed from
+    OracleArrowArray
+    """
+    cpython.Py_DECREF(<OracleArrowArray> allocator.private_data)
+
+
+cdef int copy_arrow_array(OracleArrowArray oracle_arrow_array,
+                          ArrowArray *src, ArrowArray *dest) except -1:
+    """
+    Shallow copy source ArrowArray to destination ArrowArray. The source
+    ArrowArray belongs to the wrapper OracleArrowArray. The shallow copy idea
+    is borrowed from nanoarrow:
+    https://github.com/apache/arrow-nanoarrow/main/blob/python
+    """
+    cdef:
+        ArrowBuffer *dest_buffer
+        ssize_t i
+    _check_nanoarrow(
+        ArrowArrayInitFromType(
+            dest, NANOARROW_TYPE_UNINITIALIZED
+        )
+    )
+
+    # Copy metadata
+    dest.length = src.length
+    dest.offset = src.offset
+    dest.null_count = src.null_count
+
+    # Borrow an ArrowBuffer belonging to OracleArrowArray. The ArrowBuffer can
+    # belong to an immediate ArrowArray or a child (in case of nested types).
+    # Either way, we PY_INCREF(oracle_arrow_array), so that it is not
+    # prematurely garbage collected. The corresponding PY_DECREF happens in the
+    # ArrowBufferDeAllocator callback.
+    for i in range(src.n_buffers):
+        if src.buffers[i] != NULL:
+            dest_buffer = ArrowArrayBuffer(dest, i)
+            dest_buffer.data = <uint8_t *> src.buffers[i]
+            dest_buffer.size_bytes = 0
+            dest_buffer.allocator = ArrowBufferDeallocator(
+                <ArrowBufferDeallocatorCallback> arrow_buffer_dealloc_callback,
+                <void *> oracle_arrow_array
+            )
+            cpython.Py_INCREF(oracle_arrow_array)
+        dest.buffers[i] = src.buffers[i]
+    dest.n_buffers = src.n_buffers
+
+    # shallow copy of children (recursive call)
+    if src.n_children > 0:
+        _check_nanoarrow(ArrowArrayAllocateChildren(dest, src.n_children))
+        for i in range(src.n_children):
+            copy_arrow_array(
+                oracle_arrow_array, src.children[i], dest.children[i]
+            )
 
 
 cdef class OracleArrowArray:
@@ -187,8 +248,6 @@ cdef class OracleArrowArray:
 
     def __dealloc__(self):
         if self.arrow_array != NULL:
-            if self.arrow_array.release == NULL:
-                self.arrow_array.release = self.actual_array_release
             if self.arrow_array.release != NULL:
                 ArrowArrayRelease(self.arrow_array)
             cpython.PyMem_Free(self.arrow_array)
@@ -409,6 +468,26 @@ cdef class OracleArrowArray:
     def offset(self) -> int:
         return self.arrow_array.offset
 
+    def __arrow_c_schema__(self):
+        """
+        Export an ArrowSchema PyCapsule
+        """
+        cdef ArrowSchema *exported_schema = \
+            <ArrowSchema*> cpython.PyMem_Malloc(sizeof(ArrowSchema))
+        try:
+            _check_nanoarrow(
+                ArrowSchemaDeepCopy(
+                    self.arrow_schema,
+                    exported_schema
+                )
+            )
+        except:
+            cpython.PyMem_Free(exported_schema)
+            raise
+        return cpython.PyCapsule_New(
+            exported_schema, 'arrow_schema', &pycapsule_schema_deleter
+        )
+
     def __arrow_c_array__(self, requested_schema=None):
         """
         Returns
@@ -419,13 +498,14 @@ cdef class OracleArrowArray:
         """
         if requested_schema is not None:
             raise NotImplementedError("requested_schema")
-
-        array_capsule = PyCapsule_New(
-            self.arrow_array, 'arrow_array', &pycapsule_array_deleter
-        )
-        self.actual_array_release = self.arrow_array.release
-        self.arrow_array.release = array_deleter
-        schema_capsule = PyCapsule_New(
-            self.arrow_schema, "arrow_schema", &pycapsule_schema_deleter
-        )
-        return schema_capsule, array_capsule
+        cdef ArrowArray *exported_array = \
+            <ArrowArray *> cpython.PyMem_Malloc(sizeof(ArrowArray))
+        try:
+            copy_arrow_array(self, self.arrow_array, exported_array)
+            array_capsule = cpython.PyCapsule_New(
+                exported_array, 'arrow_array', &pycapsule_array_deleter
+            )
+        except:
+            cpython.PyMem_Free(exported_array)
+            raise
+        return self.__arrow_c_schema__(), array_capsule

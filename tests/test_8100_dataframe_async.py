@@ -420,18 +420,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
 
     async def test_8110(self):
-        "8110 - verify passing Arrow arrays twice fails"
+        "8110 - verify passing Arrow arrays twice works"
         self.__check_interop()
         await self.__populate_table(DATASET_1)
         statement = "select * from TestDataFrame order by Id"
         ora_df = await self.conn.fetch_df_all(statement)
-        pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        with self.assertRaises(pyarrow.lib.ArrowInvalid):
-            pyarrow.Table.from_arrays(
-                ora_df.column_arrays(), names=ora_df.column_names()
-            )
+        self.__validate_df(ora_df, DATASET_1)
+        self.__validate_df(ora_df, DATASET_1)
 
     async def test_8111(self):
         "8111 - verify empty data set"
