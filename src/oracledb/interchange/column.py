@@ -41,19 +41,8 @@ from .protocol import (
 )
 
 from .nanoarrow_bridge import (
-    NANOARROW_TIME_UNIT_SECOND,
-    NANOARROW_TIME_UNIT_MILLI,
-    NANOARROW_TIME_UNIT_MICRO,
-    NANOARROW_TIME_UNIT_NANO,
-    NANOARROW_TYPE_BINARY,
-    NANOARROW_TYPE_DOUBLE,
-    NANOARROW_TYPE_FLOAT,
-    NANOARROW_TYPE_INT64,
-    NANOARROW_TYPE_LARGE_BINARY,
-    NANOARROW_TYPE_LARGE_STRING,
-    NANOARROW_TYPE_STRING,
-    NANOARROW_TYPE_TIMESTAMP,
-    NANOARROW_TYPE_DECIMAL128,
+    ArrowTimeUnit,
+    ArrowType,
 )
 
 
@@ -92,8 +81,8 @@ class OracleColumn(Column):
             size_in_bytes=size_bytes, address=address, buffer_type="offsets"
         )
         if self.ora_arrow_array.arrow_type in (
-            NANOARROW_TYPE_LARGE_STRING,
-            NANOARROW_TYPE_LARGE_BINARY,
+            ArrowType.NANOARROW_TYPE_LARGE_STRING,
+            ArrowType.NANOARROW_TYPE_LARGE_BINARY,
         ):
             dtype = (DtypeKind.INT, 64, "l", "=")
         else:
@@ -133,24 +122,26 @@ class OracleColumn(Column):
         Returns the data type of the column. The returned dtype provides
         information on the storage format and the type of data in the column.
         """
-        if self.ora_arrow_array.arrow_type == NANOARROW_TYPE_INT64:
+        arrow_type = self.ora_arrow_array.arrow_type
+        if arrow_type == ArrowType.NANOARROW_TYPE_INT64:
             return (DtypeKind.INT, 64, "l", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_DOUBLE:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_DOUBLE:
             return (DtypeKind.FLOAT, 64, "g", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_FLOAT:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_FLOAT:
             return (DtypeKind.FLOAT, 64, "g", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_STRING:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_STRING:
             return (DtypeKind.STRING, 8, "u", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_TIMESTAMP:
-            if self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_MICRO:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_TIMESTAMP:
+            time_unit = self.ora_arrow_array.time_unit
+            if time_unit == ArrowTimeUnit.NANOARROW_TIME_UNIT_MICRO:
                 return (DtypeKind.DATETIME, 64, "tsu:", "=")
-            elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_SECOND:
+            elif time_unit == ArrowTimeUnit.NANOARROW_TIME_UNIT_SECOND:
                 return (DtypeKind.DATETIME, 64, "tss:", "=")
-            elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_MILLI:
+            elif time_unit == ArrowTimeUnit.NANOARROW_TIME_UNIT_MILLI:
                 return (DtypeKind.DATETIME, 64, "tsm:", "=")
-            elif self.ora_arrow_array.time_unit == NANOARROW_TIME_UNIT_NANO:
+            elif time_unit == ArrowTimeUnit.NANOARROW_TIME_UNIT_NANO:
                 return (DtypeKind.DATETIME, 64, "tsn:", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_DECIMAL128:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_DECIMAL128:
             array = self.ora_arrow_array
             return (
                 DtypeKind.DECIMAL,
@@ -158,11 +149,11 @@ class OracleColumn(Column):
                 f"d:{array.precision}.{array.scale}",
                 "=",
             )
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_BINARY:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_BINARY:
             return (DtypeKind.STRING, 8, "z", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_LARGE_BINARY:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_LARGE_BINARY:
             return (DtypeKind.STRING, 8, "Z", "=")
-        elif self.ora_arrow_array.arrow_type == NANOARROW_TYPE_LARGE_STRING:
+        elif arrow_type == ArrowType.NANOARROW_TYPE_LARGE_STRING:
             return (DtypeKind.STRING, 8, "U", "=")
 
     def get_buffers(self) -> ColumnBuffers:
