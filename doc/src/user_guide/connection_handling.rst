@@ -4869,10 +4869,9 @@ encryption.
 A database username and password are still required for your application
 connections.  If you need to create a new database schema so you do not login
 as the privileged ADMIN user, refer to the relevant Oracle Cloud documentation,
-for example see `Create Database Users
-<https://docs.oracle.com/en/cloud/paas/autonomous-database/adbdu/managing-database-
-users.html#GUID-5B94EA60-554A-4BA4-96A3-1D5A3ED5878D>`__ in the Oracle
-Autonomous Database manual.
+for example see `Create Database Users <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-B5846072-995B-4B81-BDCB-AF530BC42847>`__ in the
+Oracle Autonomous Database manual.
 
 .. _onewaytls:
 

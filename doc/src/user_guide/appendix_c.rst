@@ -95,7 +95,8 @@ from cx_Oracle:
   - ``encoding`` and ``nencoding``: The encodings in use are always UTF-8.
 
   - ``threaded``: Threaded Oracle Call Interface (OCI) is now always enabled
-    in Thick mode.  This option is not relevant to the Thin mode.
+    in python-oracledb Thick mode.  This option is not relevant to the Thin
+    mode.
 
   See :ref:`deprecations` for more information.
 
@@ -115,11 +116,11 @@ The :ref:`Connection object <connobj>` differences between the python-oracledb
 and cx_Oracle drivers are:
 
 - The attribute :attr:`Connection.maxBytesPerCharacter` is deprecated. This
-  will return a constant value of 4 since encodings are always UTF-8.
+  will return a constant value of *4* since encodings are always UTF-8.
 
 - A new boolean attribute, :attr:`Connection.thin` is available. This
-  attribute is True if the connection was established in the Thin mode. In
-  Thick mode, the value of this attribute is False.
+  attribute is *True* if the connection was established in python-oracledb Thin
+  mode. In Thick mode, the value of this attribute is *False*.
 
 - The new method signature of :attr:`Connection.outputtypehandler` is
   ``handler(cursor, metadata)``. The old signature ``handler(cursor, name,
@@ -190,9 +191,9 @@ The SessionPool object (which is an alias for the :ref:`ConnectionPool object
   of ``cx_Oracle.SessionPool``.
 
 - A new boolean attribute, ``SessionPool.thin`` (see
-  :attr:`ConnectionPool.thin`) is available. This attribute is True if the
-  connection was established in the Thin mode. In Thick mode, the value of
-  this attribute is False.
+  :attr:`ConnectionPool.thin`) is available. This attribute is *True* if the
+  connection was established in python-oracledb Thin mode. In Thick mode, the
+  value of this attribute is *False*.
 
 Cursor Object Differences from cx_Oracle
 ----------------------------------------
@@ -211,7 +212,7 @@ python-oracledb and cx_Oracle drivers are:
 
 - ``Cursor.executemanyprepared()``: This method was previously deprecated in
   cx_Oracle 6.4 and has been removed in python-oracledb. Instead, use
-  :meth:`Cursor.executemany()`, by passing None for the statement argument and
+  :meth:`Cursor.executemany()`, by passing *None* for the statement argument and
   an integer for the parameters argument.
 
 - ``Cursor.bindarraysize``: This attribute is desupported and removed in
@@ -219,7 +220,7 @@ python-oracledb and cx_Oracle drivers are:
 
 - :attr:`Cursor.rowcount`: After :meth:`Cursor.execute()` or
   :meth:`Cursor.executemany()` with PL/SQL statements, ``Cursor.rowcount``
-  will return 0. If the cursor or connection are not open, then the value -1
+  will return *0*. If the cursor or connection are not open, then the value *-1*
   will be returned as required by the Python Database API.
 
 - :attr:`Cursor.description`: This attribute was previously a sequence of
@@ -393,18 +394,18 @@ to python-oracledb:
 
   See :ref:`driverdiff`.
 
-- The python-oracledb Thin and Thick modes have the same level of support for
+- python-oracledb Thin and Thick modes have the same level of support for
   the `Python Database API specification <https://peps.python.org/pep-0249/>`_
   and can be used to connect to on-premises databases and Oracle Cloud
-  databases. However, the python-oracledb Thin mode does not support some of
-  the advanced Oracle Database features such as Application Continuity (AC),
-  Advanced Queuing (AQ), Continuous Query Notification (CQN), and Sharding.
-  See :ref:`Features Supported <featuresummary>` for details.
+  databases. However, python-oracledb Thin mode does not support some
+  advanced Oracle Database features such as Application Continuity (AC),
+  Continuous Query Notification (CQN), and Sharding. See :ref:`Features
+  Supported <featuresummary>` for details.
 
 - python-oracledb can be used in SQLAlchemy, Django, Pandas, Superset and other
   frameworks and Object-relational Mappers (ORMs). To use python-oracledb in
-  versions of these libraries that don't have native support for the new name,
-  you can override the use of cx_Oracle with a few lines of code. See
+  older versions of these libraries that do not have native support for the new
+  name, you can override the use of cx_Oracle with a few lines of code. See
   :ref:`frameworks`.
 
 - python-oracledb connection and pool creation calls require keyword arguments
@@ -421,32 +422,8 @@ to python-oracledb:
 
        oracledb.connect("scott", pw, "localhost/orclpdb")
 
-- The python-oracledb Thin mode ignores all NLS environment variables.  It
-  also ignores the ``ORA_TZFILE`` environment variable.  Thick mode does use
-  these variables.  See :ref:`globalization` for alternatives.
-
-- To use a ``tnsnames.ora`` file in the python-oracledb Thin mode, you must
-  explicitly set the environment variable ``TNS_ADMIN`` to the directory
-  containing the file, or set :attr:`defaults.config_dir`, or set the
-  ``config_dir`` parameter when connecting.
-
-  Only python-oracledb Thick mode will read :ref:`sqlnet.ora <optnetfiles>`
-  files.  The Thin mode lets equivalent properties be set in the application
-  when connecting.
-
-  Configuration files in a "default" location such as the Instant Client
-  ``network/admin/`` subdirectory, in ``$ORACLE_HOME/network/admin/``, or in
-  ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle Database
-  home) are not automatically loaded in Thin mode.  Default locations are
-  only automatically searched in Thick mode.
-
-- To use the python-oracledb Thin mode in an ORACLE_HOME database installation
-  environment, you must use an explicit connection string since the
-  ``ORACLE_SID``, ``TWO_TASK``, and ``LOCAL`` environment variables are not
-  used.  They are used in Thick mode.
-
-- This is a major release so some previously deprecated features are no longer
-  available. See :ref:`deprecations`.
+- Some previously deprecated features are no longer available. See
+  :ref:`deprecations`.
 
 .. _commonupgrade:
 
@@ -501,7 +478,7 @@ following steps:
    You **must** replace positional parameters with keyword parameters, unless
    only one parameter is being passed. Python-oracledb uses keyword parameters
    exclusively unless a DSN containing the user, password, and connect string
-   combined, for example ``un/pw@cs``, is used. This change makes the driver
+   combined, for example ``"un/pw@cs"``, is used. This change makes the driver
    compliant with the Python Database API specification `PEP 249
    <https://peps.python.org/pep-0249/>`_.
 
@@ -545,8 +522,8 @@ following steps:
    :data:`~oracledb.POOL_GETMODE_NOWAIT`.  The new default value improves the
    behavior for most applications.  If the pool is in the middle of growing,
    the new value prevents transient connection creation errors from occurring
-   when using the Thin mode, or when using the Thick mode with recent Oracle
-   Client libraries.
+   when using python-oracledb Thin mode, or when using Thick mode with recent
+   Oracle Client libraries.
 
    If the old default value is required, modify any pool creation code to
    explicitly specify ``getmode=oracledb.POOL_GETMODE_NOWAIT``.
@@ -557,36 +534,45 @@ following steps:
    as :data:`~oracledb.POOL_GETMODE_NOWAIT` and :data:`~oracledb.PURITY_SELF`
    are now preferred.  The old namespaces still work.
 
-7. The method signature of the :ref:`output type handler <outputtypehandlers>`
-   which can be specified on a
-   :attr:`connection <Connection.outputtypehandler>` or on a
-   :attr:`cursor <Cursor.outputtypehandler>` is ``handler(cursor, metadata)``.
-   The old signature ``handler(cursor, name, default_type, length, precision,
-   scale)`` was deprecated in python-oracledb 1.4 but will still work and will
-   be removed in a future version.
-
-8. VARCHAR2 and LOB columns that have the ``IS JSON`` constraint enabled are
+7. VARCHAR2 and LOB columns that have the ``IS JSON`` constraint enabled are
    fetched by default as Python objects in python-oracledb. In cx_Oracle,
-   VARCHAR2 and LOB columns that contain JSON data are fetched by default as
+   VARCHAR2 and LOB columns that contain JSON data were fetched by default as
    strings and LOB objects respectively. See :ref:`fetchisjson`.
 
-9. Review the following sections to see if your application requirements are
-   satisfied by the python-oracledb Thin mode:
-
-   - :ref:`featuresummary`
-   - :ref:`driverdiff`
-
-   If your application requirements are not supported by the Thin mode, then
-   use the python-oracledb Thick mode.
-
-10. Review :ref:`compatibility`.
+8. Review :ref:`compatibility`.
 
    If your code base uses an older cx_Oracle version, review the previous
    :ref:`release notes <releasenotes>` for additional changes to modernize
    the code.
 
-11. Modernize code as needed or desired.  See :ref:`deprecations` for the list
-    of deprecations in python-oracledb.
+9. Modernize code as needed or desired.
+
+   For example, replace all usages of the deprecated Advanced Queuing API with
+   the new API originally introduced in cx_Oracle 7.2, see
+   :ref:`aqusermanual`.
+
+   The method signature of the :ref:`output type handler <outputtypehandlers>`
+   which can be specified on a :attr:`connection
+   <Connection.outputtypehandler>` or on a :attr:`cursor
+   <Cursor.outputtypehandler>` is ``handler(cursor, metadata)``.  The old
+   signature ``handler(cursor, name, default_type, length, precision, scale)``
+   was deprecated in python-oracledb 1.4 but will still work and will be
+   removed in a future version.
+
+   See :ref:`deprecations` for the list of all deprecations in python-oracledb.
+
+10. Review the following sections to see if your application requirements are
+    satisfied by python-oracledb Thin mode:
+
+   - :ref:`featuresummary`
+   - :ref:`driverdiff`
+
+   If so, then follow :ref:`upgradethin`.
+
+   If your application requirements are not supported by python-oracledb Thin
+   mode, then use Thick mode, see :ref:`upgradethick`.
+
+.. _upgradethin:
 
 Additional Upgrade Steps to use python-oracledb Thin Mode
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -595,7 +581,7 @@ To use python-oracledb Thin mode, the following changes need to be made in
 addition to the common :ref:`commonupgrade`:
 
 1. Remove calls to :func:`~oracledb.init_oracle_client` since this turns on
-   the python-oracledb Thick mode.
+   python-oracledb Thick mode.
 
 2. If the ``config_dir`` parameter of :func:`~oracledb.init_oracle_client` had
    been used, then set the new :attr:`defaults.config_dir` attribute to the
@@ -628,19 +614,34 @@ addition to the common :ref:`commonupgrade`:
 
    See :ref:`otherinit`.
 
-4. If the application is connecting using a :ref:`TNS Alias <netservice>` from
-   a ``tnsnames.ora`` file located in a "default" location such as the Instant
-   Client ``network/admin/`` subdirectory, in ``$ORACLE_HOME/network/admin/``,
-   or in ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only Oracle
-   Database home), then the configuration file directory must now explicitly be
-   set as shown in Step 2.
-
-5. Remove calls to :func:`oracledb.clientversion()` which is only available in
-   the python-oracledb Thick mode.  Oracle Client libraries are not available
+4. Remove calls to :func:`oracledb.clientversion()` which is only available in
+   python-oracledb Thick mode.  Oracle Client libraries are not available
    in Thin mode.
 
-6. Ensure that any assumptions about when connections are created in the
-   connection pool are eliminated.  The python-oracledb Thin mode creates
+5. To connect using a :ref:`TNS Alias <netservice>` from a ``tnsnames.ora``
+   file (see :ref:`optnetfiles`) in python-oracledb Thin mode, you should
+   explicitly set the environment variable ``TNS_ADMIN`` to the directory
+   containing the file, or set :attr:`defaults.config_dir`, or set the
+   ``config_dir`` parameter when connecting.
+
+   A ``tnsnames.ora`` file in a "default" location such as the Instant Client
+   ``network/admin/`` subdirectory may not be automatically loaded in Thin mode
+   on some platforms. A ``tnsnames.ora`` file identified by the Windows
+   registry, or in ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only
+   Oracle Database home) will never be automatically located by python-oracledb
+   Thin mode.
+
+   Only python-oracledb Thick mode will read :ref:`sqlnet.ora <optnetfiles>` and
+   :ref:`oraaccess.xml <optclientfiles>` files.  The Thin mode lets equivalent
+   properties be set in the application when connecting.
+
+6. To use python-oracledb Thin mode in an ORACLE_HOME database installation
+   environment, you must use an explicit connection string since the
+   ``ORACLE_SID``, ``TWO_TASK``, and ``LOCAL`` environment variables are not
+   used.  They are used in Thick mode.
+
+7. Ensure that any assumptions about when connections are created in the
+   connection pool are eliminated.  Python-oracledb Thin mode creates
    connections in a daemon thread and so the attribute
    :attr:`ConnectionPool.opened` will change over time and will not be equal
    to :attr:`ConnectionPool.min` immediately after the pool is created.  Note
@@ -651,9 +652,14 @@ addition to the common :ref:`commonupgrade`:
    :meth:`ConnectionPool.acquire()` until sufficient time has passed for
    connections in the pool to be created.
 
-7. Review error handling improvements. See :ref:`errorhandling`.
+8. Review error handling improvements. See :ref:`errorhandling`.
 
-8. Review locale and globalization usage. See :ref:`globalization`.
+9. Review locale and globalization usage. Python-oracledb Thin mode ignores
+   all NLS environment variables.  It also ignores the ``ORA_TZFILE``
+   environment variable.  Thick mode does use these variables.  See
+   :ref:`globalization`.
+
+.. _upgradethick:
 
 Additional Upgrade Steps to use python-oracledb Thick Mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -661,28 +667,25 @@ Additional Upgrade Steps to use python-oracledb Thick Mode
 To use python-oracledb Thick mode, the following changes need to be made in
 addition to the common :ref:`commonupgrade`:
 
-1. The function :func:`oracledb.init_oracle_client()` *must* be called.  It
-   can be called anywhere before the first call to :func:`~oracledb.connect()`,
-   ``oracledb.Connection()``, and ``oracledb.SessionPool()``.  This enables the
-   Thick mode. See :ref:`enablingthick` for more details.
+1. The function :func:`oracledb.init_oracle_client()` *must* be called to
+   enable python-oracle Thick mode.  It can be called anywhere before the first
+   call to :func:`oracledb.connect()`, ``oracledb.Connection()``, or
+   ``oracledb.SessionPool()``. See :ref:`enablingthick` for more details.
 
-   The requirement to call ``init_oracle_client()`` means that Oracle Client
-   library loading is not automatically deferred until the driver is first
-   used, such as when a connection is opened. The application must explicitly
-   manage this if deferral is required.
+   The requirement to call :func:`~oracledb.init_oracle_client()` means that
+   Oracle Client library loading is not automatically deferred until the driver
+   is first used, such as when a connection is opened. The application must
+   explicitly manage this if deferral is required.
 
-   In python-oracledb, ``init_oracle_client()`` can be called multiple times in
-   a Python process as long as the arguments are the same.
+   In python-oracledb, :func:`~oracledb.init_oracle_client()` can be called
+   multiple times in a Python process as long as the arguments are the same.
 
    Note that on Linux and related operating systems, the
-   ``init_oracle_client()`` parameter ``lib_dir`` should not be
+   :func:`~oracledb.init_oracle_client()` parameter ``lib_dir`` should not be
    passed. Instead, set the system library search path with ``ldconfig`` or
    ``LD_LIBRARY_PATH`` prior to running Python.
 
-2. Replace all usages of the deprecated Advanced Queuing API with the new API
-   originally introduced in cx_Oracle 7.2, see :ref:`aqusermanual`.
-
-3. Review error handling improvements. See :ref:`errorhandling`.
+2. Review error handling improvements. See :ref:`errorhandling`.
 
 Code to Aid the Upgrade to python-oracledb
 ------------------------------------------
@@ -725,7 +728,7 @@ You can then choose what mode is in use by setting the environment variable
     export ORA_PYTHON_DRIVER_TYPE=thin
     python test.py
 
-Output shows the python-oracledb Thin mode was used::
+Output shows that python-oracledb Thin mode was used::
 
     python-oracledb thn : 3.0.0
 

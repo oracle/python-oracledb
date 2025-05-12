@@ -195,6 +195,11 @@ Client library could not be loaded.
   both 32-bit. The ``DPI-1047`` message will tell you whether the 64-bit
   or 32-bit Oracle Client is needed for your Python.
 
+- If you are using Oracle Instant Client libraries (and not using a full
+  Oracle Database installation or a full Oracle Instant Client installation
+  (such as installed by Oracle's GUI installer)), check whether the
+  ``ORACLE_HOME`` environment variable is set. If it is, unset this variable.
+
 - Set the environment variable ``DPI_DEBUG_LEVEL`` to 64 and restart
   python-oracledb. The trace messages will show how and where
   python-oracledb is looking for the Oracle Client libraries.

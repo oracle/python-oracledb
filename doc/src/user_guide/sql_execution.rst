@@ -1376,13 +1376,18 @@ then:
   :ref:`fetching-raw-data`. Note that the encoding used for all character
   data in python-oracledb is "UTF-8".
 
-* Check for corrupt data in the database.
+* Check for corrupt data in the database and fix it.  For example, if you have
+  a table MYTABLE with a character column MYVALUE that you suspect has some
+  corrupt values, then you may be able to identify the problem data by using a
+  query like ``select id from mytable where
+  utl_i18n.validate_character_encoding(myvalue) > 0`` which will print out the
+  keys of the rows with invalid data.
 
-If data really is corrupt, you can pass options to the internal `decode()
-<https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__ used by
-python-oracledb to allow it to be selected and prevent the whole query failing.
-Do this by creating an :ref:`outputtypehandler <outputtypehandlers>` and
-setting ``encoding_errors``.  For example, to replace corrupt characters in
+If corrupt data cannot be modified, you can pass options to the internal
+`decode() <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
+used by python-oracledb to allow it to be selected and prevent the whole query
+failing.  Do this by creating an :ref:`outputtypehandler <outputtypehandlers>`
+and setting ``encoding_errors``.  For example, to replace corrupt characters in
 character columns:
 
 .. code-block:: python
