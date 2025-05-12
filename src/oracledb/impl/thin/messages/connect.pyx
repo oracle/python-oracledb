@@ -48,7 +48,6 @@ cdef class ConnectMessage(Message):
             const char_type *redirect_data
             uint32_t flags2 = 0
             uint8_t flags1
-            bytes db_uuid
         if buf._current_packet.packet_type == TNS_PACKET_TYPE_REDIRECT:
             if not self.read_redirect_data_len:
                 buf.read_uint16be(&self.redirect_data_len)
