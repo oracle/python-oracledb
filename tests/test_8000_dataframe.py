@@ -409,18 +409,13 @@ class TestCase(test_env.BaseTestCase):
         self.__test_df_batches_interop(DATASET_4, batch_size=5, num_batches=2)
 
     def test_8010(self):
-        "8010 - verify passing Arrow arrays twice fails"
+        "8010 - verify passing Arrow arrays twice works"
         self.__check_interop()
         self.__populate_table(DATASET_1)
         statement = "select * from TestDataFrame order by Id"
         ora_df = self.conn.fetch_df_all(statement)
-        pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        with self.assertRaises(pyarrow.lib.ArrowInvalid):
-            pyarrow.Table.from_arrays(
-                ora_df.column_arrays(), names=ora_df.column_names()
-            )
+        self.__validate_df(ora_df, DATASET_1)
+        self.__validate_df(ora_df, DATASET_1)
 
     def test_8011(self):
         "8011 - verify empty data set"

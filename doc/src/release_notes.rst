@@ -36,6 +36,11 @@ Common Changes
     (`issue 493 <https://github.com/oracle/python-oracledb/issues/493>`__).
 #)  Miscellaneous grammar and spelling fixes by John Bampton
     (`PR 479 <https://github.com/oracle/python-oracledb/pull/479>`__).
+#)  Fixed memory corruption in DataFrame queries
+    (`issue 489 <https://github.com/oracle/python-oracledb/issues/489>`__).
+#)  Added support for converting an OracleDataFrame object to a foreign data
+    frame object more than once
+    (`issue 470 <https://github.com/oracle/python-oracledb/issues/470>`__)
 
 
 oracledb 3.1.0 (April 2025)

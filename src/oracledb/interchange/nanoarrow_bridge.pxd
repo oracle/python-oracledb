@@ -41,6 +41,9 @@ cdef extern from "nanoarrow.h":
         int64_t null_count
         int64_t offset
         int64_t n_buffers
+        int64_t n_children
+        ArrowArray** children
+        const void** buffers
         void (*release)(ArrowArray*)
 
     cdef struct ArrowSchema:
@@ -57,6 +60,7 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_LARGE_STRING
         NANOARROW_TYPE_STRING
         NANOARROW_TYPE_TIMESTAMP
+        NANOARROW_TYPE_UNINITIALIZED
 
     cpdef enum ArrowTimeUnit:
         NANOARROW_TIME_UNIT_SECOND
@@ -87,7 +91,6 @@ cdef class OracleArrowArray:
         double factor
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
-        void (*actual_array_release)(ArrowArray*) noexcept
 
     cdef str _schema_to_string(self)
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
