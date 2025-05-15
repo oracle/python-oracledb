@@ -65,7 +65,7 @@ cdef class Packet:
             char *ptr
         ptr = cpython.PyBytes_AS_STRING(self.buf)
         flags = decode_uint16be(<const char_type*> &ptr[PACKET_HEADER_SIZE])
-        if flags & TNS_DATA_FLAGS_END_OF_RESPONSE:
+        if flags & TNS_DATA_FLAGS_END_OF_RESPONSE or flags & TNS_DATA_FLAGS_EOF:
             return True
         if self.packet_size == PACKET_HEADER_SIZE + 3 \
                 and ptr[PACKET_HEADER_SIZE + 2] == TNS_MSG_TYPE_END_OF_RESPONSE:
@@ -231,6 +231,8 @@ cdef class ReadBuffer(Buffer):
                 errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
                                   err_num=self._pending_error_num)
         elif self._transport is None:
+            if self._pending_error_num == TNS_ERR_SESSION_SHUTDOWN:
+                errors._raise_err(errors.ERR_CONNECTION_CLOSED)
             errors._raise_err(errors.ERR_NOT_CONNECTED)
 
     cdef int _get_int_length_and_sign(self, uint8_t *length,

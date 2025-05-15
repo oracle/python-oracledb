@@ -17,6 +17,10 @@ oracledb 3.1.1 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug with some databases when a connection is killed. In some
+    scenarios :meth:`Connection.is_healthy()` would have incorrectly returned
+    the value *True* and in other cases a possible hang could occur.
+
 Thick Mode Changes
 ++++++++++++++++++
 

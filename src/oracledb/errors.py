@@ -112,17 +112,21 @@ class _Error:
                     args = {} if match is None else match.groupdict()
                 else:
                     driver_error_num = driver_error_info
-                if driver_error_num == ERR_CONNECTION_CLOSED:
-                    self.is_session_dead = True
                 driver_error = _get_error_text(driver_error_num, **args)
                 self.message = f"{driver_error}\n{self.message}"
                 self.full_code = f"{ERR_PREFIX}-{driver_error_num:04}"
 
         # determine exception class to use when raising this error
+        # also determine whether error is recoverable and whether the session
+        # is deemed "dead"
         if self.full_code.startswith("DPY-"):
             driver_error_num = int(self.full_code[4:])
+            if driver_error_num == ERR_CONNECTION_CLOSED:
+                self.is_session_dead = self.isrecoverable = True
             self.exc_type = ERR_EXCEPTION_TYPES[driver_error_num // 1000]
         elif self.code != 0:
+            if self.code in ERR_RECOVERABLE_ERROR_CODES:
+                self.isrecoverable = True
             if self.code in ERR_INTEGRITY_ERROR_CODES:
                 self.exc_type = exceptions.IntegrityError
             elif self.code in ERR_INTERFACE_ERROR_CODES:
@@ -483,6 +487,21 @@ ERR_OPERATIONAL_ERROR_CODES = [
     12571,  # TNS:packet writer failure
     27146,  # post/wait initialization failed
     28511,  # lost RPC connection to heterogeneous remote agent
+]
+
+# Oracle error codes that are deemed recoverable
+# NOTE: this does not include the errors that are mapped to
+# ERR_CONNECTION_CLOSED since those are all deemed recoverable
+ERR_RECOVERABLE_ERROR_CODES = [
+    376,  # file %s cannot be read at this time
+    1033,  # ORACLE initialization or shutdown in progress
+    1034,  # the Oracle instance is not available for use
+    1090,  # shutdown in progress
+    1115,  # IO error reading block from file %s (block # %s)
+    12514,  # Service %s is not registered with the listener
+    12571,  # TNS:packet writer failure
+    12757,  # instance does not currently know of requested service
+    16456,  # missing or invalid value
 ]
 
 # driver error message exception types (multiples of 1000)
