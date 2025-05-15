@@ -222,7 +222,7 @@ class TestCase(test_env.BaseTestCase):
         value = oracledb.SparseVector(
             16, [1, 3, 5], array.array("d", [1.5, 0.25, 0.5])
         )
-        self.__test_insert_and_fetch(value, "VectorFlexAllCol", "f")
+        self.__test_insert_and_fetch(value, "VectorFlexAllCol", "d")
         self.__test_insert_and_fetch_sparse(
             value, "SparseVectorFlexAllCol", "d"
         )
@@ -357,7 +357,7 @@ class TestCase(test_env.BaseTestCase):
         value = oracledb.SparseVector(
             16, [1, 3, 5], array.array("b", [1, 0, 5])
         )
-        self.__test_insert_and_fetch(value, "VectorFlexAllCol", "f")
+        self.__test_insert_and_fetch(value, "VectorFlexAllCol", "b")
         self.__test_insert_and_fetch_sparse(
             value, "SparseVectorFlexAllCol", "b"
         )
@@ -442,7 +442,7 @@ class TestCase(test_env.BaseTestCase):
                         dim, [1, 3, 5], array.array(typ, [element_value] * 3)
                     )
                     self.__test_insert_and_fetch(
-                        value, "VectorFlexAllCol", "f"
+                        value, "VectorFlexAllCol", typ
                     )
                     self.__test_insert_and_fetch_sparse(
                         value, "SparseVectorFlexAllCol", typ
@@ -682,9 +682,9 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(value.values, array.array("d"))
         self.assertEqual(value.indices, array.array("I"))
         self.assertEqual(value.num_dimensions, 0)
-        with self.assertRaisesFullCode("ORA-51803", "ORA-21560"):
+        with self.assertRaisesFullCode("ORA-51803", "ORA-21560", "ORA-51862"):
             self.__test_insert_and_fetch(value, "VectorFlexAllCol", "d")
-        with self.assertRaisesFullCode("ORA-51803", "ORA-21560"):
+        with self.assertRaisesFullCode("ORA-51803", "ORA-21560", "ORA-51862"):
             self.__test_insert_and_fetch_sparse(
                 value, "SparseVectorFlexAllCol", "d"
             )
