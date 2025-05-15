@@ -317,7 +317,7 @@ going to be used.  In one special case, you may wish to explicitly enable Thin
 mode to prevent Thick mode from being enabled later.
 
 To allow application portability, the driver's internal logic allows
-applications to initally attempt :ref:`standalone connection
+applications to initially attempt :ref:`standalone connection
 <standaloneconnection>` creation in Thin mode, but then lets them :ref:`enable
 Thick mode <enablingthick>` if that connection is unsuccessful.  An example is
 when trying to connect to an Oracle Database that turns out to be an old

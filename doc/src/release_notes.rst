@@ -27,6 +27,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Miscellaneous grammar and spelling fixes by John Bampton
+    (`PR 479 <https://github.com/oracle/python-oracledb/pull/479>`__).
 
 oracledb 3.1.0 (April 2025)
 ---------------------------
@@ -340,7 +342,7 @@ Thin Mode Changes
     connection string.
 #)  Added :meth:`oracledb.enable_thin_mode()` as a means of enabling
     python-oracledb Thin mode without waiting for an initial connection to be
-    succesfully established. Since python-oracledb defaults to Thin mode, this
+    successfully established. Since python-oracledb defaults to Thin mode, this
     method is mostly useful for applications with multiple threads concurrently
     creating connections to databases when the application starts
     (`issue 408 <https://github.com/oracle/python-oracledb/issues/408>`__).
@@ -1717,7 +1719,7 @@ cx_Oracle 8.2 (May 2021)
     connection.
 #)  Eliminated a memory leak when calling :meth:`SodaOperation.filter()` with a
     dictionary.
-#)  The distributed transaction handle assosciated with the connection is now
+#)  The distributed transaction handle associated with the connection is now
     cleared on commit or rollback (`issue 530
     <https://github.com/oracle/python-cx_Oracle/issues/530>`__).
 #)  Added a check to ensure that when setting variables or object attributes,

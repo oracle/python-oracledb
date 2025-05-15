@@ -23,7 +23,7 @@ It has been tested on macOS using podman and docker.
 
   By default, Apache has SSL enabled and is listening on port 8443.
 
-## Usage for Application Devlopment
+## Usage for Application Development
 
 - Run a container:
 

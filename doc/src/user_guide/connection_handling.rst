@@ -2448,7 +2448,7 @@ The :meth:`Connection.is_healthy()` method is an alternative to
 it does not perform a full connection check.
 
 If the ``getmode`` parameter in :meth:`oracledb.create_pool()` is set to
-:data:`oracledb.POOL_GETMODE_TIMEDWAIT`, then the maxium amount of time an
+:data:`oracledb.POOL_GETMODE_TIMEDWAIT`, then the maximum amount of time an
 :meth:`~ConnectionPool.acquire()` call will wait to get a connection from the
 pool is limited by the value of the :data:`ConnectionPool.wait_timeout`
 parameter.  A call that cannot be immediately satisfied will wait no longer

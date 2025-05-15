@@ -59,7 +59,7 @@ Examples can be found in the [/samples][samples] directory and the
 
 ## Help
 
-Questions can be asked in [Github Discussions][ghdiscussions].
+Questions can be asked in [GitHub Discussions][ghdiscussions].
 
 Problem reports can be raised in [GitHub Issues][ghissues].
 
