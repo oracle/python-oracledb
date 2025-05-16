@@ -32,7 +32,7 @@ Specification.
 cx_Oracle always runs in a Thick mode using Oracle Client libraries.  The
 features in python-oracledb Thick mode and cx_Oracle 8.3 are the same, subject
 to the :ref:`new features <releasenotes>`, some :ref:`deprecations
-<deprecations>`, and to other changes noted in this section.
+<deprecations>`, and to other changes noted in the documentation.
 
 Oracle Client Library Loading Differences from cx_Oracle
 --------------------------------------------------------
@@ -187,8 +187,9 @@ SessionPool Object Differences
 The SessionPool object (which is an alias for the :ref:`ConnectionPool object
 <connpool>`) differences between the python-oracledb and cx_Oracle drivers are:
 
-- A Python type() will show the class as ``oracledb.ConnectionPool`` instead
-  of ``cx_Oracle.SessionPool``.
+- A Python `type() <https://docs.python.org/3/library/functions.html#type>`__
+  will show the class as ``oracledb.ConnectionPool`` instead of
+  ``cx_Oracle.SessionPool``.
 
 - A new boolean attribute, ``SessionPool.thin`` (see
   :attr:`ConnectionPool.thin`) is available. This attribute is *True* if the
@@ -374,9 +375,6 @@ Example error messages are:
 Upgrading from cx_Oracle 8.3 to python-oracledb
 ===============================================
 
-This section provides the detailed steps needed to upgrade from the obsolete
-cx_Oracle driver to python-oracledb.
-
 Things to Know Before the Upgrade
 ---------------------------------
 
@@ -384,23 +382,39 @@ Below is a list of some useful things to know before upgrading from cx_Oracle
 to python-oracledb:
 
 - You can have both cx_Oracle and python-oracledb installed, and can use both
-  in the same application.
+  in the same application.  Install python-oracledb like::
 
-- If you only want to use the python-oracledb driver in Thin mode, then you do
-  not need Oracle Client libraries such as from Oracle Instant Client.  You
-  only need to :ref:`install <installation>` the driver itself::
+      python -m pip install oracledb --upgrade
 
-      python -m pip install oracledb
+  See :ref:`installation` for details.
 
-  See :ref:`driverdiff`.
+- By default, python-oracledb runs in a 'Thin' mode which connects directly to
+  Oracle Database.  This mode does not need Oracle Client libraries to be
+  installed.  However, some additional functionality is available when
+  python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode
+  when Oracle Client libraries are used. The Thick mode is equivalent to
+  cx_Oracle.
 
-- python-oracledb Thin and Thick modes have the same level of support for
-  the `Python Database API specification <https://peps.python.org/pep-0249/>`_
-  and can be used to connect to on-premises databases and Oracle Cloud
-  databases. However, python-oracledb Thin mode does not support some
-  advanced Oracle Database features such as Application Continuity (AC),
-  Continuous Query Notification (CQN), and Sharding. See :ref:`Features
-  Supported <featuresummary>` for details.
+- python-oracledb Thin and Thick modes have the same level of support for the
+  `Python Database API specification <https://peps.python.org/pep-0249/>`_ and
+  can be used to connect to on-premises databases and Oracle Cloud
+  databases. See :ref:`driverdiff`.
+
+  Examples can be found in the `GitHub samples directory
+  <https://github.com/oracle/python-oracledb/tree/main/samples>`__. A basic
+  example is:
+
+  .. code-block:: python
+
+      import oracledb
+      import getpass
+
+      pw = getpass.getpass(f"Enter password for hr@localhost/orclpdb: ")
+
+      with oracledb.connect(user="hr", password=userpwd, dsn="localhost/orclpdb") as connection:
+          with connection.cursor() as cursor:
+              for r in cursor.execute("select sysdate from dual"):
+                  print(r)
 
 - python-oracledb can be used in SQLAlchemy, Django, Pandas, Superset and other
   frameworks and Object-relational Mappers (ORMs). To use python-oracledb in
@@ -414,16 +428,18 @@ to python-oracledb:
 
   .. code-block:: python
 
-       oracledb.connect(user="scott", password=pw, dsn="localhost/orclpdb")
+       connection = oracledb.connect(user="scott", password=pw, dsn="localhost/orclpdb")
 
   This no longer works:
 
   .. code-block:: python
 
-       oracledb.connect("scott", pw, "localhost/orclpdb")
+       connection = oracledb.connect("scott", pw, "localhost/orclpdb")
 
 - Some previously deprecated features are no longer available. See
   :ref:`deprecations`.
+
+- There are many new features, see the :ref:`release notes <releasenotes>`.
 
 .. _commonupgrade:
 
@@ -577,8 +593,8 @@ following steps:
 Additional Upgrade Steps to use python-oracledb Thin Mode
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-To use python-oracledb Thin mode, the following changes need to be made in
-addition to the common :ref:`commonupgrade`:
+To upgrade from cx_Oracle to python-oracledb Thin mode, the following changes
+need to be made in addition to the common :ref:`commonupgrade`:
 
 1. Remove calls to :func:`~oracledb.init_oracle_client` since this turns on
    python-oracledb Thick mode.
@@ -635,7 +651,7 @@ addition to the common :ref:`commonupgrade`:
    :ref:`oraaccess.xml <optclientfiles>` files.  The Thin mode lets equivalent
    properties be set in the application when connecting.
 
-6. To use python-oracledb Thin mode in an ORACLE_HOME database installation
+6. To use python-oracledb Thin mode in an ``ORACLE_HOME`` database installation
    environment, you must use an explicit connection string since the
    ``ORACLE_SID``, ``TWO_TASK``, and ``LOCAL`` environment variables are not
    used.  They are used in Thick mode.
@@ -664,8 +680,8 @@ addition to the common :ref:`commonupgrade`:
 Additional Upgrade Steps to use python-oracledb Thick Mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-To use python-oracledb Thick mode, the following changes need to be made in
-addition to the common :ref:`commonupgrade`:
+To upgrade from cx_Oracle to python-oracledb Thick mode, the following changes
+need to be made in addition to the common :ref:`commonupgrade`:
 
 1. The function :func:`oracledb.init_oracle_client()` *must* be called to
    enable python-oracle Thick mode.  It can be called anywhere before the first

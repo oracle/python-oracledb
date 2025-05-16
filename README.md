@@ -1,8 +1,11 @@
 # python-oracledb
 
-python-oracledb is a [Python programming language][python] extension module
+Python-oracledb is a [Python programming language][python] extension module
 allowing Python programs to connect to [Oracle Database][oracledb].
-Python-oracledb is the new name for Oracle's popular cx_Oracle driver.
+Python-oracledb is the new name for the obsolete cx_Oracle driver.
+
+Python-oracledb uses the same Python DB API as cx_Oracle, and has many new
+features.
 
 The module conforms to the [Python Database API 2.0 specification][pep249] with
 a considerable number of additions and a couple of minor exclusions, see the
@@ -10,11 +13,41 @@ a considerable number of additions and a couple of minor exclusions, see the
 
 Synchronous and [concurrent][concurrent] coding styles are supported.
 
+Python-oracledb is available under an open source license, see below.
+
 ## Installation
 
-Run `python -m pip install oracledb`
+Run:
 
-See [python-oracledb Installation][installation].
+```
+python -m pip install oracledb --upgrade
+```
+
+See [python-oracledb Installation][installation] for details.
+
+## Samples
+
+Examples can be found in the [/samples][samples] directory and the
+[Python and Oracle Database Tutorial][tutorial].
+
+A basic example:
+
+```
+import oracledb
+import getpass
+
+un = "scott"
+cs = "localhost/orclpdb"
+# cs = "localhost/freepdb1"   # for Oracle Database Free users
+# cs = "localhost/orclpdb1"   # some databases may have this service
+pw = getpass.getpass(f"Enter password for {un}@{cs}: ")
+
+with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
+    with connection.cursor() as cursor:
+        sql = "select sysdate from dual"
+        for r in cursor.execute(sql):
+            print(r)
+```
 
 ## Dependencies and Interoperability
 
@@ -51,11 +84,6 @@ See [python-oracledb Installation][installation].
 
 See the [python-oracledb Documentation][documentation] and [Release
 Notes][relnotes].
-
-## Samples
-
-Examples can be found in the [/samples][samples] directory and the
-[Python and Oracle Database Tutorial][tutorial].
 
 ## Help
 

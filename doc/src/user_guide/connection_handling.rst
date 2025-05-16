@@ -633,8 +633,8 @@ known to python-oracledb are discarded and not passed to the database.
 
 .. _pyoparams:
 
-Python-oracledb Parameters Settable in Easy Connect Strings or Central Configuration Providers
-----------------------------------------------------------------------------------------------
+Python-oracledb Parameters Settable in Easy Connect Strings or Centralized Configuration Providers
+--------------------------------------------------------------------------------------------------
 
 Some python-oracledb connection and pool creation parameters can be set in
 :ref:`Easy Connect strings <easyconnect>` or via a :ref:`Centralized

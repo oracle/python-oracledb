@@ -816,8 +816,9 @@ support makes use of `Apache nanoarrow <https://arrow.apache.org/nanoarrow/>`__
 libraries to build data frames.
 
 The following data type mapping occurs from Oracle Database types to the Arrow
-types used in OracleDataFrame objects.  Querying any other data types from
-Oracle Database will result in an exception.
+types used in OracleDataFrame objects. Querying any other data types from
+Oracle Database will result in an exception. :ref:`Output type handlers
+<outputtypehandlers>` cannot be used to map data types.
 
 .. list-table-with-summary::
     :header-rows: 1

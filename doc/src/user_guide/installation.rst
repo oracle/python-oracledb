@@ -65,17 +65,18 @@ Python-oracledb is typically installed from Python's package repository
 
   .. code-block:: python
 
+      import oracledb
       import getpass
 
-      import oracledb
-
-      un = 'scott'
-      cs = 'localhost/orclpdb'
-      pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
+      un = "scott"
+      cs = "localhost/orclpdb"
+      # cs = "localhost/freepdb1"   # for Oracle Database Free users
+      # cs = "localhost/orclpdb1"   # some databases may have this service
+      pw = getpass.getpass(f"Enter password for {un}@{cs}: ")
 
       with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
           with connection.cursor() as cursor:
-              sql = """select sysdate from dual"""
+              sql = "select sysdate from dual"
               for r in cursor.execute(sql):
                   print(r)
 
@@ -131,8 +132,8 @@ In python-oracledb Thick mode, Oracle Database's standard client-server network
 interoperability allows connections between different versions of Oracle Client
 libraries and Oracle Database.  For current or previously certified
 configurations, see Oracle Support's `Doc ID 207303.1
-<https://support.oracle.com/epmos/faces/DocumentDisplay?id=207303.1>`__.  In
-summary:
+<https://support.oracle.com/knowledge/Oracle%20Database%20Products/207303_1.html>`__.
+In summary:
 
 - Oracle Client 23 can connect to Oracle Database 19 or later
 - Oracle Client 21 can connect to Oracle Database 12.1 or later
