@@ -195,9 +195,7 @@ cdef class Protocol(BaseProtocol):
 
             # otherwise, destroy the database object type cache, send the
             # logoff message and final close packet
-            if conn_impl._dbobject_type_cache_num > 0:
-                remove_dbobject_type_cache(conn_impl._dbobject_type_cache_num)
-                conn_impl._dbobject_type_cache_num = 0
+            conn_impl._clear_dbobject_type_cache()
             if self._transport is not None:
                 if not conn_impl._drcp_enabled:
                     message = conn_impl._create_message(LogoffMessage)
@@ -555,9 +553,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
 
             # otherwise, destroy the database object type cache, send the
             # logoff message and final close packet
-            if conn_impl._dbobject_type_cache_num > 0:
-                remove_dbobject_type_cache(conn_impl._dbobject_type_cache_num)
-                conn_impl._dbobject_type_cache_num = 0
+            conn_impl._clear_dbobject_type_cache()
             if self._transport is not None:
                 if not conn_impl._drcp_enabled:
                     message = conn_impl._create_message(LogoffMessage)

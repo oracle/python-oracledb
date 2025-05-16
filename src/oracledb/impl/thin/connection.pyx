@@ -92,6 +92,15 @@ cdef class BaseThinConnImpl(BaseConnImpl):
                               state=state)
         self._transaction_context = None
 
+    cdef int _clear_dbobject_type_cache(self) except -1:
+        """
+        """
+        cdef int cache_num
+        if self._dbobject_type_cache_num > 0:
+            cache_num = self._dbobject_type_cache_num
+            self._dbobject_type_cache_num = 0
+            remove_dbobject_type_cache(cache_num)
+
     cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
                                           bytes locator=None):
         """
@@ -167,9 +176,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     cdef int _force_close(self) except -1:
         self._pool = None
-        if self._dbobject_type_cache_num > 0:
-            remove_dbobject_type_cache(self._dbobject_type_cache_num)
-            self._dbobject_type_cache_num = 0
+        self._clear_dbobject_type_cache()
         self._protocol._force_close()
 
     cdef Statement _get_statement(self, str sql = None,
