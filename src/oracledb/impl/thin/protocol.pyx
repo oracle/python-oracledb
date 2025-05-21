@@ -357,7 +357,7 @@ cdef class Protocol(BaseProtocol):
             if not use_tcps and (params._token is not None
                     or params.access_token_callback is not None):
                 errors._raise_err(errors.ERR_ACCESS_TOKEN_REQUIRES_TCPS)
-        if description.use_tcp_fast_open:
+        if not use_proxy and description.use_tcp_fast_open:
             sock = socket.socket(address.ip_family, socket.SOCK_STREAM)
             sock.sendto(connect_string.encode(), socket.MSG_FASTOPEN,
                         connect_info)
@@ -505,6 +505,9 @@ cdef class Protocol(BaseProtocol):
 
 
 cdef class BaseAsyncProtocol(BaseProtocol):
+
+    cdef:
+        object _proxy_waiter
 
     def __init__(self):
         BaseProtocol.__init__(self)
@@ -727,9 +730,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
 
         # complete connection through proxy, if applicable
         if use_proxy:
+            self._proxy_waiter = self._read_buf._loop.create_future()
             data = f"CONNECT {host}:{port} HTTP/1.0\r\n\r\n"
             transport.write(data.encode())
-            reply = transport.read(1024)
+            reply = await self._proxy_waiter
             m = re.search('HTTP/1.[01]\\s+(\\d+)\\s+', reply.decode())
             if m is None or m.groups()[0] != '200':
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
@@ -913,12 +917,16 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         cdef:
             bint notify_waiter = False
             Packet packet
-        packet = self._transport.extract_packet(data)
-        while packet is not None:
-            self._read_buf._process_packet(packet, &notify_waiter, False)
-            if notify_waiter:
-                self._read_buf.notify_packet_received()
-            packet = self._transport.extract_packet()
+        if self._proxy_waiter is not None:
+            self._proxy_waiter.set_result(data)
+            self._proxy_waiter = None
+        else:
+            packet = self._transport.extract_packet(data)
+            while packet is not None:
+                self._read_buf._process_packet(packet, &notify_waiter, False)
+                if notify_waiter:
+                    self._read_buf.notify_packet_received()
+                packet = self._transport.extract_packet()
 
     async def end_pipeline(self, BaseThinConnImpl conn_impl, list messages,
                            bint continue_on_error):

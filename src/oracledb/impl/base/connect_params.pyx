@@ -698,12 +698,17 @@ cdef class Address(ConnectParamsNode):
         """
         Resolve the host name associated with the address and store the IP
         address and family on the address. If multiple IP addresses are found,
-        duplicate the address and return one address for each IP address.
+        duplicate the address and return one address for each IP address. If a
+        proxy is being used, ensure that the proxy performs name resolution
+        instead.
         """
         cdef:
             list results = []
             Address address
             object info
+        if self.https_proxy is not None:
+            self.ip_address = self.host
+            return [self]
         for info in socket.getaddrinfo(self.host, self.port,
                                        proto=socket.IPPROTO_TCP,
                                        type=socket.SOCK_STREAM):

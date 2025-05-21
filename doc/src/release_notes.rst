@@ -20,6 +20,9 @@ Thin Mode Changes
 #)  Emulate support for :meth:`Queue.deqmany()` with JSON payloads when using
     Oracle Database 21c by internally calling :meth:`Queue.deqone()` as many
     times as needed.
+#)  Fixed bug when connecting with asyncio using the parameter ``https_proxy``.
+#)  Fixed regression when connecting where only the host specified by the
+    ``https_proxy`` parameter can successfully perform name resolution.
 
 Thick Mode Changes
 ++++++++++++++++++
