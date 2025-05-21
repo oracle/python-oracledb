@@ -30,6 +30,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
+    (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
 #)  Improved the test suite and documentation.
 
 
