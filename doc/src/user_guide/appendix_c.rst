@@ -1,382 +1,16 @@
-.. _upgradecomparison:
-
 *****************************************************
 Appendix C: The python-oracledb and cx_Oracle Drivers
 *****************************************************
 
 The python-oracledb driver is the renamed, major version successor to cx_Oracle
 8.3. The python-oracledb driver has many :ref:`new features <releasenotes>` and
-some :ref:`deprecations` compared with cx_Oracle.  Also, see
-:ref:`upgrading83`.  The cx_Oracle driver is obsolete and should not be used
-for new development.
-
-.. _compatibility:
-
-Differences between the python-oracledb and cx_Oracle Drivers
-=============================================================
-
-The differences between python-oracledb and the obsolete cx_Oracle driver are
-listed here.
-
-Mode differences from cx_Oracle
--------------------------------
-
-By default, python-oracledb runs in a 'Thin' mode which connects directly to
-Oracle Database.  This mode does not need Oracle Client libraries.  However,
-some :ref:`additional functionality <featuresummary>` is available when
-python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode when
-Oracle Client libraries are used.  See :ref:`enablingthick`.  Both modes have
-comprehensive functionality supporting the Python Database API v2.0
-Specification.
-
-cx_Oracle always runs in a Thick mode using Oracle Client libraries.  The
-features in python-oracledb Thick mode and cx_Oracle 8.3 are the same, subject
-to the :ref:`new features <releasenotes>`, some :ref:`deprecations
-<deprecations>`, and to other changes noted in the documentation.
-
-Oracle Client Library Loading Differences from cx_Oracle
---------------------------------------------------------
-
-Oracle Client libraries are now only loaded if
-:func:`oracledb.init_oracle_client()` is called in your application.  This
-changes python-oracledb to Thick mode. The ``init_oracle_client()`` method must
-be called before any :ref:`standalone connection <standaloneconnection>` or
-:ref:`connection pool <connpooling>` is created. If a connection or pool is
-created first in the default Thin mode, then Thick mode cannot be enabled.
-
-See :ref:`enablingthick` for more information.
-
-Calling the ``init_oracle_client()`` method immediately loads Oracle Client
-libraries.  To emulate the cx_Oracle behavior of deferring library loading
-until the creation of the first connection (in the case when
-``init_oracle_client()`` is not called), your application will need to
-explicitly defer calling ``init_oracle_client()`` as appropriate.
-
-In python-oracledb, ``init_oracle_client()`` can now be called multiple times
-in the one Python process as long as its arguments are the same each time.
-
-oracledb.clientversion()
-++++++++++++++++++++++++
-
-The :func:`oracledb.clientversion()` method shows the version of the Oracle
-Client libraries being used.  There is no Oracle Client used in the
-python-oracledb Thin mode so this function can only be called in
-python-oracledb Thick mode.  If this function is called before
-:func:`oracledb.init_oracle_client()`, an exception is thrown.
-
-Connection Differences from cx_Oracle
--------------------------------------
-
-.. _connectdiffs:
-
-oracledb.connect() Differences
-++++++++++++++++++++++++++++++
-
-The :func:`oracledb.connect()` function in the python-oracledb driver differs
-from cx_Oracle:
-
-- Keyword parameters **must** be used in calls to :func:`oracledb.connect()`.
-  This change makes the driver compliant with the Python Database API
-  specification PEP 249.  See
-  :ref:`Standalone Connections <standaloneconnection>` and :ref:`connerrors`.
-
-- New optional keyword arguments can be passed to :func:`~oracledb.connect()`.
-  For example you can pass the hostname, port and servicename as separate
-  parameters instead of using an Easy Connect connection string.  In
-  python-oracledb Thin mode, some of the new arguments replace :ref:`sqlnet.ora
-  <optnetfiles>` settings.
-
-- A new optional parameter ``params`` of type :ref:`ConnectParams <connparam>`
-  can be used to encapsulate connection properties. See :ref:`usingconnparams`
-  for more information.
-
-- The following parameters are desupported:
-
-  - ``encoding`` and ``nencoding``: The encodings in use are always UTF-8.
-
-  - ``threaded``: Threaded Oracle Call Interface (OCI) is now always enabled
-    in python-oracledb Thick mode.  This option is not relevant to the Thin
-    mode.
-
-  See :ref:`deprecations` for more information.
-
-The use of the class constructor method ``oracledb.Connection()`` to create
-connections is no longer recommended for creating connections.  Use
-:func:`~oracledb.connect()` instead.
-
-The :meth:`oracledb.makedsn()` method for creating the ``dsn`` value has been
-deprecated.  New code should use :meth:`oracledb.ConnectParams()` or use the
-new keyword arguments in :func:`oracledb.connect()`.
-
-
-Connection Object Differences
-+++++++++++++++++++++++++++++
-
-The :ref:`Connection object <connobj>` differences between the python-oracledb
-and cx_Oracle drivers are:
-
-- The attribute :attr:`Connection.maxBytesPerCharacter` is deprecated. This
-  will return a constant value of *4* since encodings are always UTF-8.
-
-- A new boolean attribute, :attr:`Connection.thin` is available. This
-  attribute is *True* if the connection was established in python-oracledb Thin
-  mode. In Thick mode, the value of this attribute is *False*.
-
-- The new method signature of :attr:`Connection.outputtypehandler` is
-  ``handler(cursor, metadata)``. The old signature ``handler(cursor, name,
-  default_type, length, precision, scale)`` was deprecated in python-oracledb
-  1.4 but will still work and will be removed in a future version.
-
-See :ref:`connattrs` for more information.
-
-Pooling Differences from cx_Oracle
-----------------------------------
-
-It is recommended to use the new :ref:`ConnectionPool Object <connpool>`
-instead of the equivalent SessionPool object, which is deprecated.  To create a
-connection pool, use :meth:`oracledb.create_pool()`, which is equivalent to
-calling ``cx_Oracle.SessionPool()``.
-
-For more information, see :ref:`connpooling`.
-
-oracledb.SessionPool() Differences
-++++++++++++++++++++++++++++++++++
-
-The python-oracledb ``oracledb.SessionPool()`` method (which is an alias of
-:func:`oracledb.create_pool()`) differs from ``cx_Oracle.SessionPool()`` as
-follows:
-
-- Keyword parameters **must** be used in calls. This change makes the driver
-  compliant with the Python Database API specification PEP 249.  See
-  :ref:`Connection pooling <connpooling>` and :ref:`connerrors`.
-
-- Passing a value to the ``dsn`` parameter that contains the user name and
-  password is now supported in the same way as :func:`oracledb.connect()`. For
-  example ``dsn="un/pw@cs"`` can be used.
-
-- New optional keyword arguments can be passed to
-  :func:`~oracledb.create_pool()`.  For example you can pass the hostname, port
-  and servicename as separate parameters instead of using an Easy Connect
-  connection string.  In python-oracledb Thin mode, some of the new arguments
-  replace :ref:`sqlnet.ora <optnetfiles>` settings.
-
-- A new optional parameter ``params`` of type :ref:`PoolParams <poolparam>`
-  can be used to encapsulate connection properties. See :ref:`usingconnparams`
-  for more information.
-
-- The default mode is :data:`~oracledb.POOL_GETMODE_WAIT` instead of
-  :data:`~oracledb.POOL_GETMODE_NOWAIT`. If the mode
-  :data:`~oracledb.POOL_GETMODE_NOWAIT` is truly desired, modify any pool
-  creation code to specify this value instead.  Note the namespace of
-  constants has been improved.  Old names like ``SPOOL_ATTRVAL_NOWAIT`` can be
-  used but are now deprecated.
-
-- The ``encoding`` and ``nenecoding`` parameters are deprecated and
-  ignored. The encodings in use are always UTF-8.
-
-- New keyword arguments that are used internally to create a :ref:`PoolParams
-  object <connparam>` before creating the connection.
-
-The :meth:`oracledb.makedsn()` method for creating the ``dsn`` value has been
-deprecated.  New code should use :meth:`oracledb.ConnectParams()` or use the
-new keyword arguments to :func:`oracledb.create_pool()`.
-
-SessionPool Object Differences
-++++++++++++++++++++++++++++++
-
-The SessionPool object (which is an alias for the :ref:`ConnectionPool object
-<connpool>`) differences between the python-oracledb and cx_Oracle drivers are:
-
-- A Python `type() <https://docs.python.org/3/library/functions.html#type>`__
-  will show the class as ``oracledb.ConnectionPool`` instead of
-  ``cx_Oracle.SessionPool``.
-
-- A new boolean attribute, ``SessionPool.thin`` (see
-  :attr:`ConnectionPool.thin`) is available. This attribute is *True* if the
-  connection was established in python-oracledb Thin mode. In Thick mode, the
-  value of this attribute is *False*.
-
-Cursor Object Differences from cx_Oracle
-----------------------------------------
-
-The differences between the :ref:`Cursor object <cursorobj>` in
-python-oracledb and cx_Oracle drivers are:
-
-- :meth:`Cursor.fetchmany()`: The name of the size argument of ``fetchmany()``
-  is ``size``. This change was done to comply with `PEP 249
-  <https://peps.python.org/pep- 0249/>`_. The previous keyword argument name,
-  ``numRows`` is deprecated.
-
-- ``Cursor.fetchraw()``: This method was previously deprecated in cx_Oracle
-  8.2 and has been removed in python-oracledb. Instead, use one of the other
-  fetch methods such as :meth:`Cursor.fetchmany()`.
-
-- ``Cursor.executemanyprepared()``: This method was previously deprecated in
-  cx_Oracle 6.4 and has been removed in python-oracledb. Instead, use
-  :meth:`Cursor.executemany()`, by passing *None* for the statement argument and
-  an integer for the parameters argument.
-
-- ``Cursor.bindarraysize``: This attribute is desupported and removed in
-  python-oracledb. It is not needed in the application code.
-
-- :attr:`Cursor.rowcount`: After :meth:`Cursor.execute()` or
-  :meth:`Cursor.executemany()` with PL/SQL statements, ``Cursor.rowcount``
-  will return *0*. If the cursor or connection are not open, then the value *-1*
-  will be returned as required by the Python Database API.
-
-- :attr:`Cursor.description`: This attribute was previously a sequence of
-  7-item sequences in cx_Oracle and python-oracledb. Each of these sequences
-  contained information describing one result column, that is, (name, type,
-  display_size, internal_size, precision, scale, null_ok). In
-  python-oracledb 1.4, this attribute was changed to a sequence of
-  :ref:`FetchInfo <fetchinfoobj>` objects. Each FetchInfo object describes one
-  result column and can behave as a 7-tuple like before, but contains
-  additional information that may be helpful when using
-  :ref:`output type handlers <outputtypehandlers>`.
-
-- :attr:`Cursor.outputtypehandler`: The new method signature of this attribute
-  is ``handler(cursor, metadata)``. The old signature ``handler(cursor, name,
-  default_type, length, precision, scale)`` was deprecated in python-oracledb
-  1.4 but will still work and will be removed in a future version.
-
-.. _fetchisjson:
-
-Fetching IS JSON Column Differences from cx_Oracle
---------------------------------------------------
-
-In python-oracledb, VARCHAR2 and LOB columns that have the ``IS JSON``
-constraint enabled are fetched as Python objects. These columns are fetched in
-the same way that :ref:`JSON type columns <json21fetch>` are fetched when
-using Oracle Database 21c (or later). The returned value varies depending on
-the JSON data. If the JSON data is an object, then a dictionary is returned.
-If it is an array, then a list is returned. If it is a scalar value, then that
-particular scalar value is returned.
-
-In cx_Oracle, VARCHAR2 and LOB columns that have the ``IS JSON`` constraint
-enabled are fetched as strings and LOB objects respectively. To enable this
-same fetch behavior in python-oracledb, you must use an
-:ref:`output type handler <outputtypehandlers>` as shown below.
-
-.. code-block:: python
-
-    def type_handler(cursor, fetch_info):
-        if fetch_info.is_json:
-            return cursor.var(fetch_info.type_code, cursor.arraysize)
-
-Advanced Queuing (AQ) Differences from cx_Oracle
-------------------------------------------------
-
-Use the new :ref:`Advanced Queuing (AQ) <aqusermanual>` API instead of the
-older API which was deprecated in cx_Oracle 7.2 and is not available in
-python-oracledb.
-
-Replace:
-
-- ``Connection.deq()`` with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`
-- ``Connection.deqoptions()`` with attribute :attr:`Queue.deqoptions`
-- ``Connection.enq()`` with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
-- ``Connection.enqoptions()`` with attribute :attr:`Queue.enqoptions`
-
-The AQ support in python-oracledb has the following enhancements from
-cx_Oracle:
-
-- AQ messages can be enqueued and dequeued as a JSON payload type
-- Recipient lists can be enqueued and dequeued
-- Enqueue options, dequeue options, and message properties can be set
-
-See :ref:`Oracle Advanced Queuing (AQ) <aqusermanual>`.
-
-.. _errordiff:
-
-Error Handling Differences from cx_Oracle
------------------------------------------
-
-In python-oracledb Thick mode, error messages generated by the Oracle Client
-libraries and the `ODPI-C <https://oracle.github.io/odpi/>`_ layer used by
-cx_Oracle and python-oracledb in Thick mode are mostly returned unchanged from
-cx_Oracle 8.3. Some exceptions shown below.
-
-Note that the python-oracledb driver error messages can also vary between Thin
-and Thick modes. See :ref:`errorhandling`.
-
-ConnectionPool.acquire() Message Differences
-++++++++++++++++++++++++++++++++++++++++++++
-
-:meth:`ConnectionPool.acquire()` ORA errors will be mapped to DPY errors.  For
-example::
-
-    DPY-4005: timed out waiting for the connection pool to return a connection
-
-replaces the cx_Oracle 8.3 error::
-
-    ORA-24459: OCISessionGet() timed out waiting for pool to create new connections
-
-Dead Connection Detection and Timeout Message Differences
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-Application code which detects connection failures or statement execution
-timeouts will need to check for new errors, ``DPY-4011`` and ``DPY-4024``
-respectively. The error ``DPY-1001`` is returned if an already dead connection
-is attempted to be used.
-
-The new Error object attribute :attr:`~oracledb._Error.full_code` may be
-useful for checking the error code.
-
-Example error messages are:
-
-* Scenario 1: An already closed or dead connection was attempted to be used.
-
-  python-oracledb Thin Error::
-
-    DPY-1001: not connected to database
-
-  python-oracledb Thick Error::
-
-    DPY-1001: not connected to database
-
-  cx_Oracle Error::
-
-    not connected
-
-* Scenario 2: The database side of the connection was terminated while the
-  connection was being used.
-
-  python-oracledb Thin Error::
-
-    DPY-4011: the database or network closed the connection
-
-  python-oracledb Thick Error::
-
-    DPY-4011: the database or network closed the connection
-    DPI-1080: connection was closed by ORA-%d
-
-  cx_Oracle Error::
-
-    DPI-1080: connection was closed by ORA-%d
-
-* Scenario 3: Statement execution exceeded the :attr:`connection.call_timeout`
-  value.
-
-  python-oracledb Thin Error::
-
-    DPY-4024: call timeout of {timeout} ms exceeded
-
-  python-oracledb Thick Error::
-
-    DPY-4024: call timeout of {timeout} ms exceeded
-    DPI-1067: call timeout of %u ms exceeded with ORA-%d
-
-  cx_Oracle Error::
-
-    DPI-1067: call timeout of %u ms exceeded with ORA-%d
+some :ref:`deprecations` compared with cx_Oracle. The cx_Oracle driver is
+obsolete and should not be used for new development.
 
 .. _upgrading83:
 
 Upgrading from cx_Oracle 8.3 to python-oracledb
 ===============================================
-
-Things to Know Before the Upgrade
----------------------------------
 
 Below is a list of some useful things to know before upgrading from cx_Oracle
 to python-oracledb:
@@ -389,11 +23,17 @@ to python-oracledb:
   See :ref:`installation` for details.
 
 - By default, python-oracledb runs in a 'Thin' mode which connects directly to
-  Oracle Database.  This mode does not need Oracle Client libraries to be
-  installed.  However, some additional functionality is available when
+  Oracle Database.  This mode does not need Oracle Client libraries.  However,
+  some :ref:`additional functionality <featuresummary>` is available when
   python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode
-  when Oracle Client libraries are used. The Thick mode is equivalent to
-  cx_Oracle.
+  when Oracle Client libraries are used.  See :ref:`enablingthick`.  Both modes
+  have comprehensive functionality supporting the Python Database API v2.0
+  Specification. The Thick mode is equivalent to cx_Oracle.
+
+  cx_Oracle always runs in a Thick mode using Oracle Client libraries.  The
+  features in python-oracledb Thick mode and cx_Oracle 8.3 are the same, subject
+  to the :ref:`new features <releasenotes>`, some :ref:`deprecations
+  <deprecations>`, and to other changes noted in the documentation.
 
 - python-oracledb Thin and Thick modes have the same level of support for the
   `Python Database API specification <https://peps.python.org/pep-0249/>`_ and
@@ -417,10 +57,7 @@ to python-oracledb:
                   print(r)
 
 - python-oracledb can be used in SQLAlchemy, Django, Pandas, Superset and other
-  frameworks and Object-relational Mappers (ORMs). To use python-oracledb in
-  older versions of these libraries that do not have native support for the new
-  name, you can override the use of cx_Oracle with a few lines of code. See
-  :ref:`frameworks`.
+  frameworks and Object-relational Mappers (ORMs). See :ref:`frameworks`.
 
 - python-oracledb connection and pool creation calls require keyword arguments
   to conform with the Python Database API specification.  For example you must
@@ -435,6 +72,12 @@ to python-oracledb:
   .. code-block:: python
 
        connection = oracledb.connect("scott", pw, "localhost/orclpdb")
+
+- New optional keyword arguments can be passed to connection and pool creation
+  functions. For example you can pass the hostname, port and servicename as
+  separate parameters instead of using an Easy Connect connection string. In
+  python-oracledb Thin mode, some of the new arguments replace :ref:`sqlnet.ora
+  <optnetfiles>` settings.
 
 - Some previously deprecated features are no longer available. See
   :ref:`deprecations`.
@@ -527,14 +170,13 @@ following steps:
      parameter was already ignored in ``oracledb.SessionPool()`` from cx_Oracle
      8.2.
 
-5. Remove all references to :meth:`Cursor.fetchraw()` as this method was
-   deprecated in cx_Oracle 8.2 and has been removed in python-oracledb.
-   Instead, use one of the other fetch methods such as
-   :meth:`Cursor.fetchmany()`.
+5. Remove all references to ``Cursor.fetchraw()`` as this method was deprecated
+   in cx_Oracle 8.2 and has been removed in python-oracledb.  Instead, use one
+   of the other fetch methods such as :meth:`Cursor.fetchmany()`.
 
-6. The default value of the ``oracledb.SessionPool()`` parameter
-   :attr:`~Connection.getmode` now waits for an available connection.  That
-   is, the default is now :data:`~oracledb.POOL_GETMODE_WAIT` instead of
+6. The default value of the ``oracledb.SessionPool()`` parameter ``getmode``
+   now waits for an available connection.  That is, the default is now
+   :data:`~oracledb.POOL_GETMODE_WAIT` instead of
    :data:`~oracledb.POOL_GETMODE_NOWAIT`.  The new default value improves the
    behavior for most applications.  If the pool is in the middle of growing,
    the new value prevents transient connection creation errors from occurring
@@ -550,43 +192,148 @@ following steps:
    as :data:`~oracledb.POOL_GETMODE_NOWAIT` and :data:`~oracledb.PURITY_SELF`
    are now preferred.  The old namespaces still work.
 
-7. VARCHAR2 and LOB columns that have the ``IS JSON`` constraint enabled are
-   fetched by default as Python objects in python-oracledb. In cx_Oracle,
-   VARCHAR2 and LOB columns that contain JSON data were fetched by default as
-   strings and LOB objects respectively. See :ref:`fetchisjson`.
+7. A Python `type() <https://docs.python.org/3/library/functions.html#type>`__
+   will show the class of a connection pool as ``oracledb.ConnectionPool``
+   instead of ``cx_Oracle.SessionPool``. Update code as needed.
 
-8. Review :ref:`compatibility`.
+8. Use the new :ref:`Advanced Queuing (AQ) <aqusermanual>` API instead of the
+   older API which was deprecated in cx_Oracle 7.2 and is not available in
+   python-oracledb.
 
-   If your code base uses an older cx_Oracle version, review the previous
-   :ref:`release notes <releasenotes>` for additional changes to modernize
-   the code.
+   Replace:
 
-9. Modernize code as needed or desired.
+   - ``Connection.deq()`` with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`
+   - ``Connection.deqoptions()`` with attribute :attr:`Queue.deqoptions`
+   - ``Connection.enq()`` with :meth:`Queue.enqone()` or :meth:`Queue.enqmany()`
+   - ``Connection.enqoptions()`` with attribute :attr:`Queue.enqoptions`
 
-   For example, replace all usages of the deprecated Advanced Queuing API with
-   the new API originally introduced in cx_Oracle 7.2, see
-   :ref:`aqusermanual`.
+   See :ref:`aqusermanual`.
 
-   The method signature of the :ref:`output type handler <outputtypehandlers>`
-   which can be specified on a :attr:`connection
-   <Connection.outputtypehandler>` or on a :attr:`cursor
-   <Cursor.outputtypehandler>` is ``handler(cursor, metadata)``.  The old
-   signature ``handler(cursor, name, default_type, length, precision, scale)``
-   was deprecated in python-oracledb 1.4 but will still work and will be
-   removed in a future version.
+9. Remove calls to ``Cursor.executemanyprepared()``. This method was previously
+   deprecated in cx_Oracle 6.4 and has been removed in
+   python-oracledb. Instead, use :meth:`Cursor.executemany()` by passing *None*
+   for the statement argument and an integer for the ``parameters`` argument.
 
-   See :ref:`deprecations` for the list of all deprecations in python-oracledb.
+10. Remove the use of the ``Cursor.bindarraysize``. It is desupported and not
+    needed in the application code.
 
-10. Review the following sections to see if your application requirements are
+11. In python-oracledb, VARCHAR2 and LOB columns that have the ``IS JSON``
+    constraint enabled are fetched by default as Python objects. These columns
+    are fetched in the same way that :ref:`JSON type columns <json21fetch>` are
+    fetched when using Oracle Database 21c (or later). The returned value
+    varies depending on the JSON data. If the JSON data is an object, then a
+    dictionary is returned.  If it is an array, then a list is returned. If it
+    is a scalar value, then that particular scalar value is returned.
+
+    In cx_Oracle, VARCHAR2 and LOB columns that have the ``IS JSON`` constraint
+    enabled are fetched by default as strings and LOB objects respectively. To
+    enable this same fetch behavior in python-oracledb, you can use an
+    :ref:`output type handler <outputtypehandlers>` as shown below.
+
+    .. code-block:: python
+
+        def type_handler(cursor, fetch_info):
+            if fetch_info.is_json:
+                return cursor.var(fetch_info.type_code, cursor.arraysize)
+
+12. Review uses of :attr:`Cursor.rowcount`. After :meth:`Cursor.execute()` or
+    :meth:`Cursor.executemany()` with PL/SQL statements, :attr:`Cursor.rowcount`
+    will return *0*. If the cursor or connection are not open, then the value
+    *-1* will be returned as required by the Python Database API.
+
+13. In python-oracledb Thick mode, error messages generated by the Oracle
+    Client libraries and the `ODPI-C <https://oracle.github.io/odpi/>`_ layer
+    used by cx_Oracle and python-oracledb in Thick mode are mostly returned
+    unchanged from cx_Oracle 8.3. Some exceptions shown below.
+
+    Note that the python-oracledb driver error messages can also vary between Thin
+    and Thick modes. See :ref:`errorhandling`.
+
+    **ConnectionPool.acquire() Message Differences**
+
+    :meth:`ConnectionPool.acquire()` ORA errors will be mapped to DPY errors.  For
+    example::
+
+        DPY-4005: timed out waiting for the connection pool to return a connection
+
+    replaces the cx_Oracle 8.3 error::
+
+        ORA-24459: OCISessionGet() timed out waiting for pool to create new connections
+
+    **Dead Connection Detection and Timeout Message Differences**
+
+    Application code which detects connection failures or statement execution
+    timeouts will need to check for new errors, ``DPY-4011`` and ``DPY-4024``
+    respectively. The error ``DPY-1001`` is returned if an already dead connection
+    is attempted to be used.
+
+    The new Error object attribute :attr:`~oracledb._Error.full_code` may be
+    useful for checking the error code.
+
+    Example error messages are:
+
+    * Scenario 1: An already closed or dead connection was attempted to be used.
+
+      python-oracledb Thin mode Error::
+
+        DPY-1001: not connected to database
+
+      python-oracledb Thick mode Error::
+
+        DPY-1001: not connected to database
+
+      cx_Oracle Error::
+
+        not connected
+
+    * Scenario 2: The database side of the connection was terminated while the
+      connection was being used.
+
+      python-oracledb Thin mode Error::
+
+        DPY-4011: the database or network closed the connection
+
+      python-oracledb Thick mode Error::
+
+        DPY-4011: the database or network closed the connection
+        DPI-1080: connection was closed by ORA-%d
+
+      cx_Oracle Error::
+
+        DPI-1080: connection was closed by ORA-%d
+
+    * Scenario 3: Statement execution exceeded the :attr:`connection.call_timeout`
+      value.
+
+      python-oracledb Thin mode Error::
+
+        DPY-4024: call timeout of {timeout} ms exceeded
+
+      python-oracledb Thick mode Error::
+
+        DPY-4024: call timeout of {timeout} ms exceeded
+        DPI-1067: call timeout of %u ms exceeded with ORA-%d
+
+      cx_Oracle Error::
+
+        DPI-1067: call timeout of %u ms exceeded with ORA-%d
+
+14. If your code base uses an older cx_Oracle version, review
+    :ref:`deprecations` for additional changes that may be necessary.
+
+15. Modernize code to take advantage of new features, if desired. See the
+    :ref:`release notes <releasenotes>`.
+
+16. Review the following sections to see if your application requirements are
     satisfied by python-oracledb Thin mode:
 
-   - :ref:`featuresummary`
-   - :ref:`driverdiff`
+    - :ref:`featuresummary`
+    - :ref:`driverdiff`
 
-   If so, then follow :ref:`upgradethin`.
+    If so, then follow :ref:`upgradethin`.
 
-   If your application requirements are not supported by python-oracledb Thin
-   mode, then use Thick mode, see :ref:`upgradethick`.
+    If your application requirements are not supported by python-oracledb Thin
+    mode, then use Thick mode, see :ref:`upgradethick`.
 
 .. _upgradethin:
 
@@ -630,9 +377,13 @@ need to be made in addition to the common :ref:`commonupgrade`:
 
    See :ref:`otherinit`.
 
-4. Remove calls to :func:`oracledb.clientversion()` which is only available in
-   python-oracledb Thick mode.  Oracle Client libraries are not available
-   in Thin mode.
+4. Remove calls to :func:`oracledb.clientversion()`.
+
+   The :func:`oracledb.clientversion()` function shows the version of the
+   Oracle Client libraries being used. Since Oracle Client libraries are not
+   used in the python-oracledb Thin mode, this function cannot be called. If it
+   is called before calling :func:`oracledb.init_oracle_client()`, an exception
+   is thrown.
 
 5. To connect using a :ref:`TNS Alias <netservice>` from a ``tnsnames.ora``
    file (see :ref:`optnetfiles`) in python-oracledb Thin mode, you should
@@ -668,9 +419,7 @@ need to be made in addition to the common :ref:`commonupgrade`:
    :meth:`ConnectionPool.acquire()` until sufficient time has passed for
    connections in the pool to be created.
 
-8. Review error handling improvements. See :ref:`errorhandling`.
-
-9. Review locale and globalization usage. Python-oracledb Thin mode ignores
+8. Review locale and globalization usage. Python-oracledb Thin mode ignores
    all NLS environment variables.  It also ignores the ``ORA_TZFILE``
    environment variable.  Thick mode does use these variables.  See
    :ref:`globalization`.
@@ -680,28 +429,67 @@ need to be made in addition to the common :ref:`commonupgrade`:
 Additional Upgrade Steps to use python-oracledb Thick Mode
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-To upgrade from cx_Oracle to python-oracledb Thick mode, the following changes
-need to be made in addition to the common :ref:`commonupgrade`:
+To upgrade from cx_Oracle to python-oracledb Thick mode, in addition to the
+common :ref:`commonupgrade`, the function :func:`oracledb.init_oracle_client()`
+*must* be called to enable the Thick mode.  It can be called anywhere before
+the first call to :func:`oracledb.connect()`, ``oracledb.Connection()``, or
+``oracledb.SessionPool()``. If a connection or pool is created first in the
+default Thin mode, then Thick mode cannot be enabled. See
+:ref:`enablingthick` for more details.
 
-1. The function :func:`oracledb.init_oracle_client()` *must* be called to
-   enable python-oracle Thick mode.  It can be called anywhere before the first
-   call to :func:`oracledb.connect()`, ``oracledb.Connection()``, or
-   ``oracledb.SessionPool()``. See :ref:`enablingthick` for more details.
+The requirement to call :func:`~oracledb.init_oracle_client()` means that
+Oracle Client library loading is not automatically deferred until the driver
+is first used, such as when a connection is opened. To emulate the cx_Oracle
+behavior of deferring library loading until the creation of the first
+connection (in the case when :func:`~oracledb.init_oracle_client()` is not
+called), your application will need to explicitly defer calling
+:func:`~oracledb.init_oracle_client()` as appropriate.
 
-   The requirement to call :func:`~oracledb.init_oracle_client()` means that
-   Oracle Client library loading is not automatically deferred until the driver
-   is first used, such as when a connection is opened. The application must
-   explicitly manage this if deferral is required.
+In python-oracledb, :func:`~oracledb.init_oracle_client()` can be called
+multiple times in a Python process as long as the arguments are the same.
 
-   In python-oracledb, :func:`~oracledb.init_oracle_client()` can be called
-   multiple times in a Python process as long as the arguments are the same.
+Note that on Linux and related operating systems, the
+:func:`~oracledb.init_oracle_client()` parameter ``lib_dir`` should not be
+passed. Instead, set the system library search path with ``ldconfig`` or
+``LD_LIBRARY_PATH`` prior to running Python.
 
-   Note that on Linux and related operating systems, the
-   :func:`~oracledb.init_oracle_client()` parameter ``lib_dir`` should not be
-   passed. Instead, set the system library search path with ``ldconfig`` or
-   ``LD_LIBRARY_PATH`` prior to running Python.
+Modernizing Code
+----------------
 
-2. Review error handling improvements. See :ref:`errorhandling`.
+Many significant new features have been added to python-oracledb. You may want
+to take advantage of them when upgrading from cx_Oracle.  See the rest of the
+documentation, the :ref:`release notes <releasenotes>`, and
+:ref:`featuresummary`.
+
+The following points summarize some of the smaller changes that you may find
+interesting:
+
+- The :meth:`oracledb.makedsn()` method for creating the ``dsn`` value has been
+  deprecated.  New code should use keyword arguments when creating connections
+  or connection pools, or make use of a ``params`` object described below.
+
+- A new optional parameter ``params`` of type :ref:`ConnectParams <connparam>`
+  can be used to encapsulate connection properties.  Similarly a new optional
+  parameter ``params`` of type :ref:`PoolParams <poolparam>` can be used to
+  encapsulate pool creation properties. See :ref:`usingconnparams` for more
+  information.
+
+- The use of the class constructor method ``oracledb.Connection()`` to create
+  connections is no longer recommended for creating connections.  Use
+  :func:`~oracledb.connect()` instead.
+
+- The new method signature of :attr:`Connection.outputtypehandler` is
+  ``handler(cursor, metadata)``. The old signature ``handler(cursor, name,
+  default_type, length, precision, scale)`` was deprecated in python-oracledb
+  1.4 but will still work and will be removed in a future version.
+
+- The attribute :attr:`Connection.maxBytesPerCharacter` is deprecated. This
+  will return a constant value of *4* since encodings are always UTF-8.
+
+- In python-oracledb, the name of the size argument of
+  :meth:`Cursor.fetchmany()` is ``size``. This change was done to comply with
+  `PEP 249 <https://peps.python.org/pep- 0249/>`_. The previous keyword
+  argument name, ``numRows`` is deprecated.
 
 Code to Aid the Upgrade to python-oracledb
 ------------------------------------------
@@ -714,8 +502,8 @@ Toggling between Drivers
 The sample `oracledb_upgrade.py <https://github.com/oracle/python-oracledb/
 tree/main/samples/oracledb_upgrade.py>`__ shows a way to toggle applications
 between cx_Oracle and the two python-oracledb modes.  Note this script cannot
-map some functionality such as :ref:`obsolete cx_Oracle <compatibility>`
-features or error message changes.
+map some functionality such as obsolete cx_Oracle features or error message
+changes.
 
 An example application showing this module in use is:
 
@@ -773,165 +561,3 @@ similar to:
 
 Another method that can be used to check which driver is in use is to query the
 view V$SESSION_CONNECT_INFO, see :ref:`vsessconinfo`.
-
-.. _frameworks:
-
-Python Frameworks, SQL Generators, and ORMs
--------------------------------------------
-
-Python-oracledb's Thin and :ref:`Thick <enablingthick>` modes cover the feature
-needs of frameworks that depend upon the Python Database API.
-
-For versions of SQLAlchemy, Django, Superset, other frameworks,
-object-relational mappers (ORMs), and libraries that do not have native support
-for python-oracledb, you can add code like this to use python-oracledb instead
-of cx_Oracle:
-
-.. code-block:: python
-
-    import sys
-    import oracledb
-    oracledb.version = "8.3.0"
-    sys.modules["cx_Oracle"] = oracledb
-
-.. note::
-
-    This must occur before any import of cx_Oracle by your code or the library.
-
-To use Thick mode, for example if you need to connect to Oracle Database 11gR2,
-also add a call to :meth:`oracledb.init_oracle_client()` with the appropriate
-parameters for your environment, see :ref:`enablingthick`.
-
-SQLAlchemy 2 and Django 5 have native support for python-oracledb so the above
-code snippet is not needed in those versions.
-
-Connecting with SQLAlchemy
-++++++++++++++++++++++++++
-
-**SQLAlchemy 1.4**
-
-.. code-block:: python
-
-    # Using python-oracledb in SQLAlchemy 1.4
-
-    import os
-    import getpass
-    import oracledb
-    from sqlalchemy import create_engine
-    from sqlalchemy import text
-
-    import sys
-    oracledb.version = "8.3.0"
-    sys.modules["cx_Oracle"] = oracledb
-
-    # Uncomment to use python-oracledb Thick mode
-    # Review the doc for the appropriate parameters
-    #oracledb.init_oracle_client(<your parameters>)
-
-    un = os.environ.get("PYTHON_USERNAME")
-    cs = os.environ.get("PYTHON_CONNECTSTRING")
-    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
-
-    # Note the first argument is different for SQLAlchemy 1.4 and 2
-    engine = create_engine('oracle://@',
-                           connect_args={
-                               # Pass any python-oracledb connect() parameters
-                               "user": un,
-                               "password": pw,
-                               "dsn": cs
-                           }
-             )
-
-    with engine.connect() as connection:
-        print(connection.scalar(text(
-               """select unique client_driver
-                  from v$session_connect_info
-                  where sid = sys_context('userenv', 'sid')""")))
-
-
-Note that the ``create_engine()`` argument driver declaration uses
-``oracle://`` for SQLAlchemy 1.4 and ``oracle+oracledb://`` for SQLAlchemy 2.
-
-The ``connect_args`` dictionary can use any appropriate
-:meth:`oracledb.connect()` parameter.
-
-**SQLAlchemy 2**
-
-.. code-block:: python
-
-    # Using python-oracledb in SQLAlchemy 2
-
-    import os
-    import getpass
-    import oracledb
-    from sqlalchemy import create_engine
-    from sqlalchemy import text
-
-    # Uncomment to use python-oracledb Thick mode
-    # Review the doc for the appropriate parameters
-    #oracledb.init_oracle_client(<your parameters>)
-
-    un = os.environ.get("PYTHON_USERNAME")
-    cs = os.environ.get("PYTHON_CONNECTSTRING")
-    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
-
-    # Note the first argument is different for SQLAlchemy 1.4 and 2
-    engine = create_engine('oracle+oracledb://@',
-                           connect_args={
-                               # Pass any python-oracledb connect() parameters
-                               "user": un,
-                               "password": pw,
-                               "dsn": cs
-                           }
-             )
-
-    with engine.connect() as connection:
-        print(connection.scalar(text(
-               """select unique client_driver
-                  from v$session_connect_info
-                  where sid = sys_context('userenv', 'sid')""")))
-
-
-Note that the ``create_engine()`` argument driver declaration uses
-``oracle://`` for SQLAlchemy 1.4 and ``oracle+oracledb://`` for SQLAlchemy 2.
-
-The ``connect_args`` dictionary can use any appropriate
-:meth:`oracledb.connect()` parameter.
-
-**SQLAlchemy Connection Pools**
-
-Most multi-user applications should use a :ref:`connection pool <connpooling>`.
-The python-oracledb pool is preferred because of its high availability support.
-For example:
-
-.. code-block:: python
-
-    # Using python-oracledb in SQLAlchemy 2
-
-    import os, platform
-    import getpass
-    import oracledb
-    from sqlalchemy import create_engine
-    from sqlalchemy import text
-    from sqlalchemy.pool import NullPool
-
-    # Uncomment to use python-oracledb Thick mode
-    # Review the doc for the appropriate parameters
-    #oracledb.init_oracle_client(<your parameters>)
-
-    un = os.environ.get("PYTHON_USERNAME")
-    cs = os.environ.get("PYTHON_CONNECTSTRING")
-    pw = getpass.getpass(f'Enter password for {un}@{cs}: ')
-
-    pool = oracledb.create_pool(user=un, password=pw, dsn=cs,
-                                min=4, max=4, increment=0)
-    engine = create_engine("oracle+oracledb://", creator=pool.acquire, poolclass=NullPool)
-
-    with engine.connect() as connection:
-        print(connection.scalar(text("""select unique client_driver
-                                        from v$session_connect_info
-                                        where sid = sys_context('userenv', 'sid')""")))
-
-
-You can also use python-oracledb connection pooling with SQLAlchemy 1.4.  Use
-the appropriate name mapping code and first argument to ``create_engine()``.

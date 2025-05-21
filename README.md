@@ -1,21 +1,23 @@
 # python-oracledb
 
-Python-oracledb is a [Python programming language][python] extension module
-allowing Python programs to connect to [Oracle Database][oracledb].
-Python-oracledb is the new name for the obsolete cx_Oracle driver.
+Python-oracledb is an open-source [Python][python] extension module allowing
+Python programs to connect to [Oracle Database][oracledb]. The module conforms
+to the [Python Database API 2.0 specification][pep249] with a considerable
+number of additions and a couple of minor exclusions, see the [feature
+list][features]. It is maintained by Oracle.
 
-Python-oracledb uses the same Python DB API as cx_Oracle, and has many new
-features.
+Python-oracledb is used for executing SQL and PL/SQL; for calling NoSQL-style
+document APIs; for working with data frames; for receiving database
+notifications and messages; and for starting and stopping the database. It has
+features for high availability and security. It is used by many Python
+Frameworks, SQL Generators, ORMs, and libraries.
 
-The module conforms to the [Python Database API 2.0 specification][pep249] with
-a considerable number of additions and a couple of minor exclusions, see the
-[feature list][features].
+Synchronous and [concurrent][concurrent] coding styles are supported. Database
+operations can optionally be [pipelined][pipelining].
 
-Synchronous and [concurrent][concurrent] coding styles are supported.
+Python-oracledb is the successor to the now obsolete cx_Oracle driver.
 
-Python-oracledb is available under an open source license, see below.
-
-## Installation
+## Python-oracledb Installation
 
 Run:
 
@@ -127,4 +129,5 @@ See [LICENSE][license], [THIRD_PARTY_LICENSES][tplicense], and
 [installation]: https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html
 [features]: https://oracle.github.io/python-oracledb/#features
 [concurrent]: https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html
+[pipelining]: https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html#pipelining-database-operations
 [pypi]: https://pypi.org/project/oracledb

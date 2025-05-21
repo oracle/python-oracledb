@@ -102,7 +102,7 @@ More details and options are shown in the later sections:
   platform-specific instructions below or see :ref:`DPI-1047 <dpi1047>`.
   Alternatively, remove the call to :meth:`~oracledb.init_oracle_client()` and
   use Thin mode. The features supported by Thin mode can be found in
-  :ref:`driverdiff`.
+  :ref:`featuresummary`.
 
 - On any operating system, if you set ``lib_dir`` to the library directory of a
   full database or full client installation (such as from running

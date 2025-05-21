@@ -1619,16 +1619,16 @@ Common Changes
 oracledb 1.0.0 (May 2022)
 -------------------------
 
-#)  Renamed cx_Oracle to python-oracledb.  See :ref:`upgradecomparison`.
+#)  Renamed cx_Oracle to python-oracledb. See :ref:`upgrading83`.
 #)  Python-oracledb is a 'Thin' driver by default that connects directly
     to Oracle Database.  Optional use of Oracle Client libraries enables a
     :ref:`'Thick' mode <enablingthick>` with some additional functionality.
     Both modes support the Python Database API v2.0 Specification.
 #)  Added a :attr:`Connection.thin` attribute which shows whether the
     connection was established in the python-oracledb Thin mode or Thick mode.
-#)  Creating connections or connection pools now requires :ref:`keyword
-    parameters <connectdiffs>` be passed.  This brings python-oracledb into
-    compliance with the Python Database API specification PEP 249.
+#)  Creating connections or connection pools now requires keyword parameters be
+    passed. This brings python-oracledb into compliance with the Python
+    Database API specification PEP 249.
 #)  Threaded mode is now always enabled for standalone connections (Thick
     mode).
 #)  The function :func:`oracledb.init_oracle_client()` must now always be

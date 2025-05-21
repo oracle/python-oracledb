@@ -4,13 +4,26 @@
 Executing PL/SQL
 ****************
 
-PL/SQL stored procedures, functions, and anonymous blocks can be called from
-python-oracledb.
+PL/SQL is a procedural language used for creating user-defined procedures,
+functions, and anonymous blocks. PL/SQL program units are compiled and run
+inside Oracle Database, letting them efficiently work on data. Procedures and
+functions can be stored in the database, encapsulating business logic for reuse
+in other applications.
+
+PL/SQL code can be stored in the database, and executed using python-oracledb.
 
 Examples in this chapter show single invocations using
 :meth:`Cursor.callproc()`, :meth:`Cursor.callfunc()`, or
 :meth:`Cursor.execute()`. Examples of repeated calls using
 :meth:`Cursor.executemany()` are shown in :ref:`batchplsql`.
+
+**User-defined procedures in JavaScript**
+
+You may also be interested in creating user-defined procedures in JavaScript
+instead of PL/SQL, see `Introduction to Oracle Database Multilingual Engine for
+JavaScript <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+6AEC4D40-BE51-4DC6-9B8E-22396B5B16DD>`__. These procedures can be invoked in
+python-oracledb the same way PL/SQL is.
 
 .. _plsqlproc:
 

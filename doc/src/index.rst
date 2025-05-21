@@ -31,14 +31,15 @@ User Guide
     user_guide/json_data_type.rst
     user_guide/xml_data_type.rst
     user_guide/vector_data_type.rst
+    user_guide/dataframes.rst
     user_guide/soda.rst
     user_guide/aq.rst
     user_guide/cqn.rst
     user_guide/two_phase_commit.rst
     user_guide/startup.rst
     user_guide/ha.rst
-    user_guide/globalization.rst
     user_guide/asyncio.rst
+    user_guide/globalization.rst
     user_guide/exception_handling.rst
     user_guide/tracing.rst
     user_guide/extending.rst
@@ -46,6 +47,7 @@ User Guide
     user_guide/appendix_a.rst
     user_guide/appendix_b.rst
     user_guide/appendix_c.rst
+    user_guide/appendix_d.rst
 
 API Manual
 ==========

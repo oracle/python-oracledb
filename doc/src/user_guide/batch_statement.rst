@@ -1,8 +1,11 @@
 .. _batchstmnt:
 
-*******************************************
-Executing Batch Statements and Bulk Loading
-*******************************************
+****************************************
+Batch Statement and Bulk Copy Operations
+****************************************
+
+Batch Statement Execution
+=========================
 
 Inserting, updating or deleting multiple rows can be performed efficiently with
 :meth:`Cursor.executemany()`, making it easy to work with large data sets with
@@ -36,7 +39,7 @@ The following tables will be used in the samples that follow:
 
 
 Batch Execution of SQL
-======================
+----------------------
 
 The following example inserts five rows into the table ``ParentTable``:
 
@@ -156,7 +159,7 @@ With named bind variables, use named parameters when calling
 .. _batchplsql:
 
 Batch Execution of PL/SQL
-=========================
+-------------------------
 
 Using :meth:`~Cursor.executemany()` can improve performance when PL/SQL
 functions, procedures, or anonymous blocks need to be called multiple times.
@@ -285,7 +288,7 @@ The equivalent code using named binds is:
 .. _batcherrors:
 
 Handling Data Errors
-====================
+--------------------
 
 Large datasets may contain some invalid data.  When using batch execution as
 discussed above, the entire batch will be discarded if a single error is
@@ -331,7 +334,7 @@ committing.
 
 
 Identifying Affected Rows
-=========================
+-------------------------
 
 When executing a DML statement using :meth:`~Cursor.execute()`, the number of
 rows affected can be examined by looking at the attribute
@@ -361,7 +364,7 @@ is as follows::
 
 
 DML RETURNING
-=============
+-------------
 
 DML statements like INSERT, UPDATE, DELETE, and MERGE can return values by using
 the DML RETURNING syntax. A bind variable can be created to accept this data.
@@ -396,8 +399,18 @@ arraysize large enough to hold data for each row that is processed. Also, the
 call to :meth:`Cursor.setinputsizes()` binds this variable immediately so that
 it does not have to be passed in each row of data.
 
+Bulk Copy Operations
+====================
+
+Bulk copy operations are facilitated with the use of
+:meth:`Cursor.executemany()`, the use of appropriate SQL statements, and the
+use of Python modules.
+
+Also, see :ref:`dataframeformat` and :ref:`Oracle Database Pipelining
+<pipelining>`.
+
 Loading CSV Files into Oracle Database
-======================================
+--------------------------------------
 
 The :meth:`Cursor.executemany()` method and Python's `csv module
 <https://docs.python.org/3/library/csv.html#module-csv>`__ can be used to
@@ -461,15 +474,38 @@ Depending on data sizes and business requirements, database changes such as
 temporarily disabling redo logging on the table, or disabling indexes may also
 be beneficial.
 
-See `load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
+See `samples/load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/load_csv.py>`__ for a runnable example.
 
+Creating CSV Files from Oracle Database
+---------------------------------------
 
-Copying Data between Databases
-==============================
+Python's `csv module <https://docs.python.org/3/library/csv.html#module-csv>`__
+can be used to efficiently create CSV (Comma Separated Values) files.  For
+example:
 
-The :meth:`Cursor.executemany()` function is useful for efficiently copying
-data from one database to another:
+.. code-block:: python
+
+    cursor.arraysize = 1000  # tune this for large queries
+    print(f"Writing to {FILE_NAME}")
+    with open(FILE_NAME, "w") as f:
+        writer = csv.writer(
+            f, lineterminator="\n", quoting=csv.QUOTE_NONNUMERIC
+        )
+        cursor.execute("""select rownum, sysdate, mycol from BigTab""")
+        writer.writerow(info.name for info in cursor.description)
+        writer.writerows(cursor)
+
+
+See `samples/write_csv.py <https://github.com/oracle/python-oracledb/tree/main/
+samples/write_csv.py>`__ for a runnable example.
+
+
+Bulk Copying Data between Databases
+-----------------------------------
+
+The :meth:`Cursor.executemany()` function is useful for copying data from one
+database to another:
 
 .. code-block:: python
 
@@ -498,7 +534,16 @@ Tune the :attr:`~Cursor.arraysize` value according to notes in
 :ref:`tuningfetch`.  Use ``setinputsizes()`` according to `Predefining Memory
 Areas`_.
 
-Note that it may be preferable to create a `database link
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D966642A-B19E-449D-9968-1121AF06D793>`__
-between the databases and use an INSERT INTO SELECT statement so that data is
-not copied to, and back from, the Python process.
+Note that when copying data to another table in the same database, it may be
+preferable to use INSERT INTO SELECT or CREATE AS SELECT to avoid the overhead
+of copying data to, and back from, the Python process. This also avoids any
+data type changes.  For example to create a complete copy of a table:
+
+.. code-block:: python
+
+   cursor.execute("create table new_table as select * from old_table")
+
+Similarly, when copying to a different database, consider creating a `database
+link <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D966642A-
+B19E-449D-9968-1121AF06D793>`__ between the databases and using
+INSERT INTO SELECT or CREATE AS SELECT.
