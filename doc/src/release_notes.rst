@@ -37,6 +37,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added Instance Principal authentication support when using
+    :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`.
 #)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
     (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
 #)  Fix bug with GitHub build action merge artifacts step

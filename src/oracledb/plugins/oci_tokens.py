@@ -44,6 +44,8 @@ def generate_token(token_auth_config, refresh=False):
         return _config_file_based_authentication(token_auth_config)
     elif auth_type == "simpleauthentication":
         return _simple_authentication(token_auth_config)
+    elif auth_type == "instanceprincipal":
+        return _instance_principal_authentication(token_auth_config)
     else:
         raise ValueError(
             f"Unrecognized auth_type authentication method {user_auth_type}"
@@ -86,6 +88,23 @@ def _get_key_pair():
     return {"private_key": private_key_pem, "public_key": public_key_pem}
 
 
+def _generate_access_token(client, token_auth_config):
+    """
+    Token generation logic used by authentication methods.
+    """
+    key_pair = _get_key_pair()
+    scope = token_auth_config.get("scope", "urn:oracle:db::id::*")
+
+    details = oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+        scope=scope, public_key=key_pair["public_key"]
+    )
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=details
+    )
+
+    return (response.data.token, key_pair["private_key"])
+
+
 def _config_file_based_authentication(token_auth_config):
     """
     Config file base authentication implementation: config parameters
@@ -103,21 +122,7 @@ def _config_file_based_authentication(token_auth_config):
     # Initialize service client with default config file
     client = oci.identity_data_plane.DataplaneClient(config)
 
-    key_pair = _get_key_pair()
-
-    response = client.generate_scoped_access_token(
-        generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
-            scope="urn:oracle:db::id::*", public_key=key_pair["public_key"]
-        )
-    )
-
-    # access_token is a tuple holding token and private key
-    access_token = (
-        response.data.token,
-        key_pair["private_key"],
-    )
-
-    return access_token
+    return _generate_access_token(client, token_auth_config)
 
 
 def _simple_authentication(token_auth_config):
@@ -134,24 +139,18 @@ def _simple_authentication(token_auth_config):
     }
     oci.config.validate_config(config)
 
-    # Initialize service client with given configuration
     client = oci.identity_data_plane.DataplaneClient(config)
+    return _generate_access_token(client, token_auth_config)
 
-    key_pair = _get_key_pair()
 
-    response = client.generate_scoped_access_token(
-        generate_scoped_access_token_details=oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
-            scope="urn:oracle:db::id::*", public_key=key_pair["public_key"]
-        )
-    )
-
-    # access_token is a tuple holding token and private key
-    access_token = (
-        response.data.token,
-        key_pair["private_key"],
-    )
-
-    return access_token
+def _instance_principal_authentication(token_auth_config):
+    """
+    Instance principal authentication: for compute instances
+    with dynamic group access.
+    """
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
+    return _generate_access_token(client, token_auth_config)
 
 
 def oci_token_hook(params: oracledb.ConnectParams):

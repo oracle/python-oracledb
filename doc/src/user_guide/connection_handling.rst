@@ -4528,11 +4528,15 @@ the following table.
       - Description
       - Required or Optional
     * - ``auth_type``
-      - The authentication type. The value should be the string "ConfigFileAuthentication" or "SimpleAuthentication".
+      - The authentication type. The value should be the string "ConfigFileAuthentication", "SimpleAuthentication", or "InstancePrincipal".
 
-        In Configuration File Authentication, the location of the configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
+        With Configuration File Authentication, the location of a configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
 
-        In Simple Authentication, the individual configuration parameters can be provided at runtime.
+        With Simple Authentication, the individual configuration parameters can be provided at runtime.
+
+        With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. For more information on OCI compute instances, see `OCI Compute Instances <https://docs.oracle.com/en-us/iaas/compute-cloud-at-customer/topics/compute/compute-instances.htm>`__, `Creating a Compute Instance <https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/launchinginstance.htm>`__, and `Calling Services from a Compute Instance <https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm>`__.
+
+        See `OCI SDK Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
       - Required
     * - ``user``
       - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
@@ -4570,6 +4574,15 @@ the following table.
       - The configuration file location. The default value is *~/.oci/config*.
 
         This parameter can be specified when the value of the ``auth_type`` key is "ConfigFileAuthentication".
+      - Optional
+    * - ``scope``
+      - This parameter identifies all databases in the cloud tenancy of the authenticated user. The default value is *urn:oracle:db::id::**.
+
+        A scope that authorizes access to all databases within a compartment has the format *urn:oracle:db::id::<compartment-ocid>*, for example, urn:oracle:db::id::ocid1.compartment.oc1..xxxxxxxx.
+
+        A scope that authorizes access to a single database within a compartment has the format *urn:oracle:db::id::<compartment-ocid>::<database-ocid>*, for example, urn:oracle:db::id::ocid1.compartment.oc1..xxxxxx::ocid1.autonomousdatabase.oc1.phx.xxxxxx.
+
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication", "ConfigFileAuthentication", or "InstancePrincipal".
       - Optional
 
 All keys and values other than ``auth_type`` are used by the `OCI SDK
