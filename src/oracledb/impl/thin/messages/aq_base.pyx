@@ -179,13 +179,13 @@ cdef class AqBaseMessage(Message):
         self._write_value_with_length(buf, props_impl.enq_txn_id)
         buf.write_ub4(4)                            # number of extensions
         buf.write_uint8(0x0e)                       # unknown extra byte
-        buf.write_extension_values(None, None, TNS_AQ_EXT_KEYWORD_AGENT_NAME)
-        buf.write_extension_values(None, None,
-                                   TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS)
-        buf.write_extension_values(None, b'\x00',
-                                   TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL)
-        buf.write_extension_values(None, None,
-                                   TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID)
+        buf.write_keyword_value_pair(None, None, TNS_AQ_EXT_KEYWORD_AGENT_NAME)
+        buf.write_keyword_value_pair(None, None,
+                                     TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS)
+        buf.write_keyword_value_pair(None, b'\x00',
+                                     TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL)
+        buf.write_keyword_value_pair(None, None,
+                                     TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID)
         buf.write_ub4(0)                            # user property
         buf.write_ub4(0)                            # cscn
         buf.write_ub4(0)                            # dscn
@@ -205,6 +205,22 @@ cdef class AqBaseMessage(Message):
             buf.write_dbobject(props_impl.payload_obj)
         else:
             buf.write_bytes(props_impl.payload_obj)
+
+
+    cdef int _write_recipients(self, WriteBuffer buf,
+                               ThinMsgPropsImpl props_impl) except -1:
+        """
+        Write the recipient list of the message property object to the
+        buffer.
+        """
+        cdef:
+            uint16_t index = 0
+            str recipient
+        for recipient in props_impl.recipients:
+            buf.write_keyword_value_pair(recipient, None, index)
+            buf.write_keyword_value_pair(None, None, index + 1)
+            buf.write_keyword_value_pair(None, b'\x00', index + 2)
+            index += 3
 
     cdef int _write_value_with_length(self, WriteBuffer buf,
                                       object value) except -1:

@@ -51,8 +51,8 @@ types which are detailed below.
 **Usage Notes**
 
 For classic queues, the use of :data:`oracledb.ENQ_IMMEDIATE` with bulk
-enqueuing, JMS payloads, and :ref:`Recipient Lists <reciplists>` are only
-supported in python-oracledb :ref:`Thick mode <enablingthick>`.
+enqueuing, and JMS payloads are only supported in python-oracledb
+:ref:`Thick mode <enablingthick>`.
 
 Transactional Event Queues do not support :attr:`EnqOptions.transformation`,
 :attr:`DeqOptions.transformation`, or :ref:`Recipient Lists <reciplists>`.

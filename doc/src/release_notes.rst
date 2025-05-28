@@ -17,6 +17,8 @@ oracledb 3.2.0 (TBD)
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for :ref:`recipient lists <reciplists>` in Oracle Advanced
+    Queuing.
 #)  Emulate support for :meth:`Queue.deqmany()` with JSON payloads when using
     Oracle Database 21c by internally calling :meth:`Queue.deqone()` as many
     times as needed.

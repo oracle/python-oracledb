@@ -64,8 +64,12 @@ cdef class AqEnqMessage(AqBaseMessage):
         buf.write_uint8(1)                      # queue name (pointer)
         buf.write_ub4(len(queue_name_bytes))    # queue name length
         self._write_msg_props(buf, self.props_impl)
-        buf.write_uint8(0)                      # recipients (pointer)
-        buf.write_ub4(0)                        # number of key/value pairs
+        if self.props_impl.recipients is None:
+            buf.write_uint8(0)                  # recipients (pointer)
+            buf.write_ub4(0)                    # number of key/value pairs
+        else:
+            buf.write_uint8(1)                  # recipients (pointer)
+            buf.write_ub4(3 * len(self.props_impl.recipients))
         buf.write_ub4(self.enq_options_impl.visibility)
         buf.write_uint8(0)                      # relative message id
         buf.write_ub4(0)                        # relative message length
@@ -115,5 +119,7 @@ cdef class AqEnqMessage(AqBaseMessage):
                 buf.write_uint8(0)              # JSON payload (pointer)
 
         buf.write_bytes_with_length(queue_name_bytes)
+        if self.props_impl.recipients is not None:
+            self._write_recipients(buf, self.props_impl)
         buf.write_bytes(self.queue_impl.payload_toid)
         self._write_payload(buf, self.props_impl)

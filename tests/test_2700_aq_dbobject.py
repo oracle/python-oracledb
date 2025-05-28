@@ -410,9 +410,6 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.msgid, actual_msgid)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "Thin mode doesn't support recipient list yet"
-    )
     def test_2719(self):
         "2719 - verify use of recipients property"
         books_type = self.conn.gettype(self.book_type_name)
