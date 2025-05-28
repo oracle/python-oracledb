@@ -88,6 +88,17 @@ cdef class BaseProtocol:
             self._write_buf._transport = None
             transport.disconnect()
 
+    cdef bint _get_is_healthy(self):
+        """
+        Returns a boolean indicating if the connection is considered healthy.
+        """
+        # if a read failed on the socket earlier, clear the socket
+        if self._read_buf._transport is None \
+                or self._read_buf._transport._transport is None:
+            self._transport = None
+        return self._transport is not None \
+                and self._read_buf._pending_error_num == 0
+
     cdef int _post_connect(self, BaseThinConnImpl conn_impl,
                            AuthMessage auth_message) except -1:
         """"
@@ -155,15 +166,9 @@ cdef class Protocol(BaseProtocol):
 
         with self._request_lock:
 
-            # if a read failed on the socket earlier, clear the socket
-            if self._read_buf._transport is None \
-                    or self._read_buf._transport._transport is None:
-                self._transport = None
-
             # if the session was marked as needing to be closed, force it
             # closed immediately (unless it was already closed)
-            if self._read_buf._pending_error_num != 0 \
-                    and self._transport is not None:
+            if not self._get_is_healthy() and self._transport is not None:
                 self._force_close()
 
             # rollback any open transaction and release the DRCP session, if
@@ -529,14 +534,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
 
         async with self._request_lock:
 
-            # if a read failed on the socket earlier, clear the socket
-            if self._read_buf._transport is None:
-                self._transport = None
-
             # if the session was marked as needing to be closed, force it
             # closed immediately (unless it was already closed)
-            if self._read_buf._pending_error_num != 0 \
-                    and self._transport is not None:
+            if not self._get_is_healthy() and self._transport is not None:
                 self._force_close()
 
             # rollback any open transaction and release the DRCP session, if
