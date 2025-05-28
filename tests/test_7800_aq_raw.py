@@ -421,6 +421,47 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2062"):
             queue.enqone(props)
 
+    def test_7826(self):
+        "7826 - test providing null values on queue dequeue options"
+        queue = self.conn.queue("TEST_RAW_QUEUE")
+        str_value = "test - 7826"
+        bytes_value = str_value.encode()
+        for name in [
+            "condition",
+            "consumername",
+            "correlation",
+            "msgid",
+            "transformation",
+        ]:
+            value = bytes_value if name == "msgid" else str_value
+            with self.subTest(name=name):
+                setattr(queue.deqoptions, name, value)
+                self.assertEqual(getattr(queue.deqoptions, name), value)
+                setattr(queue.deqoptions, name, None)
+                self.assertIsNone(getattr(queue.deqoptions, name))
+
+    def test_7827(self):
+        "7827 - test providing null values on queue enqueue options"
+        queue = self.conn.queue("TEST_RAW_QUEUE")
+        value = "test - 7827"
+        for name in ["transformation"]:
+            with self.subTest(name=name):
+                setattr(queue.enqoptions, name, value)
+                self.assertEqual(getattr(queue.enqoptions, name), value)
+                setattr(queue.enqoptions, name, None)
+                self.assertIsNone(getattr(queue.enqoptions, name))
+
+    def test_7828(self):
+        "7828 - test providing null correlation on message properties"
+        props = self.conn.msgproperties()
+        value = "test - 7828"
+        for name in ["correlation", "exceptionq"]:
+            with self.subTest(name=name):
+                setattr(props, name, value)
+                self.assertEqual(getattr(props, name), value)
+                setattr(props, name, None)
+                self.assertIsNone(getattr(props, name))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

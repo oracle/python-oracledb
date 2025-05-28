@@ -27,6 +27,13 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed a bug resulting in error ``DPI-1046: parameter value cannot be a NULL
+    pointer`` when the attributes :attr:`DeqOptions.condition`,
+    :attr:`DeqOptions.consumername`, :attr:`DeqOptions.correlation`,
+    :attr:`DeqOptions.msgid`, :attr:`DeqOptions.transformation`,
+    :attr:`EnqOptions.transformation`, :attr:`MessageProperties.correlation`,
+    or :attr:`MessageProperties.exceptionq` are set to ``None``.
+
 Common Changes
 ++++++++++++++
 

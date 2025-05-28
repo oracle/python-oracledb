@@ -263,7 +263,7 @@ cdef class ThickDeqOptionsImpl(BaseDeqOptionsImpl):
         Internal method for setting the condition.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiDeqOptions_setCondition(self._handle, buf.ptr, buf.length) < 0:
             _raise_from_odpi()
 
@@ -272,7 +272,7 @@ cdef class ThickDeqOptionsImpl(BaseDeqOptionsImpl):
         Internal method for setting the consumer name.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiDeqOptions_setConsumerName(self._handle, buf.ptr,
                                          buf.length) < 0:
             _raise_from_odpi()
@@ -282,7 +282,7 @@ cdef class ThickDeqOptionsImpl(BaseDeqOptionsImpl):
         Internal method for setting the correlation.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiDeqOptions_setCorrelation(self._handle, buf.ptr, buf.length) < 0:
             _raise_from_odpi()
 
@@ -305,7 +305,7 @@ cdef class ThickDeqOptionsImpl(BaseDeqOptionsImpl):
         Internal method for setting the message id.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiDeqOptions_setMsgId(self._handle, buf.ptr, buf.length) < 0:
             _raise_from_odpi()
 
@@ -321,7 +321,7 @@ cdef class ThickDeqOptionsImpl(BaseDeqOptionsImpl):
         Internal method for setting the transformation.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiDeqOptions_setTransformation(self._handle, buf.ptr,
                                            buf.length) < 0:
             _raise_from_odpi()
@@ -383,7 +383,7 @@ cdef class ThickEnqOptionsImpl(BaseEnqOptionsImpl):
         Internal method for setting the transformation.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiEnqOptions_setTransformation(self._handle, buf.ptr,
                                            buf.length) < 0:
             _raise_from_odpi()
@@ -543,7 +543,7 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
         Internal method for setting the correlation.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiMsgProps_setCorrelation(self._handle, buf.ptr, buf.length) < 0:
             _raise_from_odpi()
 
@@ -559,7 +559,7 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
         Internal method for setting the exception queue.
         """
         cdef StringBuffer buf = StringBuffer()
-        buf.set_value(value)
+        buf.set_value(value or "")
         if dpiMsgProps_setExceptionQ(self._handle, buf.ptr, buf.length) < 0:
             _raise_from_odpi()
 
