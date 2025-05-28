@@ -320,6 +320,12 @@ cdef class ThickPoolImpl(BasePoolImpl):
         self.max = max
         self.increment = increment
 
+    def return_connection(self, ThickConnImpl conn_impl, bint in_del=False):
+        """
+        Internal method for returning a connection to the pool.
+        """
+        conn_impl.close(in_del)
+
     def set_getmode(self, uint8_t value):
         """
         Internal method for setting the method by which connections are

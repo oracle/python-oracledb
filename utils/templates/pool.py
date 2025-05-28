@@ -485,9 +485,11 @@ class ConnectionPool(BaseConnectionPool):
         if not isinstance(connection, connection_module.Connection):
             message = "connection must be an instance of oracledb.Connection"
             raise TypeError(message)
+        connection._verify_connected()
         if tag is not None:
             connection.tag = tag
-        connection.close()
+        self._impl.return_connection(connection._impl)
+        connection._impl = None
 
     def reconfigure(
         self,
@@ -777,7 +779,8 @@ class AsyncConnectionPool(BaseConnectionPool):
             raise TypeError(message)
         if tag is not None:
             connection.tag = tag
-        await connection.close()
+        await self._impl.return_connection(connection._impl)
+        connection._impl = None
 
 
 def _async_pool_factory(

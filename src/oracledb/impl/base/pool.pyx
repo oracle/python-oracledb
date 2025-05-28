@@ -89,6 +89,9 @@ cdef class BasePoolImpl:
     def reconfigure(self, uint32_t min, uint32_t max, uint32_t increment):
         errors._raise_not_supported("reconfiguring a pool")
 
+    def return_connection(self, BaseConnImpl conn_impl, in_del=False):
+        errors._raise_not_supported("returning a connection to a pool")
+
     def set_getmode(self, uint8_t value):
         errors._raise_not_supported("setting the 'get' mode of a pool")
 

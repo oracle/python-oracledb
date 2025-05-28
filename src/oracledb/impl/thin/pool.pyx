@@ -79,6 +79,10 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._requests = []
         self._num_to_create = self.min
         self._auth_mode = AUTH_MODE_DEFAULT
+        if params._default_description.cclass is None \
+                and params._get_uses_drcp():
+            params._default_description.cclass = \
+                    f"DPY:{base64.b64encode(uuid.uuid4().bytes).decode()}"
         self._open = True
 
     cdef int _add_request(self, PooledConnRequest request) except -1:
@@ -102,29 +106,35 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 and self._open_count > self.min:
             self._start_timeout_task()
 
-    cdef int _close_helper(self, bint force) except -1:
+    cdef int _close_all_connections(self) except -1:
         """
-        Helper function that closes all of the connections in the pool.
+        Closes all connections in the pool and marks the pool as closed. The
+        background task is notified to perform the work of closing the
+        connections, if applicable.
         """
         cdef BaseThinConnImpl conn_impl
-
-        # if force parameter is not True and busy connections exist in the
-        # pool or there are outstanding requests, raise an exception
-        if not force and (self.get_busy_count() > 0 or self._requests):
-            errors._raise_err(errors.ERR_POOL_HAS_BUSY_CONNECTIONS)
-
-        # close all connections in the pool; this is done by simply adding
-        # to the list of connections that require closing and then notifying
-        # the background task to perform the work
         self._open = False
         for lst in (self._free_used_conn_impls,
                     self._free_new_conn_impls,
                     self._busy_conn_impls):
             self._conn_impls_to_drop.extend(lst)
             for conn_impl in lst:
-                conn_impl._pool = None
+                conn_impl._is_pooled = False
             lst.clear()
         self._notify_bg_task()
+
+    cdef int _close_helper(self, bint force) except -1:
+        """
+        Helper function that closes all of the connections in the pool.
+        """
+
+        # if force parameter is not True and busy connections exist in the
+        # pool or there are outstanding requests, raise an exception
+        if not force and (self.get_busy_count() > 0 or self._requests):
+            errors._raise_err(errors.ERR_POOL_HAS_BUSY_CONNECTIONS)
+
+        # close all connections in the pool
+        self._close_all_connections()
 
     cdef PooledConnRequest _create_request(self, ConnectParamsImpl params):
         """
@@ -150,23 +160,11 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         Helper method which adds a connection to the list of connections to be
         closed and notifies the background task.
         """
-        conn_impl._pool = None
+        conn_impl._is_pooled = False
         if conn_impl._protocol._transport is not None:
             self._conn_impls_to_drop.append(conn_impl)
             self._notify_bg_task()
         self._ensure_min_connections()
-
-    cdef int _drop_conn_impls_helper(self, list conn_impls_to_drop) except -1:
-        """
-        Helper method which drops the requested list of connections. Exceptions
-        that take place while attempting to close the connection are ignored.
-        """
-        cdef BaseThinConnImpl conn_impl
-        for conn_impl in conn_impls_to_drop:
-            try:
-                conn_impl._force_close()
-            except:
-                pass
 
     cdef int _ensure_min_connections(self) except -1:
         """
@@ -214,7 +212,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         if conn_impl is None:
             self._num_to_create = 0
         elif not self._open:
-            conn_impl._force_close()
+            conn_impl._protocol._disconnect()
         else:
             self._open_count += 1
             if self._num_to_create > 0:
@@ -274,7 +272,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             conn_impl._cclass = params._default_description.cclass
         else:
             conn_impl._cclass = self.connect_params._default_description.cclass
-        conn_impl._pool = self
+        conn_impl._is_pooled = True
         conn_impl._time_created = time.monotonic()
         conn_impl._time_returned = conn_impl._time_created
 
@@ -302,15 +300,9 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         """
         cdef:
             bint is_open = conn_impl._protocol._transport is not None
-            BaseThinDbObjectTypeCache type_cache
             PooledConnRequest request
             double tstamp
-            int cache_num
         self._busy_conn_impls.remove(conn_impl)
-        if conn_impl._dbobject_type_cache_num > 0:
-            cache_num = conn_impl._dbobject_type_cache_num
-            type_cache = get_dbobject_type_cache(cache_num)
-            type_cache._clear_cursors()
         if not is_open:
             self._open_count -= 1
             self._ensure_min_connections()
@@ -324,7 +316,6 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     self._drop_conn_impl(conn_impl)
                     is_open = False
         if is_open:
-            conn_impl.warning = None
             conn_impl._time_returned = time.monotonic()
             if self._max_lifetime_session != 0:
                 tstamp = conn_impl._time_created + self._max_lifetime_session
@@ -351,20 +342,12 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
     cdef int _shutdown(self) except -1:
         """
         Called when the main interpreter has completed and only shutdown code
-        is being executed. All connections in the pool are marked as non-pooled
-        and the pool itself terminated.
+        is being executed.
         """
         cdef BaseThinConnImpl conn_impl
         with self._condition:
-            self._open = False
-            for lst in (self._free_used_conn_impls,
-                        self._free_new_conn_impls,
-                        self._busy_conn_impls):
-                for conn_impl in lst:
-                    conn_impl._pool = None
-                lst.clear()
             self._requests.clear()
-            self._notify_bg_task()
+            self._close_all_connections()
         self._bg_task.join()
 
     cdef int _start_timeout_task(self) except -1:
@@ -440,6 +423,19 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             return self._wait_timeout
         return 0
 
+    def return_connection(self, BaseThinConnImpl conn_impl, bint in_del=False):
+        """
+        Internal method for returning a connection to the pool.
+        """
+        cdef Protocol protocol = <Protocol> conn_impl._protocol
+        with self._condition:
+            try:
+                protocol._end_request(conn_impl)
+            except:
+                if not in_del:
+                    raise
+            self._return_connection_helper(conn_impl)
+
     def set_getmode(self, uint32_t value):
         """
         Internal method for setting the method by which connections are
@@ -507,8 +503,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         cdef:
             PooledConnRequest request = None
-            BaseThinConnImpl conn_impl
-            list conn_impls_to_drop
+            ThinConnImpl conn_impl
             uint32_t num_to_create
 
         # add to the list of pools that require closing
@@ -542,11 +537,13 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
 
             # check to see if there are any connections to drop
             with self._condition:
-                conn_impls_to_drop = self._conn_impls_to_drop
-                self._conn_impls_to_drop = []
-            if conn_impls_to_drop:
-                self._drop_conn_impls_helper(conn_impls_to_drop)
-                continue
+                if self._conn_impls_to_drop:
+                    conn_impl = self._conn_impls_to_drop.pop()
+                    try:
+                        conn_impl._close()
+                    except:
+                        pass
+                    continue
 
             # otherwise, nothing to do yet, wait for notifications!
             with self._bg_task_condition:
@@ -590,23 +587,16 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                     request.conn_impl.ping()
                     request.conn_impl.set_call_timeout(0)
                 except exceptions.Error:
-                    request.conn_impl._force_close()
+                    request.conn_impl._protocol.disconnect()
                     request.conn_impl = None
             else:
                 conn_impl = self._create_conn_impl(request.params)
                 if request.conn_impl is not None:
-                    request.conn_impl._force_close()
+                    self._drop_conn_impl(request.conn_impl)
                 request.conn_impl = conn_impl
                 request.conn_impl._is_pool_extra = request.is_extra
         except Exception as e:
             request.exception = e
-
-    cdef int _return_connection(self, BaseThinConnImpl conn_impl) except -1:
-        """
-        Returns the connection to the pool.
-        """
-        with self._condition:
-            self._return_connection_helper(conn_impl)
 
     cdef int _start_timeout_task(self) except -1:
         """
@@ -737,11 +727,13 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
 
             # check to see if there are any connections to drop
             async with self._condition:
-                conn_impls_to_drop = self._conn_impls_to_drop
-                self._conn_impls_to_drop = []
-            if conn_impls_to_drop:
-                self._drop_conn_impls_helper(conn_impls_to_drop)
-                continue
+                if self._conn_impls_to_drop:
+                    conn_impl = self._conn_impls_to_drop.pop()
+                    try:
+                        await conn_impl._protocol._close(conn_impl)
+                    except:
+                        pass
+                    continue
 
             # otherwise, nothing to do yet, wait for notifications!
             async with self._bg_task_condition:
@@ -785,23 +777,16 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                     await request.conn_impl.ping()
                     request.conn_impl.set_call_timeout(0)
                 except exceptions.Error:
-                    request.conn_impl._force_close()
+                    request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
             else:
                 conn_impl = await self._create_conn_impl(request.params)
                 if request.conn_impl is not None:
-                    request.conn_impl._force_close()
+                    self._drop_conn_impl(request.conn_impl)
                 request.conn_impl = conn_impl
                 request.conn_impl._is_pool_extra = request.is_extra
         except Exception as e:
             request.exception = e
-
-    async def _return_connection(self, BaseThinConnImpl conn_impl):
-        """
-        Returns the connection to the pool.
-        """
-        async with self._condition:
-            self._return_connection_helper(conn_impl)
 
     cdef int _start_timeout_task(self) except -1:
         """
@@ -856,6 +841,21 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             self._busy_conn_impls.remove(conn_impl)
             self._drop_conn_impl(conn_impl)
             self._condition.notify()
+
+    async def return_connection(self, AsyncThinConnImpl conn_impl,
+                                bint in_del=False):
+        """
+        Internal method for returning a connection to the pool.
+        """
+        cdef BaseAsyncProtocol protocol
+        async with self._condition:
+            try:
+                protocol = <BaseAsyncProtocol> conn_impl._protocol
+                await protocol._end_request(conn_impl)
+            except:
+                if not in_del:
+                    raise
+            self._return_connection_helper(conn_impl)
 
 
 @cython.freelist(20)

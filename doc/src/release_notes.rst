@@ -25,6 +25,11 @@ Thin Mode Changes
 #)  Fixed bug when connecting with asyncio using the parameter ``https_proxy``.
 #)  Fixed regression when connecting where only the host specified by the
     ``https_proxy`` parameter can successfully perform name resolution.
+#)  Fixed bug resulting in explicit request boundaries to aid planned database
+    maintenance not being sent when using connection pools with asyncio.
+#)  Pooled connections that are no longer needed are now closed normally if
+    possible instead of simply having the socket disconnected
+    (`issue 393 <https://github.com/oracle/python-oracledb/issues/393>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

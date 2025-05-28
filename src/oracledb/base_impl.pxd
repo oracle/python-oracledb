@@ -586,6 +586,7 @@ cdef class ConnectParamsImpl:
     cdef str _get_token(self)
     cdef object _get_public_instance(self)
     cdef object _get_token_expires(self, str token)
+    cdef bint _get_uses_drcp(self)
     cdef str _get_wallet_password(self)
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1

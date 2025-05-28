@@ -294,6 +294,17 @@ cdef class ConnectParamsImpl:
         header = json.loads(base64.b64decode(header_seg))
         return datetime.datetime.utcfromtimestamp(header["exp"])
 
+    cdef bint _get_uses_drcp(self):
+        """
+        Returns a boolean indicating if any of the descriptions associated with
+        the parameters make use of DRCP.
+        """
+        cdef Description description
+        for description in self.description_list.children:
+            if description.server_type == "pooled":
+                return True
+        return False
+
     cdef str _get_wallet_password(self):
         """
         Returns the wallet password, after removing the obfuscation.

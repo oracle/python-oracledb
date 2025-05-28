@@ -46,7 +46,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bint _client_identifier_modified
         str _module
         bint _module_modified
-        BaseThinPoolImpl _pool
         bytes _ltxid
         str _current_schema
         bint _current_schema_modified
@@ -70,6 +69,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         int _dbobject_type_cache_num
         bytes _combo_key
         str _connection_id
+        bint _is_pooled
         bint _is_pool_extra
         bytes _transaction_context
         uint8_t pipeline_mode
@@ -174,11 +174,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         message.context = self._transaction_context
         return message
 
-    cdef int _force_close(self) except -1:
-        self._pool = None
-        self._clear_dbobject_type_cache()
-        self._protocol._force_close()
-
     cdef Statement _get_statement(self, str sql = None,
                                   bint cache_statement = False):
         """
@@ -198,11 +193,8 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         self._drcp_enabled = description.server_type == "pooled"
         if self._cclass is None:
             self._cclass = description.cclass
-        if self._cclass is None and self._pool is not None \
-                and self._drcp_enabled:
-            gen_uuid = uuid.uuid4()
-            self._cclass = f"DPY:{base64.b64encode(gen_uuid.bytes).decode()}"
-            params._default_description.cclass = self._cclass
+        if self._cclass is None:
+            self._cclass = params._default_description.cclass
 
     cdef int _post_connect_phase_two(self, ConnectParamsImpl params) except -1:
         """
@@ -350,6 +342,13 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         BaseThinConnImpl.__init__(self, dsn, params)
         self._protocol = Protocol()
 
+    cdef int _close(self):
+        """
+        Internal method for closing the connection.
+        """
+        cdef Protocol protocol = <Protocol> self._protocol
+        protocol._close(self)
+
     cdef int _connect_with_address(self, Address address,
                                    Description description,
                                    ConnectParamsImpl params,
@@ -441,9 +440,12 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         protocol._process_single_message(message)
 
     def close(self, bint in_del=False):
+        """
+        Internal method for closing the connection to the database.
+        """
         cdef Protocol protocol = <Protocol> self._protocol
         try:
-            protocol._close(self)
+            protocol.close(self, in_del)
         except (ssl.SSLError, exceptions.DatabaseError):
             pass
 
@@ -455,17 +457,17 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         protocol._process_single_message(message)
 
     def connect(self, ConnectParamsImpl params):
-        # specify that binding a string to a LOB value is possible in thin
-        # mode without the use of asyncio (will be removed in a future release)
-        self._allow_bind_str_to_lob = True
-
+        cdef Protocol protocol = <Protocol> self._protocol
         try:
             self._pre_connect(params)
             self._connect_with_params(params)
             self._post_connect_phase_two(params)
         except:
-            self._force_close()
+            protocol._disconnect()
             raise
+        # specify that binding a string to a LOB value is possible in thin
+        # mode without the use of asyncio (will be removed in a future release)
+        self._allow_bind_str_to_lob = True
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
@@ -954,7 +956,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         """
         cdef BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
         try:
-            await protocol._close(self)
+            await protocol.close(self, in_del)
         except (ssl.SSLError, exceptions.DatabaseError):
             pass
 
@@ -979,7 +981,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             await self._connect_with_params(params)
             self._post_connect_phase_two(params)
         except:
-            self._force_close()
+            protocol._disconnect()
             raise
 
     def create_queue_impl(self):

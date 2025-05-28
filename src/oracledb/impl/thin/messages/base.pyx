@@ -72,7 +72,7 @@ cdef class Message:
                                   code=self.error_info.num,
                                   offset=self.error_info.pos)
             if error.is_session_dead:
-                self.conn_impl._protocol._force_close()
+                self.conn_impl._protocol._disconnect()
             raise error.exc_type(error)
 
     cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
