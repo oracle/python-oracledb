@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -295,8 +295,7 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_5318(self):
         "5318 - test connection attribute values"
         async with test_env.get_connection_async() as conn:
-            if test_env.get_client_version() >= (12, 1):
-                self.assertEqual(conn.ltxid, b"")
+            self.assertEqual(conn.ltxid, b"")
             self.assertIsNone(conn.current_schema)
             conn.current_schema = "test_schema"
             self.assertEqual(conn.current_schema, "test_schema")
@@ -320,11 +319,10 @@ class TestCase(test_env.BaseAsyncTestCase):
             "edition",
             "external_name",
             "internal_name",
+            "ltxid",
             "stmtcachesize",
             "warning",
         ]
-        if test_env.get_client_version() >= (12, 1):
-            attr_names.append("ltxid")
         for name in attr_names:
             with self.assertRaisesFullCode("DPY-1001"):
                 getattr(conn, name)
@@ -514,10 +512,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             self.assertEqual(conn.instance_name.upper(), instance_name)
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipIf(
-        test_env.get_server_version() < (23, 0),
-        "unsupported server",
-    )
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
     async def test_5337(self):
         "5337 - test maximum allowed length for password"
         async with test_env.get_connection_async() as conn:

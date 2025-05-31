@@ -92,9 +92,7 @@ class TestCase(test_env.BaseTestCase):
             (error_obj,) = cm.exception.args
             self.assertEqual(error_obj.full_code, "DPI-1037")
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "unsupported client"
-    )
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
     def test_1703(self):
         "1703 - test generation of error help portal URL"
         cursor = self.conn.cursor()

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -803,8 +803,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = [(n, await c.read()) async for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipIf(
-        test_env.get_server_version() < (23, 1), "unsupported database"
+    @unittest.skipUnless(
+        test_env.has_server_version(23), "unsupported database"
     )
     async def test_6347(self):
         "6347 - fetch table with domain and annotations"

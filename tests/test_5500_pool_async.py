@@ -117,12 +117,11 @@ class TestCase(test_env.BaseAsyncTestCase):
         ]
         try:
             for version, attr_name, value in test_values:
-                if test_env.get_client_version() >= version:
-                    setattr(pool, attr_name, value)
-                    self.assertEqual(getattr(pool, attr_name), value)
-                    self.assertRaises(
-                        TypeError, setattr, pool, attr_name, "invalid value"
-                    )
+                setattr(pool, attr_name, value)
+                self.assertEqual(getattr(pool, attr_name), value)
+                self.assertRaises(
+                    TypeError, setattr, pool, attr_name, "invalid value"
+                )
         finally:
             await pool.close(force=True)
 
@@ -495,8 +494,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool_async(connectiontype=int)
 
-    @unittest.skipIf(
-        test_env.get_server_version() < (12, 2), "not supported on this server"
+    @unittest.skipUnless(
+        test_env.has_server_version(12, 2), "not supported on this server"
     )
     async def test_5528(self):
         "5528 - ensure that timed wait times out with appropriate exception"

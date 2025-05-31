@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -361,12 +361,8 @@ class TestCase(test_env.BaseTestCase):
         wrong_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         self._test_negative_set_and_get(wrong_obj_type, obj)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (21, 0), "unsupported client"
-    )
-    @unittest.skipIf(
-        test_env.get_server_version() < (21, 0), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_client_version(21), "unsupported client")
+    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
     def test_3722(self):
         "3722 - setting values on variables of type DB_TYPE_JSON"
         json_data = [

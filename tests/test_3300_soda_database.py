@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -62,10 +62,10 @@ class TestCase(test_env.BaseTestCase):
         "3300 - test creating documents with JSON data"
         soda_db = self.get_soda_database()
         val = {"testKey1": "testValue1", "testKey2": "testValue2"}
-        if test_env.get_client_version() < (23, 4):
-            str_val = json.dumps(val)
-        else:
+        if test_env.has_client_version(23, 4):
             str_val = str(val)
+        else:
+            str_val = json.dumps(val)
         bytes_val = str_val.encode()
         key = "MyKey"
         media_type = "text/plain"
@@ -138,8 +138,8 @@ class TestCase(test_env.BaseTestCase):
             soda_db.createCollection("CollMetadata", 7)
         self.assertRaises(TypeError, soda_db.getCollectionNames, 1)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4), "unsupported data types"
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported data types"
     )
     def test_3306(self):
         "3306 - test creating documents with JSON data using extended types"
@@ -169,9 +169,9 @@ class TestCase(test_env.BaseTestCase):
         doc = soda_db.createDocument(val, key, media_type)
         self.__verify_doc(doc, bytes_val, str_val, val, key, media_type)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        and test_env.has_server_version(23, 4),
         "data types serialized differently",
     )
     def test_3308(self):
@@ -192,9 +192,9 @@ class TestCase(test_env.BaseTestCase):
             doc, bytes_val, str_val, decimal_val, key, media_type
         )
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        and test_env.has_server_version(23, 4),
         "unsupported data types",
     )
     def test_3309(self):
@@ -225,9 +225,9 @@ class TestCase(test_env.BaseTestCase):
             doc, bytes_val, str_val, decimal_val, key, media_type
         )
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        and test_env.has_server_version(23, 4),
         "data types serialized differently",
     )
     def test_3310(self):
@@ -244,9 +244,9 @@ class TestCase(test_env.BaseTestCase):
             doc = soda_db.createDocument(val, key, media_type)
             self.__verify_doc(doc, bytes_val, str_val, val, key, media_type)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        and test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        and test_env.has_server_version(23, 4),
         "data types serialized differently",
     )
     def test_3311(self):

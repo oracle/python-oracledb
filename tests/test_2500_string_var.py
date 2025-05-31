@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -424,8 +424,8 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.fetchall(), [(1, short_string), (2, long_string)]
         )
 
-    @unittest.skipIf(
-        test_env.get_server_version() < (12, 2), "not supported on this server"
+    @unittest.skipUnless(
+        test_env.has_server_version(12, 2), "not supported on this server"
     )
     def test_2528(self):
         "2528 - test issue 50 - avoid error ORA-24816"

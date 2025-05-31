@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -74,8 +74,8 @@ class TestCase(test_env.BaseTestCase):
             self.raw_data.append(data_tuple)
             self.data_by_key[i] = data_tuple
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (12, 1), "not supported on this client"
+    @unittest.skipUnless(
+        test_env.has_client_version(12, 1), "not supported on this client"
     )
     def test_2200(self):
         "2200 - test binding in a boolean"

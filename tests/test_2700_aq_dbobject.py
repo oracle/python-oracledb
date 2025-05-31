@@ -358,7 +358,7 @@ class TestCase(test_env.BaseTestCase):
             f"{self.conn.username}.transform1"
         )
         queue.enqoptions.transformation = transformation_str
-        if test_env.get_client_version() >= (23, 1):
+        if test_env.has_client_version(23):
             self.assertEqual(
                 queue.enqoptions.transformation, transformation_str
             )

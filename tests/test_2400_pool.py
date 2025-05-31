@@ -113,13 +113,13 @@ class TestCase(test_env.BaseTestCase):
             ping_interval=ping_interval,
             getmode=getmode,
         )
-        if test_env.get_client_version() >= (12, 1):
+        if test_env.has_client_version(12, 1):
             creation_args["max_lifetime_session"] = max_lifetime_session
-        if test_env.get_client_version() >= (12, 2):
+        if test_env.has_client_version(12, 2):
             creation_args["wait_timeout"] = wait_timeout
-        if test_env.get_client_version() >= (18, 3):
+        if test_env.has_client_version(18, 3):
             creation_args["max_sessions_per_shard"] = max_sessions_per_shard
-        if test_env.get_client_version() >= (19, 11):
+        if test_env.has_client_version(19, 11):
             creation_args["soda_metadata_cache"] = soda_metadata_cache
 
         pool = test_env.get_pool(**creation_args)
@@ -167,27 +167,21 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(fetched_value, arg_value)
         pool.close()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 1), "not supported on this client"
-    )
     def test_2400(self):
         "2400 - test getting default pool parameters"
         pool = test_env.get_pool()
         self.assertEqual(pool.busy, 0)
         self.assertEqual(pool.dsn, test_env.get_connect_string())
         self.assertEqual(pool.tnsentry, pool.dsn)
-        if test_env.get_client_version() >= (12, 2):
+        if test_env.has_client_version(12, 2):
             self.assertEqual(pool.getmode, oracledb.POOL_GETMODE_WAIT)
             self.assertIs(pool.getmode, oracledb.PoolGetMode.WAIT)
         self.assertTrue(pool.homogeneous)
         self.assertEqual(pool.increment, 1)
         self.assertEqual(pool.max, 2)
-        if test_env.get_client_version() >= (12, 1):
+        if test_env.has_client_version(12, 1):
             self.assertEqual(pool.max_lifetime_session, 0)
-        if not test_env.get_is_thin() and test_env.get_client_version() >= (
-            18,
-            3,
-        ):
+        if not test_env.get_is_thin() and test_env.has_client_version(18, 3):
             self.assertEqual(pool.max_sessions_per_shard, 0)
         self.assertEqual(pool.min, 1)
         if test_env.get_is_thin():
@@ -196,10 +190,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertRegex(pool.name, "^OCI:SP:.+")
         self.assertEqual(pool.ping_interval, 60)
         self.assertEqual(pool.stmtcachesize, oracledb.defaults.stmtcachesize)
-        if not test_env.get_is_thin() and test_env.get_client_version() >= (
-            19,
-            11,
-        ):
+        if not test_env.get_is_thin() and test_env.has_client_version(19, 11):
             self.assertFalse(pool.soda_metadata_cache)
         self.assertEqual(pool.thin, test_env.get_is_thin())
         self.assertEqual(pool.timeout, 0)
@@ -234,9 +225,6 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(user, test_env.get_proxy_user().upper())
         conn.close()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 1), "not supported on this client"
-    )
     def test_2402(self):
         "2402 - test setting pool attributes"
         pool = test_env.get_pool()
@@ -248,26 +236,20 @@ class TestCase(test_env.BaseTestCase):
             ((12, 1), "max_lifetime_session", 3),
         ]
         for version, attr_name, value in test_values:
-            if test_env.get_client_version() >= version:
+            if test_env.has_client_version(*version):
                 setattr(pool, attr_name, value)
                 self.assertEqual(getattr(pool, attr_name), value)
                 self.assertRaises(
                     TypeError, setattr, pool, attr_name, "invalid value"
                 )
 
-        if not test_env.get_is_thin() and test_env.get_client_version() >= (
-            18,
-            3,
-        ):
+        if not test_env.get_is_thin() and test_env.has_client_version(18, 3):
             self.assertEqual(pool.max_sessions_per_shard, 0)
             self.assertRaises(
                 TypeError, setattr, pool, "max_sessions_per_shard", "bad_val"
             )
 
-        if not test_env.get_is_thin() and test_env.get_client_version() >= (
-            19,
-            11,
-        ):
+        if not test_env.get_is_thin() and test_env.has_client_version(19, 11):
             pool.soda_metadata_cache = True
             self.assertTrue(pool.soda_metadata_cache)
             self.assertRaises(
@@ -471,7 +453,7 @@ class TestCase(test_env.BaseTestCase):
     )
     def test_2411(self):
         "2411 - test PL/SQL session callbacks"
-        if test_env.get_client_version() < (12, 2):
+        if not test_env.has_client_version(12, 2):
             self.skipTest("PL/SQL session callbacks not supported before 12.2")
         callback = "pkg_SessionCallback.TheCallback"
         pool = test_env.get_pool(
@@ -526,7 +508,7 @@ class TestCase(test_env.BaseTestCase):
         pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
         conn = pool.acquire()
         self.assertRaises(TypeError, pool.release, conn, tag=12345)
-        if test_env.get_client_version() >= (12, 2):
+        if test_env.has_client_version(12, 2):
             with self.assertRaisesFullCode("ORA-24488"):
                 pool.release(conn, tag="INVALID_TAG")
 
@@ -577,13 +559,13 @@ class TestCase(test_env.BaseTestCase):
         self.__perform_reconfigure_test(
             "getmode", oracledb.POOL_GETMODE_NOWAIT
         )
-        if test_env.get_client_version() >= (12, 1):
+        if test_env.has_client_version(12, 1):
             self.__perform_reconfigure_test("max_lifetime_session", 2000)
-        if test_env.get_client_version() >= (12, 2):
+        if test_env.has_client_version(12, 2):
             self.__perform_reconfigure_test("wait_timeout", 8000)
-        if test_env.get_client_version() >= (18, 3):
+        if test_env.has_client_version(18, 3):
             self.__perform_reconfigure_test("max_sessions_per_shard", 5)
-        if test_env.get_client_version() >= (19, 11):
+        if test_env.has_client_version(19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 
     @unittest.skipIf(
@@ -676,8 +658,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-1002"):
             pool.acquire()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 1), "not supported on this client"
+    @unittest.skipUnless(
+        test_env.has_client_version(19), "not supported on this client"
     )
     def test_2422(self):
         "2422 - using the pool beyond max limit raises an error"
@@ -862,11 +844,11 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool(connectiontype=int)
 
-    @unittest.skipIf(
-        test_env.get_server_version() < (12, 2), "not supported on this server"
+    @unittest.skipUnless(
+        test_env.has_server_version(12, 2), "not supported on this server"
     )
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 1), "not supported on this client"
+    @unittest.skipUnless(
+        test_env.has_client_version(19), "not supported on this client"
     )
     def test_2438(self):
         "2438 - ensure that timed wait times out with appropriate exception"
@@ -876,8 +858,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-4005"):
             pool.acquire()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (18, 1), "not supported on this client"
+    @unittest.skipUnless(
+        test_env.has_client_version(18), "not supported on this client"
     )
     def test_2439(self):
         "2439 - ensure call timeout is reset on connections returned by pool"

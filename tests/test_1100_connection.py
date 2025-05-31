@@ -113,14 +113,12 @@ class TestCase(test_env.BaseTestCase):
     def test_1103(self):
         "1103 - test connection end-to-end tracing attributes"
         conn = test_env.get_connection()
-        if test_env.get_client_version() >= (
-            12,
-            1,
-        ) and not self.is_on_oracle_cloud(conn):
-            sql = """select dbop_name from v$sql_monitor
-                     where sid = sys_context('userenv', 'sid')
-                     and status = 'EXECUTING'"""
-            self.__verify_attributes(conn, "dbop", "oracledb_dbop", sql)
+        if test_env.has_client_version(12, 1):
+            if not self.is_on_oracle_cloud(conn):
+                sql = """select dbop_name from v$sql_monitor
+                         where sid = sys_context('userenv', 'sid')
+                         and status = 'EXECUTING'"""
+                self.__verify_attributes(conn, "dbop", "oracledb_dbop", sql)
         sql = "select sys_context('userenv', 'action') from dual"
         self.__verify_attributes(conn, "action", "oracledb_Action", sql)
         self.__verify_attributes(conn, "action", None, sql)
@@ -326,7 +324,7 @@ class TestCase(test_env.BaseTestCase):
     def test_1118(self):
         "1118 - test connection attribute values"
         conn = test_env.get_connection()
-        if test_env.get_client_version() >= (12, 1):
+        if test_env.has_client_version(12, 1):
             self.assertEqual(conn.ltxid, b"")
         self.assertFalse(conn.autocommit)
         conn.autocommit = True
@@ -359,7 +357,7 @@ class TestCase(test_env.BaseTestCase):
             "stmtcachesize",
             "warning",
         ]
-        if test_env.get_client_version() >= (12, 1):
+        if test_env.has_client_version(12, 1):
             attr_names.append("ltxid")
         for name in attr_names:
             with self.assertRaisesFullCode("DPY-1001"):
@@ -627,10 +625,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.callproc("dbms_output.get_line", (string_var, number_var))
         self.assertEqual(string_var.getvalue(), test_string)
 
-    @unittest.skipIf(
-        not test_env.get_is_thin() and test_env.get_client_version() < (18, 1),
-        "unsupported client",
-    )
+    @unittest.skipUnless(test_env.has_client_version(18), "unsupported client")
     def test_1131(self):
         "1131 - test connection call_timeout"
         conn = test_env.get_connection()
@@ -699,8 +694,8 @@ class TestCase(test_env.BaseTestCase):
         (instance_name,) = cursor.fetchone()
         self.assertEqual(conn.instance_name.upper(), instance_name)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (18, 1), "not supported on this client"
+    @unittest.skipUnless(
+        test_env.has_client_version(18), "not supported on this client"
     )
     def test_1136(self):
         "1136 - test deprecated attributes"
@@ -709,11 +704,8 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.callTimeout, 500)
 
     @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipIf(
-        test_env.get_server_version() < (23, 0)
-        or test_env.get_client_version() < (23, 0),
-        "unsupported client/server",
-    )
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
     def test_1137(self):
         "1137 - test maximum allowed length for password"
         conn = test_env.get_connection()

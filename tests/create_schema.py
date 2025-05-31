@@ -49,19 +49,19 @@ test_env.run_sql_script(
     proxy_password=test_env.get_proxy_password(),
     edition_name=test_env.get_edition_name(),
 )
-if test_env.get_server_version() >= (21, 0):
+if test_env.has_server_version(21):
     test_env.run_sql_script(
         conn, "create_schema_21", main_user=test_env.get_main_user()
     )
-if test_env.get_server_version() >= (23, 4):
+if test_env.has_server_version(23, 4):
     test_env.run_sql_script(
         conn, "create_schema_23_4", main_user=test_env.get_main_user()
     )
-if test_env.get_server_version() >= (23, 5):
+if test_env.has_server_version(23, 5):
     test_env.run_sql_script(
         conn, "create_schema_23_5", main_user=test_env.get_main_user()
     )
-if test_env.get_server_version() >= (23, 7):
+if test_env.has_server_version(23, 7):
     test_env.run_sql_script(
         conn, "create_schema_23_7", main_user=test_env.get_main_user()
     )

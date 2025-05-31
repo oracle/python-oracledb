@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,12 +32,8 @@ import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_client_version() >= (12, 1), "unsupported client"
-)
-@unittest.skipUnless(
-    test_env.get_server_version() >= (12, 1), "unsupported server"
-)
+@unittest.skipUnless(test_env.has_client_version(12, 1), "unsupported client")
+@unittest.skipUnless(test_env.has_server_version(12, 1), "unsupported server")
 class TestCase(test_env.BaseTestCase):
     def __test_bind_value_as_boolean(self, value):
         expected_result = str(bool(value)).upper()
@@ -106,12 +102,8 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertIsNone(result)
 
-    @unittest.skipUnless(
-        test_env.get_client_version() >= (23, 1), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (23, 1), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
     def test_3109(self):
         "3109 - test binding and fetching boolean with 23ai"
         for value in (True, False):
@@ -121,12 +113,8 @@ class TestCase(test_env.BaseTestCase):
                 self.assertIsInstance(fetched_value, bool)
                 self.assertEqual(fetched_value, not value)
 
-    @unittest.skipUnless(
-        test_env.get_client_version() >= (23, 1), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (23, 1), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
     def test_3110(self):
         "3110 - test binding and fetching string literals that represent True"
         self.cursor.execute("truncate table TestBooleans")
@@ -141,12 +129,8 @@ class TestCase(test_env.BaseTestCase):
         expected_values = [(True, True) for _ in true_values]
         self.assertEqual(self.cursor.fetchall(), expected_values)
 
-    @unittest.skipUnless(
-        test_env.get_client_version() >= (23, 1), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (23, 1), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
     def test_3111(self):
         "3111 - test binding and fetching string literals that represent False"
         self.cursor.execute("truncate table TestBooleans")

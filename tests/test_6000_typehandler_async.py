@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -232,9 +232,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (21, 0), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
     async def test_6006(self):
         "6006 - output type handler for fetching 21c JSON"
 

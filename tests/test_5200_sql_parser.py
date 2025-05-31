@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -161,9 +161,7 @@ class TestCase(test_env.BaseTestCase):
             self.cursor.bindnames(), ["A", "B", "C", "D", "E", "F"]
         )
 
-    @unittest.skipUnless(
-        test_env.get_client_version() >= (19, 1), "unsupported client"
-    )
+    @unittest.skipUnless(test_env.has_client_version(19), "unsupported client")
     def test_5212(self):
         "5212 - bind variables between JSON constants"
         self.cursor.prepare(

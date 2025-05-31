@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -879,11 +879,11 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = [(n, c.read()) for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipIf(
-        test_env.get_server_version() <= (12, 2), "unsupported database"
+    @unittest.skipUnless(
+        test_env.has_server_version(12, 2), "unsupported database"
     )
-    @unittest.skipIf(
-        test_env.get_client_version() <= (12, 2), "unsupported database"
+    @unittest.skipUnless(
+        test_env.has_client_version(12, 2), "unsupported database"
     )
     def test_4360(self):
         "4360 - fetch JSON columns as Python objects"
@@ -894,12 +894,10 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestJsonCols order by IntCol")
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    @unittest.skipIf(
-        test_env.get_server_version() < (23, 1), "unsupported database"
+    @unittest.skipUnless(
+        test_env.has_server_version(23), "unsupported database"
     )
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "unsupported client"
-    )
+    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
     def test_4361(self):
         "4361 - fetch table with domain and annotations"
         self.cursor.execute("select * from TableWithDomainAndAnnotations")

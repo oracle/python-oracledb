@@ -226,11 +226,8 @@ def get_client_version():
     name = "CLIENT_VERSION"
     value = PARAMETERS.get(name)
     if value is None:
-        if get_is_thin():
-            value = (23, 7)
-        else:
-            _initialize()
-            value = oracledb.clientversion()[:2]
+        _initialize()
+        value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
     return value
 
@@ -349,10 +346,9 @@ def get_proxy_user():
 
 
 def get_sleep_proc_name():
-    server_version = get_server_version()
-    return (
-        "dbms_session.sleep" if server_version[0] >= 18 else "dbms_lock.sleep"
-    )
+    if not has_server_version(18):
+        return "dbms_lock.sleep"
+    return "dbms_session.sleep"
 
 
 def get_server_version():
@@ -394,9 +390,23 @@ def get_random_string(length=10):
     return "".join(secrets.choice(string.ascii_letters) for i in range(length))
 
 
+def has_client_version(major_version, minor_version=0):
+    if get_is_thin():
+        return True
+    return get_client_version() >= (major_version, minor_version)
+
+
+def has_server_version(major_version, minor_version=0):
+    return get_server_version() >= (major_version, minor_version)
+
+
+async def has_server_version_async(major_version, minor_version=0):
+    await get_server_version_async()
+    return has_server_version(major_version, minor_version)
+
+
 def is_on_oracle_cloud(connection):
-    server = get_server_version()
-    if server < (18, 0):
+    if not has_server_version(18):
         return False
     cursor = connection.cursor()
     cursor.execute(
@@ -410,8 +420,7 @@ def is_on_oracle_cloud(connection):
 
 
 async def is_on_oracle_cloud_async(connection):
-    server = await get_server_version_async()
-    if server < (18, 0):
+    if not await has_server_version_async(18):
         return False
     cursor = connection.cursor()
     await cursor.execute(
@@ -472,13 +481,11 @@ def run_test_cases():
 def skip_soda_tests():
     if get_is_thin():
         return True
-    client = get_client_version()
-    if client < (18, 3):
+    if not has_client_version(18, 3):
         return True
-    server = get_server_version()
-    if server < (18, 0):
+    if not has_server_version(18):
         return True
-    if server > (20, 1) and client < (20, 1):
+    if has_server_version(20, 1) and not has_client_version(20, 1):
         return True
     return False
 
@@ -602,11 +609,7 @@ class BaseTestCase(unittest.TestCase):
         message="not supported with this client/server combination",
     ):
         if payload_type == "JSON":
-            min_version = (21, 0)
-            if (
-                get_client_version() < min_version
-                or get_server_version() < min_version
-            ):
+            if not has_client_version(21) or not has_server_version(21):
                 self.skipTest(message)
         elif isinstance(payload_type, str):
             payload_type = self.conn.gettype(payload_type)
@@ -660,18 +663,14 @@ class BaseTestCase(unittest.TestCase):
 
     def get_soda_database(
         self,
-        minclient=(18, 3),
-        minserver=(18, 0),
+        minclient=None,
+        minserver=None,
         message="not supported with this client/server combination",
         drop_collections=True,
     ):
-        client = get_client_version()
-        if client < minclient:
+        if minclient is not None and not has_client_version(*minclient):
             self.skipTest(message)
-        server = get_server_version()
-        if server < minserver:
-            self.skipTest(message)
-        if server > (20, 1) and client < (20, 1):
+        if minserver is not None and not has_server_version(*minserver):
             self.skipTest(message)
         soda_db = self.conn.getSodaDatabase()
         if drop_collections:
@@ -740,7 +739,7 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
         message="not supported with this client/server combination",
     ):
         if payload_type == "JSON":
-            if get_server_version() < (21, 0):
+            if not has_server_version(21):
                 self.skipTest(message)
         elif isinstance(payload_type, str):
             payload_type = await self.conn.gettype(payload_type)

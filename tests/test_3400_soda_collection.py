@@ -340,9 +340,7 @@ class TestCase(test_env.BaseTestCase):
         doc = coll.insertOneAndGet(data)
         self.assertEqual(doc.createdOn, doc.lastModified)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (20, 1), "unsupported client"
-    )
+    @unittest.skipUnless(test_env.has_client_version(20), "unsupported client")
     def test_3413(self):
         "3413 - test Soda truncate"
         soda_db = self.get_soda_database()
@@ -360,8 +358,8 @@ class TestCase(test_env.BaseTestCase):
         coll.truncate()
         self.assertEqual(coll.find().count(), 0)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 11),
+    @unittest.skipUnless(
+        test_env.has_client_version(19, 11),
         "client version not supported.. min required 19.11",
     )
     def test_3414(self):
@@ -443,7 +441,7 @@ class TestCase(test_env.BaseTestCase):
             coll.insertMany([])
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "save() is not implemented in Oracle Database 23ai",
     )
     def test_3418(self):
@@ -467,7 +465,7 @@ class TestCase(test_env.BaseTestCase):
             )
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "save() is not implemented in Oracle Database 23ai",
     )
     def test_3419(self):
@@ -498,7 +496,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertIn(hint, result.read())
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "save() is not implemented in Oracle Database 23ai",
     )
     def test_3420(self):
@@ -578,7 +576,7 @@ class TestCase(test_env.BaseTestCase):
             coll.find().skip(10).count()
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "map mode not supported with native collections in Oracle Database 23",
     )
     def test_3425(self):
@@ -605,7 +603,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertFalse(mapped_coll.drop())
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "map mode not supported with native collections in Oracle Database 23",
     )
     def test_3426(self):
@@ -722,7 +720,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertFalse(coll.drop())
 
     @unittest.skipIf(
-        test_env.get_client_version() > (23, 0),
+        test_env.has_client_version(23),
         "map mode not supported with native collections in Oracle Database 23",
     )
     def test_3432(self):
@@ -759,8 +757,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("ORA-40734"):
             coll.find().keys(keys).replaceOneAndGet({"data": "new"})
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (19, 9),
+    @unittest.skipUnless(
+        test_env.has_client_version(19, 9),
         "client version not supported.. min required 19.9",
     )
     def test_3435(self):
@@ -829,9 +827,9 @@ class TestCase(test_env.BaseTestCase):
 
         data_guide = coll.getDataGuide().getContent()
 
-        client_version = test_env.get_client_version()
-        server_version = test_env.get_server_version()
-        if client_version >= (23, 4) and server_version >= (23, 4):
+        if test_env.has_client_version(23, 4) and test_env.has_server_version(
+            23, 4
+        ):
             self.assertEqual(data_guide["properties"]["_id"]["type"], "id")
 
         values = [
@@ -973,9 +971,9 @@ class TestCase(test_env.BaseTestCase):
                     UnicodeDecodeError, fetched_doc.getContentAsString
                 )
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        or test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        or test_env.has_server_version(23, 4),
         "unsupported data types",
     )
     def test_3445(self):
@@ -996,9 +994,9 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(fetched_content, val)
         self.assertEqual(doc.getContent(), val)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 4)
-        or test_env.get_server_version() < (23, 4),
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4)
+        or test_env.has_server_version(23, 4),
         "unsupported data types",
     )
     def test_3446(self):

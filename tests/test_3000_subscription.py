@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -82,8 +82,8 @@ class DMLSubscriptionData(SubscriptionData):
     test_env.get_is_thin(), "thin mode doesn't support subscriptions"
 )
 class TestCase(test_env.BaseTestCase):
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3000(self):
         "3000 - test subscription for insert, update, delete and truncate"
@@ -187,8 +187,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2014"):
             self.conn.subscribe(client_initiated=True, clientInitiated=True)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3002(self):
         "3002 - test subscription for AQ"
@@ -217,8 +217,8 @@ class TestCase(test_env.BaseTestCase):
         # wait for all messages to be sent
         data.wait_for_messages()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3003(self):
         "3003 - test verifying what registerquery returns"
@@ -244,8 +244,8 @@ class TestCase(test_env.BaseTestCase):
             conn.unsubscribe(sub)
             conn.close()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3004(self):
         "3004 - test Subscription repr()"
@@ -255,8 +255,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(repr(sub), f"<oracledb.Subscription on {conn}>")
             conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3005(self):
         "3005 - test registerquery with invalid parameters"
@@ -275,8 +275,8 @@ class TestCase(test_env.BaseTestCase):
             sub.registerquery("insert into TestTempTable (IntCol) values (1)")
         conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3006(self):
         "3006 - test getting subscription attributes"
@@ -304,8 +304,8 @@ class TestCase(test_env.BaseTestCase):
         conn.unsubscribe(sub)
         conn.close()
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3007(self):
         "3007 - test getting Message, MessageQuery, MessageTable attributes"
@@ -352,8 +352,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3008(self):
         "3008 - test unsubscribe with invalid parameter"
@@ -364,8 +364,8 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPI-1002"):
             conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3010(self):
         "3010 - test registerquery in the middle of an active transaction"
@@ -380,8 +380,8 @@ class TestCase(test_env.BaseTestCase):
             sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3011(self):
         "3011 - test registerquery with aq subscription"
@@ -395,8 +395,8 @@ class TestCase(test_env.BaseTestCase):
             sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3013(self):
         "3013 - test subscription with SUBSCR_QOS_DEREG_NFY deregisters"
@@ -427,8 +427,8 @@ class TestCase(test_env.BaseTestCase):
             self.assertTrue(condition.wait(5))
         conn.unsubscribe(sub)
 
-    @unittest.skipIf(
-        test_env.get_client_version() < (23, 1), "crashes in older clients"
+    @unittest.skipUnless(
+        test_env.has_client_version(23), "crashes in older clients"
     )
     def test_3014(self):
         "3014 - test adding a consumer to a single consumer queue (negative)"

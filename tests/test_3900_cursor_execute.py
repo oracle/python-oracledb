@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -517,7 +517,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertIsInstance(fetch_info, oracledb.FetchInfo)
             self.assertEqual(fetch_info.display_size, display_size)
             self.assertEqual(fetch_info.internal_size, internal_size)
-            if test_env.get_server_version() > (12, 2):
+            if test_env.has_server_version(12, 2):
                 self.assertEqual(fetch_info.is_json, is_json)
             self.assertEqual(fetch_info.name, name)
             self.assertEqual(fetch_info.null_ok, null_ok)

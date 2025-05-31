@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,12 +33,8 @@ import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_client_version() >= (23, 4), "unsupported client"
-)
-@unittest.skipUnless(
-    test_env.get_server_version() >= (23, 4), "unsupported server"
-)
+@unittest.skipUnless(test_env.has_client_version(23, 4), "unsupported client")
+@unittest.skipUnless(test_env.has_server_version(23, 4), "unsupported server")
 class TestCase(test_env.BaseTestCase):
     def __test_insert_and_fetch(self, value, column_name, expected_typecode):
         """

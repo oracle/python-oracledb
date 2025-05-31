@@ -34,12 +34,8 @@ import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_client_version() >= (23, 7), "unsupported client"
-)
-@unittest.skipUnless(
-    test_env.get_server_version() >= (23, 7), "unsupported server"
-)
+@unittest.skipUnless(test_env.has_client_version(23, 7), "unsupported client")
+@unittest.skipUnless(test_env.has_server_version(23, 7), "unsupported client")
 class TestCase(test_env.BaseTestCase):
     def __test_insert_and_fetch(self, vector, column_name, expected_typecode):
         """

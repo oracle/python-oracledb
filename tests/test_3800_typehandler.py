@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -217,9 +217,7 @@ class TestCase(test_env.BaseTestCase):
         expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (21, 0), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
     def test_3806(self):
         "3806 - output type handler for fetching 21c JSON"
 
@@ -246,20 +244,16 @@ class TestCase(test_env.BaseTestCase):
             dict(name="Sam", city="Mumbai"),
         ]
         data_to_insert = list(enumerate(json_data))
-        json_as_string = self.conn.thin or test_env.get_client_version() < (
-            21,
-            0,
-        )
-        if json_as_string:
-            # insert data as JSON string
-            json_string_data = [(i, json.dumps(j)) for i, j in data_to_insert]
-            self.cursor.executemany(insert_sql, json_string_data)
-        else:
+        if test_env.has_client_version(21):
             # take advantage of direct binding
             self.cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
             self.cursor.executemany(insert_sql, data_to_insert)
+        else:
+            # insert data as JSON string
+            json_string_data = [(i, json.dumps(j)) for i, j in data_to_insert]
+            self.cursor.executemany(insert_sql, json_string_data)
 
-        if json_as_string:
+        if not test_env.has_client_version(21):
             self.cursor.outputtypehandler = output_type_handler
         self.cursor.execute("select * from TestJson")
         self.assertEqual(self.cursor.fetchall(), data_to_insert)

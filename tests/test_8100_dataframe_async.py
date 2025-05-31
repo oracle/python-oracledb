@@ -531,9 +531,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(
-        test_env.get_server_version() >= (23, 1), "unsupported server"
-    )
+    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
     async def test_8122(self):
         "8122 - fetch boolean"
         data = [(True,), (False,), (False,), (True,), (True,)]
