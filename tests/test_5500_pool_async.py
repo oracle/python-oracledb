@@ -630,6 +630,11 @@ class TestCase(test_env.BaseAsyncTestCase):
                 with self.assertRaises(TypeError):
                     test_env.get_pool_async(pool_alias=alias)
 
+    async def test_5542(self):
+        "5542 - test creation of pool with min > max"
+        with self.assertRaisesFullCode("DPY-2064"):
+            test_env.get_pool_async(min=3, max=2)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

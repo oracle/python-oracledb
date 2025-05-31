@@ -1079,6 +1079,11 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(conn.stmtcachesize, orig_stmtcachesize)
         pool.close()
 
+    def test_2456(self):
+        "2456 - test creation of pool with min > max"
+        with self.assertRaisesFullCode("DPY-2064"):
+            test_env.get_pool(min=3, max=2)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

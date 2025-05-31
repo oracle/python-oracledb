@@ -287,6 +287,7 @@ ERR_ARROW_C_API_ERROR = 2060
 ERR_PARAMS_HOOK_HANDLER_FAILED = 2061
 ERR_PAYLOAD_CANNOT_BE_ENQUEUED = 2062
 ERR_SCROLL_OUT_OF_RESULT_SET = 2063
+ERR_POOL_MAX_LESS_THAN_MIN = 2064
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -780,6 +781,9 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_POOL_HAS_BUSY_CONNECTIONS: (
         "connection pool cannot be closed because connections are busy"
+    ),
+    ERR_POOL_MAX_LESS_THAN_MIN: (
+        "parameter 'max' should be greater than or equal to parameter 'min'"
     ),
     ERR_POOL_NO_CONNECTION_AVAILABLE: (
         "timed out waiting for the connection pool to return a connection"

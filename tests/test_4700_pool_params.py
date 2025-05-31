@@ -35,12 +35,13 @@ import test_env
 class TestCase(test_env.BaseTestCase):
     requires_connection = False
 
-    def __test_writable_parameter(self, name, value):
+    def __test_writable_parameter(self, name, value, params=None):
         """
         Tests that a writable parameter can be written to and the modified
         value read back successfully.
         """
-        params = oracledb.PoolParams()
+        if params is None:
+            params = oracledb.PoolParams()
         orig_value = getattr(params, name)
         copied_params = params.copy()
         args = {}
@@ -54,7 +55,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4700(self):
         "4700 - test writable parameters"
-        self.__test_writable_parameter("min", 8)
+        self.__test_writable_parameter("min", 8, oracledb.PoolParams(max=10))
         self.__test_writable_parameter("max", 12)
         self.__test_writable_parameter("increment", 2)
         self.__test_writable_parameter("connectiontype", oracledb.Connection)
@@ -164,6 +165,8 @@ class TestCase(test_env.BaseTestCase):
             conn_string = f"{host}/{service_name}?pyo.{name}={str_value}"
             with self.subTest(name=name, value=str_value):
                 params = oracledb.PoolParams()
+                if name == "min" and actual_value > params.max:
+                    params.set(max=actual_value)
                 params.parse_connect_string(conn_string)
                 self.assertEqual(params.host, host)
                 self.assertEqual(params.service_name, service_name)

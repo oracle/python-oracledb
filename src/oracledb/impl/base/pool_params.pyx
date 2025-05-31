@@ -94,6 +94,10 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         _set_int_param(args, "ping_interval", &self.ping_interval)
         _set_uint_param(args, "ping_timeout", &self.ping_timeout)
 
+        # verify that max >= min
+        if self.max < self.min:
+            errors._raise_err(errors.ERR_POOL_MAX_LESS_THAN_MIN)
+
         # if the pool is dynamically sized (min != max) then ensure that the
         # increment value is non-zero (as otherwise the pool would never grow!)
         if self.max != self.min and self.increment == 0:
