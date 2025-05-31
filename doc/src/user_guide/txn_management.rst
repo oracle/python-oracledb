@@ -5,22 +5,30 @@ Managing Transactions
 *********************
 
 A database transaction is a grouping of SQL statements that make a logical data
-change to the database.
-
-When :meth:`Cursor.execute()` or :meth:`Cursor.executemany()` executes a SQL
-statement, a transaction is started or continued.  By default, python-oracledb
-does not commit this transaction to the database.  The methods
-:meth:`Connection.commit()` and :meth:`Connection.rollback()` methods can be
-used to explicitly commit or rollback a transaction:
+change to the database. When statements like :meth:`Cursor.execute()` or
+:meth:`Cursor.executemany()` execute SQL statements like INSERT or UPDATE, a
+transaction is started or continued. By default, python-oracledb does not
+commit this transaction to the database.  You can explictly commit or roll it
+back using the methods :meth:`Connection.commit()` and
+:meth:`Connection.rollback()`. For example to commit a new row:
 
 .. code-block:: python
 
-    cursor.execute("INSERT INTO mytab (name) VALUES ('John')")
+    cursor = connection.cursor()
+    cursor.execute("insert into mytab (name) values ('John')")
     connection.commit()
+
+Transactions are handled at the connection level, meaning changes performed by
+all cursors obtained from a connection will be committed or rolled back
+together.
 
 When a database connection is closed, such as with :meth:`Connection.close()`,
 or when variables referencing the connection go out of scope, any uncommitted
 transaction will be rolled back.
+
+When `Data Definition Language (DDL) <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-FD9A8CB4-6B9A-44E5-B114-EFB8DA76FC88>`__ statements such
+as CREATE are executed, Oracle Database will always perform a commit.
 
 
 Autocommitting
@@ -28,8 +36,8 @@ Autocommitting
 
 An alternative way to commit is to set the attribute
 :attr:`Connection.autocommit` of the connection to ``True``.  This ensures all
-:ref:`DML <dml>` statements (INSERT, UPDATE, and so on) are committed as they are
-executed.  Unlike :meth:`Connection.commit()`, this does not require an
+:ref:`DML <dml>` statements (INSERT, UPDATE, and so on) are committed as they
+are executed.  Unlike :meth:`Connection.commit()`, this does not require an
 additional :ref:`round-trip <roundtrips>` to the database so it is more
 efficient when used appropriately.
 
@@ -80,3 +88,8 @@ See the Oracle documentation for more details.
 Note that in order to make use of global (distributed) transactions, the
 attributes :attr:`Connection.internal_name` and
 :attr:`Connection.external_name` attributes must be set.
+
+Distributed Transactions
+========================
+
+For information on distributed transactions, see the chapter :ref:`tpc`.

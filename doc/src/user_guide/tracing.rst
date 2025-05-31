@@ -24,11 +24,15 @@ There are multiple approaches for application tracing and monitoring:
 - The Java Debug Wire Protocol (JDWP) for debugging PL/SQL can be used. See
   :ref:`jdwp`.
 
+- Instrumentation libraries such as OpenTelemetry allow sophisticated
+  monitoring, see :ref:`opentelemetry`.
+
 - Python-oracledb in Thick mode can dump a trace of SQL statements
   executed. See :ref:`lowlevelsqltrace`.
 
-- The connection identifiers that appear in the traces and logs can be used
-  to resolve connectivity errors. See :ref:`connectionid`.
+- The unique connection identifiers that appear in connection error messages,
+  and in Oracle Database traces and logs, can be used to resolve connectivity
+  errors. See :ref:`connectionid`.
 
 .. _endtoendtracing:
 
@@ -48,13 +52,17 @@ utilities. Values may appear in logs and audit trails.
 
 Also see :ref:`appcontext` for information about setting Application Contexts.
 
-The :attr:`Connection.client_identifier` attribute is typically set to the
-name (or identifier) of the actual end user initiating a query.  This allows
-the database to distinguish, and trace, end users for applications that connect
-to a common database username. It can also be used by `Oracle Virtual Private
-Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+The :attr:`Connection.client_identifier` attribute is typically set to the name
+(or identifier) of the actual end user initiating a query.  This allows the
+database to distinguish, and trace, end users for applications that connect
+using a common database username. It can also be used by `Oracle Virtual
+Private Database (VPD)
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
 GUID-06022729-9210-4895-BF04-6177713C65A7>`__ policies to automatically limit
-data access.
+data access. Oracle Database’s `DBMS_MONITOR
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-951568BF-D798-4456-8478-15FEEBA0C78E>`__ package can take advantage of the
+client identifer to enable statistics and tracing at an individual level.
 
 The :attr:`Connection.module` and :attr:`Connection.action` attributes can be
 set to user-chosen, descriptive values identifying your code architecture.
@@ -108,7 +116,9 @@ round-trips to the database which reduces application scalability:
 The :attr:`Connection.dbop` attribute can be used for Real-Time SQL Monitoring,
 see `Monitoring Database Operations <https://www.oracle.com/pls/topic/lookup?
 ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__. The value will
-be shown in the DBOP_NAME column of the V$SQL_MONITOR view:
+be shown in the DBOP_NAME column of the `V$SQL_MONITOR <https://www.oracle.com
+/pls/topic/lookup?ctx=dblatest&id=GUID-79E97A84-9C27-4A5E-AC0D-C12CB3E748E6>`__
+view:
 
 .. code-block:: python
 
@@ -201,15 +211,23 @@ diagnosing of connection failures. For example::
 
     DPY-6005: cannot connect to database (CONNECTION_ID=m0PfUY6hYSmWPcgrHZCQIQ==)
 
+Depending on the Oracle Database version in use, the information that is shown
+in logs varies.
+
 You can define a prefix value which is added to the beginning of the
-``CONNECTION_ID``. This prefix aids in identifying the connections from a
+``CONNECTION_ID`` value. This prefix aids in identifying the connections from a
 specific application.
 
-In python-oracledb Thin mode, you can specify a prefix in the
-``connection_id_prefix`` parameter when creating
-:meth:`standalone connections <oracledb.connect()>`, or
-:meth:`pooled connections <oracledb.create_pool()>`. Also, you can specify
-the connection identifier in :meth:`oracledb.ConnectParams()` or
+See `Troubleshooting Oracle Net Services <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-3F42D057-C9AC-4747-B48B-5A5FF7672E5D>`_ for more
+information on connection identifiers.
+
+**Python-oracledb Thin mode**
+
+In python-oracledb Thin mode, you can specify a prefix using the
+``connection_id_prefix`` parameter when creating :meth:`standalone connections
+<oracledb.connect()>` or :meth:`pooled connections <oracledb.create_pool()>`,
+or alternatively set a prefix when calling :meth:`oracledb.ConnectParams()` or
 :meth:`oracledb.PoolParams()`. For example:
 
 .. code-block:: python
@@ -219,12 +237,14 @@ the connection identifier in :meth:`oracledb.ConnectParams()` or
                                   connection_id_prefix="MYAPP")
 
 If this connection to the database fails, ``MYAPP`` is added as a prefix to the
-``CONNECTION_ID`` as shown in the error message below::
+``CONNECTION_ID`` value shown in the error message, for example::
 
     DPY-6005: cannot connect to database (CONNECTION_ID=MYAPPm0PfUY6hYSmWPcgrHZCQIQ==).
 
-In python-oracledb Thick mode, you can specify the connection identifier prefix in
-a connection string. For example::
+**Python-oracledb Thick mode**
+
+In python-oracledb Thick mode, you can specify the connection identifier prefix
+in the connection string or connect descriptor. For example::
 
     mydb = (DESCRIPTION =
              (ADDRESS_LIST= (ADDRESS=...) (ADDRESS=...))
@@ -234,12 +254,310 @@ a connection string. For example::
              )
            )
 
-Depending on the Oracle Database version in use, the information that is shown
-in logs varies.
+.. _tracingbind:
 
-See `Troubleshooting Oracle Net Services <https://www.oracle.com/pls/topic/
-lookup?ctx=dblatest&id=GUID-3F42D057-C9AC-4747-B48B-5A5FF7672E5D>`_ for more
-information on connection identifiers.
+Tracing Bind Values
+-------------------
+
+Several methods for tracing bind variable values can be used. When tracing bind
+variable values, be careful not to leak information and create a security
+problem.
+
+In Oracle Database, the view `V$SQL_BIND_CAPTURE <https://www.oracle.com/
+pls/topic/lookup?ctx=dblatest&id=GUID-D353F4BE-5943-4F5B-A99B-BC9505E9579C>`__
+can capture bind information. Tracing with Oracle Database’s `DBMS_MONITOR
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-951568BF-D798-4456-8478-15FEEBA0C78E>`__
+package may also be useful.
+
+You can additionally :ref:`subclass python-oracledb classes <subclassconn>` and
+log any bind values.
+
+OpenTelemetry can also be used, see :ref:`opentelemetry`.
+
+.. _dbviews:
+
+Database Views for Tracing python-oracledb
+------------------------------------------
+
+This section shows some of the Oracle Database views useful for tracing and
+monitoring python-oracledb. Other views and columns not described here also
+contain useful information, such as the :ref:`drcp` views discussed in
+:ref:`monitoringdrcp`, and the views discussed in :ref:`endtoendtracing` and
+:ref:`tracingbind`.
+
+V$SESSION
++++++++++
+
+The following table shows sample values for some `V$SESSION
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__ columns. You may see other values
+if you have changed the defaults using the :ref:`Defaults object <defaults>`
+before connecting, set the equivalent connection or pool creation parameters,
+or set the attribute :attr:`Connection.module` as shown in
+:ref:`endtoendtracing`.
+
+.. list-table-with-summary:: Sample V$SESSION column values
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 10 15 15
+    :name: V$SESSION_COLUMN_VALUES
+    :summary: The first column is the name of the column. The second column lists a sample python-oracledb Thick mode value. The third column lists a sample python-oracledb Thin mode value.
+
+    * - Column
+      - Sample Thin mode value
+      - Sample Thick mode value
+    * - MACHINE
+      - "myusername-mac"
+      - "myusername-mac"
+    * - MODULE
+      - The value of Python's ``sys.executable``, such as `/Users/myusername/.pyenv/versions/3.13.3/bin/python`
+      - Similar to `python@myusername-mac (TNS V1-V3)`
+    * - OSUSER
+      - "myusername"
+      - "myusername"
+    * - PROGRAM
+      - The value of Python's ``sys.executable``, such as `/Users/myusername/.pyenv/versions/3.13.3/bin/python`
+      - Similar to `python@myusername-mac (TNS V1-V3)`
+    * - TERMINAL
+      - "unknown"
+      - Similar to `ttys001`
+
+V$SESSION_CONNECT_INFO
+++++++++++++++++++++++
+
+The following table shows sample values for some `V$SESSION_CONNECT_INFO
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__ columns. You may see other
+values if you have changed the defaults using the :ref:`Defaults object
+<defaults>` before connecting, set the equivalent connection or pool creation
+parameters, or set the ``driver_name`` parameter in
+:meth:`oracledb.init_oracle_client()`.
+
+.. list-table-with-summary:: Sample V$SESSION_CONNECT_INFO column values
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 10 15 15
+    :name: V$SESSION_CONNECT_INFO
+    :summary: The first column is the name of V$SESSION_CONNECT_INFO view's column. The second column lists a sample python-oracledb Thick mode value. The third column list a sample python-oracledb Thin mode value.
+
+    * - Column
+      - Sample Thin mode value
+      - Sample Thick mode value
+    * - CLIENT_DRIVER
+      - "python-oracledb thn : 3.2.0"
+      - "python-oracledb thk : 3.2.0"
+    * - CLIENT_OCI_LIBRARY
+      - "Unknown"
+      - The Oracle Client or Instant Client type, such as "Full Instant Client"
+    * - CLIENT_VERSION
+      - "3.2.0.0.0" (the python-oracledb version number with an extra .0.0)
+      - The Oracle Client library version number
+    * - OSUSER
+      - "myusername"
+      - "myusername"
+
+.. _opentelemetry:
+
+Using python-oracledb with OpenTelemetry
+========================================
+
+The OpenTelemetry observability framework is useful for monitoring applications
+and identifying bottlenecks. Python-oracledb conforms to the `Python DB API
+specification <https://peps.python.org/pep-0249/>`__ allowing standard Python
+modules for OpenTelemetry to be used to instrument your applications.
+
+OpenTelemetry's `backend trace exporters
+<https://opentelemetry.io/docs/languages/python/exporters/>`__ can provide
+graphic and intuitive representation of OpenTelemetry trace information. Visual
+exporters include Zipkin, Jaeger, and Prometheus. Simple tracing can also be
+directed to the console by making use of the exporter ConsoleSpanExporter from
+the opentelemetry-sdk package.
+
+For details on using OpenTelemetry in Python, see `Python OpenTelemetry
+documentation <https://opentelemetry.io/docs/languages/python/>`_.
+
+Example of Using python-oracledb with OpenTelemetry
+---------------------------------------------------
+
+This example shows a python-oracledb application using OpenTelemetry's
+ConsoleSpanExporter exporter to display trace information to the console.
+
+**Installing OpenTelemetry Modules**
+
+For this example, install::
+
+    python -m pip install opentelemetry-sdk opentelemetry-api opentelemetry-instrumentation-dbapi
+
+**Sample Application**
+
+This simple application performs two queries in a custom span. It also sets the
+service name and system attributes to user-chosen values. It uses the
+``capture_parameters`` option to enable bind variable tracing.
+
+.. warning::
+
+   The trace integration setting ``capture_parameters=True`` captures
+   :ref:`bind variable values <bind>` and is a security risk.
+
+The sample code is:
+
+.. code-block:: python
+
+    import oracledb
+
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import (
+        BatchSpanProcessor,
+        ConsoleSpanExporter,
+    )
+    from opentelemetry.sdk.resources import Resource
+
+    user = "hr"
+    password = userpwd
+    host = "dbhost.example.com"
+    service_name = "orclpdb"
+
+    resource = Resource(attributes={
+        "service.name": service_name,   # displayed as a resource attribute "service.name"
+    })
+
+    provider = TracerProvider(resource=resource)
+    processor = BatchSpanProcessor(ConsoleSpanExporter())
+    provider.add_span_processor(processor)
+    trace.set_tracer_provider(provider)
+
+    from opentelemetry.instrumentation.dbapi import trace_integration
+
+    trace_integration(
+        oracledb,
+        connect_method_name="connect",
+        database_system="oracle",  # displayed as attribute "db.system"
+        capture_parameters=True,   # displayed as attribute "db.statement.parameters"
+                                   # WARNING: this shows bind variable values
+    )
+
+    connection = oracledb.connect(user=user, password=password,
+                                  host=host, service_name=service_name)
+
+    with connection.cursor() as cursor:
+        tracer = trace.get_tracer("HR-tracer-name")
+        with tracer.start_as_current_span("HR-span-1") as span:
+            sql = "select city from locations where location_id = :1"
+            for r, in cursor.execute(sql, [2200]):
+                print(r)
+            sql = "select 'Hello World!' from dual"
+            for r, in cursor.execute(sql):
+                print(r)
+
+**Sample Output**
+
+The sample output will be like::
+
+    Sydney
+    Hello World!
+    {
+        "name": "select",
+        "context": {
+            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
+            "span_id": "0xacfd82ed60e8976d",
+            "trace_state": "[]"
+        },
+        "kind": "SpanKind.CLIENT",
+        "parent_id": "0x19027598c301cfac",
+        "start_time": "2025-05-29T08:40:10.194645Z",
+        "end_time": "2025-05-29T08:40:10.209815Z",
+        "status": {
+            "status_code": "UNSET"
+        },
+        "attributes": {
+            "db.system": "oracle",
+            "db.name": "",
+            "db.statement": "select city from locations where location_id = :1",
+            "db.statement.parameters": "[2200]"
+        },
+        "events": [],
+        "links": [],
+        "resource": {
+            "attributes": {
+                "service.name": "orclpdb1"
+            },
+            "schema_url": ""
+        }
+    }
+    {
+        "name": "select",
+        "context": {
+            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
+            "span_id": "0x376dff430f66b14f",
+            "trace_state": "[]"
+        },
+        "kind": "SpanKind.CLIENT",
+        "parent_id": "0x19027598c301cfac",
+        "start_time": "2025-05-29T08:40:10.210799Z",
+        "end_time": "2025-05-29T08:40:10.214694Z",
+        "status": {
+            "status_code": "UNSET"
+        },
+        "attributes": {
+            "db.system": "oracle",
+            "db.name": "",
+            "db.statement": "select 'Hello World!' from dual"
+        },
+        "events": [],
+        "links": [],
+        "resource": {
+            "attributes": {
+                "service.name": "orclpdb1"
+            },
+            "schema_url": ""
+        }
+    }
+    {
+        "name": "HR-span-1",
+        "context": {
+            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
+            "span_id": "0x19027598c301cfac",
+            "trace_state": "[]"
+        },
+        "kind": "SpanKind.INTERNAL",
+        "parent_id": null,
+        "start_time": "2025-05-29T08:40:10.194536Z",
+        "end_time": "2025-05-29T08:40:10.214732Z",
+        "status": {
+            "status_code": "UNSET"
+        },
+        "attributes": {},
+        "events": [],
+        "links": [],
+        "resource": {
+            "attributes": {
+                "service.name": "orclpdb1"
+            },
+            "schema_url": ""
+        }
+    }
+
+The two query results precede OpenTelemetry's tracing. The tracing then shows:
+
+- The start and end time of each operation.
+
+- Each "select" trace block's association to the span "HR-span-1" via their
+  ``parent_id`` values, which match the span's ``span_id`` value.
+
+- The bind variable value *2200* in the attribute
+  ``db.statement.parameters``. *Warning*: it is a security risk to monitor bind
+  variable values this way. Keep the ``capture_parameters`` option set to
+  *False*.
+
+- The system and service name as set in the application.
+
+The Python OpenTelemetry modules allow further customization for tracing. See
+their documentation for more information.
+
+When a graphical provider is used instead of ConsoleSpanExporter, the database
+query relationships and timings are easier to analyze.
 
 .. _vsessconinfo:
 
@@ -264,7 +582,9 @@ The python-oracledb version can be shown with :data:`oracledb.__version__`:
     print(oracledb.__version__)
 
 Version and mode information can also be seen in the Oracle Database data
-dictionary table V$SESSION_CONNECT_INFO:
+dictionary table `V$SESSION_CONNECT_INFO
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__:
 
 .. code-block:: python
 
@@ -277,86 +597,15 @@ dictionary table V$SESSION_CONNECT_INFO:
 
 In python-oracledb Thin mode, the output will be like::
 
-    python-oracledb thn : 3.0.0
+    python-oracledb thn : 3.2.0
 
 In python-oracledb Thick mode, the output will be like::
 
-    python-oracledb thk : 3.0.0
+    python-oracledb thk : 3.2.0
 
 Note that you may not see these values if you have set
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` or the
 ``driver_name`` parameter in :meth:`oracledb.init_oracle_client()`.
-
-.. _dbviews:
-
-Database Views
-==============
-
-This section shows some sample column values for database views useful for
-tracing and monitoring python-oracledb.  Other views also contain useful
-information, such as the :ref:`drcp` views discussed in :ref:`monitoringdrcp`.
-
-V$SESSION_CONNECT_INFO
-----------------------
-
-The following table lists sample default values for some
-`V$SESSION_CONNECT_INFO <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__ columns. You may not see
-values with these formats if you have changed the defaults using the
-:ref:`Defaults object <defaults>`, set the equivalent connection or pool
-creation parameters, or set the ``driver_name`` parameter in
-:meth:`oracledb.init_oracle_client()`.
-
-.. list-table-with-summary:: Sample V$SESSION_CONNECT_INFO column values
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 10 10
-    :name: V$SESSION_CONNECT_INFO
-    :summary: The first column is the name of V$SESSION_CONNECT_INFO view's column. The second column lists a sample python-oracledb Thick mode value. The third column list a sample python-oracledb Thin mode value.
-
-    * - Column
-      - Thick value
-      - Thin value
-    * - CLIENT_OCI_LIBRARY
-      - The Oracle Client or Instant Client type, such as "Full Instant Client"
-      - "Unknown"
-    * - CLIENT_VERSION
-      - The Oracle Client library version number
-      - "3.0.0.0.0" (the python-oracledb version number with an extra .0.0)
-    * - CLIENT_DRIVER
-      - "python-oracledb thk : 3.0.0"
-      - "python-oracledb thn : 3.0.0"
-
-V$SESSION
----------
-
-The following table lists sample default values for columns with differences in
-`V$SESSION <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
-GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__. You may not see values with
-these formats if you have changed the defaults using the
-:ref:`Defaults object <defaults>`, set the equivalent connection or pool
-creation parameters, or set the attribute :attr:`Connection.module` as
-shown in :ref:`endtoendtracing`.
-
-.. list-table-with-summary:: Sample V$SESSION column values
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 10 10
-    :name: V$SESSION_COLUMN_VALUES
-    :summary: The first column is the name of the column. The second column lists a sample python-oracledb Thick mode value. The third column lists a sample python-oracledb Thin mode value.
-
-    * - Column
-      - Thick value
-      - Thin value
-    * - TERMINAL
-      - similar to `ttys001`
-      - the string "unknown"
-    * - PROGRAM
-      - similar to `python@myuser-mac2 (TNS V1-V3)`
-      - the contents of Python's ``sys.executable``, such as `/Users/myuser/.pyenv/versions/3.9.6/bin/python`
-    * - MODULE
-      - similar to `python@myuser-mac2 (TNS V1-V3)`
-      - the contents of Python's ``sys.executable``, such as `/Users/myuser/.pyenv/versions/3.9.6/bin/python`
 
 Low Level Python-oracledb Driver Tracing
 ========================================

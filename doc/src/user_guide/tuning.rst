@@ -17,9 +17,11 @@ Some general tuning tips are:
   see
   :ref:`Session Callbacks for Setting Pooled Connection State <sessioncallback>`.
 
-  Make use of efficient python-oracledb functions.  For example, to insert
+  Make use of efficient python-oracledb functions. For example, to insert
   multiple rows use :meth:`Cursor.executemany()` instead of
-  :meth:`Cursor.execute()`.
+  :meth:`Cursor.execute()`. Another example is to fetch data directly as
+  :ref:`data frames <dataframeformat>` when working with packages like Pandas
+  and NumPy.
 
 * Tune your SQL statements.  See the `SQL Tuning Guide
   <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGSQL>`__.
@@ -311,16 +313,61 @@ The ``arraysize`` value can also be set before calling the procedure:
 
 Also see `Avoiding Premature Prefetching`_.
 
-Tuning Fetching for DataFrames
-------------------------------
+Tuning Fetching for Data Frames
+-------------------------------
 
 When fetching :ref:`data frames <dataframeformat>` with
 :meth:`Connection.fetch_df_all()` or :meth:`Connection.fetch_df_batches()`,
-tuning of data transfer across the network is controlled by the methods
-``arraysize`` or ``size`` parameters, respectively.
+tuning of data transfer across the network is controlled by the respective
+methods ``arraysize`` or ``size`` parameters.
 
 Any :attr:`defaults.prefetchrows` value is ignored since these methods always
 set the internal prefetch size to the relevant ``arraysize`` or ``size`` value.
+
+Parallelizing Data Fetches from a Single Table
+----------------------------------------------
+
+Before trying to improve the performance of querying a single table by issuing
+multiple SQL queries in multiple threads, where each query extracts a different
+range of data, you should do careful benchmarking.
+
+Factors that will impact such a solution:
+
+- How heavily loaded is the database? The parallel solution may appear to be
+  fast but it could be inefficient, thereby impacting, or eventually being
+  limited by, everyone else.
+
+- A single python-oracledb connection can only do one database operation at a
+  time, so you need to use a different connection for each executed SQL
+  statement, for example, using connections from a :ref:`pool
+  <connpooling>`. This will cause extra database load that needs to be
+  assessed.
+
+- A naive solution using the OFFSET FETCH syntax to fetch sections of a table
+  in individual queries will still cause table blocks to be scanned even though
+  not all data is returned.
+
+- Is the table partitioned?
+
+- Are zone maps being used?
+
+- Maybe the real performance bottleneck cannot be solved by parallelism.
+  Perhaps you have function based indexes that are being invoked for every
+  row.
+
+- Is the data in the database spread across multiple spindles or is the one
+  disk having to seek?
+
+- Is Exadata with storage indexes being used?
+
+- What is the impact of Python’s Global Interpreter Lock (GIL)?  Maybe multiple
+  Python processes should be used instead of threads.
+
+- What is the application doing with the data? Can the receiving end
+  efficiently process it?
+
+- Is it better to execute a single query in Python but use a PARALLEL query
+  hint? Or will this overload the database.
 
 Database Round-trips
 ====================

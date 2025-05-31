@@ -264,7 +264,7 @@ Older Versions of Python Frameworks, SQL Generators, and ORMs
 =============================================================
 
 For versions of SQLAlchemy, Django, Superset, other frameworks,
-object-relational mappers (ORMs), and libraries that support the obsolere
+object-relational mappers (ORMs), and libraries that support the obsolete
 cx_Oracle driver but do not have native support for python-oracledb, you can
 add code like this to use python-oracledb:
 
@@ -288,3 +288,7 @@ parameters for your environment, see :ref:`enablingthick`.
 SQLAlchemy 2 and Django 5 have native support for python-oracledb so the above
 code snippet is not needed in those versions.  Check your preferred library for
 which Oracle Database driver it requires.
+
+For details on using Superset with python-oracledb, refer to the blog post
+`Steps to use Apache Superset and Oracle Database
+<https://medium.com/p/ae0858b4f134>`__.

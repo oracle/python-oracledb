@@ -2974,7 +2974,10 @@ of the :ref:`message properties object <msgproperties>` passed as the
 .. data:: MSG_BUFFERED
 
     This constant is used to specify that enqueue or dequeue operations should
-    enqueue or dequeue buffered messages, respectively.
+    enqueue or dequeue buffered messages, respectively. For multi-consumer
+    queues, a `subscriber <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
+    &id=GUID-5FB46C6A-BB22-4CDE-B7D6-E242DC8808D8>`__ with buffered delivery
+    mode needs to be created prior to enqueuing buffered messages.
 
     This mode is not supported for bulk array operations in python-oracledb
     Thick mode.

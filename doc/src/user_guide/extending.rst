@@ -208,7 +208,7 @@ strings prefixed with "myprefix://".
         import oracledb
         import oracledb.plugins.myplugin
 
-        cs = 'myprefix://localhost/orclpdb1'
+        cs = "myprefix://localhost/orclpdb"
 
         cp = oracledb.ConnectParams()
         cp.parse_connect_string(cs)
@@ -217,8 +217,8 @@ strings prefixed with "myprefix://".
 
    Running this will print::
 
-        In myhookfunc: protocol=myprefix arg=localhost/orclpdb1
-        host=localhost, port=1521, service name=orclpdb1
+        In myhookfunc: protocol=myprefix arg=localhost/orclpdb
+        host=localhost, port=1521, service name=orclpdb
 
 7. To uninstall the plugin, simply remove the package::
 

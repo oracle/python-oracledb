@@ -247,8 +247,7 @@ DPI-1072
 
 **Cause:**  The connection to Oracle Database failed because the Oracle Client
 library version used is not supported by python-oracledb Thick mode. The Thick
-mode needs Oracle Client library 11.2 or later. Note that version 19 is not
-supported on Windows 7.
+mode needs Oracle Client library 11.2 or later.
 
 **Action:** Review the :ref:`instreq`. You can either:
 
@@ -333,8 +332,8 @@ or later.
   Oracle Client libraries and call :meth:`oracledb.init_oracle_client()` in
   your code.
 
-- Upgrade your Oracle database to python-oracledb Thin mode supported versions
-  12.1 or later.
+- Upgrade Oracle Database to 12.1, or later, if you want to use python-oracledb
+  Thin mode.
 
 DPY-3015
 ++++++++
@@ -342,10 +341,10 @@ DPY-3015
 **Message:** ``DPY-3015: password verifier type 0x939 is not supported by
 python-oracledb in thin mode``
 
-**Cause:**  The connection to Oracle Database with python-oracledb Thin mode
-failed because your user account was only created with the 10G password
-verifier. The python-oracledb Thin mode supports password verifiers 11G and
-later.
+**Cause:** The connection to Oracle Database with python-oracledb Thin mode
+failed because your database user account was only created with the Oracle
+Database 10G password verifier. Python-oracledb Thin mode supports password
+verifiers 11G and later.
 
 **Action:** You can either:
 
@@ -376,7 +375,7 @@ later.
 
      You can reset passwords for these users with commands like::
 
-        alter user x identified by y
+        alter user x identified by y;
 
      .. seealso::
 
@@ -413,6 +412,61 @@ only supported in python-oracledb Thick mode.
 :ref:`DPY-3001 <dpy3001>` for solutions.
 
 If additional messages indicate a reason, follow their guidance.
+
+DPY-4027
+++++++++
+
+**Message:** ``DPY-4027: no configuration directory specified``
+
+**Cause:** The :ref:`connection string <connstr>` specified in your connection
+or pool creation ``dsn`` parameter was interpreted by python-oracledb to be a
+:ref:`TNS Alias <netservice>` which it needed to look up in a
+:ref:`tnsnames.ora <optnetfiles>` file. However, python-oracledb did not know
+where to find that file.
+
+**Action:** You need to either tell python-oracledb where to find the
+:ref:`tnsnames.ora <optnetfiles>` file, or use a different connection string
+syntax. Perform one of the following:
+
+- Use the equivalent :ref:`Easy Connect syntax <easyconnect>` or :ref:`Connect
+  Descriptor <conndescriptor>`:
+
+  .. code-block:: python
+
+      c = oracledb.connect(user="hr", password=userpw, dsn="localhost:1521/orclpdb")
+
+  Or:
+
+  .. code-block:: python
+
+      c = oracledb.connect(user="hr", password=userpw, dsn="(DESCRIPTION=(ADDRESS=(...))")
+
+- Review the :attr:`defaults.config_dir` documentation for the heuristics used
+  by python-oracledb to automatically locate :ref:`tnsnames.ora
+  <optnetfiles>`. Ensure that your file is in an expected location, that the
+  file is readable by Python, and that any necessary environment variables such
+  as ``TNS_ADMIN`` are accessible by the Python process.
+
+- If you have problems with the heuristics, then you can explicitly specify the
+  location of :ref:`tnsnames.ora <optnetfiles>`. For example, if the file is at
+  ``/opt/myconfigdir/tnsnames.ora``, then:
+
+  - In python-oracledb's default Thin mode, or when
+    :attr:`defaults.thick_mode_dsn_passthrough` is *False*, you can use:
+
+    .. code-block:: python
+
+        c = oracledb.connect(user="hr", password=userpw, dsn="MYDB",
+                             config_dir="/opt/myconfigdir")
+
+  - In python-oracledb's :ref:`Thick mode <enablingthick>` (which is the mode
+    when your application calls :func:`oracledb.init_oracle_client()`), then you
+    can use:
+
+    .. code-block:: python
+
+        oracledb.init_oracle_client(config_dir="/opt/myconfigdir")
+        c = oracledb.connect(user="hr", password=userpw, dsn="MYDB")
 
 .. _oraerr:
 
