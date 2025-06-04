@@ -634,6 +634,26 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2064"):
             test_env.get_pool_async(min=3, max=2)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    async def test_5543(self):
+        "5543 - ping pooled connection on receiving dead connection error"
+        admin_conn = await test_env.get_admin_connection_async()
+        pool = test_env.get_pool_async(min=1, max=1, ping_interval=0)
+
+        # kill connection in pool
+        with admin_conn.cursor() as admin_cursor:
+            async with pool.acquire() as conn:
+                sid, serial = await self.get_sid_serial(conn)
+                sql = f"alter system kill session '{sid},{serial}'"
+                await admin_cursor.execute(sql)
+
+        # acquire connection which should succeed without failure
+        async with pool.acquire() as conn:
+            with conn.cursor() as cursor:
+                await cursor.execute("select user from dual")
+                (user,) = await cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

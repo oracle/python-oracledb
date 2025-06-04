@@ -587,7 +587,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                     request.conn_impl.ping()
                     request.conn_impl.set_call_timeout(0)
                 except exceptions.Error:
-                    request.conn_impl._protocol.disconnect()
+                    request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
             else:
                 conn_impl = self._create_conn_impl(request.params)

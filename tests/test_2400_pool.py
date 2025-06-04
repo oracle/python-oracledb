@@ -1066,6 +1066,26 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2064"):
             test_env.get_pool(min=3, max=2)
 
+    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    def test_2457(self):
+        "2457 - ping pooled connection on receiving dead connection error"
+        admin_conn = test_env.get_admin_connection()
+        pool = test_env.get_pool(min=1, max=1, ping_interval=0)
+
+        # kill connection in pool
+        with admin_conn.cursor() as admin_cursor:
+            with pool.acquire() as conn:
+                sid, serial = self.get_sid_serial(conn)
+                sql = f"alter system kill session '{sid},{serial}'"
+                admin_cursor.execute(sql)
+
+        # acquire connection which should succeed without failure
+        with pool.acquire() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+                (user,) = cursor.fetchone()
+                self.assertEqual(user, test_env.get_main_user().upper())
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
