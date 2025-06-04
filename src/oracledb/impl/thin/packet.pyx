@@ -660,10 +660,13 @@ cdef class ReadBuffer(Buffer):
         cdef:
             bint notify_waiter
             Packet packet
-        packet = self._transport.read_packet()
-        self._process_packet(packet, &notify_waiter, False)
-        if notify_waiter:
-            self._start_packet()
+        packet = self._transport.read_packet(raise_exc=False)
+        if packet is None:
+            self._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
+        else:
+            self._process_packet(packet, &notify_waiter, False)
+            if notify_waiter:
+                self._start_packet()
 
     cdef bint has_response(self):
         """

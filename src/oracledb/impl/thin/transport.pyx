@@ -332,7 +332,7 @@ cdef class Transport:
         self._transport = transport
         self._transport_num = sock.fileno()
 
-    cdef Packet read_packet(self):
+    cdef Packet read_packet(self, bint raise_exc=True):
         """
         Reads a packet from the transport.
         """
@@ -344,10 +344,15 @@ cdef class Transport:
             try:
                 data = self._transport.recv(self._max_packet_size)
             except ConnectionResetError as e:
+                self._transport = None
+                if not raise_exc:
+                    return None
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED, str(e),
                                   cause=e)
             if len(data) == 0:
                 self.disconnect()
+                if not raise_exc:
+                    return None
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED)
             packet = self.extract_packet(data)
         return packet
