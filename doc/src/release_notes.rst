@@ -60,6 +60,14 @@ Common Changes
     parameter "min". Previously python-oracledb Thin mode did not raise an
     error and python-oracledb Thick mode raised the exception
     ``ORA-24413: Invalid number of sessions specified``.
+#)  Improvements to :ref:`data frames <dataframeformat>`:
+
+    - Fixed date handling to match PyArrow's and avoid localization issues
+      (`issue 499 <https://github.com/oracle/python-oracledb/issues/499>`__).
+
+    - Fixed bug on Windows when fetching dates prior to 1970 and after 2038
+      (`issue 483 <https://github.com/oracle/python-oracledb/issues/483>`__).
+
 #)  Improved the test suite and documentation.
 
 

@@ -35,6 +35,7 @@ from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 from libc.stdlib cimport abs
 from cpython cimport array
+cimport cpython.datetime as cydatetime
 
 ctypedef unsigned char char_type
 
@@ -982,7 +983,7 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleData* data,
                                           const char* encoding_errors,
                                           bint from_dbobject)
-cdef object convert_date_to_python(OracleDataBuffer *buffer)
+cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)
 cdef uint16_t decode_uint16be(const char_type *buf)
 cdef uint32_t decode_uint32be(const char_type *buf)
 cdef uint16_t decode_uint16le(const char_type *buf)

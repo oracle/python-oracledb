@@ -25,6 +25,7 @@
 """
 Module for testing dataframes
 """
+
 import datetime
 import decimal
 import unittest
@@ -49,7 +50,7 @@ DATASET_1 = [
         "Doe",
         "San Francisco",
         "USA",
-        datetime.date(1989, 8, 22),
+        datetime.date(1955, 7, 1),  # summer(before 1970)
         12132.40,
         400,
         datetime.datetime.now(),
@@ -60,7 +61,7 @@ DATASET_1 = [
         "Hero",
         "San Fransokyo",
         "Japansa",
-        datetime.date(1988, 8, 22),
+        datetime.date(1955, 1, 1),  # winter(before 1970)
         234234.32,
         400,
         datetime.datetime.now(),
@@ -75,7 +76,7 @@ DATASET_2 = [
         "Doe",
         "San Francisco",
         "USA",
-        datetime.date(1989, 8, 22),
+        datetime.date(2000, 7, 1),  # summer(between)
         None,
         400,
         datetime.datetime.now(),
@@ -86,7 +87,29 @@ DATASET_2 = [
         "Hero",
         "San Fransokyo",
         None,
-        datetime.date(1988, 8, 22),
+        datetime.date(2000, 1, 1),  # winter(between)
+        -12312.1,
+        0,
+        datetime.datetime.now(),
+    ),
+    (
+        3,
+        "Johns",
+        "Does",
+        "San Franciscos",
+        "USAs",
+        datetime.date(2040, 7, 1),  # summer(after)
+        None,
+        500,
+        datetime.datetime.now(),
+    ),
+    (
+        4,
+        "Bigs",
+        "Heros",
+        "San Fransokyos",
+        None,
+        datetime.date(2040, 1, 1),  # winter(after)
         -12312.1,
         0,
         datetime.datetime.now(),
@@ -221,6 +244,12 @@ class TestCase(test_env.BaseTestCase):
         if not HAS_INTEROP:
             self.skipTest("missing pandas or pyarrow modules")
 
+    def __convert_date(self, value):
+        """
+        Converts a date to the format required by Arrow.
+        """
+        return (value - datetime.datetime(1970, 1, 1)).total_seconds()
+
     def __convert_to_array(self, data, typ):
         """
         Convert raw data to an Arrow array using pyarrow.
@@ -233,11 +262,13 @@ class TestCase(test_env.BaseTestCase):
         elif isinstance(typ, pyarrow.TimestampType):
             if typ.unit == "s":
                 data = [
-                    datetime.datetime(v.year, v.month, v.day).timestamp()
+                    self.__convert_date(
+                        datetime.datetime(v.year, v.month, v.day)
+                    )
                     for v in data
                 ]
             else:
-                data = [value.timestamp() * 1000000 for value in data]
+                data = [self.__convert_date(value) * 1000000 for value in data]
         mask = [value is None for value in data]
         return pyarrow.array(data, typ, mask=mask)
 
@@ -459,7 +490,7 @@ class TestCase(test_env.BaseTestCase):
         ora_df = self.conn.fetch_df_all(statement)
         col = ora_df.get_column_by_name("SALARY")
         self.assertEqual(col.size(), len(DATASET_2))
-        self.assertEqual(col.null_count, 1)
+        self.assertEqual(col.null_count, 2)
 
     def test_8016(self):
         "8016 - check unsupported error"
@@ -506,16 +537,16 @@ class TestCase(test_env.BaseTestCase):
         ora_col = ora_df.get_column(0)
         self.assertEqual(ora_col.describe_null[0], 0)
         self.assertEqual(ora_col.dtype[0], 0)
-        metadata = {"name": "ID", "size": 2, "num_chunks": 1}
+        metadata = {"name": "ID", "size": 4, "num_chunks": 1}
         self.assertEqual(metadata, ora_col.metadata)
         self.assertEqual(ora_col.null_count, 0)
 
         ora_col = ora_df.get_column(4)
         self.assertEqual(ora_col.describe_null[0], 3)
         self.assertEqual(ora_col.dtype[0], 21)
-        metadata = {"name": "COUNTRY", "size": 2, "num_chunks": 1}
+        metadata = {"name": "COUNTRY", "size": 4, "num_chunks": 1}
         self.assertEqual(metadata, ora_col.metadata)
-        self.assertEqual(ora_col.null_count, 1)
+        self.assertEqual(ora_col.null_count, 2)
 
     def test_8021(self):
         "8021 - batches with size that has duplicate rows across batches"

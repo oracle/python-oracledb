@@ -29,13 +29,14 @@
 # form returned by the decoders to an appropriate Python value.
 #------------------------------------------------------------------------------
 
-cdef object convert_date_to_python(OracleDataBuffer *buffer):
+cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer):
     """
     Converts a DATE, TIMESTAMP, TIMESTAMP WITH LOCAL TIME ZONE or TIMESTAMP
     WITH TIMEZONE value stored in the buffer to Python datetime.datetime().
     """
     cdef:
         OracleDate *value = &buffer.as_date
+        cydatetime.datetime output
         int32_t seconds
     output = cydatetime.datetime_new(value.year, value.month, value.day,
                                      value.hour, value.minute, value.second,
@@ -44,6 +45,22 @@ cdef object convert_date_to_python(OracleDataBuffer *buffer):
         seconds = value.tz_hour_offset * 3600 + value.tz_minute_offset * 60
         output += cydatetime.timedelta_new(0, seconds, 0)
     return output
+
+
+cdef int convert_date_to_arrow_timestamp(OracleArrowArray arrow_array,
+                                         OracleDataBuffer *buffer) except -1:
+    """
+    Converts a DATE, TIMESTAMP, TIMESTAMP WITH LOCAL TIME ZONE or TIMESTAMP
+    WITH TIMEZONE value stored in the buffer to Arrow timestamp.
+    """
+    cdef:
+        cydatetime.timedelta td
+        cydatetime.datetime dt
+        int64_t ts
+    dt = convert_date_to_python(buffer)
+    td = dt - EPOCH_DATE
+    ts = int(cydatetime.total_seconds(td) * arrow_array.factor)
+    arrow_array.append_int64(ts)
 
 
 cdef object convert_interval_ds_to_python(OracleDataBuffer *buffer):
@@ -215,7 +232,6 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
         ArrowType arrow_type
         uint32_t db_type_num
         OracleRawBytes* rb
-        int64_t ts
 
     # NULL values
     if data.is_null:
@@ -243,9 +259,7 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
         rb = &data.buffer.as_raw_bytes
         arrow_array.append_bytes(<void*> rb.ptr, rb.num_bytes)
     elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
-        ts = int(convert_date_to_python(&data.buffer).timestamp() *
-                 arrow_array.factor)
-        arrow_array.append_int64(ts)
+        convert_date_to_arrow_timestamp(arrow_array, &data.buffer)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
         convert_number_to_arrow_decimal(arrow_array, &data.buffer)
 

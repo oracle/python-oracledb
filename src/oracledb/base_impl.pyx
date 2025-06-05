@@ -116,6 +116,9 @@ cdef const char* DRIVER_INSTALLATION_URL = \
 cdef const char* ENCODING_UTF8 = "UTF-8"
 cdef const char* ENCODING_UTF16 = "UTF-16BE"
 
+# variables needed for dates when using pyarrow
+cdef cydatetime.datetime EPOCH_DATE = datetime.datetime(1970, 1, 1)
+
 # protocols registered with the library
 REGISTERED_PROTOCOLS = {}
 
