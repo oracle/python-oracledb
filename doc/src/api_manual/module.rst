@@ -47,7 +47,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Constructor for creating a connection to the database. Returns a
     :ref:`Connection Object <connobj>`. All parameters are optional and can be
@@ -410,6 +410,11 @@ Oracledb Methods
     used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -417,6 +422,10 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode and
     is ignored in the Thin mode.  It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 
@@ -470,7 +479,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Constructor for creating a connection to the database. Returns an
     :ref:`AsyncConnection Object <asyncconnobj>`. All parameters are optional
@@ -760,8 +769,17 @@ Oracledb Methods
     This value is used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     The ``thick_mode_dsn_passthrough`` and ``handle`` parameters are ignored in
     python-oracledb Thin mode.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 
@@ -813,7 +831,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Contains all the parameters that can be used to establish a connection to
     the database.
@@ -1130,10 +1148,19 @@ Oracledb Methods
     used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode.  It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 
@@ -1196,7 +1223,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`ConnectionPool object <connpool>` for the pool.  See :ref:`Connection
@@ -1634,6 +1661,11 @@ Oracledb Methods
     used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
     PowerBuilder) which has already made the connection. The connection thus
@@ -1641,6 +1673,10 @@ Oracledb Methods
     destroyed. This value is only used in the python-oracledb Thick mode and
     is ignored in the Thin mode. It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 
@@ -1698,7 +1734,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Creates a connection pool with the supplied parameters and returns the
     :ref:`AsyncConnectionPool object <asyncconnpoolobj>` for the pool.
@@ -2047,8 +2083,17 @@ Oracledb Methods
     used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     The ``handle`` and ``thick_mode_dsn_passthrough`` parameters are ignored in
     python-oracledb Thin mode.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 
@@ -2293,7 +2338,7 @@ Oracledb Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=False, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=0)
+        extra_auth_params=None, pool_name=None, handle=0)
 
     Creates and returns a :ref:`PoolParams Object <poolparam>`. The object
     can be passed to :meth:`oracledb.create_pool()`.
@@ -2674,10 +2719,19 @@ Oracledb Methods
     used in both the python-oracledb Thin and Thick modes. See
     :ref:`tokenauth`.
 
+    The ``pool_name`` parameter is expected to be a string which specifies the
+    name of the pool when using multiple DRCP pools with Oracle Database 23.4
+    or later. This value is used in both python-oracledb Thin and Thick modes.
+    See :ref:`DRCP Pool Names <poolnames>`.
+
     The ``handle`` parameter is expected to be an integer which represents a
     pointer to a valid service context handle. This value is only used in the
     python-oracledb Thick mode. It should be used with extreme caution. The
     default value is *0*.
+
+    .. versionchanged:: 3.2.0
+
+        The ``pool_name`` parameter was added.
 
     .. versionchanged:: 3.0.0
 

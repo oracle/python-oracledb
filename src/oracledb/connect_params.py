@@ -107,6 +107,7 @@ class ConnectParams:
         use_sni: Optional[bool] = None,
         thick_mode_dsn_passthrough: Optional[bool] = None,
         extra_auth_params: Optional[dict] = None,
+        pool_name: Optional[str] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -316,6 +317,9 @@ class ConnectParams:
           necessary for Oracle Database authentication using plugins, such as
           the Azure and OCI cloud-native authentication plugins (default: None)
 
+        - pool_name: the name of the DRCP pool when using multi-pool DRCP with
+          Oracle Database 23.4 or higher (default: None)
+
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with
           extreme caution (default: 0)
@@ -371,7 +375,8 @@ class ConnectParams:
             f"driver_name={self.driver_name!r}, "
             f"use_sni={self.use_sni!r}, "
             f"thick_mode_dsn_passthrough={self.thick_mode_dsn_passthrough!r}, "
-            f"extra_auth_params={self.extra_auth_params!r}"
+            f"extra_auth_params={self.extra_auth_params!r}, "
+            f"pool_name={self.pool_name!r}"
             ")"
         )
 
@@ -567,6 +572,15 @@ class ConnectParams:
         DRCP with Oracle Database 23.4 or higher.
         """
         return [d.pool_boundary for d in self._impl.description_list.children]
+
+    @property
+    @_flatten_value
+    def pool_name(self) -> Union[list, str]:
+        """
+        The name of the DRCP pool when using multi-pool DRCP with Oracle
+        Database 23.4 or higher.
+        """
+        return [d.pool_name for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -914,6 +928,7 @@ class ConnectParams:
         use_sni: Optional[bool] = None,
         thick_mode_dsn_passthrough: Optional[bool] = None,
         extra_auth_params: Optional[dict] = None,
+        pool_name: Optional[str] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -1108,6 +1123,9 @@ class ConnectParams:
         - extra_auth_params: a dictionary containing configuration parameters
           necessary for Oracle Database authentication using plugins, such as
           the Azure and OCI cloud-native authentication plugins
+
+        - pool_name: the name of the DRCP pool when using multi-pool DRCP with
+          Oracle Database 23.4 or higher
 
         - handle: an integer representing a pointer to a valid service context
           handle. This value is only used in thick mode. It should be used with

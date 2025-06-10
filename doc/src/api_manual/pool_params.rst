@@ -53,9 +53,13 @@ PoolParams Methods
         terminal=oracledb.defaults.terminal, osuser=oracledb.defaults.osuser, \
         driver_name=oracledb.defaults.driver_name, use_sni=None, \
         thick_mode_dsn_passthrough=oracledb.defaults.thick_mode_dsn_passthrough, \
-        extra_auth_params=None, handle=None)
+        extra_auth_params=None, pool_name=None, handle=None)
 
         Sets one or more of the parameters.
+
+        .. versionchanged:: 3.2.0
+
+            The ``pool_name`` parameter was added.
 
         .. versionchanged:: 3.0.0
 

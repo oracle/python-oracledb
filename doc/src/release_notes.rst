@@ -47,6 +47,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added parameter ``pool_name`` to connection and pool creation methods to
+    support Oracle Database 23ai multi-pool :ref:`drcp`.
 #)  Added Instance Principal authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`.
 #)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai

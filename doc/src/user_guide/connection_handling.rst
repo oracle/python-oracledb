@@ -2893,7 +2893,11 @@ Enabling DRCP in Oracle Database
 Oracle Database versions prior to 21c can have a single DRCP connection pool.
 From Oracle Database 21c, each pluggable database can optionally have its own
 pool, or can use the container level pool. From Oracle Database 23ai, you can
-create multiple pools at the pluggable, or container, database level.
+create multiple pools at the pluggable, or container, database level. This
+multi-pool feature is useful where different applications connect to the same
+database, but there is a concern that one application's use of the pool may
+impact other applications. If this is not the case, a single pool may allow
+best resource sharing on the database host.
 
 Note that DRCP is already enabled in Oracle Autonomous Database and pool
 management is different to the steps below.
@@ -3033,7 +3037,7 @@ To enable connections to use DRCP pooled servers, you can:
                                 server_type="pooled",
                                 cclass="MYAPP")
 
-**DRCP Connection Class Names**
+**DRCP Connection Classes**
 
 The best practice is to specify a ``cclass`` class name when creating a
 python-oracledb connection pool.  This user-chosen name provides some
@@ -3071,13 +3075,36 @@ default, python-oracledb pooled connections use ``PURITY_SELF`` and standalone
 connections use ``PURITY_NEW``.
 
 To limit session sharing, you can explicitly require that new session memory be
-allocated each time :meth:`~ConnectionPool.acquire()` is called:
+allocated each time :meth:`~ConnectionPool.acquire()` is called. Do this when
+creating a driver connection pool by specifying the ``purity`` as
+``PURITY_NEW``:
 
 .. code-block:: python
 
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb:pooled",
                                 min=2, max=5, increment=1,
                                 cclass="MYAPP", purity=oracledb.PURITY_NEW)
+
+The overheads can impact ultimate scalability.
+
+.. _poolnames:
+
+**DRCP Pool Names**
+
+From Oracle Database 23ai, multiple DRCP pools can be created by setting a pool
+name at DRCP pool creation time. Applications can then specifiy which DRCP pool
+to use by passing the ``pool_name`` parameter during connection, or connection
+pool, creation, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(user="hr", password=userpwd,
+                                dsn="dbhost.example.com/orclpdb:pooled",
+                                min=2, max=5, increment=1,
+                                cclass="MYAPP", pool_name="MYPOOL")
+
+When specifying a pool name, you should still set a connection class name to
+allow efficient use of the pool's resources.
 
 **Acquiring a DRCP Connection**
 
@@ -3132,19 +3159,23 @@ other users:
     . . .
     connection.close()
 
-Setting the DRCP Connection Class and Purity in the Connection String
----------------------------------------------------------------------
+Setting DRCP Parameters in Connection Strings
+---------------------------------------------
 
-Although setting the DRCP connection class and purity in the application is
-preferred, sometimes it is not possible to modify an existing code base. For
-these applications, you can specify the class and purity along with the pooled
-server option in the connection string.
+Setting the DRCP connection class, purity, and pool name as function parameters
+in the application is preferred, but sometimes it is not possible to modify an
+existing code base. For these applications, you can specify the values along
+with the pooled server option in the connection string.
+
+You can specify the class and purity options in connection strings when using
+Oracle Database 21c, or later. You can specify the pool name when using Oracle
+Database 23ai, or later.
 
 For example with the :ref:`Easy Connect <easyconnect>` syntax::
 
-    dbhost.example.com/orclpdb:pooled?pool_connection_class=MYAPP&pool_purity=self
+    dbhost.example.com/orclpdb:pooled?pool_connection_class=MYAPP&pool_purity=self&pool_name=MYPOOL
 
-or by using a :ref:`TNS Alias <netservice>` in a
+Or by using a :ref:`TNS Alias <netservice>` in a
 :ref:`tnsnames.ora <optnetfiles>` file::
 
     customerpool = (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)
@@ -3152,19 +3183,16 @@ or by using a :ref:`TNS Alias <netservice>` in a
               (PORT=1521))(CONNECT_DATA=(SERVICE_NAME=orclpdb)
               (SERVER=POOLED)
               (POOL_CONNECTION_CLASS=MYAPP)
-              (POOL_PURITY=SELF)))
+              (POOL_PURITY=SELF)
+              (POOL_NAME=MYPOOL)))
 
-You can specify the class and purity options in connection strings when using
-python-oracledb Thin mode with Oracle Database 21c, or later.
-
-For python-oracledb Thick mode, setting these options in the connection string
-is supported if you are using Oracle Database 21c (or later) and Oracle Client
-19c (or later). However, explicitly specifying the purity as *SELF* in this way
-may cause some unusable connections in a python-oracledb Thick mode connection
-pool to not be terminated. In summary, if you cannot programmatically set the
-class name and purity, or cannot use python-oracledb Thin mode, then avoid
-explicitly setting the purity as a connection string parameter when using a
-local python-oracledb connection pool in Thick mode.
+Explicitly specifying the purity as *SELF* in a connection string may cause
+some unusable connections in a python-oracledb Thick mode connection pool to
+not be terminated, potentially eventually rendering all connections in the pool
+to be unusable. If you cannot programmatically set the class name and purity,
+or cannot use python-oracledb Thin mode, then avoid explicitly setting the
+purity as a connection string parameter when using a local python-oracledb
+Thick mode connection pool.
 
 .. _monitoringdrcp:
 

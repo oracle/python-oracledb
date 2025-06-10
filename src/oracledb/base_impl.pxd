@@ -503,6 +503,7 @@ cdef class Description(ConnectParamsNode):
         public str cclass
         public str connection_id_prefix
         public str pool_boundary
+        public str pool_name
         public uint32_t purity
         public bint ssl_server_dn_match
         public bint use_tcp_fast_open

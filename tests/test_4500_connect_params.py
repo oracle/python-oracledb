@@ -692,6 +692,7 @@ class TestCase(test_env.BaseTestCase):
             ("use_sni", True),
             ("thick_mode_dsn_passthrough", True),
             ("extra_auth_params", dict(extra1="A", extra2="B")),
+            ("pool_name", "my_pool"),
         ]
         params = oracledb.ConnectParams(**dict(values))
         parts = [f"{name}={value!r}" for name, value in values]
@@ -747,6 +748,7 @@ class TestCase(test_env.BaseTestCase):
             ("use_sni", False),
             ("thick_mode_dsn_passthrough", False),
             ("extra_auth_params", dict(extra1="X", extra2="Y")),
+            ("pool_name", "my_second_pool"),
         ]
         params.set(**dict(new_values))
         parts = [f"{name}={value!r}" for name, value in new_values]
@@ -1489,6 +1491,7 @@ class TestCase(test_env.BaseTestCase):
             "(FAILOVER_MODE=(TYPE=select)(METHOD=basic)(RETRIES=2)(DELAY=15))",
             "(HS=ok)",
             "(TUNNEL_SERVICE_NAME=south)",
+            "(POOL_NAME=pool_name_4579)",
         ]
 
         service_name = "service_4577"

@@ -907,6 +907,8 @@ cdef class Description(ConnectParamsNode):
         else:
             if self.cclass is not None:
                 temp_parts.append(f"(POOL_CONNECTION_CLASS={self.cclass})")
+            if self.pool_name is not None:
+                temp_parts.append(f"(POOL_NAME={self.pool_name})")
             if self.purity == PURITY_SELF:
                 temp_parts.append(f"(POOL_PURITY=SELF)")
             elif self.purity == PURITY_NEW:
@@ -961,6 +963,7 @@ cdef class Description(ConnectParamsNode):
         description.cclass = self.cclass
         description.connection_id_prefix = self.connection_id_prefix
         description.pool_boundary = self.pool_boundary
+        description.pool_name = self.pool_name
         description.purity = self.purity
         description.ssl_server_dn_match = self.ssl_server_dn_match
         description.use_tcp_fast_open = self.use_tcp_fast_open
@@ -995,6 +998,7 @@ cdef class Description(ConnectParamsNode):
         _set_str_param(args, "cclass", self)
         _set_enum_param(args, "purity", ENUM_PURITY, &self.purity)
         _set_str_param(args, "pool_boundary", self)
+        _set_str_param(args, "pool_name", self)
         _set_str_param(args, "connection_id_prefix", self)
         _set_bool_param(args, "use_tcp_fast_open", &self.use_tcp_fast_open)
         extra_args = args.get("extra_connect_data_args")
