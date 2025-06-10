@@ -4,18 +4,21 @@
 Working with Data Frames
 ************************
 
-Python-oracledb can fetch directly to data frames that expose an Apache Arrow
-PyCapsule Interface. This can reduce application memory requirements and allow
-zero-copy data interchanges between Python data frame libraries. It is an
-efficient way to work with data using Python libraries such as `Apache PyArrow
+Python-oracledb queries can fetch directly to data frames. This can improve
+performance and reduce memory requirements when your application uses Python
+data frame libraries such as `Apache PyArrow
 <https://arrow.apache.org/docs/python/index.html>`__, `Pandas
 <https://pandas.pydata.org>`__, `Polars <https://pola.rs/>`__, `NumPy
-<https://numpy.org/>`__, `PyTorch <https://pytorch.org/>`__, or to write files
-in `Apache Parquet <https://parquet.apache.org/>`__ format.
+<https://numpy.org/>`__, `Dask <https://www.dask.org/>`__, `PyTorch
+<https://pytorch.org/>`__, or writes files in `Apache Parquet
+<https://parquet.apache.org/>`__ format. The :ref:`OracleDataFrame
+<oracledataframeobj>` objects fetched expose an Apache Arrow PyCapsule
+Interface which, in some cases, allow zero-copy data interchanges to the data
+frame objects of other libraries.
 
 .. note::
 
-    The data frame support in python-oracledb 3.1 is a pre-release and may
+    The data frame support in python-oracledb 3.2 is a pre-release and may
     change in a future version.
 
 **Fetching Data Frames**
@@ -44,6 +47,34 @@ With Oracle Database's standard DEPARTMENTS table, this would display::
     4 columns
     27 rows
 
+To fetch in batches, use an iterator:
+
+.. code-block:: python
+
+    sql = "select * from departments where department_id < 80"
+    # Adjust "size" to tune the query fetch performance
+    # Here it is small to show iteration
+    for odf in connection.fetch_df_batches(statement=sql, size=4):
+        df = pyarrow.Table.from_arrays(
+            odf.column_arrays(), names=odf.column_names()
+        ).to_pandas()
+        print(df)
+
+With Oracle Database's standard DEPARTMENTS table, this would display::
+
+       DEPARTMENT_ID  DEPARTMENT_NAME  MANAGER_ID  LOCATION_ID
+    0             10   Administration         200         1700
+    1             20        Marketing         201         1800
+    2             30       Purchasing         114         1700
+    3             40  Human Resources         203         2400
+       DEPARTMENT_ID   DEPARTMENT_NAME  MANAGER_ID  LOCATION_ID
+    0             50          Shipping         121         1500
+    1             60                IT         103         1400
+    2             70  Public Relations         204         2700
+
+Converting to other data frame formats is :ref:`shown later <convertingodf>` in
+this chapter.
+
 **Inserting OracleDataFrames into Oracle Database**
 
 To insert data currently in :ref:`OracleDataFrame <oracledataframeobj>` format
@@ -67,7 +98,7 @@ types used in OracleDataFrame objects. Querying any other data types from
 Oracle Database will result in an exception. :ref:`Output type handlers
 <outputtypehandlers>` cannot be used to map data types.
 
-.. list-table-with-summary::
+.. list-table-with-summary:: Mapping from Oracle Database to Arrow data types
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 1 1
@@ -123,6 +154,8 @@ When converting Oracle Database CLOBs and BLOBs:
 
 When converting Oracle Database DATEs and TIMESTAMPs:
 
+- Arrow TIMESTAMPs will not have timezone data.
+
 - For Oracle Database DATE types, the Arrow TIMESTAMP will have a time unit of
   "seconds".
 
@@ -143,47 +176,47 @@ When converting Oracle Database DATEs and TIMESTAMPs:
       * - 1 - 3
         - milliseconds
       * - 4 - 6
-        - microconds
+        - microseconds
       * - 7 - 9
         - nanoseconds
 
-Arrow TIMESTAMPs will not have timezone data.
+.. _convertingodf:
 
 Converting OracleDataFrame to Other Data Frames
 -----------------------------------------------
 
-To do more extensive operations, :ref:`OracleDataFrames <oracledataframeobj>`
-can be converted to your chosen library data frame, and then methods of that
-library can be used.
-
-Some examples are shown in the following sections. Other libraries will have
-similar methods.
+To use data frames in your chosen analysis library, :ref:`OracleDataFrame
+objects <oracledataframeobj>` can be converted. Examples for some libraries are
+shown in the following sections. Other libraries will have similar methods.
 
 **Conversion Overview**
 
-To convert :ref:`OracleDataFrame <oracledataframeobj>` to a `PyArrow Table
-<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__, use
-`pyarrow.Table.from_arrays()
-<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.from_arrays>`__
-which leverages the Arrow PyCapsule interface.
+The guidelines for converting :ref:`OracleDataFrame objects
+<oracledataframeobj>` to data frames for other libraries are:
 
-To convert :ref:`OracleDataFrame <oracledataframeobj>` to a `Pandas DataFrame
-<https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__,
-use `pyarrow.Table.to_pandas()
-<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.to_pandas>`__.
+- To convert to a `PyArrow Table <https://arrow.apache.org/docs/python/
+  generated/pyarrow.Table.html>`__, use `pyarrow.Table.from_arrays()
+  <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.
+  Table.from_arrays>`__ which leverages the Arrow PyCapsule interface.
 
-If you want to use a data frame library other than Pandas or PyArrow, use the
-library's ``from_arrow()`` method to convert a PyArrow Table to the applicable
-data frame, if your library supports this.  For example, with `Polars
-<https://pola.rs/>`__ use `polars.from_arrow()
-<https://docs.pola.rs/api/python/dev/reference/api/polars.from_arrow.html>`__.
+- To convert to a `Pandas DataFrame <https://pandas.pydata.org/docs/reference/
+  api/pandas.DataFrame.html#pandas.DataFrame>`__, use
+  `pyarrow.Table.to_pandas() <https://arrow.apache.org/docs/python/generated/
+  pyarrow.Table.html#pyarrow.Table.to_pandas>`__.
 
-Lastly, if your data frame library does not support ``from_arrow()``, then use
-``from_dataframe()`` if the library supports it. This can be slower, depending
-on the implementation.
+- If you want to use a library other than Pandas or PyArrow, use the library's
+  ``from_arrow()`` method to convert a PyArrow Table to the applicable data
+  frame, if your library supports this.  For example, with `Polars
+  <https://pola.rs/>`__ use `polars.from_arrow() <https://docs.pola.rs/api/
+  python/dev/reference/api/polars.from_arrow.html>`__.
 
-The general recommendation is to use Apache Arrow as much as possible but if
-there are no options, then use ``from_dataframe()``.
+- If your library does not support ``from_arrow()``, then use
+  ``from_dataframe()`` if the library supports it. This can be slower,
+  depending on the implementation.
+
+Overall, the general recommendation is to use Apache Arrow as much as possible
+but if there are no options, then use ``from_dataframe()``.  You should test
+and benchmark to find the best option for your applications.
 
 Creating PyArrow Tables
 +++++++++++++++++++++++
@@ -351,7 +384,6 @@ For example, to convert to `NumPy <https://numpy.org/>`__ ``ndarray`` format:
 
     print(numpy.sum(np))
     print(numpy.log10(np))
-
 
 See `samples/dataframe_numpy.py <https://github.com/oracle/python-oracledb/
 blob/main/samples/dataframe_numpy.py>`__ for a runnable example.

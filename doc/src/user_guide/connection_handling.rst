@@ -32,31 +32,27 @@ Oracle Client and Oracle Database communicate.
 There are two ways to create a connection to Oracle Database using
 python-oracledb:
 
-*  **Standalone connections**: :ref:`Standalone connections <standaloneconnection>`
-   are useful when the application needs a single connection to a database.
-   Connections are created by calling :meth:`oracledb.connect()`.
+* **Standalone connections**: :ref:`Standalone connections
+  <standaloneconnection>` are useful when the application needs a single
+  connection to a database.  Connections are created by calling
+  :meth:`oracledb.connect()`. For :ref:`asyncio <asyncio>`, use
+  :meth:`oracledb.connect_async()` instead, see :ref:`connasync`.
 
-*  **Pooled connections**: :ref:`Connection pooling <connpooling>` is important for
-   performance when applications frequently connect and disconnect from the database.
-   Pools support Oracle's :ref:`high availability <highavailability>` features and are
-   recommended for applications that must be reliable.  Small pools can also be
-   useful for applications that want a few connections available for infrequent
-   use.  Pools are created with :meth:`oracledb.create_pool()` at application
-   initialization time, and then :meth:`ConnectionPool.acquire()` can be called to
-   obtain a connection from a pool.
+* **Pooled connections**: :ref:`Connection pooling <connpooling>` is important
+  for performance when applications frequently connect and disconnect from the
+  database.  Pools support Oracle's :ref:`high availability <highavailability>`
+  features and are recommended for applications that must be reliable.  Small
+  pools can also be useful for applications that want a few connections
+  available for infrequent use.  Pools are created with
+  :meth:`oracledb.create_pool()` at application initialization time, and then
+  :meth:`ConnectionPool.acquire()` can be called to obtain a connection from a
+  pool. For :ref:`asyncio <asyncio>`, use :meth:`oracledb.create_pool_async()`
+  and :meth:`AsyncConnectionPool.acquire()` instead, see :ref:`asyncconnpool`.
 
 Many connection behaviors can be controlled by python-oracledb connection
 options.  Other settings can be configured in :ref:`optnetfiles` or in
 :ref:`optclientfiles`.  These include limiting the amount of time that opening
 a connection can take, or enabling :ref:`network encryption <netencrypt>`.
-
-.. note::
-
-       Creating a connection in python-oracledb Thin mode always requires a
-       connection string, or the database host name and service name, to be
-       specified.  The Thin mode cannot use "bequeath" connections and does not
-       reference Oracle environment variables ``ORACLE_SID``, ``TWO_TASK``,
-       or ``LOCAL``.
 
 .. _standaloneconnection:
 
@@ -286,6 +282,14 @@ be usable as the ``dsn`` value, see :ref:`jdbcconnstring`.
 For more information about naming methods, see the `Database Net Services
 Administrator's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E5358DEA-D619-4B7B-A799-3D2F802500F1>`__.
+
+.. note::
+
+    Creating a connection in python-oracledb Thin mode always requires a
+    connection string, or the database host name and service name, to be
+    specified.  The Thin mode cannot use "bequeath" connections and does not
+    reference Oracle environment variables ``ORACLE_SID``, ``TWO_TASK``,
+    or ``LOCAL``.
 
 .. _easyconnect:
 
@@ -1883,6 +1887,10 @@ creation calls. If you call :meth:`ConnectParams.parse_connect_string()`, the
 registered protocol hook method will be called but the parameter hook will not
 be.
 
+..
+   Note to doc writers: do not change the following heading because it is used
+   for a link emitted by ldap_hook() in src/oracledb/builtin_hooks.py
+
 .. _ldapconnections:
 
 LDAP Directory Naming
@@ -2061,8 +2069,17 @@ Connection Pooling
 ==================
 
 Connection pooling can significantly improve application performance and
-scalability, allows resource sharing, and lets applications use advanced Oracle
-High Availability features.
+scalability by allowing resource sharing. Pools also let applications use
+optional advanced Oracle High Availability features.
+
+Opening a connection to a database can be expensive: the connection string must
+be parsed, a network connection must be established, the Oracle Database
+network listener needs to be invoked, user authentication must be performed, a
+database server process must be created, and session memory must be allocated
+(and then the process is destroyed when the connection is closed). Connection
+pools remove the overhead of repeatedly opening and closing :ref:`standalone
+connections <standaloneconnection>` by establishing a pool of open connections
+that can be reused throughout the life of an application process.
 
 The pooling solutions available to python-oracledb applications are:
 
@@ -2092,12 +2109,12 @@ The pooling solutions available to python-oracledb applications are:
 
 - `Proxy Resident Connection Pooling (PRCP)
   <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-E0032017-03B1-
-  4F14-AF9B-BCC87C982DA8>`__: This is connection pooling handled by a dedicated
-  mid-tier connection proxy, `CMAN-TDM <https://download.oracle.com/
-  ocomdocs/global/CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_
-  apps.pdf>`__.
+  4F14-AF9B-BCC87C982DA8>`__: This is connection pooling handled by Oracle's
+  mid-tier connection proxy solution, `CMAN-TDM <https://download.oracle.com/
+  ocomdocs/global/
+  CMAN_TDM_Oracle_DB_Connection_Proxy_for_scalable_apps.pdf>`__.
 
-  This is useful for applications taking advantage of CMAN-TDM.
+  PRCP is useful for applications taking advantage of CMAN-TDM.
 
 - :ref:`implicitconnpool`: This can add pooling benefits to applications that
   connect when they start, and only close the connection when the application
@@ -2241,6 +2258,11 @@ server process to be released, use :meth:`ConnectionPool.drop()`:
         . . .
 
         pool.drop(connection)
+
+Avoid doing this unnecessarily because it shrinks the pool. A future
+:meth:`~ConnectionPool.acquire()` call may suffer the overhead of establishing
+a new connection to the database, instead of being able to reuse a connection
+already available in the pool.
 
 Closing a Connection Pool
 +++++++++++++++++++++++++

@@ -55,6 +55,13 @@ Common Changes
     support Oracle Database 23ai multi-pool :ref:`drcp`.
 #)  Added Instance Principal authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`.
+#)  Improvements to :ref:`data frames <dataframeformat>`:
+
+    - Fixed date handling to match PyArrow's and avoid localization issues
+      (`issue 499 <https://github.com/oracle/python-oracledb/issues/499>`__).
+    - Fixed bug on Windows when fetching dates prior to 1970 and after 2038
+      (`issue 483 <https://github.com/oracle/python-oracledb/issues/483>`__).
+
 #)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
     (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
 #)  Fix bug with GitHub build action merge artifacts step
@@ -66,14 +73,6 @@ Common Changes
     parameter "min". Previously python-oracledb Thin mode did not raise an
     error and python-oracledb Thick mode raised the exception
     ``ORA-24413: Invalid number of sessions specified``.
-#)  Improvements to :ref:`data frames <dataframeformat>`:
-
-    - Fixed date handling to match PyArrow's and avoid localization issues
-      (`issue 499 <https://github.com/oracle/python-oracledb/issues/499>`__).
-
-    - Fixed bug on Windows when fetching dates prior to 1970 and after 2038
-      (`issue 483 <https://github.com/oracle/python-oracledb/issues/483>`__).
-
 #)  Improved the test suite and documentation.
 
 
@@ -980,14 +979,12 @@ Common Changes
     <https://github.com/oracle/python-oracledb/issues/250>`__).
 #)  Added properties :data:`FetchInfo.domain_schema`,
     :data:`FetchInfo.domain_name` and :data:`FetchInfo.annotations` for the
-    `SQL domain <https://docs.oracle.com/en/database/oracle/oracle-database/
-    23/sqlrf/create-domain.html#GUID-17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__
-    and `annotations <https://docs.oracle.com/en/database/oracle/
-    oracle-database/23/sqlrf/annotations_clause.html#
-    GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__
-    associated with columns that are being fetched. SQL domains and annotations
-    require Oracle Database 23ai. If using python-oracledb Thick mode, Oracle
-    Client 23ai is also required.
+    `SQL domain <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+    17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__ and `annotations
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1AC16117-
+    BBB6-4435-8794-2B99F8F68052>`__ associated with columns that are being
+    fetched. SQL domains and annotations require Oracle Database 23ai. If using
+    python-oracledb Thick mode, Oracle Client 23ai is also required.
 #)  Added parameter ``data`` to :meth:`Connection.createlob()` to allow data to
     be written at LOB creation time.
 #)  Added type :data:`~oracledb.DB_TYPE_XMLTYPE` to represent data of type

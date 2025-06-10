@@ -823,16 +823,16 @@ will accept them but there will be no processing benefit.
 It is not uncommon for SQL statements to have low hundreds of
 versions. Sometimes this is expected and not a result of any issue. To
 determine the reason, find the SQL identifier of the statement and then query
-the Oracle Database view `V$SQL_SHARED_CURSOR <https://docs.oracle.com/en/
-database/oracle/oracle-database/23/refrn/V-SQL_SHARED_CURSOR.html>`__.
+the Oracle Database view `V$SQL_SHARED_CURSOR <https://www.oracle.com/pls/topic
+/lookup?ctx=dblatest&id=GUID-4993A6DE-5658-4745-B43E-F5AD9DB8DCCC>`__.
 
 The SQL identifier of a statement can be found in Oracle Database views like
-`V$SQLAREA <https://docs.oracle.com/en/database/oracle/oracle-database/23/
-refrn/V-SQLAREA.html>`__ after you have run a statement, or you can find it
-*before* you execute the statement by using the `DBMS_SQL_TRANSLATOR.SQL_ID()
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-DFFB611B-853A-
-434E-808D-D713671C3AA4>`__ function. Make sure to pass in exactly the same SQL
-text, including the same whitespace:
+`V$SQLAREA <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+09D5169F-EE9E-4297-8E01-8D191D87BDF7>`__ after you have run a statement, or you
+can find it *before* you execute the statement by using the
+`DBMS_SQL_TRANSLATOR.SQL_ID() <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-DFFB611B-853A-434E-808D-D713671C3AA4>`__ function. Make sure
+to pass in exactly the same SQL text, including the same whitespace:
 
 .. code-block:: python
 
