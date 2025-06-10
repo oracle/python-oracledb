@@ -33,6 +33,8 @@ Thin Mode Changes
 #)  Pooled connections that are no longer needed are now closed normally if
     possible instead of simply having the socket disconnected
     (`issue 393 <https://github.com/oracle/python-oracledb/issues/393>`__).
+#)  Fixed bug resulting in ``TypeError`` when using
+    :attr:`DeqOptions.correlation`` for buffered delivery mode.
 
 Thick Mode Changes
 ++++++++++++++++++

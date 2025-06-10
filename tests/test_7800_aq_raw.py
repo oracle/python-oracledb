@@ -463,6 +463,23 @@ class TestCase(test_env.BaseTestCase):
                 setattr(props, name, None)
                 self.assertIsNone(getattr(props, name))
 
+    def test_7829(self):
+        "7829 - test deq options correlation with buffered messages"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        value = self.raw_data[0]
+        props = self.conn.msgproperties(payload=value, correlation="sample")
+        queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
+        queue.enqoptions.deliverymode = oracledb.MSG_BUFFERED
+        queue.enqone(props)
+        self.conn.commit()
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.correlation = "sample"
+        msg = queue.deqone()
+        self.conn.commit()
+        self.assertEqual(msg.payload, value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -402,6 +402,23 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2062"):
             await queue.enqone(props)
 
+    async def test_7925(self):
+        "7925 - test deq options correlation with buffered messages"
+        queue = await self.get_and_clear_queue("TEST_RAW_QUEUE")
+        value = self.raw_data[0]
+        props = self.conn.msgproperties(payload=value, correlation="sample")
+        queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
+        queue.enqoptions.deliverymode = oracledb.MSG_BUFFERED
+        await queue.enqone(props)
+        await self.conn.commit()
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        queue.deqoptions.correlation = "sample"
+        msg = await queue.deqone()
+        await self.conn.commit()
+        self.assertEqual(msg.payload, value)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

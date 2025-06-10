@@ -88,7 +88,7 @@ cdef class AqBaseMessage(Message):
                     elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_ADDRESS:
                         props_impl.sender_agent_address = value
                     elif keyword == TNS_AQ_EXT_KEYWORD_AGENT_PROTOCOL:
-                        props_impl.sender_agent_protocol = value
+                        props_impl.sender_agent_protocol = value[0]
                     elif keyword == TNS_AQ_EXT_KEYWORD_ORIGINAL_MSGID:
                         props_impl.original_msg_id = value
 
