@@ -596,11 +596,13 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         cursor_impl = message_with_data.cursor_impl
         if message.resend:
             await protocol._process_message(message)
+            await message.postprocess_async()
             if op_type in (
                 PIPELINE_OP_TYPE_FETCH_ONE,
                 PIPELINE_OP_TYPE_FETCH_MANY,
                 PIPELINE_OP_TYPE_FETCH_ALL,
             ):
+                result_impl.rows = []
                 while cursor_impl._buffer_rowcount > 0:
                     result_impl.rows.append(cursor_impl._create_row())
         result_impl.fetch_metadata = cursor_impl.fetch_metadata
@@ -870,7 +872,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             Message message
         for message in messages:
             result_impl = message.pipeline_result_impl
-            if result_impl.error is not None:
+            if result_impl.error is not None or message.resend:
                 continue
             try:
                 self._populate_pipeline_op_result(message)

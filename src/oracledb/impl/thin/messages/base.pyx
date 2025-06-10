@@ -42,6 +42,32 @@ cdef class _OracleErrorInfo:
         list batcherrors
 
 
+@cython.freelist(20)
+cdef class _PostProcessFn:
+    cdef:
+        object fn
+        bint convert_nulls
+        bint check_awaitable
+        uint32_t num_elements
+        list values
+
+    @staticmethod
+    cdef _PostProcessFn from_info(object fn, uint32_t num_elements,
+                                  list values, bint convert_nulls=False,
+                                  bint check_awaitable=False):
+        """
+        Create a post process function object and return it.
+        """
+        cdef _PostProcessFn fn_obj
+        fn_obj = _PostProcessFn.__new__(_PostProcessFn)
+        fn_obj.fn = fn
+        fn_obj.convert_nulls = convert_nulls
+        fn_obj.check_awaitable = check_awaitable
+        fn_obj.num_elements = num_elements
+        fn_obj.values = values
+        return fn_obj
+
+
 cdef class Message:
     cdef:
         BaseThinConnImpl conn_impl
@@ -736,6 +762,70 @@ cdef class MessageWithData(Message):
         self.bit_vector = <const char_type*> self.bit_vector_buf.data.as_chars
         memcpy(<void*> self.bit_vector, ptr, num_bytes)
 
+    cdef list _get_post_process_fns(self):
+        """
+        Returns a list of functions that need to be run after the database
+        response has been completely received. These functions can be
+        internally defined (for wrapping implementation objects with user
+        facing objects) or user defined (out converters). This prevents
+        multiple executions of functions (reparsing of database responses for
+        older databases without the end of response indicator) or interference
+        with any ongoing database response. Returning a list allows this
+        process to be determined commonly across sync and async in order to
+        avoid duplicating code.
+        """
+        cdef:
+            OracleMetadata metadata
+            uint32_t num_elements
+            uint8_t ora_type_num
+            ThinVarImpl var_impl
+            _PostProcessFn fn
+            list fns = []
+            bint is_async
+            object cls
+        is_async = self.conn_impl._protocol._transport._is_async
+        if self.out_var_impls is not None:
+            for var_impl in self.out_var_impls:
+                if var_impl is None:
+                    continue
+
+                # retain last raw value when not fetching Arrow (for handling
+                # duplicate rows)
+                if not self.cursor_impl.fetching_arrow:
+                    var_impl._last_raw_value = \
+                            var_impl._values[self.cursor_impl._last_row_index]
+
+                # determine the number of elements to process, if needed
+                if var_impl.is_array:
+                    num_elements = var_impl.num_elements_in_array
+                else:
+                    num_elements = self.row_index
+
+                # perform post conversion to user-facing objects, if applicable
+                if self.in_fetch:
+                    metadata = var_impl._fetch_metadata
+                else:
+                    metadata = var_impl.metadata
+                ora_type_num = metadata.dbtype._ora_type_num
+                if ora_type_num in (ORA_TYPE_NUM_CLOB,
+                                    ORA_TYPE_NUM_BLOB,
+                                    ORA_TYPE_NUM_BFILE):
+                    cls = PY_TYPE_ASYNC_LOB if is_async else PY_TYPE_LOB
+                    fn = _PostProcessFn.from_info(cls._from_impl, num_elements,
+                                                  var_impl._values)
+                    fns.append(fn)
+
+                # perform post conversion via user out converter, if applicable
+                if var_impl.outconverter is None:
+                    continue
+                fn = _PostProcessFn.from_info(var_impl.outconverter,
+                                              num_elements, var_impl._values,
+                                              var_impl.convert_nulls,
+                                              check_awaitable=True)
+                fns.append(fn)
+
+        return fns
+
     cdef bint _is_duplicate_data(self, uint32_t column_num):
         """
         Returns a boolean indicating if the given column contains data
@@ -1366,32 +1456,21 @@ cdef class MessageWithData(Message):
         database round-trip.
         """
         cdef:
-            uint32_t i, j, num_elements
             object value, element_value
-            ThinVarImpl var_impl
-        if self.out_var_impls is None:
-            return 0
-        for var_impl in self.out_var_impls:
-            if var_impl is None or var_impl.outconverter is None:
-                continue
-            if not self.cursor_impl.fetching_arrow:
-                var_impl._last_raw_value = \
-                        var_impl._values[self.cursor_impl._last_row_index]
-            if var_impl.is_array:
-                num_elements = var_impl.num_elements_in_array
-            else:
-                num_elements = self.row_index
-            for i in range(num_elements):
-                value = var_impl._values[i]
-                if value is None and not var_impl.convert_nulls:
+            _PostProcessFn fn
+            uint32_t i, j
+        for fn in self._get_post_process_fns():
+            for i in range(fn.num_elements):
+                value = fn.values[i]
+                if value is None and not fn.convert_nulls:
                     continue
                 if isinstance(value, list):
                     for j, element_value in enumerate(value):
-                        if element_value is None:
+                        if element_value is None and not fn.convert_nulls:
                             continue
-                        value[j] = var_impl.outconverter(element_value)
+                        value[j] = fn.fn(element_value)
                 else:
-                    var_impl._values[i] = var_impl.outconverter(value)
+                    fn.values[i] = fn.fn(value)
 
     async def postprocess_async(self):
         """
@@ -1401,39 +1480,28 @@ cdef class MessageWithData(Message):
         database round-trip.
         """
         cdef:
-            object value, element_value, fn
-            uint32_t i, j, num_elements
-            ThinVarImpl var_impl
-        if self.out_var_impls is None:
-            return 0
-        for var_impl in self.out_var_impls:
-            if var_impl is None or var_impl.outconverter is None:
-                continue
-            if not self.cursor_impl.fetching_arrow:
-                var_impl._last_raw_value = \
-                        var_impl._values[self.cursor_impl._last_row_index]
-            if var_impl.is_array:
-                num_elements = var_impl.num_elements_in_array
-            else:
-                num_elements = self.row_index
-            fn = var_impl.outconverter
-            for i in range(num_elements):
-                value = var_impl._values[i]
-                if value is None and not var_impl.convert_nulls:
+            object value, element_value
+            _PostProcessFn fn
+            uint32_t i, j
+        for fn in self._get_post_process_fns():
+            for i in range(fn.num_elements):
+                value = fn.values[i]
+                if value is None and not fn.convert_nulls:
                     continue
                 if isinstance(value, list):
                     for j, element_value in enumerate(value):
-                        if element_value is None:
+                        if element_value is None and not fn.convert_nulls:
                             continue
-                        element_value = fn(element_value)
-                        if inspect.isawaitable(element_value):
+                        element_value = fn.fn(element_value)
+                        if fn.check_awaitable \
+                                and inspect.isawaitable(element_value):
                             element_value = await element_value
                         value[j] = element_value
                 else:
-                    value = fn(value)
-                    if inspect.isawaitable(value):
+                    value = fn.fn(value)
+                    if fn.check_awaitable and inspect.isawaitable(value):
                         value = await value
-                    var_impl._values[i] = value
+                    fn.values[i] = value
 
     cdef int preprocess(self) except -1:
         cdef:

@@ -26,6 +26,9 @@ Thin Mode Changes
     closed connection
     (`issue 482 <https://github.com/oracle/python-oracledb/issues/482>`__).
 #)  Fixed bug when connecting with asyncio using the parameter ``https_proxy``.
+#)  Fixed bug when fetching LOBs with asyncio from databases prior to Oracle
+    Database 23ai
+    (`issue 500 <https://github.com/oracle/python-oracledb/issues/500>`__).
 #)  Fixed regression when connecting where only the host specified by the
     ``https_proxy`` parameter can successfully perform name resolution.
 #)  Fixed bug resulting in explicit request boundaries to aid planned database
