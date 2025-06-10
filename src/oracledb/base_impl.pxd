@@ -186,18 +186,13 @@ cpdef enum:
     VECTOR_FORMAT_FLOAT64 = 3
     VECTOR_FORMAT_INT8 = 4
 
-cdef type PY_TYPE_ASYNC_CURSOR
 cdef type PY_TYPE_ASYNC_LOB
-cdef type PY_TYPE_BOOL
-cdef type PY_TYPE_CURSOR
 cdef type PY_TYPE_DATE
 cdef type PY_TYPE_DATETIME
-cdef type PY_TYPE_DECIMAL
 cdef type PY_TYPE_DB_OBJECT
-cdef type PY_TYPE_DB_OBJECT_TYPE
-cdef type PY_TYPE_FETCHINFO
-cdef type PY_TYPE_JSON_ID
+cdef type PY_TYPE_DECIMAL
 cdef type PY_TYPE_INTERVAL_YM
+cdef type PY_TYPE_JSON_ID
 cdef type PY_TYPE_LOB
 cdef type PY_TYPE_MESSAGE
 cdef type PY_TYPE_MESSAGE_QUERY
@@ -205,7 +200,6 @@ cdef type PY_TYPE_MESSAGE_ROW
 cdef type PY_TYPE_MESSAGE_TABLE
 cdef type PY_TYPE_SPARSE_VECTOR
 cdef type PY_TYPE_TIMEDELTA
-cdef type PY_TYPE_VAR
 
 cdef str DRIVER_NAME
 cdef str DRIVER_VERSION

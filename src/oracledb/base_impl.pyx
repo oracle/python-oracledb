@@ -88,9 +88,10 @@ cdef type PY_TYPE_CURSOR
 cdef object PY_TYPE_DATAFRAME
 cdef type PY_TYPE_DATE = datetime.date
 cdef type PY_TYPE_DATETIME = datetime.datetime
-cdef type PY_TYPE_DECIMAL = decimal.Decimal
 cdef type PY_TYPE_DB_OBJECT
+cdef type PY_TYPE_DECIMAL = decimal.Decimal
 cdef type PY_TYPE_DB_OBJECT_TYPE
+cdef type PY_TYPE_FETCHINFO
 cdef type PY_TYPE_JSON_ID
 cdef type PY_TYPE_INTERVAL_YM
 cdef type PY_TYPE_LOB
@@ -101,7 +102,6 @@ cdef type PY_TYPE_MESSAGE_TABLE
 cdef type PY_TYPE_SPARSE_VECTOR
 cdef type PY_TYPE_TIMEDELTA = datetime.timedelta
 cdef type PY_TYPE_VAR
-cdef type PY_TYPE_FETCHINFO
 
 # enumerations used by the driver in connect parameters
 cdef object ENUM_AUTH_MODE
