@@ -400,6 +400,7 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
     cdef:
         dpiMsgProps* _handle
         ThickConnImpl _conn_impl
+        bint _has_been_dequeued
 
     def __dealloc__(self):
         if self._handle != NULL:
@@ -414,6 +415,7 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
             dpiJsonNode *node
             dpiJson *json
 
+        self._has_been_dequeued = True
         self._conn_impl = queue_impl._conn_impl
         if queue_impl.is_json:
             if dpiMsgProps_getPayloadJson(self._handle, &json) < 0:
@@ -480,12 +482,13 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
         Internal method for getting the enqueue time.
         """
         cdef dpiTimestamp timestamp
-        if dpiMsgProps_getEnqTime(self._handle, &timestamp) < 0:
-            _raise_from_odpi()
-        return cydatetime.datetime_new(timestamp.year, timestamp.month,
-                                       timestamp.day, timestamp.hour,
-                                       timestamp.minute, timestamp.second,
-                                       timestamp.fsecond // 1000, None)
+        if self._has_been_dequeued:
+            if dpiMsgProps_getEnqTime(self._handle, &timestamp) < 0:
+                _raise_from_odpi()
+            return cydatetime.datetime_new(timestamp.year, timestamp.month,
+                                           timestamp.day, timestamp.hour,
+                                           timestamp.minute, timestamp.second,
+                                           timestamp.fsecond // 1000, None)
 
     def get_exception_queue(self):
         """

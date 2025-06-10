@@ -43,6 +43,8 @@ Thick Mode Changes
     :attr:`DeqOptions.msgid`, :attr:`DeqOptions.transformation`,
     :attr:`EnqOptions.transformation`, :attr:`MessageProperties.correlation`,
     or :attr:`MessageProperties.exceptionq` are set to ``None``.
+#)  Fixed a bug resulting in a ``ValueError`` exception when getting attribute
+    :attr:`MessageProperties.enqtime` if the value is not available or None.
 
 Common Changes
 ++++++++++++++

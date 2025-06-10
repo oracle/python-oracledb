@@ -140,6 +140,7 @@ class TestCase(test_env.BaseTestCase):
         self.__verify_attr(props, "priority", 1)
         self.assertEqual(props.state, oracledb.MSG_READY)
         self.assertEqual(props.deliverymode, 0)
+        self.assertIsNone(props.enqtime)
 
     def test_7807(self):
         "7807 - test enqueue visibility option - ENQ_ON_COMMIT"
