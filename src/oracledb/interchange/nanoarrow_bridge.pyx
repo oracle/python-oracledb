@@ -88,12 +88,8 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
                                      int64_t additional_size_elements)
     ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
-    ArrowErrorCode ArrowArrayViewInitFromSchema(ArrowArrayView* array_view,
-                                                const ArrowSchema* schema,
-                                                ArrowError* error)
-    ArrowErrorCode ArrowArrayViewSetArray(ArrowArrayView* array_view,
-                                          const ArrowArray* array,
-                                          ArrowError* error)
+    ArrowErrorCode ArrowArrayViewInitFromArray(ArrowArrayView* array_view,
+                                               ArrowArray* array)
     int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
     ArrowBufferAllocator ArrowBufferDeallocator(ArrowBufferDeallocatorCallback,
                                                 void *private_data)
@@ -420,9 +416,7 @@ cdef class OracleArrowArray:
             int64_t n_buffers = self.arrow_array.n_buffers
             ArrowBufferView *buffer
             ArrowArrayView view
-        _check_nanoarrow(ArrowArrayViewInitFromSchema(&view, self.arrow_schema,
-                                                      NULL))
-        _check_nanoarrow(ArrowArrayViewSetArray(&view, self.arrow_array, NULL))
+        _check_nanoarrow(ArrowArrayViewInitFromArray(&view, self.arrow_array))
 
         # initialize all buffers to None to begin with
         buffers = {
