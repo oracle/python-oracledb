@@ -68,10 +68,14 @@ Common Changes
 
 #)  Added parameter ``pool_name`` to connection and pool creation methods to
     support Oracle Database 23ai multi-pool :ref:`drcp`.
-#)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
-    (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
-#)  Fix bug with GitHub build action merge artifacts step
-    (`issue 495 <https://github.com/oracle/python-oracledb/issues/495>`__).
+#)  :ref:`GitHub Action <installghactions>` workflow updates:
+
+    - Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
+      (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
+    - Allow the GitHub build action to build a user-chosen subset of packages.
+    - Fix bug with GitHub build action merge artifacts step
+      (`issue 495 <https://github.com/oracle/python-oracledb/issues/495>`__).
+
 #)  Error ``DPY-2064: parameter 'max' should be greater than or equal to
     parameter 'min'`` is now raised when a call to
     :meth:`oracledb.create_pool()`, :meth:`oracledb.create_pool_async()`

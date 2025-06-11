@@ -1,15 +1,21 @@
-name: build
+name: Build python-oracledb packages
 
 on:
   push:
     tags:
       - v*
   workflow_dispatch:
+    inputs:
+      tgt:
+        description: List of package targets to build
+        default: 'Linux, macOS, Windows, Source'
+        required: false
 
 jobs:
 
   build_source_package:
     name: Build source package
+    if: contains(inputs.tgt, 'Source') || inputs.tgt == ''
     runs-on: ubuntu-latest
     steps:
 
@@ -36,6 +42,7 @@ jobs:
 
   build_linux_wheels:
     name: Build wheels for Linux
+    if: contains(inputs.tgt, 'Linux') || inputs.tgt == ''
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -82,12 +89,13 @@ jobs:
           name: Linux_${{ matrix.platform }}_wheels
           path: dist/*.whl
 
-  build_non_linux_wheels:
+  build_macos_wheels:
     name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
+    if: contains(inputs.tgt, 'macOS') || inputs.tgt == ''
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [macos-latest]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
         arch: ['x86', '']
         exclude:
@@ -118,9 +126,44 @@ jobs:
           name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.arch }}
           path: dist/*.whl
 
+  build_windows_wheels:
+    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
+    if: contains(inputs.tgt, 'Windows') || inputs.tgt == ''
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        arch: ['x86', '']
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
+          allow-prereleases: true
+
+      - name: Ensure build package is present
+        run: python -m pip install build
+
+      - name: Build wheel for Python ${{ matrix.python-version }}
+        run: python -m build
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.arch }}
+          path: dist/*.whl
+
   combine_artifacts:
     name: Combine artifacts into single artifact
-    needs: [build_source_package, build_linux_wheels, build_non_linux_wheels]
+    if: ${{ always() }}
+    needs: [build_source_package, build_linux_wheels, build_macos_wheels, build_windows_wheels]
     runs-on: ubuntu-latest
 
     steps:

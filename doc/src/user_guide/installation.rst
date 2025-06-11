@@ -1010,18 +1010,19 @@ Python versions.
    `ODPI-C repository <https://github.com/oracle/odpi/fork>`__, keeping the
    default name.
 
-2. Optionally edit ``.github/workflows/build.yaml`` and remove platforms and
-   versions that you are not interested in. Building all packages can take some
-   time.
-
-3. In your python-oracledb fork, go to the Actions tab
+2. In your python-oracledb fork, go to the Actions tab
    ``https://github.com/<your name>/python-oracledb/actions/``.  If this is
    your first time using Actions, confirm enabling them.
 
-4. In the "All workflows" list on the left-hand side, select the "build" entry.
+3. In the "All workflows" list on the left-hand side, select the "Build
+   python-oracledb packages" entry.
 
-5. Navigate to the "Run workflow" drop-down, select the branch to build from
+4. Navigate to the "Run workflow" drop-down, select the branch to build from
    (for example, "main"), and run the workflow.
+
+5. Optionally edit the input field list of package targets and remove targets
+   you do not want to build. For example, remove "Linux" if you do not want
+   Linux packages.
 
 6. When the build has completed, download the "python-oracledb-wheels"
    artifact, unzip it, and install the one for your architecture and Python
