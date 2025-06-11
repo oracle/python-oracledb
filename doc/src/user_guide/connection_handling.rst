@@ -3084,7 +3084,8 @@ specifying a class name, you can call:
                                 cclass="MYAPP")
 
 If ``cclass`` is not set, then the pooled server sessions will not be reused
-optimally, and the DRCP statistic views may record large values for NUM_MISSES.
+optimally, and the :ref:`DRCP statistic views <monitoringdrcp>` may record
+large values for NUM_MISSES.
 
 **DRCP Connection Purity**
 

@@ -9,10 +9,14 @@ This directory contains the test suite for python-oracledb.
 
         python create_schema.py
 
-2.  Run the test suite by issuing the following command in the top-level
+2.  Install tox:
+
+        python -m pip install tox
+
+3.  Run the test suite by issuing the following command in the top-level
     directory of your oracledb installation:
 
-        tox
+        python -m tox
 
     This will build the module in an independent environment and run the test
     suite using the module that was just built in that environment.
@@ -25,7 +29,7 @@ This directory contains the test suite for python-oracledb.
 
         python test_1000_module.py
 
-3.  After running the test suite, the schemas can be dropped by running the
+4.  After running the test suite, the schemas can be dropped by running the
     Python script [drop_schema.py][3]. The script requires administrative
     privileges and will prompt for these credentials as well as the names of
     the schemas that will be dropped, unless a number of environment variables
@@ -34,12 +38,12 @@ This directory contains the test suite for python-oracledb.
 
         python drop_schema.py
 
-4.  Enable tests that require extra configuration
+5.  Enable tests that require extra configuration
 
     The following test(s) are automatically skipped if their required
     environment variable(s) and setup is not available.
 
-    4.1  test_5000_externalauth.py
+    5.1  test_5000_externalauth.py
 
          This test aims to test the usage of external authentication.
 

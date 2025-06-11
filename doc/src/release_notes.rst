@@ -22,6 +22,9 @@ Thin Mode Changes
 #)  Emulate support for :meth:`Queue.deqmany()` with JSON payloads when using
     Oracle Database 21c by internally calling :meth:`Queue.deqone()` as many
     times as needed.
+#)  Pooled connections that are no longer needed are now closed normally if
+    possible instead of simply having the socket disconnected
+    (`issue 393 <https://github.com/oracle/python-oracledb/issues/393>`__).
 #)  Fixed bug when a connection pool internally makes an attempt to ping a
     closed connection
     (`issue 482 <https://github.com/oracle/python-oracledb/issues/482>`__).
@@ -33,11 +36,8 @@ Thin Mode Changes
     ``https_proxy`` parameter can successfully perform name resolution.
 #)  Fixed bug resulting in explicit request boundaries to aid planned database
     maintenance not being sent when using connection pools with asyncio.
-#)  Pooled connections that are no longer needed are now closed normally if
-    possible instead of simply having the socket disconnected
-    (`issue 393 <https://github.com/oracle/python-oracledb/issues/393>`__).
 #)  Fixed bug resulting in ``TypeError`` when using
-    :attr:`DeqOptions.correlation`` for buffered delivery mode.
+    :attr:`DeqOptions.correlation` for buffered delivery mode.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -54,8 +54,6 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Added parameter ``pool_name`` to connection and pool creation methods to
-    support Oracle Database 23ai multi-pool :ref:`drcp`.
 #)  Added Instance Principal authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`.
 #)  Improvements to :ref:`data frames <dataframeformat>`:
@@ -65,6 +63,8 @@ Common Changes
     - Fixed bug on Windows when fetching dates prior to 1970 and after 2038
       (`issue 483 <https://github.com/oracle/python-oracledb/issues/483>`__).
 
+#)  Added parameter ``pool_name`` to connection and pool creation methods to
+    support Oracle Database 23ai multi-pool :ref:`drcp`.
 #)  Use GitHub Arm Linux runner for builds. Supplied by wojiushixiaobai
     (`PR 496 <https://github.com/oracle/python-oracledb/pull/496>`__).
 #)  Fix bug with GitHub build action merge artifacts step
@@ -72,9 +72,9 @@ Common Changes
 #)  Error ``DPY-2064: parameter 'max' should be greater than or equal to
     parameter 'min'`` is now raised when a call to
     :meth:`oracledb.create_pool()`, :meth:`oracledb.create_pool_async()`
-    or :meth:`oracledb.PoolParams()` is made with parameter "max" less than the
-    parameter "min". Previously python-oracledb Thin mode did not raise an
-    error and python-oracledb Thick mode raised the exception
+    or :meth:`oracledb.PoolParams()` is made with parameter ``max`` less than
+    the parameter ``min``. Previously python-oracledb Thin mode did not raise
+    an error and python-oracledb Thick mode raised the exception
     ``ORA-24413: Invalid number of sessions specified``.
 #)  Improved the test suite and documentation.
 
