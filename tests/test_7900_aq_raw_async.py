@@ -187,6 +187,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             results = value
             await other_conn.commit()
             self.assertEqual(results, self.raw_data[0])
+            self.assertEqual(props.deliverymode, oracledb.MSG_BUFFERED)
 
     async def test_7910(self):
         "7910 - test enqueue/dequeue delivery modes identical - persistent"
@@ -208,6 +209,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             results = value
             await other_conn.commit()
             self.assertEqual(results, self.raw_data[0])
+            self.assertEqual(props.deliverymode, oracledb.MSG_PERSISTENT)
 
     async def test_7911(self):
         "7911 - test enqueue/dequeue delivery modes the same"

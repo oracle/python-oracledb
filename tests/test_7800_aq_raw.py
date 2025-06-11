@@ -199,6 +199,7 @@ class TestCase(test_env.BaseTestCase):
         results = value
         other_conn.commit()
         self.assertEqual(results, self.raw_data[0])
+        self.assertEqual(props.deliverymode, oracledb.MSG_BUFFERED)
 
     def test_7810(self):
         "7810 - test enqueue/dequeue delivery modes identical - persistent"
@@ -220,6 +221,7 @@ class TestCase(test_env.BaseTestCase):
         results = value
         other_conn.commit()
         self.assertEqual(results, self.raw_data[0])
+        self.assertEqual(props.deliverymode, oracledb.MSG_PERSISTENT)
 
     def test_7811(self):
         "7811 - test enqueue/dequeue delivery modes the same"

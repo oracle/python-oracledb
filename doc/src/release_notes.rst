@@ -36,6 +36,8 @@ Thin Mode Changes
     ``https_proxy`` parameter can successfully perform name resolution.
 #)  Fixed bug resulting in explicit request boundaries to aid planned database
     maintenance not being sent when using connection pools with asyncio.
+#)  Fixed bug populating :attr:`MessageProperties.deliverymode` after dequeue,
+    which is set using :attr:`DeqOptions.deliverymode`.
 #)  Fixed bug resulting in ``TypeError`` when using
     :attr:`DeqOptions.correlation` for buffered delivery mode.
 #)  Fixed bug when fetching multiple consecutive null values into a data frame.
