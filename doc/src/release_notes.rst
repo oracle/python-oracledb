@@ -38,6 +38,7 @@ Thin Mode Changes
     maintenance not being sent when using connection pools with asyncio.
 #)  Fixed bug resulting in ``TypeError`` when using
     :attr:`DeqOptions.correlation` for buffered delivery mode.
+#)  Fixed bug when fetching multiple consecutive null values into a data frame.
 
 Thick Mode Changes
 ++++++++++++++++++

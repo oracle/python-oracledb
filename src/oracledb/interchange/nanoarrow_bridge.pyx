@@ -55,6 +55,9 @@ cdef extern from "nanoarrow/nanoarrow.c":
         ArrowBufferViewData data
         int64_t size_bytes
 
+    cdef struct ArrowBitmap:
+        ArrowBuffer buffer
+
     cdef struct ArrowArrayView:
         ArrowBufferView *buffer_views
 
@@ -88,6 +91,7 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
                                      int64_t additional_size_elements)
     ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
+    ArrowBitmap* ArrowArrayValidityBitmap(ArrowArray* array)
     ArrowErrorCode ArrowArrayViewInitFromArray(ArrowArrayView* array_view,
                                                ArrowArray* array)
     int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
@@ -335,8 +339,15 @@ cdef class OracleArrowArray:
             int64_t index
             uint8_t *ptr
             void* temp
+            ArrowBitmap *bitamp
         if array is None:
             array = self
+        bitmap = ArrowArrayValidityBitmap(array.arrow_array)
+        if bitmap != NULL and bitmap.buffer.data != NULL:
+            as_bool = ArrowBitGet(bitmap.buffer.data, index)
+            if not as_bool:
+                self.append_null()
+                return 0
         index = array.arrow_array.length - 1
         if array.arrow_type in (NANOARROW_TYPE_INT64, NANOARROW_TYPE_TIMESTAMP):
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)

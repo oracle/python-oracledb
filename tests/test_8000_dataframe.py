@@ -633,6 +633,45 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
+    def test_8027(self):
+        "8027 - fetch data with multiple rows containing null values"
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            select to_date(null) as data from dual
+            union all
+            select to_date(null) as data from dual
+            union all
+            select to_date(null) as data from dual
+            union all
+            select to_date('2025-06-11', 'YYYY-MM-DD') as data from dual
+            union all
+            select to_date(null) as data from dual
+            union all
+            select to_date(null) as data from dual
+            union all
+            select to_date(null) as data from dual
+            union all
+            select to_date(null) as data from dual
+            """
+        )
+        data = [
+            (None,),
+            (None,),
+            (None,),
+            (datetime.datetime(2025, 6, 11),),
+            (None,),
+            (None,),
+            (None,),
+            (None,),
+        ]
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        fetched_df = fetched_tab.to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
