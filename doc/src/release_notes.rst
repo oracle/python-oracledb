@@ -40,7 +40,8 @@ Thin Mode Changes
     which is set using :attr:`DeqOptions.deliverymode`.
 #)  Fixed bug resulting in ``TypeError`` when using
     :attr:`DeqOptions.correlation` for buffered delivery mode.
-#)  Fixed bug when fetching multiple consecutive null values into a data frame.
+#)  Fixed bug when fetching multiple consecutive null values into a :ref:`data
+    frame <dataframeformat>`.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -52,7 +53,8 @@ Thick Mode Changes
     :attr:`EnqOptions.transformation`, :attr:`MessageProperties.correlation`,
     or :attr:`MessageProperties.exceptionq` are set to ``None``.
 #)  Fixed a bug resulting in a ``ValueError`` exception when getting attribute
-    :attr:`MessageProperties.enqtime` if the value is not available or None.
+    :attr:`MessageProperties.enqtime` if the value is not available or
+    ``None``.
 
 Common Changes
 ++++++++++++++
