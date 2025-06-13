@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -600,10 +600,13 @@ cdef class ThickMsgPropsImpl(BaseMsgPropsImpl):
         json_buf.from_object(json_val)
         if dpiConn_newJson(self._conn_impl._handle, &json) < 0:
             _raise_from_odpi()
-        if dpiJson_setValue(json, &json_buf._top_node) < 0:
-            _raise_from_odpi()
-        if dpiMsgProps_setPayloadJson(self._handle, json) < 0:
-            _raise_from_odpi()
+        try:
+            if dpiJson_setValue(json, &json_buf._top_node) < 0:
+                _raise_from_odpi()
+            if dpiMsgProps_setPayloadJson(self._handle, json) < 0:
+                _raise_from_odpi()
+        finally:
+            dpiJson_release(json)
 
     def set_priority(self, int32_t value):
         """

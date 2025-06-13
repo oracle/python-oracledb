@@ -55,6 +55,8 @@ Thick Mode Changes
 #)  Fixed a bug resulting in a ``ValueError`` exception when getting attribute
     :attr:`MessageProperties.enqtime` if the value is not available or
     ``None``.
+#)  Fixed a memory leak when enqueuing to JSON queues with
+    :ref:`Oracle Advanced Queuing <aqusermanual>`.
 
 Common Changes
 ++++++++++++++
