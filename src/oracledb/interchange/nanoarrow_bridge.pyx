@@ -342,13 +342,13 @@ cdef class OracleArrowArray:
             ArrowBitmap *bitamp
         if array is None:
             array = self
+        index = array.arrow_array.length - 1
         bitmap = ArrowArrayValidityBitmap(array.arrow_array)
         if bitmap != NULL and bitmap.buffer.data != NULL:
             as_bool = ArrowBitGet(bitmap.buffer.data, index)
             if not as_bool:
                 self.append_null()
                 return 0
-        index = array.arrow_array.length - 1
         if array.arrow_type in (NANOARROW_TYPE_INT64, NANOARROW_TYPE_TIMESTAMP):
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_int64 = <int64_t*> data_buffer.data

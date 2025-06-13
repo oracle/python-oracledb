@@ -638,6 +638,8 @@ class TestCase(test_env.BaseTestCase):
         self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
+            select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
+            union all
             select to_date(null) as data from dual
             union all
             select to_date(null) as data from dual
@@ -656,6 +658,7 @@ class TestCase(test_env.BaseTestCase):
             """
         )
         data = [
+            (datetime.datetime(2025, 6, 12),),
             (None,),
             (None,),
             (None,),
