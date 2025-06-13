@@ -69,6 +69,8 @@ Common Changes
       (`issue 499 <https://github.com/oracle/python-oracledb/issues/499>`__).
     - Fixed bug on Windows when fetching dates prior to 1970 and after 2038
       (`issue 483 <https://github.com/oracle/python-oracledb/issues/483>`__).
+    - Added support for the NCHAR, NVARCHAR and NCLOB data types
+      (`issue 505 <https://github.com/oracle/python-oracledb/issues/505>`__).
 
 #)  Added parameter ``pool_name`` to connection and pool creation methods to
     support Oracle Database 23ai multi-pool :ref:`drcp`.

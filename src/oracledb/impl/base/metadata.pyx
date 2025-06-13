@@ -71,7 +71,8 @@ cdef class OracleMetadata:
                 self._arrow_type = NANOARROW_TYPE_INT64
             else:
                 self._arrow_type = NANOARROW_TYPE_DOUBLE
-        elif db_type_num in (DB_TYPE_NUM_CHAR, DB_TYPE_NUM_VARCHAR):
+        elif db_type_num in (DB_TYPE_NUM_CHAR, DB_TYPE_NUM_VARCHAR,
+                             DB_TYPE_NUM_NCHAR, DB_TYPE_NUM_NVARCHAR):
             self._arrow_type = NANOARROW_TYPE_STRING
         elif db_type_num == DB_TYPE_NUM_BINARY_FLOAT:
             self._arrow_type = NANOARROW_TYPE_FLOAT
@@ -86,7 +87,8 @@ cdef class OracleMetadata:
             self._arrow_type = NANOARROW_TYPE_TIMESTAMP
         elif db_type_num == DB_TYPE_NUM_LONG_RAW:
             self._arrow_type = NANOARROW_TYPE_LARGE_BINARY
-        elif db_type_num == DB_TYPE_NUM_LONG_VARCHAR:
+        elif db_type_num in (DB_TYPE_NUM_LONG_VARCHAR,
+                             DB_TYPE_NUM_LONG_NVARCHAR):
             self._arrow_type = NANOARROW_TYPE_LARGE_STRING
         elif db_type_num == DB_TYPE_NUM_RAW:
             self._arrow_type = NANOARROW_TYPE_BINARY

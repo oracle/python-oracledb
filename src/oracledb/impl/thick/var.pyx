@@ -369,8 +369,11 @@ cdef class ThickVarImpl(BaseVarImpl):
                 ora_data.buffer.as_bool = data.value.asBoolean
             elif ora_type_num in (
                 DPI_ORACLE_TYPE_CHAR,
+                DPI_ORACLE_TYPE_LONG_NVARCHAR,
                 DPI_ORACLE_TYPE_LONG_VARCHAR,
                 DPI_ORACLE_TYPE_LONG_RAW,
+                DPI_ORACLE_TYPE_NCHAR,
+                DPI_ORACLE_TYPE_NVARCHAR,
                 DPI_ORACLE_TYPE_RAW,
                 DPI_ORACLE_TYPE_VARCHAR,
             ):
