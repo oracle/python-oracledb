@@ -672,6 +672,71 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
+    def test_8028(self):
+        "8028 - verify dtype for all Arrow types"
+        query = """
+            select
+                cast(1 as number(10)) as col_int64,
+                cast(1.23 as binary_double) as col_double,
+                cast(7.14 as binary_float) as col_float,
+                cast('abcd' as varchar2(10)) as col_string,
+                cast(systimestamp as timestamp(0)) as col_ts_sec,
+                cast(systimestamp as timestamp(3)) as col_ts_ms,
+                cast(systimestamp as timestamp(6)) as col_ts_us,
+                cast(systimestamp as timestamp(9)) as col_ts_ns,
+                to_clob('abc') as col_large_string,
+                utl_raw.cast_to_raw('abc2') as col_binary,
+                to_blob(utl_raw.cast_to_raw('abc3')) as col_large_binary
+            from dual
+        """
+        decimal_query = (
+            "select cast(123.45 as decimal(10, 2)) as col_decimal128"
+        )
+
+        # determine dtype kind enumeration
+        ora_df = self.conn.fetch_df_all("select user from dual")
+        col = ora_df.get_column(0)
+        dtype_kind = type(col.dtype[0])
+
+        expected_dtypes = {
+            "COL_INT64": (dtype_kind.INT, 64, "l", "="),
+            "COL_DOUBLE": (dtype_kind.FLOAT, 64, "g", "="),
+            "COL_FLOAT": (dtype_kind.FLOAT, 64, "g", "="),
+            "COL_STRING": (dtype_kind.STRING, 8, "u", "="),
+            "COL_TS_SEC": (dtype_kind.DATETIME, 64, "tss:", "="),
+            "COL_TS_MS": (dtype_kind.DATETIME, 64, "tsm:", "="),
+            "COL_TS_US": (dtype_kind.DATETIME, 64, "tsu:", "="),
+            "COL_TS_NS": (dtype_kind.DATETIME, 64, "tsn:", "="),
+            "COL_LARGE_STRING": (dtype_kind.STRING, 8, "U", "="),
+            "COL_BINARY": (dtype_kind.STRING, 8, "z", "="),
+            "COL_LARGE_BINARY": (dtype_kind.STRING, 8, "Z", "="),
+            "COL_DECIMAL128": (dtype_kind.DECIMAL, 128, "d:10.2", "="),
+        }
+
+        # check query without fetch_decimals enabled
+        ora_df = self.conn.fetch_df_all(query)
+        for i, name in enumerate(ora_df.column_names()):
+            col = ora_df.get_column(i)
+            self.assertEqual(col.dtype, expected_dtypes[name])
+
+        # check query with fetch_decimals enabled
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            ora_df = self.conn.fetch_df_all(decimal_query)
+            col = ora_df.get_column(0)
+            self.assertEqual(col.dtype, expected_dtypes["COL_DECIMAL128"])
+
+    def test_8029(self):
+        "8029 - verify get_buffers() with data frames containing null values"
+        self.__populate_table(DATASET_2)
+        statement = "select * from TestDataFrame order by Id"
+        ora_df = self.conn.fetch_df_all(statement)
+        country_col = ora_df.get_column_by_name("COUNTRY")
+        buffers = country_col.get_buffers()
+        self.assertEqual(len(buffers), 3)
+        self.assertIsNotNone(buffers["data"])
+        self.assertIsNotNone(buffers["offsets"])
+        self.assertIsNotNone(buffers["validity"])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
