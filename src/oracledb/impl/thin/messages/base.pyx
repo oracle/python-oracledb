@@ -1415,12 +1415,12 @@ cdef class MessageWithData(Message):
         first followed by any LONG values.
         """
         cdef:
-            uint32_t i, num_elements, offset = self.offset
+            uint32_t num_elements, offset = self.offset
             bint found_long = False
             OracleMetadata metadata
             ThinVarImpl var_impl
             BindInfo bind_info
-        for i, bind_info in enumerate(params):
+        for bind_info in params:
             if bind_info._is_return_bind:
                 continue
             var_impl = bind_info._bind_var_impl
@@ -1438,7 +1438,7 @@ cdef class MessageWithData(Message):
                 self._write_bind_params_column(buf, metadata,
                                                var_impl._values[pos + offset])
         if found_long:
-            for i, bind_info in enumerate(params):
+            for bind_info in params:
                 if bind_info._is_return_bind:
                     continue
                 var_impl = bind_info._bind_var_impl
