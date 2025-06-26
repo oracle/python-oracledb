@@ -67,6 +67,7 @@ cdef class AqDeqMessage(AqBaseMessage):
              bytes consumer_name_bytes
              bytes correlation_bytes
              bytes condition_bytes
+             bytes msgid_bytes
              uint16_t delivery_mode
              int deq_flags
         self._write_function_code(buf)
@@ -135,7 +136,10 @@ cdef class AqDeqMessage(AqBaseMessage):
         if consumer_name_bytes is not None:
             buf.write_bytes_with_length(consumer_name_bytes)
         if self.deq_options_impl.msgid:
-            buf.write_bytes(self.deq_options_impl.msgid)
+            msgid_bytes = self.deq_options_impl.msgid[:16]
+            if len(msgid_bytes) < 16:
+                msgid_bytes += bytes(16 - len(msgid_bytes))
+            buf.write_bytes(msgid_bytes)
         if correlation_bytes is not None:
             buf.write_bytes_with_length(correlation_bytes)
         buf.write_bytes(self.queue_impl.payload_toid)

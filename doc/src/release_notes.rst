@@ -42,6 +42,8 @@ Thin Mode Changes
     :attr:`DeqOptions.correlation` for buffered delivery mode.
 #)  Fixed bug when fetching multiple consecutive null values into a :ref:`data
     frame <dataframeformat>`.
+#)  Fixed bug using :ref:`Oracle Advanced Queuing <aqusermanual>` when
+    attempting to dequeue using an invalid :attr:`DeqOptions.msgid`.
 
 Thick Mode Changes
 ++++++++++++++++++

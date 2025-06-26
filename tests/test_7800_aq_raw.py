@@ -482,6 +482,22 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(msg.payload, value)
 
+    def test_7830(self):
+        "7830 - test deq options with msgid > 16 bytes"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        queue.deqoptions.msgid = b"invalid_msgid_123456789"
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        with self.assertRaisesFullCode("ORA-25263"):
+            queue.deqone()
+
+    def test_7831(self):
+        "7831 - test deq options with msgid < 16 bytes"
+        queue = self.get_and_clear_queue("TEST_RAW_QUEUE")
+        queue.deqoptions.msgid = b"short_msgid"
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        with self.assertRaisesFullCode("ORA-25263"):
+            queue.deqone()
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
