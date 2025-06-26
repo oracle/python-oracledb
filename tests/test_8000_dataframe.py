@@ -716,7 +716,7 @@ class TestCase(test_env.BaseTestCase):
             from dual
         """
         decimal_query = (
-            "select cast(123.45 as decimal(10, 2)) as col_decimal128"
+            "select cast(123.45 as decimal(10, 2)) as col_decimal128 from dual"
         )
 
         # determine dtype kind enumeration
