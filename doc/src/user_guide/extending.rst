@@ -70,7 +70,7 @@ instead::
                 select department_name
                 from departments
                 where department_id = :id
-    ORA-00942: table or view does not exist
+    ORA-00942: table or view "HR"."DEPARTMENTS" does not exist
 
 In production applications, be careful not to log sensitive information.
 
@@ -174,6 +174,7 @@ strings prefixed with "myprefix://".
            zip_safe = False
            package_dir =
                =src
+           install_requires = oracledb
 
            [options.packages.find]
            where = src
@@ -223,6 +224,31 @@ strings prefixed with "myprefix://".
 7. To uninstall the plugin, simply remove the package::
 
        python -m pip uninstall myplugin
+
+Another sample plugin shows how all connection creations can be logged,
+regardless of the connection string. If the plugin
+``myplugin/src/oracledb/plugins/myplugin.py`` registers a :ref:`connection
+parameter hook <paramshook>`:
+
+.. code-block:: python
+
+    import oracledb
+
+    def my_params_hook(params: oracledb.ConnectParams):
+        print(f"Connecting to the database as {params.user}")
+
+    oracledb.register_params_hook(my_params_hook)
+
+Then running an application that contains:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb")
+
+will print the trace output::
+
+    Connecting to the database as hr
 
 .. _connectionhooks:
 

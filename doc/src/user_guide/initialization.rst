@@ -312,9 +312,10 @@ terminal.
 Explicitly Enabling python-oracledb Thin Mode
 =============================================
 
-Python-oracledb defaults to Thin mode after determining that Thick mode is not
-going to be used.  In one special case, you may wish to explicitly enable Thin
-mode to prevent Thick mode from being enabled later.
+Python-oracledb defaults to Thin mode but can be changed to use Thick mode. In
+one special case, you may wish to explicitly enable Thin mode by calling
+:meth:`oracledb.enable_thin_mode()` which will prevent Thick mode from ever
+being used. Most applications will not need to call this method.
 
 To allow application portability, the driver's internal logic allows
 applications to initially attempt :ref:`standalone connection
@@ -325,7 +326,8 @@ version that requires Thick mode.  This heuristic means Thin mode is not
 enforced until the initial connection is successful.  Since all connections
 must be the same mode, any second and subsequent concurrent Thin mode
 connection attempt will wait for the initial standalone connection to succeed,
-meaning the driver mode is no longer potentially changeable to Thick mode.
+meaning the driver mode is no longer potentially changeable to Thick mode, thus
+letting those additional connections be established in Thin mode.
 
 If you have multiple threads concurrently creating standalone Thin mode
 connections, you may wish to call :meth:`oracledb.enable_thin_mode()` as part

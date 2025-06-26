@@ -187,13 +187,9 @@ For an application that does a single query, the log file might contain a
 tracing line consisting of the prefix 'ODPI', a thread identifier, a timestamp,
 and the SQL statement executed::
 
-    ODPI [26188] 2019-03-26 09:09:03.909: ODPI-C 3.1.1
-    ODPI [26188] 2019-03-26 09:09:03.909: debugging messages initialized at level 16
-    ODPI [26188] 2019-03-26 09:09:09.917: SQL SELECT * FROM jobss
-    Traceback (most recent call last):
-    File "end-to-endtracing.py", line 14, in <module>
-      cursor.execute("select * from jobss")
-    oracledb.DatabaseError: ORA-00942: table or view does not exist
+    ODPI [23389068] 2025-06-25 12:07:55.405: ODPI-C 5.5.1
+    ODPI [23389068] 2025-06-25 12:07:55.405: debugging messages initialized at level 16
+    ODPI [23389068] 2025-06-25 12:08:01.363: SQL select name from jobs
 
 See `ODPI-C Debugging
 <https://oracle.github.io/odpi/doc/user_guide/debugging.html>`__ for

@@ -424,6 +424,10 @@ need to be made in addition to the common :ref:`commonupgrade`:
    environment variable.  Thick mode does use these variables.  See
    :ref:`globalization`.
 
+9. If SQL statements contain repeated bind variable placeholder names, and you
+   are :ref:`binding by position <bindbyposition>`, then make sure that a value
+   is passed for each use of the placeholder, see :ref:`dupbindplaceholders`.
+
 .. _upgradethick:
 
 Additional Upgrade Steps to use python-oracledb Thick Mode

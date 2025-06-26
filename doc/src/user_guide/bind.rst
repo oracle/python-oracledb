@@ -146,14 +146,36 @@ Python tuples can also be used for binding by position:
 If only a single bind placeholder is used in the SQL or PL/SQL statement, the
 data can be a list like ``[280]`` or a single element tuple like ``(280,)``.
 
-When using bind by position for SQL statements, the order of the bind values
-must exactly match the order of each bind variable and duplicated names must
-have their values repeated. For PL/SQL statements, however, the order of the
-bind values must exactly match the order of each **unique** bind variable found
-in the PL/SQL block and values should not be repeated. In order to avoid this
-difference, binding by name is recommended when bind variable names are
+.. _dupbindplaceholders:
+
+Duplicate Bind Variable Placeholders
+====================================
+
+:ref:`Binding by name <bindbyname>` is recommended when bind variable
+placeholder names are repeated in statements.
+
+In python-oracledb Thin mode, when :ref:`binding by position <bindbyposition>`
+for SQL statements, the order of the bind values must exactly match the order
+of each bind variable placeholder and duplicated names must have their values
+repeated:
+
+.. code-block:: python
+
+    cursor.execute("""
+            select dname from dept1 where deptno = :1
+            union all
+            select dname from dept2 where deptno = :1 = """, [30, 30])
+
+In some cases python-oracledb Thick mode may allow non-duplicated values for
+SQL statements, but this usage is not consistent and is not recommended. It
+will result in an error in python-oracledb Thin mode.
+
+When binding by position for PL/SQL calls in python-oracledb Thin or Thick
+modes, the order of the bind values must exactly match the order of each
+**unique** placeholder found in the PL/SQL block and values should not be
 repeated.
 
+Binding by name does not have these issues.
 
 Bind Direction
 ==============

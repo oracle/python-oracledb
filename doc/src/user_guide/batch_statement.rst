@@ -4,6 +4,16 @@
 Batch Statement and Bulk Copy Operations
 ****************************************
 
+Python-oracledb is perfect for large ETL ("Extract, Transform, Load") data
+operations.
+
+This chapter focuses on efficient data ingestion. Python-oracledb lets you
+easily optimize batch insertion, and also allows "noisy" data (values not in a
+suitable format) to be filtered for review while other, correct, values are
+inserted.
+
+Related topics include :ref:`tuning` and :ref:`dataframeformat`.
+
 Batch Statement Execution
 =========================
 
@@ -12,7 +22,7 @@ Inserting, updating or deleting multiple rows can be performed efficiently with
 python-oracledb.  This method can significantly outperform repeated calls to
 :meth:`Cursor.execute()` by reducing network transfer costs and database
 overheads.  The :meth:`~Cursor.executemany()` method can also be used to
-execute PL/SQL statements multiple times at once.
+execute a PL/SQL statement multiple times in one call.
 
 There are examples in the `GitHub examples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__
@@ -91,6 +101,8 @@ the bind variable placeholder names:
     ]
     cursor.executemany("insert into ParentTable values :pid, :pdesc)", data)
 
+
+.. _predefmemory:
 
 Predefining Memory Areas
 ------------------------
@@ -505,7 +517,8 @@ Bulk Copying Data between Databases
 -----------------------------------
 
 The :meth:`Cursor.executemany()` function is useful for copying data from one
-database to another:
+database to another, for example in an ETL ("Extract, Transform, Load")
+workflow:
 
 .. code-block:: python
 
@@ -523,21 +536,37 @@ database to another:
     # Perform bulk fetch and insertion
     source_cursor.execute("select c1, c2 from MySrcTable")
     while True:
+
+        # Extract the records
         rows = source_cursor.fetchmany()
         if not rows:
             break
+
+        # Optionally transform the records here
+        # ...
+
+        # Load the records into the target database
         target_cursor.executemany("insert into MyDestTable values (:1, :2)", rows)
 
     target_connection.commit()
 
-Tune the :attr:`~Cursor.arraysize` value according to notes in
-:ref:`tuningfetch`.  Use ``setinputsizes()`` according to `Predefining Memory
-Areas`_.
+The :attr:`~Cursor.arraysize` value alters how many rows each
+:meth:`Cursor.fetchmany()` call returns, see :ref:`tuningfetch`.  The
+:meth:`~Cursor.setinputsizes()` call is used to optimize memory allocation when
+inserting with :meth:`~Cursor.executemany()`, see :ref:`predefmemory`.  You
+may also want to tune the SDU setting for best nework performance, see
+:ref:`tuning`.
 
-Note that when copying data to another table in the same database, it may be
-preferable to use INSERT INTO SELECT or CREATE AS SELECT to avoid the overhead
-of copying data to, and back from, the Python process. This also avoids any
-data type changes.  For example to create a complete copy of a table:
+If you are inserting back into the same database that the records originally
+came from, you do not need to open a second connection. Instead, both cursors
+can be obtained from one connection.
+
+**Avoiding Copying Data Over the Network**
+
+When copying data to another table in the same database, it may be preferable
+to use INSERT INTO SELECT or CREATE AS SELECT to avoid the overhead of copying
+data to, and back from, the Python process. This also avoids any data type
+changes.  For example to create a complete copy of a table:
 
 .. code-block:: python
 
@@ -547,3 +576,5 @@ Similarly, when copying to a different database, consider creating a `database
 link <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D966642A-
 B19E-449D-9968-1121AF06D793>`__ between the databases and using
 INSERT INTO SELECT or CREATE AS SELECT.
+
+You can control the data transfer by changing your SELECT statement.

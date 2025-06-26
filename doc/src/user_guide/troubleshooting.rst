@@ -359,7 +359,7 @@ verifiers 11G and later.
 
         show parameter sec_case_sensitive_logon
 
-    Note this parameter has been `removed in Oracle Database 21c
+    Note this parameter was `removed in Oracle Database 21c
     <https://docs.oracle.com/en/database/oracle/oracle-database/21/nfcon/
     security-solutions.html#GUID-FAF4C7A6-A2CD-4B9B-9A64-3705F693ECF0>`__
     so only step 2 is required for this, or subsequent, database versions.
@@ -473,7 +473,7 @@ syntax. Perform one of the following:
 ORA Error Messages
 ------------------
 
-A common ORA error message is discussed below.
+Some common ORA error messages are discussed below.
 
 ORA-00933
 +++++++++
@@ -504,3 +504,20 @@ Note with Oracle Database 23ai this incorrect usage gives the message
 
    For other causes and solutions see `Database Error Messages ORA-00933
    <https://docs.oracle.com/error-help/db/ora-00933/>`__
+
+ORA-28009
++++++++++
+
+**Message:** ``ORA-28009: connection as SYS should be as SYSDBA or SYSOPER``
+
+**Cause:** Commonly this error occurs when you try to create a connection pool
+using :data:`oracledb.AUTH_MODE_SYSDBA` in python-oracledb Thick mode.
+
+**Action:** Use a :ref:`standalone connection <standaloneconnection>`.
+Alternatively, use python-oracledb Thin mode by removing all calls to
+:func:`oracledb.init_oracle_client()`.
+
+.. seealso::
+
+   For other causes and solutions see `Database Error Messages ORA-28009
+   <https://docs.oracle.com/error-help/db/ora-28009/>`__

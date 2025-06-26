@@ -238,6 +238,16 @@ not supported in the Oracle Client libraries that are used in python-oracledb
 Thick mode. Note changing the type of bind variables for the same SQL text is
 inappropriate and gives indeterminate results in both modes.
 
+Duplicate SQL Bind Variable Placeholders in Thin and Thick Modes
+================================================================
+
+To use python-oracledb Thin mode when you have duplicate bind variable
+placeholder names in a SQL statement and are :ref:`binding by position
+<bindbyposition>`, then supply a value for each use of the placeholders, see
+:ref:`dupbindplaceholders`.
+
+This does not apply to PL/SQL blocks.
+
 Error Handling in Thin and Thick Modes
 ======================================
 

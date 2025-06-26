@@ -23,8 +23,13 @@ Use Markdown syntax, see https://docs.github.com/github/writing-on-github/gettin
 
 <!--
 
-Give your database version.
+Give your Oracle Database version, e.g.:
 
+    print(connection.version)
+
+Give your Oracle Client version (if you are using Thick mode):
+
+    print(oracledb.clientversion())
 
 Also run Python and show the output of:
 
@@ -37,7 +42,6 @@ Also run Python and show the output of:
 
 And:
 
-    import oracledb
     print("oracledb.__version__:", oracledb.__version__)
 
 -->

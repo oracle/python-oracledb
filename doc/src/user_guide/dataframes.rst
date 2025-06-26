@@ -108,32 +108,42 @@ Oracle Database will result in an exception. :ref:`Output type handlers
 
     * - Oracle Database Type
       - Arrow Data Type
-    * - DB_TYPE_NUMBER
-      - DECIMAL128, INT64, or DOUBLE
-    * - DB_TYPE_CHAR
-      - STRING
-    * - DB_TYPE_VARCHAR
-      - STRING
-    * - DB_TYPE_BINARY_FLOAT
-      - FLOAT
     * - DB_TYPE_BINARY_DOUBLE
       - DOUBLE
+    * - DB_TYPE_BINARY_FLOAT
+      - FLOAT
+    * - DB_TYPE_BLOB
+      - LARGE_BINARY
     * - DB_TYPE_BOOLEAN
       - BOOLEAN
+    * - DB_TYPE_CHAR
+      - STRING
+    * - DB_TYPE_CLOB
+      - LARGE_STRING
     * - DB_TYPE_DATE
       - TIMESTAMP
+    * - DB_TYPE_LONG
+      - LARGE_STRING
+    * - DB_TYPE_LONG_RAW
+      - LARGE_BINARY
+    * - DB_TYPE_NCHAR
+      - STRING
+    * - DB_TYPE_NCLOB
+      - LARGE_STRING
+    * - DB_TYPE_NUMBER
+      - DECIMAL128, INT64, or DOUBLE
+    * - DB_TYPE_NVARCHAR
+      - STRING
+    * - DB_TYPE_RAW
+      - BINARY
     * - DB_TYPE_TIMESTAMP
       - TIMESTAMP
     * - DB_TYPE_TIMESTAMP_LTZ
       - TIMESTAMP
     * - DB_TYPE_TIMESTAMP_TZ
       - TIMESTAMP
-    * - DB_TYPE_CLOB
-      - LARGE_STRING
-    * - DB_TYPE_BLOB
-      - LARGE_BINARY
-    * - DB_TYPE_RAW
-      - BINARY
+    * - DB_TYPE_VARCHAR
+      - STRING
 
 When converting Oracle Database NUMBERs:
 
@@ -156,8 +166,8 @@ When converting Oracle Database DATEs and TIMESTAMPs:
 
 - Arrow TIMESTAMPs will not have timezone data.
 
-- For Oracle Database DATE types, the Arrow TIMESTAMP will have a time unit of
-  "seconds".
+- For Oracle Database DATE columns, the Arrow TIMESTAMP will have a time unit
+  of "seconds".
 
 - For Oracle Database TIMESTAMP types, the Arrow TIMESTAMP time unit depends on
   the Oracle type's fractional precision as shown in the table below:

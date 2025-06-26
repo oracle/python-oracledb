@@ -11,8 +11,8 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb 3.2.0 (TBD)
---------------------
+oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (TBD)
+--------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -51,10 +51,10 @@ Thick Mode Changes
     :attr:`DeqOptions.consumername`, :attr:`DeqOptions.correlation`,
     :attr:`DeqOptions.msgid`, :attr:`DeqOptions.transformation`,
     :attr:`EnqOptions.transformation`, :attr:`MessageProperties.correlation`,
-    or :attr:`MessageProperties.exceptionq` are set to ``None``.
+    or :attr:`MessageProperties.exceptionq` are set to *None*.
 #)  Fixed a bug resulting in a ``ValueError`` exception when getting attribute
     :attr:`MessageProperties.enqtime` if the value is not available or
-    ``None``.
+    *None*.
 #)  Fixed a memory leak when enqueuing to JSON queues with
     :ref:`Oracle Advanced Queuing <aqusermanual>`.
 
@@ -92,8 +92,8 @@ Common Changes
 #)  Improved the test suite and documentation.
 
 
-oracledb 3.1.1 (May 2025)
--------------------------
+oracledb `3.1.1 <https://github.com/oracle/python-oracledb/compare/v3.1.0...v3.1.1>`__ (May 2025)
+-------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -128,8 +128,8 @@ Common Changes
     (`PR 479 <https://github.com/oracle/python-oracledb/pull/479>`__).
 
 
-oracledb 3.1.0 (April 2025)
----------------------------
+oracledb `3.1.0 <https://github.com/oracle/python-oracledb/compare/v3.0.0...v3.1.0>`__ (April 2025)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -212,8 +212,8 @@ Common Changes
 #)  Improved the test suite and documentation.
 
 
-oracledb 3.0.0 (March 2025)
----------------------------
+oracledb `3.0.0 <https://github.com/oracle/python-oracledb/compare/v2.5.1...v3.0.0>`__ (March 2025)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -373,8 +373,8 @@ Common Changes
 #)  Improved test suite and documentation.
 
 
-oracledb 2.5.1 (December 2024)
-------------------------------
+oracledb `2.5.1 <https://github.com/oracle/python-oracledb/compare/v2.5.0...v2.5.1>`__ (December 2024)
+------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -399,7 +399,7 @@ Thick Mode Changes
 
 #)  Fixed bug calculating property :data:`Connection.max_identifier_length`
     when using Oracle Client libraries 12.1, or older. The returned value may
-    now be ``None`` when the size cannot be reliably determined by
+    now be *None* when the size cannot be reliably determined by
     python-oracledb, which occurs when using Oracle Client libraries 12.1 (or
     older) to connect to Oracle Database 12.2, or later.
     (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
@@ -414,8 +414,8 @@ Common Changes
     (`issue 429 <https://github.com/oracle/python-oracledb/issues/429>`__).
 
 
-oracledb 2.5.0 (November 2024)
-------------------------------
+oracledb `2.5.0 <https://github.com/oracle/python-oracledb/compare/v2.4.1...v2.5.0>`__ (November 2024)
+------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -504,7 +504,7 @@ Common Changes
 #)  The variables saved with :meth:`Cursor.setinputsizes()` are now forgotten
     when an exception is raised
     (`issue 411 <https://github.com/oracle/python-oracledb/issues/411>`__).
-#)  Fixed bug when calling :meth:`ConnectParams.set()` with a value of ``None``
+#)  Fixed bug when calling :meth:`ConnectParams.set()` with a value of *None*
     for the ``connectiontype`` and ``session_callback`` parameters. Previously,
     any values set earlier would be improperly cleared and now they are
     retained
@@ -512,8 +512,8 @@ Common Changes
 #)  Improved test suite and documentation.
 
 
-oracledb 2.4.1 (August 2024)
-----------------------------
+oracledb `2.4.1 <https://github.com/oracle/python-oracledb/compare/v2.4.0...v2.4.1>`__ (August 2024)
+----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -523,8 +523,8 @@ Thin Mode Changes
     (`issue 383 <https://github.com/oracle/python-oracledb/issues/383>`__).
 
 
-oracledb 2.4.0 (August 2024)
-----------------------------
+oracledb `2.4.0 <https://github.com/oracle/python-oracledb/compare/v2.3.0...v2.4.0>`__ (August 2024)
+----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -579,8 +579,8 @@ Common Changes
     segfault and Thick mode would result in unusual errors.
 
 
-oracledb 2.3.0 (July 2024)
---------------------------
+oracledb `2.3.0 <https://github.com/oracle/python-oracledb/compare/v2.2.1...v2.3.0>`__ (July 2024)
+--------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -675,8 +675,8 @@ Common Changes
 #)  Internal changes to ensure that no circular imports occur.
 
 
-oracledb 2.2.1 (May 2024)
--------------------------
+oracledb `2.2.1 <https://github.com/oracle/python-oracledb/compare/v2.2.0...v2.2.1>`__ (May 2024)
+-------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -697,8 +697,8 @@ Thin Mode Changes
     potential hangs in some configurations under some circumstances.
 
 
-oracledb 2.2.0 (May 2024)
--------------------------
+oracledb `2.2.0 <https://github.com/oracle/python-oracledb/compare/v2.1.2...v2.2.0>`__ (May 2024)
+-------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -739,8 +739,8 @@ Common Changes
     ``DPY-4030: invalid DRCP pool boundary {boundary}``.
 
 
-oracledb 2.1.2 (April 2024)
----------------------------
+oracledb `2.1.2 <https://github.com/oracle/python-oracledb/compare/v2.1.1...v2.1.2>`__ (April 2024)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -757,8 +757,8 @@ Common Changes
     containing the ``/`` character.
 
 
-oracledb 2.1.1 (March 2024)
----------------------------
+oracledb `2.1.1 <https://github.com/oracle/python-oracledb/compare/v2.1.0...v2.1.1>`__ (March 2024)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -780,8 +780,8 @@ Thin Mode Changes
     losing output due to buffering when multiple threads are running.
 
 
-oracledb 2.1.0 (March 2024)
----------------------------
+oracledb `2.1.0 <https://github.com/oracle/python-oracledb/compare/v2.0.1...v2.1.0>`__ (March 2024)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -890,11 +890,11 @@ Common Changes
 #)  Fixed bug in the calculation of :data:`Cursor.rowcount` under some
     circumstances.
 #)  Connection parameters that are strings now treat an empty string in the
-    same way as the value ``None``.
+    same way as the value *None*.
 
 
-oracledb 2.0.1 (January 2024)
------------------------------
+oracledb `2.0.1 <https://github.com/oracle/python-oracledb/compare/v2.0.0...v2.0.1>`__ (January 2024)
+-----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -935,8 +935,8 @@ Common Changes
 #)  Bumped minimum requirement of Cython to 3.0.
 
 
-oracledb 2.0.0 (December 2023)
-------------------------------
+oracledb `2.0.0 <https://github.com/oracle/python-oracledb/compare/v1.4.2...v2.0.0>`__ (December 2023)
+------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1034,8 +1034,8 @@ Common Changes
 #)  Black is now used to format Python code and ruff to lint Python code.
 
 
-oracledb 1.4.2 (October 2023)
------------------------------
+oracledb `1.4.2 <https://github.com/oracle/python-oracledb/compare/v1.4.1...v1.4.2>`__ (October 2023)
+-----------------------------------------------------------------------------------------------------
 
 Thick Changes
 +++++++++++++
@@ -1050,8 +1050,8 @@ Common Changes
     (`issue 237 <https://github.com/oracle/python-oracledb/issues/237>`__).
 
 
-oracledb 1.4.1 (September 2023)
--------------------------------
+oracledb `1.4.1 <https://github.com/oracle/python-oracledb/compare/v1.4.0...v1.4.1>`__ (September 2023)
+-------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1074,7 +1074,7 @@ Common Changes
 #)  Fixed bug when calling :meth:`Cursor.execute()` or
     :meth:`Cursor.executemany()` with missing bind data after calling
     :meth:`Cursor.setinputsizes()` with at least one of the values supplied as
-    ``None``
+    *None*
     (`issue 217 <https://github.com/oracle/python-oracledb/issues/217>`__).
 #)  SQL statement parsing now raises ``DPY-2041: missing ending quote (') in
     string`` or ``DPY-2042: missing ending quote (") in identifier`` for
@@ -1084,8 +1084,8 @@ Common Changes
 #)  Added missing ">" to ``repr()`` of :ref:`sodadb`.
 
 
-oracledb 1.4.0 (August 2023)
-----------------------------
+oracledb `1.4.0 <https://github.com/oracle/python-oracledb/compare/v1.3.2...v1.4.0>`__ (August 2023)
+----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1141,7 +1141,7 @@ Thick Mode Changes
     :meth:`~SodaOperation.lock()` was added which requires Oracle Client
     21.3 or higher (or Oracle Client 19 from 19.11).
 #)  Relaxed restriction for end-to-end tracing string connection
-    attributes. These values can now be set to the value ``None`` which will be
+    attributes. These values can now be set to the value *None* which will be
     treated the same as an empty string.
 #)  Fixed bug when using external authentication with an Easy Connect
     connection string.
@@ -1197,8 +1197,8 @@ Common Changes
     (`issue 204 <https://github.com/oracle/python-oracledb/issues/204>`__).
 #)  Improved test suite and documentation.
 
-oracledb 1.3.2 (June 2023)
---------------------------
+oracledb `1.3.2 <https://github.com/oracle/python-oracledb/compare/v1.3.1...v1.3.2>`__ (June 2023)
+--------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1235,8 +1235,8 @@ Common Changes
     consistency between Thin and Thick modes.
 
 
-oracledb 1.3.1 (April 2023)
----------------------------
+oracledb `1.3.1 <https://github.com/oracle/python-oracledb/compare/v1.3.0...v1.3.1>`__ (April 2023)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1245,7 +1245,7 @@ Thin Mode Changes
     (`issue 172 <https://github.com/oracle/python-oracledb/issues/172>`__).
 #)  Fixed bug with Oracle Database 23ai when SQL is executed after first being
     parsed.
-#)  Fixed bug when :data:`ConnectionPool.timeout` is not `None` when creating a
+#)  Fixed bug when :data:`ConnectionPool.timeout` is not *None* when creating a
     connection pool
     (`issue 166 <https://github.com/oracle/python-oracledb/issues/166>`__).
 #)  Fixed bug when a query is re-executed after an underlying table is dropped
@@ -1260,8 +1260,8 @@ Common Changes
 #)  Improved test suite and samples.
 
 
-oracledb 1.3.0 (March 2023)
----------------------------
+oracledb `1.3.0 <https://github.com/oracle/python-oracledb/compare/v1.2.2...v1.3.0>`__ (March 2023)
+---------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1365,8 +1365,8 @@ Common Changes
     exceptions are handled more gracefully.
 
 
-oracledb 1.2.2 (January 2023)
------------------------------
+oracledb `1.2.2 <https://github.com/oracle/python-oracledb/compare/v1.2.1...v1.2.2>`__ (January 2023)
+-----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1396,8 +1396,8 @@ Common Changes
     elements.
 
 
-oracledb 1.2.1 (December 2022)
-------------------------------
+oracledb `1.2.1 <https://github.com/oracle/python-oracledb/compare/v1.2.0...v1.2.1>`__ (December 2022)
+------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1418,7 +1418,7 @@ Thick Mode Changes
     allowing it to be closed automatically when it goes out of scope).
 #)  Fixed bug when calling :meth:`Subscription.registerquery()` with bind
     values.
-#)  Fixed bug that caused :data:`Message.dbname` to always be the value `None`.
+#)  Fixed bug that caused :data:`Message.dbname` to always be the value *None*.
 
 Common Changes
 ++++++++++++++
@@ -1427,8 +1427,8 @@ Common Changes
     instead of a hard-coded ``oracledb``.
 
 
-oracledb 1.2.0 (November 2022)
-------------------------------
+oracledb `1.2.0 <https://github.com/oracle/python-oracledb/compare/v1.1.1...v1.2.0>`__ (November 2022)
+------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1474,13 +1474,13 @@ Common Changes
 
 #)  Added support for Python 3.11.
 #)  Added attribute :attr:`DbObjectType.package_name` which contains the name
-    of the package if the type is a PL/SQL type (otherwise, it will be `None`).
+    of the package if the type is a PL/SQL type (otherwise, it will be *None*).
 #)  Added sample for loading data from a CSV file.
 #)  Improved test suite and documentation.
 
 
-oracledb 1.1.1 (September 2022)
--------------------------------
+oracledb `1.1.1 <https://github.com/oracle/python-oracledb/compare/v1.1.0...v1.1.1>`__ (September 2022)
+-------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1513,8 +1513,8 @@ Common Changes
 #)  Improved test suite and documentation.
 
 
-oracledb 1.1.0 (September 2022)
--------------------------------
+oracledb `1.1.0 <https://github.com/oracle/python-oracledb/compare/v1.0.3...v1.1.0>`__ (September 2022)
+-------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1567,8 +1567,8 @@ Common Changes
 #)  Improved samples and documentation.
 
 
-oracledb 1.0.3 (August 2022)
-----------------------------
+oracledb `1.0.3 <https://github.com/oracle/python-oracledb/compare/v1.0.2...v1.0.3>`__ (August 2022)
+----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1594,8 +1594,8 @@ Common Changes
     (`issue 35 <https://github.com/oracle/python-oracledb/issues/35>`__).
 
 
-oracledb 1.0.2 (July 2022)
---------------------------
+oracledb `1.0.2 <https://github.com/oracle/python-oracledb/compare/v1.0.1...v1.0.2>`__ (July 2022)
+--------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1629,8 +1629,8 @@ Common Changes
 #)  Improved samples and documentation.
 
 
-oracledb 1.0.1 (June 2022)
---------------------------
+oracledb `1.0.1 <https://github.com/oracle/python-oracledb/compare/v1.0.0...v1.0.1>`__ (June 2022)
+--------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -1891,7 +1891,7 @@ cx_Oracle 8.0 (June 2020)
       API.
     - The variable attribute :data:`~Variable.type` now refers to one of the
       new database type constants if the variable does not contain objects
-      (previously it was None in that case).
+      (previously it was *None* in that case).
     - The attribute :data:`~LOB.type` was added to LOB values.
     - The attribute ``type`` was added to attributes of object types.
     - The attribute ``element_type`` was added to object types.
@@ -1954,7 +1954,7 @@ cx_Oracle 7.3 (December 2019)
     to the database (as opposed to the default server initiated connections)
     created by calling :meth:`Connection.subscribe()`.
 #)  Added :attr:`support <Cursor.lastrowid>` for returning the rowid of the
-    last row modified by an operation on a cursor (or None if no row was
+    last row modified by an operation on a cursor (or *None* if no row was
     modified).
 #)  Added support for setting the ``maxSessionsPerShard`` attribute when
     creating connection pools.
@@ -1988,7 +1988,7 @@ cx_Oracle 7.3 (December 2019)
     ``DPI-1012: proxy authentication is not possible with homogeneous pools``
     instead of a ``ProgrammingError`` exception with the message
     ``pool is homogeneous. Proxy authentication is not possible.`` since this
-    check is done by ODPI-C. An empty string (or None) for the user name will
+    check is done by ODPI-C. An empty string (or *None*) for the user name will
     no longer generate an exception.
 #)  Exception ``InterfaceError: not connected`` is now always raised when an
     operation is attempted with a closed connection. Previously, a number of
@@ -2176,7 +2176,7 @@ cx_Oracle 7.1 (February 2019)
     Note that this support is limited to the size of VARCHAR2 columns in the
     database (either 4000 or 32767 bytes).
 #)  Added support for allowing the typename parameter in method
-    :meth:`Cursor.var()` to be None or a valid object type created by the
+    :meth:`Cursor.var()` to be *None* or a valid object type created by the
     method :meth:`Connection.gettype()`, as requested
     (`issue 231 <https://github.com/oracle/python-cx_Oracle/issues/231>`__).
 #)  Added support for getting and setting attributes of type RAW on Oracle
@@ -2194,8 +2194,8 @@ cx_Oracle 7.1 (February 2019)
     decimal value is automatically returned instead.
 #)  Corrected handling of multiple calls to method
     :meth:`Cursor.executemany()` where all of the values in one of the columns
-    passed to the first call are all None and a subsequent call has a value
-    other than None in the same column
+    passed to the first call are all *None* and a subsequent call has a value
+    other than *None* in the same column
     (`issue 236 <https://github.com/oracle/python-cx_Oracle/issues/236>`__).
 #)  Added additional check for calling :meth:`Cursor.setinputsizes()` with an
     empty dictionary in order to avoid the error "cx_Oracle.ProgrammingError:
@@ -2660,8 +2660,8 @@ cx_Oracle 6.0 (August 2017)
     -   On platforms other than Windows, if the regular method for loading the
         Oracle Client libraries fails, try using $ORACLE_HOME/lib/libclntsh.so
         (`ODPI-C issue 20 <https://github.com/oracle/odpi/issues/20>`__).
-    -   Use the environment variable ``DPI_DEBUG_LEVEL`` at runtime, not compile
-        time.
+    -   Use the environment variable ``DPI_DEBUG_LEVEL`` at runtime, not
+        compile time.
     -   Added support for DPI_DEBUG_LEVEL_ERRORS (reports errors and has the
         value 8) and DPI_DEBUG_LEVEL_SQL (reports prepared SQL statement text
         and has the value 16) in order to further improve the ability to debug
@@ -2670,9 +2670,9 @@ cx_Oracle 6.0 (August 2017)
 
 #)  Delay initialization of the ODPI-C library until the first standalone
     connection or session pool is created so that manipulation of the
-    environment variable ``NLS_LANG`` can be performed after the module has been
-    imported; this also has the added benefit of reducing the number of errors
-    that can take place when the module is imported.
+    environment variable ``NLS_LANG`` can be performed after the module has
+    been imported; this also has the added benefit of reducing the number of
+    errors that can take place when the module is imported.
 #)  Prevent binding of null values from generating the exception "ORA-24816:
     Expanded non LONG bind data supplied after actual LONG or LOB column" in
     certain circumstances
@@ -2804,7 +2804,7 @@ cx_Oracle 6.0 beta 1 (April 2017)
 #)  Added support for smallint and float data types in Oracle objects, as
     `requested <https://github.com/oracle/python-cx_Oracle/issues/4>`__.
 #)  An exception is no longer raised when a collection is empty for methods
-    :meth:`Object.first()` and :meth:`Object.last()`. Instead, the value None
+    :meth:`Object.first()` and :meth:`Object.last()`. Instead, the value *None*
     is returned to be consistent with the methods :meth:`Object.next()` and
     :meth:`Object.prev()`.
 #)  If the environment variables NLS_LANG and NLS_NCHAR are being used, they
@@ -2868,7 +2868,7 @@ cx_Oracle 5.3 (March 2017)
     :meth:`creating a connection <cx_Oracle.Connection>` and added support for
     setting these when creating a session pool. These can now be used instead
     of setting the environment variables ``NLS_LANG`` and ``NLS_NCHAR``.
-#)  Use None instead of 0 for items in the :attr:`Cursor.description` attribute
+#)  Use *None* instead of *0* for items in the :attr:`Cursor.description` attribute
     that do not have any validity.
 #)  Changed driver name to match informal driver name standard used by Oracle
     for other drivers.
@@ -3475,13 +3475,13 @@ cx_Oracle 4.1 beta 1 (September 2004)
 #)  The cursor method arrayvar() will now accept the actual list so that it is
     not necessary to call cursor.arrayvar() followed immediately by
     var.setvalue().
-#)  Fixed bug where attempts to execute the statement "None" with bind
+#)  Fixed bug where attempts to execute the statement *None* with bind
     variables would cause a segmentation fault.
 #)  Added support for binding by position (paramstyle = "numeric").
 #)  Removed memory leak created by calls to OCIParamGet() which were not
     mirrored by calls to OCIDescriptorFree(). Thanks to Mihai Ibanescu for
     pointing this out and providing a patch.
-#)  Added support for calling cursor.executemany() with statement None
+#)  Added support for calling cursor.executemany() with statement *None*
     implying that the previously prepared statement ought to be executed.
     Thanks to Mihai Ibanescu for providing a patch.
 #)  Added support for rebinding variables when a subsequent call to
@@ -3599,18 +3599,18 @@ cx_Oracle 3.1 (August 2003)
 cx_Oracle 3.0a (June 2003)
 --------------------------
 
-#)  Fixed bug where zero length PL/SQL arrays were being mishandled
+#)  Fixed bug where zero length PL/SQL arrays were being mishandled.
 #)  Fixed support for the data type "float" in Oracle; added one to the
     display size to allow for the sign of the number, if necessary; changed
     the display size of unconstrained numbers to 127, which is the largest
-    number that Oracle can handle
+    number that Oracle can handle.
 #)  Added support for retrieving the description of a bound cursor before
-    fetching it
-#)  Fixed a couple of build issues on Mac OS X, AIX and Solaris (64-bit)
-#)  Modified documentation slightly based on comments from several people
-#)  Included files in MANIFEST that are needed to generate the binaries
+    fetching it.
+#)  Fixed a couple of build issues on Mac OS X, AIX and Solaris (64-bit).
+#)  Modified documentation slightly based on comments from several people.
+#)  Included files in MANIFEST that are needed to generate the binaries.
 #)  Modified test suite to work within the test environment at Computronix
-    as well as within the packages that are distributed
+    as well as within the packages that are distributed.
 
 
 cx_Oracle 3.0 (March 2003)
@@ -3618,44 +3618,44 @@ cx_Oracle 3.0 (March 2003)
 
 #)  Removed support for connection to Oracle7 databases; it is entirely
     possible that it will still work but I no longer have any way of testing
-    and Oracle has dropped any meaningful support for Oracle7 anyway
+    and Oracle has dropped any meaningful support for Oracle7 anyway.
 #)  Fetching of strings is now done with predefined memory areas rather than
     dynamic memory areas; dynamic fetching of strings was causing problems
     with Oracle 9i in some instances and databases using a different character
-    set other than US ASCII
+    set other than US ASCII.
 #)  Fixed bug where segfault would occur if the '/' character preceded the '@'
-    character in a connect string
+    character in a connect string.
 #)  Added two new cursor methods var() and arrayvar() in order to eliminate
     the need for setinputsizes() when defining PL/SQL arrays and as a generic
-    method of acquiring bind variables directly when needed
+    method of acquiring bind variables directly when needed.
 #)  Fixed support for binding cursors and added support for fetching cursors
     (these are known as ref cursors in PL/SQL).
 #)  Eliminated discrepancy between the array size used internally and the
     array size specified by the interface user; this was done earlier to avoid
     bus errors on 64-bit platforms but another way has been found to get
     around that issue and a number of people were getting confused because of
-    the discrepancy
+    the discrepancy.
 #)  Added support for the attribute "connection" on cursors, an optional
-    DB API extension
+    DB API extension.
 #)  Added support for passing a dictionary as the second parameter for the
     cursor.execute() method in order to comply with the DB API more closely;
     the method of passing parameters with keyword parameters is still supported
-    and is in fact preferred
+    and is in fact preferred.
 #)  Added support for the attribute "statement" on cursors which is a
-    reference to the last SQL statement prepared or executed
+    reference to the last SQL statement prepared or executed.
 #)  Added support for passing any sequence to callproc() rather than just
-    lists as before
+    lists as before.
 #)  Fixed bug where segfault would occur if the array size was changed after
-    the cursor was executed but before it was fetched
+    the cursor was executed but before it was fetched.
 #)  Ignore array size when performing executemany() and use the length of the
-    list of parameters instead
+    list of parameters instead.
 #)  Rollback when connection is closed or destroyed to follow DB API rather
-    than use the Oracle default (which is commit)
-#)  Added check for array size too large causing an integer overflow
-#)  Added support for iterators for Python 2.2 and above
-#)  Added test suite based on PyUnitTest
+    than use the Oracle default (which is commit).
+#)  Added check for array size too large causing an integer overflow.
+#)  Added support for iterators for Python 2.2 and above.
+#)  Added test suite based on PyUnitTest.
 #)  Added documentation in HTML format similar to the documentation for the
-    core Python library
+    core Python library.
 
 
 cx_Oracle 2.5a (August 2002)
@@ -3664,7 +3664,7 @@ cx_Oracle 2.5a (August 2002)
 #)  Fix problem with Oracle 9i and retrieving strings; it seems that Oracle 9i
     uses the correct method for dynamic callback but Oracle 8i will not work
     with that method so an #ifdef was added to check for the existence of an
-    Oracle 9i feature; thanks to Paul Denize for discovering this problem
+    Oracle 9i feature; thanks to Paul Denize for discovering this problem.
 
 
 cx_Oracle 2.5 (July 2002)
@@ -3672,19 +3672,19 @@ cx_Oracle 2.5 (July 2002)
 
 #)  Added flag OPT_NoOracle7 which, if set, assumes that connections are being
     made to Oracle8 or higher databases; this allows for eliminating the
-    overhead in performing this check at connect time
+    overhead in performing this check at connect time.
 #)  Added flag OPT_NumbersAsStrings which, if set, returns all numbers as
     strings rather than integers or floats; this flag is used when defined
-    variables are created (during select statements only)
+    variables are created (during select statements only).
 #)  Added flag OPT_Threading which, if set, uses OCI threading mode; there is a
     significant performance degradation in this mode (about 15-20%) but it does
     allow threads to share connections (threadsafety level 2 according to the
     Python Database API 2.0); note that in order to support this, Oracle 8i or
-    higher is now required
+    higher is now required.
 #)  Added Py_BEGIN_ALLOW_THREADS and Py_END_ALLOW_THREADS pairs where
-    applicable to support threading during blocking OCI calls
+    applicable to support threading during blocking OCI calls.
 #)  Added global method attach() to cx_Oracle to support attaching to an
-    existing database handle (as provided by PowerBuilder, for example)
+    existing database handle (as provided by PowerBuilder, for example).
 #)  Eliminated the cursor method fetchbinds() which was used for returning the
     list of bind variables after execution to get the values of out variables;
     the cursor method setinputsizes() was modified to return the list of bind
@@ -3693,30 +3693,30 @@ cx_Oracle 2.5 (July 2002)
     these variables have three methods available to them: getvalue([<pos>]) to
     get the value of a variable, setvalue(<pos>, <value>) to set its value and
     copy(<var>, <src_pos>, <targ_pos>) to copy the value from a variable in a
-    more efficient manner than setvalue(getvalue())
+    more efficient manner than setvalue(getvalue()).
 #)  Implemented cursor method executemany() which expects a list of
-    dictionaries for the parameters
-#)  Implemented cursor method callproc()
+    dictionaries for the parameters.
+#)  Implemented cursor method callproc().
 #)  Added cursor method prepare() which parses (prepares) the statement for
-    execution; subsequent execute() or executemany() calls can pass None as the
-    statement which will imply use of the previously prepared statement; used
-    for high performance only
+    execution; subsequent execute() or executemany() calls can pass *None* as
+    the statement which will imply use of the previously prepared statement;
+    used for high performance only.
 #)  Added cursor method fetchraw() which will perform a raw fetch of the cursor
     returning the number of rows thus fetched; this is used to avoid the
-    overhead of generating result sets; used for high performance only
+    overhead of generating result sets; used for high performance only.
 #)  Added cursor method executemanyprepared() which is identical to the method
     executemany() except that it takes a single parameter which is the number
     of times to execute a previously prepared statement and it assumes that the
     bind variables already have their values set; used for high performance
-    only
-#)  Added support for rowid being returned in a select statement
-#)  Added support for comparing dates returned by cx_Oracle
+    only.
+#)  Added support for rowid being returned in a select statement.
+#)  Added support for comparing dates returned by cx_Oracle.
 #)  Integrated patch from Andre Reitz to set the null ok flag in the
-    description attribute of the cursor
+    description attribute of the cursor.
 #)  Integrated patch from Andre Reitz to setup.py to support compilation with
-    Python 1.5
+    Python 1.5.
 #)  Integrated patch from Benjamin Kearns to setup.py to support compilation
-    on Cygwin
+    on Cygwin.
 
 
 cx_Oracle 2.4 (January 2002)
@@ -3746,7 +3746,7 @@ cx_Oracle 2.3 (October 2001)
 ----------------------------
 
 #)  Incremental performance enhancements (dealing with reusing cursors and
-    bind handles)
+    bind handles).
 #)  Ensured that arrays of integers with a single float in them are all
     treated as floats, as suggested by Martin Koch.
 #)  Fixed code dealing with scale and precision for both defining a numeric
@@ -3765,7 +3765,7 @@ cx_Oracle 2.2 (July 2001)
     Brad Powell.
 #)  Added function write(Value, [Offset]) to LOB variables as requested by
     Matthias Kirst.
-#)  Procedure execute() on Cursor objects now permits a value None for the
+#)  Procedure execute() on Cursor objects now permits a value *None* for the
     statement which means that the previously prepared statement will be
     executed and any input sizes set earlier will be retained. This was done to
     improve the performance of scripts that execute one statement many times.

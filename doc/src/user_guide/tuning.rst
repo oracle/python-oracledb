@@ -61,14 +61,18 @@ Some general tuning tips are:
   :ref:`optnetfiles`. In python-oracledb Thin mode, the SDU size can be passed
   as a connection or pool creation parameter.  In both modes it may optionally
   be set in the connection :ref:`Easy Connect string <easyconnect>` or
-  :ref:`connect descriptor <conndescriptor>`.
+  :ref:`connect descriptor <conndescriptor>`. The SDU size that will actually
+  be used is negotiated down to the lower of application-side value and the
+  database network SDU configuration value.
 
 * Do not commit or rollback unnecessarily.  Use :attr:`Connection.autocommit`
   on the last of a sequence of DML statements.
 
-* If Python's Global Interpreter Lock (GIL) is limiting
-  :ref:`concurrent program performance <asyncio>`, then explore using parallel
-  Python processes.
+* Consider using :ref:`concurrent programming <concurrentprogramming>` or
+  :ref:`pipelining <pipelining>`.
+
+* If Python's Global Interpreter Lock (GIL) is limiting concurrent program
+  performance, then explore using parallel Python processes.
 
 .. _tuningfetch:
 
@@ -216,6 +220,8 @@ numbers of rows with different ``prefetchrows`` and ``arraysize`` values.
       - 20
       - 1
 
+The number of round-trips will be the same regardless of which
+:ref:`python-oracledb method <fetching>` is used to fetch query results.
 
 Application Default Prefetchrows and Arraysize Values
 +++++++++++++++++++++++++++++++++++++++++++++++++++++

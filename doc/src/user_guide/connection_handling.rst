@@ -1968,7 +1968,7 @@ For example:
 
     oracledb.register_protocol("ldap", ldap_hook)
 
-    connection = oracledb.connect(user="hr" password=userpwd,
+    connection = oracledb.connect(user="hr", password=userpwd,
                  dsn="ldap://ldapserver/dbname,cn=OracleContext,dc=dom,dc=com")
 
 You can modify or extend this as needed, for example to use an LDAP module that
