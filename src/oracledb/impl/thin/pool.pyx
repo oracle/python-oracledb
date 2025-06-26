@@ -429,12 +429,13 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         """
         cdef Protocol protocol = <Protocol> conn_impl._protocol
         with self._condition:
-            try:
-                protocol._end_request(conn_impl)
-            except:
-                if not in_del:
-                    raise
-            self._return_connection_helper(conn_impl)
+            if self._open:
+                try:
+                    protocol._end_request(conn_impl)
+                except:
+                    if not in_del:
+                        raise
+                self._return_connection_helper(conn_impl)
 
     def set_getmode(self, uint32_t value):
         """
