@@ -26,6 +26,7 @@
 Module for testing dataframes
 """
 
+import array
 import datetime
 import decimal
 import unittest
@@ -33,8 +34,9 @@ import unittest
 import oracledb
 
 try:
-    import pyarrow
+    import numpy
     import pandas
+    import pyarrow
 
     HAS_INTEROP = True
 except ImportError:
@@ -308,6 +310,23 @@ class TestCase(test_env.BaseTestCase):
         pa_tab.validate(full=True)
         return pa_tab.to_pandas()
 
+    def __convert_df_value(self, df_val):
+        """
+        This method converts a dataframe cell value to use with assertEqual()
+        For e.g. NaN and np.array cannot be compared directly. Values are
+        converted according to the following rules:
+         - NaN -> None
+         - np.array -> np.array.tolist() (Python list)
+        """
+        if isinstance(df_val, numpy.ndarray):
+            return df_val.tolist()
+        elif pandas.isna(df_val):
+            return None
+        elif isinstance(df_val, dict):
+            return {k: self.__convert_df_value(v) for k, v in df_val.items()}
+        else:
+            return df_val
+
     def __get_data_from_df(self, df):
         """
         Returns data from the data frame in a normalized fashion suitable for
@@ -315,7 +334,7 @@ class TestCase(test_env.BaseTestCase):
         so they are converted to the value None for comparison purposes.
         """
         return [
-            tuple(None if pandas.isna(v) else v for v in row)
+            tuple(self.__convert_df_value(v) for v in row)
             for row in df.itertuples(index=False, name=None)
         ]
 
@@ -747,6 +766,358 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNotNone(buffers["data"])
         self.assertIsNotNone(buffers["offsets"])
         self.assertIsNotNone(buffers["validity"])
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8030(self):
+        "8030 - fetch float32 vector"
+
+        # float32 is a special case while comparing dataframe values
+        # Converting Dataframe cell value of type numpy.ndarray[float32]
+        # using .tolist() converts each value to Python float. Python
+        # float uses 64-bit precision causing mismatches in assertEqual.
+        # As a workaround we use array.array('f', src).tolist() on the
+        # source data
+        data = [
+            (array.array("f", [34.6, 77.8]).tolist(),),
+            (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        # number of children for a nested list = 1
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8031(self):
+        "8031 - fetch float64 vector"
+        data = [
+            ([34.6, 77.8],),
+            ([34.6, 77.8, 55.9],),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT64)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8032(self):
+        "8032 - fetch int8 vector"
+        data = [
+            ([34, -77],),
+            ([34, 77, 55],),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34, -77]', 2, INT8)
+            union all
+            SELECT TO_VECTOR('[34, 77, 55]', 3, INT8)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8033(self):
+        "8033 - fetch binary vector"
+        data = [
+            ([3, 2, 3],),
+            ([3, 2],),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[3, 2, 3]', 24, BINARY)
+            union all
+            SELECT TO_VECTOR('[3, 2]', 16, BINARY)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8034(self):
+        "8034 - fetch float32 vectors with None"
+        data = [
+            (array.array("f", [34.6, 77.8]).tolist(),),
+            (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
+            (None,),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
+            union all
+            select NULL
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 3)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 1)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8035(self):
+        "8035 - fetch duplicate float64 vectors"
+        data = [
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+            ([34.6, 77.8],),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 12)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 7), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 7), "unsupported server"
+    )
+    def test_8036(self):
+        "8036 - fetch float32 sparse vectors"
+        data = [
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": array.array("f", [34.6, 77.8]).tolist(),
+                },
+            ),
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": array.array("f", [34.6, 9.1]).tolist(),
+                },
+            ),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT32),
+                8,
+                FLOAT32,
+                SPARSE
+                )
+            union all
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 9.1]', 8, FLOAT32),
+                8,
+                FLOAT32,
+                SPARSE
+                )
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        # number of children for a struct = 3 (num_dimensions, indices, values)
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 3)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 7), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 7), "unsupported server"
+    )
+    def test_8037(self):
+        "8037 - fetch float64 sparse vectors"
+        data = [
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": [34.6, 77.8],
+                },
+            ),
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": [34.6, 9.1],
+                },
+            ),
+        ]
+        self.__check_interop()
+        ora_df = self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT64),
+                8,
+                FLOAT64,
+                SPARSE
+                )
+            union all
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 9.1]', 8, FLOAT64),
+                8,
+                FLOAT64,
+                SPARSE
+                )
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        # number of children for a struct = 3 (num_dimensions, indices, values)
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 3)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
+    def test_8038(self):
+        "8038 - DPY-3031 - Unsupported flexible vector formats"
+        with self.assertRaisesFullCode("DPY-3031"):
+            self.conn.fetch_df_all(
+                """
+                SELECT TO_VECTOR('[44, 55, 89]', 3, INT8) as flex_col
+                union all
+                SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32) as flex_col
+                """
+            )
 
 
 if __name__ == "__main__":

@@ -51,6 +51,8 @@ To fetch in batches, use an iterator:
 
 .. code-block:: python
 
+    import pyarrow
+
     sql = "select * from departments where department_id < 80"
     # Adjust "size" to tune the query fetch performance
     # Here it is small to show iteration
@@ -144,6 +146,10 @@ Oracle Database will result in an exception. :ref:`Output type handlers
       - TIMESTAMP
     * - DB_TYPE_VARCHAR
       - STRING
+    * - DB_TYPE_VECTOR
+      - List or struct with DOUBLE, FLOAT, INT8, or UINT8 values
+
+**Numbers**
 
 When converting Oracle Database NUMBERs:
 
@@ -158,9 +164,50 @@ When converting Oracle Database NUMBERs:
 
 - In all other cases, the Arrow data type is DOUBLE.
 
+**Vectors**
+
+When converting Oracle Database VECTORs:
+
+- Dense vectors are fetched as lists.
+
+- Sparse vectors are fetched as structs with fields ``num_dimensions``,
+  ``indices`` and ``values`` similar to :ref:`SparseVector objects
+  <sparsevectorsobj>`.
+
+- VECTOR columns with flexible dimensions are supported.
+
+- VECTOR columns with flexible formats are not supported. Each vector value
+  must have the same storage format data type.
+
+- Vector values are fetched as the following types:
+
+  .. list-table-with-summary::
+      :header-rows: 1
+      :class: wy-table-responsive
+      :widths: 1 1
+      :align: left
+      :summary: The first column is the Oracle Database VECTOR format. The second column is the resulting Arrow data type in the list.
+
+      * - Oracle Database VECTOR format
+        - Arrow data type
+      * - FLOAT64
+        - DOUBLE
+      * - FLOAT32
+        - FLOAT
+      * - INT8
+        - INT8
+      * - BINARY
+        - UINT8
+
+See :ref:`dfvector` for more information.
+
+**LOBs**
+
 When converting Oracle Database CLOBs and BLOBs:
 
 - The LOBs must be no more than 1 GB in length.
+
+**Dates and Timestamps**
 
 When converting Oracle Database DATEs and TIMESTAMPs:
 
@@ -236,6 +283,8 @@ An example that creates and uses a `PyArrow Table
 
 .. code-block:: python
 
+    import pyarrow
+
     # Get an OracleDataFrame
     # Adjust arraysize to tune the query fetch performance
     sql = "select id, name from SampleQueryTab order by id"
@@ -303,8 +352,8 @@ An example that creates and uses a `Polars DataFrame
 
 .. code-block:: python
 
-    import pyarrow
     import polars
+    import pyarrow
 
     # Get an OracleDataFrame
     # Adjust arraysize to tune the query fetch performance
@@ -377,8 +426,8 @@ For example, to convert to `NumPy <https://numpy.org/>`__ ``ndarray`` format:
 
 .. code-block:: python
 
-    import pyarrow
     import numpy
+    import pyarrow
 
     SQL = "select id from SampleQueryTab order by id"
 
@@ -426,3 +475,150 @@ An example of working with data as a `Torch tensor
 
 See `samples/dataframe_torch.py <https://github.com/oracle/python-oracledb/
 blob/main/samples/dataframe_torch.py>`__ for a runnable example.
+
+.. _dfvector:
+
+Using VECTOR data with Data Frames
+----------------------------------
+
+Columns of the `VECTOR <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-746EAA47-9ADA-4A77-82BB-64E8EF5309BE>`__ data type can be fetched with
+the methods :meth:`Connection.fetch_df_all()` and
+:meth:`Connection.fetch_df_batches()`. VECTOR columns can have flexible
+dimensions, but flexible storage formats are not supported: each vector value
+must have the same format data type. Vectors can be dense or sparse.
+
+See :ref:`dftypemapping` for the type mapping for VECTORs.
+
+**Dense Vectors**
+
+By default, Oracle Database vectors are "dense".  These are fetched in
+python-oracledb as Arrow lists. For example, if the table::
+
+    create table myvec (v64 vector(3, float64));
+
+contains these two vectors::
+
+    [4.1, 5.2, 6.3]
+    [7.1, 8.2, 9.3]
+
+then the code:
+
+.. code-block:: python
+
+    odf = connection.fetch_df_all("select v64 from myvec")
+    pyarrow_table = pyarrow.Table.from_arrays(
+        odf.column_arrays(), names=odf.column_names()
+    )
+
+will result in a PyArrow table containing lists of doubles. The table can be
+converted to a data frame of your chosen library using functionality described
+earlier in this chapter.  For example, to convert to Pandas:
+
+.. code-block:: python
+
+    pdf = pyarrow_table.to_pandas()
+    print(pdf)
+
+The output will be::
+
+                   V64
+    0  [4.1, 5.2, 6.3]
+    1  [7.1, 8.2, 9.3]
+
+**Sparse Vectors**
+
+Sparse vectors (where many of the values are 0) are fetched as structs with
+fields ``num_dimensions``, ``indices``, and ``values`` similar to
+:ref:`SparseVector objects <sparsevectorsobj>` which are discussed in a
+non-data frame context in :ref:`sparsevectors`.
+
+If the table::
+
+    create table myvec (v64 vector(3, float64, sparse));
+
+contains these two vectors::
+
+    [3, [1,2], [4.1, 5.2]]
+    [3, [0], [9.3]]
+
+then the code to fetch as data frames:
+
+.. code-block:: python
+
+    import pyarrow
+
+    odf = connection.fetch_df_all("select v64 from myvec")
+    pdf = pyarrow.Table.from_arrays(
+        odf.column_arrays(), names=odf.column_names()
+    ).to_pandas()
+
+    print(pdf)
+
+    print("First row:")
+
+    num_dimensions = pdf.iloc[0].V64['num_dimensions']
+    print(f"num_dimensions={num_dimensions}")
+
+    indices = pdf.iloc[0].V64['indices']
+    print(f"indices={indices}")
+
+    values = pdf.iloc[0].V64['values']
+    print(f"values={values}")
+
+will display::
+
+                                                     V64
+    0  {'num_dimensions': 3, 'indices': [1, 2], 'valu...
+    1  {'num_dimensions': 3, 'indices': [0], 'values'...
+
+    First row:
+    num_dimensions=3
+    indices=[1 2]
+    values=[4.1 5.2]
+
+You can convert each struct as needed.  One way to convert into `Pandas
+dataframes with sparse values
+<https://pandas.pydata.org/docs/user_guide/sparse.html>`__ is via a `SciPy
+coordinate format matrix <https://docs.scipy.org/doc/scipy/reference/generated/
+scipy.sparse.coo_array.html#scipy.sparse.coo_array>`__. The Pandas method
+`from_spmatrix() <https://pandas.pydata.org/docs/reference/api/
+pandas.DataFrame.sparse.from_spmatrix.html>`__ can then be used to create the
+final sparse dataframe:
+
+.. code-block:: python
+
+    import numpy
+    import pandas
+    import pyarrow
+    import scipy
+
+    def convert_to_sparse_array(val):
+        dimensions = val["num_dimensions"]
+        col_indices = val["indices"]
+        row_indices = numpy.zeros(len(col_indices))
+        values = val["values"]
+        sparse_matrix = scipy.sparse.coo_matrix(
+            (values, (col_indices, row_indices)), shape=(dimensions, 1))
+        return pandas.arrays.SparseArray.from_spmatrix(sparse_matrix)
+
+    odf = connection.fetch_df_all("select v64 from myvec")
+    pdf = pyarrow.Table.from_arrays(
+        odf.column_arrays(), odf.column_names()
+    ).to_pandas()
+
+    pdf["SPARSE_ARRAY_V64"] = pdf["V64"].apply(convert_to_sparse_array)
+
+    print(pdf.SPARSE_ARRAY_V64)
+
+The code will print::
+
+    0    [0.0, 4.1, 5.2]
+    Fill: 0.0
+    IntIndex
+    Indices: ar...
+    1    [9.3, 0.0, 0.0]
+    Fill: 0.0
+    IntIndex
+    Indices: ar...
+    Name: SPARSE_ARRAY_V64, dtype: object

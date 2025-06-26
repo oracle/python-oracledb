@@ -33,6 +33,7 @@
 
 from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t
 from libc.stdint cimport int32_t, uint32_t, int64_t, uint64_t
+from cpython cimport array
 
 cdef extern from "nanoarrow.h":
 
@@ -47,6 +48,7 @@ cdef extern from "nanoarrow.h":
         void (*release)(ArrowArray*)
 
     cdef struct ArrowSchema:
+        ArrowSchema** children
         void (*release)(ArrowSchema*)
 
     cpdef enum ArrowType:
@@ -55,11 +57,17 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_DECIMAL128
         NANOARROW_TYPE_DOUBLE
         NANOARROW_TYPE_FLOAT
+        NANOARROW_TYPE_INT8
         NANOARROW_TYPE_INT64
         NANOARROW_TYPE_LARGE_BINARY
         NANOARROW_TYPE_LARGE_STRING
+        NANOARROW_TYPE_LIST
+        NANOARROW_TYPE_NA
         NANOARROW_TYPE_STRING
+        NANOARROW_TYPE_STRUCT
         NANOARROW_TYPE_TIMESTAMP
+        NANOARROW_TYPE_UINT8
+        NANOARROW_TYPE_UINT32
         NANOARROW_TYPE_UNINITIALIZED
 
     cpdef enum ArrowTimeUnit:
@@ -91,6 +99,7 @@ cdef class OracleArrowArray:
         double factor
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
+        ArrowType child_arrow_type
 
     cdef str _schema_to_string(self)
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
@@ -100,4 +109,8 @@ cdef class OracleArrowArray:
     cdef int append_int64(self, int64_t value) except -1
     cdef int append_last_value(self, OracleArrowArray array) except -1
     cdef int append_null(self) except -1
+    cdef int append_sparse_vector(self, int64_t num_dimensions,
+                                  array.array indices,
+                                  array.array values) except -1
+    cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1

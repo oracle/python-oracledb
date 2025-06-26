@@ -111,6 +111,7 @@ from .base_impl cimport (
     ConnectParamsImpl,
     convert_oracle_data_to_python,
     convert_oracle_data_to_arrow,
+    convert_vector_to_arrow,
     convert_date_to_python,
     CS_FORM_IMPLICIT,
     CS_FORM_NCHAR,

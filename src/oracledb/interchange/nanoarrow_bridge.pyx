@@ -85,6 +85,10 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowBuffer* ArrowArrayBuffer(ArrowArray* array, int64_t i)
     ArrowErrorCode ArrowArrayFinishBuildingDefault(ArrowArray* array,
                                                    ArrowError* error)
+    ArrowErrorCode ArrowArrayFinishElement(ArrowArray *array)
+    ArrowErrorCode ArrowArrayInitFromSchema(ArrowArray *array,
+                                            ArrowSchema *schema,
+                                            ArrowError *error)
     ArrowErrorCode ArrowArrayInitFromType(ArrowArray* array,
                                           ArrowType storage_type)
     void ArrowArrayRelease(ArrowArray *array)
@@ -108,10 +112,13 @@ cdef extern from "nanoarrow/nanoarrow.c":
     ArrowErrorCode ArrowSchemaInitFromType(ArrowSchema* schema, ArrowType type)
     void ArrowSchemaRelease(ArrowSchema *schema)
     ArrowErrorCode ArrowSchemaSetName(ArrowSchema* schema, const char* name)
+    ArrowErrorCode ArrowSchemaSetType(ArrowSchema * schema, ArrowType type)
     ArrowErrorCode ArrowSchemaSetTypeDateTime(ArrowSchema* schema,
                                               ArrowType arrow_type,
                                               ArrowTimeUnit time_unit,
                                               const char* timezone)
+    ArrowErrorCode ArrowSchemaSetTypeStruct(ArrowSchema *schema,
+                                            int64_t n_children)
     ArrowErrorCode ArrowSchemaSetTypeDecimal(ArrowSchema* schema,
                                              ArrowType type,
                                              int32_t decimal_precision,
@@ -144,6 +151,79 @@ cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
     if schema.release != NULL:
         ArrowSchemaRelease(schema)
     cpython.PyMem_Free(schema)
+
+
+cdef int append_double_array(ArrowArray *arrow_array,
+                             array.array value) except -1:
+    """
+    Appends an array of doubles to the Arrow array.
+    """
+    cdef:
+        ArrowArray *child_array = arrow_array.children[0]
+        double *double_buf = value.data.as_doubles
+        Py_ssize_t i
+    for i in range(len(value)):
+        _check_nanoarrow(ArrowArrayAppendDouble(child_array, double_buf[i]))
+    _check_nanoarrow(ArrowArrayFinishElement(arrow_array))
+
+
+cdef int append_float_array(ArrowArray *arrow_array,
+                            array.array value) except -1:
+    """
+    Appends an array of floats to the Arrow array.
+    """
+    cdef:
+        ArrowArray *child_array = arrow_array.children[0]
+        float *float_buf = value.data.as_floats
+        Py_ssize_t i
+    for i in range(len(value)):
+        _check_nanoarrow(ArrowArrayAppendDouble(child_array, float_buf[i]))
+    _check_nanoarrow(ArrowArrayFinishElement(arrow_array))
+
+
+cdef int append_int8_array(ArrowArray *arrow_array,
+                           array.array value) except -1:
+    """
+    Appends an array of signed one-byte integers to the Arrow array.
+    """
+    cdef:
+        ArrowArray *child_array = arrow_array.children[0]
+        int8_t *int8_buf = value.data.as_schars
+        Py_ssize_t i
+    for i in range(len(value)):
+        _check_nanoarrow(ArrowArrayAppendInt(child_array, int8_buf[i]))
+    _check_nanoarrow(ArrowArrayFinishElement(arrow_array))
+
+
+cdef int append_uint8_array(ArrowArray *arrow_array,
+                            array.array value) except -1:
+    """
+    Appends an array of unsigned one-byte integers to the Arrow array.
+    """
+    cdef:
+        ArrowArray *child_array = arrow_array.children[0]
+        uint8_t *uint8_buf = value.data.as_uchars
+        Py_ssize_t i
+    for i in range(len(value)):
+        _check_nanoarrow(ArrowArrayAppendInt(child_array, uint8_buf[i]))
+    _check_nanoarrow(ArrowArrayFinishElement(arrow_array))
+
+
+cdef int append_uint32_array(ArrowArray *arrow_array,
+                             array.array value) except -1:
+    """
+    Appends an array of unsigned four-byte integers to the Arrow array. Note
+    that Python's array.array doesn't natively support uint32_t but an upper
+    layer has verified that the data in the buffer consists of only four byte
+    integers.
+    """
+    cdef:
+        uint32_t *uint32_buf = <uint32_t*> value.data.as_voidptr
+        ArrowArray *child_array = arrow_array.children[0]
+        Py_ssize_t i
+    for i in range(len(value)):
+        _check_nanoarrow(ArrowArrayAppendInt(child_array, uint32_buf[i]))
+    _check_nanoarrow(ArrowArrayFinishElement(arrow_array))
 
 
 cdef void arrow_buffer_dealloc_callback(ArrowBufferAllocator *allocator,
@@ -203,13 +283,59 @@ cdef int copy_arrow_array(OracleArrowArray oracle_arrow_array,
                 oracle_arrow_array, src.children[i], dest.children[i]
             )
 
+cdef int build_arrow_schema_for_sparse_vector(
+        ArrowSchema *schema,
+        ArrowType vector_value_type
+) except -1:
+
+    # Initialize struct with 3 fields - num_dimensions, indices, values
+    ArrowSchemaInit(schema)
+    _check_nanoarrow(ArrowSchemaSetTypeStruct(schema, 3))
+
+    # first child: "num_dimensions"
+    _check_nanoarrow(
+        ArrowSchemaSetType(schema.children[0], NANOARROW_TYPE_INT64)
+    )
+    _check_nanoarrow(ArrowSchemaSetName(schema.children[0], "num_dimensions"))
+
+    # second child: "indices"
+    _check_nanoarrow(ArrowSchemaSetType(
+            schema.children[1],
+            NANOARROW_TYPE_LIST
+        )
+    )
+    _check_nanoarrow(
+        ArrowSchemaSetType(
+            schema.children[1].children[0],
+            NANOARROW_TYPE_UINT32
+        )
+    )
+    _check_nanoarrow(ArrowSchemaSetName(schema.children[1], "indices"))
+
+    # third child: "values"
+    _check_nanoarrow(
+        ArrowSchemaSetType(
+            schema.children[2],
+            NANOARROW_TYPE_LIST
+        )
+    )
+    _check_nanoarrow(
+        ArrowSchemaSetType(
+            schema.children[2].children[0],
+            vector_value_type
+        )
+    )
+    _check_nanoarrow(ArrowSchemaSetName(schema.children[2], "values"))
+
 
 cdef class OracleArrowArray:
 
     def __cinit__(self, ArrowType arrow_type, str name, int8_t precision,
-                  int8_t scale, ArrowTimeUnit time_unit):
+                  int8_t scale, ArrowTimeUnit time_unit,
+                  ArrowType child_arrow_type):
         cdef ArrowType storage_type = arrow_type
         self.arrow_type = arrow_type
+        self.child_arrow_type = child_arrow_type
         self.time_unit = time_unit
         self.name = name
         self.arrow_array = \
@@ -225,25 +351,71 @@ cdef class OracleArrowArray:
         else:
             self.factor = 1
 
-        _check_nanoarrow(ArrowArrayInitFromType(self.arrow_array,
-                                                storage_type))
         self.arrow_schema = \
                 <ArrowSchema*> cpython.PyMem_Malloc(sizeof(ArrowSchema))
-        _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
         if arrow_type == NANOARROW_TYPE_DECIMAL128:
             self.precision = precision
             self.scale = scale
             ArrowSchemaInit(self.arrow_schema)
-            _check_nanoarrow(ArrowSchemaSetTypeDecimal(self.arrow_schema,
-                                                       arrow_type,
-                                                       precision, scale))
+            _check_nanoarrow(
+                ArrowSchemaSetTypeDecimal(
+                    self.arrow_schema,
+                    arrow_type,
+                    precision,
+                    scale
+                )
+            )
+        elif arrow_type == NANOARROW_TYPE_STRUCT:
+            # Currently struct is used for Sparse vector only
+            build_arrow_schema_for_sparse_vector(self.arrow_schema,
+                                                 child_arrow_type)
         else:
-            _check_nanoarrow(ArrowSchemaInitFromType(self.arrow_schema,
-                                                     storage_type))
+            _check_nanoarrow(
+                ArrowSchemaInitFromType(
+                    self.arrow_schema,
+                    storage_type
+                )
+            )
             if arrow_type == NANOARROW_TYPE_TIMESTAMP:
-                _check_nanoarrow(ArrowSchemaSetTypeDateTime(self.arrow_schema,
-                                                            arrow_type,
-                                                            time_unit, NULL))
+                _check_nanoarrow(
+                    ArrowSchemaSetTypeDateTime(
+                        self.arrow_schema,
+                        arrow_type,
+                        time_unit,
+                        NULL
+                    )
+                )
+        if arrow_type == NANOARROW_TYPE_LIST:
+            # Set the schema for child using child_arrow_type
+            _check_nanoarrow(
+                ArrowSchemaSetType(
+                    self.arrow_schema.children[0],
+                    child_arrow_type
+                )
+            )
+            _check_nanoarrow(
+                ArrowArrayInitFromSchema(
+                    self.arrow_array,
+                    self.arrow_schema,
+                    NULL
+                )
+            )
+        elif arrow_type == NANOARROW_TYPE_STRUCT:
+            _check_nanoarrow(
+                ArrowArrayInitFromSchema(
+                    self.arrow_array,
+                    self.arrow_schema,
+                    NULL
+                )
+            )
+        else: # primitive type array init
+            _check_nanoarrow(
+                ArrowArrayInitFromType(
+                    self.arrow_array,
+                    storage_type
+                )
+            )
+        _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
         _check_nanoarrow(ArrowSchemaSetName(self.arrow_schema, name.encode()))
 
     def __dealloc__(self):
@@ -411,6 +583,50 @@ cdef class OracleArrowArray:
         Append a null value to the array.
         """
         _check_nanoarrow(ArrowArrayAppendNull(self.arrow_array, 1))
+
+    cdef int append_vector(self, array.array value) except -1:
+        """
+        Append a vector to the array.
+        """
+        if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+            append_float_array(self.arrow_array, value)
+        elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+            append_double_array(self.arrow_array, value)
+        elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+            append_int8_array(self.arrow_array, value)
+        elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+            append_uint8_array(self.arrow_array, value)
+
+    cdef int append_sparse_vector(self,
+                                  int64_t num_dims,
+                                  array.array indices,
+                                  array.array values) except -1:
+        """
+        Append a sparse vector to the array.
+        """
+        cdef:
+            ArrowArray *num_dims_array = self.arrow_array.children[0]
+            ArrowArray *indices_array = self.arrow_array.children[1]
+            ArrowArray *values_array = self.arrow_array.children[2]
+
+        # append number of dimensions
+        _check_nanoarrow(ArrowArrayAppendInt(num_dims_array, num_dims))
+
+        # append indices array
+        append_uint32_array(indices_array, indices)
+
+        # append values array
+        if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+            append_float_array(values_array, values)
+        elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+            append_double_array(values_array, values)
+        elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+            append_int8_array(values_array, values)
+        elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+            append_uint8_array(values_array, values)
+
+        # indicate structure is completed
+        _check_nanoarrow(ArrowArrayFinishElement(self.arrow_array))
 
     cdef int finish_building(self) except -1:
         """

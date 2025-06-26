@@ -92,6 +92,11 @@ cdef class OracleMetadata:
             self._arrow_type = NANOARROW_TYPE_LARGE_STRING
         elif db_type_num == DB_TYPE_NUM_RAW:
             self._arrow_type = NANOARROW_TYPE_BINARY
+        elif db_type_num == DB_TYPE_NUM_VECTOR:
+            if self.vector_flags & VECTOR_META_FLAG_SPARSE_VECTOR:
+                self._arrow_type = NANOARROW_TYPE_STRUCT
+            else:
+                self._arrow_type = NANOARROW_TYPE_LIST
         else:
             errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_TYPE,
                               db_type_name=self.dbtype.name)

@@ -978,6 +978,8 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleData* data,
                                           const char* encoding_errors,
                                           bint from_dbobject)
+cdef int convert_vector_to_arrow(OracleArrowArray arrow_array,
+                                 object vector) except -1
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)
 cdef uint16_t decode_uint16be(const char_type *buf)
 cdef uint32_t decode_uint32be(const char_type *buf)

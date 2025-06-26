@@ -63,8 +63,9 @@ Common Changes
 
 #)  Added Instance Principal authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`.
-#)  Improvements to :ref:`data frames <dataframeformat>`:
+#)  Improvements to :ref:`data frame <dataframeformat>` support:
 
+    - Added support for VECTOR columns when fetching data frames.
     - Fixed date handling to match PyArrow's and avoid localization issues
       (`issue 499 <https://github.com/oracle/python-oracledb/issues/499>`__).
     - Fixed bug on Windows when fetching dates prior to 1970 and after 2038

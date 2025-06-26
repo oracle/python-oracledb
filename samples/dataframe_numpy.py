@@ -25,12 +25,14 @@
 # -----------------------------------------------------------------------------
 # dataframe_numpy.py
 #
-# Shows how to use connection.fetch_df_all() to efficiently put data into a
-# NumPy ndarray via the DLPack standard memory layout.
+# Shows how to use connection.fetch_df_all() to put data into a NumPy ndarray
 # -----------------------------------------------------------------------------
 
-import pyarrow
+import array
+import sys
+
 import numpy
+import pyarrow
 
 import oracledb
 import sample_env
@@ -46,11 +48,14 @@ connection = oracledb.connect(
     params=sample_env.get_connect_params(),
 )
 
-SQL = "select id from SampleQueryTab order by id"
+# -----------------------------------------------------------------------------
+#
+# Fetching all records
 
 # Get an OracleDataFrame
 # Adjust arraysize to tune the query fetch performance
-odf = connection.fetch_df_all(statement=SQL, arraysize=100)
+sql = "select id from SampleQueryTab order by id"
+odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
 # Convert to an ndarray via the Python DLPack specification
 pyarrow_array = pyarrow.array(odf.get_column_by_name("ID"))
@@ -62,10 +67,56 @@ np = numpy.from_dlpack(pyarrow_array)
 print("Type:")
 print(type(np))  # <class 'numpy.ndarray'>
 
-# Perform various numpy operations on the ndarray
+print("Values:")
+print(np)
+
+# Perform various NumPy operations on the ndarray
 
 print("\nSum:")
 print(numpy.sum(np))
 
 print("\nLog10:")
 print(numpy.log10(np))
+
+# -----------------------------------------------------------------------------
+#
+# Fetching VECTORs
+
+# The VECTOR example only works with Oracle Database 23.4 or later
+if sample_env.get_server_version() < (23, 4):
+    sys.exit("This example requires Oracle Database 23.4 or later.")
+
+# The VECTOR example works with thin mode, or with thick mode using Oracle
+# Client 23.4 or later
+if not connection.thin and oracledb.clientversion()[:2] < (23, 4):
+    sys.exit(
+        "This example requires python-oracledb thin mode, or Oracle Client"
+        " 23.4 or later"
+    )
+
+# Insert sample data
+rows = [
+    (array.array("d", [11.25, 11.75, 11.5]),),
+    (array.array("d", [12.25, 12.75, 12.5]),),
+]
+
+with connection.cursor() as cursor:
+    cursor.executemany("insert into SampleVectorTab (v64) values (:1)", rows)
+
+# Get an OracleDataFrame
+# Adjust arraysize to tune the query fetch performance
+sql = "select v64 from SampleVectorTab order by id"
+odf = connection.fetch_df_all(statement=sql, arraysize=100)
+
+# Convert to a NumPy ndarray
+pyarrow_array = pyarrow.array(odf.get_column_by_name("V64"))
+np = pyarrow_array.to_numpy(zero_copy_only=False)
+
+print("Type:")
+print(type(np))  # <class 'numpy.ndarray'>
+
+print("Values:")
+print(np)
+
+print("\nSum:")
+print(numpy.sum(np))

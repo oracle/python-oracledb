@@ -67,6 +67,7 @@ from .base_impl cimport (
     char_type,
     ConnectParamsImpl,
     convert_oracle_data_to_arrow,
+    convert_vector_to_arrow,
     DbType,
     DB_TYPE_NUM_CURSOR,
     DRIVER_NAME,

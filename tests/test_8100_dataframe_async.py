@@ -26,6 +26,7 @@
 Module for testing dataframes using asyncio.
 """
 
+import array
 import datetime
 import decimal
 import unittest
@@ -33,8 +34,9 @@ import unittest
 import oracledb
 
 try:
-    import pyarrow
+    import numpy
     import pandas
+    import pyarrow
 
     HAS_INTEROP = True
 except ImportError:
@@ -311,6 +313,23 @@ class TestCase(test_env.BaseAsyncTestCase):
         pa_tab.validate(full=True)
         return pa_tab.to_pandas()
 
+    def __convert_df_value(self, df_val):
+        """
+        This method converts a dataframe cell value to use with assertEqual()
+        For e.g. NaN and np.array cannot be compared directly. Values are
+        converted according to the following rules:
+         - NaN -> None
+         - np.array -> np.array.tolist() (Python list)
+        """
+        if isinstance(df_val, numpy.ndarray):
+            return df_val.tolist()
+        elif pandas.isna(df_val):
+            return None
+        elif isinstance(df_val, dict):
+            return {k: self.__convert_df_value(v) for k, v in df_val.items()}
+        else:
+            return df_val
+
     def __get_data_from_df(self, df):
         """
         Returns data from the data frame in a normalized fashion suitable for
@@ -318,7 +337,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         so they are converted to the value None for comparison purposes.
         """
         return [
-            tuple(None if pandas.isna(v) else v for v in row)
+            tuple(self.__convert_df_value(v) for v in row)
             for row in df.itertuples(index=False, name=None)
         ]
 
@@ -586,8 +605,95 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 4), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 4), "unsupported server"
+    )
     async def test_8123(self):
-        "8123 - fetch data with multiple rows containing null values"
+        "8123 - fetch float32 vector"
+        data = [
+            (array.array("f", [34.6, 77.8]).tolist(),),
+            (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
+        ]
+        self.__check_interop()
+        ora_df = await self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
+            union all
+            SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+
+        # number of children for a nested list = 1
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 7), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 7), "unsupported server"
+    )
+    async def test_8124(self):
+        "8124 - fetch float64 sparse vectors"
+        data = [
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": [34.6, 77.8],
+                },
+            ),
+            (
+                {
+                    "num_dimensions": 8,
+                    "indices": [0, 7],
+                    "values": [34.6, 9.1],
+                },
+            ),
+        ]
+        self.__check_interop()
+        ora_df = await self.conn.fetch_df_all(
+            """
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT64),
+                8,
+                FLOAT64,
+                SPARSE
+                )
+            union all
+            SELECT TO_VECTOR(
+                TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 9.1]', 8, FLOAT64),
+                8,
+                FLOAT64,
+                SPARSE
+                )
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), 2)
+        self.assertEqual(ora_df.num_columns(), 1)
+        ora_col = ora_df.get_column(0)
+        self.assertEqual(ora_col.null_count, 0)
+        fetched_tab = pyarrow.Table.from_arrays(
+            ora_df.column_arrays(), names=ora_df.column_names()
+        )
+        # number of children for a struct = 3 (num_dimensions, indices, values)
+        self.assertEqual(fetched_tab.schema.types[0].num_fields, 3)
+        fetched_df = fetched_tab.to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    async def test_8125(self):
+        "8125 - fetch data with multiple rows containing null values"
         self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             """
@@ -628,8 +734,8 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
-    async def test_8124(self):
-        "8124 - verify dtype for all Arrow types"
+    async def test_8126(self):
+        "8126 - verify dtype for all Arrow types"
         query = """
             select
                 cast(1 as number(10)) as col_int64,

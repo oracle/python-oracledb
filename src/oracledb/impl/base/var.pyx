@@ -252,7 +252,10 @@ cdef class BaseVarImpl:
         Creates an Arrow array based on the type information selected by the
         user.
         """
-        cdef ArrowTimeUnit time_unit = NANOARROW_TIME_UNIT_SECOND
+        cdef:
+            ArrowTimeUnit time_unit = NANOARROW_TIME_UNIT_SECOND
+            ArrowType child_arrow_type = NANOARROW_TYPE_NA
+
         self.metadata._set_arrow_type()
         if self.metadata._arrow_type == NANOARROW_TYPE_TIMESTAMP:
             if self.metadata.scale > 0 and self.metadata.scale <= 3:
@@ -261,12 +264,29 @@ cdef class BaseVarImpl:
                 time_unit = NANOARROW_TIME_UNIT_MICRO
             elif self.metadata.scale > 6 and self.metadata.scale <= 9:
                 time_unit = NANOARROW_TIME_UNIT_NANO
+
+        if self.metadata._arrow_type in (
+            NANOARROW_TYPE_LIST,
+            NANOARROW_TYPE_STRUCT
+        ):
+            if self.metadata.vector_format == VECTOR_FORMAT_FLOAT32:
+                child_arrow_type = NANOARROW_TYPE_FLOAT
+            elif self.metadata.vector_format == VECTOR_FORMAT_FLOAT64:
+                child_arrow_type = NANOARROW_TYPE_DOUBLE
+            elif self.metadata.vector_format == VECTOR_FORMAT_INT8:
+                child_arrow_type = NANOARROW_TYPE_INT8
+            elif self.metadata.vector_format == VECTOR_FORMAT_BINARY:
+                child_arrow_type = NANOARROW_TYPE_UINT8
+            else:
+                errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT)
+
         self._arrow_array = OracleArrowArray(
             arrow_type=self.metadata._arrow_type,
             name=self.metadata.name,
             precision=self.metadata.precision,
             scale=self.metadata.scale,
             time_unit=time_unit,
+            child_arrow_type=child_arrow_type,
         )
 
     cdef int _finalize_init(self) except -1:

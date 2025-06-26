@@ -32,6 +32,9 @@ various storage formats mentioned above. For example:
         vec_data vector
     )
 
+If you are interested in using VECTOR data with data frames, see
+:ref:`dfvector`.
+
 .. _intfloatformat:
 
 Using FLOAT32, FLOAT64, and INT8 Vectors

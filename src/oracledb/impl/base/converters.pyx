@@ -438,3 +438,18 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
     errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
                       input_type=from_metadata.dbtype.name,
                       output_type=to_metadata.dbtype.name)
+
+
+cdef int convert_vector_to_arrow(OracleArrowArray arrow_array,
+                                 object vector) except -1:
+    """
+    Converts the vector to the format required by the Arrow array.
+    """
+    if vector is None:
+        arrow_array.append_null()
+    elif isinstance(vector, PY_TYPE_SPARSE_VECTOR):
+        arrow_array.append_sparse_vector(vector.num_dimensions,
+                                         <array.array> vector.indices,
+                                         <array.array> vector.values)
+    else:
+        arrow_array.append_vector(<array.array> vector)

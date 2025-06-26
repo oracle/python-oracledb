@@ -320,6 +320,7 @@ ERR_CURSOR_DIFF_CONNECTION = 3027
 ERR_UNSUPPORTED_PIPELINE_OPERATION = 3028
 ERR_INVALID_NETWORK_NAME = 3029
 ERR_ARROW_UNSUPPORTED_DATA_TYPE = 3030
+ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT = 3031
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -898,5 +899,9 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_ARROW_C_API_ERROR: (
         "Arrow C Data Interface operation failed with error code {code}"
+    ),
+    ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT: (
+        "flexible vector formats are not supported. Only fixed 'FLOAT32', "
+        "'FLOAT64', 'INT8' or 'BINARY' formats are supported"
     ),
 }

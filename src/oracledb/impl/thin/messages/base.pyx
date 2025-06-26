@@ -971,6 +971,10 @@ cdef class MessageWithData(Message):
             column_value = buf.read_oson()
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             column_value = buf.read_vector()
+            if self.cursor_impl.fetching_arrow:
+                convert_vector_to_arrow(
+                    var_impl._arrow_array, column_value
+                )
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             typ_impl = metadata.objtype
             if typ_impl is None:

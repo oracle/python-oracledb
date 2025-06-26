@@ -358,6 +358,7 @@ cdef class ThickVarImpl(BaseVarImpl):
             uint32_t ora_type_num
             OracleData ora_data
             dpiBytes *as_bytes
+            object vector
         ora_data.is_null = data.isNull
         if not data.isNull:
             ora_type_num = self._fetch_metadata.dbtype.num
@@ -423,6 +424,9 @@ cdef class ThickVarImpl(BaseVarImpl):
                 memcpy(ora_data.buffer.as_number.chars, as_bytes.ptr,
                         as_bytes.length);
                 ora_data.buffer.as_number.num_chars = as_bytes.length;
+            elif ora_type_num == DPI_ORACLE_TYPE_VECTOR:
+                vector = _convert_vector_to_python(data.value.asVector)
+                return convert_vector_to_arrow(self._arrow_array, vector)
             else:
                 errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                                   name=self._fetch_metadata.dbtype.name)
