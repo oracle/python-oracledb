@@ -506,8 +506,6 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         """
         Internal method for setting the payload from an object.
         """
-        if not isinstance(value, ThinDbObjectImpl):
-            raise TypeError("Expected ThinDbObjectImpl instance.")
         self.payload_obj = value
 
     def set_payload_json(self, object json_val):
