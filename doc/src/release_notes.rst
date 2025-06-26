@@ -11,8 +11,8 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (TBD)
---------------------------------------------------------------------------------------------
+oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (June 2025)
+--------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
