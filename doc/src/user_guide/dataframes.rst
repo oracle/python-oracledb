@@ -174,7 +174,8 @@ When converting Oracle Database VECTORs:
   ``indices`` and ``values`` similar to :ref:`SparseVector objects
   <sparsevectorsobj>`.
 
-- VECTOR columns with flexible dimensions are supported.
+- Fixed and flexible dimensions are supported for dense VECTOR columns. For
+  sparse VECTOR columns, the dimension of each vector must be the same.
 
 - VECTOR columns with flexible formats are not supported. Each vector value
   must have the same storage format data type.

@@ -1119,6 +1119,34 @@ class TestCase(test_env.BaseTestCase):
                 """
             )
 
+    @unittest.skipUnless(
+        test_env.has_client_version(23, 7), "unsupported client"
+    )
+    @unittest.skipUnless(
+        test_env.has_server_version(23, 7), "unsupported server"
+    )
+    def test_8039(self):
+        "8039 - DPY-4007 -fetch sparse vectors with flexible dimensions"
+        self.__check_interop()
+        with self.assertRaisesFullCode("DPY-2065"):
+            self.conn.fetch_df_all(
+                """
+                SELECT TO_VECTOR(
+                    TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 77.8]', 7, FLOAT64),
+                    7,
+                    FLOAT64,
+                    SPARSE
+                    )
+                union all
+                SELECT TO_VECTOR(
+                    TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 9.1]', 8, FLOAT64),
+                    8,
+                    FLOAT64,
+                    SPARSE
+                    )
+                """
+            )
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

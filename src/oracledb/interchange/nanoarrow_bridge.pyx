@@ -604,26 +604,30 @@ cdef class OracleArrowArray:
         """
         Append a sparse vector to the array.
         """
-        cdef:
-            ArrowArray *num_dims_array = self.arrow_array.children[0]
-            ArrowArray *indices_array = self.arrow_array.children[1]
-            ArrowArray *values_array = self.arrow_array.children[2]
+        cdef ArrowArray *array
+
+        # validate that the array supports sparse vectors
+        if self.arrow_type != NANOARROW_TYPE_STRUCT:
+            errors._raise_err(errors.ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED)
 
         # append number of dimensions
-        _check_nanoarrow(ArrowArrayAppendInt(num_dims_array, num_dims))
+        array = self.arrow_array.children[0]
+        _check_nanoarrow(ArrowArrayAppendInt(array, num_dims))
 
         # append indices array
-        append_uint32_array(indices_array, indices)
+        array = self.arrow_array.children[1]
+        append_uint32_array(array, indices)
 
         # append values array
+        array = self.arrow_array.children[2]
         if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
-            append_float_array(values_array, values)
+            append_float_array(array, values)
         elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
-            append_double_array(values_array, values)
+            append_double_array(array, values)
         elif self.child_arrow_type == NANOARROW_TYPE_INT8:
-            append_int8_array(values_array, values)
+            append_int8_array(array, values)
         elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
-            append_uint8_array(values_array, values)
+            append_uint8_array(array, values)
 
         # indicate structure is completed
         _check_nanoarrow(ArrowArrayFinishElement(self.arrow_array))
