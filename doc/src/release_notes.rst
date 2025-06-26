@@ -44,6 +44,9 @@ Thin Mode Changes
     frame <dataframeformat>`.
 #)  Fixed bug using :ref:`Oracle Advanced Queuing <aqusermanual>` when
     attempting to dequeue using an invalid :attr:`DeqOptions.msgid`.
+#)  Fixed bug resulting in an exception when :meth:`Cursor.executemany()` is
+    called with SQL containing bind variables and an empty parameter set
+    (`issue 508 <https://github.com/oracle/python-oracledb/issues/508>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

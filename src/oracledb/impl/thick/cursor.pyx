@@ -346,22 +346,21 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if self.bind_vars is not None:
             self._perform_binds(cursor.connection, num_execs_int)
 
-        if num_execs_int > 0:
-            with nogil:
-                status = dpiStmt_executeMany(self._handle, mode, num_execs_int)
-                dpiContext_getError(driver_info.context, &error_info)
-                dpiStmt_getRowCount(self._handle, &rowcount)
-            if not self._stmt_info.isPLSQL:
-                self.rowcount = rowcount
-            if status < 0:
-                error = _create_new_from_info(&error_info)
-                if self._stmt_info.isPLSQL and error_info.offset == 0:
-                    error.offset = rowcount
-                raise error.exc_type(error)
-            elif error_info.isWarning:
-                self.warning = _create_new_from_info(&error_info)
-            if self._stmt_info.isReturning or self._stmt_info.isPLSQL:
-                self._transform_binds()
+        with nogil:
+            status = dpiStmt_executeMany(self._handle, mode, num_execs_int)
+            dpiContext_getError(driver_info.context, &error_info)
+            dpiStmt_getRowCount(self._handle, &rowcount)
+        if not self._stmt_info.isPLSQL:
+            self.rowcount = rowcount
+        if status < 0:
+            error = _create_new_from_info(&error_info)
+            if self._stmt_info.isPLSQL and error_info.offset == 0:
+                error.offset = rowcount
+            raise error.exc_type(error)
+        elif error_info.isWarning:
+            self.warning = _create_new_from_info(&error_info)
+        if self._stmt_info.isReturning or self._stmt_info.isPLSQL:
+            self._transform_binds()
 
     def get_array_dml_row_counts(self):
         """

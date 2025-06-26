@@ -755,9 +755,10 @@ class Cursor(BaseCursor):
         num_execs = self._impl._prepare_for_executemany(
             self, statement, parameters
         )
-        self._impl.executemany(
-            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
-        )
+        if num_execs > 0:
+            self._impl.executemany(
+                self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+            )
 
     def fetchall(self) -> list:
         """
@@ -1007,9 +1008,10 @@ class AsyncCursor(BaseCursor):
         num_execs = self._impl._prepare_for_executemany(
             self, statement, parameters
         )
-        await self._impl.executemany(
-            self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
-        )
+        if num_execs > 0:
+            await self._impl.executemany(
+                self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+            )
 
     async def fetchall(self) -> list:
         """

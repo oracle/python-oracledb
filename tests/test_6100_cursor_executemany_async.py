@@ -378,6 +378,11 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2001"):
             await cursor.executemany(None, [1, 2])
 
+    async def test_6124(self):
+        "6124 - test executemany with empty parameter set"
+        sql = "insert into TestTempTable values (:1)"
+        await self.cursor.executemany(sql, [])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
