@@ -280,7 +280,8 @@ cdef class BaseVarImpl:
             else:
                 errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT)
 
-        self._arrow_array = ArrowArrayImpl(
+        self._arrow_array = ArrowArrayImpl.__new__(ArrowArrayImpl)
+        self._arrow_array.populate_from_metadata(
             arrow_type=self.metadata._arrow_type,
             name=self.metadata.name,
             precision=self.metadata.precision,

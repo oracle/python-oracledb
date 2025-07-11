@@ -84,11 +84,12 @@ cdef class ArrowArrayImpl:
         str name
         ArrowType arrow_type
         ArrowTimeUnit time_unit
-        double factor
+        int time_factor
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
         ArrowType child_arrow_type
 
+    cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
@@ -101,6 +102,10 @@ cdef class ArrowArrayImpl:
                                   array.array values) except -1
     cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1
+    cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
+                                    int8_t precision, int8_t scale,
+                                    ArrowTimeUnit time_unit,
+                                    ArrowType child_arrow_type) except -1
 
 
 cdef class DataFrameImpl:

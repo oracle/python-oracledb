@@ -30,93 +30,11 @@
 
 cdef class ArrowArrayImpl:
 
-    def __cinit__(self, ArrowType arrow_type, str name, int8_t precision,
-                  int8_t scale, ArrowTimeUnit time_unit,
-                  ArrowType child_arrow_type):
-        cdef ArrowType storage_type = arrow_type
-        self.arrow_type = arrow_type
-        self.child_arrow_type = child_arrow_type
-        self.time_unit = time_unit
-        self.name = name
+    def __cinit__(self):
         self.arrow_array = \
-                <ArrowArray*> cpython.PyMem_Malloc(sizeof(ArrowArray))
-        if arrow_type == NANOARROW_TYPE_TIMESTAMP:
-            storage_type = NANOARROW_TYPE_INT64
-        if time_unit == NANOARROW_TIME_UNIT_MILLI:
-            self.factor = 1e3
-        elif time_unit == NANOARROW_TIME_UNIT_MICRO:
-            self.factor = 1e6
-        elif time_unit == NANOARROW_TIME_UNIT_NANO:
-            self.factor = 1e9
-        else:
-            self.factor = 1
-
+                <ArrowArray*> cpython.PyMem_Calloc(1, sizeof(ArrowArray))
         self.arrow_schema = \
-                <ArrowSchema*> cpython.PyMem_Malloc(sizeof(ArrowSchema))
-        if arrow_type == NANOARROW_TYPE_DECIMAL128:
-            self.precision = precision
-            self.scale = scale
-            ArrowSchemaInit(self.arrow_schema)
-            _check_nanoarrow(
-                ArrowSchemaSetTypeDecimal(
-                    self.arrow_schema,
-                    arrow_type,
-                    precision,
-                    scale
-                )
-            )
-        elif arrow_type == NANOARROW_TYPE_STRUCT:
-            # Currently struct is used for Sparse vector only
-            build_arrow_schema_for_sparse_vector(self.arrow_schema,
-                                                 child_arrow_type)
-        else:
-            _check_nanoarrow(
-                ArrowSchemaInitFromType(
-                    self.arrow_schema,
-                    storage_type
-                )
-            )
-            if arrow_type == NANOARROW_TYPE_TIMESTAMP:
-                _check_nanoarrow(
-                    ArrowSchemaSetTypeDateTime(
-                        self.arrow_schema,
-                        arrow_type,
-                        time_unit,
-                        NULL
-                    )
-                )
-        if arrow_type == NANOARROW_TYPE_LIST:
-            # Set the schema for child using child_arrow_type
-            _check_nanoarrow(
-                ArrowSchemaSetType(
-                    self.arrow_schema.children[0],
-                    child_arrow_type
-                )
-            )
-            _check_nanoarrow(
-                ArrowArrayInitFromSchema(
-                    self.arrow_array,
-                    self.arrow_schema,
-                    NULL
-                )
-            )
-        elif arrow_type == NANOARROW_TYPE_STRUCT:
-            _check_nanoarrow(
-                ArrowArrayInitFromSchema(
-                    self.arrow_array,
-                    self.arrow_schema,
-                    NULL
-                )
-            )
-        else: # primitive type array init
-            _check_nanoarrow(
-                ArrowArrayInitFromType(
-                    self.arrow_array,
-                    storage_type
-                )
-            )
-        _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
-        _check_nanoarrow(ArrowSchemaSetName(self.arrow_schema, name.encode()))
+                <ArrowSchema*> cpython.PyMem_Calloc(1, sizeof(ArrowSchema))
 
     def __dealloc__(self):
         if self.arrow_array != NULL:
@@ -127,6 +45,20 @@ cdef class ArrowArrayImpl:
             if self.arrow_schema.release != NULL:
                 ArrowSchemaRelease(self.arrow_schema)
             cpython.PyMem_Free(self.arrow_schema)
+
+    cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1:
+        """
+        Sets the time unit and the corresponding factor.
+        """
+        self.time_unit = time_unit
+        if time_unit == NANOARROW_TIME_UNIT_MILLI:
+            self.time_factor = 1_000
+        elif time_unit == NANOARROW_TIME_UNIT_MICRO:
+            self.time_factor = 1_000_000
+        elif time_unit == NANOARROW_TIME_UNIT_NANO:
+            self.time_factor = 1_000_000_000
+        else:
+            self.time_factor = 1
 
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1:
         """
@@ -317,6 +249,88 @@ cdef class ArrowArrayImpl:
         """
         _check_nanoarrow(ArrowArrayFinishBuildingDefault(self.arrow_array,
                                                          NULL))
+
+    cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
+                                    int8_t precision, int8_t scale,
+                                    ArrowTimeUnit time_unit,
+                                    ArrowType child_arrow_type) except -1:
+        """
+        Populate the array from the supplied metadata.
+        """
+        cdef ArrowType storage_type = arrow_type
+        self.arrow_type = arrow_type
+        self._set_time_unit(time_unit)
+        self.name = name
+        self.child_arrow_type = child_arrow_type
+        if arrow_type == NANOARROW_TYPE_TIMESTAMP:
+            storage_type = NANOARROW_TYPE_INT64
+
+        _check_nanoarrow(ArrowArrayInitFromType(self.arrow_array,
+                                                storage_type))
+        if arrow_type == NANOARROW_TYPE_DECIMAL128:
+            self.precision = precision
+            self.scale = scale
+            ArrowSchemaInit(self.arrow_schema)
+            _check_nanoarrow(
+                ArrowSchemaSetTypeDecimal(
+                    self.arrow_schema,
+                    arrow_type,
+                    precision,
+                    scale
+                )
+            )
+        elif arrow_type == NANOARROW_TYPE_STRUCT:
+            # Currently struct is used for Sparse vector only
+            build_arrow_schema_for_sparse_vector(self.arrow_schema,
+                                                 child_arrow_type)
+        else:
+            _check_nanoarrow(
+                ArrowSchemaInitFromType(
+                    self.arrow_schema,
+                    storage_type
+                )
+            )
+            if arrow_type == NANOARROW_TYPE_TIMESTAMP:
+                _check_nanoarrow(
+                    ArrowSchemaSetTypeDateTime(
+                        self.arrow_schema,
+                        arrow_type,
+                        time_unit,
+                        NULL
+                    )
+                )
+        if arrow_type == NANOARROW_TYPE_LIST:
+            # Set the schema for child using child_arrow_type
+            _check_nanoarrow(
+                ArrowSchemaSetType(
+                    self.arrow_schema.children[0],
+                    child_arrow_type
+                )
+            )
+            _check_nanoarrow(
+                ArrowArrayInitFromSchema(
+                    self.arrow_array,
+                    self.arrow_schema,
+                    NULL
+                )
+            )
+        elif arrow_type == NANOARROW_TYPE_STRUCT:
+            _check_nanoarrow(
+                ArrowArrayInitFromSchema(
+                    self.arrow_array,
+                    self.arrow_schema,
+                    NULL
+                )
+            )
+        else: # primitive type array init
+            _check_nanoarrow(
+                ArrowArrayInitFromType(
+                    self.arrow_array,
+                    storage_type
+                )
+            )
+        _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
+        _check_nanoarrow(ArrowSchemaSetName(self.arrow_schema, name.encode()))
 
     def get_array_capsule(self):
         """

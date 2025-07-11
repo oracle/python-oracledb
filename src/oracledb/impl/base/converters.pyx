@@ -59,7 +59,7 @@ cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl arrow_array,
         int64_t ts
     dt = convert_date_to_python(buffer)
     td = dt - EPOCH_DATE
-    ts = int(cydatetime.total_seconds(td) * arrow_array.factor)
+    ts = int(cydatetime.total_seconds(td) * arrow_array.time_factor)
     arrow_array.append_int64(ts)
 
 
