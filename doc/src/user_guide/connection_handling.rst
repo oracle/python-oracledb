@@ -3727,8 +3727,8 @@ Standalone connection example:
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
 
-You can also explicitly set the ``externalauth`` parameter to True in standalone
-connections as shown below. The ``externalauth`` parameter is optional.
+You can also set the ``externalauth`` parameter to *True* in standalone
+connections:
 
 .. code-block:: python
 
@@ -3738,7 +3738,7 @@ connections as shown below. The ``externalauth`` parameter is optional.
     # PROXY_USER:   MYUSER
     # SESSION_USER: MYSESSIONUSER
 
-Pooled connection example:
+A connection pool example is:
 
 .. code-block:: python
 
@@ -3949,8 +3949,8 @@ connect to Oracle Autonomous Database with mutual TLS (mTLS). See
 
 When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``access_token``, ``config_dir``,
-``wallet_location``, and ``wallet_password`` parameters of
+you need to explicitly set the ``access_token``, and also any desired
+``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
 :func:`~oracledb.connect`. For example:
 
 .. code:: python
@@ -3966,9 +3966,10 @@ you need to explicitly set the ``access_token``, ``config_dir``,
 
 When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``access_token``, ``homogeneous``,
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.create_pool`. For example:
+you need to explicitly set the ``access_token`` parameter of
+:func:`~oracledb.create_pool`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. The ``homogeneous``
+parameter must be *True* (its default value). For example:
 
 .. code:: python
 
@@ -4004,15 +4005,16 @@ parameters of :func:`~oracledb.connect`. For example:
 
 When using a class such as the :ref:`TokenHandlerOAuth class <oauthhandler>` to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
-you need to explicitly set the ``access_token``, ``externalauth``, and
-``homogeneous`` parameters of :func:`~oracledb.create_pool`. For example:
+you need to explicitly set the ``access_token`` and ``externalauth`` parameters
+of :func:`~oracledb.create_pool`. The ``homogeneous`` parameter must be *True*
+(which is its default value). For example:
 
 .. code:: python
 
     pool = oracledb.create_pool(
         access_token=TokenHandlerOAuth(),
         externalauth=True, # must always be True in Thick mode
-        homogeneous=True,  # must always be True in connection pools
+        homogeneous=True,  # must always be True for connection pools
         dsn=mydb_low, min=1, max=5, increment=2)
 
 Note that the ``access_token`` parameter should be set to a callable. This is
@@ -4200,9 +4202,9 @@ Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
 When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``extra_auth_params``, ``config_dir``,
-``wallet_location``, and ``wallet_password`` parameter of
-:func:`~oracledb.connect`. For example:
+you need to explicitly set the ``extra_auth_params`` parameter, and also any
+required ``config_dir``, ``wallet_location``, and ``wallet_password``
+parameters of :func:`~oracledb.connect`. For example:
 
 .. code:: python
 
@@ -4227,9 +4229,10 @@ you need to explicitly set the ``extra_auth_params``, ``config_dir``,
 
 When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``homogeneous``, ``extra_auth_params``,
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.create_pool`. For example:
+you need to explicitly set the ``extra_auth_params`` parameter of
+:func:`~oracledb.create_pool`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. The ``homogeneous``
+parameter must be *True* (its default value). For example:
 
 .. code:: python
 
@@ -4256,7 +4259,7 @@ you need to explicitly set the ``homogeneous``, ``extra_auth_params``,
 When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
 you need to explicitly set the ``extra_auth_params`` and ``externalauth``
-parameter of :func:`~oracledb.connect`. For example:
+parameters of :func:`~oracledb.connect`. For example:
 
 .. code:: python
 
@@ -4279,8 +4282,9 @@ parameter of :func:`~oracledb.connect`. For example:
 
 When using the :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin to
 generate OAuth2 tokens to connect to Oracle Autonomous Database in Thick mode,
-you need to explicitly set the ``extra_auth_params``, ``externalauth``, and
-``homogeneous`` parameters of :func:`~oracledb.create_pool`.
+you need to explicitly set the ``extra_auth_params`` and ``externalauth``
+parameters of :func:`~oracledb.create_pool`. The ``homogeneous`` parameter must
+be *True* (its default value). For example:
 
 .. code:: python
 
@@ -4312,8 +4316,8 @@ issued by OCI IAM to authenticate to the Oracle Autonomous Database. Both Thin
 and Thick modes of the python-oracledb driver support OCI IAM token-based
 authentication.
 
-When using python-oracledb in Thick mode, Oracle Client libraries 19.14 (or later),
-or 21.5 (or later) are needed.
+When using python-oracledb in Thick mode, Oracle Client libraries 19.14 (or
+later), or 21.5 (or later) are needed.
 
 Standalone connections and pooled connections can be created in python-oracledb
 Thick and Thin modes using OCI IAM token-based authentication. This can be done
@@ -4414,9 +4418,9 @@ to Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
 When using a class such as the :ref:`TokenHandlerIAM class <iamhandler>` to
 generate OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``access_token``, ``config_dir``,
-``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.connect`. For example:
+you need to explicitly set the ``access_token`` parameter of
+:func:`~oracledb.connect`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. For example:
 
 .. code:: python
 
@@ -4431,15 +4435,16 @@ you need to explicitly set the ``access_token``, ``config_dir``,
 
 When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
 generate OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode,
-you need to explicitly set the ``access_token``, ``homogeneous``,
-``config_dir``, ``wallet_location``, and ``wallet_password`` parameters of
-:func:`~oracledb.create_pool`. For example:
+you need to explicitly set the ``access_token`` parameter of
+:func:`~oracledb.create_pool`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. The ``homogeneous``
+parameter must be *True* (its default value). For example:
 
 .. code:: python
 
     connection = oracledb.create_pool(
         access_token=TokenHandlerIAM(),
-        homogeneous=True, # must always be set to True for connection pools
+        homogeneous=True, # must always be True for connection pools
         dsn=mydb_low,
         config_dir="path_to_unzipped_wallet",
         wallet_location="location_of_pem_file",
@@ -4469,15 +4474,16 @@ of :func:`~oracledb.connect`. For example:
 
 When using a class such as :ref:`TokenHandlerIAM class <iamhandler>` to
 generate OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode,
-you need to explicitly set the ``access_token``, ``externalauth``, and
-``homogeneous`` parameters of :func:`oracledb.create_pool`. For example:
+you need to explicitly set the ``access_token`` and ``externalauth`` parameters
+of :func:`oracledb.create_pool`. The ``homogeneous`` parameter must be *True*
+(its default value). For example:
 
 .. code:: python
 
     pool = oracledb.create_pool(
         access_token=TokenHandlerIAM(),
         externalauth=True, # must always be True in Thick mode
-        homogeneous=True,  # must always be True in connection pools
+        homogeneous=True,  # must always be True for connection pools
         dsn=mydb_low, min=1, max=5, increment=2)
 
 Note that the ``access_token`` parameter should be set to a callable. This is
@@ -4683,8 +4689,9 @@ Oracle Autonomous Database with mutual TLS (mTLS). See :ref:`autonomousdb`.
 
 When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
 OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode, you need
-to explicitly set the ``config_dir``, ``wallet_location``, ``wallet_password``
-and ``extra_auth_params`` parameters of :func:`~oracledb.connect`. For example:
+to explicitly set the ``extra_auth_params`` parameter of
+:func:`~oracledb.connect`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. For example:
 
 .. code:: python
 
@@ -4707,9 +4714,10 @@ and ``extra_auth_params`` parameters of :func:`~oracledb.connect`. For example:
 
 When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
 OCI IAM tokens to connect to Oracle Autonomous Database in Thin mode, you need
-to explicitly set the ``config_dir``, ``homogeneous``, ``wallet_location``,
-``wallet_password``, and ``extra_auth_params`` parameters of
-:func:`~oracledb.create_pool`. For example:
+to explicitly set the ``extra_auth_params`` parameter of
+:func:`~oracledb.create_pool`, and also any desired ``config_dir``,
+``wallet_location``, and ``wallet_password`` parameters. The ``homogeneous``
+parameter must be *True* (its default value). For example:
 
 .. code:: python
 
@@ -4761,9 +4769,10 @@ to explicitly set the ``externalauth`` and ``extra_auth_params`` parameters of
 **Connection Pools in Thick Mode Using OCI IAM Tokens**
 
 When using the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin to generate
-OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode, you
-need to explicitly set the ``externalauth``, ``homogeneous``, and
-``extra_auth_params`` parameters of :func:`~oracledb.create_pool`. For example:
+OCI IAM tokens to connect to Oracle Autonomous Database in Thick mode, you need
+to explicitly set the ``extra_auth_params`` and ``externalauth`` parameters of
+:func:`~oracledb.create_pool`. The ``homogeneous`` parameter must be *True*
+(its default value). For example:
 
 .. code:: python
 
