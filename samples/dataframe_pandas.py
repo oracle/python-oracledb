@@ -60,9 +60,7 @@ sql = "select id, name from SampleQueryTab order by id"
 odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
 # Get a Pandas DataFrame from the data
-df = pyarrow.Table.from_arrays(
-    odf.column_arrays(), names=odf.column_names()
-).to_pandas()
+df = pyarrow.table(odf).to_pandas()
 
 # Perform various Pandas operations on the DataFrame
 
@@ -93,9 +91,7 @@ df = pandas.DataFrame()
 # behavior on the sample table.
 sql = "select id, name from SampleQueryTab order by id"
 for odf in connection.fetch_df_batches(statement=sql, size=10):
-    df_b = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    ).to_pandas()
+    df_b = pyarrow.table(odf).to_pandas()
     print(f"Appending {df_b.shape[0]} rows")
     df = pandas.concat([df, df_b], ignore_index=True)
 
@@ -137,9 +133,7 @@ sql = "select id, v64 from SampleVectorTab order by id"
 odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
 # Get a Pandas DataFrame from the data
-df = pyarrow.Table.from_arrays(
-    odf.column_arrays(), names=odf.column_names()
-).to_pandas()
+df = pyarrow.table(odf).to_pandas()
 
 # Perform various Pandas operations on the DataFrame
 

@@ -64,9 +64,7 @@ async def main():
     odf = await connection.fetch_df_all(statement=SQL, arraysize=100)
 
     # Get a Pandas DataFrame from the data
-    df = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    ).to_pandas()
+    df = pyarrow.table(odf).to_pandas()
 
     # Perform various Pandas operations on the DataFrame
 
@@ -96,9 +94,7 @@ async def main():
     # Tune 'size' for your data set. Here it is small to show the batch fetch
     # behavior on the sample table.
     async for odf in connection.fetch_df_batches(statement=SQL, size=10):
-        df_b = pyarrow.Table.from_arrays(
-            odf.column_arrays(), names=odf.column_names()
-        ).to_pandas()
+        df_b = pyarrow.table(odf).to_pandas()
         print(f"Appending {df_b.shape[0]} rows")
         df = pandas.concat([df, df_b], ignore_index=True)
 
@@ -141,9 +137,7 @@ async def main():
     odf = await connection.fetch_df_all(statement=sql, arraysize=100)
 
     # Get a Pandas DataFrame from the data
-    df = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    ).to_pandas()
+    df = pyarrow.table(odf).to_pandas()
 
     # Perform various Pandas operations on the DataFrame
 

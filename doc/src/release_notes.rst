@@ -35,6 +35,8 @@ Common Changes
 
 #)  Changes to :ref:`data frame <dataframeformat>` support:
 
+    - Added internal support for the ArrowArrayStream PyCapsule interface to
+      simplify :ref:`OracleDataFrame <oracledataframeobj>` use.
     - Remove use of the DataFrame Interchange Protocol in
       :ref:`OracleDataFrames <oracledataframeobj>`.
     - Documentation on methods and attributes on the ``DataFrame`` and

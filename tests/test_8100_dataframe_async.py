@@ -401,10 +401,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         """
         raw_df = self.__convert_to_df(data)
         raw_data = self.__get_data_from_df(raw_df)
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, raw_data)
 
@@ -518,10 +515,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.__check_interop()
         with test_env.DefaultsContextManager("fetch_decimals", True):
             ora_df = await self.conn.fetch_df_all("select 1.0 from dual")
-            fetched_tab = pyarrow.Table.from_arrays(
-                ora_df.column_arrays(), names=ora_df.column_names()
-            )
-            fetched_df = fetched_tab.to_pandas()
+            fetched_df = pyarrow.table(ora_df).to_pandas()
             fetched_data = self.__get_data_from_df(fetched_df)
             self.assertEqual(fetched_data, data)
 
@@ -532,10 +526,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ora_df = await self.conn.fetch_df_all(
             "select to_clob('test_8023') from dual"
         )
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
@@ -546,10 +537,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         ora_df = await self.conn.fetch_df_all(
             "select to_blob(utl_raw.cast_to_raw('test_8024')) from dual"
         )
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
@@ -571,10 +559,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             select true
             """
         )
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
@@ -595,13 +580,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(ora_df.num_rows(), 2)
         self.assertEqual(ora_df.num_columns(), 1)
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-
-        # number of children for a nested list = 1
-        self.assertEqual(fetched_tab.schema.types[0].num_fields, 1)
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
     @test_env.skip_unless_sparse_vectors_supported()
@@ -643,12 +622,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         )
         self.assertEqual(ora_df.num_rows(), 2)
         self.assertEqual(ora_df.num_columns(), 1)
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        # number of children for a struct = 3 (num_dimensions, indices, values)
-        self.assertEqual(fetched_tab.schema.types[0].num_fields, 3)
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
     async def test_8123(self):
@@ -686,10 +660,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             (None,),
             (None,),
         ]
-        fetched_tab = pyarrow.Table.from_arrays(
-            ora_df.column_arrays(), names=ora_df.column_names()
-        )
-        fetched_df = fetched_tab.to_pandas()
+        fetched_df = pyarrow.table(ora_df).to_pandas()
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 

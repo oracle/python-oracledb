@@ -29,6 +29,8 @@
 # array data to other data frame libraries.
 # -----------------------------------------------------------------------------
 
+from .arrow_impl import ArrowArrayImpl
+
 from . import errors
 
 
@@ -50,6 +52,12 @@ class ArrowArray:
 
     def __str__(self):
         return self.__repr__()
+
+    @classmethod
+    def _from_arrow(cls, obj):
+        array = cls.__new__(cls)
+        array._impl = ArrowArrayImpl.from_arrow_array(obj)
+        return array
 
     @classmethod
     def _from_impl(cls, impl):

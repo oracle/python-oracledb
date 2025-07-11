@@ -28,7 +28,10 @@
 # Contains utility classes and methods.
 # -----------------------------------------------------------------------------
 
-from typing import Callable, Union
+from typing import Any, Callable, Union
+
+from .arrow_array import ArrowArray
+from .dataframe import DataFrame
 
 from . import base_impl
 from . import driver_mode
@@ -51,6 +54,20 @@ def enable_thin_mode():
     """
     with driver_mode.get_manager(requested_thin_mode=True):
         pass
+
+
+def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
+    """
+    Uses the Arrow PyCapsule interface to return either a DataFrame or
+    ArrowArray object, depending on what interface is supported by the object
+    that is supplied to the function.
+    """
+    if hasattr(obj, "__arrow_c_stream__"):
+        return DataFrame._from_arrow(obj)
+    elif hasattr(obj, "__arrow_c_array__"):
+        return ArrowArray._from_arrow(obj)
+    msg = "object must implement the PyCapsule stream or array interfaces"
+    raise ValueError(msg)
 
 
 def params_initer(f):

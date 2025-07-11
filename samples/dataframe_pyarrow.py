@@ -56,9 +56,7 @@ SQL1 = "select id, name from SampleQueryTab order by id"
 odf = connection.fetch_df_all(statement=SQL1, arraysize=100)
 
 # Create a PyArrow table
-pyarrow_table = pyarrow.Table.from_arrays(
-    arrays=odf.column_arrays(), names=odf.column_names()
-)
+pyarrow_table = pyarrow.table(odf)
 
 print("Type:")
 print(type(pyarrow_table))  # <class 'pyarrow.lib.Table'>

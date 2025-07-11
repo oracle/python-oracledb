@@ -34,6 +34,11 @@ cdef extern from "nanoarrow.c":
 
     ctypedef void (*ArrowBufferDeallocatorCallback)
 
+    cdef struct ArrowArrayStream:
+        int (*get_schema)(ArrowArrayStream *, ArrowSchema * out)
+        int (*get_next)(ArrowArrayStream * stream, ArrowArray * out)
+        void (*release)(ArrowArrayStream*)
+
     cdef struct ArrowBufferAllocator:
         void *private_data
 
@@ -85,13 +90,20 @@ cdef extern from "nanoarrow.c":
                                             ArrowError *error)
     ArrowErrorCode ArrowArrayInitFromType(ArrowArray* array,
                                           ArrowType storage_type)
+    void ArrowArrayMove(ArrowArray* src, ArrowArray* dst)
     void ArrowArrayRelease(ArrowArray *array)
     ArrowErrorCode ArrowArrayReserve(ArrowArray* array,
                                      int64_t additional_size_elements)
     ArrowErrorCode ArrowArrayStartAppending(ArrowArray* array)
+    void ArrowArrayStreamRelease(ArrowArrayStream *array_stream)
     ArrowBitmap* ArrowArrayValidityBitmap(ArrowArray* array)
     ArrowErrorCode ArrowArrayViewInitFromArray(ArrowArrayView* array_view,
                                                ArrowArray* array)
+    ArrowErrorCode ArrowBasicArrayStreamInit(ArrowArrayStream* array_stream,
+                                             ArrowSchema* schema,
+                                             int64_t n_arrays)
+    void ArrowBasicArrayStreamSetArray(ArrowArrayStream* array_stream,
+                                       int64_t i, ArrowArray* array)
     int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
     ArrowBufferAllocator ArrowBufferDeallocator(ArrowBufferDeallocatorCallback,
                                                 void *private_data)
@@ -100,10 +112,13 @@ cdef extern from "nanoarrow.c":
     void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
     ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
                                          ArrowStringView value)
+    ArrowErrorCode ArrowSchemaAllocateChildren(ArrowSchema* schema,
+                                               int64_t n_children)
     ArrowErrorCode ArrowSchemaDeepCopy(const ArrowSchema *schema,
                                        ArrowSchema *schema_out)
     void ArrowSchemaInit(ArrowSchema* schema)
     ArrowErrorCode ArrowSchemaInitFromType(ArrowSchema* schema, ArrowType type)
+    void ArrowSchemaMove(ArrowSchema* src, ArrowSchema* dst)
     void ArrowSchemaRelease(ArrowSchema *schema)
     ArrowErrorCode ArrowSchemaSetName(ArrowSchema* schema, const char* name)
     ArrowErrorCode ArrowSchemaSetType(ArrowSchema * schema, ArrowType type)
@@ -222,6 +237,7 @@ cdef int copy_arrow_array(ArrowArrayImpl array_impl,
     """
     cdef:
         ArrowBuffer *dest_buffer
+        ArrowBuffer *src_buffer
         ssize_t i
     _check_nanoarrow(
         ArrowArrayInitFromType(
@@ -242,8 +258,9 @@ cdef int copy_arrow_array(ArrowArrayImpl array_impl,
     for i in range(src.n_buffers):
         if src.buffers[i] != NULL:
             dest_buffer = ArrowArrayBuffer(dest, i)
-            dest_buffer.data = <uint8_t *> src.buffers[i]
-            dest_buffer.size_bytes = 0
+            src_buffer = ArrowArrayBuffer(src, i)
+            dest_buffer.data = src_buffer.data
+            dest_buffer.size_bytes = src_buffer.size_bytes
             dest_buffer.allocator = ArrowBufferDeallocator(
                 <ArrowBufferDeallocatorCallback> arrow_buffer_dealloc_callback,
                 <void *> array_impl

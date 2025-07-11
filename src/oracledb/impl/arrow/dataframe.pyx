@@ -30,9 +30,121 @@
 
 cdef class DataFrameImpl:
 
+    @classmethod
+    def from_arrow_stream(cls, obj):
+        """
+        Extract Arrow arrays from an object implementing the PyCapsule arrow
+        stream interface.
+        """
+        cdef:
+            ArrowArrayStream *arrow_stream
+            ArrowSchema arrow_schema
+            ArrowArray arrow_array
+            DataFrameImpl df_impl
+            ArrowArrayImpl array
+            ssize_t i
+        df_impl = DataFrameImpl.__new__(DataFrameImpl)
+        df_impl.arrays = []
+        capsule = obj.__arrow_c_stream__()
+        arrow_stream = <ArrowArrayStream*> cpython.PyCapsule_GetPointer(
+            capsule, "arrow_array_stream"
+        )
+        _check_nanoarrow(arrow_stream.get_schema(arrow_stream, &arrow_schema))
+        _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
+        for i in range(arrow_schema.n_children):
+            array = ArrowArrayImpl.__new__(ArrowArrayImpl)
+            array.populate_from_array(arrow_schema.children[i],
+                                      arrow_array.children[i])
+            df_impl.arrays.append(array)
+        _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
+        if arrow_array.release != NULL:
+            raise NotImplementedError("multiple chunks not supported")
+        ArrowArrayStreamRelease(arrow_stream)
+        return df_impl
+
     def get_arrays(self):
         """
         Internal method for getting the list of arrays associated with the data
         frame.
         """
         return self.arrays
+
+    def get_stream_capsule(self):
+        """
+        Internal method for getting a PyCapsule pointer to a stream that
+        encapsulates the arrays found in the data frame.
+        """
+        cdef:
+            ArrowArrayImpl array_impl
+            ArrowArrayStream *stream
+            int64_t i, num_arrays
+            ArrowSchema schema
+            ArrowArray array
+
+        # initialization
+        stream = NULL
+        array.release = NULL
+        schema.release = NULL
+        num_arrays = <int64_t> len(self.arrays)
+
+        try:
+
+            # create schema/array encompassing all of the arrays
+            _check_nanoarrow(
+                ArrowSchemaInitFromType(&schema, NANOARROW_TYPE_STRUCT)
+            )
+            _check_nanoarrow(ArrowSchemaAllocateChildren(&schema, num_arrays))
+            _check_nanoarrow(
+                ArrowArrayInitFromType(&array, NANOARROW_TYPE_STRUCT)
+            )
+            _check_nanoarrow(ArrowArrayAllocateChildren(&array, num_arrays))
+            for i, array_impl in enumerate(self.arrays):
+                array.length = array_impl.arrow_array.length
+                copy_arrow_array(
+                    array_impl, array_impl.arrow_array, array.children[i]
+                )
+                _check_nanoarrow(
+                    ArrowSchemaDeepCopy(
+                        array_impl.arrow_schema, schema.children[i]
+                    )
+                )
+
+            # create stream and populate it
+            stream = <ArrowArrayStream*> \
+                    cpython.PyMem_Calloc(1, sizeof(ArrowArrayStream))
+            _check_nanoarrow(
+                ArrowBasicArrayStreamInit(stream, &schema, num_arrays)
+            )
+            ArrowBasicArrayStreamSetArray(stream, 0, &array)
+
+        except:
+            if schema.release:
+                ArrowSchemaRelease(&schema)
+            if array.release:
+                ArrowArrayRelease(&array)
+            if stream != NULL:
+                if stream.release:
+                    ArrowArrayStreamRelease(stream)
+                cpython.PyMem_Free(stream)
+            raise
+
+        # create and return capsule
+        return cpython.PyCapsule_New(
+            stream,
+            "arrow_array_stream",
+            &pycapsule_array_stream_deleter
+        )
+
+
+cdef void pycapsule_array_stream_deleter(object stream_capsule) noexcept:
+    """
+    Called when the PyCapsule pointer is no longer required and performs the
+    necessary cleanup.
+    """
+    cdef ArrowArrayStream* stream
+    stream = <ArrowArrayStream*> cpython.PyCapsule_GetPointer(
+        stream_capsule, 'arrow_array_stream'
+    )
+    if stream.release != NULL:
+        ArrowArrayStreamRelease(stream)
+    cpython.PyMem_Free(stream)

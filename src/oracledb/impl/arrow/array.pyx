@@ -250,6 +250,73 @@ cdef class ArrowArrayImpl:
         _check_nanoarrow(ArrowArrayFinishBuildingDefault(self.arrow_array,
                                                          NULL))
 
+    @classmethod
+    def from_arrow_array(cls, obj):
+        """
+        Create an ArrowArrayImpl instance by extracting the information an
+        object implementing the PyCapsule Arrow array interface.
+        """
+        cdef:
+            ArrowArrayImpl array_impl
+            ArrowSchema *arrow_schema
+            ArrowArray *arrow_array
+        schema_capsule, array_capsule = obj.__arrow_c_array__()
+        arrow_schema = <ArrowSchema*> cpython.PyCapsule_GetPointer(
+            schema_capsule, "arrow_schema"
+        )
+        arrow_array = <ArrowArray*> cpython.PyCapsule_GetPointer(
+            array_capsule, "arrow_array"
+        )
+        array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
+        array_impl.populate_from_array(arrow_schema, arrow_array)
+        return array_impl
+
+    cdef int populate_from_array(self, ArrowSchema* schema,
+                                 ArrowArray* array) except -1:
+        """
+        Populate the array from another array.
+        """
+        cdef str schema_format
+        ArrowSchemaMove(schema, self.arrow_schema)
+        ArrowArrayMove(array, self.arrow_array)
+        schema_format = schema.format.decode()
+        self.name = schema.name.decode()
+        if schema_format == "u":
+            self.arrow_type = NANOARROW_TYPE_STRING
+        elif schema_format == "U":
+            self.arrow_type = NANOARROW_TYPE_LARGE_STRING
+        elif schema_format == "z":
+            self.arrow_type = NANOARROW_TYPE_BINARY
+        elif schema_format == "Z":
+            self.arrow_type = NANOARROW_TYPE_LARGE_BINARY
+        elif schema_format == "g":
+            self.arrow_type = NANOARROW_TYPE_DOUBLE
+        elif schema_format == "f":
+            self.arrow_type = NANOARROW_TYPE_FLOAT
+        elif schema_format == "l":
+            self.arrow_type = NANOARROW_TYPE_INT64
+        elif schema_format == "tss:":
+            self.arrow_type = NANOARROW_TYPE_TIMESTAMP
+            self._set_time_unit(NANOARROW_TIME_UNIT_SECOND)
+        elif schema_format == "tsm:":
+            self.arrow_type = NANOARROW_TYPE_TIMESTAMP
+            self._set_time_unit(NANOARROW_TIME_UNIT_MILLI)
+        elif schema_format == "tsu:":
+            self.arrow_type = NANOARROW_TYPE_TIMESTAMP
+            self._set_time_unit(NANOARROW_TIME_UNIT_MICRO)
+        elif schema_format == "tsn:":
+            self.arrow_type = NANOARROW_TYPE_TIMESTAMP
+            self._set_time_unit(NANOARROW_TIME_UNIT_NANO)
+        elif schema_format.startswith("d:"):
+            self.arrow_type = NANOARROW_TYPE_DECIMAL128
+            self.precision, self.scale = \
+                    [int(s) for s in schema_format[2:].split(",")]
+        elif schema_format == "b":
+            self.arrow_type = NANOARROW_TYPE_BOOL
+        else:
+            errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_FORMAT,
+                              schema_format=schema_format)
+
     cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
                                     int8_t precision, int8_t scale,
                                     ArrowTimeUnit time_unit,

@@ -57,10 +57,7 @@ SQL1 = "select * from SampleQueryTab order by id"
 odf = connection.fetch_df_all(statement=SQL1, arraysize=100)
 
 # Convert to a Polars DataFrame
-pyarrow_table = pyarrow.Table.from_arrays(
-    odf.column_arrays(), names=odf.column_names()
-)
-p = polars.from_arrow(pyarrow_table)
+p = polars.from_arrow(odf)
 
 print(type(p))  # <class 'polars.dataframe.frame.DataFrame'>
 

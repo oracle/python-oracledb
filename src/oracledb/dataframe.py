@@ -32,6 +32,7 @@
 from typing import List
 
 from .arrow_array import ArrowArray
+from .arrow_impl import DataFrameImpl
 from . import errors
 
 
@@ -42,14 +43,35 @@ class DataFrame:
         errors._raise_err(errors.ERR_INTERNAL_CREATION_REQUIRED)
 
     @classmethod
+    def _from_arrow(cls, obj):
+        df = cls.__new__(cls)
+        df._initialize(DataFrameImpl.from_arrow_stream(obj))
+        return df
+
+    @classmethod
     def _from_impl(cls, impl):
         df = cls.__new__(cls)
-        df._impl = impl
-        df._arrays = [ArrowArray._from_impl(a) for a in impl.get_arrays()]
-        df._arrays_by_name = {}
-        for array in df._arrays:
-            df._arrays_by_name[array.name] = array
+        df._initialize(impl)
         return df
+
+    def _initialize(self, impl):
+        """
+        Initializes the object given the implementation.
+        """
+        self._impl = impl
+        self._arrays = [ArrowArray._from_impl(a) for a in impl.get_arrays()]
+        self._arrays_by_name = {}
+        for array in self._arrays:
+            self._arrays_by_name[array.name] = array
+
+    def __arrow_c_stream__(self, requested_schema=None):
+        """
+        Returns the ArrowArrayStream PyCapsule which allows direct conversion
+        to foreign data frames that support this interface.
+        """
+        if requested_schema is not None:
+            raise NotImplementedError("requested_schema")
+        return self._impl.get_stream_capsule()
 
     def column_arrays(self) -> List:
         """

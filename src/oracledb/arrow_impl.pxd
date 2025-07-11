@@ -46,10 +46,18 @@ cdef extern from "nanoarrow.h":
         ArrowArray** children
         const void** buffers
         void (*release)(ArrowArray*)
+        void *private_data
 
     cdef struct ArrowSchema:
+        const char *format;
+        const char *name;
+        const char *metadata;
+        int64_t flags
+        int64_t n_children
         ArrowSchema** children
+        ArrowSchema* dictionary
         void (*release)(ArrowSchema*)
+        void *private_data
 
     cpdef enum ArrowType:
         NANOARROW_TYPE_BOOL
@@ -102,6 +110,8 @@ cdef class ArrowArrayImpl:
                                   array.array values) except -1
     cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1
+    cdef int populate_from_array(self, ArrowSchema* schema,
+                                 ArrowArray* array) except -1
     cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
                                     int8_t precision, int8_t scale,
                                     ArrowTimeUnit time_unit,
