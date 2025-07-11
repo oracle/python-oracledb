@@ -62,6 +62,12 @@ class TestCase(test_env.BaseTestCase):
                 password=test_env.get_main_password(),
             )
 
+    def test_7304(self):
+        "7304 - test acquire() from a pool with a session tag"
+        pool = test_env.get_pool()
+        with self.assertRaisesFullCode("DPY-3001"):
+            pool.acquire(tag="unimportant")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

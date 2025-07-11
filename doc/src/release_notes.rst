@@ -17,6 +17,11 @@ oracledb `3.3.0 <https://github.com/oracle/python-oracledb/compare/v3.2.0...v3.3
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Error ``DPY-3001: session tagging is only supported in python-oracledb
+    thick mode`` is now raised when attempting to use session tagging with a
+    connection pool. Previously a ``NotImplementedError`` exception was raised
+    instead.
+
 Thick Mode Changes
 ++++++++++++++++++
 

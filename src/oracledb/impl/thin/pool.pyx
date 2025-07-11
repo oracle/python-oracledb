@@ -622,7 +622,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
 
         # session tagging has not been implemented yet
         if params.tag is not None:
-            raise NotImplementedError("Tagging has not been implemented yet")
+            errors._raise_not_supported("session tagging")
 
         # wait until an acceptable connection is found
         request = self._create_request(params)
@@ -812,7 +812,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
 
         # session tagging has not been implemented yet
         if params.tag is not None:
-            raise NotImplementedError("Tagging has not been implemented yet")
+            errors._raise_not_supported("session tagging")
 
         # use the helper function to allow for a timeout since asyncio
         # condition variables do not have that capability directly
