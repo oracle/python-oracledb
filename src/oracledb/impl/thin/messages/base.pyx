@@ -216,6 +216,28 @@ cdef class Message:
         if not buf._caps.supports_end_of_response:
             self.end_of_response = True
 
+    cdef int _process_keyword_value_pairs(self, ReadBuffer buf,
+                                          uint16_t num_pairs) except -1:
+        """
+        Processes the keyword/value pairs returned by the server.
+        """
+        cdef:
+            uint16_t i, num_bytes, keyword_num
+            bytes text_value, binary_value
+        for i in range(num_pairs):
+            text_value = binary_value = None
+            buf.read_ub2(&num_bytes)        # text value
+            if num_bytes > 0:
+                text_value = buf.read_bytes()
+            buf.read_ub2(&num_bytes)        # binary value
+            if num_bytes > 0:
+                binary_value = buf.read_bytes()
+            buf.read_ub2(&keyword_num)      # keyword num
+            if keyword_num == TNS_KEYWORD_NUM_CURRENT_SCHEMA:
+                self.conn_impl._current_schema = text_value.decode()
+            elif keyword_num == TNS_KEYWORD_NUM_EDITION:
+                self.conn_impl._edition = text_value.decode()
+
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
         cdef uint64_t token_num
@@ -342,14 +364,7 @@ cdef class Message:
             buf.skip_ub1()                  # skip length of DTYs
             buf.read_ub2(&num_elements)
             buf.skip_ub1()                  # skip length
-            for i in range(num_elements):
-                buf.read_ub2(&temp16)
-                if temp16 > 0:              # skip key
-                    buf.skip_raw_bytes_chunked()
-                buf.read_ub2(&temp16)
-                if temp16 > 0:              # skip value
-                    buf.skip_raw_bytes_chunked()
-                buf.skip_ub2()              # skip flags
+            self._process_keyword_value_pairs(buf, num_elements)
             buf.skip_ub4()                  # skip overall flags
         elif opcode == TNS_SERVER_PIGGYBACK_EXT_SYNC:
             buf.skip_ub2()                  # skip number of DTYs
@@ -1172,7 +1187,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         cdef:
-            uint16_t keyword_num, num_params, num_bytes
+            uint16_t num_params, num_bytes
             uint32_t num_rows, i
             uint64_t rowcount
             bytes key_value
@@ -1184,18 +1199,7 @@ cdef class MessageWithData(Message):
         if num_bytes > 0:
             buf.skip_raw_bytes(num_bytes)
         buf.read_ub2(&num_params)           # num key/value pairs
-        for i in range(num_params):
-            buf.read_ub2(&num_bytes)        # key
-            if num_bytes > 0:
-                key_value = buf.read_bytes()
-            buf.read_ub2(&num_bytes)        # value
-            if num_bytes > 0:
-                buf.skip_raw_bytes_chunked()
-            buf.read_ub2(&keyword_num)      # keyword num
-            if keyword_num == TNS_KEYWORD_NUM_CURRENT_SCHEMA:
-                self.conn_impl._current_schema = key_value.decode()
-            elif keyword_num == TNS_KEYWORD_NUM_EDITION:
-                self.conn_impl._edition = key_value.decode()
+        self._process_keyword_value_pairs(buf, num_params)
         buf.read_ub2(&num_bytes)            # registration
         if num_bytes > 0:
             buf.skip_raw_bytes(num_bytes)
