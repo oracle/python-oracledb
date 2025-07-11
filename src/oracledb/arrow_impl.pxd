@@ -23,10 +23,10 @@
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# nanoarrow_bridge.pxd
+# arrow_impl.pxd
 #
-# Cython definition file declaring the classes used for bridging between the
-# nanoarrow C interface and Python.
+# Cython definition file declaring the classes used for implementing the Arrow
+# interface.
 #------------------------------------------------------------------------------
 
 # cython: language_level = 3
@@ -77,40 +77,32 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TIME_UNIT_NANO
 
 
-cdef class OracleArrowArray:
-    """
-    OracleArrowArray corresponds to a Column in the Relational model
-
-    It uses functions defined in the Arrow C Data Interface
-    to work with Arrow buffers and incrementally append values
-
-    The only user-facing API in this object will be __arrow_c_array__()
-    which is documented in the Arrow PyCapsule Interface. Arrow-backed
-    DataFrame libraries will use __arrow_c_array__() to directly access
-    the underlying arrow data
-
-    """
+cdef class ArrowArrayImpl:
     cdef:
-        public int32_t precision
-        public int32_t scale
-        public str name
-        public ArrowType arrow_type
-        public ArrowTimeUnit time_unit
+        int32_t precision
+        int32_t scale
+        str name
+        ArrowType arrow_type
+        ArrowTimeUnit time_unit
         double factor
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
         ArrowType child_arrow_type
 
-    cdef str _schema_to_string(self)
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
     cdef int append_float(self, float value) except -1
     cdef int append_int64(self, int64_t value) except -1
-    cdef int append_last_value(self, OracleArrowArray array) except -1
+    cdef int append_last_value(self, ArrowArrayImpl array) except -1
     cdef int append_null(self) except -1
     cdef int append_sparse_vector(self, int64_t num_dimensions,
                                   array.array indices,
                                   array.array values) except -1
     cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1
+
+
+cdef class DataFrameImpl:
+    cdef:
+        list arrays

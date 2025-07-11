@@ -519,11 +519,13 @@ cdef class BaseCursorImpl:
         Flush all buffers and return an Oracle Data frame.
         """
         cdef:
+            DataFrameImpl df_impl
             BaseVarImpl var_impl
-            list columns = []
+        df_impl = DataFrameImpl.__new__(DataFrameImpl)
+        df_impl.arrays = []
         for var_impl in self.fetch_var_impls:
-            columns.append(var_impl._finish_building_arrow_array())
-        return PY_TYPE_DATAFRAME(columns)
+            df_impl.arrays.append(var_impl._finish_building_arrow_array())
+        return PY_TYPE_DATAFRAME._from_impl(df_impl)
 
     def close(self, bint in_del=False):
         """
@@ -576,7 +578,7 @@ cdef class BaseCursorImpl:
 
     def fetch_df_all(self, cursor):
         """
-        Internal method used for fetching all data as OracleDataFrame
+        Internal method used for fetching all data as DataFrame
         """
         while self._more_rows_to_fetch:
             self._fetch_rows(cursor)
@@ -584,7 +586,7 @@ cdef class BaseCursorImpl:
 
     def fetch_df_batches(self, cursor, int batch_size):
         """
-        Internal method used for fetching next batch as OracleDataFrame
+        Internal method used for fetching next batch as DataFrame
         cursor.arraysize = batchsize
         """
         cdef:

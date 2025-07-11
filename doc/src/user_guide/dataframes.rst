@@ -18,7 +18,7 @@ frame objects of other libraries.
 
 .. note::
 
-    The data frame support in python-oracledb 3.2 is a pre-release and may
+    The data frame support in python-oracledb 3.3 is a pre-release and may
     change in a future version.
 
 **Fetching Data Frames**

@@ -193,9 +193,7 @@ from .base_impl import (
     DB_TYPE_XMLTYPE,
 )
 
-from .interchange.nanoarrow_bridge cimport (
-    OracleArrowArray,
-)
+from .arrow_impl cimport ArrowArrayImpl
 
 ctypedef unsigned char char_type
 

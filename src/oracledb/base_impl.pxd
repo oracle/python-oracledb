@@ -39,10 +39,10 @@ cimport cpython.datetime as cydatetime
 
 ctypedef unsigned char char_type
 
-from .interchange.nanoarrow_bridge cimport (
+from .arrow_impl cimport (
     ArrowTimeUnit,
     ArrowType,
-    OracleArrowArray,
+    ArrowArrayImpl,
 )
 
 cdef enum:
@@ -723,7 +723,7 @@ cdef class BaseVarImpl:
         BaseConnImpl _conn_impl
         OracleMetadata _fetch_metadata
         list _values
-        OracleArrowArray _arrow_array
+        ArrowArrayImpl _arrow_array
         bint _has_returned_data
         bint _is_value_set
 
@@ -736,7 +736,7 @@ cdef class BaseVarImpl:
     cdef DbType _check_fetch_conversion(self)
     cdef int _create_arrow_array(self) except -1
     cdef int _finalize_init(self) except -1
-    cdef OracleArrowArray _finish_building_arrow_array(self)
+    cdef ArrowArrayImpl _finish_building_arrow_array(self)
     cdef DbType _get_adjusted_type(self, uint8_t ora_type_num)
     cdef list _get_array_value(self)
     cdef object _get_scalar_value(self, uint32_t pos)
@@ -972,13 +972,13 @@ cdef struct OracleData:
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
                                       OracleMetadata to_metadatda,
                                       OracleData* data,
-                                      OracleArrowArray arrow_array) except -1
+                                      ArrowArrayImpl arrow_array) except -1
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleMetadata to_metadatda,
                                           OracleData* data,
                                           const char* encoding_errors,
                                           bint from_dbobject)
-cdef int convert_vector_to_arrow(OracleArrowArray arrow_array,
+cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,
                                  object vector) except -1
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)
 cdef uint16_t decode_uint16be(const char_type *buf)

@@ -47,7 +47,7 @@ cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer):
     return output
 
 
-cdef int convert_date_to_arrow_timestamp(OracleArrowArray arrow_array,
+cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl arrow_array,
                                          OracleDataBuffer *buffer) except -1:
     """
     Converts a DATE, TIMESTAMP, TIMESTAMP WITH LOCAL TIME ZONE or TIMESTAMP
@@ -85,7 +85,7 @@ cdef object convert_interval_ym_to_python(OracleDataBuffer *buffer):
     return PY_TYPE_INTERVAL_YM(value.years, value.months)
 
 
-cdef int convert_number_to_arrow_decimal(OracleArrowArray arrow_array,
+cdef int convert_number_to_arrow_decimal(ArrowArrayImpl arrow_array,
                                          OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow DECIMAL128.
@@ -137,7 +137,7 @@ cdef int convert_number_to_arrow_decimal(OracleArrowArray arrow_array,
 
 
 
-cdef int convert_number_to_arrow_double(OracleArrowArray arrow_array,
+cdef int convert_number_to_arrow_double(ArrowArrayImpl arrow_array,
                                         OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow DOUBLE.
@@ -149,7 +149,7 @@ cdef int convert_number_to_arrow_double(OracleArrowArray arrow_array,
         arrow_array.append_double(atof(value.chars[:value.num_chars]))
 
 
-cdef int convert_number_to_arrow_int64(OracleArrowArray arrow_array,
+cdef int convert_number_to_arrow_int64(ArrowArrayImpl arrow_array,
                                        OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow INT64.
@@ -224,7 +224,7 @@ cdef object convert_str_to_python(OracleDataBuffer *buffer, uint8_t csfrm,
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
                                       OracleMetadata to_metadata,
                                       OracleData* data,
-                                      OracleArrowArray arrow_array) except -1:
+                                      ArrowArrayImpl arrow_array) except -1:
     """
     Converts the value stored in OracleData to Arrow format.
     """
@@ -440,7 +440,7 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                       output_type=to_metadata.dbtype.name)
 
 
-cdef int convert_vector_to_arrow(OracleArrowArray arrow_array,
+cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,
                                  object vector) except -1:
     """
     Converts the vector to the format required by the Arrow array.

@@ -32,7 +32,7 @@
 cdef class ThinVarImpl(BaseVarImpl):
     cdef:
         object _last_raw_value
-        OracleArrowArray _last_arrow_array
+        ArrowArrayImpl _last_arrow_array
         list _coroutine_indexes
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor_impl,
@@ -113,7 +113,7 @@ cdef class ThinVarImpl(BaseVarImpl):
         BaseVarImpl._finalize_init(self)
         self._values = [None] * self.num_elements
 
-    cdef OracleArrowArray _finish_building_arrow_array(self):
+    cdef ArrowArrayImpl _finish_building_arrow_array(self):
         """
         Finish building the Arrow array associated with the variable and then
         return that array (after clearing it in the variable so that a new

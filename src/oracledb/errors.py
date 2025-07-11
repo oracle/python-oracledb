@@ -371,6 +371,7 @@ ERR_UNKNOWN_SERVER_PIGGYBACK = 5009
 ERR_UNKNOWN_TRANSACTION_STATE = 5010
 ERR_UNEXPECTED_PIPELINE_FAILURE = 5011
 ERR_NOT_IMPLEMENTED = 5012
+ERR_INTERNAL_CREATION_REQUIRED = 5013
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -618,6 +619,7 @@ ERR_MESSAGE_FORMATS = {
         "internal error: read integer of length {length} when expecting "
         "integer of no more than length {max_length}"
     ),
+    ERR_INTERNAL_CREATION_REQUIRED: "object may not be created directly",
     ERR_INVALID_ACCESS_TOKEN_PARAM: (
         "invalid access token: value must be a string (for OAuth), a "
         "2-tuple containing the token and private key strings (for IAM), "

@@ -910,7 +910,7 @@ cdef class MessageWithData(Message):
                                               var_impl._fetch_metadata)
             statement._last_output_type_handler = type_handler
 
-        # Create OracleArrowArray if fetching arrow is enabled
+        # create Arrow arrays if fetching arrow is enabled
         if cursor_impl.fetching_arrow:
             cursor_impl._create_arrow_arrays()
 

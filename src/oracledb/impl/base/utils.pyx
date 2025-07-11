@@ -219,6 +219,7 @@ def init_base_impl(package):
         ENUM_AUTH_MODE, \
         ENUM_POOL_GET_MODE, \
         ENUM_PURITY, \
+        PY_TYPE_ARROW_ARRAY, \
         PY_TYPE_ASYNC_CURSOR, \
         PY_TYPE_ASYNC_LOB, \
         PY_TYPE_CONNECT_PARAMS, \
@@ -245,11 +246,12 @@ def init_base_impl(package):
     ENUM_AUTH_MODE = package.AuthMode
     ENUM_PURITY = package.Purity
     ENUM_POOL_GET_MODE = package.PoolGetMode
+    PY_TYPE_ARROW_ARRAY = package.ArrowArray
     PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
     PY_TYPE_ASYNC_LOB = package.AsyncLOB
     PY_TYPE_CONNECT_PARAMS = package.ConnectParams
     PY_TYPE_CURSOR = package.Cursor
-    PY_TYPE_DATAFRAME = package.OracleDataFrame
+    PY_TYPE_DATAFRAME = package.DataFrame
     PY_TYPE_DB_OBJECT = package.DbObject
     PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
     PY_TYPE_FETCHINFO = package.FetchInfo
