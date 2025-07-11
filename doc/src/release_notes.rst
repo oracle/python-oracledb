@@ -24,6 +24,8 @@ Thin Mode Changes
 #)  Fixed bug in the calculation of attribute
     :attr:`MessageProperties.deliverymode`. Previously it was being set to the
     value of the attribute :attr:`DeqOptions.deliverymode`.
+#)  Fixed bug with detection of when a connection has been closed by the
+    database without notification.
 
 Thick Mode Changes
 ++++++++++++++++++

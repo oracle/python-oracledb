@@ -230,7 +230,7 @@ cdef class ReadBuffer(Buffer):
             else:
                 errors._raise_err(errors.ERR_UNSUPPORTED_INBAND_NOTIFICATION,
                                   err_num=self._pending_error_num)
-        elif self._transport is None:
+        elif self._transport is None or self._transport._transport is None:
             if self._pending_error_num == TNS_ERR_SESSION_SHUTDOWN:
                 errors._raise_err(errors.ERR_CONNECTION_CLOSED)
             errors._raise_err(errors.ERR_NOT_CONNECTED)
