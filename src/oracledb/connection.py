@@ -812,7 +812,7 @@ class Connection(BaseConnection):
         arraysize: Optional[int] = None,
     ):
         """
-        Fetch all data as OracleDataFrame.
+        Fetch all data as an instance of DataFrame.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
@@ -829,7 +829,7 @@ class Connection(BaseConnection):
         size: Optional[int] = None,
     ):
         """
-        Fetch data in batches. Each batch is an OracleDataFrame
+        Fetch data in batches. Each batch is an instance of DataFrame
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
@@ -1837,7 +1837,7 @@ class AsyncConnection(BaseConnection):
         arraysize: Optional[int] = None,
     ):
         """
-        Fetch all data as OracleDataFrame.
+        Fetch all data as an instance of DataFrame.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
@@ -1854,7 +1854,7 @@ class AsyncConnection(BaseConnection):
         size: Optional[int] = None,
     ):
         """
-        Fetch data in batches. Each batch is an OracleDataFrame
+        Fetch data in batches. Each batch is an instance of DataFrame
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
