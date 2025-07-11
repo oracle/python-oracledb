@@ -40,6 +40,7 @@ Common Changes
     - Documentation on methods and attributes on the ``DataFrame`` and
       ``ArrowArray`` objects are now available in Python plugins such as those
       found in VS Code
+    - Upgraded Arrow C Data (nanoarrow) API version to 0.7.0
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version
