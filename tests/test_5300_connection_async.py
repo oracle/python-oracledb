@@ -29,15 +29,12 @@
 import asyncio
 import random
 import string
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     requires_connection = False
 
@@ -162,7 +159,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 password=test_env.get_main_password() + "X",
             )
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5307(self):
         "5307 - test changing password"
         async with test_env.get_connection_async() as conn:
@@ -182,7 +179,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 new_password, test_env.get_main_password()
             )
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5308(self):
         "5308 - test changing password to an invalid value"
         async with test_env.get_connection_async() as conn:
@@ -202,7 +199,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                     "incorrect old password", new_password
                 )
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5309(self):
         "5309 - test connecting with password containing / and @ symbols"
         async with test_env.get_connection_async() as conn:
@@ -341,10 +338,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             coroutines = [self.__verify_fetched_data(conn) for i in range(3)]
             await asyncio.gather(*coroutines)
 
-    @unittest.skipIf(
-        test_env.get_is_implicit_pooling(),
-        "sessions can change with implicit pooling",
-    )
+    @test_env.skip_if_implicit_pooling()
     async def test_5326(self):
         "5326 - test connection cancel"
         async with test_env.get_connection_async() as conn:
@@ -366,7 +360,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 (user,) = await cursor.fetchone()
                 self.assertEqual(user, test_env.get_main_user().upper())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5327(self):
         "5327 - test changing password during connect"
         async with test_env.get_connection_async() as conn:
@@ -511,8 +505,8 @@ class TestCase(test_env.BaseAsyncTestCase):
             (instance_name,) = await cursor.fetchone()
             self.assertEqual(conn.instance_name.upper(), instance_name)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_if_drcp()
+    @test_env.skip_unless_long_passwords_supported()
     async def test_5337(self):
         "5337 - test maximum allowed length for password"
         async with test_env.get_connection_async() as conn:

@@ -536,10 +536,7 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchone(), (1, string_val))
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support fetching XMLType > VARCHAR2",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2534(self):
         "2534 - test inserting and fetching XMLType (32K) as a string"
         self.cursor.execute("truncate table TestTempXML")

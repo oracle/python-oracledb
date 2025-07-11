@@ -26,15 +26,11 @@
 6300 - Module for testing other cursor methods and attributes with asyncio.
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     async def test_6300(self):
         "6300 - test preparing a statement and executing it multiple times"
@@ -573,7 +569,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [("A", 2, 3)] * 3
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_6335(self):
         "6335 - kill connection with open cursor"
         admin_conn = await test_env.get_admin_connection_async()
@@ -588,7 +584,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_6336(self):
         "6336 - kill connection in cursor context manager"
         admin_conn = await test_env.get_admin_connection_async()
@@ -803,9 +799,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = [(n, await c.read()) async for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(
-        test_env.has_server_version(23), "unsupported database"
-    )
+    @test_env.skip_unless_domains_supported()
     async def test_6347(self):
         "6347 - fetch table with domain and annotations"
         await self.cursor.execute(
@@ -912,6 +906,12 @@ class TestCase(test_env.BaseAsyncTestCase):
                 self.assertEqual(
                     nested_rows, [("Nested String for Top Level String 2",)]
                 )
+
+    async def test_6353(self):
+        "6353 - access cursor.rowcount after closing connection"
+        async with test_env.get_connection_async() as conn:
+            cursor = conn.cursor()
+        self.assertEqual(cursor.rowcount, -1)
 
 
 if __name__ == "__main__":

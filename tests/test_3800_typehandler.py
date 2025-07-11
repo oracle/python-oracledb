@@ -28,7 +28,6 @@
 
 import datetime
 import json
-import unittest
 
 import oracledb
 import test_env
@@ -217,7 +216,7 @@ class TestCase(test_env.BaseTestCase):
         expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
+    @test_env.skip_unless_native_json_supported()
     def test_3806(self):
         "3806 - output type handler for fetching 21c JSON"
 

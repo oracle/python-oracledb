@@ -26,15 +26,11 @@
 7900 - Module for testing AQ with raw queues with asyncio
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     raw_data = [
         b"sample raw data 1",

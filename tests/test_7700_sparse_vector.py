@@ -29,13 +29,11 @@ available in Oracle Database 23.7 and higher.
 
 import array
 import json
-import unittest
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(test_env.has_client_version(23, 7), "unsupported client")
-@unittest.skipUnless(test_env.has_server_version(23, 7), "unsupported client")
+@test_env.skip_unless_sparse_vectors_supported()
 class TestCase(test_env.BaseTestCase):
     def __test_insert_and_fetch(self, vector, column_name, expected_typecode):
         """

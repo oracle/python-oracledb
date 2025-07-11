@@ -27,7 +27,6 @@
 """
 
 import decimal
-import unittest
 
 import oracledb
 import test_env
@@ -648,7 +647,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNone(self.cursor.bindvars.get("a"))
         self.assertIsInstance(self.cursor.bindvars["b"], oracledb.Var)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_4347(self):
         "4547 - kill connection with open cursor"
         admin_conn = test_env.get_admin_connection()
@@ -663,7 +662,7 @@ class TestCase(test_env.BaseTestCase):
                 cursor.execute("select user from dual")
         self.assertFalse(conn.is_healthy())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_4348(self):
         "4348 - kill connection in cursor context manager"
         admin_conn = test_env.get_admin_connection()
@@ -879,12 +878,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = [(n, c.read()) for n, c in self.cursor]
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(
-        test_env.has_server_version(12, 2), "unsupported database"
-    )
-    @unittest.skipUnless(
-        test_env.has_client_version(12, 2), "unsupported database"
-    )
+    @test_env.skip_unless_json_supported()
     def test_4360(self):
         "4360 - fetch JSON columns as Python objects"
         expected_data = [
@@ -894,10 +888,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select * from TestJsonCols order by IntCol")
         self.assertEqual(self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(
-        test_env.has_server_version(23), "unsupported database"
-    )
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
+    @test_env.skip_unless_domains_supported()
     def test_4361(self):
         "4361 - fetch table with domain and annotations"
         self.cursor.execute("select * from TableWithDomainAndAnnotations")
@@ -999,6 +990,12 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("select :d from dual", [value])
         (fetched_value,) = self.cursor.fetchone()
         self.assertEqual(fetched_value, value)
+
+    def test_4369(self):
+        "4369 - access cursor.rowcount after closing connection"
+        with test_env.get_connection() as conn:
+            cursor = conn.cursor()
+        self.assertEqual(cursor.rowcount, -1)
 
 
 if __name__ == "__main__":

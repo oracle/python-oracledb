@@ -30,7 +30,6 @@ import random
 import string
 import threading
 import time
-import unittest
 
 import oracledb
 import test_env
@@ -84,7 +83,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(conn.thin, test_env.get_is_thin())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1101(self):
         "1101 - test use of application context"
         namespace = "CLIENTCONTEXT"
@@ -175,7 +174,7 @@ class TestCase(test_env.BaseTestCase):
                 password=test_env.get_main_password() + "X"
             )
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1107(self):
         "1107 - test changing password"
         conn = test_env.get_connection()
@@ -189,7 +188,7 @@ class TestCase(test_env.BaseTestCase):
         conn = test_env.get_connection(password=new_password)
         conn.changepassword(new_password, test_env.get_main_password())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1108(self):
         "1108 - test changing password to an invalid value"
         conn = test_env.get_connection()
@@ -201,7 +200,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("ORA-01017", "ORA-00988", "ORA-28008"):
             conn.changepassword("incorrect old password", new_password)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1109(self):
         "1109 - test connecting with password containing / and @ symbols"
         conn = test_env.get_connection()
@@ -227,7 +226,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-1001"):
             conn.rollback()
 
-    @unittest.skipIf(test_env.get_is_thin(), "not relevant for thin mode")
+    @test_env.skip_unless_thick_mode()
     def test_1111(self):
         "1111 - test creating a connection using a handle"
         conn = test_env.get_connection()
@@ -370,10 +369,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.ping()
         self.assertRoundTrips(1)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support two-phase commit yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_1121(self):
         "1121 - test begin, prepare, cancel transaction"
         conn = test_env.get_connection()
@@ -395,10 +391,7 @@ class TestCase(test_env.BaseTestCase):
         (count,) = cursor.fetchone()
         self.assertEqual(count, 0)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support two-phase commit yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_1122(self):
         "1122 - test multiple transactions on the same connection"
         conn = test_env.get_connection()
@@ -438,10 +431,7 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchall(), expected_rows)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support two-phase commit yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_1123(self):
         "1123 - test multiple global transactions on the same connection"
         conn = test_env.get_connection()
@@ -499,10 +489,7 @@ class TestCase(test_env.BaseTestCase):
             cursor.execute("select IntCol, StringCol1 from TestTempTable")
             self.assertEqual(cursor.fetchall(), expected_rows)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support two-phase commit yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_1124(self):
         "1124 - test creating global txn after a local txn"
         conn = test_env.get_connection()
@@ -562,7 +549,7 @@ class TestCase(test_env.BaseTestCase):
             (user,) = cursor.fetchone()
             self.assertEqual(user, test_env.get_main_user().upper())
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1127(self):
         "1127 - test changing password during connect"
         conn = test_env.get_connection()
@@ -625,7 +612,7 @@ class TestCase(test_env.BaseTestCase):
         cursor.callproc("dbms_output.get_line", (string_var, number_var))
         self.assertEqual(string_var.getvalue(), test_string)
 
-    @unittest.skipUnless(test_env.has_client_version(18), "unsupported client")
+    @test_env.skip_unless_call_timeout_supported()
     def test_1131(self):
         "1131 - test connection call_timeout"
         conn = test_env.get_connection()
@@ -694,18 +681,15 @@ class TestCase(test_env.BaseTestCase):
         (instance_name,) = cursor.fetchone()
         self.assertEqual(conn.instance_name.upper(), instance_name)
 
-    @unittest.skipUnless(
-        test_env.has_client_version(18), "not supported on this client"
-    )
+    @test_env.skip_unless_call_timeout_supported()
     def test_1136(self):
         "1136 - test deprecated attributes"
         conn = test_env.get_connection()
         conn.callTimeout = 500
         self.assertEqual(conn.callTimeout, 500)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
+    @test_env.skip_if_drcp()
+    @test_env.skip_unless_long_passwords_supported()
     def test_1137(self):
         "1137 - test maximum allowed length for password"
         conn = test_env.get_connection()
@@ -784,9 +768,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.username, test_env.get_main_user())
         self.assertEqual(conn.proxy_user, proxy_user)
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(), "thick mode doesn't support SDU yet"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1144(self):
         "1144 - test connection.sdu"
         conn = test_env.get_connection()
@@ -799,10 +781,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_connection(conn_class=oracledb.ConnectionPool)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support program yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1146(self):
         "1146 - test passing program when creating a connection"
         sql = (
@@ -811,10 +790,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connect_arg("program", "newprogram", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support machine yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1147(self):
         "1147 - test passing machine when creating a connection"
         sql = (
@@ -823,10 +799,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connect_arg("machine", "newmachine", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support terminal yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1148(self):
         "1148 - test passing terminal when creating a connection"
         sql = (
@@ -835,10 +808,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connect_arg("terminal", "newterminal", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support osuser yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1149(self):
         "1149 - test passing osuser when creating a connection"
         sql = (
@@ -855,9 +825,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_connect_arg("driver_name", "newdriver", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(), "thick mode doesn't support session_id yet"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1151(self):
         "1151 - test getting session id"
         conn = test_env.get_connection()
@@ -866,9 +834,7 @@ class TestCase(test_env.BaseTestCase):
         (fetched_value,) = cursor.fetchone()
         self.assertEqual(conn.session_id, fetched_value)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(), "thick mode doesn't support serial_num yet"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1152(self):
         "1152 - test getting session serial number"
         conn = test_env.get_connection()
@@ -879,10 +845,7 @@ class TestCase(test_env.BaseTestCase):
         (fetched_value,) = cursor.fetchone()
         self.assertEqual(conn.serial_num, fetched_value)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support registered protocols",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_1153(self):
         "1153 - test passed params in hook with standalone connection"
         sdu = 4096

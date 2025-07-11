@@ -29,7 +29,6 @@ Module for testing dataframes
 import array
 import datetime
 import decimal
-import unittest
 
 import oracledb
 
@@ -626,8 +625,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_unless_native_boolean_supported()
     def test_8026(self):
         "8026 - fetch boolean"
         data = [(True,), (False,), (False,), (True,), (True,)]
@@ -767,12 +765,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertIsNotNone(buffers["offsets"])
         self.assertIsNotNone(buffers["validity"])
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8030(self):
         "8030 - fetch float32 vector"
 
@@ -806,12 +799,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8031(self):
         "8031 - fetch float64 vector"
         data = [
@@ -837,12 +825,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8032(self):
         "8032 - fetch int8 vector"
         data = [
@@ -868,12 +851,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8033(self):
         "8033 - fetch binary vector"
         data = [
@@ -899,12 +877,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8034(self):
         "8034 - fetch float32 vectors with None"
         data = [
@@ -933,12 +906,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8035(self):
         "8035 - fetch duplicate float64 vectors"
         data = [
@@ -994,12 +962,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 7), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 7), "unsupported server"
-    )
+    @test_env.skip_unless_sparse_vectors_supported()
     def test_8036(self):
         "8036 - fetch float32 sparse vectors"
         data = [
@@ -1048,12 +1011,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 7), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 7), "unsupported server"
-    )
+    @test_env.skip_unless_sparse_vectors_supported()
     def test_8037(self):
         "8037 - fetch float64 sparse vectors"
         data = [
@@ -1102,12 +1060,7 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     def test_8038(self):
         "8038 - DPY-3031 - Unsupported flexible vector formats"
         with self.assertRaisesFullCode("DPY-3031"):
@@ -1119,12 +1072,7 @@ class TestCase(test_env.BaseTestCase):
                 """
             )
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 7), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 7), "unsupported server"
-    )
+    @test_env.skip_unless_sparse_vectors_supported()
     def test_8039(self):
         "8039 - DPY-4007 -fetch sparse vectors with flexible dimensions"
         self.__check_interop()

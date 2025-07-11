@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -26,15 +26,11 @@
 5700 - Module for testing LOB (CLOB and BLOB) variables with asyncio
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     async def __get_temp_lobs(self, sid):
         cursor = self.conn.cursor()
@@ -363,10 +359,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         "5714 - test operations on NCLOBs"
         await self.__test_lob_operations("NCLOB")
 
-    @unittest.skipIf(
-        test_env.get_is_implicit_pooling(),
-        "sessions can change with implicit pooling",
-    )
+    @test_env.skip_if_implicit_pooling()
     async def test_5715(self):
         "5715 - test temporary LOBs"
         await self.cursor.execute(

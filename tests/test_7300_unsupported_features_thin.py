@@ -26,13 +26,11 @@
 7300 - Module for testing unsupported features in Thin mode
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(test_env.get_is_thin(), "only relevant in thin mode")
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseTestCase):
 
     def test_7300(self):

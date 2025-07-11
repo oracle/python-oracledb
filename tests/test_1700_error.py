@@ -197,7 +197,7 @@ class TestCase(test_env.BaseTestCase):
             self.assertEqual(error_obj.full_code, f"ORA-{code}")
             self.assertTrue("Help:" not in error_obj.message)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_1709(self):
         "1709 - error from killed connection is deemed recoverable"
         admin_conn = test_env.get_admin_connection()

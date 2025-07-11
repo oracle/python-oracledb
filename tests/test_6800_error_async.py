@@ -27,15 +27,12 @@
 """
 
 import pickle
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     async def test_6800(self):
         "6800 - test parse error returns offset correctly"
@@ -207,7 +204,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(result.warning.full_code, "DPY-7000")
         await self.cursor.execute(f"drop procedure {proc_name}")
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_6809(self):
         "6809 - error from killed connection is deemed recoverable"
         admin_conn = await test_env.get_admin_connection_async()

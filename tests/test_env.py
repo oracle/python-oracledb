@@ -490,6 +490,84 @@ def skip_soda_tests():
     return False
 
 
+def skip_if_drcp():
+    return unittest.skipIf(get_is_drcp(), "not supported with DRCP")
+
+
+def skip_if_implicit_pooling():
+    return unittest.skipIf(
+        get_is_implicit_pooling(), "not supported with implicit pooling"
+    )
+
+
+def skip_unless_binary_vectors_supported():
+    supported = has_client_version(23, 5) and has_server_version(23, 5)
+    return unittest.skipUnless(supported, "no binary vector support")
+
+
+def skip_unless_call_timeout_supported():
+    supported = has_client_version(18)
+    return unittest.skipUnless(supported, "no call timeout support")
+
+
+def skip_unless_domains_supported():
+    supported = has_server_version(23)
+    return unittest.skipUnless(supported, "no domain support")
+
+
+def skip_unless_json_supported():
+    supported = has_client_version(12, 2) and has_server_version(12, 2)
+    return unittest.skipUnless(supported, "no JSON support")
+
+
+def skip_unless_long_passwords_supported():
+    supported = has_server_version(23)
+    return unittest.skipUnless(supported, "no long password support")
+
+
+def skip_unless_native_boolean_supported():
+    supported = has_client_version(23) and has_server_version(23)
+    return unittest.skipUnless(supported, "no native boolean support")
+
+
+def skip_unless_native_json_extensions_supported():
+    supported = has_client_version(23) and has_server_version(23)
+    return unittest.skipUnless(supported, "no native JSON extensions support")
+
+
+def skip_unless_native_json_supported():
+    supported = has_client_version(21) and has_server_version(21)
+    return unittest.skipUnless(supported, "no native JSON support")
+
+
+def skip_unless_plsql_boolean_supported():
+    supported = has_client_version(12, 1) and has_server_version(12, 1)
+    return unittest.skipUnless(supported, "no PL/SQL boolean support")
+
+
+def skip_unless_pool_timed_wait_supported():
+    supported = has_client_version(12, 2) and has_server_version(12, 2)
+    return unittest.skipUnless(supported, "no pool timed wait support")
+
+
+def skip_unless_sparse_vectors_supported():
+    supported = has_client_version(23, 7) and has_server_version(23, 7)
+    return unittest.skipUnless(supported, "no sparse vector support")
+
+
+def skip_unless_thick_mode():
+    return unittest.skipIf(get_is_thin(), "requires thick mode")
+
+
+def skip_unless_thin_mode():
+    return unittest.skipUnless(get_is_thin(), "requires thin mode")
+
+
+def skip_unless_vectors_supported():
+    supported = has_client_version(23, 4) and has_server_version(23, 4)
+    return unittest.skipUnless(supported, "no vector support")
+
+
 class DefaultsContextManager:
     def __init__(self, attribute, desired_value):
         self.attribute = attribute

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,7 +32,6 @@ import tempfile
 
 import oracledb
 import test_env
-import unittest
 
 
 class TestCase(test_env.BaseTestCase):
@@ -198,10 +197,7 @@ class TestCase(test_env.BaseTestCase):
         "6614 - test setting defaults.osuser attribute"
         self.__verify_network_name_attr("osuser")
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support program yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_6615(self):
         "6615 - test program with two pools"
         default_value = "defaultprogram"

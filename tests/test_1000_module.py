@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,7 +27,6 @@
 """
 
 import datetime
-import unittest
 
 import oracledb
 import test_env
@@ -169,7 +168,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertIs(oracledb.version, oracledb.__version__)
 
-    @unittest.skipUnless(test_env.get_is_thin(), "not relevant for thick mode")
+    @test_env.skip_unless_thin_mode()
     def test_1007(self):
         "1007 - test clientversion() fails without init_oracle_client()"
         with self.assertRaisesFullCode("DPY-2021"):

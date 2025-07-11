@@ -196,9 +196,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.timeout, 0)
         self.assertEqual(pool.username, test_env.get_main_user())
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2401(self):
         "2401 - test that proxy authentication is possible"
         pool = test_env.get_pool(
@@ -299,7 +297,7 @@ class TestCase(test_env.BaseTestCase):
         for thread in threads:
             thread.join()
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_2406(self):
         "2406 - test session pool with various types of purity"
         pool = test_env.get_pool(
@@ -335,10 +333,8 @@ class TestCase(test_env.BaseTestCase):
         cursor.close()
         pool.release(conn)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
-    )
+    @test_env.skip_if_drcp()
+    @test_env.skip_unless_thick_mode()
     def test_2407(self):
         "2407 - test heterogeneous pool with user and password specified"
         pool = test_env.get_pool(
@@ -371,10 +367,8 @@ class TestCase(test_env.BaseTestCase):
         )
         conn.close()
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
-    )
+    @test_env.skip_if_drcp()
+    @test_env.skip_unless_thick_mode()
     def test_2408(self):
         "2408 - test heterogeneous pool without user and password specified"
         pool = test_env.get_pool(
@@ -402,9 +396,7 @@ class TestCase(test_env.BaseTestCase):
             conn, test_env.get_proxy_user(), test_env.get_main_user()
         )
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support proxy users yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2409(self):
         "2409 - test heterogeneous pool with wrong password specified"
         pool = test_env.get_pool(
@@ -419,9 +411,7 @@ class TestCase(test_env.BaseTestCase):
                 test_env.get_proxy_user(), "this is the wrong password"
             )
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2410(self):
         "2410 - test tagging a session"
         pool = test_env.get_pool(
@@ -447,10 +437,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(conn.tag, tag_utc)
         conn.close()
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support session callbacks yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2411(self):
         "2411 - test PL/SQL session callbacks"
         if not test_env.has_client_version(12, 2):
@@ -500,9 +487,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(results, expected_results)
         conn.close()
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2412(self):
         "2412 - testTagging with Invalid key"
         pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
@@ -544,10 +529,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.opened, 2, "opened (2)")
         pool.release(conn3)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(),
-        "thin mode doesn't support all the pool params yet",
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2415(self):
         "2415 - test the reconfigure values are changed and rest unchanged"
         self.__perform_reconfigure_test("min", 5)
@@ -568,9 +550,7 @@ class TestCase(test_env.BaseTestCase):
         if test_env.has_client_version(19, 11):
             self.__perform_reconfigure_test("soda_metadata_cache", True)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support tagging yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2417(self):
         "2417 - test that session callbacks are being called correctly"
         pool = test_env.get_pool(
@@ -693,7 +673,7 @@ class TestCase(test_env.BaseTestCase):
             pass
         self.assertEqual(Counter.num_calls, 2)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_2424(self):
         "2424 - drop the pooled connection on receiving dead connection error"
         admin_conn = test_env.get_admin_connection()
@@ -753,7 +733,7 @@ class TestCase(test_env.BaseTestCase):
             pool.acquire(), test_env.get_proxy_user(), test_env.get_main_user()
         )
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_2428(self):
         "2428 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool(
@@ -844,12 +824,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool(connectiontype=int)
 
-    @unittest.skipUnless(
-        test_env.has_server_version(12, 2), "not supported on this server"
-    )
-    @unittest.skipUnless(
-        test_env.has_client_version(19), "not supported on this client"
-    )
+    @test_env.skip_unless_pool_timed_wait_supported()
     def test_2438(self):
         "2438 - ensure that timed wait times out with appropriate exception"
         pool = test_env.get_pool(
@@ -858,9 +833,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-4005"):
             pool.acquire()
 
-    @unittest.skipUnless(
-        test_env.has_client_version(18), "not supported on this client"
-    )
+    @test_env.skip_unless_call_timeout_supported()
     def test_2439(self):
         "2439 - ensure call timeout is reset on connections returned by pool"
         pool = test_env.get_pool(ping_timeout=1000, ping_interval=0)
@@ -888,10 +861,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.busy, num_conns)
         self.assertEqual(len(active_sessions), num_conns)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support program yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2442(self):
         "2442 - test passing program when creating a pool"
         sql = (
@@ -900,10 +870,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_create_arg("program", "newprogram", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support machine yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2443(self):
         "2443 - test passing machine when creating a pool"
         sql = (
@@ -912,10 +879,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_create_arg("machine", "newmachine", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support terminal yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2444(self):
         "2444 - test passing terminal when creating a pool"
         sql = (
@@ -924,10 +888,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_create_arg("terminal", "newterminal", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support osuser yet",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2445(self):
         "2445 - test passing osuser when creating a pool"
         sql = (
@@ -944,10 +905,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.__verify_create_arg("driver_name", "newdriver", sql)
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(),
-        "thick mode doesn't support registered protocols",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2447(self):
         "2447 - test register_parameter with pooled connection"
         sdu = 4096
@@ -1066,7 +1024,7 @@ class TestCase(test_env.BaseTestCase):
         with self.assertRaisesFullCode("DPY-2064"):
             test_env.get_pool(min=3, max=2)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     def test_2457(self):
         "2457 - ping pooled connection on receiving dead connection error"
         admin_conn = test_env.get_admin_connection()

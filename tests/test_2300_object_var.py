@@ -28,7 +28,6 @@
 
 import datetime
 import decimal
-import unittest
 
 import oracledb
 import test_env
@@ -662,13 +661,13 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(result, 7146445847327)
 
-    @unittest.skipIf(test_env.get_is_thin(), "thin mode supports xmltype")
+    @test_env.skip_unless_thick_mode()
     def test_2328(self):
         "2328 - test object with unknown type in one of its attributes"
         typ = self.conn.gettype("UDT_OBJECTWITHXMLTYPE")
         self.assertEqual(typ.attributes[1].type, oracledb.DB_TYPE_UNKNOWN)
 
-    @unittest.skipIf(test_env.get_is_thin(), "thin mode supports xmltype")
+    @test_env.skip_unless_thick_mode()
     def test_2329(self):
         "2329 - test object with unknown type as the element type"
         typ = self.conn.gettype("UDT_XMLTYPEARRAY")
@@ -813,9 +812,7 @@ class TestCase(test_env.BaseTestCase):
         result = [i for i in obj]
         self.assertEqual(result, [5, 10, 15])
 
-    @unittest.skipUnless(
-        test_env.get_is_thin(), "thick mode does not support xmltype"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2339(self):
         "2339 - test fetching an object containing an XmlType instance"
         num_val = 2339

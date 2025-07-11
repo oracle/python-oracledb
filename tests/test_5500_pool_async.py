@@ -27,15 +27,12 @@
 """
 
 import asyncio
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     require_connection = False
 
@@ -162,7 +159,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         finally:
             await pool.close(force=True)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5505(self):
         "5505 - test session pool with various types of purity"
         pool = test_env.get_pool_async(min=1, max=8, increment=1)
@@ -305,7 +302,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         finally:
             await pool.close(force=True)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5514(self):
         "5514 - drop the pooled connection on receiving dead connection error"
         admin_conn = await test_env.get_admin_connection_async()
@@ -379,7 +376,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         finally:
             await pool.close(force=True)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5518(self):
         "5518 - test acquiring conn from pool in LIFO order"
         pool = test_env.get_pool_async(min=5, max=10, increment=1)
@@ -494,9 +491,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2023"):
             test_env.get_pool_async(connectiontype=int)
 
-    @unittest.skipUnless(
-        test_env.has_server_version(12, 2), "not supported on this server"
-    )
+    @test_env.skip_unless_pool_timed_wait_supported()
     async def test_5528(self):
         "5528 - ensure that timed wait times out with appropriate exception"
         pool = test_env.get_pool_async(
@@ -634,7 +629,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("DPY-2064"):
             test_env.get_pool_async(min=3, max=2)
 
-    @unittest.skipIf(test_env.get_is_drcp(), "not supported with DRCP")
+    @test_env.skip_if_drcp()
     async def test_5543(self):
         "5543 - ping pooled connection on receiving dead connection error"
         admin_conn = await test_env.get_admin_connection_async()

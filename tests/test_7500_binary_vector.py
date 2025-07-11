@@ -28,14 +28,12 @@ available in Oracle Database 23.5 and higher.
 """
 
 import array
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(test_env.has_client_version(23, 5), "unsupported client")
-@unittest.skipUnless(test_env.has_server_version(23, 5), "unsupported server")
+@test_env.skip_unless_binary_vectors_supported()
 class TestCase(test_env.BaseTestCase):
 
     def test_7500(self):

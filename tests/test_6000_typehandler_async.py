@@ -28,7 +28,6 @@
 
 import datetime
 import json
-import unittest
 
 import oracledb
 import test_env
@@ -61,9 +60,7 @@ class Building:
         return cls(**result)
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     def building_in_converter(self, value):
         return value.to_json()
@@ -232,7 +229,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
         self.assertEqual(await self.cursor.fetchall(), expected_data)
 
-    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
+    @test_env.skip_unless_native_json_supported()
     async def test_6006(self):
         "6006 - output type handler for fetching 21c JSON"
 

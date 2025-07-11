@@ -28,7 +28,6 @@
 
 import datetime
 import decimal
-import unittest
 
 import oracledb
 import test_env
@@ -361,8 +360,7 @@ class TestCase(test_env.BaseTestCase):
         wrong_obj_type = self.conn.gettype("UDT_OBJECTARRAY")
         self._test_negative_set_and_get(wrong_obj_type, obj)
 
-    @unittest.skipUnless(test_env.has_client_version(21), "unsupported client")
-    @unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
+    @test_env.skip_unless_native_json_supported()
     def test_3722(self):
         "3722 - setting values on variables of type DB_TYPE_JSON"
         json_data = [
@@ -425,9 +423,7 @@ class TestCase(test_env.BaseTestCase):
             [(None, None, None, None, None, None, None)],
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(), "thick mode doesn't support DB_TYPE_UROWID"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_3725(self):
         "3725 - setting values on variables of type DB_TYPE_UROWID"
         self._test_negative_set_and_get(oracledb.DB_TYPE_UROWID, 12345)

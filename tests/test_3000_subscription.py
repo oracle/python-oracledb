@@ -78,9 +78,7 @@ class DMLSubscriptionData(SubscriptionData):
             self.rowids.append(row.rowid)
 
 
-@unittest.skipIf(
-    test_env.get_is_thin(), "thin mode doesn't support subscriptions"
-)
+@test_env.skip_unless_thick_mode()
 class TestCase(test_env.BaseTestCase):
     @unittest.skipUnless(
         test_env.has_client_version(23), "crashes in older clients"

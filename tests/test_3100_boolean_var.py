@@ -26,14 +26,11 @@
 3100 - Module for testing boolean variables
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(test_env.has_client_version(12, 1), "unsupported client")
-@unittest.skipUnless(test_env.has_server_version(12, 1), "unsupported server")
+@test_env.skip_unless_plsql_boolean_supported()
 class TestCase(test_env.BaseTestCase):
     def __test_bind_value_as_boolean(self, value):
         expected_result = str(bool(value)).upper()
@@ -102,8 +99,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertIsNone(result)
 
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_unless_native_boolean_supported()
     def test_3109(self):
         "3109 - test binding and fetching boolean with 23ai"
         for value in (True, False):
@@ -113,8 +109,7 @@ class TestCase(test_env.BaseTestCase):
                 self.assertIsInstance(fetched_value, bool)
                 self.assertEqual(fetched_value, not value)
 
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_unless_native_boolean_supported()
     def test_3110(self):
         "3110 - test binding and fetching string literals that represent True"
         self.cursor.execute("truncate table TestBooleans")
@@ -129,8 +124,7 @@ class TestCase(test_env.BaseTestCase):
         expected_values = [(True, True) for _ in true_values]
         self.assertEqual(self.cursor.fetchall(), expected_values)
 
-    @unittest.skipUnless(test_env.has_client_version(23), "unsupported client")
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_unless_native_boolean_supported()
     def test_3111(self):
         "3111 - test binding and fetching string literals that represent False"
         self.cursor.execute("truncate table TestBooleans")

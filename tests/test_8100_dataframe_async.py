@@ -29,7 +29,6 @@ Module for testing dataframes using asyncio.
 import array
 import datetime
 import decimal
-import unittest
 
 import oracledb
 
@@ -237,9 +236,7 @@ DATASET_4 = [
 ]
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
 
     def __check_interop(self):
@@ -580,7 +577,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(test_env.has_server_version(23), "unsupported server")
+    @test_env.skip_unless_native_boolean_supported()
     async def test_8122(self):
         "8122 - fetch boolean"
         data = [(True,), (False,), (False,), (True,), (True,)]
@@ -605,12 +602,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_data = self.__get_data_from_df(fetched_df)
         self.assertEqual(fetched_data, data)
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 4), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 4), "unsupported server"
-    )
+    @test_env.skip_unless_vectors_supported()
     async def test_8123(self):
         "8123 - fetch float32 vector"
         data = [
@@ -638,12 +630,7 @@ class TestCase(test_env.BaseAsyncTestCase):
         fetched_df = fetched_tab.to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
 
-    @unittest.skipUnless(
-        test_env.has_client_version(23, 7), "unsupported client"
-    )
-    @unittest.skipUnless(
-        test_env.has_server_version(23, 7), "unsupported server"
-    )
+    @test_env.skip_unless_sparse_vectors_supported()
     async def test_8124(self):
         "8124 - fetch float64 sparse vectors"
         data = [

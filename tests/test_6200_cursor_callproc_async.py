@@ -27,15 +27,11 @@
 functions (callproc() and callfunc()) with asyncio
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     async def test_6200(self):
         "6200 - test executing a stored procedure"

@@ -28,14 +28,12 @@
 
 import datetime
 import decimal
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(test_env.has_client_version(21), "unsupported client")
-@unittest.skipUnless(test_env.has_server_version(21), "unsupported server")
+@test_env.skip_unless_native_json_supported()
 class TestCase(test_env.BaseTestCase):
     json_data = [
         True,

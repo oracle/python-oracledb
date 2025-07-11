@@ -526,7 +526,7 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute(sql, in_val=25, out_val=out_val)
         self.assertEqual(out_val.getvalue(), [25])
 
-    @unittest.skipUnless(test_env.get_is_thin(), "cannot be checked")
+    @test_env.skip_unless_thin_mode()
     def test_1623(self):
         "1623 - execute DML returning with duplicated binds"
         self.cursor.execute("truncate table TestTempTable")
