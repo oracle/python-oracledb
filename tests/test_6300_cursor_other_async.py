@@ -913,6 +913,21 @@ class TestCase(test_env.BaseAsyncTestCase):
             cursor = conn.cursor()
         self.assertEqual(cursor.rowcount, -1)
 
+    async def test_6354(self):
+        "6354 - execute PL/SQL with out vars after query with duplicate data"
+        await self.cursor.execute("truncate table TestTempTable")
+        await self.cursor.executemany(
+            "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+            [(i + 1, "test_4370") for i in range(20)],
+        )
+        await self.conn.commit()
+        await self.cursor.execute(
+            "select IntCol, StringCol1 from TestTempTable"
+        )
+        var = self.cursor.var(int)
+        await self.cursor.execute("begin :1 := 4370; end;", [var])
+        self.assertEqual(var.getvalue(), 4370)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -806,7 +806,7 @@ cdef class MessageWithData(Message):
 
                 # retain last raw value when not fetching Arrow (for handling
                 # duplicate rows)
-                if not self.cursor_impl.fetching_arrow:
+                if self.in_fetch and not self.cursor_impl.fetching_arrow:
                     var_impl._last_raw_value = \
                             var_impl._values[self.cursor_impl._last_row_index]
 

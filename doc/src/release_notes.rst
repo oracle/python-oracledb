@@ -26,6 +26,9 @@ Thin Mode Changes
     value of the attribute :attr:`DeqOptions.deliverymode`.
 #)  Fixed bug with detection of when a connection has been closed by the
     database without notification.
+#)  Fixed bug with execution of a PL/SQL block containing at least one output
+    bind variable immediately following a query that returned multiple
+    duplicate rows.
 
 Thick Mode Changes
 ++++++++++++++++++
