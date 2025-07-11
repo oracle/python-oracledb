@@ -120,8 +120,12 @@ cdef class ThickVarImpl(BaseVarImpl):
             ThickCursorImpl cursor_impl
             object cursor
         cursor = self._values[pos]
-        if cursor is None:
-            cursor = self._conn.cursor()
+        if cursor is not None:
+            cursor_impl = <ThickCursorImpl> cursor._impl
+            if cursor_impl._handle == dbvalue.asStmt:
+                cursor_impl._fixup_ref_cursor = True
+                return cursor
+        cursor = self._conn.cursor()
         cursor_impl = <ThickCursorImpl> cursor._impl
         if dpiStmt_addRef(dbvalue.asStmt) < 0:
             _raise_from_odpi()

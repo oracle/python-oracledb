@@ -33,6 +33,10 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed regression resulting in cursor leak
+    (`issue 513 <https://github.com/oracle/python-oracledb/issues/513>`__).
+
+
 Common Changes
 ++++++++++++++
 
