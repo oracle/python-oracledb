@@ -4621,7 +4621,7 @@ the following table.
 
         With Simple Authentication, the individual configuration parameters can be provided at runtime.
 
-        With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. For more information on OCI compute instances, see `OCI Compute Instances <https://docs.oracle.com/en-us/iaas/compute-cloud-at-customer/topics/compute/compute-instances.htm>`__, `Creating a Compute Instance <https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/launchinginstance.htm>`__, and `Calling Services from a Compute Instance <https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm>`__.
+        With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. See :ref:`instanceprincipalauth`.
 
         See `OCI SDK Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
       - Required
@@ -4789,6 +4789,109 @@ to explicitly set the ``extra_auth_params`` and ``externalauth`` parameters of
         homogeneous=True,  # must always be True for connection pools
         dsn=mydb_low,
         extra_auth_params=token_based_auth)
+
+.. _instanceprincipalauth:
+
+Instance Principal Authentication
+=================================
+
+With Instance Principal Authentication, Oracle Cloud Infrastructure (OCI)
+compute instances can be authorized to access services on Oracle Cloud such as
+Oracle Autonomous Database. Python-oracledb applications running on such a
+compute instance do not need to provide database user credentials.
+
+Each compute instance behaves as a distinct type of Identity and Access
+Management (IAM) Principal, that is, each compute instance has a unique
+identity in the form of a digital certificate which is managed by OCI. When
+using Instance Principal Authentication, a compute instance authenticates with
+OCI IAM using this identity and obtains a short-lived token. This token is
+then used to access Oracle Cloud services without storing or managing any
+secrets in your application.
+
+The example below demonstrates how to connect to Oracle Autonomous
+Database using Instance Principal authentication. To enable this, use
+python-oracledb's :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin which
+is pre-installed with the ``oracledb`` module.
+
+**Step 1: Create an OCI Compute Instance**
+
+An `OCI compute instance <https://docs.oracle.com/en-us/iaas/compute-cloud-at-
+customer/topics/compute/compute-instances.htm>`__ is a virtual machine running
+within OCI that provides compute resources for your application. This compute
+instance will be used to authenticate access to Oracle Cloud services when
+using Instance Principal Authentication.
+
+To create an OCI compute instance, see the steps in `Creating an Instance
+<https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/
+launchinginstance.htm>`__ section of the Oracle Cloud Infrastructure
+documentation.
+
+For more information on OCI compute instances, see `Calling Services from a
+Compute Instance <https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/
+callingservicesfrominstances.htm>`__.
+
+**Step 2: Install the OCI CLI on your compute instance**
+
+The `OCI Command Line Interface (CLI) <https://docs.oracle.com/en-us/iaas/
+Content/API/Concepts/cliconcepts.htm>`__ that can be used on its own or with
+the Oracle Cloud console to complete OCI tasks.
+
+To install the OCI CLI on your compute instance, see the installation
+instructions in the `Installing the CLI <https://docs.oracle.com/en-us/iaas/
+Content/API/SDKDocs/cliinstall.htm>`__ section of Oracle Cloud Infrastructure
+documentation.
+
+**Step 3: Create a Dynamic Group**
+
+A Dynamic Group is used to define rules to group the compute instances that
+require access.
+
+To create a dynamic group using the Oracle Cloud console, see the steps in the
+`To create a dynamic group <https://docs.oracle.com/en-us/iaas/Content/
+Identity/Tasks/managingdynamicgroups.htm#>`__ section of the Oracle Cloud
+Infrastructure documentation.
+
+**Step 4: Create an IAM Policy**
+
+An IAM Policy is used to grant a dynamic group permission to access the
+required OCI services such as Oracle Autonomous Database.
+
+To create an IAM policy using Oracle Cloud console, see the steps in the
+`Create an IAM Policy <https://docs.oracle.com/en-us/iaas/application-
+integration/doc/creating-iam-policy.html>`__ section of the Oracle Cloud
+Infrastructure documentation.
+
+**Step 5: Map an Instance Principal to an Oracle Database User**
+
+You must map the Instance Principal to an Oracle Database user. For more
+information, see `Accessing the Database Using an Instance Principal
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1B648FB0-BE86-
+4BCE-91D0-239D287C638B>`__.
+
+Also, make sure that external authentication is enabled on Oracle ADB and
+Oracle Database parameter ``IDENTITY_PROVIDER_TYPE`` is set to *OCI_IAM*. For
+the steps, see `Enable IAM Authentication on ADB <https://docs.oracle.com/en/
+cloud/paas/autonomous-database/serverless/adbsb/enable-iam-authentication
+.html>`__.
+
+**Step 6: Deploy your application on the Compute Instance**
+
+To use Instance Principal authentication, set ``extra_auth_params`` when
+creating a standalone connection or a connection pool, for example:
+
+.. code-block:: python
+
+    import oracledb
+    import oracledb.plugins.oci_tokens
+
+    token_based_auth = {
+      "auth_type": "InstancePrincipal"
+    }
+
+    connection = oracledb.connect(
+        dsn=mydb_low,
+        extra_auth_params=token_based_auth
+    )
 
 Privileged Connections
 ======================
