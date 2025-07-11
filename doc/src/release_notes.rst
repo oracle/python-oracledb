@@ -46,6 +46,9 @@ Common Changes
       ``ArrowArray`` objects are now available in Python plugins such as those
       found in VS Code
     - Upgraded Arrow C Data (nanoarrow) API version to 0.7.0
+    - Ensure that the GIL is held when releasing references to ``ArrowArray``
+      objects when exported Arrow buffers are released by the consumer. In
+      some circumstances this could cause a segfault.
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version

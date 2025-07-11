@@ -219,7 +219,8 @@ cdef int append_uint32_array(ArrowArray *arrow_array,
 
 
 cdef void arrow_buffer_dealloc_callback(ArrowBufferAllocator *allocator,
-                                        uint8_t *ptr, int64_t size):
+                                        uint8_t *ptr,
+                                        int64_t size) noexcept with gil:
     """
     ArrowBufferDeallocatorCallback for an ArrowBuffer borrowed from an Arrow
     array.
