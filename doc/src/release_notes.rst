@@ -21,6 +21,9 @@ Thin Mode Changes
     thick mode`` is now raised when attempting to use session tagging with a
     connection pool. Previously a ``NotImplementedError`` exception was raised
     instead.
+#)  Fixed bug in the calculation of attribute
+    :attr:`MessageProperties.deliverymode`. Previously it was being set to the
+    value of the attribute :attr:`DeqOptions.deliverymode`.
 
 Thick Mode Changes
 ++++++++++++++++++

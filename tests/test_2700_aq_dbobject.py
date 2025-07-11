@@ -239,6 +239,7 @@ class TestCase(test_env.BaseTestCase):
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         props = queue.deqone()
+        self.assertEqual(props.deliverymode, oracledb.MSG_BUFFERED)
         book = props.payload
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         other_conn.commit()
@@ -264,6 +265,7 @@ class TestCase(test_env.BaseTestCase):
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         props = queue.deqone()
+        self.assertEqual(props.deliverymode, oracledb.MSG_PERSISTENT)
         book = props.payload
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         other_conn.commit()
@@ -289,6 +291,7 @@ class TestCase(test_env.BaseTestCase):
         queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
         queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
         props = queue.deqone()
+        self.assertEqual(props.deliverymode, oracledb.MSG_PERSISTENT)
         book = props.payload
         results = (book.TITLE, book.AUTHORS, book.PRICE)
         other_conn.commit()

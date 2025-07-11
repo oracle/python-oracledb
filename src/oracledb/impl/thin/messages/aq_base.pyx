@@ -121,7 +121,11 @@ cdef class AqBaseMessage(Message):
             errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
         buf.skip_ub4()                              # csn
         buf.skip_ub4()                              # dsn
-        buf.skip_ub4()                              # flags
+        buf.read_ub4(&temp32)                       # flags
+        if temp32 == TNS_KPD_AQ_BUFMSG:
+            props_impl.delivery_mode = TNS_AQ_MSG_BUFFERED
+        else:
+            props_impl.delivery_mode = TNS_AQ_MSG_PERSISTENT
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_21_1:
             buf.skip_ub4()                          # shard number
 

@@ -74,7 +74,6 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
         message = self._conn_impl._create_message(AqDeqMessage)
         message.queue_impl = self
         message.deq_options_impl = self.deq_options_impl
-        props_impl.delivery_mode = message.deq_options_impl.delivery_mode
         message.props_impl = props_impl
         return message
 

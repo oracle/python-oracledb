@@ -69,9 +69,6 @@ cdef class AqArrayMessage(AqBaseMessage):
                     props_impl.msgid = msgid[j * 16:(j + 1) * 16]
             else:
                 props_impl.msgid = msgid
-                props_impl.delivery_mode = (
-                    self.deq_options_impl.delivery_mode
-                )
             buf.read_ub2(&temp16)               # extensions len
             if temp16 > 0:
                 errors._raise_err(errors.ERR_NOT_IMPLEMENTED)
