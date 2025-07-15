@@ -57,21 +57,22 @@ AsyncConnectionPool Methods
 
 .. method:: AsyncConnectionPool.release(connection, tag=None)
 
-    Releases the connection back to the pool now, rather than whenever
-    ``__del__`` is called. The connection will be unusable from this point
-    forward; an Error exception will be raised if any operation is attempted
-    with the connection. Any cursors or LOBs created by the connection will
-    also be  marked unusable and an Error exception will be raised if any
-    operation is attempted with them.
-
-    Internally, references to the connection are held by cursor objects,
-    LOB objects, and so on. Once all of these references are released, the
-    connection itself will be released back to the pool automatically. Either
-    control references to these related objects carefully or explicitly
-    release connections back to the pool in order to ensure sufficient
-    resources are available.
+    Releases the connection back to the pool now. The connection will be
+    unusable from this point forward. An Error exception will be raised if any
+    operation is attempted with the connection. Any cursors or LOBs created by
+    the connection will also be marked unusable and an Error exception will be
+    raised if any operation is attempted with them.
 
     The ``tag`` parameter is ignored in python-oracledb Thin mode.
+
+    .. note::
+
+        Asynchronous connections are not automatically closed at the end of
+        scope. This is different to synchronous connection
+        behavior. Asynchronous connections should either be explicitly
+        released, or have been initially created via a `context manager
+        <https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+        ``with`` statement.
 
 .. _asyncconnpoolattr:
 

@@ -69,6 +69,15 @@ AsyncConnection Methods
 
     Closes the connection.
 
+    .. note::
+
+        Asynchronous connections are not automatically closed at the end of
+        scope. This is different to synchronous connection
+        behavior. Asynchronous connections should either be explicitly closed,
+        or have been initially created via a `context manager
+        <https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+        ``with`` block.
+
 .. method:: AsyncConnection.commit()
 
     Commits any pending transaction to the database.

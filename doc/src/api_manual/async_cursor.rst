@@ -106,10 +106,18 @@ AsyncCursor Methods
 
 .. method:: AsyncCursor.close()
 
-    A synchronous method that closes the cursor now, rather than whenever
-    ``__del__`` is called. The cursor will be unusable from this point
-    forward; an Error exception will be raised if any operation is attempted
-    with the cursor.
+    A synchronous method that closes the cursor now. The cursor will be
+    unusable from this point forward. An Error exception will be raised if any
+    operation is attempted with the cursor.
+
+    .. note::
+
+        Asynchronous cursors are not automatically closed at the end of
+        scope. This is different to synchronous cursor behavior. Asynchronous
+        cursors should either be explicitly closed, or have been initially
+        created via a `context manager
+        <https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+        ``with`` block.
 
 .. method:: AsyncCursor.execute(statement, parameters=None, ** keyword_parameters)
 

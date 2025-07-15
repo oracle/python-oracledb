@@ -32,6 +32,13 @@ The asynchronous API classes are :ref:`AsyncConnection <asyncconnobj>`,
 :ref:`AsyncConnectionPool <asyncconnpool>`,
 :ref:`AsyncCursor <asynccursorobj>`, and :ref:`AsyncLOB <asynclobobj>`.
 
+Unlike their synchronous counterparts, asynchronous connections and cursors are
+not automatically closed at the end of scope. These asynchronous resources
+should either be explicitly closed, or have been initially created via a
+`context manager
+<https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+``with`` block.
+
 .. note::
 
     Concurrent programming with asyncio is only supported in
@@ -105,6 +112,8 @@ when they are no longer needed, for example:
     cursor.close()
     await connection.close()
 
+Note asynchronous connections are not automatically closed at the end of
+scope. This is different to synchronous connection behavior.
 
 .. _asyncconnpool:
 
@@ -165,7 +174,12 @@ executed using the asynchronous methods :meth:`AsyncCursor.execute()` or
 :meth:`AsyncCursor.executemany()`. Rows can be iterated over, or fetched using
 one of the methods :meth:`AsyncCursor.fetchone()`,
 :meth:`AsyncCursor.fetchone()`, :meth:`AsyncCursor.fetchmany()`, or
-:meth:`AsyncCursor.fetchall()`.
+:meth:`AsyncCursor.fetchall()`.  Note that explicitly opened asynchronous
+cursors are not automatically closed at the end of scope. This is different to
+synchronous behavior.  Asynchronous cursors should either be explicitly closed,
+or have been initially created via a `context manager
+<https://docs.python.org/3/library/stdtypes.html#context-manager-types>`__
+``with`` block.
 
 You can also use shortcut methods on the :ref:`asyncconnobj` object such as
 :meth:`AsyncConnection.execute()` or
