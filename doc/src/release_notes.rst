@@ -53,6 +53,8 @@ Common Changes
     - Ensure that the GIL is held when releasing references to ``ArrowArray``
       objects when exported Arrow buffers are released by the consumer. In
       some circumstances this could cause a segfault.
+    - Fixed bug when deciding Arrow datatype for numeric expressions
+      (`issue 510 <https://github.com/oracle/python-oracledb/issues/510>`__)
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version

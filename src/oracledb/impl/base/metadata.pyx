@@ -67,7 +67,7 @@ cdef class OracleMetadata:
             elif py_type_num == PY_TYPE_NUM_STR:
                 self._arrow_type = NANOARROW_TYPE_STRING
             elif py_type_num == PY_TYPE_NUM_INT and self.scale == 0 \
-                    and self.precision <= 18:
+                    and 0 < self.precision <= 18:
                 self._arrow_type = NANOARROW_TYPE_INT64
             else:
                 self._arrow_type = NANOARROW_TYPE_DOUBLE

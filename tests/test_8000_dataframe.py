@@ -894,6 +894,26 @@ class TestCase(test_env.BaseTestCase):
                 """
             )
 
+    def test_8034(self):
+        "8034 - test expressions on numeric columns"
+        # fill only the numeric column - credit score
+        dataset = [
+            (1, None, None, None, None, None, None, 225, None),
+            (2, None, None, None, None, None, None, 365, None),
+        ]
+        data = [
+            (56.25,),
+            (91.25,),
+        ]
+        self.__check_interop()
+        self.__populate_table(dataset)
+
+        # Use numeric expression involving a column
+        statement = "select CreditScore/4 from TestDataFrame order by Id"
+        ora_df = self.conn.fetch_df_all(statement)
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
