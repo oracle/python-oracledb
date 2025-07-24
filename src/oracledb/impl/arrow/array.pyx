@@ -382,7 +382,7 @@ cdef class ArrowArrayImpl:
             ArrowDecimalSetBytes(&decimal, ptr + index * 16)
             ArrowBufferInit(&buf)
             try:
-                _check_nanoarrow(ArrowDecimalAppendDigitsToBuffer(
+                _check_nanoarrow(ArrowDecimalAppendStringToBuffer(
                     &decimal, &buf
                 ))
                 return buf.data[:buf.size_bytes]

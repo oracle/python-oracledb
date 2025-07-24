@@ -83,8 +83,6 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
         temp_bytes = arrow_array.get_decimal(array_index, &data.is_null)
         if not data.is_null:
-            temp_bytes = temp_bytes[:-arrow_array.scale] + b"." + \
-                    temp_bytes[-arrow_array.scale:]
             convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
             return temp_bytes
     elif arrow_type in (NANOARROW_TYPE_LIST, NANOARROW_TYPE_FIXED_SIZE_LIST):

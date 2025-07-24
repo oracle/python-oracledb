@@ -118,7 +118,7 @@ cdef extern from "nanoarrow.c":
                                                 void *private_data)
     void ArrowBufferInit(ArrowBuffer* buffer)
     void ArrowBufferReset(ArrowBuffer* buffer)
-    ArrowErrorCode ArrowDecimalAppendDigitsToBuffer(const ArrowDecimal* decimal,
+    ArrowErrorCode ArrowDecimalAppendStringToBuffer(const ArrowDecimal* decimal,
                                                     ArrowBuffer* buffer)
     void ArrowDecimalInit(ArrowDecimal* decimal, int32_t bitwidth,
                           int32_t precision, int32_t scale)
