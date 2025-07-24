@@ -772,9 +772,10 @@ cdef class AddressList(ConnectParamsNode):
         cdef:
             list addresses = []
             Address address
-        for address in children:
+        ConnectParamsNode._set_active_children(self, children)
+        for address in self.active_children:
             addresses.extend(address.resolve_host_name())
-        ConnectParamsNode._set_active_children(self, addresses)
+        self.active_children = addresses
 
     cdef bint _uses_tcps(self):
         """

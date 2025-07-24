@@ -29,6 +29,8 @@ Thin Mode Changes
 #)  Fixed bug with execution of a PL/SQL block containing at least one output
     bind variable immediately following a query that returned multiple
     duplicate rows.
+#)  Fixed bug with connect strings containing ``SOURCE_ROUTE=YES`` where the
+    second host is unresolvable by the client.
 
 Thick Mode Changes
 ++++++++++++++++++
