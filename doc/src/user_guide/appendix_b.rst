@@ -188,6 +188,13 @@ differs from the python-oracledb Thick mode in the following ways:
 * In python-oracledb Thin mode, the connection pool supports all the :ref:`connection
   mode privileges <connection-authorization-modes>`.
 
+* In python-oracledb Thick mode, when the ``thick_mode_dsn_passthrough`` value
+  in effect is *True*, the ``pool_name`` parameter can be used to specify a
+  DRCP pool name only if the ``dsn`` parameter is not set. If both of these
+  parameters are specified, then the ``pool_name`` parameter is ignored. In
+  python-oracledb Thin mode, both of these parameters can be set and the value
+  defined in the ``pool_name`` parameter will be used as the DRCP pool name.
+
 Supported Database Data Types in Thin and Thick Modes
 =====================================================
 

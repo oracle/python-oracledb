@@ -412,8 +412,15 @@ Oracledb Methods
 
     The ``pool_name`` parameter is expected to be a string which specifies the
     name of the pool when using multiple DRCP pools with Oracle Database 23.4
-    or later. This value is used in both python-oracledb Thin and Thick modes.
-    See :ref:`DRCP Pool Names <poolnames>`.
+    or later. This parameter can be used in both python-oracledb Thin and Thick
+    modes. However, in Thick mode, when the ``thick_mode_dsn_passthrough``
+    value in effect is *True*, it can only be used if the ``dsn`` parameter is
+    not specified. For Thick mode, you may prefer to set the Oracle Net
+    Services parameter `POOL_NAME <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-C2DA6A42-C30A-4E4C-9833-51CB383FE08B>`__ parameter in the
+    :ref:`easy connect string <easyconnect>` or
+    :ref:`connect descriptor <conndescriptor>`. See
+    :ref:`DRCP Pool Names <poolnames>`.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
@@ -771,8 +778,15 @@ Oracledb Methods
 
     The ``pool_name`` parameter is expected to be a string which specifies the
     name of the pool when using multiple DRCP pools with Oracle Database 23.4
-    or later. This value is used in both python-oracledb Thin and Thick modes.
-    See :ref:`DRCP Pool Names <poolnames>`.
+    or later. This parameter can be used in both python-oracledb Thin and Thick
+    modes. However, in Thick mode, when the ``thick_mode_dsn_passthrough``
+    value in effect is *True*, it can only be used if the ``dsn`` parameter is
+    not specified. For Thick mode, you may prefer to set the Oracle Net
+    Services parameter `POOL_NAME <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-C2DA6A42-C30A-4E4C-9833-51CB383FE08B>`__ parameter in the
+    :ref:`easy connect string <easyconnect>` or
+    :ref:`connect descriptor <conndescriptor>`. See
+    :ref:`DRCP Pool Names <poolnames>`.
 
     The ``thick_mode_dsn_passthrough`` and ``handle`` parameters are ignored in
     python-oracledb Thin mode.
@@ -1663,8 +1677,15 @@ Oracledb Methods
 
     The ``pool_name`` parameter is expected to be a string which specifies the
     name of the pool when using multiple DRCP pools with Oracle Database 23.4
-    or later. This value is used in both python-oracledb Thin and Thick modes.
-    See :ref:`DRCP Pool Names <poolnames>`.
+    or later. This parameter can be used in both python-oracledb Thin and Thick
+    modes. However, in Thick mode, when the ``thick_mode_dsn_passthrough``
+    value in effect is *True*, it can only be used if the ``dsn`` parameter is
+    not specified. For Thick mode, you may prefer to set the Oracle Net
+    Services parameter `POOL_NAME <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-C2DA6A42-C30A-4E4C-9833-51CB383FE08B>`__ parameter in the
+    :ref:`easy connect string <easyconnect>` or
+    :ref:`connect descriptor <conndescriptor>`. See
+    :ref:`DRCP Pool Names <poolnames>`.
 
     If the ``handle`` parameter is specified, it must be of type OCISvcCtx\*
     and is only of use when embedding Python in an application (like
@@ -2085,8 +2106,15 @@ Oracledb Methods
 
     The ``pool_name`` parameter is expected to be a string which specifies the
     name of the pool when using multiple DRCP pools with Oracle Database 23.4
-    or later. This value is used in both python-oracledb Thin and Thick modes.
-    See :ref:`DRCP Pool Names <poolnames>`.
+    or later. This parameter can be used in both python-oracledb Thin and Thick
+    modes. However, in Thick mode, when the ``thick_mode_dsn_passthrough``
+    value in effect is *True*, it can only be used if the ``dsn`` parameter is
+    not specified. For Thick mode, you may prefer to set the Oracle Net
+    Services parameter `POOL_NAME <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-C2DA6A42-C30A-4E4C-9833-51CB383FE08B>`__ parameter in the
+    :ref:`easy connect string <easyconnect>` or
+    :ref:`connect descriptor <conndescriptor>`. See
+    :ref:`DRCP Pool Names <poolnames>`.
 
     The ``handle`` and ``thick_mode_dsn_passthrough`` parameters are ignored in
     python-oracledb Thin mode.

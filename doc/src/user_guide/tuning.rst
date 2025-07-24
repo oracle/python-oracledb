@@ -79,10 +79,15 @@ Some general tuning tips are:
 Tuning Fetch Performance
 ========================
 
-To tune queries, you can adjust python-oracledb's internal buffer sizes to
-improve the speed of fetching rows across the network from the database, and to
-optimize memory usage.  This can reduce :ref:`round-trips <roundtrips>` which
-helps performance and scalability.  Tune "array fetching" with
+To improve application performance and scalability you can adjust the sizes of
+python-oracledb's internal query result buffers. Increasing the buffers can
+reduce :ref:`round-trips <roundtrips>` to improve the overall speed of fetching
+rows across the network from the database. The buffer sizes can be used to tune
+the behavior of all python-oracledb :ref:`row fetching methods <fetching>` but
+do not affect how many rows are returned to your application by those methods.
+You should tune the buffers for optimal performance and memory usage.
+
+Tune "array fetching" with
 :attr:`Cursor.arraysize` and tune "row prefetching" with
 :attr:`Cursor.prefetchrows`.  Set these before calling
 :meth:`Cursor.execute()`.  The value used for prefetching can also be set in an
@@ -91,11 +96,6 @@ mode, the internal buffers allocated for ``prefetchrows`` and ``arraysize`` are
 separate, so increasing both settings will require more Python process memory.
 Queries that return LOBs and similar types will never prefetch rows, so the
 ``prefetchrows`` value is ignored in those cases.
-
-The internal buffer sizes do not affect how or when rows are returned to your
-application regardless of which :ref:`python-oracledb method <fetching>` is
-used to fetch query results.  They do not affect the minimum or maximum number
-of rows returned by a query.
 
 The difference between row prefetching and array fetching is when the internal
 buffering occurs.  Internally python-oracledb performs separate "execute SQL

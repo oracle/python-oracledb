@@ -212,13 +212,14 @@ Cursor Methods
 .. method:: Cursor.fetchall()
 
     Fetches all (remaining) rows of a query result, returning them as a list of
-    tuples. An empty list is returned if no more rows are available. Note that
-    the cursor's arraysize attribute can affect the performance of this
-    operation, as internally reads from the database are done in batches
-    corresponding to the arraysize.
+    tuples. An empty list is returned if no more rows are available. An
+    exception is raised if the previous call to :meth:`Cursor.execute()` did
+    not produce any result set or no call was issued yet.
 
-    An exception is raised if the previous call to :meth:`Cursor.execute()`
-    did not produce any result set or no call was issued yet.
+    Note that the cursor's :attr:`~Cursor.arraysize` attribute can affect the
+    performance of this operation, as internally data is fetched in batches of
+    that size from the database. See :ref:`Tuning Fetch Performance
+    <tuningfetch>`.
 
     See :ref:`fetching` for an example.
 
@@ -226,12 +227,13 @@ Cursor Methods
 
     Fetches the next set of rows of a query result, returning a list of tuples.
     An empty list is returned if no more rows are available. Note that the
-    cursor's arraysize attribute can affect the performance of this operation.
+    cursor's :attr:`~Cursor.arraysize` attribute can affect the performance of
+    this operation.
 
     The number of rows to fetch is specified by the parameter. If it is not
-    given, the cursor's ``arraysize`` attribute determines the number of rows
-    to be fetched. If the number of rows available to be fetched is fewer than
-    the amount requested, fewer rows will be returned.
+    given, the cursor's :attr:`~Cursor.arraysize` attribute determines the
+    number of rows to be fetched. If the number of rows available to be fetched
+    is fewer than the amount requested, fewer rows will be returned.
 
     An exception is raised if the previous call to :meth:`Cursor.execute()`
     did not produce any result set or no call was issued yet.
@@ -480,15 +482,16 @@ Cursor Attributes
     from SELECT statements and REF CURSORS.  The value can drastically affect
     the performance of a query since it directly affects the number of network
     round trips between Python and the database.  For methods like
-    :meth:`Cursor.fetchone()` and :meth:`Cursor.fetchall()` it does not change
-    how many rows are returned to the application. For
-    :meth:`Cursor.fetchmany()` it is the default number of rows to fetch.
+    :meth:`Cursor.fetchone()` and :meth:`Cursor.fetchall()` it affects internal
+    behavior but does not change how many rows are returned to the
+    application. For :meth:`Cursor.fetchmany()` it is the default number of
+    rows to fetch.
 
     The attribute is only used for tuning row and SODA document fetches from
     the database.  It does not affect data inserts.
 
-    Due to the performance benefits, the default ``Cursor.arraysize`` is *100*
-    instead of the *1* that the Python DB API recommends.
+    Due to the performance benefits, the default ``arraysize`` is *100* instead
+    of the *1* that the Python DB API recommends.
 
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 

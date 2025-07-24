@@ -3115,9 +3115,9 @@ The overheads can impact ultimate scalability.
 **DRCP Pool Names**
 
 From Oracle Database 23ai, multiple DRCP pools can be created by setting a pool
-name at DRCP pool creation time. Applications can then specifiy which DRCP pool
-to use by passing the ``pool_name`` parameter during connection, or connection
-pool, creation, for example:
+name at DRCP pool creation time. Applications using python-oracledb Thin mode
+can specify which DRCP pool to use by passing the ``pool_name`` parameter
+during connection or connection pool creation, for example:
 
 .. code-block:: python
 
@@ -3128,6 +3128,43 @@ pool, creation, for example:
 
 When specifying a pool name, you should still set a connection class name to
 allow efficient use of the pool's resources.
+
+If you are using python-oracledb Thick mode and the
+``thick_mode_dsn_passthrough`` value in effect is *True*, you can use the
+``pool_name`` parameter only if the ``dsn`` parameter is not specified when
+creating a standalone or pooled connection, for example:
+
+.. code-block:: python
+
+    oracledb.init_oracle_client()
+
+    pool = oracledb.create_pool(user="hr", password=userpwd,
+                                host="localhost", service_name="orclpdb",
+                                server_type="pooled", min=2, max=5,
+                                increment=1, cclass="MYAPP",
+                                pool_name="MYPOOL")
+
+If both the ``pool_name`` and ``dsn`` parameters are set when using Thick mode,
+the ``pool_name`` parameter is ignored.
+
+For Thick mode, you may prefer to set the Oracle Net
+Services parameter `POOL_NAME <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-C2DA6A42-C30A-4E4C-9833-51CB383FE08B>`__ parameter in the
+:ref:`easy connect string <easyconnect>` or
+:ref:`connect descriptor <conndescriptor>`, for example:
+
+.. code-block:: python
+
+    oracledb.init_oracle_client()
+
+    pool = oracledb.create_pool(user="hr", password=userpwd,
+                                dsn="dbhost.example.com/orclpdb:pooled?pool_name=mypool",
+                                min=2, max=5, increment=1,
+                                cclass="MYAPP")
+
+You can also define the DRCP pool name with the
+:ref:`ConnectParams class <connparam>` when using python-oracledb Thin or Thick
+mode. See :ref:`usingconnparams`.
 
 **Acquiring a DRCP Connection**
 
