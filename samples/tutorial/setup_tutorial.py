@@ -30,7 +30,7 @@ import oracledb
 import db_config
 import run_sql_script
 
-# Connect using the System User ID and password
+# Connect using the tutorial username and password
 con = oracledb.connect(
     user=db_config.user, password=db_config.pw, dsn=db_config.dsn
 )

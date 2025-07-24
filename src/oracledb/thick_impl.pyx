@@ -66,6 +66,7 @@ from .base_impl cimport (
     C_DEFAULTS,
     char_type,
     ConnectParamsImpl,
+    convert_arrow_to_oracle_data,
     convert_oracle_data_to_arrow,
     convert_vector_to_arrow,
     DbType,

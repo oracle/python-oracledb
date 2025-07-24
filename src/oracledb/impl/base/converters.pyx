@@ -29,6 +29,76 @@
 # form returned by the decoders to an appropriate Python value.
 #------------------------------------------------------------------------------
 
+cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
+                                         OracleData* data,
+                                         ArrowArrayImpl arrow_array,
+                                         ssize_t array_index):
+    """
+    Converts the value stored in Arrow format to an OracleData structure.
+    """
+    cdef:
+        SparseVectorImpl sparse_impl
+        int seconds, useconds
+        ArrowType arrow_type
+        int64_t int64_value
+        OracleRawBytes* rb
+        tuple sparse_info
+        bytes temp_bytes
+
+    arrow_type = metadata._arrow_type
+    if arrow_type == NANOARROW_TYPE_INT64:
+        arrow_array.get_int64(array_index, &data.is_null, &int64_value)
+        if not data.is_null:
+            temp_bytes = str(int64_value).encode()
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
+    elif arrow_type == NANOARROW_TYPE_DOUBLE:
+        arrow_array.get_double(array_index, &data.is_null,
+                               &data.buffer.as_double)
+    elif arrow_type == NANOARROW_TYPE_FLOAT:
+        arrow_array.get_float(array_index, &data.is_null,
+                              &data.buffer.as_float)
+    elif arrow_type == NANOARROW_TYPE_BOOL:
+        arrow_array.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
+    elif arrow_type in (
+            NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_FIXED_SIZE_BINARY,
+            NANOARROW_TYPE_LARGE_BINARY,
+            NANOARROW_TYPE_LARGE_STRING
+    ):
+        rb = &data.buffer.as_raw_bytes
+        arrow_array.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
+                              &rb.num_bytes)
+    elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
+        arrow_array.get_int64(array_index, &data.is_null, &int64_value)
+        if not data.is_null:
+            seconds = int64_value // arrow_array.time_factor
+            useconds = int64_value % arrow_array.time_factor
+            if arrow_array.time_factor == 1_000:
+                useconds *= 1_000
+            elif arrow_array.time_factor == 1_000_000_000:
+                useconds //= 1_000
+            return EPOCH_DATE + cydatetime.timedelta_new(0, seconds, useconds)
+    elif arrow_type == NANOARROW_TYPE_DECIMAL128:
+        temp_bytes = arrow_array.get_decimal(array_index, &data.is_null)
+        if not data.is_null:
+            temp_bytes = temp_bytes[:-arrow_array.scale] + b"." + \
+                    temp_bytes[-arrow_array.scale:]
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
+    elif arrow_type in (NANOARROW_TYPE_LIST, NANOARROW_TYPE_FIXED_SIZE_LIST):
+        return arrow_array.get_vector(array_index, &data.is_null)
+    elif arrow_type == NANOARROW_TYPE_STRUCT:
+        sparse_info = arrow_array.get_sparse_vector(array_index, &data.is_null)
+        if sparse_info is not None:
+            sparse_impl = SparseVectorImpl.__new__(SparseVectorImpl)
+            sparse_impl.num_dimensions = sparse_info[0]
+            sparse_impl.indices = sparse_info[1]
+            sparse_impl.values = sparse_info[2]
+            return PY_TYPE_SPARSE_VECTOR._from_impl(sparse_impl)
+
+
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer):
     """
     Converts a DATE, TIMESTAMP, TIMESTAMP WITH LOCAL TIME ZONE or TIMESTAMP
@@ -207,6 +277,15 @@ cdef object convert_raw_to_python(OracleDataBuffer *buffer):
     """
     cdef OracleRawBytes *rb = &buffer.as_raw_bytes
     return rb.ptr[:rb.num_bytes]
+
+
+cdef int convert_bytes_to_oracle_data(OracleDataBuffer *buffer,
+                                      bytes value) except -1:
+    """
+    Converts Python bytes to the format required by the OracleDataBuffer.
+    """
+    cdef OracleRawBytes *rb = &buffer.as_raw_bytes
+    cpython.PyBytes_AsStringAndSize(value, <char**> &rb.ptr, &rb.num_bytes)
 
 
 cdef object convert_str_to_python(OracleDataBuffer *buffer, uint8_t csfrm,
@@ -438,6 +517,43 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
     errors._raise_err(errors.ERR_INCONSISTENT_DATATYPES,
                       input_type=from_metadata.dbtype.name,
                       output_type=to_metadata.dbtype.name)
+
+
+cdef object convert_python_to_oracle_data(OracleMetadata metadata,
+                                          OracleData* data,
+                                          object value):
+    """
+    Converts a Python value to the OracleData structure. The object returned is
+    any temporary object that is required to be retained (if any).
+    """
+    cdef:
+        uint8_t ora_type_num = metadata.dbtype._ora_type_num
+        bytes temp_bytes
+    data.is_null = value is None
+    if data.is_null:
+        return None
+    elif ora_type_num in (ORA_TYPE_NUM_VARCHAR,
+                          ORA_TYPE_NUM_CHAR,
+                          ORA_TYPE_NUM_LONG):
+        if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
+            temp_bytes = (<str> value).encode()
+        else:
+            temp_bytes = (<str> value).encode(ENCODING_UTF16)
+        convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+        return temp_bytes
+    elif ora_type_num in (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
+        convert_bytes_to_oracle_data(&data.buffer, value)
+    elif ora_type_num in (ORA_TYPE_NUM_NUMBER, ORA_TYPE_NUM_BINARY_INTEGER):
+        if isinstance(value, bool):
+            return b'1' if value is True else b'0'
+        return (<str> cpython.PyObject_Str(value)).encode()
+    elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
+        data.buffer.as_float = value
+    elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
+        data.buffer.as_double = value
+    elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
+        data.buffer.as_bool = value
+    return value
 
 
 cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,

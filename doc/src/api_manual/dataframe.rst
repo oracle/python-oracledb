@@ -18,58 +18,62 @@ from Oracle Database types to Arrow data types.
 
 .. _oracledataframeobj:
 
-OracleDataFrame Objects
-=======================
+DataFrame Objects
+=================
 
-OracleDataFrame objects are returned from the methods
+DataFrame objects are returned from the methods
 :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`.
 
-Each column in OracleDataFrame exposes an `Apache Arrow PyCapsule
+Each column in a DataFrame exposes an `Apache Arrow PyCapsule
 <https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html>`__
 interface, giving access to the underlying Arrow array.
 
 .. dbapiobjectextension::
 
+.. versionchanged:: 3.3.0
+
+    Removed the prefix "Oracle" from the class name.
+
 .. versionadded:: 3.0.0
 
 .. _oracledataframemeth:
 
-OracleDataFrame Methods
------------------------
+DataFrame Methods
+-----------------
 
-.. method:: OracleDataFrame.column_arrays()
+.. method:: DataFrame.column_arrays()
 
-    Returns a list of :ref:`OracleArrowArray <oraclearrowarrayobj>` objects,
+    Returns a list of :ref:`ArrowArray <oraclearrowarrayobj>` objects,
     each containing a select list column.
 
-.. method:: OracleDataFrame.column_names()
+.. method:: DataFrame.column_names()
 
     Returns a list of the column names in the data frame.
 
-.. method:: OracleDataFrame.get_column(i)
+.. method:: DataFrame.get_column(i)
 
-    Returns an :ref:`OracleArrowArray <oraclearrowarrayobj>` object for the column
+    Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the column
     at the given index ``i``.
 
-.. method:: OracleDataFrame.get_column_by_name(name)
+.. method:: DataFrame.get_column_by_name(name)
 
-    Returns an :ref:`OracleArrowArray <oraclearrowarrayobj>` object for the column
+    Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the column
     with the given name ``name``.
 
-.. method:: OracleDataFrame.num_columns()
+.. method:: DataFrame.num_columns()
 
    Returns the number of columns in the data frame.
 
-.. method:: OracleDataFrame.num_rows()
+.. method:: DataFrame.num_rows()
 
    Returns the number of rows in the data frame.
 
 .. _oracledataframeattr:
 
-OracleDataFrame Attributes
---------------------------
+DataFrame Attributes
+--------------------
 
-.. attribute:: OracleDataFrame.metadata
+.. attribute:: DataFrame.metadata
 
     This read-only attribute returns the metadata for the data frame as a
     dictionary with keys ``num_columns``, ``num_rows``, and ``num_chunks``,
@@ -78,14 +82,17 @@ OracleDataFrame Attributes
 
 .. _oraclearrowarrayobj:
 
-OracleArrowArray Objects
-========================
+ArrowArray Objects
+==================
 
-OracleArrowArray objects are returned by
-:meth:`OracleDataFrame.column_arrays()`.
+ArrowArray objects are returned by :meth:`DataFrame.column_arrays()`.
 
 These are used for conversion to `PyArrow Tables
 <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__, see
 :ref:`dataframeformat`.
+
+.. versionchanged:: 3.3.0
+
+    Removed the prefix "Oracle" from the class name.
 
 .. versionadded:: 3.0.0

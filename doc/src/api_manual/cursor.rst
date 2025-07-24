@@ -176,7 +176,10 @@ Cursor Methods
     list of dictionaries, where the keys match the bind variable placeholder
     names in ``statement``. If there are no bind values, or values have
     previously been bound, the ``parameters`` value can be an integer
-    specifying the number of iterations.
+    specifying the number of iterations. The ``parameters`` parameter can also
+    be a :ref:`DataFrame <oracledataframeobj>`, or a third-party data frame
+    that supports the `Apache Arrow PyCapsule <https://arrow.apache.org/docs/
+    format/CDataInterface/PyCapsuleInterface.html>`__ Interface.
 
     In python-oracledb Thick mode, if the size of the buffers allocated for any
     of the parameters exceeds 2 GB, you will receive the error ``DPI-1015:
@@ -201,6 +204,10 @@ Cursor Methods
     sizes. In particular, if the type is not explicitly specified, the value
     *None* is assumed to be a string of length 1 so any values that are later
     bound as numbers or dates will raise a TypeError exception.
+
+    .. versionchanged:: 3.3.0
+
+        Added support for passing data frames in the ``parameters`` parameter.
 
 .. method:: Cursor.fetchall()
 

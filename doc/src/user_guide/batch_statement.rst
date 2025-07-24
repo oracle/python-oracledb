@@ -102,6 +102,9 @@ the bind variable placeholder names:
     cursor.executemany("insert into ParentTable values :pid, :pdesc)", data)
 
 
+A data frame can alternatively be passed to :meth:`Cursor.executemany()`, see
+:ref:`dfinsert`.
+
 .. _predefmemory:
 
 Predefining Memory Areas

@@ -59,7 +59,7 @@ async def main():
     #
     # Fetching all records
 
-    # Get an OracleDataFrame.
+    # Get a python-oracledb DataFrame.
     # Adjust arraysize to tune the query fetch performance
     odf = await connection.fetch_df_all(statement=SQL, arraysize=100)
 
@@ -131,7 +131,7 @@ async def main():
             "insert into SampleVectorTab (v64) values (:1)", rows
         )
 
-    # Get an OracleDataFrame.
+    # Get a python-oracledb DataFrame.
     # Adjust arraysize to tune the query fetch performance
     sql = "select id, v64 from SampleVectorTab order by id"
     odf = await connection.fetch_df_all(statement=sql, arraysize=100)

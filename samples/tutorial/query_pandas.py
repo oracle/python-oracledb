@@ -35,7 +35,7 @@ con = oracledb.connect(
     user=db_config.user, password=db_config.pw, dsn=db_config.dsn
 )
 
-# Get an OracleDataFrame
+# Get a python-oracledb DataFrame
 # Adjust arraysize to tune the query fetch performance
 odf = con.fetch_df_all(
     statement="select sal from emp order by empno", arraysize=100

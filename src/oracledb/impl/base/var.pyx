@@ -359,6 +359,13 @@ cdef class BaseVarImpl:
         self.metadata.buffer_size = 0
         self.metadata._finalize_init()
 
+    cdef int _set_metadata_from_arrow_array(self,
+                                            ArrowArrayImpl array) except -1:
+        """
+        Sets the type and size of the variable given an Arrow Array.
+        """
+        self.metadata = OracleMetadata.from_arrow_array(array)
+
     cdef int _set_metadata_from_type(self, object typ) except -1:
         """
         Sets the type and size of the variable given a Python type.

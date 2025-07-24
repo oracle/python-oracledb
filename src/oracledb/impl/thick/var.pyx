@@ -94,6 +94,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         """
         Internal method that finalizes initialization of the variable.
         """
+        cdef uint32_t i
         BaseVarImpl._finalize_init(self)
         if self.metadata.dbtype._native_num in (
             DPI_NATIVE_TYPE_LOB,
@@ -102,6 +103,9 @@ cdef class ThickVarImpl(BaseVarImpl):
         ):
             self._values = [None] * self.num_elements
         self._create_handle()
+        if self._arrow_array is not None:
+            for i in range(self.num_elements):
+                self._transform_element_from_arrow(i)
 
     cdef list _get_array_value(self):
         """
@@ -351,6 +355,63 @@ cdef class ThickVarImpl(BaseVarImpl):
             cpython.Py_INCREF(element_value)
             cpython.PyList_SET_ITEM(return_value, i, element_value)
         return return_value
+
+    cdef int _transform_element_from_arrow(self, uint32_t pos):
+        """
+        Transforms a single element from an Arrow array to the value required
+        by ODPI-C.
+        """
+        cdef:
+            dpiData *data = &self._data[pos]
+            dpiTimestamp *timestamp
+            uint32_t ora_type_num
+            OracleData ora_data
+            object value
+        value = convert_arrow_to_oracle_data(self.metadata, &ora_data,
+                                             self._arrow_array, pos)
+        data.isNull = ora_data.is_null
+        if not ora_data.is_null:
+            ora_type_num = self.metadata.dbtype.num
+            if ora_type_num == DPI_ORACLE_TYPE_NATIVE_DOUBLE:
+                data.value.asDouble = ora_data.buffer.as_double
+            elif ora_type_num == DPI_ORACLE_TYPE_NATIVE_FLOAT:
+                data.value.asFloat = ora_data.buffer.as_float
+            elif ora_type_num == DPI_ORACLE_TYPE_BOOLEAN:
+                data.value.asBoolean = ora_data.buffer.as_bool
+            elif ora_type_num in (
+                DPI_ORACLE_TYPE_CHAR,
+                DPI_ORACLE_TYPE_LONG_NVARCHAR,
+                DPI_ORACLE_TYPE_LONG_VARCHAR,
+                DPI_ORACLE_TYPE_LONG_RAW,
+                DPI_ORACLE_TYPE_NCHAR,
+                DPI_ORACLE_TYPE_NUMBER,
+                DPI_ORACLE_TYPE_NVARCHAR,
+                DPI_ORACLE_TYPE_RAW,
+                DPI_ORACLE_TYPE_VARCHAR,
+            ):
+                if dpiVar_setFromBytes(
+                    self._handle,
+                    pos,
+                    <const char*> ora_data.buffer.as_raw_bytes.ptr,
+                    ora_data.buffer.as_raw_bytes.num_bytes
+                ) < 0:
+                    _raise_from_odpi()
+            elif ora_type_num in (
+                DPI_ORACLE_TYPE_DATE,
+                DPI_ORACLE_TYPE_TIMESTAMP,
+                DPI_ORACLE_TYPE_TIMESTAMP_LTZ,
+                DPI_ORACLE_TYPE_TIMESTAMP_TZ,
+            ):
+                timestamp = &data.value.asTimestamp
+                memset(timestamp, 0, sizeof(data.value.asTimestamp))
+                timestamp.year = cydatetime.PyDateTime_GET_YEAR(value)
+                timestamp.month = cydatetime.PyDateTime_GET_MONTH(value)
+                timestamp.day = cydatetime.PyDateTime_GET_DAY(value)
+                timestamp.hour = cydatetime.PyDateTime_DATE_GET_HOUR(value)
+                timestamp.minute = cydatetime.PyDateTime_DATE_GET_MINUTE(value)
+                timestamp.second = cydatetime.PyDateTime_DATE_GET_SECOND(value)
+                timestamp.fsecond = \
+                        cydatetime.PyDateTime_DATE_GET_MICROSECOND(value) * 1000
 
     cdef int _transform_element_to_arrow(self, uint32_t pos):
         """

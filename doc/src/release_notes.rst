@@ -42,22 +42,25 @@ Common Changes
 
 #)  Changes to :ref:`data frame <dataframeformat>` support:
 
+    - Added support for binding data frames to :meth:`Cursor.executemany()` and
+      :meth:`AsyncCursor.executemany()` for fast data ingestion. See
+      :ref:`dfinsert`.
     - Added internal support for the ArrowArrayStream PyCapsule interface to
-      simplify :ref:`OracleDataFrame <oracledataframeobj>` use.
-    - Remove use of the DataFrame Interchange Protocol in
-      :ref:`OracleDataFrames <oracledataframeobj>`.
-    - Documentation on methods and attributes on the ``DataFrame`` and
-      ``ArrowArray`` objects are now available in Python plugins such as those
-      found in VS Code
-    - Upgraded Arrow C Data (nanoarrow) API version to 0.7.0
-    - Ensure that the GIL is held when releasing references to ``ArrowArray``
-      objects when exported Arrow buffers are released by the consumer. In
-      some circumstances this could cause a segfault.
+      simplify :ref:`DataFrame <oracledataframeobj>` use.
+    - Remove use of the DataFrame Interchange Protocol in python-oracledb
+      :ref:`DataFrame <oracledataframeobj>` objects.
+    - Documentation on methods and attributes of the :ref:`DataFrame
+      <oracledataframeobj>` and :ref:`ArrowArray <oraclearrowarrayobj>` objects
+      is now available when using IDE introspection.
+    - Upgraded Arrow C Data (nanoarrow) API version to 0.7.0.
+    - Ensure that the GIL is held when releasing references to :ref:`ArrowArray
+      <oraclearrowarrayobj>` objects when exported Arrow buffers are released
+      by the consumer. This avoids a segfault seen in some circumstances.
     - Fixed bug when deciding Arrow datatype for numeric expressions
       (`issue 510 <https://github.com/oracle/python-oracledb/issues/510>`__)
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
-    may change in a future version
+    may change in a future version.
 
 oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (June 2025)
 --------------------------------------------------------------------------------------------------

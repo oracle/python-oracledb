@@ -221,6 +221,22 @@ begin
 end;
 /
 
+-- Table for query_pandas.py
+begin
+  execute immediate 'drop table pdtab';
+exception
+when others then
+  if sqlcode not in (-00942) then
+    raise;
+  end if;
+end;
+/
+
+create table pdtab (
+  sal number(7, 2))
+/
+
+
 -- Table for json_insert.py (requires Oracle Database 21c or later)
 begin
   execute immediate 'drop table jtab';

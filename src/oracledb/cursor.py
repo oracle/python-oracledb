@@ -712,7 +712,7 @@ class Cursor(BaseCursor):
     def executemany(
         self,
         statement: Optional[str],
-        parameters: Union[list, int],
+        parameters: Any,
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
     ) -> None:
@@ -732,6 +732,9 @@ class Cursor(BaseCursor):
         If there are no parameters, or parameters have previously been bound,
         the number of iterations can be specified as an integer instead of
         needing to provide a list of empty mappings or sequences.
+
+        A data frame can also be supplied as the parameters, in which case the
+        Arrow arrays found within it are extracted and used as the parameters.
 
         When true, the batcherrors parameter enables batch error support within
         Oracle and ensures that the call succeeds even if an exception takes
@@ -965,7 +968,7 @@ class AsyncCursor(BaseCursor):
     async def executemany(
         self,
         statement: Optional[str],
-        parameters: Union[list, int],
+        parameters: Any,
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
     ) -> None:

@@ -2163,6 +2163,19 @@ Oracledb Methods
 
     .. versionadded:: 2.5.0
 
+.. function:: from_arrow(obj)
+
+    This method converts a data frame to a :ref:`DataFrame <oracledataframeobj>`
+    or :ref:`ArrowArray <oraclearrowarrayobj>` instance.
+
+    If ``obj`` supports the Arrow PyCapsule interface ``__arrow_c_stream__``
+    method, then ``from_arrow()`` returns the instance as a :ref:`DataFrame
+    <oracledataframeobj>`. If ``obj`` does not support that method, but does
+    support ``__arrow_c_array__``, then an :ref:`ArrowArray
+    <oraclearrowarrayobj>` is returned.
+
+    .. versionadded:: 3.3.0
+
 .. function:: get_pool(pool_alias)
 
     Returns a :ref:`ConnectionPool object <connpool>` from the python-oracledb

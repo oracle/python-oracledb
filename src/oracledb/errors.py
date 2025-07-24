@@ -323,6 +323,7 @@ ERR_INVALID_NETWORK_NAME = 3029
 ERR_ARROW_UNSUPPORTED_DATA_TYPE = 3030
 ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT = 3031
 ERR_ARROW_UNSUPPORTED_DATA_FORMAT = 3032
+ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT = 3033
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -880,7 +881,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE: (
         '"parameters" argument should be a list of sequences or '
         "dictionaries, or an integer specifying the number of "
-        "times to execute the statement"
+        "times to execute the statement, or an object implementing the Arrow "
+        "PyCapsule interface __arrow_c_stream__()"
     ),
     ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS: (
         "{expected_num} positional bind values are required but "
@@ -900,6 +902,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
         "Apache Arrow format does not support sparse vectors with flexible "
         "dimensions"
+    ),
+    ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT: (
+        'conversion from list with child Arrow format "{schema_format}" to '
+        "Oracle Database vector is not supported"
     ),
     ERR_ARROW_UNSUPPORTED_DATA_FORMAT: (
         'conversion from Arrow format "{schema_format}" to Oracle Database '

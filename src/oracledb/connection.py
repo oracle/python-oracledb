@@ -1798,7 +1798,7 @@ class AsyncConnection(BaseConnection):
             await cursor.execute(statement, parameters)
 
     async def executemany(
-        self, statement: Union[str, None], parameters: Union[list, int]
+        self, statement: Union[str, None], parameters: Any
     ) -> None:
         """
         Prepare a statement for execution against a database and then execute

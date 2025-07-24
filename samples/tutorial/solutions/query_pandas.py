@@ -35,21 +35,33 @@ con = oracledb.connect(
     user=db_config.user, password=db_config.pw, dsn=db_config.dsn
 )
 
-# Get an OracleDataFrame
+# Get a python-oracledb DataFrame
 # Adjust arraysize to tune the query fetch performance
 odf = con.fetch_df_all(
     statement="select sal from emp order by empno", arraysize=100
 )
 
 # Get a Pandas DataFrame from the data
-df = pyarrow.Table.from_arrays(
-    odf.column_arrays(), names=odf.column_names()
-).to_pandas()
+df = pyarrow.table(odf).to_pandas()
 
-# Perform various Pandas operations on the DataFrame
+# Perform various operations on the Pandas DataFrame
 
 print("\nSum:")
 print(df.sum())
 
 print("\nMedian:")
 print(df.median())
+
+# Double everyone's salary and insert the Pandas DataFrame into Oracle Database
+
+df = df * 2
+
+cur = con.cursor()
+cur.executemany("insert into pdtab (sal) values (:1)", df)
+
+# Check the inserted data
+
+print("\nNew Salaries")
+cur.execute("select * from pdtab")
+res = cur.fetchall()
+print(res)

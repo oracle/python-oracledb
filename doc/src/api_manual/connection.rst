@@ -119,9 +119,9 @@ Connection Methods
 .. method:: Connection.fetch_df_all(statement, parameters=None, \
             arraysize=None)
 
-    Fetches all rows of the SQL query ``statement``, returning them in an
-    :ref:`OracleDataFrame <oracledataframeobj>` object. An empty
-    OracleDataFrame is returned if there are no rows available.
+    Fetches all rows of the SQL query ``statement``, returning them in a
+    :ref:`DataFrame <oracledataframeobj>` object. An empty DataFrame is
+    returned if there are no rows available.
 
     The ``parameters`` parameter can be a list of tuples, where each tuple item
     maps to one :ref:`bind variable placeholder <bind>` in ``statement``. It
@@ -151,9 +151,8 @@ Connection Methods
             size=None)
 
     This returns an iterator yielding the next ``size`` rows of the SQL query
-    ``statement`` in each iteration as an :ref:`OracleDataFrame
-    <oracledataframeobj>` object. An empty OracleDataFrame is returned if there
-    are no rows available.
+    ``statement`` in each iteration as a :ref:`DataFrame <oracledataframeobj>`
+    object. An empty DataFrame is returned if there are no rows available.
 
     The ``parameters`` parameter can be a list of tuples, where each tuple item
     maps to one :ref:`bind variable placeholder <bind>` in ``statement``. It

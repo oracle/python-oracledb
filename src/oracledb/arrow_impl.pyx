@@ -33,9 +33,23 @@
 cimport cpython
 
 from libc.stdint cimport uintptr_t
-from libc.string cimport memcpy, strlen, strchr
+from libc.string cimport memcpy, memset, strlen, strchr
+from cpython cimport array
+
+import array
 
 from . import errors
+
+cdef array.array float_template = array.array('f')
+cdef array.array double_template = array.array('d')
+cdef array.array int8_template = array.array('b')
+cdef array.array uint8_template = array.array('B')
+cdef array.array uint32_template
+
+if array.array("I").itemsize == 4:
+    uint32_template = array.array("I")
+else:
+    uint32_template = array.array("L")
 
 include "impl/arrow/utils.pyx"
 include "impl/arrow/array.pyx"

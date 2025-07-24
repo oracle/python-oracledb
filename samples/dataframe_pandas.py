@@ -54,7 +54,7 @@ connection = oracledb.connect(
 #
 # Fetching all records
 
-# Get an OracleDataFrame.
+# Get a python-oracledb DataFrame.
 # Adjust arraysize to tune the query fetch performance
 sql = "select id, name from SampleQueryTab order by id"
 odf = connection.fetch_df_all(statement=sql, arraysize=100)
@@ -127,7 +127,7 @@ with connection.cursor() as cursor:
     cursor.executemany("insert into SampleVectorTab (v64) values (:1)", rows)
 
 
-# Get an OracleDataFrame.
+# Get a python-oracledb DataFrame.
 # Adjust arraysize to tune the query fetch performance
 sql = "select id, v64 from SampleVectorTab order by id"
 odf = connection.fetch_df_all(statement=sql, arraysize=100)
@@ -153,7 +153,7 @@ print(df2.sum())
 
 # Scaling all vectors by a factor of two
 print("\nScaled:")
-df["SCALED_V64_COL"] = df["V64"].apply(lambda x: numpy.array(x) * 2)
+df["SCALED_V64_COL"] = df["V64"] * 2
 print(df)
 
 # Calculating vector norms

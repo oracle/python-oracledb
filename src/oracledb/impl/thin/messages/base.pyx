@@ -1328,16 +1328,28 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(0)            # oaccolid
 
     cdef int _write_bind_params_column(self, WriteBuffer buf,
-                                       OracleMetadata metadata,
-                                       object value) except -1:
+                                       ThinVarImpl var_impl,
+                                       uint32_t offset) except -1:
         cdef:
-            uint8_t ora_type_num = metadata.dbtype._ora_type_num
             ThinDbObjectTypeImpl typ_impl
             BaseThinCursorImpl cursor_impl
             BaseThinLobImpl lob_impl
+            OracleMetadata metadata
+            uint8_t ora_type_num
             uint32_t num_bytes
             bytes temp_bytes
-        if value is None:
+            OracleData data
+            bint is_null
+            object value
+        metadata = var_impl.metadata
+        if var_impl._arrow_array is not None:
+            value = convert_arrow_to_oracle_data(metadata, &data,
+                                                 var_impl._arrow_array, offset)
+        else:
+            value = convert_python_to_oracle_data(metadata, &data,
+                                                  var_impl._values[offset])
+        ora_type_num = metadata.dbtype._ora_type_num
+        if data.is_null:
             if ora_type_num == ORA_TYPE_NUM_BOOLEAN:
                 buf.write_uint8(TNS_ESCAPE_CHAR)
                 buf.write_uint8(1)
@@ -1350,34 +1362,25 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(TNS_OBJ_TOP_LEVEL)    # flags
             else:
                 buf.write_uint8(0)
-        elif ora_type_num == ORA_TYPE_NUM_VARCHAR \
-                or ora_type_num == ORA_TYPE_NUM_CHAR \
-                or ora_type_num == ORA_TYPE_NUM_LONG:
-            if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
-                temp_bytes = (<str> value).encode()
-            else:
-                buf._caps._check_ncharset_id()
-                temp_bytes = (<str> value).encode(ENCODING_UTF16)
-            buf.write_bytes_with_length(temp_bytes)
-        elif ora_type_num == ORA_TYPE_NUM_RAW \
-                or ora_type_num == ORA_TYPE_NUM_LONG_RAW:
-            buf.write_bytes_with_length(value)
+        elif ora_type_num in (ORA_TYPE_NUM_VARCHAR,
+                              ORA_TYPE_NUM_CHAR,
+                              ORA_TYPE_NUM_LONG,
+                              ORA_TYPE_NUM_RAW,
+                              ORA_TYPE_NUM_LONG_RAW):
+            buf._write_raw_bytes_and_length(data.buffer.as_raw_bytes.ptr,
+                                            data.buffer.as_raw_bytes.num_bytes)
         elif ora_type_num == ORA_TYPE_NUM_NUMBER \
                 or ora_type_num == ORA_TYPE_NUM_BINARY_INTEGER:
-            if isinstance(value, bool):
-                temp_bytes = b'1' if value is True else b'0'
-            else:
-                temp_bytes = (<str> cpython.PyObject_Str(value)).encode()
-            buf.write_oracle_number(temp_bytes)
+            buf.write_oracle_number(value)
         elif ora_type_num == ORA_TYPE_NUM_DATE \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_TZ \
                 or ora_type_num == ORA_TYPE_NUM_TIMESTAMP_LTZ:
             buf.write_oracle_date(value, metadata.dbtype._buffer_size_factor)
         elif ora_type_num == ORA_TYPE_NUM_BINARY_DOUBLE:
-            buf.write_binary_double(value)
+            buf.write_binary_double(data.buffer.as_double)
         elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
-            buf.write_binary_float(value)
+            buf.write_binary_float(data.buffer.as_float)
         elif ora_type_num == ORA_TYPE_NUM_CURSOR:
             cursor_impl = value._impl
             if cursor_impl is None:
@@ -1392,7 +1395,7 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(cursor_impl._statement._cursor_id)
             cursor_impl.statement = None
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
-            buf.write_bool(value)
+            buf.write_bool(data.buffer.as_bool)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
             buf.write_interval_ds(value)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
@@ -1423,7 +1426,7 @@ cdef class MessageWithData(Message):
         first followed by any LONG values.
         """
         cdef:
-            uint32_t num_elements, offset = self.offset
+            uint32_t i, num_elements, offset = self.offset
             bint found_long = False
             OracleMetadata metadata
             ThinVarImpl var_impl
@@ -1436,15 +1439,14 @@ cdef class MessageWithData(Message):
             if var_impl.is_array:
                 num_elements = var_impl.num_elements_in_array
                 buf.write_ub4(num_elements)
-                for value in var_impl._values[:num_elements]:
-                    self._write_bind_params_column(buf, metadata, value)
+                for i in range(num_elements):
+                    self._write_bind_params_column(buf, var_impl, i)
             else:
                 if not self.cursor_impl._statement._is_plsql \
                         and metadata.buffer_size > buf._caps.max_string_size:
                     found_long = True
                     continue
-                self._write_bind_params_column(buf, metadata,
-                                               var_impl._values[pos + offset])
+                self._write_bind_params_column(buf, var_impl, pos + offset)
         if found_long:
             for bind_info in params:
                 if bind_info._is_return_bind:
@@ -1453,8 +1455,7 @@ cdef class MessageWithData(Message):
                 metadata = var_impl.metadata
                 if metadata.buffer_size <= buf._caps.max_string_size:
                     continue
-                self._write_bind_params_column(buf, metadata,
-                                               var_impl._values[pos + offset])
+                self._write_bind_params_column(buf, var_impl, pos + offset)
 
     cdef int postprocess(self) except -1:
         """

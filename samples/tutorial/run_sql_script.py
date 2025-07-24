@@ -29,13 +29,6 @@
 import os
 import sys
 
-# default values
-DEFAULT_MAIN_USER = "pythondemo"
-DEFAULT_EDITION_USER = "pythoneditions"
-DEFAULT_EDITION_NAME = "python_e1"
-DEFAULT_CONNECT_STRING = "localhost/freepdb1"
-DEFAULT_DRCP_CONNECT_STRING = "localhost/freepdb1:pooled"
-
 
 def run_sql_script(conn, script_name, **kwargs):
     statement_parts = []

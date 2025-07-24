@@ -49,13 +49,13 @@ cdef extern from "nanoarrow.h":
         void *private_data
 
     cdef struct ArrowSchema:
-        const char *format;
-        const char *name;
-        const char *metadata;
+        const char *format
+        const char *name
+        const char *metadata
         int64_t flags
         int64_t n_children
-        ArrowSchema** children
-        ArrowSchema* dictionary
+        ArrowSchema **children
+        ArrowSchema *dictionary
         void (*release)(ArrowSchema*)
         void *private_data
 
@@ -64,6 +64,8 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_BINARY
         NANOARROW_TYPE_DECIMAL128
         NANOARROW_TYPE_DOUBLE
+        NANOARROW_TYPE_FIXED_SIZE_BINARY
+        NANOARROW_TYPE_FIXED_SIZE_LIST
         NANOARROW_TYPE_FLOAT
         NANOARROW_TYPE_INT8
         NANOARROW_TYPE_INT64
@@ -89,6 +91,7 @@ cdef class ArrowArrayImpl:
     cdef:
         int32_t precision
         int32_t scale
+        int32_t fixed_size
         str name
         ArrowType arrow_type
         ArrowTimeUnit time_unit
@@ -96,7 +99,13 @@ cdef class ArrowArrayImpl:
         ArrowArray *arrow_array
         ArrowSchema *arrow_schema
         ArrowType child_arrow_type
+        int child_element_size
 
+    cdef int _get_is_null(self, int64_t index, bint* is_null) except -1
+    cdef int _get_list_info(self, int64_t index, ArrowArray* arrow_array,
+                            int64_t* offset, int64_t* num_elements) except -1
+    cdef bint _is_sparse_vector(self) except *
+    cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1
     cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
@@ -110,6 +119,20 @@ cdef class ArrowArrayImpl:
                                   array.array values) except -1
     cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1
+    cdef int get_bool(self, int64_t index, bint* is_null,
+                      bint* value) except -1
+    cdef int get_bytes(self, int64_t index, bint* is_null, char **ptr,
+                       ssize_t *num_bytes) except -1
+    cdef bytes get_decimal(self, int64_t index, bint* is_null)
+    cdef int get_double(self, int64_t index, bint* is_null,
+                        double* value) except -1
+    cdef int get_float(self, int64_t index, bint* is_null,
+                       float* value) except -1
+    cdef int get_int64(self, int64_t index, bint* is_null,
+                       int64_t* value) except -1
+    cdef int get_length(self, int64_t* length) except -1
+    cdef object get_sparse_vector(self, int64_t index, bint* is_null)
+    cdef object get_vector(self, int64_t index, bint* is_null)
     cdef int populate_from_array(self, ArrowSchema* schema,
                                  ArrowArray* array) except -1
     cdef int populate_from_metadata(self, ArrowType arrow_type, str name,

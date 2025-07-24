@@ -449,6 +449,8 @@ cdef class OracleMetadata:
     cdef int _set_arrow_type(self) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
+    cdef OracleMetadata from_arrow_array(ArrowArrayImpl array)
+    @staticmethod
     cdef OracleMetadata from_type(object typ)
     @staticmethod
     cdef OracleMetadata from_value(object value)
@@ -700,6 +702,7 @@ cdef class BaseCursorImpl:
                       bint cache_statement) except -1
     cdef int _reset_bind_vars(self, uint32_t num_rows) except -1
     cdef int _verify_var(self, object var) except -1
+    cdef object bind_arrow_arrays(self, object cursor, list arrays)
     cdef int bind_many(self, object cursor, list parameters) except -1
     cdef int bind_one(self, object cursor, object parameters) except -1
     cdef object _finish_building_arrow_arrays(self)
@@ -742,6 +745,8 @@ cdef class BaseVarImpl:
     cdef object _get_scalar_value(self, uint32_t pos)
     cdef int _on_reset_bind(self, uint32_t num_rows) except -1
     cdef int _resize(self, uint32_t new_size) except -1
+    cdef int _set_metadata_from_arrow_array(self,
+                                            ArrowArrayImpl array) except -1
     cdef int _set_metadata_from_type(self, object typ) except -1
     cdef int _set_metadata_from_value(self, object value,
                                       bint is_plsql) except -1
@@ -848,6 +853,9 @@ cdef class BindVar:
         ssize_t pos
         bint has_value
 
+    cdef int _create_var_from_arrow_array(self, object conn,
+                                          BaseCursorImpl cursor_impl,
+                                          ArrowArrayImpl array) except -1
     cdef int _create_var_from_type(self, object conn,
                                    BaseCursorImpl cursor_impl,
                                    object value) except -1
@@ -969,6 +977,10 @@ cdef struct OracleData:
     OracleDataBuffer buffer
 
 
+cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
+                                         OracleData* data,
+                                         ArrowArrayImpl arrow_array,
+                                         ssize_t array_index)
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
                                       OracleMetadata to_metadatda,
                                       OracleData* data,
@@ -978,6 +990,9 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleData* data,
                                           const char* encoding_errors,
                                           bint from_dbobject)
+cdef object convert_python_to_oracle_data(OracleMetadata metadata,
+                                          OracleData* data,
+                                          object value)
 cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,
                                  object vector) except -1
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)

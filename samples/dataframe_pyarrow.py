@@ -51,7 +51,7 @@ connection = oracledb.connect(
 
 SQL1 = "select id, name from SampleQueryTab order by id"
 
-# Get an OracleDataFrame
+# Get a python-oracledb DataFrame
 # Adjust arraysize to tune the query fetch performance
 odf = connection.fetch_df_all(statement=SQL1, arraysize=100)
 
@@ -76,7 +76,7 @@ print(f"{r} rows, {c} columns")
 
 SQL2 = "select id from SampleQueryTab order by id"
 
-# Get an OracleDataFrame
+# Get a python-oracledb DataFrame
 # Adjust arraysize to tune the query fetch performance
 odf = connection.fetch_df_all(statement=SQL2, arraysize=100)
 

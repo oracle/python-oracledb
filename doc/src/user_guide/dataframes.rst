@@ -4,29 +4,42 @@
 Working with Data Frames
 ************************
 
-Python-oracledb queries can fetch directly to data frames. This can improve
-performance and reduce memory requirements when your application uses Python
-data frame libraries such as `Apache PyArrow
-<https://arrow.apache.org/docs/python/index.html>`__, `Pandas
-<https://pandas.pydata.org>`__, `Polars <https://pola.rs/>`__, `NumPy
+Python-oracledb can query directly to a data frame format, and can also insert
+data frames into Oracle Database. This can improve performance and reduce
+memory requirements when your application uses Python data frame libraries such
+as `Apache PyArrow <https://arrow.apache.org/docs/python/index.html>`__,
+`Pandas <https://pandas.pydata.org>`__, `Polars <https://pola.rs/>`__, `NumPy
 <https://numpy.org/>`__, `Dask <https://www.dask.org/>`__, `PyTorch
 <https://pytorch.org/>`__, or writes files in `Apache Parquet
-<https://parquet.apache.org/>`__ format. The :ref:`OracleDataFrame
-<oracledataframeobj>` objects fetched expose an Apache Arrow PyCapsule
-Interface which, in some cases, allow zero-copy data interchanges to the data
-frame objects of other libraries.
+<https://parquet.apache.org/>`__ format.
+
+Python-oracledb has a :ref:`DataFrame <oracledataframeobj>` object that exposes
+an Apache Arrow PyCapsule Interface. This enables zero-copy data interchanges
+to the data frame objects of other libraries.
 
 .. note::
 
     The data frame support in python-oracledb 3.3 is a pre-release and may
     change in a future version.
 
-**Fetching Data Frames**
+.. _dfquery:
 
-The method :meth:`Connection.fetch_df_all()` fetches all rows from a query.
-The method :meth:`Connection.fetch_df_batches()` implements an iterator for
-fetching batches of rows. The methods return :ref:`OracleDataFrame
-<oracledataframeobj>` objects.
+Fetching Data Frames
+====================
+
+Data frames can be fetched by using a standard SQL query.
+
+Data Frame Queries
+------------------
+
+Python-oracledb has two methods for fetching rows into data frames:
+
+- :meth:`Connection.fetch_df_all()` fetches all rows from a query
+- :meth:`Connection.fetch_df_batches()` implements an iterator for fetching
+  batches of rows
+
+The methods return python-oracledb :ref:`DataFrame <oracledataframeobj>`
+objects.
 
 For example, to fetch all rows from a query and print some information about
 the results:
@@ -57,10 +70,8 @@ To fetch in batches, use an iterator:
     # Adjust "size" to tune the query fetch performance
     # Here it is small to show iteration
     for odf in connection.fetch_df_batches(statement=sql, size=4):
-        df = pyarrow.Table.from_arrays(
-            odf.column_arrays(), names=odf.column_names()
-        ).to_pandas()
-        print(df)
+        pdf = pyarrow.table(odf).to_pandas()
+        print(pdf)
 
 With Oracle Database's standard DEPARTMENTS table, this would display::
 
@@ -77,27 +88,18 @@ With Oracle Database's standard DEPARTMENTS table, this would display::
 Converting to other data frame formats is :ref:`shown later <convertingodf>` in
 this chapter.
 
-**Inserting OracleDataFrames into Oracle Database**
-
-To insert data currently in :ref:`OracleDataFrame <oracledataframeobj>` format
-into Oracle Database requires it to be converted.  For example, you could
-convert it into a Pandas DataFrame for insert with the Pandas method
-``to_sql()``. Or convert into a Python list via the PyArrow
-``Table.to_pylist()`` method and then use standard python-oracledb
-functionality to execute a SQL INSERT statement.
-
 .. _dftypemapping:
 
 Data Frame Type Mapping
 -----------------------
 
-Internally, python-oracledb's :ref:`OracleDataFrame <oracledataframeobj>`
-support makes use of `Apache nanoarrow <https://arrow.apache.org/nanoarrow/>`__
+Internally, python-oracledb's :ref:`DataFrame <oracledataframeobj>` support
+makes use of `Apache nanoarrow <https://arrow.apache.org/nanoarrow/>`__
 libraries to build data frames.
 
 The following data type mapping occurs from Oracle Database types to the Arrow
-types used in OracleDataFrame objects. Querying any other data types from
-Oracle Database will result in an exception. :ref:`Output type handlers
+types used in python-oracledb DataFrame objects. Querying any other data types
+from Oracle Database will result in an exception. :ref:`Output type handlers
 <outputtypehandlers>` cannot be used to map data types.
 
 .. list-table-with-summary:: Mapping from Oracle Database to Arrow data types
@@ -106,7 +108,7 @@ Oracle Database will result in an exception. :ref:`Output type handlers
     :widths: 1 1
     :width: 100%
     :align: left
-    :summary: The first column is the Oracle Database type. The second column is the Arrow data type used in the OracleDataFrame object.
+    :summary: The first column is the Oracle Database type. The second column is the Arrow data type used in the python-oracledb DataFrame object.
 
     * - Oracle Database Type
       - Arrow Data Type
@@ -153,8 +155,9 @@ Oracle Database will result in an exception. :ref:`Output type handlers
 
 When converting Oracle Database NUMBERs:
 
-- If the column has been created without a precision and scale, then the Arrow
-  data type will be DOUBLE.
+- If the column has been created without a precision and scale, or you are
+  querying an expression that results in a number without precision or scale,
+  then the Arrow data type will be DOUBLE.
 
 - If :attr:`defaults.fetch_decimals` is set to *True*, then the Arrow data
   type is DECIMAL128.
@@ -240,26 +243,26 @@ When converting Oracle Database DATEs and TIMESTAMPs:
 
 .. _convertingodf:
 
-Converting OracleDataFrame to Other Data Frames
------------------------------------------------
+Converting python-oracledb's DataFrame to Other Data Frames
+-----------------------------------------------------------
 
-To use data frames in your chosen analysis library, :ref:`OracleDataFrame
-objects <oracledataframeobj>` can be converted. Examples for some libraries are
-shown in the following sections. Other libraries will have similar methods.
+To use data frames in your chosen analysis library, :ref:`DataFrame objects
+<oracledataframeobj>` can be converted. Examples for some libraries are shown
+in the following sections. Other libraries will have similar methods.
 
 **Conversion Overview**
 
-The guidelines for converting :ref:`OracleDataFrame objects
+Guidelines for converting python-oracledb :ref:`DataFrame objects
 <oracledataframeobj>` to data frames for other libraries are:
 
 - To convert to a `PyArrow Table <https://arrow.apache.org/docs/python/
-  generated/pyarrow.Table.html>`__, use `pyarrow.Table.from_arrays()
-  <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.
-  Table.from_arrays>`__ which leverages the Arrow PyCapsule interface.
+  generated/pyarrow.Table.html>`__, use `pyarrow.table()
+  <https://arrow.apache.org/docs/python/generated/pyarrow.table.html
+  #pyarrow.table>`__ which leverages the Arrow PyCapsule interface.
 
 - To convert to a `Pandas DataFrame <https://pandas.pydata.org/docs/reference/
   api/pandas.DataFrame.html#pandas.DataFrame>`__, use
-  `pyarrow.Table.to_pandas() <https://arrow.apache.org/docs/python/generated/
+  `pyarrow.table().to_pandas() <https://arrow.apache.org/docs/python/generated/
   pyarrow.Table.html#pyarrow.Table.to_pandas>`__.
 
 - If you want to use a library other than Pandas or PyArrow, use the library's
@@ -268,13 +271,7 @@ The guidelines for converting :ref:`OracleDataFrame objects
   <https://pola.rs/>`__ use `polars.from_arrow() <https://docs.pola.rs/api/
   python/dev/reference/api/polars.from_arrow.html>`__.
 
-- If your library does not support ``from_arrow()``, then use
-  ``from_dataframe()`` if the library supports it. This can be slower,
-  depending on the implementation.
-
-Overall, the general recommendation is to use Apache Arrow as much as possible
-but if there are no options, then use ``from_dataframe()``.  You should test
-and benchmark to find the best option for your applications.
+You should test and benchmark to find the best option for your applications.
 
 Creating PyArrow Tables
 +++++++++++++++++++++++
@@ -286,30 +283,28 @@ An example that creates and uses a `PyArrow Table
 
     import pyarrow
 
-    # Get an OracleDataFrame
+    # Get a python-oracledb DataFrame
     # Adjust arraysize to tune the query fetch performance
-    sql = "select id, name from SampleQueryTab order by id"
+    sql = "select id, name from mytable order by id"
     odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
     # Create a PyArrow table
-    pyarrow_table = pyarrow.Table.from_arrays(
-        arrays=odf.column_arrays(), names=odf.column_names()
-    )
+    pyarrow_table = pyarrow.table(odf)
 
     print("\nNumber of rows and columns:")
     (r, c) = pyarrow_table.shape
     print(f"{r} rows, {c} columns")
 
-This makes use of :meth:`OracleDataFrame.column_arrays()` which returns a list
-of :ref:`OracleArrowArray Objects <oraclearrowarrayobj>`.
-
-Internally `pyarrow.Table.from_arrays() <https://arrow.apache.org/docs/python/
-generated/pyarrow.Table.html#pyarrow.Table.from_arrays>`__ leverages the Apache
-Arrow PyCapsule interface that :ref:`OracleDataFrame <oracledataframeobj>`
-exposes.
+Internally `pyarrow.table()
+<https://arrow.apache.org/docs/python/generated/
+pyarrow.table.html#pyarrow.table>`__
+leverages the Apache Arrow PyCapsule interface that python-oracledb
+:ref:`DataFrame <oracledataframeobj>` objects expose.
 
 See `samples/dataframe_pyarrow.py <https://github.com/oracle/python-oracledb/
 blob/main/samples/dataframe_pyarrow.py>`__ for a runnable example.
+
+.. _pandasdf:
 
 Creating Pandas DataFrames
 ++++++++++++++++++++++++++
@@ -322,20 +317,18 @@ org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame>`__ is:
     import pandas
     import pyarrow
 
-    # Get an OracleDataFrame
+    # Get a python-oracledb DataFrame
     # Adjust arraysize to tune the query fetch performance
     sql = "select * from mytable where id = :1"
     myid = 12345  # the bind variable value
     odf = connection.fetch_df_all(statement=sql, parameters=[myid], arraysize=1000)
 
     # Get a Pandas DataFrame from the data.
-    df = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    ).to_pandas()
+    pdf = pyarrow.table(odf).to_pandas()
 
     # Perform various Pandas operations on the DataFrame
-    print(df.T)        # transform
-    print(df.tail(3))  # last three rows
+    print(pdf.T)        # transform
+    print(pdf.tail(3))  # last three rows
 
 The `to_pandas() <https://arrow.apache.org/docs/python/generated/pyarrow.Table.
 html#pyarrow.Table.to_pandas>`__ method supports arguments like
@@ -356,21 +349,18 @@ An example that creates and uses a `Polars DataFrame
     import polars
     import pyarrow
 
-    # Get an OracleDataFrame
+    # Get a python-oracledb DataFrame
     # Adjust arraysize to tune the query fetch performance
-    sql = "select id from SampleQueryTab order by id"
+    sql = "select id from mytable order by id"
     odf = connection.fetch_df_all(statement=sql, arraysize=100)
 
     # Convert to a Polars DataFrame
-    pyarrow_table = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    )
-    df = polars.from_arrow(pyarrow_table)
+    pdf = polars.from_arrow(odf)
 
     # Perform various Polars operations on the DataFrame
-    r, c = df.shape
+    r, c = pdf.shape
     print(f"{r} rows, {c} columns")
-    print(p.sum())
+    print(pdf.sum())
 
 See `samples/dataframe_polars.py <https://github.com/oracle/python-oracledb/
 blob/main/samples/dataframe_polars.py>`__ for a runnable example.
@@ -381,8 +371,9 @@ Writing Apache Parquet Files
 To write output in `Apache Parquet <https://parquet.apache.org/>`__ file
 format, you can use data frames as an efficient intermediary. Use the
 :meth:`Connection.fetch_df_batches()` iterator and convert to a `PyArrow Table
-<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__ that can
-be written by the PyArrow library.
+<https://arrow.apache.org/docs/python/generated/
+pyarrow.table.html#pyarrow.table>`__ that can be written by the PyArrow
+library.
 
 .. code-block:: python
 
@@ -399,9 +390,7 @@ be written by the PyArrow library.
     for odf in connection.fetch_df_batches(statement=sql, size=BATCH_SIZE):
 
         # Get a PyArrow table from the query results
-        pyarrow_table = pyarrow.Table.from_arrays(
-            arrays=odf.column_arrays(), names=odf.column_names()
-        )
+        pyarrow_table = pyarrow.table(odf)
 
         if not pqwriter:
             pqwriter = pq.ParquetWriter(FILE_NAME, pyarrow_table.schema)
@@ -430,9 +419,9 @@ For example, to convert to `NumPy <https://numpy.org/>`__ ``ndarray`` format:
     import numpy
     import pyarrow
 
-    SQL = "select id from SampleQueryTab order by id"
+    SQL = "select id from mytable order by id"
 
-    # Get an OracleDataFrame
+    # Get a python-oracledb DataFrame
     # Adjust arraysize to tune the query fetch performance
     odf = connection.fetch_df_all(statement=SQL, arraysize=100)
 
@@ -459,9 +448,9 @@ An example of working with data as a `Torch tensor
     import pyarrow
     import torch
 
-    SQL = "select id from SampleQueryTab order by id"
+    SQL = "select id from mytable order by id"
 
-    # Get an OracleDataFrame
+    # Get a python-oracledb DataFrame
     # Adjust arraysize to tune the query fetch performance
     odf = connection.fetch_df_all(statement=SQL, arraysize=100)
 
@@ -479,8 +468,8 @@ blob/main/samples/dataframe_torch.py>`__ for a runnable example.
 
 .. _dfvector:
 
-Using VECTOR data with Data Frames
-----------------------------------
+Fetching VECTOR columns to Data Frames
+--------------------------------------
 
 Columns of the `VECTOR <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-746EAA47-9ADA-4A77-82BB-64E8EF5309BE>`__ data type can be fetched with
@@ -508,17 +497,25 @@ then the code:
 .. code-block:: python
 
     odf = connection.fetch_df_all("select v64 from myvec")
-    pyarrow_table = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    )
+    pyarrow_table = pyarrow.table(odf)
 
 will result in a PyArrow table containing lists of doubles. The table can be
-converted to a data frame of your chosen library using functionality described
-earlier in this chapter.  For example, to convert to Pandas:
+converted to a data frame of your chosen library.
+
+For example, to convert the PyArrow table to Pandas:
 
 .. code-block:: python
 
     pdf = pyarrow_table.to_pandas()
+
+Or you can convert the python-oracledb :ref:`DataFrame <oracledataframeobj>`
+directly if the library supports it. For example, to fetch to Pandas the syntax
+is the same as shown in :ref:`Creating Pandas DataFrames <pandasdf>`:
+
+.. code-block:: python
+
+    odf = connection.fetch_df_all("select v64 from myvec")
+    pdf = pyarrow.table(odf).to_pandas()
     print(pdf)
 
 The output will be::
@@ -550,9 +547,7 @@ then the code to fetch as data frames:
     import pyarrow
 
     odf = connection.fetch_df_all("select v64 from myvec")
-    pdf = pyarrow.Table.from_arrays(
-        odf.column_arrays(), names=odf.column_names()
-    ).to_pandas()
+    pdf = pyarrow.table(odf).to_pandas()
 
     print(pdf)
 
@@ -604,9 +599,7 @@ final sparse dataframe:
         return pandas.arrays.SparseArray.from_spmatrix(sparse_matrix)
 
     odf = connection.fetch_df_all("select v64 from myvec")
-    pdf = pyarrow.Table.from_arrays(
-        odf.column_arrays(), odf.column_names()
-    ).to_pandas()
+    pdf = pyarrow.table(odf).to_pandas()
 
     pdf["SPARSE_ARRAY_V64"] = pdf["V64"].apply(convert_to_sparse_array)
 
@@ -623,3 +616,75 @@ The code will print::
     IntIndex
     Indices: ar...
     Name: SPARSE_ARRAY_V64, dtype: object
+
+.. _dfinsert:
+
+Inserting Data Frames
+=====================
+
+Python-oracledb :ref:`DataFrame <oracledataframeobj>` instances, or third-party
+DataFrame instances that support the Apache Arrow PyCapsule Interface, can be
+inserted into Oracle Database by passing them directly to
+:meth:`Cursor.executemany()` or :meth:`AsyncCursor.executemany()`.
+
+For example, with the table::
+
+    create table t (col1 number, col2 number);
+
+The following code will insert a Pandas DataFrame:
+
+.. code-block:: python
+
+    import pandas
+
+    d = {'A': [1.2, 2.4, 8.9], 'B': [3.333, 4.9, 0.0]}
+    pdf = pandas.DataFrame(data=d)
+
+    cursor.executemany("insert into t (col1, col2) values (:1, :2)", pdf)
+
+Inserting to a dense VECTOR column::
+
+    create table SampleVectorTab (v64 vector(3, float64));
+
+Can be done like:
+
+.. code-block:: python
+
+    import pandas
+
+    d = {"v": [[3.3, 1.32, 5.0], [2.2, 2.32, 2.0]]}
+    pdf = pandas.DataFrame(data=d)
+
+    cursor.executemany("insert into SampleVectorTab (v64) values (:1)", pdf)
+
+See `dataframe_insert.py <https://github.com/oracle/python-oracledb/tree/main/
+samples/dataframe_insert.py>`__ for a runnable example.
+
+For general information about fast data ingestion, and discussion of
+:meth:`Cursor.executemany()` and :meth:`AsyncCursor.executemany()` options, see
+:ref:`batchstmnt`.
+
+**Explicit Conversion to DataFrame or ArrowArray**
+
+Data frames that support the Apache Arrow PyCapsule Interface can be explicitly
+converted to :ref:`DataFrame <oracledataframeobj>` and :ref:`ArrowArray
+<oraclearrowarrayobj>` objects by calling :func:`oracledb.from_arrow()`.  The
+resulting object depends on what interface is supported by the source object.
+
+For example:
+
+.. code-block:: python
+
+    import pandas
+
+    d = {'A': [1.2, 2.4, 8.9], 'B': [3.333, 4.9, 0.0]}
+    pdf = pandas.DataFrame(data=d)
+    print(type(pdf))
+
+    odf = oracledb.from_arrow(pdf)
+    print(type(odf))
+
+will print::
+
+    <class 'pandas.core.frame.DataFrame'>
+    <class 'oracledb.dataframe.DataFrame'>

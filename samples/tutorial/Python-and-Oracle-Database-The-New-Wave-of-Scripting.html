@@ -135,7 +135,8 @@
     </li>
     <li><a href="#dataframes">16. Dataframes</a>
       <ul>
-        <li>16.1 Working with Dataframes</li>
+        <li>16.1 Fetching Dataframes</li>
+        <li>16.2 Inserting Dataframes</li>
       </ul>
     </li>
     <li><a href="#asyncio">17. Concurrent Programming with asyncio</a>
@@ -285,7 +286,7 @@ Python, or it can be remote.</p> <h2><a name="setup">Setup</a></h2>
         directory. This file is included in other Python files for creating and
         dropping the tutorial user.</p>
 
-        <p>Edit <code>db_config_sys.py</code> file and change the default
+        <p>Edit <code>db_config_sys.py</code> and change the default
         values to match the system connection information for your environment.
         Alternatively, you can set the given environment variables in your
         terminal window. For example, the default username is "<em>SYSTEM</em>"
@@ -384,7 +385,7 @@ Done.</pre>
        in other Python and SQL files for setting up the database
        connection.</p>
 
-       <p>Edit <code>db_config.py</code> file and change the default values to
+       <p>Edit <code>db_config.py</code> and change the default values to
        match the connection information for your environment.  Alternatively,
        you can set the given environment variables in your terminal window. For
        example, the default username is "<em>pythondemo</em>" unless the
@@ -624,7 +625,7 @@ con = oracledb.connect(user=db_config.user, password=db_config.pw, dsn=db_config
 
 print(oracledb.__version__) # two underscores before and after the version</pre>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python versions.py</strong></pre>
 
@@ -720,7 +721,7 @@ if con.is_healthy():
 else:
     print("Unusable connection. Please check the database and network settings.")</pre>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre>python connect_health.py</pre>
 
@@ -1028,7 +1029,7 @@ print("All done!")
     <p>The script logic does not need to be changed to benefit from DRCP
     connection pooling.</p>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python connect_pool2.py</strong></pre>
 
@@ -1498,7 +1499,7 @@ res = cur2.fetchall()
 print(res)
 </pre>
 
-      <p>Run the script:</p>
+      <p>Run the script in a terminal window:</p>
 
       <pre><strong>python bind_insert.py</strong></pre>
 
@@ -1719,7 +1720,7 @@ for value, in cur.execute("select 0.1 from dual"):
     print("Value:", value, "* 3 =", value * 3)
 </pre>
 
-      <p>Run the script:</p>
+      <p>Run the script in a terminal window:</p>
 
       <pre><strong>python type_converter.py</strong></pre>
 
@@ -1873,7 +1874,7 @@ building = Building(1, &quot;The First Building&quot;, 5)</pre>
     handler <code>input_type_handler</code> whenever an instance of
     <code>Building</code> is inserted with the cursor.</p>
 
-    <p>To confirm the behavior, run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python type_input.py</strong></pre>
 
@@ -1930,7 +1931,7 @@ print("CLOB data:", clobdata)
       LOB Object.  Methods on LOB include <code>size()</code> and
       <code>read()</code>.</p>
 
-      <p>To see the output, run the script:</p>
+      <p>To see the output, run the script in a terminal window:</p>
 
       <pre><strong>python clob.py</strong></pre>
 
@@ -2034,7 +2035,7 @@ for (j,) in cur.execute(sql):
     print(j)
 </pre>
 
-      <p>Run the script:</p>
+      <p>Run the script in a terminal window:</p>
 
       <pre><strong>python json_insert.py</strong></pre>
 
@@ -2054,7 +2055,7 @@ for (j,) in cur.execute(sql):
     print(j)
 </pre>
 
-      <p>Run the script:</p>
+      <p>Run the script in a terminal window:</p>
 
       <pre><strong>python json_insert.py</strong></pre>
 
@@ -2127,7 +2128,7 @@ for (v,) in cur:
     print(type(v))
 </pre>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python vector.py</strong></pre>
 
@@ -2239,7 +2240,7 @@ for (v,) in cur.execute("select v64 from vtab"):
     print(type(v))
 </pre>
 
-<p>Run the script</p>
+<p>Run the script in a terminal window:</p>
 
 <pre><strong>python vector_numpy.py</strong></pre>
 
@@ -2283,7 +2284,7 @@ for c1, c2 in rows:
   first uses array indexes like <code>row[0]</code>. The second uses loop
   target variables that take each row tuple's values.</p>
 
-  <p>Run the script:</p>
+  <p>Run the script in a terminal window:</p>
 
   <pre><strong>python rowfactory.py</strong></pre>
 
@@ -2365,7 +2366,7 @@ print("Number of rows:", count)
   custom subclass. All the python-oracledb methods such as
   <code>cursor()</code> are available, as shown by the query.</p>
 
-  <p>Run the script:</p>
+  <p>Run the script in a terminal window:</p>
 
 <pre><strong>python subclass.py</strong></pre>
 
@@ -2500,7 +2501,7 @@ Python representations of those objects. The python object attributes are
 then set.  Oracle VARRAY types such as SDO_ELEM_INFO_ARRAY are set with
 <code>extend()</code>.</p>
 
-<p>Run the script:</p>
+<p>Run the script in a terminal window:</p>
 
 <pre><strong>python bind_sdo.py</strong></pre>
 
@@ -2687,7 +2688,7 @@ object from the Python object values. The <code>SDOInConverter</code> method is
 called by the input type handler <code>SDOInputTypeHandler</code> whenever an
 instance of <code>mySDO</code> is inserted with the cursor.</p>
 
-<p>To confirm the behavior, run the script:</p>
+<p>Run the script in a terminal window:</p>
 
 <pre><strong>python type_input_named_obj.py</strong></pre>
 
@@ -2808,7 +2809,7 @@ the named object (<code>MDSYS.SDOGEOMETRY</code> in this case) is selected with
 the cursor and needs to be converted to a user-defined Python object
 (<code>mySDO</code> object in this case).</p>
 
-<p>To confirm the behavior, run the script:</p>
+<p>Run the script in a terminal window:</p>
 
 <pre><strong>python type_output_named_obj.py</strong></pre>
 
@@ -2916,7 +2917,7 @@ print("\nDone.")
 <p>This file sets up Advanced Queuing using Oracle's DBMS_AQADM package.  The
 queue is used for passing Oracle UDT_BOOK objects.</p>
 
-<p>Run the script:</p>
+<p>Run the script in a terminal window:</p>
 
 <pre><strong>python aq.py</strong></pre>
 
@@ -3008,21 +3009,25 @@ print(cur.fetchone())</pre>
 
 <h2><a name="dataframes">16. Dataframes</a></h2>
 
-<p>Python-oracledb can query data directly into a dataframe format that exposes
-an Apache Arrow PyCapsule interface.  This is an efficient way to use Python
-libraries such as Apache PyArrow, Pandas, Polars, NumPy, PyTorch, or to write
-files in Apache Parquet format. <em>Documentation link for further reading: <a
+<p>Python-oracledb has a DataFrame class that exposes an Apache Arrow PyCapsule
+interface.  Data can be fetched directly from Oracle Database into DataFrame
+instances for efficient use with Python libraries such as Apache PyArrow,
+Pandas, Polars, NumPy, PyTorch, or to write files in Apache Parquet
+format. Data that is already in a third-party library DataFrame instance that
+exposes the PyCapsule interface can be inserted into Oracle Database by passing
+the instance directly to <code>executemany()</code>.  <em>Documentation link
+for further reading: <a
 href="https://python-oracledb.readthedocs.io/en/latest/user_guide/sql_execution.html#fetching-data-frames"
 >Fetching Data Frames</a></em>.</p>
 
-<ul>
-  <li><h4>16.1 Working with Dataframes</h4>
-
-    <p>This section shows how to efficiently fetch data for use with Pandas. It
-    uses the <em>pyarrow</em> and <em>pandas</em> packages, which need to be
-    installed:</p>
+<p>This section shows how to efficiently fetch data for use with Pandas, modify
+it, and then insert it back into Oracle Database. The <em>pyarrow</em> and
+<em>pandas</em> packages need to be installed:</p>
 
       <pre>python -m pip install pyarrow pandas --upgrade</pre>
+
+<ul>
+  <li><h4>16.1 Fetching Dataframes</h4>
 
     <p>Review the code contained in <code>query_pandas.py</code>:</p>
 
@@ -3038,21 +3043,23 @@ con = oracledb.connect(
 
 odf = con.fetch_df_all(
     statement="select sal from emp order by empno",
-    arraysize=100)
+    arraysize=100
+)
 </pre>
 
-    <p>This uses <code>fetch_df_all()</code> to directly fetch data into an
-    OracleDataFrame that internally exposes a PyCapsule interface. For large
-    result sets you can tune the arraysize parameter, or use an iterator from
-    the <code>fetch_df_batches()</code> method.</p>
+    <p>This uses <code>fetch_df_all()</code> to directly fetch rows into a
+    dataframe that internally exposes a PyCapsule interface. For large result
+    sets you can tune the arraysize parameter, or use an iterator from the
+    <code>fetch_df_batches()</code> method.</p>
 
     <p>To use the new dataframe in Pandas, edit <code>query_pandas.py</code>
     and add this code at the bottom:</p>
 
     <pre>
-df = pyarrow.Table.from_arrays(
-    odf.column_arrays(), names=odf.column_names()
-).to_pandas()
+# Get a Pandas DataFrame from the data
+df = pyarrow.table(odf).to_pandas()
+
+# Perform various operations on the Pandas DataFrame
 
 print("\nSum:")
 print(df.sum())
@@ -3061,8 +3068,9 @@ print("\nMedian:")
 print(df.median())
 </pre>
 
-    <p>This uses PyArrow functionality to convert the OracleDataFrame to a
-    Pandas dataframe.</p>
+    <p>This uses PyArrow functionality to convert the python-oracledb DataFrame
+    to a Pandas DataFrame. Pandas sum and median operations are then
+    performed.</p>
 
     <p>Run the script in a terminal window:</p>
 
@@ -3071,6 +3079,43 @@ print(df.median())
     <p>The output is the expected calculations on the employee salary data.</p>
 
   </li>
+
+  <li><h4>16.2 Inserting Dataframes</h4>
+
+    <p>Python-oracledb DataFrame instances, and instances of DataFrames from
+    third-party libraries that support the Apache Arrow PyCapsule Interface,
+    can be inserted into Oracle Database by passing them directly to
+    <code>executemany()</code>.</p>
+
+
+    <p>Edit <code>query_pandas.py</code> and add this code at the bottom:</p>
+
+    <pre>
+# Double everyone's salary and insert the Pandas DataFrame into Oracle Database
+
+df = df * 2
+
+cur = con.cursor()
+cur.executemany("insert into pdtab (sal) values (:1)", df)
+
+# Check the inserted data
+
+print("\nNew Salaries")
+cur.execute("select * from pdtab")
+res = cur.fetchall()
+print(res)
+</pre>
+
+    <p>Run the script in a terminal window:</p>
+
+    <pre><strong>python query_pandas.py</strong></pre>
+
+    <p>This increases everyone's salary in the Pandas DataFrame and then
+    inserts the DataFrame into Oracle Database. The new salaries are queried
+    back to confirm the insertion was successful.</p>
+
+  </li>
+
 </ul>
 
 <h2><a name="asyncio">17. Concurrent Programming with asyncio</a></h2>
@@ -3153,7 +3198,7 @@ asyncio.run(main())
     <p>When all the awaitables executed by <code>gather()</code> have
     completed, the pool is closed.</p>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python async_gather.py</strong></pre>
 
@@ -3245,7 +3290,7 @@ asyncio.run(main())
     <p>When all the awaitables executed by <code>gather()</code> have
     completed, the results are displayed.</p>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
     <pre><strong>python pipeline.py</strong></pre>
 
@@ -3356,7 +3401,7 @@ oracledb.init_oracle_client(lib_dir=instant_client_dir)</pre>
   These are included in other Python and SQL files for setting up the database
   connection.</p>
 
-  <p>Edit <code>db_config_thick.py</code> file and change the default values to
+  <p>Edit <code>db_config_thick.py</code> and change the default values to
   match the connection information for your environment.  Alternatively, you
   can set the given environment variables in your terminal window. For example,
   the default username is "<em>pythondemo</em>" unless the environment variable
@@ -3476,7 +3521,7 @@ print(content)</pre>
     <p><code>content</code> is a dictionary.  You can also get a JSON string by
     calling <code>doc.getContentAsString()</code>.</p>
 
-    <p>Run the script:</p>
+    <p>Run the script in a terminal window:</p>
 
 <pre><strong>python soda.py</strong></pre>
 
