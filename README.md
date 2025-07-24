@@ -53,7 +53,7 @@ with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
 
 ## Dependencies and Interoperability
 
-- Python versions 3.9 through 3.13.
+- Python versions 3.9 through 3.14.
 
   Pre-built packages are available on [PyPI][pypi] and other repositories.
 

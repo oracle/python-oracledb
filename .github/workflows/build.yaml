@@ -68,6 +68,7 @@ jobs:
           echo /opt/python/cp311-cp311/bin/python3.11 -m build >> build.sh
           echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
           echo /opt/python/cp313-cp313/bin/python3.13 -m build >> build.sh
+          echo /opt/python/cp314-cp314/bin/python3.14 -m build >> build.sh
           echo cd dist >> build.sh
           echo auditwheel repair *.whl >> build.sh
           echo rm *.whl >> build.sh
@@ -96,7 +97,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         arch: ['x86', '']
         exclude:
           - os: macos-latest
@@ -133,7 +134,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13.5']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13.5', '3.14']
         arch: ['x86', '']
 
     steps:

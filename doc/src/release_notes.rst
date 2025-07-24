@@ -40,6 +40,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Pre-built binaries are now being created for Python 3.14. Note this Python
+    version is currently in release candidate phase.
 #)  Added support for Oracle Database 23ai :ref:`Sessionless Transactions
     <sessionlesstxns>`.
 #)  Changes to :ref:`data frame <dataframeformat>` support:
@@ -66,6 +68,7 @@ Common Changes
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version.
+
 
 oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (June 2025)
 --------------------------------------------------------------------------------------------------
