@@ -157,13 +157,12 @@ information.
 Transaction Guard
 -----------------
 
-Python-oracledb supports `Transaction Guard
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-A675AF7B-6FF0-460D-A6E6-C15E7C328C8F>`__ which enables Python
-application to verify the success or failure of the last transaction in the
-event of an unplanned outage. This feature requires Oracle Database 12.1 or
-higher. When using python-oracledb Thick mode, Oracle Client 12.1 or higher is
-additionally required.
+Python-oracledb supports `Transaction Guard <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-F7E968E4-EE8F-4563-91F3-CD44B5D2E747>`__ which
+enables Python application to verify the success or failure of the last
+transaction in the event of an unplanned outage. This feature requires Oracle
+Database 12.1 or higher. When using python-oracledb Thick mode, Oracle Client
+12.1 or higher is additionally required.
 
 Using Transaction Guard helps to:
 

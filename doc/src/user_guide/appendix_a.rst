@@ -51,7 +51,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
-    * - Connection Pool Runtime Load Balancing (RLB) (see `Runtime Connection Load Balancing <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-A8B79A40-C4AA-4FBA-8042-C70C8FD2D2EF>`__)
+    * - Connection Pool Runtime Load Balancing (RLB) (see `Runtime Connection Load Balancing <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-25F85237-702B-4609-ACE2-1454EBC8284B>`__)
       - No
       - Yes
       - Yes
