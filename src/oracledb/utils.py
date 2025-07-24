@@ -28,7 +28,7 @@
 # Contains utility classes and methods.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 
 from .arrow_array import ArrowArray
 from .dataframe import DataFrame
@@ -72,7 +72,7 @@ def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
 
 
 def normalize_sessionless_transaction_id(
-    value: bytes | str | None = None,
+    value: Optional[Union[bytes, str]] = None,
 ) -> bytes:
     """
     Normalize and validate the transaction_id.
