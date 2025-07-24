@@ -388,7 +388,13 @@ create table &main_user..TestDataframe (
     DateOfBirth                         date,
     Salary                              number(9, 2),
     CreditScore                         number(3, 0),
-    LastUpdated                         timestamp
+    LastUpdated                         timestamp,
+    DecimalData                         number(15, 4),
+    FloatData                           binary_float,
+    DoubleData                          binary_double,
+    RawData                             raw(100),
+    LongData                            clob,
+    LongRawData                         blob
 )
 /
 
