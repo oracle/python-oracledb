@@ -37,10 +37,9 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     Converts the value stored in Arrow format to an OracleData structure.
     """
     cdef:
+        int64_t int64_value, days, seconds, useconds
         SparseVectorImpl sparse_impl
-        int seconds, useconds
         ArrowType arrow_type
-        int64_t int64_value
         OracleRawBytes* rb
         tuple sparse_info
         bytes temp_bytes
@@ -75,11 +74,14 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         if not data.is_null:
             seconds = int64_value // arrow_array.time_factor
             useconds = int64_value % arrow_array.time_factor
+            days = seconds // (24 * 60 * 60)
+            seconds = seconds % (24 * 60 * 60)
             if arrow_array.time_factor == 1_000:
                 useconds *= 1_000
             elif arrow_array.time_factor == 1_000_000_000:
                 useconds //= 1_000
-            return EPOCH_DATE + cydatetime.timedelta_new(0, seconds, useconds)
+            return EPOCH_DATE + \
+                    cydatetime.timedelta_new(days, seconds, useconds)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
         temp_bytes = arrow_array.get_decimal(array_index, &data.is_null)
         if not data.is_null:
