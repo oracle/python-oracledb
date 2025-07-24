@@ -159,50 +159,48 @@ cdef int convert_number_to_arrow_decimal(ArrowArrayImpl arrow_array,
     Converts a NUMBER value stored in the buffer to Arrow DECIMAL128.
     """
     cdef:
-        char_type c
-        bint has_sign = 0
-        char_type digits[39] # 38 digits + sign
         OracleNumber *value = &buffer.as_number
-        uint8_t num_chars = 0, decimal_point_index = 0, allowed_max_chars = 0
-        int64_t actual_scale = 0
+        uint8_t num_digits, allowed_max_chars
+        char_type digits[40]
+        uint8_t actual_scale
 
-    if value.chars[0] == 45: # minus sign
-        has_sign = True
-
-    if value.is_integer:
-        if has_sign:
-            allowed_max_chars = 39
-        else:
-            allowed_max_chars = 38
-    else: # decimal point
-        if has_sign:
-            allowed_max_chars = 40
-        else:
-            allowed_max_chars = 39
-
-    # Arrow Decimal128 can only represent values with 38 decimal digits
+    # determine if the number can be represented as an Arrow decimal128 value
+    # only 38 decimal digits are permitted (excluding the sign and decimal
+    # point)
+    allowed_max_chars = 38
+    if value.chars[0] == b'-':
+        allowed_max_chars += 1
+    if not value.is_integer:
+        allowed_max_chars += 1
     if value.is_max_negative_value or value.num_chars > allowed_max_chars:
-        raise ValueError("Value cannot be represented as "
-                         "Arrow Decimal128")
+        raise ValueError("Value cannot be represented as Arrow Decimal128")
+
+    # integers can be handled directly
+    if value.is_integer and arrow_array.scale == 0:
+        return arrow_array.append_decimal(value.chars, value.num_chars)
+
+    # Arrow expects a string of digits without the decimal point; if the number
+    # does not contain at least the number of digits after the decimal point
+    # required by the scale of the Arrow array, zeros are appended
     if value.is_integer:
-        arrow_array.append_decimal(value.chars, value.num_chars)
+        actual_scale = 0
+        num_digits = value.num_chars
     else:
-        for i in range(value.num_chars):
-            c = value.chars[i]
-            # count all characters except the decimal point
-            if c != 46:
-                digits[num_chars] = c
-                num_chars += 1
-            else:
-                decimal_point_index = i
-
-        # Append any trailing zeros.
-        actual_scale = num_chars - decimal_point_index
-        for i in range(abs(arrow_array.scale) - actual_scale):
-            digits[num_chars] = b'0'
-            num_chars += 1
-        arrow_array.append_decimal(digits, num_chars)
-
+        actual_scale = 0
+        while True:
+            num_digits = value.num_chars - actual_scale - 1
+            if value.chars[num_digits] == b'.':
+                break
+            actual_scale += 1
+    memcpy(digits, value.chars, num_digits)
+    if actual_scale > 0:
+        memcpy(&digits[num_digits], &value.chars[num_digits + 1], actual_scale)
+        num_digits += actual_scale
+    while actual_scale < arrow_array.scale:
+        digits[num_digits] = b'0'
+        num_digits += 1
+        actual_scale += 1
+    arrow_array.append_decimal(digits, num_digits)
 
 
 cdef int convert_number_to_arrow_double(ArrowArrayImpl arrow_array,
