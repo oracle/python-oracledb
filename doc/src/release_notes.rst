@@ -68,6 +68,9 @@ Common Changes
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version.
+#)  Internal change: migrated build configuration completely to pyproject.toml,
+    which allows for optional dependencies for the test suite on the numpy,
+    pandas and pyarrow modules.
 
 
 oracledb `3.2.0 <https://github.com/oracle/python-oracledb/compare/v3.1.1...v3.2.0>`__ (June 2025)

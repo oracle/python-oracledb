@@ -28,14 +28,8 @@ Module for testing DataFrame ingestion with asyncio
 
 import datetime
 import decimal
-import unittest
 
-try:
-    import pyarrow
-
-    HAS_INTEROP = True
-except ImportError:
-    HAS_INTEROP = False
+import pyarrow
 
 import test_env
 
@@ -59,7 +53,6 @@ SPARSE_VECTOR_FIELDS_INT8 = [
 
 
 @test_env.skip_unless_thin_mode()
-@unittest.skipUnless(HAS_INTEROP, "missing pyarrow module")
 class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_9000(self):

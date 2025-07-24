@@ -31,15 +31,9 @@ import datetime
 import decimal
 
 import oracledb
-
-try:
-    import numpy
-    import pandas
-    import pyarrow
-
-    HAS_INTEROP = True
-except ImportError:
-    HAS_INTEROP = False
+import numpy
+import pandas
+import pyarrow
 
 import test_env
 
@@ -254,13 +248,6 @@ QUERY_SQL = """
 @test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
 
-    def __check_interop(self):
-        """
-        Checks to see if the pyarrow and pandas modules are available.
-        """
-        if not HAS_INTEROP:
-            self.skipTest("missing pandas or pyarrow modules")
-
     def __convert_date(self, value):
         """
         Converts a date to the format required by Arrow.
@@ -380,7 +367,6 @@ class TestCase(test_env.BaseAsyncTestCase):
         Tests interoperability with external data frames using the data set
         provided.
         """
-        self.__check_interop()
         await self.__populate_table(data)
         ora_df = await self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, data)
@@ -390,7 +376,6 @@ class TestCase(test_env.BaseAsyncTestCase):
         Tests interoperability with external data frames using the data set
         provided.
         """
-        self.__check_interop()
         await self.__populate_table(data)
         batches = [
             df
@@ -470,7 +455,6 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_8110(self):
         "8110 - verify passing Arrow arrays twice works"
-        self.__check_interop()
         await self.__populate_table(DATASET_1)
         ora_df = await self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, DATASET_1)
@@ -522,7 +506,6 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_8117(self):
         "8117 - fetch_decimals without precision and scale specified"
         data = [(1.0,)]
-        self.__check_interop()
         with test_env.DefaultsContextManager("fetch_decimals", True):
             ora_df = await self.conn.fetch_df_all("select 1.0 from dual")
             fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -532,7 +515,6 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_8118(self):
         "8118 - fetch clob"
         data = [("test_8023",)]
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             "select to_clob('test_8023') from dual"
         )
@@ -543,7 +525,6 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_8119(self):
         "8119 - fetch blob"
         data = [(b"test_8024",)]
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             "select to_blob(utl_raw.cast_to_raw('test_8024')) from dual"
         )
@@ -555,7 +536,6 @@ class TestCase(test_env.BaseAsyncTestCase):
     async def test_8120(self):
         "8120 - fetch boolean"
         data = [(True,), (False,), (False,), (True,), (True,)]
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             """
             select true
@@ -580,7 +560,6 @@ class TestCase(test_env.BaseAsyncTestCase):
             (array.array("f", [34.6, 77.8]).tolist(),),
             (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
         ]
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
@@ -612,7 +591,6 @@ class TestCase(test_env.BaseAsyncTestCase):
                 },
             ),
         ]
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR(
@@ -637,7 +615,6 @@ class TestCase(test_env.BaseAsyncTestCase):
 
     async def test_8123(self):
         "8123 - fetch data with multiple rows containing null values"
-        self.__check_interop()
         ora_df = await self.conn.fetch_df_all(
             """
             select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual

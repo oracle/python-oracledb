@@ -28,14 +28,8 @@ Module for testing DataFrame ingestion
 
 import datetime
 import decimal
-import unittest
 
-try:
-    import pyarrow
-
-    HAS_INTEROP = True
-except ImportError:
-    HAS_INTEROP = False
+import pyarrow
 
 import test_env
 
@@ -58,7 +52,6 @@ SPARSE_VECTOR_FIELDS_INT8 = [
 ]
 
 
-@unittest.skipUnless(HAS_INTEROP, "missing pyarrow module")
 class TestCase(test_env.BaseTestCase):
 
     def test_8900(self):

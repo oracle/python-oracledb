@@ -1,13 +1,82 @@
 [build-system]
-requires = ["setuptools >= 77.0.0", "wheel", "cython"]
+requires = [
+    "setuptools >= 77.0.0",
+    "wheel",
+    "cython == 3.1",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "oracledb"
+description = "Python interface to Oracle Database"
+keywords = ["Oracle", "database"]
+authors = [{name = "Anthony Tuininga", email = "anthony.tuininga@oracle.com"}]
+license = "UPL-1.0 OR Apache-2.0"
+license-files = [
+    "LICENSE.txt",
+    "THIRD_PARTY_LICENSES.txt",
+    "NOTICE.txt",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Cython",
+    "Topic :: Database",
+]
+requires-python = ">=3.9"
+dependencies = ["cryptography>=3.2.1"]
+dynamic = ["version"]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.urls]
+Homepage = "https://oracle.github.io/python-oracledb"
+Installation = "https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html"
+Samples = "https://github.com/oracle/python-oracledb/tree/main/samples"
+Documentation = "http://python-oracledb.readthedocs.io"
+"Release Notes" = "https://python-oracledb.readthedocs.io/en/latest/release_notes.html"
+Issues = "https://github.com/oracle/python-oracledb/issues"
+Source = "https://github.com/oracle/python-oracledb"
+
+[tool.setuptools]
+zip-safe = false
+packages = [
+    "oracledb",
+    "oracledb.plugins",
+]
+package-dir = {"" = "src"}
+include-package-data = false
+
+[tool.setuptools.package-data]
+"*" = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = {attr = "oracledb.version.__version__"}
 
 [tool.black]
 line-length = 79
-target-version = ["py39", "py310", "py311", "py312", "py313", "py314"]
-required-version = 24
+required-version = 25
 
 [tool.ruff]
 line-length = 79
 target-version = "py39"
 exclude = ["templates"]
+
+[project.optional-dependencies]
+test = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+]

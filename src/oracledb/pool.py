@@ -572,7 +572,7 @@ class ConnectionPool(BaseConnectionPool):
 
 
 def _pool_factory(
-    f: Callable[..., ConnectionPool]
+    f: Callable[..., ConnectionPool],
 ) -> Callable[..., ConnectionPool]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
@@ -1107,7 +1107,7 @@ class AsyncConnectionPool(BaseConnectionPool):
 
 
 def _async_pool_factory(
-    f: Callable[..., AsyncConnectionPool]
+    f: Callable[..., AsyncConnectionPool],
 ) -> Callable[..., AsyncConnectionPool]:
     """
     Decorator which checks the validity of the supplied keyword parameters by

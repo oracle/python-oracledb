@@ -31,16 +31,9 @@ import datetime
 import decimal
 
 import oracledb
-
-try:
-    import numpy
-    import pandas
-    import pyarrow
-
-    HAS_INTEROP = True
-except ImportError:
-    HAS_INTEROP = False
-
+import numpy
+import pandas
+import pyarrow
 import test_env
 
 # basic
@@ -253,13 +246,6 @@ QUERY_SQL = """
 
 class TestCase(test_env.BaseTestCase):
 
-    def __check_interop(self):
-        """
-        Checks to see if the pyarrow and pandas modules are available.
-        """
-        if not HAS_INTEROP:
-            self.skipTest("missing numpy, pandas or pyarrow modules")
-
     def __convert_date(self, value):
         """
         Converts a date to the format required by Arrow.
@@ -379,7 +365,6 @@ class TestCase(test_env.BaseTestCase):
         Tests interoperability with external data frames using the data set
         provided.
         """
-        self.__check_interop()
         self.__populate_table(data)
         ora_df = self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, data)
@@ -389,7 +374,6 @@ class TestCase(test_env.BaseTestCase):
         Tests interoperability with external data frames using the data set
         provided.
         """
-        self.__check_interop()
         self.__populate_table(data)
         batches = list(self.conn.fetch_df_batches(QUERY_SQL, size=batch_size))
         self.assertEqual(len(batches), num_batches)
@@ -462,7 +446,6 @@ class TestCase(test_env.BaseTestCase):
 
     def test_8010(self):
         "8010 - verify passing Arrow arrays twice works"
-        self.__check_interop()
         self.__populate_table(DATASET_1)
         ora_df = self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, DATASET_1)
@@ -507,7 +490,6 @@ class TestCase(test_env.BaseTestCase):
 
     def test_8016(self):
         "8016 - verify get_column() returns the correct value"
-        self.__check_interop()
         self.__populate_table(DATASET_1)
         ora_df = self.conn.fetch_df_all(QUERY_SQL)
         array = pyarrow.array(ora_df.get_column(1))
@@ -520,7 +502,6 @@ class TestCase(test_env.BaseTestCase):
     def test_8018(self):
         "8018 - fetch_decimals without precision and scale specified"
         data = [(1.0,)]
-        self.__check_interop()
         with test_env.DefaultsContextManager("fetch_decimals", True):
             ora_df = self.conn.fetch_df_all("select 1.0 from dual")
             fetched_tab = pyarrow.Table.from_arrays(
@@ -533,7 +514,6 @@ class TestCase(test_env.BaseTestCase):
     def test_8019(self):
         "8019 - fetch clob"
         data = [("test_8023",)]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             "select to_clob('test_8023') from dual"
         )
@@ -544,7 +524,6 @@ class TestCase(test_env.BaseTestCase):
     def test_8020(self):
         "8020 - fetch blob"
         data = [(b"test_8024",)]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             "select to_blob(utl_raw.cast_to_raw('test_8024')) from dual"
         )
@@ -555,7 +534,6 @@ class TestCase(test_env.BaseTestCase):
     def test_8021(self):
         "8021 - fetch raw"
         data = [(b"test_8025",)]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             "select utl_raw.cast_to_raw('test_8025') from dual"
         )
@@ -567,7 +545,6 @@ class TestCase(test_env.BaseTestCase):
     def test_8022(self):
         "8022 - fetch boolean"
         data = [(True,), (False,), (False,), (True,), (True,)]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             select true
@@ -587,7 +564,6 @@ class TestCase(test_env.BaseTestCase):
 
     def test_8023(self):
         "8023 - fetch data with multiple rows containing null values"
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
@@ -638,7 +614,6 @@ class TestCase(test_env.BaseTestCase):
             (array.array("f", [34.6, 77.8]).tolist(),),
             (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
@@ -658,7 +633,6 @@ class TestCase(test_env.BaseTestCase):
             ([34.6, 77.8],),
             ([34.6, 77.8, 55.9],),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
@@ -678,7 +652,6 @@ class TestCase(test_env.BaseTestCase):
             ([34, -77],),
             ([34, 77, 55],),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34, -77]', 2, INT8)
@@ -698,7 +671,6 @@ class TestCase(test_env.BaseTestCase):
             ([3, 2, 3],),
             ([3, 2],),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[3, 2, 3]', 24, BINARY)
@@ -719,7 +691,6 @@ class TestCase(test_env.BaseTestCase):
             (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
             (None,),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
@@ -751,7 +722,6 @@ class TestCase(test_env.BaseTestCase):
             ([34.6, 77.8],),
             ([34.6, 77.8],),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
@@ -803,7 +773,6 @@ class TestCase(test_env.BaseTestCase):
                 },
             ),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR(
@@ -845,7 +814,6 @@ class TestCase(test_env.BaseTestCase):
                 },
             ),
         ]
-        self.__check_interop()
         ora_df = self.conn.fetch_df_all(
             """
             SELECT TO_VECTOR(
@@ -883,7 +851,6 @@ class TestCase(test_env.BaseTestCase):
     @test_env.skip_unless_sparse_vectors_supported()
     def test_8033(self):
         "8033 - DPY-4007 -fetch sparse vectors with flexible dimensions"
-        self.__check_interop()
         with self.assertRaisesFullCode("DPY-2065"):
             self.conn.fetch_df_all(
                 """
@@ -914,7 +881,6 @@ class TestCase(test_env.BaseTestCase):
             (56.25,),
             (91.25,),
         ]
-        self.__check_interop()
         self.__populate_table(dataset)
 
         # Use numeric expression involving a column

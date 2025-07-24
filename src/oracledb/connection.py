@@ -1310,7 +1310,7 @@ class Connection(BaseConnection):
 
 
 def _connection_factory(
-    f: Callable[..., Connection]
+    f: Callable[..., Connection],
 ) -> Callable[..., Connection]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
@@ -2238,7 +2238,7 @@ class AsyncConnection(BaseConnection):
 
 
 def _async_connection_factory(
-    f: Callable[..., AsyncConnection]
+    f: Callable[..., AsyncConnection],
 ) -> Callable[..., AsyncConnection]:
     """
     Decorator which checks the validity of the supplied keyword parameters by
