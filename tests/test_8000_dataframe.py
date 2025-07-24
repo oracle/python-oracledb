@@ -235,6 +235,21 @@ DATASET_4 = [
     ),
 ]
 
+QUERY_SQL = """
+    select
+        Id,
+        FirstName,
+        LastName,
+        City,
+        Country,
+        DateOfBirth,
+        Salary,
+        CreditScore,
+        LastUpdated
+    from TestDataFrame
+    order by id
+"""
+
 
 class TestCase(test_env.BaseTestCase):
 
@@ -341,7 +356,7 @@ class TestCase(test_env.BaseTestCase):
         """
         Populate the test table with the given data.
         """
-        self.cursor.execute("truncate table TestDataframe")
+        self.cursor.execute("delete from TestDataframe")
         types = [None] * len(data[0])
         types[8] = oracledb.DB_TYPE_TIMESTAMP
         self.cursor.setinputsizes(*types)
@@ -366,8 +381,7 @@ class TestCase(test_env.BaseTestCase):
         """
         self.__check_interop()
         self.__populate_table(data)
-        statement = "select * from TestDataFrame order by Id"
-        ora_df = self.conn.fetch_df_all(statement)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, data)
 
     def __test_df_batches_interop(self, data, batch_size, num_batches):
@@ -377,8 +391,7 @@ class TestCase(test_env.BaseTestCase):
         """
         self.__check_interop()
         self.__populate_table(data)
-        statement = "select * from TestDataFrame order by Id"
-        batches = list(self.conn.fetch_df_batches(statement, size=batch_size))
+        batches = list(self.conn.fetch_df_batches(QUERY_SQL, size=batch_size))
         self.assertEqual(len(batches), num_batches)
         if num_batches == 1:
             self.__validate_df(batches[0], data)
@@ -402,8 +415,7 @@ class TestCase(test_env.BaseTestCase):
     def test_8000(self):
         "8000 - test basic fetch of data frame"
         self.__populate_table(DATASET_1)
-        statement = "select * from TestDataFrame order by Id"
-        ora_df = self.conn.fetch_df_all(statement)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
         self.assertEqual(ora_df.num_rows(), len(DATASET_1))
         self.assertEqual(ora_df.num_columns(), len(DATASET_1[0]))
 
@@ -452,8 +464,7 @@ class TestCase(test_env.BaseTestCase):
         "8010 - verify passing Arrow arrays twice works"
         self.__check_interop()
         self.__populate_table(DATASET_1)
-        statement = "select * from TestDataFrame order by Id"
-        ora_df = self.conn.fetch_df_all(statement)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
         self.__validate_df(ora_df, DATASET_1)
         self.__validate_df(ora_df, DATASET_1)
 
@@ -474,8 +485,7 @@ class TestCase(test_env.BaseTestCase):
     def test_8013(self):
         "8013 - negative checks on attributes"
         self.__populate_table(DATASET_1)
-        statement = "select * from TestDataFrame order by Id"
-        ora_df = self.conn.fetch_df_all(statement)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
         with self.assertRaises(IndexError):
             ora_df.get_column(121)
         with self.assertRaises(IndexError):
@@ -499,8 +509,7 @@ class TestCase(test_env.BaseTestCase):
         "8016 - verify get_column() returns the correct value"
         self.__check_interop()
         self.__populate_table(DATASET_1)
-        statement = "select * from TestDataFrame order by Id"
-        ora_df = self.conn.fetch_df_all(statement)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
         array = pyarrow.array(ora_df.get_column(1))
         self.assertEqual(array.to_pylist(), ["John", "Big"])
 
