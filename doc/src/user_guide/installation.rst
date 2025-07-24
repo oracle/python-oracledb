@@ -1030,6 +1030,38 @@ Python versions.
 
        python -m pip install oracledb-3.1.0-cp312-cp312-macosx_10_13_universal2.whl
 
+.. _docker:
+
+Using python-oracledb Containers
+================================
+
+Dockerfiles showing installation of Python and python-oracledb on Oracle Linux
+are available from
+`github.com/oracle/docker-images/tree/main/OracleLinuxDevelopers
+<https://github.com/oracle/docker-images/tree/main/OracleLinuxDevelopers>`__.
+
+Containers built from these Dockerfiles can be pulled from the GitHub Container
+Registry:
+
+- `oraclelinux9-python <https://github.com/oracle/docker-images/pkgs/container/
+  oraclelinux9-python>`__
+- `oraclelinux8-python <https://github.com/oracle/docker-images/pkgs/container/
+  oraclelinux8-python>`__
+
+For example, you can pull a container for Python 3.12 on Oracle Linux 9 using::
+
+    docker pull ghcr.io/oracle/oraclelinux9-python:3.12-oracledb
+
+Or use it in a Dockerfile like::
+
+    FROM ghcr.io/oracle/oraclelinux9-python:3.12-oracledb
+
+**Sample Containers**
+
+There are two python-oracledb containers with samples located in
+`/samples/containers
+<https://github.com/oracle/python-oracledb/tree/main/samples/containers>`__.
+
 .. _configprovidermodules:
 
 Installing Centralized Configuration Provider Modules for python-oracledb

@@ -28,8 +28,9 @@ This directory contains samples for python-oracledb.
 
 ### Examples in a Container
 
-The [sample_container](./sample_container) directory has a Dockerfile that will
-build a container with the samples and a running Oracle Database.
+The [containers](./containers) directory has Dockerfiles for building a
+container with the samples and a running Oracle Database, and for creating a
+development environment.
 
 ### Notebooks
 
