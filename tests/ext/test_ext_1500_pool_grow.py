@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,15 +29,11 @@ value is enabled.
 """
 
 import time
-import unittest
 
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_extended_config_bool("run_long_tests"),
-    "extended configuration run_long_tests is disabled",
-)
+@test_env.skip_unless_run_long_tests()
 class TestCase(test_env.BaseTestCase):
     def test_ext_1500(self):
         "E1500 - test static pool grows back to the min after sessions killed"

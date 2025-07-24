@@ -29,16 +29,12 @@ run_long_tests value is enabled.
 """
 
 import time
-import unittest
 
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_extended_config_bool("run_long_tests"),
-    "extended configuration run_long_tests is disabled",
-)
+@test_env.skip_unless_run_long_tests()
 class TestCase(test_env.BaseTestCase):
     def test_ext_2500(self):
         "E2500 - test config is cached"

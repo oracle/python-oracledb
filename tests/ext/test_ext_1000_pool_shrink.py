@@ -28,15 +28,11 @@ tests here will only be run if the run_long_tests value is enabled.
 """
 
 import time
-import unittest
 
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_extended_config_bool("run_long_tests"),
-    "extended configuration run_long_tests is disabled",
-)
+@test_env.skip_unless_run_long_tests()
 class TestCase(test_env.BaseTestCase):
     def test_ext_1000(self):
         "E1000 - test pool timeout with simple acquire after waiting"
@@ -62,7 +58,7 @@ class TestCase(test_env.BaseTestCase):
         conn = pool.acquire()
         self.assertEqual(pool.opened, 3)
 
-    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    @test_env.skip_unless_thin_mode()
     def test_ext_1002(self):
         "E1002 - test pool timeout shrinks to min on pool inactivity"
         pool = test_env.get_pool(min=3, max=10, increment=2, timeout=4)
@@ -73,7 +69,7 @@ class TestCase(test_env.BaseTestCase):
         time.sleep(6)
         self.assertEqual(pool.opened, 3)
 
-    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    @test_env.skip_unless_thin_mode()
     def test_ext_1003(self):
         "E1003 - test pool timeout eliminates extra connections on inactivity"
         pool = test_env.get_pool(min=4, max=10, increment=4, timeout=3)
@@ -85,7 +81,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.opened, 5)
         del conns
 
-    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    @test_env.skip_unless_thin_mode()
     def test_ext_1004(self):
         "E1004 - test pool max_lifetime_session on release"
         pool = test_env.get_pool(
@@ -101,7 +97,7 @@ class TestCase(test_env.BaseTestCase):
         time.sleep(2)
         self.assertEqual(pool.opened, 4)
 
-    @unittest.skipUnless(test_env.get_is_thin(), "doesn't occur in thick mode")
+    @test_env.skip_unless_thin_mode()
     def test_ext_1005(self):
         "E1005 - test pool max_lifetime_session on acquire"
         pool = test_env.get_pool(

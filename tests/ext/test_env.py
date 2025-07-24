@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,6 +29,7 @@
 
 import configparser
 import os
+import unittest
 
 dir_name = os.path.dirname(os.path.dirname(__file__))
 file_name = os.path.join(dir_name, os.path.basename(__file__))
@@ -72,4 +73,25 @@ def get_extended_config_bool(name, fallback=False):
 def get_extended_config_str(name, fallback=None):
     return _extended_config.parser.get(
         _extended_config.section_name, name, fallback=fallback
+    )
+
+
+def skip_unless_has_orapki():
+    return unittest.skipUnless(
+        get_extended_config_bool("has_orapki"),
+        "extended configuration has_orapki is disabled",
+    )
+
+
+def skip_unless_local_database():
+    return unittest.skipUnless(
+        get_extended_config_bool("local_database"),
+        "extended configuration local_database is disabled",
+    )
+
+
+def skip_unless_run_long_tests():
+    return unittest.skipUnless(
+        get_extended_config_bool("run_long_tests"),
+        "extended configuration run_long_tests is disabled",
     )

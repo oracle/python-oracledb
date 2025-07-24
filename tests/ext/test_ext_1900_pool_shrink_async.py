@@ -29,18 +29,12 @@ enabled.
 """
 
 import asyncio
-import unittest
 
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
-@unittest.skipUnless(
-    test_env.get_extended_config_bool("run_long_tests"),
-    "extended configuration run_long_tests is disabled",
-)
+@test_env.skip_unless_thin_mode()
+@test_env.skip_unless_run_long_tests()
 class TestCase(test_env.BaseAsyncTestCase):
     requires_connection = False
 
