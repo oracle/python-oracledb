@@ -40,7 +40,7 @@ import oracledb
 
 from . import __name__ as MODULE_NAME
 
-from . import base_impl, constants, driver_mode, errors, thick_impl, thin_impl
+from . import base_impl, driver_mode, errors, thick_impl, thin_impl
 from . import pool as pool_module
 from .aq import AsyncQueue, Queue, MessageProperties
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
@@ -51,6 +51,7 @@ from .lob import AsyncLOB, LOB
 from .pipeline import Pipeline
 from .soda import SodaDatabase
 from .subscr import Subscription
+from .utils import normalize_sessionless_transaction_id
 
 # named tuple used for representing global transactions
 Xid = collections.namedtuple(
@@ -118,6 +119,38 @@ class BaseConnection:
     def autocommit(self, value: bool) -> None:
         self._verify_connected()
         self._impl.autocommit = value
+
+    def begin_sessionless_transaction(
+        self,
+        transaction_id: Optional[Union[str, bytes]] = None,
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Begins a new sessionless transaction.
+
+        Parameters:
+            transaction_id (str or bytes, optional): A Transaction Identifier.
+               If None, a random transaction_id will be generated.
+            timeout (int, optional): Timeout value in seconds.
+               Must be a positive integer. Defaults to 60 if not provided.
+            defer_round_trip (bool, optional):
+                If True, the request is not sent immediately but included
+                with the next database operation.
+
+        Returns:
+            bytes: The normalized transaction_id used for the transaction.
+        """
+        self._verify_connected()
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+
+        if not isinstance(timeout, int) or timeout <= 0:
+            raise TypeError("timeout must be a positive integer")
+
+        self._impl.begin_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
 
     @property
     def call_timeout(self) -> int:
@@ -471,6 +504,44 @@ class BaseConnection:
     def outputtypehandler(self, value: Callable) -> None:
         self._verify_connected()
         self._impl.outputtypehandler = value
+
+    def resume_sessionless_transaction(
+        self,
+        transaction_id: Union[str, bytes],
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Resumes an existing sessionless transaction using the given
+        transaction_id.
+
+        Parameters:
+            transaction_id (str or bytes): A Transaction Identifier that
+              uniquely identifies the sessionless transaction to be
+              resumed. This parameter is mandatory.
+            timeout (int, optional): Timeout in seconds for the resumed
+              transaction. Must be a positive integer. Defaults to 60.
+            defer_round_trip (bool, optional):
+                If True, the request is not sent immediately but included
+                with the next database operation.
+
+        Returns:
+            bytes: The normalized transaction_id used to resume the
+              sessionless transaction.
+        """
+        self._verify_connected()
+        if transaction_id is None:
+            raise ValueError("transaction_id is required for resuming")
+
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+
+        if not (isinstance(timeout, int) and timeout >= 0):
+            raise TypeError("timeout must be a non-negative integer")
+
+        self._impl.resume_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
 
     @property
     def sdu(self) -> int:
@@ -934,24 +1005,24 @@ class Connection(BaseConnection):
 
     def subscribe(
         self,
-        namespace: int = constants.SUBSCR_NAMESPACE_DBCHANGE,
-        protocol: int = constants.SUBSCR_PROTO_CALLBACK,
+        namespace: int = oracledb.SUBSCR_NAMESPACE_DBCHANGE,
+        protocol: int = oracledb.SUBSCR_PROTO_CALLBACK,
         callback: Optional[Callable] = None,
         timeout: int = 0,
-        operations: int = constants.OPCODE_ALLOPS,
+        operations: int = oracledb.OPCODE_ALLOPS,
         port: int = 0,
-        qos: int = constants.SUBSCR_QOS_DEFAULT,
+        qos: int = oracledb.SUBSCR_QOS_DEFAULT,
         ip_address: Optional[str] = None,
-        grouping_class: int = constants.SUBSCR_GROUPING_CLASS_NONE,
+        grouping_class: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
         grouping_value: int = 0,
-        grouping_type: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
+        grouping_type: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
         name: Optional[str] = None,
         client_initiated: bool = False,
         *,
         ipAddress: Optional[str] = None,
-        groupingClass: int = constants.SUBSCR_GROUPING_CLASS_NONE,
+        groupingClass: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
         groupingValue: int = 0,
-        groupingType: int = constants.SUBSCR_GROUPING_TYPE_SUMMARY,
+        groupingType: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
         clientInitiated: bool = False,
     ) -> Subscription:
         """
@@ -1025,8 +1096,8 @@ class Connection(BaseConnection):
                     new_name="ip_address",
                 )
             ip_address = ipAddress
-        if groupingClass != constants.SUBSCR_GROUPING_CLASS_NONE:
-            if grouping_class != constants.SUBSCR_GROUPING_CLASS_NONE:
+        if groupingClass != oracledb.SUBSCR_GROUPING_CLASS_NONE:
+            if grouping_class != oracledb.SUBSCR_GROUPING_CLASS_NONE:
                 errors._raise_err(
                     errors.ERR_DUPLICATED_PARAMETER,
                     deprecated_name="groupingClass",
@@ -1041,8 +1112,8 @@ class Connection(BaseConnection):
                     new_name="grouping_value",
                 )
             grouping_value = groupingValue
-        if groupingType != constants.SUBSCR_GROUPING_TYPE_SUMMARY:
-            if grouping_type != constants.SUBSCR_GROUPING_TYPE_SUMMARY:
+        if groupingType != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
+            if grouping_type != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
                 errors._raise_err(
                     errors.ERR_DUPLICATED_PARAMETER,
                     deprecated_name="groupingType",
@@ -1077,6 +1148,19 @@ class Connection(BaseConnection):
         impl.subscribe(subscr, self._impl)
         return subscr
 
+    def suspend_sessionless_transaction(self) -> None:
+        """
+        Suspends the currently active sessionless transaction.
+
+        This temporarily detaches the transaction from the session,
+        allowing it to be resumed later using its transaction_id.
+
+        Returns:
+            None
+        """
+        self._verify_connected()
+        self._impl.suspend_sessionless_transaction()
+
     @property
     def tag(self) -> str:
         """
@@ -1100,7 +1184,7 @@ class Connection(BaseConnection):
         self._impl.tag = value
 
     def tpc_begin(
-        self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0
+        self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0
     ) -> None:
         """
         Begins a TPC (two-phase commit) transaction with the given transaction
@@ -1110,10 +1194,10 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._verify_xid(xid)
         if flags not in (
-            constants.TPC_BEGIN_NEW,
-            constants.TPC_BEGIN_JOIN,
-            constants.TPC_BEGIN_RESUME,
-            constants.TPC_BEGIN_PROMOTE,
+            oracledb.TPC_BEGIN_NEW,
+            oracledb.TPC_BEGIN_JOIN,
+            oracledb.TPC_BEGIN_RESUME,
+            oracledb.TPC_BEGIN_PROMOTE,
         ):
             errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
         self._impl.tpc_begin(xid, flags, timeout)
@@ -1141,7 +1225,7 @@ class Connection(BaseConnection):
         self._impl.tpc_commit(xid, one_phase)
 
     def tpc_end(
-        self, xid: Optional[Xid] = None, flags: int = constants.TPC_END_NORMAL
+        self, xid: Optional[Xid] = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
         """
         Ends (detaches from) a TPC (two-phase commit) transaction.
@@ -1149,7 +1233,7 @@ class Connection(BaseConnection):
         self._verify_connected()
         if xid is not None:
             self._verify_xid(xid)
-        if flags not in (constants.TPC_END_NORMAL, constants.TPC_END_SUSPEND):
+        if flags not in (oracledb.TPC_END_NORMAL, oracledb.TPC_END_SUSPEND):
             errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
         self._impl.tpc_end(xid, flags)
 
@@ -1447,6 +1531,38 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         return parameters
 
+    async def begin_sessionless_transaction(
+        self,
+        transaction_id: Optional[Union[str, bytes]] = None,
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Begins a new sessionless transaction.
+
+        Parameters:
+            transaction_id (str or bytes, optional): A Transaction Identifier.
+               If None, a random transaction_id will be generated.
+            timeout (int, optional): Timeout value in seconds.
+               Must be a positive integer. Defaults to 60 if not provided.
+            defer_round_trip (bool, optional):
+                If True, the request is not sent immediately but included
+                with the next database operation.
+
+        Returns:
+            bytes: The normalized transaction_id used for the transaction.
+        """
+        self._verify_connected()
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+
+        if not isinstance(timeout, int) or timeout <= 0:
+            raise TypeError("timeout must be a positive integer")
+
+        await self._impl.begin_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
+
     async def callfunc(
         self,
         name: str,
@@ -1668,6 +1784,44 @@ class AsyncConnection(BaseConnection):
         self._verify_connected()
         await self._impl.ping()
 
+    async def resume_sessionless_transaction(
+        self,
+        transaction_id: Union[str, bytes],
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Resumes an existing sessionless transaction using the given
+        transaction_id.
+
+        Parameters:
+            transaction_id (str or bytes): A Transaction Identifier that
+              uniquely identifies the sessionless transaction to be
+              resumed. This parameter is mandatory.
+            timeout (int, optional): Timeout in seconds for the resumed
+              transaction. Must be a positive integer. Defaults to 60.
+            defer_round_trip (bool, optional):
+                If True, the request is not sent immediately but included
+                with the next database operation.
+
+        Returns:
+            bytes: The normalized transaction_id used to resume the
+              sessionless transaction.
+        """
+        self._verify_connected()
+        if transaction_id is None:
+            raise ValueError("transaction_id is required for resuming")
+
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+
+        if not (isinstance(timeout, int) and timeout >= 0):
+            raise TypeError("timeout must be a non-negative integer")
+
+        await self._impl.resume_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
+
     async def rollback(self) -> None:
         """
         Rolls back any pending transaction.
@@ -1704,8 +1858,21 @@ class AsyncConnection(BaseConnection):
             )
         return results
 
+    async def suspend_sessionless_transaction(self) -> None:
+        """
+        Suspends the currently active sessionless transaction.
+
+        This temporarily detaches the transaction from the session,
+        allowing it to be resumed later using its transaction_id.
+
+        Returns:
+            None
+        """
+        self._verify_connected()
+        await self._impl.suspend_sessionless_transaction()
+
     async def tpc_begin(
-        self, xid: Xid, flags: int = constants.TPC_BEGIN_NEW, timeout: int = 0
+        self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0
     ) -> None:
         """
         Begins a TPC (two-phase commit) transaction with the given transaction
@@ -1715,10 +1882,10 @@ class AsyncConnection(BaseConnection):
         self._verify_connected()
         self._verify_xid(xid)
         if flags not in (
-            constants.TPC_BEGIN_NEW,
-            constants.TPC_BEGIN_JOIN,
-            constants.TPC_BEGIN_RESUME,
-            constants.TPC_BEGIN_PROMOTE,
+            oracledb.TPC_BEGIN_NEW,
+            oracledb.TPC_BEGIN_JOIN,
+            oracledb.TPC_BEGIN_RESUME,
+            oracledb.TPC_BEGIN_PROMOTE,
         ):
             errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
         await self._impl.tpc_begin(xid, flags, timeout)
@@ -1746,7 +1913,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_commit(xid, one_phase)
 
     async def tpc_end(
-        self, xid: Optional[Xid] = None, flags: int = constants.TPC_END_NORMAL
+        self, xid: Optional[Xid] = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
         """
         Ends (detaches from) a TPC (two-phase commit) transaction.
@@ -1754,7 +1921,7 @@ class AsyncConnection(BaseConnection):
         self._verify_connected()
         if xid is not None:
             self._verify_xid(xid)
-        if flags not in (constants.TPC_END_NORMAL, constants.TPC_END_SUSPEND):
+        if flags not in (oracledb.TPC_END_NORMAL, oracledb.TPC_END_SUSPEND):
             errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
         await self._impl.tpc_end(xid, flags)
 

@@ -181,6 +181,13 @@ cpdef enum:
     PURITY_SELF = 2
 
 cpdef enum:
+    TPC_TXN_FLAGS_JOIN = 0x00000002
+    TPC_TXN_FLAGS_NEW = 0x00000001
+    TPC_TXN_FLAGS_PROMOTE = 0x00000008
+    TPC_TXN_FLAGS_RESUME = 0x00000004
+    TPC_TXN_FLAGS_SESSIONLESS = 0x00000010
+
+cpdef enum:
     VECTOR_FORMAT_BINARY = 5
     VECTOR_FORMAT_FLOAT32 = 2
     VECTOR_FORMAT_FLOAT64 = 3
@@ -667,6 +674,7 @@ cdef class BaseCursorImpl:
         public dict bind_vars_by_name
         public object warning
         public bint fetching_arrow
+        public bint suspend_on_success
         uint32_t _buffer_rowcount
         uint32_t _buffer_index
         uint32_t _fetch_array_size

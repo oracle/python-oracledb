@@ -121,7 +121,8 @@ Cursor Methods
     will be unusable from this point forward; an Error exception will be raised
     if any operation is attempted with the cursor.
 
-.. method:: Cursor.execute(statement, parameters=[], ** keyword_parameters)
+.. method:: Cursor.execute(statement, parameters=[], suspend_on_success=False, \
+            ** keyword_parameters)
 
     Executes a statement against the database. See :ref:`sqlexecution`.
 
@@ -146,6 +147,11 @@ Cursor Methods
     that are not passed in during subsequent executions will retain the value
     passed in during the last execution that contained them.
 
+    The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+    transactions <sessionlesstxns>`. When set to *True*, the active sessionless
+    transaction will be suspended when ``execute()`` completes successfully.
+    See :ref:`suspendtxns`.
+
     For maximum efficiency when reusing a statement, it is best to use the
     :meth:`Cursor.setinputsizes()` method to specify the parameter types and
     sizes ahead of time; in particular, *None* is assumed to be a string of
@@ -156,12 +162,16 @@ Cursor Methods
     caller (so it can be used directly as an iterator over the rows in the
     cursor); otherwise, *None* is returned.
 
+    .. versionchanged:: 3.3.0
+
+        The ``suspend_on_success`` parameter was added.
+
     .. note::
 
         The DB API definition does not define the return value of this method.
 
 .. method:: Cursor.executemany(statement, parameters, batcherrors=False, \
-        arraydmlrowcounts=False)
+        arraydmlrowcounts=False, suspend_on_success=False)
 
     Executes a SQL statement once using all bind value mappings or sequences
     found in the sequence parameters. This can be used to insert, update, or
@@ -199,6 +209,11 @@ Cursor Methods
     can only be *True* when executing an insert, update, delete, or merge
     statement; in all other cases an error will be raised.
 
+    The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+    transactions <sessionlesstxns>`. When set to *True*, the active sessionless
+    transaction will be suspended when ``executemany()`` completes
+    successfully. See :ref:`suspendtxns`.
+
     For maximum efficiency, it is best to use the
     :meth:`Cursor.setinputsizes()` method to specify the bind value types and
     sizes. In particular, if the type is not explicitly specified, the value
@@ -208,6 +223,7 @@ Cursor Methods
     .. versionchanged:: 3.3.0
 
         Added support for passing data frames in the ``parameters`` parameter.
+        The ``suspend_on_success`` parameter was added.
 
 .. method:: Cursor.fetchall()
 

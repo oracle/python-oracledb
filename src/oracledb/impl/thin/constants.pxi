@@ -156,6 +156,7 @@ cdef enum:
 cdef enum:
     TNS_KEYWORD_NUM_CURRENT_SCHEMA = 168
     TNS_KEYWORD_NUM_EDITION = 172
+    TNS_KEYWORD_NUM_TRANSACTION_ID = 201
 
 # bind flags
 cdef enum:
@@ -416,6 +417,7 @@ cdef enum:
     TNS_CCAP_UB2_DTY = 27
     TNS_CCAP_OCI2 = 31
     TNS_CCAP_CLIENT_FN = 34
+    TNS_CCAP_OCI3 = 35
     TNS_CCAP_TTC3 = 37
     TNS_CCAP_SESS_SIGNATURE_VERSION = 39
     TNS_CCAP_TTC4 = 40
@@ -486,6 +488,8 @@ cdef enum:
     TNS_CCAP_PIPELINING_BREAK = 0x10
     TNS_CCAP_VECTOR_FEATURE_BINARY = 0x01
     TNS_CCAP_VECTOR_FEATURE_SPARSE = 0x02
+    TNS_CCAP_TTC5_SESSIONLESS_TXNS = 0x20
+    TNS_CCAP_OCI3_OCSSYNC = 0x20
 
 # runtime capability indices
 cdef enum:
@@ -526,6 +530,7 @@ cdef enum:
 cdef enum:
     TNS_TPC_TXN_START = 0x01
     TNS_TPC_TXN_DETACH = 0x02
+    TNS_TPC_TXN_POST_DETACH = 0x04
 
 # transaction change state op codes
 cdef enum:
@@ -533,6 +538,16 @@ cdef enum:
     TNS_TPC_TXN_ABORT = 0x02
     TNS_TPC_TXN_PREPARE = 0x03
     TNS_TPC_TXN_FORGET = 0x04
+
+# sessionless server states
+cdef enum:
+    TNS_TPC_TXNID_SYNC_SET = 0x40
+    TNS_TPC_TXNID_SYNC_UNSET = 0x80
+
+# sessionless state reason
+cdef enum:
+    TNS_TPC_TXNID_SYNC_SERVER = 0x01
+    TNS_TPC_TXNID_SYNC_CLIENT = 0x02
 
 # transaction states
 cdef enum:

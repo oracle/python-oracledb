@@ -62,6 +62,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_MODE_EXEC_DEFAULT
         DPI_MODE_EXEC_DESCRIBE_ONLY
         DPI_MODE_EXEC_PARSE_ONLY
+        DPI_MODE_EXEC_SUSPEND_ON_SUCCESS
 
     # connection/pool creation modes
     enum:
@@ -598,7 +599,15 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         const char *name
         uint32_t nameLength
 
+    ctypedef struct dpiSessionlessTransactionId:
+        char[64] value
+        uint32_t length
+
     # functions
+    int dpiConn_beginSessionlessTransaction(dpiConn *conn,
+            dpiSessionlessTransactionId* transactionId, uint32_t timeout,
+            bint deferRoundTrip) nogil
+
     int dpiConn_breakExecution(dpiConn *conn) nogil
 
     int dpiConn_changePassword(dpiConn *conn, const char *userName,
@@ -702,6 +711,10 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     int dpiConn_release(dpiConn *conn) nogil
 
+    int dpiConn_resumeSessionlessTransaction(dpiConn *conn,
+            dpiSessionlessTransactionId* transactionId, uint32_t timeout,
+            bint deferRoundTrip) nogil
+
     int dpiConn_rollback(dpiConn *conn) nogil
 
     int dpiConn_setAction(dpiConn *conn, const char *value,
@@ -745,6 +758,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
 
     int dpiConn_subscribe(dpiConn *conn, dpiSubscrCreateParams *params,
             dpiSubscr **subscr) nogil
+
+    int dpiConn_suspendSessionlessTransaction(dpiConn *conn) nogil
 
     int dpiConn_tpcBegin(dpiConn *conn, dpiXid *xid,
             uint32_t transactionTimeout, uint32_t flags) nogil

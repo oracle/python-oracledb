@@ -277,6 +277,23 @@ cdef class ThickConnImpl(BaseConnImpl):
         if func(self._handle, value_ptr, value_length) < 0:
             _raise_from_odpi()
 
+    def begin_sessionless_transaction(self, bytes transaction_id,
+                                      uint32_t timeout, bint defer_round_trip):
+        """
+        Begin a new sessionless transaction.
+        """
+        cdef:
+            dpiSessionlessTransactionId txn_id
+            int status
+        txn_id.length = len(transaction_id)
+        memcpy(txn_id.value, <const char*> transaction_id, txn_id.length)
+        with nogil:
+            status = dpiConn_beginSessionlessTransaction(
+                self._handle, &txn_id, timeout, defer_round_trip
+            )
+        if status < 0:
+            _raise_from_odpi()
+
     def cancel(self):
         cdef int status
         with nogil:
@@ -750,6 +767,24 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    def resume_sessionless_transaction(self, bytes transaction_id,
+                                       uint32_t timeout,
+                                       bint defer_round_trip):
+        """
+        Resume a sessionless transaction.
+        """
+        cdef:
+            dpiSessionlessTransactionId txn_id
+            int status
+        txn_id.length = len(transaction_id)
+        memcpy(txn_id.value, <const char*> transaction_id, txn_id.length)
+        with nogil:
+            status = dpiConn_resumeSessionlessTransaction(
+                self._handle, &txn_id, timeout, defer_round_trip
+            )
+        if status < 0:
+            _raise_from_odpi()
+
     def rollback(self):
         cdef int status
         with nogil:
@@ -799,6 +834,16 @@ cdef class ThickConnImpl(BaseConnImpl):
         with nogil:
             status = dpiConn_startupDatabaseWithPfile(self._handle, pfile_ptr,
                                                       pfile_length, mode)
+        if status < 0:
+            _raise_from_odpi()
+
+    def suspend_sessionless_transaction(self):
+        """
+        Suspend the currently active sessionless transaction.
+        """
+        cdef int status
+        with nogil:
+            status = dpiConn_suspendSessionlessTransaction(self._handle)
         if status < 0:
             _raise_from_odpi()
 

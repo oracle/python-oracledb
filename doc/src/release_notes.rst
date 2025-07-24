@@ -40,6 +40,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for Oracle Database 23ai :ref:`Sessionless Transactions
+    <sessionlesstxns>`.
 #)  Changes to :ref:`data frame <dataframeformat>` support:
 
     - Added support for binding data frames to :meth:`Cursor.executemany()` and

@@ -550,6 +550,13 @@ def skip_unless_pool_timed_wait_supported():
     return unittest.skipUnless(supported, "no pool timed wait support")
 
 
+def skip_unless_sessionless_transactions_supported():
+    return unittest.skipUnless(
+        has_client_version(23, 6) and has_server_version(23, 6),
+        "no sessionless transactions support",
+    )
+
+
 def skip_unless_sparse_vectors_supported():
     supported = has_client_version(23, 7) and has_server_version(23, 7)
     return unittest.skipUnless(supported, "no sparse vector support")

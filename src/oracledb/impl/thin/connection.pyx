@@ -29,6 +29,33 @@
 # thin_impl.pyx).
 #------------------------------------------------------------------------------
 
+cdef class _SessionlessData:
+
+    cdef:
+        bytes transaction_id
+        uint32_t operation
+        uint32_t flags
+        uint32_t timeout
+        bint piggyback_pending
+        bint started_on_server
+
+    cdef TransactionSwitchMessage create_message(self,
+                                                 BaseThinConnImpl conn_impl):
+        """
+        Returns the message used for sending the request to the database.
+        """
+        cdef:
+            uint32_t sessionless_format_id = 0x4e5c3e
+            TransactionSwitchMessage message
+        message = conn_impl._create_message(TransactionSwitchMessage)
+        if self.operation & TNS_TPC_TXN_START:
+            message.xid = (sessionless_format_id, self.transaction_id, b"")
+        message.timeout = self.timeout
+        message.operation = self.operation
+        message.flags = self.flags | TPC_TXN_FLAGS_SESSIONLESS
+        return message
+
+
 cdef class BaseThinConnImpl(BaseConnImpl):
 
     cdef:
@@ -74,6 +101,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bytes _transaction_context
         uint8_t pipeline_mode
         uint8_t _session_state_desired
+        _SessionlessData _sessionless_data
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         _check_cryptography()
@@ -219,6 +247,29 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         Return the statement to the statement cache, if applicable.
         """
         self._statement_cache.return_statement(statement)
+
+    cdef TransactionSwitchMessage _start_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        uint32_t timeout,
+        uint32_t flags,
+        bint defer_round_trip
+    ):
+        """
+        Starts (either begins or resumes) a sessionless transaction. A message
+        is returned if the request is not going to be deferred.
+        """
+        if self._sessionless_data is not None:
+            errors._raise_err(errors.ERR_SESSIONLESS_ALREADY_ACTIVE)
+        self._sessionless_data = _SessionlessData.__new__(_SessionlessData)
+        self._sessionless_data.transaction_id = transaction_id
+        self._sessionless_data.timeout = timeout
+        self._sessionless_data.operation = TNS_TPC_TXN_START
+        self._sessionless_data.flags = flags
+        if defer_round_trip:
+            self._sessionless_data.piggyback_pending = True
+        if not defer_round_trip:
+            return self._sessionless_data.create_message(self)
 
     def cancel(self):
         self._protocol._break_external()
@@ -431,6 +482,24 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         """
         return ThinCursorImpl.__new__(ThinCursorImpl, self)
 
+    def begin_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Internal method for beginning a sessionless transaction.
+        """
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
+        )
+        if message is not None:
+            protocol._process_single_message(message)
+
     def change_password(self, str old_password, str new_password):
         cdef:
             Protocol protocol = <Protocol> self._protocol
@@ -489,6 +558,24 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         message = self._create_message(PingMessage)
         protocol._process_single_message(message)
 
+    def resume_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Internal method for resuming a sessionless transaction.
+        """
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
+        )
+        if message is not None:
+            protocol._process_single_message(message)
+
     def rollback(self):
         cdef:
             Protocol protocol = <Protocol> self._protocol
@@ -499,6 +586,19 @@ cdef class ThinConnImpl(BaseThinConnImpl):
     def set_call_timeout(self, uint32_t value):
         self._protocol._transport.set_timeout(value / 1000)
         self._call_timeout = value
+
+    def suspend_sessionless_transaction(self):
+        cdef:
+            Protocol protocol = <Protocol> self._protocol
+            TransactionSwitchMessage message
+        if self._sessionless_data is None:
+            errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
+        elif self._sessionless_data.started_on_server:
+            errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.flags = TPC_TXN_FLAGS_SESSIONLESS
+        protocol._process_single_message(message)
 
     def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         cdef:
@@ -944,6 +1044,24 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
                     raise
                 message.pipeline_result_impl._capture_err(e)
 
+    async def begin_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Internal method for beginning a sessionless transaction.
+        """
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
+        )
+        if message is not None:
+            await protocol._process_single_message(message)
+
     async def change_password(self, str old_password, str new_password):
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
@@ -1008,6 +1126,24 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             Message message
         message = self._create_message(PingMessage)
         await protocol._process_single_message(message)
+
+    async def resume_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Internal method for resuming a sessionless transaction.
+        """
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionSwitchMessage message
+        message = self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
+        )
+        if message is not None:
+            await protocol._process_single_message(message)
 
     async def rollback(self):
         """
@@ -1077,6 +1213,19 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         only supported with asyncio and Oracle Database 23ai and later.
         """
         return self._protocol._caps.supports_pipelining
+
+    async def suspend_sessionless_transaction(self):
+        cdef:
+            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+            TransactionSwitchMessage message
+        if self._sessionless_data is None:
+            errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
+        elif self._sessionless_data.started_on_server:
+            errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.flags = TPC_TXN_FLAGS_SESSIONLESS
+        await protocol._process_single_message(message)
 
     async def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         cdef:

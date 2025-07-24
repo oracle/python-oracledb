@@ -311,6 +311,40 @@ is recommended to use autocommit mode only for the last DML statement in the
 sequence of operations. Unnecessarily committing causes extra database load,
 and can destroy transactional consistency.
 
+.. _sessionlesstxnasync:
+
+Managing Sessionless Transactions Using Asynchronous Methods
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+When :meth:`AsyncConnection.begin_sessionless_transaction()` is executed using
+a user-chosen or python-oracledb generated transaction identifier, a
+sessionless transaction is started. Once started, all the SQL statements are
+executed as a part of that sessionless transaction. Use
+:meth:`AsyncConnection.suspend_sessionless_transaction()` to explicitly
+suspend an active transaction once the database operations have been executed.
+This releases the connection which can be used by another user while the
+transaction remains open and can be resumed later by a connection using
+:meth:`AsyncConnection.resume_sessionless_transaction()`. The methods
+:meth:`AsyncConnection.commit()` and :meth:`AsyncConnection.rollback()` can be
+used to explicitly commit or roll back a transaction. For example:
+
+.. code-block:: python
+
+    async def main():
+        txn_id = b"new_sessionless_txn"
+        # Begin and suspend a sessionless transaction in a connection
+        async with oracledb.connect_async(user="hr", password=userpwd,
+                                          dsn="localhost/orclpdb") as connection1:
+            await connection1.begin_sessionless_transaction(transaction_id=txn_id, timeout=120)
+            await connection1.execute("INSERT INTO mytab (name) VALUES ('John')")
+            await connection1.suspend_sessionless_transaction()
+
+        # Resume the sessionless transaction in another connection
+        async with oracledb.connect_async(user="hr", password=userpwd,
+                                          dsn="localhost/orclpdb") as connection2:
+            await connection2.resume_sessionless_transaction(transaction_id=txn_id)
+            await connection2.commit()
+
 .. _pipelining:
 
 Pipelining Database Operations

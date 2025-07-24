@@ -319,6 +319,10 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
+    * - Oracle Database 23ai Sessionless Transactions (see :ref:`sessionlesstxns`)
+      - Yes
+      - Yes
+      - No
     * - Two-phase Commit (TPC) (see :ref:`tpc`)
       - Yes
       - Yes

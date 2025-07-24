@@ -36,6 +36,7 @@ from .dataframe import DataFrame
 from . import base_impl
 from . import driver_mode
 from . import errors
+import uuid
 
 
 def enable_thin_mode():
@@ -68,6 +69,35 @@ def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
         return ArrowArray._from_arrow(obj)
     msg = "object must implement the PyCapsule stream or array interfaces"
     raise ValueError(msg)
+
+
+def normalize_sessionless_transaction_id(
+    value: bytes | str | None = None,
+) -> bytes:
+    """
+    Normalize and validate the transaction_id.
+
+    - If `value` is a string, it's UTF-8 encoded.
+    - If `value` is None, a UUID4-based transaction_id is generated.
+    - If `value` is not str/bytes/None, raises TypeError.
+    - If transaction_id exceeds 64 bytes, raises ValueError.
+
+    Returns:
+        bytes: Normalized transaction_id
+    """
+    if value is None:
+        value = uuid.uuid4().bytes
+    elif isinstance(value, str):
+        value = value.encode("utf-8")
+    elif not isinstance(value, bytes):
+        raise TypeError("invalid transaction_id: must be str, bytes, or None")
+
+    if len(value) > 64:
+        raise ValueError(
+            f"transaction_id size exceeds 64 bytes (got {len(value)})"
+        )
+
+    return value
 
 
 def params_initer(f):

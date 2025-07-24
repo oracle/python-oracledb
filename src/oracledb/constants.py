@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -122,12 +122,6 @@ OPCODE_DELETE = 0x08
 OPCODE_DROP = 0x20
 OPCODE_INSERT = 0x02
 OPCODE_UPDATE = 0x04
-
-# flags for tpc_begin()
-TPC_BEGIN_JOIN = 0x00000002
-TPC_BEGIN_NEW = 0x00000001
-TPC_BEGIN_PROMOTE = 0x00000008
-TPC_BEGIN_RESUME = 0x00000004
 
 # flags for tpc_end()
 TPC_END_NORMAL = 0

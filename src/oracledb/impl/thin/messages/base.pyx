@@ -123,6 +123,42 @@ cdef class Message:
         """
         pass
 
+    cdef int _update_sessionless_txn_state(self, bytes data) except -1:
+        """
+        Update the sessionless transaction state.
+        """
+        cdef:
+            uint8_t sessionless_state
+            uint8_t sync_version
+            bytes transaction_id
+            const uint8_t* buf
+            ssize_t buf_len
+
+        # extract the parts of the data
+        buf = <uint8_t*> data
+        buf_len = len(data)
+        transaction_id = data[:buf_len - 2]
+        sessionless_state = <uint8_t> buf[buf_len - 2]
+        sync_version = <uint8_t> buf[buf_len - 1]
+
+        # verify the sync version is one understood by the driver
+        if sync_version != 1:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_SYNC_VERSION,
+                              version=sync_version)
+
+        # transaction was cleared (ended or suspended)
+        if sessionless_state & TNS_TPC_TXNID_SYNC_UNSET:
+            self.conn_impl._sessionless_data = None
+            self.conn_impl._protocol._txn_in_progress = False
+
+        # transaction was set (started or resumed)
+        elif sessionless_state & TNS_TPC_TXNID_SYNC_SET:
+            self.conn_impl._sessionless_data = \
+                    _SessionlessData.__new__(_SessionlessData)
+            self.conn_impl._sessionless_data.started_on_server = \
+                    sessionless_state & TNS_TPC_TXNID_SYNC_SERVER
+            self.conn_impl._protocol._txn_in_progress = True
+
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
         cdef:
             uint32_t num_bytes, i, offset, num_offsets
@@ -237,6 +273,8 @@ cdef class Message:
                 self.conn_impl._current_schema = text_value.decode()
             elif keyword_num == TNS_KEYWORD_NUM_EDITION:
                 self.conn_impl._edition = text_value.decode()
+            elif keyword_num == TNS_KEYWORD_NUM_TRANSACTION_ID:
+                self._update_sessionless_txn_state(binary_value)
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -668,6 +706,22 @@ cdef class Message:
             self._write_close_temp_lobs_piggyback(buf)
         if self.conn_impl._session_state_desired != 0:
             self._write_session_state_piggyback(buf)
+        if self.conn_impl._sessionless_data is not None \
+                and self.conn_impl._sessionless_data.piggyback_pending:
+            self._write_sessionless_piggyback(buf)
+
+    cdef int _write_sessionless_piggyback(self, WriteBuffer buf):
+        """
+        Writes the piggyback for starting a sessionless transaction.
+        """
+        cdef:
+            _SessionlessData sessionless_data
+            TransactionSwitchMessage message
+        sessionless_data = self.conn_impl._sessionless_data
+        message = sessionless_data.create_message(self.conn_impl)
+        message.message_type = TNS_MSG_TYPE_PIGGYBACK
+        sessionless_data.piggyback_pending = False
+        message._write_message(buf)
 
     cdef int _write_session_state_piggyback(self, WriteBuffer buf) except -1:
         """

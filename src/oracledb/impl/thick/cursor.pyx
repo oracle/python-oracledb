@@ -308,6 +308,8 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             mode = DPI_MODE_EXEC_COMMIT_ON_SUCCESS
         else:
             mode = DPI_MODE_EXEC_DEFAULT
+        if self.suspend_on_success:
+            mode |= DPI_MODE_EXEC_SUSPEND_ON_SUCCESS
         with nogil:
             status = dpiStmt_execute(self._handle, mode, &num_query_cols)
             if status == DPI_SUCCESS:
@@ -342,6 +344,8 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             mode |= DPI_MODE_EXEC_ARRAY_DML_ROWCOUNTS
         if batcherrors:
             mode |= DPI_MODE_EXEC_BATCH_ERRORS
+        if self.suspend_on_success:
+            mode |= DPI_MODE_EXEC_SUSPEND_ON_SUCCESS
 
         if self.bind_vars is not None:
             self._perform_binds(cursor.connection, num_execs_int)
