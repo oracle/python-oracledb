@@ -412,6 +412,9 @@ cdef class ThickVarImpl(BaseVarImpl):
                 timestamp.second = cydatetime.PyDateTime_DATE_GET_SECOND(value)
                 timestamp.fsecond = \
                         cydatetime.PyDateTime_DATE_GET_MICROSECOND(value) * 1000
+            elif ora_type_num == DPI_ORACLE_TYPE_VECTOR:
+                _convert_from_python(value, self.metadata, &data.value,
+                                     None)
 
     cdef int _transform_element_to_arrow(self, uint32_t pos):
         """
