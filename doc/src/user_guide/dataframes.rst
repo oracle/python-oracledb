@@ -664,7 +664,8 @@ For general information about fast data ingestion, and discussion of
 :meth:`Cursor.executemany()` and :meth:`AsyncCursor.executemany()` options, see
 :ref:`batchstmnt`.
 
-**Explicit Conversion to DataFrame or ArrowArray**
+Explicit Conversion to DataFrame or ArrowArray
+==============================================
 
 Data frames that support the Apache Arrow PyCapsule Interface can be explicitly
 converted to :ref:`DataFrame <oracledataframeobj>` and :ref:`ArrowArray

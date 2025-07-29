@@ -2322,14 +2322,15 @@ Oracledb Methods
 
 .. function:: is_thin_mode()
 
-    Returns a boolean indicating if Thin mode is in use.
+    Returns a boolean indicating if python-oracledb is in Thin mode.
 
     Immediately after python-oracledb is imported, this function will return
-    *True* indicating that python-oracledb defaults to Thin mode. If
-    :func:`oracledb.init_oracle_client()` is called, then a subsequent call to
-    ``is_thin_mode()`` will return False indicating that Thick mode is
-    enabled. Once the first standalone connection or connection pool is
-    created, or a call to ``oracledb.init_oracle_client()`` is made, then
+    *True* indicating that python-oracledb defaults to Thin mode. If a call to
+    :func:`oracledb.init_oracle_client()` returns successfully, then a
+    subsequent call to ``is_thin_mode()`` will return False indicating that
+    Thick mode is enabled. Once the first standalone connection or connection
+    pool is created, or a successful call to ``oracledb.init_oracle_client()``
+    is made, or :meth:`oracledb.enable_thin_mode()` is called, then
     python-oracledb’s mode is fixed and the value returned by
     ``is_thin_mode()`` will never change for the lifetime of the process.
 

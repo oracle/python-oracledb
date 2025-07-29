@@ -30,7 +30,7 @@ Thin Mode Changes
     bind variable immediately following a query that returned multiple
     duplicate rows.
 #)  Fixed bug with connect strings containing ``SOURCE_ROUTE=YES`` where the
-    second host is unresolvable by the client.
+    second host is unresolvable by the host running python-oracledb.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -53,22 +53,27 @@ Common Changes
       :ref:`dfinsert`.
     - Added internal support for the ArrowArrayStream PyCapsule interface to
       simplify :ref:`DataFrame <oracledataframeobj>` use.
-    - Remove use of the DataFrame Interchange Protocol in python-oracledb
+    - Removed use of the DataFrame Interchange Protocol in python-oracledb
       :ref:`DataFrame <oracledataframeobj>` objects.
+    - Removed the prefix "Oracle" from the data frame object names. They are
+      now called :ref:`DataFrame <oracledataframeobj>` and :ref:`ArrowArray
+      <oraclearrowarrayobj>`.
     - Documentation on methods and attributes of the :ref:`DataFrame
       <oracledataframeobj>` and :ref:`ArrowArray <oraclearrowarrayobj>` objects
       is now available when using IDE introspection.
     - Upgraded Arrow C Data (nanoarrow) API version to 0.7.0.
-    - Ensure that the GIL is held when releasing references to :ref:`ArrowArray
+    - Ensured that the `Python GIL
+      <https://docs.python.org/3/glossary.html#term-global-interpreter-lock>`__
+      is held when releasing references to :ref:`ArrowArray
       <oraclearrowarrayobj>` objects when exported Arrow buffers are released
       by the consumer. This avoids a segfault seen in some circumstances.
-    - Fixed bug when deciding Arrow datatype for numeric expressions
+    - Fixed bug when deciding Arrow datatype for numeric expressions.
       (`issue 510 <https://github.com/oracle/python-oracledb/issues/510>`__)
     - Fixed bug when fetching numeric data that has no decimal point but the
-      Arrow array has scale > 0
-    - Fixed bug when fetching dates that are in the year 2038 or later
+      Arrow array has scale > 0.
+    - Fixed bug when fetching dates that are in the year 2038 or later.
     - Fixed bug when fetching numeric data with precision that exceeds 38 as
-      decimal data
+      decimal data.
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version.

@@ -196,10 +196,13 @@ You can pass the following parameters to
   :meth:`~Connection.begin_sessionless_transaction`. An example is
   "36b8f84d-df4e-4d49-b662-bcde71a8764f".
 
-- ``timeout``: This parameter determines the duration that this transaction
-  can be resumed by a connection the next time that it is suspended. The
-  default value is *60* seconds. If the transaction is not resumed within
-  the specified duration, the transaction will be rolled back.
+- ``timeout``: This parameter is the number of seconds this transaction can
+  stay suspended when :meth:`Connection.suspend_sessionless_transaction()` is
+  later called, or if the transaction is automatically suspended when the
+  ``suspend_on_success`` parameter is set to to *True* in
+  :meth:`Cursor.execute()` or :meth:`Cursor.executemany()`. The default value
+  is *60* seconds. If the transaction is not resumed within the specified
+  duration, the transaction will be rolled back.
 
 - ``defer_round_trip``: This parameter determines whether the request to start
   a sessionless transaction should be sent immediately or with the next
