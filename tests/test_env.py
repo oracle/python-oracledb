@@ -43,10 +43,16 @@
 #   PYO_TEST_EXTERNAL_USER: user for testing external authentication
 #   PYO_TEST_EDITION_NAME: name of edition for editioning tests
 #   PYO_TEST_PLUGINS: list of plugins to import before running tests
+#   PYO_TEST_ORACLE_CLIENT_PATH: Oracle Client or Instant Client library dir
 #
 # PYO_TEST_CONNECT_STRING can be set to an Easy Connect string, or a
 # Net Service Name from a tnsnames.ora file or external naming service,
 # or it can be the name of a local Oracle database instance.
+#
+# On Windows set PYO_TEST_ORACLE_CLIENT_PATH if Oracle libraries are not in
+# PATH. On macOS set the variable to the Instant Client directory. On Linux do
+# not set the variable; instead set LD_LIBRARY_PATH or configure ldconfig
+# before running Python.
 #
 # If oracledb is using Instant Client, then an Easy Connect string is generally
 # appropriate. The syntax is:
@@ -68,6 +74,7 @@
 import getpass
 import importlib
 import os
+import platform
 import secrets
 import sys
 import string
@@ -95,7 +102,7 @@ def _initialize():
     if PARAMETERS.get("INITIALIZED"):
         return
     if not get_is_thin() and oracledb.is_thin_mode():
-        oracledb.init_oracle_client()
+        oracledb.init_oracle_client(lib_dir=get_oracle_client())
         oracledb.defaults.thick_mode_dsn_passthrough = False
     plugin_names = os.environ.get("PYO_TEST_PLUGINS")
     if plugin_names is not None:
@@ -230,6 +237,11 @@ def get_client_version():
         value = oracledb.clientversion()[:2]
         PARAMETERS[name] = value
     return value
+
+
+def get_oracle_client():
+    if platform.system() == "Darwin" or platform.system() == "Windows":
+        return get_value("ORACLE_CLIENT_PATH", "Oracle Instant Client Path")
 
 
 def get_connect_params():
@@ -486,6 +498,8 @@ def skip_soda_tests():
     if not has_server_version(18):
         return True
     if has_server_version(20, 1) and not has_client_version(20, 1):
+        return True
+    if has_client_version(23, 3) and platform.system() == "Darwin":
         return True
     return False
 
