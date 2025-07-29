@@ -153,6 +153,25 @@ create or replace type &main_user..udt_XmlTypeArray
 as table of sys.xmltype;
 /
 
+create or replace type &main_user..udt_TableOfNumber as table of number;
+/
+
+create or replace type &main_user..udt_TableOfTableOfNumber
+as table of &main_user..udt_TableOfNumber;
+/
+
+create or replace type &main_user..udt_VarrayOfTableOfNumber
+as varray(5) of &main_user..udt_TableOfNumber;
+/
+
+create or replace type &main_user..udt_VarrayOfNumber
+as varray(5) of number;
+/
+
+create or replace type &main_user..udt_TableOfVarrayOfNumber
+as table of &main_user..udt_VarrayOfNumber;
+/
+
 -- create tables
 create table &main_user..TestNumbers (
     IntCol                              number(9) not null,
@@ -355,6 +374,7 @@ create table &main_user..TestAllTypes (
     IntValue                            integer,
     SmallIntValue                       smallint,
     RealValue                           real,
+    DecimalValue                        number(20, 6),
     DoublePrecisionValue                double precision,
     FloatValue                          float,
     BinaryFloatValue                    binary_float,
@@ -395,6 +415,16 @@ create table &main_user..TestDataframe (
     RawData                             raw(100),
     LongData                            clob,
     LongRawData                         blob
+)
+/
+
+create table &main_user..NestedCollectionTests (
+    Id                    number(9),
+    TableCol              &main_user..udt_TableOfTableOfNumber,
+    VarrayCol             &main_user..udt_VarrayOfTableOfNumber
+)
+nested table TableCol store as NestedCollectionTests_nt (
+    nested table column_value store as NestedCollectionTests_nti
 )
 /
 
@@ -1358,6 +1388,46 @@ create or replace package body &main_user..pkg_TestNestedRecords as
         t_Outer.Inner1.Attr2 := a_Value1;
         t_Outer.Inner2.Attr2 := a_Value2;
         return t_Outer;
+    end;
+
+end;
+/
+
+create or replace package &main_user..pkg_NestedTable as
+
+    function GetTableOfNumber
+    return udt_TableOfNumber;
+
+    function GetTableOfVarrayOfNumber
+    return udt_TableOfVarrayOfNumber;
+
+    function GetVarrayOfNumber
+    return udt_VarrayOfNumber;
+
+end;
+/
+
+create or replace package body &main_user..pkg_NestedTable as
+
+    function GetTableOfNumber
+    return udt_TableOfNumber is
+    begin
+        return udt_TableOfNumber(15, 25, 35, 45);
+    end;
+
+    function GetTableOfVarrayOfNumber
+    return udt_TableOfVarrayOfNumber is
+    begin
+        return udt_TableOfVarrayOfNumber(
+            udt_VarrayOfNumber(10, 20),
+            udt_VarrayOfNumber(30, 40)
+        );
+    end;
+
+    function GetVarrayOfNumber
+    return udt_VarrayOfNumber is
+    begin
+        return udt_VarrayOfNumber(10, 20, 30);
     end;
 
 end;

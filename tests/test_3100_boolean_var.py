@@ -115,7 +115,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestBooleans")
         true_values = ["true", "yes", "on", "1", "t", "y"]
         self.cursor.executemany(
-            "insert into TestBooleans values (:1, :2, :3)",
+            """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
+            values (:1, :2, :3)""",
             [(i, v, v) for i, v in enumerate(true_values)],
         )
         self.cursor.execute(
@@ -130,7 +131,8 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("truncate table TestBooleans")
         false_values = ["false", "no", "off", "0", "f", "n"]
         self.cursor.executemany(
-            "insert into TestBooleans values (:1, :2, :3)",
+            """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
+            values (:1, :2, :3)""",
             [(i, v, v) for i, v in enumerate(false_values)],
         )
         self.cursor.execute(

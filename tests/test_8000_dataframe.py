@@ -228,7 +228,7 @@ DATASET_4 = [
     ),
 ]
 
-QUERY_SQL = """
+QUERY_SQL_WITH_WHERE_CLAUSE = """
     select
         Id,
         FirstName,
@@ -240,17 +240,26 @@ QUERY_SQL = """
         CreditScore,
         LastUpdated
     from TestDataFrame
+    {where_clause}
     order by id
 """
+
+QUERY_SQL = QUERY_SQL_WITH_WHERE_CLAUSE.format(where_clause="")
 
 
 class TestCase(test_env.BaseTestCase):
 
-    def __convert_date(self, value):
+    def __convert_date(self, typ, value):
         """
         Converts a date to the format required by Arrow.
         """
-        return (value - datetime.datetime(1970, 1, 1)).total_seconds()
+        if value is not None:
+            if typ.unit == "s":
+                value = datetime.datetime(value.year, value.month, value.day)
+            ts = (value - datetime.datetime(1970, 1, 1)).total_seconds()
+            if typ.unit != "s":
+                ts *= 1_000_000
+            return ts
 
     def __convert_to_array(self, data, typ):
         """
@@ -262,15 +271,7 @@ class TestCase(test_env.BaseTestCase):
                 for value in data
             ]
         elif isinstance(typ, pyarrow.TimestampType):
-            if typ.unit == "s":
-                data = [
-                    self.__convert_date(
-                        datetime.datetime(v.year, v.month, v.day)
-                    )
-                    for v in data
-                ]
-            else:
-                data = [self.__convert_date(value) * 1000000 for value in data]
+            data = [self.__convert_date(typ, v) for v in data]
         mask = [value is None for value in data]
         return pyarrow.array(data, typ, mask=mask)
 
@@ -877,6 +878,7 @@ class TestCase(test_env.BaseTestCase):
             (1, None, None, None, None, None, None, 225, None),
             (2, None, None, None, None, None, None, 365, None),
         ]
+
         data = [
             (56.25,),
             (91.25,),
@@ -888,6 +890,983 @@ class TestCase(test_env.BaseTestCase):
         ora_df = self.conn.fetch_df_all(statement)
         fetched_df = pyarrow.table(ora_df).to_pandas()
         self.assertEqual(data, self.__get_data_from_df(fetched_df))
+
+    def test_8035(self):
+        "8035 - test metadata of all data types"
+        now = datetime.datetime.now()
+        data = [
+            ("NUMBERVALUE", 5, pyarrow.float64()),
+            ("STRINGVALUE", "String Val", pyarrow.string()),
+            ("FIXEDCHARVALUE", "Fixed Char", pyarrow.string()),
+            ("NSTRINGVALUE", "NString Val", pyarrow.string()),
+            ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.string()),
+            ("RAWVALUE", b"Raw Data", pyarrow.binary()),
+            ("INTVALUE", 25_387_923, pyarrow.float64()),
+            ("SMALLINTVALUE", 127, pyarrow.float64()),
+            ("REALVALUE", 125.25, pyarrow.float64()),
+            ("DECIMALVALUE", 91.1025, pyarrow.float64()),
+            ("DOUBLEPRECISIONVALUE", 87.625, pyarrow.float64()),
+            ("FLOATVALUE", 125.375, pyarrow.float64()),
+            ("BINARYFLOATVALUE", -25, pyarrow.float32()),
+            ("BINARYDOUBLEVALUE", -175.5, pyarrow.float64()),
+            ("DATEVALUE", now, pyarrow.timestamp("s")),
+            ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
+            ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
+            ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+            ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
+            ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
+            ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
+        ]
+        self.cursor.execute("delete from TestAllTypes")
+        column_names = ",".join(n for n, v, t in data)
+        bind_values = ",".join(f":{i + 1}" for i in range(len(data)))
+        data_to_insert = tuple(v for n, v, t in data)
+        self.cursor.execute(
+            f"""
+            insert into TestAllTypes ({column_names})
+            values ({bind_values})
+            """,
+            data_to_insert,
+        )
+        self.conn.commit()
+        sql = f"select {column_names} from TestAllTypes"
+        ora_df = self.conn.fetch_df_all(sql)
+        expected_types = [t for n, v, t in data]
+        actual_types = [pyarrow.array(a).type for a in ora_df.column_arrays()]
+        self.assertEqual(actual_types, expected_types)
+
+    def test_8036(self):
+        "8036 - test metadata of all data types with fetch_decimals = True"
+        now = datetime.datetime.now()
+        data = [
+            ("NUMBERVALUE", 5, pyarrow.float64()),
+            ("STRINGVALUE", "String Val", pyarrow.string()),
+            ("FIXEDCHARVALUE", "Fixed Char", pyarrow.string()),
+            ("NSTRINGVALUE", "NString Val", pyarrow.string()),
+            ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.string()),
+            ("RAWVALUE", b"Raw Data", pyarrow.binary()),
+            ("INTVALUE", 25_387_923, pyarrow.decimal128(38, 0)),
+            ("SMALLINTVALUE", 127, pyarrow.decimal128(38, 0)),
+            ("REALVALUE", 125.25, pyarrow.float64()),
+            ("DECIMALVALUE", 91.1025, pyarrow.decimal128(20, 6)),
+            ("DOUBLEPRECISIONVALUE", 87.625, pyarrow.float64()),
+            ("FLOATVALUE", 125.375, pyarrow.float64()),
+            ("BINARYFLOATVALUE", -25, pyarrow.float32()),
+            ("BINARYDOUBLEVALUE", -175.5, pyarrow.float64()),
+            ("DATEVALUE", now, pyarrow.timestamp("s")),
+            ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
+            ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
+            ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+            ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
+            ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
+            ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
+        ]
+        self.cursor.execute("delete from TestAllTypes")
+        column_names = ",".join(n for n, v, t in data)
+        bind_values = ",".join(f":{i + 1}" for i in range(len(data)))
+        data_to_insert = tuple(v for n, v, t in data)
+        self.cursor.execute(
+            f"""
+            insert into TestAllTypes ({column_names})
+            values ({bind_values})
+            """,
+            data_to_insert,
+        )
+        self.conn.commit()
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            sql = f"select {column_names} from TestAllTypes"
+            ora_df = self.conn.fetch_df_all(sql)
+            expected_types = [t for n, v, t in data]
+            actual_types = [
+                pyarrow.array(a).type for a in ora_df.column_arrays()
+            ]
+            self.assertEqual(actual_types, expected_types)
+
+    @test_env.skip_unless_native_boolean_supported()
+    def test_8037(self):
+        "8037 - test metadata with boolean type"
+        self.cursor.execute("delete from TestBooleans")
+        data = [(1, True, False, None), (2, False, True, True)]
+        self.cursor.executemany(
+            """
+            insert into TestBooleans
+            (IntCol, BooleanCol1, BooleanCol2, BooleanCol3)
+            values (:1, :2, :3, :4)
+            """,
+            data,
+        )
+        self.conn.commit()
+
+        sql = "select * from TestBooleans order by IntCol"
+        ora_df = self.conn.fetch_df_all(sql)
+        expected_types = [
+            pyarrow.int64(),
+            pyarrow.bool_(),
+            pyarrow.bool_(),
+            pyarrow.bool_(),
+        ]
+        actual_types = [pyarrow.array(a).type for a in ora_df.column_arrays()]
+        self.assertEqual(actual_types, expected_types)
+
+    def test_8038(self):
+        "8038 - test NULL rows with all null values"
+        data = [
+            (1, None, None, None, None, None, None, None, None),
+            (2, None, None, None, None, None, None, None, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8039(self):
+        "8039 - test repeated pyarrow table construction"
+        data = [
+            (
+                1,
+                "John",
+                "Doe",
+                "SF",
+                "USA",
+                datetime.date(1990, 1, 1),
+                5000.50,
+                100,
+                datetime.datetime.now(),
+            )
+        ]
+        self.__populate_table(data)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
+        table1 = pyarrow.table(ora_df)
+        table2 = pyarrow.table(ora_df)
+        self.assertEqual(table1.schema, table2.schema)
+        self.assertEqual(table1.to_pydict(), table2.to_pydict())
+
+    def test_8040(self):
+        "8040 - test dataframe query with multiple bind variables"
+        self.__populate_table(DATASET_2)
+        statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(
+            where_clause="where Id between :min_id and :max_id"
+        )
+        ora_df = self.conn.fetch_df_all(statement, {"min_id": 2, "max_id": 3})
+        self.assertEqual(ora_df.num_rows(), 2)
+
+        expected_data = [row for row in DATASET_2 if row[0] in (2, 3)]
+        raw_df = self.__convert_to_df(expected_data)
+        raw_data = self.__get_data_from_df(raw_df)
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, raw_data)
+
+    def test_8041(self):
+        "8041 - test error handling with invalid SQL in fetch_df_batches()"
+        with self.assertRaisesFullCode("ORA-00942"):
+            for batch in self.conn.fetch_df_batches(
+                "select * from NonExistentTable"
+            ):
+                pass
+
+    def test_8042(self):
+        "8042 - test partial batch (last batch smaller than batch size)"
+        test_data = [
+            (
+                i,
+                f"Name{i}",
+                f"Last{i}",
+                "City",
+                "Country",
+                datetime.date(2000, 1, 1),
+                i * 100,
+                i % 800,
+                datetime.datetime.now(),
+            )
+            for i in range(1, 8)  # 7 rows
+        ]
+        self.__test_df_batches_interop(test_data, batch_size=3, num_batches=3)
+
+    def test_8043(self):
+        "8043 - test with date functions"
+        self.__populate_table(DATASET_1)
+        ora_df = self.conn.fetch_df_all(
+            """
+            select
+                Id,
+                extract(year from DateOfBirth) as birth_year,
+                to_char(DateOfBirth, 'YYYY-MM') as birth_month
+            from TestDataFrame
+            order by Id
+            """
+        )
+        self.assertEqual(ora_df.num_rows(), len(DATASET_1))
+        year_col = ora_df.get_column_by_name("BIRTH_YEAR")
+        array = pyarrow.array(year_col)
+        self.assertEqual(array.to_pylist(), [1955, 1955])
+
+    def test_8044(self):
+        "8044 - test column access by index bounds"
+        self.__populate_table(DATASET_1)
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
+        with self.assertRaises(IndexError):
+            ora_df.get_column(ora_df.num_columns())
+
+    def test_8045(self):
+        "8045 - test with different batch sizes"
+        self.__test_df_batches_interop(DATASET_4, batch_size=1, num_batches=6)
+        self.__test_df_batches_interop(DATASET_4, batch_size=2, num_batches=3)
+
+    def test_8046(self):
+        "8046 - test with very large batch size"
+        self.__test_df_batches_interop(
+            DATASET_1, batch_size=1000, num_batches=1
+        )
+
+    def test_8047(self):
+        "8047 - test error handling with invalid SQL"
+        with self.assertRaisesFullCode("ORA-00942"):
+            self.conn.fetch_df_all("select * from NonExistentTable")
+
+    def test_8048(self):
+        "8048 - test error handling with invalid bind variable"
+        self.__populate_table(DATASET_1)
+        with self.assertRaisesFullCode("DPY-4010", "ORA-01008"):
+            self.conn.fetch_df_all(
+                "select * from TestDataFrame where Id = :missing_bind"
+            )
+
+    def test_8049(self):
+        "8049 - test with single row result"
+        self.__populate_table(DATASET_1)
+        statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(
+            where_clause="where Id = 1"
+        )
+        ora_df = self.conn.fetch_df_all(statement)
+        self.assertEqual(ora_df.num_rows(), 1)
+        self.__validate_df(ora_df, [DATASET_1[0]])
+
+    def test_8050(self):
+        "8050 - test with calculated columns"
+        self.__populate_table(DATASET_1)
+        now = datetime.datetime.now().replace(microsecond=0)
+        ora_df = self.conn.fetch_df_all(
+            """
+            select
+                Id,
+                FirstName || ' ' || LastName as full_name,
+                Salary * 12 as annual_salary,
+                :now as current_date
+            from TestDataFrame
+            order by Id
+            """,
+            [now],
+        )
+        self.assertEqual(ora_df.num_rows(), len(DATASET_1))
+        self.assertEqual(ora_df.num_columns(), 4)
+
+        expected_data = []
+        for row in DATASET_1:
+            expected_row = (
+                row[0],  # Id
+                f"{row[1]} {row[2]}",  # full_name
+                float(str(row[6] * 12)),  # annual_salary
+                now,
+            )
+            expected_data.append(expected_row)
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, expected_data)
+
+    def test_8051(self):
+        "8051 - test fetch_df_batches with bind variables"
+        batch_size = 2
+        self.__populate_table(DATASET_4)
+        where_clause = "where Id >= :min_id"
+        sql = QUERY_SQL_WITH_WHERE_CLAUSE.format(where_clause=where_clause)
+        batches = self.conn.fetch_df_batches(
+            sql, {"min_id": 3}, size=batch_size
+        )
+        expected_data = [row for row in DATASET_4 if row[0] >= 3]
+        offset = 0
+        for batch in batches:
+            self.__validate_df(
+                batch, expected_data[offset : offset + batch_size]
+            )
+            offset += batch_size
+
+    def test_8052(self):
+        "8052 - test with large data"
+        data = [
+            (1, "A" * 41_000, b"Very long description " * 5_000),
+            (2, "B" * 35_000, b"Another long text " * 10_000),
+            (3, "C" * 72_000, b"Even longer content " * 20_000),
+        ]
+
+        self.cursor.execute("delete from TestDataFrame")
+        self.cursor.executemany(
+            """
+            insert into TestDataFrame
+            (Id, LongData, LongRawData)
+            values (:1, :2, :3)
+            """,
+            data,
+        )
+        self.conn.commit()
+
+        ora_df = self.conn.fetch_df_all(
+            """
+            select Id, LongData, LongRawData
+            from TestDataFrame
+            order by Id
+            """
+        )
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, data)
+
+    def test_8053(self):
+        "8053 - test fetching from an empty table with fetch_df_batches"
+        self.cursor.execute("delete from TestDataFrame")
+        batches = list(self.conn.fetch_df_batches(QUERY_SQL, size=10))
+        self.assertEqual(len(batches), 1)
+        self.assertEqual(batches[0].num_rows(), 0)
+
+    def test_8054(self):
+        "8054 - fetch clob in batches"
+        self.cursor.execute("delete from TestDataFrame")
+        test_string = "A" * 10000
+        data = [(test_string,)] * 3
+        self.cursor.executemany(
+            """
+            insert into TestDataFrame (LongData)
+            values (:1)
+            """,
+            data,
+        )
+        self.conn.commit()
+
+        offset = 0
+        batch_size = 2
+        sql = "select LongData from TestDataFrame"
+        for batch in self.conn.fetch_df_batches(sql, size=batch_size):
+            fetched_df = pyarrow.table(batch).to_pandas()
+            fetched_data = self.__get_data_from_df(fetched_df)
+            self.assertEqual(fetched_data, data[offset : offset + batch_size])
+            offset += batch_size
+
+    def test_8055(self):
+        "8055 - fetch blob in batches"
+        self.cursor.execute("delete from TestDataFrame")
+        test_string = b"B" * 10000
+        data = [(test_string,)] * 4
+        self.cursor.executemany(
+            """
+            insert into TestDataFrame (LongRawData)
+            values (:1)
+            """,
+            data,
+        )
+        self.conn.commit()
+
+        offset = 0
+        batch_size = 3
+        sql = "select LongRawData from TestDataFrame"
+        for batch in self.conn.fetch_df_batches(sql, size=batch_size):
+            fetched_df = pyarrow.table(batch).to_pandas()
+            fetched_data = self.__get_data_from_df(fetched_df)
+            self.assertEqual(fetched_data, data[offset : offset + batch_size])
+            offset += batch_size
+
+    def test_8056(self):
+        "8056 - test with empty strings"
+        data = [
+            (
+                1,
+                "",
+                "",
+                "City",
+                "Country",
+                datetime.datetime(2000, 1, 1),
+                1000.0,
+                100,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "First",
+                "Last",
+                "",
+                "",
+                datetime.datetime(2000, 1, 1),
+                2000.0,
+                200,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__populate_table(data)
+        expected_data = [
+            tuple(None if v == "" else v for v in row) for row in data
+        ]
+        ora_df = self.conn.fetch_df_all(QUERY_SQL)
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        fetched_data = self.__get_data_from_df(fetched_df)
+        self.assertEqual(fetched_data, expected_data)
+
+    def test_8057(self):
+        "8057 - test with unicode characters"
+        data = [
+            (
+                1,
+                "Jöhn",
+                "Döe",
+                "München",
+                "Deutschland",
+                datetime.date(1980, 5, 15),
+                5000,
+                300,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "?",
+                "?",
+                "??",
+                "??",
+                datetime.date(1990, 8, 20),
+                8000,
+                400,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8058(self):
+        "8072 - test with very old dates"
+        data = [
+            (
+                1,
+                "Ancient",
+                "One",
+                "Babylon",
+                "Mesopotamia",
+                datetime.date(1, 1, 1),
+                0,
+                0,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "Medieval",
+                "Person",
+                "London",
+                "England",
+                datetime.date(1200, 6, 15),
+                10,
+                50,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8059(self):
+        "8059 - test with future dates"
+        data = [
+            (
+                1,
+                "Future",
+                "Person",
+                "Mars",
+                "Solar System",
+                datetime.date(3000, 1, 1),
+                100000,
+                900,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "Distant",
+                "Future",
+                "Andromeda",
+                "Galaxy",
+                datetime.date(9999, 12, 31),
+                999999,
+                999,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8060(self):
+        "8060 - test with exactly arraysize rows"
+        test_date = datetime.date(2000, 1, 1)
+        now = datetime.datetime.now()
+        data = [
+            (
+                i,
+                f"Name{i}",
+                f"Last{i}",
+                "City",
+                "Country",
+                test_date,
+                i * 100,
+                i % 800,
+                now,
+            )
+            for i in range(1, self.cursor.arraysize + 1)
+        ]
+        self.__test_df_interop(data)
+
+    def test_8061(self):
+        "8061 - test with arraysize+1 rows"
+        test_date = datetime.date(2000, 1, 1)
+        now = datetime.datetime.now()
+        data = [
+            (
+                i,
+                f"Name{i}",
+                f"Last{i}",
+                "City",
+                "Country",
+                test_date,
+                i * 100,
+                i % 800,
+                now,
+            )
+            for i in range(1, self.cursor.arraysize + 2)
+        ]
+        self.__test_df_interop(data)
+
+    def test_8062(self):
+        "8062 - test with odd arraysize"
+        test_date = datetime.date(2000, 1, 1)
+        now = datetime.datetime.now()
+        data = [
+            (
+                i,
+                f"Name{i}",
+                f"Last{i}",
+                "City",
+                "Country",
+                test_date,
+                i * 100,
+                i % 800,
+                now,
+            )
+            for i in range(1, 48)
+        ]
+        self.__test_df_interop(data)
+
+    def test_8063(self):
+        "8063 - test with single row"
+        data = [
+            (
+                1,
+                "John",
+                "Doe",
+                "SF",
+                "USA",
+                datetime.date(1990, 1, 1),
+                5000,
+                100,
+                datetime.datetime.now(),
+            )
+        ]
+        self.__test_df_interop(data)
+
+    def test_8064(self):
+        "8064 - test multiple rows with NULL values in different columns"
+        now = datetime.datetime.now()
+        test_date = datetime.datetime(2000, 1, 1)
+        data = [
+            (1, None, "Last1", "City1", "Country1", None, None, 100, None),
+            (2, "First2", None, None, "Country2", test_date, 2000, None, None),
+            (3, "First3", "Last3", None, None, None, 3000, 300, now),
+            (4, None, None, None, None, None, None, None, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8065(self):
+        "8065 - test single column with all NULL values"
+        data = [
+            (
+                1,
+                None,
+                "Last1",
+                "City1",
+                "Country1",
+                datetime.date(2000, 1, 1),
+                1000,
+                100,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                None,
+                "Last2",
+                "City2",
+                "Country2",
+                datetime.date(2001, 1, 1),
+                2000,
+                200,
+                datetime.datetime.now(),
+            ),
+            (
+                3,
+                None,
+                "Last3",
+                "City3",
+                "Country3",
+                datetime.date(2002, 1, 1),
+                3000,
+                300,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8066(self):
+        "8066 - test last column NULL in each row"
+        data = [
+            (
+                1,
+                "First1",
+                "Last1",
+                "City1",
+                "Country1",
+                datetime.date(2000, 1, 1),
+                1000,
+                100,
+                None,
+            ),
+            (
+                2,
+                "First2",
+                "Last2",
+                "City2",
+                "Country2",
+                datetime.date(2001, 1, 1),
+                2000,
+                200,
+                None,
+            ),
+            (
+                3,
+                "First3",
+                "Last3",
+                "City3",
+                "Country3",
+                datetime.date(2002, 1, 1),
+                3000,
+                300,
+                None,
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8067(self):
+        "8067 - test alternating NULL/non-NULL values in a column"
+        data = [
+            (
+                1,
+                "First1",
+                None,
+                "City1",
+                None,
+                datetime.date(2000, 1, 1),
+                None,
+                100,
+                datetime.datetime.now(),
+            ),
+            (2, "First2", "Last2", None, "Country2", None, 2000, None, None),
+            (
+                3,
+                "First3",
+                None,
+                "City3",
+                None,
+                datetime.date(2002, 1, 1),
+                None,
+                300,
+                datetime.datetime.now(),
+            ),
+            (4, "First4", "Last4", None, "Country4", None, 4000, None, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8068(self):
+        "8068 - test all columns NULL except one"
+        now = datetime.datetime.now()
+        test_date = datetime.date(2001, 1, 1)
+        data = [
+            (1, None, None, None, None, None, None, None, now),
+            (2, None, None, None, None, test_date, None, None, None),
+            (3, "First3", None, None, None, None, None, None, None),
+            (4, None, None, None, "Country4", None, None, None, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8069(self):
+        "8069 - test all date columns with all NULL values"
+        data = [
+            (1, "First1", "Last1", "City1", "Country1", None, 1000, 100, None),
+            (2, "First2", "Last2", "City2", "Country2", None, 2000, 200, None),
+            (3, "First3", "Last3", "City3", "Country3", None, 3000, 300, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8070(self):
+        "8070 - test NULL values in numeric columns"
+        data = [
+            (
+                1,
+                "First1",
+                "Last1",
+                "City1",
+                "Country1",
+                datetime.date(2000, 1, 1),
+                None,
+                100,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "First2",
+                "Last2",
+                "City2",
+                "Country2",
+                datetime.date(2001, 1, 1),
+                2000,
+                None,
+                datetime.datetime.now(),
+            ),
+            (
+                3,
+                "First3",
+                "Last3",
+                "City3",
+                "Country3",
+                datetime.date(2002, 1, 1),
+                None,
+                None,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8071(self):
+        "8071 - test multiple consecutive NULL rows"
+        data = [
+            (1, None, None, None, None, None, None, None, None),
+            (2, None, None, None, None, None, None, None, None),
+            (3, None, None, None, None, None, None, None, None),
+            (
+                4,
+                "First4",
+                "Last4",
+                "City4",
+                "Country4",
+                datetime.date(2000, 1, 1),
+                4000,
+                400,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8072(self):
+        "8072 - test NULL rows interspersed with data rows"
+        data = [
+            (1, None, None, None, None, None, None, None, None),
+            (
+                2,
+                "First2",
+                "Last2",
+                "City2",
+                "Country2",
+                datetime.date(2001, 1, 1),
+                2000,
+                200,
+                datetime.datetime.now(),
+            ),
+            (3, None, None, None, None, None, None, None, None),
+            (
+                4,
+                "First4",
+                "Last4",
+                "City4",
+                "Country4",
+                datetime.date(2003, 1, 1),
+                4000,
+                400,
+                datetime.datetime.now(),
+            ),
+            (5, None, None, None, None, None, None, None, None),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8073(self):
+        "8073 - test multiple NULL rows with different NULL columns"
+        data = [
+            (1, None, "Last1", "City1", "Country1", None, 1000, 100, None),
+            (
+                2,
+                "First2",
+                None,
+                "City2",
+                "Country2",
+                datetime.date(2001, 1, 1),
+                None,
+                200,
+                None,
+            ),
+            (
+                3,
+                None,
+                None,
+                "City3",
+                "Country3",
+                None,
+                None,
+                300,
+                datetime.datetime.now(),
+            ),
+            (
+                4,
+                "First4",
+                "Last4",
+                None,
+                None,
+                datetime.date(2003, 1, 1),
+                4000,
+                None,
+                None,
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8074(self):
+        "8074 - test NULL rows with alternating NULL patterns"
+        data = [
+            (
+                1,
+                None,
+                "Last1",
+                None,
+                "Country1",
+                None,
+                1000,
+                None,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                "First2",
+                None,
+                "City2",
+                None,
+                datetime.date(2001, 1, 1),
+                None,
+                200,
+                None,
+            ),
+            (
+                3,
+                None,
+                "Last3",
+                None,
+                "Country3",
+                None,
+                3000,
+                None,
+                datetime.datetime.now(),
+            ),
+            (
+                4,
+                "First4",
+                None,
+                "City4",
+                None,
+                datetime.date(2003, 1, 1),
+                None,
+                400,
+                None,
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8075(self):
+        "8075 - test multiple NULL rows with partial NULL groups"
+        data = [
+            (
+                1,
+                None,
+                None,
+                "City1",
+                "Country1",
+                None,
+                None,
+                100,
+                datetime.datetime.now(),
+            ),
+            (
+                2,
+                None,
+                None,
+                "City2",
+                "Country2",
+                None,
+                None,
+                200,
+                datetime.datetime.now(),
+            ),
+            (
+                3,
+                "First3",
+                "Last3",
+                None,
+                None,
+                datetime.date(2002, 1, 1),
+                3000,
+                None,
+                None,
+            ),
+            (
+                4,
+                "First4",
+                "Last4",
+                None,
+                None,
+                datetime.date(2003, 1, 1),
+                4000,
+                None,
+                None,
+            ),
+        ]
+        self.__test_df_interop(data)
+
+    def test_8076(self):
+        "8076 - test multiple NULL rows with varying NULL counts"
+        data = [
+            (1, None, None, None, None, None, None, None, None),
+            (2, "First2", None, "City2", None, None, 2000, None, None),
+            (
+                3,
+                None,
+                "Last3",
+                None,
+                "Country3",
+                datetime.date(2002, 1, 1),
+                None,
+                300,
+                None,
+            ),
+            (
+                4,
+                "First4",
+                "Last4",
+                "City4",
+                "Country4",
+                None,
+                4000,
+                400,
+                datetime.datetime.now(),
+            ),
+        ]
+        self.__test_df_interop(data)
 
 
 if __name__ == "__main__":
