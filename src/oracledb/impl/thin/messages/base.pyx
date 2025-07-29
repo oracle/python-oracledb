@@ -734,6 +734,13 @@ cdef class Message:
         buf.write_ub8(state | TNS_SESSION_STATE_EXPLICIT_BOUNDARY)
         self.conn_impl._session_state_desired = 0
 
+    cdef int on_out_of_packets(self) except -1:
+        """
+        Called when an OufOfPackets exception is raised indicating that further
+        packets are required to continue processing of this message.
+        """
+        pass
+
     cdef int postprocess(self) except -1:
         pass
 
@@ -1307,6 +1314,7 @@ cdef class MessageWithData(Message):
             self.cursor_impl._last_row_index = self.row_index - 1
             self.cursor_impl._buffer_rowcount = self.row_index
             self.bit_vector = NULL
+        self.on_row_completed()
 
     cdef int _process_row_header(self, ReadBuffer buf) except -1:
         cdef uint32_t num_bytes
@@ -1510,6 +1518,39 @@ cdef class MessageWithData(Message):
                 if metadata.buffer_size <= buf._caps.max_string_size:
                     continue
                 self._write_bind_params_column(buf, var_impl, pos + offset)
+
+    cdef int on_out_of_packets(self) except -1:
+        """
+        Called when an OufOfPackets exception is raised indicating that further
+        packets are required to continue processing of this message.
+        """
+        cdef ThinVarImpl var_impl
+
+        # when fetching Arrow data, if the column has already been processed
+        # and no saved array already exists, the array is saved so that
+        # subsequent processing will not append to the array further; once the
+        # complete row has been processed, the saved arrays are restored and
+        # processing continues
+        if self.cursor_impl.fetching_arrow:
+            for var_impl in self.cursor_impl.fetch_var_impls:
+                if var_impl._saved_arrow_array is not None:
+                    continue
+                elif var_impl._arrow_array.arrow_array.length > self.row_index:
+                    var_impl._saved_arrow_array = var_impl._arrow_array
+                    var_impl._arrow_array = None
+                    var_impl._create_arrow_array()
+
+    cdef int on_row_completed(self) except -1:
+        """
+        Called when a row has been successfully completed. This allows for any
+        saved Arrow arrays to be restored.
+        """
+        cdef ThinVarImpl var_impl
+        if self.cursor_impl.fetching_arrow:
+            for var_impl in self.cursor_impl.fetch_var_impls:
+                if var_impl._saved_arrow_array is not None:
+                    var_impl._arrow_array = var_impl._saved_arrow_array
+                    var_impl._saved_arrow_array = None
 
     cdef int postprocess(self) except -1:
         """

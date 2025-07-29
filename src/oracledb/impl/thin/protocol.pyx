@@ -844,6 +844,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 break
             except OutOfPackets:
                 await self._receive_packet(message)
+                message.on_out_of_packets()
                 self._read_buf.restore_point()
 
     async def _process_single_message(self, Message message):

@@ -74,6 +74,8 @@ Common Changes
     - Fixed bug when fetching dates that are in the year 2038 or later.
     - Fixed bug when fetching numeric data with precision that exceeds 38 as
       decimal data.
+    - Fixed bug when fetching large amounts of data in one round-trip when
+      using asyncio with Oracle Database versions before 23ai.
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version.
