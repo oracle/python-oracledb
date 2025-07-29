@@ -67,6 +67,8 @@ Common Changes
     - Fixed bug when fetching numeric data that has no decimal point but the
       Arrow array has scale > 0
     - Fixed bug when fetching dates that are in the year 2038 or later
+    - Fixed bug when fetching numeric data with precision that exceeds 38 as
+      decimal data
 
     Note the data frame support in python-oracledb 3.3 is a pre-release, and
     may change in a future version.
