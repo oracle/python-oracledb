@@ -49,7 +49,7 @@ class BaseCursor:
         connection: "connection_module.Connection",
         scrollable: bool = False,
     ) -> None:
-        self.connection = connection
+        self._connection = connection
         self._impl = connection._impl.create_cursor_impl(scrollable)
 
     def __del__(self):
@@ -57,10 +57,17 @@ class BaseCursor:
             self._impl.close(in_del=True)
 
     def __enter__(self):
+        """
+        The entry point for the cursor as a context manager. It returns itself.
+        """
         self._verify_open()
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
+        """
+        The exit point for the cursor as a context manager. It closes the
+        cursor.
+        """
         self._verify_open()
         self._impl.close(in_del=True)
         self._impl = None
@@ -158,17 +165,22 @@ class BaseCursor:
     @property
     def arraysize(self) -> int:
         """
-        Tunes the number of rows fetched and buffered by internal calls to the
-        database when fetching rows from SELECT statements and REF CURSORS. The
-        value can drastically affect the performance of a query since it
-        directly affects the number of network round trips between Python and
-        the database. For methods like fetchone() and fetchall() it does not
-        change how many rows are returned to the application. For fetchmany()
+        This read-write attribute can be used to tune the number of rows
+        internally fetched and buffered by internal calls to the database when
+        fetching rows from SELECT statements and REF CURSORS.
+
+        The value of ``arraysize`` can drastically affect the performance of a
+        query since it directly affects the number of network round trips
+        between Python and the database.  For methods like :meth:`fetchone()`
+        and :meth:`fetchall()` it affects internal behavior but does not change
+        how many rows are returned to the application. For :meth:`fetchmany()`
         it is the default number of rows to fetch.
 
-        Due to the performance benefits, the default value is 100 instead of
-        the 1 that the DB API recommends. This value means that 100 rows are
-        fetched by each internal call to the database.
+        The attribute is only used for tuning row and SODA document fetches
+        from the database.  It does not affect data inserts.
+
+        Due to the performance benefits, the default ``arraysize`` is *100*
+        instead of the *1* that the Python DB API recommends.
         """
         self._verify_open()
         return self._impl.arraysize
@@ -187,20 +199,15 @@ class BaseCursor:
         size: int = 0,
     ) -> Var:
         """
-        Create an array variable associated with the cursor of the given type
-        and size and return a variable object. The value is either an integer
-        specifying the number of elements to allocate or it is a list and the
-        number of elements allocated is drawn from the size of the list. If the
-        value is a list, the variable is also set with the contents of the
-        list. If the size is not specified and the type is a string or binary,
-        4000 bytes is allocated. This is needed for passing arrays to PL/SQL
-        (in cases where the list might be empty and the type cannot be
-        determined automatically) or returning arrays from PL/SQL.
-
-        Array variables can only be used for PL/SQL associative arrays with
-        contiguous keys. For PL/SQL associative arrays with sparsely populated
-        keys or for varrays and nested tables, the DbObject approach needs to
-        be used instead.
+        Creates an array variable associated with the cursor of the given type
+        and size and returns a :ref:`variable object <varobj>`. The value is
+        either an integer specifying the number of elements to allocate or it
+        is a list and the number of elements allocated is drawn from the size
+        of the list. If the value is a list, the variable is also set with the
+        contents of the list. If the size is not specified and the type is a
+        string or binary, 4000 bytes is allocated. This is needed for passing
+        arrays to PL/SQL (in cases where the list might be empty and the type
+        cannot be determined automatically) or returning arrays from PL/SQL.
         """
         self._verify_open()
         if isinstance(value, list):
@@ -222,7 +229,7 @@ class BaseCursor:
 
     def bindnames(self) -> list:
         """
-        Return the list of bind variable names bound to the statement. Note
+        Returns the list of bind variable names bound to the statement. Note
         that a statement must have been prepared first.
         """
         self._verify_open()
@@ -233,17 +240,18 @@ class BaseCursor:
     @property
     def bindvars(self) -> list:
         """
-        Returns the bind variables used for the last execute. The value will be
-        either a list or a dictionary depending on whether binding was done by
-        position or name. Care should be taken when referencing this attribute.
-        In particular, elements should not be removed or replaced.
+        This read-only attribute provides the bind variables used for the last
+        statement that was executed on the cursor. The value will be either a
+        list or a dictionary, depending on whether binding was done by position
+        or name. Care should be taken when referencing this attribute. In
+        particular, elements should not be removed or replaced.
         """
         self._verify_open()
         return self._impl.get_bind_vars()
 
     def close(self) -> None:
         """
-        Close the cursor now, rather than whenever __del__ is called. The
+        Closes the cursor now, rather than whenever ``__del__`` is called. The
         cursor will be unusable from this point forward; an Error exception
         will be raised if any operation is attempted with the cursor.
         """
@@ -252,13 +260,21 @@ class BaseCursor:
         self._impl = None
 
     @property
-    def description(self) -> tuple:
+    def connection(self) -> "connection_module.Connection":
         """
-        Returns a sequence of 7-item sequences. Each of these sequences
-        contains information describing one result column: (name, type,
-        display_size, internal_size, precision, scale, null_ok).  This
-        attribute will be None for operations that do not return rows or if the
-        cursor has not had an operation invoked via the execute() method yet.
+        This read-only attribute returns a reference to the connection object
+        on which the cursor was created.
+        """
+        return self._connection
+
+    @property
+    def description(self) -> FetchInfo:
+        """
+        This read-only attribute contains information about the columns used in
+        a query. It is a sequence of :ref:`FetchInfo <fetchinfoobj>` objects,
+        one per column. This attribute will be *None* for statements that are
+        not SELECT or WITH statements, or if the cursor has not had
+        :meth:`execute()` invoked yet.
         """
         self._verify_open()
         if self._impl.is_query(self):
@@ -267,43 +283,50 @@ class BaseCursor:
     @property
     def fetchvars(self) -> list:
         """
-        Specifies the list of variables created for the last query that was
-        executed on the cursor. Care should be taken when referencing this
-        attribute. In particular, elements should not be removed or replaced.
+        This read-only attribute specifies the list of variables created for
+        the last SELECT query that was executed on the cursor.  Care should be
+        taken when referencing this attribute. In particular, elements should
+        not be removed or replaced.
         """
         self._verify_open()
         return self._impl.get_fetch_vars()
 
     def getarraydmlrowcounts(self) -> list:
         """
-        Return the DML row counts after a call to executemany() with
-        arraydmlrowcounts enabled. This will return a list of integers
+        Retrieves the DML row counts after a call to :meth:`executemany()` with
+        ``arraydmlrowcounts`` enabled. This will return a list of integers
         corresponding to the number of rows affected by the DML statement for
-        each element of the array passed to executemany().
+        each element of the array passed to :meth:`executemany()`.
+
+        This method is only available for Oracle Database 12.1 and later.
         """
         self._verify_open()
         return self._impl.get_array_dml_row_counts()
 
     def getbatcherrors(self) -> list:
         """
-        Return the exceptions that took place after a call to executemany()
-        with batcherrors enabled. This will return a list of Error objects, one
-        error for each iteration that failed. The offset can be determined by
-        looking at the offset attribute of the error object.
+        Retrieves the exceptions that took place after a call to
+        :meth:`executemany()` with ``batcherrors`` enabled. This will
+        return a list of Error objects, one error for each iteration that
+        failed. The offset can be determined by looking at the offset attribute
+        of the error object.
         """
         self._verify_open()
         return self._impl.get_batch_errors()
 
     def getimplicitresults(self) -> list:
         """
-        Return a list of cursors which correspond to implicit results made
+        Returns a list of cursors which correspond to implicit results made
         available from a PL/SQL block or procedure without the use of OUT ref
         cursor parameters. The PL/SQL block or procedure opens the cursors and
         marks them for return to the client using the procedure
-        dbms_sql.return_result. Cursors returned in this fashion should not be
-        closed. They will be closed automatically by the parent cursor when it
-        is closed. Closing the parent cursor will invalidate the cursors
-        returned by this method.
+        dbms_sql.return_result. In python-oracledb Thick mode, closing the
+        parent cursor will result in the automatic closure of the implicit
+        result set cursors. See :ref:`implicitresults`.
+
+        This method is only available for Oracle Database 12.1 (or later). For
+        python-oracledb :ref:`Thick <enablingthick>` mode, Oracle Client 12.1
+        (or later) is additionally required.
         """
         self._verify_open()
         return self._impl.get_implicit_results(self.connection)
@@ -311,12 +334,14 @@ class BaseCursor:
     @property
     def inputtypehandler(self) -> Callable:
         """
-        Specifies a method called for each value that is bound to a statement
-        executed on this cursor. The method signature is handler(cursor, value,
-        arraysize) and the return value is expected to be a variable object or
-        None in which case a default variable object will be created. If this
-        attribute is None, the default behavior will take place for all values
-        bound to statements.
+        This read-write attribute specifies a method called for each value that
+        is bound to a statement executed on the cursor and overrides the
+        attribute with the same name on the connection if specified. The method
+        signature is handler(cursor, value, arraysize) and the return value is
+        expected to be a variable object or *None* in which case a default
+        variable object will be created. If this attribute is *None*, the
+        default behavior will take place for all values bound to the
+        statements.
         """
         self._verify_open()
         return self._impl.inputtypehandler
@@ -329,9 +354,9 @@ class BaseCursor:
     @property
     def lastrowid(self) -> str:
         """
-        Returns the rowid of the last row modified by the cursor. If no row was
-        modified by the last operation performed on the cursor, the value None
-        is returned.
+        This read-only attribute returns the rowid of the last row modified by
+        the cursor. If no row was modified by the last operation performed on
+        the cursor, the value *None* is returned.
         """
         self._verify_open()
         return self._impl.get_lastrowid()
@@ -339,12 +364,13 @@ class BaseCursor:
     @property
     def outputtypehandler(self) -> Callable:
         """
-        Specifies a method called for each column that is going to be fetched
-        from this cursor. The method signature is handler(cursor, name,
-        defaultType, length, precision, scale) and the return value is expected
-        to be a variable object or None in which case a default variable object
-        will be created. If this attribute is None, the default behavior will
-        take place for all columns fetched from this cursor.
+        This read-write attribute specifies a method called for each column
+        that is to be fetched from this cursor. The method signature is
+        handler(cursor, metadata) and the return value is expected to be a
+        :ref:`variable object <varobj>` or *None* in which case a default
+        variable object will be created. If this attribute is *None*, then the
+        default behavior will take place for all columns fetched from this
+        cursor.
         """
         self._verify_open()
         return self._impl.outputtypehandler
@@ -357,11 +383,22 @@ class BaseCursor:
     @property
     def prefetchrows(self) -> int:
         """
-        Used to tune the number of rows fetched when a SELECT statement is
-        executed. This value can reduce the number of round-trips to the
-        database that are required to fetch rows but at the cost of additional
-        memory. Setting this value to 0 can be useful when the timing of
-        fetches must be explicitly controlled.
+        This read-write attribute can be used to tune the number of rows that
+        python-oracledb initially fetches from Oracle Database when a SELECT
+        query is executed. The value can improve performance by reducing the
+        number of round-trips to the database. The attribute does not affect
+        data insertion.
+
+        In python-oracledb Thin mode, prefetching can reuse the
+        :attr:`arraysize` buffer. However in Thick mode, extra memory is
+        required.
+
+        Setting this value to *0* can be useful when the timing of fetches must
+        be explicitly controlled.
+
+        Queries that return :ref:`LOB <lobobj>` objects and similar types do
+        not support prefetching. The ``prefetchrows`` attribute is ignored in
+        queries that involve these types.
         """
         self._verify_open()
         return self._impl.prefetchrows
@@ -375,15 +412,19 @@ class BaseCursor:
         self, statement: str, tag: str = None, cache_statement: bool = True
     ) -> None:
         """
-        This can be used before a call to execute() to define the statement
-        that will be executed. When this is done, the prepare phase will not be
-        performed when the call to execute() is made with None or the same
-        string object as the statement. If the tag parameter is specified and
-        the cache_statement parameter is True, the statement will be returned
-        to the statement cache with the given tag. If the cache_statement
-        parameter is False, the statement will be removed from the statement
-        cache (if it was found there) or will simply not be cached. See the
-        Oracle documentation for more information about the statement cache.
+        This can be used before a call to :meth:`execute()` or
+        :meth:`executemany()` to define the statement that will be
+        executed. When this is done, the prepare phase will not be performed
+        when the call to :meth:`execute()` or :meth:`executemany()` is made
+        with *None* or the same string object as the statement.
+
+        If the ``tag`` parameter is specified and the ``cache_statement``
+        parameter is *True*, the statement will be returned to the statement
+        cache with the given tag.
+
+        If the ``cache_statement`` parameter is *False*, the statement will be
+        removed from the statement cache (if it was found there) or will simply
+        not be cached.
         """
         self._verify_open()
         self._prepare(statement, tag, cache_statement)
@@ -392,10 +433,10 @@ class BaseCursor:
     def rowcount(self) -> int:
         """
         This read-only attribute specifies the number of rows that have
-        currently been fetched from the cursor (for select statements), that
-        have been affected by the operation (for insert, update, delete and
-        merge statements), or the number of successful executions of the
-        statement (for PL/SQL statements).
+        currently been fetched from the cursor (for select statements) or that
+        have been affected by the operation (for insert, update, delete, and
+        merge statements). For all other statements the value is always *0*. If
+        the cursor or connection is closed, the value returned is *-1*.
         """
         if self._impl is not None and self.connection._impl is not None:
             return self._impl.rowcount
@@ -404,10 +445,11 @@ class BaseCursor:
     @property
     def rowfactory(self) -> Callable:
         """
-        Specifies a method to call for each row that is retrieved from the
-        database.  Ordinarily a tuple is returned for each row but if this
-        attribute is set, the method is called with the tuple that would
-        normally be returned, and the result of the method is returned instead.
+        This read-write attribute specifies a method to call for each row that
+        is retrieved from the database. Ordinarily, a tuple is returned for
+        each row but if this attribute is set, the method is called with the
+        tuple that would normally be returned, and the result of the method is
+        returned instead.
         """
         self._verify_open()
         return self._impl.rowfactory
@@ -420,11 +462,11 @@ class BaseCursor:
     @property
     def scrollable(self) -> bool:
         """
-        Specifies whether the cursor can be scrolled or not. By default,
-        cursors are not scrollable, as the server resources and response times
-        are greater than for nonscrollable cursors. This attribute is checked
-        and the corresponding mode set in Oracle when calling the method
-        execute().
+        This read-write boolean attribute specifies whether the cursor can be
+        scrolled or not. By default, cursors are not scrollable, as the server
+        resources and response times are greater than nonscrollable cursors.
+        This attribute is checked and the corresponding mode set in Oracle when
+        calling the method :meth:`execute()`.
         """
         self._verify_open()
         return self._impl.scrollable
@@ -436,14 +478,28 @@ class BaseCursor:
 
     def setinputsizes(self, *args: Any, **kwargs: Any) -> Union[list, dict]:
         """
-        This can be used before a call to execute(), callfunc() or callproc()
-        to predefine memory areas for the operation’s parameters. Each
-        parameter should be a type object corresponding to the input that will
-        be used or it should be an integer specifying the maximum length of a
-        string parameter. Use keyword parameters when binding by name and
-        positional parameters when binding by position. The singleton None can
-        be used as a parameter when using positional parameters to indicate
-        that no space should be reserved for that position.
+        This can be used before calls to :meth:`execute()` or
+        :meth:`executemany()` to predefine memory areas used for
+        :ref:`bind variables <bind>`. Each parameter should be a type object
+        corresponding to the data that will be used for a bind variable
+        placeholder in the SQL or PL/SQL statement. Alternatively, it can be an
+        integer specifying the maximum length of a string bind variable value.
+
+        Use keyword parameters when :ref:`binding by name <bindbyname>`. Use
+        positional parameters when :ref:`binding by position <bindbyposition>`.
+        The parameter value can be *None* to indicate that python-oracledb
+        should determine the required space from the data value provided.
+
+        The parameters or keyword names correspond to the bind variable
+        placeholders used in the SQL or PL/SQL statement. Note this means that
+        for use with :meth:`executemany()` it does not correspond to the number
+        of bind value mappings or sequences being passed.
+
+        When repeated calls to :meth:`execute()` or :meth:`executemany()` are
+        made binding different string data lengths, using
+        :meth:`setinputsizes()` can help reduce the database's SQL "version
+        count" for the statement. See
+        :ref:`Reducing the SQL Version Count <sqlversioncount>`.
         """
         if args and kwargs:
             errors._raise_err(errors.ERR_ARGS_AND_KEYWORD_ARGS)
@@ -454,15 +510,18 @@ class BaseCursor:
 
     def setoutputsize(self, size: int, column: int = 0) -> None:
         """
-        Sets a column buffer size for fetches of long columns.  However
-        python-oracledb does not require it so this method does nothing.
+        This method does nothing and is retained solely for compatibility with
+        the DB API. Python-oracledb automatically allocates as much space as
+        needed to fetch LONG and LONG RAW columns, and also to fetch CLOB as
+        string and BLOB as bytes.
         """
         pass
 
     @property
     def statement(self) -> Union[str, None]:
         """
-        Returns the statement associated with the cursor, if one is present.
+        This read-only attribute provides the string object that was previously
+        prepared with :meth:`prepare()` or executed with :meth:`execute()`.
         """
         if self._impl is not None:
             return self._impl.statement
@@ -482,57 +541,70 @@ class BaseCursor:
         encodingErrors: str = None,
     ) -> "Var":
         """
-        Create a variable with the specified characteristics. This method was
-        designed for use with PL/SQL in/out variables where the length or type
-        cannot be determined automatically from the Python object passed in or
-        for use in input and output type handlers defined on cursors or
-        connections.
+        Creates a :ref:`variable object <varobj>` with the specified
+        characteristics. This method can be used for binding to PL/SQL IN and
+        OUT parameters where the length or type cannot be determined
+        automatically from the Python variable being bound. It can also be used
+        in :ref:`input <inputtypehandlers>` and :ref:`output
+        <outputtypehandlers>` type handlers.
 
-        The typ parameter specifies the type of data that should be stored
-        in the variable. This should be one of the database type constants, DB
-        API constants, an object type returned from the method
-        Connection.gettype() or one of the following Python types:
+        The ``typ`` parameter specifies the type of data that should be stored
+        in the variable. This should be one of the :ref:`database type
+        constants <dbtypes>`, :ref:`DB API constants <types>`, an object type
+        returned from the method :meth:`Connection.gettype()` or one of the
+        following Python types:
 
-            Python Type         Database Type
-            bool                DB_TYPE_BOOLEAN
-            bytes               DB_TYPE_RAW
-            datetime.date       DB_TYPE_DATE
-            datetime.datetime   DB_TYPE_DATE
-            datetime.timedelta  DB_TYPE_INTERVAL_DS
-            decimal.Decimal     DB_TYPE_NUMBER
-            float               DB_TYPE_NUMBER
-            int                 DB_TYPE_NUMBER
-            str                 DB_TYPE_VARCHAR
+        - bool (uses :attr:`oracledb.DB_TYPE_BOOLEAN`)
+        - bytes (uses :attr:`oracledb.DB_TYPE_RAW`)
+        - datetime.date (uses :attr:`oracledb.DB_TYPE_DATE`)
+        - datetime.datetime (uses :attr:`oracledb.DB_TYPE_DATE`)
+        - datetime.timedelta (uses :attr:`oracledb.DB_TYPE_INTERVAL_DS`)
+        - decimal.Decimal (uses :attr:`oracledb.DB_TYPE_NUMBER`)
+        - float (uses :attr:`oracledb.DB_TYPE_NUMBER`)
+        - int (uses :attr:`oracledb.DB_TYPE_NUMBER`)
+        - str (uses :attr:`oracledb.DB_TYPE_VARCHAR`)
 
-        The size parameter specifies the length of string and raw variables and
-        is ignored in all other cases. If not specified for string and raw
-        variables, the value 4000 is used.
+        The ``size`` parameter specifies the length of string and raw variables
+        and is ignored in all other cases. If not specified for string and raw
+        variables, the value *4000* is used.
 
-        The arraysize parameter specifies the number of elements the variable
-        will have. If not specified the bind array size (usually 1) is used.
-        When a variable is created in an output type handler this parameter
-        should be set to the cursor’s array size.
+        The ``arraysize`` parameter specifies the number of elements the
+        variable will have. If not specified the bind array size (usually *1*)
+        is used. When a variable is created in an output type handler this
+        parameter should be set to the cursor's array size.
 
-        The inconverter and outconverter parameters specify methods used for
-        converting values to/from the database. More information can be found
-        in the section on variable objects.
+        The ``inconverter`` and ``outconverter`` parameters specify methods
+        used for converting values to/from the database. More information can
+        be found in the section on :ref:`variable objects<varobj>`.
 
-        The typename parameter specifies the name of a SQL object type and must
-        be specified when using type DB_TYPE_OBJECT unless the type object
-        was passed directly as the first parameter.
+        The ``typename`` parameter specifies the name of a SQL object type and
+        must be specified when using type :data:`oracledb.OBJECT` unless the
+        type object was passed directly as the first parameter.
 
-        The encoding_errors parameter specifies what should happen when
+        The ``encoding_errors`` parameter specifies what should happen when
         decoding byte strings fetched from the database into strings. It should
-        be one of the values noted in the builtin decode function.
+        be one of the values noted in the builtin `decode
+        <https://docs.python.org/3/library/stdtypes.html#bytes.decode>`__
+        function.
 
-        The bypass_decode parameter, if specified, should be passed as a
-        boolean value. Passing a True value causes values of database types
-        DB_TYPE_VARCHAR, DB_TYPE_CHAR, DB_TYPE_NVARCHAR, DB_TYPE_NCHAR and
-        DB_TYPE_LONG to be returned as bytes instead of str, meaning that
-        oracledb doesn't do any decoding.
+        The ``bypass_decode`` parameter, if specified, should be passed as a
+        boolean value. Passing a *True* value causes values of database types
+        :data:`~oracledb.DB_TYPE_VARCHAR`, :data:`~oracledb.DB_TYPE_CHAR`,
+        :data:`~oracledb.DB_TYPE_NVARCHAR`, :data:`~oracledb.DB_TYPE_NCHAR` and
+        :data:`~oracledb.DB_TYPE_LONG` to be returned as bytes instead of str,
+        meaning that python-oracledb does not do any decoding. See
+        :ref:`Fetching raw data <fetching-raw-data>` for more information.
 
-        The convert_nulls parameter specifies whether the outconverter should
-        be called when null values are fetched from the database.
+        The ``convert_nulls`` parameter, if specified, should be passed as a
+        boolean value. Passing the value *True* causes the ``outconverter`` to
+        be called when a null value is fetched from the database; otherwise,
+        the ``outconverter`` is only called when non-null values are fetched
+        from the database.
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter ``encodingErrors`` was renamed to ``encoding_errors``. The
+        old name will continue to work as a keyword parameter for a period of
+        time.
         """
         self._verify_open()
         if typename is not None:
@@ -562,10 +634,13 @@ class BaseCursor:
     @property
     def warning(self) -> Union[errors._Error, None]:
         """
-        Returns any warning that was generated during the last call to
-        execute() or executemany(), or the value None if no warning was
-        generated. This value will be cleared on the next call to execute() or
-        executemany().
+        This read-only attribute provides an
+        :ref:`oracledb._Error<exchandling>` object giving information about any
+        database warnings (such as PL/SQL compilation warnings) that were
+        generated during the last call to :meth:`execute()` or
+        :meth:`executemany()`. This value is automatically cleared on
+        the next call to :meth:`execute()` or :meth:`executemany()`. If no
+        warning was generated the value *None* is returned.
         """
         self._verify_open()
         return self._impl.warning
@@ -575,6 +650,9 @@ class Cursor(BaseCursor):
     __module__ = MODULE_NAME
 
     def __iter__(self):
+        """
+        Returns the cursor itself to be used as an iterator.
+        """
         return self
 
     def __next__(self):
@@ -612,11 +690,21 @@ class Cursor(BaseCursor):
         keywordParameters: Optional[dict] = None,
     ) -> Any:
         """
-        Call a function with the given name. The return type is specified in
-        the same notation as is required by setinputsizes(). The sequence of
-        parameters must contain one entry for each parameter that the function
-        expects. Any keyword parameters will be included after the positional
-        parameters. The result of the call is the return value of the function.
+        Calls a PL/SQL function with the given name and returns its value.
+
+        The ``return_type`` parameter is expected to be a Python type, one of
+        the :ref:`oracledb types <types>` or an
+        :ref:`Object Type <dbobjecttype>`.
+
+        The sequence of parameters must contain one entry for each parameter
+        that the PL/SQL function expects. Any keyword parameters will be
+        included after the positional parameters.
+
+        Use :meth:`var()` to define any OUT or IN OUT parameters, if necessary.
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter ``keywordParameters`` was renamed to ``keyword_parameters``.
+        The old name will continue to work for a period of time.
         """
         var = self.var(return_type)
         if keywordParameters is not None:
@@ -639,13 +727,24 @@ class Cursor(BaseCursor):
         keywordParameters: Optional[dict] = None,
     ) -> list:
         """
-        Call a procedure with the given name. The sequence of parameters must
-        contain one entry for each parameter that the procedure expects. The
-        result of the call is a modified copy of the input sequence. Input
-        parameters are left untouched; output and input/output parameters are
-        replaced with possibly new values. Keyword parameters will be included
-        after the positional parameters and are not returned as part of the
-        output sequence.
+        Calls a PL/SQL procedure with the given name.
+
+        The sequence of parameters must contain one entry for each parameter
+        that the procedure expects. The result of the call is a modified copy
+        of the input sequence. Input parameters are left untouched; output and
+        input/output parameters are replaced with possibly new values. Keyword
+        parameters will be included after the positional parameters and are not
+        returned as part of the output sequence.
+
+        Use :meth:`var()` to define any OUT or IN OUT parameters if necessary.
+
+        No query result set is returned by this method. Instead, use
+        :ref:`REF CURSOR <refcur>` parameters or
+        :ref:`Implicit Results <implicitresults>`.
+
+        For consistency and compliance with the PEP 8 naming style, the
+        parameter ``keywordParameters`` was renamed to ``keyword_parameters``.
+        The old name will continue to work for a period of time.
         """
         if keywordParameters is not None:
             if keyword_parameters is not None:
@@ -670,7 +769,7 @@ class Cursor(BaseCursor):
         **keyword_parameters: Any,
     ) -> Any:
         """
-        Execute a statement against the database.
+        Executes a statement against the database. See :ref:`sqlexecution`.
 
         Parameters may be passed as a dictionary or sequence or as keyword
         parameters. If the parameters are a dictionary, the values will be
@@ -685,28 +784,29 @@ class Cursor(BaseCursor):
         maps to the bind variable name used by the statement and the value maps
         to the Python value you wish bound to that bind variable.
 
-        A reference to the statement will be retained by the cursor. If None or
-        the same string object is passed in again, the cursor will execute that
-        statement again without performing a prepare or rebinding and
-        redefining. This is most effective for algorithms where the same
+        A reference to the statement will be retained by the cursor. If *None*
+        or the same string object is passed in again, the cursor will execute
+        that statement again without performing a prepare or rebinding and
+        redefining.  This is most effective for algorithms where the same
         statement is used, but different parameters are bound to it (many
         times). Note that parameters that are not passed in during subsequent
         executions will retain the value passed in during the last execution
         that contained them.
 
-        For maximum efficiency when reusing an statement, it is best to use the
-        setinputsizes() method to specify the parameter types and sizes ahead
-        of time; in particular, None is assumed to be a string of length 1 so
-        any values that are later bound as numbers or dates will raise a
-        TypeError exception.
+        The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+        transactions <sessionlesstxns>`. When set to *True*, the active
+        sessionless transaction will be suspended when ``execute()`` completes
+        successfully.  See :ref:`suspendtxns`.
 
-        If the statement is a query, the cursor is returned as a convenience to
-        the caller (so it can be used directly as an iterator over the rows in
-        the cursor); otherwise, None is returned.
+        For maximum efficiency when reusing a statement, it is best to use the
+        :meth:`Cursor.setinputsizes()` method to specify the parameter types
+        and sizes ahead of time; in particular, *None* is assumed to be a
+        string of length 1 so any values that are later bound as numbers or
+        dates will raise a TypeError exception.
 
-        suspend_on_success parameter is specific to sessionless transactions.
-        When set to True, the active sessionless transaction will be suspended
-        after the successful execution of the current statement.
+        If the statement is a SELECT query, the cursor is returned as a
+        convenience to the caller (so it can be used directly as an iterator
+        over the rows in the cursor); otherwise, *None* is returned.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
         self._impl.suspend_on_success = suspend_on_success
@@ -724,46 +824,55 @@ class Cursor(BaseCursor):
         suspend_on_success: bool = False,
     ) -> None:
         """
-        Prepare a statement for execution against a database and then execute
-        it against all parameter mappings or sequences found in the sequence
-        parameters.
+        Executes a SQL statement once using all bind value mappings or
+        sequences found in the sequence parameters. This can be used to insert,
+        update, or delete multiple rows in a table with a single
+        python-oracledb call. It can also invoke a PL/SQL procedure multiple
+        times. See :ref:`batchstmnt`.
 
-        The statement is managed in the same way as the execute() method
-        manages it. If the size of the buffers allocated for any of the
-        parameters exceeds 2 GB and you are using the thick implementation, you
-        will receive the error “DPI-1015: array size of <n> is too large”,
-        where <n> varies with the size of each element being allocated in the
-        buffer. If you receive this error, decrease the number of elements in
-        the sequence parameters.
+        The ``statement`` parameter is managed in the same way as the
+        :meth:`execute()` method manages it.
 
-        If there are no parameters, or parameters have previously been bound,
-        the number of iterations can be specified as an integer instead of
-        needing to provide a list of empty mappings or sequences.
+        The ``parameters`` parameter can be a list of tuples, where each tuple
+        item maps to one bind variable placeholder in ``statement``. It can
+        also be a list of dictionaries, where the keys match the bind variable
+        placeholder names in ``statement``. If there are no bind values, or
+        values have previously been bound, the ``parameters`` value can be an
+        integer specifying the number of iterations. The ``parameters``
+        parameter can also be a :ref:`DataFrame <oracledataframeobj>`, or a
+        third-party data frame that supports the `Apache Arrow PyCapsule
+        <https://arrow.apache.org/docs/
+        format/CDataInterface/PyCapsuleInterface.html>`__ Interface.
 
-        A data frame can also be supplied as the parameters, in which case the
-        Arrow arrays found within it are extracted and used as the parameters.
+        In python-oracledb Thick mode, if the size of the buffers allocated for
+        any of the parameters exceeds 2 GB, you will receive the error
+        ``DPI-1015: array size of <n> is too large``. If you receive this
+        error, decrease the number of rows being inserted.
 
-        When true, the batcherrors parameter enables batch error support within
-        Oracle and ensures that the call succeeds even if an exception takes
-        place in one or more of the sequence of parameters. The errors can then
-        be retrieved using getbatcherrors().
+        When *True*, the ``batcherrors`` parameter enables batch error support
+        within Oracle Database and ensures that the call succeeds even if an
+        exception takes place in one or more of the sequence of bind values.
+        The errors can then be retrieved using :meth:`getbatcherrors()`.
 
-        When true, the arraydmlrowcounts parameter enables DML row counts to be
-        retrieved from Oracle after the method has completed. The row counts
-        can then be retrieved using getarraydmlrowcounts().
+        When *True*, the ``arraydmlrowcounts`` parameter enables DML row counts
+        to be retrieved from Oracle after the method has completed. The row
+        counts can then be retrieved using
+        :meth:`getarraydmlrowcounts()`.
 
-        Both the batcherrors parameter and the arraydmlrowcounts parameter can
-        only be true when executing an insert, update, delete or merge
-        statement; in all other cases an error will be raised.
+        Both the ``batcherrors`` parameter and the ``arraydmlrowcounts``
+        parameter can only be *True* when executing an insert, update, delete,
+        or merge statement; in all other cases an error will be raised.
 
-        For maximum efficiency, it is best to use the setinputsizes() method to
-        specify the parameter types and sizes ahead of time; in particular,
-        None is assumed to be a string of length 1 so any values that are later
-        bound as numbers or dates will raise a TypeError exception.
+        The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+        transactions <sessionlesstxns>`. When set to *True*, the active
+        sessionless transaction will be suspended when ``executemany()``
+        completes successfully. See :ref:`suspendtxns`.
 
-        suspend_on_success parameter is specific to sessionless transactions.
-        When set to True, the active sessionless transaction will be suspended
-        after the successful execution of the current statement.
+        For maximum efficiency, it is best to use the :meth:`setinputsizes()`
+        method to specify the bind value types and sizes. In particular, if the
+        type is not explicitly specified, the value *None* is assumed to be a
+        string of length 1 so any values that are later bound as numbers or
+        dates will raise a TypeError exception.
         """
         self._verify_open()
         num_execs = self._impl._prepare_for_executemany(
@@ -777,14 +886,19 @@ class Cursor(BaseCursor):
 
     def fetchall(self) -> list:
         """
-        Fetch all (remaining) rows of a query result, returning them as a list
-        of tuples. An empty list is returned if no more rows are available.
-        Note that the cursor’s arraysize attribute can affect the performance
-        of this operation, as internally reads from the database are done in
-        batches corresponding to the arraysize.
+        Fetches all (remaining) rows of a SELECT query result, returning them
+        as a list of tuples. An empty list is returned if no more rows are
+        available. An exception is raised if the previous call to
+        :meth:`execute()` did not produce any result set or no call was issued
+        yet.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        Note that the cursor's :attr:`~Cursor.arraysize` attribute can affect
+        the performance of this operation, as internally data is fetched in
+        batches of that size from the database. See :ref:`Tuning Fetch
+        Performance <tuningfetch>`.
+
+        An exception is raised if the previous call to :meth:`execute()` did
+        not produce any result set or no call was issued yet.
         """
         self._verify_fetch()
         result = []
@@ -800,20 +914,19 @@ class Cursor(BaseCursor):
         self, size: Optional[int] = None, numRows: Optional[int] = None
     ) -> list:
         """
-        Fetch the next set of rows of a query result, returning a list of
-        tuples. An empty list is returned if no more rows are available. Note
-        that the cursor’s arraysize attribute can affect the performance of
-        this operation.
+        Fetches the next set of rows of a SELECT query result, returning a list
+        of tuples.  An empty list is returned if no more rows are available.
+        Note that the cursor's :attr:`arraysize` attribute can affect the
+        performance of this operation.
 
-        The number of rows to fetch is specified by the parameter (the second
-        parameter is retained for backwards compatibility and should not be
-        used). If it is not given, the cursor’s arraysize attribute determines
+        The number of rows to fetch is specified by the ``size`` parameter. If
+        it is not given, the cursor's :attr:`arraysize` attribute determines
         the number of rows to be fetched. If the number of rows available to be
         fetched is fewer than the amount requested, fewer rows will be
         returned.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        An exception is raised if the previous call to :meth:`execute()` did
+        not produce any result set or no call was issued yet.
         """
         self._verify_fetch()
         if size is None:
@@ -838,11 +951,14 @@ class Cursor(BaseCursor):
 
     def fetchone(self) -> Any:
         """
-        Fetch the next row of a query result set, returning a single tuple or
-        None when no more data is available.
+        Fetches the next row of a SELECT query result set, returning a single
+        tuple or *None* when no more data is available.  An exception is raised
+        if the previous call to :meth:`execute()` did not produce any result
+        set or no call was issued yet.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        When ``fetchone()`` is used to iterate over a result set, the cursor’s
+        :attr:`arraysize` attribute can affect performance, as internally data
+        is fetched in batches of that size from Oracle Database.
         """
         self._verify_fetch()
         return self._impl.fetch_next_row(self)
@@ -850,8 +966,8 @@ class Cursor(BaseCursor):
     def parse(self, statement: str) -> None:
         """
         This can be used to parse a statement without actually executing it
-        (this step is done automatically by Oracle when a statement is
-        executed).
+        (parsing step is done automatically by Oracle when a statement is
+        :meth:`executed <execute>`).
         """
         self._verify_open()
         self._prepare(statement)
@@ -859,16 +975,16 @@ class Cursor(BaseCursor):
 
     def scroll(self, value: int = 0, mode: str = "relative") -> None:
         """
-        Scroll the cursor in the result set to a new position according to the
+        Scrolls the cursor in the result set to a new position according to the
         mode.
 
-        If mode is "relative" (the default value), the value is taken as an
-        offset to the current position in the result set. If set to "absolute",
-        value states an absolute target position. If set to "first", the cursor
-        is positioned at the first row and if set to "last", the cursor is set
+        If mode is *relative* (the default value), the value is taken as an
+        offset to the current position in the result set. If set to *absolute*,
+        value states an absolute target position. If set to *first*, the cursor
+        is positioned at the first row and if set to *last*, the cursor is set
         to the last row in the result set.
 
-        An error is raised if the mode is "relative" or "absolute" and the
+        An error is raised if the mode is *relative* or *absolute* and the
         scroll operation would position the cursor outside of the result set.
         """
         self._verify_open()
@@ -879,15 +995,25 @@ class AsyncCursor(BaseCursor):
     __module__ = MODULE_NAME
 
     async def __aenter__(self):
+        """
+        The entry point for the cursor as a context manager. It returns itself.
+        """
         self._verify_open()
         return self
 
     async def __aexit__(self, *exc_info):
+        """
+        The exit point for the cursor as a context manager. It closes the
+        cursor.
+        """
         self._verify_open()
         self._impl.close(in_del=True)
         self._impl = None
 
     def __aiter__(self):
+        """
+        Returns the cursor itself to be used as an asynchronous iterator.
+        """
         return self
 
     async def __anext__(self):
@@ -905,11 +1031,17 @@ class AsyncCursor(BaseCursor):
         keyword_parameters: Optional[dict] = None,
     ) -> Any:
         """
-        Call a function with the given name. The return type is specified in
-        the same notation as is required by setinputsizes(). The sequence of
-        parameters must contain one entry for each parameter that the function
-        expects. Any keyword parameters will be included after the positional
-        parameters. The result of the call is the return value of the function.
+        Calls a PL/SQL function with the given name and returns its value.
+
+        The ``return_type`` parameter is expected to be a Python type, one of
+        the :ref:`oracledb types <types>` or an :ref:`Object Type
+        <dbobjecttype>`.
+
+        The sequence of parameters must contain one entry for each parameter
+        that the PL/SQL function expects. Any keyword parameters will be
+        included after the positional parameters.
+
+        Use :meth:`var()` to define any OUT or IN OUT parameters, if necessary.
         """
         var = self.var(return_type)
         await self._call(name, parameters, keyword_parameters, var)
@@ -922,13 +1054,20 @@ class AsyncCursor(BaseCursor):
         keyword_parameters: Optional[dict] = None,
     ) -> list:
         """
-        Call a procedure with the given name. The sequence of parameters must
-        contain one entry for each parameter that the procedure expects. The
-        result of the call is a modified copy of the input sequence. Input
-        parameters are left untouched; output and input/output parameters are
-        replaced with possibly new values. Keyword parameters will be included
-        after the positional parameters and are not returned as part of the
-        output sequence.
+        Calls a PL/SQL procedure with the given name.
+
+        The sequence of parameters must contain one entry for each parameter
+        that the procedure expects. The result of the call is a modified copy
+        of the input sequence. Input parameters are left untouched; output and
+        input/output parameters are replaced with possibly new values. Keyword
+        parameters will be included after the positional parameters and are not
+        returned as part of the output sequence.
+
+        Use :meth:`var()` to define any OUT or IN OUT parameters if necessary.
+
+        No query result set is returned by :meth:`callproc()`.  Instead, use
+        :ref:`REF CURSOR <refcur>` parameters or :ref:`Implicit Results
+        <implicitresults>`.
         """
         await self._call(name, parameters, keyword_parameters)
         if parameters is None:
@@ -945,7 +1084,7 @@ class AsyncCursor(BaseCursor):
         **keyword_parameters: Any,
     ) -> None:
         """
-        Execute a statement against the database.
+        Executes a statement against the database. See :ref:`sqlexecution`.
 
         Parameters may be passed as a dictionary or sequence or as keyword
         parameters. If the parameters are a dictionary, the values will be
@@ -960,24 +1099,29 @@ class AsyncCursor(BaseCursor):
         maps to the bind variable name used by the statement and the value maps
         to the Python value you wish bound to that bind variable.
 
-        A reference to the statement will be retained by the cursor. If None or
-        the same string object is passed in again, the cursor will execute that
-        statement again without performing a prepare or rebinding and
-        redefining. This is most effective for algorithms where the same
+        A reference to the statement will be retained by the cursor. If *None*
+        or the same string object is passed in again, the cursor will execute
+        that statement again without performing a prepare or rebinding and
+        redefining.  This is most effective for algorithms where the same
         statement is used, but different parameters are bound to it (many
         times). Note that parameters that are not passed in during subsequent
         executions will retain the value passed in during the last execution
         that contained them.
 
-        For maximum efficiency when reusing an statement, it is best to use the
-        setinputsizes() method to specify the parameter types and sizes ahead
-        of time; in particular, None is assumed to be a string of length 1 so
-        any values that are later bound as numbers or dates will raise a
-        TypeError exception.
+        The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+        transactions <sessionlesstxns>`. When set to *True*, the active
+        sessionless transaction will be suspended when ``execute()`` completes
+        successfully.  See :ref:`suspendtxns`.
 
-        suspend_on_success parameter is specific to sessionless transactions.
-        When set to True, the active sessionless transaction will be suspended
-        after the successful execution of the current statement.
+        For maximum efficiency when reusing a statement, it is best to use the
+        :meth:`setinputsizes()` method to specify the parameter types and sizes
+        ahead of time; in particular, *None* is assumed to be a string of
+        length 1 so any values that are later bound as numbers or dates will
+        raise a TypeError exception.
+
+        If the statement is a SELECT query, the cursor is returned as a
+        convenience to the caller (so it can be used directly as an iterator
+        over the rows in the cursor); otherwise, *None* is returned.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
         self._impl.suspend_on_success = suspend_on_success
@@ -992,43 +1136,54 @@ class AsyncCursor(BaseCursor):
         suspend_on_success: bool = False,
     ) -> None:
         """
-        Prepare a statement for execution against a database and then execute
-        it against all parameter mappings or sequences found in the sequence
-        parameters.
+        Executes a SQL statement once using all bind value mappings or
+        sequences found in the sequence parameters. This can be used to insert,
+        update, or delete multiple rows in a table with a single
+        python-oracledb call. It can also invoke a PL/SQL procedure multiple
+        times. See :ref:`batchstmnt`.
 
-        The statement is managed in the same way as the execute() method
-        manages it. If the size of the buffers allocated for any of the
-        parameters exceeds 2 GB and you are using the thick implementation, you
-        will receive the error “DPI-1015: array size of <n> is too large”,
-        where <n> varies with the size of each element being allocated in the
-        buffer. If you receive this error, decrease the number of elements in
-        the sequence parameters.
+        The ``statement`` parameter is managed in the same way as the
+        :meth:`execute()` method manages it.
 
-        If there are no parameters, or parameters have previously been bound,
-        the number of iterations can be specified as an integer instead of
-        needing to provide a list of empty mappings or sequences.
+        The ``parameters`` parameter can be a list of tuples, where each tuple
+        item maps to one bind variable placeholder in ``statement``. It can
+        also be a list of dictionaries, where the keys match the bind variable
+        placeholder names in ``statement``. If there are no bind values, or
+        values have previously been bound, the ``parameters`` value can be an
+        integer specifying the number of iterations. The ``parameters``
+        parameter can also be a :ref:`DataFrame <oracledataframeobj>`, or a
+        third-party data frame that supports the `Apache Arrow PyCapsule
+        <https://arrow.apache.org/docs/
+        format/CDataInterface/PyCapsuleInterface.html>`__ Interface.
 
-        When true, the batcherrors parameter enables batch error support within
-        Oracle and ensures that the call succeeds even if an exception takes
-        place in one or more of the sequence of parameters. The errors can then
-        be retrieved using getbatcherrors().
+        In python-oracledb Thick mode, if the size of the buffers allocated for
+        any of the parameters exceeds 2 GB, you will receive the error
+        ``DPI-1015: array size of <n> is too large``. If you receive this
+        error, decrease the number of rows being inserted.
 
-        When true, the arraydmlrowcounts parameter enables DML row counts to be
-        retrieved from Oracle after the method has completed. The row counts
-        can then be retrieved using getarraydmlrowcounts().
+        When True, the ``batcherrors`` parameter enables batch error support
+        within Oracle and ensures that the call succeeds even if an exception
+        takes place in one or more of the sequence of parameters. The errors
+        can then be retrieved using :meth:`getbatcherrors()`.
 
-        Both the batcherrors parameter and the arraydmlrowcounts parameter can
-        only be true when executing an insert, update, delete or merge
-        statement; in all other cases an error will be raised.
+        When True, the ``arraydmlrowcounts`` parameter enables DML row counts
+        to be retrieved from Oracle after the method has completed. The row
+        counts can then be retrieved using :meth:`getarraydmlrowcounts()`.
 
-        For maximum efficiency, it is best to use the setinputsizes() method to
-        specify the parameter types and sizes ahead of time; in particular,
-        None is assumed to be a string of length 1 so any values that are later
-        bound as numbers or dates will raise a TypeError exception.
+        Both the ``batcherrors`` parameter and the ``arraydmlrowcounts``
+        parameter can only be True when executing an insert, update, delete, or
+        merge statement. In all other cases, an error will be raised.
 
-        suspend_on_success parameter is specific to sessionless transactions.
-        When set to True, the active sessionless transaction will be suspended
-        after the successful execution of the current statement.
+        The ``suspend_on_success`` parameter is specific to :ref:`sessionless
+        transactions <sessionlesstxns>`. When set to *True*, the active
+        sessionless transaction will be suspended when ``executemany()``
+        completes successfully. See :ref:`suspendtxns`.
+
+        For maximum efficiency, it is best to use the :meth:`setinputsizes()`
+        method to specify the parameter types and sizes ahead of time. In
+        particular, the value *None* is assumed to be a string of length 1 so
+        any values that are later bound as numbers or dates will raise a
+        TypeError exception.
         """
         self._verify_open()
         num_execs = self._impl._prepare_for_executemany(
@@ -1042,14 +1197,15 @@ class AsyncCursor(BaseCursor):
 
     async def fetchall(self) -> list:
         """
-        Fetch all (remaining) rows of a query result, returning them as a list
-        of tuples. An empty list is returned if no more rows are available.
-        Note that the cursor’s arraysize attribute can affect the performance
-        of this operation, as internally reads from the database are done in
-        batches corresponding to the arraysize.
+        Fetches all (remaining) rows of a SELECT query result, returning them
+        as a list of tuples. An empty list is returned if no more rows are
+        available. An exception is raised if the previous call to
+        :meth:`execute()` did not produce any result set or no call was issued
+        yet.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        Note that the cursor's :attr:`~AsyncCursor.arraysize` attribute can
+        affect the performance of this operation, as internally data is fetched
+        in batches of that size from the database.
         """
         self._verify_fetch()
         result = []
@@ -1063,20 +1219,18 @@ class AsyncCursor(BaseCursor):
 
     async def fetchmany(self, size: Optional[int] = None) -> list:
         """
-        Fetch the next set of rows of a query result, returning a list of
-        tuples. An empty list is returned if no more rows are available. Note
-        that the cursor’s arraysize attribute can affect the performance of
-        this operation.
+        Fetches the next set of rows of a SELECT query result, returning a list
+        of tuples.  An empty list is returned if no more rows are available.
+        Note that the cursor's :attr:`arraysize` attribute can affect the
+        performance of this operation.
 
-        The number of rows to fetch is specified by the parameter (the second
-        parameter is retained for backwards compatibility and should not be
-        used). If it is not given, the cursor’s arraysize attribute determines
-        the number of rows to be fetched. If the number of rows available to be
-        fetched is fewer than the amount requested, fewer rows will be
-        returned.
+        The number of rows to fetch is specified by the parameter. If it is not
+        given, the cursor's :attr:`arraysize` attribute determines the number
+        of rows to be fetched. If the number of rows available to be fetched is
+        fewer than the amount requested, fewer rows will be returned.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        An exception is raised if the previous call to :meth:`execute()` did
+        not produce any result set or no call was issued yet.
         """
         self._verify_fetch()
         if size is None:
@@ -1092,11 +1246,14 @@ class AsyncCursor(BaseCursor):
 
     async def fetchone(self) -> Any:
         """
-        Fetch the next row of a query result set, returning a single tuple or
-        None when no more data is available.
+        Fetches the next row of a SELECT query result set, returning a single
+        tuple or *None* when no more data is available.  An exception is raised
+        if the previous call to :meth:`execute()` did not produce any result
+        set or no call was issued yet.
 
-        An exception is raised if the previous call to execute() did not
-        produce any result set or no call was issued yet.
+        When ``fetchone()`` is used to iterate over a result set, the cursor’s
+        :attr:`arraysize` attribute can affect performance, as internally data
+        is fetched in batches of that size from Oracle Database.
         """
         self._verify_fetch()
         return await self._impl.fetch_next_row(self)
@@ -1104,8 +1261,8 @@ class AsyncCursor(BaseCursor):
     async def parse(self, statement: str) -> None:
         """
         This can be used to parse a statement without actually executing it
-        (this step is done automatically by Oracle when a statement is
-        executed).
+        (parsing step is done automatically by Oracle when a statement is
+        :meth:`executed <execute>`).
         """
         self._verify_open()
         self._prepare(statement)
@@ -1113,16 +1270,16 @@ class AsyncCursor(BaseCursor):
 
     async def scroll(self, value: int = 0, mode: str = "relative") -> None:
         """
-        Scroll the cursor in the result set to a new position according to the
+        Scrolls the cursor in the result set to a new position according to the
         mode.
 
-        If mode is "relative" (the default value), the value is taken as an
-        offset to the current position in the result set. If set to "absolute",
-        value states an absolute target position. If set to "first", the cursor
-        is positioned at the first row and if set to "last", the cursor is set
+        If mode is *relative* (the default value), the value is taken as an
+        offset to the current position in the result set. If set to *absolute*,
+        value states an absolute target position. If set to *first*, the cursor
+        is positioned at the first row and if set to *last*, the cursor is set
         to the last row in the result set.
 
-        An error is raised if the mode is "relative" or "absolute" and the
+        An error is raised if the mode is *relative* or *absolute* and the
         scroll operation would position the cursor outside of the result set.
         """
         self._verify_open()

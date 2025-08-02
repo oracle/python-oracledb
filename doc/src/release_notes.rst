@@ -23,6 +23,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  API documentation is now generated from the source code.
+
 
 oracledb `3.3.0 <https://github.com/oracle/python-oracledb/compare/v3.2.0...v3.3.0>`__ (July 2025)
 --------------------------------------------------------------------------------------------------

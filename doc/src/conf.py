@@ -12,10 +12,14 @@
 # serve to show the default value.
 
 import os
+import pathlib
 import sys
 
 # If your extensions are in another directory, add it here.
 sys.path.append(os.path.abspath("_ext"))
+
+# include the path of the source so that autodoc willfunction
+sys.path.insert(0, str(pathlib.Path("..", "src").resolve()))
 
 # General configuration
 # ---------------------
@@ -27,7 +31,11 @@ extensions = [
     "oracle_deprecated",
     "dbapi_extension",
     "sphinx_rtd_theme",
+    "sphinx.ext.autodoc",
 ]
+
+# preserve defaults in function signatures
+autodoc_preserve_defaults = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = [".templates"]

@@ -2154,13 +2154,6 @@ Oracledb Methods
 
         The ``connection_id_prefix`` parameter was added.
 
-.. function:: Cursor(connection)
-
-    Constructor for creating a cursor.  Returns a new
-    :ref:`cursor object <cursorobj>` using the connection.
-
-    .. dbapimethodextension::
-
 .. function:: Date(year, month, day)
 
     Constructs an object holding a date value.
