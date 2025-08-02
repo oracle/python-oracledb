@@ -1,4 +1,2 @@
 sphinx>=4.2.0
 sphinx-rtd-theme>=0.5.2
-oracledb
-cryptography
