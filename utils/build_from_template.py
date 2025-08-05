@@ -146,11 +146,13 @@ def args_help_with_defaults_content(indent):
     """
     Generates the content for the args_help_with_defaults template tag.
     """
-    raw_descriptions = [
-        f"- {f.name}: {f.description} (default: {f.default})"
-        for f in fields
-        if f.description
-    ]
+    raw_descriptions = []
+    for f in fields:
+        if not f.description:
+            continue
+        raw_descriptions.append(f"- {f.name}: {f.description}")
+        raw_descriptions.append(f"  (default: {f.default})")
+        raw_descriptions.append("")
     descriptions = [
         textwrap.fill(
             d,
@@ -158,9 +160,9 @@ def args_help_with_defaults_content(indent):
             subsequent_indent=indent + "  ",
             width=TEXT_WIDTH,
         )
-        for d in raw_descriptions
+        for d in raw_descriptions[:-1]
     ]
-    return "\n\n".join(descriptions).strip()
+    return "\n".join(descriptions).strip()
 
 
 def args_help_without_defaults_content(indent):
