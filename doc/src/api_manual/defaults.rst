@@ -50,7 +50,7 @@ Defaults Attributes
         heuristic.
 
         At completion of a call to :meth:`oracledb.init_oracle_client()` in
-        Thick mode, the value of :attr:`defaults.config_dir` may get changed
+        Thick mode, the value of :attr:`Defaults.config_dir` may get changed
         by python-oracledb.
 
 .. autoproperty:: Defaults.driver_name

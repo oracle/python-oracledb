@@ -1084,9 +1084,9 @@ class Connection(BaseConnection):
 
         The ``arraysize`` parameter can be specified to tune performance of
         fetching data across the network. It defaults to
-        :attr:`defaults.arraysize`. Internally, the ``fetch_df_all()``'s
-        :attr:`Cursor.prefetchrows` size is always set to the value of the
-        explicit or default ``arraysize`` parameter value.
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`. Internally,
+        the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
+        to the value of the explicit or default ``arraysize`` parameter value.
 
         Any LOB fetched must be less than 1 GB.
         """
@@ -1116,8 +1116,9 @@ class Connection(BaseConnection):
         match the bind variable placeholder names in ``statement``.
 
         The ``size`` parameter controls the number of records fetched in each
-        batch. It defaults to :attr:`defaults.arraysize`. Internally, the
-        ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
+        batch. It defaults to
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`. Internally,
+        the ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
         :attr:`Cursor.prefetchrows` sizes are always set to the value of the
         explicit or default ``size`` parameter value.
 
@@ -2246,7 +2247,8 @@ class AsyncConnection(BaseConnection):
         """
         Executes a query and returns all of the rows.
 
-        The default value for ``arraysize`` is :attr:`defaults.arraysize`.
+        The default value for ``arraysize`` is
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.
 
         Internally, this method's :attr:`AsyncCursor.prefetchrows` size is set
         to the value of the explicit or default ``arraysize`` parameter value.
@@ -2280,9 +2282,9 @@ class AsyncConnection(BaseConnection):
 
         The ``arraysize`` parameter can be specified to tune performance of
         fetching data across the network. It defaults to
-        :attr:`defaults.arraysize`.  Internally, the ``fetch_df_all()``'s
-        :attr:`Cursor.prefetchrows` size is always set to the value of the
-        explicit or default ``arraysize`` parameter value.
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.  Internally,
+        the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
+        to the value of the explicit or default ``arraysize`` parameter value.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
@@ -2310,8 +2312,9 @@ class AsyncConnection(BaseConnection):
         match the bind variable placeholder names in ``statement``.
 
         The ``size`` parameter controls the number of records fetched in each
-        batch. It defaults to :attr:`defaults.arraysize`. Internally, the
-        ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
+        batch. It defaults to
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`. Internally,
+        the ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
         :attr:`Cursor.prefetchrows` sizes are always set to the value of the
         explicit or default ``size`` parameter value.
         """
@@ -2338,7 +2341,7 @@ class AsyncConnection(BaseConnection):
         Executes a query and returns up to the specified number of rows.
 
         The default value for ``num_rows`` is the value of
-        :attr:`defaults.arraysize`.
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.
 
         Internally, this method's :attr:`AsyncCursor.prefetchrows` size is set
         to the value of the explicit or default ``num_rows`` parameter,

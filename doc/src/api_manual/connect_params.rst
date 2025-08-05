@@ -139,9 +139,10 @@ All properties are read only.
 .. autoproperty:: ConnectParams.driver_name
 
     This is an arbitrary value set by the user in the
-    :meth:`oracledb.ConnectParams()` method or the :attr:`defaults.driver_name`
-    attribute which is the default value. This is the value shown in the
-    CLIENT_DRIVER column of the V$SESSION_CONNECT_INFO view.
+    :meth:`oracledb.ConnectParams()` method or the
+    :attr:`oracledb.defaults.driver_name <Defaults.driver_name>` attribute
+    which is the default value. This is the value shown in the CLIENT_DRIVER
+    column of the V$SESSION_CONNECT_INFO view.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
@@ -193,9 +194,10 @@ All properties are read only.
 .. autoproperty:: ConnectParams.machine
 
     This is an arbitrary value set by the user in the
-    :meth:`oracledb.ConnectParams()` method or the :attr:`defaults.machine`
-    attribute which is the default value. This is the value shown in the
-    MACHINE column of the V$SESSION view.
+    :meth:`oracledb.ConnectParams()` method or the
+    :attr:`oracledb.defaults.machine <Defaults.machine>` attribute which is the
+    default value. This is the value shown in the MACHINE column of the
+    V$SESSION view.
 
     This attribute is only supported in python-oracledb Thin mode.
 
@@ -210,9 +212,10 @@ All properties are read only.
 .. autoproperty:: ConnectParams.osuser
 
     This is an arbitrary value set by the user in the
-    :meth:`oracledb.ConnectParams()` method or the :attr:`defaults.osuser`
-    attribute which is the default value. This is the value shown in the OSUSER
-    column of the V$SESSION view.
+    :meth:`oracledb.ConnectParams()` method or the
+    :attr:`oracledb.defaults.osuser <Defaults.osuser>` attribute which is the
+    default value. This is the value shown in the OSUSER column of the
+    V$SESSION view.
 
     This attribute is only supported in python-oracledb Thin mode.
 
@@ -249,9 +252,10 @@ All properties are read only.
 .. autoproperty:: ConnectParams.program
 
     This is an arbitrary value set by the user in the
-    :meth:`oracledb.ConnectParams()` method or the :attr:`defaults.program`
-    attribute which is the default value. This is the value shown in the
-    PROGRAM column of the V$SESSION view.
+    :meth:`oracledb.ConnectParams()` method or the
+    :attr:`oracledb.defaults.program <Defaults.program>` attribute which is the
+    default value. This is the value shown in the PROGRAM column of the
+    V$SESSION view.
 
     This attribute is supported in python-oracledb Thin mode.
 
@@ -350,22 +354,23 @@ All properties are read only.
         The default value of this attribute was changed from *60.0* seconds to
         *20.0* seconds.
 
+.. autoproperty:: ConnectParams.terminal
+
+    This is an arbitrary value set by the user in the
+    :meth:`oracledb.ConnectParams()` method or the
+    :attr:`oracledb.defaults.terminal <Defaults.terminal>` attribute which is
+    the default value. This is the value shown in the TERMINAL column of the
+    V$SESSION view.
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+    .. versionadded:: 2.5.0
+
 .. autoproperty:: ConnectParams.use_sni
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
     .. versionadded:: 3.0.0
-
-.. autoproperty:: ConnectParams.terminal
-
-    This is an arbitrary value set by the user in the
-    :meth:`oracledb.ConnectParams()` method or the :attr:`defaults.terminal`
-    attribute which is the default value. This is the value shown in the
-    TERMINAL column of the V$SESSION view.
-
-    This attribute is only supported in python-oracledb Thin mode.
-
-    .. versionadded:: 2.5.0
 
 .. autoproperty:: ConnectParams.thick_mode_dsn_passthrough
 

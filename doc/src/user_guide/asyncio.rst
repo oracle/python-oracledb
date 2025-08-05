@@ -445,7 +445,8 @@ To limit the time for a pipeline, use an `asyncio timeout
 from Python 3.11.
 
 To tune fetching of rows with :meth:`Pipeline.add_fetchall()`, set
-:attr:`defaults.arraysize` or pass the ``arraysize`` parameter.
+:attr:`oracledb.defaults.arraysize <Defaults.arraysize>` or pass the
+``arraysize`` parameter.
 
 Pipelining Examples
 +++++++++++++++++++

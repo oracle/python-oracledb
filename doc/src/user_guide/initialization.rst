@@ -487,9 +487,9 @@ one wins):
       params = oracledb.ConnectParams(config_dir="/opt/oracle/config")
       connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb", params=params)
 
-- the value of :attr:`defaults.config_dir`, which may have been set explicitly
-  to a directory, or internally set during initialization to ``$TNS_ADMIN`` or
-  ``$ORACLE_HOME/network/admin``.
+- the value of :attr:`oracledb.defaults.config_dir <Defaults.config_dir>`,
+  which may have been set explicitly to a directory, or internally set during
+  initialization to ``$TNS_ADMIN`` or ``$ORACLE_HOME/network/admin``.
 
   .. code-block:: python
 

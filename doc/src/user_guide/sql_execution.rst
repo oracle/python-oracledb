@@ -562,9 +562,9 @@ Oracle Database uses decimal numbers and these cannot be converted seamlessly
 to binary number representations like Python floats. In addition, the range of
 Oracle numbers exceeds that of floating point numbers. Python has decimal
 objects which do not have these limitations. In python-oracledb you can set
-:attr:`defaults.fetch_decimals` so that Decimals are returned to the
-application, ensuring that numeric precision is not lost when fetching certain
-numbers.
+:attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` so that
+Decimals are returned to the application, ensuring that numeric precision is
+not lost when fetching certain numbers.
 
 The following code sample demonstrates the issue:
 
@@ -594,8 +594,9 @@ This displays ``7.1 * 3 = 21.3``
 See `samples/return_numbers_as_decimals.py
 <https://github.com/oracle/python-oracledb/blob/main/samples/return_numbers_as_decimals.py>`__
 
-An equivalent, longer, older coding idiom to :attr:`defaults.fetch_decimals` is
-to use an :ref:`output type handler <outputtypehandlers>` do the conversion.
+An equivalent, longer, older coding idiom to setting
+:attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` is to use an
+:ref:`output type handler <outputtypehandlers>` to do the conversion.
 
 .. code-block:: python
 

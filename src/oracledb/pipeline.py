@@ -335,7 +335,8 @@ class Pipeline:
         :attr:`~PipelineOpResult.rows` attribute populated with the list of
         rows returned by the query.
 
-        The default value for ``arraysize`` is :attr:`defaults.arraysize`.
+        The default value for ``arraysize`` is
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.
 
         Internally, this operation's :attr:`Cursor.prefetchrows` size is set
         to the value of the explicit or default ``arraysize`` parameter value.
@@ -369,7 +370,7 @@ class Pipeline:
         rows returned by the query.
 
         The default value for ``num_rows`` is the value of
-        :attr:`defaults.arraysize`.
+        :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.
 
         Internally, this operation's :attr:`Cursor.prefetchrows` size is set to
         the value of the explicit or default ``num_rows`` parameter, allowing

@@ -69,7 +69,7 @@ class Defaults:
         Thin mode.
 
         This attribute is used in python-oracledb Thin mode. It is also used in
-        Thick mode if :attr:`defaults.thick_mode_dsn_passthrough` is *False*.
+        Thick mode if :attr:`Defaults.thick_mode_dsn_passthrough` is *False*.
         """
         return self._impl.config_dir
 
@@ -263,7 +263,7 @@ class Defaults:
         self._impl.driver_name = value
 
     @property
-    def thick_mode_dsn_passthrough(self) -> str:
+    def thick_mode_dsn_passthrough(self) -> bool:
         """
         This read-write attribute determines whether
         :ref:`connection strings <connstr>` passed as the ``dsn`` parameter to

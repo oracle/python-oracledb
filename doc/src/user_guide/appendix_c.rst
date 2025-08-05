@@ -349,7 +349,8 @@ need to be made in addition to the common :ref:`commonupgrade`:
    python-oracledb Thick mode.
 
 2. If the ``config_dir`` parameter of :func:`~oracledb.init_oracle_client` had
-   been used, then set the new :attr:`defaults.config_dir` attribute to the
+   been used, then set the new
+   :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` attribute to the
    desired value or set the ``config_dir`` parameter in your connection or pool
    creation method call.  For example:
 
@@ -368,8 +369,9 @@ need to be made in addition to the common :ref:`commonupgrade`:
    Also, see :ref:`sqlnetclientconfig`.
 
 3. If the ``driver_name`` parameter of :func:`~oracledb.init_oracle_client` had
-   been used, then set the new :attr:`defaults.driver_name` attribute to the
-   desired value or set the ``driver_name`` parameter when connecting.  The
+   been used, then set the new
+   :attr:`oracledb.defaults.driver_name <Defaults.driver_name>` attribute to
+   the desired value or set the ``driver_name`` parameter when connecting.  The
    convention for this parameter is to separate the product name from the
    product version by a colon and single blank characters. For example:
 
@@ -390,7 +392,8 @@ need to be made in addition to the common :ref:`commonupgrade`:
 5. To connect using a :ref:`TNS Alias <netservice>` from a ``tnsnames.ora``
    file (see :ref:`optnetfiles`) in python-oracledb Thin mode, you should
    explicitly set the environment variable ``TNS_ADMIN`` to the directory
-   containing the file, or set :attr:`defaults.config_dir`, or set the
+   containing the file, or set
+   :attr:`oracledb.defaults.config_dir <Defaults.config_dir>`, or set the
    ``config_dir`` parameter when connecting.
 
    A ``tnsnames.ora`` file in a "default" location such as the Instant Client

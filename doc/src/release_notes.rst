@@ -280,7 +280,9 @@ Common Changes
     - Added support for CLOB, BLOB, and RAW data types
     - Fixed support for BOOLEAN data type
     - Fixed bug when NUMBER data is fetched that does not have a precision or
-      scale specified and :attr:`defaults.fetch_decimals` is set to *True*.
+      scale specified and
+      :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` is set
+      to *True*.
     - More efficient processing when a significant amount of data is duplicated
       from one row to the next
     - Avoid memory allocation/free cycles for decimal data
@@ -298,7 +300,8 @@ Common Changes
 #)  An error message that links to :ref:`documentation <ldapconnections>` on
     setting up a protocol hook function is now returned by default for LDAP and
     LDAPS URL connection strings in python-oracledb Thin mode, or when
-    :attr:`defaults.thick_mode_dsn_passthrough` is *False*.
+    :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+    <Defaults.thick_mode_dsn_passthrough>` is *False*.
 #)  Error ``DPY-2062: payload cannot be enqueued since it does not match the
     payload type supported by the queue`` is now raised when the payload of a
     message being enqueued is not supported by the queue. Previously,
@@ -379,14 +382,16 @@ Thick Mode Changes
 ++++++++++++++++++
 
 #)  At successful completion of a call to :meth:`oracledb.init_oracle_client()`,
-    the value of :attr:`defaults.config_dir` may get set by python-oracledb in
-    some cases. For example it might be set to the configuration directory that
-    is relative to the loaded Oracle Client libraries.
+    the value of :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` may
+    get set by python-oracledb in some cases. For example it might be set to
+    the configuration directory that is relative to the loaded Oracle Client
+    libraries.
 #)  Connect string parsing and :ref:`tnsnames.ora <optnetfiles>` file handling
     can be configured with the new parameter
-    :attr:`defaults.thick_mode_dsn_passthrough` which can be helpful for
-    application portability. When it is `False`, python-oracledb Thick mode
-    behaves similarly to Thin mode.
+    :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+    <Defaults.thick_mode_dsn_passthrough>` which can be helpful for application
+    portability. When it is `False`, python-oracledb Thick mode behaves
+    similarly to Thin mode.
 #)  Fixed bug that caused :attr:`oracledb._Error.isrecoverable` to always be
     `False`.
 
@@ -428,9 +433,9 @@ Common Changes
     :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
     provide additional metadata about
     :ref:`database object attributes <dbobjectattr>`.
-#)  The attribute :attr:`defaults.config_dir` is now set to
-    ``$ORACLE_HOME/network/admin`` if the environment variable ``ORACLE_HOME``
-    is set and ``TNS_ADMIN`` is *not* set.
+#)  The attribute :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` is
+    now set to ``$ORACLE_HOME/network/admin`` if the environment variable
+    ``ORACLE_HOME`` is set and ``TNS_ADMIN`` is *not* set.
 #)  All connect strings are parsed by the driver if the new parameter
     ``thick_mode_dsn_passthrough`` is set to *True*. Previously, only Thin
     mode parsed all connect strings and Thick mode passed the connect string
@@ -451,8 +456,9 @@ Common Changes
     :meth:`oracledb.connect_async()`, :meth:`oracledb.create_pool()` and
     :meth:`oracledb.create_pool_async()`
     (`issue 438 <https://github.com/oracle/python-oracledb/issues/438>`__).
-#)  Fix typing issues with setters for :attr:`defaults.fetch_lobs` and
-    :attr:`defaults.fetch_decimals`
+#)  Fix typing issues with setters for
+    :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` and
+    :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`
     (`issue 458 <https://github.com/oracle/python-oracledb/issues/458>`__).
 #)  Error ``DPY-2053: python-oracledb thin mode cannot be used because thick
     mode has already been enabled`` is now raised when attempting to use
@@ -520,11 +526,11 @@ Thin Mode Changes
     :attr:`Connection.serial_num` that provide information about the session
     identifier and session serial number associated with a connection.
 #)  Added attributes
-    :attr:`oracledb.defaults.driver_name <defaults.driver_name>`,
-    :attr:`oracledb.defaults.machine <defaults.machine>`,
-    :attr:`oracledb.defaults.osuser <defaults.osuser>`,
-    :attr:`oracledb.defaults.program <defaults.program>`, and
-    :attr:`oracledb.defaults.terminal <defaults.terminal>` to set
+    :attr:`oracledb.defaults.driver_name <Defaults.driver_name>`,
+    :attr:`oracledb.defaults.machine <Defaults.machine>`,
+    :attr:`oracledb.defaults.osuser <Defaults.osuser>`,
+    :attr:`oracledb.defaults.program <Defaults.program>`, and
+    :attr:`oracledb.defaults.terminal <Defaults.terminal>` to set
     information about the driver name, machine name, operating system user,
     program name, and terminal name respectively. The ``driver_name``,
     ``machine``, ``osuser``, ``program``, and ``terminal`` parameters were also
@@ -1677,7 +1683,8 @@ Thin Mode Changes
 #)  Fixed bug with handling of redirect data returned by some SCAN listeners
     (`issue 39 <https://github.com/oracle/python-oracledb/issues/39>`__).
 #)  Fixed bug with re-execution of SQL that requires a define, such as occurs
-    when setting `oracledb.defaults.fetch_lobs` to the value `False`
+    when setting :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` to
+    the value `False`
     (`issue 41 <https://github.com/oracle/python-oracledb/issues/41>`__).
 #)  Fixed bug that prevented cursors from implicit results sets from being
     closed.

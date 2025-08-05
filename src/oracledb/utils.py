@@ -157,15 +157,16 @@ def init_oracle_client(
     :ref:`otherinit`.
 
     At successful completion of a call to ``oracledb.init_oracle_client()``,
-    the attribute :attr:`defaults.config_dir` will be set as determined below
-    (first one wins):
+    the attribute :attr:`oracledb.defaults.config_dir <Defaults.config_dir>`
+    will be set as determined below (first one wins):
 
     - the value of the ``oracledb.init_oracle_client()`` parameter
       ``config_dir``, if one was passed.
 
-    - the value of :attr:`defaults.config_dir` if it has one. I.e.
-      :attr:`defaults.config_dir` remains unchanged after
-      ``oracledb.init_oracle_client()`` completes.
+    - the value of :attr:`oracledb.defaults.config_dir <Defaults.config_dir>`
+      if it has one. i.e.
+      :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` remains
+      unchanged after ``oracledb.init_oracle_client()`` completes.
 
     - the value of the environment variable ``$TNS_ADMIN``, if it is set.
 
@@ -175,8 +176,8 @@ def init_oracle_client(
     - the directory of the loaded Oracle Client library, appended with
       ``network/admin``. Note this directory is not determinable on AIX.
 
-    - otherwise the value *None* is used. (Leaving :attr:`defaults.config_dir`
-      unchanged).
+    - otherwise the value *None* is used. (Leaving
+      :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` unchanged).
     """
     thick_impl.init_oracle_client(lib_dir, config_dir, error_url, driver_name)
 

@@ -443,18 +443,20 @@ syntax. Perform one of the following:
 
       c = oracledb.connect(user="hr", password=userpw, dsn="(DESCRIPTION=(ADDRESS=(...))")
 
-- Review the :attr:`defaults.config_dir` documentation for the heuristics used
-  by python-oracledb to automatically locate :ref:`tnsnames.ora
-  <optnetfiles>`. Ensure that your file is in an expected location, that the
-  file is readable by Python, and that any necessary environment variables such
-  as ``TNS_ADMIN`` are accessible by the Python process.
+- Review the :attr:`oracledb.defaults.config_dir <Defaults.config_dir>`
+  documentation for the heuristics used by python-oracledb to automatically
+  locate :ref:`tnsnames.ora <optnetfiles>`. Ensure that your file is in an
+  expected location, that the file is readable by Python, and that any
+  necessary environment variables such as ``TNS_ADMIN`` are accessible by the
+  Python process.
 
 - If you have problems with the heuristics, then you can explicitly specify the
   location of :ref:`tnsnames.ora <optnetfiles>`. For example, if the file is at
   ``/opt/myconfigdir/tnsnames.ora``, then:
 
   - In python-oracledb's default Thin mode, or when
-    :attr:`defaults.thick_mode_dsn_passthrough` is *False*, you can use:
+    :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+    <Defaults.thick_mode_dsn_passthrough>` is *False*, you can use:
 
     .. code-block:: python
 

@@ -199,8 +199,9 @@ Oracledb Methods
 
     .. versionchanged:: 3.0.0
 
-        At completion of the method, the value of :attr:`defaults.config_dir`
-        may get changed by python-oracledb.
+        At completion of the method, the value of
+        :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` may get
+        changed by python-oracledb.
 
     .. versionchanged:: 2.5.0
 
@@ -1905,7 +1906,8 @@ stored configuration information. Python-oracledb then uses this information to
 connect to Oracle Database.
 
 To use this plugin in python-oracledb Thick mode, you must set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
 :meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
 See :ref:`ociobjstorageprovider` for more information.
@@ -1930,7 +1932,8 @@ stored configuration information. Python-oracledb then uses this information to
 connect to Oracle Database.
 
 To use this plugin in python-oracledb Thick mode, you must set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
 :meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
 See :ref:`azureappstorageprovider` for more information.

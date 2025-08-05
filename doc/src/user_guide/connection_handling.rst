@@ -480,11 +480,13 @@ In python-oracledb Thin mode, an additional :ref:`connection protocol hook
 function <registerprotocolhook>` is required to handle this connection
 protocol, see :ref:`ldapconnections`. A connection protocol hook function is
 also required in python-oracledb Thick mode if
-:attr:`defaults.thick_mode_dsn_passthrough` is *False*.
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *False*.
 
 To use LDAP URLs in python-oracledb Thick mode applications when
-:attr:`defaults.thick_mode_dsn_passthrough` is *True*, the Oracle Client
-libraries must be 23.4, or later.
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *True*, the Oracle Client libraries
+must be 23.4, or later.
 
 
 .. _configproviderurl:
@@ -631,11 +633,13 @@ you in python-oracledb, then you can alter the connection string to include a
 protocol such as ``tcp://hostname``, or a port number such as
 ``hostname:1521``.
 
-In python-oracledb Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough`
-is *False*, any ``DESCRIPTION``, ``CONNECT_DATA`` and ``SECURITY`` parameters
-of a full connect descriptor that are unrecognized by python-oracledb are
-passed to the database unchanged. Any Easy Connect parameters that are not
-known to python-oracledb are discarded and not passed to the database.
+In python-oracledb Thick mode, when
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *False*, any ``DESCRIPTION``,
+``CONNECT_DATA`` and ``SECURITY`` parameters of a full connect descriptor that
+are unrecognized by python-oracledb are passed to the database unchanged. Any
+Easy Connect parameters that are not known to python-oracledb are discarded and
+not passed to the database.
 
 .. _pyoparams:
 
@@ -922,16 +926,17 @@ The following configuration providers are supported by python-oracledb:
 
 To use python-oracledb :ref:`Centralized Configuration Provider
 <configurationproviders>` functionality in Thick mode, you should set
-:attr:`defaults.thick_mode_dsn_passthrough` to *False*. Alternatively use
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
 :meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
-Note: In Thick mode, when :attr:`defaults.thick_mode_dsn_passthrough` is
-*True*, it is the Oracle Client libraries that access the configuration
-provider when python-oracledb connection or pool creation methods are
-invoked. Any python-oracledb parameter section will be ignored. Any Oracle
-Client Interface parameter section should be *removed* from the configuration
-because its values may be different to those that python-oracledb assumes, and
-will cause undefined behavior.
+Note: In Thick mode, when :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *True*, it is the Oracle Client
+libraries that access the configuration provider when python-oracledb
+connection or pool creation methods are invoked. Any python-oracledb parameter
+section will be ignored. Any Oracle Client Interface parameter section should
+be *removed* from the configuration because its values may be different to
+those that python-oracledb assumes, and will cause undefined behavior.
 
 **Precedence of Attributes**
 
@@ -1036,11 +1041,20 @@ The elements of the ``dsn`` parameter are detailed in the table below.
     * - Parameter
       - Description
     * - ``config-file``
-      - Indicates that the centralized configuration provider is a file in your local system.
+      - Indicates that the centralized configuration provider is a file in your
+        local system.
     * - <file-name>
-      - The file path and name of the JSON file that contains the configuration information. For relative paths, python-oracledb will use the connection or pool creation ``config_dir`` parameter, or :attr:`defaults.config_dir` value, to create an absolute path.
+      - The file path and name of the JSON file that contains the configuration
+        information. For relative paths, python-oracledb will use the
+        connection or pool creation ``config_dir`` parameter, or
+        :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` value, to
+        create an absolute path.
     * - ``key``
-      - The connection key name used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key value. If not specified, the file is assumed to contain a single configuration. See the example further below.
+      - The connection key name used to identify a specific configuration. If
+        this parameter is specified, the file is assumed to contain multiple
+        configurations that are indexed by the key value. If not specified, the
+        file is assumed to contain a single configuration. See the example
+        further below.
 
 **File Configuration Provider Examples**
 
@@ -1696,9 +1710,9 @@ hook function is expected to construct valid connection details, which
 python-oracledb will use to complete the connection or pool creation.
 
 You can also make use of a protocol hook function in python-oracledb Thick mode
-connection calls by setting :attr:`defaults.thick_mode_dsn_passthrough` to
-*False*. Alternatively use :meth:`ConnectParams.parse_connect_string()`, see
-:ref:`usingconnparams`.
+connection calls by setting :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
+:meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
 
 For example, the following hook function handles connection strings prefixed
 with the ``tcp://`` protocol. When :func:`oracledb.connect()` is called, the
@@ -1932,9 +1946,10 @@ connect with an LDAP URL. For example:
     connection = oracledb.connect(user="scott", password=pw, dsn=ldapurl)
 
 To use an LDAP URL in python-oracledb Thick mode when
-:attr:`defaults.thick_mode_dsn_passthrough` is *False*, a connection hook
-function is required as shown below for Thin mode. This lets LDAP URLs be
-utilized when python-oracledb uses any supported Oracle Client library version.
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *False*, a connection hook function
+is required as shown below for Thin mode. This lets LDAP URLs be utilized when
+python-oracledb uses any supported Oracle Client library version.
 
 **Python-oracledb Thin Mode LDAP URLs**
 

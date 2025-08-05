@@ -161,8 +161,8 @@ When converting Oracle Database NUMBERs:
   querying an expression that results in a number without precision or scale,
   then the Arrow data type will be DOUBLE.
 
-- If :attr:`defaults.fetch_decimals` is set to *True*, then the Arrow data
-  type is DECIMAL128.
+- If :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` is set
+  to *True*, then the Arrow data type is DECIMAL128.
 
 - If the column has been created with a scale of *0*, and a precision value
   that is less than or equal to *18*, then the Arrow data type is INT64.
