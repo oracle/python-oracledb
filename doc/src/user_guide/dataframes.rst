@@ -1,5 +1,7 @@
 .. _dataframeformat:
 
+.. currentmodule:: oracledb
+
 ************************
 Working with Data Frames
 ************************

@@ -1,5 +1,7 @@
 .. _tracingsql:
 
+.. currentmodule:: oracledb
+
 ***********************
 Tracing python-oracledb
 ***********************

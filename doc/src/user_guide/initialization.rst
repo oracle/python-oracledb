@@ -1,5 +1,7 @@
 .. _initialization:
 
+.. currentmodule:: oracledb
+
 ****************************
 Initializing python-oracledb
 ****************************

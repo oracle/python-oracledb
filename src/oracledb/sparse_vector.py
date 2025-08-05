@@ -51,6 +51,17 @@ class SparseVector:
         indices: Union[list, array.array],
         values: Union[list, array.array],
     ):
+        """
+        Creates and returns a :ref:`SparseVector object <sparsevectorsobj>`.
+
+        The ``num_dimensions`` parameter is the number of dimensions contained
+        in the vector.
+
+        The ``indices`` parameter is the indices (zero-based) of non-zero
+        values in the vector.
+
+        The ``values`` parameter is the non-zero values stored in the vector.
+        """
         if (
             not isinstance(indices, array.array)
             or indices.typecode != ARRAY_TYPE_CODE_UINT32

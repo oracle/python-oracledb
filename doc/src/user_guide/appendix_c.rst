@@ -1,3 +1,5 @@
+.. currentmodule:: oracledb
+
 *****************************************************
 Appendix C: The python-oracledb and cx_Oracle Drivers
 *****************************************************

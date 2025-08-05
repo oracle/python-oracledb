@@ -1,5 +1,7 @@
 .. _jsondatatype:
 
+.. currentmodule:: oracledb
+
 ***************
 Using JSON Data
 ***************

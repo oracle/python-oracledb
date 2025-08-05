@@ -1,5 +1,7 @@
 .. _aqusermanual:
 
+.. currentmodule:: oracledb
+
 ************************************************************
 Using Oracle Transactional Event Queues and Advanced Queuing
 ************************************************************

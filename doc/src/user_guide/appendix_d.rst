@@ -1,5 +1,7 @@
 .. _frameworks:
 
+.. currentmodule:: oracledb
+
 *******************************************************
 Appendix D: Python Frameworks, SQL Generators, and ORMs
 *******************************************************

@@ -1,5 +1,7 @@
 .. _sqlexecution:
 
+.. currentmodule:: oracledb
+
 *************
 Executing SQL
 *************

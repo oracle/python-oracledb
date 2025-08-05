@@ -4,11 +4,13 @@
 API: SODA
 **********
 
+.. currentmodule:: oracledb
+
 `Oracle Database Simple Oracle Document Access (SODA)
 <https://docs.oracle.com/en/database/oracle/simple-oracle-document-access>`__
 allows documents to be inserted, queried, and retrieved from Oracle Database
-using a set of NoSQL-style python-oracledb methods. By default, documents are JSON
-strings. See the :ref:`user manual <sodausermanual>` for examples.
+using a set of NoSQL-style python-oracledb methods. By default, documents are
+JSON strings. See the :ref:`user manual <sodausermanual>` for examples.
 
 .. note::
 
@@ -37,7 +39,6 @@ SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 
     SODA APIs are only supported in the python-oracledb Thick mode. See
     :ref:`enablingthick`.
-
 
 If you are using Oracle Database 21c (or later) and create new collections
 you need to do one of the following:
@@ -77,583 +78,281 @@ the specification in the collection metadata``.
 
 .. _sodadb:
 
-SodaDatabase Objects
-====================
+SodaDatabase Class
+==================
 
-SODA Database objects are returned by the method
-:meth:`Connection.getSodaDatabase()`.
+.. autoclass:: SodaDatabase
 
-.. dbapiobjectextension::
+    A SodaDatabase object is returned by :meth:`Connection.getSodaDatabase()`.
+
+    .. dbapiobjectextension::
 
 SodaDatabase Methods
 --------------------
 
-.. method:: SodaDatabase.createCollection(name, metadata=None, mapMode=False)
+.. automethod:: SodaDatabase.createCollection
 
-    Creates a SODA collection with the given name and returns a new
-    :ref:`SODA collection object <sodacoll>`. If you try to create a
-    collection, and a collection with the same name and metadata already
-    exists, then that existing collection is opened without error.
+    .. seealso::
 
-    If ``metadata`` is specified, it is expected to be a string containing
-    valid JSON or a dictionary that will be transformed into a JSON
-    string. This JSON permits you to specify the configuration of the
-    collection including storage options; specifying the presence or absence of
-    columns for creation timestamp, last modified timestamp and version;
-    whether the collection can store only JSON documents; and methods of key
-    and version generation. The default metadata creates a collection that only
-    supports JSON documents and uses system generated keys. See this
-    `collection metadata reference <https://www.oracle.com/pls/topic/
-    lookup?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-2650383566A3>`__ for
-    more information.
+        :ref:`SODA collection object <sodacoll>` and `Oracle Database SODA
+        Collection Metadata Reference <https://www.oracle.com/pls/topic/lookup
+        ?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-2650383566A3>`__
 
-    If the ``mapMode`` parameter is set to *True*, the new collection is mapped
-    to an existing table instead of creating a table. If a collection is
-    created in this way, dropping the collection will not drop the existing
-    table either.
+.. automethod:: SodaDatabase.createDocument
 
+.. automethod:: SodaDatabase.getCollectionNames
 
-.. method:: SodaDatabase.createDocument(content, key=None, mediaType="application/json")
-
-    Creates a :ref:`SODA document <sodadoc>` usable for SODA write operations.
-    You only need to use this method if your collection requires
-    client-assigned keys or has non-JSON content; otherwise, you can pass your
-    content directly to SODA write operations. SodaDocument attributes
-    :attr:`~SodaDoc.createdOn`, :attr:`~SodaDoc.lastModified`, and
-    :attr:`~SodaDoc.version` will be *None*.
-
-    The ``content`` parameter can be a dictionary or list which will be
-    transformed into a JSON string and then UTF-8 encoded. It can also be a
-    string which will be UTF-8 encoded or it can be a bytes object which will
-    be stored unchanged. If a bytes object is provided and the content is
-    expected to be JSON, note that SODA only supports UTF-8, UTF-16LE and
-    UTF-16BE encodings.
-
-    The ``key`` parameter should only be supplied if the collection in which the
-    document is to be placed requires client-assigned keys.
-
-    The ``mediaType`` parameter should only be supplied if the collection in which
-    the document is to be placed supports non-JSON documents and the content
-    for this document is non-JSON. Using a standard MIME type for this value is
-    recommended but any string will be accepted.
-
-
-.. method:: SodaDatabase.getCollectionNames(startName=None, limit=0)
-
-    Returns a list of the names of collections in the database that match the
-    criteria, in alphabetical order.
-
-    If the ``startName`` parameter is specified, the list of names returned will
-    start with this value and also contain any names that fall after this value
-    in alphabetical order.
-
-    If the ``limit`` parameter is specified and is non-zero, the number of
-    collection names returned will be limited to this value.
-
-
-.. method:: SodaDatabase.openCollection(name)
-
-    Opens an existing collection with the given name and returns a new
-    :ref:`SODA collection object <sodacoll>`. If a collection with that name
-    does not exist, *None* is returned.
+.. automethod:: SodaDatabase.openCollection
 
 .. _sodacoll:
 
-SodaCollection Objects
-======================
+SodaCollection Class
+====================
 
-SODA Collection objects are used to represent SODA collections and is created
-by methods :meth:`SodaDatabase.createCollection()` and
-:meth:`SodaDatabase.openCollection()`.
+.. autoclass:: SodaCollection
 
-.. dbapiobjectextension::
+    A SODA Collection object is used to represent SODA collections and is
+    created by :meth:`SodaDatabase.createCollection()` and
+    :meth:`SodaDatabase.openCollection()`.
+
+    .. dbapiobjectextension::
 
 SodaCollection Methods
 ----------------------
 
-.. method:: SodaCollection.createIndex(spec)
+.. automethod:: SodaCollection.createIndex
 
-    Creates an index on a SODA collection. The spec is expected to be a
-    dictionary or a JSON-encoded string. See this `overview
-    <https://www.oracle.com/pls/topic/
-    lookup?ctx=dblatest&id=GUID-4848E6A0-58A7-44FD-8D6D-A033D0CCF9CB>`__
-    for information on indexes in SODA.
+    .. seealso::
 
-    .. note::
+        `Overview of SODA Indexing <https://www.oracle.com/pls/topic/lookup?
+        ctx=dblatest&id=GUID-4848E6A0-58A7-44FD-8D6D-A033D0CCF9CB>`__
 
-        A commit should be performed before attempting to create an index.
+.. automethod:: SodaCollection.drop
 
+.. automethod:: SodaCollection.dropIndex
 
-.. method:: SodaCollection.drop()
+    .. seealso::
 
-    Drops the collection from the database, if it exists. Note that if the
-    collection was created with the ``mapMode`` parameter set to *True* the
-    underlying table will not be dropped.
+        `DROP INDEX statement <https://www.oracle.com/pls/topic/lookup?ctx=
+        dblatest&id=GUID-F60F75DF-2866-4F93-BB7F-8FCE64BF67B6>`__
 
-    A boolean value is returned indicating if the collection was actually
-    dropped.
+.. automethod:: SodaCollection.find
 
+    .. seealso::
 
-.. method:: SodaCollection.dropIndex(name, force=False)
+        :ref:`SodaOperation object <sodaop>`
 
-    Drops the index with the specified name, if it exists.
+.. automethod:: SodaCollection.getDataGuide
 
-    The ``force`` parameter, if set to *True*, can be used to force the
-    dropping of an index that the underlying Oracle Database domain index
-    does not normally permit. This is only applicable to spatial and JSON
-    search indexes. See `here <https://www.oracle.com/pls/topic/lookup?ctx=
-    dblatest&id=GUID-F60F75DF-2866-4F93-BB7F-8FCE64BF67B6>`__ for more
-    information.
+    .. seealso::
 
-    A boolean value is returned indicating if the index was actually dropped.
+        :ref:`SODA document object <sodadoc>`
 
+.. automethod:: SodaCollection.insertMany
 
-.. method:: SodaCollection.find()
+    .. seealso::
 
-    This method is used to begin an operation that will act upon documents in
-    the collection. It creates and returns a
-    :ref:`SodaOperation object <sodaop>` which is used to specify the criteria
-    and the operation that will be performed on the documents that match that
-    criteria.
+        :ref:`SODA document object <sodadoc>`.
 
+.. automethod:: SodaCollection.insertManyAndGet
 
-.. method:: SodaCollection.getDataGuide()
+    .. seealso::
 
-    Returns a :ref:`SODA document object <sodadoc>` containing property names,
-    data types and lengths inferred from the JSON documents in the collection.
-    It can be useful for exploring the schema of a collection. Note that this
-    method is only supported for JSON-only collections where a JSON search
-    index has been created with the 'dataguide' option enabled. If there are
-    no documents in the collection, *None* is returned.
+        :ref:`SODA Document objects <sodadoc>`, `MONITOR and NO_MONITOR Hints
+        <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-19E0F73C
+        -A959-41E4-A168-91E436DEE1F1>`__, and `Monitoring Database Operations
+        <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C941CE9D
+        -97E1-42F8-91ED-4949B2B710BF>`__
 
-.. method:: SodaCollection.insertMany(docs)
+.. automethod:: SodaCollection.insertOne
 
-    Inserts a list of documents into the collection at one time. Each of the
-    input documents can be a dictionary or list or an existing :ref:`SODA
-    document object <sodadoc>`.
+    .. seealso::
 
-    .. note::
+        :ref:`SODA document object <sodadoc>`
 
-        This method requires Oracle Client 18.5 and higher and is available
-        only as a preview.
+.. automethod:: SodaCollection.insertOneAndGet
 
+    .. seealso::
 
-.. method:: SodaCollection.insertManyAndGet(docs, hint=None)
+        :ref:`SODA Document object <sodadoc>`, `MONITOR and NO_MONITOR Hints
+        <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-19E0F73C
+        -A959-41E4-A168-91E436DEE1F1>`__, and `Monitoring Database Operations
+        <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-C941CE9D
+        -97E1-42F8-91ED-4949B2B710BF>`__
 
-    Similarly to :meth:`~SodaCollection.insertMany()` this method inserts a
-    list of documents into the collection at one time. The only difference is
-    that it returns a list of :ref:`SODA Document objects <sodadoc>`. Note that
-    for performance reasons the returned documents do not contain the content.
-
-    The ``hint`` parameter, if specified, supplies a hint to the database when
-    processing the SODA operation. This is expected to be a string in the same
-    format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
-    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
-    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
-    and `Monitoring Database Operations
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
-    for more information.
-
-    .. note::
-
-        - This method requires Oracle Client 18.5 and higher.
-
-        - Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
-          (or Oracle Client 19 from 19.11).
-
-
-.. method:: SodaCollection.insertOne(doc)
-
-    Inserts a given document into the collection. The input document can be a
-    dictionary or list or an existing :ref:`SODA document object <sodadoc>`.
-
-
-.. method:: SodaCollection.insertOneAndGet(doc, hint=None)
-
-    Similarly to :meth:`~SodaCollection.insertOne()` this method inserts a
-    given document into the collection. The only difference is that it
-    returns a :ref:`SODA Document object <sodadoc>`. Note that for performance
-    reasons the returned document does not contain the content.
-
-    The ``hint`` parameter, if specified, supplies a hint to the database when
-    processing the SODA operation. This is expected to be a string in the same
-    format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
-    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
-    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
-    and `Monitoring Database Operations
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
-    for more information.
-
-    .. note::
-
-        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
-        (or Oracle Client 19 from 19.11).
-
-.. method:: SodaCollection.listIndexes()
-
-    Returns a list of specifications for the indexes found on the collection.
-
-    This method requires Oracle Client 21.3 or later (or Oracle Client 19 from
-    19.13).
+.. automethod:: SodaCollection.listIndexes
 
     .. versionadded:: 1.4.0
 
-.. method:: SodaCollection.save(doc)
+.. automethod:: SodaCollection.save
 
-    Saves a document into the collection. This method is equivalent to
-    :meth:`~SodaCollection.insertOne()` except that if client-assigned keys are
-    used, and the document with the specified key already exists in the
-    collection, it will be replaced with the input document.
+.. automethod:: SodaCollection.saveAndGet
 
-    This method requires Oracle Client 19.9 or higher in addition to the usual
-    SODA requirements.
+    .. seealso::
 
+        `MONITOR and NO_MONITOR Hints <https://www.oracle.com/pls/topic/lookup?
+        ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and
+        `Monitoring Database Operations <https://www.oracle.com/pls/topic/
+        lookup?ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
 
-.. method:: SodaCollection.saveAndGet(doc, hint=None)
-
-    Saves a document into the collection. This method is equivalent to
-    :meth:`~SodaCollection.insertOneAndGet()` except that if client-assigned
-    keys are used, and the document with the specified key already exists in
-    the collection, it will be replaced with the input document.
-
-    The ``hint`` parameter, if specified, supplies a hint to the database when
-    processing the SODA operation. This is expected to be a string in the same
-    format as a SQL hint but without any comment characters, for example
-    ``hint="MONITOR"``. Pass only the hint "MONITOR" (turn on monitoring)
-    or "NO_MONITOR" (turn off monitoring).  See the Oracle Database SQL
-    Tuning Guide documentation `MONITOR and NO_MONITOR Hints
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__
-    and `Monitoring Database Operations
-    <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
-    for more information.
-
-    This method requires Oracle Client 19.9 or higher in addition to the usual
-    SODA requirements.
-
-    .. note::
-
-        Use of the ``hint`` parameter requires Oracle Client 21.3 or higher
-        (or Oracle Client 19 from 19.11).
-
-
-.. method:: SodaCollection.truncate()
-
-    Removes all of the documents in the collection, similarly to what is done
-    for rows in a table by the TRUNCATE TABLE statement.
+.. automethod:: SodaCollection.truncate
 
 SodaCollection Attributes
 -------------------------
 
-.. attribute:: SodaCollection.metadata
+.. autoproperty:: SodaCollection.metadata
 
-    This read-only attribute returns a dictionary containing the metadata that
-    was used to create the collection. See this `collection metadata reference
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-49EFF3D3-
-    9FAB-4DA6-BDE2-2650383566A3>`__ for more information.
+    .. seealso::
 
+        `Oracle Database SODA Collection Metadata Reference <https://www.oracle
+        .com/pls/topic/lookup?ctx=dblatest&id=GUID-49EFF3D3-9FAB-4DA6-BDE2-
+        2650383566A3>`__
 
-.. attribute:: SodaCollection.name
-
-    This read-only attribute returns the name of the collection.
-
+.. autoproperty:: SodaCollection.name
 
 .. _sodadoc:
 
-SodaDoc Objects
-===============
+SodaDocument Class
+==================
 
-SODA Document objects are returned by the methods
-:meth:`SodaDatabase.createDocument()`, :meth:`SodaOperation.getDocuments()` and
-:meth:`SodaOperation.getOne()` as
-well as by iterating over :ref:`SODA document cursors <sodadoccur>`.
+.. autoclass:: SodaDocument
 
-.. dbapiobjectextension::
+    A SODA Document object is returned by
+    :meth:`SodaDatabase.createDocument()`,
+    :meth:`SodaOperation.getDocuments()`, and
+    :meth:`SodaOperation.getOne()` as well as by iterating over
+    :ref:`SODA document cursors <sodadoccur>`.
 
-SodaDoc Methods
----------------
+    .. dbapiobjectextension::
 
-.. method:: SodaDoc.getContent()
+SodaDocument Methods
+--------------------
 
-    Returns the content of the document as a dictionary or list. This method
-    assumes that the content is application/json and will raise an exception if
-    this is not the case. If there is no content, however, *None* will be
-    returned.
+.. automethod:: SodaDocument.getContent
 
+.. automethod:: SodaDocument.getContentAsBytes
 
-.. method:: SodaDoc.getContentAsBytes()
+.. automethod:: SodaDocument.getContentAsString
 
-    Returns the content of the document as a bytes object. If there is no
-    content, however, *None* will be returned.
+SodaDocument Attributes
+-----------------------
 
+.. autoproperty:: SodaDocument.createdOn
 
-.. method:: SodaDoc.getContentAsString()
+    .. seealso::
 
-    Returns the content of the document as a string. If the document encoding
-    is not known, UTF-8 will be used. If there is no content, however, *None*
-    will be returned.
+        `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
 
-SodaDoc Attributes
-------------------
+.. autoproperty:: SodaDocument.key
 
-.. attribute:: SodaDoc.createdOn
+.. autoproperty:: SodaDocument.lastModified
 
-    This read-only attribute returns the creation time of the document in
-    `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
-    format. Documents created by :meth:`SodaDatabase.createDocument()` or
-    fetched from collections where this attribute is not stored will return
-    *None*.
+    .. seealso::
 
-.. attribute:: SodaDoc.key
+        `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
 
-    This read-only attribute returns the unique key assigned to this document.
-    Documents created by :meth:`SodaDatabase.createDocument()` may not have a
-    value assigned to them and return *None*.
+.. autoproperty:: SodaDocument.mediaType
 
-
-.. attribute:: SodaDoc.lastModified
-
-    This read-only attribute returns the last modified time of the document in
-    `ISO 8601 <https://www.iso.org/iso-8601-date-and-time-format.html>`__
-    format. Documents created by :meth:`SodaDatabase.createDocument()` or
-    fetched from collections where this attribute is not stored will return
-    *None*.
-
-
-.. attribute:: SodaDoc.mediaType
-
-    This read-only attribute returns the media type assigned to the document.
-    By convention this is expected to be a MIME type but no checks are
-    performed on this value. If a value is not specified when calling
-    :meth:`SodaDatabase.createDocument()` or the document is fetched from a
-    collection where this component is not stored, the string
-    "application/json" is returned.
-
-
-.. attribute:: SodaDoc.version
-
-    This read-only attribute returns the version assigned to this document.
-    Documents created by :meth:`SodaDatabase.createDocument()` or fetched
-    from collections where this attribute is not stored will return *None*.
-
+.. autoproperty:: SodaDocument.version
 
 .. _sodadoccur:
 
-SodaDocCursor Objects
-=====================
+SodaDocCursor Class
+===================
 
-SODA Document Cursor objects are returned by the method
-:meth:`SodaOperation.getCursor()` and implements the iterator protocol.  Each
-iteration will return a :ref:`SODA document object <sodadoc>`.
+.. autoclass:: SodaDocCursor
 
-.. dbapiobjectextension::
+    A SodaDocCursor object is returned by :meth:`SodaOperation.getCursor()`
+    and implements the iterator protocol. Each iteration will return a
+    :ref:`SODA document object <sodadoc>`.
+
+    .. dbapiobjectextension::
 
 SodaDocCursor Methods
 ---------------------
 
-.. method:: SodaDocCursor.close()
-
-    Closes the cursor now, rather than whenever __del__ is called. The cursor
-    will be unusable from this point forward; an Error exception will be raised
-    if any operation is attempted with the cursor.
-
+.. automethod:: SodaDocCursor.close
 
 .. _sodaop:
 
-SodaOperation Objects
-=====================
+SodaOperation Class
+===================
 
-A SODA Operation object represents an operation that will be performed on all
-or some of the documents in a SODA collection. This object is created by the
-method :meth:`SodaCollection.find()`.
+.. autoclass:: SodaOperation
 
-.. dbapiobjectextension::
+    A SODA Operation object represents an operation that will be performed on
+    all or some of the documents in a SODA collection. This object is created
+    by :meth:`SodaCollection.find()`.
+
+    .. dbapiobjectextension::
 
 SodaOperation Methods
 ---------------------
 
-.. method:: SodaOperation.count()
+.. automethod:: SodaOperation.count
 
-    Returns a count of the number of documents in the collection that match
-    the criteria. If :meth:`~SodaOperation.skip()` or
-    :meth:`~SodaOperation.limit()` were called on this object, an exception is
-    raised.
+.. automethod:: SodaOperation.fetchArraySize
 
+.. automethod:: SodaOperation.filter
 
-.. method:: SodaOperation.fetchArraySize(value)
+    .. seealso::
 
-    This is a tuning method to specify the number of documents that are
-    internally fetched in batches by calls to :meth:`~SodaOperation.getCursor()`
-    and :meth:`~SodaOperation.getDocuments()`. It does not affect how many
-    documents are returned to the application. A value of *0* will use the
-    default value (*100*). This method is only available in Oracle Client 19.5
-    and higher.
+        `Overview of SODA filter specifications <https://www.oracle.com/pls/
+        topic/lookup?ctx=dblatest&id=GUID-CB09C4E3-BBB1-40DC-88A8-
+        8417821B0FBE>`__
 
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
+.. automethod:: SodaOperation.getCursor
 
+    .. seealso::
 
-.. method:: SodaOperation.filter(value)
+        :ref:`SODA Document Cursor object <sodadoccur>`
 
-    Sets a filter specification for complex document queries and ordering of
-    JSON documents. Filter specifications must be provided as a dictionary or
-    JSON-encoded string and can include comparisons, regular expressions,
-    logical and spatial operators, among others. See the
-    `overview of SODA filter specifications
-    <https://www.oracle.com/pls/topic/
-    lookup?ctx=dblatest&id=GUID-CB09C4E3-BBB1-40DC-88A8-8417821B0FBE>`__
-    for more information.
+.. automethod:: SodaOperation.getDocuments
 
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
+    .. seealso::
 
+        :ref:`SODA Document objects <sodadoc>`
 
-.. method:: SodaOperation.getCursor()
+.. automethod:: SodaOperation.getOne
 
-    Returns a :ref:`SODA Document Cursor object <sodadoccur>` that can be used
-    to iterate over the documents that match the criteria.
+    .. seealso::
 
+        :ref:`SODA Document object <sodadoc>`
 
-.. method:: SodaOperation.getDocuments()
+.. automethod:: SodaOperation.hint
 
-    Returns a list of :ref:`SODA Document objects <sodadoc>` that match the
-    criteria.
+    .. seealso::
 
+        Oracle Database SQL Tuning Guide documentation `MONITOR and NO_MONITOR
+        Hints <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+        19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and `Monitoring Database
+        Operations <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+        GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
 
-.. method:: SodaOperation.getOne()
+.. automethod:: SodaOperation.key
 
-    Returns a single :ref:`SODA Document object <sodadoc>` that matches the
-    criteria. Note that if multiple documents match the criteria only the first
-    one is returned.
+.. automethod:: SodaOperation.keys
 
+.. automethod:: SodaOperation.limit
 
-.. method:: SodaOperation.hint(value)
-
-    Specifies a hint that will be provided to the SODA operation when it is
-    performed. This is expected to be a string in the same format as a SQL hint
-    but without any comment characters, for example ``hint("MONITOR")``. Pass
-    only the hint "MONITOR" (turn on monitoring) or "NO_MONITOR" (turn off
-    monitoring). See the Oracle Database SQL Tuning Guide documentation
-    `MONITOR and NO_MONITOR Hints <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and
-    `Monitoring Database Operations <https://www.oracle.com/pls/topic/lookup?
-    ctx=dblatest&id=GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__ for more
-    information.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
-
-    Use of this method requires Oracle Client 21.3 or higher (or Oracle Client
-    19 from 19.11).
-
-.. method:: SodaOperation.key(value)
-
-    Specifies that the document with the specified key should be returned.
-    This causes any previous calls made to this method and
-    :meth:`~SodaOperation.keys()` to be ignored.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
-
-
-.. method:: SodaOperation.keys(seq)
-
-    Specifies that documents that match the keys found in the supplied sequence
-    should be returned. This causes any previous calls made to this method and
-    :meth:`~SodaOperation.key()` to be ignored.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
-
-
-.. method:: SodaOperation.limit(value)
-
-    Specifies that only the specified number of documents should be returned.
-    This method is only usable for read operations such as
-    :meth:`~SodaOperation.getCursor()` and
-    :meth:`~SodaOperation.getDocuments()`. For write operations, any value set
-    using this method is ignored.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
-
-
-.. method:: SodaOperation.lock()
-
-    Specifies whether the documents fetched from the collection should be
-    locked (equivalent to SQL "select for update").
-
-    The next commit or rollback on the connection made after the operation is
-    performed will "unlock" the documents. Ensure that the connection is not in
-    autocommit mode or the documents will be unlocked immediately after the
-    operation is complete.
-
-    This method should only be used with read operations (other than
-    :func:`~SodaOperation.count()`) and should not be used in
-    conjunction with non-terminal methods :meth:`~SodaOperation.skip()` and
-    :meth:`~SodaOperation.limit()`.
-
-    If this method is specified in conjunction with a write operation this
-    method is ignored.
-
-    This method is only supported in Oracle Client 21.3 or later (or
-    Oracle Client 19 from 19.11).
+.. automethod:: SodaOperation.lock
 
     .. versionadded:: 1.4.0
 
-.. method:: SodaOperation.remove()
+.. automethod:: SodaOperation.remove
 
-    Removes all of the documents in the collection that match the criteria. The
-    number of documents that have been removed is returned.
+.. automethod:: SodaOperation.replaceOne
 
+    .. seealso::
 
-.. method:: SodaOperation.replaceOne(doc)
+        :ref:`SODA document object <sodadoc>`
 
-    Replaces a single document in the collection with the specified document.
-    The input document can be a dictionary or list or an existing
-    :ref:`SODA document object <sodadoc>`. A boolean indicating if a document
-    was replaced or not is returned.
+.. automethod:: SodaOperation.replaceOneAndGet
 
-    Currently the method :meth:`~SodaOperation.key()` must be called before
-    this method can be called.
+    .. seealso::
 
+        :ref:`SODA document object <sodadoc>`
 
-.. method:: SodaOperation.replaceOneAndGet(doc)
+.. automethod:: SodaOperation.skip
 
-    Similarly to :meth:`~SodaOperation.replaceOne()`, this method replaces a
-    single document in the collection with the specified document. The only
-    difference is that it returns a :ref:`SODA document object <sodadoc>`.
-    Note that for performance reasons the returned document does not contain
-    the content.
-
-
-.. method:: SodaOperation.skip(value)
-
-    Specifies the number of documents that match the other criteria that will
-    be skipped. This method is only usable for read operations such as
-    :meth:`~SodaOperation.getOne()`, :meth:`~SodaOperation.getCursor()`, and
-    :meth:`~SodaOperation.getDocuments()`. For write operations, any value set
-    using this method is ignored.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
-
-
-.. method:: SodaOperation.version(value)
-
-    Specifies that documents with the specified version should be returned.
-    Typically this is used with :meth:`~SodaOperation.key()` to implement
-    optimistic locking, so that the write operation called later does not
-    affect a document that someone else has modified.
-
-    As a convenience, the SodaOperation object is returned so that further
-    criteria can be specified by chaining methods together.
+.. automethod:: SodaOperation.version

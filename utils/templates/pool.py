@@ -58,29 +58,7 @@ class BaseConnectionPool:
         **kwargs,
     ) -> None:
         """
-        Constructor for creating a connection pool. Connection pooling creates
-        a pool of available connections to the database, allowing applications
-        to acquire a connection very quickly. It is of primary use in a server
-        where connections are requested in rapid succession and used for a
-        short period of time, for example in a web server.
-
-        The dsn parameter (data source name) can be a string in the format
-        user/password@connect_string or can simply be the connect string (in
-        which case authentication credentials such as the username and password
-        need to be specified separately). See the documentation on connection
-        strings for more information.
-
-        The params parameter is expected to be of type PoolParams and contains
-        parameters that are used to create the pool. See the documentation on
-        PoolParams for more information. If this parameter is not specified,
-        the additional keyword parameters will be used to create an instance of
-        PoolParams. If both the params parameter and additional keyword
-        parameters are specified, the values in the keyword parameters have
-        precedence. Note that if a dsn is also supplied, then in the
-        python-oracledb Thin mode, the values of the parameters specified
-        (if any) within the dsn will override the values passed as additional
-        keyword parameters, which themselves override the values set in the
-        params parameter object.
+        Constructor for creating a connection pool.
         """
         if params is None:
             params_impl = base_impl.PoolParamsImpl()
@@ -121,8 +99,8 @@ class BaseConnectionPool:
     @property
     def busy(self) -> int:
         """
-        Returns the number of connections that have been acquired from the pool
-        and have not yet been returned to the pool.
+        This read-only attribute returns the number of connections currently
+        acquired.
         """
         self._verify_open()
         return self._impl.get_busy_count()
@@ -130,14 +108,27 @@ class BaseConnectionPool:
     @property
     def dsn(self) -> str:
         """
-        Returns the connection string (TNS entry) of the database to which
-        connections in the pool have been established.
+        This read-only attribute returns the TNS entry of the database to which
+        a connection has been established.
         """
         self._verify_open()
         return self._impl.dsn
 
     @property
     def getmode(self) -> oracledb.PoolGetMode:
+        """
+        This read-write attribute determines how connections are returned from
+        the pool. If :data:`~oracledb.POOL_GETMODE_FORCEGET` is specified, a
+        new connection will be returned even if there are no free connections
+        in the pool.  :data:`~oracledb.POOL_GETMODE_NOWAIT` will raise an
+        exception if there are no free connections are available in the pool.
+        If :data:`~oracledb.POOL_GETMODE_WAIT` is specified and there are no
+        free connections in the pool, the caller will wait until a free
+        connection is available. :data:`~oracledb.POOL_GETMODE_TIMEDWAIT` uses
+        the value of :data:`~ConnectionPool.wait_timeout` to determine how long
+        the caller should wait for a connection to become available before
+        returning an error.
+        """
         self._verify_open()
         return oracledb.PoolGetMode(self._impl.get_getmode())
 
@@ -149,8 +140,9 @@ class BaseConnectionPool:
     @property
     def homogeneous(self) -> bool:
         """
-        Returns a boolean indicating if the pool is homogeneous or not. If the
-        pool is not homogeneous, different authentication can be used for each
+        This read-only boolean attribute indicates whether the pool is
+        considered :ref:`homogeneous <connpooltypes>` or not. If the pool is
+        not homogeneous, different authentication can be used for each
         connection acquired from the pool.
         """
         self._verify_open()
@@ -159,8 +151,8 @@ class BaseConnectionPool:
     @property
     def increment(self) -> int:
         """
-        Returns the number of connections that will be created when additional
-        connections need to be created to satisfy requests.
+        This read-only attribute returns the number of connections that will be
+        established when additional connections need to be created.
         """
         self._verify_open()
         return self._impl.increment
@@ -168,7 +160,8 @@ class BaseConnectionPool:
     @property
     def max(self) -> int:
         """
-        Returns the maximum number of connections that the pool can control.
+        This read-only attribute returns the maximum number of connections that
+        the pool can control.
         """
         self._verify_open()
         return self._impl.max
@@ -176,14 +169,15 @@ class BaseConnectionPool:
     @property
     def max_lifetime_session(self) -> int:
         """
-        Returns the maximum length of time (in seconds) that a pooled
-        connection may exist. Connections that are in use will not be closed.
-        They become candidates for termination only when they are released back
-        to the pool and have existed for longer than max_lifetime_session
-        seconds. Note that termination only occurs when the pool is accessed. A
-        value of 0 means that there is no maximum length of time that a pooled
-        connection may exist. This attribute is only available in Oracle
-        Database 12.1.
+        This read-write attribute is the maximum length of time (in seconds)
+        that a pooled connection may exist since first being created. A value
+        of *0* means there is no limit. Connections become candidates for
+        termination when they are acquired or released back to the pool, and
+        have existed for longer than ``max_lifetime_session`` seconds.
+        Connections that are in active use will not be closed. In
+        python-oracledb Thick mode, Oracle Client libraries 12.1 or later must
+        be used and, prior to Oracle Client 21, cleanup only occurs when the
+        pool is accessed.
         """
         self._verify_open()
         return self._impl.get_max_lifetime_session()
@@ -196,13 +190,13 @@ class BaseConnectionPool:
     @property
     def max_sessions_per_shard(self) -> int:
         """
-        Returns the number of sessions that can be created per shard in the
-        pool.  Setting this attribute greater than zero specifies the maximum
-        number of sessions in the pool that can be used for any given shard in
-        a sharded database. This lets connections in the pool be balanced
-        across the shards.  A value of zero will not set any maximum number of
-        sessions for each shard.  This attribute is only available in Oracle
-        Client 18.3 and higher.
+        This read-write attribute returns the number of sessions that can be
+        created per shard in the pool. Setting this attribute greater than zero
+        specifies the maximum number of sessions in the pool that can be used
+        for any given shard in a sharded database. This lets connections in the
+        pool be balanced across the shards. A value of *0* will not set any
+        maximum number of sessions for each shard. This attribute is only
+        available in Oracle Client 18.3 and higher.
         """
         self._verify_open()
         return self._impl.get_max_sessions_per_shard()
@@ -215,8 +209,9 @@ class BaseConnectionPool:
     @property
     def min(self) -> int:
         """
-        Returns the minimum number of connections that the pool will control.
-        These are created when the pool is first created.
+        This read-only attribute returns the number of connections with which
+        the connection pool was created and the minimum number of connections
+        that will be controlled by the connection pool.
         """
         self._verify_open()
         return self._impl.min
@@ -224,8 +219,8 @@ class BaseConnectionPool:
     @property
     def name(self) -> str:
         """
-        Returns the name assigned to the pool by Oracle. This attribute is only
-        relevant in python-oracledb thick mode.
+        This read-only attribute returns the name assigned to the pool by
+        Oracle.
         """
         self._verify_open()
         return self._impl.name
@@ -233,7 +228,8 @@ class BaseConnectionPool:
     @property
     def opened(self) -> int:
         """
-        Returns the number of connections currently opened by the pool.
+        This read-only attribute returns the number of connections currently
+        opened by the pool.
         """
         self._verify_open()
         return self._impl.get_open_count()
@@ -241,15 +237,15 @@ class BaseConnectionPool:
     @property
     def ping_interval(self) -> int:
         """
-        Returns the pool ping interval in seconds. When a connection is
-        acquired from the pool, a check is first made to see how long it
-        has been since the connection was put into the pool. If
-        this idle time exceeds ping_interval, then a round-trip ping to the
-        database is performed. If the connection is unusable, it is discarded
-        and a different connection is selected to be returned by
-        SessionPool.acquire(). Setting ping_interval to a negative value
-        disables pinging. Setting it to 0 forces a ping for every aquire()
-        and is not recommended.
+        This read-write integer attribute specifies the pool ping interval in
+        seconds. When a connection is acquired from the pool, a check is first
+        made to see how long it has been since the connection was put into the
+        pool. If this idle time exceeds ``ping_interval``, then a
+        :ref:`round-trip <roundtrips>` ping to the database is performed. If
+        the connection is unusable, it is discarded and a different connection
+        is selected to be returned by :meth:`acquire()`.  Setting
+        ``ping_interval`` to a negative value disables pinging.  Setting it to
+        *0* forces a ping for every :meth:`acquire()` and is not recommended.
         """
         self._verify_open()
         return self._impl.get_ping_interval()
@@ -261,12 +257,13 @@ class BaseConnectionPool:
     @property
     def soda_metadata_cache(self) -> bool:
         """
-        Specifies whether the SODA metadata cache is enabled or not. Enabling
-        the cache significantly improves the performance of methods
-        SodaDatabase.createCollection() (when not specifying a value for the
-        metadata parameter) and SodaDatabase.openCollection(). Note that the
-        cache can become out of date if changes to the metadata of cached
-        collections are made externally.
+        This read-write boolean attribute returns whether the SODA metadata
+        cache is enabled or not. Enabling the cache significantly improves the
+        performance of methods :meth:`SodaDatabase.createCollection()` (when
+        not specifying a value for the ``metadata`` parameter) and
+        :meth:`SodaDatabase.openCollection()`. Note that the cache can become
+        out of date if changes to the metadata of cached collections are made
+        externally.
         """
         self._verify_open()
         return self._impl.get_soda_metadata_cache()
@@ -282,10 +279,10 @@ class BaseConnectionPool:
     @property
     def stmtcachesize(self) -> int:
         """
-        Specifies the size of the statement cache that will be used as the
-        starting point for any connections that are created by the pool. Once a
+        This read-write attribute specifies the size of the statement cache
+        that will be used for connections obtained from the pool. Once a
         connection is created, that connection’s statement cache size can only
-        be changed by setting the stmtcachesize attribute on the connection
+        be changed by setting the ``stmtcachesize`` attribute on the connection
         itself.
         """
         self._verify_open()
@@ -299,8 +296,12 @@ class BaseConnectionPool:
     @property
     def thin(self) -> bool:
         """
-        Returns a boolean indicating if the pool was created in
-        python-oracledb's thin mode (True) or thick mode (False).
+        This read-only attribute returns a boolean which indicates the
+        python-oracledb mode in which the pool was created. If the value of
+        this attribute is *True*, it indicates that the pool was created in the
+        python-oracledb Thin mode. If the value of this attribute is *False*,
+        it indicates that the pool was created in the python-oracledb Thick
+        mode.
         """
         self._verify_open()
         return not isinstance(self._impl, thick_impl.ThickPoolImpl)
@@ -308,11 +309,12 @@ class BaseConnectionPool:
     @property
     def timeout(self) -> int:
         """
-        Specifies the time (in seconds) after which idle connections will be
-        terminated in order to maintain an optimum number of open connections.
-        A value of 0 means that no idle connections are terminated. Note that
-        in thick mode with older Oracle Client libraries termination only
-        occurs when the pool is accessed.
+        This read-write attribute specifies the time (in seconds) after which
+        idle connections will be terminated in order to maintain an optimum
+        number of open connections. A value of *0* means that no idle
+        connections are terminated. Note that in python-oracledb Thick mode
+        with older Oracle Client Libraries, the termination only occurs when
+        the pool is accessed.
         """
         self._verify_open()
         return self._impl.get_timeout()
@@ -332,7 +334,8 @@ class BaseConnectionPool:
     @property
     def username(self) -> str:
         """
-        Returns the name of the user which was used to create the pool.
+        This read-only attribute returns the name of the user which established
+        the connection to the database.
         """
         self._verify_open()
         return self._impl.username
@@ -340,10 +343,11 @@ class BaseConnectionPool:
     @property
     def wait_timeout(self) -> int:
         """
-        Specifies the time (in milliseconds) that the caller should wait for a
-        connection to become available in the pool before returning with an
-        error.  This value is only used if the getmode parameter used to create
-        the pool was POOL_GETMODE_TIMEDWAIT.
+        This read-write attribute specifies the time (in milliseconds) that the
+        caller should wait for a connection to become available in the pool
+        before returning with an error. This value is only used if the
+        ``getmode`` parameter to :meth:`oracledb.create_pool()` was the value
+        :data:`oracledb.POOL_GETMODE_TIMEDWAIT`.
         """
         self._verify_open()
         return self._impl.get_wait_timeout()
@@ -387,31 +391,39 @@ class ConnectionPool(BaseConnectionPool):
         supershardingkey: Optional[list] = None,
     ) -> "connection_module.Connection":
         """
-        Acquire a connection from the pool and return it.
+        Acquires a connection from the session pool and returns a
+        :ref:`connection object <connobj>`.
 
-        If the pool is homogeneous, the user and password parameters cannot be
-        specified. If they are, an exception will be raised.
+        If the pool is :ref:`homogeneous <connpooltypes>`, the ``user`` and
+        ``password`` parameters cannot be specified. If they are, an exception
+        will be raised.
 
-        The cclass parameter, if specified, should be a string corresponding to
-        the connection class for database resident connection pooling (DRCP).
+        The ``cclass`` parameter, if specified, should be a string
+        corresponding to the connection class for :ref:`drcp`.
 
-        The purity parameter is expected to be one of PURITY_DEFAULT,
-        PURITY_NEW, or PURITY_SELF.
+        The ``purity`` parameter is expected to be one of
+        :data:`~oracledb.PURITY_NEW`, :data:`~oracledb.PURITY_SELF`, or
+        :data:`~oracledb.PURITY_DEFAULT`.
 
-        The tag parameter, if specified, is expected to be a string with
-        name=value pairs like “k1=v1;k2=v2” and will limit the connections that
-        can be returned from a pool unless the matchanytag parameter is
-        set to True. In that case connections with the specified tag will be
-        preferred over others, but if no such connections are available a
-        connection with a different tag may be returned instead. In any case,
-        untagged connections will always be returned if no connections with the
-        specified tag are available. Connections are tagged when they are
-        released back to the pool.
+        The ``tag`` parameter, if specified, is expected to be a string with
+        name=value pairs like "k1=v1;k2=v2" and will limit the connections that
+        can be returned from a connection pool unless the ``matchanytag``
+        parameter is set to *True*. In that case, connections with the
+        specified tag will be preferred over others, but if no such connections
+        are available, then a connection with a different tag may be returned
+        instead. In any case, untagged connections will always be returned if
+        no connections with the specified tag are available. Connections are
+        tagged when they are :meth:`released <ConnectionPool.release>` back to
+        the pool.
 
-        The shardingkey and supershardingkey parameters, if specified, are
-        expected to be a sequence of values which will be used to identify the
-        database shard to connect to. The key values can be strings, numbers,
-        bytes or dates.
+        The ``shardingkey`` and ``supershardingkey`` parameters, if specified,
+        are expected to be a sequence of values which will be used to identify
+        the database shard to connect to. The key values can be strings,
+        numbers, bytes, or dates.  See :ref:`connsharding`.
+
+        When using the :ref:`connection pool cache <connpoolcache>`, calling
+        :meth:`oracledb.connect()` with a ``pool_alias`` parameter is the same
+        as calling ``pool.acquire()``.
         """
         self._verify_open()
 
@@ -430,11 +442,12 @@ class ConnectionPool(BaseConnectionPool):
 
     def close(self, force: bool = False) -> None:
         """
-        Close the pool now, rather than when the last reference to it is
+        Closes the pool now, rather than when the last reference to it is
         released, which makes it unusable for further work.
 
         If any connections have been acquired and not released back to the
-        pool, this method will fail unless the force parameter is set to True.
+        pool, this method will fail unless the ``force`` parameter is set to
+        *True*.
         """
         self._verify_open()
         self._impl.close(force)
@@ -444,8 +457,8 @@ class ConnectionPool(BaseConnectionPool):
 
     def drop(self, connection: "connection_module.Connection") -> None:
         """
-        Drop the connection from the pool, which is useful if the connection is
-        no longer usable (such as when the database session is killed).
+        Drops the connection from the pool which is useful if the connection is
+        no longer usable (such as when the session is killed).
         """
         self._verify_open()
         if not isinstance(connection, connection_module.Connection):
@@ -453,42 +466,6 @@ class ConnectionPool(BaseConnectionPool):
             raise TypeError(message)
         connection._verify_connected()
         self._impl.drop(connection._impl)
-        connection._impl = None
-
-    def release(
-        self,
-        connection: "connection_module.Connection",
-        tag: Optional[str] = None,
-    ) -> None:
-        """
-        Release the connection back to the pool now, rather than whenever
-        __del__ is called. The connection will be unusable from this point
-        forward; an Error exception will be raised if any operation is
-        attempted with the connection. Any cursors or LOBs created by the
-        connection will also be marked unusable and an Error exception will be
-        raised if any operation is attempted with them.
-
-        Internally, references to the connection are held by cursor objects,
-        LOB objects, etc. Once all of these references are released, the
-        connection itself will be released back to the pool automatically.
-        Either control references to these related objects carefully or
-        explicitly release connections back to the pool in order to ensure
-        sufficient resources are available.
-
-        If the tag is not None, it is expected to be a string with name=value
-        pairs like “k1=v1;k2=v2” and will override the value in the property
-        Connection.tag. If either Connection.tag or the tag parameter are not
-        None, the connection will be retagged when it is released back to the
-        pool.
-        """
-        self._verify_open()
-        if not isinstance(connection, connection_module.Connection):
-            message = "connection must be an instance of oracledb.Connection"
-            raise TypeError(message)
-        connection._verify_connected()
-        if tag is not None:
-            connection.tag = tag
-        self._impl.return_connection(connection._impl)
         connection._impl = None
 
     def reconfigure(
@@ -506,41 +483,52 @@ class ConnectionPool(BaseConnectionPool):
         ping_interval: Optional[int] = None,
     ) -> None:
         """
-        Reconfigures various parameters of a connection pool. The pool size
-        can be altered with reconfigure() by passing values for min, max
-        or increment. The getmode, timeout, wait_timeout,
-        max_lifetime_session, max_sessions_per_shard, soda_metadata_cache,
-        stmtcachesize and ping_interval can be set directly or by using
-        reconfigure(). All parameters are optional. Unspecified parameters
-        will leave those pool attributes unchanged. The parameters are
-        processed in two stages. After any size change has been processed,
-        reconfiguration on the other parameters is done sequentially. If
-        an error such as an invalid value occurs when changing one attribute,
-        then an exception will be generated but any already changed
-        attributes will retain their new values.
+        Reconfigures various parameters of a connection pool. The pool size can
+        be altered with ``reconfigure()`` by passing values for
+        :data:`~ConnectionPool.min`, :data:`~ConnectionPool.max` or
+        :data:`~ConnectionPool.increment`.  The
+        :data:`~ConnectionPool.getmode`, :data:`~ConnectionPool.timeout`,
+        :data:`~ConnectionPool.wait_timeout`,
+        :data:`~ConnectionPool.max_lifetime_session`,
+        :data:`~ConnectionPool.max_sessions_per_shard`,
+        :data:`~ConnectionPool.soda_metadata_cache`,
+        :data:`~ConnectionPool.stmtcachesize` and
+        :data:`~ConnectionPool.ping_interval` attributes can be set directly or
+        with ``reconfigure()``.
 
-        During reconfiguration of a pool's size, the behavior of acquire()
-        depends on the getmode in effect when acquire() is called:
+        All parameters are optional. Unspecified parameters will leave those
+        pool attributes unchanged. The parameters are processed in two stages.
+        After any size change has been processed, reconfiguration on the other
+        parameters is done sequentially. If an error such as an invalid value
+        occurs when changing one attribute, then an exception will be generated
+        but any already changed attributes will retain their new values.
 
-        * With mode POOL_GETMODE_FORCEGET, an acquire() call will wait until
-          the pool has been reconfigured.
+        During reconfiguration of a pool's size, the behavior of
+        :meth:`ConnectionPool.acquire()` depends on the ``getmode`` in effect
+        when ``acquire()`` is called:
 
-        * With mode POOL_GETMODE__TIMEDWAIT, an acquire() call will try to
-          acquire a connection in the time specified by pool.wait_timeout and
-          return an error if the time taken exceeds that value.
+        * With mode :data:`~oracledb.POOL_GETMODE_FORCEGET`, an ``acquire()``
+          call will wait until the pool has been reconfigured.
 
-        * With mode POOL_GETMODE_WAIT, an acquire() call will wait until after
-          the pool has been reconfigured and a connection is available.
+        * With mode :data:`~oracledb.POOL_GETMODE_TIMEDWAIT`, an ``acquire()``
+          call will try to acquire a connection in the time specified by
+          pool.wait_timeout and return an error if the time taken exceeds that
+          value.
 
-        * With mode POOL_GETMODE_NOWAIT, if the number of busy connections is
-          less than the pool size, acquire() will return a new connection
-          after pool reconfiguration is complete.
+        * With mode :data:`~oracledb.POOL_GETMODE_WAIT`, an ``acquire()`` call
+          will wait until after the pool has been reconfigured and a connection
+          is available.
 
-        Closing connections with pool.release() or connection.close() will
-        wait until any pool size reconfiguration is complete.
+        * With mode :data:`~oracledb.POOL_GETMODE_NOWAIT`, if the number of
+          busy connections is less than the pool size, ``acquire()`` will
+          return a new connection after pool reconfiguration is complete.
 
-        Closing the connection pool with pool.close() will wait until
+        Closing connections with :meth:`ConnectionPool.release()` or
+        :meth:`Connection.close()` will wait until any pool size
         reconfiguration is complete.
+
+        Closing the connection pool with :meth:`ConnectionPool.close()` will
+        wait until reconfiguration is complete.
         """
 
         if min is None:
@@ -567,6 +555,42 @@ class ConnectionPool(BaseConnectionPool):
             self.stmtcachesize = stmtcachesize
         if ping_interval is not None:
             self.ping_interval = ping_interval
+
+    def release(
+        self,
+        connection: "connection_module.Connection",
+        tag: Optional[str] = None,
+    ) -> None:
+        """
+        Releases the connection back to the pool now, rather than whenever
+        __del__ is called. The connection will be unusable from this point
+        forward; an Error exception will be raised if any operation is
+        attempted with the connection. Any cursors or LOBs created by the
+        connection will also be marked unusable and an Error exception will be
+        raised if any operation is attempted with them.
+
+        Internally, references to the connection are held by cursor objects,
+        LOB objects, etc. Once all of these references are released, the
+        connection itself will be released back to the pool automatically.
+        Either control references to these related objects carefully or
+        explicitly release connections back to the pool in order to ensure
+        sufficient resources are available.
+
+        If the tag is not *None*, it is expected to be a string with name=value
+        pairs like "k1=v1;k2=v2" and will override the value in the property
+        :attr:`Connection.tag`. If either :attr:`Connection.tag` or the tag
+        parameter are not *None*, the connection will be retagged when it is
+        released back to the pool.
+        """
+        self._verify_open()
+        if not isinstance(connection, connection_module.Connection):
+            message = "connection must be an instance of oracledb.Connection"
+            raise TypeError(message)
+        connection._verify_connected()
+        if tag is not None:
+            connection.tag = tag
+        self._impl.return_connection(connection._impl)
+        connection._impl = None
 
 
 def _pool_factory(
@@ -675,31 +699,22 @@ class AsyncConnectionPool(BaseConnectionPool):
         supershardingkey: Optional[list] = None,
     ) -> "connection_module.AsyncConnection":
         """
-        Acquire a connection from the pool and return it.
+        Acquires a connection from the pool and returns an :ref:`asynchronous
+        connection object <asyncconnobj>`.
 
-        If the pool is homogeneous, the user and password parameters cannot be
-        specified. If they are, an exception will be raised.
+        If the pool is :ref:`homogeneous <connpooltypes>`, the ``user`` and
+        ``password`` parameters cannot be specified. If they are, an exception
+        will be raised.
 
-        The cclass parameter, if specified, should be a string corresponding to
-        the connection class for database resident connection pooling (DRCP).
+        The ``cclass`` parameter, if specified, should be a string
+        corresponding to the connection class for :ref:`drcp`.
 
-        The purity parameter is expected to be one of PURITY_DEFAULT,
-        PURITY_NEW, or PURITY_SELF.
+        The ``purity`` parameter is expected to be one of
+        :data:`~oracledb.PURITY_NEW`, :data:`~oracledb.PURITY_SELF`, or
+        :data:`~oracledb.PURITY_DEFAULT`.
 
-        The tag parameter, if specified, is expected to be a string with
-        name=value pairs like “k1=v1;k2=v2” and will limit the connections that
-        can be returned from a pool unless the matchanytag parameter is
-        set to True. In that case connections with the specified tag will be
-        preferred over others, but if no such connections are available a
-        connection with a different tag may be returned instead. In any case,
-        untagged connections will always be returned if no connections with the
-        specified tag are available. Connections are tagged when they are
-        released back to the pool.
-
-        The shardingkey and supershardingkey parameters, if specified, are
-        expected to be a sequence of values which will be used to identify the
-        database shard to connect to. The key values can be strings, numbers,
-        bytes or dates.
+        The ``tag``, ``matchanytag``, ``shardingkey``, and ``supershardingkey``
+        parameters are ignored in python-oracledb Thin mode.
         """
         self._verify_open()
 
@@ -718,11 +733,12 @@ class AsyncConnectionPool(BaseConnectionPool):
 
     async def close(self, force: bool = False) -> None:
         """
-        Close the pool now, rather than when the last reference to it is
+        Closes the pool now, rather than when the last reference to it is
         released, which makes it unusable for further work.
 
         If any connections have been acquired and not released back to the
-        pool, this method will fail unless the force parameter is set to True.
+        pool, this method will fail unless the ``force`` parameter is set to
+        *True*.
         """
         self._verify_open()
         await self._impl.close(force)
@@ -732,8 +748,8 @@ class AsyncConnectionPool(BaseConnectionPool):
 
     async def drop(self, connection: "connection_module.Connection") -> None:
         """
-        Drop the connection from the pool, which is useful if the connection is
-        no longer usable (such as when the database session is killed).
+        Drops the connection from the pool which is useful if the connection is
+        no longer usable (such as when the session is killed).
         """
         self._verify_open()
         if not isinstance(connection, connection_module.AsyncConnection):
@@ -751,25 +767,13 @@ class AsyncConnectionPool(BaseConnectionPool):
         tag: Optional[str] = None,
     ) -> None:
         """
-        Release the connection back to the pool now, rather than whenever
-        __del__ is called. The connection will be unusable from this point
-        forward; an Error exception will be raised if any operation is
-        attempted with the connection. Any cursors or LOBs created by the
-        connection will also be marked unusable and an Error exception will be
-        raised if any operation is attempted with them.
+        Releases the connection back to the pool now. The connection will be
+        unusable from this point forward. An Error exception will be raised if
+        any operation is attempted with the connection. Any cursors or LOBs
+        created by the connection will also be marked unusable and an Error
+        exception will be raised if any operation is attempted with them.
 
-        Internally, references to the connection are held by cursor objects,
-        LOB objects, etc. Once all of these references are released, the
-        connection itself will be released back to the pool automatically.
-        Either control references to these related objects carefully or
-        explicitly release connections back to the pool in order to ensure
-        sufficient resources are available.
-
-        If the tag is not None, it is expected to be a string with name=value
-        pairs like “k1=v1;k2=v2” and will override the value in the property
-        Connection.tag. If either Connection.tag or the tag parameter are not
-        None, the connection will be retagged when it is released back to the
-        pool.
+        The ``tag`` parameter is ignored in python-oracledb Thin mode.
         """
         self._verify_open()
         if not isinstance(connection, connection_module.AsyncConnection):
@@ -901,8 +905,11 @@ def get_pool(
     pool_alias: str,
 ) -> Union[ConnectionPool, AsyncConnectionPool, None]:
     """
-    Returns the connection pool with the given alias from the python-oracledb
-    connection pool cache. If a pool with that alias does not exist, the value
-    "None" will be returned.
+    Returns a :ref:`ConnectionPool object <connpool>` from the python-oracledb
+    pool cache. The pool must have been previously created by passing the same
+    ``pool_alias`` value to :meth:`oracledb.create_pool()` or
+    :meth:`oracledb.create_pool_async()`.
+
+    If a pool with the given name does not exist, *None* is returned.
     """
     return named_pools.pools.get(pool_alias)

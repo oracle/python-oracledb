@@ -1,5 +1,7 @@
 .. _bind:
 
+.. currentmodule:: oracledb
+
 ********************
 Using Bind Variables
 ********************

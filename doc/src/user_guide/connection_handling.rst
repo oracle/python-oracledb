@@ -1,5 +1,7 @@
 .. _connhandling:
 
+.. currentmodule:: oracledb
+
 *****************************
 Connecting to Oracle Database
 *****************************

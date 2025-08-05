@@ -81,7 +81,7 @@ class ConnectParams:
 
     def copy(self) -> "ConnectParams":
         """
-        Creates a copy of the parameters and returns it.
+        Creates a copy of the ConnectParams instance and returns it.
         """
         params = ConnectParams.__new__(ConnectParams)
         params._impl = self._impl.copy()
@@ -89,36 +89,38 @@ class ConnectParams:
 
     def get_connect_string(self) -> str:
         """
-        Returns a connect string generated from the parameters.
+        Returns the connection string associated with the instance.
         """
         return self._impl.get_connect_string()
 
     def get_network_service_names(self) -> list:
         """
-        Returns a list of the network service names found in the tnsnames.ora
-        file found in the configuration directory associated with the
-        parameters. If no such file exists, an error is raised.
+        Returns a list of the network service names found in the
+        :ref:`tnsnames.ora <optnetfiles>` file which is inside the directory
+        that can be identified by the attribute
+        :attr:`~ConnectParams.config_dir`.  If a tnsnames.ora file does not
+        exist, then an exception is raised.
         """
         return self._impl.get_network_service_names()
 
     def parse_connect_string(self, connect_string: str) -> None:
         """
         Parses the connect string into its components and stores the
-        parameters.  The connect string could be an Easy Connect string,
-        name-value pairs or a simple alias which is looked up in tnsnames.ora.
-        Any parameters found in the connect string override any currently
-        stored values.
+        parameters.
+
+        The ``connect string`` parameter can be an Easy Connect string,
+        name-value pairs, or a simple alias which is looked up in
+        ``tnsnames.ora``. Parameters that are found in the connect string
+        override any currently stored values.
         """
         self._impl.parse_connect_string(connect_string)
 
     def parse_dsn_with_credentials(self, dsn: str) -> tuple:
         """
-        Parses a dsn in the form <user>/<password>@<connect_string> or in the
+        Parses a DSN in the form <user>/<password>@<connect_string> or in the
         form <user>/<password> and returns a 3-tuple containing the parsed
         user, password and connect string. Empty strings are returned as the
-        value None. This is done automatically when a value is passed to
-        the dsn parameter but no value is passed to the user password when
-        creating a standalone connection or connection pool.
+        value *None*.
         """
         return self._impl.parse_dsn_with_credentials(dsn)
 
@@ -127,8 +129,9 @@ class ConnectParams:
         # {{ params_setter_args }}
     ):
         """
-        All parameters are optional. A brief description of each parameter
-        follows:
+        Sets the values for one or more of the parameters of a ConnectParams
+        object.  All parameters are optional. A brief description of each
+        parameter follows:
 
         # {{ args_help_without_defaults }}
         """
@@ -136,24 +139,27 @@ class ConnectParams:
 
     def set_from_config(self, config: dict) -> None:
         """
-        Sets the property values based on the supplied configuration. The
-        configuration consists of a dictionary with the following keys, all of
-        which are optional: "connect_descriptor", "user", "password" and "pyo".
+        Sets the property values based on the specified configuration. This
+        method is intended for use with Centralized Configuration Providers.
 
-        If the "connect_descriptor" key is supplied, it is expected to be a
-        string, which will be parsed and the properties found within it stored
-        in the parameters.
+        The ``config`` parameter is a dictionary which consists of the
+        following optional keys: "connect_descriptor", "user", "password", and
+        "pyo".
 
-        If the "user" or "password" keys are supplied, and the parameters do
-        not already have a user or password, these values will be stored;
-        otherwise, they will be ignored. The "user" key is expected to be a
-        string. The "password" key may be a string or it may be a dictionary
-        containing the keys "type" and "value" which will be used to determine
-        the actual password.
+        If the key "connect_descriptor" is specified, it is expected to be a
+        string, which will be parsed and the properties found within it are
+        stored in the ConnectParams instance.
 
-        If the "pyo" key is supplied, it is expected to be a dictionary
+        If the keys "user" or "password" are specified, and the parameters do
+        not already have a user or password set, these values will be stored;
+        otherwise, they will be ignored. The key "user" is expected to be a
+        string. The "key" password may be a string or it may be a dictionary
+        which will be examined by a :ref:`registered password type handler
+        <registerpasswordtype>` to determine the actual password.
+
+        If the key "pyo" is specified, it is expected to be a dictionary
         containing keys corresponding to property names. Any property names
-        accepted by the parameters will be stored; all other values will be
-        ignored.
+        accepted by the ConnectParams class will be stored in the ConnectParams
+        instance; all other values will be ignored.
         """
         self._impl.set_from_config(config)

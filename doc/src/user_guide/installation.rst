@@ -1,5 +1,7 @@
 .. _installation:
 
+.. currentmodule:: oracledb
+
 ***************************
 Installing python-oracledb
 ***************************

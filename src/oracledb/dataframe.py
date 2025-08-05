@@ -29,8 +29,6 @@
 # array data to other data frame libraries.
 # -----------------------------------------------------------------------------
 
-from typing import List
-
 from .arrow_array import ArrowArray
 from .arrow_impl import DataFrameImpl
 from . import errors
@@ -73,23 +71,24 @@ class DataFrame:
             raise NotImplementedError("requested_schema")
         return self._impl.get_stream_capsule()
 
-    def column_arrays(self) -> List:
+    def column_arrays(self) -> list[ArrowArray]:
         """
-        Returns a list of the Arrow arrays corresponding to each column in the
-        data frame.
+        Returns a list of ArrowArray objects, each containing a select list
+        column.
         """
         return self._arrays
 
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """
-        Returns a list of the names of the columns in the data frame.
+        Returns a list of the column names in the data frame.
         """
         return [a.name for a in self._arrays]
 
     def get_column(self, i: int) -> ArrowArray:
         """
-        Returns a column from the data frame given its zero-based index. If the
-        index is out of range, an IndexError exception is raised.
+        Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the
+        column at the given index ``i``. If the index is out of range, an
+        IndexError exception is raised.
         """
         if i < 0 or i >= self.num_columns():
             raise IndexError(
@@ -100,8 +99,9 @@ class DataFrame:
 
     def get_column_by_name(self, name: str) -> ArrowArray:
         """
-        Returns a column from the data frame given the name of the column. If
-        the column name is not found, a KeyError exception is raised.
+        Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the
+        column with the given name ``name``. If the column name is not found,
+        a KeyError exception is raised.
         """
         try:
             return self._arrays_by_name[name]

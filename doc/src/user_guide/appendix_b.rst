@@ -1,5 +1,7 @@
 .. _driverdiff:
 
+.. currentmodule:: oracledb
+
 ********************************************************************
 Appendix B: Differences between python-oracledb Thin and Thick Modes
 ********************************************************************

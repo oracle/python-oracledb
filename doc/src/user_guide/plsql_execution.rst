@@ -1,5 +1,7 @@
 .. _plsqlexecution:
 
+.. currentmodule:: oracledb
+
 ****************
 Executing PL/SQL
 ****************

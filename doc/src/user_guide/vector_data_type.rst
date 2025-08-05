@@ -1,5 +1,7 @@
 .. _vectors:
 
+.. currentmodule:: oracledb
+
 *****************
 Using VECTOR Data
 *****************

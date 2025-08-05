@@ -47,7 +47,13 @@ class Defaults:
     @property
     def arraysize(self) -> int:
         """
-        Specifies the default arraysize to use when cursors are created.
+        This read-write attribute specifies the default arraysize to use when
+        cursors are created.
+
+        This value is the default for :attr:`Cursor.arraysize` and
+        :attr:`AsyncCursor.arraysize`.
+
+        This attribute has an initial value of *100*.
         """
         return self._impl.arraysize
 
@@ -58,7 +64,12 @@ class Defaults:
     @property
     def config_dir(self) -> str:
         """
-        Specifies the directory to search for tnsnames.ora.
+        This read-write attribute specifies the directory in which the optional
+        configuration file ``tnsnames.ora`` will be read in python-oracledb
+        Thin mode.
+
+        This attribute is used in python-oracledb Thin mode. It is also used in
+        Thick mode if :attr:`defaults.thick_mode_dsn_passthrough` is *False*.
         """
         return self._impl.config_dir
 
@@ -69,8 +80,19 @@ class Defaults:
     @property
     def fetch_lobs(self) -> bool:
         """
-        Specifies whether queries that contain LOBs should return LOB objects
-        or their contents instead.
+        This read-write attribute specifies whether queries that contain LOBs
+        should return LOB objects or their contents instead.
+
+        When the value of this attribute is *True*, then queries to LOB columns
+        return LOB locators. When the value of this attribute is *False*, then
+        CLOBs and NCLOBs are fetched as strings, and BLOBs are fetched as
+        bytes. If LOBs are larger than 1 GB, then this attribute should be set
+        to *True* and the LOBs should be streamed.
+
+        The value of ``oracledb.defaults.fetch_lobs`` does not affect LOBs
+        returned as OUT binds.
+
+        This attribute has an initial value of *True*.
         """
         return self._impl.fetch_lobs
 
@@ -81,8 +103,13 @@ class Defaults:
     @property
     def fetch_decimals(self) -> bool:
         """
-        Specifies whether queries that contain numbers should return
-        decimal.Decimal objects or floating point numbers.
+        This read-write attribute specifies whether queries that contain
+        numbers should be fetched as `decimal.Decimal <https://docs.python.org
+        /3/library/decimal.html#decimal-objects>`__ objects or floating point
+        numbers. This can help avoid issues with converting numbers from Oracle
+        Database's decimal format to Python's binary format.
+
+        This attribute has an initial value of *False*.
         """
         return self._impl.fetch_decimals
 
@@ -93,8 +120,18 @@ class Defaults:
     @property
     def prefetchrows(self) -> int:
         """
-        Specifies the default number of rows to prefetch when cursors are
-        executed.
+        This read-write attribute specifies the default number of rows to
+        prefetch when cursors are executed.
+
+        This value is the default for :attr:`Cursor.prefetchrows` and
+        :attr:`AsyncCursor.prefetchrows`.
+
+        This attribute is ignored when using :meth:`Connection.fetch_df_all()`
+        or :meth:`Connection.fetch_df_batches()` since these methods always set
+        the internal prefetch size to their relevant ``arraysize`` or ``size``
+        parameter value.
+
+        This attribute has an initial value of *2*.
         """
         return self._impl.prefetchrows
 
@@ -105,7 +142,15 @@ class Defaults:
     @property
     def stmtcachesize(self) -> int:
         """
-        Specifies the default size of the statement cache.
+        This read-write attribute specifies the default size of the statement
+        cache.
+
+        This value is the default for :attr:`Connection.stmtcachesize`,
+        :attr:`ConnectionPool.stmtcachesize`,
+        :attr:`AsyncConnection.stmtcachesize`, and
+        :attr:`AsyncConnectionPool.stmtcachesize`.
+
+        This attribute has an initial value of *20*.
         """
         return self._impl.stmtcachesize
 
@@ -116,7 +161,15 @@ class Defaults:
     @property
     def program(self) -> str:
         """
-        Specifies the program name connected to the Oracle Database.
+        This read-write attribute specifies the program name connected to
+        Oracle Database. This is the value used in the PROGRAM column of the
+        V$SESSION view.
+
+        This attribute has an initial value that is populated by
+        `sys.executable <https://docs.python.org/3/library/sys.html#
+        sys.executable>`__.
+
+        This attribute is only used in python-oracledb Thin mode.
         """
         return self._impl.program
 
@@ -129,7 +182,14 @@ class Defaults:
     @property
     def machine(self) -> str:
         """
-        Specifies the machine name connected to the Oracle Database.
+        This read-write attribute specifies the machine name of the client
+        connecting to Oracle Database. This is the value used in the MACHINE
+        column of the V$SESSION view.
+
+        This attribute takes the host name where the application is running as
+        its initial value.
+
+        This attribute is only used in python-oracledb Thin mode.
         """
         return self._impl.machine
 
@@ -142,7 +202,13 @@ class Defaults:
     @property
     def terminal(self) -> str:
         """
-        Specifies the terminal identifier from which the connection originates.
+        This read-write attribute specifies the terminal identifier from which
+        the connection originates. This is the value used in the TERMINAL
+        column of the V$SESSION view.
+
+        This attribute has an initial value of *unknown*.
+
+        This attribute is only used in python-oracledb Thin mode.
         """
         return self._impl.terminal
 
@@ -153,8 +219,13 @@ class Defaults:
     @property
     def osuser(self) -> str:
         """
-        Specifies the os user that initiates the connection to the
-        Oracle Database.
+        This read-write attribute specifies the operating system user that
+        initiates the database connection. This is the value used in the OSUSER
+        column of the V$SESSION view.
+
+        This attribute takes the login name of the user as its initial value.
+
+        This attribute is only used in python-oracledb Thin mode.
         """
         return self._impl.osuser
 
@@ -167,7 +238,23 @@ class Defaults:
     @property
     def driver_name(self) -> str:
         """
-        Specifies the driver used for the connection.
+        This read-write attribute specifies the driver used by the client to
+        connect to Oracle Database. This is the value used in the CLIENT_DRIVER
+        column of the V$SESSION_CONNECT_INFO view.
+
+        This attribute has an initial value of *None*. It is used as required
+        in python-oracledb Thick and Thin mode.
+
+        In python-oracledb Thick mode, this attribute is used if the
+        ``driver_name`` parameter is not specified in
+        :meth:`oracledb.init_oracle_client()`. In Thin mode, this attribute is
+        used if the ``driver_name`` parameter is not specified in
+        :meth:`oracledb.connect()`, :meth:`oracledb.connect_async()`,
+        :meth:`oracledb.create_pool()`, or
+        :meth:`oracledb.create_pool_async()`. If the value of this attribute is
+        *None*, the value set when connecting in python-oracledb Thick mode is
+        like "python-oracledb thk : <version>" and in Thin mode is like
+        "python-oracledb thn : <version>".
         """
         return self._impl.driver_name
 
@@ -178,8 +265,19 @@ class Defaults:
     @property
     def thick_mode_dsn_passthrough(self) -> str:
         """
-        Specifies whether to pass connect strings to the Oracle Client
-        libraries unchanged when using thick mode.
+        This read-write attribute determines whether
+        :ref:`connection strings <connstr>` passed as the ``dsn`` parameter to
+        :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+        :meth:`oracledb.connect_async()`, and
+        :meth:`oracledb.create_pool_async()` in python-oracledb Thick mode will
+        be parsed by Oracle Client libraries or by python-oracledb itself.
+
+        The value of ``thick_mode_dsn_passthrough`` is ignored in
+        python-oracledb Thin mode, which always parses all connect strings
+        (including reading a :ref:`tnsnames.ora <optnetfiles>` file, if
+        required).
+
+        This attribute has an initial value of *True*.
         """
         return self._impl.thick_mode_dsn_passthrough
 

@@ -32,7 +32,7 @@
 import datetime
 
 from . import connection as connection_module
-from typing import Any, Union, List
+from typing import Any, Union
 from . import errors
 from .dbobject import DbObject, DbObjectType
 
@@ -72,15 +72,16 @@ class BaseQueue:
     @property
     def connection(self) -> "connection_module.Connection":
         """
-        Returns the connection on which the queue was created.
+        This read-only attribute returns a reference to the connection object
+        on which the queue was created.
         """
         return self._connection
 
     @property
     def deqoptions(self) -> "DeqOptions":
         """
-        Returns the options that will be used when dequeuing messages from the
-        queue.
+        This read-only attribute returns a reference to the options that will
+        be used when dequeuing messages from the queue.
         """
         return self._deq_options
 
@@ -94,8 +95,8 @@ class BaseQueue:
     @property
     def enqoptions(self) -> "EnqOptions":
         """
-        Returns the options that will be used when enqueuing messages into the
-        queue.
+        This read-only attribute returns a reference to the options that will
+        be used when enqueuing messages into the queue.
         """
         return self._enq_options
 
@@ -109,15 +110,16 @@ class BaseQueue:
     @property
     def name(self) -> str:
         """
-        Returns the name of the queue.
+        This read-only attribute returns the name of the queue.
         """
         return self._impl.name
 
     @property
     def payload_type(self) -> Union[DbObjectType, None]:
         """
-        Returns the object type for payloads that can be enqueued and dequeued.
-        If using a raw queue, this returns the value None.
+        This read-only attribute returns the object type for payloads that can
+        be enqueued and dequeued. If using a JSON queue, this returns the value
+        "JSON". If using a raw queue, this returns the value *None*.
         """
         if self._payload_type is None:
             if self._impl.is_json:
@@ -138,7 +140,7 @@ class BaseQueue:
 
 class Queue(BaseQueue):
 
-    def deqmany(self, max_num_messages: int) -> list:
+    def deqmany(self, max_num_messages: int) -> list["MessageProperties"]:
         """
         Dequeues up to the specified number of messages from the queue and
         returns a list of these messages.
@@ -154,7 +156,7 @@ class Queue(BaseQueue):
                 message_impls.append(message_impl)
         return [MessageProperties._from_impl(impl) for impl in message_impls]
 
-    def deqMany(self, max_num_messages: int) -> List["MessageProperties"]:
+    def deqMany(self, max_num_messages: int) -> list["MessageProperties"]:
         """
         Deprecated: use deqmany() instead.
         """
@@ -175,24 +177,27 @@ class Queue(BaseQueue):
         """
         return self.deqone()
 
-    def enqmany(self, messages: list) -> None:
+    def enqmany(self, messages: list["MessageProperties"]) -> None:
         """
         Enqueues multiple messages into the queue. The messages parameter must
         be a sequence containing message property objects which have all had
         their payload attribute set to a value that the queue supports.
 
-        Warning: calling this function in parallel on different connections
-        acquired from the same pool may fail due to Oracle bug 29928074. Ensure
-        that this function is not run in parallel, use standalone connections
-        or connections from different pools, or make multiple calls to
-        enqone() instead. The function Queue.deqmany() call is not affected.
+        Warning: In python-oracledb Thick mode using Oracle Client libraries
+        prior to 21c, calling :meth:`Queue.enqmany()` in parallel on different
+        connections acquired from the same connection pool may fail due to
+        Oracle bug 29928074. To avoid this, do one of: upgrade the client
+        libraries, ensure that :meth:`Queue.enqmany()` is not run in parallel,
+        use standalone connections or connections from different pools, or make
+        multiple calls to :meth:`Queue.enqone()`. The function
+        :meth:`Queue.deqmany()` call is not affected.
         """
         for message in messages:
             self._verify_message(message)
         message_impls = [m._impl for m in messages]
         self._impl.enq_many(message_impls)
 
-    def enqMany(self, messages: list) -> None:
+    def enqMany(self, messages: list["MessageProperties"]) -> None:
         """
         Deprecated: use enqmany() instead.
         """
@@ -216,7 +221,9 @@ class Queue(BaseQueue):
 
 class AsyncQueue(BaseQueue):
 
-    async def deqmany(self, max_num_messages: int) -> list:
+    async def deqmany(
+        self, max_num_messages: int
+    ) -> list["MessageProperties"]:
         """
         Dequeues up to the specified number of messages from the queue and
         returns a list of these messages.
@@ -233,7 +240,7 @@ class AsyncQueue(BaseQueue):
         if message_impl is not None:
             return MessageProperties._from_impl(message_impl)
 
-    async def enqmany(self, messages: list) -> None:
+    async def enqmany(self, messages: list["MessageProperties"]) -> None:
         """
         Enqueues multiple messages into the queue. The messages parameter must
         be a sequence containing message property objects which have all had
@@ -270,10 +277,10 @@ class DeqOptions:
     @property
     def condition(self) -> str:
         """
-        Specifies a boolean expression similar to the where clause of a SQL
-        query. The boolean expression can include conditions on message
-        properties, user data properties and PL/SQL or SQL functions. The
-        default is to have no condition specified.
+        This read-write attribute specifies a boolean expression similar to the
+        where clause of a SQL query. The boolean expression can include
+        conditions on message properties, user data properties, and PL/SQL or
+        SQL functions. The default is to have no condition specified.
         """
         return self._impl.get_condition()
 
@@ -284,10 +291,10 @@ class DeqOptions:
     @property
     def consumername(self) -> str:
         """
-        Specifies the name of the consumer. Only messages matching the consumer
-        name will be accessed. If the queue is not set up for multiple
-        consumers this attribute should not be set. The default is to have no
-        consumer name specified.
+        This read-write attribute specifies the name of the consumer. Only
+        messages matching the consumer name will be accessed. If the queue is
+        not set up for multiple consumers this attribute should not be set. The
+        default is to have no consumer name specified.
         """
         return self._impl.get_consumer_name()
 
@@ -298,11 +305,11 @@ class DeqOptions:
     @property
     def correlation(self) -> str:
         """
-        Specifies the correlation identifier of the message to be dequeued.
-        Special pattern-matching characters, such as the percent sign (%) and
-        the underscore (_), can be used. If multiple messages satisfy the
-        pattern, the order of dequeuing is indeterminate. The default is to
-        have no correlation specified.
+        This read-write attribute specifies the correlation identifier of the
+        message to be dequeued. Special pattern-matching characters, such as
+        the percent sign (%) and the underscore (_), can be used. If multiple
+        messages satisfy the pattern, the order of dequeuing is indeterminate.
+        The default is to have no correlation specified.
         """
         return self._impl.get_correlation()
 
@@ -311,11 +318,13 @@ class DeqOptions:
         self._impl.set_correlation(value)
 
     @property
-    def deliverymode(self) -> None:
+    def deliverymode(self) -> int:
         """
-        Specifies what types of messages should be dequeued. It should be one
-        of the values MSG_PERSISTENT (default), MSG_BUFFERED or
-        MSG_PERSISTENT_OR_BUFFERED.
+        This write-only attribute specifies what types of messages should be
+        dequeued. It should be one of the values
+        :data:`~oracledb.MSG_PERSISTENT` (default),
+        :data:`~oracledb.MSG_BUFFERED`, or
+        :data:`~oracledb.MSG_PERSISTENT_OR_BUFFERED`.
         """
         raise AttributeError("deliverymode can only be written")
 
@@ -326,9 +335,11 @@ class DeqOptions:
     @property
     def mode(self) -> int:
         """
-        Specifies the locking behaviour associated with the dequeue operation.
-        It should be one of the values DEQ_BROWSE, DEQ_LOCKED, DEQ_REMOVE
-        (default), or DEQ_REMOVE_NODATA.
+        This read-write attribute specifies the locking behaviour associated
+        with the dequeue operation. It should be one of the values
+        :data:`~oracledb.DEQ_BROWSE`, :data:`~oracledb.DEQ_LOCKED`,
+        :data:`~oracledb.DEQ_REMOVE` (default), or
+        :data:`~oracledb.DEQ_REMOVE_NODATA`.
         """
         return self._impl.get_mode()
 
@@ -339,8 +350,8 @@ class DeqOptions:
     @property
     def msgid(self) -> bytes:
         """
-        Specifies the identifier of the message to be dequeued. The default is
-        to have no message identifier specified.
+        This read-write attribute specifies the identifier of the message to
+        be dequeued. The default is to have no message identifier specified.
         """
         return self._impl.get_message_id()
 
@@ -351,9 +362,10 @@ class DeqOptions:
     @property
     def navigation(self) -> int:
         """
-        Specifies the position of the message that is retrieved. It should be
-        one of the values DEQ_FIRST_MSG, DEQ_NEXT_MSG (default), or
-        DEQ_NEXT_TRANSACTION.
+        This read-write attribute specifies the position of the message that is
+        retrieved. It should be one of the values
+        :data:`~oracledb.DEQ_FIRST_MSG`, :data:`~oracledb.DEQ_NEXT_MSG`
+        (default), or :data:`~oracledb.DEQ_NEXT_TRANSACTION`.
         """
         return self._impl.get_navigation()
 
@@ -364,10 +376,11 @@ class DeqOptions:
     @property
     def transformation(self) -> str:
         """
-        Specifies the name of the transformation that must be applied after the
-        message is dequeued from the database but before it is returned to the
-        calling application. The transformation must be created using
-        dbms_transform. The default is to have no transformation specified.
+        This read-write attribute specifies the name of the transformation that
+        must be applied after the message is dequeued from the database but
+        before it is returned to the calling application. The transformation
+        must be created using dbms_transform. The default is to have no
+        transformation specified.
         """
         return self._impl.get_transformation()
 
@@ -378,10 +391,12 @@ class DeqOptions:
     @property
     def visibility(self) -> int:
         """
-        Specifies the transactional behavior of the dequeue request. It should
-        be one of the values DEQ_ON_COMMIT (default) or DEQ_IMMEDIATE. This
-        attribute is ignored when using the DEQ_BROWSE mode. Note the value of
-        autocommit is always ignored.
+        This read-write attribute specifies the transactional behavior of the
+        dequeue request. It should be one of the values
+        :data:`~oracledb.DEQ_ON_COMMIT` (default) or
+        :data:`~oracledb.DEQ_IMMEDIATE`. This attribute is ignored when using
+        the :data:`~oracledb.DEQ_BROWSE` mode. Note the value of
+        :attr:`~Connection.autocommit` is always ignored.
         """
         return self._impl.get_visibility()
 
@@ -392,10 +407,11 @@ class DeqOptions:
     @property
     def wait(self) -> int:
         """
-        Specifies the time to wait, in seconds, for a message matching the
-        search criteria to become available for dequeuing. One of the values
-        DEQ_NO_WAIT or DEQ_WAIT_FOREVER can also be used. The default is
-        DEQ_WAIT_FOREVER.
+        This read-write attribute specifies the time to wait, in seconds, for a
+        message matching the search criteria to become available for dequeuing.
+        One of the values :data:`~oracledb.DEQ_NO_WAIT` or
+        :data:`~oracledb.DEQ_WAIT_FOREVER` can also be used. The default is
+        :data:`~oracledb.DEQ_WAIT_FOREVER`.
         """
         return self._impl.get_wait()
 
@@ -414,8 +430,10 @@ class EnqOptions:
     @property
     def deliverymode(self) -> int:
         """
-        Specifies what type of messages should be enqueued. It should be one of
-        the values MSG_PERSISTENT (default) or MSG_BUFFERED.
+        This write-only attribute specifies what type of messages should be
+        enqueued. It should be one of the values
+        :data:`~oracledb.MSG_PERSISTENT` (default) or
+        :data:`~oracledb.MSG_BUFFERED`.
         """
         raise AttributeError("deliverymode can only be written")
 
@@ -426,10 +444,10 @@ class EnqOptions:
     @property
     def transformation(self) -> str:
         """
-        Specifies the name of the transformation that must be applied before
-        the message is enqueued into the database. The transformation must be
-        created using dbms_transform. The default is to have no transformation
-        specified.
+        This read-write attribute specifies the name of the transformation that
+        must be applied before the message is enqueued into the database. The
+        transformation must be created using dbms_transform. The default is to
+        have no transformation specified.
         """
         return self._impl.get_transformation()
 
@@ -440,9 +458,11 @@ class EnqOptions:
     @property
     def visibility(self) -> int:
         """
-        Specifies the transactional behavior of the enqueue request. It should
-        be one of the values ENQ_ON_COMMIT (default) or ENQ_IMMEDIATE. Note the
-        value of autocommit is ignored.
+        This read-write attribute specifies the transactional behavior of the
+        enqueue request. It should be one of the values
+        :data:`~oracledb.ENQ_ON_COMMIT` (default) or
+        :data:`~oracledb.ENQ_IMMEDIATE`. Note the value of
+        :attr:`~Connection.autocommit` is ignored.
         """
         return self._impl.get_visibility()
 
@@ -463,15 +483,16 @@ class MessageProperties:
     @property
     def attempts(self) -> int:
         """
-        Specifies the number of attempts that have been made to dequeue the
-        message.
+        This read-only attribute specifies the number of attempts that have
+        been made to dequeue the message.
         """
         return self._impl.get_num_attempts()
 
     @property
     def correlation(self) -> str:
         """
-        Specifies the correlation used when the message was enqueued.
+        This read-write attribute specifies the correlation used when the
+        message was enqueued.
         """
         return self._impl.get_correlation()
 
@@ -482,9 +503,10 @@ class MessageProperties:
     @property
     def delay(self) -> int:
         """
-        Specifies the number of seconds to delay an enqueued message. Any
-        integer is acceptable but the constant MSG_NO_DELAY can also be used
-        indicating that the message is available for immediate dequeuing.
+        This read-write attribute specifies the number of seconds to delay an
+        enqueued message. Any integer is acceptable but the constant
+        :data:`~oracledb.MSG_NO_DELAY` can also be used indicating that the
+        message is available for immediate dequeuing.
         """
         return self._impl.get_delay()
 
@@ -495,27 +517,31 @@ class MessageProperties:
     @property
     def deliverymode(self) -> int:
         """
-        Specifies the type of message that was dequeued. It will be one of the
-        values MSG_PERSISTENT or MSG_BUFFERED.
+        This read-only attribute specifies the type of message that was
+        dequeued. It will be one of the values
+        :data:`~oracledb.MSG_PERSISTENT` or
+        :data:`~oracledb.MSG_BUFFERED`.
         """
         return self._impl.get_delivery_mode()
 
     @property
     def enqtime(self) -> datetime.datetime:
         """
-        Specifies the time that the message was enqueued.
+        This read-only attribute specifies the time that the message was
+        enqueued.
         """
         return self._impl.get_enq_time()
 
     @property
     def exceptionq(self) -> str:
         """
-        Specifies the name of the queue to which the message is moved if it
-        cannot be processed successfully. Messages are moved if the number of
-        unsuccessful dequeue attempts has exceeded the maximum number of
-        retries or if the message has expired. All messages in the exception
-        queue are in the MSG_EXPIRED state. The default value is the name of
-        the exception queue associated with the queue table.
+        This read-write attribute specifies the name of the queue to which the
+        message is moved if it cannot be processed successfully. Messages are
+        moved if the number of unsuccessful dequeue attempts has exceeded the
+        maximum number of retries or if the message has expired. All messages
+        in the exception queue are in the :data:`~oracledb.MSG_EXPIRED` state.
+        The default value is the name of the exception queue associated with
+        the queue table.
         """
         return self._impl.get_exception_queue()
 
@@ -526,11 +552,12 @@ class MessageProperties:
     @property
     def expiration(self) -> int:
         """
-        Specifies, in seconds, how long the message is available for dequeuing.
-        This attribute is an offset from the delay attribute. Expiration
-        processing requires the queue monitor to be running. Any integer is
-        accepted but the constant MSG_NO_EXPIRATION can also be used indicating
-        that the message never expires.
+        This read-write attribute specifies, in seconds, how long the message
+        is available for dequeuing. This attribute is an offset from the delay
+        attribute. Expiration processing requires the queue monitor to be
+        running. Any integer is accepted but the constant
+        :data:`~oracledb.MSG_NO_EXPIRATION` can also be used indicating that
+        the message never expires.
         """
         return self._impl.get_expiration()
 
@@ -541,20 +568,21 @@ class MessageProperties:
     @property
     def msgid(self) -> bytes:
         """
-        Specifies the id of the message in the last queue that enqueued or
-        dequeued this message. If the message has never been dequeued or
-        enqueued, the value will be `None`.
+        This read-only attribute specifies the id of the message in the last
+        queue that enqueued or dequeued this message. If the message has never
+        been dequeued or enqueued, the value will be `None`.
         """
         return self._impl.get_message_id()
 
     @property
     def payload(self) -> Union[bytes, DbObject]:
         """
-        Specifies the payload that will be enqueued or the payload that was
-        dequeued when using a queue. When enqueuing, the value is checked to
-        ensure that it conforms to the type expected by that queue. For RAW
-        queues, the value can be a bytes object or a string. If the value is a
-        string it will be converted to bytes in the encoding UTF-8.
+        This read-write attribute specifies the payload that will be enqueued
+        or the payload that was dequeued when using a queue. When enqueuing,
+        the value is checked to ensure that it conforms to the type expected
+        by that queue. For RAW queues, the value can be a bytes object or a
+        string. If the value is a string it will be converted to bytes in the
+        encoding UTF-8.
         """
         return self._impl.payload
 
@@ -575,9 +603,9 @@ class MessageProperties:
     @property
     def priority(self) -> int:
         """
-        Specifies the priority of the message. A smaller number indicates a
-        higher priority. The priority can be any integer, including negative
-        numbers. The default value is zero.
+        This read-write attribute specifies the priority of the message. A
+        smaller number indicates a higher priority. The priority can be any
+        integer, including negative numbers. The default value is 0.
         """
         return self._impl.get_priority()
 
@@ -586,13 +614,14 @@ class MessageProperties:
         self._impl.set_priority(value)
 
     @property
-    def recipients(self) -> list:
+    def recipients(self) -> list[str]:
         """
-        A list of recipient names can be associated with a message at the time
-        a message is enqueued. This allows a limited set of recipients to
-        dequeue each message. The recipient list associated with the message
-        overrides the queue subscriber list, if there is one. The recipient
-        names need not be in the subscriber list but can be, if desired.
+        This read-write attribute specifies a list of recipient names that can
+        be associated with a message at the time a message is enqueued. This
+        allows a limited set of recipients to dequeue each message. The
+        recipient list associated with the message overrides the queue
+        subscriber list, if there is one. The recipient names need not be in
+        the subscriber list but can be, if desired.
 
         To dequeue a message, the consumername attribute can be set to one of
         the recipient names. The original message recipient list is not
@@ -615,8 +644,9 @@ class MessageProperties:
     @property
     def state(self) -> int:
         """
-        Specifies the state of the message at the time of the dequeue. It will
-        be one of the values MSG_WAITING, MSG_READY, MSG_PROCESSED or
-        MSG_EXPIRED.
+        This read-only attribute specifies the state of the message at the time
+        of the dequeue. It will be one of the values
+        :data:`~oracledb.MSG_WAITING`, :data:`~oracledb.MSG_READY`,
+        :data:`~oracledb.MSG_PROCESSED`, or :data:`~oracledb.MSG_EXPIRED`.
         """
         return self._impl.get_state()

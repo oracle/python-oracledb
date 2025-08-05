@@ -4,229 +4,123 @@
 API: DbObjectType Objects
 *************************
 
-The DbObjectType object is returned by the :meth:`Connection.gettype()` call
-and is available as the :data:`Variable.type` for variables containing Oracle
-Database objects.
+.. currentmodule:: oracledb
 
-.. dbapiobjectextension::
+DbObjectType Class
+==================
+
+.. autoclass:: DbObjectType
+
+    A DbObjectType object is returned with :meth:`Connection.gettype()` call
+    and is available as the :data:`Var.type` for variables containing Oracle
+    Database objects.
+
+    .. dbapiobjectextension::
 
 DbObjectType Methods
-====================
+--------------------
 
-.. method:: DbObjectType([sequence])
+.. automethod:: DbObjectType.__call__
 
-    The object type may be called directly and serves as an alternative way of
-    calling :meth:`~DbObjectType.newobject()`.
-
-.. method:: DbObjectType.newobject([sequence])
-
-    Returns a new Oracle object of the given type. This object can then be
-    modified by setting its attributes and then bound to a cursor for
-    interaction with Oracle. If the object type refers to a collection, a
-    sequence may be passed and the collection will be initialized with the
-    items in that sequence.
+.. automethod:: DbObjectType.newobject
 
 DbObjectType Attributes
-=======================
+-----------------------
 
-.. attribute:: DbObjectType.attributes
+.. autoproperty:: DbObjectType.attributes
 
-    This read-only attribute returns a list of the :ref:`attributes
-    <dbobjectattr>` that make up the object type.
+.. autoproperty:: DbObjectType.element_type
 
+   See :ref:`database type constants <dbtypes>`.
 
-.. attribute:: DbObjectType.element_type
+.. autoproperty:: DbObjectType.iscollection
 
-    This read-only attribute returns the type of elements found in collections
-    of this type, if :attr:`~DbObjectType.iscollection` is *True*; otherwise,
-    it returns *None*. If the collection contains objects, this will be
-    another object type; otherwise, it will be one of the
-    :ref:`database type constants <dbtypes>`.
+.. autoproperty:: DbObjectType.name
 
+.. autoproperty:: DbObjectType.package_name
 
-.. attribute:: DbObjectType.iscollection
-
-    This read-only attribute returns a boolean indicating if the object type
-    refers to a collection or not.
-
-
-.. attribute:: DbObjectType.name
-
-    This read-only attribute returns the name of the type.
-
-
-.. attribute:: DbObjectType.package_name
-
-    This read-only attribute returns the name of the package, if the type
-    refers to a PL/SQL type (otherwise, it returns the value *None*).
-
-
-.. attribute:: DbObjectType.schema
-
-    This read-only attribute returns the name of the schema that owns the type.
+.. autoproperty:: DbObjectType.schema
 
 .. _dbobject:
 
-DbObject Objects
+DbObject Class
 ================
 
-The DbObject object is returned by the :meth:`DbObjectType.newobject()` call
-and can be bound to variables of type :data:`~oracledb.OBJECT`. Attributes can
-be retrieved and set directly.
+.. autoclass:: DbObject
 
-.. dbapiobjectextension::
+    A DbObject object is returned by the :meth:`DbObjectType.newobject()` call
+    and can be bound to variables of type :data:`~oracledb.DB_TYPE_OBJECT`.
+    Attributes can be retrieved and set directly.
+
+    .. dbapiobjectextension::
 
 DbObject Methods
-++++++++++++++++
+----------------
 
-.. method:: DbObject.append(element)
+.. automethod:: DbObject.append
 
-    Appends an element to the collection object. If no elements exist in the
-    collection, this creates an element at index 0; otherwise, it creates an
-    element immediately following the highest index available in the
-    collection.
+.. automethod:: DbObject.asdict
 
+.. automethod:: DbObject.aslist
 
-.. method:: DbObject.asdict()
+.. automethod:: DbObject.copy
 
-    Returns a dictionary where the collection's indexes are the keys and the
-    elements are its values.
+.. automethod:: DbObject.delete
 
+.. automethod:: DbObject.exists
 
-.. method:: DbObject.aslist()
+.. automethod:: DbObject.extend
 
-    Returns a list of each of the collection's elements in index order.
+.. automethod:: DbObject.first
 
+.. automethod:: DbObject.getelement
 
-.. method:: DbObject.copy()
+.. automethod:: DbObject.last
 
-    Creates a copy of the object and returns it.
+.. automethod:: DbObject.next
 
+.. automethod:: DbObject.prev
 
-.. method:: DbObject.delete(index)
+.. automethod:: DbObject.setelement
 
-    Deletes the element at the specified index of the collection. If the
-    element does not exist or is otherwise invalid, an error is raised. Note
-    that the indices of the remaining elements in the collection are not
-    changed. In other words, the delete operation creates holes in the
-    collection.
+.. automethod:: DbObject.size
 
-
-.. method:: DbObject.exists(index)
-
-    Returns *True* or *False* indicating if an element exists in the collection
-    at the specified index.
-
-
-.. method:: DbObject.extend(sequence)
-
-    Appends all of the elements in the sequence to the collection. This is
-    the equivalent of performing :meth:`~DbObject.append()` for each element
-    found in the sequence.
-
-
-.. method:: DbObject.first()
-
-    Returns the index of the first element in the collection. If the collection
-    is empty, *None* is returned.
-
-
-.. method:: DbObject.getelement(index)
-
-    Returns the element at the specified index of the collection. If no element
-    exists at that index, an exception is raised.
-
-
-.. method:: DbObject.last()
-
-    Returns the index of the last element in the collection. If the collection
-    is empty, *None* is returned.
-
-
-.. method:: DbObject.next(index)
-
-    Returns the index of the next element in the collection following the
-    specified index. If there are no elements in the collection following the
-    specified index, *None* is returned.
-
-
-.. method:: DbObject.prev(index)
-
-    Returns the index of the element in the collection preceding the specified
-    index. If there are no elements in the collection preceding the
-    specified index, *None* is returned.
-
-
-.. method:: DbObject.setelement(index, value)
-
-    Sets the value in the collection at the specified index to the given value.
-
-
-.. method:: DbObject.size()
-
-    Returns the number of elements in the collection.
-
-
-.. method:: DbObject.trim(num)
-
-    Removes the specified number of elements from the end of the collection.
+.. automethod:: DbObject.trim
 
 DbObject Attributes
-+++++++++++++++++++
+-------------------
 
-.. attribute:: DbObject.Type
-
-    This read-only attribute returns an ObjectType corresponding to the type
-    of object.
-
+.. autoproperty:: DbObject.type
 
 .. _dbobjectattr:
 
-DbObjectAttribute Objects
-=========================
+DbObjectAttribute Class
+=======================
 
-The elements of :attr:`DbObjectType.attributes` are instances of this type.
+.. autoclass:: DbObjectAttr
 
-.. dbapiobjectextension::
+    The elements of :attr:`DbObjectType.attributes` are instances of this
+    type.
 
-.. attribute:: DbObjectAttribute.max_size
+    .. dbapiobjectextension::
 
-    This read-only attribute returns the maximum size (in bytes) of the
-    attribute when the attribute's type is one of
-    :data:`oracledb.DB_TYPE_CHAR`, :data:`oracledb.DB_TYPE_NCHAR`,
-    :data:`oracledb.DB_TYPE_NVARCHAR`, :data:`oracledb.DB_TYPE_RAW`, or
-    :data:`oracledb.DB_TYPE_VARCHAR`. For all other types the value returned is
-    *None*.
+DbObjectAttr Attributes
+-----------------------
 
-    .. versionadded:: 3.0.0
-
-
-.. attribute:: DbObjectAttribute.name
-
-    This read-only attribute returns the name of the attribute.
-
-
-.. attribute:: DbObjectAttribute.precision
-
-    This read-only attribute returns the precision of the attribute when the
-    attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
-    the value returned is *None*.
+.. autoproperty:: DbObjectAttr.max_size
 
     .. versionadded:: 3.0.0
 
+.. autoproperty:: DbObjectAttr.name
 
-.. attribute:: DbObjectAttribute.scale
-
-    This read-only attribute returns the scale of the attribute when the
-    attribute's type is :data:`oracledb.DB_TYPE_NUMBER`. For all other types
-    the value returned is *None*.
+.. autoproperty:: DbObjectAttr.precision
 
     .. versionadded:: 3.0.0
 
+.. autoproperty:: DbObjectAttr.scale
 
-.. attribute:: DbObjectAttribute.type
+    .. versionadded:: 3.0.0
 
-    This read-only attribute returns the type of the attribute. This will be an
-    :ref:`Oracle Object Type <dbobjecttype>` if the variable binds
-    Oracle objects; otherwise, it will be one of the
-    :ref:`database type constants <dbtypes>`.
+.. autoproperty:: DbObjectAttr.type
+
+    See :ref:`database type constants <dbtypes>`.

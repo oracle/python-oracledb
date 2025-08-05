@@ -119,18 +119,21 @@ def get_manager(requested_thin_mode=None):
 
 def is_thin_mode() -> bool:
     """
-    Return a boolean specifying whether the driver is using thin mode (True) or
-    thick mode (False).
+    Returns a boolean indicating if python-oracledb is in Thin mode.
 
     Immediately after python-oracledb is imported, this function will return
-    True indicating that python-oracledb defaults to Thin mode. If
-    oracledb.init_oracle_client() is called successfully, then a subsequent
-    call to is_thin_mode() will return False indicating that Thick mode is
-    enabled.  Once the first standalone connection or connection pool is
-    created successfully, or a call to oracledb.init_oracle_client() is made
-    successfully, then python-oracledb's mode is fixed and the value returned
-    by is_thin_mode() will never change for the lifetime of the process.
+    *True* indicating that python-oracledb defaults to Thin mode. If a call to
+    :func:`oracledb.init_oracle_client()` returns successfully, then a
+    subsequent call to ``is_thin_mode()`` will return False indicating that
+    Thick mode is enabled. Once the first standalone connection or connection
+    pool is created, or a successful call to ``oracledb.init_oracle_client()``
+    is made, or :meth:`oracledb.enable_thin_mode()` is called, then
+    python-oracledb’s mode is fixed and the value returned by
+    ``is_thin_mode()`` will never change for the lifetime of the process.
 
+    The attribute :attr:`Connection.thin` can be used to check a connection's
+    mode. The attribute :attr:`ConnectionPool.thin` can be used to check a
+    pool's mode.
     """
     if manager.thin_mode is not None:
         return manager.thin_mode

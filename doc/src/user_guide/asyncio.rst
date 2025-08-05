@@ -1,5 +1,7 @@
 .. _asyncio:
 
+.. currentmodule:: oracledb
+
 **************************************************
 Concurrent Programming with asyncio and Pipelining
 **************************************************

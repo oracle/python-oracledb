@@ -4,6 +4,8 @@
 API: Data Frames
 ****************
 
+.. currentmodule:: oracledb
+
 Python-oracledb can fetch directly to data frames that expose an Apache Arrow
 PyCapsule Interface. These can be used by many numerical and data analysis
 libraries.
@@ -18,81 +20,60 @@ from Oracle Database types to Arrow data types.
 
 .. _oracledataframeobj:
 
-DataFrame Objects
-=================
+DataFrame Class
+===============
 
-DataFrame objects are returned from the methods
-:meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`.
+.. autoclass:: DataFrame
 
-Each column in a DataFrame exposes an `Apache Arrow PyCapsule
-<https://arrow.apache.org/docs/format/CDataInterface/PyCapsuleInterface.html>`__
-interface, giving access to the underlying Arrow array.
+    A DataFrame object is returned by the methods
+    :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()`.
 
-.. dbapiobjectextension::
+    Each column in a DataFrame exposes an `Apache Arrow PyCapsule
+    <https://arrow.apache.org/docs/format/CDataInterface/
+    PyCapsuleInterface.html>`__ interface, giving access to the underlying
+    Arrow array.
 
-.. versionchanged:: 3.3.0
+    .. dbapiobjectextension::
 
-    Removed the prefix "Oracle" from the class name.
+    .. versionchanged:: 3.3.0
 
-.. versionadded:: 3.0.0
+        Removed the prefix "Oracle" from the class name.
+
+    .. versionadded:: 3.0.0
 
 .. _oracledataframemeth:
 
 DataFrame Methods
 -----------------
 
-.. method:: DataFrame.column_arrays()
+.. automethod:: DataFrame.column_arrays
 
-    Returns a list of :ref:`ArrowArray <oraclearrowarrayobj>` objects,
-    each containing a select list column.
+.. automethod:: DataFrame.column_names
 
-.. method:: DataFrame.column_names()
+.. automethod:: DataFrame.get_column
 
-    Returns a list of the column names in the data frame.
+.. automethod:: DataFrame.get_column_by_name
 
-.. method:: DataFrame.get_column(i)
+.. automethod:: DataFrame.num_columns
 
-    Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the column
-    at the given index ``i``.
-
-.. method:: DataFrame.get_column_by_name(name)
-
-    Returns an :ref:`ArrowArray <oraclearrowarrayobj>` object for the column
-    with the given name ``name``.
-
-.. method:: DataFrame.num_columns()
-
-   Returns the number of columns in the data frame.
-
-.. method:: DataFrame.num_rows()
-
-   Returns the number of rows in the data frame.
-
-.. _oracledataframeattr:
-
-DataFrame Attributes
---------------------
-
-.. attribute:: DataFrame.metadata
-
-    This read-only attribute returns the metadata for the data frame as a
-    dictionary with keys ``num_columns``, ``num_rows``, and ``num_chunks``,
-    showing the number of columns, rows, and chunks, respectively. The number
-    of chunks is always 1 in python-oracledb.
+.. automethod:: DataFrame.num_rows
 
 .. _oraclearrowarrayobj:
 
 ArrowArray Objects
 ==================
 
-ArrowArray objects are returned by :meth:`DataFrame.column_arrays()`.
+.. autoclass:: ArrowArray
 
-These are used for conversion to `PyArrow Tables
-<https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__, see
-:ref:`dataframeformat`.
+    ArrowArray objects are returned by :meth:`DataFrame.column_arrays()`.
 
-.. versionchanged:: 3.3.0
+    These are used for conversion to `PyArrow Tables
+    <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`__, see
+    :ref:`dataframeformat`.
 
-    Removed the prefix "Oracle" from the class name.
+    .. versionchanged:: 3.3.0
 
-.. versionadded:: 3.0.0
+        Removed the prefix "Oracle" from the class name.
+
+    .. versionadded:: 3.0.0

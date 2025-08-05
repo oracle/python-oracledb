@@ -1,5 +1,7 @@
 .. _highavailability:
 
+.. currentmodule:: oracledb
+
 **************************************
 High Availability with python-oracledb
 **************************************

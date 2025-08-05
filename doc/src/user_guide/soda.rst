@@ -1,5 +1,7 @@
 .. _sodausermanual:
 
+.. currentmodule:: oracledb
+
 *************************************************
 Working with Simple Oracle Document Access (SODA)
 *************************************************

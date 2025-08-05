@@ -2,6 +2,8 @@
 
 .. _releasenotes:
 
+.. currentmodule:: oracledb
+
 python-oracledb Release Notes
 =============================
 

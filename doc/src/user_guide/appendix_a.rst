@@ -1,5 +1,7 @@
 .. _featuresummary:
 
+.. currentmodule:: oracledb
+
 *****************************************************************
 Appendix A: Oracle Database Features Supported by python-oracledb
 *****************************************************************

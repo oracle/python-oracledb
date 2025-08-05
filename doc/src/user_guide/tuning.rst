@@ -1,5 +1,7 @@
 .. _tuning:
 
+.. currentmodule:: oracledb
+
 ***********************
 Tuning python-oracledb
 ***********************
@@ -28,8 +30,8 @@ Some general tuning tips are:
 
   Use :ref:`bind variables <bind>` to avoid statement reparsing.
 
-  Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each query,
-  see :ref:`Tuning Fetch Performance <tuningfetch>`.
+  Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each SELECT
+  query, see :ref:`Tuning Fetch Performance <tuningfetch>`.
 
   Do simple optimizations like :ref:`limiting the number of rows <rowlimit>`
   and avoiding selecting columns not used in the application.
@@ -79,103 +81,127 @@ Some general tuning tips are:
 Tuning Fetch Performance
 ========================
 
-To improve application performance and scalability you can adjust the sizes of
-python-oracledb's internal query result buffers. Increasing the buffers can
-reduce :ref:`round-trips <roundtrips>` to improve the overall speed of fetching
-rows across the network from the database. The buffer sizes can be used to tune
-the behavior of all python-oracledb :ref:`row fetching methods <fetching>` but
-do not affect how many rows are returned to your application by those methods.
-You should tune the buffers for optimal performance and memory usage.
+To improve application performance and scalability, you can set
+:attr:`Cursor.prefetchrows` and :attr:`Cursor.arraysize` to adjust
+python-oracledb's internal buffers used for SELECT and REF CURSOR query
+results. Increasing the sizes causes bigger batches of rows to be fetched by
+each internal request to the database. This reduces the number of
+:ref:`round-trips <roundtrips>` required. The performance benefit of larger
+buffer sizes can be significant when fetching lots of rows, or when using a
+slow network. The database also benefits from reduced overheads.
 
-Tune "array fetching" with
-:attr:`Cursor.arraysize` and tune "row prefetching" with
-:attr:`Cursor.prefetchrows`.  Set these before calling
-:meth:`Cursor.execute()`.  The value used for prefetching can also be set in an
-``oraaccess.xml`` file, see :ref:`optclientfiles`.  In python-oracledb Thick
-mode, the internal buffers allocated for ``prefetchrows`` and ``arraysize`` are
-separate, so increasing both settings will require more Python process memory.
-Queries that return LOBs and similar types will never prefetch rows, so the
-``prefetchrows`` value is ignored in those cases.
+Internally, python-oracledb always does row prefetching and array fetching.
+Row prefetching is when rows are returned from the database in the round-trip
+used for initial statement execution. Rows are then available in an internal
+buffer for the application to consume. Without prefetching, the first set of
+rows would have to fetched from the database using a separate round-trip. When
+all rows in the prefetch buffer have been consumed by the application, the next
+set of rows are internally fetched into a buffer using an array fetch which
+takes one round-trip. These rows are made available to the application when it
+wants them. After the initial array fetch buffer has been emptied, further
+array fetches into the buffer occur as needed to completely retrieve all rows
+from the database.
 
-The difference between row prefetching and array fetching is when the internal
-buffering occurs.  Internally python-oracledb performs separate "execute SQL
-statement" and "fetch data" steps.  Prefetching allows query results to be
-returned to the application when the acknowledgment of successful statement
-execution is returned from the database.  This means that the subsequent
-internal "fetch data" operation does not always need to make a round-trip to
-the database because rows are already buffered in python-oracledb or in the
-Oracle Client libraries.  An overhead of prefetching when using the
-python-oracledb Thick mode is the need for additional data copies from Oracle
-Client's prefetch buffer when fetching the first batch of rows.  This cost may
-outweigh the benefits of using prefetching in some cases.
+Changing the buffer sizes with :attr:`~Cursor.prefetchrows` and
+:attr:`~Cursor.arraysize` affects the internal buffering behavior of
+:meth:`Cursor.fetchone()`, :meth:`Cursor.fetchmany()`, and
+:meth:`Cursor.fetchall()`. The attribute values do not affect how rows are
+returned to the application with the exception of :meth:`Cursor.fetchmany()`,
+where :attr:`Cursor.arraysize` is also used as the default for its ``size``
+parameter.
+
+An overhead of row prefetching in python-oracledb Thick mode is the use of a
+separate buffer from the array fetch buffer, increasing the memory
+requirements. Also, an additional data copy from Oracle Client's prefetch
+buffer is performed. These costs may outweigh the benefits of using prefetching
+in some cases.
+
+SELECT queries that return :ref:`LOB <lobobj>` objects and similar types will
+never prefetch rows, so the :attr:`~Cursor.prefetchrows` value is ignored in
+those cases.
+
+The attributes do not affect data insertion. To reduce round-trips for DML
+statements, see :ref:`batchstmnt`.
 
 Choosing values for ``arraysize`` and ``prefetchrows``
 ------------------------------------------------------
 
-The best :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` values can be
-found by experimenting with your application under the expected load of normal
-application use. The reduction of round-trips may help performance and overall
-system scalability. The documentation in :ref:`round-trips <roundtrips>` shows
-how to measure round-trips.
+Tune "array fetching" with :attr:`Cursor.arraysize`. Tune "row prefetching"
+with :attr:`Cursor.prefetchrows`. Set these before calling
+:meth:`Cursor.execute()`. Also, see :ref:`defprefarray`.
 
-Here are some suggestions for tuning:
+The best :attr:`~Cursor.arraysize` and :attr:`~Cursor.prefetchrows` values can
+be found by benchmarking your application under production load. Here are
+starting suggestions for four common scenarios:
 
-* To tune queries that return an unknown, large, number of rows, estimate the
-  number of rows returned and increase the :attr:`Cursor.arraysize` value for
-  best performance, memory and round-trip usage.  The default is 100.  For
-  example:
+* Scenario 1: To tune queries that return an unknown and large number of rows,
+  increase the :attr:`~Cursor.arraysize` value from its default of 100 until
+  you are satisfied with performance, memory, and round-trip usage. For example:
 
   .. code-block:: python
 
-      cur = connection.cursor()
+      cursor = connection.cursor()
 
-      cur.arraysize = 1000
+      # cursor.prefetchrows = 2  # generally leave this at its default
+      cursor.arraysize = 1000
 
-      for row in cur.execute("SELECT * FROM very_big_table"):
+      for row in cursor.execute("select * from very_big_table"):
           print(row)
 
-  In general for this scenario, leave ``prefetchrows`` at its default value.
-  If you do change it, then set ``arraysize`` as big, or bigger.  Do not make
-  the sizes unnecessarily large.
+  In general for this scenario, leave :attr:`~Cursor.prefetchrows` at its
+  default value.  If you do change it, then set :attr:`Cursor.arraysize` to a
+  bigger value.  Do not make the sizes unnecessarily large.
 
-* If you are fetching a fixed number of rows, set ``arraysize`` to the number
-  of expected rows, and set ``prefetchrows`` to one greater than this value.
-  Adding one removes the need for a round-trip to check for end-of-fetch.  For
-  example, if you are querying 20 rows, perhaps to :ref:`display a page
-  <rowlimit>` of data, then set ``prefetchrows`` to 21 and ``arraysize`` to 20:
+* Scenario 2: If you are fetching a fixed number of rows, set
+  :attr:`~Cursor.arraysize` to the number of expected rows, and set
+  :attr:`~Cursor.prefetchrows` to one greater than this value.  Adding one
+  removes the need for a round-trip to check for end-of-fetch.  For example, if
+  you are using a SELECT query to retrieve 20 rows, perhaps to :ref:`display a
+  page <rowlimit>` of data, then set :attr:`~Cursor.prefetchrows` to 21 and
+  :attr:`~Cursor.arraysize` to 20:
 
   .. code-block:: python
 
-      cur = connection.cursor()
+      cursor = connection.cursor()
 
-      cur.prefetchrows = 21
-      cur.arraysize = 20
+      cursor.prefetchrows = 21
+      cursor.arraysize = 20
 
-      for row in cur.execute("""
-          SELECT last_name
-             FROM employees
-             ORDER BY last_name
-             OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY"""):
+      for row in cursor.execute("""
+          select last_name
+             from employees
+             order by last_name
+             offset 0 rows fetch next 20 rows only"""):
           print(row)
 
   This will return all rows for the query in one round-trip.
 
-* If you know that a query returns just one row then set
-  :attr:`Cursor.arraysize` to 1 to minimize memory usage.  The default prefetch
+* Scenario 3: If the number of rows returned by a SELECT statement varies from
+  execution to execution in your application but is never large, you can use a
+  similar strategy to Scenario 2.
+
+  Choose :attr:`~Cursor.arraysize` and :attr:`~Cursor.prefetchrows` values that
+  work well for the expected maximum number of rows.
+
+* Scenario 4: If you know that a SELECT query returns just one row then set
+  :attr:`~Cursor.arraysize` to 1 to minimize memory usage. The default prefetch
   value of 2 allows minimal round-trips for single-row queries:
 
   .. code-block:: python
 
-      cur = connection.cursor()
+      cursor = connection.cursor()
 
-      cur.arraysize = 1
+      cursor.arraysize = 1
 
-      cur.execute("select * from MyTable where id = 1"):
-      row = cur.fetchone()
+      cursor.execute("select * from MyTable where id = 1"):
+      row = cursor.fetchone()
       print(row)
 
+**Round-trips Required for Fetching Rows**
+
 The following table shows the number of round-trips required to fetch various
-numbers of rows with different ``prefetchrows`` and ``arraysize`` values.
+numbers of rows with different :attr:`~Cursor.prefetchrows` and
+:attr:`~Cursor.arraysize` values.
 
 .. list-table-with-summary::  Effect of ``prefetchrows`` and ``arraysize`` on the number of round-trips
     :header-rows: 1
@@ -223,6 +249,8 @@ numbers of rows with different ``prefetchrows`` and ``arraysize`` values.
 The number of round-trips will be the same regardless of which
 :ref:`python-oracledb method <fetching>` is used to fetch query results.
 
+.. _defprefarray:
+
 Application Default Prefetchrows and Arraysize Values
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -247,10 +275,10 @@ first tuning choice.
 Changing Prefetchrows and Arraysize for Re-executed Statements
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-In python-oracledb, the ``arraysize`` and ``prefetchrows`` values are only
-examined when a statement is executed the first time.  To change the values for
-a re-executed statement, create a new cursor.  For example, to change
-``arraysize``:
+In python-oracledb, the :attr:`~Cursor.prefetchrows` and
+:attr:`~Cursor.arraysize` values are only examined when a statement is executed
+the first time.  To change the values for a re-executed statement, create a new
+cursor.  For example, to change :attr:`~Cursor.arraysize``:
 
 .. code-block:: python
 
@@ -266,12 +294,13 @@ a re-executed statement, create a new cursor.  For example, to change
 Avoiding Premature Prefetching
 ++++++++++++++++++++++++++++++
 
-There are two cases that will benefit from setting ``prefetchrows`` to zero:
+There are two cases that will benefit from setting :attr:`~Cursor.prefetchrows`
+to zero:
 
 * When passing a python-oracledb cursor *into* PL/SQL.  Setting
-  ``prefetchrows`` to 0 can stop rows being prematurely (and silently) fetched
-  into the python-oracledb internal buffer, making those rows unavailable to
-  the PL/SQL REF CURSOR parameter::
+  :attr:`~Cursor.prefetchrows` to 0 can stop rows being prematurely (and
+  silently) fetched into the python-oracledb internal buffer, making those rows
+  unavailable to the PL/SQL REF CURSOR parameter::
 
     refcursor = connection.cursor()
     refcursor.prefetchrows = 0
@@ -281,15 +310,16 @@ There are two cases that will benefit from setting ``prefetchrows`` to zero:
 * When querying a PL/SQL function that uses PIPE ROW to emit rows at
   intermittent intervals.  By default, several rows needs to be emitted by the
   function before python-oracledb can return them to the application.  Setting
-  ``prefetchrows`` to 0 helps give a consistent flow of data to the
+  :attr:`~Cursor.prefetchrows` to 0 helps give a consistent flow of data to the
   application.
 
 Tuning Fetching from REF CURSORS
 --------------------------------
 
 The internal buffering and performance of fetching data from REF CURSORS can be
-tuned by setting the value of ``arraysize`` before rows are fetched from the
-cursor. The ``prefetchrows`` value is ignored when fetching *from* REF CURSORS.
+tuned by setting the value of :attr:`~Cursor.arraysize` before rows are fetched
+from the cursor. The :attr:`~Cursor.prefetchrows` value is ignored when
+fetching *from* REF CURSORS.
 
 For example:
 
@@ -304,7 +334,8 @@ For example:
         sum_rows += row[0]
     print(sum_rows)
 
-The ``arraysize`` value can also be set before calling the procedure:
+The :attr:`Cursor.arraysize`` value can also be set before calling the
+procedure:
 
 .. code-block:: python
 
@@ -314,8 +345,6 @@ The ``arraysize`` value can also be set before calling the procedure:
     cursor.callproc("myrefcursorproc", [ref_cursor])
     for row in ref_cursor:
         . . .
-
-.. _roundtrips:
 
 Also see `Avoiding Premature Prefetching`_.
 
@@ -334,8 +363,8 @@ Parallelizing Data Fetches from a Single Table
 ----------------------------------------------
 
 Before trying to improve the performance of querying a single table by issuing
-multiple SQL queries in multiple threads, where each query extracts a different
-range of data, you should do careful benchmarking.
+multiple SELECT queries in multiple threads, where each query extracts a
+different range of data, you should do careful benchmarking.
 
 Factors that will impact such a solution:
 
@@ -375,6 +404,8 @@ Factors that will impact such a solution:
 - Is it better to execute a single query in Python but use a PARALLEL query
   hint? Or will this overload the database.
 
+.. _roundtrips:
+
 Database Round-trips
 ====================
 
@@ -393,7 +424,7 @@ overall system scalability.
 Some general tips for reducing round-trips are:
 
 * Tune :attr:`Cursor.arraysize` and :attr:`Cursor.prefetchrows` for each
-  query.
+  SELECT query.
 * Use :meth:`Cursor.executemany()` for optimal DML execution.
 * Only commit when necessary.  Use :attr:`Connection.autocommit` on the last
   statement of a transaction.
@@ -607,12 +638,11 @@ Client Result Caching (CRC)
 
 Python-oracledb applications can use Oracle Database's `Client Result Cache
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-35CB2592-7588-
-4C2D-9075-6F639F25425E>`__.  The CRC enables client-side caching of SQL query
-(SELECT statement) results in client memory for immediate use when the same
-query is re-executed.  This is useful for reducing the cost of queries for
-small, mostly static, lookup tables, such as for postal codes.  CRC reduces
-network :ref:`round-trips <roundtrips>`, and also reduces database server CPU
-usage.
+4C2D-9075-6F639F25425E>`__.  The CRC enables client-side caching of SELECT
+query results in client memory for immediate use when the same query is
+re-executed.  This is useful for reducing the cost of queries for small,
+mostly static, lookup tables, such as for postal codes.  CRC reduces network
+:ref:`round-trips <roundtrips>`, and also reduces database server CPU usage.
 
 .. note::
 

@@ -29,7 +29,7 @@
 # SodaDatabase, SodaCollection, SodaDocument, SodaDocCursor and SodaOperation.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Union, List
+from typing import Any, Optional, Union
 import json
 
 from . import errors
@@ -66,7 +66,7 @@ class SodaDatabase:
     def createCollection(
         self,
         name: str,
-        metadata: Union[str, dict] = None,
+        metadata: Optional[Union[str, dict]] = None,
         mapMode: bool = False,
     ) -> "SodaCollection":
         """
@@ -75,7 +75,7 @@ class SodaDatabase:
         with the same name and metadata already exists, then that existing
         collection is opened without error.
 
-        If metadata is specified, it is expected to be a string containing
+        If ``metadata`` is specified, it is expected to be a string containing
         valid JSON or a dictionary that will be transformed into a JSON string.
         This JSON permits you to specify the configuration of the collection
         including storage options; specifying the presence or absence of
@@ -84,10 +84,10 @@ class SodaDatabase:
         key and version generation. The default metadata creates a collection
         that only supports JSON documents and uses system generated keys.
 
-        If the mapMode parameter is set to True, the new collection is mapped
-        to an existing table instead of creating a table. If a collection is
-        created in this way, dropping the collection will not drop the existing
-        table either.
+        If the ``mapMode`` parameter is set to *True*, the new collection is
+        mapped to an existing table instead of creating a table. If a
+        collection is created in this way, dropping the collection will not
+        drop the existing table either.
         """
         if metadata is not None and not isinstance(metadata, str):
             metadata = json.dumps(metadata)
@@ -97,46 +97,47 @@ class SodaDatabase:
     def createDocument(
         self,
         content: Any,
-        key: str = None,
+        key: Optional[str] = None,
         mediaType: str = "application/json",
     ) -> "SodaDocument":
         """
         Creates a SODA document usable for SODA write operations. You only need
         to use this method if your collection requires client-assigned keys or
         has non-JSON content; otherwise, you can pass your content directly to
-        SODA write operations. SodaDocument attributes "createdOn",
-        "lastModified" and "version" will be None.
+        SODA write operations. SodaDocument attributes
+        :attr:`~SodaDoc.createdOn`, :attr:`~SodaDoc.lastModified`, and
+        :attr:`~SodaDoc.version` will be *None*.
 
-        The content parameter can be a dictionary or list which will be
+        The ``content`` parameter can be a dictionary or list which will be
         transformed into a JSON string and then UTF-8 encoded. It can also be a
         string which will be UTF-8 encoded or it can be a bytes object which
         will be stored unchanged. If a bytes object is provided and the content
-        is expected to be JSON, note that SODA only supports UTF-8, UTF-16LE
+        is expected to be JSON, note that SODA only supports UTF-8, UTF-16LE,
         and UTF-16BE encodings.
 
-        The key parameter should only be supplied if the collection in which
-        the document is to be placed requires client-assigned keys.
+        The ``key`` parameter should only be supplied if the collection in
+        which the document is to be placed requires client-assigned keys.
 
-        The mediaType parameter should only be supplied if the collection in
-        which the document is to be placed supports non-JSON documents and the
-        content for this document is non-JSON. Using a standard MIME type for
-        this value is recommended but any string will be accepted.
+        The ``mediaType`` parameter should only be supplied if the collection
+        in which the document is to be placed supports non-JSON documents and
+        the content for this document is non-JSON. Using a standard MIME type
+        for this value is recommended but any string will be accepted.
         """
         doc_impl = self._create_doc_impl(content, key, mediaType)
         return SodaDocument._from_impl(doc_impl)
 
     def getCollectionNames(
-        self, startName: str = None, limit: int = 0
-    ) -> List[str]:
+        self, startName: Optional[str] = None, limit: int = 0
+    ) -> list[str]:
         """
         Returns a list of the names of collections in the database that match
         the criteria, in alphabetical order.
 
-        If the startName parameter is specified, the list of names returned
+        If the ``startName`` parameter is specified, the list of names returned
         will start with this value and also contain any names that fall after
         this value in alphabetical order.
 
-        If the limit parameter is specified and is non-zero, the number of
+        If the ``limit`` parameter is specified and is non-zero, the number of
         collection names returned will be limited to this value.
         """
         return self._impl.get_collection_names(startName, limit)
@@ -144,8 +145,8 @@ class SodaDatabase:
     def openCollection(self, name: str) -> "SodaCollection":
         """
         Opens an existing collection with the given name and returns a new SODA
-        collection object. If a collection with that name does not exist, None
-        is returned.
+        collection object. If a collection with that name does not exist,
+        *None* is returned.
         """
         collection_impl = self._impl.open_collection(name)
         if collection_impl is not None:
@@ -167,8 +168,10 @@ class SodaCollection:
 
     def createIndex(self, spec: Union[dict, str]) -> None:
         """
-        Creates an index on a SODA collection. The spec is expected to be a
-        dictionary or a JSON-encoded string.
+        Creates an index on a SODA collection.
+
+        The ``spec`` parameter is expected to be a dictionary or a JSON-encoded
+        string.
 
         Note that a commit should be performed before attempting to create an
         index.
@@ -182,8 +185,8 @@ class SodaCollection:
     def drop(self) -> bool:
         """
         Drops the collection from the database, if it exists. Note that if the
-        collection was created with mapMode set to True the underlying table
-        will not be dropped.
+        collection was created with ``mapMode`` set to *True*, the underlying
+        table will not be dropped.
 
         A boolean value is returned indicating if the collection was actually
         dropped.
@@ -194,10 +197,10 @@ class SodaCollection:
         """
         Drops the index with the specified name, if it exists.
 
-        The force parameter, if set to True, can be used to force the dropping
-        of an index that the underlying Oracle Database domain index doesn’t
-        normally permit. This is only applicable to spatial and JSON search
-        indexes. See here for more information.
+        The force parameter, if set to *True*, can be used to force the
+        dropping of an index that the underlying Oracle Database domain index
+        does not normally permit. This is only applicable to spatial and JSON
+        search indexes.
 
         A boolean value is returned indicating if the index was actually
         dropped.
@@ -206,21 +209,21 @@ class SodaCollection:
 
     def find(self) -> "SodaOperation":
         """
-        This method is used to begin an operation that will act upon documents
-        in the collection. It creates and returns a SodaOperation object which
-        is used to specify the criteria and the operation that will be
-        performed on the documents that match that criteria.
+        Begins an operation that will act upon documents in the collection. It
+        creates and returns a SodaOperation object which is used to specify the
+        criteria and the operation that will be performed on the documents that
+        match that criteria.
         """
         return SodaOperation(self)
 
     def getDataGuide(self) -> "SodaDocument":
         """
-        Returns a SODA document object containing property names, data types
+        Returns a SODA document object containing property names, data types,
         and lengths inferred from the JSON documents in the collection. It can
         be useful for exploring the schema of a collection. Note that this
         method is only supported for JSON-only collections where a JSON search
         index has been created with the ‘dataguide’ option enabled. If there
-        are no documents in the collection, None is returned.
+        are no documents in the collection, *None* is returned.
         """
         doc_impl = self._impl.get_data_guide()
         if doc_impl is not None:
@@ -231,24 +234,31 @@ class SodaCollection:
         Inserts a list of documents into the collection at one time. Each of
         the input documents can be a dictionary or list or an existing SODA
         document object.
+
+        This method requires Oracle Client 18.5 (or later) and is available
+        only as a preview.
         """
         doc_impls = [self._process_doc_arg(d) for d in docs]
         self._impl.insert_many(doc_impls, hint=None, return_docs=False)
 
-    def insertManyAndGet(self, docs: list, hint: str = None) -> list:
+    def insertManyAndGet(
+        self, docs: list, hint: Optional[str] = None
+    ) -> list["SodaDocument"]:
         """
-        Similarly to insertMany() this method inserts a list of documents into
-        the collection at one time. The only difference is that it returns a
-        list of SODA Document objects. Note that for performance reasons the
-        returned documents do not contain the content.
+        Similar to :meth:`SodaCollection.insertMany()`, this method inserts a
+        list of documents into the collection at one time. The only difference
+        is that it returns a list of SODA Document objects. Note that for
+        performance reasons the returned documents do not contain the content.
 
-        The hint parameter, if specified, supplies a hint to the database when
-        processing the SODA operation. This is expected to be a string in the
-        same format as SQL hints but without any comment characters, for
+        The ``hint`` parameter, if specified, supplies a hint to the database
+        when processing the SODA operation. This is expected to be a string in
+        the same format as SQL hints but without any comment characters, for
         example hint="MONITOR". While you could use this to pass any SQL hint,
         the hints MONITOR (turn on monitoring) and NO_MONITOR (turn off
-        monitoring) are the most useful. Use of the hint parameter requires
-        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        monitoring) are the most useful. Use of the ``hint`` parameter requires
+        Oracle Client 21.3 or later (or Oracle Client 19 from 19.11).
+
+        This method requires Oracle Client 18.5 (or later).
         """
         doc_impls = [self._process_doc_arg(d) for d in docs]
         if hint is not None and not isinstance(hint, str):
@@ -266,20 +276,22 @@ class SodaCollection:
         doc_impl = self._process_doc_arg(doc)
         self._impl.insert_one(doc_impl, hint=None, return_doc=False)
 
-    def insertOneAndGet(self, doc: Any, hint: str = None) -> "SodaDocument":
+    def insertOneAndGet(
+        self, doc: Any, hint: Optional[str] = None
+    ) -> "SodaDocument":
         """
-        Similarly to insertOne() this method inserts a given document into the
-        collection. The only difference is that it returns a SODA Document
-        object. Note that for performance reasons the returned document does
-        not contain the content.
+        Similar to :meth:`~SodaCollection.insertOne()`, this method inserts a
+        given document into the collection. The only difference is that it
+        returns a SODA Document object. Note that for performance reasons the
+        returned document does not contain the content.
 
-        The hint parameter, if specified, supplies a hint to the database when
-        processing the SODA operation. This is expected to be a string in the
-        same format as SQL hints but without any comment characters, for
+        The ``hint`` parameter, if specified, supplies a hint to the database
+        when processing the SODA operation. This is expected to be a string in
+        the same format as SQL hints but without any comment characters, for
         example hint="MONITOR". While you could use this to pass any SQL hint,
         the hints MONITOR (turn on monitoring) and NO_MONITOR (turn off
-        monitoring) are the most useful. Use of the hint parameter requires
-        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        monitoring) are the most useful. Use of the ``hint`` parameter requires
+        Oracle Client 21.3 or later (or Oracle Client 19 from 19.11).
         """
         doc_impl = self._process_doc_arg(doc)
         if hint is not None and not isinstance(hint, str):
@@ -291,7 +303,11 @@ class SodaCollection:
 
     def listIndexes(self) -> list:
         """
-        Return a list of indexes associated with the collection.
+        Returns a list of specifications for the indexes found on the
+        collection.
+
+        This method requires Oracle Client 21.3 or later (or Oracle Client 19
+        from 19.13).
         """
         return [json.loads(s) for s in self._impl.list_indexes()]
 
@@ -313,27 +329,36 @@ class SodaCollection:
     def save(self, doc: Any) -> None:
         """
         Saves a document into the collection. This method is equivalent to
-        insertOne() except that if client-assigned keys are used, and the
-        document with the specified key already exists in the collection, it
-        will be replaced with the input document.
+        :meth:`~SodaCollection.insertOne()` except that if client-assigned keys
+        are used, and the document with the specified key already exists in the
+        collection, it will be replaced with the input document.
+
+        This method requires Oracle Client 19.9 (or later) in addition to the
+        usual SODA requirements.
         """
         doc_impl = self._process_doc_arg(doc)
         self._impl.save(doc_impl, hint=None, return_doc=False)
 
-    def saveAndGet(self, doc: Any, hint: str = None) -> "SodaDocument":
+    def saveAndGet(
+        self, doc: Any, hint: Optional[str] = None
+    ) -> "SodaDocument":
         """
         Saves a document into the collection. This method is equivalent to
-        insertOneAndGet() except that if client-assigned keys are used, and the
-        document with the specified key already exists in the collection, it
-        will be replaced with the input document.
+        :meth:`~SodaCollection.insertOneAndGet()` except that if
+        client-assigned keys are used, and the document with the specified key
+        already exists in the collection, it will be replaced with the input
+        document.
 
-        The hint parameter, if specified, supplies a hint to the database when
-        processing the SODA operation. This is expected to be a string in the
-        same format as SQL hints but without any comment characters, for
+        The ``hint`` parameter, if specified, supplies a hint to the database
+        when processing the SODA operation. This is expected to be a string in
+        the same format as SQL hints but without any comment characters, for
         example hint="MONITOR". While you could use this to pass any SQL hint,
         the hints MONITOR (turn on monitoring) and NO_MONITOR (turn off
-        monitoring) are the most useful. Use of the hint parameter requires
-        Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        monitoring) are the most useful. Use of the ``hint`` parameter requires
+        Oracle Client 21.3 or later (or Oracle Client 19 from 19.11).
+
+        This method requires Oracle Client 19.9 (or later) in addition to the
+        usual SODA requirements.
         """
         doc_impl = self._process_doc_arg(doc)
         if hint is not None and not isinstance(hint, str):
@@ -360,9 +385,9 @@ class SodaDocument:
     def createdOn(self) -> str:
         """
         This read-only attribute returns the creation time of the document in
-        ISO 8601 format. Documents created by SodaDatabase.createDocument() or
-        fetched from collections where this attribute is not stored will return
-        None.
+        ISO 8601 format. Documents created by
+        :meth:`SodaDatabase.createDocument()` or fetched from collections where
+        this attribute is not stored will return *None*.
         """
         return self._impl.get_created_on()
 
@@ -371,7 +396,7 @@ class SodaDocument:
         Returns the content of the document as a dictionary or list. This
         method assumes that the content is application/json and will raise an
         exception if this is not the case. If there is no content, however,
-        None will be returned.
+        *None* will be returned.
         """
         content, encoding = self._impl.get_content()
         if isinstance(content, bytes) and self.mediaType == "application/json":
@@ -381,7 +406,7 @@ class SodaDocument:
     def getContentAsBytes(self) -> bytes:
         """
         Returns the content of the document as a bytes object. If there is no
-        content, however, None will be returned.
+        content, however, *None* will be returned.
         """
         content, encoding = self._impl.get_content()
         if isinstance(content, bytes):
@@ -393,7 +418,7 @@ class SodaDocument:
         """
         Returns the content of the document as a string. If the document
         encoding is not known, UTF-8 will be used. If there is no content,
-        however, None will be returned.
+        however, *None* will be returned.
         """
         content, encoding = self._impl.get_content()
         if isinstance(content, bytes):
@@ -405,8 +430,8 @@ class SodaDocument:
     def key(self) -> str:
         """
         This read-only attribute returns the unique key assigned to this
-        document. Documents created by SodaDatabase.createDocument() may not
-        have a value assigned to them and return None.
+        document. Documents created by :meth:`SodaDatabase.createDocument()`
+        may not have a value assigned to them and return *None*.
         """
         return self._impl.get_key()
 
@@ -414,9 +439,9 @@ class SodaDocument:
     def lastModified(self) -> str:
         """
         This read-only attribute returns the last modified time of the document
-        in ISO 8601 format. Documents created by SodaDatabase.createDocument()
-        or fetched from collections where this attribute is not stored will
-        return None.
+        in ISO 8601 format. Documents created by
+        :meth:`SodaDatabase.createDocument()` or fetched from collections where
+        this attribute is not stored will return *None*.
         """
         return self._impl.get_last_modified()
 
@@ -426,9 +451,9 @@ class SodaDocument:
         This read-only attribute returns the media type assigned to the
         document. By convention this is expected to be a MIME type but no
         checks are performed on this value. If a value is not specified when
-        calling SodaDatabase.createDocument() or the document is fetched from a
-        collection where this component is not stored, the string
-        “application/json” is returned.
+        calling :meth:`SodaDatabase.createDocument()` or the document is
+        fetched from a collection where this component is not stored, the
+        string “application/json” is returned.
         """
         return self._impl.get_media_type()
 
@@ -436,8 +461,8 @@ class SodaDocument:
     def version(self) -> str:
         """
         This read-only attribute returns the version assigned to this document.
-        Documents created by SodaDatabase.createDocument() or fetched from
-        collections where this attribute is not stored will return None.
+        Documents created by :meth:`SodaDatabase.createDocument()` or fetched
+        from collections where this attribute is not stored will return *None*.
         """
         return self._impl.get_version()
 
@@ -462,7 +487,7 @@ class SodaDocCursor:
 
     def close(self) -> None:
         """
-        Close the cursor now, rather than whenever __del__ is called. The
+        Closes the cursor now, rather than whenever __del__ is called. The
         cursor will be unusable from this point forward; an Error exception
         will be raised if any operation is attempted with the cursor.
         """
@@ -488,7 +513,8 @@ class SodaOperation:
     def count(self) -> int:
         """
         Returns a count of the number of documents in the collection that match
-        the criteria. If skip() or limit() were called on this object, an
+        the criteria. If :meth:`~SodaOperation.skip()` or
+        :meth:`~SodaOperation.limit()` were called on this object, an
         exception is raised.
         """
         return self._collection._impl.get_count(self)
@@ -496,13 +522,18 @@ class SodaOperation:
     def fetchArraySize(self, value: int) -> "SodaOperation":
         """
         This is a tuning method to specify the number of documents that are
-        internally fetched in batches by calls to getCursor() and
-        getDocuments(). It does not affect how many documents are returned to
-        the application. A value of 0 will use the default value (100). This
-        method is only available in Oracle Client 19.5 and higher.
+        internally fetched in batches by calls to
+        :meth:`~SodaOperation.getCursor()` and
+        :meth:`~SodaOperation.getDocuments()`. It does not affect how many
+        documents are returned to the application.
+
+        If ``fetchArraySize()`` is not used, or the ``value`` parameter is *0*,
+        the array size will default to *100*.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
+
+        This method is only available when using Oracle Client 19.5, or later.
         """
         if not isinstance(value, int) or value < 0:
             raise TypeError("expecting integer >= 0")
@@ -517,8 +548,7 @@ class SodaOperation:
         Sets a filter specification for complex document queries and ordering
         of JSON documents. Filter specifications must be provided as a
         dictionary or JSON-encoded string and can include comparisons, regular
-        expressions, logical and spatial operators, among others. See the
-        overview of SODA filter specifications for more information.
+        expressions, logical and spatial operators, among others.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -539,7 +569,7 @@ class SodaOperation:
         impl = self._collection._impl.get_cursor(self)
         return SodaDocCursor._from_impl(impl)
 
-    def getDocuments(self) -> list:
+    def getDocuments(self) -> list["SodaDocument"]:
         """
         Returns a list of SodaDocument objects that match the criteria.
         """
@@ -562,7 +592,7 @@ class SodaOperation:
         hints but without any comment characters. While you could use this to
         pass any SQL hint, the hints MONITOR (turn on monitoring) and
         NO_MONITOR (turn off monitoring) are the most useful. Use of this
-        method requires Oracle Client 21.3 or higher (or Oracle Client 19 from
+        method requires Oracle Client 21.3 or later (or Oracle Client 19 from
         19.11).
 
         As a convenience, the SodaOperation object is returned so that further
@@ -577,7 +607,20 @@ class SodaOperation:
         """
         Specifies whether the documents fetched from the collection should be
         locked (equivalent to SQL "select for update"). Use of this method
-        requires Oracle Client 21.3 or higher (or Oracle Client 19 from 19.11).
+        requires Oracle Client 21.3 or later (or Oracle Client 19 from 19.11).
+
+        The next commit or rollback on the connection made after the operation
+        is performed will "unlock" the documents. Ensure that the connection is
+        not in autocommit mode or the documents will be unlocked immediately
+        after the operation is complete.
+
+        This method should only be used with read operations (other than
+        :func:`~SodaOperation.count()`) and should not be used in conjunction
+        with non-terminal methods :meth:`~SodaOperation.skip()` and
+        :meth:`~SodaOperation.limit()`.
+
+        If this method is specified in conjunction with a write operation, this
+        method is ignored.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -588,8 +631,8 @@ class SodaOperation:
     def key(self, value: str) -> "SodaOperation":
         """
         Specifies that the document with the specified key should be returned.
-        This causes any previous calls made to this method and keys() to be
-        ignored.
+        This causes any previous calls made to this method and
+        :meth:`~SodaOperation.keys()` to be ignored.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -604,7 +647,7 @@ class SodaOperation:
         """
         Specifies that documents that match the keys found in the supplied
         sequence should be returned. This causes any previous calls made to
-        this method and key() to be ignored.
+        this method and :meth:`~SodaOperation.key()` to be ignored.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -621,8 +664,9 @@ class SodaOperation:
         """
         Specifies that only the specified number of documents should be
         returned. This method is only usable for read operations such as
-        getCursor() and getDocuments(). For write operations, any value set
-        using this method is ignored.
+        :meth:`~SodaOperation.getCursor()` and
+        :meth:`~SodaOperation.getDocuments()`. For write operations, any value
+        set using this method is ignored.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -646,8 +690,8 @@ class SodaOperation:
         SODA document object. A boolean indicating if a document was replaced
         or not is returned.
 
-        Currently the method key() must be called before this method can be
-        called.
+        Currently, the method :meth:`~SodaOperation.key()` must be called
+        before this method can be called.
         """
         doc_impl = self._collection._process_doc_arg(doc)
         return self._collection._impl.replace_one(
@@ -656,10 +700,10 @@ class SodaOperation:
 
     def replaceOneAndGet(self, doc: Any) -> "SodaDocument":
         """
-        Similarly to replaceOne(), this method replaces a single document in
-        the collection with the specified document. The only difference is that
-        it returns a SodaDocument object. Note that for performance reasons the
-        returned document does not contain the content.
+        Similar to :meth:`~SodaOperation.replaceOne()`, this method replaces a
+        single document in the collection with the specified document. The only
+        difference is that it returns a SodaDocument object. Note that for
+        performance reasons the returned document does not contain the content.
         """
         doc_impl = self._collection._process_doc_arg(doc)
         return_doc_impl = self._collection._impl.replace_one(
@@ -671,8 +715,9 @@ class SodaOperation:
         """
         Specifies the number of documents that match the other criteria that
         will be skipped. This method is only usable for read operations such as
-        getCursor() and getDocuments(). For write operations, any value set
-        using this method is ignored.
+        :meth:`~SodaOperation.getOne()`, :meth:`~SodaOperation.getCursor()`,
+        and :meth:`~SodaOperation.getDocuments()`. For write operations, any
+        value set using this method is ignored.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.
@@ -685,9 +730,9 @@ class SodaOperation:
     def version(self, value: str) -> "SodaOperation":
         """
         Specifies that documents with the specified version should be returned.
-        Typically this is used with key() to implement optimistic locking, so
-        that the write operation called later does not affect a document that
-        someone else has modified.
+        Typically this is used with :meth:`~SodaOperation.key()` to implement
+        optimistic locking, so that the write operation called later does not
+        affect a document that someone else has modified.
 
         As a convenience, the SodaOperation object is returned so that further
         criteria can be specified by chaining methods together.

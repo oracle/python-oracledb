@@ -260,21 +260,12 @@ class BaseCursor:
         self._impl = None
 
     @property
-    def connection(self) -> "connection_module.Connection":
-        """
-        This read-only attribute returns a reference to the connection object
-        on which the cursor was created.
-        """
-        return self._connection
-
-    @property
-    def description(self) -> FetchInfo:
+    def description(self) -> Union[list[FetchInfo], None]:
         """
         This read-only attribute contains information about the columns used in
-        a query. It is a sequence of :ref:`FetchInfo <fetchinfoobj>` objects,
-        one per column. This attribute will be *None* for statements that are
-        not SELECT or WITH statements, or if the cursor has not had
-        :meth:`execute()` invoked yet.
+        a query. It is a list of FetchInfo objects, one per column. This
+        attribute will be *None* for statements that are not SELECT or WITH
+        statements, or if the cursor has not had :meth:`execute()` invoked yet.
         """
         self._verify_open()
         if self._impl.is_query(self):
@@ -761,6 +752,14 @@ class Cursor(BaseCursor):
             v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
         ]
 
+    @property
+    def connection(self) -> "connection_module.Connection":
+        """
+        This read-only attribute returns a reference to the connection object
+        on which the cursor was created.
+        """
+        return self._connection
+
     def execute(
         self,
         statement: Optional[str],
@@ -1075,6 +1074,14 @@ class AsyncCursor(BaseCursor):
         return [
             v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
         ]
+
+    @property
+    def connection(self) -> "connection_module.AsyncConnection":
+        """
+        This read-only attribute returns a reference to the connection object
+        on which the cursor was created.
+        """
+        return self._connection
 
     async def execute(
         self,

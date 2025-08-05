@@ -1,5 +1,7 @@
 .. _globalization:
 
+.. currentmodule:: oracledb
+
 ********************************
 Character Sets and Globalization
 ********************************

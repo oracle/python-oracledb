@@ -1,5 +1,7 @@
 .. _cqn:
 
+.. currentmodule:: oracledb
+
 ************************************************
 Working with Continuous Query Notification (CQN)
 ************************************************

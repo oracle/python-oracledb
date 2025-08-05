@@ -1,5 +1,7 @@
 .. _tpc:
 
+.. currentmodule:: oracledb
+
 *****************************
 Using Two-Phase Commits (TPC)
 *****************************

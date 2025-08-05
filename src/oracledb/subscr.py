@@ -30,7 +30,7 @@
 # events are detected.
 # -----------------------------------------------------------------------------
 
-from typing import Callable, Union, List
+from typing import Callable, Optional, Union
 from . import connection
 
 
@@ -47,34 +47,35 @@ class Subscription:
     @property
     def callback(self) -> Callable:
         """
-        Returns the callback that was registered when the subscription was
-        created.
+        This read-only attribute returns the callback that was registered when
+        the subscription was created.
         """
         return self._impl.callback
 
     @property
     def connection(self) -> "connection.Connection":
         """
-        Returns the connection that was used to register the subscription when
-        it was created.
+        This read-only attribute returns the connection that was used to
+        register the subscription when it was created.
         """
         return self._impl.connection
 
     @property
     def id(self) -> int:
         """
-        Returns the value of REGID found in the database view
-        USER_CHANGE_NOTIFICATION_REGS or the value of REG_ID found in the
-        database view USER_SUBSCR_REGISTRATIONS. For AQ subscriptions, this
-        value is 0.
+        This read-only attribute returns the value of REGID found in the
+        database view USER_CHANGE_NOTIFICATION_REGS or the value of REG_ID
+        found in the database view USER_SUBSCR_REGISTRATIONS. For AQ
+        subscriptions, this value is *0*.
         """
         return self._impl.id
 
     @property
     def ip_address(self) -> str:
         """
-        Returns the IP address used for callback notifications from the
-        database server. If not set during construction, this value is None.
+        This read-only attribute returns the IP address used for callback
+        notifications from the database server. If not set during construction,
+        this value is *None*.
         """
         return self._impl.ip_address
 
@@ -88,60 +89,65 @@ class Subscription:
     @property
     def name(self) -> str:
         """
-        Returns the name used to register the subscription when it was created.
+        This read-only attribute returns the name used to register the
+        subscription when it was created.
         """
         return self._impl.name
 
     @property
     def namespace(self) -> int:
         """
-        Returns the namespace used to register the subscription when it was
-        created.
+        This read-only attribute returns the namespace used to register the
+        subscription when it was created.
         """
         return self._impl.namespace
 
     @property
     def operations(self) -> int:
         """
-        Returns the operations that will send notifications for each table or
-        query that is registered using this subscription.
+        This read-only attribute returns the operations that will send
+        notifications for each table or query that is registered using this
+        subscription.
         """
         return self._impl.operations
 
     @property
     def port(self) -> int:
         """
-        Returns the port used for callback notifications from the database
-        server. If not set during construction, this value is zero.
+        This read-only attribute returns the port used for callback
+        notifications from the database server. If not set during
+        construction, this value is *0*.
         """
         return self._impl.port
 
     @property
     def protocol(self) -> int:
         """
-        Returns the protocol used to register the subscription when it was
-        created.
+        This read-only attribute returns the protocol used to register the
+        subscription when it was created.
         """
         return self._impl.protocol
 
     @property
     def qos(self) -> int:
         """
-        Returns the quality of service flags used to register the subscription
-        when it was created.
+        This read-only attribute returns the quality of service flags used to
+        register the subscription when it was created.
         """
         return self._impl.qos
 
     def registerquery(
-        self, statement: str, args: Union[list, dict] = None
+        self, statement: str, args: Optional[Union[list, dict]] = None
     ) -> int:
         """
-        Register the query for subsequent notification when tables referenced
-        by the query are changed. This behaves similarly to cursor.execute()
-        but only queries are permitted and the args parameter, if specified,
-        must be a sequence or dictionary. If the qos parameter included the
-        flag SUBSCR_QOS_QUERY when the subscription was created, then the ID
-        for the registered query is returned; otherwise, None is returned.
+        Registers the query for subsequent notification when tables referenced
+        by the query are changed. This behaves similarly to
+        :meth:`Cursor.execute()` but only queries are permitted and the
+        ``args`` parameter, if specified, must be a sequence or dictionary. If
+        the ``qos`` parameter included the flag
+        :data:`oracledb.SUBSCR_QOS_QUERY` when the subscription was created,
+        then the ID for the registered query is returned; otherwise, *None* is
+        returned.
         """
         if args is not None and not isinstance(args, (list, dict)):
             raise TypeError("expecting args to be a dictionary or list")
@@ -150,9 +156,9 @@ class Subscription:
     @property
     def timeout(self) -> int:
         """
-        Returns the timeout (in seconds) that was specified when the
-        subscription was created. A value of 0 indicates that there is no
-        timeout.
+        This read-only attribute returns the timeout (in seconds) that was
+        specified when the subscription was created. A value of *0* indicates
+        that there is no timeout.
         """
         return self._impl.timeout
 
@@ -173,9 +179,11 @@ class Message:
     @property
     def consumer_name(self) -> Union[str, None]:
         """
-        Returns the name of the consumer which generated the notification. It
-        will be populated if the subscription was created with the namespace
-        SUBSCR_NAMESPACE_AQ and the queue is a multiple consumer queue.
+        This read-only attribute returns the name of the consumer which
+        generated the notification. It will be populated if the
+        subscription was created with the namespace
+        :data:`oracledb.SUBSCR_NAMESPACE_AQ` and the queue is a multiple
+        consumer queue.
         """
         return self._consumer_name
 
@@ -189,34 +197,38 @@ class Message:
     @property
     def dbname(self) -> Union[str, None]:
         """
-        Returns the name of the database that generated the notification.
+        This read-only attribute returns the name of the database that
+        generated the notification.
         """
         return self._dbname
 
     @property
     def msgid(self) -> Union[bytes, None]:
         """
-        Returns the message id of the AQ message that generated the
-        notification.
+        This read-only attribute returns the message id of the AQ message that
+        generated the notification. It will only be populated if the
+        subscription was created with the namespace
+        :data:`oracledb.SUBSCR_NAMESPACE_AQ`.
         """
         return self._msgid
 
     @property
-    def queries(self) -> List["MessageQuery"]:
+    def queries(self) -> list["MessageQuery"]:
         """
-        Returns a list of message query objects that give information about
-        query result sets changed for this notification. This attribute will be
-        an empty list if the qos parameter did not include the flag
-        SUBSCR_QOS_QUERY when the subscription was created.
+        This read-only attribute returns a list of message query objects that
+        give information about query result sets changed for this notification.
+        This attribute will be an empty list if the ``qos`` parameter did not
+        include the flag :data:`~oracledb.SUBSCR_QOS_QUERY` when the
+        subscription was created.
         """
         return self._queries
 
     @property
     def queue_name(self) -> Union[str, None]:
         """
-        Returns the name of the queue which generated the notification. It will
-        only be populated if the subscription was created with the namespace
-        SUBSCR_NAMESPACE_AQ.
+        This read-only attribute returns the name of the queue which generated
+        the notification. It will only be populated if the subscription was
+        created with the namespace :data:`oracledb.SUBSCR_NAMESPACE_AQ`.
         """
         return self._queue_name
 
@@ -230,43 +242,47 @@ class Message:
     @property
     def registered(self) -> bool:
         """
-        Returns whether the subscription which generated this notification is
-        still registered with the database. The subscription is automatically
-        deregistered with the database when the subscription timeout value is
-        reached or when the first notification is sent (when the quality of
-        service flag SUBSCR_QOS_DEREG_NFY is used).
+        This read-only attribute returns whether the subscription which
+        generated this notification is still registered with the database. The
+        subscription is automatically deregistered with the database when the
+        subscription timeout value is reached or when the first notification is
+        sent (when the quality of service flag
+        :data:`oracledb.SUBSCR_QOS_DEREG_NFY` is used).
         """
         return self._registered
 
     @property
     def subscription(self) -> Subscription:
         """
-        Returns the subscription object for which this notification was
-        generated.
+        This read-only attribute returns the subscription object for which this
+        notification was generated.
         """
         return self._subscription
 
     @property
-    def tables(self) -> List["MessageTable"]:
+    def tables(self) -> list["MessageTable"]:
         """
-        Returns a list of message table objects that give information about the
-        tables changed for this notification. This attribute will be an empty
-        list if the qos parameter included the flag SUBSCR_QOS_QUERY when the
-        subscription was created.
+        This read-only attribute returns a list of message table objects that
+        give information about the tables changed for this notification. This
+        attribute will be an empty list if the ``qos`` parameter included the
+        flag :data:`~oracledb.SUBSCR_QOS_QUERY` when the subscription was
+        created.
         """
         return self._tables
 
     @property
     def txid(self) -> Union[bytes, None]:
         """
-        Returns the id of the transaction that generated the notification.
+        This read-only attribute returns the id of the transaction that
+        generated the notification.
         """
         return self._txid
 
     @property
     def type(self) -> int:
         """
-        Returns the type of message that has been sent.
+        This read-only attribute returns the type of message that has been
+        sent.
         """
         return self._type
 
@@ -280,27 +296,28 @@ class MessageQuery:
     @property
     def id(self) -> int:
         """
-        Returns the query id of the query for which the result set changed. The
-        value will match the value returned by Subscription.registerquery()
-        when the related query was registered.
+        This read-only attribute returns the query id of the query for which
+        the result set changed. The value will match the value returned by
+        :meth:`Subscription.registerquery()` when the related query was
+        registered.
         """
         return self._id
 
     @property
     def operation(self) -> int:
         """
-        Returns the operation that took place on the query result set that was
-        changed. Valid values for this attribute are EVENT_DEREG and
-        EVENT_QUERYCHANGE.
+        This read-only attribute returns the operation that took place on the
+        query result set that was changed. Valid values for this attribute are
+        :data:`~oracledb.EVENT_DEREG` and :data:`~oracledb.EVENT_QUERYCHANGE`.
         """
         return self._operation
 
     @property
-    def tables(self) -> List["MessageTable"]:
+    def tables(self) -> list["MessageTable"]:
         """
-        Returns a list of message table objects that give information about the
-        table changes that caused the query result set to change for this
-        notification.
+        This read-only attribute returns a list of message table objects that
+        give information about the table changes that caused the query result
+        set to change for this notification.
         """
         return self._tables
 
@@ -313,14 +330,15 @@ class MessageRow:
     @property
     def operation(self) -> int:
         """
-        Returns the operation that took place on the row that was changed.
+        This read-only attribute returns the operation that took place on the
+        row that was changed.
         """
         return self._operation
 
     @property
     def rowid(self) -> Union[str, None]:
         """
-        Returns the rowid of the row that was changed.
+        This read-only attribute returns the rowid of the row that was changed.
         """
         return self._rowid
 
@@ -334,23 +352,26 @@ class MessageTable:
     @property
     def name(self) -> Union[str, None]:
         """
-        Returns the name of the table that was changed.
+        This read-only attribute returns the name of the table that was
+        changed.
         """
         return self._name
 
     @property
     def operation(self) -> int:
         """
-        Returns the operation that took place on the table that was changed.
+        This read-only attribute returns the operation that took place on the
+        table that was changed.
         """
         return self._operation
 
     @property
-    def rows(self) -> List["MessageRow"]:
+    def rows(self) -> list["MessageRow"]:
         """
-        Returns a list of message row objects that give information about the
-        rows changed on the table. This value is only filled in if the qos
-        parameter to the Connection.subscribe() method included the flag
-        SUBSCR_QOS_ROWIDS.
+        This read-only attribute returns a list of message row objects that
+        give information about the rows changed on the table. This value is
+        only filled in if the ``qos`` parameter to the
+        :meth:`Connection.subscribe()` method included the flag
+        :data:`~oracledb.SUBSCR_QOS_ROWIDS`.
         """
         return self._rows

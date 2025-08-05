@@ -4,27 +4,22 @@
 API: SparseVector Objects
 *************************
 
-A SparseVector Object stores information about a sparse vector. This object
-can be created with :meth:`oracledb.SparseVector()`.
+.. currentmodule:: oracledb
 
-See :ref:`sparsevectors` for more information.
+SparseVector Class
+==================
 
-.. versionadded:: 3.0.0
+.. autoclass:: SparseVector
+
+    See :ref:`sparsevectors` for more information.
+
+    .. versionadded:: 3.0.0
 
 SparseVector Attributes
 =======================
 
-.. attribute:: SparseVector.indices
+.. autoproperty:: SparseVector.indices
 
-    This read-only attribute is an array that returns the indices (zero-based)
-    of non-zero values in the vector.
+.. autoproperty:: SparseVector.num_dimensions
 
-.. attribute:: SparseVector.num_dimensions
-
-    This read-only attribute is an integer that returns the number of
-    dimensions of the vector.
-
-.. attribute:: SparseVector.values
-
-    This read-only attribute is an array that returns the non-zero values
-    stored in the vector.
+.. autoproperty:: SparseVector.values

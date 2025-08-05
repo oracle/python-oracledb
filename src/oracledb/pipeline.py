@@ -28,7 +28,7 @@
 # Contains the Pipeline class used for executing multiple operations.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 
 from . import __name__ as MODULE_NAME
 from . import utils
@@ -61,71 +61,75 @@ class PipelineOp:
     @property
     def arraysize(self) -> int:
         """
-        Returns the array size to use when fetching all of the rows in a query.
-        For all other operations the value returned is 0.
+        This read-only attribute returns the array size that will be used when
+        fetching query rows with :meth:`Pipeline.add_fetchall()`. For all other
+        operations, the value returned is *0*.
         """
         return self._impl.arraysize
 
     @property
     def keyword_parameters(self) -> Any:
         """
-        Returns the keyword parameters to the stored procedure or function
-        being called by the operation, if applicable.
+        This read-only attribute returns the keyword parameters to the stored
+        procedure or function being called by the operation, if applicable.
         """
         return self._impl.keyword_parameters
 
     @property
     def name(self) -> Union[str, None]:
         """
-        Returns the name of the stored procedure or function being called by
-        the operation, if applicable.
+        This read-only attribute returns the name of the stored procedure or
+        function being called by the operation, if applicable.
         """
         return self._impl.name
 
     @property
     def num_rows(self) -> int:
         """
-        Returns the number of rows to fetch when performing a query of a
-        specific number of rows. For all operations, the value returned is 0.
+        This read-only attribute returns the number of rows to fetch when
+        performing a query of a specific number of rows. For all other
+        operations, the value returned is *0*.
         """
         return self._impl.num_rows
 
     @property
     def op_type(self) -> PipelineOpType:
         """
-        Returns the type of operation that is taking place.
+        This read-only attribute returns the type of operation that is taking
+        place.
         """
         return PipelineOpType(self._impl.op_type)
 
     @property
     def parameters(self) -> Any:
         """
-        Returns the parameters to the stored procedure or function or the
-        parameters bound to the statement being executed by the operation, if
-        applicable.
+        This read-only attribute returns the parameters to the stored procedure
+        or function or the parameters bound to the statement being executed by
+        the operation, if applicable.
         """
         return self._impl.parameters
 
     @property
     def return_type(self) -> Any:
         """
-        Returns the return type of the stored function being called by the
-        operation, if applicable.
+        This read-only attribute returns the return type of the stored function
+        being called by the operation, if applicable.
         """
         return self._impl.return_type
 
     @property
     def rowfactory(self) -> Union[Callable, None]:
         """
-        Returns the row factory callable function to be used in a query
-        executed by the operation, if applicable.
+        This read-only attribute returns the row factory callable function to
+        be used in a query executed by the operation, if applicable.
         """
         return self._impl.rowfactory
 
     @property
     def statement(self) -> Union[str, None]:
         """
-        Returns the statement being executed by the operation, if applicable.
+        This read-only attribute returns the statement being executed by the
+        operation, if applicable.
         """
         return self._impl.statement
 
@@ -141,10 +145,10 @@ class PipelineOpResult:
         )
 
     @property
-    def columns(self) -> Union[list, None]:
+    def columns(self) -> Union[list[FetchInfo], None]:
         """
-        Returns a list of FetchInfo instances containing metadata about an
-        executed query, or the value None, if no fetch operation took place.
+        This read-only attribute is a list of FetchInfo objects. This
+        attribute will be *None* for operations that do not return rows.
         """
         if self._impl.fetch_metadata is not None:
             return [FetchInfo._from_impl(i) for i in self._impl.fetch_metadata]
@@ -152,39 +156,42 @@ class PipelineOpResult:
     @property
     def error(self) -> Union[_Error, None]:
         """
-        Returns the error that occurred when running this operation, or the
-        value None, if no error occurred.
+        This read-only attribute returns the error that occurred when running
+        this operation. If no error occurred, then the value *None* is
+        returned.
         """
         return self._impl.error
 
     @property
     def operation(self) -> PipelineOp:
         """
-        Returns the operation associated with the result.
+        This read-only attribute returns the PipelineOp operation object that
+        generated the result.
         """
         return self._operation
 
     @property
     def return_value(self) -> Any:
         """
-        Returns the return value of the called function, if a function was
-        called for the operation.
+        This read-only attribute returns the return value of the called PL/SQL
+        function, if a function was called for the operation.
         """
         return self._impl.return_value
 
     @property
     def rows(self) -> Union[list, None]:
         """
-        Returns the rows that were fetched by the operation, if a query was
-        executed.
+        This read-only attribute returns the rows that were fetched by the
+        operation, if a query was executed.
         """
         return self._impl.rows
 
     @property
     def warning(self) -> Union[_Error, None]:
         """
-        Returns the warning that was encountered when running this operation,
-        or the value None, if no warning was encountered.
+        This read-only attribute returns any warning that was encountered when
+        running this operation. If no warning was encountered, then the value
+        *None* is returned.
         """
         return self._impl.warning
 
@@ -213,14 +220,19 @@ class Pipeline:
         self,
         name: str,
         return_type: Any,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> PipelineOp:
         """
-        Adds an operation that calls a stored function with the given
-        parameters and return type. The PipelineOpResult object that is
-        returned will have the "return_value" attribute populated with the
-        return value of the function if the call completes successfully.
+        Adds an operation to the pipeline that calls a stored PL/SQL function
+        with the given parameters and return type. The created PipelineOp
+        object is also returned from this function.
+
+        When the Pipeline is executed, the PipelineOpResult object that is
+        returned for this operation will have the
+        :attr:`~PipelineOpResult.return_value` attribute populated with the
+        return value of the PL/SQL function if the call completes
+        successfully.
         """
         utils.verify_stored_proc_args(parameters, keyword_parameters)
         op_impl = PipelineOpImpl(
@@ -235,12 +247,13 @@ class Pipeline:
     def add_callproc(
         self,
         name: str,
-        parameters: Union[list, tuple] = None,
-        keyword_parameters: dict = None,
+        parameters: Optional[Union[list, tuple]] = None,
+        keyword_parameters: Optional[dict] = None,
     ) -> PipelineOp:
         """
         Adds an operation that calls a stored procedure with the given
-        parameters.
+        parameters. The created PipelineOp object is also returned from
+        this function.
         """
         utils.verify_stored_proc_args(parameters, keyword_parameters)
         op_impl = PipelineOpImpl(
@@ -261,10 +274,15 @@ class Pipeline:
     def add_execute(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a statement with the given parameters.
+        The created PipelineOp object is also returned from this function.
+
+        Do not use this for queries that return rows.  Instead use
+        :meth:`Pipeline.add_fetchall()`, :meth:`Pipeline.add_fetchmany()`, or
+        :meth:`Pipeline.add_fetchone()`.
         """
         op_impl = PipelineOpImpl(
             op_type=PipelineOpType.EXECUTE,
@@ -275,12 +293,23 @@ class Pipeline:
 
     def add_executemany(
         self,
-        statement: Union[str, None],
+        statement: str,
         parameters: Union[list, int],
     ) -> PipelineOp:
         """
-        Adds an operation that executes a statement multiple times with the
-        given list of parameters (or number of iterations).
+        Adds an operation that executes a SQL statement once using all bind
+        value mappings or sequences found in the sequence parameters. This can
+        be used to insert, update, or delete multiple rows in a table. It can
+        also invoke a PL/SQL procedure multiple times.
+
+        The created PipelineOp object is also returned from this function.
+
+        The ``parameters`` parameter can be a list of tuples, where each tuple
+        item maps to one bind variable placeholder in ``statement``. It can
+        also be a list of dictionaries, where the keys match the bind variable
+        placeholder names in ``statement``. If there are no bind values, or
+        values have previously been bound, the ``parameters`` value can be an
+        integer specifying the number of iterations.
         """
         op_impl = PipelineOpImpl(
             op_type=PipelineOpType.EXECUTE_MANY,
@@ -292,15 +321,24 @@ class Pipeline:
     def add_fetchall(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        arraysize: int = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        arraysize: Optional[int] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> PipelineOp:
         """
-        Adds an operation that executes a query and returns up to the
-        specified number of rows from the result set. The PipelineOpResult
-        object that is returned will have the "return_value" attribute
-        populated with the list of rows returned by the query.
+        Adds an operation that executes a query and returns all of the rows
+        from the result set.  The created PipelineOp object is also returned
+        from this function.
+
+        When the Pipeline is executed, the PipelineOpResult object that is
+        returned for this operation will have the
+        :attr:`~PipelineOpResult.rows` attribute populated with the list of
+        rows returned by the query.
+
+        The default value for ``arraysize`` is :attr:`defaults.arraysize`.
+
+        Internally, this operation's :attr:`Cursor.prefetchrows` size is set
+        to the value of the explicit or default ``arraysize`` parameter value.
         """
         if arraysize is None:
             arraysize = defaults.arraysize
@@ -316,15 +354,30 @@ class Pipeline:
     def add_fetchmany(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        num_rows: int = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        num_rows: Optional[int] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns up to the specified
-        number of rows from the result set. The PipelineOpResult object that is
-        returned will have the "return_value" attribute populated with the list
-        of rows returned by the query.
+        number of rows from the result set.  The created PipelineOp object is
+        also returned from this function.
+
+        When the Pipeline is executed, the PipelineOpResult object that is
+        returned for this operation will have the
+        :attr:`~PipelineOpResult.rows` attribute populated with the list of
+        rows returned by the query.
+
+        The default value for ``num_rows`` is the value of
+        :attr:`defaults.arraysize`.
+
+        Internally, this operation's :attr:`Cursor.prefetchrows` size is set to
+        the value of the explicit or default ``num_rows`` parameter, allowing
+        all rows to be fetched in one round-trip.
+
+        Since only one fetch is performed for a query operation, consider
+        adding a ``FETCH NEXT`` clause to the statement to prevent the
+        database processing rows that will never be fetched.
         """
         if num_rows is None:
             num_rows = defaults.arraysize
@@ -340,15 +393,26 @@ class Pipeline:
     def add_fetchone(
         self,
         statement: str,
-        parameters: Union[list, tuple, dict] = None,
-        rowfactory: Callable = None,
+        parameters: Optional[Union[list, tuple, dict]] = None,
+        rowfactory: Optional[Callable] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns the first row of
-        the result set if one exists (or None, if no rows exist). The
-        PipelineOpResult object that is returned will have the "return_value"
-        attribute populated with this row if the query is performed
-        successfully.
+        the result set if one exists (or *None*, if no rows exist).  The
+        created PipelineOp object is also returned from this function.
+
+        When the Pipeline is executed, the PipelineOpResult object that is
+        returned for this operation will have the
+        :attr:`~PipelineOpResult.rows` attribute populated with this row if the
+        query is performed successfully.
+
+        Internally, this operation's :attr:`Cursor.prefetchrows` and
+        :attr:`Cursor.arraysize` sizes will be set to *1*.
+
+        Since only one fetch is performed for a query operation, consider
+        adding a ``WHERE`` condition or using a ``FETCH NEXT`` clause in the
+        statement to prevent the database processing rows that will never be
+        fetched.
         """
         op_impl = PipelineOpImpl(
             op_type=PipelineOpType.FETCH_ONE,
@@ -359,9 +423,10 @@ class Pipeline:
         return self._add_op(op_impl)
 
     @property
-    def operations(self) -> list:
+    def operations(self) -> list[PipelineOp]:
         """
-        Returns the list of operations associated with the pipeline.
+        This read-only attribute returns the list of operations associated with
+        the pipeline.
         """
         return self._operations
 

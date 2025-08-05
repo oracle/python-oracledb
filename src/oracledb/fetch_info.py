@@ -104,15 +104,19 @@ class FetchInfo:
     @property
     def annotations(self) -> Union[dict, None]:
         """
-        Returns a dictionary of the annotations associated with the column, if
-        applicable.
+        This read-only attribute returns a dictionary containing the
+        `annotations <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+        GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__ associated with the
+        fetched column. If there are no annotations, the value *None* is
+        returned. Annotations require Oracle Database 23ai. If using
+        python-oracledb Thick mode, Oracle Client 23ai is also required.
         """
         return self._impl.annotations
 
     @property
     def display_size(self) -> Union[int, None]:
         """
-        Returns the display size of the column.
+        This read-only attribute returns the display size of the column.
         """
         if self._impl.max_size > 0:
             return self._impl.max_size
@@ -141,22 +145,36 @@ class FetchInfo:
     @property
     def domain_name(self) -> Union[str, None]:
         """
-        Returns the name of the domain, if applicable.
+        This read-only attribute returns the name of the `data use case domain
+        <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6
+        -D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
+        there is no data use case domain, the value *None* is returned. `Data
+        use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
+        &id=GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle
+        Database 23ai. If using python-oracledb Thick mode, Oracle Client 23ai
+        is also required
         """
         return self._impl.domain_name
 
     @property
     def domain_schema(self) -> Union[str, None]:
         """
-        Returns the name of the schema in which the domain is found, if
-        applicable.
+        This read-only attribute returns the schema of the `data use case
+        domain <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+        17D3A9C6-D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched
+        column. If there is no data use case domain, the value *None* is
+        returned. `Data use case domains <https://www.oracle.com/pls/topic/
+        lookup?ctx=dblatest&id=GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__
+        require Oracle Database 23ai. If using python-oracledb Thick mode,
+        Oracle Client 23ai is also required.
         """
         return self._impl.domain_schema
 
     @property
     def internal_size(self) -> Union[int, None]:
         """
-        Returns the size in bytes of the column.
+        This read-only attribute returns the internal size of the column as
+        mandated by the Python Database API.
         """
         if self._impl.max_size > 0:
             return self._impl.buffer_size
@@ -164,35 +182,45 @@ class FetchInfo:
     @property
     def is_json(self) -> bool:
         """
-        Returns whether the column contains JSON.
+        This read-only attribute returns whether the column is known to contain
+        JSON data. This will be *True* when the type code is
+        :data:`oracledb.DB_TYPE_JSON` as well as when an "IS JSON" constraint
+        is enabled on LOB and VARCHAR2 columns.
         """
         return self._impl.is_json
 
     @property
     def is_oson(self) -> bool:
         """
-        Returns whether the column contains OSON encoded bytes.
+        This read-only attribute returns whether the column is known to contain
+        binary encoded `OSON <https://www.oracle.com/pls/topic/lookup?ctx=
+        dblatest&id=GUID-911D302C-CFAF-406B-B6A5-4E99DD38ABAD>`__ data. This
+        will be *True* when an "IS JSON FORMAT OSON" check constraint is
+        enabled on BLOB columns.
         """
         return self._impl.is_oson
 
     @property
     def name(self) -> str:
         """
-        Returns the name of the column.
+        This read-only attribute returns the name of the column as mandated by
+        the Python Database API.
         """
         return self._impl.name
 
     @property
     def null_ok(self) -> bool:
         """
-        Returns whether nulls or permitted or not in the column.
+        This read-only attribute returns whether nulls are allowed in the
+        column as mandated by the Python Database API.
         """
         return self._impl.nulls_allowed
 
     @property
     def precision(self) -> Union[int, None]:
         """
-        Returns the precision of the column.
+        This read-only attribute returns the precision of the column as
+        mandated by the Python Database API.
         """
         if self._impl.precision or self._impl.scale:
             return self._impl.precision
@@ -200,7 +228,8 @@ class FetchInfo:
     @property
     def scale(self) -> Union[int, None]:
         """
-        Returns the scale of the column.
+        This read-only attribute returns the scale of the column as mandated by
+        the Python Database API.
         """
         if self._impl.precision or self._impl.scale:
             return self._impl.scale
@@ -208,8 +237,10 @@ class FetchInfo:
     @property
     def type(self) -> Union[DbType, DbObjectType]:
         """
-        Returns the type of the column, as either a database object type or a
-        database type.
+        This read-only attribute returns the type of the column. This will be
+        an :ref:`Oracle Object Type <dbobjecttype>` if the column contains
+        Oracle objects; otherwise, it will be one of the
+        :ref:`database type constants <dbtypes>` defined at the module level.
         """
         if self._type is None:
             if self._impl.objtype is not None:
@@ -221,16 +252,18 @@ class FetchInfo:
     @property
     def type_code(self) -> DbType:
         """
-        Returns the type of the column.
+        This read-only attribute returns the type of the column as mandated by
+        the Python Database API. The type will be one of the
+        :ref:`database type constants <dbtypes>` defined at the module level.
         """
         return self._impl.dbtype
 
     @property
-    def vector_dimensions(self) -> [int, None]:
+    def vector_dimensions(self) -> Union[int, None]:
         """
-        Returns the number of dimensions required by vector columns. If the
-        column is not a vector column or allows for any number of dimensions,
-        the value returned is None.
+        This read-only attribute returns the number of dimensions required by
+        VECTOR columns. If the column is not a VECTOR column or allows for any
+        number of dimensions, the value returned is *None*.
         """
         if self._impl.dbtype is DB_TYPE_VECTOR:
             flags = self._impl.vector_flags
@@ -238,11 +271,22 @@ class FetchInfo:
                 return self._impl.vector_dimensions
 
     @property
-    def vector_format(self) -> [oracledb.VectorFormat, None]:
+    def vector_format(self) -> Union[oracledb.VectorFormat, None]:
         """
-        Returns the storage type required by vector columns. If the column is
-        not a vector column or allows for any type of storage, the value
-        returned is None.
+        This read-only attribute returns the storage type used by VECTOR
+        columns. The value of this attribute can be:
+
+        - :data:`oracledb.VECTOR_FORMAT_BINARY` which represents 8-bit unsigned
+          integers
+        - :data:`oracledb.VECTOR_FORMAT_INT8` which represents 8-bit signed
+          integers
+        - :data:`oracledb.VECTOR_FORMAT_FLOAT32` which represents 32-bit
+          floating-point numbers
+        - :data:`oracledb.VECTOR_FORMAT_FLOAT64` which represents 64-bit
+          floating-point numbers
+
+        If the column is not a VECTOR column or allows for any type of storage,
+        the value returned is *None*.
         """
         if (
             self._impl.dbtype is DB_TYPE_VECTOR
@@ -253,8 +297,13 @@ class FetchInfo:
     @property
     def vector_is_sparse(self) -> Union[bool, None]:
         """
-        Returns a boolean indicating if the vector is sparse or not. If the
-        column is not a vector column, the value returned is None.
+        This read-only attribute returns a boolean indicating if the vector is
+        sparse or not.
+
+        If the column contains vectors that are SPARSE, the value returned is
+        *True*. If the column contains vectors that are DENSE, the value
+        returned is *False*. If the column is not a VECTOR column, the value
+        returned is *None*.
         """
         if self._impl.dbtype is DB_TYPE_VECTOR:
             flags = self._impl.vector_flags

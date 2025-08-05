@@ -49,7 +49,7 @@ from .cursor import AsyncCursor, Cursor
 from .dataframe import DataFrame
 from .dbobject import DbObjectType, DbObject
 from .lob import AsyncLOB, LOB
-from .pipeline import Pipeline
+from .pipeline import Pipeline, PipelineOpResult
 from .soda import SodaDatabase
 from .subscr import Subscription
 from .utils import normalize_sessionless_transaction_id
@@ -489,7 +489,7 @@ class BaseConnection:
     ) -> MessageProperties:
         """
         Returns an object specifying the properties of messages used in
-        advanced queuing. See :ref:`msgproperties` for more information.
+        advanced queuing.
 
         Each of the parameters are optional. If specified, they act as a
         shortcut for setting each of the equivalently named properties.
@@ -518,10 +518,10 @@ class BaseConnection:
         payload_type: Optional[Union[DbObjectType, str]] = None,
         *,
         payloadType: Optional[DbObjectType] = None,
-    ) -> Queue:
+    ) -> Union[Queue, AsyncQueue]:
         """
-        Creates a :ref:`queue <queue>` which is used to enqueue and dequeue
-        messages in Advanced Queuing.
+        Creates a queue which is used to enqueue and dequeue messages in
+        Advanced Queuing.
 
         The ``name`` parameter is expected to be a string identifying the queue
         in which messages are to be enqueued or dequeued.
@@ -849,27 +849,6 @@ class Connection(BaseConnection):
     ) -> None:
         """
         Constructor for creating a connection to the database.
-
-        The dsn parameter (data source name) can be a string in the format
-        user/password@connect_string or can simply be the connect string (in
-        which case authentication credentials such as the username and password
-        need to be specified separately). See the documentation on connection
-        strings for more information.
-
-        The pool parameter is expected to be a pool object and the use of this
-        parameter is the equivalent of calling acquire() on the pool.
-
-        The params parameter is expected to be of type ConnectParams and
-        contains connection parameters that will be used when establishing the
-        connection. See the documentation on ConnectParams for more
-        information. If this parameter is not specified, the additional keyword
-        parameters will be used to create an instance of ConnectParams. If both
-        the params parameter and additional keyword parameters are specified,
-        the values in the keyword parameters have precedence. Note that if a
-        dsn is also supplied, then in the python-oracledb Thin mode, the values
-        of the parameters specified (if any) within the dsn will override the
-        values passed as additional keyword parameters, which themselves
-        override the values set in the params parameter object.
         """
 
         super().__init__()
@@ -1713,8 +1692,7 @@ class AsyncConnection(BaseConnection):
         kwargs: dict,
     ) -> None:
         """
-        Constructor for asynchronous connection pool. Not intended to be used
-        directly but only indirectly through async_connect().
+        Constructor for creating an asynchronous connection to the database.
         """
         super().__init__()
         self._pool = pool
@@ -2238,12 +2216,11 @@ class AsyncConnection(BaseConnection):
         self,
         pipeline: Pipeline,
         continue_on_error: bool = False,
-    ) -> list:
+    ) -> list[PipelineOpResult]:
         """
-        Runs all of the operations in the :ref:`pipeline <pipelineobj>` and
-        returns a list of :ref:`PipelineOpResult Objects
-        <pipelineopresultobjs>`, each entry corresponding to an operation
-        executed in the pipeline.
+        Runs all of the operations in the pipeline and returns a list of
+        PipelineOpResult, each entry corresponding to an operation executed in
+        the pipeline.
 
         The ``continue_on_error`` parameter determines whether operations
         should continue to run after an error has occurred. If this parameter

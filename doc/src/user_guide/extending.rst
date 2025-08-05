@@ -1,5 +1,7 @@
 .. _extendingpython-oracledb:
 
+.. currentmodule:: oracledb
+
 *************************
 Extending python-oracledb
 *************************

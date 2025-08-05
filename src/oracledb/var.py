@@ -29,7 +29,7 @@
 # fetch. These hold the metadata as well as any necessary buffers.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 from .dbobject import DbObjectType
 from .base_impl import DbType
 
@@ -60,8 +60,8 @@ class Var:
         This read-only attribute returns the actual number of elements in the
         variable. This corresponds to the number of elements in a PL/SQL
         index-by table for variables that are created using the method
-        Cursor.arrayvar(). For all other variables this value will be identical
-        to the attribute num_elements.
+        :meth:`Cursor.arrayvar()`. For all other variables, this value will be
+        identical to the attribute num_elements.
         """
         if self._impl.is_array:
             return self._impl.num_elements_in_array
@@ -99,22 +99,22 @@ class Var:
 
     def getvalue(self, pos: int = 0) -> Any:
         """
-        Return the value at the given position in the variable. For variables
-        created using the method Cursor.arrayvar() the value returned will be a
-        list of each of the values in the PL/SQL index-by table. For variables
-        bound to DML returning statements, the value returned will also be a
-        list corresponding to the returned data for the given execution of the
-        statement (as identified by the pos parameter).
+        Returns the value at the given position in the variable. For variables
+        created using the method :meth:`Cursor.arrayvar()`, the value returned
+        will be a list of each of the values in the PL/SQL index-by table. For
+        variables bound to DML returning statements, the value returned will
+        also be a list corresponding to the returned data for the given
+        execution of the statement (as identified by the ``pos`` parameter).
         """
         return self._impl.get_value(pos)
 
     @property
-    def inconverter(self) -> Callable:
+    def inconverter(self) -> Optional[Callable]:
         """
         This read-only attribute specifies the method used to convert data from
         Python to the Oracle database. The method signature is converter(value)
         and the expected return value is the value to bind to the database. If
-        this attribute is None, the value is bound directly without any
+        this attribute is *None*, the value is bound directly without any
         conversion.
         """
         return self._impl.inconverter
@@ -136,19 +136,19 @@ class Var:
         return self.num_elements
 
     @property
-    def outconverter(self) -> Callable:
+    def outconverter(self) -> Optional[Callable]:
         """
         This read-only attribute specifies the method used to convert data from
         the Oracle database to Python. The method signature is converter(value)
         and the expected return value is the value to return to Python. If this
-        attribute is None, the value is returned directly without any
+        attribute is *None*, the value is returned directly without any
         conversion.
         """
         return self._impl.outconverter
 
     def setvalue(self, pos: int, value: Any) -> None:
         """
-        Set the value at the given position in the variable.
+        Sets the value at the given position in the variable.
         """
         self._impl.set_value(pos, value)
 
@@ -156,7 +156,7 @@ class Var:
     def size(self) -> int:
         """
         This read-only attribute returns the size of the variable. For strings
-        this value is the size in characters. For all others, this is same
+        this value is the size in characters. For all others, this is the same
         value as the attribute buffer_size.
         """
         return self._impl.metadata.max_size
@@ -165,8 +165,12 @@ class Var:
     def type(self) -> Union[DbType, DbObjectType]:
         """
         This read-only attribute returns the type of the variable. This will be
-        an Oracle Object Type if the variable binds Oracle objects; otherwise,
-        it will be one of the database type constants.
+        an :ref:`Oracle Object Type <dbobjecttype>` if the variable binds
+        Oracle objects; otherwise, it will be one of the
+        :ref:`database type constants <dbtypes>`.
+
+        Database type constants are now used when the variable is not used for
+        binding Oracle objects.
         """
         return self._type
 

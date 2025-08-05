@@ -28,9 +28,9 @@
 # Contains the LOB class for managing BLOB, CLOB, NCLOB and BFILE data.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Union
+from typing import Optional, Union
 
-from .base_impl import DB_TYPE_BFILE, DB_TYPE_BLOB
+from .base_impl import DbType, DB_TYPE_BFILE, DB_TYPE_BLOB
 from . import __name__ as MODULE_NAME
 from . import errors
 
@@ -51,7 +51,7 @@ class BaseLOB:
 
     def _check_value_to_write(self, value):
         """
-        Check the value to write and return the actual value to write.
+        Checks the value to write and returns the actual value to write.
         Character LOBs must write strings but can accept UTF-8 encoded bytes
         (which will be decoded to strings). Binary LOBs must write bytes but
         can accept strings (which will be encoded in UTF-8).
@@ -78,7 +78,7 @@ class BaseLOB:
 
     def getfilename(self) -> tuple:
         """
-        Return a two-tuple consisting of the directory alias and file name for
+        Returns a two-tuple consisting of the directory alias and file name for
         a BFILE type LOB.
         """
         self._check_is_bfile()
@@ -86,15 +86,16 @@ class BaseLOB:
 
     def setfilename(self, dir_alias: str, name: str) -> None:
         """
-        Set the directory alias and name of a BFILE type LOB.
+        Sets the directory alias and name of a BFILE type LOB.
         """
         self._check_is_bfile()
         self._impl.set_file_name(dir_alias, name)
 
     @property
-    def type(self) -> Any:
+    def type(self) -> DbType:
         """
-        Returns the type of the LOB as one of the database type constants.
+        This read-only attribute returns the type of the LOB as one of the
+        database type constants.
         """
         return self._impl.dbtype
 
@@ -111,7 +112,7 @@ class LOB(BaseLOB):
 
     def close(self) -> None:
         """
-        Close the LOB. Call this when writing is completed so that the indexes
+        Closes the LOB. Call this when writing is completed so that the indexes
         associated with the LOB can be updated -– but only if open() was called
         first.
         """
@@ -119,7 +120,7 @@ class LOB(BaseLOB):
 
     def fileexists(self) -> bool:
         """
-        Return a boolean indicating if the file referenced by a BFILE type LOB
+        Returns a boolean indicating if the file referenced by a BFILE type LOB
         exists.
         """
         self._check_is_bfile()
@@ -127,7 +128,7 @@ class LOB(BaseLOB):
 
     def getchunksize(self) -> int:
         """
-        Return the chunk size for the LOB. Reading and writing to the LOB in
+        Returns the chunk size for the LOB. Reading and writing to the LOB in
         chunks of multiples of this size will improve performance.
         """
         self._check_not_bfile()
@@ -135,24 +136,26 @@ class LOB(BaseLOB):
 
     def isopen(self) -> bool:
         """
-        Return a boolean indicating if the LOB has been opened using the method
-        open().
+        Returns a boolean indicating if the LOB has been opened using the
+        method open().
         """
         return self._impl.get_is_open()
 
     def open(self) -> None:
         """
-        Open the LOB for writing. This will improve performance when writing to
-        the LOB in chunks and there are functional or extensible indexes
+        Opens the LOB for writing. This will improve performance when writing
+        to the LOB in chunks and there are functional or extensible indexes
         associated with the LOB. If this method is not called, each write will
         perform an open internally followed by a close after the write has been
         completed.
         """
         self._impl.open()
 
-    def read(self, offset: int = 1, amount: int = None) -> Union[str, bytes]:
+    def read(
+        self, offset: int = 1, amount: Optional[int] = None
+    ) -> Union[str, bytes]:
         """
-        Return a portion (or all) of the data in the LOB. Note that the amount
+        Returns a portion (or all) of the data in the LOB. Note that the amount
         and offset are in bytes for BLOB and BFILE type LOBs and in UCS-2 code
         points for CLOB and NCLOB type LOBs. UCS-2 code points are equivalent
         to characters for all but supplemental characters. If supplemental
@@ -173,16 +176,18 @@ class LOB(BaseLOB):
 
     def size(self) -> int:
         """
-        Returns the size of the data in the LOB. For BLOB and BFILE type LOBs
-        this is the number of bytes. For CLOB and NCLOB type LOBs this is the
+        Returns the size of the data in the LOB. For BLOB and BFILE type LOBs,
+        this is the number of bytes. For CLOB and NCLOB type LOBs, this is the
         number of UCS-2 code points. UCS-2 code points are equivalent to
         characters for all but supplemental characters.
         """
         return self._impl.get_size()
 
-    def trim(self, new_size: int = 0, *, newSize: int = None) -> None:
+    def trim(
+        self, new_size: int = 0, *, newSize: Optional[int] = None
+    ) -> None:
         """
-        Trim the LOB to the new size (the second parameter is deprecated and
+        Trims the LOB to the new size (the second parameter is deprecated and
         should not be used).
         """
         self._check_not_bfile()
@@ -198,7 +203,7 @@ class LOB(BaseLOB):
 
     def write(self, data: Union[str, bytes], offset: int = 1) -> None:
         """
-        Write the data to the LOB at the given offset. The offset is in bytes
+        Writes the data to the LOB at the given offset. The offset is in bytes
         for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type
         LOBs. UCS-2 code points are equivalent to characters for all but
         supplemental characters. If supplemental characters are in the LOB, the
@@ -215,7 +220,7 @@ class AsyncLOB(BaseLOB):
 
     async def close(self) -> None:
         """
-        Close the LOB. Call this when writing is completed so that the indexes
+        Closes the LOB. Call this when writing is completed so that the indexes
         associated with the LOB can be updated -– but only if open() was called
         first.
         """
@@ -223,7 +228,7 @@ class AsyncLOB(BaseLOB):
 
     async def fileexists(self) -> bool:
         """
-        Return a boolean indicating if the file referenced by a BFILE type LOB
+        Returns a boolean indicating if the file referenced by a BFILE type LOB
         exists.
         """
         self._check_is_bfile()
@@ -231,7 +236,7 @@ class AsyncLOB(BaseLOB):
 
     async def getchunksize(self) -> int:
         """
-        Return the chunk size for the LOB. Reading and writing to the LOB in
+        Returns the chunk size for the LOB. Reading and writing to the LOB in
         chunks of multiples of this size will improve performance.
         """
         self._check_not_bfile()
@@ -239,15 +244,15 @@ class AsyncLOB(BaseLOB):
 
     async def isopen(self) -> bool:
         """
-        Return a boolean indicating if the LOB has been opened using the method
-        open().
+        Returns a boolean indicating if the LOB has been opened using the
+        method open().
         """
         return await self._impl.get_is_open()
 
     async def open(self) -> None:
         """
-        Open the LOB for writing. This will improve performance when writing to
-        the LOB in chunks and there are functional or extensible indexes
+        Opens the LOB for writing. This will improve performance when writing
+        to the LOB in chunks and there are functional or extensible indexes
         associated with the LOB. If this method is not called, each write will
         perform an open internally followed by a close after the write has been
         completed.
@@ -255,10 +260,10 @@ class AsyncLOB(BaseLOB):
         await self._impl.open()
 
     async def read(
-        self, offset: int = 1, amount: int = None
+        self, offset: int = 1, amount: Optional[int] = None
     ) -> Union[str, bytes]:
         """
-        Return a portion (or all) of the data in the LOB. Note that the amount
+        Returns a portion (or all) of the data in the LOB. Note that the amount
         and offset are in bytes for BLOB and BFILE type LOBs and in UCS-2 code
         points for CLOB and NCLOB type LOBs. UCS-2 code points are equivalent
         to characters for all but supplemental characters. If supplemental
@@ -284,9 +289,11 @@ class AsyncLOB(BaseLOB):
         """
         return await self._impl.get_size()
 
-    async def trim(self, new_size: int = 0, *, newSize: int = None) -> None:
+    async def trim(
+        self, new_size: int = 0, *, newSize: Optional[int] = None
+    ) -> None:
         """
-        Trim the LOB to the new size (the second parameter is deprecated and
+        Trims the LOB to the new size (the second parameter is deprecated and
         should not be used).
         """
         self._check_not_bfile()
@@ -302,7 +309,7 @@ class AsyncLOB(BaseLOB):
 
     async def write(self, data: Union[str, bytes], offset: int = 1) -> None:
         """
-        Write the data to the LOB at the given offset. The offset is in bytes
+        Writes the data to the LOB at the given offset. The offset is in bytes
         for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type
         LOBs. UCS-2 code points are equivalent to characters for all but
         supplemental characters. If supplemental characters are in the LOB, the

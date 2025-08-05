@@ -230,7 +230,10 @@ from .exceptions import (
 
 from .errors import _Error as _Error
 
-from .defaults import defaults as defaults
+from .defaults import (
+    defaults as defaults,
+    Defaults as Defaults,
+)
 
 from .pipeline import (
     Pipeline as Pipeline,
@@ -260,10 +263,27 @@ from .pool import (
 )
 
 from .subscr import (
+    Subscription as Subscription,
     Message as Message,
     MessageQuery as MessageQuery,
     MessageRow as MessageRow,
     MessageTable as MessageTable,
+)
+
+from .aq import (
+    Queue as Queue,
+    AsyncQueue as AsyncQueue,
+    DeqOptions as DeqOptions,
+    EnqOptions as EnqOptions,
+    MessageProperties as MessageProperties,
+)
+
+from .soda import (
+    SodaDatabase as SodaDatabase,
+    SodaCollection as SodaCollection,
+    SodaDocument as SodaDocument,
+    SodaDocCursor as SodaDocCursor,
+    SodaOperation as SodaOperation,
 )
 
 from .connect_params import ConnectParams as ConnectParams
@@ -275,7 +295,11 @@ from .lob import (
     AsyncLOB as AsyncLOB,
 )
 
-from .dbobject import DbObject as DbObject, DbObjectType as DbObjectType
+from .dbobject import (
+    DbObject as DbObject,
+    DbObjectAttr as DbObjectAttr,
+    DbObjectType as DbObjectType,
+)
 
 from .fetch_info import FetchInfo as FetchInfo
 
@@ -286,17 +310,14 @@ from .dsn import makedsn as makedsn
 from .driver_mode import is_thin_mode as is_thin_mode
 
 from .utils import (
+    clientversion as clientversion,
     enable_thin_mode as enable_thin_mode,
     from_arrow as from_arrow,
+    init_oracle_client as init_oracle_client,
     register_params_hook as register_params_hook,
     register_password_type as register_password_type,
     register_protocol as register_protocol,
     unregister_params_hook as unregister_params_hook,
-)
-
-from .thick_impl import (
-    clientversion as clientversion,
-    init_oracle_client as init_oracle_client,
 )
 
 from .constructors import (

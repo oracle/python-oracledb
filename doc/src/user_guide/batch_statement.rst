@@ -1,5 +1,7 @@
 .. _batchstmnt:
 
+.. currentmodule:: oracledb
+
 ****************************************
 Batch Statement and Bulk Copy Operations
 ****************************************

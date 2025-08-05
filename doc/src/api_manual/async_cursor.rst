@@ -6,6 +6,9 @@ API: AsyncCursor Objects
 
 .. currentmodule:: oracledb
 
+AsyncCursor Class
+=================
+
 .. autoclass:: AsyncCursor
 
     An AsyncCursor object should be created with
@@ -134,6 +137,8 @@ AsyncCursor Attributes
     See :ref:`Tuning Fetch Performance <tuningfetch>` for more information.
 
 .. autoproperty:: AsyncCursor.bindvars
+
+.. autoproperty:: AsyncCursor.connection
 
 .. autoproperty:: AsyncCursor.description
 

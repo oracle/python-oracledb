@@ -1,5 +1,7 @@
 .. _introduction:
 
+.. currentmodule:: oracledb
+
 *****************************************************
 Introduction to the Python Driver for Oracle Database
 *****************************************************

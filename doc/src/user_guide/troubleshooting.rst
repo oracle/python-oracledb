@@ -1,5 +1,7 @@
 .. _troubleshooting:
 
+.. currentmodule:: oracledb
+
 **********************
 Troubleshooting Errors
 **********************

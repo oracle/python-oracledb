@@ -1,5 +1,7 @@
 .. _lobdata:
 
+.. currentmodule:: oracledb
+
 ***************************************
 Using CLOB, BLOB, NCLOB, and BFILE Data
 ***************************************

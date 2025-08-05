@@ -1,5 +1,7 @@
 .. _exception:
 
+.. currentmodule:: oracledb
+
 *******************
 Catching Exceptions
 *******************

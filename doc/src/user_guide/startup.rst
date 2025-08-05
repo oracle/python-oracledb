@@ -1,5 +1,7 @@
 .. _startup:
 
+.. currentmodule:: oracledb
+
 *************************************
 Starting and Stopping Oracle Database
 *************************************

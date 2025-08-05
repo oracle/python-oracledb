@@ -1,5 +1,7 @@
 .. _xmldatatype:
 
+.. currentmodule:: oracledb
+
 ******************
 Using XMLTYPE Data
 ******************

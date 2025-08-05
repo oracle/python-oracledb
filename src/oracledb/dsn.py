@@ -52,8 +52,9 @@ def makedsn(
     super_sharding_key: str = None,
 ) -> str:
     """
-    Return a string suitable for use as the dsn parameter for connect(). This
-    string is identical to the strings that are defined in the tnsnames.ora
+    Returns a string suitable for use as the ``dsn`` parameter for
+    :meth:`~oracledb.connect()`. This string is identical to the strings that
+    are defined by the Oracle names server or defined in the ``tnsnames.ora``
     file.
     """
     connect_data_parts = []

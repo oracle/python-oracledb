@@ -1,5 +1,7 @@
 .. _txnmgmnt:
 
+.. currentmodule:: oracledb
+
 *********************
 Managing Transactions
 *********************

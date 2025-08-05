@@ -6,6 +6,9 @@ API: AsyncConnection Objects
 
 .. currentmodule:: oracledb
 
+AsyncConnection Class
+=====================
+
 .. autoclass:: AsyncConnection
 
     An AsyncConnection object should be created with
@@ -66,7 +69,7 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.commit
 
-.. automethod:: AsyncConnection.createlob(lob_type)
+.. automethod:: AsyncConnection.createlob
 
 .. automethod:: AsyncConnection.cursor
 
