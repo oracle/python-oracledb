@@ -77,17 +77,40 @@ class Field:
     description: str = ""
     source: str = None
 
-    @property
-    def async_description(self):
-        return self.description.replace(
-            "oracledb.Connection", "oracledb.AsyncConnection"
-        )
+    def get_arg_string(self, with_async: bool = False) -> str:
+        """
+        Returns the string defining the argument when used in a function
+        definition.
+        """
+        typ = self.typ
+        if with_async:
+            typ = typ.replace(
+                "oracledb.Connection", "oracledb.AsyncConnection"
+            )
+        return f"{self.name}: Optional[{typ}] = None,"
 
-    @property
-    def async_typ(self):
-        return self.typ.replace(
-            "oracledb.Connection", "oracledb.AsyncConnection"
+    def get_help_string(
+        self, indent: str, with_default: bool = False, with_async: bool = False
+    ) -> str:
+        """
+        Returns the help string to use for the field with the given
+        indentation.
+        """
+        description = self.description
+        if with_async:
+            description = description.replace(
+                "oracledb.Connection", "oracledb.AsyncConnection"
+            )
+        raw_help_string = f"- ``{self.name}``: {description}"
+        help_string = textwrap.fill(
+            raw_help_string,
+            initial_indent=indent,
+            subsequent_indent=indent + "  ",
+            width=TEXT_WIDTH,
         )
+        if with_default:
+            help_string += f"\n{indent}  (default: {self.default})"
+        return help_string
 
 
 # parse command line
@@ -146,41 +169,17 @@ def args_help_with_defaults_content(indent):
     """
     Generates the content for the args_help_with_defaults template tag.
     """
-    raw_descriptions = []
-    for f in fields:
-        if not f.description:
-            continue
-        raw_descriptions.append(f"- {f.name}: {f.description}")
-        raw_descriptions.append(f"  (default: {f.default})")
-        raw_descriptions.append("")
     descriptions = [
-        textwrap.fill(
-            d,
-            initial_indent=indent,
-            subsequent_indent=indent + "  ",
-            width=TEXT_WIDTH,
-        )
-        for d in raw_descriptions[:-1]
+        f.get_help_string(indent, with_default=True) for f in fields
     ]
-    return "\n".join(descriptions).strip()
+    return "\n\n".join(descriptions).strip()
 
 
 def args_help_without_defaults_content(indent):
     """
     Generates the content for the args_help_without_defaults template tag.
     """
-    raw_descriptions = [
-        f"- {f.name}: {f.description}" for f in fields if f.description
-    ]
-    descriptions = [
-        textwrap.fill(
-            d,
-            initial_indent=indent,
-            subsequent_indent=indent + "  ",
-            width=TEXT_WIDTH,
-        )
-        for d in raw_descriptions
-    ]
+    descriptions = [f.get_help_string(indent) for f in fields]
     return "\n\n".join(descriptions).strip()
 
 
@@ -189,7 +188,7 @@ def args_with_defaults_content(indent):
     Generates the content for the args_with_defaults template tag.
     """
     args_joiner = "\n" + indent
-    args = [f"{f.name}: Optional[{f.typ}] = None," for f in fields]
+    args = [f.get_arg_string() for f in fields]
     return args_joiner.join(args)
 
 
@@ -197,19 +196,9 @@ def async_args_help_with_defaults_content(indent):
     """
     Generates the content for the async_args_help_with_defaults template tag.
     """
-    raw_descriptions = [
-        f"- {f.name}: {f.async_description} (default: {f.default})"
-        for f in fields
-        if f.description
-    ]
     descriptions = [
-        textwrap.fill(
-            d,
-            initial_indent=indent,
-            subsequent_indent=indent + "  ",
-            width=TEXT_WIDTH,
-        )
-        for d in raw_descriptions
+        f.get_help_string(indent, with_default=True, with_async=True)
+        for f in fields
     ]
     return "\n\n".join(descriptions).strip()
 
@@ -219,7 +208,7 @@ def async_args_with_defaults_content(indent):
     Generates the content for the async_args_with_defaults template tag.
     """
     args_joiner = "\n" + indent
-    args = [f"{f.name}: Optional[{f.async_typ}] = None," for f in fields]
+    args = [f.get_arg_string(with_async=True) for f in fields]
     return args_joiner.join(args)
 
 

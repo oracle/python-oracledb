@@ -43,6 +43,9 @@ if sys.version_info[:2] < (3, 9):
 from . import base_impl, thick_impl, thin_impl
 
 from .base_impl import (
+    # type classes
+    ApiType as ApiType,
+    DbType as DbType,
     # database types
     DB_TYPE_BFILE as DB_TYPE_BFILE,
     DB_TYPE_BINARY_DOUBLE as DB_TYPE_BINARY_DOUBLE,

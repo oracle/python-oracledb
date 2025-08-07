@@ -16,8 +16,8 @@ as `Apache PyArrow <https://arrow.apache.org/docs/python/index.html>`__,
 <https://parquet.apache.org/>`__ format.
 
 Python-oracledb has a :ref:`DataFrame <oracledataframeobj>` object that exposes
-an Apache Arrow PyCapsule Interface. This enables zero-copy data interchanges
-to the data frame objects of other libraries.
+an Apache Arrow ArrowArrayStream PyCapsule Interface. This enables zero-copy
+data interchanges to the data frame objects of other libraries.
 
 .. note::
 
@@ -29,28 +29,30 @@ to the data frame objects of other libraries.
 Fetching Data Frames
 ====================
 
-Data frames can be fetched by using a standard SQL query.
+Data frames can be fetched by using a standard SQL query with :ref:`Connection
+<connobj>` or :ref:`AsyncConnection <asyncconnobj>` methods.
 
 Data Frame Queries
 ------------------
 
-Python-oracledb has two methods for fetching rows into data frames:
+The python-oracledb methods for fetching rows into data frames are:
 
 - :meth:`Connection.fetch_df_all()` fetches all rows from a query
 - :meth:`Connection.fetch_df_batches()` implements an iterator for fetching
   batches of rows
 
-The methods return python-oracledb :ref:`DataFrame <oracledataframeobj>`
-objects.
+These methods can also be called from :ref:`AsyncConnection
+<asyncconnobj>`. The methods all return python-oracledb :ref:`DataFrame
+<oracledataframeobj>` objects.
 
 For example, to fetch all rows from a query and print some information about
 the results:
 
 .. code-block:: python
 
-    sql = "select * from departments"
+    sql = "select * from departments where department_id > :1"
     # Adjust arraysize to tune the query fetch performance
-    odf = connection.fetch_df_all(statement=sql, arraysize=100)
+    odf = connection.fetch_df_all(statement=sql, parameters=[100], arraysize=100)
 
     print(odf.column_names())
     print(f"{odf.num_columns()} columns")
@@ -60,7 +62,7 @@ With Oracle Database's standard DEPARTMENTS table, this would display::
 
     ['DEPARTMENT_ID', 'DEPARTMENT_NAME', 'MANAGER_ID', 'LOCATION_ID']
     4 columns
-    27 rows
+    17 rows
 
 To fetch in batches, use an iterator:
 
@@ -68,12 +70,12 @@ To fetch in batches, use an iterator:
 
     import pyarrow
 
-    sql = "select * from departments where department_id < 80"
+    sql = "select * from departments where department_id < :1"
     # Adjust "size" to tune the query fetch performance
     # Here it is small to show iteration
-    for odf in connection.fetch_df_batches(statement=sql, size=4):
-        pdf = pyarrow.table(odf).to_pandas()
-        print(pdf)
+    for odf in connection.fetch_df_batches(statement=sql, parameters=[80], size=4):
+        df = pyarrow.table(odf).to_pandas()
+        print(df)
 
 With Oracle Database's standard DEPARTMENTS table, this would display::
 
@@ -89,6 +91,24 @@ With Oracle Database's standard DEPARTMENTS table, this would display::
 
 Converting to other data frame formats is :ref:`shown later <convertingodf>` in
 this chapter.
+
+**Asynchronous Data Frame Queries**
+
+With :ref:`asynchronous programming <asyncio>`, use the appropriate syntax. For
+example, to fetch all rows at once:
+
+.. code-block:: python
+
+    connection = await oracledb.connect_async(...)
+    odf = await connection.fetch_df_all(sql="select ...", parameters=..., arraysize=...)
+
+Or to iterate:
+
+.. code-block:: python
+
+    connection = await oracledb.connect_async(...)
+    async for odf in connection.fetch_df_batches(sql="select ...", parameters=..., size=...):
+        do_something(odf)
 
 .. _dftypemapping:
 

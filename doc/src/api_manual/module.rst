@@ -1643,14 +1643,14 @@ Other Types
 
 All of these types are extensions to the DB API definition.
 
-.. data:: ApiType
+.. autoclass:: ApiType
 
     This type object is the Python type of the database API type constants
     :data:`BINARY`, :data:`DATETIME`, :data:`NUMBER`, :data:`ROWID` and
     :data:`STRING`.
 
 
-.. data:: DbType
+.. autoclass:: DbType
 
     This type object is the Python type of the
     :ref:`database type constants <dbtypes>`.

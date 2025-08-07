@@ -34,66 +34,30 @@ Pipeline Methods
 
 .. automethod:: Pipeline.add_callfunc
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
-    .. seealso::
-
-        :ref:`PipelineOp object <pipelineopobjs>` and
-        :ref:`PipelineOpResult object <pipelineopresultobjs>`
-
 .. automethod:: Pipeline.add_callproc
-
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
-    .. seealso::
-
-        :ref:`PipelineOp object <pipelineopobjs>`
 
 .. automethod:: Pipeline.add_commit
 
 .. automethod:: Pipeline.add_execute
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
-    .. seealso::
-
-        :ref:`PipelineOp object <pipelineopobjs>`
-
 .. automethod:: Pipeline.add_executemany
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
     .. seealso::
 
-        :ref:`batchstmnt` and :ref:`PipelineOp object <pipelineopobjs>`
+        :ref:`batchstmnt`
 
 .. automethod:: Pipeline.add_fetchall
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
-    .. seealso::
-
-        :ref:`PipelineOp object <pipelineopobjs>` and
-        :ref:`PipelineOpResult object <pipelineopresultobjs>`
-
 .. automethod:: Pipeline.add_fetchmany
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
     .. seealso::
 
-        :ref:`PipelineOp object <pipelineopobjs>`,
-        :ref:`PipelineOpResult object <pipelineopresultobjs>`,
         :ref:`roundtrips`, and :ref:`rowlimit`
 
 .. automethod:: Pipeline.add_fetchone
 
-    :ref:`pipelineopattrs` can be used to examine the operation, if needed.
-
     .. seealso::
 
-        :ref:`PipelineOp object <pipelineopobjs>`,
-        :ref:`PipelineOpResult object <pipelineopresultobjs>`, and
         :ref:`rowlimit`
 
 Pipeline Attributes

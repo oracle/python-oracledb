@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,14 +33,16 @@ TEMPLATE_DIR = templates
 all: $(SOURCE_DIR)/connect_params.py $(SOURCE_DIR)/pool_params.py \
 		$(SOURCE_DIR)/connection.py $(SOURCE_DIR)/pool.py
 
-$(SOURCE_DIR)/connection.py: fields.cfg $(TEMPLATE_DIR)/connection.py
+BASE_DEPS = fields.cfg build_from_template.py
+
+$(SOURCE_DIR)/connection.py: $(BASE_DEPS) $(TEMPLATE_DIR)/connection.py
 	python build_from_template.py connection
 
-$(SOURCE_DIR)/connect_params.py: fields.cfg $(TEMPLATE_DIR)/connect_params.py
+$(SOURCE_DIR)/connect_params.py: $(BASE_DEPS) $(TEMPLATE_DIR)/connect_params.py
 	python build_from_template.py connect_params
 
-$(SOURCE_DIR)/pool.py: fields.cfg $(TEMPLATE_DIR)/pool.py
+$(SOURCE_DIR)/pool.py: $(BASE_DEPS) $(TEMPLATE_DIR)/pool.py
 	python build_from_template.py pool
 
-$(SOURCE_DIR)/pool_params.py: fields.cfg $(TEMPLATE_DIR)/pool_params.py
+$(SOURCE_DIR)/pool_params.py: $(BASE_DEPS) $(TEMPLATE_DIR)/pool_params.py
 	python build_from_template.py pool_params

@@ -2529,6 +2529,6 @@ def connect_async(
     The following parameters are all optional. A brief description of each
     parameter follows:
 
-    # {{ args_help_with_defaults }}
+    # {{ async_args_help_with_defaults }}
     """
     pass

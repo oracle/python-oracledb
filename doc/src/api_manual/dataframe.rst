@@ -1,8 +1,8 @@
 .. _oracledataframe:
 
-****************
-API: Data Frames
-****************
+**********************
+API: DataFrame Objects
+**********************
 
 .. currentmodule:: oracledb
 
@@ -26,8 +26,10 @@ DataFrame Class
 .. autoclass:: DataFrame
 
     A DataFrame object is returned by the methods
-    :meth:`Connection.fetch_df_all()` and
-    :meth:`Connection.fetch_df_batches()`.
+    :meth:`Connection.fetch_df_all()`,
+    :meth:`Connection.fetch_df_batches()`,
+    :meth:`AsyncConnection.fetch_df_all()`, or
+    :meth:`AsyncConnection.fetch_df_batches()`.
 
     Each column in a DataFrame exposes an `Apache Arrow PyCapsule
     <https://arrow.apache.org/docs/format/CDataInterface/
