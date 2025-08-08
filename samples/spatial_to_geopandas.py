@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2018, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2018, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -68,10 +68,6 @@ cursor = connection.cursor()
 # executed for a single transaction
 connection.autocommit = True
 
-# do not fetch LOBs, avoiding the second round trip to the database to read the
-# LOB contents
-oracledb.defaults.fetch_lobs = False
-
 # drop and create table
 print("Dropping and creating table...")
 cursor.execute(
@@ -88,8 +84,8 @@ cursor.execute(
 cursor.execute(
     """
     create table TestStates (
-        state VARCHAR2(30) not null,
-        geometry SDO_GEOMETRY not null
+        state varchar2(30) not null,
+        geometry sdo_geometry not null
     )
     """
 )
@@ -531,7 +527,8 @@ cursor.executemany("insert into TestStates values (:state, :obj)", data)
 # functions were introduced in Oracle 10g. We use WKB here; however the same
 # process applies for WKT.
 cursor.execute(
-    "SELECT state, sdo_util.to_wkbgeometry(geometry) FROM TestStates"
+    "select state, sdo_util.to_wkbgeometry(geometry) from TestStates",
+    fetch_lobs=False,
 )
 gdf = gpd.GeoDataFrame(cursor.fetchall(), columns=["state", "wkbgeometry"])
 
@@ -543,8 +540,8 @@ del gdf["wkbgeometry"]
 print()
 print(gdf)
 
-# perform a basic GeoPandas operation (unary_union)
-# to combine the 3 adjacent states into 1 geometry
+# perform a basic GeoPandas operation to combine the three adjacent states into
+# one geometry
 print()
 print("GeoPandas combining the 3 geometries into a single geometry...")
-print(gdf.unary_union)
+print(gdf.union_all())

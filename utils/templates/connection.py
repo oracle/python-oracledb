@@ -1069,6 +1069,8 @@ class Connection(BaseConnection):
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         arraysize: Optional[int] = None,
+        *,
+        fetch_decimals: Optional[bool] = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -1086,6 +1088,12 @@ class Connection(BaseConnection):
         the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
         to the value of the explicit or default ``arraysize`` parameter value.
 
+        The ``fetch_decimals`` parameter specifies whether to return
+        decimal values when fetching columns of type ``NUMBER`` that are
+        capable of being represented in Arrow Decimal128 format. The default
+        value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+
         Any LOB fetched must be less than 1 GB.
         """
         cursor = self.cursor()
@@ -1093,7 +1101,11 @@ class Connection(BaseConnection):
         if arraysize is not None:
             cursor.arraysize = arraysize
         cursor.prefetchrows = cursor.arraysize
-        cursor.execute(statement, parameters)
+        cursor.execute(
+            statement,
+            parameters,
+            fetch_decimals=fetch_decimals,
+        )
         return cursor._impl.fetch_df_all(cursor)
 
     def fetch_df_batches(
@@ -1101,6 +1113,8 @@ class Connection(BaseConnection):
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         size: Optional[int] = None,
+        *,
+        fetch_decimals: Optional[bool] = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -1120,6 +1134,12 @@ class Connection(BaseConnection):
         :attr:`Cursor.prefetchrows` sizes are always set to the value of the
         explicit or default ``size`` parameter value.
 
+        The ``fetch_decimals`` parameter specifies whether to return
+        decimal values when fetching columns of type ``NUMBER`` that are
+        capable of being represented in Arrow Decimal128 format. The default
+        value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+
         Any LOB fetched must be less than 1 GB.
         """
         cursor = self.cursor()
@@ -1127,7 +1147,11 @@ class Connection(BaseConnection):
         if size is not None:
             cursor.arraysize = size
         cursor.prefetchrows = cursor.arraysize
-        cursor.execute(statement, parameters)
+        cursor.execute(
+            statement,
+            parameters,
+            fetch_decimals=fetch_decimals,
+        )
         if size is None:
             yield cursor._impl.fetch_df_all(cursor)
         else:
@@ -1989,6 +2013,9 @@ class AsyncConnection(BaseConnection):
         parameters: Optional[Union[list, tuple, dict]] = None,
         arraysize: Optional[int] = None,
         rowfactory: Optional[Callable] = None,
+        *,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> list:
         """
         Executes a query and returns all of the rows.
@@ -2006,7 +2033,12 @@ class AsyncConnection(BaseConnection):
             if arraysize is not None:
                 cursor.arraysize = arraysize
             cursor.prefetchrows = cursor.arraysize
-            await cursor.execute(statement, parameters)
+            await cursor.execute(
+                statement,
+                parameters,
+                fetch_lobs=fetch_lobs,
+                fetch_decimals=fetch_decimals,
+            )
             cursor.rowfactory = rowfactory
             return await cursor.fetchall()
 
@@ -2015,6 +2047,8 @@ class AsyncConnection(BaseConnection):
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         arraysize: Optional[int] = None,
+        *,
+        fetch_decimals: Optional[bool] = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -2031,13 +2065,23 @@ class AsyncConnection(BaseConnection):
         :attr:`oracledb.defaults.arraysize <Defaults.arraysize>`.  Internally,
         the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
         to the value of the explicit or default ``arraysize`` parameter value.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        decimal values when fetching columns of type ``NUMBER`` that are
+        capable of being represented in Arrow Decimal128 format. The default
+        value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
         if arraysize is not None:
             cursor.arraysize = arraysize
         cursor.prefetchrows = cursor.arraysize
-        await cursor.execute(statement, parameters)
+        await cursor.execute(
+            statement,
+            parameters,
+            fetch_decimals=fetch_decimals,
+        )
         return await cursor._impl.fetch_df_all(cursor)
 
     async def fetch_df_batches(
@@ -2045,6 +2089,8 @@ class AsyncConnection(BaseConnection):
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         size: Optional[int] = None,
+        *,
+        fetch_decimals: Optional[bool] = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -2063,13 +2109,23 @@ class AsyncConnection(BaseConnection):
         the ``fetch_df_batches()``'s :attr:`Cursor.arraysize` and
         :attr:`Cursor.prefetchrows` sizes are always set to the value of the
         explicit or default ``size`` parameter value.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        decimal values when fetching columns of type ``NUMBER`` that are
+        capable of being represented in Arrow Decimal128 format. The default
+        value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
         if size is not None:
             cursor.arraysize = size
         cursor.prefetchrows = cursor.arraysize
-        await cursor.execute(statement, parameters)
+        await cursor.execute(
+            statement,
+            parameters,
+            fetch_decimals=fetch_decimals,
+        )
         if size is None:
             yield await cursor._impl.fetch_df_all(cursor)
         else:
@@ -2082,6 +2138,9 @@ class AsyncConnection(BaseConnection):
         parameters: Optional[Union[list, tuple, dict]] = None,
         num_rows: Optional[int] = None,
         rowfactory: Optional[Callable] = None,
+        *,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> list:
         """
         Executes a query and returns up to the specified number of rows.
@@ -2106,7 +2165,12 @@ class AsyncConnection(BaseConnection):
             elif num_rows <= 0:
                 return []
             cursor.arraysize = cursor.prefetchrows = num_rows
-            await cursor.execute(statement, parameters)
+            await cursor.execute(
+                statement,
+                parameters,
+                fetch_lobs=fetch_lobs,
+                fetch_decimals=fetch_decimals,
+            )
             cursor.rowfactory = rowfactory
             return await cursor.fetchmany(num_rows)
 
@@ -2115,6 +2179,9 @@ class AsyncConnection(BaseConnection):
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         rowfactory: Optional[Callable] = None,
+        *,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> Any:
         """
         Executes a query and returns the first row of the result set if one
@@ -2133,7 +2200,12 @@ class AsyncConnection(BaseConnection):
         """
         with self.cursor() as cursor:
             cursor.prefetchrows = cursor.arraysize = 1
-            await cursor.execute(statement, parameters)
+            await cursor.execute(
+                statement,
+                parameters,
+                fetch_lobs=fetch_lobs,
+                fetch_decimals=fetch_decimals,
+            )
             cursor.rowfactory = rowfactory
             return await cursor.fetchone()
 

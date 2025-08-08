@@ -26,6 +26,8 @@
 7000 - Module for testing async connections shortcut methods
 """
 
+import decimal
+
 import oracledb
 import test_env
 
@@ -298,6 +300,54 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertTrue(self.conn.transaction_in_progress)
         await self.conn.commit()
         self.assertFalse(self.conn.transaction_in_progress)
+
+    async def test_7015(self):
+        "7015 - test fetchone() with fetch_lobs=False"
+        value = "test_7015"
+        (result,) = await self.conn.fetchone(
+            "select to_clob(:1) from dual", [value], fetch_lobs=False
+        )
+        self.assertEqual(result, value)
+
+    async def test_7016(self):
+        "7016 - test fetchmany() with fetch_lobs=False"
+        value = "test_7016"
+        rows = await self.conn.fetchmany(
+            "select to_clob(:1) from dual", [value], fetch_lobs=False
+        )
+        self.assertEqual(rows, [(value,)])
+
+    async def test_7017(self):
+        "7017 - test fetchall() with fetch_lobs=False"
+        value = "test_7017"
+        rows = await self.conn.fetchall(
+            "select to_clob(:1) from dual", [value], fetch_lobs=False
+        )
+        self.assertEqual(rows, [(value,)])
+
+    async def test_7018(self):
+        "7018 - test fetchone() with fetch_decimals=True"
+        value = 7018
+        (result,) = await self.conn.fetchone(
+            "select :1 from dual", [value], fetch_decimals=True
+        )
+        self.assertTrue(isinstance(result, decimal.Decimal))
+
+    async def test_7019(self):
+        "7019 - test fetchmany() with fetch_decimals=True"
+        value = 7019
+        rows = await self.conn.fetchmany(
+            "select :1 from dual", [value], fetch_decimals=True
+        )
+        self.assertTrue(isinstance(rows[0][0], decimal.Decimal))
+
+    async def test_7020(self):
+        "7020 - test fetchall() with fetch_decimals=True"
+        value = 7020
+        rows = await self.conn.fetchall(
+            "select :1 from dual", [value], fetch_decimals=True
+        )
+        self.assertTrue(isinstance(rows[0][0], decimal.Decimal))
 
 
 if __name__ == "__main__":

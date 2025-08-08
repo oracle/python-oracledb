@@ -1405,12 +1405,12 @@ Also see the table :ref:`supporteddbtypes`.
 .. data:: DB_TYPE_LONG_NVARCHAR
 
     This constant can be used in output type handlers when fetching NCLOB
-    columns as a string. (Note a type handler is not needed if
-    :ref:`oracledb.defaults.fetch_lobs <defaults>` is set to False).  For IN
-    binds, this constant can be used to create a bind variable in
-    :meth:`Cursor.var()` or via :meth:`Cursor.setinputsizes()`.  The
-    ``DB_TYPE_LONG_NVARCHAR`` value won't be shown in query metadata since it
-    is not a database type.
+    columns as a string.  (Note a type handler is not needed if
+    :ref:`oracledb.defaults.fetch_lobs <defaults>`, or the equivalent execution
+    parameter, is set to *False*).  For IN binds, this constant can be used to
+    create a bind variable in :meth:`Cursor.var()` or via
+    :meth:`Cursor.setinputsizes()`.  The ``DB_TYPE_LONG_NVARCHAR`` value won't
+    be shown in query metadata since it is not a database type.
 
     It will compare equal to the DB API type :data:`STRING`.
 

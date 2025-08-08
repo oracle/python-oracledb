@@ -375,10 +375,11 @@ class TestCase(test_env.BaseTestCase):
             cursor = conn.cursor()
             conn.resume_sessionless_transaction(transaction_id)
             conn.commit()
-            with test_env.DefaultsContextManager("fetch_lobs", False):
-                cursor.execute("select ClobValue from TestAllTypes")
-                (result,) = cursor.fetchone()
-                self.assertEqual(result, large_string)
+            cursor.execute(
+                "select ClobValue from TestAllTypes", fetch_lobs=False
+            )
+            (result,) = cursor.fetchone()
+            self.assertEqual(result, large_string)
 
     def test_8707(self):
         "8707 - test sessionless transaction with multiple suspends/resumes"

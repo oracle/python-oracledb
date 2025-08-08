@@ -68,6 +68,21 @@ class PipelineOp:
         return self._impl.arraysize
 
     @property
+    def fetch_decimals(self) -> bool:
+        """
+        Returns whether or not to fetch columns of type ``NUMBER`` as
+        ``decimal.Decimal`` values for a query.
+        """
+        return self._impl.fetch_decimals
+
+    @property
+    def fetch_lobs(self) -> bool:
+        """
+        Returns whether or not to fetch LOB locators for a query.
+        """
+        return self._impl.fetch_lobs
+
+    @property
     def keyword_parameters(self) -> Any:
         """
         This read-only attribute returns the keyword parameters to the stored
@@ -324,6 +339,8 @@ class Pipeline:
         parameters: Optional[Union[list, tuple, dict]] = None,
         arraysize: Optional[int] = None,
         rowfactory: Optional[Callable] = None,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns all of the rows
@@ -340,6 +357,15 @@ class Pipeline:
 
         Internally, this operation's :attr:`Cursor.prefetchrows` size is set
         to the value of the explicit or default ``arraysize`` parameter value.
+
+        The ``fetch_lobs`` parameter specifies whether to return LOB locators
+        or ``str``/``bytes`` values when fetching LOB columns. The default
+        value is :data:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>`.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        ``decimal.Decimal`` values when fetching columns of type ``NUMBER``.
+        The default value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
         """
         if arraysize is None:
             arraysize = defaults.arraysize
@@ -349,6 +375,8 @@ class Pipeline:
             parameters=parameters,
             arraysize=arraysize,
             rowfactory=rowfactory,
+            fetch_lobs=fetch_lobs,
+            fetch_decimals=fetch_decimals,
         )
         return self._add_op(op_impl)
 
@@ -358,6 +386,8 @@ class Pipeline:
         parameters: Optional[Union[list, tuple, dict]] = None,
         num_rows: Optional[int] = None,
         rowfactory: Optional[Callable] = None,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns up to the specified
@@ -379,6 +409,15 @@ class Pipeline:
         Since only one fetch is performed for a query operation, consider
         adding a ``FETCH NEXT`` clause to the statement to prevent the
         database processing rows that will never be fetched.
+
+        The ``fetch_lobs`` parameter specifies whether to return LOB locators
+        or ``str``/``bytes`` values when fetching LOB columns. The default
+        value is :data:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>`.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        ``decimal.Decimal`` values when fetching columns of type ``NUMBER``.
+        The default value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
         """
         if num_rows is None:
             num_rows = defaults.arraysize
@@ -388,6 +427,8 @@ class Pipeline:
             parameters=parameters,
             num_rows=num_rows,
             rowfactory=rowfactory,
+            fetch_lobs=fetch_lobs,
+            fetch_decimals=fetch_decimals,
         )
         return self._add_op(op_impl)
 
@@ -396,6 +437,8 @@ class Pipeline:
         statement: str,
         parameters: Optional[Union[list, tuple, dict]] = None,
         rowfactory: Optional[Callable] = None,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns the first row of
@@ -414,12 +457,23 @@ class Pipeline:
         adding a ``WHERE`` condition or using a ``FETCH NEXT`` clause in the
         statement to prevent the database processing rows that will never be
         fetched.
+
+        The ``fetch_lobs`` parameter specifies whether to return LOB locators
+        or ``str``/``bytes`` values when fetching LOB columns. The default
+        value is :data:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>`.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        ``decimal.Decimal`` values when fetching columns of type ``NUMBER``.
+        The default value is
+        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
         """
         op_impl = PipelineOpImpl(
             op_type=PipelineOpType.FETCH_ONE,
             statement=statement,
             parameters=parameters,
             rowfactory=rowfactory,
+            fetch_lobs=fetch_lobs,
+            fetch_decimals=fetch_decimals,
         )
         return self._add_op(op_impl)
 

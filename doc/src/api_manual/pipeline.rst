@@ -48,13 +48,25 @@ Pipeline Methods
 
 .. automethod:: Pipeline.add_fetchall
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
+
 .. automethod:: Pipeline.add_fetchmany
+
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
 
     .. seealso::
 
         :ref:`roundtrips`, and :ref:`rowlimit`
 
 .. automethod:: Pipeline.add_fetchone
+
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
 
     .. seealso::
 
@@ -85,6 +97,14 @@ PipelineOp Attributes
     .. seealso::
 
         :ref:`tuningfetch`
+
+.. autoproperty:: PipelineOp.fetch_decimals
+
+    .. versionadded:: 3.4.0
+
+.. autoproperty:: PipelineOp.fetch_lobs
+
+    .. versionadded:: 3.4.0
 
 .. autoproperty:: PipelineOp.keyword_parameters
 

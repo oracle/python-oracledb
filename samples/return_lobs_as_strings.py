@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -44,7 +44,9 @@ import sample_env
 if not sample_env.get_is_thin():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
-# indicate that LOBS should not be fetched
+# A global indicating that LOB columns should be fetched as str or bytes, not
+# as python-oracledb LOB objects. You can do the same in execute() calls by
+# passing a fetch_lobs parameter.
 oracledb.defaults.fetch_lobs = False
 
 connection = oracledb.connect(

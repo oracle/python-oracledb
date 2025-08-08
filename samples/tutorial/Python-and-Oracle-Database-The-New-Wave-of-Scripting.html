@@ -1770,6 +1770,9 @@ import oracledb
 oracledb.defaults.fetch_decimals = True
 </pre>
 
+     <p>You can also set <em>fetch_decimals</em> as an <code>execute()</code>
+     parameter.</p>
+
   </li>
 
   <li>
@@ -1976,8 +1979,10 @@ print("CLOB data:", clobdata)</strong>
 </pre>
 
       <p>Setting <em>oracledb.defaults.fetch_lobs</em> to False causes
-      python-oracledb to fetch the CLOB as a string.  Standard Python string
-      functions such as <code>len()</code> can be used on the result.</p>
+      python-oracledb to fetch the CLOB as a string. You can alternatively set
+      <em>fetch_lobs</em> as an <code>execute()</code> parameter. Standard
+      Python string functions such as <code>len()</code> can be used on the
+      result.</p>
 
       <p>The output is the same as for <code>clob.py</code>.  To check, run the
       script:</p>

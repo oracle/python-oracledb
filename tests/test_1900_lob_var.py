@@ -104,9 +104,8 @@ class TestCase(test_env.BaseTestCase):
             """,
             data,
         )
-        with test_env.DefaultsContextManager("fetch_lobs", False):
-            self.cursor.execute(f"select * from Test{lob_type}s")
-            self.assertEqual(self.cursor.fetchone(), data)
+        self.cursor.execute(f"select * from Test{lob_type}s", fetch_lobs=False)
+        self.assertEqual(self.cursor.fetchone(), data)
 
     def __test_fetch_lobs_direct(self, lob_type):
         self.cursor.execute(f"delete from Test{lob_type}s")

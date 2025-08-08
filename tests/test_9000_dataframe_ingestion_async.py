@@ -222,18 +222,18 @@ class TestCase(test_env.BaseAsyncTestCase):
             df,
         )
         await self.conn.commit()
-        with test_env.DefaultsContextManager("fetch_decimals", True):
-            odf = await self.conn.fetch_df_all(
-                """
-                select
-                    Id as "Id",
-                    DecimalData as "DecimalData"
-                from TestDataFrame
-                order by Id
-                """
-            )
-            fetched_df = pyarrow.table(odf)
-            self.assertTrue(fetched_df.equals(df))
+        odf = await self.conn.fetch_df_all(
+            """
+            select
+                Id as "Id",
+                DecimalData as "DecimalData"
+            from TestDataFrame
+            order by Id
+            """,
+            fetch_decimals=True,
+        )
+        fetched_df = pyarrow.table(odf)
+        self.assertTrue(fetched_df.equals(df))
 
     @test_env.skip_unless_native_boolean_supported()
     async def test_9005(self):
@@ -544,18 +544,18 @@ class TestCase(test_env.BaseAsyncTestCase):
             df,
         )
         await self.conn.commit()
-        with test_env.DefaultsContextManager("fetch_decimals", True):
-            odf = await self.conn.fetch_df_all(
-                """
-                select
-                    Id as "Id",
-                    DecimalData as "DecimalData"
-                from TestDataFrame
-                order by Id
-                """
-            )
-            fetched_df = pyarrow.table(odf)
-            self.assertTrue(fetched_df.equals(df))
+        odf = await self.conn.fetch_df_all(
+            """
+            select
+                Id as "Id",
+                DecimalData as "DecimalData"
+            from TestDataFrame
+            order by Id
+            """,
+            fetch_decimals=True,
+        )
+        fetched_df = pyarrow.table(odf)
+        self.assertTrue(fetched_df.equals(df))
 
     async def test_9015(self):
         "9015 - test various timestamp values"

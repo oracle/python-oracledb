@@ -618,27 +618,24 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(out_bind.values, values)
 
     async def test_7630(self):
-        "7630 - test oracledb.defaults.fetch_lobs"
-        clob_1_value = "CLOB Data One"
-        clob_2_value = "CLOB Data Two"
+        "7630 - test fetch_lobs with add_fetchone()"
+        clob_value = "CLOB Data 7630"
         pipeline = oracledb.create_pipeline()
         pipeline.add_execute("delete from TestCLOBs")
         pipeline.add_execute(
             "insert into TestCLOBs (IntCol, CLOBCol) values (1, :1)",
-            [clob_1_value],
-        )
-        clob = await self.conn.createlob(oracledb.DB_TYPE_CLOB, clob_2_value)
-        pipeline.add_execute(
-            "insert into TestCLOBs (IntCol, CLOBCol) values (2, :1)", [clob]
-        )
-        pipeline.add_fetchall(
-            "select CLOBCol from TestCLOBs order by IntCol",
+            [clob_value],
         )
         with test_env.DefaultsContextManager("fetch_lobs", False):
-            res = await self.conn.run_pipeline(pipeline)
-            self.assertEqual(
-                [res[-1].rows], [[(clob_1_value,), (clob_2_value,)]]
+            pipeline.add_fetchone(
+                "select CLOBCol from TestCLOBs order by IntCol",
             )
+        pipeline.add_fetchone(
+            "select CLOBCol from TestCLOBs order by IntCol", fetch_lobs=False
+        )
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertEqual([res[-2].rows], [[(clob_value,)]])
+        self.assertEqual([res[-1].rows], [[(clob_value,)]])
 
     async def test_7631(self):
         "7631 - test pipeline with lobs > 32K"
@@ -747,14 +744,21 @@ class TestCase(test_env.BaseAsyncTestCase):
         self.assertEqual(results[-1].rows, [(12,)])
 
     async def test_7637(self):
-        "7637 - test oracledb.defaults.fetch_decimals"
-        pipeline = oracledb.create_pipeline()
-        pipeline.add_execute("truncate table TestTempTable")
-        pipeline.add_execute("insert into TestTempTable (IntCol) values (1)")
-        pipeline.add_fetchall("select IntCol from TestTempTable")
+        "7637 - test fetch_decimals with add_fetchone()"
+        value = 7637
         with test_env.DefaultsContextManager("fetch_decimals", True):
-            res = await self.conn.run_pipeline(pipeline)
-        self.assertEqual([res[-1].rows], [[(decimal.Decimal("1"),)]])
+            pipeline = oracledb.create_pipeline()
+            pipeline.add_execute("truncate table TestTempTable")
+            pipeline.add_execute(
+                "insert into TestTempTable (IntCol) values (:1)", [value]
+            )
+            pipeline.add_fetchone("select IntCol from TestTempTable")
+            pipeline.add_fetchone(
+                "select IntCol from TestTempTable", fetch_decimals=False
+            )
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertTrue(isinstance(res[-2].rows[0][0], decimal.Decimal))
+        self.assertTrue(isinstance(res[-1].rows[0][0], int))
 
     async def test_7638(self):
         "7638 - test oracledb.defaults.arraysize"
@@ -916,6 +920,92 @@ class TestCase(test_env.BaseAsyncTestCase):
         await self.cursor.execute("select user from dual")
         (fetched_value,) = await self.cursor.fetchone()
         self.assertEqual(fetched_value, test_env.get_main_user().upper())
+
+    async def test_7645(self):
+        "7645 - test fetch_decimals with add_fetchmany()"
+        value = 7645
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            pipeline = oracledb.create_pipeline()
+            pipeline.add_execute("truncate table TestTempTable")
+            pipeline.add_execute(
+                "insert into TestTempTable (IntCol) values (:1)", [value]
+            )
+            pipeline.add_fetchmany("select IntCol from TestTempTable")
+            pipeline.add_fetchmany(
+                "select IntCol from TestTempTable", fetch_decimals=False
+            )
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertTrue(isinstance(res[-2].rows[0][0], decimal.Decimal))
+        self.assertTrue(isinstance(res[-1].rows[0][0], int))
+
+    async def test_7646(self):
+        "7646 - test fetch_decimals with add_fetchall()"
+        value = 7646
+        with test_env.DefaultsContextManager("fetch_decimals", True):
+            pipeline = oracledb.create_pipeline()
+            pipeline.add_execute("truncate table TestTempTable")
+            pipeline.add_execute(
+                "insert into TestTempTable (IntCol) values (:1)", [value]
+            )
+            pipeline.add_fetchall("select IntCol from TestTempTable")
+            pipeline.add_fetchall(
+                "select IntCol from TestTempTable", fetch_decimals=False
+            )
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertTrue(isinstance(res[-2].rows[0][0], decimal.Decimal))
+        self.assertTrue(isinstance(res[-1].rows[0][0], int))
+
+    async def test_7647(self):
+        "7647 - test fetch_lobs with add_fetchmany()"
+        clob_1_value = "CLOB Data 7647 - One"
+        clob_2_value = "CLOB Data 7647 - Two"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("delete from TestCLOBs")
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (1, :1)",
+            [clob_1_value],
+        )
+        clob = await self.conn.createlob(oracledb.DB_TYPE_CLOB, clob_2_value)
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (2, :1)", [clob]
+        )
+        with test_env.DefaultsContextManager("fetch_lobs", False):
+            pipeline.add_fetchmany(
+                "select CLOBCol from TestCLOBs order by IntCol",
+            )
+        pipeline.add_fetchmany(
+            "select CLOBCol from TestCLOBs order by IntCol", fetch_lobs=False
+        )
+
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertEqual([res[-1].rows], [[(clob_1_value,), (clob_2_value,)]])
+        self.assertEqual([res[-2].rows], [[(clob_1_value,), (clob_2_value,)]])
+
+    async def test_7648(self):
+        "7648 - test fetch_lobs with add_fetchall()"
+        clob_1_value = "CLOB Data 7648 - One"
+        clob_2_value = "CLOB Data 7648 - Two"
+        pipeline = oracledb.create_pipeline()
+        pipeline.add_execute("delete from TestCLOBs")
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (1, :1)",
+            [clob_1_value],
+        )
+        clob = await self.conn.createlob(oracledb.DB_TYPE_CLOB, clob_2_value)
+        pipeline.add_execute(
+            "insert into TestCLOBs (IntCol, CLOBCol) values (2, :1)", [clob]
+        )
+        with test_env.DefaultsContextManager("fetch_lobs", False):
+            pipeline.add_fetchall(
+                "select CLOBCol from TestCLOBs order by IntCol",
+            )
+        pipeline.add_fetchall(
+            "select CLOBCol from TestCLOBs order by IntCol", fetch_lobs=False
+        )
+
+        res = await self.conn.run_pipeline(pipeline)
+        self.assertEqual([res[-1].rows], [[(clob_1_value,), (clob_2_value,)]])
+        self.assertEqual([res[-2].rows], [[(clob_1_value,), (clob_2_value,)]])
 
 
 if __name__ == "__main__":

@@ -675,6 +675,8 @@ cdef class BaseCursorImpl:
         public object warning
         public bint fetching_arrow
         public bint suspend_on_success
+        public bint fetch_lobs
+        public bint fetch_decimals
         uint32_t _buffer_rowcount
         uint32_t _buffer_index
         uint32_t _fetch_array_size
@@ -909,6 +911,8 @@ cdef class PipelineOpImpl:
         readonly uint32_t arraysize
         readonly uint32_t num_rows
         readonly uint8_t op_type
+        readonly bint fetch_lobs
+        readonly bint fetch_decimals
         uint32_t num_execs
 
 

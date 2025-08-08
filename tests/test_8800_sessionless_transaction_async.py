@@ -396,10 +396,11 @@ class TestCase(test_env.BaseAsyncTestCase):
             cursor = conn.cursor()
             await conn.resume_sessionless_transaction(transaction_id)
             await conn.commit()
-            with test_env.DefaultsContextManager("fetch_lobs", False):
-                await cursor.execute("select ClobValue from TestAllTypes")
-                (result,) = await cursor.fetchone()
-                self.assertEqual(result, large_string)
+            await cursor.execute(
+                "select ClobValue from TestAllTypes", fetch_lobs=False
+            )
+            (result,) = await cursor.fetchone()
+            self.assertEqual(result, large_string)
 
     async def test_8807(self):
         "8807 - test sessionless transaction with multiple suspends/resumes"

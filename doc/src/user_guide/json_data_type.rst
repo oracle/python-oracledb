@@ -412,8 +412,6 @@ for example:
 
 .. code-block:: python
 
-    oracledb.defaults.fetch_lobs = False
-
     cursor.execute("""
         select
             json_arrayagg(
@@ -423,7 +421,8 @@ for example:
             departments d
         where
             department_id < :did""",
-       [50]);
+       [50],
+       fetch_lobs=False)
     j, = cursor.fetchone()
     print(j)
 

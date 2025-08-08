@@ -90,6 +90,10 @@ Connection Methods
 
     .. dbapimethodextension::
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_decimals`` parameter was added.
+
     .. versionadded:: 3.0.0
 
 .. automethod:: Connection.fetch_df_batches
@@ -102,6 +106,10 @@ Connection Methods
         change in a future version.
 
     .. dbapimethodextension::
+
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_decimals`` parameter was added.
 
     .. versionadded:: 3.0.0
 

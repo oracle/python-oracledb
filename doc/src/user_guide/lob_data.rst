@@ -74,15 +74,13 @@ Fetching LOBs as Strings and Bytes
 
 CLOBs and BLOBs smaller than 1 GB can queried from the database directly as
 strings and bytes.  This can be much faster than streaming a :ref:`LOB Object
-<lobobj>`.  Support is enabled by setting the :ref:`Defaults Object
-<defaults>`.
+<lobobj>`.  Support is enabled by setting :attr:`oracledb.defaults.fetch_lobs
+<Defaults.fetch_lobs>`, or by setting the ``fetch_lobs`` parameter at statement
+execution:
 
 .. code-block:: python
 
     import oracledb
-
-    # returns strings or bytes instead of a locator
-    oracledb.defaults.fetch_lobs = False
 
     . . .
 
@@ -92,7 +90,7 @@ strings and bytes.  This can be much faster than streaming a :ref:`LOB Object
     cursor.execute("insert into lob_tbl (id, c, b) values (:1, :2, :3)",
                    [id_val, text_data, binary_data])
 
-    cursor.execute("select c, b from lob_tbl where id = :1", [id_val])
+    cursor.execute("select c, b from lob_tbl where id = :1", [id_val], fetch_lobs=False)
     clob_data, blob_data = cursor.fetchone()
     print("CLOB length:", len(clob_data))
     print("CLOB data:", clob_data)
@@ -106,8 +104,7 @@ This displays::
     BLOB length: 16
     BLOB data: b'Some binary data'
 
-An older alternative to using ``oracledb.defaults.fetch_lobs`` is to use a type
-handler:
+An older alternative to using ``fetch_lobs`` is to use a type handler:
 
 .. code-block:: python
 
@@ -124,8 +121,9 @@ handler:
 Streaming LOBs (Read)
 =====================
 
-Without setting ``oracledb.defaults.fetch_lobs`` to False, or without using an
-output type handler, the CLOB and BLOB values are fetched as :ref:`LOB
+Without setting :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` or
+equivalent execution parameter to *False*, or without using an output type
+handler, then the CLOB and BLOB values are fetched as :ref:`LOB
 objects<lobobj>`. The size of the LOB object can be obtained by calling
 :meth:`LOB.size()` and the data can be read by calling :meth:`LOB.read()`:
 

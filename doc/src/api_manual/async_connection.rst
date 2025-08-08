@@ -87,6 +87,10 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.fetchall
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
+
 .. automethod:: AsyncConnection.fetch_df_all
 
     See :ref:`dataframeformat` for the supported data types and examples.
@@ -95,6 +99,10 @@ AsyncConnection Methods
 
         The data frame support in python-oracledb 3.3 is a pre-release and may
         change in a future version.
+
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_decimals`` parameter was added.
 
     .. versionadded:: 3.0.0
 
@@ -107,11 +115,23 @@ AsyncConnection Methods
         The data frame support in python-oracledb 3.3 is a pre-release and may
         change in a future version.
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_decimals`` parameter was added.
+
     .. versionadded:: 3.0.0
 
 .. automethod:: AsyncConnection.fetchmany
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
+
 .. automethod:: AsyncConnection.fetchone
+
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
 
 .. automethod:: AsyncConnection.gettype
 

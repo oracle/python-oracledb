@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -112,11 +112,10 @@ with connection.cursor() as cursor:
 
     # Using JSON_ARRAYAGG to extract a whole relational table as JSON
 
-    oracledb.defaults.fetch_lobs = False
     sql = """select json_arrayagg(
                         json_object('key' is c.id,
                                     'name' is c.json_data)
                         returning clob)
              from CustomersAsJson c"""
-    for r in cursor.execute(sql):
+    for r in cursor.execute(sql, fetch_lobs=False):
         print(r)

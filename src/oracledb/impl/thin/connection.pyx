@@ -882,16 +882,22 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             cursor_impl.prefetchrows = 1
             cursor_impl.arraysize = 1
             cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
         elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
             cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
             cursor_impl.prefetchrows = op_impl.num_rows
             cursor_impl.arraysize = op_impl.num_rows
             cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
         elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
             cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
             cursor_impl.prefetchrows = op_impl.arraysize
             cursor_impl.arraysize = op_impl.arraysize
             cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
         else:
             errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
                               op_type=op_impl.op_type)

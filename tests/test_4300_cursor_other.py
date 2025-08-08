@@ -1010,6 +1010,15 @@ class TestCase(test_env.BaseTestCase):
         self.cursor.execute("begin :1 := 4370; end;", [var])
         self.assertEqual(var.getvalue(), 4370)
 
+    def test_4371(self):
+        "4371 - test cursor with fetch_decimals=True specified"
+        value = 4371
+        self.cursor.execute(
+            "select :1 from dual", [value], fetch_decimals=True
+        )
+        rows = self.cursor.fetchall()
+        self.assertTrue(isinstance(rows[0][0], decimal.Decimal))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

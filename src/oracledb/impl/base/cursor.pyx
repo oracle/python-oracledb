@@ -212,7 +212,7 @@ cdef class BaseCursorImpl:
         # applicable
         db_type_num = metadata.dbtype.num
         if db_type_num == DB_TYPE_NUM_NUMBER:
-            if C_DEFAULTS.fetch_decimals:
+            if self.fetch_decimals:
                 var_impl.metadata._py_type_num = PY_TYPE_NUM_DECIMAL
         elif metadata.is_oson and db_type_num != DB_TYPE_NUM_JSON:
             conn_impl = self._get_conn_impl()
@@ -221,7 +221,7 @@ cdef class BaseCursorImpl:
             var_impl.outconverter = conn_impl.decode_oson
         elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON:
             var_impl.outconverter = self._build_json_converter_fn()
-        elif not C_DEFAULTS.fetch_lobs or self.fetching_arrow:
+        elif not self.fetch_lobs or self.fetching_arrow:
             if db_type_num == DB_TYPE_NUM_BLOB:
                 var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
                 var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_RAW
@@ -408,6 +408,10 @@ cdef class BaseCursorImpl:
                 self._prepare(statement, None, True)
         finally:
             self.set_input_sizes = False
+
+        # set default values of fetch options
+        self.fetch_lobs = C_DEFAULTS.fetch_lobs
+        self.fetch_decimals = C_DEFAULTS.fetch_decimals
 
         # perform bind
         if parameters is not None:

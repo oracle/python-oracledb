@@ -69,6 +69,10 @@ Cursor Methods
 
 .. automethod:: Cursor.execute
 
+    .. versionchanged:: 3.4.0
+
+        The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.
+
     .. versionchanged:: 3.3.0
 
         The ``suspend_on_success`` parameter was added.

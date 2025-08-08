@@ -105,11 +105,10 @@ with connection.cursor() as cursor:
 
     # Using JSON_ARRAYAGG to extract a whole relational table as JSON
 
-    oracledb.defaults.fetch_lobs = False
     sql = """select json_arrayagg(
                         json_object('key' is c.id,
                                     'name' is c.json_data)
                         returning clob)
              from CustomersAsBlob c"""
-    for r in cursor.execute(sql):
+    for r in cursor.execute(sql, fetch_lobs=False):
         print(r)

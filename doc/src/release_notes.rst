@@ -25,6 +25,13 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added ``fetch_lobs`` and ``fetch_decimals`` parameters where applicable to
+    the methods used for fetching rows or dataframes from the database. Note
+    that for the creation of pipeline operations, if these parameters are not
+    specified then the values of
+    :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` and
+    :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` are now
+    stored with the operation and used during pipeline execution.
 #)  API documentation is now generated from the source code.
 
 

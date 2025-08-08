@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,6 +48,8 @@ cdef class PipelineOpImpl:
         object rowfactory = None,
         uint32_t arraysize = 0,
         uint32_t num_rows = 0,
+        object fetch_lobs = None,
+        object fetch_decimals = None,
     ):
         self.op_type = op_type
         self.statement = statement
@@ -58,6 +60,14 @@ cdef class PipelineOpImpl:
         self.rowfactory = rowfactory
         self.arraysize = arraysize
         self.num_rows = num_rows
+        if fetch_lobs is None:
+            self.fetch_lobs = C_DEFAULTS.fetch_lobs
+        else:
+            self.fetch_lobs = fetch_lobs
+        if fetch_decimals is None:
+            self.fetch_decimals = C_DEFAULTS.fetch_decimals
+        else:
+            self.fetch_decimals = fetch_decimals
 
 
 cdef class PipelineOpResultImpl:

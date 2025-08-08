@@ -26,6 +26,8 @@
 6300 - Module for testing other cursor methods and attributes with asyncio.
 """
 
+import decimal
+
 import oracledb
 import test_env
 
@@ -927,6 +929,15 @@ class TestCase(test_env.BaseAsyncTestCase):
         var = self.cursor.var(int)
         await self.cursor.execute("begin :1 := 4370; end;", [var])
         self.assertEqual(var.getvalue(), 4370)
+
+    async def test_6355(self):
+        "6355 - test cursor with fetch_decimals=True specified"
+        value = 4371
+        await self.cursor.execute(
+            "select :1 from dual", [value], fetch_decimals=True
+        )
+        rows = await self.cursor.fetchall()
+        self.assertTrue(isinstance(rows[0][0], decimal.Decimal))
 
 
 if __name__ == "__main__":

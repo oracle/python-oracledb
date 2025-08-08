@@ -764,7 +764,10 @@ class Cursor(BaseCursor):
         self,
         statement: Optional[str],
         parameters: Optional[Union[list, tuple, dict]] = None,
+        *,
         suspend_on_success: bool = False,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
         **keyword_parameters: Any,
     ) -> Any:
         """
@@ -797,6 +800,15 @@ class Cursor(BaseCursor):
         sessionless transaction will be suspended when ``execute()`` completes
         successfully.  See :ref:`suspendtxns`.
 
+        The ``fetch_lobs`` parameter specifies whether to return LOB locators
+        or ``str``/``bytes`` values when fetching LOB columns. The default
+        value is :data:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>`.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        ``decimal.Decimal`` values when fetching columns of type ``NUMBER``.
+        The default value is :data:`oracledb.defaults.fetch_decimals
+        <Defaults.fetch_decimals>`.
+
         For maximum efficiency when reusing a statement, it is best to use the
         :meth:`Cursor.setinputsizes()` method to specify the parameter types
         and sizes ahead of time; in particular, *None* is assumed to be a
@@ -808,8 +820,12 @@ class Cursor(BaseCursor):
         over the rows in the cursor); otherwise, *None* is returned.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
-        self._impl.suspend_on_success = suspend_on_success
         impl = self._impl
+        if fetch_lobs is not None:
+            impl.fetch_lobs = fetch_lobs
+        if fetch_decimals is not None:
+            impl.fetch_decimals = fetch_decimals
+        impl.suspend_on_success = suspend_on_success
         impl.execute(self)
         if impl.fetch_vars is not None:
             return self
@@ -1087,7 +1103,10 @@ class AsyncCursor(BaseCursor):
         self,
         statement: Optional[str],
         parameters: Optional[Union[list, tuple, dict]] = None,
+        *,
         suspend_on_success: bool = False,
+        fetch_lobs: Optional[bool] = None,
+        fetch_decimals: Optional[bool] = None,
         **keyword_parameters: Any,
     ) -> None:
         """
@@ -1120,6 +1139,15 @@ class AsyncCursor(BaseCursor):
         sessionless transaction will be suspended when ``execute()`` completes
         successfully.  See :ref:`suspendtxns`.
 
+        The ``fetch_lobs`` parameter specifies whether to return LOB locators
+        or ``str``/``bytes`` values when fetching LOB columns. The default
+        value is :data:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>`.
+
+        The ``fetch_decimals`` parameter specifies whether to return
+        ``decimal.Decimal`` values when fetching columns of type ``NUMBER``.
+        The default value is :data:`oracledb.defaults.fetch_decimals
+        <Defaults.fetch_decimals>`.
+
         For maximum efficiency when reusing a statement, it is best to use the
         :meth:`setinputsizes()` method to specify the parameter types and sizes
         ahead of time; in particular, *None* is assumed to be a string of
@@ -1131,7 +1159,12 @@ class AsyncCursor(BaseCursor):
         over the rows in the cursor); otherwise, *None* is returned.
         """
         self._prepare_for_execute(statement, parameters, keyword_parameters)
-        self._impl.suspend_on_success = suspend_on_success
+        impl = self._impl
+        impl.suspend_on_success = suspend_on_success
+        if fetch_lobs is not None:
+            impl.fetch_lobs = fetch_lobs
+        if fetch_decimals is not None:
+            impl.fetch_decimals = fetch_decimals
         await self._impl.execute(self)
 
     async def executemany(

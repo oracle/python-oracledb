@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,7 +35,8 @@
 import oracledb
 import sample_env
 
-# indicate that numbers should be fetched as decimals
+# A global indicating that NUMBER columns should be fetched as decimal.Decimal.
+# You can do the same in execute() calls by passing a fetch_decimals parameter.
 oracledb.defaults.fetch_decimals = True
 
 # determine whether to use python-oracledb thin mode or thick mode
