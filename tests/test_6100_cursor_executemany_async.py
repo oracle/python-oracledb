@@ -380,6 +380,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         sql = "insert into TestTempTable values (:1)"
         await self.cursor.executemany(sql, [])
 
+    async def test_6125(self):
+        "6125 - test executemany with an empty statement"
+        with self.assertRaisesFullCode("DPY-2066"):
+            await self.cursor.executemany("", 5)
+        with self.assertRaisesFullCode("DPY-2066"):
+            await self.cursor.executemany("  ", 5)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -289,6 +289,7 @@ ERR_PAYLOAD_CANNOT_BE_ENQUEUED = 2062
 ERR_SCROLL_OUT_OF_RESULT_SET = 2063
 ERR_POOL_MAX_LESS_THAN_MIN = 2064
 ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED = 2065
+ERR_EMPTY_STATEMENT = 2066
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -587,6 +588,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_DUPLICATED_PARAMETER: (
         '"{deprecated_name}" and "{new_name}" cannot be specified together'
     ),
+    ERR_EMPTY_STATEMENT: ("an empty statement cannot be executed"),
     ERR_EXCEEDED_IDLE_TIME: (
         "the database closed the connection because the connection's idle "
         "time has been exceeded"

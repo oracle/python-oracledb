@@ -441,6 +441,13 @@ class TestCase(test_env.BaseTestCase):
         "4028 - test executemany with empty parameter set"
         self.cursor.executemany("insert into TestTempTable values (:1)", [])
 
+    def test_4029(self):
+        "4029 - test executemany with an empty statement"
+        with self.assertRaisesFullCode("DPY-2066"):
+            self.cursor.executemany("", 5)
+        with self.assertRaisesFullCode("DPY-2066"):
+            self.cursor.executemany("  ", 5)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

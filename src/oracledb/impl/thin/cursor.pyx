@@ -169,7 +169,7 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         if self._statement is not None:
             self._conn_impl._return_statement(self._statement)
             self._statement = None
-        self._statement = self._conn_impl._get_statement(statement.strip(),
+        self._statement = self._conn_impl._get_statement(statement,
                                                          cache_statement)
         self.fetch_metadata = self._statement._fetch_metadata
         self.fetch_vars = self._statement._fetch_vars

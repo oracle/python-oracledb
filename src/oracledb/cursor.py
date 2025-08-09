@@ -126,6 +126,17 @@ class BaseCursor:
         statement = "".join(statement_parts)
         return (statement, bind_values)
 
+    def _normalize_statement(self, statement: Optional[str]) -> Optional[str]:
+        """
+        Normalizes a statement by stripping leading and trailing spaces. If the
+        result is an empty string, an error is raised immediately.
+        """
+        if statement is not None:
+            statement = statement.strip()
+            if not statement:
+                errors._raise_err(errors.ERR_EMPTY_STATEMENT)
+        return statement
+
     def _prepare(
         self, statement: str, tag: str = None, cache_statement: bool = True
     ) -> None:
@@ -142,7 +153,10 @@ class BaseCursor:
         """
         self._verify_open()
         self._impl._prepare_for_execute(
-            self, statement, parameters, keyword_parameters
+            self,
+            self._normalize_statement(statement),
+            parameters,
+            keyword_parameters,
         )
 
     def _verify_fetch(self) -> None:
@@ -891,7 +905,7 @@ class Cursor(BaseCursor):
         """
         self._verify_open()
         num_execs = self._impl._prepare_for_executemany(
-            self, statement, parameters
+            self, self._normalize_statement(statement), parameters
         )
         self._impl.suspend_on_success = suspend_on_success
         if num_execs > 0:
@@ -1227,7 +1241,7 @@ class AsyncCursor(BaseCursor):
         """
         self._verify_open()
         num_execs = self._impl._prepare_for_executemany(
-            self, statement, parameters
+            self, self._normalize_statement(statement), parameters
         )
         self._impl.suspend_on_success = suspend_on_success
         if num_execs > 0:

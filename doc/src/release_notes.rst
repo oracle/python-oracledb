@@ -22,6 +22,9 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Executed statements are normalized by removing leading and trailing spaces
+    before being sent to Oracle Database.
+
 Common Changes
 ++++++++++++++
 
@@ -32,6 +35,8 @@ Common Changes
     :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` and
     :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` are now
     stored with the operation and used during pipeline execution.
+#)  Fixed bug when attempting to execute an empty statement
+    (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  API documentation is now generated from the source code.
 
 

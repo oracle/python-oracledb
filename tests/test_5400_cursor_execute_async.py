@@ -593,6 +593,13 @@ class TestCase(test_env.BaseAsyncTestCase):
         with self.assertRaisesFullCode("ORA-01403"):
             await self.cursor.execute("begin raise no_data_found; end;")
 
+    async def test_5437(self):
+        "5437 - test executing an empty statement"
+        with self.assertRaisesFullCode("DPY-2066"):
+            await self.cursor.execute("")
+        with self.assertRaisesFullCode("DPY-2066"):
+            await self.cursor.execute("  ")
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
