@@ -109,7 +109,16 @@ class Field:
             width=TEXT_WIDTH,
         )
         if with_default:
-            help_string += f"\n{indent}  (default: {self.default})"
+            if self.default.startswith("oracledb.defaults"):
+                default_attr_name = self.default.split(".")[-1]
+                help_string += (
+                    f"\n{indent}  (default: :attr:`{self.default}"
+                    f"\n{indent}  <Defaults.{default_attr_name}>`)"
+                )
+            elif self.default.startswith("oracledb."):
+                help_string += f"\n{indent}  (default: :attr:`{self.default}`)"
+            else:
+                help_string += f"\n{indent}  (default: {self.default})"
         return help_string
 
 

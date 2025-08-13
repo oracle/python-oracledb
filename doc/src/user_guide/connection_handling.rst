@@ -2468,10 +2468,10 @@ immediately return an available connection.  Some users set larger
 ``increment`` values even for fixed-size pools because it can help a pool
 re-establish itself if all connections become invalid, for example after a
 network dropout.  In the common case of Thin mode with the default ``getmode``
-of ``POOL_GETMODE_WAIT``, any :meth:`~ConnectionPool.acquire()` call that
-initiates pool growth will return after the first new connection is created,
-regardless of how big ``increment`` is.  The pool will then continue to
-re-establish connections in a background thread.
+of :data:`oracledb.POOL_GETMODE_WAIT`, any :meth:`~ConnectionPool.acquire()`
+call that initiates pool growth will return after the first new connection is
+created, regardless of how big ``increment`` is.  The pool will then continue
+to re-establish connections in a background thread.
 
 A connection pool can shrink back to its minimum size ``min`` when connections
 opened by the pool are not used by the application. This frees up database

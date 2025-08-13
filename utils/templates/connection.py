@@ -1036,8 +1036,8 @@ class Connection(BaseConnection):
         self, lob_type: DbType, data: Optional[Union[str, bytes]] = None
     ) -> LOB:
         """
-        Creates and returns a new temporary :ref:`LOB object <lobobj>` of the
-        specified type. The ``lob_type`` parameter should be one of
+        Creates and returns a new temporary LOB object of the specified type.
+        The ``lob_type`` parameter should be one of
         :data:`oracledb.DB_TYPE_CLOB`, :data:`oracledb.DB_TYPE_BLOB`, or
         :data:`oracledb.DB_TYPE_NCLOB`.
 
@@ -1159,11 +1159,10 @@ class Connection(BaseConnection):
 
     def getSodaDatabase(self) -> SodaDatabase:
         """
-        Returns a :ref:`SodaDatabase <sodadb>` object for Simple Oracle
-        Document Access (SODA). All SODA operations are performed either on the
-        returned SodaDatabase object or from objects created by the returned
-        SodaDatabase object. See `here
-        <https://www.oracle.com/pls/topic/lookup?
+        Returns a SodaDatabase object for Simple Oracle Document Access (SODA).
+        All SODA operations are performed either on the returned SodaDatabase
+        object or from objects created by the returned SodaDatabase object. See
+        `here <https://www.oracle.com/pls/topic/lookup?
         ctx=dblatest&id=GUID-BE42F8D3-B86B-43B4-B2A3-5760A4DF79FB>`__ for
         additional information on SODA.
         """
@@ -1173,9 +1172,8 @@ class Connection(BaseConnection):
 
     def gettype(self, name: str) -> DbObjectType:
         """
-        Returns a :ref:`type object <dbobjecttype>` given its name. This can
-        then be used to create objects which can be bound to cursors created by
-        this connection.
+        Returns a type object given its name. This can then be used to create
+        objects which can be bound to cursors created by this connection.
         """
         self._verify_connected()
         obj_type_impl = self._impl.get_type(self, name)
@@ -1285,9 +1283,8 @@ class Connection(BaseConnection):
         clientInitiated: bool = False,
     ) -> Subscription:
         """
-        Returns a new :ref:`subscription object <subscrobj>` that receives
-        notifications for events that take place in the database that match the
-        given parameters.
+        Returns a new subscription object that receives notifications for
+        events that take place in the database that match the given parameters.
 
         The ``namespace`` parameter specifies the namespace the subscription
         uses.  It can be one of :data:`oracledb.SUBSCR_NAMESPACE_DBCHANGE` or
@@ -1674,29 +1671,31 @@ def connect(
     """
     Factory function which creates a connection to the database and returns it.
 
-    The dsn parameter (data source name) can be a string in the format
+    The ``dsn`` parameter (data source name) can be a string in the format
     user/password@connect_string or can simply be the connect string (in
     which case authentication credentials such as the username and password
     need to be specified separately). See the documentation on connection
     strings for more information.
 
-    The pool parameter is expected to be a pool object and the use of this
-    parameter is the equivalent of calling pool.acquire().
+    The ``pool`` parameter is expected to be a pool object. This parameter was
+    deprecated in python-oracledb 3.0.0. Use :meth:`ConnectionPool.acquire()`
+    instead since the use of this parameter is the equivalent of calling this
+    method.
 
-    The conn_class parameter is expected to be Connection or a subclass of
+    The ``conn_class`` parameter is expected to be Connection or a subclass of
     Connection.
 
-    The params parameter is expected to be of type ConnectParams and contains
-    connection parameters that will be used when establishing the connection.
-    See the documentation on ConnectParams for more information. If this
-    parameter is not specified, the additional keyword parameters will be used
-    to create an instance of ConnectParams. If both the params parameter and
-    additional keyword parameters are specified, the values in the keyword
-    parameters have precedence. Note that if a dsn is also supplied,
-    then in the python-oracledb Thin mode, the values of the parameters
-    specified (if any) within the dsn will override the values passed as
+    The ``params`` parameter is expected to be of type ConnectParams and
+    contains connection parameters that will be used when establishing the
+    connection. See the documentation on ConnectParams for more information.
+    If this parameter is not specified, the additional keyword parameters will
+    be used to create an instance of ConnectParams. If both the ``params``
+    parameter and additional keyword parameters are specified, the values in
+    the keyword parameters have precedence. Note that if a ``dsn`` is also
+    supplied, then in python-oracledb Thin mode, the values of the parameters
+    specified (if any) within the ``dsn`` will override the values passed as
     additional keyword parameters, which themselves override the values set in
-    the params parameter object.
+    the ``params`` parameter object.
 
     The following parameters are all optional. A brief description of each
     parameter follows:
@@ -2211,9 +2210,8 @@ class AsyncConnection(BaseConnection):
 
     async def gettype(self, name: str) -> DbObjectType:
         """
-        Returns a :ref:`type object <dbobjecttype>` given its name. This can
-        then be used to create objects which can be bound to cursors created by
-        this connection.
+        Returns a type object given its name. This can then be used to create
+        objects which can be bound to cursors created by this connection.
         """
         self._verify_connected()
         obj_type_impl = await self._impl.get_type(self, name)
@@ -2574,29 +2572,31 @@ def connect_async(
     """
     Factory function which creates a connection to the database and returns it.
 
-    The dsn parameter (data source name) can be a string in the format
+    The ``dsn`` parameter (data source name) can be a string in the format
     user/password@connect_string or can simply be the connect string (in
     which case authentication credentials such as the username and password
     need to be specified separately). See the documentation on connection
     strings for more information.
 
-    The pool parameter is expected to be a pool object and the use of this
-    parameter is the equivalent of calling pool.acquire().
+    The ``pool`` parameter is expected to be a pool object. This parameter was
+    deprecated in python-oracledb 3.0.0. Use :meth:`ConnectionPool.acquire()`
+    instead since the use of this parameter is the equivalent of calling this
+    method.
 
-    The conn_class parameter is expected to be AsyncConnection or a subclass of
-    AsyncConnection.
+    The ``conn_class`` parameter is expected to be AsyncConnection or a
+    subclass of AsyncConnection.
 
-    The params parameter is expected to be of type ConnectParams and contains
-    connection parameters that will be used when establishing the connection.
-    See the documentation on ConnectParams for more information. If this
-    parameter is not specified, the additional keyword parameters will be used
-    to create an instance of ConnectParams. If both the params parameter and
-    additional keyword parameters are specified, the values in the keyword
-    parameters have precedence. Note that if a dsn is also supplied,
-    then in the python-oracledb Thin mode, the values of the parameters
+    The ``params`` parameter is expected to be of type ConnectParams and
+    contains connection parameters that will be used when establishing the
+    connection. See the documentation on ConnectParams for more information. If
+    this parameter is not specified, the additional keyword parameters will be
+    used to create an instance of ConnectParams. If both the ``params``
+    parameter and additional keyword parameters are specified, the values in
+    the keyword parameters have precedence. Note that if a ``dsn`` is also
+    supplied, then in python-oracledb Thin mode, the values of the parameters
     specified (if any) within the dsn will override the values passed as
     additional keyword parameters, which themselves override the values set in
-    the params parameter object.
+    the ``params`` parameter object.
 
     The following parameters are all optional. A brief description of each
     parameter follows:

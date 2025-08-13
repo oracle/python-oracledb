@@ -639,31 +639,33 @@ def create_pool(
     """
     Creates a connection pool with the supplied parameters and returns it.
 
-    The dsn parameter (data source name) can be a string in the format
+    The ``dsn`` parameter (data source name) can be a string in the format
     user/password@connect_string or can simply be the connect string (in
     which case authentication credentials such as the username and password
     need to be specified separately). See the documentation on connection
     strings for more information.
 
-    The pool_class parameter is expected to be ConnectionPool or a subclass of
-    ConnectionPool.
+    The ``pool_class`` parameter is expected to be ConnectionPool or a subclass
+    of ConnectionPool.
 
-    The pool_alias parameter is expected to be a string representing the name
-    used to store and reference the pool in the python-oracledb connection
+    The ``pool_alias`` parameter is expected to be a string representing the
+    name used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
-    oracledb.get_pool() and oracledb.connect() methods to access the pool.
+    :meth:`oracledb.get_pool()` and :meth:`oracledb.connect()` methods to
+    access the pool.
 
-    The params parameter is expected to be of type PoolParams and contains
+    The ``params`` parameter is expected to be of type PoolParams and contains
     parameters that are used to create the pool. See the documentation on
     PoolParams for more information. If this parameter is not specified, the
     additional keyword parameters will be used to create an instance of
-    PoolParams. If both the params parameter and additional keyword parameters
-    are specified, the values in the keyword parameters have precedence.
-    Note that if a dsn is also supplied, then in the python-oracledb Thin mode,
-    the values of the parameters specified (if any) within the dsn will
-    override the values passed as additional keyword parameters, which
-    themselves override the values set in the params parameter object.
+    PoolParams. If both the ``params`` parameter and additional keyword
+    parameters are specified, the values in the keyword parameters have
+    precedence. Note that if a ``dsn`` is also supplied, then in
+    python-oracledb Thin mode, the values of the parameters specified (if any)
+    within the dsn will override the values passed as additional keyword
+    parameters, which themselves override the values set in the ``params``
+    parameter object.
 
     The following parameters are all optional. A brief description of each
     parameter follows:
@@ -834,32 +836,33 @@ def create_pool_async(
     """
     Creates a connection pool with the supplied parameters and returns it.
 
-    The dsn parameter (data source name) can be a string in the format
+    The ``dsn`` parameter (data source name) can be a string in the format
     user/password@connect_string or can simply be the connect string (in
     which case authentication credentials such as the username and password
     need to be specified separately). See the documentation on connection
     strings for more information.
 
-    The pool_class parameter is expected to be AsyncConnectionPool or a
+    The ``pool_class`` parameter is expected to be AsyncConnectionPool or a
     subclass of AsyncConnectionPool.
 
-    The pool_alias parameter is expected to be a string representing the name
-    used to store and reference the pool in the python-oracledb connection
+    The ``pool_alias`` parameter is expected to be a string representing the
+    name used to store and reference the pool in the python-oracledb connection
     pool cache. If this parameter is not specified, then the pool will not be
     added to the cache. The value of this parameter can be used with the
-    oracledb.get_pool() and oracledb.connect_async() methods to access the
-    pool.
+    :meth:`oracledb.get_pool()` and :meth:o`racledb.connect_async()` methods to
+    access the pool.
 
-    The params parameter is expected to be of type PoolParams and contains
+    The ``params`` parameter is expected to be of type PoolParams and contains
     parameters that are used to create the pool. See the documentation on
     PoolParams for more information. If this parameter is not specified, the
     additional keyword parameters will be used to create an instance of
-    PoolParams. If both the params parameter and additional keyword parameters
-    are specified, the values in the keyword parameters have precedence.
-    Note that if a dsn is also supplied, then in the python-oracledb Thin mode,
-    the values of the parameters specified (if any) within the dsn will
-    override the values passed as additional keyword parameters, which
-    themselves override the values set in the params parameter object.
+    PoolParams. If both the ``params`` parameter and additional keyword
+    parameters are specified, the values in the keyword parameters have
+    precedence. Note that if a ``dsn`` is also supplied, then in
+    python-oracledb Thin mode, the values of the parameters specified (if any)
+    within the ``dsn`` will override the values passed as additional keyword
+    parameters, which themselves override the values set in the ``params``
+    parameter object.
 
     The following parameters are all optional. A brief description of each
     parameter follows:

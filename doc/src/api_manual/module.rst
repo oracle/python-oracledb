@@ -267,77 +267,51 @@ Oracledb Methods
     .. versionadded:: 3.0.0
 
 
-.. _interval_ym:
+.. _moduleattributes:
 
-Oracledb IntervalYM Class
-=========================
-
-Objects of this class are returned for columns of type INTERVAL YEAR TO MONTH
-and can be passed to variables of type :data:`oracledb.DB_TYPE_INTERVAL_YM`
-The class is a `collections.namedtuple()
-<https://docs.python.org/3/library/collections.html#collections.namedtuple>`__
-class with two integer attributes, ``years`` and ``months``.
-
-.. versionadded:: 2.2.0
-
-
-.. _jsonid:
-
-Oracledb JsonId Class
-=====================
-
-Objects of this class are returned by :ref:`SODA <soda>` in the ``_id``
-attribute of documents stored in native collections when using Oracle Database
-23.4 (and later). It is a subclass of the `bytes <https://docs.python.org/3/
-library/stdtypes.html#bytes>`__ class.
-
-.. versionadded:: 2.1.0
-
-
-.. _futureobj:
-
-Oracledb __future__ Object
-==========================
-
-Special object that contains attributes which control the behavior of
-python-oracledb, allowing for opting in for new features.
-
-.. dbapimethodextension::
-
-.. _constants:
-
-Oracledb Constants
-==================
-
-General
--------
+Oracledb Attributes
+===================
 
 .. data:: apilevel
 
-    String constant stating the supported DB API level. Currently '2.0'.
+    A string constant stating the Python DB API level supported by
+    python-oracledb. Currently "2.0".
 
+.. data:: defaults
+
+   The :ref:`Defaults <defaults>` object for setting default behaviors of
+   python-oracledb.
+
+   See :ref:`settingdefaults`.
 
 .. data:: paramstyle
 
-    String constant stating the type of parameter marker formatting expected by
-    the interface. Currently 'named' as in 'where name = :name'.
+    A string constant stating the type of parameter marker formatting expected
+    by the interface. Currently 'named' as in 'where name = :name'.
 
 
 .. data:: threadsafety
 
-    Integer constant stating the level of thread safety that the interface
-    supports.  Currently 2, which means that threads may share the module and
+    An integer constant stating the level of thread safety that python-oracledb
+    supports. Currently 2, which means that threads may share the module and
     connections, but not cursors. Sharing means that a thread may use a
     resource without wrapping it using a mutex semaphore to implement resource
     locking.
 
 .. data:: version
+
+    A string constant stating the version of the module. Currently '|release|'.
+
 .. data:: __version__
 
-    String constant stating the version of the module. Currently '|release|'.
+    A string constant stating the version of the module. Currently '|release|'.
 
     .. dbapiattributeextension::
 
+.. _constants:
+
+Oracledb Constants
+==================
 
 Advanced Queuing: Delivery Modes
 --------------------------------
@@ -1869,6 +1843,14 @@ See :ref:`exception` for usage information.
 
     See :ref:`tg` for more information.
 
+.. _futureobj:
+
+Oracledb __future__ Object
+==========================
+
+A special object that contains attributes which control the behavior of
+python-oracledb, allowing for opting in for new features.
+
 .. _oracledbplugins:
 
 Oracledb Plugins
@@ -1979,3 +1961,30 @@ Python-oracledb then uses these tokens to connect to Oracle Database.
 See :ref:`cloudnativeauthoauth` for more information.
 
 .. versionadded:: 3.0.0
+
+.. _interval_ym:
+
+Oracledb IntervalYM Class
+=========================
+
+Objects of this class are returned for columns of type INTERVAL YEAR TO MONTH
+and can be passed to variables of type :data:`oracledb.DB_TYPE_INTERVAL_YM`
+The class is a `collections.namedtuple()
+<https://docs.python.org/3/library/collections.html#collections.namedtuple>`__
+class with two integer attributes, ``years`` and ``months``.
+
+.. versionadded:: 2.2.0
+
+.. _jsonid:
+
+Oracledb JsonId Class
+=====================
+
+Objects of this class are returned by :ref:`SODA <soda>` in the ``_id``
+attribute of documents stored in native collections when using Oracle Database
+23.4 (and later). It is a subclass of the `bytes <https://docs.python.org/3/
+library/stdtypes.html#bytes>`__ class.
+
+.. versionadded:: 2.1.0
+
+.. dbapimethodextension::

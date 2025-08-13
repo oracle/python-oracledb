@@ -704,3 +704,23 @@ V$SESSION_CONNECT_INFO and verifying if the value of the column begins with the
 text ``python-oracledb thn``. See :ref:`vsessconinfo`.
 
 Note all connections in a python-oracledb application must use the same mode.
+
+.. _settingdefaults:
+
+Changing python-oracledb Default Settings
+=========================================
+
+Python-oracledb has a singleton :ref:`Defaults <defaults>` object with
+attributes that set default behaviors of the driver. The object is accessed
+using the :data:`defaults` attribute of the imported driver.
+
+For example, to return queried LOB columns directly as strings or bytes:
+
+.. code-block:: python
+
+    import oracledb
+
+    oracledb.defaults.fetch_lobs = False
+
+
+See :ref:`defaultsattributes` for the attributes that can be set.

@@ -11,7 +11,7 @@ Variable Class
 
 .. autoclass:: Var
 
-    An Var object should be created with :meth:`Cursor.var()` or
+    A Var object should be created with :meth:`Cursor.var()` or
     :meth:`Cursor.arrayvar()`.
 
     .. dbapiobjectextension::

@@ -11,36 +11,18 @@ Defaults Class
 
 .. autoclass:: Defaults
 
-    A Defaults object contains attributes that can be used to adjust the
-    behavior of the python-oracledb driver.
+    See :ref:`settingdefaults`.
 
-An example of changing a default value is:
-
-.. code-block:: python
-
-    import oracledb
-
-    oracledb.defaults.fetch_lobs = False  # return LOBs directly as strings or bytes
+.. _defaultsattributes:
 
 Defaults Attributes
 ===================
 
 .. autoproperty:: Defaults.arraysize
 
-    This is an attribute for tuning the performance of fetching rows from
-    Oracle Database. It does not affect data insertion. See :ref:`Tuning Fetch
-    Performance <tuningfetch>`.
+    See :ref:`Tuning Fetch Performance <tuningfetch>`.
 
 .. autoproperty:: Defaults.config_dir
-
-    At time of ``import oracledb`` the value of
-    ``oracledb.defaults.config_dir`` will be set to (first one wins):
-
-    - the value of ``$TNS_ADMIN``, if ``TNS_ADMIN`` is set.
-
-    - ``$ORACLE_HOME/network/admin``, if ``$ORACLE_HOME`` is set.
-
-    Otherwise, ``oracledb.defaults.config_dir`` will not be set.
 
     See :ref:`optnetfiles`.
 
@@ -49,69 +31,60 @@ Defaults Attributes
         The directory ``$ORACLE_HOME/network/admin`` was added to the
         heuristic.
 
-        At completion of a call to :meth:`oracledb.init_oracle_client()` in
-        Thick mode, the value of :attr:`Defaults.config_dir` may get changed
-        by python-oracledb.
-
 .. autoproperty:: Defaults.driver_name
 
-    See :ref:`otherinit`.
+    See :ref:`otherinit` and :ref:`dbviews`.
 
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.fetch_decimals
 
-    An output type handler such as previously required in the obsolete
-    cx_Oracle driver can alternatively be used to adjust the returned type.  If
-    a type handler exists and returns a variable (that is,
-    ``cursor.var(...)``), then that return variable is used.  If the type
-    handler returns *None*, then the value of
-    ``oracledb.defaults.fetch_decimals`` is used to determine whether to return
-    ``decimal.Decimal`` values.
+    See `decimal.Decimal <https://docs.python.org
+    /3/library/decimal.html#decimal-objects>`__.
 
 .. autoproperty:: Defaults.fetch_lobs
 
     See :ref:`lobdata`.
 
-    An output type handler such as the one previously required in the obsolete
-    cx_Oracle driver can alternatively be used to adjust the returned type.  If
-    a type handler exists and returns a variable (that is, `cursor.var(...)`),
-    then that return variable is used. If the type handler returns *None*, then
-    the value of ``oracledb.defaults.fetch_lobs`` is used.
-
 .. autoproperty:: Defaults.machine
+
+    See :ref:`dbviews`.
 
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.osuser
 
+    See :ref:`dbviews`.
+
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.prefetchrows
 
-    This is an attribute for tuning the performance of fetching rows from
-    Oracle Database. It does not affect data insertion. See :ref:`Tuning Fetch
-    Performance <tuningfetch>`.
+    See :ref:`tuningfetch`.
 
 .. autoproperty:: Defaults.program
+
+    See :ref:`dbviews`.
 
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.stmtcachesize
 
-    This is a tuning attribute, see :ref:`stmtcache`.
+    See :ref:`stmtcache`.
 
 .. autoproperty:: Defaults.terminal
+
+    See :ref:`dbviews`.
 
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.thick_mode_dsn_passthrough
 
     When ``thick_mode_dsn_passthrough`` is the default value `True`, the
-    behavior of python-oracledb 2.5 and earlier versions occurs: Thick mode
-    passes connect strings unchanged to the Oracle Client libraries to
-    handle. Those libraries have their own heuristics for locating the optional
-    :ref:`tnsnames.ora <optnetfiles>`, if used.
+    behavior of python-oracledb 2.5 and earlier versions occurs:
+    python-oracledb Thick mode passes connect strings unchanged to the Oracle
+    Client libraries to handle. Those libraries have their own heuristics for
+    locating the optional :ref:`tnsnames.ora <optnetfiles>`, if used.
 
     When ``thick_mode_dsn_passthrough`` is `False`, python-oracledb Thick mode
     behaves similarly to Thin mode, which can be helpful for applications that
