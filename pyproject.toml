@@ -34,7 +34,10 @@ classifiers = [
     "Topic :: Database",
 ]
 requires-python = ">=3.9"
-dependencies = ["cryptography>=3.2.1"]
+dependencies = [
+    "cryptography>=3.2.1",
+    "typing_extensions>=4.14.0",
+]
 dynamic = ["version"]
 
 [project.readme]

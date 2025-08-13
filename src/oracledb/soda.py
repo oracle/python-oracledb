@@ -30,6 +30,7 @@
 # -----------------------------------------------------------------------------
 
 from typing import Any, Optional, Union
+from typing_extensions import Self
 import json
 
 from . import errors
@@ -519,7 +520,7 @@ class SodaOperation:
         """
         return self._collection._impl.get_count(self)
 
-    def fetchArraySize(self, value: int) -> "SodaOperation":
+    def fetchArraySize(self, value: int) -> Self:
         """
         This is a tuning method to specify the number of documents that are
         internally fetched in batches by calls to
@@ -543,7 +544,7 @@ class SodaOperation:
             self._fetch_array_size = value
         return self
 
-    def filter(self, value: Union[dict, str]) -> "SodaOperation":
+    def filter(self, value: Union[dict, str]) -> Self:
         """
         Sets a filter specification for complex document queries and ordering
         of JSON documents. Filter specifications must be provided as a
@@ -585,7 +586,7 @@ class SodaOperation:
         if doc_impl is not None:
             return SodaDocument._from_impl(doc_impl)
 
-    def hint(self, value: str) -> "SodaOperation":
+    def hint(self, value: str) -> Self:
         """
         Specifies a hint that will be provided to the SODA operation when it is
         performed. This is expected to be a string in the same format as SQL
@@ -603,7 +604,7 @@ class SodaOperation:
         self._hint = value
         return self
 
-    def lock(self) -> "SodaOperation":
+    def lock(self) -> Self:
         """
         Specifies whether the documents fetched from the collection should be
         locked (equivalent to SQL "select for update"). Use of this method
@@ -628,7 +629,7 @@ class SodaOperation:
         self._lock = True
         return self
 
-    def key(self, value: str) -> "SodaOperation":
+    def key(self, value: str) -> Self:
         """
         Specifies that the document with the specified key should be returned.
         This causes any previous calls made to this method and
@@ -643,7 +644,7 @@ class SodaOperation:
         self._keys = None
         return self
 
-    def keys(self, value: list) -> "SodaOperation":
+    def keys(self, value: list) -> Self:
         """
         Specifies that documents that match the keys found in the supplied
         sequence should be returned. This causes any previous calls made to
@@ -660,7 +661,7 @@ class SodaOperation:
         self._key = None
         return self
 
-    def limit(self, value: int) -> "SodaOperation":
+    def limit(self, value: int) -> Self:
         """
         Specifies that only the specified number of documents should be
         returned. This method is only usable for read operations such as
@@ -711,7 +712,7 @@ class SodaOperation:
         )
         return SodaDocument._from_impl(return_doc_impl)
 
-    def skip(self, value: int) -> "SodaOperation":
+    def skip(self, value: int) -> Self:
         """
         Specifies the number of documents that match the other criteria that
         will be skipped. This method is only usable for read operations such as
@@ -727,7 +728,7 @@ class SodaOperation:
         self._skip = value
         return self
 
-    def version(self, value: str) -> "SodaOperation":
+    def version(self, value: str) -> Self:
         """
         Specifies that documents with the specified version should be returned.
         Typically this is used with :meth:`~SodaOperation.key()` to implement

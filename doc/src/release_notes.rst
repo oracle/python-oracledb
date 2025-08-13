@@ -38,6 +38,7 @@ Common Changes
 #)  Fixed bug when attempting to execute an empty statement
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  API documentation is now generated from the source code.
+#)  Internal change: typing_extensions is now a dependency.
 
 
 oracledb `3.3.0 <https://github.com/oracle/python-oracledb/compare/v3.2.0...v3.3.0>`__ (July 2025)
