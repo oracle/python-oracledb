@@ -101,7 +101,7 @@ def _initialize():
     """
     if PARAMETERS.get("INITIALIZED"):
         return
-    if not get_is_thin() and oracledb.is_thin_mode():
+    if run_in_thick_mode() and oracledb.is_thin_mode():
         oracledb.init_oracle_client(lib_dir=get_oracle_client())
         oracledb.defaults.thick_mode_dsn_passthrough = False
     plugin_names = os.environ.get("PYO_TEST_PLUGINS")
@@ -311,11 +311,6 @@ def get_is_implicit_pooling():
     return value
 
 
-def get_is_thin():
-    driver_mode = get_value("DRIVER_MODE", "Driver mode (thin|thick)", "thin")
-    return driver_mode == "thin"
-
-
 def get_main_password():
     return get_value(
         "MAIN_PASSWORD", f"Password for {get_main_user()}", password=True
@@ -384,17 +379,17 @@ async def get_server_version_async():
 
 
 def get_wallet_location():
-    if get_is_thin():
+    if not run_in_thick_mode():
         return get_value("WALLET_LOCATION", "Wallet Location")
 
 
 def get_wallet_password():
-    if get_is_thin():
+    if not run_in_thick_mode():
         return get_value("WALLET_PASSWORD", "Wallet Password", password=True)
 
 
 def get_external_user():
-    if not get_is_thin():
+    if run_in_thick_mode():
         return get_value("EXTERNAL_USER", "External User")
 
 
@@ -403,7 +398,7 @@ def get_random_string(length=10):
 
 
 def has_client_version(major_version, minor_version=0):
-    if get_is_thin():
+    if not run_in_thick_mode():
         return True
     return get_client_version() >= (major_version, minor_version)
 
@@ -443,6 +438,11 @@ async def is_on_oracle_cloud_async(connection):
     )
     (service_name,) = await cursor.fetchone()
     return service_name is not None
+
+
+def run_in_thick_mode():
+    driver_mode = get_value("DRIVER_MODE", "Driver mode (thin|thick)", "thin")
+    return driver_mode != "thin"
 
 
 def run_sql_script(conn, script_name, **kwargs):
@@ -486,12 +486,12 @@ def run_sql_script(conn, script_name, **kwargs):
 
 
 def run_test_cases():
-    get_is_thin()
+    run_in_thick_mode()
     unittest.main(testRunner=unittest.TextTestRunner(verbosity=2))
 
 
 def skip_soda_tests():
-    if get_is_thin():
+    if not run_in_thick_mode():
         return True
     if not has_client_version(18, 3):
         return True
@@ -577,11 +577,11 @@ def skip_unless_sparse_vectors_supported():
 
 
 def skip_unless_thick_mode():
-    return unittest.skipIf(get_is_thin(), "requires thick mode")
+    return unittest.skipUnless(run_in_thick_mode(), "requires thick mode")
 
 
 def skip_unless_thin_mode():
-    return unittest.skipUnless(get_is_thin(), "requires thin mode")
+    return unittest.skipIf(run_in_thick_mode(), "requires thin mode")
 
 
 def skip_unless_vectors_supported():
@@ -746,7 +746,7 @@ class BaseTestCase(unittest.TestCase):
         """
         if conn is None:
             conn = self.conn
-        if get_is_thin():
+        if not run_in_thick_mode():
             return (conn.session_id, conn.serial_num)
         else:
             with conn.cursor() as cursor:
@@ -876,19 +876,7 @@ class BaseAsyncTestCase(unittest.IsolatedAsyncioTestCase):
         """
         if conn is None:
             conn = self.conn
-        if get_is_thin():
-            return (conn.session_id, conn.serial_num)
-        else:
-            with conn.cursor() as cursor:
-                await cursor.execute(
-                    """
-                    select
-                        dbms_debug_jdwp.current_session_id,
-                        dbms_debug_jdwp.current_session_serial
-                    from dual
-                    """
-                )
-                return await cursor.fetchone()
+        return (conn.session_id, conn.serial_num)
 
     async def is_on_oracle_cloud(self, connection=None):
         if connection is None:

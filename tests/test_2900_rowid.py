@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,7 +27,6 @@
 """
 
 import datetime
-import unittest
 
 import oracledb
 import test_env
@@ -161,9 +160,7 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchone(), (3, "String #3"))
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(), "thick mode doesn't support DB_TYPE_UROWID"
-    )
+    @test_env.skip_unless_thin_mode()
     def test_2906(self):
         "2906 - binding and inserting a rowid as urowid"
         self.cursor.execute("truncate table TestRowids")

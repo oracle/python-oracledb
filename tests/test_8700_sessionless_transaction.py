@@ -447,12 +447,12 @@ class TestCase(test_env.BaseTestCase):
         transaction_id = self.conn.begin_sessionless_transaction()
 
         # try to resume with the wrong transaction id
-        if test_env.get_is_thin():
+        if self.conn.thin:
             with self.assertRaisesFullCode("DPY-3035"):
                 self.conn.resume_sessionless_transaction("wrong_id")
 
         # try to resume before suspend
-        if test_env.get_is_thin():
+        if self.conn.thin:
             with self.assertRaisesFullCode("DPY-3035"):
                 self.conn.resume_sessionless_transaction(transaction_id)
 

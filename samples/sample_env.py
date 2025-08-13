@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -193,10 +193,6 @@ def get_driver_mode():
     )
 
 
-def get_is_thin():
-    return get_driver_mode() == "thin"
-
-
 def get_edition_connect_string():
     return "%s/%s@%s" % (
         get_edition_user(),
@@ -247,15 +243,19 @@ def get_server_version():
 
 
 def get_wallet_location():
-    if get_is_thin():
+    if not run_in_thick_mode():
         return get_value("PYO_SAMPLES_WALLET_LOCATION", "Wallet Location")
 
 
 def get_wallet_password():
-    if get_is_thin() and get_wallet_location():
+    if not run_in_thick_mode() and get_wallet_location():
         return get_value(
             "PYO_SAMPLES_WALLET_PASSWORD", "Wallet Password", password=True
         )
+
+
+def run_in_thick_mode():
+    return get_driver_mode() != "thin"
 
 
 def run_sql_script(conn, script_name, **kwargs):

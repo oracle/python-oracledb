@@ -181,18 +181,18 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(pool.max, 2)
         if test_env.has_client_version(12, 1):
             self.assertEqual(pool.max_lifetime_session, 0)
-        if not test_env.get_is_thin() and test_env.has_client_version(18, 3):
+        if not pool.thin and test_env.has_client_version(18, 3):
             self.assertEqual(pool.max_sessions_per_shard, 0)
         self.assertEqual(pool.min, 1)
-        if test_env.get_is_thin():
+        if pool.thin:
             self.assertIsNone(pool.name)
         else:
             self.assertRegex(pool.name, "^OCI:SP:.+")
         self.assertEqual(pool.ping_interval, 60)
         self.assertEqual(pool.stmtcachesize, oracledb.defaults.stmtcachesize)
-        if not test_env.get_is_thin() and test_env.has_client_version(19, 11):
+        if not pool.thin and test_env.has_client_version(19, 11):
             self.assertFalse(pool.soda_metadata_cache)
-        self.assertEqual(pool.thin, test_env.get_is_thin())
+        self.assertEqual(pool.thin, not test_env.run_in_thick_mode())
         self.assertEqual(pool.timeout, 0)
         self.assertEqual(pool.username, test_env.get_main_user())
 
@@ -241,13 +241,13 @@ class TestCase(test_env.BaseTestCase):
                     TypeError, setattr, pool, attr_name, "invalid value"
                 )
 
-        if not test_env.get_is_thin() and test_env.has_client_version(18, 3):
+        if not pool.thin and test_env.has_client_version(18, 3):
             self.assertEqual(pool.max_sessions_per_shard, 0)
             self.assertRaises(
                 TypeError, setattr, pool, "max_sessions_per_shard", "bad_val"
             )
 
-        if not test_env.get_is_thin() and test_env.has_client_version(19, 11):
+        if not pool.thin and test_env.has_client_version(19, 11):
             pool.soda_metadata_cache = True
             self.assertTrue(pool.soda_metadata_cache)
             self.assertRaises(

@@ -81,7 +81,7 @@ class TestCase(test_env.BaseTestCase):
         self.assertEqual(
             conn.dsn, test_env.get_connect_string(), "dsn differs"
         )
-        self.assertEqual(conn.thin, test_env.get_is_thin())
+        self.assertEqual(conn.thin, not test_env.run_in_thick_mode())
 
     @test_env.skip_if_drcp()
     def test_1101(self):
@@ -132,7 +132,7 @@ class TestCase(test_env.BaseTestCase):
             conn, "client_identifier", "oracledb_cid", sql
         )
         self.__verify_attributes(conn, "client_identifier", None, sql)
-        if not test_env.get_is_thin():
+        if not conn.thin:
             sql = """select ecid from v$session
                      where sid = sys_context('userenv', 'sid')"""
             self.__verify_attributes(conn, "econtext_id", "oracledb_ecid", sql)

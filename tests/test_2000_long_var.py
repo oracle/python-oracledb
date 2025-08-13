@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,8 +25,6 @@
 """
 2000 - Module for testing long and long raw variables
 """
-
-import unittest
 
 import oracledb
 import test_env
@@ -121,7 +119,7 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.assertEqual(self.cursor.description, expected_value)
 
-    @unittest.skipIf(test_env.get_is_thin(), "not relevant for thin mode")
+    @test_env.skip_unless_thick_mode()
     def test_2005(self):
         "2005 - test array size too large generates an exception"
         self.cursor.arraysize = 268435456

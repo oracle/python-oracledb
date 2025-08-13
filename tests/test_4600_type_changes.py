@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,7 +27,6 @@
 """
 
 import datetime
-import unittest
 
 import oracledb
 import test_env
@@ -69,10 +68,7 @@ class TestCase(test_env.BaseTestCase):
         finally:
             self.conn.outputtypehandler = orig_type_handler
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4600(self):
         "4600 - test data type changing from VARCHAR to CLOB"
         self.__test_type_change(
@@ -82,10 +78,7 @@ class TestCase(test_env.BaseTestCase):
             "clob_4600",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4601(self):
         "4601 - test data type changing from CHAR to CLOB"
         self.__test_type_change(
@@ -95,10 +88,7 @@ class TestCase(test_env.BaseTestCase):
             "clob_4601",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4602(self):
         "4602 - test data type changing from LONG to CLOB"
         self.cursor.execute("truncate table TestLongs")
@@ -111,10 +101,7 @@ class TestCase(test_env.BaseTestCase):
             "TestLongs",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4603(self):
         "4603 - test data type changing from NVARCHAR to CLOB"
         self.__test_type_change(
@@ -124,10 +111,7 @@ class TestCase(test_env.BaseTestCase):
             "clob_4603",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4604(self):
         "4604 - test data type changing from NCHAR to CLOB"
         self.__test_type_change(
@@ -137,10 +121,7 @@ class TestCase(test_env.BaseTestCase):
             "clob_4604",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4605(self):
         "4605 - test data type changing from RAW to BLOB"
         self.__test_type_change(
@@ -150,10 +131,7 @@ class TestCase(test_env.BaseTestCase):
             b"blob_4605",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4606(self):
         "4606 - test data type changing from LONGRAW to BLOB"
         self.cursor.execute("truncate table TestLongRaws")
@@ -167,10 +145,7 @@ class TestCase(test_env.BaseTestCase):
             "TestLongRaws",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4607(self):
         "4607 - test data type changing from VARCHAR to NCLOB"
         self.__test_type_change(
@@ -180,10 +155,7 @@ class TestCase(test_env.BaseTestCase):
             "nclob_4607",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4608(self):
         "4608 - test data type changing from CHAR to NCLOB"
         self.__test_type_change(
@@ -193,10 +165,7 @@ class TestCase(test_env.BaseTestCase):
             "nclob_4608",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4609(self):
         "4609 - test data type changing from LONG to NCLOB"
         self.cursor.execute("truncate table TestLongs")
@@ -209,10 +178,7 @@ class TestCase(test_env.BaseTestCase):
             "TestLongs",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4610(self):
         "4610 - test data type changing from NVARCHAR to NCLOB"
         self.__test_type_change(
@@ -222,10 +188,7 @@ class TestCase(test_env.BaseTestCase):
             "nclob_4610",
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4611(self):
         "4611 - test data type changing from NCHAR to NCLOB"
         self.__test_type_change(
@@ -280,10 +243,7 @@ class TestCase(test_env.BaseTestCase):
             datetime.datetime(2022, 1, 5, 0, 0),
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4617(self):
         "4617 - test data type changing from CLOB to VARCHAR"
 
@@ -303,10 +263,7 @@ class TestCase(test_env.BaseTestCase):
             type_handler=type_handler,
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4618(self):
         "4618 - test data type changing from NCLOB to NVARCHAR"
 
@@ -326,10 +283,7 @@ class TestCase(test_env.BaseTestCase):
             type_handler=type_handler,
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4619(self):
         "4619 - test data type changing from CLOB to NVARCHAR"
 
@@ -349,10 +303,7 @@ class TestCase(test_env.BaseTestCase):
             type_handler=type_handler,
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4620(self):
         "4620 - test data type changing from BLOB to RAW"
 
@@ -372,10 +323,7 @@ class TestCase(test_env.BaseTestCase):
             type_handler=type_handler,
         )
 
-    @unittest.skipIf(
-        not test_env.get_is_thin(),
-        "thick mode doesn't support this type change",
-    )
+    @test_env.skip_unless_thin_mode()
     def test_4621(self):
         "4621 - test data type changing from NVARCHAR to CLOB"
         self.__test_type_change(

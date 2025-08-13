@@ -582,7 +582,7 @@ class TestCase(test_env.BaseTestCase):
         ret_lob_data.sort()
         self.assertEqual(ret_lob_data, lob_data)
 
-    @unittest.skipUnless(test_env.get_is_thin(), "blocked by bug 37741324")
+    @unittest.skipIf(test_env.run_in_thick_mode(), "blocked by bug 37741324")
     def test_1626(self):
         "1626 - test DML returning with multiple DbObjects returned"
         arrays = [

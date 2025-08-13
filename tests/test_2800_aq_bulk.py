@@ -28,7 +28,6 @@
 
 import datetime
 import threading
-import unittest
 
 import oracledb
 import test_env
@@ -97,9 +96,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(messages, [])
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support enq immediate yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2802(self):
         "2802 - test bulk dequeue with wait"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)
@@ -133,9 +130,7 @@ class TestCase(test_env.BaseTestCase):
         self.conn.commit()
         self.assertEqual(all_data, RAW_PAYLOAD_DATA)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support enq immediate yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2804(self):
         "2804 - test visibility option for enqueue and dequeue"
         queue = self.get_and_clear_queue(RAW_QUEUE_NAME)

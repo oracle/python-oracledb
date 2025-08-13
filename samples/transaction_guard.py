@@ -58,7 +58,7 @@ import oracledb
 import sample_env
 
 # determine whether to use python-oracledb thin mode or thick mode
-if not sample_env.get_is_thin():
+if sample_env.run_in_thick_mode():
     oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
 
 # constants

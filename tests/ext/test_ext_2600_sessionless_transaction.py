@@ -47,7 +47,7 @@ class TestCase(test_env.BaseTestCase):
 
             # suspending a non-existent transaction will fail only in thin
             # mode
-            if test_env.get_is_thin():
+            if conn.thin:
                 with self.assertRaisesFullCode("DPY-3036"):
                     conn.suspend_sessionless_transaction()
 
@@ -58,7 +58,7 @@ class TestCase(test_env.BaseTestCase):
 
             # starting another sessionless transaction will fail only in thin
             # mode
-            if test_env.get_is_thin():
+            if conn.thin:
                 with self.assertRaisesFullCode("DPY-3035"):
                     conn.begin_sessionless_transaction(
                         transaction_id=other_transaction_id, timeout=5

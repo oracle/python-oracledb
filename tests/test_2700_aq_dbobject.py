@@ -28,7 +28,6 @@
 
 import decimal
 import threading
-import unittest
 
 import oracledb
 import test_env
@@ -319,9 +318,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertIsNone(props)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "Thin mode doesn't support transformation yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2714(self):
         "2714 - test dequeue transformation"
         queue = self.get_and_clear_queue(
@@ -346,9 +343,7 @@ class TestCase(test_env.BaseTestCase):
         props = queue.deqone()
         self.assertEqual(props.payload.PRICE, expected_price)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "Thin mode doesn't support transformation yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2715(self):
         "2715 - test enqueue transformation"
         queue = self.get_and_clear_queue(
@@ -436,9 +431,7 @@ class TestCase(test_env.BaseTestCase):
         props1 = queue.deqone()
         self.assertIsNone(props1)
 
-    @unittest.skipIf(
-        test_env.get_is_thin(), "thin mode doesn't support notification yet"
-    )
+    @test_env.skip_unless_thick_mode()
     def test_2720(self):
         "2720 - verify attributes of AQ message which spawned notification"
         if self.is_on_oracle_cloud(self.conn):

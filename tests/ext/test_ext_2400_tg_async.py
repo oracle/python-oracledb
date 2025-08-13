@@ -28,15 +28,11 @@ setup is required but the test suite makes use of debugging packages that are
 not intended for normal use. It also creates and drops a service.
 """
 
-import unittest
-
 import oracledb
 import test_env
 
 
-@unittest.skipUnless(
-    test_env.get_is_thin(), "asyncio not supported in thick mode"
-)
+@test_env.skip_unless_thin_mode()
 class TestCase(test_env.BaseAsyncTestCase):
     service_name = "oracledb-test-tg-async"
     requires_connection = False

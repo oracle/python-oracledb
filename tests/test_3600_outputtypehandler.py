@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -207,7 +207,7 @@ class TestCase(test_env.BaseTestCase):
         in_val = datetime.timedelta(
             days=-1, seconds=86314, microseconds=431152
         )
-        if test_env.get_is_thin():
+        if self.conn.thin:
             out_val = str(in_val)
         else:
             out_val = "-000000001 23:58:34.431152000"
@@ -223,7 +223,7 @@ class TestCase(test_env.BaseTestCase):
         in_val = datetime.timedelta(
             days=-1, seconds=86314, microseconds=431152
         )
-        if test_env.get_is_thin():
+        if self.conn.thin:
             out_val = str(in_val)
         else:
             out_val = "-000000001 23:58:34.431152000"
@@ -239,7 +239,7 @@ class TestCase(test_env.BaseTestCase):
         in_val = datetime.timedelta(
             days=-1, seconds=86314, microseconds=431152
         )
-        if test_env.get_is_thin():
+        if self.conn.thin:
             out_val = str(in_val)
         else:
             out_val = "-000000001 23:58:34.431152000"
@@ -709,7 +709,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3677(self):
         "3677 - output type handler: from BINARY_DOUBLE to VARCHAR"
-        str_value = "36.75" if test_env.get_is_thin() else "3.675E+001"
+        str_value = "36.75" if self.conn.thin else "3.675E+001"
         self.__test_type_handler(
             oracledb.DB_TYPE_BINARY_DOUBLE,
             oracledb.DB_TYPE_VARCHAR,
@@ -719,7 +719,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_3678(self):
         "3678 - output type handler: from BINARY_FLOAT to VARCHAR"
-        str_value = "16.25" if test_env.get_is_thin() else "1.625E+001"
+        str_value = "16.25" if self.conn.thin else "1.625E+001"
         self.__test_type_handler(
             oracledb.DB_TYPE_BINARY_FLOAT,
             oracledb.DB_TYPE_VARCHAR,

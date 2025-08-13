@@ -251,7 +251,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_1009(self):
         "1009 - test enable_thin_mode()"
-        if test_env.get_is_thin():
+        if not test_env.run_in_thick_mode():
             oracledb.enable_thin_mode()
             with self.assertRaisesFullCode("DPY-2019"):
                 oracledb.init_oracle_client()
