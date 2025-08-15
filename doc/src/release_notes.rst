@@ -35,6 +35,11 @@ Common Changes
     :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` and
     :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` are now
     stored with the operation and used during pipeline execution.
+#)  Added optional dependencies [oci_config], [azure_config], [oci_auth] and
+    [azure_auth] to simplify installation of required packages for
+    :ref:`Centralized Configuration Provider <configprovidermodules>`
+    support and :ref:`Cloud Native Authentication <cloudnativemodules>`
+    support.
 #)  Fixed bug when attempting to execute an empty statement
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  API documentation is now generated from the source code.

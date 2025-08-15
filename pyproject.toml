@@ -83,3 +83,11 @@ test = [
     "pandas",
     "pyarrow",
 ]
+oci_config = ["oci"]
+oci_auth = ["oci"]
+azure_config = [
+    "azure-appconfiguration",
+    "azure-identity",
+    "azure-keyvault-secrets"
+]
+azure_auth = ["msal"]
