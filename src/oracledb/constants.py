@@ -28,11 +28,6 @@
 # Contains the constants defined by the package.
 # -----------------------------------------------------------------------------
 
-# mandated DB API constants
-apilevel = "2.0"
-threadsafety = 2
-paramstyle = "named"
-
 # AQ delivery modes
 MSG_BUFFERED = 2
 MSG_PERSISTENT = 1

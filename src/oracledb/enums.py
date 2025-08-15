@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -74,34 +74,3 @@ class VectorFormat(enum.IntEnum):
     FLOAT32 = base_impl.VECTOR_FORMAT_FLOAT32
     FLOAT64 = base_impl.VECTOR_FORMAT_FLOAT64
     INT8 = base_impl.VECTOR_FORMAT_INT8
-
-
-# provide aliases for all enumerated values
-AUTH_MODE_DEFAULT = AuthMode.DEFAULT
-AUTH_MODE_PRELIM = AuthMode.PRELIM
-AUTH_MODE_SYSASM = AuthMode.SYSASM
-AUTH_MODE_SYSBKP = AuthMode.SYSBKP
-AUTH_MODE_SYSDBA = AuthMode.SYSDBA
-AUTH_MODE_SYSDGD = AuthMode.SYSDGD
-AUTH_MODE_SYSKMT = AuthMode.SYSKMT
-AUTH_MODE_SYSOPER = AuthMode.SYSOPER
-AUTH_MODE_SYSRAC = AuthMode.SYSRAC
-PIPELINE_OP_TYPE_CALL_FUNC = PipelineOpType.CALL_FUNC
-PIPELINE_OP_TYPE_CALL_PROC = PipelineOpType.CALL_PROC
-PIPELINE_OP_TYPE_COMMIT = PipelineOpType.COMMIT
-PIPELINE_OP_TYPE_EXECUTE = PipelineOpType.EXECUTE
-PIPELINE_OP_TYPE_EXECUTE_MANY = PipelineOpType.EXECUTE_MANY
-PIPELINE_OP_TYPE_FETCH_ALL = PipelineOpType.FETCH_ALL
-PIPELINE_OP_TYPE_FETCH_MANY = PipelineOpType.FETCH_MANY
-PIPELINE_OP_TYPE_FETCH_ONE = PipelineOpType.FETCH_ONE
-POOL_GETMODE_FORCEGET = PoolGetMode.FORCEGET
-POOL_GETMODE_NOWAIT = PoolGetMode.NOWAIT
-POOL_GETMODE_TIMEDWAIT = PoolGetMode.TIMEDWAIT
-POOL_GETMODE_WAIT = PoolGetMode.WAIT
-PURITY_DEFAULT = Purity.DEFAULT
-PURITY_NEW = Purity.NEW
-PURITY_SELF = Purity.SELF
-VECTOR_FORMAT_BINARY = VectorFormat.BINARY
-VECTOR_FORMAT_FLOAT32 = VectorFormat.FLOAT32
-VECTOR_FORMAT_FLOAT64 = VectorFormat.FLOAT64
-VECTOR_FORMAT_INT8 = VectorFormat.INT8
