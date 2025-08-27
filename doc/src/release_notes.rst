@@ -43,6 +43,8 @@ Common Changes
     (`issue 512 <https://github.com/oracle/python-oracledb/issues/512>`__).
 #)  Fixed bug when attempting to execute an empty statement
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
+#)  Pin Cython to 3.1.x instead of 3.1.0 as requested
+    (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
 #)  API documentation is now generated from the source code.
 #)  Internal change: typing_extensions is now a dependency.
 
