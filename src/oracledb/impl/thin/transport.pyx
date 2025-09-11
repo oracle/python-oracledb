@@ -367,7 +367,7 @@ cdef class Transport:
         """
         Writes a packet on the transport.
         """
-        data = buf._data[:buf._pos]
+        cdef bytes data = buf._data[:buf._pos]
         if DEBUG_PACKETS:
             self._print_packet("Sending packet", data)
         try:
