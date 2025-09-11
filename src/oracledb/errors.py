@@ -363,6 +363,7 @@ ERR_INVALID_VECTOR = 4031
 ERR_INVALID_SSL_VERSION = 4032
 ERR_EXCEEDED_IDLE_TIME = 4033
 ERR_INVALID_PASSWORD_TYPE = 4034
+ERR_INVALID_SERVER_RESPONSE = 4035
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -673,6 +674,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_SERVER_NAME: (
         "The name on the server certificate does not match the expected "
         'value: "{expected_name}"'
+    ),
+    ERR_INVALID_SERVER_RESPONSE: (
+        "invalid server response to connection request"
     ),
     ERR_INVALID_SERVER_TYPE: "invalid server_type: {server_type}",
     ERR_INVALID_SERVICE_NAME: (

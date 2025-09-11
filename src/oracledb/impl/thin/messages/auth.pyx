@@ -206,6 +206,7 @@ cdef class AuthMessage(Message):
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         cdef:
+            bytes encoded_response, response
             uint16_t num_params, i
             str key, value
         buf.read_ub2(&num_params)
@@ -222,26 +223,15 @@ cdef class AuthMessage(Message):
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             self.function_code = TNS_FUNC_AUTH_PHASE_TWO
         elif not self.change_password:
-            self.conn_impl._session_id = \
-                    <uint32_t> int(self.session_data["AUTH_SESSION_ID"])
-            self.conn_impl._serial_num = \
-                    <uint16_t> int(self.session_data["AUTH_SERIAL_NUM"])
-            self.conn_impl._db_domain = \
-                    self.session_data.get("AUTH_SC_DB_DOMAIN")
-            self.conn_impl._db_name = \
-                    self.session_data.get("AUTH_SC_DBUNIQUE_NAME")
-            self.conn_impl._max_open_cursors = \
-                    int(self.session_data.get("AUTH_MAX_OPEN_CURSORS", 0))
-            self.conn_impl._service_name = \
-                    self.session_data.get("AUTH_SC_SERVICE_NAME")
-            self.conn_impl._instance_name = \
-                    self.session_data.get("AUTH_INSTANCENAME")
-            self.conn_impl._max_identifier_length = \
-                    int(self.session_data.get("AUTH_MAX_IDEN_LENGTH", 30))
-            self.conn_impl.server_version = self._get_version_tuple(buf)
-            self.conn_impl.supports_bool = \
-                    buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1
-            self.conn_impl._edition = self.edition
+            response = None
+            value = self.session_data.get("AUTH_SVR_RESPONSE")
+            if value is not None:
+                encoded_response = bytes.fromhex(value)
+                response = decrypt_cbc(
+                    self.conn_impl._combo_key, encoded_response
+                )
+            if response is None or response[16:32] != b"SERVER_TO_CLIENT":
+                errors._raise_err(errors.ERR_INVALID_SERVER_RESPONSE)
 
     cdef int _set_params(self, ConnectParamsImpl params,
                          Description description) except -1:

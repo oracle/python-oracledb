@@ -23,6 +23,7 @@ Thin Mode Changes
     types :attr:`oracledb.DB_TYPE_TIMESTAMP`,
     :attr:`oracledb.DB_TYPE_TIMESTAMP_TZ` and
     :attr:`oracledb.DB_TYPE_TIMESTAMP_LTZ`.
+#)  Fixed bug validating the database host during connection.
 #)  Internal change: refactor encoding of Oracle data types.
 #)  Internal change: small performance improvement sending bytes on the
     network transport.
