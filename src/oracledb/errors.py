@@ -364,6 +364,8 @@ ERR_INVALID_SSL_VERSION = 4032
 ERR_EXCEEDED_IDLE_TIME = 4033
 ERR_INVALID_PASSWORD_TYPE = 4034
 ERR_INVALID_SERVER_RESPONSE = 4035
+ERR_CANNOT_CONVERT_TO_ARROW_INTEGER = 4036
+ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE = 4037
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -559,6 +561,12 @@ ERR_MESSAGE_FORMATS = {
         "insufficient to hold {required_buffer_len} bytes"
     ),
     ERR_CALL_TIMEOUT_EXCEEDED: "call timeout of {timeout} ms exceeded",
+    ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE: (
+        "{value} cannot be converted to an Arrow double"
+    ),
+    ERR_CANNOT_CONVERT_TO_ARROW_INTEGER: (
+        "{value} cannot be converted to an Arrow integer"
+    ),
     ERR_CANNOT_PARSE_CONNECT_STRING: 'cannot parse connect string "{data}"',
     ERR_COLUMN_TRUNCATED: (
         "column truncated to {col_value_len} {unit}. "

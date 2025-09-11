@@ -231,11 +231,18 @@ cdef int convert_number_to_arrow_double(ArrowArrayImpl array_impl,
     """
     Converts a NUMBER value stored in the buffer to Arrow DOUBLE.
     """
-    cdef OracleNumber *value = &buffer.as_number
+    cdef:
+        OracleNumber *value = &buffer.as_number
+        double double_value
     if value.is_max_negative_value:
         array_impl.append_double(-1.0e126)
     else:
-        array_impl.append_double(atof(value.chars[:value.num_chars]))
+        errno.errno = 0
+        double_value = strtod((<const char*> value.chars), NULL)
+        if errno.errno != 0:
+            errors._raise_err(errors.ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE,
+                              value=value.chars[:value.num_chars].decode())
+        array_impl.append_double(double_value)
 
 
 cdef int convert_number_to_arrow_int64(ArrowArrayImpl array_impl,
@@ -243,8 +250,15 @@ cdef int convert_number_to_arrow_int64(ArrowArrayImpl array_impl,
     """
     Converts a NUMBER value stored in the buffer to Arrow INT64.
     """
-    cdef OracleNumber *value = &buffer.as_number
-    array_impl.append_int64(atoi(value.chars[:value.num_chars]))
+    cdef:
+        OracleNumber *value = &buffer.as_number
+        int64_t int64_value
+    errno.errno = 0
+    int64_value = strtoll((<const char*> value.chars), NULL, 0)
+    if errno.errno != 0:
+        errors._raise_err(errors.ERR_CANNOT_CONVERT_TO_ARROW_INTEGER,
+                          value=value.chars[:value.num_chars].decode())
+    array_impl.append_int64(int64_value)
 
 
 cdef object convert_number_to_python_decimal(OracleDataBuffer *buffer):

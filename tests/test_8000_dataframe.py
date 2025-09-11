@@ -1868,6 +1868,21 @@ class TestCase(test_env.BaseTestCase):
         ]
         self.__test_df_interop(data)
 
+    def test_8077(self):
+        "8077 - test fetching large integers"
+        data = (-(2**40), 2**41)
+        ora_df = self.conn.fetch_df_all(
+            """
+            select
+                cast(:1 as number(15)),
+                cast(:2 as number(15))
+            from dual
+            """,
+            data,
+        )
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        self.assertEqual([data], self.__get_data_from_df(fetched_df))
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

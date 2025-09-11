@@ -872,7 +872,7 @@ class TestCase(test_env.BaseAsyncTestCase):
             ([0, 2**31, 2**32 - 1], pyarrow.uint32()),
             ([0, 2**63, 2**64 - 1], pyarrow.uint64()),
         ]
-        names = ["Id", "IntegerData"]
+        names = ["Id", "LongIntegerData"]
         for values, dtype in scenarios:
             with self.subTest(dtype=str(dtype)):
                 arrays = [
@@ -883,7 +883,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await self.cursor.execute("delete from TestDataFrame")
                 await self.cursor.executemany(
                     """
-                    insert into TestDataFrame (Id, IntegerData)
+                    insert into TestDataFrame (Id, LongIntegerData)
                     values (:1, :2)
                     """,
                     df,
@@ -891,7 +891,7 @@ class TestCase(test_env.BaseAsyncTestCase):
                 await self.conn.commit()
                 await self.cursor.execute(
                     """
-                    select to_char(IntegerData)
+                    select to_char(LongIntegerData)
                     from TestDataFrame
                     order by Id
                     """

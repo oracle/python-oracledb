@@ -57,6 +57,8 @@ Common Changes
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  Pin Cython to 3.1.x instead of 3.1.0 as requested
     (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
+#)  Fixed bug when attempting to convert an integer that cannot be represented
+    as a native C ``int`` value to an Arrow data frame.
 #)  API documentation is now generated from the source code.
 #)  Internal change: typing_extensions is now a dependency.
 

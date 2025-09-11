@@ -958,7 +958,7 @@ cdef struct OracleNumber:
     bint is_integer
     bint is_max_negative_value
     uint8_t num_chars
-    char_type chars[172]
+    char_type chars[173]
 
 
 cdef struct OracleRawBytes:

@@ -196,6 +196,7 @@ cdef int decode_number(const uint8_t* ptr, ssize_t num_bytes,
         if is_positive:
             output.num_chars = 1
             output.chars[0] = 48                    # zero
+            output.chars[1] = 0                     # null terminator
         else:
             output.is_max_negative_value = True
         return 0
@@ -269,6 +270,9 @@ cdef int decode_number(const uint8_t* ptr, ssize_t num_bytes,
         for i in range(num_digits, decimal_point_index):
             output.chars[output.num_chars] = 48     # zero
             output.num_chars += 1
+
+    # include null terminator for use by strtoll() and strtoull()
+    output.chars[output.num_chars] = 0
 
 
 cdef inline uint16_t decode_uint16be(const char_type *buf):

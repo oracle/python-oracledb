@@ -35,10 +35,11 @@ cimport cython
 cimport cpython
 cimport cpython.datetime as cydatetime
 
+from libc cimport errno
 from libc.stdint cimport int8_t, int16_t, int32_t, int64_t
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t
 from libc.stdint cimport UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX
-from libc.stdlib cimport atoi, atof
+from libc.stdlib cimport strtod, strtoll
 from libc.string cimport memcpy
 from cpython cimport array
 from cpython.conversion cimport PyOS_snprintf

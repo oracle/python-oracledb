@@ -490,7 +490,7 @@ cdef class ThickVarImpl(BaseVarImpl):
                 ora_data.buffer.as_number.is_integer = \
                         memchr(as_bytes.ptr, b'.', as_bytes.length) == NULL;
                 memcpy(ora_data.buffer.as_number.chars, as_bytes.ptr,
-                        as_bytes.length);
+                        as_bytes.length + 1);
                 ora_data.buffer.as_number.num_chars = as_bytes.length;
             elif ora_type_num == DPI_ORACLE_TYPE_VECTOR:
                 vector = _convert_vector_to_python(data.value.asVector)
