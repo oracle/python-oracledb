@@ -37,18 +37,39 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     Converts the value stored in Arrow format to an OracleData structure.
     """
     cdef:
-        int64_t int64_value, days, seconds, useconds
+        int64_t int_value, days, seconds, useconds
         SparseVectorImpl sparse_impl
         ArrowType arrow_type
+        uint64_t uint_value
         OracleRawBytes* rb
         tuple sparse_info
         bytes temp_bytes
+        ssize_t buf_len
+        char buf[21]
 
     arrow_type = metadata._schema_impl.arrow_type
-    if arrow_type == NANOARROW_TYPE_INT64:
-        array_impl.get_int64(array_index, &data.is_null, &int64_value)
+    if arrow_type in (
+        NANOARROW_TYPE_INT8,
+        NANOARROW_TYPE_INT16,
+        NANOARROW_TYPE_INT32,
+        NANOARROW_TYPE_INT64,
+    ):
+        array_impl.get_int(arrow_type, array_index, &data.is_null, &int_value)
         if not data.is_null:
-            temp_bytes = str(int64_value).encode()
+            buf_len = PyOS_snprintf(buf, sizeof(buf), "%lld", int_value)
+            temp_bytes = buf[:buf_len]
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
+    elif arrow_type in (
+        NANOARROW_TYPE_UINT8,
+        NANOARROW_TYPE_UINT16,
+        NANOARROW_TYPE_UINT32,
+        NANOARROW_TYPE_UINT64,
+    ):
+        array_impl.get_uint(arrow_type, array_index, &data.is_null, &uint_value)
+        if not data.is_null:
+            buf_len = PyOS_snprintf(buf, sizeof(buf), "%llu", uint_value)
+            temp_bytes = buf[:buf_len]
             convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
             return temp_bytes
     elif arrow_type == NANOARROW_TYPE_DOUBLE:
@@ -70,10 +91,10 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         array_impl.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
                               &rb.num_bytes)
     elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
-        array_impl.get_int64(array_index, &data.is_null, &int64_value)
+        array_impl.get_int(arrow_type, array_index, &data.is_null, &int_value)
         if not data.is_null:
-            seconds = int64_value // array_impl.schema_impl.time_factor
-            useconds = int64_value % array_impl.schema_impl.time_factor
+            seconds = int_value // array_impl.schema_impl.time_factor
+            useconds = int_value % array_impl.schema_impl.time_factor
             days = seconds // (24 * 60 * 60)
             seconds = seconds % (24 * 60 * 60)
             if array_impl.schema_impl.time_factor == 1_000:

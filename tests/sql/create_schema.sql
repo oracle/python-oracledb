@@ -410,6 +410,7 @@ create table &main_user..TestDataframe (
     CreditScore                         number(3, 0),
     LastUpdated                         timestamp,
     DecimalData                         number(15, 4),
+    IntegerData                         number(20),
     FloatData                           binary_float,
     DoubleData                          binary_double,
     RawData                             raw(100),

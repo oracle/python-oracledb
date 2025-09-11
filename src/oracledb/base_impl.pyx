@@ -41,6 +41,7 @@ from libc.stdint cimport UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX
 from libc.stdlib cimport atoi, atof
 from libc.string cimport memcpy
 from cpython cimport array
+from cpython.conversion cimport PyOS_snprintf
 
 from .constants import VECTOR_META_FLAG_SPARSE_VECTOR
 
@@ -59,6 +60,8 @@ from .arrow_impl cimport (
     NANOARROW_TYPE_FIXED_SIZE_LIST,
     NANOARROW_TYPE_FLOAT,
     NANOARROW_TYPE_INT8,
+    NANOARROW_TYPE_INT16,
+    NANOARROW_TYPE_INT32,
     NANOARROW_TYPE_INT64,
     NANOARROW_TYPE_LIST,
     NANOARROW_TYPE_LARGE_BINARY,
@@ -67,6 +70,9 @@ from .arrow_impl cimport (
     NANOARROW_TYPE_STRUCT,
     NANOARROW_TYPE_TIMESTAMP,
     NANOARROW_TYPE_UINT8,
+    NANOARROW_TYPE_UINT16,
+    NANOARROW_TYPE_UINT32,
+    NANOARROW_TYPE_UINT64,
     ArrowArrayImpl,
 )
 

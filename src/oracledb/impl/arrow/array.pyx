@@ -351,16 +351,24 @@ cdef class ArrowArrayImpl:
             ptr = <float*> self.arrow_array.buffers[1]
             value[0] = ptr[index]
 
-    cdef int get_int64(self, int64_t index, bint* is_null,
-                       int64_t* value) except -1:
+    cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
+                     int64_t* value) except -1:
         """
-        Return an int64_t value at the specified index from the Arrow array.
+        Return an int64_t value at the specified index from the Arrow array
+        for all signed integer types.
         """
-        cdef int64_t* ptr
+        cdef const void* ptr
         self._get_is_null(index, is_null)
         if not is_null[0]:
-            ptr = <int64_t*> self.arrow_array.buffers[1]
-            value[0] = ptr[index]
+            ptr = self.arrow_array.buffers[1]
+            if arrow_type == NANOARROW_TYPE_INT8:
+                value[0] = (<int8_t*> ptr)[index]
+            elif arrow_type == NANOARROW_TYPE_INT16:
+                value[0] = (<int16_t*> ptr)[index]
+            elif arrow_type == NANOARROW_TYPE_INT32:
+                value[0] = (<int32_t*> ptr)[index]
+            else:
+                value[0] = (<int64_t*> ptr)[index]
 
     cdef int get_length(self, int64_t* length) except -1:
         """
@@ -414,6 +422,25 @@ cdef class ArrowArrayImpl:
             memcpy(values.data.as_voidptr, source_buf,
                    num_elements * self.schema_impl.child_element_size)
             return (num_dimensions, indices, values)
+
+    cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
+                      uint64_t* value) except -1:
+        """
+        Return a uint64_t value at the specified index from the Arrow array
+        for all unsigned integer types.
+        """
+        cdef const void* ptr
+        self._get_is_null(index, is_null)
+        if not is_null[0]:
+            ptr = self.arrow_array.buffers[1]
+            if arrow_type == NANOARROW_TYPE_UINT8:
+                value[0] = (<uint8_t*> ptr)[index]
+            elif arrow_type == NANOARROW_TYPE_UINT16:
+                value[0] = (<uint16_t*> ptr)[index]
+            elif arrow_type == NANOARROW_TYPE_UINT32:
+                value[0] = (<uint32_t*> ptr)[index]
+            else:
+                value[0] = (<uint64_t*> ptr)[index]
 
     cdef object get_vector(self, int64_t index, bint* is_null):
         """

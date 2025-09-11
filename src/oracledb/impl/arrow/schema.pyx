@@ -146,10 +146,17 @@ cdef class ArrowSchemaImpl:
                 NANOARROW_TYPE_DOUBLE,
                 NANOARROW_TYPE_FIXED_SIZE_BINARY,
                 NANOARROW_TYPE_FLOAT,
+                NANOARROW_TYPE_INT8,
+                NANOARROW_TYPE_INT16,
+                NANOARROW_TYPE_INT32,
                 NANOARROW_TYPE_INT64,
                 NANOARROW_TYPE_LARGE_BINARY,
                 NANOARROW_TYPE_LARGE_STRING,
                 NANOARROW_TYPE_STRING,
+                NANOARROW_TYPE_UINT8,
+                NANOARROW_TYPE_UINT16,
+                NANOARROW_TYPE_UINT32,
+                NANOARROW_TYPE_UINT64,
         ) and not (
                 schema_view.type == NANOARROW_TYPE_STRUCT
                 and self._is_sparse_vector()

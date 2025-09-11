@@ -68,6 +68,8 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_FIXED_SIZE_LIST
         NANOARROW_TYPE_FLOAT
         NANOARROW_TYPE_INT8
+        NANOARROW_TYPE_INT16
+        NANOARROW_TYPE_INT32
         NANOARROW_TYPE_INT64
         NANOARROW_TYPE_LARGE_BINARY
         NANOARROW_TYPE_LARGE_STRING
@@ -77,7 +79,9 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_STRUCT
         NANOARROW_TYPE_TIMESTAMP
         NANOARROW_TYPE_UINT8
+        NANOARROW_TYPE_UINT16
         NANOARROW_TYPE_UINT32
+        NANOARROW_TYPE_UINT64
         NANOARROW_TYPE_UNINITIALIZED
 
     cpdef enum ArrowTimeUnit:
@@ -139,10 +143,12 @@ cdef class ArrowArrayImpl:
                         double* value) except -1
     cdef int get_float(self, int64_t index, bint* is_null,
                        float* value) except -1
-    cdef int get_int64(self, int64_t index, bint* is_null,
-                       int64_t* value) except -1
+    cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
+                     int64_t* value) except -1
     cdef int get_length(self, int64_t* length) except -1
     cdef object get_sparse_vector(self, int64_t index, bint* is_null)
+    cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
+                      uint64_t* value) except -1
     cdef object get_vector(self, int64_t index, bint* is_null)
     cdef int populate_from_array(self, ArrowSchema* schema,
                                  ArrowArray* array) except -1

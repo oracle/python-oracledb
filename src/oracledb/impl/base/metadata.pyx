@@ -162,8 +162,17 @@ cdef class OracleMetadata:
         cdef:
             OracleMetadata metadata = OracleMetadata.__new__(OracleMetadata)
             ArrowType arrow_type = schema_impl.arrow_type
-        if arrow_type in (NANOARROW_TYPE_DECIMAL128,
-                          NANOARROW_TYPE_INT64):
+        if arrow_type in (
+            NANOARROW_TYPE_DECIMAL128,
+            NANOARROW_TYPE_INT8,
+            NANOARROW_TYPE_INT16,
+            NANOARROW_TYPE_INT32,
+            NANOARROW_TYPE_INT64,
+            NANOARROW_TYPE_UINT8,
+            NANOARROW_TYPE_UINT16,
+            NANOARROW_TYPE_UINT32,
+            NANOARROW_TYPE_UINT64,
+        ):
             metadata.dbtype = DB_TYPE_NUMBER
         elif arrow_type == NANOARROW_TYPE_STRING:
             metadata.dbtype = DB_TYPE_VARCHAR

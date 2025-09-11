@@ -859,6 +859,45 @@ class TestCase(test_env.BaseTestCase):
         fetched_df = pyarrow.table(odf)
         self.assertTrue(fetched_df.equals(df))
 
+    def test_8919(self):
+        "8919 - test ingestion with various integer data types"
+        scenarios = [
+            ([-(2**7), 0, 2**7 - 1], pyarrow.int8()),
+            ([-(2**15), 0, 2**15 - 1], pyarrow.int16()),
+            ([-(2**31), 0, 2**31 - 1], pyarrow.int32()),
+            ([-(2**63), 0, 2**63 - 1], pyarrow.int64()),
+            ([0, 2**7, 2**8 - 1], pyarrow.uint8()),
+            ([0, 2**15, 2**16 - 1], pyarrow.uint16()),
+            ([0, 2**31, 2**32 - 1], pyarrow.uint32()),
+            ([0, 2**63, 2**64 - 1], pyarrow.uint64()),
+        ]
+        names = ["Id", "IntegerData"]
+        for values, dtype in scenarios:
+            with self.subTest(dtype=str(dtype)):
+                arrays = [
+                    pyarrow.array([1, 2, 3], pyarrow.int8()),
+                    pyarrow.array(values, dtype),
+                ]
+                df = pyarrow.table(arrays, names)
+                self.cursor.execute("delete from TestDataFrame")
+                self.cursor.executemany(
+                    """
+                    insert into TestDataFrame (Id, IntegerData)
+                    values (:1, :2)
+                    """,
+                    df,
+                )
+                self.conn.commit()
+                self.cursor.execute(
+                    """
+                    select to_char(IntegerData)
+                    from TestDataFrame
+                    order by Id
+                    """
+                )
+                fetched_values = [int(s) for s, in self.cursor]
+                self.assertEqual(fetched_values, values)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()
