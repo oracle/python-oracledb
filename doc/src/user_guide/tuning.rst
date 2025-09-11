@@ -279,7 +279,7 @@ Changing Prefetchrows and Arraysize for Re-executed Statements
 In python-oracledb, the :attr:`~Cursor.prefetchrows` and
 :attr:`~Cursor.arraysize` values are only examined when a statement is executed
 the first time.  To change the values for a re-executed statement, create a new
-cursor.  For example, to change :attr:`~Cursor.arraysize``:
+cursor.  For example, to change :attr:`~Cursor.arraysize`:
 
 .. code-block:: python
 

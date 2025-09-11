@@ -23,22 +23,32 @@ executed. Statements are executed using one of these methods
 This chapter discusses python-oracledb's synchronous methods. The asynchronous
 methods and pipelining functionality are discussed in detail in :ref:`asyncio`.
 
-PL/SQL statements are discussed in :ref:`plsqlexecution`.  Other chapters
-contain information on specific data types and features.  See :ref:`batchstmnt`,
-:ref:`lobdata`, :ref:`jsondatatype`, and :ref:`xmldatatype`.
+PL/SQL statements are discussed in :ref:`plsqlexecution`. The following
+chapters contain information on specific data types and features:
+
+- :ref:`batchstmnt`
+- :ref:`pipelining`
+- :ref:`lobdata`
+- :ref:`jsondatatype`
+-  :ref:`xmldatatype`
+
+**Executing SQL Scripts**
 
 Python-oracledb can be used to execute individual statements, one at a time.
 Once a statement has finished execution, only then will the next statement
 execute. If you try to execute statements concurrently in a single connection,
 the statements are queued and run consecutively in the order they are executed
-in the application code.
+in the application code. This includes :ref:`Pipelined statements
+<pipelining>`.
 
 Python-oracledb does not read SQL*Plus ".sql" files.  To read SQL files, use a
 technique like the one in ``run_sql_script()`` in `samples/sample_env.py
 <https://github.com/oracle/python-oracledb/blob/main/samples/sample_env.py>`__.
 
-SQL statements should not contain a trailing semicolon (";") or forward slash
-("/").  This will fail:
+**SQL Statement Syntax**
+
+SQL statements executed in python-oracledb should not contain a trailing
+semicolon (";") or forward slash ("/"). This will fail:
 
 .. code-block:: python
 
@@ -50,17 +60,6 @@ This is correct:
 
     cursor.execute("select * from MyTable")
 
-
-SQL Queries
-===========
-
-Queries (statements beginning with SELECT or WITH) can be executed using the
-method :meth:`Cursor.execute()`.  Rows can then be iterated over, or can be
-fetched using one of the methods :meth:`Cursor.fetchone()`,
-:meth:`Cursor.fetchmany()` or :meth:`Cursor.fetchall()`.  There is a
-:ref:`default type mapping <defaultfetchtypes>` to Python types that can be
-optionally :ref:`overridden <outputtypehandlers>`.
-
 .. IMPORTANT::
 
     Interpolating or concatenating user data with SQL statements, for example
@@ -68,6 +67,18 @@ optionally :ref:`overridden <outputtypehandlers>`.
     a security risk and impacts performance.  Use :ref:`bind variables <bind>`
     instead, for example ``cursor.execute("SELECT * FROM mytab WHERE mycol =
     :mybv", mybv=myvar)``.
+
+
+SQL Queries
+===========
+
+Queries (statements beginning with SELECT or WITH) can be executed using the
+method :meth:`Cursor.execute()`.  Rows can then be iterated over, or can be
+fetched using one of the methods :meth:`Cursor.fetchone()`,
+:meth:`Cursor.fetchmany()` or :meth:`Cursor.fetchall()`. This lets you handle
+rows directly or stream them if needed. There is a :ref:`default type mapping
+<defaultfetchtypes>` to Python types that can be optionally :ref:`overridden
+<outputtypehandlers>`.
 
 .. _fetching:
 
@@ -98,9 +109,10 @@ Rows can be fetched in various ways.
               break
           print(row)
 
-- If rows need to be processed in batches, the method :meth:`Cursor.fetchmany()`
-  can be used. The size of the batch is controlled by the ``size`` parameter,
-  which defaults to the value of :attr:`Cursor.arraysize`.
+- If rows need to be streamed or processed in batches, the method
+  :meth:`Cursor.fetchmany()` can be used. The size of the batch is controlled
+  by the ``size`` parameter, which defaults to the value of
+  :attr:`Cursor.arraysize`.
 
   .. code-block:: python
 
@@ -116,8 +128,9 @@ Rows can be fetched in various ways.
 
   Note the ``size`` parameter only affects the number of rows returned to the
   application, not to the internal buffer size used for tuning fetch
-  performance.  That internal buffer size is controlled only by changing
-  :attr:`Cursor.arraysize`, see :ref:`tuningfetch`.
+  performance. That internal buffer size is controlled only by changing
+  :attr:`Cursor.arraysize` or :attr:`oracledb.defaults.arraysize
+  <Defaults.arraysize>`, see :ref:`tuningfetch`.
 
 - If all of the rows need to be fetched and can be contained in memory, the
   method :meth:`Cursor.fetchall()` can be used.

@@ -19,10 +19,11 @@ oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug when setting values of type ``datetime.date`` on variables of
-    types :attr:`oracledb.DB_TYPE_TIMESTAMP`,
-    :attr:`oracledb.DB_TYPE_TIMESTAMP_TZ` and
-    :attr:`oracledb.DB_TYPE_TIMESTAMP_LTZ`.
+#)  Fixed bug when setting values of type ``datetime.date`` on variables (such
+    as created by :meth:`Cursor.var()` or implicitly by
+    :meth:`Cursor.setinputsizes()`) of types
+    :attr:`oracledb.DB_TYPE_TIMESTAMP`, :attr:`oracledb.DB_TYPE_TIMESTAMP_TZ`
+    and :attr:`oracledb.DB_TYPE_TIMESTAMP_LTZ`.
 #)  Fixed bug validating the database host during connection.
 #)  Internal change: refactor encoding of Oracle data types.
 #)  Internal change: small performance improvement sending bytes on the
@@ -39,9 +40,9 @@ Common Changes
 
 #)  Added support for all of the signed and unsigned fixed width integer types
     when ingesting data frames supporting the Arrow PyCapsule interface.
-    Previously only int64 was supported.
+    Previously only ``int64`` was supported.
 #)  Added ``fetch_lobs`` and ``fetch_decimals`` parameters where applicable to
-    the methods used for fetching rows or dataframes from the database. Note
+    the methods used for fetching rows or data frames from the database. Note
     that for the creation of pipeline operations, if these parameters are not
     specified then the values of
     :attr:`oracledb.defaults.fetch_lobs <Defaults.fetch_lobs>` and
@@ -53,10 +54,10 @@ Common Changes
     support and :ref:`Cloud Native Authentication <cloudnativemodules>`
     support
     (`issue 512 <https://github.com/oracle/python-oracledb/issues/512>`__).
-#)  Fixed bug when attempting to execute an empty statement
-    (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  Pin Cython to 3.1.x instead of 3.1.0 as requested
     (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
+#)  Fixed bug when attempting to execute an empty statement
+    (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  Fixed bug when attempting to convert an integer that cannot be represented
     as a native C ``int`` value to an Arrow data frame.
 #)  API documentation is now generated from the source code.

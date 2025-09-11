@@ -649,7 +649,9 @@ class BaseConnection:
         (SDU) that is being used by the connection. The value will be the
         lesser of the requested python-oracledb size and the maximum size
         allowed by the database network configuration. It is available only in
-        python-oracledb Thin mode.
+        python-oracledb Thin mode. To set the SDU in Thick mode, use a
+        connection string SDU parameter or set a value for DEFAULT_SDU_SIZE in
+        a sqlnet.ora configuration file.
         """
         self._verify_connected()
         return self._impl.get_sdu()

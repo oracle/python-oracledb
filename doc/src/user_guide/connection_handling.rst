@@ -240,8 +240,8 @@ the database service you wanted ("doesnotexist") does not exist there.
 Technically, the error means the listener does not know about the service at the
 moment.  So you might also get this error if the database is currently restarting.
 
-This error is similar to the ``ORA-12514`` error that you may see when connecting
-with python-oracledb in Thick mode, or with some other Oracle tools.
+This error is similar to the ``ORA-12514`` error that you may see when
+connecting with python-oracledb Thick mode, or with some other Oracle tools.
 
 The solution is to use a valid service name in the connection string. You can:
 
@@ -924,8 +924,8 @@ The following configuration providers are supported by python-oracledb:
 - :ref:`Microsoft Azure App Centralized Configuration Provider
   <azureappstorageprovider>`
 
-To use python-oracledb :ref:`Centralized Configuration Provider
-<configurationproviders>` functionality in Thick mode, you should set
+To use :ref:`Centralized Configuration Provider <configurationproviders>`
+functionality in python-oracledb Thick mode, you should set
 :attr:`oracledb.defaults.thick_mode_dsn_passthrough
 <Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
 :meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
@@ -5000,7 +5000,7 @@ You can encrypt data transferred between the Oracle Database and
 python-oracledb so that unauthorized parties are not able to view plain text
 values as the data passes over the network.
 
-Both python-oracledb Thin and Thick modes support TLS.  Refer to the `Oracle
+Both python-oracledb Thin and Thick modes support TLS. Refer to the `Oracle
 Database Security Guide <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-41040F53-D7A6-48FA-A92A-0C23118BC8A0>`__ for more configuration
 information.
@@ -5123,79 +5123,103 @@ Connecting to Oracle Cloud Autonomous Databases
 ================================================
 
 Python applications can connect to Oracle Autonomous Database (ADB) in Oracle
-Cloud using one-way TLS (Transport Layer Security) or mutual TLS
-(mTLS). One-way TLS and mTLS provide enhanced security for authentication and
-encryption.
+Cloud using one-way TLS (Transport Layer Security) or mutual TLS (mTLS),
+depending on how the database instance is configured. One-way TLS and mTLS
+provide enhanced security for authentication and encryption.
 
 A database username and password are still required for your application
-connections.  If you need to create a new database schema so you do not login
-as the privileged ADMIN user, refer to the relevant Oracle Cloud documentation,
-for example see `Create Database Users <https://www.oracle.com/pls/topic/
-lookup?ctx=dblatest&id=GUID-B5846072-995B-4B81-BDCB-AF530BC42847>`__ in the
-Oracle Autonomous Database manual.
+connections. Refer to the relevant Oracle Cloud documentation, for example see
+`Create Database Users <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-B5846072-995B-4B81-BDCB-AF530BC42847>`__.
 
 .. _onewaytls:
 
 One-way TLS Connection to Oracle Autonomous Database
 ----------------------------------------------------
 
-With one-way TLS, python-oracledb applications can connect to Oracle ADB
-without using a wallet.  Both Thin and Thick modes of the python-oracledb
-driver support one-way TLS. Applications that use python-oracledb Thick mode
-can connect to the Oracle ADB through one-way TLS only when using Oracle Client
-library versions 19.14 (or later) or 21.5 (or later).
+With one-way TLS, the python-oracledb host machine must be in the Access
+Control List (ACL) of the ADB instance. Applications then connect to Oracle ADB
+by passing the database username, password, and appropriate connection
+string. A wallet is not used.
 
-To enable one-way TLS for an ADB instance, complete the following steps in an
-Oracle Cloud console in the **Autonomous Database Information** section of the
-ADB instance details:
+Both python-oracledb Thin and Thick modes support one-way TLS.
+
+Allowing One-way TLS Access to Oracle Autonomous Database
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To create an ADB instance that allows one-way TLS, choose the access setting
+*Secure access from allowed IPs and VCNs only* in the Oracle Cloud console
+during instance creation. Then specify the IP addresses, hostnames, CIDR
+blocks, Virtual Cloud networks (VCN), or Virtual Cloud network OCIDs where
+Python will be running. The ACL limits access to only the resources that have
+been defined and blocks all other incoming traffic.
+
+Alternatively, to enable one-way TLS on an existing database, complete the
+following steps in the Oracle Cloud console in the **Autonomous Database
+Information** section of the ADB instance:
 
 1. Click the **Edit** link next to *Access Control List* to update the Access
-   Control List (ACL). The **Edit Access Control List** dialog box is displayed.
+   Control List (ACL).
 
-2. In the **Edit Access Control List** dialog box, select the type of address
-   list entries and the corresponding values. You can include the required IP
-   addresses, hostnames, or Virtual Cloud Networks (VCNs).  The ACL limits
-   access to only the IP addresses or VCNs that have been defined and blocks
-   all other incoming traffic.
+2. In the displayed **Edit Access Control List** dialog box, select the type of
+   address list entries and the corresponding values. You can include the IP
+   addresses, hostnames, CIDR blocks, Virtual Cloud networks (VCN), or Virtual
+   Cloud network OCIDs where Python will be running.
 
 3. Navigate back to the ADB instance details page and click the **Edit** link
-   next to *Mutual TLS (mTLS) Authentication*. The **Edit Mutual TLS Authentication**
-   is displayed.
+   next to *Mutual TLS (mTLS) Authentication*.
 
-4. In the **Edit Mutual TLS Authentication** dialog box, deselect the
+4. In the displayed **Edit Mutual TLS Authentication** dialog box, deselect the
    **Require mutual TLS (mTLS) authentication** check box to disable the mTLS
    requirement on Oracle ADB and click **Save Changes**.
 
-5. Navigate back to the ADB instance details page and click **DB Connection** on
-   the top of the page. A **Database Connection** dialog box is displayed.
+Connecting with python-oracledb Thin or Thick modes using One-way TLS
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-6. In the Database Connection dialog box, select TLS from the **Connection Strings**
-   drop-down list.
+When your database has been enabled to allow one-way TLS, you can connect with
+python-oracledb by following these steps:
 
-7. Copy the appropriate Connection String of the database instance used by your application.
+1. Navigate to the ADB instance details page on the Cloud console and click
+   **Database connection** at the top of the page.
 
-Applications can connect to your Oracle ADB instance using the database
-credentials and the copied :ref:`Connect Descriptor <conndescriptor>`.  For
+2. In the displayed **Database Connection** dialog box, select TLS from the
+   **Connection Strings** drop-down list.
+
+3. Copy the appropriate Connection String for the connection service level you
+   want.
+
+Applications can connect using database credentials and the copied
+:ref:`connection string <conndescriptor>`. Do *not* pass wallet parameters. For
 example, to connect as the ADMIN user:
 
 .. code-block:: python
 
-    cs = '''(description = (retry_count=20)(retry_delay=3)(address=(protocol=tcps)
-               (port=1522)(host=xxx.oraclecloud.com))(connect_data=(service_name=xxx.adb.oraclecloud.com))
-               (security=(ssl_server_dn_match=yes)(ssl_server_cert_dn="CN=xxx.oraclecloud.com,
-               O=Oracle Corporation, L=Redwood City, T=California, C=US")))'''
+    cs = '''(description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1521)
+            (host=adb.abcdef.oraclecloud.com))
+            (connect_data=(service_name=abcde_mydb_high.adb.oraclecloud.com))
+            (security=(ssl_server_dn_match=yes)))'''
 
     connection = oracledb.connect(user="admin", password=pw, dsn=cs)
 
 
-You can download the ADB connection wallet using the **DB Connection** button
-and extract the :ref:`tnsnames.ora <optnetfiles>` file, or create one yourself
-if you prefer to keep connections strings out of application code, see
-:ref:`netservice`.
+If you prefer to keep connection descriptors out of application code, you can
+add the descriptor with a :ref:`TNS Alias <netservice>` to a :ref:`tnsnames.ora
+<optnetfiles>` file, and use the TNS alias as the ``dsn`` value.
 
-You may be interested in the blog post `Easy wallet-less connections to Oracle
-Autonomous Databases in Python
-<https://blogs.oracle.com/opal/post/easy-way-to-connect-python-applications-to-oracle-autonomous-databases>`__.
+Not having the ACL correctly configured is a common cause of connection
+errors. To aid troubleshooting, remove ``(retry_count=20)(retry_delay=3)`` from
+the connect descriptor so that errors are returned faster. If network
+configuration issues are suspected then, for initial troubleshooting with a
+disposable database, you can update the ACL to contain a CIDR block of
+``0.0.0.0/0``, however this means *anybody* can attempt to connect to your
+database so you should recreate the database immediately after identifying a
+working, more restrictive ACL.
+
+To connect with python-oracledb Thick mode requires Oracle Client library
+versions 19.14 (or later), or 21.5 (or later), or 23.3 (or later). If you have
+also been experimenting with mTLS and your environment has ``sqlnet.ora`` and
+``tnsnames.ora`` files set up, then remove these before using python-oracledb
+Thick mode with one-way TLS to avoid configuration clashes.
 
 .. _twowaytls:
 
@@ -5206,101 +5230,123 @@ To enable python-oracledb connections to Oracle Autonomous Database in Oracle
 Cloud using mTLS, a wallet needs to be downloaded from the cloud console.  mTLS
 is sometimes called Two-way TLS.
 
-Install the Wallet and Network Configuration Files
+Allowing mTLS Access to Oracle Autonomous Database
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
-From the Oracle Cloud console for the database, download the wallet zip file
-using the **DB Connection** button.  The zip contains the wallet and network
-configuration files.  When downloading the zip, the cloud console will ask you
-to create a wallet password.  This password is used by python-oracledb in Thin
-mode, but not in Thick mode.
+When creating an ADB instance in the Oracle Cloud console, choose the access
+setting "Secure access from everywhere".
 
-Note: keep wallet files in a secure location and only share them and the
+.. _getwallet:
+
+Downloading the Database Wallet
++++++++++++++++++++++++++++++++
+
+After your Autonomous Database has been enabled to allow mTLS, download its
+``wallet.zip`` file which contains the certificate and network configuration
+files:
+
+1. Navigate to the ADB instance details page on the Oracle Cloud console and
+   click **Database connection** at the top of the page.
+
+2. In the displayed **Database Connection** dialog box, select the "Download
+   Wallet" button in the *Download client credentials (Wallet)* section. The
+   cloud console will ask you to create a wallet password. This password is
+   required by python-oracledb in Thin mode, but not used in Thick mode.
+
+**Note**: Keep wallet files in a secure location and only share them and the
 password with authorized users.
 
-**In python-oracledb Thin mode**
+Connecting with python-oracledb Thin mode using mTLS
+++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For python-oracledb in Thin mode, only two files from the zip are needed:
+For python-oracledb Thin mode, unzip the :ref:`wallet.zip <getwallet>` file.
+Only two files from it are needed:
 
-- ``tnsnames.ora`` - Maps net service names used for application connection
-  strings to your database services
+- ``tnsnames.ora`` - Maps TNS Aliases used for application connection strings
+  to your database services
 - ``ewallet.pem`` - Enables SSL/TLS connections in Thin mode. Keep this file
   secure
 
 If you do not have a PEM file, see :ref:`createpem`.
 
-Unzip the wallet zip file and move the required files to a location such as
+Move the two files to a directory that is accessible by your application. In
+this example, the files are located in the same directory,
 ``/opt/OracleCloud/MYDB``.
 
-Connection can be made using your database credentials and setting the ``dsn``
-parameter to the desired network alias from the :ref:`tnsnames.ora
-<optnetfiles>` file.  The ``config_dir`` parameter indicates the directory
-containing :ref:`tnsnames.ora <optnetfiles>`.  The ``wallet_location``
-parameter is the directory containing the PEM file.  In this example the files
-are in the same directory.  The ``wallet_password`` parameter should be set to
-the password created in the cloud console when downloading the wallet. It is
-not the database password. For example, to connect as the ADMIN user using the
-``mydb_low`` network service name:
+A connection can be made by using your database credentials and setting the
+``dsn`` parameter to the desired :ref:`TNS Alias <netservice>` from the
+:ref:`tnsnames.ora <optnetfiles>` file. The ``config_dir`` parameter indicates
+the directory containing :ref:`tnsnames.ora <optnetfiles>`. The
+``wallet_location`` parameter is the directory containing the PEM file. The
+``wallet_password`` parameter should be set to the password created in the
+cloud console when downloading the wallet. It is not the database user or ADMIN
+password. For example, to connect as the ADMIN user using the ``mydb_low`` TNS
+Alias:
 
 .. code-block:: python
 
-    connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low",
-                                  config_dir="/opt/OracleCloud/MYDB",
-                                  wallet_location="/opt/OracleCloud/MYDB",
-                                  wallet_password=wp)
+    connection = oracledb.connect(
+        user="admin",
+        password=pw,                               # database password for ADMIN
+        dsn="mydb_low",                            # TNS Alias from tnsnames.ora
+        config_dir="/opt/OracleCloud/MYDB",        # directory with tnsnames.ora
+        wallet_location="/opt/OracleCloud/MYDB",   # directory with ewallet.pem
+        wallet_password=wp                         # not a database user password
+    )
 
-**In python-oracledb Thick mode**
+Connecting with python-oracledb Thick mode using mTLS
++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-For python-oracledb in Thick mode, only these files from the zip are needed:
+For python-oracledb Thick mode, unzip the :ref:`wallet.zip <getwallet>` file.
+Only three files from it are needed:
 
-- ``tnsnames.ora`` - Maps net service names used for application connection
-  strings to your database services
+- ``tnsnames.ora`` - Maps :ref:`TNS Aliases <netservice>` used for application
+  connection strings to your database services
 - ``sqlnet.ora`` - Configures Oracle Network settings
-- ``cwallet.sso`` - Enables SSL/TLS connections in Thick mode.  Keep this file
-  secure
+- ``cwallet.sso`` - Enables SSL/TLS connections in python-oracledb Thick mode.
+  Keep this file secure
 
-Unzip the wallet zip file.  There are two options for placing the required
-files:
+There are two options for placing the required files:
 
-- Move the three files to the ``network/admin`` directory of the client
-  libraries used by your application. For example if you are using Instant
-  Client 19c and it is in ``$HOME/instantclient_19_15``, then you would put the
-  wallet files in ``$HOME/instantclient_19_15/network/admin/``.
+1. Move the three files to the ``network/admin`` directory of the client
+   libraries used by your application. For example, if you are using Oracle
+   Instant Client 23ai and it is in ``$HOME/instantclient_23_9``, then you would
+   put the wallet files in ``$HOME/instantclient_23_9/network/admin/``.
 
-  Connection can be made using your database credentials and setting the
-  ``dsn`` parameter to the desired network alias from the :ref:`tnsnames.ora
-  <optnetfiles>` file.  For example, to connect as the ADMIN user using the
-  ``mydb_low`` network service name:
+   A connection can be made using your database credentials and setting the
+   ``dsn`` parameter to the desired :ref:`TNS Alias <netservice>` from the
+   :ref:`tnsnames.ora <optnetfiles>` file.  For example, to connect as the ADMIN
+   user using the ``mydb_low`` TNS Alias:
 
-  .. code-block:: python
+   .. code-block:: python
 
-       connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low")
+        connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low")
 
-- Alternatively, move the three files to any accessible directory, for example
-  ``/opt/OracleCloud/MYDB``.
+2. Alternatively, move the three files to any accessible directory, for example
+   ``/opt/OracleCloud/MYDB``.
 
-  Then edit ``sqlnet.ora`` and change the wallet location directory to the
-  directory containing the ``cwallet.sso`` file.  For example::
+   Then edit ``sqlnet.ora`` and change the wallet location directory to the
+   directory containing the ``cwallet.sso`` file.  For example::
 
-    WALLET_LOCATION = (SOURCE = (METHOD = file) (METHOD_DATA = (DIRECTORY="/opt/OracleCloud/MYDB")))
-    SSL_SERVER_DN_MATCH=yes
+     WALLET_LOCATION = (SOURCE = (METHOD = file) (METHOD_DATA = (DIRECTORY="/opt/OracleCloud/MYDB")))
+     SSL_SERVER_DN_MATCH=yes
 
-  Since the ``tnsnames.ora`` and ``sqlnet.ora`` files are not in the default
-  location, your application needs to indicate where they are, either with the
-  ``config_dir`` parameter to :meth:`oracledb.init_oracle_client()`, or using
-  the ``TNS_ADMIN`` environment variable.  See :ref:`Optional Oracle Net
-  Configuration Files <optnetfiles>`.  (Neither of these settings are needed,
-  and you do not need to edit ``sqlnet.ora``, if you have put all the files in
-  the ``network/admin`` directory.)
+   Since the ``tnsnames.ora`` and ``sqlnet.ora`` files are not in the default
+   location, your application needs to indicate where they are, either with the
+   ``config_dir`` parameter to :meth:`oracledb.init_oracle_client()`, or by
+   using the ``TNS_ADMIN`` environment variable.  See :ref:`Optional Oracle Net
+   Configuration Files <optnetfiles>`.  (Neither of these settings are needed,
+   and you do not need to edit ``sqlnet.ora``, if you have put all the files in
+   the ``network/admin`` directory.)
 
-  For example, to connect as the ADMIN user using the ``mydb_low`` network
-  service name:
+   For example, to connect as the ADMIN user using the ``mydb_low`` TNS
+   alias:
 
-  .. code-block:: python
+   .. code-block:: python
 
-       oracledb.init_oracle_client(config_dir="/opt/OracleCloud/MYDB")
+        oracledb.init_oracle_client(config_dir="/opt/OracleCloud/MYDB")
 
-       connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low")
+        connection = oracledb.connect(user="admin", password=pw, dsn="mydb_low")
 
 
 In python-oracle Thick mode, to create mTLS connections in one Python process
@@ -5316,6 +5362,8 @@ Using the Easy Connect Syntax with Oracle Autonomous Database
 When python-oracledb is using Oracle Client libraries 19c, or later, you can
 optionally use :ref:`Easy Connect <easyconnect>` syntax to connect to Oracle
 Autonomous Database.
+
+This section discuss the parameters for mTLS connection.
 
 The mapping from the cloud :ref:`tnsnames.ora <optnetfiles>` entries to an Easy
 Connect string is::
@@ -5338,11 +5386,12 @@ Then your applications can connect using the connection string:
     connection = oracledb.connect(user="hr", password=userpwd, dsn=dsn)
 
 The ``wallet_location`` parameter needs to be set to the directory containing
-the ``cwallet.sso`` or ``ewallet.pem`` file from the wallet zip.  The other
-wallet files, including ``tnsnames.ora``, are not needed when you use the Easy
-Connect syntax.
+the ``cwallet.sso`` or ``ewallet.pem`` file extracted from the :ref:`wallet.zip
+<getwallet>` file. The other files, including ``tnsnames.ora``, are not needed
+when you use the Easy Connect syntax.
 
-You can add other Easy Connect parameters to the connection string, for example::
+You can add other Easy Connect parameters to the connection string, for
+example::
 
     dsn = dsn + "&https_proxy=myproxy.example.com&https_proxy_port=80"
 
@@ -5515,11 +5564,11 @@ connection strings, wallet locations, and wallet password (if required) in each
                                   wallet_password=walletpw)
 
 The ``config_dir`` parameter is the directory containing the :ref:`tnsnames.ora
-<optnetfiles>` file.  The ``wallet_location`` parameter is the directory
-containing the ``ewallet.pem`` file.  If you are using Oracle Autonomous
+<optnetfiles>` file. The ``wallet_location`` parameter is the directory
+containing the ``ewallet.pem`` file. If you are using Oracle Autonomous
 Database, both of these paths are typically the same directory where the
-``wallet.zip`` file was extracted.  The ``dsn`` should specify a TCPS
-connection.
+:ref:`wallet.zip <getwallet>` file was extracted. The ``dsn`` should specify a
+TCPS connection.
 
 **In python-oracledb Thick mode**
 
@@ -5528,7 +5577,7 @@ containing the ``MY_WALLET_DIRECTORY`` option needs to be created:
 
 .. code-block:: python
 
-    dsn = "mydb_high"   # one of the network aliases from tnsnames.ora
+    dsn = "mydb_high"   # one of the TNS Aliases from tnsnames.ora
     params = oracledb.ConnectParams(config_dir="path_to_unzipped_wallet",
                                     wallet_location="path_location_of_sso_file")
     params.parse_connect_string(dsn)
@@ -5536,10 +5585,11 @@ containing the ``MY_WALLET_DIRECTORY`` option needs to be created:
     connection = oracledb.connect(user=user_name, password=password, dsn=dsn)
 
 The ``config_dir`` parameter should be the directory containing the
-:ref:`tnsnames.ora <optnetfiles>` and ``sqlnet.ora`` files.  The
+:ref:`tnsnames.ora <optnetfiles>` and ``sqlnet.ora`` files. The
 ``wallet_location`` parameter is the directory containing the ``cwallet.sso``
-file.  If you are using Oracle Autonomous Database, both of these paths are
-typically the same directory where the ``wallet.zip`` file was extracted.
+file. If you are using Oracle Autonomous Database, both of these paths are
+typically the same directory where the :ref:`wallet.zip <getwallet>` file was
+extracted.
 
 .. note::
 

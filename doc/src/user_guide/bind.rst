@@ -31,7 +31,7 @@ more than once with different data values.  If you do not use bind variables,
 Oracle must reparse and cache multiple statements.  When using bind variables,
 Oracle Database may be able to reuse the statement execution plan and context.
 
-.. warning::
+.. important::
 
     Never concatenate or interpolate user data into SQL statements:
 
