@@ -222,6 +222,19 @@ class TestCase(test_env.BaseTestCase):
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 
+    def test_2611(self):
+        "2611 - test binding a timestamp with datetime.date as input"
+        self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestamps
+            where trunc(TimestampCol) = :value
+            """,
+            value=datetime.date(2002, 12, 14),
+        )
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

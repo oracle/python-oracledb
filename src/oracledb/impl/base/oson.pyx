@@ -587,6 +587,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
         Encode a value (node) in the OSON tree segment.
         """
         cdef:
+            char_type buf[ORA_TYPE_SIZE_MAX]
             VectorEncoder vector_encoder
             uint32_t value_len
             bytes value_bytes
@@ -626,20 +627,24 @@ cdef class OsonTreeSegment(GrowableBuffer):
         elif isinstance(value, PY_TYPE_DATETIME):
             if cydatetime.PyDateTime_DATE_GET_MICROSECOND(value) == 0:
                 self.write_uint8(TNS_JSON_TYPE_TIMESTAMP7)
-                self.write_oracle_date(value, 7, write_length=False)
+                encode_date(buf, value)
+                self.write_raw(buf, ORA_TYPE_SIZE_DATE)
             else:
                 self.write_uint8(TNS_JSON_TYPE_TIMESTAMP)
-                self.write_oracle_date(value, 11, write_length=False)
+                encode_timestamp(buf, value)
+                self.write_raw(buf, ORA_TYPE_SIZE_TIMESTAMP)
 
         # handle dates
         elif isinstance(value, PY_TYPE_DATE):
             self.write_uint8(TNS_JSON_TYPE_DATE)
-            self.write_oracle_date(value, 7, write_length=False)
+            encode_date(buf, value)
+            self.write_raw(buf, ORA_TYPE_SIZE_DATE)
 
         # handle timedeltas
         elif isinstance(value, PY_TYPE_TIMEDELTA):
             self.write_uint8(TNS_JSON_TYPE_INTERVAL_DS)
-            self.write_interval_ds(value, write_length=False)
+            encode_interval_ds(buf, value)
+            self.write_raw(buf, ORA_TYPE_SIZE_INTERVAL_DS)
 
         # handle strings
         elif isinstance(value, str):

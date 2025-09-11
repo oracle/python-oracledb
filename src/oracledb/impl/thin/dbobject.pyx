@@ -280,7 +280,8 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             buf.write_uint8(4)
             buf.write_uint32be(value)
-        elif ora_type_num in (ORA_TYPE_NUM_DATE, ORA_TYPE_NUM_TIMESTAMP,
+        elif ora_type_num in (ORA_TYPE_NUM_DATE,
+                              ORA_TYPE_NUM_TIMESTAMP,
                               ORA_TYPE_NUM_TIMESTAMP_TZ,
                               ORA_TYPE_NUM_TIMESTAMP_LTZ):
             buf.write_oracle_date(value, metadata.dbtype._buffer_size_factor)

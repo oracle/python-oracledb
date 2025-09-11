@@ -207,7 +207,7 @@ class TestCase(test_env.BaseTestCase):
 
     def test_4910(self):
         "4910 - test binding a timestamp with zero fractional seconds"
-        self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
+        self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_TZ)
         self.cursor.execute(
             """
             select *
@@ -215,6 +215,19 @@ class TestCase(test_env.BaseTestCase):
             where trunc(TimestampTZCol) = :value
             """,
             value=datetime.datetime(2022, 6, 8),
+        )
+        self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
+
+    def test_4911(self):
+        "4911 - test binding a timestamp with datetime.date as input"
+        self.cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP_TZ)
+        self.cursor.execute(
+            """
+            select *
+            from TestTimestampTZs
+            where trunc(TimestampTZCol) = :value
+            """,
+            value=datetime.date(2022, 6, 8),
         )
         self.assertEqual(self.cursor.fetchall(), [self.data_by_key[5]])
 

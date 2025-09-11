@@ -473,91 +473,33 @@ cdef class Buffer:
         """
         return self._skip_int(8, NULL)
 
-    cdef int write_binary_double(self, double value,
-                                 bint write_length=True) except -1:
+    cdef int write_binary_double(self, double value) except -1:
         """
         Writes a double value to the buffer in Oracle canonical double floating
         point format.
         """
-        cdef:
-            uint8_t b0, b1, b2, b3, b4, b5, b6, b7
-            uint64_t all_bits
-            char_type buf[8]
-            uint64_t *ptr
-        ptr = <uint64_t*> &value
-        all_bits = ptr[0]
-        b7 = all_bits & 0xff
-        b6 = (all_bits >> 8) & 0xff
-        b5 = (all_bits >> 16) & 0xff
-        b4 = (all_bits >> 24) & 0xff
-        b3 = (all_bits >> 32) & 0xff
-        b2 = (all_bits >> 40) & 0xff
-        b1 = (all_bits >> 48) & 0xff
-        b0 = (all_bits >> 56) & 0xff
-        if b0 & 0x80 == 0:
-            b0 = b0 | 0x80
-        else:
-            b0 = ~b0
-            b1 = ~b1
-            b2 = ~b2
-            b3 = ~b3
-            b4 = ~b4
-            b5 = ~b5
-            b6 = ~b6
-            b7 = ~b7
-        buf[0] = b0
-        buf[1] = b1
-        buf[2] = b2
-        buf[3] = b3
-        buf[4] = b4
-        buf[5] = b5
-        buf[6] = b6
-        buf[7] = b7
-        if write_length:
-            self.write_uint8(8)
-        self.write_raw(buf, 8)
+        cdef char_type buf[ORA_TYPE_SIZE_BINARY_DOUBLE]
+        encode_binary_double(buf, value)
+        self._write_raw_bytes_and_length(buf, sizeof(buf))
 
-    cdef int write_binary_float(self, float value,
-                                bint write_length=True) except -1:
+    cdef int write_binary_float(self, float value) except -1:
         """
         Writes a float value to the buffer in Oracle canonical floating point
         format.
         """
-        cdef:
-            uint8_t b0, b1, b2, b3
-            uint32_t all_bits
-            char_type buf[4]
-            uint32_t *ptr
-        ptr = <uint32_t*> &value
-        all_bits = ptr[0]
-        b3 = all_bits & 0xff
-        b2 = (all_bits >> 8) & 0xff
-        b1 = (all_bits >> 16) & 0xff
-        b0 = (all_bits >> 24) & 0xff
-        if b0 & 0x80 == 0:
-            b0 = b0 | 0x80
-        else:
-            b0 = ~b0
-            b1 = ~b1
-            b2 = ~b2
-            b3 = ~b3
-        buf[0] = b0
-        buf[1] = b1
-        buf[2] = b2
-        buf[3] = b3
-        if write_length:
-            self.write_uint8(4)
-        self.write_raw(buf, 4)
+        cdef char_type buf[ORA_TYPE_SIZE_BINARY_FLOAT]
+        encode_binary_float(buf, value)
+        self._write_raw_bytes_and_length(buf, sizeof(buf))
 
     cdef int write_bool(self, bint value) except -1:
         """
         Writes a boolean value to the buffer.
         """
-        if value:
-            self.write_uint8(2)
-            self.write_uint16be(0x0101)
-        else:
-            self.write_uint16be(0x0100)
+        cdef:
+            char_type buf[ORA_TYPE_SIZE_BOOLEAN]
+            ssize_t buflen
+        encode_boolean(buf, &buflen, value)
+        self._write_raw_bytes_and_length(buf, buflen)
 
     cdef int write_bytes(self, bytes value) except -1:
         """
@@ -579,75 +521,40 @@ cdef class Buffer:
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
         self._write_raw_bytes_and_length(ptr, value_len)
 
-    cdef int write_interval_ds(self, object value,
-                               bint write_length=True) except -1:
+    cdef int write_interval_ds(self, object value) except -1:
         """
         Writes an interval to the buffer in Oracle Interval Day To Second
         format.
         """
-        cdef:
-            int32_t days, seconds, fseconds
-            char_type buf[11]
-        days = cydatetime.timedelta_days(value)
-        encode_uint32be(buf, days + TNS_DURATION_MID)
-        seconds = cydatetime.timedelta_seconds(value)
-        buf[4] = (seconds // 3600) + TNS_DURATION_OFFSET
-        seconds = seconds % 3600
-        buf[5] = (seconds // 60) + TNS_DURATION_OFFSET
-        buf[6] = (seconds % 60) + TNS_DURATION_OFFSET
-        fseconds = cydatetime.timedelta_microseconds(value) * 1000
-        encode_uint32be(&buf[7], fseconds + TNS_DURATION_MID)
-        if write_length:
-            self.write_uint8(sizeof(buf))
-        self.write_raw(buf, sizeof(buf))
+        cdef char_type buf[ORA_TYPE_SIZE_INTERVAL_DS]
+        encode_interval_ds(buf, value)
+        self._write_raw_bytes_and_length(buf, sizeof(buf))
 
-    cdef int write_interval_ym(self, object value,
-                               bint write_length=True) except -1:
+    cdef int write_interval_ym(self, object value) except -1:
         """
-        Writes an interval to the buffer in Oracle Interval Day To Second
+        Writes an interval to the buffer in Oracle Interval Year To Month
         format.
         """
-        cdef:
-            int32_t years, months
-            char_type buf[5]
-        years = (<tuple> value)[0]
-        months = (<tuple> value)[1]
-        encode_uint32be(buf, years + TNS_DURATION_MID)
-        buf[4] = months + TNS_DURATION_OFFSET
-        if write_length:
-            self.write_uint8(sizeof(buf))
-        self.write_raw(buf, sizeof(buf))
+        cdef char_type buf[ORA_TYPE_SIZE_INTERVAL_YM]
+        encode_interval_ym(buf, value)
+        self._write_raw_bytes_and_length(buf, sizeof(buf))
 
-    cdef int write_oracle_date(self, object value, uint8_t length,
-                               bint write_length=True) except -1:
+    cdef int write_oracle_date(self, object value, uint8_t length) except -1:
         """
         Writes a date to the buffer in Oracle Date format.
         """
-        cdef:
-            unsigned int year
-            char_type buf[13]
-            uint32_t fsecond
-        year = cydatetime.PyDateTime_GET_YEAR(value)
-        buf[0] = <uint8_t> ((year // 100) + 100)
-        buf[1] = <uint8_t> ((year % 100) + 100)
-        buf[2] = <uint8_t> cydatetime.PyDateTime_GET_MONTH(value)
-        buf[3] = <uint8_t> cydatetime.PyDateTime_GET_DAY(value)
-        buf[4] = <uint8_t> cydatetime.PyDateTime_DATE_GET_HOUR(value) + 1
-        buf[5] = <uint8_t> cydatetime.PyDateTime_DATE_GET_MINUTE(value) + 1
-        buf[6] = <uint8_t> cydatetime.PyDateTime_DATE_GET_SECOND(value) + 1
-        if length > 7:
-            fsecond = <uint32_t> \
-                    cydatetime.PyDateTime_DATE_GET_MICROSECOND(value) * 1000
-            if fsecond == 0 and length <= 11:
+        cdef char_type buf[ORA_TYPE_SIZE_TIMESTAMP_TZ]
+        if length == 7:
+            encode_date(buf, value)
+        elif length == 11:
+            encode_timestamp(buf, value)
+            # the protocol requires that if the fractional seconds are zero
+            # that the value be transmitted as a date, not a timestamp!
+            if decode_uint32be(&buf[7]) == 0:
                 length = 7
-            else:
-                encode_uint32be(&buf[7], fsecond)
-        if length > 11:
-            buf[11] = TZ_HOUR_OFFSET
-            buf[12] = TZ_MINUTE_OFFSET
-        if write_length:
-            self.write_uint8(length)
-        self.write_raw(buf, length)
+        else:
+            encode_timestamp_tz(buf, value)
+        self._write_raw_bytes_and_length(buf, length)
 
     cdef int write_oracle_number(self, bytes num_bytes) except -1:
         """
@@ -655,147 +562,10 @@ cdef class Buffer:
         buffer.
         """
         cdef:
-            uint8_t num_digits = 0, digit, num_pairs, pair_num, digits_pos
-            bint exponent_is_negative = False, append_sentinel = False
-            ssize_t num_bytes_length, exponent_pos, pos = 0
-            bint is_negative = False, prepend_zero = False
-            uint8_t digits[NUMBER_AS_TEXT_CHARS]
-            int16_t decimal_point_index
-            int8_t exponent_on_wire
-            const char_type *ptr
-            int16_t exponent
-
-        # zero length string cannot be converted
-        num_bytes_length = len(num_bytes)
-        if num_bytes_length == 0:
-            errors._raise_err(errors.ERR_NUMBER_STRING_OF_ZERO_LENGTH)
-        elif num_bytes_length > NUMBER_AS_TEXT_CHARS:
-            errors._raise_err(errors.ERR_NUMBER_STRING_TOO_LONG)
-
-        # check to see if number is negative (first character is '-')
-        ptr = num_bytes
-        if ptr[0] == b'-':
-            is_negative = True
-            pos += 1
-
-        # scan for digits until the decimal point or exponent indicator found
-        while pos < num_bytes_length:
-            if ptr[pos] == b'.' or ptr[pos] == b'e' or ptr[pos] == b'E':
-                break
-            if ptr[pos] < b'0' or ptr[pos] > b'9':
-                errors._raise_err(errors.ERR_INVALID_NUMBER)
-            digit = ptr[pos] - <uint8_t> b'0'
-            pos += 1
-            if digit == 0 and num_digits == 0:
-                continue
-            digits[num_digits] = digit
-            num_digits += 1
-        decimal_point_index = num_digits
-
-        # scan for digits following the decimal point, if applicable
-        if pos < num_bytes_length and ptr[pos] == b'.':
-            pos += 1
-            while pos < num_bytes_length:
-                if ptr[pos] == b'e' or ptr[pos] == b'E':
-                    break
-                digit = ptr[pos] - <uint8_t> b'0'
-                pos += 1
-                if digit == 0 and num_digits == 0:
-                    decimal_point_index -= 1
-                    continue
-                digits[num_digits] = digit
-                num_digits += 1
-
-        # handle exponent, if applicable
-        if pos < num_bytes_length and (ptr[pos] == b'e' or ptr[pos] == b'E'):
-            pos += 1
-            if pos < num_bytes_length:
-                if ptr[pos] == b'-':
-                    exponent_is_negative = True
-                    pos += 1
-                elif ptr[pos] == b'+':
-                    pos += 1
-            exponent_pos = pos
-            while pos < num_bytes_length:
-                if ptr[pos] < b'0' or ptr[pos] > b'9':
-                    errors._raise_err(errors.ERR_NUMBER_WITH_INVALID_EXPONENT)
-                pos += 1
-            if exponent_pos == pos:
-                errors._raise_err(errors.ERR_NUMBER_WITH_EMPTY_EXPONENT)
-            exponent = <int16_t> int(ptr[exponent_pos:pos])
-            if exponent_is_negative:
-                exponent = -exponent
-            decimal_point_index += exponent
-
-        # if there is anything left in the string, that indicates an invalid
-        # number as well
-        if pos < num_bytes_length:
-            errors._raise_err(errors.ERR_CONTENT_INVALID_AFTER_NUMBER)
-
-        # skip trailing zeros
-        while num_digits > 0 and digits[num_digits - 1] == 0:
-            num_digits -= 1
-
-        # value must be less than 1e126 and greater than 1e-129; the number of
-        # digits also cannot exceed the maximum precision of Oracle numbers
-        if num_digits > NUMBER_MAX_DIGITS or decimal_point_index > 126 \
-                or decimal_point_index < -129:
-            errors._raise_err(errors.ERR_ORACLE_NUMBER_NO_REPR)
-
-        # if the exponent is odd, prepend a zero
-        if decimal_point_index % 2 == 1:
-            prepend_zero = True
-            if num_digits > 0:
-                digits[num_digits] = 0
-                num_digits += 1
-                decimal_point_index += 1
-
-        # determine the number of digit pairs; if the number of digits is odd,
-        # append a zero to make the number of digits even
-        if num_digits % 2 == 1:
-            digits[num_digits] = 0
-            num_digits += 1
-        num_pairs = num_digits // 2
-
-        # append a sentinel 102 byte for negative numbers if there is room
-        if is_negative and num_digits > 0 and num_digits < NUMBER_MAX_DIGITS:
-            append_sentinel = True
-
-        # write length of number
-        self.write_uint8(num_pairs + 1 + append_sentinel)
-
-        # if the number of digits is zero, the value is itself zero since all
-        # leading and trailing zeros are removed from the digits string; this
-        # is a special case
-        if num_digits == 0:
-            self.write_uint8(128)
-            return 0
-
-        # write the exponent
-        exponent_on_wire = <int8_t> (decimal_point_index / 2) + 192
-        if is_negative:
-            exponent_on_wire = ~exponent_on_wire
-        self.write_uint8(exponent_on_wire)
-
-        # write the mantissa bytes
-        digits_pos = 0
-        for pair_num in range(num_pairs):
-            if pair_num == 0 and prepend_zero:
-                digit = digits[digits_pos]
-                digits_pos += 1
-            else:
-                digit = digits[digits_pos] * 10 + digits[digits_pos + 1]
-                digits_pos += 2
-            if is_negative:
-                digit = 101 - digit
-            else:
-                digit += 1
-            self.write_uint8(digit)
-
-        # append 102 byte for negative numbers if the number of digits is less
-        # than the maximum allowable
-        if append_sentinel:
-            self.write_uint8(102)
+            char_type buf[ORA_TYPE_SIZE_NUMBER]
+            ssize_t buflen
+        encode_number(buf, &buflen, num_bytes)
+        self._write_raw_bytes_and_length(buf, buflen)
 
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
         """

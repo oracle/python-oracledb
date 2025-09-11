@@ -313,19 +313,14 @@ cdef class Buffer:
     cdef inline int skip_ub2(self) except -1
     cdef inline int skip_ub4(self) except -1
     cdef inline int skip_ub8(self) except -1
-    cdef int write_binary_double(self, double value,
-                                 bint write_length=*) except -1
-    cdef int write_binary_float(self, float value,
-                                bint write_length=*) except -1
+    cdef int write_binary_double(self, double value) except -1
+    cdef int write_binary_float(self, float value) except -1
     cdef int write_bool(self, bint value) except -1
     cdef int write_bytes(self, bytes value) except -1
     cdef int write_bytes_with_length(self, bytes value) except -1
-    cdef int write_interval_ds(self, object value,
-                               bint write_length=*) except -1
-    cdef int write_interval_ym(self, object value,
-                               bint write_length=*) except -1
-    cdef int write_oracle_date(self, object value, uint8_t length,
-                               bint write_length=*) except -1
+    cdef int write_interval_ds(self, object value) except -1
+    cdef int write_interval_ym(self, object value) except -1
+    cdef int write_oracle_date(self, object value, uint8_t length) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
     cdef int write_sb4(self, int32_t value) except -1

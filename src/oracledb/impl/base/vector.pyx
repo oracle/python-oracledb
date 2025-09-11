@@ -164,6 +164,7 @@ cdef class VectorEncoder(GrowableBuffer):
             uint8_t *uint8_ptr = value.data.as_uchars
             float *float_ptr = value.data.as_floats
             int8_t *int8_ptr = value.data.as_schars
+            char_type buf[8]
             uint32_t i
         if vector_format == VECTOR_FORMAT_INT8:
             self.write_raw(<char_type*> int8_ptr, num_elements)
@@ -172,9 +173,11 @@ cdef class VectorEncoder(GrowableBuffer):
         else:
             for i in range(num_elements):
                 if vector_format == VECTOR_FORMAT_FLOAT32:
-                    self.write_binary_float(float_ptr[i], write_length=False)
+                    encode_binary_float(buf, float_ptr[i])
+                    self.write_raw(buf, 4)
                 elif vector_format == VECTOR_FORMAT_FLOAT64:
-                    self.write_binary_double(double_ptr[i], write_length=False)
+                    encode_binary_double(buf, double_ptr[i])
+                    self.write_raw(buf, 8)
 
     cdef uint8_t _get_vector_format(self, array.array value):
         """

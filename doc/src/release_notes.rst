@@ -19,6 +19,11 @@ oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when setting values of type ``datetime.date`` on variables of
+    types :attr:`oracledb.DB_TYPE_TIMESTAMP`,
+    :attr:`oracledb.DB_TYPE_TIMESTAMP_TZ` and
+    :attr:`oracledb.DB_TYPE_TIMESTAMP_LTZ`.
+#)  Internal change: refactor encoding of Oracle data types.
 #)  Internal change: small performance improvement sending bytes on the
     network transport.
 

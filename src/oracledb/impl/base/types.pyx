@@ -128,7 +128,7 @@ DB_TYPE_BINARY_DOUBLE = DbType(
     NATIVE_TYPE_NUM_DOUBLE,
     ORA_TYPE_NUM_BINARY_DOUBLE,
     PY_TYPE_NUM_FLOAT,
-    buffer_size_factor=8
+    buffer_size_factor=ORA_TYPE_SIZE_BINARY_DOUBLE
 )
 
 DB_TYPE_BINARY_FLOAT = DbType(
@@ -138,7 +138,7 @@ DB_TYPE_BINARY_FLOAT = DbType(
     NATIVE_TYPE_NUM_FLOAT,
     ORA_TYPE_NUM_BINARY_FLOAT,
     PY_TYPE_NUM_FLOAT,
-    buffer_size_factor=4
+    buffer_size_factor=ORA_TYPE_SIZE_BINARY_FLOAT
 )
 
 DB_TYPE_BINARY_INTEGER = DbType(
@@ -148,7 +148,7 @@ DB_TYPE_BINARY_INTEGER = DbType(
     NATIVE_TYPE_NUM_INT64,
     ORA_TYPE_NUM_BINARY_INTEGER,
     PY_TYPE_NUM_INT,
-    buffer_size_factor=22
+    buffer_size_factor=ORA_TYPE_SIZE_NUMBER
 )
 
 DB_TYPE_BLOB = DbType(
@@ -168,7 +168,7 @@ DB_TYPE_BOOLEAN = DbType(
     NATIVE_TYPE_NUM_BOOLEAN,
     ORA_TYPE_NUM_BOOLEAN,
     PY_TYPE_NUM_BOOL,
-    buffer_size_factor=4
+    buffer_size_factor=ORA_TYPE_SIZE_BOOLEAN
 )
 
 DB_TYPE_CHAR = DbType(
@@ -211,7 +211,7 @@ DB_TYPE_DATE = DbType(
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_DATE,
     PY_TYPE_NUM_DATETIME,
-    buffer_size_factor=7
+    buffer_size_factor=ORA_TYPE_SIZE_DATE
 )
 
 DB_TYPE_INTERVAL_DS = DbType(
@@ -221,7 +221,7 @@ DB_TYPE_INTERVAL_DS = DbType(
     NATIVE_TYPE_NUM_INTERVAL_DS,
     ORA_TYPE_NUM_INTERVAL_DS,
     PY_TYPE_NUM_TIMEDELTA,
-    buffer_size_factor=11
+    buffer_size_factor=ORA_TYPE_SIZE_INTERVAL_DS
 )
 
 DB_TYPE_INTERVAL_YM = DbType(
@@ -231,7 +231,7 @@ DB_TYPE_INTERVAL_YM = DbType(
     NATIVE_TYPE_NUM_INTERVAL_YM,
     ORA_TYPE_NUM_INTERVAL_YM,
     PY_TYPE_NUM_ORACLE_INTERVAL_YM,
-    buffer_size_factor=5
+    buffer_size_factor=ORA_TYPE_SIZE_INTERVAL_YM
 )
 
 DB_TYPE_JSON = DbType(
@@ -305,7 +305,7 @@ DB_TYPE_NUMBER = DbType(
     NATIVE_TYPE_NUM_BYTES,
     ORA_TYPE_NUM_NUMBER,
     PY_TYPE_NUM_FLOAT,
-    buffer_size_factor=22
+    buffer_size_factor=ORA_TYPE_SIZE_NUMBER
 )
 
 DB_TYPE_NVARCHAR = DbType(
@@ -347,7 +347,7 @@ DB_TYPE_ROWID = DbType(
     NATIVE_TYPE_NUM_ROWID,
     ORA_TYPE_NUM_ROWID,
     PY_TYPE_NUM_STR,
-    buffer_size_factor=18
+    buffer_size_factor=ORA_TYPE_SIZE_ROWID
 )
 
 DB_TYPE_TIMESTAMP = DbType(
@@ -357,7 +357,7 @@ DB_TYPE_TIMESTAMP = DbType(
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP,
     PY_TYPE_NUM_DATETIME,
-    buffer_size_factor=11
+    buffer_size_factor=ORA_TYPE_SIZE_TIMESTAMP
 )
 
 DB_TYPE_TIMESTAMP_LTZ = DbType(
@@ -367,7 +367,7 @@ DB_TYPE_TIMESTAMP_LTZ = DbType(
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP_LTZ,
     PY_TYPE_NUM_DATETIME,
-    buffer_size_factor=11
+    buffer_size_factor=ORA_TYPE_SIZE_TIMESTAMP
 )
 
 DB_TYPE_TIMESTAMP_TZ = DbType(
@@ -377,7 +377,7 @@ DB_TYPE_TIMESTAMP_TZ = DbType(
     NATIVE_TYPE_NUM_TIMESTAMP,
     ORA_TYPE_NUM_TIMESTAMP_TZ,
     PY_TYPE_NUM_DATETIME,
-    buffer_size_factor=13
+    buffer_size_factor=ORA_TYPE_SIZE_TIMESTAMP_TZ
 )
 
 DB_TYPE_UNKNOWN = DbType(
