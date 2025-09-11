@@ -19,6 +19,9 @@ oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Internal change: small performance improvement sending bytes on the
+    network transport.
+
 Thick Mode Changes
 ++++++++++++++++++
 
