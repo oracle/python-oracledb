@@ -41,6 +41,9 @@ Common Changes
 #)  Added support for all of the signed and unsigned fixed width integer types
     when ingesting data frames supporting the Arrow PyCapsule interface.
     Previously only ``int64`` was supported.
+#)  Added support for types ``date32`` and ``date64`` when ingesting data
+    frames supporting the Arrow PyCapsule interface as requested
+    (`issue 534 <https://github.com/oracle/python-oracledb/issues/534>`__).
 #)  Added ``fetch_lobs`` and ``fetch_decimals`` parameters where applicable to
     the methods used for fetching rows or data frames from the database. Note
     that for the creation of pipeline operations, if these parameters are not

@@ -898,6 +898,53 @@ class TestCase(test_env.BaseTestCase):
                 fetched_values = [int(s) for s, in self.cursor]
                 self.assertEqual(fetched_values, values)
 
+    def test_8920(self):
+        "8920 - test ingestion with alternative date types"
+        scenarios = [
+            (
+                [
+                    datetime.datetime(1915, 9, 11),
+                    None,
+                    datetime.datetime(2045, 2, 28),
+                ],
+                pyarrow.date32(),
+            ),
+            (
+                [
+                    datetime.datetime(1905, 3, 30),
+                    None,
+                    datetime.datetime(2060, 10, 5),
+                ],
+                pyarrow.date64(),
+            ),
+        ]
+        names = ["Id", "DateOfBirth"]
+        for values, dtype in scenarios:
+            with self.subTest(dtype=str(dtype)):
+                arrays = [
+                    pyarrow.array([1, 2, 3], pyarrow.int8()),
+                    pyarrow.array(values, dtype),
+                ]
+                df = pyarrow.table(arrays, names)
+                self.cursor.execute("delete from TestDataFrame")
+                self.cursor.executemany(
+                    """
+                    insert into TestDataFrame (Id, DateOfBirth)
+                    values (:1, :2)
+                    """,
+                    df,
+                )
+                self.conn.commit()
+                self.cursor.execute(
+                    """
+                    select DateOfBirth
+                    from TestDataFrame
+                    order by Id
+                    """
+                )
+                fetched_values = [d for d, in self.cursor]
+                self.assertEqual(fetched_values, values)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

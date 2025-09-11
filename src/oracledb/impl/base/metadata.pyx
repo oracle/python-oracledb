@@ -187,6 +187,8 @@ cdef class OracleMetadata:
             metadata.dbtype = DB_TYPE_BOOLEAN
         elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
             metadata.dbtype = DB_TYPE_TIMESTAMP
+        elif arrow_type in (NANOARROW_TYPE_DATE32, NANOARROW_TYPE_DATE64):
+            metadata.dbtype = DB_TYPE_DATE
         elif arrow_type == NANOARROW_TYPE_LARGE_STRING:
             metadata.dbtype = DB_TYPE_LONG
         elif arrow_type == NANOARROW_TYPE_LARGE_BINARY:

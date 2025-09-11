@@ -365,7 +365,7 @@ cdef class ArrowArrayImpl:
                 value[0] = (<int8_t*> ptr)[index]
             elif arrow_type == NANOARROW_TYPE_INT16:
                 value[0] = (<int16_t*> ptr)[index]
-            elif arrow_type == NANOARROW_TYPE_INT32:
+            elif arrow_type in (NANOARROW_TYPE_INT32, NANOARROW_TYPE_DATE32):
                 value[0] = (<int32_t*> ptr)[index]
             else:
                 value[0] = (<int64_t*> ptr)[index]

@@ -90,7 +90,7 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         rb = &data.buffer.as_raw_bytes
         array_impl.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
                               &rb.num_bytes)
-    elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
+    elif arrow_type in (NANOARROW_TYPE_TIMESTAMP, NANOARROW_TYPE_DATE64):
         array_impl.get_int(arrow_type, array_index, &data.is_null, &int_value)
         if not data.is_null:
             seconds = int_value // array_impl.schema_impl.time_factor
@@ -103,6 +103,10 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
                 useconds //= 1_000
             return EPOCH_DATE + \
                     cydatetime.timedelta_new(days, seconds, useconds)
+    elif arrow_type == NANOARROW_TYPE_DATE32:
+        array_impl.get_int(arrow_type, array_index, &data.is_null, &int_value)
+        if not data.is_null:
+            return EPOCH_DATE + cydatetime.timedelta_new(int_value, 0, 0)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
         temp_bytes = array_impl.get_decimal(array_index, &data.is_null)
         if not data.is_null:

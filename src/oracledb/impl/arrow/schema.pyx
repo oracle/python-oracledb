@@ -129,6 +129,8 @@ cdef class ArrowSchemaImpl:
         self.fixed_size = schema_view.fixed_size
         if schema_view.type == NANOARROW_TYPE_TIMESTAMP:
             self._set_time_unit(schema_view.time_unit)
+        elif schema_view.type == NANOARROW_TYPE_DATE64:
+            self._set_time_unit(NANOARROW_TIME_UNIT_MILLI)
         elif schema_view.type in (
                 NANOARROW_TYPE_FIXED_SIZE_LIST,
                 NANOARROW_TYPE_LIST
@@ -143,6 +145,8 @@ cdef class ArrowSchemaImpl:
                 NANOARROW_TYPE_BINARY,
                 NANOARROW_TYPE_BOOL,
                 NANOARROW_TYPE_DECIMAL128,
+                NANOARROW_TYPE_DATE32,
+                NANOARROW_TYPE_DATE64,
                 NANOARROW_TYPE_DOUBLE,
                 NANOARROW_TYPE_FIXED_SIZE_BINARY,
                 NANOARROW_TYPE_FLOAT,
