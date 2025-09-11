@@ -64,11 +64,12 @@ or later.  This Thin mode does not need Oracle Client libraries.
 The figure shows the architecture of python-oracledb.  Users interact with a
 Python application, for example by making web requests. The application program
 makes calls to python-oracledb functions. The connection from python-oracledb
-Thin mode to the Oracle Database is established directly.  The database can be
-on the same machine as Python, or it can be remote.
+Thin mode to Oracle Database is established directly by python-oracledb over
+the Oracle Net protocol. The database can be on the same machine as Python, or
+it can be remote.
 
-The Oracle Net behavior can optionally be configured by using a
-``tnsnames.ora`` file and with application settings. See :ref:`optnetfiles`.
+The behavior of Oracle Net can optionally be configured with application
+settings, or by using a ``tnsnames.ora`` file, see :ref:`optnetfiles`.
 
 python-oracledb Thick Mode Architecture
 ---------------------------------------
@@ -89,10 +90,10 @@ later.
 The figure shows the architecture of the python-oracledb Thick mode.  Users
 interact with a Python application, for example by making web requests. The
 application program makes calls to python-oracledb functions. Internally,
-python-oracledb dynamically loads Oracle Client libraries.  Connections from
-python-oracledb Thick mode to Oracle Database are established using the Oracle
-Client libraries.  The database can be on the same machine as Python, or it can
-be remote.
+python-oracledb dynamically loads Oracle Client libraries. Connections from
+python-oracledb Thick mode to Oracle Database are established by the Oracle
+Client libraries over the Oracle Net protocol. The database can be on the same
+machine as Python, or it can be remote.
 
 To use python-oracledb Thick mode, the Oracle Client libraries must be
 installed separately, see :ref:`installation`.  The libraries can be from an
@@ -108,7 +109,7 @@ Some behaviors of the Oracle Client libraries can optionally be configured with
 an ``oraaccess.xml`` file, for example to enable auto-tuning of a statement
 cache.  See :ref:`optclientfiles`.
 
-The Oracle Net behavior can optionally be configured with files such as
+The behavior of Oracle Net can optionally be configured with files such as
 ``tnsnames.ora`` and ``sqlnet.ora``, for example to enable :ref:`network
 encryption <netencrypt>`. See :ref:`optnetfiles`.
 

@@ -20,8 +20,7 @@ AsyncCursor Class
 
     .. note::
 
-        AsyncCursor objects are only supported in the python-oracledb Thin
-        mode.
+        AsyncCursor objects are only supported in python-oracledb Thin mode.
 
 .. _asynccursormeth:
 

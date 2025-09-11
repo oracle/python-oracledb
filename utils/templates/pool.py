@@ -296,12 +296,8 @@ class BaseConnectionPool:
     @property
     def thin(self) -> bool:
         """
-        This read-only attribute returns a boolean which indicates the
-        python-oracledb mode in which the pool was created. If the value of
-        this attribute is *True*, it indicates that the pool was created in the
-        python-oracledb Thin mode. If the value of this attribute is *False*,
-        it indicates that the pool was created in the python-oracledb Thick
-        mode.
+        This read-only attribute returns a boolean indicating if
+        python-oracledb is in Thin mode (*True*) or Thick mode (*False*).
         """
         self._verify_open()
         return not isinstance(self._impl, thick_impl.ThickPoolImpl)

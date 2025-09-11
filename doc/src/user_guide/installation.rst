@@ -6,7 +6,7 @@
 Installing python-oracledb
 ***************************
 
-The python-oracledb driver allows Python 3 applications to connect to Oracle
+The python-oracledb driver allows Python applications to connect to Oracle
 Database.
 
 The python-oracledb driver is the renamed, major version successor to cx_Oracle

@@ -180,7 +180,7 @@ used for new development.
     * - ``Cursor.executemanyprepared()``
       - Use :meth:`Cursor.executemany()` instead.
     * - Previously deprecated Advanced Queuing (AQ) API
-      - Use the new :ref:`AQ API <aq>` instead.  AQ is only available in the python-oracledb Thick mode.
+      - Use the new :ref:`AQ API <aq>` instead.  AQ is only available in python-oracledb Thick mode.
     * - ``Connection.deq()``
       - Replace with :meth:`Queue.deqone()` or :meth:`Queue.deqmany()`
     * - ``Connection.deqoptions()``

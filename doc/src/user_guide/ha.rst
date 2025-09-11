@@ -97,7 +97,7 @@ must connect to a FAN-enabled database service.  The application should have
 
 .. note::
 
-    FAN is only supported in the python-oracledb Thick mode. See
+    FAN is only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
 FAN support is useful for planned and unplanned outages. It provides immediate
@@ -141,8 +141,8 @@ applications.
 
 .. note::
 
-    Oracle AC and TAC functionality is only supported in the python-oracledb
-    Thick mode.  See :ref:`enablingthick`.
+    Oracle AC and TAC functionality is only supported in python-oracledb Thick
+    mode.  See :ref:`enablingthick`.
 
 When AC or TAC are configured on the database service, they are transparently
 available to python-oracledb applications.

@@ -21,7 +21,7 @@ AsyncLOB Class
 
     .. note::
 
-        AsyncLOB objects are only supported in the python-oracledb Thin mode.
+        AsyncLOB objects are only supported in python-oracledb Thin mode.
 
 .. _asynclobmeth:
 

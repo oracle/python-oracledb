@@ -265,8 +265,8 @@ Application-wide defaults can be set using
     oracledb.defaults.prefetchrows = 1000
     oracledb.defaults.arraysize    = 1000
 
-When using python-oracledb in the Thick mode, prefetching can also be tuned in
-an external :ref:`oraaccess.xml <optclientfiles>` file, which may be useful for
+When using python-oracledb in Thick mode, prefetching can also be tuned in an
+external :ref:`oraaccess.xml <optclientfiles>` file, which may be useful for
 tuning an application when modifying its code is not feasible.
 
 Setting the sizes with ``oracledb.defaults`` attributes or with
@@ -649,8 +649,8 @@ mostly static, lookup tables, such as for postal codes.  CRC reduces network
 
 .. note::
 
-    Client Result Caching is only supported in the python-oracledb Thick mode.
-    See :ref:`enablingthick`.
+    Client Result Caching is only supported in python-oracledb Thick mode. See
+    :ref:`enablingthick`.
 
 The cache is at the application process level.  Access and invalidation is
 managed by the Oracle Client libraries.  This removes the need for extra

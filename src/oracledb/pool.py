@@ -298,12 +298,8 @@ class BaseConnectionPool:
     @property
     def thin(self) -> bool:
         """
-        This read-only attribute returns a boolean which indicates the
-        python-oracledb mode in which the pool was created. If the value of
-        this attribute is *True*, it indicates that the pool was created in the
-        python-oracledb Thin mode. If the value of this attribute is *False*,
-        it indicates that the pool was created in the python-oracledb Thick
-        mode.
+        This read-only attribute returns a boolean indicating if
+        python-oracledb is in Thin mode (*True*) or Thick mode (*False*).
         """
         self._verify_open()
         return not isinstance(self._impl, thick_impl.ThickPoolImpl)
@@ -820,7 +816,9 @@ def create_pool(
       (default: None)
 
     - ``wallet_password``: the password to use to decrypt the wallet, if it is
-      encrypted. This value is only used in python-oracledb Thin mode
+      encrypted. This is not the database password. For Oracle Autonomous
+      Database this is the password created when downloading the wallet. This
+      value is only used in python-oracledb Thin mode.
       (default: None)
 
     - ``access_token``: a string, or a 2-tuple, or a callable. If it is a
@@ -1410,7 +1408,9 @@ def create_pool_async(
       (default: None)
 
     - ``wallet_password``: the password to use to decrypt the wallet, if it is
-      encrypted. This value is only used in python-oracledb Thin mode
+      encrypted. This is not the database password. For Oracle Autonomous
+      Database this is the password created when downloading the wallet. This
+      value is only used in python-oracledb Thin mode.
       (default: None)
 
     - ``access_token``: a string, or a 2-tuple, or a callable. If it is a

@@ -739,9 +739,8 @@ class BaseConnection:
     @property
     def thin(self) -> bool:
         """
-        This read-only attribute returns a boolean indicating if the connection
-        was established with the python-oracledb Thin mode (*True*) or
-        python-oracledb Thick mode (*False*).
+        This read-only attribute returns a boolean indicating if
+        python-oracledb is in Thin mode (*True*) or Thick mode (*False*).
         """
         self._verify_connected()
         return self._impl.thin

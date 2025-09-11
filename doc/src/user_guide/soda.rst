@@ -17,7 +17,7 @@ existing :ref:`Oracle Database 23ai JSON-Relational Duality Views
 
 .. note::
 
-    SODA is only supported in the python-oracledb Thick mode.  See
+    SODA is only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
 SODA uses a SQL schema to store documents, but you do not need to know SQL or

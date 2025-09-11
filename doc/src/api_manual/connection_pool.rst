@@ -17,8 +17,8 @@ ConnectionPool Class
     SessionPool came from the `Oracle Call Interface (OCI) session pool
     <https://www.oracle.com/pls/topic/
     lookup?ctx=dblatest&id=GUID-F9662FFB-EAEF-495C-96FC-49C6D1D9625C>`__. This
-    implementation is only used in the python-oracledb Thick mode and is not
-    available in the Thin mode).
+    implementation is only used in python-oracledb Thick mode and is not
+    available in Thin mode).
 
     .. dbapiobjectextension::
 
@@ -151,6 +151,8 @@ ConnectionPool Attributes
     See :ref:`Statement Caching <stmtcache>` for more information.
 
 .. autoproperty:: ConnectionPool.thin
+
+    See :ref:`vsessconinfo`.
 
 .. autoproperty:: ConnectionPool.timeout
 

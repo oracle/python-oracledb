@@ -14,7 +14,7 @@ JSON strings. See the :ref:`user manual <sodausermanual>` for examples.
 
 .. note::
 
-    SODA is only supported in the python-oracledb Thick mode.  See
+    SODA is only supported in python-oracledb Thick mode.  See
     :ref:`enablingthick`.
 
 .. _sodarequirements:
@@ -30,14 +30,14 @@ DBA:
 
     SQL> grant soda_app, create table to myuser;
 
-Advanced users who are using Oracle sequences for keys will also need the CREATE
-SEQUENCE privilege.
+Advanced users who are using Oracle sequences for keys will also need the
+CREATE SEQUENCE privilege.
 
 SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
 
 .. note::
 
-    SODA APIs are only supported in the python-oracledb Thick mode. See
+    SODA APIs are only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
 If you are using Oracle Database 21c (or later) and create new collections

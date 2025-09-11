@@ -20,8 +20,8 @@ AsyncConnectionPool Class
 
     .. note::
 
-        AsyncConnectionPool objects are only supported in the python-oracledb
-        Thin mode.
+        AsyncConnectionPool objects are only supported in python-oracledb Thin
+        mode.
 
 .. _asynconnpoolmeth:
 

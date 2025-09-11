@@ -214,6 +214,8 @@ Oracledb Methods
 
 .. autofunction:: is_thin_mode
 
+    See :ref:`vsessconinfo`.
+
     .. dbapimethodextension::
 
     .. versionadded:: 1.1.0

@@ -422,6 +422,8 @@ Connection Attributes
 
 .. autoproperty:: Connection.thin
 
+    See :ref:`vsessconinfo`.
+
     .. dbapiattributeextension::
 
 .. autoproperty:: Connection.transaction_in_progress

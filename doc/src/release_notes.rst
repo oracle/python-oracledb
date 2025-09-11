@@ -995,12 +995,12 @@ Common Changes
 #)  Error ``DPY-2016: variable array size of %d is too small (should be at
     least %d)`` is now raised when :meth:`Cursor.executemany()` is called with
     an integer number of iterations that is too large for the existing bind
-    variables. Previously, the python-oracledb Thin mode raised ``IndexError``
+    variables. Previously, python-oracledb Thin mode raised ``IndexError``
     and python-oracledb Thick mode raised
     ``DPI-1018: array size of %d is too small``.
 #)  Error ``DPY-1001: not connected to database`` is now raised when an attempt
     is made to perform an operation on a LOB using a closed connection.
-    Previously, the python-oracledb Thin mode raised an ``AttributeError``
+    Previously, python-oracledb Thin mode raised an ``AttributeError``
     exception and python-oracledb Thick mode raised
     ``DPI-1040: LOB was already closed``.
 #)  Fixed bug in :meth:`ConnectParams.get_connect_string()` when a value for
@@ -1809,7 +1809,7 @@ oracledb 1.0.0 (May 2022)
     :ref:`'Thick' mode <enablingthick>` with some additional functionality.
     Both modes support the Python Database API v2.0 Specification.
 #)  Added a :attr:`Connection.thin` attribute which shows whether the
-    connection was established in the python-oracledb Thin mode or Thick mode.
+    connection was established in python-oracledb Thin mode or Thick mode.
 #)  Creating connections or connection pools now requires keyword parameters be
     passed. This brings python-oracledb into compliance with the Python
     Database API specification PEP 249.

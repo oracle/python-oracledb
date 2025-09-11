@@ -741,9 +741,8 @@ class BaseConnection:
     @property
     def thin(self) -> bool:
         """
-        This read-only attribute returns a boolean indicating if the connection
-        was established with the python-oracledb Thin mode (*True*) or
-        python-oracledb Thick mode (*False*).
+        This read-only attribute returns a boolean indicating if
+        python-oracledb is in Thin mode (*True*) or Thick mode (*False*).
         """
         self._verify_connected()
         return self._impl.thin
@@ -1770,7 +1769,9 @@ def connect(
       (default: None)
 
     - ``wallet_password``: the password to use to decrypt the wallet, if it is
-      encrypted. This value is only used in python-oracledb Thin mode
+      encrypted. This is not the database password. For Oracle Autonomous
+      Database this is the password created when downloading the wallet. This
+      value is only used in python-oracledb Thin mode.
       (default: None)
 
     - ``access_token``: a string, or a 2-tuple, or a callable. If it is a
@@ -2984,7 +2985,9 @@ def connect_async(
       (default: None)
 
     - ``wallet_password``: the password to use to decrypt the wallet, if it is
-      encrypted. This value is only used in python-oracledb Thin mode
+      encrypted. This is not the database password. For Oracle Autonomous
+      Database this is the password created when downloading the wallet. This
+      value is only used in python-oracledb Thin mode.
       (default: None)
 
     - ``access_token``: a string, or a 2-tuple, or a callable. If it is a

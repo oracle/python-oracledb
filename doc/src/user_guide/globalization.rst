@@ -13,14 +13,14 @@ Database Character Set
 ----------------------
 
 Data fetched from and sent to Oracle Database will be mapped between the
-`database character set
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-EA913CC8-C5BA-4FB3-A1B8-882734AF4F43>`__
-and the "Oracle client" character set of the Oracle Client libraries used by
-python-oracledb. If data cannot be correctly mapped between client and server
-character sets, then it may be corrupted or queries may fail with :ref:`"codec
-can't decode byte" <codecerror>`.
+`database character set <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+id=GUID-EA913CC8-C5BA-4FB3-A1B8-882734AF4F43>`__ and the "Oracle client"
+character set of the Oracle Client libraries used by python-oracledb. If data
+cannot be correctly mapped between client and server character sets, then it
+may be corrupted or queries may fail with
+:ref:`"codec can't decode byte" <codecerror>`.
 
-All database character sets are supported by the python-oracledb.
+All database character sets are supported by python-oracledb.
 
 .. _findingcharset:
 
@@ -35,12 +35,12 @@ To find the database character set, execute the query:
 Database National Character Set
 -------------------------------
 
-For the secondary `national character set
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-4E12D991-C286-4F1A-AFC6-F35040A5DE4F>`__
-used for NCHAR, NVARCHAR2, and NCLOB data types:
+For the secondary `national character set <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-4E12D991-C286-4F1A-AFC6-F35040A5DE4F>`__ used for
+NCHAR, NVARCHAR2, and NCLOB data types:
 
-- AL16UTF16 is supported by both the python-oracledb Thin and Thick modes
-- UTF8 is not supported by the python-oracledb Thin mode
+- AL16UTF16 is supported by both python-oracledb Thin and Thick modes
+- UTF8 is not supported by python-oracledb Thin mode
 
 To find the database's national character set, execute the query:
 
@@ -194,8 +194,8 @@ names.  The territory ("JAPAN") specifies conventions such as the default date,
 monetary, and numeric formats. If the language is not specified, then the value
 defaults to AMERICAN.  If the territory is not specified, then the value is
 derived from the language value.  See `Choosing a Locale with the NLS_LANG
-Environment Variable
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__
+Environment Variable <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-86A29834-AE29-4BA5-8A78-E19C168B690A>`__.
 
 If the ``NLS_LANG`` environment variable is set in the application with
 ``os.environ['NLS_LANG']``, it must be set before any connection pool is
@@ -206,9 +206,9 @@ Any client character set value in the ``NLS_LANG`` variable, for example
 Client Character Set`_.
 
 Other Oracle globalization variables, such as ``NLS_DATE_FORMAT`` can also be
-set to change the behavior of python-oracledb Thick, see `Setting NLS Parameters
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-6475CA50-6476-4559-AD87-35D431276B20>`__.
+set to change the behavior of python-oracledb Thick, see `Setting NLS
+Parameters <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+6475CA50-6476-4559-AD87-35D431276B20>`__.
 
 For more information, see the `Database Globalization Support Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=NLSPG>`__.
@@ -220,7 +220,7 @@ Thin Mode Locale-aware Number and Date Conversions
 
 .. note::
 
-    All NLS environment variables are ignored by the python-oracledb Thin mode.
+    All NLS environment variables are ignored by python-oracledb Thin mode.
     Also the ``ORA_TZFILE`` variable is ignored.
 
 .. note::
@@ -230,10 +230,10 @@ Thin Mode Locale-aware Number and Date Conversions
     mode``.  Data stored with a numeric offset such as ``+00:00`` can be
     fetched.
 
-In the python-oracledb Thin mode, output type handlers need to be used to
-perform date and number localizations.  The examples below show a simple
-conversion and also how the Python locale module can be used.  Type handlers
-like those below can also be used in python-oracledb Thick mode.
+In python-oracledb Thin mode, output type handlers need to be used to perform
+date and number localizations. The examples below show a simple conversion and
+also how the Python locale module can be used.  Type handlers like those below
+can also be used in python-oracledb Thick mode.
 
 To convert numbers:
 

@@ -44,7 +44,7 @@ autoclass_content = "init"
 templates_path = [".templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {".rst": "restructuredtext"}
 
 # The root toctree document.
 root_doc = master_doc = "index"

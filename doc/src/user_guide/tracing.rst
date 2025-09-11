@@ -563,23 +563,41 @@ Finding the python-oracledb Mode
 ================================
 
 The boolean attributes :attr:`Connection.thin` and :attr:`ConnectionPool.thin`
-can be used to show the current mode of a python-oracledb connection or pool,
-respectively. The method :meth:`oracledb.is_thin_mode()` can also be used, but
-review its usage notes about when its return value may change.
+can be used to find whether python-oracledb is in Thin or Thick mode.
 
-For example, to show the mode used by a connection:
+For example, to show the current python-oracledb mode:
 
 .. code-block:: python
 
     print(connection.thin)
 
-The python-oracledb version can be shown with :data:`oracledb.__version__`:
+The method :meth:`oracledb.is_thin_mode()` can also be used to find the
+mode. Immediately after python-oracledb is imported,
+:meth:`oracledb.is_thin_mode()` will return *True* indicating that
+python-oracledb defaults to Thin mode.  However if a call to
+:meth:`oracledb.init_oracle_client()` is made and it returns successfully, then
+:meth:`oracledb.is_thin_mode()` will return *False*, indicating that Thick mode
+is enabled.  Once the first standalone connection or connection pool is
+created, or a successful call to :meth:`~oracledb.init_oracle_client()` is
+made, or :meth:`oracledb.enable_thin_mode()` is called, then python-oracledb’s
+mode is fixed and the value returned by :meth:`oracledb.is_thin_mode()` will
+never change for the lifetime of the process.
+
+For example:
 
 .. code-block:: python
 
-    print(oracledb.__version__)
+    print(oracledb.is_thin_mode())
+    oracledb.init_oracle_client()
+    print(oracledb.is_thin_mode())
 
-Version and mode information can also be seen in the Oracle Database data
+If the call to :meth:`~oracledb.init_oracle_client()`, succeeds, the code above
+prints::
+
+    True
+    False
+
+Mode and version information can also be seen in the Oracle Database data
 dictionary table `V$SESSION_CONNECT_INFO
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__:
@@ -595,15 +613,22 @@ id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__:
 
 In python-oracledb Thin mode, the output will be like::
 
-    python-oracledb thn : 3.2.0
+    python-oracledb thn : 3.4.0
 
 In python-oracledb Thick mode, the output will be like::
 
-    python-oracledb thk : 3.2.0
+    python-oracledb thk : 3.4.0
 
 Note that you may not see these values if you have set
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` or the
 ``driver_name`` parameter in :meth:`oracledb.init_oracle_client()`.
+
+The python-oracledb version can also be shown with
+:data:`oracledb.__version__`:
+
+.. code-block:: python
+
+    print(oracledb.__version__)
 
 Low Level Python-oracledb Driver Tracing
 ========================================

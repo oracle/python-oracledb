@@ -212,7 +212,9 @@ class PoolParams(ConnectParams):
           (default: None)
 
         - ``wallet_password``: the password to use to decrypt the wallet, if it
-          is encrypted. This value is only used in python-oracledb Thin mode
+          is encrypted. This is not the database password. For Oracle
+          Autonomous Database this is the password created when downloading the
+          wallet. This value is only used in python-oracledb Thin mode.
           (default: None)
 
         - ``access_token``: a string, or a 2-tuple, or a callable. If it is a
@@ -811,7 +813,9 @@ class PoolParams(ConnectParams):
           the database
 
         - ``wallet_password``: the password to use to decrypt the wallet, if it
-          is encrypted. This value is only used in python-oracledb Thin mode
+          is encrypted. This is not the database password. For Oracle
+          Autonomous Database this is the password created when downloading the
+          wallet. This value is only used in python-oracledb Thin mode.
 
         - ``access_token``: a string, or a 2-tuple, or a callable. If it is a
           string, it specifies an Entra ID OAuth2 token used for Open

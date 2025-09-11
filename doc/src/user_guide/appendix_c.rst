@@ -99,7 +99,7 @@ following steps:
 
 1. Install the new python-oracledb module::
 
-        python -m pip install oracledb
+        python -m pip install oracledb --upgrade
 
    See :ref:`installation` for more details.
 
@@ -248,13 +248,13 @@ following steps:
     used by cx_Oracle and python-oracledb in Thick mode are mostly returned
     unchanged from cx_Oracle 8.3. Some exceptions shown below.
 
-    Note that the python-oracledb driver error messages can also vary between Thin
-    and Thick modes. See :ref:`errorhandling`.
+    Note that the python-oracledb driver error messages can also vary between
+    Thin and Thick modes. See :ref:`errorhandling`.
 
     **ConnectionPool.acquire() Message Differences**
 
-    :meth:`ConnectionPool.acquire()` ORA errors will be mapped to DPY errors.  For
-    example::
+    :meth:`ConnectionPool.acquire()` ORA errors will be mapped to DPY errors.
+    For example::
 
         DPY-4005: timed out waiting for the connection pool to return a connection
 
@@ -385,9 +385,9 @@ need to be made in addition to the common :ref:`commonupgrade`:
 
    The :func:`oracledb.clientversion()` function shows the version of the
    Oracle Client libraries being used. Since Oracle Client libraries are not
-   used in the python-oracledb Thin mode, this function cannot be called. If it
-   is called before calling :func:`oracledb.init_oracle_client()`, an exception
-   is thrown.
+   used in python-oracledb Thin mode, this function cannot be called. If it is
+   called before calling :func:`oracledb.init_oracle_client()`, an exception is
+   thrown.
 
 5. To connect using a :ref:`TNS Alias <netservice>` from a ``tnsnames.ora``
    file (see :ref:`optnetfiles`) in python-oracledb Thin mode, you should

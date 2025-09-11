@@ -11,7 +11,7 @@ This directory contains the test suite for python-oracledb.
 
 2.  Install tox:
 
-        python -m pip install tox
+        python -m pip install tox --upgrade
 
 3.  Run the test suite by issuing the following command in the top-level
     directory of your oracledb installation:

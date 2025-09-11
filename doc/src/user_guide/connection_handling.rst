@@ -547,9 +547,9 @@ The valid keys for the "pyo" object are shown in :ref:`pyoparams`.
 JDBC and Oracle SQL Developer Connection Strings
 ------------------------------------------------
 
-The python-oracledb connection string syntax is different from Java JDBC and the
-common Oracle SQL Developer syntax.  If these JDBC connection strings reference
-a service name like::
+The python-oracledb connection string syntax is different from Java JDBC and
+the common Oracle SQL Developer syntax.  If these JDBC connection strings
+reference a service name like::
 
     jdbc:oracle:thin:@hostname:port/service_name
 
@@ -2711,7 +2711,7 @@ session states.  In order to retrieve a connection with a desired state, the
 
 .. note::
 
-    Connection tagging is only supported in the python-oracledb Thick mode. See
+    Connection tagging is only supported in python-oracledb Thick mode. See
     :ref:`enablingthick` .
 
 When python-oracledb is using Oracle Client libraries 12.2 or later, then
@@ -2757,7 +2757,7 @@ PL/SQL Callback
 
 .. note::
 
-    PL/SQL Callbacks are only supported in the python-oracledb Thick mode. See
+    PL/SQL Callbacks are only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
 When python-oracledb uses Oracle Client 12.2 or later, the session callback can
@@ -3087,9 +3087,10 @@ better DRCP usage tracking in the database.  In the database monitoring views,
 the class name shown will be the value specified in the application prefixed
 with the user name.
 
-If ``cclass`` was not specified during pool creation, then the python-oracledb
-Thin mode generates a unique connection class with the prefix "DPY" while the
-Thick mode generates a unique connection class with the prefix "OCI".
+If ``cclass`` was not specified during pool creation, then python-oracledb Thin
+mode generates a unique connection class with the prefix "DPY" while
+python-oracledb Thick mode generates a unique connection class with the prefix
+"OCI".
 
 To create a connection pool requesting DRCP pooled servers be used, and
 specifying a class name, you can call:
@@ -3639,7 +3640,7 @@ service.
 .. note::
 
     Connecting to Oracle Database using external authentication is only
-    supported in the python-oracledb Thick mode. See :ref:`enablingthick`.
+    supported in python-oracledb Thick mode. See :ref:`enablingthick`.
 
 .. _extauthwithwallet:
 
@@ -4089,8 +4090,8 @@ introduced in python-oracledb 1.1 instead. See
 
 .. note::
 
-    OAuth 2.0 Token-Based Authentication Connection Strings is only supported in
-    the python-oracledb Thick mode. See :ref:`enablingthick`.
+    OAuth 2.0 Token-Based Authentication Connection Strings is only supported
+    in python-oracledb Thick mode. See :ref:`enablingthick`.
 
 There are different ways to retrieve Entra ID OAuth2 tokens. Some of the ways to
 retrieve OAuth2 tokens are detailed in `Examples of Retrieving Entra ID OAuth2
@@ -4559,7 +4560,7 @@ parameters introduced in python-oracledb 1.1 instead. See
 .. note::
 
     OCI IAM Token-Based Authentication Connection Strings is only supported in
-    the python-oracledb Thick mode. See :ref:`enablingthick`.
+    python-oracledb Thick mode. See :ref:`enablingthick`.
 
 The Oracle Cloud Infrastructure command line interface (OCI-CLI) can be used
 externally to get tokens and private keys from OCI IAM, for example with the
@@ -5140,9 +5141,9 @@ One-way TLS Connection to Oracle Autonomous Database
 
 With one-way TLS, python-oracledb applications can connect to Oracle ADB
 without using a wallet.  Both Thin and Thick modes of the python-oracledb
-driver support one-way TLS.  Applications that use the python-oracledb Thick
-mode, can connect to the Oracle ADB through one-way TLS only when using Oracle
-Client library versions 19.14 (or later) or 21.5 (or later).
+driver support one-way TLS. Applications that use python-oracledb Thick mode
+can connect to the Oracle ADB through one-way TLS only when using Oracle Client
+library versions 19.14 (or later) or 21.5 (or later).
 
 To enable one-way TLS for an ADB instance, complete the following steps in an
 Oracle Cloud console in the **Autonomous Database Information** section of the
@@ -5237,9 +5238,9 @@ parameter to the desired network alias from the :ref:`tnsnames.ora
 containing :ref:`tnsnames.ora <optnetfiles>`.  The ``wallet_location``
 parameter is the directory containing the PEM file.  In this example the files
 are in the same directory.  The ``wallet_password`` parameter should be set to
-the password created in the cloud console when downloading the wallet. For
-example, to connect as the ADMIN user using the ``mydb_low`` network service
-name:
+the password created in the cloud console when downloading the wallet. It is
+not the database password. For example, to connect as the ADMIN user using the
+``mydb_low`` network service name:
 
 .. code-block:: python
 

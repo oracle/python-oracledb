@@ -15,7 +15,7 @@ To build the documentation locally:
 1. Install Sphinx and the Read the Docs theme using the Python package manager
    ``pip``, for example:
 
-        python -m pip install -r requirements.txt
+        python -m pip install --upgrade -r requirements.txt
 
    You can alternatively install these from pre-built packages for your
    operating system.

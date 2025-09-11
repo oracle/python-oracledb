@@ -23,7 +23,7 @@ AsyncConnection Class
 
     .. note::
 
-        AsyncConnection objects are only supported in the python-oracledb Thin
+        AsyncConnection objects are only supported in python-oracledb Thin
         mode.
 
     .. note::

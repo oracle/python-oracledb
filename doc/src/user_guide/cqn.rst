@@ -18,8 +18,8 @@ table changes, the cached values must then be updated with the new information.
 
 .. note::
 
-    Continuous Query Notification (CQN) is only supported in the
-    python-oracledb Thick mode.  See :ref:`enablingthick`.
+    Continuous Query Notification (CQN) is only supported in python-oracledb
+    Thick mode.  See :ref:`enablingthick`.
 
 CQN notification behavior is widely configurable.  Choices include specifying
 what types of SQL should trigger a notification, whether notifications should
@@ -63,11 +63,12 @@ later, subscriptions can set the optional ``client_initiated`` parameter to
 True, see ``Connection.subscribe()`` below.
 
 The default CQN connection mode typically means that the machine running
-python-oracledb needs a fixed IP address.  Note :meth:`Connection.subscribe()` does
-not verify that this reverse connection is possible.  If there is any problem
-sending a notification, then the callback method will not be invoked.
-Configuration options can include an IP address and port on which python-oracledb will
-listen for notifications; otherwise, the database chooses values.
+python-oracledb needs a fixed IP address.  Note :meth:`Connection.subscribe()`
+does not verify that this reverse connection is possible.  If there is any
+problem sending a notification, then the callback method will not be invoked.
+Configuration options can include an IP address and port on which
+python-oracledb will listen for notifications; otherwise, the database chooses
+values.
 
 
 Creating a Subscription
@@ -91,8 +92,8 @@ See :ref:`subscr-qos` for the quality of service values that are supported.
 See :ref:`subscr-namespaces` and :ref:`subscr-protocols` for the namespaces and
 protocols that are supported.
 
-See :ref:`Subscription Objects <subscrobj>` for more details on the subscription object that is
-created.
+See :ref:`Subscription Objects <subscrobj>` for more details on the
+subscription object that is created.
 
 When using Oracle Database and Oracle client libraries 19.4, or later, the
 optional subscription parameter ``client_initiated`` can be set:
@@ -102,10 +103,10 @@ optional subscription parameter ``client_initiated`` can be set:
     connection.subscribe(callback=my_callback, client_initiated=True)
 
 This enables CQN "client initiated" connections which internally use the same
-approach as normal python-oracledb connections to the database, and do not require the
-database to be able to connect back to the application.  Since client initiated
-connections do not need special network configuration they have ease-of-use and
-security advantages.
+approach as normal python-oracledb connections to the database, and do not
+require the database to be able to connect back to the application.  Since
+client initiated connections do not need special network configuration they
+have ease-of-use and security advantages.
 
 
 Registering Queries
