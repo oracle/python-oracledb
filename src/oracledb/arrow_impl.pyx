@@ -52,5 +52,6 @@ else:
     uint32_template = array.array("L")
 
 include "impl/arrow/utils.pyx"
+include "impl/arrow/schema.pyx"
 include "impl/arrow/array.pyx"
 include "impl/arrow/dataframe.pyx"

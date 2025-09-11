@@ -43,6 +43,7 @@ from .arrow_impl cimport (
     ArrowTimeUnit,
     ArrowType,
     ArrowArrayImpl,
+    ArrowSchemaImpl
 )
 
 cdef enum:
@@ -444,14 +445,14 @@ cdef class OracleMetadata:
         readonly uint32_t vector_dimensions
         readonly uint8_t vector_format
         readonly uint8_t vector_flags
-        ArrowType _arrow_type
+        ArrowSchemaImpl _schema_impl
         uint8_t _py_type_num
 
     cdef int _finalize_init(self) except -1
-    cdef int _set_arrow_type(self) except -1
+    cdef int _set_arrow_schema(self) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
-    cdef OracleMetadata from_arrow_array(ArrowArrayImpl array)
+    cdef OracleMetadata from_arrow_schema(ArrowSchemaImpl schema_impl)
     @staticmethod
     cdef OracleMetadata from_type(object typ)
     @staticmethod
@@ -750,8 +751,6 @@ cdef class BaseVarImpl:
     cdef object _get_scalar_value(self, uint32_t pos)
     cdef int _on_reset_bind(self, uint32_t num_rows) except -1
     cdef int _resize(self, uint32_t new_size) except -1
-    cdef int _set_metadata_from_arrow_array(self,
-                                            ArrowArrayImpl array) except -1
     cdef int _set_metadata_from_type(self, object typ) except -1
     cdef int _set_metadata_from_value(self, object value,
                                       bint is_plsql) except -1
@@ -986,12 +985,12 @@ cdef struct OracleData:
 
 cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
                                          OracleData* data,
-                                         ArrowArrayImpl arrow_array,
+                                         ArrowArrayImpl array_impl,
                                          ssize_t array_index)
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
                                       OracleMetadata to_metadatda,
                                       OracleData* data,
-                                      ArrowArrayImpl arrow_array) except -1
+                                      ArrowArrayImpl array_impl) except -1
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleMetadata to_metadatda,
                                           OracleData* data,
@@ -1000,7 +999,7 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
 cdef object convert_python_to_oracle_data(OracleMetadata metadata,
                                           OracleData* data,
                                           object value)
-cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,
+cdef int convert_vector_to_arrow(ArrowArrayImpl array_impl,
                                  object vector) except -1
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)
 cdef uint16_t decode_uint16be(const char_type *buf)

@@ -33,18 +33,12 @@ cdef class ArrowArrayImpl:
     def __cinit__(self):
         self.arrow_array = \
                 <ArrowArray*> cpython.PyMem_Calloc(1, sizeof(ArrowArray))
-        self.arrow_schema = \
-                <ArrowSchema*> cpython.PyMem_Calloc(1, sizeof(ArrowSchema))
 
     def __dealloc__(self):
         if self.arrow_array != NULL:
             if self.arrow_array.release != NULL:
                 ArrowArrayRelease(self.arrow_array)
             cpython.PyMem_Free(self.arrow_array)
-        if self.arrow_schema != NULL:
-            if self.arrow_schema.release != NULL:
-                ArrowSchemaRelease(self.arrow_schema)
-            cpython.PyMem_Free(self.arrow_schema)
 
     cdef int _get_is_null(self, int64_t index, bint* is_null) except -1:
         """
@@ -77,65 +71,6 @@ cdef class ArrowArrayImpl:
             end_offset = offsets[index + 1]
         num_elements[0] = end_offset - offsets[index]
 
-    cdef bint _is_sparse_vector(self) except *:
-        """
-        Returns a boolean indicating if the schema refers to a sparse vector.
-        This requires a structure containing the keys for number of dimensions,
-        indices and values.
-        """
-        cdef:
-            ArrowSchemaView view
-            ArrowSchema *schema
-        if self.arrow_schema.n_children != 3:
-            return False
-        schema = self.arrow_schema.children[0]
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema, NULL))
-        if view.type != NANOARROW_TYPE_INT64 \
-                or schema.name != b"num_dimensions":
-            return False
-        schema = self.arrow_schema.children[1]
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema, NULL))
-        if view.type != NANOARROW_TYPE_LIST or schema.name != b"indices":
-            return False
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema.children[0], NULL))
-        if view.type != NANOARROW_TYPE_UINT32:
-            return False
-        schema = self.arrow_schema.children[2]
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema, NULL))
-        if view.type != NANOARROW_TYPE_LIST or schema.name != b"values":
-            return False
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema.children[0], NULL))
-        self._set_child_arrow_type(view.type)
-        return True
-
-    cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1:
-        """
-        Set the child Arrow type and the corresponding element size in bytes.
-        """
-        self.child_arrow_type = child_arrow_type
-        if child_arrow_type == NANOARROW_TYPE_DOUBLE:
-            self.child_element_size = sizeof(double)
-        elif child_arrow_type == NANOARROW_TYPE_FLOAT:
-            self.child_element_size = sizeof(float)
-        elif child_arrow_type == NANOARROW_TYPE_INT8:
-            self.child_element_size = sizeof(int8_t)
-        elif child_arrow_type == NANOARROW_TYPE_UINT8:
-            self.child_element_size = sizeof(uint8_t)
-
-    cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1:
-        """
-        Sets the time unit and the corresponding factor.
-        """
-        self.time_unit = time_unit
-        if time_unit == NANOARROW_TIME_UNIT_MILLI:
-            self.time_factor = 1_000
-        elif time_unit == NANOARROW_TIME_UNIT_MICRO:
-            self.time_factor = 1_000_000
-        elif time_unit == NANOARROW_TIME_UNIT_NANO:
-            self.time_factor = 1_000_000_000
-        else:
-            self.time_factor = 1
-
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1:
         """
         Append a value of type bytes to the array.
@@ -159,7 +94,8 @@ cdef class ArrowArrayImpl:
             ArrowDecimal decimal
         decimal_view.data = <char*> ptr
         decimal_view.size_bytes = num_bytes
-        ArrowDecimalInit(&decimal, 128, self.precision, self.scale)
+        ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
+                         self.schema_impl.scale)
         _check_nanoarrow(ArrowDecimalSetDigits(&decimal, decimal_view))
         _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array, &decimal))
 
@@ -205,31 +141,34 @@ cdef class ArrowArrayImpl:
         array._get_is_null(index, &is_null)
         if is_null:
             self.append_null()
-        elif array.arrow_type in (NANOARROW_TYPE_INT64,
-                                  NANOARROW_TYPE_TIMESTAMP):
+        elif array.schema_impl.arrow_type in (
+                NANOARROW_TYPE_INT64,
+                NANOARROW_TYPE_TIMESTAMP
+        ):
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_int64 = <int64_t*> data_buffer.data
             self.append_int64(as_int64[index])
-        elif array.arrow_type == NANOARROW_TYPE_DOUBLE:
+        elif array.schema_impl.arrow_type == NANOARROW_TYPE_DOUBLE:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_double = <double*> data_buffer.data
             self.append_double(as_double[index])
-        elif array.arrow_type == NANOARROW_TYPE_FLOAT:
+        elif array.schema_impl.arrow_type == NANOARROW_TYPE_FLOAT:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_float = <float*> data_buffer.data
             self.append_double(as_float[index])
-        elif array.arrow_type == NANOARROW_TYPE_BOOL:
+        elif array.schema_impl.arrow_type == NANOARROW_TYPE_BOOL:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_bool = ArrowBitGet(data_buffer.data, index)
             self.append_int64(as_bool)
-        elif array.arrow_type == NANOARROW_TYPE_DECIMAL128:
+        elif array.schema_impl.arrow_type == NANOARROW_TYPE_DECIMAL128:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            ArrowDecimalInit(&decimal, 128, self.precision, self.scale)
+            ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
+                             self.schema_impl.scale)
             ptr = data_buffer.data + index * 16
             ArrowDecimalSetBytes(&decimal, ptr)
             _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array,
                                                      &decimal))
-        elif array.arrow_type in (
+        elif array.schema_impl.arrow_type in (
                 NANOARROW_TYPE_BINARY,
                 NANOARROW_TYPE_STRING
         ):
@@ -246,7 +185,7 @@ cdef class ArrowArrayImpl:
             finally:
                 cpython.PyMem_Free(temp)
 
-        elif array.arrow_type in (
+        elif array.schema_impl.arrow_type in (
                 NANOARROW_TYPE_LARGE_BINARY,
                 NANOARROW_TYPE_LARGE_STRING
         ):
@@ -273,13 +212,13 @@ cdef class ArrowArrayImpl:
         """
         Append a vector to the array.
         """
-        if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+        if self.schema_impl.child_arrow_type == NANOARROW_TYPE_FLOAT:
             append_float_array(self.arrow_array, value)
-        elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_DOUBLE:
             append_double_array(self.arrow_array, value)
-        elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_INT8:
             append_int8_array(self.arrow_array, value)
-        elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_UINT8:
             append_uint8_array(self.arrow_array, value)
 
     cdef int append_sparse_vector(self,
@@ -292,7 +231,7 @@ cdef class ArrowArrayImpl:
         cdef ArrowArray *array
 
         # validate that the array supports sparse vectors
-        if self.arrow_type != NANOARROW_TYPE_STRUCT:
+        if self.schema_impl.arrow_type != NANOARROW_TYPE_STRUCT:
             errors._raise_err(errors.ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED)
 
         # append number of dimensions
@@ -305,13 +244,13 @@ cdef class ArrowArrayImpl:
 
         # append values array
         array = self.arrow_array.children[2]
-        if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+        if self.schema_impl.child_arrow_type == NANOARROW_TYPE_FLOAT:
             append_float_array(array, values)
-        elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_DOUBLE:
             append_double_array(array, values)
-        elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_INT8:
             append_int8_array(array, values)
-        elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+        elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_UINT8:
             append_uint8_array(array, values)
 
         # indicate structure is completed
@@ -347,11 +286,11 @@ cdef class ArrowArrayImpl:
             char *source_ptr
         self._get_is_null(index, is_null)
         if not is_null[0]:
-            if self.arrow_type == NANOARROW_TYPE_FIXED_SIZE_BINARY:
+            if self.schema_impl.arrow_type == NANOARROW_TYPE_FIXED_SIZE_BINARY:
                 source_ptr = <char*> self.arrow_array.buffers[1]
-                start_offset = index * self.fixed_size
-                end_offset = start_offset + self.fixed_size
-            elif self.arrow_type in (
+                start_offset = index * self.schema_impl.fixed_size
+                end_offset = start_offset + self.schema_impl.fixed_size
+            elif self.schema_impl.arrow_type in (
                 NANOARROW_TYPE_BINARY,
                 NANOARROW_TYPE_STRING
             ):
@@ -378,7 +317,8 @@ cdef class ArrowArrayImpl:
         self._get_is_null(index, is_null)
         if not is_null[0]:
             ptr = <uint8_t*> self.arrow_array.buffers[1]
-            ArrowDecimalInit(&decimal, 128, self.precision, self.scale)
+            ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
+                             self.schema_impl.scale)
             ArrowDecimalSetBytes(&decimal, ptr + index * 16)
             ArrowBufferInit(&buf)
             try:
@@ -459,20 +399,20 @@ cdef class ArrowArrayImpl:
             arrow_array = self.arrow_array.children[2]
             self._get_list_info(index, arrow_array, &offset, &num_elements)
             source_buf = <char*> arrow_array.children[0].buffers[1] + \
-                    offset * self.child_element_size
-            if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+                    offset * self.schema_impl.child_element_size
+            if self.schema_impl.child_arrow_type == NANOARROW_TYPE_FLOAT:
                 values = array.clone(float_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_DOUBLE:
                 values = array.clone(double_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_INT8:
                 values = array.clone(int8_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_UINT8:
                 values = array.clone(uint8_template, num_elements, False)
             else:
                 errors._raise_err(errors.ERR_UNEXPECTED_DATA,
-                                  data=self.child_arrow_type)
+                                  data=self.schema_impl.child_arrow_type)
             memcpy(values.data.as_voidptr, source_buf,
-                   num_elements * self.child_element_size)
+                   num_elements * self.schema_impl.child_element_size)
             return (num_dimensions, indices, values)
 
     cdef object get_vector(self, int64_t index, bint* is_null):
@@ -487,27 +427,27 @@ cdef class ArrowArrayImpl:
             char *source_buf
         self._get_is_null(index, is_null)
         if not is_null[0]:
-            if self.arrow_type == NANOARROW_TYPE_FIXED_SIZE_LIST:
-                offset = index * self.fixed_size
-                num_elements = self.fixed_size
+            if self.schema_impl.arrow_type == NANOARROW_TYPE_FIXED_SIZE_LIST:
+                offset = index * self.schema_impl.fixed_size
+                num_elements = self.schema_impl.fixed_size
             else:
                 self._get_list_info(index, self.arrow_array, &offset,
                                     &num_elements)
             source_buf = <char*> self.arrow_array.children[0].buffers[1] + \
-                    offset * self.child_element_size
-            if self.child_arrow_type == NANOARROW_TYPE_FLOAT:
+                    offset * self.schema_impl.child_element_size
+            if self.schema_impl.child_arrow_type == NANOARROW_TYPE_FLOAT:
                 result = array.clone(float_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_DOUBLE:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_DOUBLE:
                 result = array.clone(double_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_INT8:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_INT8:
                 result = array.clone(int8_template, num_elements, False)
-            elif self.child_arrow_type == NANOARROW_TYPE_UINT8:
+            elif self.schema_impl.child_arrow_type == NANOARROW_TYPE_UINT8:
                 result = array.clone(uint8_template, num_elements, False)
             else:
                 errors._raise_err(errors.ERR_UNEXPECTED_DATA,
-                                  data=self.child_arrow_type)
+                                  data=self.schema_impl.child_arrow_type)
             memcpy(result.data.as_voidptr, source_buf,
-                   num_elements * self.child_element_size)
+                   num_elements * self.schema_impl.child_element_size)
             return result
 
     @classmethod
@@ -528,6 +468,7 @@ cdef class ArrowArrayImpl:
             array_capsule, "arrow_array"
         )
         array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
+        array_impl.schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
         array_impl.populate_from_array(arrow_schema, arrow_array)
         return array_impl
 
@@ -536,135 +477,22 @@ cdef class ArrowArrayImpl:
         """
         Populate the array from another array.
         """
-        cdef ArrowSchemaView schema_view
-        ArrowSchemaMove(schema, self.arrow_schema)
+        self.schema_impl.populate_from_schema(schema)
         ArrowArrayMove(array, self.arrow_array)
-        memset(&schema_view, 0, sizeof(ArrowSchemaView))
+
+    cdef int populate_from_schema(self, ArrowSchemaImpl schema_impl) except -1:
+        """
+        Populate the array from a schema.
+        """
+        self.schema_impl = schema_impl
         _check_nanoarrow(
-            ArrowSchemaViewInit(&schema_view, self.arrow_schema, NULL)
+            ArrowArrayInitFromSchema(
+                self.arrow_array,
+                self.schema_impl.arrow_schema,
+                NULL
+            )
         )
-        self.arrow_type = schema_view.type
-        self.name = schema.name.decode()
-        self.precision = schema_view.decimal_precision
-        self.scale = schema_view.decimal_scale
-        self.fixed_size = schema_view.fixed_size
-        if schema_view.type == NANOARROW_TYPE_TIMESTAMP:
-            self._set_time_unit(schema_view.time_unit)
-        elif schema_view.type in (
-            NANOARROW_TYPE_FIXED_SIZE_LIST,
-            NANOARROW_TYPE_LIST
-        ):
-            _check_nanoarrow(
-                ArrowSchemaViewInit(
-                    &schema_view, self.arrow_schema.children[0], NULL
-                )
-            )
-            self._set_child_arrow_type(schema_view.type)
-        elif schema_view.type not in (
-            NANOARROW_TYPE_BINARY,
-            NANOARROW_TYPE_BOOL,
-            NANOARROW_TYPE_DECIMAL128,
-            NANOARROW_TYPE_DOUBLE,
-            NANOARROW_TYPE_FIXED_SIZE_BINARY,
-            NANOARROW_TYPE_FLOAT,
-            NANOARROW_TYPE_INT64,
-            NANOARROW_TYPE_LARGE_BINARY,
-            NANOARROW_TYPE_LARGE_STRING,
-            NANOARROW_TYPE_STRING,
-        ) and not (
-            schema_view.type == NANOARROW_TYPE_STRUCT
-            and self._is_sparse_vector()
-        ):
-            errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_FORMAT,
-                              schema_format=schema.format.decode())
-        if self.child_arrow_type != 0 and self.child_element_size == 0:
-            errors._raise_err(
-                errors.ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT,
-                schema_format=schema.children[0].format.decode()
-            )
-
-
-    cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
-                                    int8_t precision, int8_t scale,
-                                    ArrowTimeUnit time_unit,
-                                    ArrowType child_arrow_type) except -1:
-        """
-        Populate the array from the supplied metadata.
-        """
-        cdef ArrowType storage_type = arrow_type
-        self.arrow_type = arrow_type
-        self._set_time_unit(time_unit)
-        self._set_child_arrow_type(child_arrow_type)
-        self.name = name
-        if arrow_type == NANOARROW_TYPE_TIMESTAMP:
-            storage_type = NANOARROW_TYPE_INT64
-
-        _check_nanoarrow(ArrowArrayInitFromType(self.arrow_array,
-                                                storage_type))
-        if arrow_type == NANOARROW_TYPE_DECIMAL128:
-            self.precision = precision
-            self.scale = scale
-            ArrowSchemaInit(self.arrow_schema)
-            _check_nanoarrow(
-                ArrowSchemaSetTypeDecimal(
-                    self.arrow_schema,
-                    arrow_type,
-                    precision,
-                    scale
-                )
-            )
-        elif arrow_type == NANOARROW_TYPE_STRUCT:
-            # Currently struct is used for Sparse vector only
-            build_arrow_schema_for_sparse_vector(self.arrow_schema,
-                                                 child_arrow_type)
-        else:
-            _check_nanoarrow(
-                ArrowSchemaInitFromType(
-                    self.arrow_schema,
-                    storage_type
-                )
-            )
-            if arrow_type == NANOARROW_TYPE_TIMESTAMP:
-                _check_nanoarrow(
-                    ArrowSchemaSetTypeDateTime(
-                        self.arrow_schema,
-                        arrow_type,
-                        time_unit,
-                        NULL
-                    )
-                )
-        if arrow_type == NANOARROW_TYPE_LIST:
-            # Set the schema for child using child_arrow_type
-            _check_nanoarrow(
-                ArrowSchemaSetType(
-                    self.arrow_schema.children[0],
-                    child_arrow_type
-                )
-            )
-            _check_nanoarrow(
-                ArrowArrayInitFromSchema(
-                    self.arrow_array,
-                    self.arrow_schema,
-                    NULL
-                )
-            )
-        elif arrow_type == NANOARROW_TYPE_STRUCT:
-            _check_nanoarrow(
-                ArrowArrayInitFromSchema(
-                    self.arrow_array,
-                    self.arrow_schema,
-                    NULL
-                )
-            )
-        else: # primitive type array init
-            _check_nanoarrow(
-                ArrowArrayInitFromType(
-                    self.arrow_array,
-                    storage_type
-                )
-            )
         _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
-        _check_nanoarrow(ArrowSchemaSetName(self.arrow_schema, name.encode()))
 
     def get_array_capsule(self):
         """
@@ -686,14 +514,15 @@ cdef class ArrowArrayImpl:
         Internal method for getting the data type associated with the array.
         """
         cdef char buffer[81]
-        ArrowSchemaToString(self.arrow_schema, buffer, sizeof(buffer), 0)
+        ArrowSchemaToString(self.schema_impl.arrow_schema, buffer,
+                            sizeof(buffer), 0)
         return buffer.decode()
 
     def get_name(self):
         """
         Internal method for getting the name associated with the array.
         """
-        return self.name
+        return self.schema_impl.name
 
     def get_null_count(self):
         """
@@ -711,16 +540,7 @@ cdef class ArrowArrayImpl:
         """
         Internal method for getting a PyCapsule pointer to the schema.
         """
-        cdef ArrowSchema *schema
-        schema = <ArrowSchema*> cpython.PyMem_Malloc(sizeof(ArrowSchema))
-        try:
-            _check_nanoarrow(ArrowSchemaDeepCopy(self.arrow_schema, schema))
-        except:
-            cpython.PyMem_Free(schema)
-            raise
-        return cpython.PyCapsule_New(
-            schema, 'arrow_schema', &pycapsule_schema_deleter
-        )
+        return self.schema_impl.get_schema_capsule()
 
 
 cdef void pycapsule_array_deleter(object array_capsule) noexcept:
@@ -735,17 +555,3 @@ cdef void pycapsule_array_deleter(object array_capsule) noexcept:
     if array.release != NULL:
         ArrowArrayRelease(array)
     cpython.PyMem_Free(array)
-
-
-cdef void pycapsule_schema_deleter(object schema_capsule) noexcept:
-    """
-    Called when the PyCapsule pointer is no longer required and performs the
-    necessary cleanup.
-    """
-    cdef ArrowSchema* schema
-    schema = <ArrowSchema*> cpython.PyCapsule_GetPointer(
-        schema_capsule, "arrow_schema"
-    )
-    if schema.release != NULL:
-        ArrowSchemaRelease(schema)
-    cpython.PyMem_Free(schema)

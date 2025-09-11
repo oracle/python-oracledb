@@ -34,7 +34,7 @@ cdef class BindVar:
 
     cdef int _create_var_from_arrow_array(self, object conn,
                                           BaseCursorImpl cursor_impl,
-                                          ArrowArrayImpl array) except -1:
+                                          ArrowArrayImpl array_impl) except -1:
         """
         Creates a variable given an Arrow array.
         """
@@ -42,10 +42,11 @@ cdef class BindVar:
             BaseVarImpl var_impl
             int64_t length
         var_impl = cursor_impl._create_var_impl(conn)
-        array.get_length(&length)
+        array_impl.get_length(&length)
         var_impl.num_elements = <uint32_t> length
-        var_impl._set_metadata_from_arrow_array(array)
-        var_impl._arrow_array = array
+        var_impl.metadata = \
+                OracleMetadata.from_arrow_schema(array_impl.schema_impl)
+        var_impl._arrow_array = array_impl
         var_impl._finalize_init()
         self.var_impl = var_impl
 

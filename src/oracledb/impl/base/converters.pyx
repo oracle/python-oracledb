@@ -31,7 +31,7 @@
 
 cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
                                          OracleData* data,
-                                         ArrowArrayImpl arrow_array,
+                                         ArrowArrayImpl array_impl,
                                          ssize_t array_index):
     """
     Converts the value stored in Arrow format to an OracleData structure.
@@ -44,21 +44,21 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         tuple sparse_info
         bytes temp_bytes
 
-    arrow_type = metadata._arrow_type
+    arrow_type = metadata._schema_impl.arrow_type
     if arrow_type == NANOARROW_TYPE_INT64:
-        arrow_array.get_int64(array_index, &data.is_null, &int64_value)
+        array_impl.get_int64(array_index, &data.is_null, &int64_value)
         if not data.is_null:
             temp_bytes = str(int64_value).encode()
             convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
             return temp_bytes
     elif arrow_type == NANOARROW_TYPE_DOUBLE:
-        arrow_array.get_double(array_index, &data.is_null,
+        array_impl.get_double(array_index, &data.is_null,
                                &data.buffer.as_double)
     elif arrow_type == NANOARROW_TYPE_FLOAT:
-        arrow_array.get_float(array_index, &data.is_null,
+        array_impl.get_float(array_index, &data.is_null,
                               &data.buffer.as_float)
     elif arrow_type == NANOARROW_TYPE_BOOL:
-        arrow_array.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
+        array_impl.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
     elif arrow_type in (
             NANOARROW_TYPE_BINARY,
             NANOARROW_TYPE_STRING,
@@ -67,30 +67,30 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
             NANOARROW_TYPE_LARGE_STRING
     ):
         rb = &data.buffer.as_raw_bytes
-        arrow_array.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
+        array_impl.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
                               &rb.num_bytes)
     elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
-        arrow_array.get_int64(array_index, &data.is_null, &int64_value)
+        array_impl.get_int64(array_index, &data.is_null, &int64_value)
         if not data.is_null:
-            seconds = int64_value // arrow_array.time_factor
-            useconds = int64_value % arrow_array.time_factor
+            seconds = int64_value // array_impl.schema_impl.time_factor
+            useconds = int64_value % array_impl.schema_impl.time_factor
             days = seconds // (24 * 60 * 60)
             seconds = seconds % (24 * 60 * 60)
-            if arrow_array.time_factor == 1_000:
+            if array_impl.schema_impl.time_factor == 1_000:
                 useconds *= 1_000
-            elif arrow_array.time_factor == 1_000_000_000:
+            elif array_impl.schema_impl.time_factor == 1_000_000_000:
                 useconds //= 1_000
             return EPOCH_DATE + \
                     cydatetime.timedelta_new(days, seconds, useconds)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
-        temp_bytes = arrow_array.get_decimal(array_index, &data.is_null)
+        temp_bytes = array_impl.get_decimal(array_index, &data.is_null)
         if not data.is_null:
             convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
             return temp_bytes
     elif arrow_type in (NANOARROW_TYPE_LIST, NANOARROW_TYPE_FIXED_SIZE_LIST):
-        return arrow_array.get_vector(array_index, &data.is_null)
+        return array_impl.get_vector(array_index, &data.is_null)
     elif arrow_type == NANOARROW_TYPE_STRUCT:
-        sparse_info = arrow_array.get_sparse_vector(array_index, &data.is_null)
+        sparse_info = array_impl.get_sparse_vector(array_index, &data.is_null)
         if sparse_info is not None:
             sparse_impl = SparseVectorImpl.__new__(SparseVectorImpl)
             sparse_impl.num_dimensions = sparse_info[0]
@@ -117,7 +117,7 @@ cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer):
     return output
 
 
-cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl arrow_array,
+cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl array_impl,
                                          OracleDataBuffer *buffer) except -1:
     """
     Converts a DATE, TIMESTAMP, TIMESTAMP WITH LOCAL TIME ZONE or TIMESTAMP
@@ -129,8 +129,8 @@ cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl arrow_array,
         int64_t ts
     dt = convert_date_to_python(buffer)
     td = dt - EPOCH_DATE
-    ts = int(cydatetime.total_seconds(td) * arrow_array.time_factor)
-    arrow_array.append_int64(ts)
+    ts = int(cydatetime.total_seconds(td) * array_impl.schema_impl.time_factor)
+    array_impl.append_int64(ts)
 
 
 cdef object convert_interval_ds_to_python(OracleDataBuffer *buffer):
@@ -155,7 +155,7 @@ cdef object convert_interval_ym_to_python(OracleDataBuffer *buffer):
     return PY_TYPE_INTERVAL_YM(value.years, value.months)
 
 
-cdef int convert_number_to_arrow_decimal(ArrowArrayImpl arrow_array,
+cdef int convert_number_to_arrow_decimal(ArrowArrayImpl array_impl,
                                          OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow DECIMAL128.
@@ -178,8 +178,8 @@ cdef int convert_number_to_arrow_decimal(ArrowArrayImpl arrow_array,
         raise ValueError("Value cannot be represented as Arrow Decimal128")
 
     # integers can be handled directly
-    if value.is_integer and arrow_array.scale == 0:
-        return arrow_array.append_decimal(value.chars, value.num_chars)
+    if value.is_integer and array_impl.schema_impl.scale == 0:
+        return array_impl.append_decimal(value.chars, value.num_chars)
 
     # Arrow expects a string of digits without the decimal point; if the number
     # does not contain at least the number of digits after the decimal point
@@ -198,32 +198,32 @@ cdef int convert_number_to_arrow_decimal(ArrowArrayImpl arrow_array,
     if actual_scale > 0:
         memcpy(&digits[num_digits], &value.chars[num_digits + 1], actual_scale)
         num_digits += actual_scale
-    while actual_scale < arrow_array.scale:
+    while actual_scale < array_impl.schema_impl.scale:
         digits[num_digits] = b'0'
         num_digits += 1
         actual_scale += 1
-    arrow_array.append_decimal(digits, num_digits)
+    array_impl.append_decimal(digits, num_digits)
 
 
-cdef int convert_number_to_arrow_double(ArrowArrayImpl arrow_array,
+cdef int convert_number_to_arrow_double(ArrowArrayImpl array_impl,
                                         OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow DOUBLE.
     """
     cdef OracleNumber *value = &buffer.as_number
     if value.is_max_negative_value:
-        arrow_array.append_double(-1.0e126)
+        array_impl.append_double(-1.0e126)
     else:
-        arrow_array.append_double(atof(value.chars[:value.num_chars]))
+        array_impl.append_double(atof(value.chars[:value.num_chars]))
 
 
-cdef int convert_number_to_arrow_int64(ArrowArrayImpl arrow_array,
+cdef int convert_number_to_arrow_int64(ArrowArrayImpl array_impl,
                                        OracleDataBuffer *buffer) except -1:
     """
     Converts a NUMBER value stored in the buffer to Arrow INT64.
     """
     cdef OracleNumber *value = &buffer.as_number
-    arrow_array.append_int64(atoi(value.chars[:value.num_chars]))
+    array_impl.append_int64(atoi(value.chars[:value.num_chars]))
 
 
 cdef object convert_number_to_python_decimal(OracleDataBuffer *buffer):
@@ -301,7 +301,7 @@ cdef object convert_str_to_python(OracleDataBuffer *buffer, uint8_t csfrm,
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
                                       OracleMetadata to_metadata,
                                       OracleData* data,
-                                      ArrowArrayImpl arrow_array) except -1:
+                                      ArrowArrayImpl array_impl) except -1:
     """
     Converts the value stored in OracleData to Arrow format.
     """
@@ -312,21 +312,21 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
 
     # NULL values
     if data.is_null:
-        return arrow_array.append_null()
+        return array_impl.append_null()
 
-    arrow_type = to_metadata._arrow_type
+    arrow_type = to_metadata._schema_impl.arrow_type
     db_type_num = from_metadata.dbtype.num
     if arrow_type == NANOARROW_TYPE_INT64:
-        convert_number_to_arrow_int64(arrow_array, &data.buffer)
+        convert_number_to_arrow_int64(array_impl, &data.buffer)
     elif arrow_type == NANOARROW_TYPE_DOUBLE:
         if db_type_num == DB_TYPE_NUM_NUMBER:
-            convert_number_to_arrow_double(arrow_array, &data.buffer)
+            convert_number_to_arrow_double(array_impl, &data.buffer)
         else:
-            arrow_array.append_double(data.buffer.as_double)
+            array_impl.append_double(data.buffer.as_double)
     elif arrow_type == NANOARROW_TYPE_FLOAT:
-        arrow_array.append_float(data.buffer.as_float)
+        array_impl.append_float(data.buffer.as_float)
     elif arrow_type == NANOARROW_TYPE_BOOL:
-        arrow_array.append_int64(data.buffer.as_bool)
+        array_impl.append_int64(data.buffer.as_bool)
     elif arrow_type in (
             NANOARROW_TYPE_BINARY,
             NANOARROW_TYPE_STRING,
@@ -334,11 +334,11 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
             NANOARROW_TYPE_LARGE_STRING
     ):
         rb = &data.buffer.as_raw_bytes
-        arrow_array.append_bytes(<void*> rb.ptr, rb.num_bytes)
+        array_impl.append_bytes(<void*> rb.ptr, rb.num_bytes)
     elif arrow_type == NANOARROW_TYPE_TIMESTAMP:
-        convert_date_to_arrow_timestamp(arrow_array, &data.buffer)
+        convert_date_to_arrow_timestamp(array_impl, &data.buffer)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
-        convert_number_to_arrow_decimal(arrow_array, &data.buffer)
+        convert_number_to_arrow_decimal(array_impl, &data.buffer)
 
 
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
@@ -554,16 +554,16 @@ cdef object convert_python_to_oracle_data(OracleMetadata metadata,
     return value
 
 
-cdef int convert_vector_to_arrow(ArrowArrayImpl arrow_array,
+cdef int convert_vector_to_arrow(ArrowArrayImpl array_impl,
                                  object vector) except -1:
     """
     Converts the vector to the format required by the Arrow array.
     """
     if vector is None:
-        arrow_array.append_null()
+        array_impl.append_null()
     elif isinstance(vector, PY_TYPE_SPARSE_VECTOR):
-        arrow_array.append_sparse_vector(vector.num_dimensions,
+        array_impl.append_sparse_vector(vector.num_dimensions,
                                          <array.array> vector.indices,
                                          <array.array> vector.values)
     else:
-        arrow_array.append_vector(<array.array> vector)
+        array_impl.append_vector(<array.array> vector)

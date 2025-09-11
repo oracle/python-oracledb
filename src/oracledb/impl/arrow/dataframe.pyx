@@ -41,7 +41,8 @@ cdef class DataFrameImpl:
             ArrowSchema arrow_schema
             ArrowArray arrow_array
             DataFrameImpl df_impl
-            ArrowArrayImpl array
+            ArrowArrayImpl array_impl
+            ArrowSchemaImpl schema_impl
             ssize_t i
         df_impl = DataFrameImpl.__new__(DataFrameImpl)
         df_impl.arrays = []
@@ -52,10 +53,11 @@ cdef class DataFrameImpl:
         _check_nanoarrow(arrow_stream.get_schema(arrow_stream, &arrow_schema))
         _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
         for i in range(arrow_schema.n_children):
-            array = ArrowArrayImpl.__new__(ArrowArrayImpl)
-            array.populate_from_array(arrow_schema.children[i],
-                                      arrow_array.children[i])
-            df_impl.arrays.append(array)
+            array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
+            array_impl.schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
+            array_impl.populate_from_array(arrow_schema.children[i],
+                                           arrow_array.children[i])
+            df_impl.arrays.append(array_impl)
         _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
         if arrow_array.release != NULL:
             raise NotImplementedError("multiple chunks not supported")
@@ -105,7 +107,7 @@ cdef class DataFrameImpl:
                 )
                 _check_nanoarrow(
                     ArrowSchemaDeepCopy(
-                        array_impl.arrow_schema, schema.children[i]
+                        array_impl.schema_impl.arrow_schema, schema.children[i]
                     )
                 )
 

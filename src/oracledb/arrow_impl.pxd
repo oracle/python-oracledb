@@ -86,8 +86,8 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TIME_UNIT_MICRO
         NANOARROW_TIME_UNIT_NANO
 
+cdef class ArrowSchemaImpl:
 
-cdef class ArrowArrayImpl:
     cdef:
         int32_t precision
         int32_t scale
@@ -96,17 +96,28 @@ cdef class ArrowArrayImpl:
         ArrowType arrow_type
         ArrowTimeUnit time_unit
         int time_factor
-        ArrowArray *arrow_array
         ArrowSchema *arrow_schema
         ArrowType child_arrow_type
         int child_element_size
 
+    cdef bint _is_sparse_vector(self) except*
+    cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1
+    cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1
+    cdef int populate_from_schema(self, ArrowSchema* schema) except -1
+    cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
+                                    int8_t precision, int8_t scale,
+                                    ArrowTimeUnit time_unit,
+                                    ArrowType child_arrow_type) except -1
+
+
+cdef class ArrowArrayImpl:
+    cdef:
+        ArrowArray *arrow_array
+        ArrowSchemaImpl schema_impl
+
     cdef int _get_is_null(self, int64_t index, bint* is_null) except -1
     cdef int _get_list_info(self, int64_t index, ArrowArray* arrow_array,
                             int64_t* offset, int64_t* num_elements) except -1
-    cdef bint _is_sparse_vector(self) except *
-    cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1
-    cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
@@ -135,10 +146,7 @@ cdef class ArrowArrayImpl:
     cdef object get_vector(self, int64_t index, bint* is_null)
     cdef int populate_from_array(self, ArrowSchema* schema,
                                  ArrowArray* array) except -1
-    cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
-                                    int8_t precision, int8_t scale,
-                                    ArrowTimeUnit time_unit,
-                                    ArrowType child_arrow_type) except -1
+    cdef int populate_from_schema(self, ArrowSchemaImpl schema_impl) except -1
 
 
 cdef class DataFrameImpl:
