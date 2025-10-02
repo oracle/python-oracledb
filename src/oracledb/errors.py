@@ -568,19 +568,19 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_ARRAYS_OF_ARRAYS: "arrays of arrays are not supported",
     ERR_ARROW_C_API_ERROR: (
-        "Arrow C Data Interface operation failed with error code {code}"
+        "Apache Arrow C Data Interface operation failed with error code {code}"
     ),
     ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
         "Apache Arrow format does not support sparse vectors with flexible "
         "dimensions"
     ),
     ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT: (
-        'conversion from list with child Arrow format "{schema_format}" to '
-        "Oracle Database vector is not supported"
+        "conversion from Apache Arrow list with child format "
+        '"{schema_format}" to Oracle Database vector is not supported'
     ),
     ERR_ARROW_UNSUPPORTED_DATA_FORMAT: (
-        'conversion from Arrow format "{schema_format}" to Oracle Database '
-        "is not supported"
+        'conversion from Apache Arrow format "{schema_format}" to Oracle '
+        "Database is not supported"
     ),
     ERR_ARROW_UNSUPPORTED_DATA_TYPE: (
         "conversion from Oracle Database type {db_type_name} to Apache "
@@ -596,20 +596,20 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_CALL_TIMEOUT_EXCEEDED: "call timeout of {timeout} ms exceeded",
     ERR_CANNOT_CONVERT_FROM_ARROW_TYPE: (
-        'Arrow type "{arrow_type}" cannot be converted to database type '
-        '"{db_type}"'
+        'Apache Arrow type "{arrow_type}" cannot be converted to database '
+        'type "{db_type}"'
     ),
     ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE: (
-        "{value} cannot be converted to an Arrow double"
+        "{value} cannot be converted to an Apache Arrow double"
     ),
     ERR_CANNOT_CONVERT_TO_ARROW_FLOAT: (
-        "{value} cannot be converted to an Arrow float"
+        "{value} cannot be converted to an Apache Arrow float"
     ),
     ERR_CANNOT_CONVERT_TO_ARROW_INTEGER: (
-        "{value} cannot be converted to an Arrow integer"
+        "{value} cannot be converted to an Apache Arrow integer"
     ),
     ERR_CANNOT_CONVERT_TO_ARROW_TYPE: (
-        'database type "{db_type}" cannot be converted to Arrow type '
+        'database type "{db_type}" cannot be converted to Apache Arrow type '
         '"{arrow_type}"'
     ),
     ERR_CANNOT_PARSE_CONNECT_STRING: 'cannot parse connect string "{data}"',
@@ -710,7 +710,8 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_INVALID_ENUM_VALUE: "invalid value for enumeration {name}: {value}",
     ERR_INVALID_INTEGER: (
-        "integer {value} cannot be represented as Arrow type {arrow_type}"
+        "integer {value} cannot be represented as Apache Arrow type "
+        "{arrow_type}"
     ),
     ERR_INVALID_LOB_AMOUNT: "LOB amount must be greater than zero",
     ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
@@ -937,7 +938,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNKNOWN_TRANSACTION_SYNC_VERSION: (
         "internal error: unknown transaction sync version {version}"
     ),
-    ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Arrow type "{arrow_type}"',
+    ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Apache Arrow type "{arrow_type}"',
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"
     ),
@@ -968,8 +969,8 @@ ERR_MESSAGE_FORMATS = {
         "expecting a list of two elements [type, numelems]"
     ),
     ERR_WRONG_DIRECT_PATH_DATA_TYPE: (
-        "expecting a list or an object implementing the Arrow PyCapsule "
-        "interface __arrow_c_stream__()"
+        "expecting a list or an object implementing the Apache Arrow "
+        "PyCapsule interface __arrow_c_stream__()"
     ),
     ERR_WRONG_EXECUTE_PARAMETERS_TYPE: (
         "expecting a dictionary, list or tuple, or keyword args"
@@ -977,8 +978,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE: (
         '"parameters" argument should be a list of sequences or '
         "dictionaries, or an integer specifying the number of "
-        "times to execute the statement, or an object implementing the Arrow "
-        "PyCapsule interface __arrow_c_stream__()"
+        "times to execute the statement, or an object implementing the Apache "
+        "Arrow PyCapsule interface __arrow_c_stream__()"
     ),
     ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS: (
         "{expected_num} positional bind values are required but "
