@@ -34,10 +34,11 @@ import datetime
 from . import connection as connection_module
 from typing import Any, Union
 from . import errors
+from .base import BaseMetaClass
 from .dbobject import DbObject, DbObjectType
 
 
-class BaseQueue:
+class BaseQueue(metaclass=BaseMetaClass):
     @classmethod
     def _from_impl(cls, connection, impl):
         queue = cls.__new__(cls)
@@ -267,7 +268,7 @@ class AsyncQueue(BaseQueue):
         await self._impl.enq_one(message._impl)
 
 
-class DeqOptions:
+class DeqOptions(metaclass=BaseMetaClass):
     @classmethod
     def _from_impl(cls, impl):
         options = cls.__new__(cls)
@@ -420,7 +421,7 @@ class DeqOptions:
         self._impl.set_wait(value)
 
 
-class EnqOptions:
+class EnqOptions(metaclass=BaseMetaClass):
     @classmethod
     def _from_impl(cls, impl):
         options = cls.__new__(cls)
@@ -471,7 +472,7 @@ class EnqOptions:
         self._impl.set_visibility(value)
 
 
-class MessageProperties:
+class MessageProperties(metaclass=BaseMetaClass):
     _recipients = []
 
     @classmethod

@@ -31,10 +31,11 @@
 
 from .arrow_array import ArrowArray
 from .arrow_impl import DataFrameImpl
+from .base import BaseMetaClass
 from . import errors
 
 
-class DataFrame:
+class DataFrame(metaclass=BaseMetaClass):
     _impl = None
 
     def __init__(self):

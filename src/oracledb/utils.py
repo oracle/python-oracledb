@@ -30,6 +30,7 @@
 
 import functools
 from typing import Any, Callable, Optional, Union
+import uuid
 
 from .arrow_array import ArrowArray
 from .dataframe import DataFrame
@@ -38,7 +39,6 @@ from . import base_impl
 from . import driver_mode
 from . import errors
 from . import thick_impl
-import uuid
 
 
 def clientversion() -> tuple:

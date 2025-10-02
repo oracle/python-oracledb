@@ -32,12 +32,11 @@
 from typing import Any, Sequence, Union
 
 from . import errors
-from . import __name__ as MODULE_NAME
+from .base import BaseMetaClass
 from .base_impl import DbType
 
 
-class DbObject:
-    __module__ = MODULE_NAME
+class DbObject(metaclass=BaseMetaClass):
 
     def __getattr__(self, name):
         try:
@@ -54,10 +53,8 @@ class DbObject:
             ix = self._impl.get_next_index(ix)
 
     def __repr__(self):
-        return (
-            f"<oracledb.DbObject {self.type._get_full_name()} at "
-            f"{hex(id(self))}>"
-        )
+        cls_name = self.__class__._public_name
+        return f"<{cls_name} {self.type._get_full_name()} at {hex(id(self))}>"
 
     def __setattr__(self, name, value):
         if name == "_impl" or name == "_type":
@@ -225,8 +222,7 @@ class DbObject:
         return self._type
 
 
-class DbObjectAttr:
-    __module__ = MODULE_NAME
+class DbObjectAttr(metaclass=BaseMetaClass):
 
     def __repr__(self):
         return f"<oracledb.DbObjectAttr {self.name}>"
@@ -291,8 +287,7 @@ class DbObjectAttr:
         return self._type
 
 
-class DbObjectType:
-    __module__ = MODULE_NAME
+class DbObjectType(metaclass=BaseMetaClass):
 
     def __call__(self, value: Sequence = None) -> DbObject:
         """

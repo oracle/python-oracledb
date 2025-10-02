@@ -31,10 +31,11 @@
 
 from typing import Any, Callable, Optional, Union
 from .dbobject import DbObjectType
+from .base import BaseMetaClass
 from .base_impl import DbType
 
 
-class Var:
+class Var(metaclass=BaseMetaClass):
     def __repr__(self):
         value = self._impl.get_all_values()
         if not self._impl.is_array and len(value) == 1:

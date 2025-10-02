@@ -31,10 +31,11 @@
 # -----------------------------------------------------------------------------
 
 from typing import Callable, Optional, Union
+from .base import BaseMetaClass
 from . import connection
 
 
-class Subscription:
+class Subscription(metaclass=BaseMetaClass):
     def __repr__(self):
         return f"<oracledb.Subscription on {self.connection!r}>"
 
@@ -163,7 +164,7 @@ class Subscription:
         return self._impl.timeout
 
 
-class Message:
+class Message(metaclass=BaseMetaClass):
     def __init__(self, subscription: Subscription) -> None:
         self._subscription = subscription
         self._consumer_name = None
@@ -287,7 +288,7 @@ class Message:
         return self._type
 
 
-class MessageQuery:
+class MessageQuery(metaclass=BaseMetaClass):
     def __init__(self) -> None:
         self._id = 0
         self._operation = 0
@@ -322,7 +323,7 @@ class MessageQuery:
         return self._tables
 
 
-class MessageRow:
+class MessageRow(metaclass=BaseMetaClass):
     def __init__(self) -> None:
         self._operation = 0
         self._rowid = None
@@ -343,7 +344,7 @@ class MessageRow:
         return self._rowid
 
 
-class MessageTable:
+class MessageTable(metaclass=BaseMetaClass):
     def __init__(self) -> None:
         self._name = None
         self._operation = 0

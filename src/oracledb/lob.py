@@ -30,13 +30,12 @@
 
 from typing import Optional, Union
 
+from .base import BaseMetaClass
 from .base_impl import DbType, DB_TYPE_BFILE, DB_TYPE_BLOB
-from . import __name__ as MODULE_NAME
 from . import errors
 
 
-class BaseLOB:
-    __module__ = MODULE_NAME
+class BaseLOB(metaclass=BaseMetaClass):
 
     def __del__(self):
         self._impl.free_lob()
@@ -101,7 +100,6 @@ class BaseLOB:
 
 
 class LOB(BaseLOB):
-    __module__ = MODULE_NAME
 
     def __reduce__(self):
         value = self.read()
@@ -216,7 +214,6 @@ class LOB(BaseLOB):
 
 
 class AsyncLOB(BaseLOB):
-    __module__ = MODULE_NAME
 
     async def close(self) -> None:
         """

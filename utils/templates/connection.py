@@ -38,12 +38,11 @@ from typing import Any, Callable, Iterator, Type, Optional, Union
 
 import oracledb
 
-from . import __name__ as MODULE_NAME
-
 from . import base_impl, driver_mode, errors, thick_impl, thin_impl
 from . import pool as pool_module
 from .aq import AsyncQueue, Queue, MessageProperties
 from .arrow_impl import ArrowSchemaImpl
+from .base import BaseMetaClass
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
 from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
@@ -61,16 +60,14 @@ Xid = collections.namedtuple(
 )
 
 
-class BaseConnection:
-    __module__ = MODULE_NAME
+class BaseConnection(metaclass=BaseMetaClass):
     _impl = None
 
     def __init__(self):
         self._version = None
 
     def __repr__(self):
-        typ = self.__class__
-        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        cls_name = self.__class__._public_name
         if self._impl is None:
             return f"<{cls_name} disconnected>"
         elif self.username is None:
@@ -839,7 +836,6 @@ class BaseConnection:
 
 
 class Connection(BaseConnection):
-    __module__ = MODULE_NAME
 
     def __init__(
         self,
@@ -1752,7 +1748,6 @@ def connect(
 
 
 class AsyncConnection(BaseConnection):
-    __module__ = MODULE_NAME
 
     def __init__(
         self,

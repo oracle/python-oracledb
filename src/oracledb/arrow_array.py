@@ -30,11 +30,12 @@
 # -----------------------------------------------------------------------------
 
 from .arrow_impl import ArrowArrayImpl
+from .base import BaseMetaClass
 
 from . import errors
 
 
-class ArrowArray:
+class ArrowArray(metaclass=BaseMetaClass):
     _impl = None
 
     def __init__(self):

@@ -654,7 +654,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         public uint32_t min
         public uint32_t max
         public uint32_t increment
-        public type connectiontype
+        public object connectiontype
         public uint32_t getmode
         public bint homogeneous
         public uint32_t timeout

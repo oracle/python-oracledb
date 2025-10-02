@@ -33,9 +33,8 @@ from typing import Union
 
 import oracledb
 
-from . import __name__ as MODULE_NAME
 from . import constants
-from .dbobject import DbObjectType
+from .base import BaseMetaClass
 from .base_impl import (
     DbType,
     DB_TYPE_DATE,
@@ -48,14 +47,13 @@ from .base_impl import (
     DB_TYPE_NUMBER,
     DB_TYPE_VECTOR,
 )
+from .dbobject import DbObjectType
 
 
-class FetchInfo:
+class FetchInfo(metaclass=BaseMetaClass):
     """
     Identifies metadata of columns that are being fetched.
     """
-
-    __module__ = MODULE_NAME
 
     def __eq__(self, other):
         return tuple(self) == other

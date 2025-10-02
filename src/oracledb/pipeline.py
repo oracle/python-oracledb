@@ -30,21 +30,19 @@
 
 from typing import Any, Callable, Optional, Union
 
-from . import __name__ as MODULE_NAME
 from . import utils
-from .defaults import defaults
-from .fetch_info import FetchInfo
+from .base import BaseMetaClass
 from .base_impl import PipelineImpl, PipelineOpImpl, PipelineOpResultImpl
+from .defaults import defaults
 from .enums import PipelineOpType
 from .errors import _Error
+from .fetch_info import FetchInfo
 
 
-class PipelineOp:
-    __module__ = MODULE_NAME
+class PipelineOp(metaclass=BaseMetaClass):
 
     def __repr__(self):
-        typ = self.__class__
-        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        cls_name = self.__class__._public_name
         return f"<{cls_name} of type {self.op_type.name}>"
 
     def _create_result(self):
@@ -149,12 +147,10 @@ class PipelineOp:
         return self._impl.statement
 
 
-class PipelineOpResult:
-    __module__ = MODULE_NAME
+class PipelineOpResult(metaclass=BaseMetaClass):
 
     def __repr__(self):
-        typ = self.__class__
-        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        cls_name = self.__class__._public_name
         return (
             f"<{cls_name} for operation of type {self.operation.op_type.name}>"
         )
@@ -211,12 +207,10 @@ class PipelineOpResult:
         return self._impl.warning
 
 
-class Pipeline:
-    __module__ = MODULE_NAME
+class Pipeline(metaclass=BaseMetaClass):
 
     def __repr__(self):
-        typ = self.__class__
-        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        cls_name = self.__class__._public_name
         return f"<{cls_name} with {len(self._impl.operations)} operations>"
 
     def _add_op(self, op_impl):

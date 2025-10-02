@@ -32,18 +32,16 @@
 import array
 from typing import Union
 
+from .base import BaseMetaClass
 from .base_impl import get_array_type_code_uint32, SparseVectorImpl
-from . import __name__ as MODULE_NAME
 
 ARRAY_TYPE_CODE_UINT32 = get_array_type_code_uint32()
 
 
-class SparseVector:
+class SparseVector(metaclass=BaseMetaClass):
     """
     Provides information about sparse vectors.
     """
-
-    __module__ = MODULE_NAME
 
     def __init__(
         self,
@@ -76,8 +74,9 @@ class SparseVector:
         )
 
     def __repr__(self):
+        cls_name = self.__class__._public_name
         return (
-            f"{MODULE_NAME}.{self.__class__.__name__}({self.num_dimensions}, "
+            f"{cls_name}({self.num_dimensions}, "
             f"{self.indices}, {self.values})"
         )
 

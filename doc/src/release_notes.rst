@@ -99,6 +99,9 @@ Common Changes
     :ref:`DbObject <dbobjecttype>` which is not actually a collection.
 #)  API documentation is now generated from the source code.
 #)  The test suite now uses `pytest <https://docs.pytest.org/>`__.
+#)  Internal change: the value of ``__module__`` for all classes is now left
+    untouched to avoid issues with ``inspect.getsource()`` but the
+    ``__repr__()`` now consistently shows the module as ``oracledb``.
 #)  Internal change: `typing_extensions <https://pypi.org/project/
     typing-extensions/>`__ is now a dependency.
 

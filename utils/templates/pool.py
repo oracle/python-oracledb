@@ -42,11 +42,11 @@ from . import base_impl, thick_impl, thin_impl
 from . import connection as connection_module
 from . import driver_mode
 from . import errors
+from .base import BaseMetaClass
 from .pool_params import PoolParams
 
 
-class BaseConnectionPool:
-    __module__ = oracledb.__name__
+class BaseConnectionPool(metaclass=BaseMetaClass):
     _impl = None
 
     def __init__(
@@ -355,7 +355,6 @@ class BaseConnectionPool:
 
 
 class ConnectionPool(BaseConnectionPool):
-    __module__ = oracledb.__name__
 
     def __del__(self):
         if self._impl is not None:
@@ -672,7 +671,6 @@ def create_pool(
 
 
 class AsyncConnectionPool(BaseConnectionPool):
-    __module__ = oracledb.__name__
 
     def _set_connection_type(self, conn_class):
         """

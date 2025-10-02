@@ -31,17 +31,17 @@
 
 from typing import Any, Union, Callable, Optional
 
-from . import __name__ as MODULE_NAME
 from . import connection as connection_module
 from . import errors
 from . import utils
-from .fetch_info import FetchInfo
-from .var import Var
+from .base import BaseMetaClass
 from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
+from .fetch_info import FetchInfo
+from .var import Var
 
 
-class BaseCursor:
+class BaseCursor(metaclass=BaseMetaClass):
     _impl = None
 
     def __init__(
@@ -73,8 +73,7 @@ class BaseCursor:
         self._impl = None
 
     def __repr__(self):
-        typ = self.__class__
-        cls_name = f"{typ.__module__}.{typ.__qualname__}"
+        cls_name = self.__class__._public_name
         return f"<{cls_name} on {self.connection!r}>"
 
     def _call(
@@ -655,7 +654,6 @@ class BaseCursor:
 
 
 class Cursor(BaseCursor):
-    __module__ = MODULE_NAME
 
     def __iter__(self):
         """
@@ -1040,7 +1038,6 @@ class Cursor(BaseCursor):
 
 
 class AsyncCursor(BaseCursor):
-    __module__ = MODULE_NAME
 
     async def __aenter__(self):
         """

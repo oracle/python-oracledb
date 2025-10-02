@@ -33,12 +33,14 @@ from typing import Any, Optional, Union
 from typing_extensions import Self
 import json
 
+from .base import BaseMetaClass
 from . import errors
 
 
-class SodaDatabase:
+class SodaDatabase(metaclass=BaseMetaClass):
     def __repr__(self):
-        return f"<oracledb.SodaDatabase on {self._conn!r}>"
+        cls_name = self.__class__._public_name
+        return f"<{cls_name} on {self._conn!r}>"
 
     @classmethod
     def _from_impl(cls, conn, impl):
@@ -154,7 +156,7 @@ class SodaDatabase:
             return SodaCollection._from_impl(self, collection_impl)
 
 
-class SodaCollection:
+class SodaCollection(metaclass=BaseMetaClass):
     @classmethod
     def _from_impl(cls, db, impl):
         coll = cls.__new__(cls)
@@ -375,7 +377,7 @@ class SodaCollection:
         self._impl.truncate()
 
 
-class SodaDocument:
+class SodaDocument(metaclass=BaseMetaClass):
     @classmethod
     def _from_impl(cls, impl):
         doc = cls.__new__(cls)
@@ -468,7 +470,7 @@ class SodaDocument:
         return self._impl.get_version()
 
 
-class SodaDocCursor:
+class SodaDocCursor(metaclass=BaseMetaClass):
     def __iter__(self):
         return self
 
@@ -498,7 +500,7 @@ class SodaDocCursor:
         self._impl = None
 
 
-class SodaOperation:
+class SodaOperation(metaclass=BaseMetaClass):
     def __init__(self, collection: SodaCollection) -> None:
         self._collection = collection
         self._key = None

@@ -30,18 +30,16 @@
 # -----------------------------------------------------------------------------
 
 from . import base_impl
-from . import __name__ as MODULE_NAME
 from . import errors
+from .base import BaseMetaClass
 
 
-class Defaults:
+class Defaults(metaclass=BaseMetaClass):
     """
     A singleton Defaults object contains attributes to adjust default
     behaviors of python-oracledb. It is accessed using the :data:`defaults`
     attribute of the imported module.
     """
-
-    __module__ = MODULE_NAME
 
     def __init__(self) -> None:
         self._impl = base_impl.DEFAULTS

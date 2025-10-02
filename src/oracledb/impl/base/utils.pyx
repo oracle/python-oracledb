@@ -246,25 +246,25 @@ def init_base_impl(package):
     ENUM_AUTH_MODE = package.AuthMode
     ENUM_PURITY = package.Purity
     ENUM_POOL_GET_MODE = package.PoolGetMode
-    PY_TYPE_ARROW_ARRAY = package.ArrowArray
-    PY_TYPE_ASYNC_CURSOR = package.AsyncCursor
-    PY_TYPE_ASYNC_LOB = package.AsyncLOB
-    PY_TYPE_CONNECT_PARAMS = package.ConnectParams
-    PY_TYPE_CURSOR = package.Cursor
-    PY_TYPE_DATAFRAME = package.DataFrame
-    PY_TYPE_DB_OBJECT = package.DbObject
-    PY_TYPE_DB_OBJECT_TYPE = package.DbObjectType
-    PY_TYPE_FETCHINFO = package.FetchInfo
-    PY_TYPE_INTERVAL_YM = package.IntervalYM
-    PY_TYPE_JSON_ID = package.JsonId
-    PY_TYPE_LOB = package.LOB
-    PY_TYPE_MESSAGE = package.Message
-    PY_TYPE_MESSAGE_QUERY = package.MessageQuery
-    PY_TYPE_MESSAGE_ROW = package.MessageRow
-    PY_TYPE_MESSAGE_TABLE = package.MessageTable
-    PY_TYPE_POOL_PARAMS = package.PoolParams
-    PY_TYPE_SPARSE_VECTOR = package.SparseVector
-    PY_TYPE_VAR = package.Var
+    PY_TYPE_ARROW_ARRAY = <type> package.ArrowArray
+    PY_TYPE_ASYNC_CURSOR = <type> package.AsyncCursor
+    PY_TYPE_ASYNC_LOB = <type> package.AsyncLOB
+    PY_TYPE_CONNECT_PARAMS = <type> package.ConnectParams
+    PY_TYPE_CURSOR = <type> package.Cursor
+    PY_TYPE_DATAFRAME = <type> package.DataFrame
+    PY_TYPE_DB_OBJECT = <type> package.DbObject
+    PY_TYPE_DB_OBJECT_TYPE = <type> package.DbObjectType
+    PY_TYPE_FETCHINFO = <type> package.FetchInfo
+    PY_TYPE_INTERVAL_YM = <type> package.IntervalYM
+    PY_TYPE_JSON_ID = <type> package.JsonId
+    PY_TYPE_LOB = <type> package.LOB
+    PY_TYPE_MESSAGE = <type> package.Message
+    PY_TYPE_MESSAGE_QUERY = <type> package.MessageQuery
+    PY_TYPE_MESSAGE_ROW = <type> package.MessageRow
+    PY_TYPE_MESSAGE_TABLE = <type> package.MessageTable
+    PY_TYPE_POOL_PARAMS = <type> package.PoolParams
+    PY_TYPE_SPARSE_VECTOR = <type> package.SparseVector
+    PY_TYPE_VAR = <type> package.Var
 
 
 def sanitize(str value):

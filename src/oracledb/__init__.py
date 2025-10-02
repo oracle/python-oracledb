@@ -1211,6 +1211,7 @@ del (
     fetch_info,  # noqa
     future,  # noqa
     lob,  # noqa
+    pipeline,  # noqa
     pool,  # noqa
     pool_params,  # noqa
     sparse_vector,  # noqa
