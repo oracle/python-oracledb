@@ -39,6 +39,7 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     cdef:
         int64_t int_value, days, seconds, useconds
         SparseVectorImpl sparse_impl
+        uint32_t db_type_num
         ArrowType arrow_type
         uint64_t uint_value
         OracleRawBytes* rb
@@ -48,6 +49,7 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         char buf[21]
 
     arrow_type = metadata._schema_impl.arrow_type
+    db_type_num = metadata.dbtype.num
     if arrow_type in (
         NANOARROW_TYPE_INT8,
         NANOARROW_TYPE_INT16,
@@ -74,10 +76,21 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
             return temp_bytes
     elif arrow_type == NANOARROW_TYPE_DOUBLE:
         array_impl.get_double(array_index, &data.is_null,
-                               &data.buffer.as_double)
+                              &data.buffer.as_double)
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            temp_bytes = str(data.buffer.as_double).encode()
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
+        elif db_type_num == DB_TYPE_NUM_BINARY_FLOAT:
+            data.buffer.as_float = <float> data.buffer.as_double
     elif arrow_type == NANOARROW_TYPE_FLOAT:
-        array_impl.get_float(array_index, &data.is_null,
-                              &data.buffer.as_float)
+        array_impl.get_float(array_index, &data.is_null, &data.buffer.as_float)
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            temp_bytes = str(data.buffer.as_float).encode()
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
+        elif db_type_num == DB_TYPE_NUM_BINARY_DOUBLE:
+            data.buffer.as_double = <double> data.buffer.as_float
     elif arrow_type == NANOARROW_TYPE_BOOL:
         array_impl.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
     elif arrow_type in (
@@ -89,7 +102,13 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     ):
         rb = &data.buffer.as_raw_bytes
         array_impl.get_bytes(array_index, &data.is_null, <char**> &rb.ptr,
-                              &rb.num_bytes)
+                             &rb.num_bytes)
+        if rb.num_bytes == 0:
+            data.is_null = True
+        elif db_type_num == DB_TYPE_NUM_LONG_NVARCHAR:
+            temp_bytes = rb.ptr[:rb.num_bytes].decode().encode(ENCODING_UTF16)
+            convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+            return temp_bytes
     elif arrow_type in (NANOARROW_TYPE_TIMESTAMP, NANOARROW_TYPE_DATE64):
         array_impl.get_int(arrow_type, array_index, &data.is_null, &int_value)
         if not data.is_null:
@@ -577,6 +596,8 @@ cdef object convert_python_to_oracle_data(OracleMetadata metadata,
         else:
             temp_bytes = (<str> value).encode(ENCODING_UTF16)
         convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
+        if data.buffer.as_raw_bytes.num_bytes == 0:
+            data.is_null = True
         return temp_bytes
     elif ora_type_num in (ORA_TYPE_NUM_RAW, ORA_TYPE_NUM_LONG_RAW):
         convert_bytes_to_oracle_data(&data.buffer, value)

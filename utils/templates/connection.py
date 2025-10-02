@@ -1065,6 +1065,32 @@ class Connection(BaseConnection):
         self._verify_connected()
         return Cursor(self, scrollable)
 
+    def direct_path_load(
+        self,
+        schema_name: str,
+        table_name: str,
+        column_names: list[str],
+        data: Any,
+        *,
+        batch_size: int = 2**32 - 1,
+    ) -> None:
+        """
+        Load data into Oracle Database using the Direct Path Load interface.
+        It is available only in python-oracledb Thin mode.
+
+        The ``data`` parameter can be a list of sequences, a DataFrame, or a
+        third-party DataFrame instance that supports the Apache Arrow PyCapsule
+        Interface.
+
+        The ``batch_size`` parameter is used to split large data sets into
+        smaller pieces for sending to the database. It is the number of records
+        in each batch. This parameter can be used to tune performance.
+        """
+        self._verify_connected()
+        self._impl.direct_path_load(
+            schema_name, table_name, column_names, data, batch_size
+        )
+
     def fetch_df_all(
         self,
         statement: str,
@@ -2041,6 +2067,28 @@ class AsyncConnection(BaseConnection):
             )
             cursor.rowfactory = rowfactory
             return await cursor.fetchall()
+
+    async def direct_path_load(
+        self,
+        schema_name: str,
+        table_name: str,
+        column_names: list[str],
+        data: Any,
+        *,
+        batch_size: int = 2**32 - 1,
+    ) -> None:
+        """
+        Load data into Oracle Database using the Direct Path Load interface.
+        It is available only in python-oracledb Thin mode.
+
+        The ``data`` parameter can be a list of sequences, a DataFrame, or a
+        third-party DataFrame instance that supports the Apache Arrow PyCapsule
+        Interface.
+        """
+        self._verify_connected()
+        await self._impl.direct_path_load(
+            schema_name, table_name, column_names, data, batch_size
+        )
 
     async def fetch_df_all(
         self,

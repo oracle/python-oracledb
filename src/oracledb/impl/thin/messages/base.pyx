@@ -330,7 +330,14 @@ cdef class Message:
         buf.skip_ub2()                      # version
         buf.skip_ub2()                      # character set id
         buf.read_ub1(&csfrm)                # character set form
-        metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        # in some cases the metadata returned contains an invalid character
+        # set form for data types that do not actually require it; if the
+        # lookup fails, try again with a zero character set form
+        try:
+            metadata.dbtype = \
+                    DbType._from_ora_type_and_csfrm(ora_type_num, csfrm)
+        except:
+            metadata.dbtype = DbType._from_ora_type_and_csfrm(ora_type_num, 0)
         buf.read_ub4(&metadata.max_size)
         if ora_type_num == ORA_TYPE_NUM_RAW:
             metadata.max_size = metadata.buffer_size

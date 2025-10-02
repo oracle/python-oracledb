@@ -1,16 +1,16 @@
 # python-oracledb
 
-Python-oracledb is an open-source [Python][python] extension module allowing
-Python programs to connect to [Oracle Database][oracledb]. The module conforms
-to the [Python Database API 2.0 specification][pep249] with a considerable
-number of additions and a couple of minor exclusions, see the [feature
-list][features]. It is maintained by Oracle.
+Python-oracledb is the widely used, open-source [Python][python] extension
+module allowing Python programs to connect to [Oracle Database][oracledb]. The
+module conforms to the [Python Database API 2.0 specification][pep249] with a
+considerable number of additions and a couple of minor exclusions, see the
+[feature list][features]. It is maintained by Oracle.
 
-Python-oracledb is used for executing SQL and PL/SQL; for calling NoSQL-style
-document APIs; for working with data frames; for receiving database
+Python-oracledb is used for executing SQL and PL/SQL; for working with data
+frames; for calling NoSQL-style document APIs; for receiving database
 notifications and messages; and for starting and stopping the database. It has
-features for high availability and security. It is used by many Python
-Frameworks, SQL Generators, ORMs, and libraries.
+features for fast data loading, high availability, and security. It is used by
+many Python frameworks, SQL generators, ORMs, and libraries.
 
 Synchronous and [concurrent][concurrent] coding styles are supported. Database
 operations can optionally be [pipelined][pipelining].

@@ -77,6 +77,14 @@ AsyncConnection Methods
 
     .. versionadded:: 2.1.0
 
+.. automethod:: AsyncConnection.direct_path_load
+
+    See :ref:`directpathloads`.
+
+    .. versionadded:: 3.4.0
+
+    .. dbapimethodextension::
+
 .. automethod:: AsyncConnection.encode_oson
 
     .. versionadded:: 2.1.0

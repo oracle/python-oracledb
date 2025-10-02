@@ -941,8 +941,8 @@ cdef class WriteBuffer(Buffer):
         self.write_uint64be(0)              # unused
         self.write_uint64be(0)              # unused
 
-    cdef object write_oson(self, value, ssize_t max_fname_size,
-                           bint write_length=True):
+    cdef int write_oson(self, value, ssize_t max_fname_size,
+                        bint write_length=True) except -1:
         """
         Encodes the given value to OSON and then writes that to the buffer.
         it.
@@ -958,7 +958,7 @@ cdef class WriteBuffer(Buffer):
             self._seq_num = 1
         self.write_uint8(self._seq_num)
 
-    cdef object write_vector(self, value):
+    cdef int write_vector(self, value) except -1:
         """
         Encodes the given value to VECTOR and then writes that to the buffer.
         """

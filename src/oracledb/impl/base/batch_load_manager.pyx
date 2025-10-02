@@ -38,6 +38,54 @@ cdef class BatchLoadManager:
         cdef uint64_t rows_remaining = total_rows - self.offset
         self.num_rows = <uint32_t> min(rows_remaining, self.batch_size)
 
+    @staticmethod
+    cdef BatchLoadManager _create(object parameters, uint32_t batch_size,
+                                  int error_num):
+        """
+        Creates a batch manager from the parameters and batch size.
+        """
+        cdef DataFrameImpl df_impl
+
+        # batch size must be a positive integer
+        if batch_size == 0:
+            raise TypeError("batch_size must be a positive integer")
+
+        # if parameters are an int, the value refers to the number of times to
+        # execute the statement
+        if isinstance(parameters, int):
+            return PrePopulatedBatchLoadManager.create(parameters)
+
+        # if parameters are a list, the value refers to the actual data that is
+        # to be loaded
+        elif isinstance(parameters, list):
+            return FullDataBatchLoadManager.create(parameters)
+
+        # if parameters are an Oracle dataframe we can use it directly
+        elif isinstance(parameters, PY_TYPE_DATAFRAME):
+            return DataFrameBatchLoadManager.create(parameters._impl)
+
+        # if parameters implement the Arrow PyCapsule stream interface, convert
+        # it to an Oracle dataframe for further processing
+        elif hasattr(parameters, "__arrow_c_stream__"):
+            df_impl = DataFrameImpl.from_arrow_stream(parameters)
+            return DataFrameBatchLoadManager.create(df_impl)
+
+        # the parameters are of an unknown type
+        errors._raise_err(error_num)
+
+    cdef list _get_all_rows(self):
+        """
+        Returns the set of rows associated with the batch load manager, if
+        applicable.
+        """
+        pass
+
+    cdef list _get_arrow_arrays(self):
+        """
+        Returns the Arrow arrays containing the data for the current batch.
+        """
+        pass
+
     cdef int _next_batch(self) except -1:
         """
         Goes to the next batch in the set of data, if applicable.
@@ -50,6 +98,36 @@ cdef class BatchLoadManager:
         if one is being used.
         """
         pass
+
+    cdef int _verify_metadata(self, list column_metadata) except -1:
+        """
+        Called after the manager has been populated and helps verify the column
+        metadata is consistent with the data being loaded.
+        """
+        pass
+
+    @staticmethod
+    cdef BatchLoadManager create_for_direct_path_load(
+        object parameters,
+        list column_metadata,
+        uint32_t batch_size,
+    ):
+        """
+        Creates a batch load manager object for calling conn.direct_path_load()
+        with the given parameters. This allows splitting large source arrays
+        into multiple chunks and also supports data frames with multiple
+        chunks.
+        """
+        cdef BatchLoadManager manager
+        manager = BatchLoadManager._create(
+            parameters,
+            batch_size,
+            errors.ERR_WRONG_DIRECT_PATH_DATA_TYPE,
+        )
+        manager.batch_size = batch_size
+        manager._verify_metadata(column_metadata)
+        manager._next_batch()
+        return manager
 
     @staticmethod
     cdef BatchLoadManager create_for_executemany(
@@ -64,40 +142,14 @@ cdef class BatchLoadManager:
         into multiple chunks and also supports data frames with multiple
         chunks.
         """
-        cdef:
-            BatchLoadManager manager
-            DataFrameImpl df_impl
-
-        # batch size must be a positive integer
-        if batch_size == 0:
-            raise TypeError("batch_size must be a positive integer")
+        cdef BatchLoadManager manager
 
         # create and populate manager object
-        # if parameters are an instance, the value refers to the number of
-        # times to execute the statement
-        if isinstance(parameters, int):
-            manager = PrePopulatedBatchLoadManager.create(parameters)
-
-        # if parameters are a list, the value refers to the actual data that is
-        # to be loaded
-        elif isinstance(parameters, list):
-            manager = FullDataBatchLoadManager.create(parameters)
-
-        # if parameters are an Oracle dataframe we can use it directly
-        elif isinstance(parameters, PY_TYPE_DATAFRAME):
-            manager = DataFrameBatchLoadManager.create(parameters._impl)
-
-        # if parameters implement the Arrow PyCapsule stream interface, convert
-        # it to an Oracle dataframe for further processing
-        elif hasattr(parameters, "__arrow_c_stream__"):
-            df_impl = DataFrameImpl.from_arrow_stream(parameters)
-            manager = DataFrameBatchLoadManager.create(df_impl)
-
-        # the parameters are of an unknown type
-        else:
-            errors._raise_err(errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE)
-
-        # setup cursor
+        manager = BatchLoadManager._create(
+            parameters,
+            batch_size,
+            errors.ERR_WRONG_EXECUTEMANY_PARAMETERS_TYPE,
+        )
         manager.cursor_impl = cursor_impl
         manager.cursor = cursor
         manager.conn = cursor.connection
@@ -140,6 +192,13 @@ cdef class DataFrameBatchLoadManager(BatchLoadManager):
         array_impl.get_length(&num_rows)
         self.num_rows_in_chunk = <uint64_t> num_rows
 
+    cdef list _get_arrow_arrays(self):
+        """
+        Returns the Arrow arrays containing the data for the current batch.
+        """
+        cdef list arrays = self.df_impl.arrays
+        return arrays[self.chunk_index:self.chunk_index + self.num_cols]
+
     cdef int _next_batch(self) except -1:
         """
         Goes to the next batch of data.
@@ -153,7 +212,7 @@ cdef class DataFrameBatchLoadManager(BatchLoadManager):
         self._calculate_num_rows_in_batch(self.num_rows_in_chunk)
         if self.num_rows == 0:
             self._next_chunk()
-        if self.num_rows > 0:
+        if self.num_rows > 0 and self.cursor_impl is not None:
             for i, bind_var in enumerate(self.cursor_impl.bind_vars):
                 array_impl = self.df_impl.arrays[self.chunk_index + i]
                 bind_var.var_impl._arrow_array = array_impl
@@ -192,6 +251,25 @@ cdef class DataFrameBatchLoadManager(BatchLoadManager):
             bind_var.var_impl = var_impl
             self.cursor_impl.bind_vars.append(bind_var)
 
+    cdef int _verify_metadata(self, list column_metadata) except -1:
+        """
+        Called after the manager has been populated and helps verify the column
+        metadata is consistent with the data being loaded.
+        """
+        cdef:
+            ArrowSchemaImpl schema_impl
+            OracleMetadata metadata
+        if len(column_metadata) != len(self.df_impl.schema_impls):
+            errors._raise_err(
+                errors.ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS,
+                expected_num=len(column_metadata),
+                actual_num=len(self.df_impl.schema_impls)
+            )
+        if self.num_chunks > 0:
+            for metadata, schema_impl in \
+                    zip(column_metadata, self.df_impl.schema_impls):
+                metadata._set_arrow_schema(schema_impl)
+
     @staticmethod
     cdef BatchLoadManager create(DataFrameImpl df_impl):
         """
@@ -202,7 +280,8 @@ cdef class DataFrameBatchLoadManager(BatchLoadManager):
         m.df_impl = df_impl
         m.num_cols = len(df_impl.schema_impls)
         m.num_chunks = len(df_impl.arrays) // m.num_cols
-        m._calculate_num_rows_in_chunk()
+        if m.num_chunks > 0:
+            m._calculate_num_rows_in_chunk()
         return m
 
 
@@ -213,6 +292,13 @@ cdef class FullDataBatchLoadManager(BatchLoadManager):
         uint64_t total_num_rows
         object type_handler
 
+    cdef list _get_all_rows(self):
+        """
+        Returns the set of rows associated with the batch load manager, if
+        applicable.
+        """
+        return self.all_rows
+
     cdef int _next_batch(self) except -1:
         """
         Goes to the next batch of data.
@@ -222,14 +308,15 @@ cdef class FullDataBatchLoadManager(BatchLoadManager):
             object row
             ssize_t i
         self._calculate_num_rows_in_batch(self.total_num_rows)
-        self.cursor_impl._reset_bind_vars(self.offset, self.num_rows)
-        for i in range(self.num_rows):
-            if i == self.num_rows - 1:
-                defer_type_assignment = False
-            row = self.all_rows[self.offset + i]
-            self.cursor_impl._bind_values(self.cursor, self.type_handler,
-                                          row, self.num_rows, i,
-                                          defer_type_assignment)
+        if self.cursor_impl is not None:
+            self.cursor_impl._reset_bind_vars(self.offset, self.num_rows)
+            for i in range(self.num_rows):
+                if i == self.num_rows - 1:
+                    defer_type_assignment = False
+                row = self.all_rows[self.offset + i]
+                self.cursor_impl._bind_values(self.cursor, self.type_handler,
+                                              row, self.num_rows, i,
+                                              defer_type_assignment)
 
     cdef int _setup_cursor(self) except -1:
         """
@@ -237,6 +324,23 @@ cdef class FullDataBatchLoadManager(BatchLoadManager):
         if one is being used.
         """
         self.type_handler = self.cursor_impl._get_input_type_handler()
+
+    cdef int _verify_metadata(self, list column_metadata) except -1:
+        """
+        Called after the manager has been populated and helps verify the column
+        metadata is consistent with the data being loaded.
+        """
+        cdef:
+            ssize_t num_columns
+            object row
+        num_columns = len(column_metadata)
+        for row in self.all_rows:
+            if len(row) != num_columns:
+                errors._raise_err(
+                    errors.ERR_WRONG_NUMBER_OF_POSITIONAL_BINDS,
+                    expected_num=num_columns,
+                    actual_num=len(row)
+                )
 
     @staticmethod
     cdef BatchLoadManager create(list all_rows):

@@ -150,6 +150,7 @@ cdef extern from "nanoarrow.c":
     ArrowErrorCode ArrowSchemaViewInit(ArrowSchemaView* schema_view,
                                        const ArrowSchema* schema,
                                        ArrowError* error)
+    const char* ArrowTypeString(ArrowType type)
 
 cdef int _check_nanoarrow(int code) except -1:
     """

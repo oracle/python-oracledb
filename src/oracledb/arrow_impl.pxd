@@ -109,6 +109,7 @@ cdef class ArrowSchemaImpl:
     cdef bint _is_sparse_vector(self) except*
     cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1
     cdef int _set_time_unit(self, ArrowTimeUnit time_unit) except -1
+    cdef str get_type_name(self)
     cdef int populate_from_schema(self, ArrowSchema* schema) except -1
     cdef int populate_from_metadata(self, ArrowType arrow_type, str name,
                                     int8_t precision, int8_t scale,

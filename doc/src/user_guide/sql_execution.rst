@@ -1114,8 +1114,8 @@ easily be executed with python-oracledb.  For example:
 Do not concatenate or interpolate user data into SQL statements.  See
 :ref:`bind` instead.
 
-When handling multiple data values, use :meth:`Cursor.executemany()` for
-performance.  See :ref:`batchstmnt`
+When handling multiple data values, use :meth:`Cursor.executemany()` or
+:meth:`Connection.direct_path_load()` for performance. See :ref:`batchstmnt`
 
 By default data is not committed to the database and other users will not be
 able to see your changes until your connection commits them by calling

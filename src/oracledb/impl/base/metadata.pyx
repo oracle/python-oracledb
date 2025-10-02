@@ -131,6 +131,71 @@ cdef class OracleMetadata:
                 else:
                     self._py_type_num = PY_TYPE_NUM_FLOAT
 
+    cdef int _set_arrow_schema(self, ArrowSchemaImpl schema_impl) except -1:
+        """
+        Sets an Arrow schema, which checks to see that the Arrow type is
+        compatible with the database type.
+        """
+        cdef:
+            ArrowType arrow_type = schema_impl.arrow_type
+            uint32_t db_type_num = self.dbtype.num
+            bint ok = False
+
+        if arrow_type in (NANOARROW_TYPE_BINARY,
+                          NANOARROW_TYPE_FIXED_SIZE_BINARY,
+                          NANOARROW_TYPE_LARGE_BINARY):
+            if db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
+                ok = True
+        elif arrow_type == NANOARROW_TYPE_BOOL:
+            if db_type_num in (DB_TYPE_NUM_BOOLEAN):
+                ok = True
+        elif arrow_type in (NANOARROW_TYPE_DECIMAL128,
+                            NANOARROW_TYPE_INT8,
+                            NANOARROW_TYPE_INT16,
+                            NANOARROW_TYPE_INT32,
+                            NANOARROW_TYPE_INT64,
+                            NANOARROW_TYPE_UINT8,
+                            NANOARROW_TYPE_UINT16,
+                            NANOARROW_TYPE_UINT32,
+                            NANOARROW_TYPE_UINT64):
+            if db_type_num == DB_TYPE_NUM_NUMBER:
+                ok = True
+        elif arrow_type in (NANOARROW_TYPE_DATE32,
+                            NANOARROW_TYPE_DATE64,
+                            NANOARROW_TYPE_TIMESTAMP):
+            if db_type_num in (DB_TYPE_NUM_DATE,
+                               DB_TYPE_NUM_TIMESTAMP,
+                               DB_TYPE_NUM_TIMESTAMP_LTZ,
+                               DB_TYPE_NUM_TIMESTAMP_TZ):
+                ok = True
+        elif arrow_type == NANOARROW_TYPE_FLOAT:
+            if db_type_num in (DB_TYPE_NUM_BINARY_DOUBLE,
+                               DB_TYPE_NUM_BINARY_FLOAT,
+                               DB_TYPE_NUM_NUMBER):
+                ok = True
+        elif arrow_type == NANOARROW_TYPE_DOUBLE:
+            if db_type_num in (DB_TYPE_NUM_BINARY_DOUBLE,
+                               DB_TYPE_NUM_BINARY_FLOAT,
+                               DB_TYPE_NUM_NUMBER):
+                ok = True
+        elif arrow_type in (NANOARROW_TYPE_STRING,
+                            NANOARROW_TYPE_LARGE_STRING):
+            if db_type_num in (DB_TYPE_NUM_CHAR,
+                               DB_TYPE_NUM_LONG_VARCHAR,
+                               DB_TYPE_NUM_VARCHAR,
+                               DB_TYPE_NUM_NCHAR,
+                               DB_TYPE_NUM_LONG_NVARCHAR,
+                               DB_TYPE_NUM_NVARCHAR):
+                ok = True
+
+        if not ok:
+            errors._raise_err(errors.ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE,
+                              arrow_type=schema_impl.get_type_name(),
+                              db_type=self.dbtype.name)
+
+        self._finalize_init()
+        self._schema_impl = schema_impl
+
     cdef OracleMetadata copy(self):
         """
         Create a copy of the metadata and return it.
@@ -198,7 +263,8 @@ cdef class OracleMetadata:
                             NANOARROW_TYPE_FIXED_SIZE_LIST):
             metadata.dbtype = DB_TYPE_VECTOR
         else:
-            errors._raise_err(errors.ERR_UNEXPECTED_DATA, data=arrow_type)
+            errors._raise_err(errors.ERR_UNSUPPORTED_ARROW_TYPE,
+                              arrow_type=schema_impl.get_type_name())
         metadata._schema_impl = schema_impl
         metadata.name = schema_impl.name
         metadata.precision = schema_impl.precision

@@ -73,6 +73,14 @@ Connection Methods
 
     .. dbapimethodextension::
 
+.. automethod:: Connection.direct_path_load
+
+    See :ref:`directpathloads`.
+
+    .. versionadded:: 3.4.0
+
+    .. dbapimethodextension::
+
 .. automethod:: Connection.encode_oson
 
     .. versionadded:: 2.1.0

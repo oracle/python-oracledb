@@ -567,6 +567,16 @@ cdef class Buffer:
         encode_number(buf, &buflen, num_bytes)
         self._write_raw_bytes_and_length(buf, buflen)
 
+    cdef int write_oson(self, value, ssize_t max_fname_size,
+                        bint write_length=True) except -1:
+        """
+        Encodes the given value to OSON and then writes that to the buffer.
+        it.
+        """
+        cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
+        encoder.encode(value, max_fname_size)
+        self._write_raw_bytes_and_length(encoder._data, encoder._pos)
+
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:
         """
         Writes raw bytes of the specified length to the buffer.
@@ -701,6 +711,14 @@ cdef class Buffer:
         else:
             self.write_uint8(8)
             self.write_uint64be(value)
+
+    cdef int write_vector(self, value) except -1:
+        """
+        Encodes the given value to VECTOR and then writes that to the buffer.
+        """
+        cdef VectorEncoder encoder = VectorEncoder.__new__(VectorEncoder)
+        encoder.encode(value)
+        self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 
 
 cdef class GrowableBuffer(Buffer):

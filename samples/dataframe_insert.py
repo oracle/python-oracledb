@@ -25,9 +25,9 @@
 # -----------------------------------------------------------------------------
 # dataframe_insert.py
 #
-# Shows how executemany() can be used to insert a Pandas dataframe directly
-# into Oracle Database. The same technique can be used with data frames from
-# many other libraries.
+# Shows how executemany() and Direct Path Loads can be used to insert a Pandas
+# dataframe directly into Oracle Database. The same technique can be used with
+# data frames from many other Python libraries.
 # -----------------------------------------------------------------------------
 
 import sys
@@ -50,7 +50,7 @@ connection = oracledb.connect(
 
 # -----------------------------------------------------------------------------
 #
-# Inserting a simple DataFrame
+# Inserting a simple DataFrame using executemany()
 
 with connection.cursor() as cursor:
 
@@ -64,7 +64,38 @@ with connection.cursor() as cursor:
     # efficient "Array DML" method
     cursor.executemany("insert into mytab (id, data) values (:1, :2)", pdf)
 
-    # Check data
+    # Check data using a non-DataFrame fetch
+    print("\nOracle Database Query:")
+    cursor.execute("select * from mytab order by id")
+    columns = [col.name for col in cursor.description]
+    print(columns)
+    for r in cursor:
+        print(r)
+
+    # Clean up for the next example
+    cursor.execute("truncate table mytab")
+
+# -----------------------------------------------------------------------------
+#
+# Inserting a DataFrame using Direct Path Loading
+
+with connection.cursor() as cursor:
+
+    # Create a Pandas DataFrame
+    print("\nPandas Dataframe 2:")
+    d = {"A": [202, 412, 487], "B": ["Abi", "Jessie", "Fay"]}
+    pdf = pandas.DataFrame(data=d)
+    print(pdf)
+
+    # Insert using Direct Path Loads
+    connection.direct_path_load(
+        schema_name=sample_env.get_main_user(),
+        table_name="mytab",
+        column_names=["id", "data"],
+        data=pdf,
+    )
+
+    # Check data using a non-DataFrame fetch
     print("\nOracle Database Query:")
     cursor.execute("select * from mytab order by id")
     columns = [col.name for col in cursor.description]
@@ -74,7 +105,7 @@ with connection.cursor() as cursor:
 
 # -----------------------------------------------------------------------------
 #
-# Inserting VECTORs
+# Inserting a DataFrame with VECTORs using executemany()
 
 # The VECTOR example only works with Oracle Database 23.4 or later
 if sample_env.get_server_version() < (23, 4):
@@ -91,7 +122,7 @@ if not connection.thin and oracledb.clientversion()[:2] < (23, 4):
 with connection.cursor() as cursor:
 
     # Create a Pandas DataFrame
-    print("\nPandas Dataframe 2:")
+    print("\nPandas Dataframe 3:")
     d = {"v": [[3.3, 1.32, 5.0], [2.2, 2.32, 2.0]]}
     pdf = pandas.DataFrame(data=d)
     print(pdf)
@@ -100,8 +131,10 @@ with connection.cursor() as cursor:
     # efficient "Array DML" method
     cursor.executemany("insert into SampleVectorTab (v64) values (:1)", pdf)
 
-    # Check data
+    # Check data using a non-DataFrame fetch
     print("\nOracle Database Query:")
     cursor.execute("select v64 from SampleVectorTab order by id")
-    for (r,) in cursor:
+    columns = [col.name for col in cursor.description]
+    print(columns)
+    for r in cursor:
         print(r)

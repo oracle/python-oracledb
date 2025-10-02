@@ -356,6 +356,9 @@ cdef enum:
     TNS_FUNC_AUTH_PHASE_TWO = 115
     TNS_FUNC_CLOSE_CURSORS = 105
     TNS_FUNC_COMMIT = 14
+    TNS_FUNC_DIRECT_PATH_LOAD_STREAM = 129
+    TNS_FUNC_DIRECT_PATH_OP = 130
+    TNS_FUNC_DIRECT_PATH_PREPARE = 128
     TNS_FUNC_EXECUTE = 94
     TNS_FUNC_FETCH = 5
     TNS_FUNC_LOB_OP = 96
@@ -576,6 +579,61 @@ cdef enum:
     TNS_SESSION_STATE_REQUEST_BEGIN = 0x04
     TNS_SESSION_STATE_REQUEST_END = 0x08
     TNS_SESSION_STATE_EXPLICIT_BOUNDARY = 0x40
+
+# direct path constants
+cdef enum:
+    TNS_DP_INTERFACE_VERSION = 400
+    TNS_DP_STREAM_VERSION = 400
+
+# direct path op codes
+cdef enum:
+    TNS_DPP_OP_CODE_LOAD = 1
+    TNS_DPP_OP_CODE_UNLOAD = 2
+    TNS_DPP_OP_CODE_CONVERT = 3
+
+# direct path prepare input indexes
+cdef enum:
+    TNS_DPP_IN_INDEX_INTERFACE_VERSION = 0
+    TNS_DPP_IN_INDEX_STREAM_VERSION = 1
+    TNS_DPP_IN_INDEX_LOCK_WAIT = 14
+    TNS_DPP_IN_MAX_PARAMS = 36
+
+# direct path prepare keyword indexes
+cdef enum:
+    TNS_DPP_KW_INDEX_OBJECT_NAME = 1
+    TNS_DPP_KW_INDEX_SUBOBJECT_NAME = 2
+    TNS_DPP_KW_INDEX_SCHEMA_NAME = 3
+    TNS_DPP_KW_INDEX_COLUMN_NAME = 4
+    TNS_DPP_KW_INDEX_VARRAY_TABLE = 15
+    TNS_DPP_KW_INDEX_NFOBJ_OID_POS = 11
+    TNS_DPP_KW_INDEX_NFOBJ_SID_POS = 16
+    TNS_DPP_KW_INDEX_NFOBJ_VARRAY_INDEX = 17
+
+# direct path prepare output indexes
+cdef enum:
+    TNS_DPP_OUT_INDEX_CURSOR = 3
+    TNS_DPP_OUT_MAX_PARAMS = 14
+
+# direct path row header flags
+cdef enum:
+    TNS_DPLS_ROW_HEADER_FAST_PIECE = 0x10
+    TNS_DPLS_ROW_HEADER_FAST_ROW = 0x20
+    TNS_DPLS_ROW_HEADER_FIRST = 0x08
+    TNS_DPLS_ROW_HEADER_LAST = 0x04
+    TNS_DPLS_ROW_HEADER_SPLIT_WITH_PREV = 0x02
+    TNS_DPLS_ROW_HEADER_SPLIT_WITH_NEXT = 0x01
+
+# other direct path load stream constants
+cdef enum:
+    TNS_DPLS_MAX_SHORT_LENGTH = 0xfa
+    TNS_DPLS_MAX_PIECE_SIZE = 0xfff0
+    TNS_DPLS_FAST_HEADER_SIZE = 4
+    TNS_DPLS_SLOW_HEADER_SIZE = 2
+
+# direct path operation codes
+cdef enum:
+    TNS_DP_OP_ABORT = 1
+    TNS_DP_OP_FINISH = 2
 
 # other constants
 cdef enum:

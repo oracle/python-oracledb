@@ -19,6 +19,9 @@ oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for Oracle Database's :ref:`Direct Path Load
+    <directpathloads>` functionality which is very efficient for loading large
+    datasets into a database.
 #)  Fixed bug when setting values of type ``datetime.date`` on variables (such
     as created by :meth:`Cursor.var()` or implicitly by
     :meth:`Cursor.setinputsizes()`) of types

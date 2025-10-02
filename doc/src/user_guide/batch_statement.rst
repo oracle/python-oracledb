@@ -14,6 +14,11 @@ easily optimize batch insertion, and also allows "noisy" data (values not in a
 suitable format) to be filtered for review while other, correct, values are
 inserted.
 
+In addition to Oracle Database "Array DML" batch loading,
+:ref:`directpathloads` can be used for very fast loading of large data sets if
+certain schema criteria can be met. Another option for frequent, small inserts
+is to load data using the Oracle Database :ref:`memoptimized`.
+
 Related topics include :ref:`tuning` and :ref:`dataframeformat`.
 
 Batch Statement Execution
@@ -618,3 +623,155 @@ B19E-449D-9968-1121AF06D793>`__ between the databases and using
 INSERT INTO SELECT or CREATE AS SELECT.
 
 You can control the data transfer by changing your SELECT statement.
+
+.. _directpathloads:
+
+Direct Path Loads
+=================
+
+Direct Path Loads allows data being inserted into Oracle Database to bypass
+code layers such as the database buffer cache. Also there are no INSERT
+statements used. This can be very efficient for ingestion of huge amounts of
+data but, as a consequence of the architecture, there are restrictions on when
+Direct Path Loads can be used. For more information see Oracle Database
+documentation such as on SQL*Loader `Direct Path Loads
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-0D576DEF-7918-4DD2-A184-754D217C021F>`__ and on the Oracle Call Interface
+`Direct Path Load Interface
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-596F5F9B-47A1-48DB-8702-FEED7BE038B9>`__.
+
+The end-to-end insertion time when using Direct Path Loads for smaller data
+sets may not be faster than using :meth:`Cursor.executemany()`, however there
+can still be reduced load on the database.
+
+.. note::
+
+    Direct Path Loads are only supported in python-oracledb Thin mode.
+
+Direct Path Loading is performed by the :meth:`Connection.direct_path_load()`
+method. For example, if you have the table::
+
+    create table TestDirectPathLoad (
+        id    number(9),
+        name  varchar2(20)
+    );
+
+Then you can load data into it using the code:
+
+.. code-block:: python
+
+    SCHEMA_NAME = "HR"
+    TABLE_NAME = "TESTDIRECTPATHLOAD"
+    COLUMN_NAMES = ["ID", "NAME"]
+    DATA = [
+        (1, "A first row"),
+        (2, "A second row"),
+        (3, "A third row"),
+    ]
+
+    connection.direct_path_load(
+        schema_name=SCHEMA_NAME,
+        table_name=TABLE_NAME,
+        column_names=COLUMN_NAMES,
+        data=DATA
+    )
+
+The records are always implicitly committed.
+
+The ``data`` parameter can be a list of sequences, a :ref:`DataFrame
+<oracledataframeobj>` object, or a third-party DataFrame instance that supports
+the Apache Arrow PyCapsule Interface, see :ref:`dfppl`.
+
+To load into VECTOR columns, pass an appropriate `Python array.array()
+<https://docs.python.org/3/library/array.html>`__ value, or a list of values.
+For example, if you have the table::
+
+    create table TestDirectPathLoad (
+        id    number(9),
+        name  varchar2(20),
+        v64   vector(3, float64)
+    );
+
+Then you can load data into it using the code:
+
+.. code-block:: python
+
+    SCHEMA_NAME = "HR"
+    TABLE_NAME = "TESTDIRECTPATHLOAD"
+    COLUMN_NAMES = ["ID", "NAME", "V64"]
+    DATA = [
+        (1, "A first row", array.array("d", [1, 2, 3])),
+        (2, "A second row", [4, 5, 6]),
+        (3, "A third row", array.array("d", [7, 8, 9])),
+    ]
+
+    connection.direct_path_load(
+        schema_name=SCHEMA_NAME,
+        table_name=TABLE_NAME,
+        column_names=COLUMN_NAMES,
+        data=DATA
+    )
+
+
+For more on vectors, see :ref:`vectors`.
+
+Runnable Direct Path Load examples are in the `GitHub examples
+<https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.
+
+**Notes on Direct Path Loads**
+
+- Data is implicitly committed.
+- Data being inserted into CLOB or BLOB columns must be strings or bytes, not
+  python-oracledb :ref:`LOB Objects <lobobj>`.
+- Insertion of python-oracledb :ref:`DbObjectType Objects <dbobjecttype>` is
+  not supported
+
+Review Oracle Database documentation for database requirements and
+restrictions.
+
+Batching of Direct Path Loads
+-----------------------------
+
+If buffer, network, or database limits make it desirable to process smaller
+sets of records, you can either make repeated calls to
+:meth:`Connection.direct_path_load()` or you can use the ``batch_size``
+parameter. For example:
+
+.. code-block:: python
+
+    SCHEMA_NAME = "HR"
+    TABLE_NAME = "TESTDIRECTPATHLOAD"
+    COLUMN_NAMES = ["ID", "NAME"]
+    DATA = [
+        (1, "A first row"),
+        (2, "A second row"),
+        . . .
+        (10_000_000, "Ten millionth row"),
+    ]
+
+    connection.direct_path_load(
+        schema_name=SCHEMA_NAME,
+        table_name=TABLE_NAME,
+        column_names=COLUMN_NAMES,
+        data=DATA,
+        batch_size=1_000_000
+    )
+
+This will send the data to the database in batches of 1,000,000 records until
+all 10,000,000 records have been inserted.
+
+.. _memoptimized:
+
+Memoptimized Rowstore
+=====================
+
+The Memoptimized Rowstore is another Oracle Database feature for data
+ingestion, particularly for frequent single row inserts. It can also aid query
+performance. Configuration and control is handled by database configuration and
+the use of specific SQL statements. As a result, there is no specific
+python-oracledb requirement or API needed to take advantage of the feature.
+
+To use the Memoptimized Rowstore see Oracle Database documentation `Enabling
+High Performance Data Streaming with the Memoptimized Rowstore
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9752E93D-55A7-4584-B09B-9623B33B5CCF>`__.

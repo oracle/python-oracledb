@@ -96,6 +96,7 @@ from .base_impl cimport (
     BaseParser,
     BasePoolImpl,
     BaseVarImpl,
+    BatchLoadManager,
     PipelineOpImpl,
     PipelineOpResultImpl,
     PIPELINE_OP_TYPE_CALL_FUNC,
@@ -198,7 +199,7 @@ from .base_impl import (
     DB_TYPE_XMLTYPE,
 )
 
-from .arrow_impl cimport ArrowArrayImpl
+from .arrow_impl cimport ArrowArrayImpl, DataFrameImpl
 
 ctypedef unsigned char char_type
 
@@ -220,6 +221,9 @@ include "impl/thin/messages/auth.pyx"
 include "impl/thin/messages/commit.pyx"
 include "impl/thin/messages/connect.pyx"
 include "impl/thin/messages/data_types.pyx"
+include "impl/thin/messages/direct_path_prepare.pyx"
+include "impl/thin/messages/direct_path_load_stream.pyx"
+include "impl/thin/messages/direct_path_op.pyx"
 include "impl/thin/messages/end_pipeline.pyx"
 include "impl/thin/messages/execute.pyx"
 include "impl/thin/messages/fetch.pyx"

@@ -235,6 +235,7 @@ cdef class DbType:
         uint8_t _ora_type_num
         uint8_t _csfrm
         uint8_t _default_py_type_num
+        bint _is_fast
 
     @staticmethod
     cdef DbType _from_num(uint32_t num)
@@ -277,8 +278,23 @@ cdef class BatchLoadManager:
         object conn
 
     cdef int _calculate_num_rows_in_batch(self, uint64_t total_rows) except -1
+    @staticmethod
+    cdef BatchLoadManager _create(
+        object parameters,
+        uint32_t batch_size,
+        int error_num,
+    )
+    cdef list _get_all_rows(self)
+    cdef list _get_arrow_arrays(self)
     cdef int _next_batch(self) except -1
     cdef int _setup_cursor(self) except -1
+    cdef int _verify_metadata(self, list column_metadata) except -1
+    @staticmethod
+    cdef BatchLoadManager create_for_direct_path_load(
+        object parameters,
+        list column_metadata,
+        uint32_t batch_size,
+    )
     @staticmethod
     cdef BatchLoadManager create_for_executemany(
         object cursor,
@@ -348,6 +364,8 @@ cdef class Buffer:
     cdef int write_interval_ym(self, object value) except -1
     cdef int write_oracle_date(self, object value, uint8_t length) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
+    cdef int write_oson(self, value, ssize_t max_fname_size,
+                        bint write_length=*) except -1
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
     cdef int write_sb4(self, int32_t value) except -1
     cdef int write_str(self, str value) except -1
@@ -359,6 +377,7 @@ cdef class Buffer:
     cdef int write_ub2(self, uint16_t value) except -1
     cdef int write_ub4(self, uint32_t value) except -1
     cdef int write_ub8(self, uint64_t value) except -1
+    cdef int write_vector(self, value) except -1
 
 
 cdef class GrowableBuffer(Buffer):
@@ -475,6 +494,7 @@ cdef class OracleMetadata:
 
     cdef int _create_arrow_schema(self) except -1
     cdef int _finalize_init(self) except -1
+    cdef int _set_arrow_schema(self, ArrowSchemaImpl schema_impl) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
     cdef OracleMetadata from_arrow_schema(ArrowSchemaImpl schema_impl)

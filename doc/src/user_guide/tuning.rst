@@ -21,9 +21,11 @@ Some general tuning tips are:
 
   Make use of efficient python-oracledb functions. For example, to insert
   multiple rows use :meth:`Cursor.executemany()` instead of
-  :meth:`Cursor.execute()`. Another example is to fetch data directly as
-  :ref:`data frames <dataframeformat>` when working with packages like Pandas
-  and NumPy.
+  :meth:`Cursor.execute()`. Alternatively use
+  :meth:`Connection.direct_path_load()` for inserting very large
+  datasets. Another example is to fetch data directly as :ref:`data frames
+  <dataframeformat>` instead of using the traditional query code path when
+  working with packages like Pandas and NumPy.
 
 * Tune your SQL statements.  See the `SQL Tuning Guide
   <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=TGSQL>`__.

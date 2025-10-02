@@ -290,6 +290,7 @@ ERR_SCROLL_OUT_OF_RESULT_SET = 2063
 ERR_POOL_MAX_LESS_THAN_MIN = 2064
 ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED = 2065
 ERR_EMPTY_STATEMENT = 2066
+ERR_WRONG_DIRECT_PATH_DATA_TYPE = 2067
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -328,6 +329,8 @@ ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT = 3033
 ERR_SESSIONLESS_DIFFERING_METHODS = 3034
 ERR_SESSIONLESS_ALREADY_ACTIVE = 3035
 ERR_SESSIONLESS_INACTIVE = 3036
+ERR_UNSUPPORTED_ARROW_TYPE = 3037
+ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE = 3038
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -394,6 +397,10 @@ ERR_INVALID_SERVER_NAME = 6006
 
 # error numbers that result in Warning
 WRN_COMPILATION_ERROR = 7000
+
+# error numbers that result in DataError
+ERR_VALUE_TOO_LARGE = 8000
+ERR_NULLS_NOT_ALLOWED = 8001
 
 # Oracle error number cross reference
 ERR_ORACLE_ERROR_XREF = {
@@ -530,6 +537,7 @@ ERR_EXCEPTION_TYPES = {
     5: exceptions.InternalError,
     6: exceptions.OperationalError,
     7: exceptions.Warning,
+    8: exceptions.DataError,
 }
 
 # error messages that have a troubleshooting section available
@@ -795,6 +803,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_NOT_A_QUERY: "the executed statement does not return rows",
     ERR_NOT_CONNECTED: "not connected to database",
     ERR_NOT_IMPLEMENTED: "not implemented",
+    ERR_NULLS_NOT_ALLOWED: (
+        'value for column "{column_name}" may not be null on row {row_num}'
+    ),
     ERR_NUMBER_STRING_OF_ZERO_LENGTH: "invalid number: zero length string",
     ERR_NUMBER_STRING_TOO_LONG: "invalid number: string too long",
     ERR_NUMBER_WITH_EMPTY_EXPONENT: "invalid number: empty exponent",
@@ -909,6 +920,11 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNKNOWN_TRANSACTION_SYNC_VERSION: (
         "internal error: unknown transaction sync version {version}"
     ),
+    ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Arrow type "{arrow_type}"',
+    ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE: (
+        'Arrow type "{arrow_type}" cannot be converted to database type '
+        '"{db_type}"'
+    ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"
     ),
@@ -924,6 +940,10 @@ ERR_MESSAGE_FORMATS = {
         "password verifier type 0x{verifier_type:x} is not supported by "
         "python-oracledb in thin mode"
     ),
+    ERR_VALUE_TOO_LARGE: (
+        "value of size {actual_size} exeeds maximum allowed size of "
+        '{max_size} for column "{column_name}" of row {row_num}'
+    ),
     ERR_VECTOR_FORMAT_NOT_SUPPORTED: (
         "VECTOR type {vector_format} is not supported"
     ),
@@ -933,6 +953,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_WALLET_FILE_MISSING: "wallet file {name} was not found",
     ERR_WRONG_ARRAY_DEFINITION: (
         "expecting a list of two elements [type, numelems]"
+    ),
+    ERR_WRONG_DIRECT_PATH_DATA_TYPE: (
+        "expecting a list or an object implementing the Arrow PyCapsule "
+        "interface __arrow_c_stream__()"
     ),
     ERR_WRONG_EXECUTE_PARAMETERS_TYPE: (
         "expecting a dictionary, list or tuple, or keyword args"

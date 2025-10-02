@@ -112,6 +112,12 @@ cdef class ArrowSchemaImpl:
         schema_impl.populate_from_schema(arrow_schema)
         return schema_impl
 
+    cdef str get_type_name(self):
+        """
+        Returns a string representation of the Arrow type.
+        """
+        return ArrowTypeString(self.arrow_type).decode()
+
     cdef int populate_from_schema(self, ArrowSchema* schema) except -1:
         """
         Populate the schema from another schema.

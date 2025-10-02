@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# pipelining.py (Section 19.1)
+# direct_path.py (Section 17.1)
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -26,48 +26,51 @@
 # limitations under the License.
 # -----------------------------------------------------------------------------
 
-import asyncio
 import oracledb
 import db_config
 
+con = oracledb.connect(
+    user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+)
 
-async def get_weather():
-    return "Hot and sunny"
+cur = con.cursor()
 
-
-async def get_location():
-    return "Melbourne"
-
-
-async def main():
-    con = await oracledb.connect_async(
-        user=db_config.user, password=db_config.pw, dsn=db_config.dsn
+# Create table
+cur.execute(
+    """
+    begin
+        execute immediate 'drop table testdpl';
+    exception when others then
+        if sqlcode <> -942 then
+            raise;
+        end if;
+    end;
+    """
+)
+cur.execute(
+    """
+    create table testdpl (
+        id   number(9),
+        name varchar2(100)
     )
+    """
+)
 
-    pipeline = oracledb.create_pipeline()
-    pipeline.add_fetchone(
-        "select ename, job from emp where empno = :en", [7839]
-    )
-    pipeline.add_fetchall("select dname from dept order by deptno")
+DATA = [
+    (1, "Adelaide"),
+    (2, "Brisbane"),
+    (3, "Canberra"),
+]
 
-    # Run the pipeline and non-database operations concurrently.
-    # Note although the database receives all the operations at the same time,
-    # it will execute each operation sequentially. The local Python work
-    # executes during the time the database is processing the queries.
-    return_values = await asyncio.gather(
-        get_weather(), get_location(), con.run_pipeline(pipeline)
-    )
+con.direct_path_load(
+    schema_name=db_config.user,
+    table_name="testdpl",
+    column_names=["id", "name"],
+    data=DATA,
+)
 
-    for r in return_values:
-        if isinstance(r, list):  # the pipeline return list
-            for result in r:
-                if result.rows:
-                    for row in result.rows:
-                        print(*row, sep="\t")
-        else:
-            print(r)  # a local operation result
-
-    await con.close()
-
-
-asyncio.run(main())
+# Check the data was inserted
+cur.execute("select * from testdpl")
+rows = cur.fetchall()
+for row in rows:
+    print(row)

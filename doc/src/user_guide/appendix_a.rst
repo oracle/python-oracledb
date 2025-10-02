@@ -245,6 +245,10 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - No
       - Yes
       - Yes
+    * - Direct Path Loads (see :ref:`directpathloads`)
+      - Yes
+      - No
+      - No
     * - Oracle Database 23ai JSON-Relational Duality Views (see :ref:`jsondualityviews`)
       - Yes
       - Yes

@@ -647,7 +647,12 @@ Inserting Data Frames
 Python-oracledb :ref:`DataFrame <oracledataframeobj>` instances, or third-party
 DataFrame instances that support the Apache Arrow PyCapsule Interface, can be
 inserted into Oracle Database by passing them directly to
-:meth:`Cursor.executemany()` or :meth:`AsyncCursor.executemany()`.
+:meth:`Cursor.executemany()` or :meth:`AsyncCursor.executemany()`.  They can
+also be passed to :meth:`Connection.direct_path_load()` and
+:meth:`AsyncConnection.direct_path_load()`.
+
+Inserting Data Frames with executemany()
+----------------------------------------
 
 For example, with the table::
 
@@ -685,6 +690,45 @@ samples/dataframe_insert.py>`__ for a runnable example.
 For general information about fast data ingestion, and discussion of
 :meth:`Cursor.executemany()` and :meth:`AsyncCursor.executemany()` options, see
 :ref:`batchstmnt`.
+
+.. _dfppl:
+
+Inserting Data Frames with Direct Path Loads
+--------------------------------------------
+
+Very large :ref:`DataFrame <oracledataframeobj>` objects can be efficiently
+inserted using Oracle Database Direct Path Loading by passing them to
+:meth:`Connection.direct_path_load()`. You can also pass third-party DataFrame
+instances that support the Apache Arrow PyCapsule Interface.
+
+See :ref:`directpathloads` for general information about Direct Path Loads.
+
+For example, if the user "HR" has the table::
+
+    create table mytab (
+                   id   number(9),
+                   name varchar2(100));
+
+The following code will insert a Pandas DataFrame:
+
+.. code-block:: python
+
+    import pandas
+
+    d = [
+        (1, "Abigail"),
+        (2, "Anna"),
+        (3, "Janey"),
+        (4, "Jessica"),
+    ]
+    pdf = pandas.DataFrame(data=d)
+
+    connection.direct_path_load(
+        schema_name="hr",
+        table_name="mytab",
+        column_names=["id", "name"],
+        data=pdf
+    )
 
 Explicit Conversion to DataFrame or ArrowArray
 ==============================================

@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>Python and Oracle Database Tutorial: The New Wave of Scripting</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <link rel="stylesheet" href="resources/base.css" type="text/css"/>
 <link rel="shortcut icon" type="image/x-icon" href="resources/favicon.ico"/>
@@ -133,32 +133,38 @@
       <li>15.1 Working with scrollable cursors</li>
       </ul>
     </li>
-    <li><a href="#dataframes">16. Dataframes</a>
+    <li><a href="#dataframes">16. DataFrames</a>
       <ul>
-        <li>16.1 Fetching Dataframes</li>
-        <li>16.2 Inserting Dataframes</li>
+        <li>16.1 Fetching DataFrames</li>
+        <li>16.2 Inserting DataFrames</li>
       </ul>
     </li>
-    <li><a href="#asyncio">17. Concurrent Programming with asyncio</a>
+    <li><a href="#directpath">17. Direct Path Loads</a>
       <ul>
-        <li>17.1 Using asyncio</li>
+        <li>17.1 Using Direct Path Loads</li>
+        <li>17.2 Inserting DataFrames with Direct Path Loads</li>
       </ul>
     </li>
-    <li><a href="#pipelining">18. Pipelining multiple operations</a>
+    <li><a href="#asyncio">18. Concurrent Programming with asyncio</a>
       <ul>
-        <li>18.1 Using Pipelining</li>
+        <li>18.1 Using asyncio</li>
       </ul>
     </li>
-    <li><a href="#thick">19. Python-oracledb Thick mode</a>
+    <li><a href="#pipelining">19. Pipelining multiple operations</a>
       <ul>
-      <li>19.1 Review the Oracle Client library path</li>
-      <li>19.2 Review the configuration files for thick mode</li>
+        <li>19.1 Using Pipelining</li>
       </ul>
     </li>
-    <li><a href="#soda">20. Simple Oracle Document Access (SODA)</a>
+    <li><a href="#thick">20. Python-oracledb Thick mode</a>
       <ul>
-        <li>20.1 Inserting JSON Documents</li>
-        <li>20.2 Searching SODA Documents</li>
+      <li>20.1 Review the Oracle Client library path</li>
+      <li>20.2 Review the configuration files for thick mode</li>
+      </ul>
+    </li>
+    <li><a href="#soda">21. Simple Oracle Document Access (SODA)</a>
+      <ul>
+        <li>21.1 Inserting JSON Documents</li>
+        <li>21.2 Searching SODA Documents</li>
       </ul>
     </li>
     <li><a href="#summary" >Summary</a></li>
@@ -206,7 +212,7 @@ Python, or it can be remote.</p> <h2><a name="setup">Setup</a></h2>
 
   <ul>
     <li>
-      <h4 id="installsw">Get Access to Oracle Database</h4>
+      <h4 id="accessdb">Get Access to Oracle Database</h4>
 
       <p>This tutorial assumes you have DBA access to Oracle Database. This is
       needed to grant some privileges and roles.</p>
@@ -267,7 +273,7 @@ Python, or it can be remote.</p> <h2><a name="setup">Setup</a></h2>
         >here</a> and unzip it. Alternatively you can use 'git' to clone the
         repository:</p>
 
-<pre>git clone https://github.com/oracle/python-oracledb.git</pre>
+<pre>git clone --recursive https://github.com/oracle/python-oracledb.git</pre>
 
         <p>The <code>samples/tutorial</code> directory has scripts to run and
         modify. The <code>samples/tutorial/solutions</code> directory has
@@ -3012,7 +3018,7 @@ print(cur.fetchone())</pre>
 </li>
 </ul>
 
-<h2><a name="dataframes">16. Dataframes</a></h2>
+<h2><a name="dataframes">16. DataFrames</a></h2>
 
 <p>Python-oracledb has a DataFrame class that exposes an Apache Arrow PyCapsule
 interface.  Data can be fetched directly from Oracle Database into DataFrame
@@ -3032,7 +3038,7 @@ it, and then insert it back into Oracle Database. The <em>pyarrow</em> and
       <pre>python -m pip install pyarrow pandas --upgrade</pre>
 
 <ul>
-  <li><h4>16.1 Fetching Dataframes</h4>
+  <li><h4>16.1 Fetching DataFrames</h4>
 
     <p>Review the code contained in <code>query_pandas.py</code>:</p>
 
@@ -3085,13 +3091,12 @@ print(df.median())
 
   </li>
 
-  <li><h4>16.2 Inserting Dataframes</h4>
+  <li><h4>16.2 Inserting DataFrames</h4>
 
     <p>Python-oracledb DataFrame instances, and instances of DataFrames from
-    third-party libraries that support the Apache Arrow PyCapsule Interface,
+    third-party libraries that support the Apache Arrow PyCapsule Interface
     can be inserted into Oracle Database by passing them directly to
     <code>executemany()</code>.</p>
-
 
     <p>Edit <code>query_pandas.py</code> and add this code at the bottom:</p>
 
@@ -3119,11 +3124,120 @@ print(res)
     inserts the DataFrame into Oracle Database. The new salaries are queried
     back to confirm the insertion was successful.</p>
 
-  </li>
+    <p>You can also insert DataFrames using Oracle Database Direct Path Loads,
+    as shown in a later section.</p> </li>
 
 </ul>
 
-<h2><a name="asyncio">17. Concurrent Programming with asyncio</a></h2>
+<h2><a name="directpath">17. Direct Path Loads</a></h2>
+
+<p>Oracle Database Direct Path Loads allow data being inserted to bypass code
+layers such as the database buffer cache. Also there are no INSERT statements
+used. This can be very efficient for ingestion of huge amounts of
+data. <em>Documentation link for further reading: <a
+href="https://python-oracledb.readthedocs.io/en/latest/user_guide/batch_statement.html#direct-path-loads">Direct
+Path Loads</a></em> </p>
+
+<ul>
+  <li><h4> 17.1 Using Direct Path Loads</h4>
+
+    <p>The python-oracledb method <code>connection.direct_path_load()</code>
+    accepts the schema name, table name, column names, and the data to be
+    loaded.</p>
+
+    <p>Review the code contained in <code>direct_path.py</code>:</p>
+
+    <pre>import oracledb
+import db_config
+
+con = oracledb.connect(user=db_config.user, password=db_config.pw, dsn=db_config.dsn)
+
+cur = con.cursor()
+
+# Create table
+cur.execute(
+    """
+    begin
+        execute immediate 'drop table testdpl';
+    exception when others then
+        if sqlcode &lt;&gt; -942 then
+            raise;
+        end if;
+    end;
+    """
+)
+cur.execute(
+    """
+    create table testdpl (
+        id   number(9),
+        name varchar2(100)
+    )
+    """
+)
+
+DATA = [
+    (1, "Adelaide"),
+    (2, "Brisbane"),
+    (3, "Canberra"),
+]
+
+con.direct_path_load(
+    schema_name=db_config.user,
+    table_name="testdpl",
+    column_names=["id", "name"],
+    data=DATA,
+)
+
+# Check the data was inserted
+sql = "select * from testdpl"
+for r in cur.execute(sql):
+    print(r)
+</pre>
+
+    <p>Run the script in a terminal window:</p>
+
+    <pre><strong>python direct_path.py</strong></pre>
+
+    <p>This inserts the data into the new table and queries it back to
+    confirm.</p>
+
+    <p>For small numbers of rows, the elapsed time to insert data may not be
+    better than using <code>executemany()</code>. For larger numbers of rows
+    there can be time benefits and also reduced load on the database.</p>
+
+  </li>
+
+  <li><h4>17.2 Inserting DataFrames with Direct Path Loads</h4>
+
+    <p>DataFrames from third-party libraries that support the Apache Arrow
+    PyCapsule Interface can be inserted into Oracle Database by passing them
+    directly to <code>direct_path_load()</code>.</p>
+
+    <p>For this example, the <em>pandas</em> package need to be installed:</p>
+
+    <pre>python -m pip install pandas --upgrade</pre>
+
+    <p>Edit <code>direct_path.py</code> and import the Pandas package at the top:</p>
+
+    <pre>import pandas</pre>
+
+    <p>Change the data creation to use a Pandas DataFrame instead of the list
+    of tuples:</p>
+
+    <pre>d = {"A": [202, 412, 487], "B": ["Anna", "Bidisha", "Charlie"]}
+DATA = pandas.DataFrame(data=d)
+</pre>
+
+    <p>Run the script in a terminal window:</p>
+
+    <pre><strong>python direct_path.py</strong></pre>
+
+    <p>This displays the inserted values from the DataFrame.</p>
+
+  </li>
+</ul>
+
+<h2><a name="asyncio">18. Concurrent Programming with asyncio</a></h2>
 
 <p>The Asynchronous I/O (asyncio) Python library can be used in python-oracledb
 Thin mode for concurrent programming. This library allows you to run operations
@@ -3139,7 +3253,7 @@ href="https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html#c
 Programming with asyncio</a></em>.</p>
 
 <ul>
-  <li><h4> 17.1 Using asyncio</h4>
+  <li><h4> 18.1 Using asyncio</h4>
 
     <p>Review the code contained in <code>async_gather.py</code>:</p>
 
@@ -3217,7 +3331,7 @@ asyncio.run(main())
 </li>
 </ul>
 
-<h2> <a name="pipelining">18. Pipelining multiple operations</a></h2>
+<h2> <a name="pipelining">19. Pipelining multiple operations</a></h2>
 
 <p>Pipelining allows python-oracledb Thin mode applications to send multiple,
 independent statements to Oracle Database with one call. The database is kept
@@ -3236,7 +3350,7 @@ href="https://python-oracledb.readthedocs.io/en/latest/user_guide/asyncio.html#p
 Database Operations</a></em>.</p>
 
 <ul>
-  <li><h4> 18.1 Using Pipelining</h4>
+  <li><h4> 19.1 Using Pipelining</h4>
 
     <p>Review the code contained in <code>pipelining.py</code>:</p>
 
@@ -3305,7 +3419,7 @@ asyncio.run(main())
 </li>
 </ul>
 
-<h2> <a name="thick">19. Python-oracledb Thick mode</a></h2>
+<h2> <a name="thick">20. Python-oracledb Thick mode</a></h2>
 
 <p>All the above examples were run in python-oracledb's default Thin mode that
 connects directly to Oracle Database. Most could also have been run in Thick
@@ -3325,7 +3439,7 @@ shown at the <a href="#setup" >tutorial start</a>.</p>
 
 <ul>
 <li>
-<h4> 19.1 Review the Oracle Client library path</h4>
+<h4> 20.1 Review the Oracle Client library path</h4>
 
 <p>You additionally need to make Oracle Client libraries available.  Follow the
 documentation on <a
@@ -3399,7 +3513,7 @@ oracledb.init_oracle_client(lib_dir=instant_client_dir)</pre>
 </li>
 
 <li>
-  <h4 id="thickconfig">19.2 Review the configuration files for thick mode</h4>
+  <h4 id="thickconfig">20.2 Review the configuration files for thick mode</h4>
 
   <p>Review <code>db_config_thick.py</code> (thick mode), and
   <code>sql/db_config.sql</code> files in the <code>tutorial</code> directory.
@@ -3451,7 +3565,7 @@ accept pw char prompt 'Enter database password for &amp;user: ' hide
 <p>The following section is specific to the python-oracledb Thick mode in this
 release of python-oracledb.</p>
 
-<h2><a name="soda">20. Simple Oracle Document Access (SODA)</a></h2>
+<h2><a name="soda">21. Simple Oracle Document Access (SODA)</a></h2>
 
 <p>Simple Oracle Document Access (SODA) is a set of NoSQL-style APIs.
   Documents can be inserted, queried, and retrieved from Oracle Database.  By
@@ -3464,7 +3578,7 @@ release of python-oracledb.</p>
 <ul>
 
   <li>
-    <h4>20.1 Inserting JSON Documents</h4>
+    <h4>21.1 Inserting JSON Documents</h4>
 
     <p>Review <code>soda.py</code> :</p>
 
@@ -3535,7 +3649,7 @@ print(content)</pre>
     </li>
 
     <li>
-      <h4>20.2 Searching SODA Documents</h4>
+      <h4>21.2 Searching SODA Documents</h4>
 
       <p>Extend <code>soda.py</code> to insert some more documents and perform
       a find filter operation:</p>
