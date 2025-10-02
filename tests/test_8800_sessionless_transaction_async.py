@@ -679,3 +679,21 @@ async def test_8815(async_conn, async_cursor, test_env):
 
     # drop temp table
     await async_cursor.execute(f"drop table {temp_table_name} purge")
+
+
+async def test_8816(async_conn, async_cursor, test_env):
+    "8816 - test suspend_on_success with batch_size < total rows inserted"
+    await async_cursor.execute("truncate table TestTempTable")
+    rows = [(i + 1, f"String for row {i + 1}") for i in range(200)]
+    await async_conn.begin_sessionless_transaction(
+        transaction_id=TRANSACTION_ID_CLIENT,
+        timeout=15,
+        defer_round_trip=True,
+    )
+    with test_env.assert_raises_full_code("DPY-3036"):
+        await async_cursor.executemany(
+            "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+            rows,
+            batch_size=75,
+            suspend_on_success=True,
+        )

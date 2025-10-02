@@ -62,15 +62,16 @@ cdef class DataFrameImpl:
             df_impl.schema_impls.append(schema_impl)
 
         # populate list of arrays
-        _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
-        for i in range(arrow_schema.n_children):
-            array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
-            array_impl.populate_from_array(df_impl.schema_impls[i],
-                                           arrow_array.children[i])
-            df_impl.arrays.append(array_impl)
-        _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
-        if arrow_array.release != NULL:
-            raise NotImplementedError("multiple chunks not supported")
+        while True:
+            _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
+            if arrow_array.release == NULL:
+                break
+            for i in range(arrow_schema.n_children):
+                array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
+                array_impl.populate_from_array(df_impl.schema_impls[i],
+                                               arrow_array.children[i])
+                df_impl.arrays.append(array_impl)
+
         ArrowArrayStreamRelease(arrow_stream)
         return df_impl
 

@@ -871,12 +871,15 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
             cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
         elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
-            num_execs = cursor_impl._prepare_for_executemany(
-                cursor, op_impl.statement, op_impl.parameters
+            op_impl.batch_load_manager = cursor_impl._prepare_for_executemany(
+                cursor,
+                op_impl.statement,
+                op_impl.parameters,
+                2 ** 32 - 1
             )
-            op_impl.num_execs = num_execs
-            if cursor_impl._statement.requires_single_execute():
-                num_execs = 1
+            op_impl.num_execs = op_impl.batch_load_manager.num_rows
+            if not cursor_impl._statement.requires_single_execute():
+                num_execs = op_impl.num_execs
         elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
             cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
             cursor_impl.prefetchrows = 1

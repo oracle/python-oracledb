@@ -83,6 +83,10 @@ Cursor Methods
 
 .. automethod:: Cursor.executemany
 
+    .. versionchanged:: 3.4.0
+
+        The ``batch_size`` parameter was added.
+
     .. versionchanged:: 3.3.0
 
         Added support for passing data frames in the ``parameters`` parameter.

@@ -70,12 +70,7 @@ Each tuple value maps to one of the bind variable placeholders.
 
 This code requires only one :ref:`round-trip <roundtrips>` from the client to
 the database instead of the five round-trips that would be required for
-repeated calls to :meth:`~Cursor.execute()`.  For very large data sets, there
-may be an external buffer or network limits to how many rows can be processed,
-so repeated calls to ``executemany()`` may be required.  The limits are based
-on both the number of rows being processed as well as the "size" of each row
-that is being processed.  Repeated calls to :meth:`~Cursor.executemany()` are
-still better than repeated calls to :meth:`~Cursor.execute()`.
+repeated calls to :meth:`~Cursor.execute()`.
 
 To insert a single column, make sure the bind variables are correctly created
 as tuples, for example:
@@ -172,6 +167,38 @@ With named bind variables, use named parameters when calling
             insert into ParentTable (ParentId, Description)
             values (:pid, :pdesc)""", data)
 
+
+Batching of Large Datasets
+--------------------------
+
+For very large data sets, there may be a buffer or network limit on how many
+rows can be processed. The limit is based on both the number of records as
+well as the size of each record that is being processed. In other cases, it may
+be faster to process smaller sets of records.
+
+To reduce the data sizes involved, you can either make repeated calls to
+:meth:`~Cursor.executemany()` as shown later in the CSV examples, or you can
+use the ``batch_size`` parameter to optimize transfer across the network to the
+database. For example:
+
+.. code-block:: python
+
+    data = [
+        (1, "Parent 1"),
+        (2, "Parent 2"),
+        . . .
+        (9_999_999, "Parent 9,999,999"),
+        (10_000_000, "Parent 10,000,000"),
+
+    ]
+
+    cursor.executemany("insert into ParentTable values (:1, :2)", data, batch_size=200_000)
+
+This will send the data to the database in batches of 200,000 records until all
+10,000,000 records have been inserted.
+
+If :attr:`Connection.autocommit` is ``True``, then a commit will take place per
+batch of records processed.
 
 .. _batchplsql:
 
@@ -446,8 +473,8 @@ And the schema:
 
     create table test (id number, name varchar2(25));
 
-Data loading can be done in batches of records since the number of records may
-prevent all data being inserted at once:
+Data loading can be done in batches of records since Python memory limitations
+may prevent all the records being held in memory at once:
 
 .. code-block:: python
 

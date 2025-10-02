@@ -460,3 +460,34 @@ def test_4029(cursor, test_env):
         cursor.executemany("", 5)
     with test_env.assert_raises_full_code("DPY-2066"):
         cursor.executemany("  ", 5)
+
+
+def test_4030(cursor):
+    "4030 - test executemany with batch size 0"
+    rows = [[1], [2]]
+    with pytest.raises(TypeError):
+        cursor.executemany(
+            "insert into TestTempTable (IntCol) values (:1)",
+            rows,
+            batch_size=0,
+        )
+
+
+@pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
+def test_4031(batch_size, conn, cursor, empty_tab, round_trip_checker):
+    "4030 - test executemany with various batch sizes"
+    rows = [(i + 1, f"String for row {i + 1}") for i in range(200)]
+    cursor.executemany(
+        "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+        rows,
+        batch_size=batch_size,
+    )
+    expected_round_trips = len(rows) // batch_size
+    if len(rows) % batch_size:
+        expected_round_trips += 1
+    assert round_trip_checker.get_value() == expected_round_trips
+    conn.commit()
+    cursor.execute(
+        "select IntCol, StringCol1 from TestTempTable order by IntCol"
+    )
+    assert cursor.fetchall() == rows

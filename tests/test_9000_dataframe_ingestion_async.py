@@ -947,3 +947,75 @@ async def test_9020(values, dtype, async_conn, async_cursor, empty_tab):
     )
     fetched_values = [d async for d, in async_cursor]
     assert fetched_values == values
+
+
+@pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
+async def test_9021(
+    batch_size, async_conn, async_cursor, empty_tab, round_trip_checker_async
+):
+    "8921 - test ingestion with various batch sizes"
+    names = ["Id", "FirstName"]
+    rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
+    arrays = [
+        pyarrow.array([i for i, _ in rows], pyarrow.int16()),
+        pyarrow.array([s for _, s in rows], pyarrow.string()),
+    ]
+    df = pyarrow.table(arrays, names)
+    await async_cursor.executemany(
+        "insert into TestDataFrame (Id, FirstName) values (:1, :2)",
+        df,
+        batch_size=batch_size,
+    )
+    num_round_trips = len(rows) // batch_size
+    if len(rows) % batch_size:
+        num_round_trips += 1
+    assert await round_trip_checker_async.get_value_async() == num_round_trips
+    await async_conn.commit()
+    await async_cursor.execute(
+        "select Id, FirstName from TestDataFrame order by Id"
+    )
+    assert await async_cursor.fetchall() == rows
+
+
+@pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
+async def test_9022(
+    batch_size, async_conn, async_cursor, empty_tab, round_trip_checker_async
+):
+    "9022 - test ingestion of multi chunk data frames with various batch sizes"
+    names = ["Id", "FirstName"]
+    rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
+    int_arrays = [
+        pyarrow.array([i for i, _ in rows[:25]], pyarrow.int16()),
+        pyarrow.array([i for i, _ in rows[25:59]], pyarrow.int16()),
+        pyarrow.array([i for i, _ in rows[59:75]], pyarrow.int16()),
+        pyarrow.array([i for i, _ in rows[75:190]], pyarrow.int16()),
+        pyarrow.array([i for i, _ in rows[190:]], pyarrow.int16()),
+    ]
+    str_arrays = [
+        pyarrow.array([s for _, s in rows[:25]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[25:59]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[59:75]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[75:190]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[190:]], pyarrow.string()),
+    ]
+    chunked_arrays = [
+        pyarrow.chunked_array(int_arrays),
+        pyarrow.chunked_array(str_arrays),
+    ]
+    df = pyarrow.table(chunked_arrays, names)
+    await async_cursor.executemany(
+        "insert into TestDataFrame (Id, FirstName) values (:1, :2)",
+        df,
+        batch_size=batch_size,
+    )
+    num_round_trips = 0
+    for array in int_arrays:
+        num_round_trips += len(array) // batch_size
+        if len(array) % batch_size:
+            num_round_trips += 1
+    assert await round_trip_checker_async.get_value_async() == num_round_trips
+    await async_conn.commit()
+    await async_cursor.execute(
+        "select Id, FirstName from TestDataFrame order by Id"
+    )
+    assert await async_cursor.fetchall() == rows

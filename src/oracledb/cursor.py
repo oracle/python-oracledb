@@ -851,9 +851,11 @@ class Cursor(BaseCursor):
         self,
         statement: Optional[str],
         parameters: Any,
+        *,
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
         suspend_on_success: bool = False,
+        batch_size: int = 2**32 - 1,
     ) -> None:
         """
         Executes a SQL statement once using all bind value mappings or
@@ -900,6 +902,12 @@ class Cursor(BaseCursor):
         sessionless transaction will be suspended when ``executemany()``
         completes successfully. See :ref:`suspendtxns`.
 
+        The ``batch_size`` parameter is used to split large data sets into
+        smaller pieces for sending to the database. It is the number of records
+        in each batch. This parameter can be used to tune performance. When
+        ``Connection.autocommit`` is *True*, a commit will take place for each
+        batch.
+
         For maximum efficiency, it is best to use the :meth:`setinputsizes()`
         method to specify the bind value types and sizes. In particular, if the
         type is not explicitly specified, the value *None* is assumed to be a
@@ -907,14 +915,22 @@ class Cursor(BaseCursor):
         dates will raise a TypeError exception.
         """
         self._verify_open()
-        num_execs = self._impl._prepare_for_executemany(
-            self, self._normalize_statement(statement), parameters
+        manager = self._impl._prepare_for_executemany(
+            self,
+            self._normalize_statement(statement),
+            parameters,
+            batch_size,
         )
         self._impl.suspend_on_success = suspend_on_success
-        if num_execs > 0:
+        while manager.num_rows > 0:
             self._impl.executemany(
-                self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+                self,
+                manager.num_rows,
+                batcherrors,
+                arraydmlrowcounts,
+                manager.message_offset,
             )
+            manager.next_batch()
 
     def fetchall(self) -> list:
         """
@@ -1188,9 +1204,11 @@ class AsyncCursor(BaseCursor):
         self,
         statement: Optional[str],
         parameters: Any,
+        *,
         batcherrors: bool = False,
         arraydmlrowcounts: bool = False,
         suspend_on_success: bool = False,
+        batch_size: int = 2**32 - 1,
     ) -> None:
         """
         Executes a SQL statement once using all bind value mappings or
@@ -1236,6 +1254,12 @@ class AsyncCursor(BaseCursor):
         sessionless transaction will be suspended when ``executemany()``
         completes successfully. See :ref:`suspendtxns`.
 
+        The ``batch_size`` parameter is used to split large data sets into
+        smaller pieces for sending to the database. It is the number of records
+        in each batch. This parameter can be used to tune performance. When
+        ``Connection.autocommit`` is *True*, a commit will take place for each
+        batch. Do not set ``batch_size`` when ``suspend_on_success`` is *True*.
+
         For maximum efficiency, it is best to use the :meth:`setinputsizes()`
         method to specify the parameter types and sizes ahead of time. In
         particular, the value *None* is assumed to be a string of length 1 so
@@ -1243,14 +1267,19 @@ class AsyncCursor(BaseCursor):
         TypeError exception.
         """
         self._verify_open()
-        num_execs = self._impl._prepare_for_executemany(
-            self, self._normalize_statement(statement), parameters
+        manager = self._impl._prepare_for_executemany(
+            self, self._normalize_statement(statement), parameters, batch_size
         )
         self._impl.suspend_on_success = suspend_on_success
-        if num_execs > 0:
+        while manager.num_rows > 0:
             await self._impl.executemany(
-                self, num_execs, bool(batcherrors), bool(arraydmlrowcounts)
+                self,
+                manager.num_rows,
+                batcherrors,
+                arraydmlrowcounts,
+                manager.message_offset,
             )
+            manager.next_batch()
 
     async def fetchall(self) -> list:
         """

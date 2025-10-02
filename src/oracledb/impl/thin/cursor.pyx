@@ -280,7 +280,8 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
             if message.type_cache is not None:
                 message.type_cache.populate_partial_types(conn)
 
-    def executemany(self, cursor, num_execs, batcherrors, arraydmlrowcounts):
+    def executemany(self, object cursor, uint32_t num_execs, bint batcherrors,
+                    bint arraydmlrowcounts, uint32_t offset=0):
         cdef:
             Protocol protocol = <Protocol> self._conn_impl._protocol
             MessageWithData messsage
@@ -293,6 +294,7 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         message.num_execs = num_execs
         message.batcherrors = batcherrors
         message.arraydmlrowcounts = arraydmlrowcounts
+        message.offset = offset
         stmt = self._statement
 
         # only DML statements may use the batch errors or array DML row counts
@@ -393,8 +395,9 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
             if message.type_cache is not None:
                 await message.type_cache.populate_partial_types(conn)
 
-    async def executemany(self, cursor, num_execs, batcherrors,
-                          arraydmlrowcounts):
+    async def executemany(self, object cursor, uint32_t num_execs,
+                          bint batcherrors, bint arraydmlrowcounts,
+                          uint32_t offset):
         cdef:
             BaseAsyncProtocol protocol
             MessageWithData messsage
@@ -408,6 +411,7 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         message.num_execs = num_execs
         message.batcherrors = batcherrors
         message.arraydmlrowcounts = arraydmlrowcounts
+        message.offset = offset
         stmt = self._statement
 
         # only DML statements may use the batch errors or array DML row counts

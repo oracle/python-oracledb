@@ -103,9 +103,6 @@ cdef class ThickVarImpl(BaseVarImpl):
         ):
             self._values = [None] * self.num_elements
         self._create_handle()
-        if self._arrow_array is not None:
-            for i in range(self.num_elements):
-                self._transform_element_from_arrow(i)
 
     cdef list _get_array_value(self):
         """
@@ -203,7 +200,8 @@ cdef class ThickVarImpl(BaseVarImpl):
             self._values[pos] = value
         return value
 
-    cdef int _on_reset_bind(self, uint32_t num_rows) except -1:
+    cdef int _on_reset_bind(self, uint64_t array_offset,
+                            uint32_t num_rows) except -1:
         """
         Called when the bind variable is being reset, just prior to performing
         a bind operation.
@@ -211,7 +209,10 @@ cdef class ThickVarImpl(BaseVarImpl):
         cdef:
             dpiStmtInfo stmt_info
             uint32_t i
-        BaseVarImpl._on_reset_bind(self, num_rows)
+        BaseVarImpl._on_reset_bind(self, array_offset, num_rows)
+        if self._arrow_array is not None:
+            for i in range(num_rows):
+                self._transform_element_from_arrow(array_offset, i)
         if self.metadata.dbtype.num == DB_TYPE_NUM_CURSOR:
             for i in range(self.num_elements):
                 if self._data[i].isNull:
@@ -356,7 +357,8 @@ cdef class ThickVarImpl(BaseVarImpl):
             cpython.PyList_SET_ITEM(return_value, i, element_value)
         return return_value
 
-    cdef int _transform_element_from_arrow(self, uint32_t pos):
+    cdef int _transform_element_from_arrow(self, uint64_t offset,
+                                           uint32_t pos):
         """
         Transforms a single element from an Arrow array to the value required
         by ODPI-C.
@@ -368,7 +370,8 @@ cdef class ThickVarImpl(BaseVarImpl):
             OracleData ora_data
             object value
         value = convert_arrow_to_oracle_data(self.metadata, &ora_data,
-                                             self._arrow_array, pos)
+                                             self._arrow_array,
+                                             <int64_t> (offset + pos))
         data.isNull = ora_data.is_null
         if not ora_data.is_null:
             ora_type_num = self.metadata.dbtype.num

@@ -32,24 +32,6 @@
 @cython.freelist(20)
 cdef class BindVar:
 
-    cdef int _create_var_from_arrow_array(self, object conn,
-                                          BaseCursorImpl cursor_impl,
-                                          ArrowArrayImpl array_impl) except -1:
-        """
-        Creates a variable given an Arrow array.
-        """
-        cdef:
-            BaseVarImpl var_impl
-            int64_t length
-        var_impl = cursor_impl._create_var_impl(conn)
-        array_impl.get_length(&length)
-        var_impl.num_elements = <uint32_t> length
-        var_impl.metadata = \
-                OracleMetadata.from_arrow_schema(array_impl.schema_impl)
-        var_impl._arrow_array = array_impl
-        var_impl._finalize_init()
-        self.var_impl = var_impl
-
     cdef int _create_var_from_type(self, object conn,
                                    BaseCursorImpl cursor_impl,
                                    object value) except -1:

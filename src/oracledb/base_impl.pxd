@@ -43,7 +43,8 @@ from .arrow_impl cimport (
     ArrowTimeUnit,
     ArrowType,
     ArrowArrayImpl,
-    ArrowSchemaImpl
+    ArrowSchemaImpl,
+    DataFrameImpl,
 )
 
 cdef enum:
@@ -261,6 +262,30 @@ cdef class DefaultsImpl:
         public str driver_name
 
 cdef DefaultsImpl C_DEFAULTS
+
+
+cdef class BatchLoadManager:
+    cdef:
+        readonly uint32_t num_rows
+        readonly uint64_t message_offset
+        uint64_t offset
+        BaseCursorImpl cursor_impl
+        uint32_t batch_size
+        uint32_t batch_num
+        object type_handler
+        object cursor
+        object conn
+
+    cdef int _calculate_num_rows_in_batch(self, uint64_t total_rows) except -1
+    cdef int _next_batch(self) except -1
+    cdef int _setup_cursor(self) except -1
+    @staticmethod
+    cdef BatchLoadManager create_for_executemany(
+        object cursor,
+        BaseCursorImpl cursor_impl,
+        object parameters,
+        uint32_t batch_size,
+    )
 
 
 cdef class Buffer:
@@ -689,7 +714,6 @@ cdef class BaseCursorImpl:
                                       object params, uint32_t num_rows,
                                       uint32_t row_num,
                                       bint defer_type_assignment) except -1
-    cdef int _check_binds(self, uint32_t num_execs) except -1
     cdef int _close(self, bint in_del) except -1
     cdef BaseVarImpl _create_fetch_var(self, object conn, object cursor,
                                        object type_handler, bint
@@ -706,10 +730,9 @@ cdef class BaseCursorImpl:
     cdef int _perform_binds(self, object conn, uint32_t num_execs) except -1
     cdef int _prepare(self, str statement, str tag,
                       bint cache_statement) except -1
-    cdef int _reset_bind_vars(self, uint32_t num_rows) except -1
+    cdef int _reset_bind_vars(self, uint64_t array_offset,
+                              uint32_t num_rows) except -1
     cdef int _verify_var(self, object var) except -1
-    cdef object bind_arrow_arrays(self, object cursor, list arrays)
-    cdef int bind_many(self, object cursor, list parameters) except -1
     cdef int bind_one(self, object cursor, object parameters) except -1
     cdef object _finish_building_arrow_arrays(self)
     cdef int _create_arrow_arrays(self) except -1
@@ -749,7 +772,8 @@ cdef class BaseVarImpl:
     cdef DbType _get_adjusted_type(self, uint8_t ora_type_num)
     cdef list _get_array_value(self)
     cdef object _get_scalar_value(self, uint32_t pos)
-    cdef int _on_reset_bind(self, uint32_t num_rows) except -1
+    cdef int _on_reset_bind(self, uint64_t array_offset,
+                            uint32_t num_rows) except -1
     cdef int _resize(self, uint32_t new_size) except -1
     cdef int _set_metadata_from_type(self, object typ) except -1
     cdef int _set_metadata_from_value(self, object value,
@@ -857,9 +881,6 @@ cdef class BindVar:
         ssize_t pos
         bint has_value
 
-    cdef int _create_var_from_arrow_array(self, object conn,
-                                          BaseCursorImpl cursor_impl,
-                                          ArrowArrayImpl array) except -1
     cdef int _create_var_from_type(self, object conn,
                                    BaseCursorImpl cursor_impl,
                                    object value) except -1
@@ -907,6 +928,7 @@ cdef class PipelineOpImpl:
         readonly uint8_t op_type
         readonly bint fetch_lobs
         readonly bint fetch_decimals
+        BatchLoadManager batch_load_manager
         uint32_t num_execs
 
 

@@ -82,6 +82,8 @@ from .arrow_impl cimport (
 import array
 
 import base64
+import collections
+import copy
 import copy
 import datetime
 import decimal
@@ -169,6 +171,7 @@ include "impl/base/pool.pyx"
 include "impl/base/cursor.pyx"
 include "impl/base/var.pyx"
 include "impl/base/bind_var.pyx"
+include "impl/base/batch_load_manager.pyx"
 include "impl/base/dbobject.pyx"
 include "impl/base/lob.pyx"
 include "impl/base/soda.pyx"

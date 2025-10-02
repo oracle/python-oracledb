@@ -326,7 +326,8 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         elif self._stmt_info.isReturning or self._stmt_info.isPLSQL:
             self._transform_binds()
 
-    def executemany(self, cursor, num_execs, batcherrors, arraydmlrowcounts):
+    def executemany(self, object cursor, uint32_t num_execs, bint batcherrors,
+                    bint arraydmlrowcounts, uint32_t offset=0):
         """
         Internal method for executing a statement multiple times.
         """

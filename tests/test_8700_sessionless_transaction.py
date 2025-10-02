@@ -671,3 +671,21 @@ def test_8715(conn, cursor, test_env):
 
     # drop temp table
     cursor.execute(f"drop table {temp_table_name} purge")
+
+
+def test_8716(conn, cursor, test_env):
+    "8716 - test suspend_on_success with batch_size < total rows inserted"
+    cursor.execute("truncate table TestTempTable")
+    rows = [(i + 1, f"String for row {i + 1}") for i in range(200)]
+    conn.begin_sessionless_transaction(
+        transaction_id=TRANSACTION_ID_CLIENT,
+        timeout=15,
+        defer_round_trip=True,
+    )
+    with test_env.assert_raises_full_code("DPY-3036"):
+        cursor.executemany(
+            "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+            rows,
+            batch_size=75,
+            suspend_on_success=True,
+        )

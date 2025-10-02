@@ -47,6 +47,10 @@ Common Changes
 #)  Added support for types ``date32`` and ``date64`` when ingesting data
     frames supporting the Arrow PyCapsule interface as requested
     (`issue 535 <https://github.com/oracle/python-oracledb/issues/535>`__).
+#)  Added a ``batch_size`` parameter to :meth:`Cursor.executemany()` and
+    :meth:`AsyncCursor.executemany()` to let these methods operate on data in
+    batches.
+#)  Data frames with multiple chunks are now supported.
 #)  Added ``fetch_lobs`` and ``fetch_decimals`` parameters where applicable to
     the methods used for fetching rows or data frames from the database. Note
     that for the creation of pipeline operations, if these parameters are not

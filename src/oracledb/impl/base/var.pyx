@@ -309,7 +309,8 @@ cdef class BaseVarImpl:
         """
         raise NotImplementedError()
 
-    cdef int _on_reset_bind(self, uint32_t num_rows) except -1:
+    cdef int _on_reset_bind(self, uint64_t array_offset,
+                            uint32_t num_rows) except -1:
         """
         Called when the bind variable is being reset, just prior to performing
         a bind operation.

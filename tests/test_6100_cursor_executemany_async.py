@@ -403,3 +403,36 @@ async def test_6125(async_cursor, test_env):
         await async_cursor.executemany("", 5)
     with test_env.assert_raises_full_code("DPY-2066"):
         await async_cursor.executemany("  ", 5)
+
+
+async def test_6126(cursor):
+    "6126 - test executemany with batch size 0"
+    rows = [[1], [2]]
+    with pytest.raises(TypeError):
+        await cursor.executemany(
+            "insert into TestTempTable (IntCol) values (:1)",
+            rows,
+            batch_size=0,
+        )
+
+
+@pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
+async def test_6127(
+    batch_size, async_conn, async_cursor, empty_tab, round_trip_checker_async
+):
+    "6127 - test executemany with various batch sizes"
+    rows = [(i + 1, f"String for row {i + 1}") for i in range(200)]
+    await async_cursor.executemany(
+        "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
+        rows,
+        batch_size=batch_size,
+    )
+    num_round_trips = len(rows) // batch_size
+    if len(rows) % batch_size:
+        num_round_trips += 1
+    assert await round_trip_checker_async.get_value_async() == num_round_trips
+    await async_conn.commit()
+    await async_cursor.execute(
+        "select IntCol, StringCol1 from TestTempTable order by IntCol"
+    )
+    assert await async_cursor.fetchall() == rows
