@@ -159,6 +159,8 @@ cdef int _check_nanoarrow(int code) except -1:
     it is not NANOARROW_OK.
     """
     if code != NANOARROW_OK:
+        if code == EOVERFLOW:
+            errors._raise_err(errors.ERR_ARROW_DATA_STRUCTURE_OVERFLOW)
         errors._raise_err(errors.ERR_ARROW_C_API_ERROR, code=code)
 
 

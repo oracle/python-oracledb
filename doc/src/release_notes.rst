@@ -58,6 +58,9 @@ Common Changes
       frames supporting the Arrow PyCapsule interface as requested
       (`issue 535 <https://github.com/oracle/python-oracledb/issues/535>`__).
     - Data frames with multiple chunks are now supported.
+    - Error ``DPY-8002: Apach Arrow C Data structure overflow detected. A
+      larger structure is needed.`` is now raised when an overflow is detected
+      (`issue 536 <https://github.com/oracle/python-oracledb/issues/536>`__).
     - Fixed bug when fetching NCHAR and NVARCHAR2 column data.
     - Fixed bug when attempting to convert an integer that cannot be
       represented as a native C ``int`` value to an Arrow data frame.

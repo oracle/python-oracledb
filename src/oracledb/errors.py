@@ -404,6 +404,7 @@ WRN_COMPILATION_ERROR = 7000
 # error numbers that result in DataError
 ERR_VALUE_TOO_LARGE = 8000
 ERR_NULLS_NOT_ALLOWED = 8001
+ERR_ARROW_DATA_STRUCTURE_OVERFLOW = 8002
 
 # Oracle error number cross reference
 ERR_ORACLE_ERROR_XREF = {
@@ -569,6 +570,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_ARRAYS_OF_ARRAYS: "arrays of arrays are not supported",
     ERR_ARROW_C_API_ERROR: (
         "Apache Arrow C Data Interface operation failed with error code {code}"
+    ),
+    ERR_ARROW_DATA_STRUCTURE_OVERFLOW: (
+        "Apache Arrow C Data structure overflow detected. A larger structure "
+        "is needed."
     ),
     ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
         "Apache Arrow format does not support sparse vectors with flexible "
