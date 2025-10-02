@@ -91,11 +91,6 @@ Connection Methods
 
     See :ref:`dataframeformat` for the supported data types and examples.
 
-    .. note::
-
-        The data frame support in python-oracledb 3.3 is a pre-release and may
-        change in a future version.
-
     .. dbapimethodextension::
 
     .. versionchanged:: 3.4.0
@@ -107,11 +102,6 @@ Connection Methods
 .. automethod:: Connection.fetch_df_batches
 
     See :ref:`dataframeformat` for the supported data types and examples.
-
-    .. note::
-
-        The data frame support in python-oracledb 3.3 is a pre-release and may
-        change in a future version.
 
     .. dbapimethodextension::
 

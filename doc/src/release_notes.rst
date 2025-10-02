@@ -73,8 +73,16 @@ Common Changes
     the `cryptography deprecation announcement <https://mail.python.org/
     archives/list/python-announce-list@python.org/thread/
     R4BZNC36MSFLKULA74KILLFY6GP3VCPA/>`__.
+#)  Connectivity and interoperability with Oracle Database and Oracle Client
+    libraries older than version 19 is deprecated and will be removed in a
+    future version of python-oracledb. Production use, and availability of
+    database and client software, is detailed in `Release Schedule of Current
+    Database Releases <https://support.oracle.com/epmos/faces/
+    DocumentDisplay?id=742060.1>`__.
 #)  Pin Cython to 3.1.x instead of 3.1.0 as requested
     (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
+#)  Support for :ref:`data frames <dataframeformat>` is no longer considered a
+    pre-release.
 #)  Fixed bug when attempting to execute an empty statement
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  Fixed bug when attempting to convert an integer that cannot be represented

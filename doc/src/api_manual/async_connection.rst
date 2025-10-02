@@ -103,11 +103,6 @@ AsyncConnection Methods
 
     See :ref:`dataframeformat` for the supported data types and examples.
 
-    .. note::
-
-        The data frame support in python-oracledb 3.3 is a pre-release and may
-        change in a future version.
-
     .. versionchanged:: 3.4.0
 
         The ``fetch_decimals`` parameter was added.
@@ -117,11 +112,6 @@ AsyncConnection Methods
 .. automethod:: AsyncConnection.fetch_df_batches
 
     See :ref:`dataframeformat` for the supported data types and examples.
-
-    .. note::
-
-        The data frame support in python-oracledb 3.3 is a pre-release and may
-        change in a future version.
 
     .. versionchanged:: 3.4.0
 

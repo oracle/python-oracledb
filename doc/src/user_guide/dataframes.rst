@@ -19,11 +19,6 @@ Python-oracledb has a :ref:`DataFrame <oracledataframeobj>` object that exposes
 an Apache Arrow ArrowArrayStream PyCapsule Interface. This enables zero-copy
 data interchanges to the data frame objects of other libraries.
 
-.. note::
-
-    The data frame support in python-oracledb 3.3 is a pre-release and may
-    change in a future version.
-
 .. _dfquery:
 
 Fetching Data Frames
