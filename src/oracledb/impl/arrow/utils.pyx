@@ -90,6 +90,7 @@ cdef extern from "nanoarrow.c":
                                           double value)
     ArrowErrorCode ArrowArrayAppendInt(ArrowArray* arrow_array, int64_t value)
     ArrowErrorCode ArrowArrayAppendNull(ArrowArray* arrow_array, int64_t n)
+    ArrowErrorCode ArrowArrayAppendUInt(ArrowArray * arrow_array, uint64_t n)
     ArrowBuffer* ArrowArrayBuffer(ArrowArray* arrow_array, int64_t i)
     ArrowErrorCode ArrowArrayFinishBuildingDefault(ArrowArray* arrow_array,
                                                    ArrowError* error)

@@ -110,14 +110,18 @@ Or to iterate:
 Data Frame Type Mapping
 -----------------------
 
+Default Data Frame Type Mapping
++++++++++++++++++++++++++++++++
+
 Internally, python-oracledb's :ref:`DataFrame <oracledataframeobj>` support
 makes use of `Apache nanoarrow <https://arrow.apache.org/nanoarrow/>`__
 libraries to build data frames.
 
-The following data type mapping occurs from Oracle Database types to the Arrow
-types used in python-oracledb DataFrame objects. Querying any other data types
-from Oracle Database will result in an exception. :ref:`Output type handlers
-<outputtypehandlers>` cannot be used to map data types.
+When querying, the following default data type mapping occurs from Oracle
+Database types to the Arrow types used in python-oracledb DataFrame
+objects. Querying any other data types from Oracle Database will result in an
+exception. :ref:`Output type handlers <outputtypehandlers>` cannot be used to
+map data types.
 
 .. list-table-with-summary:: Mapping from Oracle Database to Arrow data types
     :header-rows: 1
@@ -257,6 +261,99 @@ When converting Oracle Database DATEs and TIMESTAMPs:
         - microseconds
       * - 7 - 9
         - nanoseconds
+
+Explicit Data Frame Type Mapping
+++++++++++++++++++++++++++++++++
+
+You can explicitly set the data types and names that a :ref:`DataFrame
+<oracledataframeobj>` will use for query results. This provides fine-grained
+control over the physical data representation of the resulting Arrow arrays. It
+allows you to specify a representation that is more efficient for its specific
+use case. This can reduce memory consumption and improve processing speed.
+
+The parameter ``requested_schema`` parameter to
+:meth:`Connection.fetch_df_all()`, :meth:`Connection.fetch_df_batches()`,
+:meth:`AsyncConnection.fetch_df_all()`, or
+:meth:`AsyncConnection.fetch_df_batches()` should be an object implementing the
+`Arrow PyCapsule schema interface
+<https://arrow.apache.org/docs/python/generated/pyarrow.Schema.html>`__.
+
+For example, the ``pyarrow.schema()`` factory function can be used to create a
+new schema. This takes a list of field definitions as input. Each field can be
+a tuple of ``(name, DataType)``:
+
+.. code-block:: python
+
+    import pyarrow
+
+    # Default fetch
+
+    odf = connection.fetch_df_all(
+        "select 123 c1, 'Scott' c2 from dual"
+    )
+    tab = pyarrow.table(odf)
+    print("Default Output:", tab)
+
+    # Fetching with an explicit schema
+
+    schema = pyarrow.schema([
+        ("col_1", pyarrow.int16()),
+        ("C2", pyarrow.string())
+    ])
+
+    odf = connection.fetch_df_all(
+        "select 456 c1, 'King' c2 from dual",
+        requested_schema=schema
+    )
+    tab = pyarrow.table(odf)
+    print("\nNew Output:", tab)
+
+The schema should have an entry for each queried column.
+
+Running the example shows that the number column with the explicit schema was
+fetched into the requested type INT16. Its name has also changed::
+
+    Default Output: pyarrow.Table
+    C1: double
+    C2: string
+    ----
+    C1: [[123]]
+    C2: [["Scott"]]
+
+    New Output: pyarrow.Table
+    col_1: int16
+    C2: string
+    ----
+    col_1: [[456]]
+    C2: [["King"]]
+
+**Supported Explicit Type Mapping**
+
+The following table shows the explicit type mappings that are supported. An
+error will occur if the database type or the data cannot be represented in the
+requested schema type.
+
+  .. list-table-with-summary::
+      :header-rows: 1
+      :class: wy-table-responsive
+      :widths: 1 1
+      :align: left
+      :summary: The first column is the Oracle Database data type. The second column shows supported Arrow data types.
+
+      * - Oracle Database Type
+        - Arrow Data Types
+      * - DB_TYPE_NUMBER
+        - INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, DECIMAL128(p, s), DOUBLE, FLOAT
+      * - DB_TYPE_RAW, DB_TYPE_LONG_RAW
+        - BINARY, FIXED SIZE BINARY, LARGE BINARY
+      * - DB_TYPE_BOOLEAN
+        - BOOLEAN
+      * - DB_TYPE_DATE, DB_TYPE_TIMESTAMP, DB_TYPE_TIMESTAMP_LTZ, DB_TYPE_TIMESTAMP_TZ
+        - DATE32, DATE64, TIMESTAMP
+      * - DB_TYPE_BINARY_DOUBLE, DB_TYPE_BINARY_FLOAT
+        - DOUBLE, FLOAT
+      * - DB_TYPE_VARCHAR, DB_TYPE_CHAR, DB_TYPE_LONG, DB_TYPE_NVARCHAR, DB_TYPE_NCHAR, DB_TYPE_LONG_NVARCHAR
+        - STRING, LARGE_STRING
 
 .. _convertingodf:
 

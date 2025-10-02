@@ -105,7 +105,7 @@ AsyncConnection Methods
 
     .. versionchanged:: 3.4.0
 
-        The ``fetch_decimals`` parameter was added.
+        The ``fetch_decimals`` and ``requested_schema`` parameters were added.
 
     .. versionadded:: 3.0.0
 
@@ -115,7 +115,7 @@ AsyncConnection Methods
 
     .. versionchanged:: 3.4.0
 
-        The ``fetch_decimals`` parameter was added.
+        The ``fetch_decimals`` and ``requested_schema`` parameters were added.
 
     .. versionadded:: 3.0.0
 

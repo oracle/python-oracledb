@@ -199,7 +199,7 @@ from .base_impl import (
     DB_TYPE_XMLTYPE,
 )
 
-from .arrow_impl cimport ArrowArrayImpl, DataFrameImpl
+from .arrow_impl cimport ArrowArrayImpl, ArrowSchemaImpl, DataFrameImpl
 
 ctypedef unsigned char char_type
 

@@ -330,7 +330,8 @@ ERR_SESSIONLESS_DIFFERING_METHODS = 3034
 ERR_SESSIONLESS_ALREADY_ACTIVE = 3035
 ERR_SESSIONLESS_INACTIVE = 3036
 ERR_UNSUPPORTED_ARROW_TYPE = 3037
-ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE = 3038
+ERR_CANNOT_CONVERT_TO_ARROW_TYPE = 3038
+ERR_CANNOT_CONVERT_FROM_ARROW_TYPE = 3039
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -369,6 +370,8 @@ ERR_INVALID_PASSWORD_TYPE = 4034
 ERR_INVALID_SERVER_RESPONSE = 4035
 ERR_CANNOT_CONVERT_TO_ARROW_INTEGER = 4036
 ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE = 4037
+ERR_INVALID_INTEGER = 4038
+ERR_CANNOT_CONVERT_TO_ARROW_FLOAT = 4039
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -592,11 +595,22 @@ ERR_MESSAGE_FORMATS = {
         "insufficient to hold {required_buffer_len} bytes"
     ),
     ERR_CALL_TIMEOUT_EXCEEDED: "call timeout of {timeout} ms exceeded",
+    ERR_CANNOT_CONVERT_FROM_ARROW_TYPE: (
+        'Arrow type "{arrow_type}" cannot be converted to database type '
+        '"{db_type}"'
+    ),
     ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE: (
         "{value} cannot be converted to an Arrow double"
     ),
+    ERR_CANNOT_CONVERT_TO_ARROW_FLOAT: (
+        "{value} cannot be converted to an Arrow float"
+    ),
     ERR_CANNOT_CONVERT_TO_ARROW_INTEGER: (
         "{value} cannot be converted to an Arrow integer"
+    ),
+    ERR_CANNOT_CONVERT_TO_ARROW_TYPE: (
+        'database type "{db_type}" cannot be converted to Arrow type '
+        '"{arrow_type}"'
     ),
     ERR_CANNOT_PARSE_CONNECT_STRING: 'cannot parse connect string "{data}"',
     ERR_COLUMN_TRUNCATED: (
@@ -695,6 +709,9 @@ ERR_MESSAGE_FORMATS = {
         "{max_index}"
     ),
     ERR_INVALID_ENUM_VALUE: "invalid value for enumeration {name}: {value}",
+    ERR_INVALID_INTEGER: (
+        "integer {value} cannot be represented as Arrow type {arrow_type}"
+    ),
     ERR_INVALID_LOB_AMOUNT: "LOB amount must be greater than zero",
     ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
     ERR_INVALID_MAKEDSN_ARG: '"{name}" argument contains invalid values',
@@ -921,10 +938,6 @@ ERR_MESSAGE_FORMATS = {
         "internal error: unknown transaction sync version {version}"
     ),
     ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Arrow type "{arrow_type}"',
-    ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE: (
-        'Arrow type "{arrow_type}" cannot be converted to database type '
-        '"{db_type}"'
-    ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"
     ),

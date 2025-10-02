@@ -1921,3 +1921,19 @@ def test_8077(conn, test_env):
     )
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert [data] == test_env.get_data_from_df(fetched_df)
+
+
+def test_8078(conn, test_env):
+    "8078 - test fetching NCHAR and NVARCHAR data"
+    value = "test_8078"
+    value_len = len(value)
+    ora_df = conn.fetch_df_all(
+        f"""
+        select
+            cast('{value}' as nchar({value_len})),
+            cast('{value}' as nvarchar2({value_len}))
+        from dual
+        """
+    )
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == [(value, value)]

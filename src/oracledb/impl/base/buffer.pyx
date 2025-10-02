@@ -162,12 +162,15 @@ cdef class Buffer:
         """
         return self._size - self._pos
 
-    cdef int read_oracle_data(self, OracleMetadata metadata,
-                              OracleData* data, bint from_dbobject) except -1:
+    cdef object read_oracle_data(self, OracleMetadata metadata,
+                                 OracleData* data, bint from_dbobject,
+                                 bint decode_str):
         """
         Reads Oracle data of the given type from the buffer.
         """
         cdef:
+            const char *encoding_errors = NULL
+            bytes temp_bytes = None
             uint8_t ora_type_num
             const uint8_t* ptr
             ssize_t num_bytes
@@ -188,8 +191,15 @@ cdef class Buffer:
                 ORA_TYPE_NUM_RAW,
                 ORA_TYPE_NUM_VARCHAR,
             ):
+                if decode_str and metadata.dbtype._csfrm == CS_FORM_NCHAR:
+                    temp_bytes = \
+                            ptr[:num_bytes].decode(ENCODING_UTF16,
+                                                   encoding_errors).encode()
+                    ptr = temp_bytes
+                    num_bytes = len(temp_bytes)
                 data.buffer.as_raw_bytes.ptr = ptr
                 data.buffer.as_raw_bytes.num_bytes = num_bytes
+                return temp_bytes
             elif ora_type_num in (
                 ORA_TYPE_NUM_DATE,
                 ORA_TYPE_NUM_TIMESTAMP,

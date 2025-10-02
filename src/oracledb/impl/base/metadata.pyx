@@ -136,6 +136,16 @@ cdef class OracleMetadata:
         Sets an Arrow schema, which checks to see that the Arrow type is
         compatible with the database type.
         """
+        self.check_convert_from_arrow(schema_impl)
+        self._finalize_init()
+        self._schema_impl = schema_impl
+
+    cdef int check_convert_from_arrow(self,
+                                      ArrowSchemaImpl schema_impl) except -1:
+        """
+        Check that the conversion from the Arrow type to the database type is
+        supported.
+        """
         cdef:
             ArrowType arrow_type = schema_impl.arrow_type
             uint32_t db_type_num = self.dbtype.num
@@ -189,12 +199,88 @@ cdef class OracleMetadata:
                 ok = True
 
         if not ok:
-            errors._raise_err(errors.ERR_UNSUPPORTED_ARROW_TYPE_FOR_DB_TYPE,
+            errors._raise_err(errors.ERR_CANNOT_CONVERT_FROM_ARROW_TYPE,
                               arrow_type=schema_impl.get_type_name(),
                               db_type=self.dbtype.name)
 
-        self._finalize_init()
-        self._schema_impl = schema_impl
+    cdef int check_convert_to_arrow(self,
+                                    ArrowSchemaImpl schema_impl) except -1:
+        """
+        Check that the conversion to the Arrow type from the database type is
+        supported.
+        """
+        cdef:
+            ArrowType arrow_type = schema_impl.arrow_type
+            uint32_t db_type_num = self.dbtype.num
+            bint ok = False
+
+        if db_type_num == DB_TYPE_NUM_NUMBER:
+            if arrow_type in (
+                NANOARROW_TYPE_DECIMAL128,
+                NANOARROW_TYPE_DOUBLE,
+                NANOARROW_TYPE_FLOAT,
+                NANOARROW_TYPE_INT8,
+                NANOARROW_TYPE_INT16,
+                NANOARROW_TYPE_INT32,
+                NANOARROW_TYPE_INT64,
+                NANOARROW_TYPE_UINT8,
+                NANOARROW_TYPE_UINT16,
+                NANOARROW_TYPE_UINT32,
+                NANOARROW_TYPE_UINT64
+            ):
+                ok = True
+        elif db_type_num in (
+            DB_TYPE_NUM_BLOB,
+            DB_TYPE_NUM_RAW,
+            DB_TYPE_NUM_LONG_RAW
+        ):
+            if arrow_type in (
+                NANOARROW_TYPE_BINARY,
+                NANOARROW_TYPE_FIXED_SIZE_BINARY,
+                NANOARROW_TYPE_LARGE_BINARY
+            ):
+                ok = True
+        elif db_type_num == DB_TYPE_NUM_BOOLEAN:
+            if arrow_type == NANOARROW_TYPE_BOOL:
+                ok = True
+        elif db_type_num in (
+            DB_TYPE_NUM_DATE,
+            DB_TYPE_NUM_TIMESTAMP,
+            DB_TYPE_NUM_TIMESTAMP_LTZ,
+            DB_TYPE_NUM_TIMESTAMP_TZ
+        ):
+            if arrow_type in (
+                NANOARROW_TYPE_DATE32,
+                NANOARROW_TYPE_DATE64,
+                NANOARROW_TYPE_TIMESTAMP
+            ):
+                ok = True
+        elif db_type_num in (
+            DB_TYPE_NUM_BINARY_DOUBLE,
+            DB_TYPE_NUM_BINARY_FLOAT
+        ):
+            if arrow_type in (NANOARROW_TYPE_DOUBLE, NANOARROW_TYPE_FLOAT):
+                ok = True
+        elif db_type_num in (
+            DB_TYPE_NUM_CHAR,
+            DB_TYPE_NUM_CLOB,
+            DB_TYPE_NUM_LONG_NVARCHAR,
+            DB_TYPE_NUM_LONG_VARCHAR,
+            DB_TYPE_NUM_VARCHAR,
+            DB_TYPE_NUM_NCHAR,
+            DB_TYPE_NUM_NCLOB,
+            DB_TYPE_NUM_NVARCHAR
+        ):
+            if arrow_type in (
+                NANOARROW_TYPE_STRING,
+                NANOARROW_TYPE_LARGE_STRING
+            ):
+                ok = True
+
+        if not ok:
+            errors._raise_err(errors.ERR_CANNOT_CONVERT_TO_ARROW_TYPE,
+                              arrow_type=schema_impl.get_type_name(),
+                              db_type=self.dbtype.name)
 
     cdef OracleMetadata copy(self):
         """

@@ -391,7 +391,8 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             else:
                 obj_impl._unpack_data_from_buf(buf)
             return PY_TYPE_DB_OBJECT._from_impl(obj_impl)
-        buf.read_oracle_data(metadata, &data, from_dbobject=True)
+        buf.read_oracle_data(metadata, &data, from_dbobject=True,
+                             decode_str=False)
         if metadata.dbtype._csfrm == CS_FORM_NCHAR:
             conn_impl = self.type._conn_impl
             conn_impl._protocol._caps._check_ncharset_id()

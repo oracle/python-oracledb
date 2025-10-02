@@ -337,8 +337,9 @@ cdef class Buffer:
     cdef int read_sb4(self, int32_t *value) except -1
     cdef int read_sb8(self, int64_t *value) except -1
     cdef bytes read_null_terminated_bytes(self)
-    cdef int read_oracle_data(self, OracleMetadata metadata,
-                              OracleData* data, bint from_dbobject) except -1
+    cdef object read_oracle_data(self, OracleMetadata metadata,
+                                 OracleData* data, bint from_dbobject,
+                                 bint decode_str)
     cdef object read_str(self, int csfrm, const char* encoding_errors=*)
     cdef object read_str_with_length(self)
     cdef int read_ub1(self, uint8_t *value) except -1
@@ -495,6 +496,10 @@ cdef class OracleMetadata:
     cdef int _create_arrow_schema(self) except -1
     cdef int _finalize_init(self) except -1
     cdef int _set_arrow_schema(self, ArrowSchemaImpl schema_impl) except -1
+    cdef int check_convert_from_arrow(self,
+                                      ArrowSchemaImpl schema_impl) except -1
+    cdef int check_convert_to_arrow(self,
+                                    ArrowSchemaImpl schema_impl) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
     cdef OracleMetadata from_arrow_schema(ArrowSchemaImpl schema_impl)
@@ -718,6 +723,7 @@ cdef class BaseCursorImpl:
         public bint suspend_on_success
         public bint fetch_lobs
         public bint fetch_decimals
+        public ArrowSchemaImpl schema_impl
         uint32_t _buffer_rowcount
         uint32_t _buffer_index
         uint32_t _fetch_array_size

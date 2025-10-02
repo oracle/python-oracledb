@@ -77,6 +77,7 @@ from .base_impl cimport (
     ENCODING_UTF8,
     OracleData,
     OracleMetadata,
+    OracleNumber,
     PURITY_DEFAULT,
     PY_TYPE_DATE,
     PY_TYPE_DATETIME,

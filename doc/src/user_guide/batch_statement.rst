@@ -629,7 +629,7 @@ You can control the data transfer by changing your SELECT statement.
 Direct Path Loads
 =================
 
-Direct Path Loads allows data being inserted into Oracle Database to bypass
+Direct Path Loads allow data being inserted into Oracle Database to bypass
 code layers such as the database buffer cache. Also there are no INSERT
 statements used. This can be very efficient for ingestion of huge amounts of
 data but, as a consequence of the architecture, there are restrictions on when

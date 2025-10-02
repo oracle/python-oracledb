@@ -43,6 +43,7 @@ from . import __name__ as MODULE_NAME
 from . import base_impl, driver_mode, errors, thick_impl, thin_impl
 from . import pool as pool_module
 from .aq import AsyncQueue, Queue, MessageProperties
+from .arrow_impl import ArrowSchemaImpl
 from .base_impl import DB_TYPE_BLOB, DB_TYPE_CLOB, DB_TYPE_NCLOB, DbType
 from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
@@ -1098,6 +1099,7 @@ class Connection(BaseConnection):
         arraysize: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
+        requested_schema: Optional[Any] = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -1121,10 +1123,18 @@ class Connection(BaseConnection):
         value is
         :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
+        The ``requested_schema`` parameter specifies an object that implements
+        the Arrow PyCapsule schema interface. The DataFrame returned by
+        ``fetch_df_all()`` will have the data types and names of the schema.
+
         Any LOB fetched must be less than 1 GB.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
         if arraysize is not None:
             cursor.arraysize = arraysize
         cursor.prefetchrows = cursor.arraysize
@@ -1142,6 +1152,7 @@ class Connection(BaseConnection):
         size: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
+        requested_schema: Optional[Any] = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -1167,10 +1178,18 @@ class Connection(BaseConnection):
         value is
         :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
+        The ``requested_schema`` parameter specifies an object that implements
+        the Arrow PyCapsule schema interface. The DataFrame returned by
+        ``fetch_df_all()`` will have the data types and names of the schema.
+
         Any LOB fetched must be less than 1 GB.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
         if size is not None:
             cursor.arraysize = size
         cursor.prefetchrows = cursor.arraysize
@@ -2084,6 +2103,10 @@ class AsyncConnection(BaseConnection):
         The ``data`` parameter can be a list of sequences, a DataFrame, or a
         third-party DataFrame instance that supports the Apache Arrow PyCapsule
         Interface.
+
+        The ``batch_size`` parameter is used to split large data sets into
+        smaller pieces for sending to the database. It is the number of records
+        in each batch. This parameter can be used to tune performance.
         """
         self._verify_connected()
         await self._impl.direct_path_load(
@@ -2097,6 +2120,7 @@ class AsyncConnection(BaseConnection):
         arraysize: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
+        requested_schema: Optional[Any] = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -2119,9 +2143,17 @@ class AsyncConnection(BaseConnection):
         capable of being represented in Arrow Decimal128 format. The default
         value is
         :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+
+        The ``requested_schema`` parameter specifies an object that implements
+        the Arrow PyCapsule schema interface. The DataFrame returned by
+        ``fetch_df_all()`` will have the data types and names of the schema.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
         if arraysize is not None:
             cursor.arraysize = arraysize
         cursor.prefetchrows = cursor.arraysize
@@ -2139,6 +2171,7 @@ class AsyncConnection(BaseConnection):
         size: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
+        requested_schema: Optional[Any] = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -2163,9 +2196,17 @@ class AsyncConnection(BaseConnection):
         capable of being represented in Arrow Decimal128 format. The default
         value is
         :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+
+        The ``requested_schema`` parameter specifies an object that implements
+        the Arrow PyCapsule schema interface. The DataFrame returned by
+        ``fetch_df_all()`` will have the data types and names of the schema.
         """
         cursor = self.cursor()
         cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
         if size is not None:
             cursor.arraysize = size
         cursor.prefetchrows = cursor.arraysize

@@ -21,7 +21,8 @@ Thin Mode Changes
 
 #)  Added support for Oracle Database's :ref:`Direct Path Load
     <directpathloads>` functionality which is very efficient for loading large
-    datasets into a database.
+    datasets into a database. Data may be a list of sequences or a DataFrame
+    object.
 #)  Fixed bug when setting values of type ``datetime.date`` on variables (such
     as created by :meth:`Cursor.var()` or implicitly by
     :meth:`Cursor.setinputsizes()`) of types
@@ -44,16 +45,26 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Added support for all of the signed and unsigned fixed width integer types
-    when ingesting data frames supporting the Arrow PyCapsule interface.
-    Previously only ``int64`` was supported.
-#)  Added support for types ``date32`` and ``date64`` when ingesting data
-    frames supporting the Arrow PyCapsule interface as requested
-    (`issue 535 <https://github.com/oracle/python-oracledb/issues/535>`__).
+#)  Changes to :ref:`data frame <dataframeformat>` support:
+
+    - Support for data frames is no longer considered a pre-release.
+    - Added parameter ``requested_schema`` to :meth:`Connection.fetch_df_all()`
+      and :meth:`Connection.fetch_df_batches()` to support type mapping when
+      querying.
+    - Added support for all of the signed and unsigned fixed width integer
+      types when ingesting data frames supporting the Arrow PyCapsule
+      interface. Previously only ``int64`` was supported.
+    - Added support for types ``date32`` and ``date64`` when ingesting data
+      frames supporting the Arrow PyCapsule interface as requested
+      (`issue 535 <https://github.com/oracle/python-oracledb/issues/535>`__).
+    - Data frames with multiple chunks are now supported.
+    - Fixed bug when fetching NCHAR and NVARCHAR2 column data.
+    - Fixed bug when attempting to convert an integer that cannot be
+      represented as a native C ``int`` value to an Arrow data frame.
+
 #)  Added a ``batch_size`` parameter to :meth:`Cursor.executemany()` and
     :meth:`AsyncCursor.executemany()` to let these methods operate on data in
     batches.
-#)  Data frames with multiple chunks are now supported.
 #)  Added ``fetch_lobs`` and ``fetch_decimals`` parameters where applicable to
     the methods used for fetching rows or data frames from the database. Note
     that for the creation of pipeline operations, if these parameters are not
@@ -81,12 +92,8 @@ Common Changes
     DocumentDisplay?id=742060.1>`__.
 #)  Pin Cython to 3.1.x instead of 3.1.0 as requested
     (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
-#)  Support for :ref:`data frames <dataframeformat>` is no longer considered a
-    pre-release.
 #)  Fixed bug when attempting to execute an empty statement
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
-#)  Fixed bug when attempting to convert an integer that cannot be represented
-    as a native C ``int`` value to an Arrow data frame.
 #)  Fixed bug when attempting to append an element to a
     :ref:`DbObject <dbobjecttype>` which is not actually a collection.
 #)  API documentation is now generated from the source code.

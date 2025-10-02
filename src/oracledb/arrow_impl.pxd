@@ -105,6 +105,7 @@ cdef class ArrowSchemaImpl:
         ArrowSchema *arrow_schema
         ArrowType child_arrow_type
         int child_element_size
+        list child_schemas
 
     cdef bint _is_sparse_vector(self) except*
     cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1
@@ -122,6 +123,10 @@ cdef class ArrowArrayImpl:
         ArrowArray *arrow_array
         ArrowSchemaImpl schema_impl
 
+    cdef int _extract_int(self, const void* ptr, ArrowType arrow_type,
+                          int64_t index, int64_t* value) except -1
+    cdef int _extract_uint(self, const void* ptr, ArrowType arrow_type,
+                           int64_t index, uint64_t* value) except -1
     cdef int _get_is_null(self, int64_t index, bint* is_null) except -1
     cdef int _get_list_info(self, int64_t index, ArrowArray* arrow_array,
                             int64_t* offset, int64_t* num_elements) except -1
@@ -129,12 +134,13 @@ cdef class ArrowArrayImpl:
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
     cdef int append_float(self, float value) except -1
-    cdef int append_int64(self, int64_t value) except -1
+    cdef int append_int(self, int64_t value) except -1
     cdef int append_last_value(self, ArrowArrayImpl array) except -1
     cdef int append_null(self) except -1
     cdef int append_sparse_vector(self, int64_t num_dimensions,
                                   array.array indices,
                                   array.array values) except -1
+    cdef int append_uint(self, uint64_t value) except -1
     cdef int append_vector(self, array.array value) except -1
     cdef int finish_building(self) except -1
     cdef int get_bool(self, int64_t index, bint* is_null,

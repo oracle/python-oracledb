@@ -67,8 +67,6 @@ cdef class ArrowSchemaImpl:
         _check_nanoarrow(ArrowSchemaViewInit(&view, schema, NULL))
         if view.type != NANOARROW_TYPE_LIST or schema.name != b"values":
             return False
-        _check_nanoarrow(ArrowSchemaViewInit(&view, schema.children[0], NULL))
-        self._set_child_arrow_type(view.type)
         return True
 
     cdef int _set_child_arrow_type(self, ArrowType child_arrow_type) except -1:
@@ -122,7 +120,10 @@ cdef class ArrowSchemaImpl:
         """
         Populate the schema from another schema.
         """
-        cdef ArrowSchemaView schema_view
+        cdef:
+            ArrowSchemaView schema_view
+            ArrowSchemaImpl schema_impl
+            int64_t i
         ArrowSchemaMove(schema, self.arrow_schema)
         memset(&schema_view, 0, sizeof(ArrowSchemaView))
         _check_nanoarrow(
@@ -133,7 +134,25 @@ cdef class ArrowSchemaImpl:
         self.precision = schema_view.decimal_precision
         self.scale = schema_view.decimal_scale
         self.fixed_size = schema_view.fixed_size
-        if schema_view.type == NANOARROW_TYPE_TIMESTAMP:
+        if schema_view.type == NANOARROW_TYPE_STRUCT:
+
+            # struct may refer to a sparse vector
+            if self._is_sparse_vector():
+                _check_nanoarrow(
+                    ArrowSchemaViewInit(&schema_view,
+                                        schema.children[2].children[0], NULL)
+                )
+                self._set_child_arrow_type(schema_view.type)
+
+            # otherwise, it is treated as a list of columns such as those used
+            # for a requested schema
+            else:
+                self.child_schemas = []
+                for i in range(schema.n_children):
+                    schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
+                    schema_impl.populate_from_schema(schema.children[i])
+                    self.child_schemas.append(schema_impl)
+        elif schema_view.type == NANOARROW_TYPE_TIMESTAMP:
             self._set_time_unit(schema_view.time_unit)
         elif schema_view.type == NANOARROW_TYPE_DATE64:
             self._set_time_unit(NANOARROW_TIME_UNIT_MILLI)
@@ -148,28 +167,25 @@ cdef class ArrowSchemaImpl:
             )
             self._set_child_arrow_type(schema_view.type)
         elif schema_view.type not in (
-                NANOARROW_TYPE_BINARY,
-                NANOARROW_TYPE_BOOL,
-                NANOARROW_TYPE_DECIMAL128,
-                NANOARROW_TYPE_DATE32,
-                NANOARROW_TYPE_DATE64,
-                NANOARROW_TYPE_DOUBLE,
-                NANOARROW_TYPE_FIXED_SIZE_BINARY,
-                NANOARROW_TYPE_FLOAT,
-                NANOARROW_TYPE_INT8,
-                NANOARROW_TYPE_INT16,
-                NANOARROW_TYPE_INT32,
-                NANOARROW_TYPE_INT64,
-                NANOARROW_TYPE_LARGE_BINARY,
-                NANOARROW_TYPE_LARGE_STRING,
-                NANOARROW_TYPE_STRING,
-                NANOARROW_TYPE_UINT8,
-                NANOARROW_TYPE_UINT16,
-                NANOARROW_TYPE_UINT32,
-                NANOARROW_TYPE_UINT64,
-        ) and not (
-                schema_view.type == NANOARROW_TYPE_STRUCT
-                and self._is_sparse_vector()
+            NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_BOOL,
+            NANOARROW_TYPE_DATE32,
+            NANOARROW_TYPE_DATE64,
+            NANOARROW_TYPE_DECIMAL128,
+            NANOARROW_TYPE_DOUBLE,
+            NANOARROW_TYPE_FIXED_SIZE_BINARY,
+            NANOARROW_TYPE_FLOAT,
+            NANOARROW_TYPE_INT8,
+            NANOARROW_TYPE_INT16,
+            NANOARROW_TYPE_INT32,
+            NANOARROW_TYPE_INT64,
+            NANOARROW_TYPE_LARGE_BINARY,
+            NANOARROW_TYPE_LARGE_STRING,
+            NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_UINT8,
+            NANOARROW_TYPE_UINT16,
+            NANOARROW_TYPE_UINT32,
+            NANOARROW_TYPE_UINT64,
         ):
             errors._raise_err(errors.ERR_ARROW_UNSUPPORTED_DATA_FORMAT,
                               schema_format=schema.format.decode())

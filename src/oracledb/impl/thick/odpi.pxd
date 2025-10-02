@@ -89,6 +89,7 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         DPI_NATIVE_TYPE_FLOAT
         DPI_NATIVE_TYPE_INT64
         DPI_NATIVE_TYPE_INTERVAL_DS
+        DPI_NATIVE_TYPE_INTERVAL_YM
         DPI_NATIVE_TYPE_JSON
         DPI_NATIVE_TYPE_JSON_ARRAY
         DPI_NATIVE_TYPE_JSON_OBJECT

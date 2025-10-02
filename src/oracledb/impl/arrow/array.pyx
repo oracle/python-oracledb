@@ -40,6 +40,36 @@ cdef class ArrowArrayImpl:
                 ArrowArrayRelease(self.arrow_array)
             cpython.PyMem_Free(self.arrow_array)
 
+    cdef int _extract_int(self, const void* ptr, ArrowType arrow_type,
+                          int64_t index, int64_t* value) except -1:
+        """
+        Return an int64_t value at the specified index from the buffer for all
+        signed integer types.
+        """
+        if arrow_type == NANOARROW_TYPE_INT8:
+            value[0] = (<int8_t*> ptr)[index]
+        elif arrow_type == NANOARROW_TYPE_INT16:
+            value[0] = (<int16_t*> ptr)[index]
+        elif arrow_type in (NANOARROW_TYPE_INT32, NANOARROW_TYPE_DATE32):
+            value[0] = (<int32_t*> ptr)[index]
+        else:
+            value[0] = (<int64_t*> ptr)[index]
+
+    cdef int _extract_uint(self, const void* ptr, ArrowType arrow_type,
+                           int64_t index, uint64_t* value) except -1:
+        """
+        Return a uint64_t value at the specified index from the buffer for all
+        unsigned integer types.
+        """
+        if arrow_type == NANOARROW_TYPE_UINT8:
+            value[0] = (<uint8_t*> ptr)[index]
+        elif arrow_type == NANOARROW_TYPE_UINT16:
+            value[0] = (<uint16_t*> ptr)[index]
+        elif arrow_type == NANOARROW_TYPE_UINT32:
+            value[0] = (<uint32_t*> ptr)[index]
+        else:
+            value[0] = (<uint64_t*> ptr)[index]
+
     cdef int _get_is_null(self, int64_t index, bint* is_null) except -1:
         """
         Returns whether or not the value at the specified index is null.
@@ -111,11 +141,19 @@ cdef class ArrowArrayImpl:
         """
         self.append_double(value)
 
-    cdef int append_int64(self, int64_t value) except -1:
+    cdef int append_int(self, int64_t value) except -1:
         """
-        Append a value of type int64_t to the array.
+        Append a signed integer value to the array.
         """
-        _check_nanoarrow(ArrowArrayAppendInt(self.arrow_array, value))
+        cdef:
+            str arrow_type
+            int result
+        result = ArrowArrayAppendInt(self.arrow_array, value)
+        if result == EINVAL:
+            arrow_type = ArrowTypeString(self.schema_impl.arrow_type).decode()
+            errors._raise_err(errors.ERR_INVALID_INTEGER, value=value,
+                              arrow_type=arrow_type)
+        _check_nanoarrow(result)
 
     cdef int append_last_value(self, ArrowArrayImpl array) except -1:
         """
@@ -125,7 +163,9 @@ cdef class ArrowArrayImpl:
             int32_t start_offset, end_offset
             ArrowBuffer *offsets_buffer
             ArrowBuffer *data_buffer
+            uint64_t uint64_value
             ArrowDecimal decimal
+            int64_t int64_value
             int64_t *as_int64
             int32_t *as_int32
             double *as_double
@@ -142,12 +182,26 @@ cdef class ArrowArrayImpl:
         if is_null:
             self.append_null()
         elif array.schema_impl.arrow_type in (
+                NANOARROW_TYPE_INT8,
+                NANOARROW_TYPE_INT16,
+                NANOARROW_TYPE_INT32,
                 NANOARROW_TYPE_INT64,
                 NANOARROW_TYPE_TIMESTAMP
         ):
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            as_int64 = <int64_t*> data_buffer.data
-            self.append_int64(as_int64[index])
+            self._extract_int(ArrowArrayBuffer(array.arrow_array, 1).data,
+                              array.schema_impl.arrow_type, index,
+                              &int64_value)
+            self.append_int(int64_value)
+        elif array.schema_impl.arrow_type in (
+                NANOARROW_TYPE_UINT8,
+                NANOARROW_TYPE_UINT16,
+                NANOARROW_TYPE_UINT32,
+                NANOARROW_TYPE_UINT64
+        ):
+            self._extract_uint(ArrowArrayBuffer(array.arrow_array, 1).data,
+                               array.schema_impl.arrow_type, index,
+                               &uint64_value)
+            self.append_uint(uint64_value)
         elif array.schema_impl.arrow_type == NANOARROW_TYPE_DOUBLE:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_double = <double*> data_buffer.data
@@ -159,7 +213,7 @@ cdef class ArrowArrayImpl:
         elif array.schema_impl.arrow_type == NANOARROW_TYPE_BOOL:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             as_bool = ArrowBitGet(data_buffer.data, index)
-            self.append_int64(as_bool)
+            self.append_int(as_bool)
         elif array.schema_impl.arrow_type == NANOARROW_TYPE_DECIMAL128:
             data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
@@ -207,6 +261,12 @@ cdef class ArrowArrayImpl:
         Append a null value to the array.
         """
         _check_nanoarrow(ArrowArrayAppendNull(self.arrow_array, 1))
+
+    cdef int append_uint(self, uint64_t value) except -1:
+        """
+        Append an unsigned integer to the array.
+        """
+        _check_nanoarrow(ArrowArrayAppendUInt(self.arrow_array, value))
 
     cdef int append_vector(self, array.array value) except -1:
         """
@@ -357,18 +417,10 @@ cdef class ArrowArrayImpl:
         Return an int64_t value at the specified index from the Arrow array
         for all signed integer types.
         """
-        cdef const void* ptr
         self._get_is_null(index, is_null)
         if not is_null[0]:
-            ptr = self.arrow_array.buffers[1]
-            if arrow_type == NANOARROW_TYPE_INT8:
-                value[0] = (<int8_t*> ptr)[index]
-            elif arrow_type == NANOARROW_TYPE_INT16:
-                value[0] = (<int16_t*> ptr)[index]
-            elif arrow_type in (NANOARROW_TYPE_INT32, NANOARROW_TYPE_DATE32):
-                value[0] = (<int32_t*> ptr)[index]
-            else:
-                value[0] = (<int64_t*> ptr)[index]
+            self._extract_int(self.arrow_array.buffers[1], arrow_type, index,
+                              value)
 
     cdef int get_length(self, int64_t* length) except -1:
         """
@@ -429,18 +481,10 @@ cdef class ArrowArrayImpl:
         Return a uint64_t value at the specified index from the Arrow array
         for all unsigned integer types.
         """
-        cdef const void* ptr
         self._get_is_null(index, is_null)
         if not is_null[0]:
-            ptr = self.arrow_array.buffers[1]
-            if arrow_type == NANOARROW_TYPE_UINT8:
-                value[0] = (<uint8_t*> ptr)[index]
-            elif arrow_type == NANOARROW_TYPE_UINT16:
-                value[0] = (<uint16_t*> ptr)[index]
-            elif arrow_type == NANOARROW_TYPE_UINT32:
-                value[0] = (<uint32_t*> ptr)[index]
-            else:
-                value[0] = (<uint64_t*> ptr)[index]
+            self._extract_uint(self.arrow_array.buffers[1], arrow_type, index,
+                               value)
 
     cdef object get_vector(self, int64_t index, bint* is_null):
         """

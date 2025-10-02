@@ -299,6 +299,7 @@ cdef class Statement:
         list _fetch_var_impls
         object _bind_info_dict
         object _last_output_type_handler
+        ArrowSchemaImpl _last_schema_impl
         uint32_t _num_columns
         bint _executed
         bint _binds_changed

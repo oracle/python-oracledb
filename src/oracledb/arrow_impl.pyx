@@ -32,6 +32,7 @@
 
 cimport cpython
 
+from libc.errno cimport EINVAL
 from libc.stdint cimport uintptr_t
 from libc.string cimport memcpy, memset, strlen, strchr
 from cpython cimport array
