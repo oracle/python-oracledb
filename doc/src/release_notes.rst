@@ -66,6 +66,8 @@ Common Changes
     (`issue 525 <https://github.com/oracle/python-oracledb/issues/525>`__).
 #)  Fixed bug when attempting to convert an integer that cannot be represented
     as a native C ``int`` value to an Arrow data frame.
+#)  Fixed bug when attempting to append an element to a
+    :ref:`DbObject <dbobjecttype>` which is not actually a collection.
 #)  API documentation is now generated from the source code.
 #)  Internal change: typing_extensions is now a dependency.
 

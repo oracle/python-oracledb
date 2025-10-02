@@ -939,6 +939,39 @@ class TestCase(test_env.BaseTestCase):
         expected_data = [[4, 8], None, [1, 3, 5], None, [2, 6, 10, 7, 9]]
         self.assertEqual(plain_obj, expected_data)
 
+    def test_2348(self):
+        "2348 - test using collection methods on an object that is not one"
+        obj_type = self.conn.gettype("UDT_OBJECT")
+        obj = obj_type.newobject()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.append(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.asdict()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.aslist()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.delete(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.exists(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.extend([5])
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.first()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.getelement(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.last()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.next(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.prev(5)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.setelement(5, None)
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.size()
+        with self.assertRaisesFullCode("DPY-2036"):
+            obj.trim(0)
+
 
 if __name__ == "__main__":
     test_env.run_test_cases()

@@ -91,6 +91,7 @@ class DbObject:
         creates an element immediately following the highest index available in
         the collection.
         """
+        self._ensure_is_collection()
         self._impl.append(element)
 
     def asdict(self) -> dict:
