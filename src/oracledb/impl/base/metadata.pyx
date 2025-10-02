@@ -36,8 +36,9 @@ cdef class OracleMetadata:
         Creates an Arrow schema for the metadata.
         """
         cdef:
-            ArrowType arrow_type, child_arrow_type = NANOARROW_TYPE_NA
             ArrowTimeUnit time_unit = NANOARROW_TIME_UNIT_SECOND
+            ArrowType child_arrow_type = NANOARROW_TYPE_NA
+            ArrowType arrow_type = NANOARROW_TYPE_NA
             uint8_t py_type_num = self._py_type_num
             uint32_t db_type_num = self.dbtype.num
 
