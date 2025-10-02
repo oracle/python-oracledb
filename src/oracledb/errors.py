@@ -548,14 +548,37 @@ ERR_MESSAGE_FORMATS = {
     ERR_ACCESS_TOKEN_REQUIRES_TCPS: (
         "access_token requires use of the tcps protocol"
     ),
-    ERR_ARGS_MUST_BE_LIST_OR_TUPLE: "arguments must be a list or tuple",
     ERR_ARGS_AND_KEYWORD_ARGS: (
         "expecting positional arguments or keyword arguments, not both"
     ),
+    ERR_ARGS_MUST_BE_LIST_OR_TUPLE: "arguments must be a list or tuple",
     ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED: (
         "array DML row counts mode is not enabled"
     ),
     ERR_ARRAYS_OF_ARRAYS: "arrays of arrays are not supported",
+    ERR_ARROW_C_API_ERROR: (
+        "Arrow C Data Interface operation failed with error code {code}"
+    ),
+    ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
+        "Apache Arrow format does not support sparse vectors with flexible "
+        "dimensions"
+    ),
+    ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT: (
+        'conversion from list with child Arrow format "{schema_format}" to '
+        "Oracle Database vector is not supported"
+    ),
+    ERR_ARROW_UNSUPPORTED_DATA_FORMAT: (
+        'conversion from Arrow format "{schema_format}" to Oracle Database '
+        "is not supported"
+    ),
+    ERR_ARROW_UNSUPPORTED_DATA_TYPE: (
+        "conversion from Oracle Database type {db_type_name} to Apache "
+        "Arrow format is not supported"
+    ),
+    ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT: (
+        "flexible vector formats are not supported. Only fixed 'FLOAT32', "
+        "'FLOAT64', 'INT8' or 'BINARY' formats are supported"
+    ),
     ERR_BUFFER_LENGTH_INSUFFICIENT: (
         "internal error: buffer of length {actual_buffer_len} "
         "insufficient to hold {required_buffer_len} bytes"
@@ -572,6 +595,7 @@ ERR_MESSAGE_FORMATS = {
         "column truncated to {col_value_len} {unit}. "
         "Untruncated was {actual_len}"
     ),
+    ERR_CONNECTION_CLOSED: "the database or network closed the connection",
     ERR_CONNECTION_FAILED: (
         "cannot connect to database (CONNECTION_ID={connection_id})."
     ),
@@ -579,8 +603,8 @@ ERR_MESSAGE_FORMATS = {
     ERR_CURSOR_DIFF_CONNECTION: (
         "binding a cursor from a different connection is not supported"
     ),
-    ERR_CURSOR_NOT_OPEN: "cursor is not open",
     ERR_CURSOR_HAS_BEEN_CLOSED: "cursor has been closed by the database",
+    ERR_CURSOR_NOT_OPEN: "cursor is not open",
     ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED: (
         "attribute {attr_name} of type {type_name} exceeds its maximum size "
         "(actual: {actual_size}, maximum: {max_size})"
@@ -666,6 +690,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_LOB_AMOUNT: "LOB amount must be greater than zero",
     ERR_INVALID_LOB_OFFSET: "LOB offset must be greater than zero",
     ERR_INVALID_MAKEDSN_ARG: '"{name}" argument contains invalid values',
+    ERR_INVALID_NETWORK_NAME: (
+        '"{name}" includes characters that are not allowed'
+    ),
     ERR_INVALID_NUMBER: "invalid number",
     ERR_INVALID_OBJECT_TYPE_NAME: 'invalid object type name: "{name}"',
     ERR_INVALID_OCI_ATTR_TYPE: "invalid OCI attribute type {attr_type}",
@@ -731,9 +758,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_MISSING_CONNECT_DESCRIPTOR: (
         '"connect_descriptor" key missing from configuration'
     ),
-    ERR_MISSING_FILE: "file '{file_name}' is missing or unreadable",
     ERR_MISSING_ENDING_DOUBLE_QUOTE: 'missing ending quote (")',
     ERR_MISSING_ENDING_SINGLE_QUOTE: "missing ending quote (')",
+    ERR_MISSING_FILE: "file '{file_name}' is missing or unreadable",
     ERR_MISSING_TYPE_NAME_FOR_OBJECT_VAR: (
         "no object type specified for object variable"
     ),
@@ -828,11 +855,19 @@ ERR_MESSAGE_FORMATS = {
         "scroll operation would go out of the result set"
     ),
     ERR_SELF_BIND_NOT_SUPPORTED: "binding to self is not supported",
-    ERR_CONNECTION_CLOSED: "the database or network closed the connection",
     ERR_SERVER_VERSION_NOT_SUPPORTED: (
         "connections to this database server version are not supported "
         "by python-oracledb in thin mode"
     ),
+    ERR_SESSIONLESS_ALREADY_ACTIVE: (
+        "suspend, commit, or rollback the current active sessionless "
+        "transaction before beginning or resuming another one"
+    ),
+    ERR_SESSIONLESS_DIFFERING_METHODS: (
+        "suspending or resuming a Sessionless Transaction can be done with "
+        "DBMS_TRANSACTION or with python-oracledb, but not both"
+    ),
+    ERR_SESSIONLESS_INACTIVE: ("no Sessionless Transaction is active"),
     ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
     ERR_THICK_MODE_ENABLED: (
         "python-oracledb thin mode cannot be used because thick mode has "
@@ -850,7 +885,6 @@ ERR_MESSAGE_FORMATS = {
     ERR_TOO_MANY_BATCH_ERRORS: (
         "the number of batch errors from executemany() exceeds 65535"
     ),
-    ERR_UNEXPECTED_PIPELINE_FAILURE: "unexpected pipeline failure",
     ERR_UNEXPECTED_DATA: "unexpected data received: {data}",
     ERR_UNEXPECTED_END_OF_DATA: (
         "unexpected end of data: want {num_bytes_wanted} bytes but "
@@ -864,6 +898,7 @@ ERR_MESSAGE_FORMATS = {
         "the listener refused the connection but an unexpected error "
         "format was returned"
     ),
+    ERR_UNEXPECTED_PIPELINE_FAILURE: "unexpected pipeline failure",
     ERR_UNEXPECTED_XML_TYPE: "unexpected XMLType with flag {flag}",
     ERR_UNKNOWN_SERVER_PIGGYBACK: (
         "internal error: unknown server side piggyback opcode {opcode}"
@@ -874,11 +909,11 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNKNOWN_TRANSACTION_SYNC_VERSION: (
         "internal error: unknown transaction sync version {version}"
     ),
-    ERR_UNSUPPORTED_PIPELINE_OPERATION: (
-        "unsupported pipeline operation type: {op_type}"
-    ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"
+    ),
+    ERR_UNSUPPORTED_PIPELINE_OPERATION: (
+        "unsupported pipeline operation type: {op_type}"
     ),
     ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE: (
         "unsupported Python type {py_type_name} for database type "
@@ -920,39 +955,4 @@ ERR_MESSAGE_FORMATS = {
         "scroll mode must be relative, absolute, first or last"
     ),
     WRN_COMPILATION_ERROR: "creation succeeded with compilation errors",
-    ERR_INVALID_NETWORK_NAME: (
-        '"{name}" includes characters that are not allowed'
-    ),
-    ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
-        "Apache Arrow format does not support sparse vectors with flexible "
-        "dimensions"
-    ),
-    ERR_ARROW_UNSUPPORTED_CHILD_DATA_FORMAT: (
-        'conversion from list with child Arrow format "{schema_format}" to '
-        "Oracle Database vector is not supported"
-    ),
-    ERR_ARROW_UNSUPPORTED_DATA_FORMAT: (
-        'conversion from Arrow format "{schema_format}" to Oracle Database '
-        "is not supported"
-    ),
-    ERR_ARROW_UNSUPPORTED_DATA_TYPE: (
-        "conversion from Oracle Database type {db_type_name} to Apache "
-        "Arrow format is not supported"
-    ),
-    ERR_ARROW_C_API_ERROR: (
-        "Arrow C Data Interface operation failed with error code {code}"
-    ),
-    ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT: (
-        "flexible vector formats are not supported. Only fixed 'FLOAT32', "
-        "'FLOAT64', 'INT8' or 'BINARY' formats are supported"
-    ),
-    ERR_SESSIONLESS_DIFFERING_METHODS: (
-        "suspending or resuming a Sessionless Transaction can be done with "
-        "DBMS_TRANSACTION or with python-oracledb, but not both"
-    ),
-    ERR_SESSIONLESS_ALREADY_ACTIVE: (
-        "suspend, commit, or rollback the current active sessionless "
-        "transaction before beginning or resuming another one"
-    ),
-    ERR_SESSIONLESS_INACTIVE: ("no Sessionless Transaction is active"),
 }
