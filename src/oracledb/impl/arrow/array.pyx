@@ -484,27 +484,33 @@ cdef class ArrowArrayImpl:
         object implementing the PyCapsule Arrow array interface.
         """
         cdef:
+            ArrowSchemaImpl schema_impl
             ArrowArrayImpl array_impl
             ArrowSchema *arrow_schema
             ArrowArray *arrow_array
+
+        # convert schema
         schema_capsule, array_capsule = obj.__arrow_c_array__()
         arrow_schema = <ArrowSchema*> cpython.PyCapsule_GetPointer(
             schema_capsule, "arrow_schema"
         )
+        schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
+        schema_impl.populate_from_schema(arrow_schema)
+
+        # convert array
         arrow_array = <ArrowArray*> cpython.PyCapsule_GetPointer(
             array_capsule, "arrow_array"
         )
         array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
-        array_impl.schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
-        array_impl.populate_from_array(arrow_schema, arrow_array)
+        array_impl.populate_from_array(schema_impl, arrow_array)
         return array_impl
 
-    cdef int populate_from_array(self, ArrowSchema* schema,
+    cdef int populate_from_array(self, ArrowSchemaImpl schema_impl,
                                  ArrowArray* array) except -1:
         """
         Populate the array from another array.
         """
-        self.schema_impl.populate_from_schema(schema)
+        self.schema_impl = schema_impl
         ArrowArrayMove(array, self.arrow_array)
 
     cdef int populate_from_schema(self, ArrowSchemaImpl schema_impl) except -1:

@@ -38,24 +38,34 @@ cdef class DataFrameImpl:
         """
         cdef:
             ArrowArrayStream *arrow_stream
+            ArrowSchemaImpl schema_impl
+            ArrowArrayImpl array_impl
             ArrowSchema arrow_schema
             ArrowArray arrow_array
             DataFrameImpl df_impl
-            ArrowArrayImpl array_impl
-            ArrowSchemaImpl schema_impl
             ssize_t i
+
+        # initialization
         df_impl = DataFrameImpl.__new__(DataFrameImpl)
+        df_impl.schema_impls = []
         df_impl.arrays = []
         capsule = obj.__arrow_c_stream__()
         arrow_stream = <ArrowArrayStream*> cpython.PyCapsule_GetPointer(
             capsule, "arrow_array_stream"
         )
+
+        # populate list of schemas
         _check_nanoarrow(arrow_stream.get_schema(arrow_stream, &arrow_schema))
+        for i in range(arrow_schema.n_children):
+            schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
+            schema_impl.populate_from_schema(arrow_schema.children[i])
+            df_impl.schema_impls.append(schema_impl)
+
+        # populate list of arrays
         _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
         for i in range(arrow_schema.n_children):
             array_impl = ArrowArrayImpl.__new__(ArrowArrayImpl)
-            array_impl.schema_impl = ArrowSchemaImpl.__new__(ArrowSchemaImpl)
-            array_impl.populate_from_array(arrow_schema.children[i],
+            array_impl.populate_from_array(df_impl.schema_impls[i],
                                            arrow_array.children[i])
             df_impl.arrays.append(array_impl)
         _check_nanoarrow(arrow_stream.get_next(arrow_stream, &arrow_array))
@@ -77,6 +87,7 @@ cdef class DataFrameImpl:
         encapsulates the arrays found in the data frame.
         """
         cdef:
+            ArrowSchemaImpl schema_impl
             ArrowArrayImpl array_impl
             ArrowArrayStream *stream
             int64_t i, num_arrays
@@ -100,14 +111,15 @@ cdef class DataFrameImpl:
                 ArrowArrayInitFromType(&array, NANOARROW_TYPE_STRUCT)
             )
             _check_nanoarrow(ArrowArrayAllocateChildren(&array, num_arrays))
-            for i, array_impl in enumerate(self.arrays):
+            for i, schema_impl in enumerate(self.schema_impls):
+                array_impl = self.arrays[i]
                 array.length = array_impl.arrow_array.length
                 copy_arrow_array(
                     array_impl, array_impl.arrow_array, array.children[i]
                 )
                 _check_nanoarrow(
                     ArrowSchemaDeepCopy(
-                        array_impl.schema_impl.arrow_schema, schema.children[i]
+                        schema_impl.arrow_schema, schema.children[i]
                     )
                 )
 

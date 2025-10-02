@@ -152,11 +152,12 @@ cdef class ArrowArrayImpl:
     cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
                       uint64_t* value) except -1
     cdef object get_vector(self, int64_t index, bint* is_null)
-    cdef int populate_from_array(self, ArrowSchema* schema,
+    cdef int populate_from_array(self, ArrowSchemaImpl schema_impl,
                                  ArrowArray* array) except -1
     cdef int populate_from_schema(self, ArrowSchemaImpl schema_impl) except -1
 
 
 cdef class DataFrameImpl:
     cdef:
+        list schema_impls
         list arrays

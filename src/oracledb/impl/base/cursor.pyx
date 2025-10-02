@@ -552,12 +552,16 @@ cdef class BaseCursorImpl:
         Flush all buffers and return an Oracle Data frame.
         """
         cdef:
+            ArrowArrayImpl array_impl
             DataFrameImpl df_impl
             BaseVarImpl var_impl
         df_impl = DataFrameImpl.__new__(DataFrameImpl)
+        df_impl.schema_impls = []
         df_impl.arrays = []
         for var_impl in self.fetch_var_impls:
-            df_impl.arrays.append(var_impl._finish_building_arrow_array())
+            array_impl = var_impl._finish_building_arrow_array()
+            df_impl.schema_impls.append(array_impl.schema_impl)
+            df_impl.arrays.append(array_impl)
         return PY_TYPE_DATAFRAME._from_impl(df_impl)
 
     def close(self, bint in_del=False):
