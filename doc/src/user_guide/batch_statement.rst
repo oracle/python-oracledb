@@ -494,6 +494,14 @@ be beneficial.
 See `samples/load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/load_csv.py>`__ for a runnable example.
 
+You should also review whether Oracle's specialized data loading tools and
+features suit your environment. These can be faster than using Python. See
+`SQL*Loader <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-DD843EE2-1FAB-4E72-A115-21D97A501ECC>`__ and `External Tables
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-44323E01-7D72-45EC-915A-99E596769D9E>`__.
+
+
 Creating CSV Files from Oracle Database
 ---------------------------------------
 

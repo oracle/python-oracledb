@@ -526,8 +526,8 @@ architecture. Note Oracle Database 23ai 32-bit clients are not available on any
 platform, however you can use older 32-bit clients to connect to Oracle
 Database 23ai.
 
-1. Set required Oracle environment variables by running the Oracle environment
-   script. For example:
+1. Set required Oracle environment variables, such as ``ORACLE_HOME``, by
+   running the Oracle environment script. For example:
 
    .. code-block:: shell
 

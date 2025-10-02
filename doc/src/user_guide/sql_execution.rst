@@ -494,11 +494,60 @@ Changing Query Results with Rowfactories
 Python-oracledb "rowfactories" are methods called for each row retrieved from
 the database. The :meth:`Cursor.rowfactory` method is called with the tuple
 fetched from the database before it is returned to the application.  The method
-can convert the tuple to a different value.
+can convert the tuple to a different value or representation.
+
+A rowfactory should be set on a cursor after a call to :meth:`Cursor.execute()`
+before fetching data from the cursor. Calling :meth:`~Cursor.execute()` again
+will clear any previous rowfactory.
+
+**Fetching Rows using a Data Class**
+
+Python `Data Classes <https://docs.python.org/3/library/dataclasses.html>`__
+provide a simple way to encapsulate data. An example of using them with a query
+rowfactory is:
+
+.. code-block:: python
+
+    import dataclasses
+    import datetime
+
+    . . .
+
+    @dataclasses.dataclass
+    class MyRow:
+        employee_id: int
+        last_name: str
+        hire_date: datetime.datetime
+
+    cursor.execute(
+        """select employee_id, last_name, hire_date
+           from employees
+           where employee_id < 105
+           order by employee_id""")
+
+    cursor.rowfactory = MyRow
+
+    for row in cursor:
+        print("Number:", row.employee_id)
+        print("Name:", row.last_name)
+        print("Hire Date:", row.hire_date)
+
+The output is::
+
+    Number: 100
+    Name: King
+    Hire Date: 2003-06-17 00:00:00
+    Number: 101
+    Name: Kochhar
+    Hire Date: 2005-09-21 00:00:00
+    Number: 102
+    Name: De Haan
+    Hire Date: 2001-01-13 00:00:00
 
 **Fetching Rows as Dictionaries**
 
-For example, to fetch each row of a query as a dictionary:
+To fetch each row of a query as a dictionary, you can use
+:meth:`Cursor.rowfactory` like:
 
 .. code-block:: python
 
@@ -515,7 +564,8 @@ The output is::
     'POSTAL_CODE': '00989', 'CITY': 'Roma', 'STATE_PROVINCE': None,
     'COUNTRY_ID': 'IT'}
 
-Also see how ``JSON_OBJECT`` is used in :ref:`jsondatatype`.
+Also see how ``JSON_OBJECT`` is used in :ref:`jsondatatype`, since querying
+directly as JSON may be preferable.
 
 If you join tables where the same column name occurs in both tables with
 different meanings or values, then use a column alias in the query.  Otherwise,

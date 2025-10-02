@@ -15,6 +15,17 @@ python-oracledb. The relevant functionality may be removed in a future version
 of python-oracledb. The cx_Oracle driver itself is obsolete and should not be
 used for new development.
 
+.. list-table-with-summary:: Deprecated in python-oracledb 3.4
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
+    :name: _deprecations_3_4
+
+    * - Name
+      - Comments
+    * - The x86_64 macOS and 32-bit Windows platforms are deprecated. They will be desupported when the `cryptography <https://pypi.org/project/cryptography/>`__ package desupports them, see the `cryptography deprecation announcement <https://mail.python.org/archives/list/python-announce-list@python.org/thread/R4BZNC36MSFLKULA74KILLFY6GP3VCPA/>`__.
+      - Use arm64 macOS or 64-bit Windows instead.
+
 .. list-table-with-summary:: Deprecated in python-oracledb 3.0
     :header-rows: 1
     :class: wy-table-responsive
@@ -24,8 +35,7 @@ used for new development.
     * - Name
       - Comments
     * - Parameter ``pool`` of :meth:`oracledb.connect()` and :meth:`oracledb.connect_async()`
-      - Use :meth:`ConnectionPool.acquire()`, or make use of the
-        :ref:`connection pool cache <connpoolcache>` instead
+      - Use :meth:`ConnectionPool.acquire()`, or make use of the :ref:`connection pool cache <connpoolcache>` instead
 
 .. list-table-with-summary:: Desupported in python-oracledb 2.0
     :header-rows: 1
@@ -36,33 +46,21 @@ used for new development.
     * - Name
       - Comments
     * - ``oracledb.__future__.old_json_col_as_obj``
-      - VARCHAR2 and LOB columns created with the ``IS JSON`` check constraint
-        are now always fetched as JSON.  Use an :ref:`output type handler
-        <outputtypehandlers>` if the old behavior is required.
-    * - Parameters ``encoding`` and ``nencoding`` of :func:`oracledb.connect()`
-        and :func:`oracledb.create_pool()`, and the related attributes on the
-        objects created
-      - The driver encodings are always UTF-8. Remove uses of ``encoding`` and
-        ``nencoding`` from your code.
-    * - Parameter ``threaded`` of :func:`oracledb.connect()` and
-        :func:`oracledb.create_pool()`
+      - VARCHAR2 and LOB columns created with the ``IS JSON`` check constraint are now always fetched as JSON.  Use an :ref:`output type handler <outputtypehandlers>` if the old behavior is required.
+    * - Parameters ``encoding`` and ``nencoding`` of :func:`oracledb.connect()` and :func:`oracledb.create_pool()`, and the related attributes on the objects created
+      - The driver encodings are always UTF-8. Remove uses of ``encoding`` and ``nencoding`` from your code.
+    * - Parameter ``threaded`` of :func:`oracledb.connect()` and :func:`oracledb.create_pool()`
       - Threading is always used. Remove uses of ``threaded`` from your code.
-    * - Parameter ``waitTimeout`` of :func:`oracledb.create_pool()` and
-        ``oracledb.SessionPool()``
+    * - Parameter ``waitTimeout`` of :func:`oracledb.create_pool()` and ``oracledb.SessionPool()``
       - Replace with parameter ``wait_timeout``
-    * - Parameter ``maxLifetimeSession`` of :func:`oracledb.create_pool()` and
-        ``oracledb.SessionPool()``
+    * - Parameter ``maxLifetimeSession`` of :func:`oracledb.create_pool()` and ``oracledb.SessionPool()``
       - Replace with parameter ``max_lifetime_session``
-    * - Parameter ``sessionCallback`` of :func:`oracledb.create_pool()` and
-        ``oracledb.SessionPool()``
+    * - Parameter ``sessionCallback`` of :func:`oracledb.create_pool()` and ``oracledb.SessionPool()``
       - Replace with parameter ``session_callback``
-    * - Parameter ``maxSessionsPerShard`` of :func:`oracledb.create_pool()` and
-        ``oracledb.SessionPool()``
+    * - Parameter ``maxSessionsPerShard`` of :func:`oracledb.create_pool()` and ``oracledb.SessionPool()``
       - Replace with parameter ``max_sessions_per_shard``
-    * - Attribute ``maxBytesPerCharacter`` of the :ref:`Connection object
-        <connobj>`
-      - The driver encodings are always UTF-8 so this attribute can be replaced by
-        the constant value 4
+    * - Attribute ``maxBytesPerCharacter`` of the :ref:`Connection object <connobj>`
+      - The driver encodings are always UTF-8 so this attribute can be replaced by the constant value 4
     * - ``Connection.tnsentry``
       - Replace with :attr:`Connection.dsn`
     * - ``SessionPool.tnsentry``
@@ -76,16 +74,11 @@ used for new development.
 
     * - Name
       - Comments
-    * - Calling :meth:`Variable.setvalue()` with a string value when the
-        variable type is one of :data:`oracledb.DB_TYPE_BLOB`,
+    * - Calling :meth:`Variable.setvalue()` with a string value when the variable type is one of :data:`oracledb.DB_TYPE_BLOB`,
         :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB`.
-      - Call :meth:`Connection.createlob()` with the value instead and pass the
-        result to :meth:`Variable.setvalue()`.
-    * - Setting an attribute of type :data:`oracledb.DB_TYPE_BLOB`,
-        :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB` on a
-        database object to a string value.
-      - Call :meth:`Connection.createlob()` with the value instead and set the
-        attribute with the result.
+      - Call :meth:`Connection.createlob()` with the value instead and pass the result to :meth:`Variable.setvalue()`.
+    * - Setting an attribute of type :data:`oracledb.DB_TYPE_BLOB`, :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB` on a database object to a string value.
+      - Call :meth:`Connection.createlob()` with the value instead and set the attribute with the result.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 1.4
     :header-rows: 1
@@ -95,10 +88,8 @@ used for new development.
 
     * - Name
       - Comments
-    * - Output type handler with arguments
-        ``handler(cursor, name, default_type, length, precision, scale)``
-      - Replace with ``handler(cursor, metadata)``. See
-        :ref:`outputtypehandlers`.
+    * - Output type handler with arguments ``handler(cursor, name, default_type, length, precision, scale)``
+      - Replace with ``handler(cursor, metadata)``. See :ref:`outputtypehandlers`.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 1.0
     :header-rows: 1

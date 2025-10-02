@@ -106,13 +106,13 @@ More details and options are shown in the later sections:
   use Thin mode. The features supported by Thin mode can be found in
   :ref:`featuresummary`.
 
-- On any operating system, if you set ``lib_dir`` to the library directory of a
-  full database or full client installation (such as from running
-  ``runInstaller``), you will need to have previously set the Oracle environment,
-  for example by setting the ``ORACLE_HOME`` environment variable. Otherwise you
-  will get errors like ``ORA-1804``. You should set this variable, and other
-  Oracle environment variables, before starting Python, as shown in :ref:`Oracle
-  Environment Variables <envset>`.
+- On any operating system, if you set the ``lib_dir`` parameter to the library
+  directory of a full database or full client installation (such as from
+  running ``runInstaller``), you will need to have previously set the Oracle
+  environment, for example by setting the ``ORACLE_HOME`` environment
+  variable. Otherwise you will get errors like ``ORA-1804``. You should set
+  this variable, and other Oracle environment variables, before starting
+  Python, as shown in :ref:`Oracle Environment Variables <envset>`.
 
 - The :meth:`~oracledb.init_oracle_client()` function may be called multiple
   times in your application but must always pass the same arguments.

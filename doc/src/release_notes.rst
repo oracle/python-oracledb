@@ -60,6 +60,12 @@ Common Changes
     support and :ref:`Cloud Native Authentication <cloudnativemodules>`
     support
     (`issue 512 <https://github.com/oracle/python-oracledb/issues/512>`__).
+#)  The x86_64 macOS and 32-bit Windows platforms are :ref:`deprecated
+    <deprecations>`. They will be desupported when the `cryptography
+    <https://pypi.org/project/cryptography/>`__ package desupports them, see
+    the `cryptography deprecation announcement <https://mail.python.org/
+    archives/list/python-announce-list@python.org/thread/
+    R4BZNC36MSFLKULA74KILLFY6GP3VCPA/>`__.
 #)  Pin Cython to 3.1.x instead of 3.1.0 as requested
     (`issue 530 <https://github.com/oracle/python-oracledb/issues/530>`__).
 #)  Fixed bug when attempting to execute an empty statement
@@ -69,7 +75,8 @@ Common Changes
 #)  Fixed bug when attempting to append an element to a
     :ref:`DbObject <dbobjecttype>` which is not actually a collection.
 #)  API documentation is now generated from the source code.
-#)  Internal change: typing_extensions is now a dependency.
+#)  Internal change: `typing_extensions <https://pypi.org/project/
+    typing-extensions/>`__ is now a dependency.
 
 
 oracledb `3.3.0 <https://github.com/oracle/python-oracledb/compare/v3.2.0...v3.3.0>`__ (July 2025)

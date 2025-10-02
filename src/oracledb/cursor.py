@@ -455,6 +455,9 @@ class BaseCursor:
         each row but if this attribute is set, the method is called with the
         tuple that would normally be returned, and the result of the method is
         returned instead.
+
+        The ``rowfactory`` attribute should be set after each statement
+        execution before data is fetched from the cursor.
         """
         self._verify_open()
         return self._impl.rowfactory
