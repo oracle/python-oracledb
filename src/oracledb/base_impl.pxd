@@ -448,8 +448,8 @@ cdef class OracleMetadata:
         ArrowSchemaImpl _schema_impl
         uint8_t _py_type_num
 
+    cdef int _create_arrow_schema(self) except -1
     cdef int _finalize_init(self) except -1
-    cdef int _set_arrow_schema(self) except -1
     cdef OracleMetadata copy(self)
     @staticmethod
     cdef OracleMetadata from_arrow_schema(ArrowSchemaImpl schema_impl)

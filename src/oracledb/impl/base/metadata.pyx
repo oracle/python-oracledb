@@ -31,32 +31,9 @@
 @cython.freelist(30)
 cdef class OracleMetadata:
 
-    cdef int _finalize_init(self) except -1:
+    cdef int _create_arrow_schema(self) except -1:
         """
-        Internal method that finalizes the initialization of metadata by
-        setting the buffer size, max size and default Python type (if they have
-        not already been set).
-        """
-        if self.dbtype.default_size == 0:
-            self.max_size = 0
-            self.buffer_size = self.dbtype._buffer_size_factor
-        else:
-            if self.max_size == 0:
-                self.max_size = self.dbtype.default_size
-            self.buffer_size = self.max_size * self.dbtype._buffer_size_factor
-        if self._py_type_num == 0:
-            if self.dbtype._ora_type_num != ORA_TYPE_NUM_NUMBER:
-                self._py_type_num = self.dbtype._default_py_type_num
-            else:
-                if self.scale == 0 or \
-                        (self.scale == -127 and self.precision == 0):
-                    self._py_type_num = PY_TYPE_NUM_INT
-                else:
-                    self._py_type_num = PY_TYPE_NUM_FLOAT
-
-    cdef int _set_arrow_schema(self) except -1:
-        """
-        Sets the Arrow schema given the metadata.
+        Creates an Arrow schema for the metadata.
         """
         cdef:
             ArrowType arrow_type, child_arrow_type = NANOARROW_TYPE_NA
@@ -130,6 +107,29 @@ cdef class OracleMetadata:
             time_unit,
             child_arrow_type,
         )
+
+    cdef int _finalize_init(self) except -1:
+        """
+        Internal method that finalizes the initialization of metadata by
+        setting the buffer size, max size and default Python type (if they have
+        not already been set).
+        """
+        if self.dbtype.default_size == 0:
+            self.max_size = 0
+            self.buffer_size = self.dbtype._buffer_size_factor
+        else:
+            if self.max_size == 0:
+                self.max_size = self.dbtype.default_size
+            self.buffer_size = self.max_size * self.dbtype._buffer_size_factor
+        if self._py_type_num == 0:
+            if self.dbtype._ora_type_num != ORA_TYPE_NUM_NUMBER:
+                self._py_type_num = self.dbtype._default_py_type_num
+            else:
+                if self.scale == 0 or \
+                        (self.scale == -127 and self.precision == 0):
+                    self._py_type_num = PY_TYPE_NUM_INT
+                else:
+                    self._py_type_num = PY_TYPE_NUM_FLOAT
 
     cdef OracleMetadata copy(self):
         """

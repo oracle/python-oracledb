@@ -253,7 +253,7 @@ cdef class BaseVarImpl:
         user.
         """
         if self.metadata._schema_impl is None:
-            self.metadata._set_arrow_schema()
+            self.metadata._create_arrow_schema()
         self._arrow_array = ArrowArrayImpl.__new__(ArrowArrayImpl)
         self._arrow_array.populate_from_schema(self.metadata._schema_impl)
 
