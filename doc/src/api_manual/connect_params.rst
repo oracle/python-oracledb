@@ -230,7 +230,7 @@ All properties are read only.
     pooled DRCP or PRCP connections are implicitly released back to the DRCP or
     PRCP pool when either one of the methods :meth:`Connection.commit()` or
     :meth:`Connection.rollback()` are called.  This attribute requires the use
-    of DRCP or PRCP with Oracle Database 23ai (or later). See
+    of DRCP or PRCP with Oracle Database version 23, or later. See
     :ref:`implicitconnpool` for more information.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.

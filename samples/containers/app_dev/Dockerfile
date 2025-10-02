@@ -74,28 +74,28 @@ ARG OPY_PYTHON_VIRTUAL_DIRNAME=pyorcldb_env
 ARG OPY_OS_VERSION=8
 
 RUN dnf upgrade && \
-  # Install latest Instant Client 23ai
+  # Install latest Instant Client version 23
   ( ( [ ${OPY_INSTANT_CLIENT_VERSION} == 23 ] && \
       dnf install oracle-instantclient-release-23ai-el${OPY_OS_VERSION} && \
       dnf install oracle-instantclient-basic \
         oracle-instantclient-sqlplus ) || \
-    # Install latest Instant Client 21c
+    # Install latest Instant Client version 21
     ( [ ${OPY_INSTANT_CLIENT_VERSION} == 21 ] && \
       dnf install oracle-instantclient-release-el${OPY_OS_VERSION} && \
       dnf install oracle-instantclient-basic \
         oracle-instantclient-sqlplus ) || \
     ( [ ${OPY_INSTANT_CLIENT_VERSION} == None ] && \
       echo "Not installing Instant Client" ) || \
-    # Install specific Instant Client 19c release update
+    # Install specific Instant Client version 19 release update
     ( \
-      # Install Instant Client 19c on Oracle Linux 9
+      # Install Instant Client 19 on Oracle Linux 9
       ( ( [ ${OPY_OS_VERSION} == 9 ] && \
           dnf install oracle-instantclient-release-el${OPY_OS_VERSION} && \
           dnf install \
             oracle-instantclient${OPY_INSTANT_CLIENT_VERSION}-basic \
             oracle-instantclient${OPY_INSTANT_CLIENT_VERSION}-sqlplus \
         ) || \
-        # Install Instant Client 19c on Oracle Linux 8
+        # Install Instant Client 19 on Oracle Linux 8
         ( dnf install oracle-release-el${OPY_OS_VERSION} && \
           dnf install \
             oracle-instantclient${OPY_INSTANT_CLIENT_VERSION}-basic \

@@ -93,9 +93,9 @@ It has been tested on macOS using podman and docker.
   `python-oracledb/samples/containers/app_dev/container_build.env` before
   building the container image.
 
-  Supported versions: 23ai, 21c and 19c
+  Supported versions: 23, 21 and 19
 
-  Recommended version: 23ai
+  Recommended version: 23
 
 
 ### Python modules pre-installed

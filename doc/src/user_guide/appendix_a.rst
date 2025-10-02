@@ -169,7 +169,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 23ai Implicit Connection Pooling with :ref:`DRCP <drcp>` and PRCP (see :ref:`implicitconnpool`)
+    * - Oracle Database version 23 Implicit Connection Pooling with :ref:`DRCP <drcp>` and PRCP (see :ref:`implicitconnpool`)
       - Yes
       - Yes
       - No
@@ -249,7 +249,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - No
       - No
-    * - Oracle Database 23ai JSON-Relational Duality Views (see :ref:`jsondualityviews`)
+    * - Oracle Database version 23 JSON-Relational Duality Views (see :ref:`jsondualityviews`)
       - Yes
       - Yes
       - No
@@ -309,7 +309,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - No
       - No
-    * - Oracle Database 23ai Pipelining (see :ref:`pipelining`)
+    * - Oracle Database version 23 Pipelining (see :ref:`pipelining`)
       - Yes
       - No
       - No
@@ -325,7 +325,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 23ai Sessionless Transactions (see :ref:`sessionlesstxns`)
+    * - Oracle Database version 23 Sessionless Transactions (see :ref:`sessionlesstxns`)
       - Yes
       - Yes
       - No
@@ -401,7 +401,7 @@ example when binding numeric values.
       - :data:`~oracledb.DB_TYPE_DATE`
       - datetime.date, datetime.datetime
       - No relevant notes
-    * - BOOLEAN (PL/SQL and Oracle Database 23ai SQL)
+    * - BOOLEAN (PL/SQL and Oracle Database version 23 SQL)
       - :data:`~oracledb.DB_TYPE_BOOLEAN`
       - Any type convertible to bool
       - No relevant notes

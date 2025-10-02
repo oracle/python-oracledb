@@ -25,7 +25,7 @@
 # -----------------------------------------------------------------------------
 # sessionless_transactions.py
 #
-# Show Oracle Database 23ai Sessionless Transactions
+# Show Oracle Database version 23 Sessionless Transactions
 # -----------------------------------------------------------------------------
 
 import sys

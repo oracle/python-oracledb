@@ -6,7 +6,7 @@
 Using VECTOR Data
 *****************
 
-Oracle Database 23ai introduced a new data type `VECTOR <https://www.oracle.
+Oracle Database 23.4 introduced a new data type `VECTOR <https://www.oracle.
 com/pls/topic/lookup?ctx=dblatest&id=GUID-746EAA47-9ADA-4A77-82BB-
 64E8EF5309BE>`__ for artificial intelligence and machine learning search
 operations. The VECTOR data type is a homogeneous array of 8-bit signed
@@ -128,9 +128,8 @@ representation of each row's value as shown below::
 
 See :ref:`insertvecwithnumpy` for an example of using an input type handler.
 
-If you are using python-oracledb Thick mode with older versions of Oracle
-Client libraries than 23ai, see this
-:ref:`section <vector_thick_mode_old_client>`.
+If you are using python-oracledb Thick mode with Oracle Client 21c or earlier,
+see this :ref:`section <vector_thick_mode_old_client>`.
 
 See `vector.py <https://github.com/oracle/python-oracledb/tree/main/
 samples/vector.py>`__ for a runnable example.
@@ -215,9 +214,8 @@ using this :ref:`output type handler <vecoutputtypehandlerlist>`. For each vecto
 column, the database will now return a Python list representation of each
 row's value.
 
-If you are using python-oracledb Thick mode with older versions of Oracle
-Client libraries than 23ai, see this
-:ref:`section <vector_thick_mode_old_client>`.
+If you are using python-oracledb Thick mode with Oracle Client 21c or earlier,
+see this :ref:`section <vector_thick_mode_old_client>`.
 
 .. _sparsevectors:
 
@@ -361,15 +359,15 @@ the vector is sparse or not.
 Using python-oracledb Thick Mode with Older Versions of Oracle Client Libraries
 ===============================================================================
 
-If you are using python-oracledb Thick mode with versions of Oracle Client
-libraries older than 23ai, then you must use strings when inserting vectors.
-The vector columns are fetched as Python lists.
+If you are using python-oracledb Thick mode with Oracle Client 21c or earlier,
+then you must use strings when inserting vectors.  The vector columns are
+fetched as Python lists.
 
 Inserting Vectors with Older Oracle Client Versions
 ---------------------------------------------------
 
 To insert vectors of int8, float32, float64, and unit8 format when using Oracle
-Client versions older than 23ai, you must use strings as shown below:
+Client 21c or earlier, you must use strings as shown below:
 
 .. code-block:: python
 
@@ -386,8 +384,8 @@ Client versions older than 23ai, you must use strings as shown below:
 Fetching Vectors with Older Oracle Client Versions
 --------------------------------------------------
 
-With Oracle Client versions older than 23ai, the vector columns are fetched as
-Python lists. For example:
+With Oracle Client 21c or earlier, the vector columns are fetched as Python
+lists. For example:
 
 .. code-block:: python
 

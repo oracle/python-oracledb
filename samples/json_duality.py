@@ -25,7 +25,7 @@
 # -----------------------------------------------------------------------------
 # json_duality.py
 #
-# Demonstrates Oracle Database 23ai JSON-Relational Duality Views.
+# Demonstrates Oracle Database version 23 JSON-Relational Duality Views.
 #
 # Also see soda_json_duality.py
 #

@@ -1297,7 +1297,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
     def supports_pipelining(self):
         """
         Returns whether the connection supports pipelining. Currently this is
-        only supported with asyncio and Oracle Database 23ai and later.
+        only supported with asyncio and Oracle Database version 23, and later.
         """
         return self._protocol._caps.supports_pipelining
 

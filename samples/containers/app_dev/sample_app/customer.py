@@ -34,7 +34,7 @@ import oracledb
 app = Flask(__name__, template_folder="templates")
 app.config["CONNECTION_POOL"] = None
 app.config["CONNECTION_STATUS"] = None
-drop_table_23ai = "drop table if exists customer_info"
+drop_table_23 = "drop table if exists customer_info"
 drop_table = """begin
                   execute immediate 'drop table customer_info';
                 exception
@@ -147,7 +147,7 @@ def create_schema():
         dbversion = connection.version
         dbversion = dbversion.split(".")[0]
         if int(dbversion) >= 23:
-            cursor.execute(drop_table_23ai)
+            cursor.execute(drop_table_23)
         else:
             cursor.execute(drop_table)
         for stmt in stmts:

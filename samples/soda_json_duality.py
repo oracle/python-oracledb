@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # soda_json_duality.py
 #
-# An example of accessing Oracle Database 23ai JSON-Relational views using
-# Simple Oracle Document Access (SODA).
+# An example of accessing Oracle Database version 23 JSON-Relational views
+# using Simple Oracle Document Access (SODA).
 #
 # Oracle Client must be at 23.4 or higher.
 # Oracle Database must be at 23.5 or higher.

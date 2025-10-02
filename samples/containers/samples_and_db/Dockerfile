@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,7 @@
 # PURPOSE
 #
 #   Creates a container with the python-oracledb samples and a running Oracle
-#   Database 23ai Free database so you can quickly try python-oracledb.
+#   Database Free database so you can quickly try python-oracledb.
 #
 #   Python-oracledb is the Python database driver for Oracle Database.  See
 #   https://oracle.github.io/python-oracledb/

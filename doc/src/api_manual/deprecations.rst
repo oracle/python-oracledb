@@ -23,8 +23,10 @@ used for new development.
 
     * - Name
       - Comments
-    * - The x86_64 macOS and 32-bit Windows platforms are deprecated. They will be desupported when the `cryptography <https://pypi.org/project/cryptography/>`__ package desupports them, see the `cryptography deprecation announcement <https://mail.python.org/archives/list/python-announce-list@python.org/thread/R4BZNC36MSFLKULA74KILLFY6GP3VCPA/>`__.
+    * - The x86_64 macOS and 32-bit Windows platforms are deprecated. They will be desupported before, or when, the `cryptography <https://pypi.org/project/cryptography/>`__ package desupports them. See the `cryptography deprecation announcement <https://mail.python.org/archives/list/python-announce-list@python.org/thread/R4BZNC36MSFLKULA74KILLFY6GP3VCPA/>`__.
       - Use arm64 macOS or 64-bit Windows instead.
+    * - Connectivity and interoperability with Oracle Database and Oracle Client libraries older than version 19 is deprecated and will be removed in a future version of python-oracledb. Production use, and availability of database and client software, is detailed in `Release Schedule of Current Database Releases <https://support.oracle.com/epmos/faces/ DocumentDisplay?id=742060.1>`__.
+      - Upgrade the database and client library versions.
 
 .. list-table-with-summary:: Deprecated in python-oracledb 3.0
     :header-rows: 1

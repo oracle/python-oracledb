@@ -342,8 +342,8 @@ cdef class Protocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23ai, fast authentication is possible; see if the server
-        # supports it
+        # starting in Oracle Database version 23, fast authentication is
+        # possible; see if the server supports it
         if self._caps.supports_fast_auth:
             fast_auth_message = conn_impl._create_message(FastAuthMessage)
             fast_auth_message.protocol_message = protocol_message
@@ -696,8 +696,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         auth_message = conn_impl._create_message(AuthMessage)
         auth_message._set_params(params, description)
 
-        # starting in 23ai, fast authentication is possible; see if the server
-        # supports it
+        # starting in Oracle Database version 23, fast authentication is
+        # possible; see if the server supports it
         if self._caps.supports_fast_auth:
             fast_auth_message = conn_impl._create_message(FastAuthMessage)
             fast_auth_message.protocol_message = protocol_message

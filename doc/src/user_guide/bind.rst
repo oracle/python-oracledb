@@ -1056,10 +1056,10 @@ be dynamically built:
 Binding a Large Number of Items in an IN List
 ---------------------------------------------
 
-The number of items in an IN list is limited to 65535 in Oracle Database 23ai,
-and to 1000 in earlier versions. If you exceed the limit, the database will
-return an error like ``ORA-01795: maximum number of expressions in a list is
-65535``.
+The number of items in an IN list is limited to 65535 in Oracle Database
+version 23, and to 1000 in earlier versions. If you exceed the limit, the
+database will return an error like ``ORA-01795: maximum number of expressions
+in a list is 65535``.
 
 To use more values in the IN clause list, you can add OR clauses like:
 

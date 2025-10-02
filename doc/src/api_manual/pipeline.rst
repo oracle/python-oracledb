@@ -12,7 +12,8 @@ information about pipelining.
 
 .. note::
 
-    True pipelining is only available when connected to Oracle Database 23ai.
+    True pipelining is only available when connected to Oracle Database version
+    23, or later.
 
 .. versionadded:: 2.4.0
 

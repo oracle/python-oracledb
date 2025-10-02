@@ -254,7 +254,7 @@ create table jtab (
 /
 
 -- Table for vector.py and vector_numpy.py
--- (requires Oracle Database 23ai or later)
+-- (requires Oracle Database version 23 or later)
 begin
   execute immediate 'drop table vtab';
 exception

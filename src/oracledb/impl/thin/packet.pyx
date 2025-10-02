@@ -767,12 +767,12 @@ cdef class ReadBuffer(Buffer):
 
     async def wait_for_response_async(self):
         """
-        Wait for packets to arrive in response to the request that was sent to
-        the database (using asyncio). This method will not return until the
+        Wait for packets to arrive in response to the request that was sent
+        to the database (using asyncio). This method will not return until the
         complete response has been received. This requires the "end of
-        response" capability available in Oracle Database 23ai and higher. This
-        method also assumes that the current list of saved packets does not
-        contain a full response.
+        response" capability available in Oracle Database version 23, and
+        later. This method also assumes that the current list of saved packets
+        does not contain a full response.
         """
         try:
             self._check_request_boundary = True

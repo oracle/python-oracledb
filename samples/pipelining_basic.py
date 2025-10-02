@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # pipelining_basic.py
 #
-# Demonstrates Oracle Database Pipelining.
-# True pipelining is only available when connected to Oracle Database 23ai
+# Demonstrates Oracle Database Pipelining. True pipelining is only available
+# when connected to Oracle Database version 23.
 # -----------------------------------------------------------------------------
 
 import asyncio

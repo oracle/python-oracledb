@@ -500,7 +500,7 @@ Then remove the trailing semi-colon:
 
     cursor.execute("select * from dept")
 
-Note with Oracle Database 23ai this incorrect usage gives the message
+Note with Oracle Database version 23 this incorrect usage gives the message
 ``ORA-03048: SQL reserved word ';' is not syntactically valid following
 'select * from dept'``.
 

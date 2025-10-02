@@ -108,8 +108,9 @@ class FetchInfo:
         `annotations <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
         GUID-1AC16117-BBB6-4435-8794-2B99F8F68052>`__ associated with the
         fetched column. If there are no annotations, the value *None* is
-        returned. Annotations require Oracle Database 23ai. If using
-        python-oracledb Thick mode, Oracle Client 23ai is also required.
+        returned. Annotations require Oracle Database version 23, or later. If
+        using python-oracledb Thick mode, Oracle Client version 23 or later is
+        also required.
         """
         return self._impl.annotations
 
@@ -145,14 +146,15 @@ class FetchInfo:
     @property
     def domain_name(self) -> Union[str, None]:
         """
-        This read-only attribute returns the name of the `data use case domain
+        This read-only attribute returns the name of the `data use case
+        domain
         <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-17D3A9C6
         -D993-4E94-BF6B-CACA56581F41>`__ associated with the fetched column. If
         there is no data use case domain, the value *None* is returned. `Data
         use case domains <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
         &id=GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__ require Oracle
-        Database 23ai. If using python-oracledb Thick mode, Oracle Client 23ai
-        is also required
+        Database version 23, or later. If using python-oracledb Thick mode,
+        Oracle Client version 23 or later is also required.
         """
         return self._impl.domain_name
 
@@ -165,8 +167,8 @@ class FetchInfo:
         column. If there is no data use case domain, the value *None* is
         returned. `Data use case domains <https://www.oracle.com/pls/topic/
         lookup?ctx=dblatest&id=GUID-4743FDE1-7C6E-471B-BC9D-442383CCA2F9>`__
-        require Oracle Database 23ai. If using python-oracledb Thick mode,
-        Oracle Client 23ai is also required.
+        require Oracle Database version 23, or later. If using python-oracledb
+        Thick mode, Oracle Client version 23 or later is also required.
         """
         return self._impl.domain_schema
 

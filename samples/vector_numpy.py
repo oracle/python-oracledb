@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # vector_numpy.py
 #
-# Demonstrates how to use the Oracle Database 23ai VECTOR data type with NumPy
-# types.
+# Demonstrates how to use the Oracle Database version 23 VECTOR data type with
+# NumPy types.
 # -----------------------------------------------------------------------------
 
 import sys

@@ -381,7 +381,8 @@ about Oracle Database Pipelining.
 
 .. note::
 
-    True pipelining only occurs when you are connected to Oracle Database 23ai.
+    True pipelining only occurs when you are connected to Oracle Database
+    version 23, or later.
 
     When you connect to an older database, operations are sequentially
     executed by python-oracledb. Each operation concludes before the next is

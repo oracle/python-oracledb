@@ -80,7 +80,7 @@ class DMLSubscriptionData(SubscriptionData):
 @pytest.fixture(scope="module")
 def skip_unless_has_client_23(test_env):
     """
-    Skips tests unless running with Oracle Client 23ai.
+    Skips tests unless running with Oracle Client version 23.
     """
     if not test_env.use_thick_mode:
         pytest.skip("requires thick mode")

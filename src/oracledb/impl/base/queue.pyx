@@ -33,8 +33,9 @@ cdef class BaseQueueImpl:
 
     def _supports_deq_many(self, BaseConnImpl conn_impl):
         """
-        Returns a boolean indicating if array dequeue is supported or not. JSON
-        payloads are not supported by array dequeue until Oracle Database 23ai.
+        Returns a boolean indicating if array dequeue is supported or
+        not. JSON payloads are not supported by array dequeue until Oracle
+        Database version 23.
         """
         return not self.is_json or conn_impl.server_version[0] >= 23
 

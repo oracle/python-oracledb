@@ -23,7 +23,7 @@
 # -----------------------------------------------------------------------------
 
 """
-6700 - Module for testing the JSON data type extension in Oracle Database 23ai.
+6700 - Module for testing the JSON data type extension in Oracle DB version 23.
 """
 
 import json

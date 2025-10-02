@@ -48,7 +48,7 @@ types which are detailed below.
         Array enqueuing and dequeuing is not supported for JSON payloads.
     * - JMS
       - Supported
-      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and Oracle Database 23ai.
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19 (or later) and Oracle Database version 23 (or later).
 
 **Usage Notes**
 

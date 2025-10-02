@@ -38,7 +38,7 @@ import pytest
 @pytest.fixture
 def skip_if_map_mode_not_supported(test_env):
     """
-    Map mode is not supported in Oracle Client 23ai.
+    Map mode is not supported in Oracle Client version 23.
     """
     if test_env.has_client_version(23):
         pytest.skip("map mode not supported with native collections")
@@ -47,19 +47,19 @@ def skip_if_map_mode_not_supported(test_env):
 @pytest.fixture
 def skip_if_save_not_supported(test_env):
     """
-    save() is not supported in 23ai and requires a minimum client version of
-    19.9 as well.
+    save() is not supported in Oracle Database version 23. It also requires
+    a minimum client version of 19.9 as well.
     """
     if test_env.has_client_version(23):
-        pytest.skip("save() is not implemented in Oracle Database 23ai")
+        pytest.skip("save() is not implemented in Oracle Database version 23")
     if not test_env.has_client_version(19, 9):
         pytest.skip("unsupported client")
 
 
 def _normalize_docs(docs):
     """
-    Remove the embedded OID added in Oracle Database 23ai, if found, in
-    order to ease comparison.
+    Remove the embedded OID added in Oracle Database version 23, if found,
+    in order to ease comparison.
     """
     for doc in docs:
         if doc is not None and "_id" in doc:

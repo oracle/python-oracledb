@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -25,9 +25,9 @@
 # -----------------------------------------------------------------------------
 # vector_string.py
 #
-# Demonstrates how to use the Oracle Database 23ai VECTOR data type
-# when using python-oracledb thick mode with pre-23ai Oracle Client libraries.
-# See vector.py for a more efficient example for other deployments.
+# Demonstrates how to use the Oracle Database version 23 VECTOR data type when
+# using python-oracledb thick mode Oracle Client libraries version 21 or
+# earlier. See vector.py for a more efficient example for other deployments.
 # -----------------------------------------------------------------------------
 
 import sys

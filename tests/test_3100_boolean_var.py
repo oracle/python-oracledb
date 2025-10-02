@@ -95,7 +95,7 @@ def test_3108(skip_unless_plsql_boolean_supported, cursor):
 
 
 def test_3109(skip_unless_native_boolean_supported, cursor):
-    "3109 - test binding and fetching boolean with 23ai"
+    "3109 - test binding and fetching boolean with Oracle DB version 23"
     for value in (True, False):
         cursor.execute("select not :1 from dual", [value])
         (fetched_value,) = cursor.fetchone()

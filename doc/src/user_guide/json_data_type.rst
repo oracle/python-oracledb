@@ -436,10 +436,10 @@ This produces::
 JSON-Relational Duality Views
 =============================
 
-Oracle Database 23ai JSON-Relational Duality Views allow data to be stored as
-rows in tables to provide the benefits of the relational model and SQL access,
-while also allowing read and write access to data as JSON documents for
-application simplicity. See the `JSON-Relational Duality Developer's Guide
+Oracle Database version 23 JSON-Relational Duality Views allow data to be
+stored as rows in tables to provide the benefits of the relational model and
+SQL access, while also allowing read and write access to data as JSON documents
+for application simplicity. See the `JSON-Relational Duality Developer's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=JSNVU>`__ for more
 information.
 

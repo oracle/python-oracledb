@@ -21,8 +21,8 @@ hosted at `github.com/oracle/python-oracledb
 <https://github.com/oracle/python-oracledb>`__.
 
 This module is currently tested with Python 3.9, 3.10, 3.11, 3.12, 3.13, and
-3.14 against Oracle Database 23ai, 21c, 19c, 18c, 12c, and 11gR2. Previous
-versions of python-oracledb supported older Python versions.
+3.14 against Oracle Database 23, 21, 19, 18, 12, and 11.2. Previous versions of
+python-oracledb supported older Python versions.
 
 Changes in python-oracledb
 releases can be found in the :ref:`release notes <releasenotes>`.
