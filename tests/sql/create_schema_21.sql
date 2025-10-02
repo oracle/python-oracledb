@@ -44,6 +44,10 @@ create table &main_user..TestOsonCols (
 )
 /
 
+insert into &main_user..TestJsonCols values (2,
+    'null', empty_clob(), empty_blob())
+/
+
 begin
     dbms_aqadm.create_queue_table('&main_user..JSON_QUEUE_TAB', 'JSON');
     dbms_aqadm.create_queue('&main_user..TEST_JSON_QUEUE',

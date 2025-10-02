@@ -458,8 +458,9 @@ def test_1920(conn, cursor, test_env):
     assert lob.read() == supplemental_chars
 
 
-def test_1921(cursor):
+def test_1921(cursor, test_env):
     "1921 - test automatic conversion to CLOB for PL/SQL"
+    test_env.skip_unless_server_version(12, 2)
     var = cursor.var(str, outconverter=lambda v: v[-15:])
     var.setvalue(0, "A" * 50000)
     cursor.execute(
@@ -477,8 +478,9 @@ def test_1921(cursor):
     assert var.getvalue() == "A" * 10 + "B" * 5
 
 
-def test_1922(cursor):
+def test_1922(cursor, test_env):
     "1922 - test automatic conversion to NCLOB for PL/SQL"
+    test_env.skip_unless_server_version(12, 2)
     var = cursor.var(oracledb.DB_TYPE_NCHAR, outconverter=lambda v: v[-12:])
     var.setvalue(0, "N" * 51234)
     cursor.execute(
@@ -496,8 +498,9 @@ def test_1922(cursor):
     assert var.getvalue() == "N" * 5 + "P" * 7
 
 
-def test_1923(cursor):
+def test_1923(cursor, test_env):
     "1923 - test automatic conversion to BLOB for PL/SQL"
+    test_env.skip_unless_server_version(12, 2)
     var = cursor.var(bytes, outconverter=lambda v: v[-14:])
     var.setvalue(0, b"L" * 52345)
     cursor.execute(

@@ -916,8 +916,9 @@ def test_4359(cursor):
     assert fetched_data == data
 
 
-def test_4360(skip_unless_json_supported, cursor):
+def test_4360(skip_unless_json_supported, cursor, test_env):
     "4360 - fetch JSON columns as Python objects"
+    test_env.skip_unless_server_version(21)
     expected_data = [
         (1, [1, 2, 3], [4, 5, 6], [7, 8, 9]),
         (2, None, None, None),

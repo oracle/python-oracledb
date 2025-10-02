@@ -41,6 +41,7 @@ def test_4200(conn):
 
 def test_4201(conn, test_env):
     "4201 - test scrolling absolute yields an exception (after result set)"
+    test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
     with test_env.assert_raises_full_code("DPY-2063"):
@@ -62,8 +63,9 @@ def test_4202(conn):
     assert cursor.rowcount == 1
 
 
-def test_4203(conn):
+def test_4203(conn, test_env):
     "4203 - test scrolling absolute (when not in buffers)"
+    test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
     cursor.scroll(6, mode="absolute")
@@ -109,6 +111,7 @@ def test_4206(conn):
 
 def test_4207(conn, test_env):
     "4207 - test scrolling relative yields an exception (after result set)"
+    test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
     with test_env.assert_raises_full_code("DPY-2063"):
@@ -153,6 +156,7 @@ def test_4210(conn):
 
 def test_4211(conn, cursor, test_env):
     "4211 - test scrolling when there are no rows"
+    test_env.skip_unless_server_version(12, 2)
     cursor.execute("truncate table TestTempTable")
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select * from TestTempTable")
@@ -164,8 +168,9 @@ def test_4211(conn, cursor, test_env):
         cursor.scroll(1, mode="absolute")
 
 
-def test_4212(conn, cursor):
+def test_4212(conn, cursor, test_env):
     "4212 - test scrolling with differing array and fetch array sizes"
+    test_env.skip_unless_server_version(12, 2)
     cursor.execute("truncate table TestTempTable")
     for i in range(30):
         cursor.execute(

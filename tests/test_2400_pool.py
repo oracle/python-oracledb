@@ -428,8 +428,7 @@ def test_2410(skip_unless_thick_mode, test_env):
 
 def test_2411(skip_unless_thick_mode, test_env):
     "2411 - test PL/SQL session callbacks"
-    if not test_env.has_client_version(12, 2):
-        pytest.skip("PL/SQL session callbacks not supported before 12.2")
+    test_env.skip_unless_client_version(12, 2)
     callback = "pkg_SessionCallback.TheCallback"
     pool = test_env.get_pool(
         min=2,
@@ -673,6 +672,7 @@ def test_2423(test_env):
 
 def test_2424(skip_if_drcp, admin_conn, test_env):
     "2424 - drop the pooled connection on receiving dead connection error"
+    test_env.skip_unless_server_version(19)
     pool = test_env.get_pool(min=2, max=2, increment=2)
 
     # acquire connections from the pool and kill all the sessions
@@ -767,6 +767,7 @@ def test_2430(test_env):
 
 def test_2431(test_env):
     "2431 - verify that connection with different cclass is reused"
+    test_env.skip_unless_server_version(19)
     cclass = "cclass2431"
     pool = test_env.get_pool(min=1, max=1)
     # ignore the first acquire which, depending on the speed with which the
@@ -1044,6 +1045,7 @@ def test_2456(test_env):
 
 def test_2457(skip_if_drcp, test_env):
     "2457 - ping pooled connection on receiving dead connection error"
+    test_env.skip_unless_server_version(18)
     admin_conn = test_env.get_admin_connection()
     pool = test_env.get_pool(min=1, max=1, ping_interval=0)
 

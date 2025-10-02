@@ -70,8 +70,9 @@ def test_3104(skip_unless_plsql_boolean_supported, cursor):
     assert not result
 
 
-def test_3105(skip_unless_plsql_boolean_supported, cursor):
+def test_3105(skip_unless_plsql_boolean_supported, cursor, test_env):
     "3105 - test binding out a boolean value (True)"
+    test_env.skip_unless_server_version(12, 2)
     result = cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool, [5])
     assert result
 

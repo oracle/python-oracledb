@@ -532,7 +532,7 @@ def test_3931(conn, cursor, test_env):
         assert isinstance(fetch_info, oracledb.FetchInfo)
         assert fetch_info.display_size == display_size
         assert fetch_info.internal_size == internal_size
-        if test_env.has_server_version(12, 2):
+        if test_env.has_server_version(18, 0):
             assert fetch_info.is_json == is_json
         assert fetch_info.name == name
         assert fetch_info.null_ok == null_ok

@@ -660,8 +660,9 @@ def test_3428(soda_db, conn, round_trip_checker, test_env):
     pytest.raises(TypeError, coll.find().fetchArraySize, -1)
 
 
-def test_3429(soda_db):
+def test_3429(soda_db, test_env):
     "3429 - test getting indexes on a collection"
+    test_env.skip_unless_client_version(19, 13)
     coll = soda_db.createCollection("TestSodaListIndexes")
     index_1 = {
         "name": "ix_3428-1",

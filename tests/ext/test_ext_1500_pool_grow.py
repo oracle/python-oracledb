@@ -33,6 +33,7 @@ import time
 
 def test_ext_1500(skip_unless_run_long_tests, test_env):
     "E1500 - test static pool grows back to the min after sessions killed"
+    test_env.skip_unless_client_version(19)
     pool = test_env.get_pool(min=5, max=5, increment=1, ping_interval=0)
     conns = [pool.acquire() for i in range(5)]
     with test_env.get_admin_connection() as admin_conn:

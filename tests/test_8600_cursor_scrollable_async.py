@@ -30,8 +30,8 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def module_checks(anyio_backend, skip_unless_thin_mode):
-    pass
+def module_checks(anyio_backend, skip_unless_thin_mode, test_env):
+    test_env.skip_unless_server_version(12, 2)
 
 
 async def test_8600(async_conn):

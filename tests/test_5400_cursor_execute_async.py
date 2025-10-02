@@ -552,7 +552,8 @@ async def test_5431(async_conn, async_cursor, test_env):
         assert isinstance(fetch_info, oracledb.FetchInfo)
         assert fetch_info.display_size == display_size
         assert fetch_info.internal_size == internal_size
-        assert fetch_info.is_json == is_json
+        if test_env.has_server_version(18):
+            assert fetch_info.is_json == is_json
         assert fetch_info.name == name
         assert fetch_info.null_ok == null_ok
         assert fetch_info.precision == precision

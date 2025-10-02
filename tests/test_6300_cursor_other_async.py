@@ -883,8 +883,9 @@ async def test_6350(async_cursor, test_env):
     assert fetched_value == value
 
 
-async def test_6351(async_cursor):
+async def test_6351(async_cursor, test_env):
     "6351 - fetch JSON columns as Python objects"
+    test_env.skip_unless_server_version(21)
     expected_data = [
         (1, [1, 2, 3], [4, 5, 6], [7, 8, 9]),
         (2, None, None, None),

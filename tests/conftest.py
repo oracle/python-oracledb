@@ -664,6 +664,30 @@ class TestEnv:
                 prev_obj_type = obj_type
             print("    %s/%s %s" % (line_num, position, text))
 
+    def skip_unless_client_version(self, major_version, minor_version=0):
+        """
+        Skips the test unless the specified client version or higher is being
+        used.
+        """
+        if not self.has_client_version(major_version, minor_version):
+            if minor_version == 0:
+                version = str(major_version)
+            else:
+                version = f"{major_version}.{minor_version}"
+            pytest.skip(f"requires Oracle Client {version} or higher")
+
+    def skip_unless_server_version(self, major_version, minor_version=0):
+        """
+        Skips the test unless the specified server version or higher is being
+        used.
+        """
+        if not self.has_server_version(major_version, minor_version):
+            if minor_version == 0:
+                version = str(major_version)
+            else:
+                version = f"{major_version}.{minor_version}"
+            pytest.skip(f"requires Oracle Database {version} or higher")
+
 
 @pytest.fixture
 def admin_conn(test_env):

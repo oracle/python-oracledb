@@ -45,6 +45,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_user(test_env):
+    test_env.skip_unless_server_version(19)
     user = test_env.main_user
     with test_env.get_admin_connection() as admin_conn:
         with admin_conn.cursor() as cursor:

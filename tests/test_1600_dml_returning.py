@@ -29,6 +29,7 @@
 import datetime
 
 import oracledb
+import pytest
 
 
 def test_1600(cursor):
@@ -601,8 +602,10 @@ def test_1625(conn, cursor):
 
 
 # blocked by bug 37741324 in thick mode
-def test_1626(skip_unless_thin_mode, conn, cursor):
+def test_1626(skip_unless_thin_mode, conn, cursor, test_env):
     "1626 - test DML returning with multiple DbObjects returned"
+    if not test_env.has_server_version(21):
+        pytest.skip("awaiting fix for bug 37756810")
     arrays = [
         (1626, 1627, 1628),
         (1629, 1630, 1631),

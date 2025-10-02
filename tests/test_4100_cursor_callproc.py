@@ -149,8 +149,9 @@ def test_4110(cursor):
     assert out_value.getvalue() == 2.0
 
 
-def test_4111(cursor):
+def test_4111(cursor, test_env):
     "4111 - test callproc with setinputsizes"
+    test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
     cursor.setinputsizes(
         oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
@@ -172,8 +173,9 @@ def test_4112(cursor):
     assert results == 7
 
 
-def test_4113(cursor):
+def test_4113(cursor, test_env):
     "4113 - test callproc with setinputsizes with kwargs"
+    test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
     cursor.setinputsizes(
         oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_NUMBER, out_value
@@ -290,8 +292,9 @@ def test_4117(cursor, test_env):
             )
 
 
-def test_4118(cursor):
+def test_4118(cursor, test_env):
     "4118 - test callproc with setinputsizes with too few parameters"
+    test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
 
     # setinputsizes for 2 args (missed 1 args)

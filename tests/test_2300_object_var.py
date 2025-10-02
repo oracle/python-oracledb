@@ -870,8 +870,9 @@ def test_2341(test_env):
         conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
 
 
-def test_2342(conn, cursor):
+def test_2342(conn, cursor, test_env):
     "2342 - test nested records"
+    test_env.skip_unless_server_version(21)
     options = [(None, None), (1, None), (None, 2), (1, 2)]
     typ = conn.gettype("PKG_TESTNESTEDRECORDS.UDT_OUTER")
     for option in options:
