@@ -32,21 +32,6 @@
 # test schemas.
 # -----------------------------------------------------------------------------
 
-import test_env
 
-
-def drop_schema(conn):
-    print("Dropping test schemas...")
-    test_env.run_sql_script(
-        conn,
-        "drop_schema",
-        main_user=test_env.get_main_user(),
-        proxy_user=test_env.get_proxy_user(),
-        edition_name=test_env.get_edition_name(),
-    )
-
-
-if __name__ == "__main__":
-    conn = test_env.get_admin_connection()
-    drop_schema(conn)
-    print("Done.")
+def test_drop_schema(admin_conn, test_env):
+    test_env.drop_schema(admin_conn)

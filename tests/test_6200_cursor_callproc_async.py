@@ -28,107 +28,108 @@ functions (callproc() and callfunc()) with asyncio
 """
 
 import oracledb
-import test_env
+import pytest
 
 
-@test_env.skip_unless_thin_mode()
-class TestCase(test_env.BaseAsyncTestCase):
-    async def test_6200(self):
-        "6200 - test executing a stored procedure"
-        var = self.cursor.var(oracledb.NUMBER)
-        results = await self.cursor.callproc("proc_Test", ("hi", 5, var))
-        self.assertEqual(results, ["hi", 10, 2.0])
-
-    async def test_6201(self):
-        "6201 - test executing a stored procedure with all args keyword args"
-        inout_value = self.cursor.var(oracledb.NUMBER)
-        inout_value.setvalue(0, 5)
-        out_value = self.cursor.var(oracledb.NUMBER)
-        kwargs = dict(
-            a_InOutValue=inout_value, a_InValue="hi", a_OutValue=out_value
-        )
-        results = await self.cursor.callproc("proc_Test", [], kwargs)
-        self.assertEqual(results, [])
-        self.assertEqual(inout_value.getvalue(), 10)
-        self.assertEqual(out_value.getvalue(), 2.0)
-
-    async def test_6202(self):
-        "6202 - test executing a stored procedure with last arg as keyword arg"
-        out_value = self.cursor.var(oracledb.NUMBER)
-        kwargs = dict(a_OutValue=out_value)
-        results = await self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
-        self.assertEqual(results, ["hi", 10])
-        self.assertEqual(out_value.getvalue(), 2.0)
-
-    async def test_6203(self):
-        "6203 - test executing a stored procedure, repeated keyword arg"
-        kwargs = dict(
-            a_InValue="hi", a_OutValue=self.cursor.var(oracledb.NUMBER)
-        )
-        with self.assertRaisesFullCode("ORA-06550"):
-            await self.cursor.callproc("proc_Test", ("hi", 5), kwargs)
-
-    async def test_6204(self):
-        "6204 - test executing a stored procedure without any arguments"
-        results = await self.cursor.callproc("proc_TestNoArgs")
-        self.assertEqual(results, [])
-
-    async def test_6205(self):
-        "6205 - test executing a stored function"
-        results = await self.cursor.callfunc(
-            "func_Test", oracledb.NUMBER, ("hi", 5)
-        )
-        self.assertEqual(results, 7)
-
-    async def test_6206(self):
-        "6206 - test executing a stored function without any arguments"
-        results = await self.cursor.callfunc(
-            "func_TestNoArgs", oracledb.NUMBER
-        )
-        self.assertEqual(results, 712)
-
-    async def test_6207(self):
-        "6207 - test executing a stored function with wrong parameters"
-        func_name = "func_Test"
-        with self.assertRaisesFullCode("DPY-2007"):
-            await self.cursor.callfunc(oracledb.NUMBER, func_name, ("hi", 5))
-        with self.assertRaisesFullCode("ORA-06550"):
-            await self.cursor.callfunc(
-                func_name, oracledb.NUMBER, ("hi", 5, 7)
-            )
-        with self.assertRaisesFullCode("DPY-2012"):
-            await self.cursor.callfunc(func_name, oracledb.NUMBER, "hi", 7)
-        with self.assertRaisesFullCode("ORA-06502"):
-            await self.cursor.callfunc(func_name, oracledb.NUMBER, [5, "hi"])
-        with self.assertRaisesFullCode("ORA-06550"):
-            await self.cursor.callfunc(func_name, oracledb.NUMBER)
-        with self.assertRaisesFullCode("DPY-2012"):
-            await self.cursor.callfunc(func_name, oracledb.NUMBER, 5)
-
-    async def test_6208(self):
-        "6208 - test error for keyword args with invalid type"
-        kwargs = [5]
-        with self.assertRaisesFullCode("DPY-2013"):
-            await self.cursor.callproc("proc_Test", [], kwargs)
-        with self.assertRaisesFullCode("DPY-2013"):
-            await self.cursor.callfunc(
-                "func_Test", oracledb.NUMBER, [], kwargs
-            )
-
-    async def test_6209(self):
-        "6209 - test calling a procedure with a string > 32767 characters"
-        data = "6209" * 16000
-        size_var = self.cursor.var(int)
-        await self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
-        self.assertEqual(size_var.getvalue(), len(data))
-
-    async def test_6210(self):
-        "6210 - test calling a procedure with raw data > 32767 bytes"
-        data = b"6210" * 16250
-        size_var = self.cursor.var(int)
-        await self.cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
-        self.assertEqual(size_var.getvalue(), len(data))
+@pytest.fixture(autouse=True)
+def module_checks(anyio_backend, skip_unless_thin_mode):
+    pass
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+async def test_6200(async_cursor):
+    "6200 - test executing a stored procedure"
+    var = async_cursor.var(oracledb.NUMBER)
+    results = await async_cursor.callproc("proc_Test", ("hi", 5, var))
+    assert results == ["hi", 10, 2.0]
+
+
+async def test_6201(async_cursor):
+    "6201 - test executing a stored procedure with all args keyword args"
+    inout_value = async_cursor.var(oracledb.NUMBER)
+    inout_value.setvalue(0, 5)
+    out_value = async_cursor.var(oracledb.NUMBER)
+    kwargs = dict(
+        a_InOutValue=inout_value, a_InValue="hi", a_OutValue=out_value
+    )
+    results = await async_cursor.callproc("proc_Test", [], kwargs)
+    assert results == []
+    assert inout_value.getvalue() == 10
+    assert out_value.getvalue() == 2.0
+
+
+async def test_6202(async_cursor):
+    "6202 - test executing a stored procedure with last arg as keyword arg"
+    out_value = async_cursor.var(oracledb.NUMBER)
+    kwargs = dict(a_OutValue=out_value)
+    results = await async_cursor.callproc("proc_Test", ("hi", 5), kwargs)
+    assert results == ["hi", 10]
+    assert out_value.getvalue() == 2.0
+
+
+async def test_6203(async_cursor, test_env):
+    "6203 - test executing a stored procedure, repeated keyword arg"
+    kwargs = dict(a_InValue="hi", a_OutValue=async_cursor.var(oracledb.NUMBER))
+    with test_env.assert_raises_full_code("ORA-06550"):
+        await async_cursor.callproc("proc_Test", ("hi", 5), kwargs)
+
+
+async def test_6204(async_cursor):
+    "6204 - test executing a stored procedure without any arguments"
+    results = await async_cursor.callproc("proc_TestNoArgs")
+    assert results == []
+
+
+async def test_6205(async_cursor):
+    "6205 - test executing a stored function"
+    results = await async_cursor.callfunc(
+        "func_Test", oracledb.NUMBER, ("hi", 5)
+    )
+    assert results == 7
+
+
+async def test_6206(async_cursor):
+    "6206 - test executing a stored function without any arguments"
+    results = await async_cursor.callfunc("func_TestNoArgs", oracledb.NUMBER)
+    assert results == 712
+
+
+async def test_6207(async_cursor, test_env):
+    "6207 - test executing a stored function with wrong parameters"
+    func_name = "func_Test"
+    with test_env.assert_raises_full_code("DPY-2007"):
+        await async_cursor.callfunc(oracledb.NUMBER, func_name, ("hi", 5))
+    with test_env.assert_raises_full_code("ORA-06550"):
+        await async_cursor.callfunc(func_name, oracledb.NUMBER, ("hi", 5, 7))
+    with test_env.assert_raises_full_code("DPY-2012"):
+        await async_cursor.callfunc(func_name, oracledb.NUMBER, "hi", 7)
+    with test_env.assert_raises_full_code("ORA-06502"):
+        await async_cursor.callfunc(func_name, oracledb.NUMBER, [5, "hi"])
+    with test_env.assert_raises_full_code("ORA-06550"):
+        await async_cursor.callfunc(func_name, oracledb.NUMBER)
+    with test_env.assert_raises_full_code("DPY-2012"):
+        await async_cursor.callfunc(func_name, oracledb.NUMBER, 5)
+
+
+async def test_6208(async_cursor, test_env):
+    "6208 - test error for keyword args with invalid type"
+    kwargs = [5]
+    with test_env.assert_raises_full_code("DPY-2013"):
+        await async_cursor.callproc("proc_Test", [], kwargs)
+    with test_env.assert_raises_full_code("DPY-2013"):
+        await async_cursor.callfunc("func_Test", oracledb.NUMBER, [], kwargs)
+
+
+async def test_6209(async_cursor):
+    "6209 - test calling a procedure with a string > 32767 characters"
+    data = "6209" * 16000
+    size_var = async_cursor.var(int)
+    await async_cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+    assert size_var.getvalue() == len(data)
+
+
+async def test_6210(async_cursor):
+    "6210 - test calling a procedure with raw data > 32767 bytes"
+    data = b"6210" * 16250
+    size_var = async_cursor.var(int)
+    await async_cursor.callproc("pkg_TestLobs.GetSize", [data, size_var])
+    assert size_var.getvalue() == len(data)

@@ -30,80 +30,74 @@ available in Oracle Database 23.5 and higher.
 import array
 
 import oracledb
-import test_env
+import pytest
 
 
-@test_env.skip_unless_binary_vectors_supported()
-class TestCase(test_env.BaseTestCase):
-
-    def test_7500(self):
-        "7500 - test binding and fetching a BINARY format vector."
-        value = array.array("B", [4, 8, 12, 4, 98, 127, 25, 78])
-        self.cursor.execute("delete from TestBinaryVectors")
-        self.cursor.execute(
-            """
-            insert into TestBinaryVectors (IntCol, VectorBinaryCol)
-            values(1, :value)
-            """,
-            value=value,
-        )
-        self.conn.commit()
-        self.cursor.execute("select VectorBinaryCol from TestBinaryVectors")
-        (fetched_value,) = self.cursor.fetchone()
-        self.assertIsInstance(fetched_value, array.array)
-        self.assertEqual(fetched_value.typecode, "B")
-        self.assertEqual(fetched_value, value)
-
-    def test_7501(self):
-        "7501 - verify fetch info contents"
-        attr_names = [
-            "name",
-            "type_code",
-            "vector_dimensions",
-            "vector_format",
-        ]
-        expected_values = [
-            ["INTCOL", oracledb.DB_TYPE_NUMBER, None, None],
-            [
-                "VECTORBINARYCOL",
-                oracledb.DB_TYPE_VECTOR,
-                64,
-                oracledb.VECTOR_FORMAT_BINARY,
-            ],
-        ]
-        self.cursor.execute("select * from TestBinaryVectors")
-        values = [
-            [getattr(i, n) for n in attr_names]
-            for i in self.cursor.description
-        ]
-        self.assertEqual(values, expected_values)
-        self.assertIs(
-            self.cursor.description[1].vector_format,
-            oracledb.VectorFormat.BINARY,
-        )
-
-    def test_7502(self):
-        "7502 - test comparing BINARY vectors"
-        value = array.array("B", [20, 9, 15, 34, 108, 125, 35, 88])
-        self.cursor.execute("delete from TestBinaryVectors")
-        self.cursor.execute(
-            """
-            insert into TestBinaryVectors (IntCol, VectorBinaryCol)
-            values(1, :value)
-            """,
-            value=value,
-        )
-        self.conn.commit()
-        self.cursor.execute(
-            """
-            select vector_distance(VectorBinaryCol, :value)
-            from TestBinaryVectors
-            """,
-            value=value,
-        )
-        (result,) = self.cursor.fetchone()
-        self.assertAlmostEqual(result, 0)
+@pytest.fixture(autouse=True)
+def module_checks(skip_unless_binary_vectors_supported):
+    pass
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_7500(conn, cursor):
+    "7500 - test binding and fetching a BINARY format vector."
+    value = array.array("B", [4, 8, 12, 4, 98, 127, 25, 78])
+    cursor.execute("delete from TestBinaryVectors")
+    cursor.execute(
+        """
+        insert into TestBinaryVectors (IntCol, VectorBinaryCol)
+        values(1, :value)
+        """,
+        value=value,
+    )
+    conn.commit()
+    cursor.execute("select VectorBinaryCol from TestBinaryVectors")
+    (fetched_value,) = cursor.fetchone()
+    assert isinstance(fetched_value, array.array)
+    assert fetched_value.typecode == "B"
+    assert fetched_value == value
+
+
+def test_7501(cursor):
+    "7501 - verify fetch info contents"
+    attr_names = [
+        "name",
+        "type_code",
+        "vector_dimensions",
+        "vector_format",
+    ]
+    expected_values = [
+        ["INTCOL", oracledb.DB_TYPE_NUMBER, None, None],
+        [
+            "VECTORBINARYCOL",
+            oracledb.DB_TYPE_VECTOR,
+            64,
+            oracledb.VECTOR_FORMAT_BINARY,
+        ],
+    ]
+    cursor.execute("select * from TestBinaryVectors")
+    values = [[getattr(i, n) for n in attr_names] for i in cursor.description]
+    assert values == expected_values
+    assert cursor.description[1].vector_format is oracledb.VectorFormat.BINARY
+
+
+def test_7502(conn, cursor):
+    "7502 - test comparing BINARY vectors"
+    value = array.array("B", [20, 9, 15, 34, 108, 125, 35, 88])
+    cursor.execute("delete from TestBinaryVectors")
+    cursor.execute(
+        """
+        insert into TestBinaryVectors (IntCol, VectorBinaryCol)
+        values(1, :value)
+        """,
+        value=value,
+    )
+    conn.commit()
+    cursor.execute(
+        """
+        select vector_distance(VectorBinaryCol, :value)
+        from TestBinaryVectors
+        """,
+        value=value,
+    )
+    (result,) = cursor.fetchone()
+    assert result == pytest.approx(0)

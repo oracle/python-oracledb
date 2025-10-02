@@ -1,19 +1,19 @@
 This directory contains the test suite for python-oracledb.
 
-1.  The schemas and SQL objects that are referenced in the test suite can be
+1.  Install pytest and tox:
+
+        python -m pip install pytest tox --upgrade
+
+2.  Set the required database credential and related environment variables
+    documented in [conftest.py][2].
+
+3.  The schemas and SQL objects that are referenced in the test suite can be
     created by running the Python script [create_schema.py][1]. The script
-    requires administrative privileges and will prompt for these credentials as
-    well as the names of the schemas that will be created, unless a number of
-    environment variables are set as documented in the Python script
-    [test_env.py][2]. Run the script using the following command:
+    requires administrative privileges to complete successfully:
 
-        python create_schema.py
+        python -m pytest tests/create_schema.py
 
-2.  Install tox:
-
-        python -m pip install tox --upgrade
-
-3.  Run the test suite by issuing the following command in the top-level
+4.  Run the test suite by issuing the following command in the top-level
     directory of your oracledb installation:
 
         python -m tox
@@ -23,22 +23,26 @@ This directory contains the test suite for python-oracledb.
     Alternatively, you can use the currently installed build of oracledb and
     run the following command instead:
 
-        python -m unittest discover -v -s tests
+        python -m pytest
 
     You may also run each of the test scripts independently, as in:
 
-        python test_1000_module.py
+        python -m pytest tests/test_1000_module.py
 
-4.  After running the test suite, the schemas can be dropped by running the
+    The tests run in thin mode by default. If you wish to run the tests in
+    thick mode, use the following command:
+
+        python -m pytest --use-thick-mode
+
+5.  After running the test suite, the schemas can be dropped by running the
     Python script [drop_schema.py][3]. The script requires administrative
-    privileges and will prompt for these credentials as well as the names of
-    the schemas that will be dropped, unless a number of environment variables
-    are set as documented in the Python script [test_env.py][2]. Run the
+    privileges to complete successfully. A set of environment variables should
+    be set as documented in the Python script [conftest.py][2]. Run the
     script using the following command:
 
-        python drop_schema.py
+        python -m pytest tests/drop_schema.py
 
-5.  Enable tests that require extra configuration
+6.  Enable tests that require extra configuration
 
     The following test(s) are automatically skipped if their required
     environment variable(s) and setup is not available.
@@ -64,7 +68,8 @@ This directory contains the test suite for python-oracledb.
                alter user <Schema Owner> grant connect through <External User>;
 
 
+
 [1]: https://github.com/oracle/python-oracledb/blob/main/tests/create_schema.py
-[2]: https://github.com/oracle/python-oracledb/blob/main/tests/test_env.py
+[2]: https://github.com/oracle/python-oracledb/blob/main/tests/conftest.py
 [3]: https://github.com/oracle/python-oracledb/blob/main/tests/drop_schema.py
 [4]: https://python-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#connecting-using-external-authentication

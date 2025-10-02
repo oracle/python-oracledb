@@ -27,45 +27,46 @@
 """
 
 import oracledb
-import test_env
+import pytest
 
 
-@test_env.skip_unless_thin_mode()
-class TestCase(test_env.BaseTestCase):
-
-    def test_7300(self):
-        "7300 - test getting and setting thick attributes"
-        pool = test_env.get_pool()
-        with self.assertRaisesFullCode("DPY-3001"):
-            pool.soda_metadata_cache
-        with self.assertRaisesFullCode("DPY-3001"):
-            pool.soda_metadata_cache = True
-        with self.assertRaisesFullCode("DPY-3001"):
-            pool.max_sessions_per_shard
-        with self.assertRaisesFullCode("DPY-3001"):
-            pool.max_sessions_per_shard = 2
-
-    def test_7302(self):
-        "7302 - test connection with sharding and supersharding keys"
-        with self.assertRaisesFullCode("DPY-3001"):
-            test_env.get_connection(shardingkey=[27])
-        with self.assertRaisesFullCode("DPY-3001"):
-            test_env.get_connection(supershardingkey=[17, 23])
-
-    def test_7303(self):
-        "7303 - test connect() without a connect string (bequeath)"
-        with self.assertRaisesFullCode("DPY-3001"):
-            oracledb.connect(
-                user=test_env.get_main_user(),
-                password=test_env.get_main_password(),
-            )
-
-    def test_7304(self):
-        "7304 - test acquire() from a pool with a session tag"
-        pool = test_env.get_pool()
-        with self.assertRaisesFullCode("DPY-3001"):
-            pool.acquire(tag="unimportant")
+@pytest.fixture(autouse=True)
+def module_checks(skip_unless_thin_mode):
+    pass
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_7300(test_env):
+    "7300 - test getting and setting thick attributes"
+    pool = test_env.get_pool()
+    with test_env.assert_raises_full_code("DPY-3001"):
+        pool.soda_metadata_cache
+    with test_env.assert_raises_full_code("DPY-3001"):
+        pool.soda_metadata_cache = True
+    with test_env.assert_raises_full_code("DPY-3001"):
+        pool.max_sessions_per_shard
+    with test_env.assert_raises_full_code("DPY-3001"):
+        pool.max_sessions_per_shard = 2
+
+
+def test_7302(test_env):
+    "7302 - test connection with sharding and supersharding keys"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        test_env.get_connection(shardingkey=[27])
+    with test_env.assert_raises_full_code("DPY-3001"):
+        test_env.get_connection(supershardingkey=[17, 23])
+
+
+def test_7303(test_env):
+    "7303 - test connect() without a connect string (bequeath)"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        oracledb.connect(
+            user=test_env.main_user,
+            password=test_env.main_password,
+        )
+
+
+def test_7304(test_env):
+    "7304 - test acquire() from a pool with a session tag"
+    pool = test_env.get_pool()
+    with test_env.assert_raises_full_code("DPY-3001"):
+        pool.acquire(tag="unimportant")

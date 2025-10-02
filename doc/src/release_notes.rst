@@ -75,6 +75,7 @@ Common Changes
 #)  Fixed bug when attempting to append an element to a
     :ref:`DbObject <dbobjecttype>` which is not actually a collection.
 #)  API documentation is now generated from the source code.
+#)  The test suite now uses `pytest <https://docs.pytest.org/>`__.
 #)  Internal change: `typing_extensions <https://pypi.org/project/
     typing-extensions/>`__ is now a dependency.
 

@@ -29,92 +29,92 @@ tests here will only be run if the run_long_tests value is enabled.
 
 import time
 
-import test_env
+import pytest
 
 
-@test_env.skip_unless_run_long_tests()
-class TestCase(test_env.BaseTestCase):
-    def test_ext_1000(self):
-        "E1000 - test pool timeout with simple acquire after waiting"
-        pool = test_env.get_pool(min=3, max=10, increment=1, timeout=5)
-        conns = [pool.acquire() for i in range(7)]
-        self.assertEqual(pool.opened, 7)
-        for conn in conns:
-            conn.close()
-        time.sleep(10)
-        conn = pool.acquire()
-        self.assertEqual(pool.opened, 3)
-
-    def test_ext_1001(self):
-        "E1001 - test pool timeout with older connection returned first"
-        pool = test_env.get_pool(min=2, max=5, increment=1, timeout=3)
-        conns = [pool.acquire() for i in range(3)]
-        conns[2].close()
-        for i in range(10):
-            with pool.acquire() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("select 1 from dual")
-        time.sleep(4)
-        conn = pool.acquire()
-        self.assertEqual(pool.opened, 3)
-
-    @test_env.skip_unless_thin_mode()
-    def test_ext_1002(self):
-        "E1002 - test pool timeout shrinks to min on pool inactivity"
-        pool = test_env.get_pool(min=3, max=10, increment=2, timeout=4)
-        conns = [pool.acquire() for i in range(6)]
-        self.assertEqual(pool.opened, 6)
-        for conn in conns:
-            conn.close()
-        time.sleep(6)
-        self.assertEqual(pool.opened, 3)
-
-    @test_env.skip_unless_thin_mode()
-    def test_ext_1003(self):
-        "E1003 - test pool timeout eliminates extra connections on inactivity"
-        pool = test_env.get_pool(min=4, max=10, increment=4, timeout=3)
-        conns = [pool.acquire() for i in range(5)]
-        self.assertEqual(pool.opened, 5)
-        time.sleep(2)
-        self.assertEqual(pool.opened, 8)
-        time.sleep(3)
-        self.assertEqual(pool.opened, 5)
-        del conns
-
-    @test_env.skip_unless_thin_mode()
-    def test_ext_1004(self):
-        "E1004 - test pool max_lifetime_session on release"
-        pool = test_env.get_pool(
-            min=4, max=10, increment=4, max_lifetime_session=3
-        )
-        conns = [pool.acquire() for i in range(5)]
-        self.assertEqual(pool.opened, 5)
-        time.sleep(2)
-        self.assertEqual(pool.opened, 8)
-        time.sleep(2)
-        for conn in conns:
-            conn.close()
-        time.sleep(2)
-        self.assertEqual(pool.opened, 4)
-
-    @test_env.skip_unless_thin_mode()
-    def test_ext_1005(self):
-        "E1005 - test pool max_lifetime_session on acquire"
-        pool = test_env.get_pool(
-            min=4, max=10, increment=4, max_lifetime_session=4
-        )
-        conns = [pool.acquire() for i in range(5)]
-        self.assertEqual(pool.opened, 5)
-        time.sleep(2)
-        self.assertEqual(pool.opened, 8)
-        for conn in conns:
-            conn.close()
-        time.sleep(4)
-        with pool.acquire():
-            pass
-        time.sleep(2)
-        self.assertEqual(pool.opened, 4)
+@pytest.fixture(autouse=True)
+def module_checks(skip_unless_run_long_tests):
+    pass
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_ext_1000(test_env):
+    "E1000 - test pool timeout with simple acquire after waiting"
+    pool = test_env.get_pool(min=3, max=10, increment=1, timeout=5)
+    conns = [pool.acquire() for i in range(7)]
+    assert pool.opened == 7
+    for conn in conns:
+        conn.close()
+    time.sleep(10)
+    conn = pool.acquire()
+    assert pool.opened == 3
+
+
+def test_ext_1001(test_env):
+    "E1001 - test pool timeout with older connection returned first"
+    pool = test_env.get_pool(min=2, max=5, increment=1, timeout=3)
+    conns = [pool.acquire() for i in range(3)]
+    conns[2].close()
+    for i in range(10):
+        with pool.acquire() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("select 1 from dual")
+    time.sleep(4)
+    conn = pool.acquire()
+    assert pool.opened == 3
+
+
+def test_ext_1002(skip_unless_thin_mode, test_env):
+    "E1002 - test pool timeout shrinks to min on pool inactivity"
+    pool = test_env.get_pool(min=3, max=10, increment=2, timeout=4)
+    conns = [pool.acquire() for i in range(6)]
+    assert pool.opened == 6
+    for conn in conns:
+        conn.close()
+    time.sleep(6)
+    assert pool.opened == 3
+
+
+def test_ext_1003(skip_unless_thin_mode, test_env):
+    "E1003 - test pool timeout eliminates extra connections on inactivity"
+    pool = test_env.get_pool(min=4, max=10, increment=4, timeout=3)
+    conns = [pool.acquire() for i in range(5)]
+    assert pool.opened == 5
+    time.sleep(2)
+    assert pool.opened == 8
+    time.sleep(3)
+    assert pool.opened == 5
+    del conns
+
+
+def test_ext_1004(skip_unless_thin_mode, test_env):
+    "E1004 - test pool max_lifetime_session on release"
+    pool = test_env.get_pool(
+        min=4, max=10, increment=4, max_lifetime_session=3
+    )
+    conns = [pool.acquire() for i in range(5)]
+    assert pool.opened == 5
+    time.sleep(2)
+    assert pool.opened == 8
+    time.sleep(2)
+    for conn in conns:
+        conn.close()
+    time.sleep(2)
+    assert pool.opened == 4
+
+
+def test_ext_1005(skip_unless_thin_mode, test_env):
+    "E1005 - test pool max_lifetime_session on acquire"
+    pool = test_env.get_pool(
+        min=4, max=10, increment=4, max_lifetime_session=4
+    )
+    conns = [pool.acquire() for i in range(5)]
+    assert pool.opened == 5
+    time.sleep(2)
+    assert pool.opened == 8
+    for conn in conns:
+        conn.close()
+    time.sleep(4)
+    with pool.acquire():
+        pass
+    time.sleep(2)
+    assert pool.opened == 4

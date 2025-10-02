@@ -53,6 +53,23 @@ Documentation = "http://python-oracledb.readthedocs.io"
 Issues = "https://github.com/oracle/python-oracledb/issues"
 Source = "https://github.com/oracle/python-oracledb"
 
+[project.optional-dependencies]
+test = [
+    "anyio",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "pytest",
+]
+oci_config = ["oci"]
+oci_auth = ["oci"]
+azure_config = [
+    "azure-appconfiguration",
+    "azure-identity",
+    "azure-keyvault-secrets"
+]
+azure_auth = ["msal"]
+
 [tool.setuptools]
 zip-safe = false
 packages = [
@@ -77,17 +94,8 @@ line-length = 79
 target-version = "py39"
 exclude = ["templates"]
 
-[project.optional-dependencies]
-test = [
-    "numpy",
-    "pandas",
-    "pyarrow",
+[tool.pytest.ini_options]
+minversion = "8.3.0"
+testpaths = [
+    "tests"
 ]
-oci_config = ["oci"]
-oci_auth = ["oci"]
-azure_config = [
-    "azure-appconfiguration",
-    "azure-identity",
-    "azure-keyvault-secrets"
-]
-azure_auth = ["msal"]

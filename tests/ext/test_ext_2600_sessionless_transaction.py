@@ -30,64 +30,62 @@ enabled.
 
 import time
 
-import test_env
+import pytest
 
 
-@test_env.skip_unless_run_long_tests()
-@test_env.skip_unless_sessionless_transactions_supported()
-class TestCase(test_env.BaseTestCase):
-    def test_ext_2600(self):
-        "E2600 - test error conditions with client API"
-        self.cursor.execute("truncate table TestTempTable")
+@pytest.fixture(autouse=True)
+def module_checks(
+    skip_unless_sessionless_transactions_supported, skip_unless_run_long_tests
+):
+    pass
 
-        transaction_id = "test_2600_transaction_id"
-        other_transaction_id = "test_2600_different_transaction_id"
-        with test_env.get_connection() as conn:
-            cursor = conn.cursor()
 
-            # suspending a non-existent transaction will fail only in thin
-            # mode
-            if conn.thin:
-                with self.assertRaisesFullCode("DPY-3036"):
-                    conn.suspend_sessionless_transaction()
+def test_ext_2600(cursor, test_env):
+    "E2600 - test error conditions with client API"
+    cursor.execute("truncate table TestTempTable")
 
-            # start first sessionless transaction
-            conn.begin_sessionless_transaction(
-                transaction_id=transaction_id, timeout=5
-            )
+    transaction_id = "test_2600_transaction_id"
+    other_transaction_id = "test_2600_different_transaction_id"
+    with test_env.get_connection() as conn:
+        cursor = conn.cursor()
 
-            # starting another sessionless transaction will fail only in thin
-            # mode
-            if conn.thin:
-                with self.assertRaisesFullCode("DPY-3035"):
-                    conn.begin_sessionless_transaction(
-                        transaction_id=other_transaction_id, timeout=5
-                    )
+        # suspending a non-existent transaction will fail only in thin
+        # mode
+        if conn.thin:
+            with test_env.assert_raises_full_code("DPY-3036"):
+                conn.suspend_sessionless_transaction()
 
-            cursor.execute(
-                """
-                INSERT INTO TestTempTable(IntCol, StringCol1)
-                VALUES(:1, :2)
-                """,
-                (1, "test_row"),
-            )
+        # start first sessionless transaction
+        conn.begin_sessionless_transaction(
+            transaction_id=transaction_id, timeout=5
+        )
 
-            # suspend using server API should fail
-            with self.assertRaisesFullCode("DPY-3034"):
-                cursor.callproc("dbms_transaction.suspend_transaction")
-
-            # suspend using client API should succeed
-            conn.suspend_sessionless_transaction()
-
-            # wait till it times out
-            time.sleep(10)
-
-            # attmpting to resume the transaction should fail
-            with self.assertRaisesFullCode("ORA-26218"):
-                conn.resume_sessionless_transaction(
-                    transaction_id=transaction_id
+        # starting another sessionless transaction will fail only in thin
+        # mode
+        if conn.thin:
+            with test_env.assert_raises_full_code("DPY-3035"):
+                conn.begin_sessionless_transaction(
+                    transaction_id=other_transaction_id, timeout=5
                 )
 
+        cursor.execute(
+            """
+            INSERT INTO TestTempTable(IntCol, StringCol1)
+            VALUES(:1, :2)
+            """,
+            (1, "test_row"),
+        )
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+        # suspend using server API should fail
+        with test_env.assert_raises_full_code("DPY-3034"):
+            cursor.callproc("dbms_transaction.suspend_transaction")
+
+        # suspend using client API should succeed
+        conn.suspend_sessionless_transaction()
+
+        # wait till it times out
+        time.sleep(10)
+
+        # attmpting to resume the transaction should fail
+        with test_env.assert_raises_full_code("ORA-26218"):
+            conn.resume_sessionless_transaction(transaction_id=transaction_id)

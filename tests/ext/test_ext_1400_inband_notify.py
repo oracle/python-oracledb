@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,70 +28,62 @@ but the test makes use of debugging packages that are not intended for normal
 use.
 """
 
-import test_env
+import pytest
 
 
-class TestCase(test_env.BaseTestCase):
-    requires_connection = False
-
-    @classmethod
-    def setUpClass(cls):
-        cls.admin_conn = test_env.get_admin_connection()
-        user = test_env.get_main_user()
-        with cls.admin_conn.cursor() as cursor:
+@pytest.fixture(scope="module", autouse=True)
+def setup_user(test_env):
+    user = test_env.main_user
+    with test_env.get_admin_connection() as admin_conn:
+        with admin_conn.cursor() as cursor:
             cursor.execute(f"grant execute on dbms_tg_dbg to {user}")
-
-    @classmethod
-    def tearDownClass(cls):
-        user = test_env.get_main_user()
-        with cls.admin_conn.cursor() as cursor:
+            yield
             cursor.execute(f"revoke execute on dbms_tg_dbg from {user}")
 
-    def test_ext_1400(self):
-        "E1400 - test standalone connection is marked unhealthy"
-        conn = test_env.get_connection()
-        self.assertEqual(conn.is_healthy(), True)
+
+def test_ext_1400(test_env):
+    "E1400 - test standalone connection is marked unhealthy"
+    conn = test_env.get_connection()
+    assert conn.is_healthy()
+    with conn.cursor() as cursor:
+        cursor.callproc("dbms_tg_dbg.set_session_drainable")
+        cursor.execute("select user from dual")
+        (user,) = cursor.fetchone()
+        assert user == test_env.main_user.upper()
+    assert not conn.is_healthy()
+
+
+def test_ext_1401(test_env):
+    "E1401 - test pooled connection that is marked unhealthy"
+    pool = test_env.get_pool(min=1, max=1, increment=1)
+    with pool.acquire() as conn:
+        assert conn.is_healthy()
         with conn.cursor() as cursor:
             cursor.callproc("dbms_tg_dbg.set_session_drainable")
+            info = test_env.get_sid_serial(conn)
+        assert not conn.is_healthy()
+        with conn.cursor() as cursor:
             cursor.execute("select user from dual")
             (user,) = cursor.fetchone()
-            self.assertEqual(user, test_env.get_main_user().upper())
-        self.assertEqual(conn.is_healthy(), False)
-
-    def test_ext_1401(self):
-        "E1401 - test pooled connection that is marked unhealthy"
-        pool = test_env.get_pool(min=1, max=1, increment=1)
-        with pool.acquire() as conn:
-            self.assertEqual(conn.is_healthy(), True)
-            with conn.cursor() as cursor:
-                cursor.callproc("dbms_tg_dbg.set_session_drainable")
-                info = self.get_sid_serial(conn)
-            self.assertEqual(conn.is_healthy(), False)
-            with conn.cursor() as cursor:
-                cursor.execute("select user from dual")
-                (user,) = cursor.fetchone()
-                self.assertEqual(user, test_env.get_main_user().upper())
-        with pool.acquire() as conn:
-            self.assertEqual(conn.is_healthy(), True)
-            new_info = self.get_sid_serial(conn)
-            self.assertNotEqual(new_info, info)
-
-    def test_ext_1402(self):
-        "E1402 - test pooled connection is dropped from pool"
-        pool = test_env.get_pool(min=1, max=1, increment=1)
-        with pool.acquire() as conn:
-            self.assertEqual(conn.is_healthy(), True)
-            info = self.get_sid_serial(conn)
-        with pool.acquire() as conn:
-            new_info = self.get_sid_serial(conn)
-            self.assertEqual(new_info, info)
-            with conn.cursor() as cursor:
-                cursor.callproc("dbms_tg_dbg.set_session_drainable")
-        with pool.acquire() as conn:
-            self.assertEqual(conn.is_healthy(), True)
-            new_info = self.get_sid_serial(conn)
-            self.assertNotEqual(new_info, info)
+            assert user == test_env.main_user.upper()
+    with pool.acquire() as conn:
+        assert conn.is_healthy()
+        new_info = test_env.get_sid_serial(conn)
+        assert new_info != info
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_ext_1402(test_env):
+    "E1402 - test pooled connection is dropped from pool"
+    pool = test_env.get_pool(min=1, max=1, increment=1)
+    with pool.acquire() as conn:
+        assert conn.is_healthy()
+        info = test_env.get_sid_serial(conn)
+    with pool.acquire() as conn:
+        new_info = test_env.get_sid_serial(conn)
+        assert new_info == info
+        with conn.cursor() as cursor:
+            cursor.callproc("dbms_tg_dbg.set_session_drainable")
+    with pool.acquire() as conn:
+        assert conn.is_healthy()
+        new_info = test_env.get_sid_serial(conn)
+        assert new_info != info

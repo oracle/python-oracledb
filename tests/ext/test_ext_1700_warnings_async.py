@@ -28,118 +28,106 @@ setup is required but sys privilege is required in order to create and drop
 users.
 """
 
-import asyncio
+import time
 
 import oracledb
-import test_env
+import pytest
+
+PROFILE_NAME = "profile_ext_test_1700"
+USER_NAME = "user_ext_test_1700"
 
 
-@test_env.skip_unless_thin_mode()
-class TestCase(test_env.BaseAsyncTestCase):
-    profile_name = "profile_priv_test_1700"
-    user_name = "user_priv_test_1700"
-    requires_connection = False
-    setup_completed = False
+@pytest.fixture(autouse=True)
+def module_checks(anyio_backend, skip_unless_thin_mode):
+    pass
 
-    async def __perform_setup(self):
-        """
-        Perform the setup, if necessary.
-        """
-        if self.__class__.setup_completed:
-            return
-        conn = await test_env.get_admin_connection_async()
-        password = test_env.get_main_password()
-        cursor = conn.cursor()
-        await cursor.execute(
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_user(test_env):
+    password = test_env.main_password
+    with test_env.get_admin_connection() as admin_conn:
+        cursor = admin_conn.cursor()
+        cursor.execute(
             f"""
             declare
                 e_user_missing exception;
                 pragma exception_init(e_user_missing, -1918);
             begin
-                execute immediate('drop user {self.user_name} cascade');
+                execute immediate('drop user {USER_NAME} cascade');
             exception
             when e_user_missing then
                 null;
             end;
             """
         )
-        await cursor.execute(
+        cursor.execute(
             f"""
             declare
                 e_user_missing exception;
                 pragma exception_init(e_user_missing, -2380);
             begin
-                execute immediate('drop profile {self.profile_name}');
+                execute immediate('drop profile {PROFILE_NAME}');
             exception
             when e_user_missing then
                 null;
             end;
             """
         )
-        await cursor.execute(
-            f"create user {self.user_name} identified by {password}"
-        )
-        await cursor.execute(f"grant create session to {self.user_name}")
-        await cursor.execute(
+        cursor.execute(f"create user {USER_NAME} identified by {password}")
+        cursor.execute(f"grant create session to {USER_NAME}")
+        cursor.execute(
             f"""
-            create profile {self.profile_name} limit
+            create profile {PROFILE_NAME} limit
             password_life_time 1 / 24 / 60 / 60
             password_grace_time 7
             """
         )
-        await cursor.execute(
-            f"alter user {self.user_name} profile {self.profile_name}"
-        )
-        await asyncio.sleep(2)
-        self.__class__.setup_completed = True
-
-    async def test_ext_1700(self):
-        "E1700 - test standalone connection generates a warning"
-        await self.__perform_setup()
-        password = test_env.get_main_password()
-        async with oracledb.connect_async(
-            user=self.user_name,
-            password=password,
-            dsn=test_env.get_connect_string(),
-        ) as conn:
-            self.assertIn(conn.warning.full_code, ["ORA-28002", "ORA-28098"])
-
-    async def test_ext_1701(self):
-        "E1701 - test pooled connection generates a warning (min 0)"
-        await self.__perform_setup()
-        password = test_env.get_main_password()
-        pool = oracledb.create_pool_async(
-            user=self.user_name,
-            password=password,
-            dsn=test_env.get_connect_string(),
-            min=0,
-            max=5,
-            increment=1,
-        )
-        async with pool.acquire() as conn:
-            self.assertIn(conn.warning.full_code, ["ORA-28002", "ORA-28098"])
-        async with pool.acquire() as conn:
-            self.assertIsNone(conn.warning)
-        await pool.close(0)
-
-    async def test_ext_1702(self):
-        "E1702 - test pooled connection generates a warning (min 1)"
-        await self.__perform_setup()
-        password = test_env.get_main_password()
-        pool = oracledb.create_pool_async(
-            user=self.user_name,
-            password=password,
-            dsn=test_env.get_connect_string(),
-            min=1,
-            max=5,
-            increment=1,
-        )
-        async with pool.acquire() as conn:
-            self.assertIn(conn.warning.full_code, ["ORA-28002", "ORA-28098"])
-        async with pool.acquire() as conn:
-            self.assertIsNone(conn.warning)
-        await pool.close(0)
+        cursor.execute(f"alter user {USER_NAME} profile {PROFILE_NAME}")
+        time.sleep(2)
+        yield
+        cursor.execute(f"drop user {USER_NAME} cascade")
+        cursor.execute(f"drop profile {PROFILE_NAME}")
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+async def test_ext_1700(test_env):
+    "E1700 - test standalone connection generates a warning"
+    async with oracledb.connect_async(
+        user=USER_NAME,
+        password=test_env.main_password,
+        dsn=test_env.connect_string,
+    ) as conn:
+        assert conn.warning.full_code in ["ORA-28002", "ORA-28098"]
+
+
+async def test_ext_1701(test_env):
+    "E1701 - test pooled connection generates a warning (min 0)"
+    pool = oracledb.create_pool_async(
+        user=USER_NAME,
+        password=test_env.main_password,
+        dsn=test_env.connect_string,
+        min=0,
+        max=5,
+        increment=1,
+    )
+    async with pool.acquire() as conn:
+        assert conn.warning.full_code in ["ORA-28002", "ORA-28098"]
+    async with pool.acquire() as conn:
+        assert conn.warning is None
+    await pool.close(0)
+
+
+async def test_ext_1702(test_env):
+    "E1702 - test pooled connection generates a warning (min 1)"
+    pool = oracledb.create_pool_async(
+        user=USER_NAME,
+        password=test_env.main_password,
+        dsn=test_env.connect_string,
+        min=1,
+        max=5,
+        increment=1,
+    )
+    async with pool.acquire() as conn:
+        assert conn.warning.full_code in ["ORA-28002", "ORA-28098"]
+    async with pool.acquire() as conn:
+        assert conn.warning is None
+    await pool.close(0)

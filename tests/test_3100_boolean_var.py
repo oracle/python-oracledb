@@ -27,120 +27,109 @@
 """
 
 import oracledb
-import test_env
 
 
-@test_env.skip_unless_plsql_boolean_supported()
-class TestCase(test_env.BaseTestCase):
-    def __test_bind_value_as_boolean(self, value):
-        expected_result = str(bool(value)).upper()
-        var = self.cursor.var(bool)
-        var.setvalue(0, value)
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.GetStringRep", str, [var]
-        )
-        self.assertEqual(result, expected_result)
-
-    def test_3100(self):
-        "3100 - test binding in a False value"
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.GetStringRep", str, [False]
-        )
-        self.assertEqual(result, "FALSE")
-
-    def test_3101(self):
-        "3101 - test binding in a float as a boolean"
-        self.__test_bind_value_as_boolean(0.0)
-        self.__test_bind_value_as_boolean(1.0)
-
-    def test_3102(self):
-        "3102 - test binding in an integer as a boolean"
-        self.__test_bind_value_as_boolean(0)
-        self.__test_bind_value_as_boolean(1)
-
-    def test_3103(self):
-        "3103 - test binding in a null value"
-        self.cursor.setinputsizes(None, bool)
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.GetStringRep", str, [None]
-        )
-        self.assertEqual(result, "NULL")
-
-    def test_3104(self):
-        "3104 - test binding out a boolean value (False)"
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.IsLessThan10", oracledb.DB_TYPE_BOOLEAN, [15]
-        )
-        self.assertFalse(result)
-
-    def test_3105(self):
-        "3105 - test binding out a boolean value (True)"
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.IsLessThan10", bool, [5]
-        )
-        self.assertTrue(result)
-
-    def test_3106(self):
-        "3106 - test binding in a string as a boolean"
-        self.__test_bind_value_as_boolean("")
-        self.__test_bind_value_as_boolean("0")
-
-    def test_3107(self):
-        "3107 - test binding in a True value"
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.GetStringRep", str, [True]
-        )
-        self.assertEqual(result, "TRUE")
-
-    def test_3108(self):
-        "3108 - test binding out a boolean value (None)"
-        result = self.cursor.callfunc(
-            "pkg_TestBooleans.TestOutValueNull", bool
-        )
-        self.assertIsNone(result)
-
-    @test_env.skip_unless_native_boolean_supported()
-    def test_3109(self):
-        "3109 - test binding and fetching boolean with 23ai"
-        for value in (True, False):
-            with self.subTest(value=value):
-                self.cursor.execute("select not :1 from dual", [value])
-                (fetched_value,) = self.cursor.fetchone()
-                self.assertIsInstance(fetched_value, bool)
-                self.assertEqual(fetched_value, not value)
-
-    @test_env.skip_unless_native_boolean_supported()
-    def test_3110(self):
-        "3110 - test binding and fetching string literals that represent True"
-        self.cursor.execute("truncate table TestBooleans")
-        true_values = ["true", "yes", "on", "1", "t", "y"]
-        self.cursor.executemany(
-            """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
-            values (:1, :2, :3)""",
-            [(i, v, v) for i, v in enumerate(true_values)],
-        )
-        self.cursor.execute(
-            "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
-        )
-        expected_values = [(True, True) for _ in true_values]
-        self.assertEqual(self.cursor.fetchall(), expected_values)
-
-    @test_env.skip_unless_native_boolean_supported()
-    def test_3111(self):
-        "3111 - test binding and fetching string literals that represent False"
-        self.cursor.execute("truncate table TestBooleans")
-        false_values = ["false", "no", "off", "0", "f", "n"]
-        self.cursor.executemany(
-            """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
-            values (:1, :2, :3)""",
-            [(i, v, v) for i, v in enumerate(false_values)],
-        )
-        self.cursor.execute(
-            "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
-        )
-        expected_value = [(False, False) for _ in range(len(false_values))]
-        self.assertEqual(self.cursor.fetchall(), expected_value)
+def _test_bind_value_as_boolean(cursor, value):
+    expected_result = str(bool(value)).upper()
+    var = cursor.var(bool)
+    var.setvalue(0, value)
+    result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [var])
+    assert result == expected_result
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_3100(skip_unless_plsql_boolean_supported, cursor):
+    "3100 - test binding in a False value"
+    result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [False])
+    assert result == "FALSE"
+
+
+def test_3101(skip_unless_plsql_boolean_supported, cursor):
+    "3101 - test binding in a float as a boolean"
+    _test_bind_value_as_boolean(cursor, 0.0)
+    _test_bind_value_as_boolean(cursor, 1.0)
+
+
+def test_3102(skip_unless_plsql_boolean_supported, cursor):
+    "3102 - test binding in an integer as a boolean"
+    _test_bind_value_as_boolean(cursor, 0)
+    _test_bind_value_as_boolean(cursor, 1)
+
+
+def test_3103(skip_unless_plsql_boolean_supported, cursor):
+    "3103 - test binding in a null value"
+    cursor.setinputsizes(None, bool)
+    result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [None])
+    assert result == "NULL"
+
+
+def test_3104(skip_unless_plsql_boolean_supported, cursor):
+    "3104 - test binding out a boolean value (False)"
+    result = cursor.callfunc(
+        "pkg_TestBooleans.IsLessThan10", oracledb.DB_TYPE_BOOLEAN, [15]
+    )
+    assert not result
+
+
+def test_3105(skip_unless_plsql_boolean_supported, cursor):
+    "3105 - test binding out a boolean value (True)"
+    result = cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool, [5])
+    assert result
+
+
+def test_3106(skip_unless_plsql_boolean_supported, cursor):
+    "3106 - test binding in a string as a boolean"
+    _test_bind_value_as_boolean(cursor, "")
+    _test_bind_value_as_boolean(cursor, "0")
+
+
+def test_3107(skip_unless_plsql_boolean_supported, cursor):
+    "3107 - test binding in a True value"
+    result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [True])
+    assert result == "TRUE"
+
+
+def test_3108(skip_unless_plsql_boolean_supported, cursor):
+    "3108 - test binding out a boolean value (None)"
+    result = cursor.callfunc("pkg_TestBooleans.TestOutValueNull", bool)
+    assert result is None
+
+
+def test_3109(skip_unless_native_boolean_supported, cursor):
+    "3109 - test binding and fetching boolean with 23ai"
+    for value in (True, False):
+        cursor.execute("select not :1 from dual", [value])
+        (fetched_value,) = cursor.fetchone()
+        assert isinstance(fetched_value, bool)
+        assert fetched_value == (not value)
+
+
+def test_3110(skip_unless_native_boolean_supported, cursor):
+    "3110 - test binding and fetching string literals that represent True"
+    cursor.execute("truncate table TestBooleans")
+    true_values = ["true", "yes", "on", "1", "t", "y"]
+    cursor.executemany(
+        """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
+        values (:1, :2, :3)""",
+        [(i, v, v) for i, v in enumerate(true_values)],
+    )
+    cursor.execute(
+        "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
+    )
+    expected_values = [(True, True) for _ in true_values]
+    assert cursor.fetchall() == expected_values
+
+
+def test_3111(skip_unless_native_boolean_supported, cursor):
+    "3111 - test binding and fetching string literals that represent False"
+    cursor.execute("truncate table TestBooleans")
+    false_values = ["false", "no", "off", "0", "f", "n"]
+    cursor.executemany(
+        """insert into TestBooleans (IntCol, BooleanCol1, BooleanCol2)
+        values (:1, :2, :3)""",
+        [(i, v, v) for i, v in enumerate(false_values)],
+    )
+    cursor.execute(
+        "select BooleanCol1, BooleanCol2 from TestBooleans order by IntCol"
+    )
+    expected_value = [(False, False) for _ in range(len(false_values))]
+    assert cursor.fetchall() == expected_value

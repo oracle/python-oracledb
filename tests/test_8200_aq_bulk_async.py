@@ -29,7 +29,7 @@
 import datetime
 
 import oracledb
-import test_env
+import pytest
 
 RAW_QUEUE_NAME = "TEST_RAW_QUEUE"
 JSON_QUEUE_NAME = "TEST_JSON_QUEUE"
@@ -61,113 +61,130 @@ JSON_DATA_PAYLOAD = [
 ]
 
 
-@test_env.skip_unless_thin_mode()
-class TestCase(test_env.BaseAsyncTestCase):
-    async def __deq_in_thread(self, results):
-        async with test_env.get_connection_async() as conn:
-            queue = conn.queue(RAW_QUEUE_NAME)
-            queue.deqoptions.wait = 10
-            queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-            while len(results) < len(RAW_PAYLOAD_DATA):
-                messages = await queue.deqmany(5)
-                if not messages:
-                    break
-                for message in messages:
-                    results.append(message.payload.decode())
-            await conn.commit()
+@pytest.fixture(autouse=True)
+def module_checks(anyio_backend, skip_unless_thin_mode):
+    pass
 
-    async def test_8200(self):
-        "8200 - test bulk enqueue and dequeue"
-        queue = await self.get_and_clear_queue(RAW_QUEUE_NAME)
+
+@pytest.fixture
+async def queue(async_conn, test_env):
+    """
+    Creates the queue used by the tests in this file.
+    """
+    return await test_env.get_and_clear_queue_async(async_conn, RAW_QUEUE_NAME)
+
+
+@pytest.fixture
+async def json_queue(async_conn, test_env):
+    """
+    Creates the queue used by the tests in this file.
+    """
+    return await test_env.get_and_clear_queue_async(
+        async_conn, JSON_QUEUE_NAME, "JSON"
+    )
+
+
+async def _deq_in_thread(test_env, results):
+    async with test_env.get_connection_async() as conn:
+        queue = conn.queue(RAW_QUEUE_NAME)
+        queue.deqoptions.wait = 10
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        while len(results) < len(RAW_PAYLOAD_DATA):
+            messages = await queue.deqmany(5)
+            if not messages:
+                break
+            for message in messages:
+                results.append(message.payload.decode())
+        await conn.commit()
+
+
+async def test_8200(queue, async_conn):
+    "8200 - test bulk enqueue and dequeue"
+    messages = [
+        async_conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+    ]
+    await queue.enqmany(messages)
+    messages = await queue.deqmany(len(RAW_PAYLOAD_DATA))
+    data = [message.payload.decode() for message in messages]
+    await async_conn.commit()
+    assert data == RAW_PAYLOAD_DATA
+
+
+async def test_8201(queue, async_conn):
+    "8201 - test empty bulk dequeue"
+    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+    messages = await queue.deqmany(5)
+    await async_conn.commit()
+    assert messages == []
+
+
+async def test_8202(queue, async_conn):
+    "8202 - test enqueue and dequeue multiple times"
+    data_to_enqueue = RAW_PAYLOAD_DATA
+    for num in (2, 6, 4):
         messages = [
-            self.conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+            async_conn.msgproperties(payload=data)
+            for data in data_to_enqueue[:num]
         ]
+        data_to_enqueue = data_to_enqueue[num:]
         await queue.enqmany(messages)
-        messages = await queue.deqmany(len(RAW_PAYLOAD_DATA))
-        data = [message.payload.decode() for message in messages]
-        await self.conn.commit()
-        self.assertEqual(data, RAW_PAYLOAD_DATA)
+    await async_conn.commit()
+    all_data = []
+    for num in (3, 5, 10):
+        messages = await queue.deqmany(num)
+        all_data.extend(message.payload.decode() for message in messages)
+    await async_conn.commit()
+    assert all_data == RAW_PAYLOAD_DATA
 
-    async def test_8201(self):
-        "8201 - test empty bulk dequeue"
-        queue = await self.get_and_clear_queue(RAW_QUEUE_NAME)
-        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-        messages = await queue.deqmany(5)
-        await self.conn.commit()
-        self.assertEqual(messages, [])
 
-    async def test_8202(self):
-        "8202 - test enqueue and dequeue multiple times"
-        queue = await self.get_and_clear_queue(RAW_QUEUE_NAME)
-        data_to_enqueue = RAW_PAYLOAD_DATA
-        for num in (2, 6, 4):
-            messages = [
-                self.conn.msgproperties(payload=data)
-                for data in data_to_enqueue[:num]
-            ]
-            data_to_enqueue = data_to_enqueue[num:]
-            await queue.enqmany(messages)
-        await self.conn.commit()
-        all_data = []
-        for num in (3, 5, 10):
-            messages = await queue.deqmany(num)
-            all_data.extend(message.payload.decode() for message in messages)
-        await self.conn.commit()
-        self.assertEqual(all_data, RAW_PAYLOAD_DATA)
-
-    async def test_8203(self):
-        "8203 - test error for messages with no payload"
-        queue = await self.get_and_clear_queue(RAW_QUEUE_NAME)
-        messages = [self.conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
-        with self.assertRaisesFullCode("DPY-2000"):
-            await queue.enqmany(messages)
-
-    async def test_8204(self):
-        "8204 - verify that the msgid property is returned correctly"
-        queue = await self.get_and_clear_queue(RAW_QUEUE_NAME)
-        messages = [
-            self.conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
-        ]
+async def test_8203(queue, async_conn, test_env):
+    "8203 - test error for messages with no payload"
+    messages = [async_conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
+    with test_env.assert_raises_full_code("DPY-2000"):
         await queue.enqmany(messages)
-        await self.cursor.execute("select msgid from raw_queue_tab")
-        actual_msgids = set(m for m, in await self.cursor.fetchall())
-        msgids = set(message.msgid for message in messages)
-        self.assertEqual(msgids, actual_msgids)
-        messages = await queue.deqmany(len(RAW_PAYLOAD_DATA))
-        msgids = set(message.msgid for message in messages)
-        self.assertEqual(msgids, actual_msgids)
-
-    async def test_8205(self):
-        "8205 - test enqueuing and dequeuing JSON message"
-        queue = await self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
-        props = [
-            self.conn.msgproperties(payload=data) for data in JSON_DATA_PAYLOAD
-        ]
-        await queue.enqmany(props)
-        await self.conn.commit()
-        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-        messages = await queue.deqmany(5)
-        actual_data = [message.payload for message in messages]
-        self.assertEqual(actual_data, JSON_DATA_PAYLOAD)
-
-    async def test_8206(self):
-        "8206 - test enqueuing to a JSON queue without a JSON payload"
-        queue = await self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
-        props = self.conn.msgproperties(payload="string message")
-        with self.assertRaisesFullCode("DPY-2062"):
-            await queue.enqmany([props, props])
-
-    async def test_8207(self):
-        "8207 - test errors for invalid values for enqmany and deqmany"
-        queue = await self.get_and_clear_queue(JSON_QUEUE_NAME, "JSON")
-        props = self.conn.msgproperties(payload="string message")
-        with self.assertRaises(TypeError):
-            await queue.enqmany(props)
-        with self.assertRaises(TypeError):
-            await queue.enqmany(["Not", "msgproperties"])
-        with self.assertRaises(TypeError):
-            await queue.deqmany("5")
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+async def test_8204(queue, async_conn, async_cursor):
+    "8204 - verify that the msgid property is returned correctly"
+    messages = [
+        async_conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
+    ]
+    await queue.enqmany(messages)
+    await async_cursor.execute("select msgid from raw_queue_tab")
+    actual_msgids = set(m for m, in await async_cursor.fetchall())
+    msgids = set(message.msgid for message in messages)
+    assert msgids == actual_msgids
+    messages = await queue.deqmany(len(RAW_PAYLOAD_DATA))
+    msgids = set(message.msgid for message in messages)
+    assert msgids == actual_msgids
+
+
+async def test_8205(json_queue, async_conn):
+    "8205 - test enqueuing and dequeuing JSON message"
+    props = [
+        async_conn.msgproperties(payload=data) for data in JSON_DATA_PAYLOAD
+    ]
+    await json_queue.enqmany(props)
+    await async_conn.commit()
+    json_queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+    messages = await json_queue.deqmany(5)
+    actual_data = [message.payload for message in messages]
+    assert actual_data == JSON_DATA_PAYLOAD
+
+
+async def test_8206(json_queue, async_conn, test_env):
+    "8206 - test enqueuing to a JSON queue without a JSON payload"
+    props = async_conn.msgproperties(payload="string message")
+    with test_env.assert_raises_full_code("DPY-2062"):
+        await json_queue.enqmany([props, props])
+
+
+async def test_8207(json_queue, async_conn):
+    "8207 - test errors for invalid values for enqmany and deqmany"
+    props = async_conn.msgproperties(payload="string message")
+    with pytest.raises(TypeError):
+        await json_queue.enqmany(props)
+    with pytest.raises(TypeError):
+        await json_queue.enqmany(["Not", "msgproperties"])
+    with pytest.raises(TypeError):
+        await json_queue.deqmany("5")

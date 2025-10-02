@@ -27,86 +27,87 @@
 """
 
 import oracledb
-import test_env
+import pytest
 
 
-@test_env.skip_unless_native_json_supported()
-class TestCase(test_env.BaseTestCase):
-    def test_6900(self):
-        "6900 - test OSON metadata"
-        self.cursor.execute("select * from TestOsonCols")
-        int_col_metadata, oson_col_metadata = self.cursor.description
-        self.assertFalse(int_col_metadata.is_oson)
-        self.assertTrue(oson_col_metadata.is_oson)
-
-    def test_6901(self):
-        "6901 - test simple query of OSON encoded bytes"
-        self.cursor.execute("delete from TestOsonCols")
-        self.cursor.execute(
-            """
-                insert into TestOsonCols (IntCol, OsonCol)
-                values (1, '{"id": 6901, "value" : "string 6901"}')"""
-        )
-        self.conn.commit()
-        self.cursor.execute("select OsonCol from TestOsonCols")
-        (oson_val,) = self.cursor.fetchone()
-        expected_val = dict(id=6901, value="string 6901")
-        self.assertEqual(oson_val, expected_val)
-
-    def test_6902(self):
-        "6902 - test round trip of OSON encoded bytes"
-        value = dict(id=6902, value="string 6902")
-        self.cursor.execute("delete from TestOsonCols")
-        encoded_oson = self.conn.encode_oson(value)
-        self.cursor.execute(
-            "insert into TestOsonCols values (1, :data)", [encoded_oson]
-        )
-        self.conn.commit()
-        self.cursor.execute("select OsonCol from TestOsonCols")
-        (oson_val,) = self.cursor.fetchone()
-        self.assertEqual(oson_val, value)
-
-    def test_6903(self):
-        "6903 - test encoding and decoding a value"
-        value = dict(id=6903, value="string 6903")
-        out_value = self.conn.decode_oson(self.conn.encode_oson(value))
-        self.assertEqual(out_value, value)
-
-    def test_6904(self):
-        "6904 - test decoding a non encoded value"
-        value = b"{'not a previous encoded value': 3}"
-        with self.assertRaisesFullCode("DPY-5004"):
-            self.conn.decode_oson(value)
-
-    def test_6905(self):
-        "6905 - test inserting oson inside a lob"
-        value = dict(id=6905, value="string 6905")
-        self.cursor.execute("delete from TestOsonCols")
-        encoded_oson = self.conn.encode_oson(value)
-        lob = self.conn.createlob(oracledb.DB_TYPE_BLOB, encoded_oson)
-        self.cursor.execute(
-            "insert into TestOsonCols values (1, :data)", [lob]
-        )
-        self.conn.commit()
-        self.cursor.execute("select OsonCol from TestOsonCols")
-        (oson_val,) = self.cursor.fetchone()
-        self.assertEqual(oson_val, value)
-
-    def test_6906(self):
-        "6906 - test inserting oson as json"
-        self.cursor.execute("delete from TestOsonCols")
-        value = dict(id=6906, value="string 6906")
-        oson = self.conn.encode_oson(value)
-        self.cursor.setinputsizes(oracledb.DB_TYPE_JSON)
-        self.cursor.execute(
-            "insert into TestOsonCols values (1, :data)", [oson]
-        )
-        self.conn.commit()
-        self.cursor.execute("select OsonCol from TestOsonCols")
-        (oson_val,) = self.cursor.fetchone()
-        oson_val = self.conn.decode_oson(oson_val)
-        self.assertEqual(oson_val, value)
+@pytest.fixture(autouse=True)
+def module_checks(skip_unless_native_json_supported):
+    pass
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_6900(cursor):
+    "6900 - test OSON metadata"
+    cursor.execute("select * from TestOsonCols")
+    int_col_metadata, oson_col_metadata = cursor.description
+    assert not int_col_metadata.is_oson
+    assert oson_col_metadata.is_oson
+
+
+def test_6901(conn, cursor):
+    "6901 - test simple query of OSON encoded bytes"
+    cursor.execute("delete from TestOsonCols")
+    cursor.execute(
+        """
+            insert into TestOsonCols (IntCol, OsonCol)
+            values (1, '{"id": 6901, "value" : "string 6901"}')"""
+    )
+    conn.commit()
+    cursor.execute("select OsonCol from TestOsonCols")
+    (oson_val,) = cursor.fetchone()
+    expected_val = dict(id=6901, value="string 6901")
+    assert oson_val == expected_val
+
+
+def test_6902(conn, cursor):
+    "6902 - test round trip of OSON encoded bytes"
+    value = dict(id=6902, value="string 6902")
+    cursor.execute("delete from TestOsonCols")
+    encoded_oson = conn.encode_oson(value)
+    cursor.execute(
+        "insert into TestOsonCols values (1, :data)", [encoded_oson]
+    )
+    conn.commit()
+    cursor.execute("select OsonCol from TestOsonCols")
+    (oson_val,) = cursor.fetchone()
+    assert oson_val == value
+
+
+def test_6903(conn):
+    "6903 - test encoding and decoding a value"
+    value = dict(id=6903, value="string 6903")
+    out_value = conn.decode_oson(conn.encode_oson(value))
+    assert out_value == value
+
+
+def test_6904(conn, test_env):
+    "6904 - test decoding a non encoded value"
+    value = b"{'not a previous encoded value': 3}"
+    with test_env.assert_raises_full_code("DPY-5004"):
+        conn.decode_oson(value)
+
+
+def test_6905(conn, cursor):
+    "6905 - test inserting oson inside a lob"
+    value = dict(id=6905, value="string 6905")
+    cursor.execute("delete from TestOsonCols")
+    encoded_oson = conn.encode_oson(value)
+    lob = conn.createlob(oracledb.DB_TYPE_BLOB, encoded_oson)
+    cursor.execute("insert into TestOsonCols values (1, :data)", [lob])
+    conn.commit()
+    cursor.execute("select OsonCol from TestOsonCols")
+    (oson_val,) = cursor.fetchone()
+    assert oson_val == value
+
+
+def test_6906(conn, cursor):
+    "6906 - test inserting oson as json"
+    cursor.execute("delete from TestOsonCols")
+    value = dict(id=6906, value="string 6906")
+    oson = conn.encode_oson(value)
+    cursor.setinputsizes(oracledb.DB_TYPE_JSON)
+    cursor.execute("insert into TestOsonCols values (1, :data)", [oson])
+    conn.commit()
+    cursor.execute("select OsonCol from TestOsonCols")
+    (oson_val,) = cursor.fetchone()
+    oson_val = conn.decode_oson(oson_val)
+    assert oson_val == value

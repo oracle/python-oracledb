@@ -29,18 +29,16 @@ normal use. It also creates and drops a service.
 """
 
 import oracledb
-import test_env
+import pytest
+
+SERVICE_NAME = "oracledb-test-tg"
 
 
-class TestCase(test_env.BaseTestCase):
-    service_name = "oracledb-test-tg"
-    requires_connection = False
-
-    @classmethod
-    def setUpClass(cls):
-        cls.admin_conn = test_env.get_admin_connection()
-        user = test_env.get_main_user()
-        with cls.admin_conn.cursor() as cursor:
+@pytest.fixture(scope="module", autouse=True)
+def setup_service(test_env):
+    user = test_env.main_user
+    with test_env.get_admin_connection() as admin_conn:
+        with admin_conn.cursor() as cursor:
             cursor.execute(
                 f"""
                 declare
@@ -48,105 +46,98 @@ class TestCase(test_env.BaseTestCase):
                 begin
                     params('COMMIT_OUTCOME') := 'true';
                     params('RETENTION_TIMEOUT') := 604800;
-                    dbms_service.create_service('{cls.service_name}',
-                                                '{cls.service_name}', params);
-                    dbms_service.start_service('{cls.service_name}');
+                    dbms_service.create_service('{SERVICE_NAME}',
+                                                '{SERVICE_NAME}', params);
+                    dbms_service.start_service('{SERVICE_NAME}');
                 end;
                 """
             )
             cursor.execute(f"grant execute on dbms_tg_dbg to {user}")
             cursor.execute(f"grant execute on dbms_app_cont to {user}")
-
-    @classmethod
-    def tearDownClass(cls):
-        user = test_env.get_main_user()
-        with cls.admin_conn.cursor() as cursor:
+        yield
+        with admin_conn.cursor() as cursor:
             cursor.execute(f"revoke execute on dbms_tg_dbg from {user}")
             cursor.execute(f"revoke execute on dbms_app_cont from {user}")
-            cursor.callproc("dbms_service.stop_service", [cls.service_name])
-            cursor.callproc("dbms_service.delete_service", [cls.service_name])
-
-    def test_ext_2300(self):
-        "E2300 - test standalone connection"
-        params = test_env.get_connect_params().copy()
-        params.parse_connect_string(test_env.get_connect_string())
-        params.set(service_name=self.service_name)
-        for arg_name in ("pre_commit", "post_commit"):
-            with self.subTest(arg_name=arg_name):
-                conn = oracledb.connect(params=params)
-                cursor = conn.cursor()
-                cursor.execute("truncate table TestTempTable")
-                cursor.execute(
-                    """
-                    insert into TestTempTable (IntCol, StringCol1)
-                    values (:1, :2)
-                    """,
-                    [2300, "String for test 2300"],
-                )
-                full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
-                cursor.execute(
-                    f"""
-                    begin
-                        dbms_tg_dbg.set_failpoint({full_arg_name});
-                    end;
-                    """
-                )
-                ltxid = conn.ltxid
-                with self.assertRaisesFullCode("DPY-4011"):
-                    conn.commit()
-                conn = oracledb.connect(params=params)
-                cursor = conn.cursor()
-                committed_var = cursor.var(bool)
-                completed_var = cursor.var(bool)
-                cursor.callproc(
-                    "dbms_app_cont.get_ltxid_outcome",
-                    [ltxid, committed_var, completed_var],
-                )
-                expected_value = arg_name == "post_commit"
-                self.assertEqual(committed_var.getvalue(), expected_value)
-                self.assertEqual(completed_var.getvalue(), expected_value)
-
-    def test_ext_2301(self):
-        "E2301 - test pooled connection"
-        params = test_env.get_pool_params().copy()
-        params.parse_connect_string(test_env.get_connect_string())
-        params.set(service_name=self.service_name, max=10)
-        pool = oracledb.create_pool(params=params)
-        for arg_name in ("pre_commit", "post_commit"):
-            with self.subTest(arg_name=arg_name):
-                conn = pool.acquire()
-                cursor = conn.cursor()
-                cursor.execute("truncate table TestTempTable")
-                cursor.execute(
-                    """
-                    insert into TestTempTable (IntCol, StringCol1)
-                    values (:1, :2)
-                    """,
-                    [2300, "String for test 2300"],
-                )
-                full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
-                cursor.execute(
-                    f"""
-                    begin
-                        dbms_tg_dbg.set_failpoint({full_arg_name});
-                    end;
-                    """
-                )
-                ltxid = conn.ltxid
-                with self.assertRaisesFullCode("DPY-4011"):
-                    conn.commit()
-                conn = pool.acquire()
-                cursor = conn.cursor()
-                committed_var = cursor.var(bool)
-                completed_var = cursor.var(bool)
-                cursor.callproc(
-                    "dbms_app_cont.get_ltxid_outcome",
-                    [ltxid, committed_var, completed_var],
-                )
-                expected_value = arg_name == "post_commit"
-                self.assertEqual(committed_var.getvalue(), expected_value)
-                self.assertEqual(completed_var.getvalue(), expected_value)
+            cursor.callproc("dbms_service.stop_service", [SERVICE_NAME])
+            cursor.callproc("dbms_service.delete_service", [SERVICE_NAME])
 
 
-if __name__ == "__main__":
-    test_env.run_test_cases()
+def test_ext_2300(test_env):
+    "E2300 - test standalone connection"
+    params = test_env.get_connect_params().copy()
+    params.parse_connect_string(test_env.connect_string)
+    params.set(service_name=SERVICE_NAME)
+    for arg_name in ("pre_commit", "post_commit"):
+        conn = oracledb.connect(params=params)
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:1, :2)
+            """,
+            [2300, "String for test 2300"],
+        )
+        full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
+        cursor.execute(
+            f"""
+            begin
+                dbms_tg_dbg.set_failpoint({full_arg_name});
+            end;
+            """
+        )
+        ltxid = conn.ltxid
+        with test_env.assert_raises_full_code("DPY-4011"):
+            conn.commit()
+        conn = oracledb.connect(params=params)
+        cursor = conn.cursor()
+        committed_var = cursor.var(bool)
+        completed_var = cursor.var(bool)
+        cursor.callproc(
+            "dbms_app_cont.get_ltxid_outcome",
+            [ltxid, committed_var, completed_var],
+        )
+        expected_value = arg_name == "post_commit"
+        assert committed_var.getvalue() == expected_value
+        assert completed_var.getvalue() == expected_value
+
+
+def test_ext_2301(test_env):
+    "E2301 - test pooled connection"
+    params = test_env.get_pool_params().copy()
+    params.parse_connect_string(test_env.connect_string)
+    params.set(service_name=SERVICE_NAME, max=10)
+    pool = oracledb.create_pool(params=params)
+    for arg_name in ("pre_commit", "post_commit"):
+        conn = pool.acquire()
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute(
+            """
+            insert into TestTempTable (IntCol, StringCol1)
+            values (:1, :2)
+            """,
+            [2300, "String for test 2300"],
+        )
+        full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
+        cursor.execute(
+            f"""
+            begin
+                dbms_tg_dbg.set_failpoint({full_arg_name});
+            end;
+            """
+        )
+        ltxid = conn.ltxid
+        with test_env.assert_raises_full_code("DPY-4011"):
+            conn.commit()
+        conn = pool.acquire()
+        cursor = conn.cursor()
+        committed_var = cursor.var(bool)
+        completed_var = cursor.var(bool)
+        cursor.callproc(
+            "dbms_app_cont.get_ltxid_outcome",
+            [ltxid, committed_var, completed_var],
+        )
+        expected_value = arg_name == "post_commit"
+        assert committed_var.getvalue() == expected_value
+        assert completed_var.getvalue() == expected_value

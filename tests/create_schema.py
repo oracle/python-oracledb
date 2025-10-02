@@ -29,44 +29,6 @@
 # necessary for running the python-oracledb test suite.
 # -----------------------------------------------------------------------------
 
-import drop_schema
-import test_env
 
-# connect as administrative user (usually SYSTEM or ADMIN)
-conn = test_env.get_admin_connection()
-
-# drop existing users and editions, if applicable
-drop_schema.drop_schema(conn)
-
-# create test schemas
-print("Creating test schemas...")
-test_env.run_sql_script(
-    conn,
-    "create_schema",
-    main_user=test_env.get_main_user(),
-    main_password=test_env.get_main_password(),
-    proxy_user=test_env.get_proxy_user(),
-    proxy_password=test_env.get_proxy_password(),
-    edition_name=test_env.get_edition_name(),
-)
-if test_env.has_server_version(21):
-    test_env.run_sql_script(
-        conn, "create_schema_21", main_user=test_env.get_main_user()
-    )
-if test_env.has_server_version(23, 4):
-    test_env.run_sql_script(
-        conn, "create_schema_23_4", main_user=test_env.get_main_user()
-    )
-if test_env.has_server_version(23, 5):
-    test_env.run_sql_script(
-        conn, "create_schema_23_5", main_user=test_env.get_main_user()
-    )
-if test_env.has_server_version(23, 7):
-    test_env.run_sql_script(
-        conn, "create_schema_23_7", main_user=test_env.get_main_user()
-    )
-if test_env.is_on_oracle_cloud(conn):
-    test_env.run_sql_script(
-        conn, "create_schema_cloud", main_user=test_env.get_main_user()
-    )
-print("Done.")
+def test_create_schema(admin_conn, test_env):
+    test_env.create_schema(admin_conn)

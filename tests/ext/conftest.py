@@ -29,18 +29,37 @@
 
 import configparser
 import os
-import unittest
-
-dir_name = os.path.dirname(os.path.dirname(__file__))
-file_name = os.path.join(dir_name, os.path.basename(__file__))
-exec(open(file_name).read(), globals(), locals())
+import pytest
 
 DATABASES_SECTION_NAME = "Databases"
 
 
+@pytest.fixture(scope="session")
+def extended_config(test_env):
+    return ExtendedConfig(test_env)
+
+
+@pytest.fixture
+def skip_unless_has_orapki(extended_config):
+    if not extended_config.get_bool_value("has_orapki"):
+        pytest.skip("extended configuration has_orapki is disabled")
+
+
+@pytest.fixture
+def skip_unless_local_database(extended_config):
+    if not extended_config.get_bool_value("local_database"):
+        pytest.skip("extended configuration local_database is disabled")
+
+
+@pytest.fixture
+def skip_unless_run_long_tests(extended_config):
+    if not extended_config.get_bool_value("run_long_tests"):
+        pytest.skip("extended configuration run_long_tests is disabled")
+
+
 class ExtendedConfig:
 
-    def __init__(self):
+    def __init__(self, test_env):
         default_file_name = os.path.join(
             os.path.dirname(__file__), "config.ini"
         )
@@ -50,48 +69,18 @@ class ExtendedConfig:
         self.parser = configparser.ConfigParser()
         self.parser.read(file_name)
         self.section_name = "DEFAULT"
-        connect_string_to_use = get_connect_string().upper()  # noqa: F821
-
         if self.parser.has_section(DATABASES_SECTION_NAME):
             for section_name, connect_string in self.parser.items(
                 DATABASES_SECTION_NAME
             ):
-                if connect_string.upper() == connect_string_to_use:
+                if connect_string.upper() == test_env.connect_string.upper():
                     self.section_name = section_name
                     break
 
-
-_extended_config = ExtendedConfig()
-
-
-def get_extended_config_bool(name, fallback=False):
-    return _extended_config.parser.getboolean(
-        _extended_config.section_name, name, fallback=fallback
-    )
-
-
-def get_extended_config_str(name, fallback=None):
-    return _extended_config.parser.get(
-        _extended_config.section_name, name, fallback=fallback
-    )
-
-
-def skip_unless_has_orapki():
-    return unittest.skipUnless(
-        get_extended_config_bool("has_orapki"),
-        "extended configuration has_orapki is disabled",
-    )
-
-
-def skip_unless_local_database():
-    return unittest.skipUnless(
-        get_extended_config_bool("local_database"),
-        "extended configuration local_database is disabled",
-    )
-
-
-def skip_unless_run_long_tests():
-    return unittest.skipUnless(
-        get_extended_config_bool("run_long_tests"),
-        "extended configuration run_long_tests is disabled",
-    )
+    def get_bool_value(self, name, fallback=False):
+        """
+        Returns a boolean for a specifically named value.
+        """
+        return self.parser.getboolean(
+            self.section_name, name, fallback=fallback
+        )

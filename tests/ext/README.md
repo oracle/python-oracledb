@@ -8,7 +8,7 @@ file.
 
 All of the tests can be run by executing this command:
 
-    python -m unittest discover -s tests/ext -v
+    pytest tests/ext
 
 Or each file can be run independently.
 
