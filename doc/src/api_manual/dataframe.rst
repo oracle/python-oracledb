@@ -29,7 +29,7 @@ DataFrame Class
     Each column in a DataFrame exposes an `Apache Arrow PyCapsule
     <https://arrow.apache.org/docs/format/CDataInterface/
     PyCapsuleInterface.html>`__ interface, giving access to the underlying
-    Arrow array.
+    Apache Arrow array.
 
     .. dbapiobjectextension::
 

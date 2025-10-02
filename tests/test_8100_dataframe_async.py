@@ -287,10 +287,10 @@ def _convert_to_df(data):
     fetch_decimals = oracledb.defaults.fetch_decimals
     types = [
         pyarrow.decimal128(9) if fetch_decimals else pyarrow.int64(),
-        pyarrow.string(),
-        pyarrow.string(),
-        pyarrow.string(),
-        pyarrow.string(),
+        pyarrow.large_string(),
+        pyarrow.large_string(),
+        pyarrow.large_string(),
+        pyarrow.large_string(),
         pyarrow.timestamp("s"),
         pyarrow.decimal128(9, 2) if fetch_decimals else pyarrow.float64(),
         pyarrow.decimal128(3) if fetch_decimals else pyarrow.int64(),
@@ -664,11 +664,11 @@ async def test_8124(async_conn, async_cursor):
     now = datetime.datetime.now()
     data = [
         ("NUMBERVALUE", 5, pyarrow.float64()),
-        ("STRINGVALUE", "String Val", pyarrow.string()),
-        ("FIXEDCHARVALUE", "Fixed Char", pyarrow.string()),
-        ("NSTRINGVALUE", "NString Val", pyarrow.string()),
-        ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.string()),
-        ("RAWVALUE", b"Raw Data", pyarrow.binary()),
+        ("STRINGVALUE", "String Val", pyarrow.large_string()),
+        ("FIXEDCHARVALUE", "Fixed Char", pyarrow.large_string()),
+        ("NSTRINGVALUE", "NString Val", pyarrow.large_string()),
+        ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.large_string()),
+        ("RAWVALUE", b"Raw Data", pyarrow.large_binary()),
         ("INTVALUE", 25_387_923, pyarrow.float64()),
         ("SMALLINTVALUE", 127, pyarrow.float64()),
         ("REALVALUE", 125.25, pyarrow.float64()),
@@ -709,11 +709,11 @@ async def test_8125(async_conn, async_cursor, test_env):
     now = datetime.datetime.now()
     data = [
         ("NUMBERVALUE", 5, pyarrow.float64()),
-        ("STRINGVALUE", "String Val", pyarrow.string()),
-        ("FIXEDCHARVALUE", "Fixed Char", pyarrow.string()),
-        ("NSTRINGVALUE", "NString Val", pyarrow.string()),
-        ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.string()),
-        ("RAWVALUE", b"Raw Data", pyarrow.binary()),
+        ("STRINGVALUE", "String Val", pyarrow.large_string()),
+        ("FIXEDCHARVALUE", "Fixed Char", pyarrow.large_string()),
+        ("NSTRINGVALUE", "NString Val", pyarrow.large_string()),
+        ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.large_string()),
+        ("RAWVALUE", b"Raw Data", pyarrow.large_binary()),
         ("INTVALUE", 25_387_923, pyarrow.decimal128(38, 0)),
         ("SMALLINTVALUE", 127, pyarrow.decimal128(38, 0)),
         ("REALVALUE", 125.25, pyarrow.float64()),

@@ -46,7 +46,7 @@ cdef class OracleMetadata:
                     and self.precision > 0 and self.precision <= 38:
                 arrow_type = NANOARROW_TYPE_DECIMAL128
             elif py_type_num == PY_TYPE_NUM_STR:
-                arrow_type = NANOARROW_TYPE_STRING
+                arrow_type = NANOARROW_TYPE_LARGE_STRING
             elif py_type_num == PY_TYPE_NUM_INT and self.scale == 0 \
                     and 0 < self.precision <= 18:
                 arrow_type = NANOARROW_TYPE_INT64
@@ -54,7 +54,7 @@ cdef class OracleMetadata:
                 arrow_type = NANOARROW_TYPE_DOUBLE
         elif db_type_num in (DB_TYPE_NUM_CHAR, DB_TYPE_NUM_VARCHAR,
                              DB_TYPE_NUM_NCHAR, DB_TYPE_NUM_NVARCHAR):
-            arrow_type = NANOARROW_TYPE_STRING
+            arrow_type = NANOARROW_TYPE_LARGE_STRING
         elif db_type_num == DB_TYPE_NUM_BINARY_FLOAT:
             arrow_type = NANOARROW_TYPE_FLOAT
         elif db_type_num == DB_TYPE_NUM_BINARY_DOUBLE:
@@ -78,7 +78,7 @@ cdef class OracleMetadata:
                              DB_TYPE_NUM_LONG_NVARCHAR):
             arrow_type = NANOARROW_TYPE_LARGE_STRING
         elif db_type_num == DB_TYPE_NUM_RAW:
-            arrow_type = NANOARROW_TYPE_BINARY
+            arrow_type = NANOARROW_TYPE_LARGE_BINARY
         elif db_type_num == DB_TYPE_NUM_VECTOR:
             if self.vector_flags & VECTOR_META_FLAG_SPARSE_VECTOR:
                 arrow_type = NANOARROW_TYPE_STRUCT

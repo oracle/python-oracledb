@@ -1113,14 +1113,13 @@ class Connection(BaseConnection):
         the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
         to the value of the explicit or default ``arraysize`` parameter value.
 
-        The ``fetch_decimals`` parameter specifies whether to return
-        decimal values when fetching columns of type ``NUMBER`` that are
-        capable of being represented in Arrow Decimal128 format. The default
-        value is
-        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+        The ``fetch_decimals`` parameter specifies whether to return decimal
+        values when fetching columns of type ``NUMBER`` that are capable of
+        being represented in Apache Arrow Decimal128 format. The default value
+        is :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
         The ``requested_schema`` parameter specifies an object that implements
-        the Arrow PyCapsule schema interface. The DataFrame returned by
+        the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
 
         Any LOB fetched must be less than 1 GB.
@@ -1168,14 +1167,13 @@ class Connection(BaseConnection):
         :attr:`Cursor.prefetchrows` sizes are always set to the value of the
         explicit or default ``size`` parameter value.
 
-        The ``fetch_decimals`` parameter specifies whether to return
-        decimal values when fetching columns of type ``NUMBER`` that are
-        capable of being represented in Arrow Decimal128 format. The default
-        value is
-        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+        The ``fetch_decimals`` parameter specifies whether to return decimal
+        values when fetching columns of type ``NUMBER`` that are capable of
+        being represented in Apache Arrow Decimal128 format. The default value
+        is :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
         The ``requested_schema`` parameter specifies an object that implements
-        the Arrow PyCapsule schema interface. The DataFrame returned by
+        the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
 
         Any LOB fetched must be less than 1 GB.
@@ -2133,14 +2131,13 @@ class AsyncConnection(BaseConnection):
         the ``fetch_df_all()``'s :attr:`Cursor.prefetchrows` size is always set
         to the value of the explicit or default ``arraysize`` parameter value.
 
-        The ``fetch_decimals`` parameter specifies whether to return
-        decimal values when fetching columns of type ``NUMBER`` that are
-        capable of being represented in Arrow Decimal128 format. The default
-        value is
-        :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
+        The ``fetch_decimals`` parameter specifies whether to return decimal
+        values when fetching columns of type ``NUMBER`` that are capable of
+        being represented in Apache Arrow Decimal128 format. The default value
+        is :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
         The ``requested_schema`` parameter specifies an object that implements
-        the Arrow PyCapsule schema interface. The DataFrame returned by
+        the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
         """
         cursor = self.cursor()
@@ -2193,7 +2190,7 @@ class AsyncConnection(BaseConnection):
         :data:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>`.
 
         The ``requested_schema`` parameter specifies an object that implements
-        the Arrow PyCapsule schema interface. The DataFrame returned by
+        the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
         """
         cursor = self.cursor()

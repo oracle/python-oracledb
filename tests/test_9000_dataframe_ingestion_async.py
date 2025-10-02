@@ -65,7 +65,7 @@ async def test_9000(async_conn, async_cursor, empty_tab):
     "9000 - test basic ingestion of data frame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
         pyarrow.array([1000.50, 2000.75, 3000.25], pyarrow.float64()),
         pyarrow.array(
             [
@@ -106,7 +106,7 @@ async def test_9001(async_conn, async_cursor, empty_tab):
     "9001 - test ingestion with null values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", None, "Bob"], pyarrow.string()),
+        pyarrow.array(["John", None, "Bob"], pyarrow.large_string()),
         pyarrow.array([None, 2000.75, 3000.25], pyarrow.float64()),
         pyarrow.array(
             [
@@ -316,7 +316,7 @@ async def test_9007(async_cursor, test_env):
     "9007 - test ingestion with mismatched column count"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
     ]
     names = ["ID", "NAME"]
     df = pyarrow.table(arrays, names)
@@ -336,7 +336,7 @@ async def test_9008(async_cursor, test_env):
         pyarrow.array([1, 2, 3], pyarrow.int64()),
         pyarrow.array(
             [["a", "b"], ["c"], ["d", "e", "f"]],
-            pyarrow.list_(pyarrow.string()),
+            pyarrow.list_(pyarrow.large_string()),
         ),
     ]
     names = ["Id", "FirstName"]
@@ -355,7 +355,7 @@ async def test_9009(async_cursor, test_env):
     "9009 - test execute() with DataFrame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Sue"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Sue"], pyarrow.large_string()),
     ]
     names = ["Id", "FirstName"]
     df = pyarrow.table(arrays, names)
@@ -373,7 +373,7 @@ async def test_9010(async_conn, async_cursor):
     "9010 - test consecutive executemany() calls with same dataframe"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
         pyarrow.array([1000.50, 2000.75, 3000.25], pyarrow.float64()),
     ]
     names = ["Id", "FirstName", "Salary"]
@@ -408,9 +408,9 @@ async def test_9011(async_conn, async_cursor, empty_tab):
         pyarrow.array([1], pyarrow.int64()),
         pyarrow.array([None], pyarrow.float32()),
         pyarrow.array([None], pyarrow.float64()),
-        pyarrow.array([None], pyarrow.string()),
+        pyarrow.array([None], pyarrow.large_string()),
         pyarrow.array([None], pyarrow.timestamp("s")),
-        pyarrow.array([None], pyarrow.binary()),
+        pyarrow.array([None], pyarrow.large_binary()),
     ]
     names = [
         "Id",
@@ -491,7 +491,7 @@ async def test_9013(async_conn, async_cursor, empty_tab, test_env):
     ]
     arrays = [
         pyarrow.array(range(1, len(test_data) + 1), pyarrow.int64()),
-        pyarrow.array(test_data, pyarrow.string()),
+        pyarrow.array(test_data, pyarrow.large_string()),
     ]
     names = ["Id", "FirstName"]
     df = pyarrow.table(arrays, names)
@@ -612,7 +612,7 @@ async def test_9016(async_conn, async_cursor, empty_tab):
     salaries = [i * 100.25 for i in ids]
     arrays = [
         pyarrow.array(ids, pyarrow.int64()),
-        pyarrow.array(names, pyarrow.string()),
+        pyarrow.array(names, pyarrow.large_string()),
         pyarrow.array(salaries, pyarrow.float64()),
     ]
     names = ["Id", "FirstName", "Salary"]
@@ -958,7 +958,7 @@ async def test_9021(
     rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
     arrays = [
         pyarrow.array([i for i, _ in rows], pyarrow.int16()),
-        pyarrow.array([s for _, s in rows], pyarrow.string()),
+        pyarrow.array([s for _, s in rows], pyarrow.large_string()),
     ]
     df = pyarrow.table(arrays, names)
     await async_cursor.executemany(
@@ -992,11 +992,11 @@ async def test_9022(
         pyarrow.array([i for i, _ in rows[190:]], pyarrow.int16()),
     ]
     str_arrays = [
-        pyarrow.array([s for _, s in rows[:25]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[25:59]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[59:75]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[75:190]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[190:]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[:25]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[25:59]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[59:75]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[75:190]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[190:]], pyarrow.large_string()),
     ]
     chunked_arrays = [
         pyarrow.chunked_array(int_arrays),

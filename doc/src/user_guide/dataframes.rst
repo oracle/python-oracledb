@@ -123,53 +123,53 @@ objects. Querying any other data types from Oracle Database will result in an
 exception. :ref:`Output type handlers <outputtypehandlers>` cannot be used to
 map data types.
 
-.. list-table-with-summary:: Mapping from Oracle Database to Arrow data types
+.. list-table-with-summary:: Mapping from Oracle Database to Apache Arrow data types
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 1 1
     :width: 100%
     :align: left
-    :summary: The first column is the Oracle Database type. The second column is the Arrow data type used in the python-oracledb DataFrame object.
+    :summary: The first column is the Oracle Database type. The second column is the Apache Arrow data type used in the python-oracledb DataFrame object.
 
     * - Oracle Database Type
-      - Arrow Data Type
-    * - DB_TYPE_BINARY_DOUBLE
+      - Apache Arrow Data Type
+    * - :attr:`DB_TYPE_BINARY_DOUBLE`
       - DOUBLE
-    * - DB_TYPE_BINARY_FLOAT
+    * - :attr:`DB_TYPE_BINARY_FLOAT`
       - FLOAT
-    * - DB_TYPE_BLOB
+    * - :attr:`DB_TYPE_BLOB`
       - LARGE_BINARY
-    * - DB_TYPE_BOOLEAN
+    * - :attr:`DB_TYPE_BOOLEAN`
       - BOOLEAN
-    * - DB_TYPE_CHAR
-      - STRING
-    * - DB_TYPE_CLOB
+    * - :attr:`DB_TYPE_CHAR`
       - LARGE_STRING
-    * - DB_TYPE_DATE
+    * - :attr:`DB_TYPE_CLOB`
+      - LARGE_STRING
+    * - :attr:`DB_TYPE_DATE`
       - TIMESTAMP
-    * - DB_TYPE_LONG
+    * - :attr:`DB_TYPE_LONG`
       - LARGE_STRING
-    * - DB_TYPE_LONG_RAW
+    * - :attr:`DB_TYPE_LONG_RAW`
       - LARGE_BINARY
-    * - DB_TYPE_NCHAR
-      - STRING
-    * - DB_TYPE_NCLOB
+    * - :attr:`DB_TYPE_NCHAR`
       - LARGE_STRING
-    * - DB_TYPE_NUMBER
+    * - :attr:`DB_TYPE_NCLOB`
+      - LARGE_STRING
+    * - :attr:`DB_TYPE_NUMBER`
       - DECIMAL128, INT64, or DOUBLE
-    * - DB_TYPE_NVARCHAR
-      - STRING
-    * - DB_TYPE_RAW
-      - BINARY
-    * - DB_TYPE_TIMESTAMP
+    * - :attr:`DB_TYPE_NVARCHAR`
+      - LARGE_STRING
+    * - :attr:`DB_TYPE_RAW`
+      - LARGE_BINARY
+    * - :attr:`DB_TYPE_TIMESTAMP`
       - TIMESTAMP
-    * - DB_TYPE_TIMESTAMP_LTZ
+    * - :attr:`DB_TYPE_TIMESTAMP_LTZ`
       - TIMESTAMP
-    * - DB_TYPE_TIMESTAMP_TZ
+    * - :attr:`DB_TYPE_TIMESTAMP_TZ`
       - TIMESTAMP
-    * - DB_TYPE_VARCHAR
-      - STRING
-    * - DB_TYPE_VECTOR
+    * - :attr:`DB_TYPE_VARCHAR`
+      - LARGE_STRING
+    * - :attr:`DB_TYPE_VECTOR`
       - List or struct with DOUBLE, FLOAT, INT8, or UINT8 values
 
 **Numbers**
@@ -178,15 +178,25 @@ When converting Oracle Database NUMBERs:
 
 - If the column has been created without a precision and scale, or you are
   querying an expression that results in a number without precision or scale,
-  then the Arrow data type will be DOUBLE.
+  then the Apache Arrow data type will be DOUBLE.
 
 - If :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` is set
-  to *True*, then the Arrow data type is DECIMAL128.
+  to *True*, then the Apache Arrow data type is DECIMAL128.
 
 - If the column has been created with a scale of *0*, and a precision value
-  that is less than or equal to *18*, then the Arrow data type is INT64.
+  that is less than or equal to *18*, then the Apache Arrow data type is INT64.
 
-- In all other cases, the Arrow data type is DOUBLE.
+- In all other cases, the Apache Arrow data type is DOUBLE.
+
+**Strings**
+
+When converting Oracle Database character types:
+
+- If the number of records being fetched by :meth:`Connection.fetch_df_all()`,
+  or fetched in each batch by :meth:`Connection.fetch_df_batches()`, can be
+  handled by 32-bit offsets, you can use an :ref:`explicit mapping
+  <explicitmapping>` to fetch as STRING instead of the default
+  LARGE_STRING. This will save 4 bytes per record.
 
 **Vectors**
 
@@ -211,10 +221,10 @@ When converting Oracle Database VECTORs:
       :class: wy-table-responsive
       :widths: 1 1
       :align: left
-      :summary: The first column is the Oracle Database VECTOR format. The second column is the resulting Arrow data type in the list.
+      :summary: The first column is the Oracle Database VECTOR format. The second column is the resulting Apache Arrow data type in the list.
 
       * - Oracle Database VECTOR format
-        - Arrow data type
+        - Apache Arrow data type
       * - FLOAT64
         - DOUBLE
       * - FLOAT32
@@ -226,33 +236,52 @@ When converting Oracle Database VECTORs:
 
 See :ref:`dfvector` for more information.
 
-**LOBs**
+**CLOB and NCLOB**
 
-When converting Oracle Database CLOBs and BLOBs:
+When converting Oracle Database CLOBs and NCLOBs:
 
-- The LOBs must be no more than 1 GB in length.
+- LOBs must be no more than 1 GB in length.
+
+- If the number of records being fetched by :meth:`Connection.fetch_df_all()`,
+  or fetched in each batch by :meth:`Connection.fetch_df_batches()`, can be
+  handled by 32-bit offsets, you can use an :ref:`explicit mapping
+  <explicitmapping>` to fetch CLOBs and NCLOBs as STRING instead of the default
+  LARGE_STRING. This will save 4 bytes per record.
+
+**BLOB**
+
+When converting Oracle Database BLOBs:
+
+- LOBs must be no more than 1 GB in length.
+
+- If the number of records being fetched by :meth:`Connection.fetch_df_all()`,
+  or fetched in each batch by :meth:`Connection.fetch_df_batches()`, can be
+  handled by 32-bit offsets, you can use an :ref:`explicit mapping
+  <explicitmapping>` to fetch BLOBs as BINARY instead of the default
+  LARGE_BINARY. This will save 4 bytes per record.
 
 **Dates and Timestamps**
 
 When converting Oracle Database DATEs and TIMESTAMPs:
 
-- Arrow TIMESTAMPs will not have timezone data.
+- Apache Arrow TIMESTAMPs will not have timezone data.
 
-- For Oracle Database DATE columns, the Arrow TIMESTAMP will have a time unit
-  of "seconds".
+- For Oracle Database DATE columns, the Apache Arrow TIMESTAMP will have a time
+  unit of "seconds".
 
-- For Oracle Database TIMESTAMP types, the Arrow TIMESTAMP time unit depends on
-  the Oracle type's fractional precision as shown in the table below:
+- For Oracle Database TIMESTAMP types, the Apache Arrow TIMESTAMP time unit
+  depends on the Oracle type's fractional precision as shown in the table
+  below:
 
   .. list-table-with-summary::
       :header-rows: 1
       :class: wy-table-responsive
       :widths: 1 1
       :align: left
-      :summary: The first column is the Oracle Database TIMESTAMP-type fractional second precision. The second column is the resulting Arrow TIMESTAMP time unit.
+      :summary: The first column is the Oracle Database TIMESTAMP-type fractional second precision. The second column is the resulting Apache Arrow TIMESTAMP time unit.
 
       * - Oracle Database TIMESTAMP fractional second precision range
-        - Arrow TIMESTAMP time unit
+        - Apache Arrow TIMESTAMP time unit
       * - 0
         - seconds
       * - 1 - 3
@@ -261,6 +290,8 @@ When converting Oracle Database DATEs and TIMESTAMPs:
         - microseconds
       * - 7 - 9
         - nanoseconds
+
+.. _explicitmapping:
 
 Explicit Data Frame Type Mapping
 ++++++++++++++++++++++++++++++++
@@ -338,22 +369,50 @@ requested schema type.
       :class: wy-table-responsive
       :widths: 1 1
       :align: left
-      :summary: The first column is the Oracle Database data type. The second column shows supported Arrow data types.
+      :summary: The first column is the Oracle Database data type. The second column shows supported Apache Arrow data types.
 
       * - Oracle Database Type
-        - Arrow Data Types
-      * - DB_TYPE_NUMBER
-        - INT8, INT16, INT32, INT64, UINT8, UINT16, UINT32, UINT64, DECIMAL128(p, s), DOUBLE, FLOAT
-      * - DB_TYPE_RAW, DB_TYPE_LONG_RAW
-        - BINARY, FIXED SIZE BINARY, LARGE BINARY
-      * - DB_TYPE_BOOLEAN
+        - Apache Arrow Data Types
+      * - :attr:`DB_TYPE_NUMBER`
+        - DECIMAL128(p, s)
+          DOUBLE
+          FLOAT
+          INT8
+          INT16
+          INT32
+          INT64
+          UINT8,
+          UINT16
+          UINT32
+          UINT64
+      * - :attr:`DB_TYPE_BLOB`
+          :attr:`DB_TYPE_LONG_RAW`
+          :attr:`DB_TYPE_RAW`
+        - BINARY
+          FIXED SIZE BINARY
+          LARGE_BINARY
+      * - :attr:`DB_TYPE_BOOLEAN`
         - BOOLEAN
-      * - DB_TYPE_DATE, DB_TYPE_TIMESTAMP, DB_TYPE_TIMESTAMP_LTZ, DB_TYPE_TIMESTAMP_TZ
-        - DATE32, DATE64, TIMESTAMP
-      * - DB_TYPE_BINARY_DOUBLE, DB_TYPE_BINARY_FLOAT
-        - DOUBLE, FLOAT
-      * - DB_TYPE_VARCHAR, DB_TYPE_CHAR, DB_TYPE_LONG, DB_TYPE_NVARCHAR, DB_TYPE_NCHAR, DB_TYPE_LONG_NVARCHAR
-        - STRING, LARGE_STRING
+      * - :attr:`DB_TYPE_DATE`
+          :attr:`DB_TYPE_TIMESTAMP`
+          :attr:`DB_TYPE_TIMESTAMP_LTZ`
+          :attr:`DB_TYPE_TIMESTAMP_TZ`
+        - DATE32
+          DATE64
+          TIMESTAMP
+      * - :attr:`DB_TYPE_BINARY_DOUBLE`
+          :attr:`DB_TYPE_BINARY_FLOAT`
+        - DOUBLE
+          FLOAT
+      * - :attr:`DB_TYPE_CHAR`
+          :attr:`DB_TYPE_CLOB`
+          :attr:`DB_TYPE_LONG`
+          :attr:`DB_TYPE_NCHAR`
+          :attr:`DB_TYPE_NCLOB`
+          :attr:`DB_TYPE_NVARCHAR`
+          :attr:`DB_TYPE_VARCHAR`
+        - LARGE_STRING
+          STRING
 
 .. _convertingodf:
 

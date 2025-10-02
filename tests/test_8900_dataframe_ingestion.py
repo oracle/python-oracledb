@@ -60,7 +60,7 @@ def test_8900(conn, cursor, empty_tab):
     "8900 - test basic ingestion of data frame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
         pyarrow.array([1000.50, 2000.75, 3000.25], pyarrow.float64()),
         pyarrow.array(
             [
@@ -101,7 +101,7 @@ def test_8901(conn, cursor, empty_tab):
     "8901 - test ingestion with null values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", None, "Bob"], pyarrow.string()),
+        pyarrow.array(["John", None, "Bob"], pyarrow.large_string()),
         pyarrow.array([None, 2000.75, 3000.25], pyarrow.float64()),
         pyarrow.array(
             [
@@ -308,7 +308,7 @@ def test_8907(cursor, test_env):
     "8907 - test ingestion with mismatched column count"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
     ]
     names = ["ID", "NAME"]
     df = pyarrow.table(arrays, names)
@@ -328,7 +328,7 @@ def test_8908(cursor, test_env):
         pyarrow.array([1, 2, 3], pyarrow.int64()),
         pyarrow.array(
             [["a", "b"], ["c"], ["d", "e", "f"]],
-            pyarrow.list_(pyarrow.string()),
+            pyarrow.list_(pyarrow.large_string()),
         ),
     ]
     names = ["Id", "FirstName"]
@@ -347,7 +347,7 @@ def test_8909(cursor, test_env):
     "8909 - test execute() with DataFrame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Sue"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Sue"], pyarrow.large_string()),
     ]
     names = ["Id", "FirstName"]
     df = pyarrow.table(arrays, names)
@@ -365,7 +365,7 @@ def test_8910(conn, cursor):
     "8910 - test consecutive executemany() calls with same dataframe"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
-        pyarrow.array(["John", "Jane", "Bob"], pyarrow.string()),
+        pyarrow.array(["John", "Jane", "Bob"], pyarrow.large_string()),
         pyarrow.array([1000.50, 2000.75, 3000.25], pyarrow.float64()),
     ]
     names = ["Id", "FirstName", "Salary"]
@@ -400,9 +400,9 @@ def test_8911(conn, cursor, empty_tab):
         pyarrow.array([1], pyarrow.int64()),
         pyarrow.array([None], pyarrow.float32()),
         pyarrow.array([None], pyarrow.float64()),
-        pyarrow.array([None], pyarrow.string()),
+        pyarrow.array([None], pyarrow.large_string()),
         pyarrow.array([None], pyarrow.timestamp("s")),
-        pyarrow.array([None], pyarrow.binary()),
+        pyarrow.array([None], pyarrow.large_binary()),
     ]
     names = [
         "Id",
@@ -483,7 +483,7 @@ def test_8913(conn, cursor, empty_tab, test_env):
     ]
     arrays = [
         pyarrow.array(range(1, len(test_data) + 1), pyarrow.int64()),
-        pyarrow.array(test_data, pyarrow.string()),
+        pyarrow.array(test_data, pyarrow.large_string()),
     ]
     names = ["Id", "FirstName"]
     df = pyarrow.table(arrays, names)
@@ -604,7 +604,7 @@ def test_8916(conn, cursor, empty_tab):
     salaries = [i * 100.25 for i in ids]
     arrays = [
         pyarrow.array(ids, pyarrow.int64()),
-        pyarrow.array(names, pyarrow.string()),
+        pyarrow.array(names, pyarrow.large_string()),
         pyarrow.array(salaries, pyarrow.float64()),
     ]
     names = ["Id", "FirstName", "Salary"]
@@ -946,7 +946,7 @@ def test_8921(batch_size, conn, cursor, empty_tab, round_trip_checker):
     rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
     arrays = [
         pyarrow.array([i for i, _ in rows], pyarrow.int16()),
-        pyarrow.array([s for _, s in rows], pyarrow.string()),
+        pyarrow.array([s for _, s in rows], pyarrow.large_string()),
     ]
     df = pyarrow.table(arrays, names)
     cursor.executemany(
@@ -976,11 +976,11 @@ def test_8922(batch_size, conn, cursor, empty_tab, round_trip_checker):
         pyarrow.array([i for i, _ in rows[190:]], pyarrow.int16()),
     ]
     str_arrays = [
-        pyarrow.array([s for _, s in rows[:25]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[25:59]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[59:75]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[75:190]], pyarrow.string()),
-        pyarrow.array([s for _, s in rows[190:]], pyarrow.string()),
+        pyarrow.array([s for _, s in rows[:25]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[25:59]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[59:75]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[75:190]], pyarrow.large_string()),
+        pyarrow.array([s for _, s in rows[190:]], pyarrow.large_string()),
     ]
     chunked_arrays = [
         pyarrow.chunked_array(int_arrays),
