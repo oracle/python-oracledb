@@ -222,7 +222,8 @@ cdef class AuthMessage(Message):
             self.session_data[key] = value
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             self.function_code = TNS_FUNC_AUTH_PHASE_TWO
-        elif not self.change_password:
+        elif not self.change_password \
+                and self.conn_impl._combo_key is not None:
             response = None
             value = self.session_data.get("AUTH_SVR_RESPONSE")
             if value is not None:
