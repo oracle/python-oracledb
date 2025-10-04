@@ -6,12 +6,24 @@
 Introduction to the Python Driver for Oracle Database
 *****************************************************
 
-The python-oracledb driver is a Python module that enables access to Oracle
-Database. It conforms to the `Python Database API v2.0 Specification
+The python-oracledb driver is an :ref:`open source <license>` Python module
+that enables access to Oracle Database with no extra libraries needed. The
+module is built with Cython for safety and speed. It is lightweight and
+high-performance. It is stable, well tested, and has comprehensive
+documentation. The module is maintained by Oracle.
+
+The module conforms to the `Python Database API v2.0 Specification
 <https://www.python.org/dev/peps/pep-0249/>`__ with a considerable number of
-additions and a couple of exclusions. Synchronous and :ref:`concurrent
-<asyncio>` coding styles are supported.  It is distributed under an open-source
-:ref:`license <license>`.
+additions and a couple of minor exclusions. It is used by many Python
+frameworks, SQL generators, ORMs, and libraries.
+
+Python-oracledb has a rich feature set which is easy to use. It gives you
+control over SQL and PL/SQL statement execution; for working with data frames;
+for fast data ingestion; for calling NoSQL-style document APIs; for message
+queueing; for receiving database notifications; and for starting and stopping
+the database. It also has high availability and security features. Synchronous
+and concurrent coding styles are supported. Database operations can optionally
+be pipelined.
 
 The module is available from standard package repositories including `PyPI
 <https://pypi.org/project/oracledb/>`__, `conda-forge
@@ -24,12 +36,12 @@ This module is currently tested with Python 3.9, 3.10, 3.11, 3.12, 3.13, and
 3.14 against Oracle Database 23, 21, 19, 18, 12, and 11.2. Previous versions of
 python-oracledb supported older Python versions.
 
-Changes in python-oracledb
-releases can be found in the :ref:`release notes <releasenotes>`.
+Changes in python-oracledb releases can be found in the :ref:`release notes
+<releasenotes>`.
 
 The python-oracledb driver is the renamed, major version successor to cx_Oracle
-8.3.  For upgrade information, see :ref:`upgrading83`. The cx_Oracle driver is
-obsolete and should not be used for new development.
+8.3. The cx_Oracle driver is obsolete and should not be used for new
+development. For upgrade information, see :ref:`upgrading83`.
 
 Getting Started
 ===============

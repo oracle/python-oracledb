@@ -360,18 +360,19 @@ fetched into the requested type INT16. Its name has also changed::
 
 **Supported Explicit Type Mapping**
 
-The following table shows the explicit type mappings that are supported. An
-error will occur if the database type or the data cannot be represented in the
-requested schema type.
+The following table shows the explicit type mappings that are supported. The
+Oracle Database types in each row can be converted to any of the Apache Arrow
+types in the same row. An error will occur if the database type or the data
+cannot be represented in the requested schema type.
 
   .. list-table-with-summary::
       :header-rows: 1
       :class: wy-table-responsive
       :widths: 1 1
       :align: left
-      :summary: The first column is the Oracle Database data type. The second column shows supported Apache Arrow data types.
+      :summary: The first column is the Oracle Database data types. The second column shows supported Apache Arrow data types.
 
-      * - Oracle Database Type
+      * - Oracle Database Types
         - Apache Arrow Data Types
       * - :attr:`DB_TYPE_NUMBER`
         - DECIMAL128(p, s)
@@ -381,7 +382,7 @@ requested schema type.
           INT16
           INT32
           INT64
-          UINT8,
+          UINT8
           UINT16
           UINT32
           UINT64

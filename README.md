@@ -1,19 +1,24 @@
 # python-oracledb
 
-Python-oracledb is the widely used, open-source [Python][python] extension
-module allowing Python programs to connect to [Oracle Database][oracledb]. The
-module conforms to the [Python Database API 2.0 specification][pep249] with a
-considerable number of additions and a couple of minor exclusions, see the
-[feature list][features]. It is maintained by Oracle.
+The python-oracledb driver is the widely used, open-source [Python][python]
+extension module allowing Python programs to connect directly to [Oracle
+Database][oracledb] with no extra libraries needed. The module is built with
+Cython for safety and speed. It is lightweight and high-performance. It is
+stable, well tested, and has comprehensive [documentation][documentation]. The
+module is maintained by Oracle.
 
-Python-oracledb is used for executing SQL and PL/SQL; for working with data
-frames; for calling NoSQL-style document APIs; for receiving database
-notifications and messages; and for starting and stopping the database. It has
-features for fast data loading, high availability, and security. It is used by
-many Python frameworks, SQL generators, ORMs, and libraries.
+The module conforms to the [Python Database API 2.0 specification][pep249] with
+a considerable number of additions and a couple of minor exclusions, see the
+[feature list][features]. It is used by many Python frameworks, SQL generators,
+ORMs, and libraries.
 
-Synchronous and [concurrent][concurrent] coding styles are supported. Database
-operations can optionally be [pipelined][pipelining].
+Python-oracledb has a rich feature set which is easy to use. It gives you
+control over SQL and PL/SQL statement execution; for working with data frames;
+for fast data ingestion; for calling NoSQL-style document APIs; for message
+queueing; for receiving database notifications; and for starting and stopping
+the database. It also has high availability and security features. Synchronous
+and [concurrent][concurrent] coding styles are supported. Database operations
+can optionally be [pipelined][pipelining].
 
 Python-oracledb is the successor to the now obsolete cx_Oracle driver.
 
@@ -38,10 +43,10 @@ A basic example:
 import oracledb
 import getpass
 
-un = "scott"
-cs = "localhost/orclpdb"
-# cs = "localhost/freepdb1"   # for Oracle Database Free users
-# cs = "localhost/orclpdb1"   # some databases may have this service
+un = "scott"                  # Sample database username
+cs = "localhost/orclpdb"      # Sample database connection string
+# cs = "localhost/freepdb1"   # For Oracle Database Free users
+# cs = "localhost/orclpdb1"   # Some databases may have this service
 pw = getpass.getpass(f"Enter password for {un}@{cs}: ")
 
 with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
@@ -79,7 +84,7 @@ with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
   **Thick mode**: Oracle Database 9.2 (or later) is required, depending on the
   Oracle Client library version.  Oracle Database's standard client-server
   version interoperability allows connection to both older and newer
-  databases. For example when python-oracledb uses Oracle Client 19c libraries,
+  databases. For example when python-oracledb uses Oracle Client 19 libraries,
   then it can connect to Oracle Database 11.2 or later.
 
 ## Documentation
