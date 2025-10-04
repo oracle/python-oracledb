@@ -625,6 +625,7 @@ cdef enum:
 
 # other direct path load stream constants
 cdef enum:
+    TNS_DPLS_MAX_MESSAGE_SIZE = 1_073_728_895
     TNS_DPLS_MAX_SHORT_LENGTH = 0xfa
     TNS_DPLS_MAX_PIECE_SIZE = 0xfff0
     TNS_DPLS_FAST_HEADER_SIZE = 4

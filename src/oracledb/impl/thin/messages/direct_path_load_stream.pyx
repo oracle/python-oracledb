@@ -40,7 +40,7 @@ cdef class DirectPathPiece:
         bint is_split_with_next
         uint8_t flags
         uint8_t num_segments
-        uint32_t length
+        ssize_t length
         bytes data
 
     cdef int finalize(self, PieceBuffer buf) except -1:
@@ -62,11 +62,11 @@ cdef class DirectPathPiece:
             self.flags |= TNS_DPLS_ROW_HEADER_FAST_ROW
             self.flags |= TNS_DPLS_ROW_HEADER_FAST_PIECE
 
-    cdef uint32_t header_length(self):
+    cdef uint8_t header_length(self):
         """
         Returns the length of the piece header.
         """
-        cdef uint32_t length = 2
+        cdef uint8_t length = 2
         if self.is_fast_row():
             length += 2
         return length
@@ -101,10 +101,14 @@ cdef class PieceBuffer(Buffer):
         Finalizes the piece by adding the data in the buffer and calculating
         the piece length, then resetting the buffer.
         """
+        cdef uint64_t new_length
         self.current_piece.finalize(self)
         self.pieces.append(self.current_piece)
-        self.total_piece_length += \
+        new_length = (<uint64_t> self.total_piece_length) + \
                 self.current_piece.length + self.current_piece.header_length()
+        if new_length > TNS_DPLS_MAX_MESSAGE_SIZE:
+            errors._raise_err(errors.ERR_DPL_TOO_MUCH_DATA)
+        self.total_piece_length = <uint32_t> new_length
 
     cdef int _write_more_data(self, ssize_t num_bytes_available,
                               ssize_t num_bytes_wanted) except -1:

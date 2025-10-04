@@ -373,6 +373,7 @@ ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE = 4037
 ERR_INVALID_INTEGER = 4038
 ERR_CANNOT_CONVERT_TO_ARROW_FLOAT = 4039
 ERR_ARROW_FIXED_SIZE_BINARY_VIOLATED = 4040
+ERR_DPL_TOO_MUCH_DATA = 4041
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -649,6 +650,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_DML_RETURNING_DUP_BINDS: (
         'the bind variable placeholder ":{name}" cannot be used both before '
         "and after the RETURNING clause in a DML RETURNING statement"
+    ),
+    ERR_DPL_TOO_MUCH_DATA: (
+        "the maximum size of a Direct Path load has been exceeded"
     ),
     ERR_DUPLICATED_PARAMETER: (
         '"{deprecated_name}" and "{new_name}" cannot be specified together'
