@@ -50,7 +50,8 @@ Common Changes
     - Support for data frames is no longer considered a pre-release.
     - Added parameter ``requested_schema`` to :meth:`Connection.fetch_df_all()`
       and :meth:`Connection.fetch_df_batches()` to support type mapping when
-      querying.
+      querying
+      (`issue 494 <https://github.com/oracle/python-oracledb/issues/494>`__).
     - The Apache Arrow data type "large" variants that have 64-bit offsets are
       now used by default for strings and binary values in order to avoid the
       limits imposed by using 32-bit offsets. Use ``requested_schema`` if the
@@ -68,7 +69,8 @@ Common Changes
       (`issue 536 <https://github.com/oracle/python-oracledb/issues/536>`__).
     - Fixed bug when fetching NCHAR and NVARCHAR2 column data.
     - Fixed bug when attempting to convert an integer that cannot be
-      represented as a native C ``int`` value to an Arrow data frame.
+      represented as a native C ``int`` value to an Arrow data frame
+      (`issue 537 <https://github.com/oracle/python-oracledb/issues/537>`__).
 
 #)  Added a ``batch_size`` parameter to :meth:`Cursor.executemany()` and
     :meth:`AsyncCursor.executemany()` to let these methods operate on data in
