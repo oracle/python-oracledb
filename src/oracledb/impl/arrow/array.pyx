@@ -266,7 +266,15 @@ cdef class ArrowArrayImpl:
         """
         Append an unsigned integer to the array.
         """
-        _check_nanoarrow(ArrowArrayAppendUInt(self.arrow_array, value))
+        cdef:
+            str arrow_type
+            int result
+        result = ArrowArrayAppendUInt(self.arrow_array, value)
+        if result == EINVAL:
+            arrow_type = ArrowTypeString(self.schema_impl.arrow_type).decode()
+            errors._raise_err(errors.ERR_INVALID_INTEGER, value=value,
+                              arrow_type=arrow_type)
+        _check_nanoarrow(result)
 
     cdef int append_vector(self, array.array value) except -1:
         """

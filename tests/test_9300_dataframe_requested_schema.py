@@ -719,3 +719,29 @@ def test_9325(db_type_name, dtype, conn):
     assert tab.field("STRING_COL").type == dtype
     for fetched_value in tab["STRING_COL"]:
         assert fetched_value.as_py() == value
+
+
+@pytest.mark.parametrize(
+    "dtype,value",
+    [
+        (pyarrow.int8(), -129),
+        (pyarrow.int8(), 128),
+        (pyarrow.int16(), -32769),
+        (pyarrow.int16(), 32768),
+        (pyarrow.int32(), -2147483649),
+        (pyarrow.int32(), 2147483648),
+        (pyarrow.uint8(), -1),
+        (pyarrow.uint8(), 256),
+        (pyarrow.uint16(), -1),
+        (pyarrow.uint16(), 65536),
+        (pyarrow.uint32(), -1),
+        (pyarrow.uint32(), 4294967296),
+    ],
+)
+def test_9326(dtype, value, conn, test_env):
+    "9326 - fetch_df_all() for out of range integer values"
+    requested_schema = pyarrow.schema([("VALUE", dtype)])
+    with test_env.assert_raises_full_code("DPY-4038"):
+        conn.fetch_df_all(
+            "select :1 from dual", [value], requested_schema=requested_schema
+        )
