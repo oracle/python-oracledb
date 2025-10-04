@@ -108,6 +108,11 @@ cdef class ArrowArrayImpl:
         cdef ArrowBufferView data
         data.data.data = ptr
         data.size_bytes = num_bytes
+        if self.schema_impl.fixed_size > 0 \
+                and num_bytes != self.schema_impl.fixed_size:
+            errors._raise_err(errors.ERR_ARROW_FIXED_SIZE_BINARY_VIOLATED,
+                              actual_len=num_bytes,
+                              fixed_size_len=self.schema_impl.fixed_size)
         _check_nanoarrow(ArrowArrayAppendBytes(self.arrow_array, data))
 
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1:

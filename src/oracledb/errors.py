@@ -372,6 +372,7 @@ ERR_CANNOT_CONVERT_TO_ARROW_INTEGER = 4036
 ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE = 4037
 ERR_INVALID_INTEGER = 4038
 ERR_CANNOT_CONVERT_TO_ARROW_FLOAT = 4039
+ERR_ARROW_FIXED_SIZE_BINARY_VIOLATED = 4040
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -574,6 +575,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_ARROW_DATA_STRUCTURE_OVERFLOW: (
         "Apache Arrow C Data structure overflow detected. A larger structure "
         "is needed."
+    ),
+    ERR_ARROW_FIXED_SIZE_BINARY_VIOLATED: (
+        "value of length {actual_len} does not match the Apache Arrow fixed "
+        "size binary length of {fixed_size_len}"
     ),
     ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED: (
         "Apache Arrow format does not support sparse vectors with flexible "

@@ -768,3 +768,13 @@ async def test_9426(dtype, value, async_conn, test_env):
         await async_conn.fetch_df_all(
             "select :1 from dual", [value], requested_schema=requested_schema
         )
+
+
+@pytest.mark.parametrize("value", [b"Too short", b"Much too long"])
+async def test_9427(value, async_conn, test_env):
+    "9427 - fetch_df_all() with fixed width binary violations"
+    requested_schema = pyarrow.schema([("VALUE", pyarrow.binary(length=10))])
+    with test_env.assert_raises_full_code("DPY-4040"):
+        await async_conn.fetch_df_all(
+            "select :1 from dual", [value], requested_schema=requested_schema
+        )
