@@ -677,3 +677,10 @@ async def test_5543(skip_if_drcp, test_env):
             await cursor.execute("select user from dual")
             (user,) = await cursor.fetchone()
             assert user == test_env.main_user.upper()
+
+
+async def test_5544(test_env):
+    "5544 - connection to database with bad password"
+    pool = test_env.get_pool_async(password=test_env.main_password + "X")
+    with test_env.assert_raises_full_code("ORA-01017"):
+        await pool.acquire()

@@ -1062,3 +1062,10 @@ def test_2457(skip_if_drcp, test_env):
             cursor.execute("select user from dual")
             (user,) = cursor.fetchone()
             assert user == test_env.main_user.upper()
+
+
+def test_2458(test_env):
+    "2458 - connection to database with bad password"
+    pool = test_env.get_pool(password=test_env.main_password + "X")
+    with test_env.assert_raises_full_code("ORA-01017"):
+        pool.acquire()

@@ -720,6 +720,8 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             if num_to_create > 0 and self._open:
                 try:
                     conn_impl = await self._create_conn_impl()
+                except asyncio.CancelledError:
+                    raise
                 except:
                     conn_impl = None
                 async with self._condition:
@@ -732,6 +734,8 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                     conn_impl = self._conn_impls_to_drop.pop()
                     try:
                         await conn_impl._protocol._close(conn_impl)
+                    except asyncio.CancelledError:
+                        raise
                     except:
                         pass
                     continue
