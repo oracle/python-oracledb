@@ -385,6 +385,7 @@ class TestEnv:
         """
         Returns an administrative connection to the database.
         """
+        self._initialize()
         if not self.admin_user or not self.admin_password:
             pytest.skip("missing administrative credentials")
         params = self.get_connect_params()
