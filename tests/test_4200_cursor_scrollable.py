@@ -223,3 +223,26 @@ def test_4214(conn):
     (value,) = cursor.fetchone()
     assert value == 6.25
     assert cursor.rowcount == 5
+
+
+def test_4215(conn):
+    "4215 - test parse() on a scrollable cursor"
+    cursor = conn.cursor(scrollable=True)
+    statement = """
+        select 1 from dual
+        union all
+        select 2 from dual
+        union all
+        select 3 from dual
+        union all
+        select 4 from dual
+        union all
+        select 5 from dual
+    """
+    cursor.parse(statement)
+    cursor.execute(statement)
+    (fetched_value,) = cursor.fetchone()
+    assert fetched_value == 1
+    cursor.scroll(mode="last")
+    (fetched_value,) = cursor.fetchone()
+    assert fetched_value == 5

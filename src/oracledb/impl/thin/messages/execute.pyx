@@ -81,7 +81,7 @@ cdef class ExecuteMessage(MessageWithData):
             exec_flags |= TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
             if not self.scroll_operation:
                 options |= TNS_EXEC_OPTION_EXECUTE
-        if cursor_impl.scrollable:
+        if cursor_impl.scrollable and not self.parse_only:
             exec_flags |= TNS_EXEC_FLAGS_SCROLLABLE
         if stmt._cursor_id == 0 or stmt._is_ddl:
             options |= TNS_EXEC_OPTION_PARSE

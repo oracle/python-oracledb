@@ -226,3 +226,26 @@ async def test_8614(async_conn):
     (value,) = await cursor.fetchone()
     assert value == 6.25
     assert cursor.rowcount == 5
+
+
+async def test_8615(async_conn):
+    "8615 - test parse() on a scrollable cursor"
+    cursor = async_conn.cursor(scrollable=True)
+    statement = """
+        select 1 from dual
+        union all
+        select 2 from dual
+        union all
+        select 3 from dual
+        union all
+        select 4 from dual
+        union all
+        select 5 from dual
+    """
+    await cursor.parse(statement)
+    await cursor.execute(statement)
+    (fetched_value,) = await cursor.fetchone()
+    assert fetched_value == 1
+    await cursor.scroll(mode="last")
+    (fetched_value,) = await cursor.fetchone()
+    assert fetched_value == 5
