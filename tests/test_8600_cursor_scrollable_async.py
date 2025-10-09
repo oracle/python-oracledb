@@ -249,3 +249,22 @@ async def test_8615(async_conn):
     await cursor.scroll(mode="last")
     (fetched_value,) = await cursor.fetchone()
     assert fetched_value == 5
+
+
+async def test_8616(async_conn):
+    "8616 - test scroll operation with bind values"
+    cursor = async_conn.cursor(scrollable=True)
+    base_value = 4215
+    await cursor.execute(
+        """
+        select :base_value + 1 from dual
+        union all
+        select :base_value + 2 from dual
+        union all
+        select :base_value + 3 from dual
+        """,
+        dict(base_value=base_value),
+    )
+    await cursor.scroll(mode="last")
+    (fetched_value,) = await cursor.fetchone()
+    assert fetched_value == base_value + 3

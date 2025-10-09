@@ -72,7 +72,7 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         message.num_execs = 1
         if self.scrollable:
             message.fetch_orientation = TNS_FETCH_ORIENTATION_CURRENT
-            message.fetch_pos = 1
+            message.fetch_pos = self.rowcount + 1
         return message
 
     cdef ExecuteMessage _create_scroll_message(self, object cursor,
@@ -116,7 +116,7 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
 
         # build message
         message = self._create_message(ExecuteMessage, cursor)
-        message.scroll_operation = self._more_rows_to_fetch
+        message.scroll_operation = True
         message.fetch_orientation = orientation
         message.fetch_pos = <uint32_t> desired_row
         return message
@@ -259,8 +259,8 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         cdef:
             Protocol protocol = <Protocol> self._conn_impl._protocol
             MessageWithData message
-        if self._statement._sql is None:
-            message = self._create_message(ExecuteMessage, cursor)
+        if self._statement._sql is None or self.scrollable:
+            message = self._create_execute_message(cursor)
         else:
             message = self._create_message(FetchMessage, cursor)
         protocol._process_single_message(message)
@@ -357,8 +357,8 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         Internal method used for fetching rows from the database.
         """
         cdef MessageWithData message
-        if self._statement._sql is None:
-            message = self._create_message(ExecuteMessage, cursor)
+        if self._statement._sql is None or self.scrollable:
+            message = self._create_execute_message(cursor)
         else:
             message = self._create_message(FetchMessage, cursor)
         await self._conn_impl._protocol._process_single_message(message)

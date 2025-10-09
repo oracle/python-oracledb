@@ -19,6 +19,8 @@ oracledb `3.5.0 <https://github.com/oracle/python-oracledb/compare/v3.4.0...v3.5
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when using bind variables with scrollable cursors.
+
 Thick Mode Changes
 ++++++++++++++++++
 

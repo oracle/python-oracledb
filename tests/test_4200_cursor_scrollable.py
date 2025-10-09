@@ -246,3 +246,22 @@ def test_4215(conn):
     cursor.scroll(mode="last")
     (fetched_value,) = cursor.fetchone()
     assert fetched_value == 5
+
+
+def test_4216(conn):
+    "4216 - test scroll operation with bind values"
+    cursor = conn.cursor(scrollable=True)
+    base_value = 4215
+    cursor.execute(
+        """
+        select :base_value + 1 from dual
+        union all
+        select :base_value + 2 from dual
+        union all
+        select :base_value + 3 from dual
+        """,
+        dict(base_value=base_value),
+    )
+    cursor.scroll(mode="last")
+    (fetched_value,) = cursor.fetchone()
+    assert fetched_value == base_value + 3

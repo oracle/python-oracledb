@@ -83,6 +83,7 @@ cdef class ExecuteMessage(MessageWithData):
                 options |= TNS_EXEC_OPTION_EXECUTE
         if cursor_impl.scrollable and not self.parse_only:
             exec_flags |= TNS_EXEC_FLAGS_SCROLLABLE
+            exec_flags |= TNS_EXEC_FLAGS_NO_CANCEL_ON_EOF
         if stmt._cursor_id == 0 or stmt._is_ddl:
             options |= TNS_EXEC_OPTION_PARSE
         if stmt._is_query:
@@ -100,7 +101,7 @@ cdef class ExecuteMessage(MessageWithData):
             options |= TNS_EXEC_OPTION_NOT_PLSQL
         elif stmt._is_plsql and num_params > 0:
             options |= TNS_EXEC_OPTION_PLSQL_BIND
-        if num_params > 0:
+        if num_params > 0 and not self.scroll_operation:
             options |= TNS_EXEC_OPTION_BIND
         if self.batcherrors:
             options |= TNS_EXEC_OPTION_BATCH_ERRORS
