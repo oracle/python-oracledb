@@ -71,12 +71,14 @@ limitations under the License.
 
           <p>
 
-          The <strong>python-oracledb</strong> driver is a <a
-          href="https://www.python.org/" >Python programming language</a>
-          extension module allowing Python programs to connect to <a
-          href="https://www.oracle.com/database/" >Oracle Database</a>.
-          Python-oracledb is the successor to the now obsolete cx_Oracle
-          driver.
+          The <strong>python-oracledb</strong> driver is the widely used,
+          open-source <a href="https://www.python.org/" >Python programming
+          language</a> extension module allowing Python programs to connect
+          directly to <a href="https://www.oracle.com/database/" >Oracle
+          Database</a> with no extra libraries needed. The module is built with
+          Cython for safety and speed. It is lightweight and
+          high-performance. It is stable, well tested, and has comprehensive
+          documentation. The module is maintained by Oracle.
 
           </p>
 
@@ -86,29 +88,33 @@ limitations under the License.
 
           <p>
 
-          Connections between python-oracledb and Oracle Database are used for:
-          executing SQL and PL/SQL; for calling SODA NoSQL-style APIs; for
-          working with data frames; for receiving database notifications and
-          messages; and for starting and stopping the database.
-
-          </p>
-
-          <p>
-
-          Synchronous and concurrent <a
-          href="https://docs.python.org/3/library/asyncio.html" >asyncio</a>
-          coding styles are supported.  Database operations can optionally be
-          pipelined.
-
-          </p>
-
-          <p>
-
           The python-oracledb module conforms to the <a
           href="https://peps.python.org/pep-0249/" >Python Database API 2.0
           specification</a> with a considerable number of additions and a
           couple of minor exclusions, see the <a href="#features" >feature
-          list</a>.
+          list</a>. It is used by many Python frameworks, SQL generators, ORMs,
+          and libraries.
+
+          </p>
+
+          <p>
+
+          Python-oracledb has a rich feature set which is easy to use. It gives
+          you control over SQL and PL/SQL statement execution; for working with
+          data frames; for fast data ingestion; for calling NoSQL-style
+          document APIs; for message queueing; for receiving database
+          notifications; and for starting and stopping the database. It also
+          has high availability and security features. Synchronous and
+          concurrent <a href="https://docs.python.org/3/library/asyncio.html"
+          >asyncio</a> coding styles are supported.  Database operations can
+          optionally be pipelined.
+
+          </p>
+
+          <p>
+
+          Python-oracledb is the successor to the now obsolete cx_Oracle
+          driver.
 
           </p>
 
@@ -248,6 +254,23 @@ limitations under the License.
 
       </div> <!-- /documentation -->
 
+      <div id="resources">
+      <h2>Resources</h2>
+
+      <p>Some resources that cover python-oracledb topics are:</p>
+
+      <p>
+          Blogs:
+          <a href="https://medium.com/@cjones-oracle" >medium.com/@cjones-oracle</a>,
+          <a href="https://medium.com/@sharad-chandran" >medium.com/@sharad-chandran</a>,
+          <a href="https://medium.com/@vignan.v" >medium.com/@vignan.v</a>,
+          <a href="https://medium.com/@veronica.dumitriu" >medium.com/@veronica.dumitriu</a>
+      </p>
+
+      <p>Videos: <a href="https://www.youtube.com/user/OracleAppDev"
+      >www.youtube.com/user/OracleAppDev</a></p>
+
+      </div> <!-- /resources -->
       <div id="help">
       <h2>Help</h2>
 
@@ -321,6 +344,8 @@ limitations under the License.
       execution.</p></li>
 
       <li><p>Array row counts and batch error handling for array operations.</p></li>
+
+      <li><p>Oracle Database Direct Path Loads.</p></li>
 
       <li><p>Fetching of large result sets with easy tuning.</p></li>
 
