@@ -734,7 +734,7 @@ a `subscriber <https://www.oracle.com/pls/topic/lookup?ctx=dblatest
 needs to be created prior to enqueuing buffered messages.
 
 This mode is not supported for bulk array operations in python-oracledb Thick
-mode.
+mode, and for JSON payloads.
 """
 
 MSG_PERSISTENT: int = constants.MSG_PERSISTENT
