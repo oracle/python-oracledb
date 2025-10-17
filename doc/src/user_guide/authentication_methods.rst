@@ -690,20 +690,26 @@ the following table.
       - Description
       - Required or Optional
     * - ``auth_type``
-      - The authentication type. The value should be the string "ConfigFileAuthentication", "SimpleAuthentication", or "InstancePrincipal".
+      - The authentication type. The value should be the string "ConfigFileAuthentication",
+        "InstancePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
 
         With Configuration File Authentication, the location of a configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
 
-        With Simple Authentication, the individual configuration parameters can be provided at runtime.
-
         With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. See :ref:`instanceprincipalauth`.
+
+        With Security Token authentication or Session Token-based authentication, the authentication happens using *security_token_file* parameter present in the configuration file. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup. You also need to specify the *profile* which contains the *security_token_file* parameter.
+
+        With Security Token Simple authentication or Session Token-based Simple authentication, the authentication happens using *security_token_file* parameter. The individual configuration parameters can be provided at runtime.
+
+        With Simple Authentication, the individual configuration parameters can be provided at runtime.
 
         See `OCI SDK Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
       - Required
     * - ``user``
       - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
 
-        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication".
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication". This is not required when ``auth_type`` is
+        "SecurityToken" or "SecurityTokenSimple"
       - Required
     * - ``key_file``
       - The full path and filename of the private key.

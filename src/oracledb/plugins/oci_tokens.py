@@ -28,28 +28,48 @@
 # Methods that generates an OCI access token using the OCI SDK
 # -----------------------------------------------------------------------------
 
+import enum
+import pathlib
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 import oci
 import oracledb
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
 
 
-def generate_token(token_auth_config, refresh=False):
+class AuthType(str, enum.Enum):
+    ConfigFileAuthentication = "ConfigFileAuthentication".lower()
+    InstancePrincipal = "InstancePrincipal".lower()
+    SecurityToken = "SecurityToken".lower()
+    SecurityTokenSimple = "SecurityTokenSimple".lower()
+    SimpleAuthentication = "SimpleAuthentication".lower()
+
+
+def _config_file_based_authentication(token_auth_config):
     """
-    Generates an OCI access token based on provided credentials.
+    Config file base authentication implementation: config parameters
+    are provided in a file.
     """
-    user_auth_type = token_auth_config.get("auth_type") or ""
-    auth_type = user_auth_type.lower()
-    if auth_type == "configfileauthentication":
-        return _config_file_based_authentication(token_auth_config)
-    elif auth_type == "simpleauthentication":
-        return _simple_authentication(token_auth_config)
-    elif auth_type == "instanceprincipal":
-        return _instance_principal_authentication(token_auth_config)
-    else:
-        raise ValueError(
-            f"Unrecognized auth_type authentication method {user_auth_type}"
-        )
+    config = _load_oci_config(token_auth_config)
+    client = oci.identity_data_plane.DataplaneClient(config)
+    return _generate_access_token(client, token_auth_config)
+
+
+def _generate_access_token(client, token_auth_config):
+    """
+    Token generation logic used by authentication methods.
+    """
+    key_pair = _get_key_pair()
+    scope = token_auth_config.get("scope", "urn:oracle:db::id::*")
+
+    details = oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
+        scope=scope, public_key=key_pair["public_key"]
+    )
+    response = client.generate_scoped_access_token(
+        generate_scoped_access_token_details=details
+    )
+
+    return (response.data.token, key_pair["private_key"])
 
 
 def _get_key_pair():
@@ -76,52 +96,75 @@ def _get_key_pair():
     )
 
     if not oracledb.is_thin_mode():
-        p_key = "".join(
+        private_key_pem = "".join(
             line.strip()
             for line in private_key_pem.splitlines()
             if not (
                 line.startswith("-----BEGIN") or line.startswith("-----END")
             )
         )
-        private_key_pem = p_key
 
     return {"private_key": private_key_pem, "public_key": public_key_pem}
 
 
-def _generate_access_token(client, token_auth_config):
+def _instance_principal_authentication(token_auth_config):
     """
-    Token generation logic used by authentication methods.
+    Instance principal authentication: for compute instances
+    with dynamic group access.
     """
-    key_pair = _get_key_pair()
-    scope = token_auth_config.get("scope", "urn:oracle:db::id::*")
-
-    details = oci.identity_data_plane.models.GenerateScopedAccessTokenDetails(
-        scope=scope, public_key=key_pair["public_key"]
-    )
-    response = client.generate_scoped_access_token(
-        generate_scoped_access_token_details=details
-    )
-
-    return (response.data.token, key_pair["private_key"])
+    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+    client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
+    return _generate_access_token(client, token_auth_config)
 
 
-def _config_file_based_authentication(token_auth_config):
+def _load_oci_config(token_auth_config):
     """
-    Config file base authentication implementation: config parameters
-    are provided in a file.
+    Load OCI configuration using the file location and profile specified
+    in token_auth_config, or fall back to OCI defaults.
     """
     file_location = token_auth_config.get(
         "file_location", oci.config.DEFAULT_LOCATION
     )
     profile = token_auth_config.get("profile", oci.config.DEFAULT_PROFILE)
-
-    # Load OCI config
     config = oci.config.from_file(file_location, profile)
     oci.config.validate_config(config)
+    return config
 
-    # Initialize service client with default config file
-    client = oci.identity_data_plane.DataplaneClient(config)
 
+def _security_token_authentication(token_auth_config):
+    """
+    Session token-based authentication: uses the security token specified by
+    the security_token_file parameter based on the OCI config file.
+    """
+    config = _load_oci_config(token_auth_config)
+    client = _security_token_create_dataplane_client(config)
+    return _generate_access_token(client, token_auth_config)
+
+
+def _security_token_create_dataplane_client(config):
+    """
+    Create and return an OCI Identity Data Plane client using
+    the security token and private key specified in the given OCI config.
+    """
+    token = pathlib.Path(config["security_token_file"]).read_text()
+    private_key = oci.signer.load_private_key_from_file(config["key_file"])
+    signer = oci.auth.signers.SecurityTokenSigner(token, private_key)
+    return oci.identity_data_plane.DataplaneClient(config, signer=signer)
+
+
+def _security_token_simple_authentication(token_auth_config):
+    """
+    Session token-based authentication: uses security token authentication.
+    Config parameters are passed as parameters.
+    """
+    config = {
+        "key_file": token_auth_config["key_file"],
+        "fingerprint": token_auth_config["fingerprint"],
+        "tenancy": token_auth_config["tenancy"],
+        "region": token_auth_config["region"],
+        "security_token_file": token_auth_config["security_token_file"],
+    }
+    client = _security_token_create_dataplane_client(config)
     return _generate_access_token(client, token_auth_config)
 
 
@@ -143,14 +186,26 @@ def _simple_authentication(token_auth_config):
     return _generate_access_token(client, token_auth_config)
 
 
-def _instance_principal_authentication(token_auth_config):
+def generate_token(token_auth_config, refresh=False):
     """
-    Instance principal authentication: for compute instances
-    with dynamic group access.
+    Generates an OCI access token based on provided credentials.
     """
-    signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
-    client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
-    return _generate_access_token(client, token_auth_config)
+    user_auth_type = token_auth_config.get("auth_type") or ""
+    auth_type = user_auth_type.lower()
+    if auth_type == AuthType.ConfigFileAuthentication:
+        return _config_file_based_authentication(token_auth_config)
+    elif auth_type == AuthType.InstancePrincipal:
+        return _instance_principal_authentication(token_auth_config)
+    elif auth_type == AuthType.SecurityToken:
+        return _security_token_authentication(token_auth_config)
+    elif auth_type == AuthType.SecurityTokenSimple:
+        return _security_token_simple_authentication(token_auth_config)
+    elif auth_type == AuthType.SimpleAuthentication:
+        return _simple_authentication(token_auth_config)
+    else:
+        raise ValueError(
+            f"Unrecognized auth_type authentication method {user_auth_type}"
+        )
 
 
 def oci_token_hook(params: oracledb.ConnectParams):
