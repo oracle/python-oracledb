@@ -22,7 +22,7 @@ Jupyter notebooks let you easily step through, modify, and execute Python code:
 An existing Oracle Database is required.  The JSON demo assumes that Oracle
 Database 21c or later is being used.
 
-### Install Python 3
+### Install Python
 
 See https://www.python.org/downloads/
 
@@ -30,15 +30,15 @@ See https://www.python.org/downloads/
 
 See https://jupyter.org/install:
 
-    python3 -m pip install notebook
+    python -m pip install notebook
 
 ### Install the python-oracledb driver
 
-    python3 -m pip install oracledb
+    python -m pip install oracledb
 
 ### Install some libraries used by the examples
 
-    python3 -m pip install numpy matplotlib
+    python -m pip install numpy matplotlib pyarrow pandas
 
 ### Create the python-oracledb sample schema
 
@@ -63,7 +63,7 @@ In the terminal, set desired credentials, for example:
 
 Install the schema:
 
-    python3 create_schema.py
+    python create_schema.py
 
 ### Start Jupyter
 
