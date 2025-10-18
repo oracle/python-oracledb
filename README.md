@@ -30,7 +30,7 @@ Run:
 python -m pip install oracledb --upgrade
 ```
 
-See [python-oracledb Installation][installation] for details.
+See [Installing python-oracledb][installation] for details.
 
 ## Samples
 

@@ -13,6 +13,15 @@ python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode when
 Oracle Client libraries are used.  Both modes have comprehensive functionality
 supporting the Python Database API v2.0 Specification.
 
+Most applications can use python-oracledb Thin mode. The common reasons to use
+Thick mode are:
+
+- Your Oracle Database is version 11, or older
+- Your database connections require :ref:`Native Network Encryption (NNE) or
+  checksumming <nne>`
+- You desire to use :ref:`Application Continuity (AC) or Transparent
+  Application Continuity (TAC) <appcont>`
+
 All connections in an application use the same mode.  See :ref:`vsessconinfo`
 to verify which mode is in use.
 
@@ -622,7 +631,7 @@ The common environment variables listed below are supported in python-oracledb.
     * - NLS_LANG
       - Determines the 'national language support' globalization options for python-oracledb.
 
-        Note that from cx_Oracle 8, the character set component is ignored and only the language and territory components of ``NLS_LANG`` are used. The character set can instead be specified during connection or connection pool creation. See :ref:`globalization`.
+        Note that the character set component is ignored and only the language and territory components of ``NLS_LANG`` are used. The character set can instead be specified during connection or connection pool creation. See :ref:`globalization`.
       - Thick
     * - ORA_SDTZ
       - The default session time zone.

@@ -137,16 +137,15 @@ packages, you can create a `namespace package <https://packaging.python.org/en
 can distribute plugin packages either internally within your organization, or
 on a package repository such as `PyPI <https://pypi.org/>`__.
 
+**Example 1**
+
 The following example creates a plugin that uses a :ref:`connection protocol
 hook function <registerprotocolhook>` to do special processing of connection
 strings prefixed with "myprefix://".
 
-1. In a terminal or IDE, create a working directory, for example ``myplugin``.
-   Inside the working directory create the subdirectory hierarchy
-   ``src/oracledb/plugins/``::
+1. In a terminal or IDE, create a working directory, for example ``myplugin``::
 
     mkdir myplugin
-    mkdir -p myplugin/src/oracledb/plugins
 
 2. In the ``myplugin`` directory, create the following files:
 
@@ -181,7 +180,14 @@ strings prefixed with "myprefix://".
            [options.packages.find]
            where = src
 
-3. Create the plugin code in ``myplugin/src/oracledb/plugins/myplugin.py``:
+3. In the ``myplugin`` directory, create the subdirectory hierarchy
+   ``src/oracledb/plugins/``:
+
+   .. code-block:: shell
+
+        mkdir -p src/oracledb/plugins
+
+4. Create the plugin's code in ``myplugin/src/oracledb/plugins/myplugin.py``:
 
   .. code-block:: python
 
@@ -193,18 +199,25 @@ strings prefixed with "myprefix://".
 
         oracledb.register_protocol("myprefix", myhookfunc)
 
+5. In the ``myplugin`` directory, build the sample package:
 
-4. Build the sample package::
+   .. code-block:: shell
 
-        cd myplugin
         python -m pip install build
         python -m build
 
-5. Install the sample package::
+   This creates your plugin package wheel in the ``dist`` subdirectory with a
+   name like ``myplugin-1.0.0-py3-none-any.whl``. You can distribute and
+   install this package.
+
+6. Install the sample package:
+
+   .. code-block:: shell
 
         python -m pip install dist/myplugin-1.0.0-py3-none-any.whl
 
-6. To show the plugin being used, create an application file containing:
+7. To show the plugin in use, create an application file in a working directory
+   containing:
 
    .. code-block:: python
 
@@ -223,14 +236,18 @@ strings prefixed with "myprefix://".
         In myhookfunc: protocol=myprefix arg=localhost/orclpdb
         host=localhost, port=1521, service name=orclpdb
 
-7. To uninstall the plugin, simply remove the package::
+8. To uninstall the plugin, remove the package:
+
+   .. code-block:: shell
 
        python -m pip uninstall myplugin
 
-Another sample plugin shows how all connection creations can be logged,
+**Example 2**
+
+The following sample plugin shows how all connection creations can be logged,
 regardless of the connection string. If the plugin
-``myplugin/src/oracledb/plugins/myplugin.py`` registers a :ref:`connection
-parameter hook <paramshook>`:
+``myplugin/src/oracledb/plugins/myplugin.py`` created above contained code to
+register a :ref:`connection parameter hook <paramshook>`:
 
 .. code-block:: python
 

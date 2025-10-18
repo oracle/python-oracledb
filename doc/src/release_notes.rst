@@ -3048,8 +3048,7 @@ cx_Oracle 6.0 beta 1 (April 2017)
     :ref:`subscription objects <subscrobj>`. Use the qos attribute instead.
 #)  Dropped deprecated parameters cqqos and rowids from the
     :meth:`Connection.subscribe()` method. Use the qos parameter instead as
-    shown in this `sample <https://github.com/oracle/python-cx_Oracle/blob/
-    main/samples/cqn.py>`__.
+    shown in the cx_Oracle sample cqn.py.
 
 
 cx_Oracle 5.3 (March 2017)

@@ -66,8 +66,11 @@ Time Zone Files
 This section applies to python-oracledb Thick mode.
 
 Oracle Client libraries and the Oracle Database use time zone files for date
-operations.  The files are versioned, but do not always have to be the same
-version on the database and client.
+operations. The files are versioned, but do not always have to be the same
+version on the database and client. However, if you use the TIMESTAMP WITH
+TIMEZONE data type and have a named time zone, you will get the error `ORA-1805
+<https://docs.oracle.com/en/error-help/db/ora-01805/>`__ when the database and
+the client time zone file versions differ.
 
 Finding the Time Zone Files in Use
 ----------------------------------
@@ -112,6 +115,18 @@ version 43.
 The Oracle Database documentation contains more information about time zone
 files, see `Choosing a Time Zone File <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=GUID-805AB986-DE12-4FEA-AF56-5AABCD2132DF>`__.
+
+Changing the Oracle Database Time Zone File
+-------------------------------------------
+
+To control the database time zone file in on-premise databases, use the
+`DBMS_DST <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-55300506-481A-4957-A67D-0183D3D986DF>`__ package.
+
+For Oracle Autonomous Database, use ``AUTO_DST_UPGRADE`` and
+``AUTO_DST_UPGRADE_EXCL_DATA`` as shown in the documentation `Manage Time Zone
+File Updates on Autonomous AI Database <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-BACC9C4A-C0FA-4912-862A-1A2A24D6A0C2>`__.
 
 Changing the Oracle Client Time Zone File
 -----------------------------------------

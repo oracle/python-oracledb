@@ -149,8 +149,8 @@ Using an Oracle Wallet for External Authentication
 
 The following steps give an overview of using an Oracle Wallet.  Wallets should
 be kept securely.  Wallets can be managed with `Oracle Wallet Manager
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-E3E16C82-E174-4814-98D5-EADF1BCB3C37>`__.
+<https://docs.oracle.com/en/database/oracle/oracle-database/21/dbimi/using-
+oracle-wallet-manager.html#GUID-E3E16C82-E174-4814-98D5-EADF1BCB3C37>`__.
 
 In this example the wallet is created for the ``myuser`` schema in the
 directory ``/home/oracle/wallet_dir``.  The ``mkstore`` command is available
@@ -690,8 +690,7 @@ the following table.
       - Description
       - Required or Optional
     * - ``auth_type``
-      - The authentication type. The value should be the string "ConfigFileAuthentication",
-        "InstancePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
+      - The authentication type. The value should be the string "ConfigFileAuthentication", "InstancePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
 
         With Configuration File Authentication, the location of a configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
 
@@ -708,8 +707,7 @@ the following table.
     * - ``user``
       - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
 
-        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication". This is not required when ``auth_type`` is
-        "SecurityToken" or "SecurityTokenSimple"
+        This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication". This is not required when ``auth_type`` is "SecurityToken" or "SecurityTokenSimple"
       - Required
     * - ``key_file``
       - The full path and filename of the private key.

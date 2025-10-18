@@ -509,6 +509,22 @@ Note with Oracle Database version 23 this incorrect usage gives the message
    For other causes and solutions see `Database Error Messages ORA-00933
    <https://docs.oracle.com/error-help/db/ora-00933/>`__
 
+ORA-01805
++++++++++
+
+**Message:** ``ORA-01805: possible error in date/time operation``
+
+**Cause:** This error occurs in python-oracledb Thick mode when you use the
+TIMESTAMP WITH TIMEZONE data type, and use a named time zone offset, and the
+time zone file version of the client libraries and the database are different.
+
+**Action:** Use the same time zone file version with the client libraries and
+the database, see :ref:`timezonefiles`.
+
+The use of a numeric time zone offset can be a workaround to the problem, but
+this can lead to undesired values being used when Daylight Savings Time begins
+or ends.
+
 ORA-28009
 +++++++++
 

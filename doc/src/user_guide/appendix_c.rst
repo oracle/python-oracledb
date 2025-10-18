@@ -4,10 +4,10 @@
 Appendix C: The python-oracledb and cx_Oracle Drivers
 *****************************************************
 
-The python-oracledb driver is the renamed, major version successor to cx_Oracle
-8.3. The python-oracledb driver has many :ref:`new features <releasenotes>` and
-some :ref:`deprecations` compared with cx_Oracle. The cx_Oracle driver is
-obsolete and should not be used for new development.
+The python-oracledb driver is the renamed, successor to cx_Oracle. The
+python-oracledb driver has many :ref:`new features <releasenotes>` and some
+:ref:`deprecations` compared with cx_Oracle. The cx_Oracle driver is obsolete
+and should not be used for new development.
 
 .. _upgrading83:
 

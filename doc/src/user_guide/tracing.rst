@@ -362,15 +362,19 @@ Using python-oracledb with OpenTelemetry
 
 The OpenTelemetry observability framework is useful for monitoring applications
 and identifying bottlenecks. Python-oracledb conforms to the `Python DB API
-specification <https://peps.python.org/pep-0249/>`__ allowing standard Python
-modules for OpenTelemetry to be used to instrument your applications.
+specification <https://peps.python.org/pep-0249/>`__ allowing the OpenTelemetry
+Database API Instrumentation package `opentelemetry-instrumentation-dbapi
+<https://pypi.org/project/opentelemetry-instrumentation-dbapi/>`__ to
+automatically instrument your applications.
 
 OpenTelemetry's `backend trace exporters
 <https://opentelemetry.io/docs/languages/python/exporters/>`__ can provide
-graphic and intuitive representation of OpenTelemetry trace information. Visual
-exporters include Zipkin, Jaeger, and Prometheus. Simple tracing can also be
-directed to the console by making use of the exporter ConsoleSpanExporter from
-the opentelemetry-sdk package.
+graphic and intuitive representation of OpenTelemetry trace
+information. Recording and reporting tools include Zipkin, Jaeger, Grafana, and
+Prometheus. These make database query relationships and timings easier to
+analyze. Simple tracing can also be directed to the console by making use of
+the exporter ``ConsoleSpanExporter`` from the ``opentelemetry-sdk`` package, as
+shown in the example below.
 
 For details on using OpenTelemetry in Python, see `Python OpenTelemetry
 documentation <https://opentelemetry.io/docs/languages/python/>`_.
@@ -379,7 +383,7 @@ Example of Using python-oracledb with OpenTelemetry
 ---------------------------------------------------
 
 This example shows a python-oracledb application using OpenTelemetry's
-ConsoleSpanExporter exporter to display trace information to the console.
+``ConsoleSpanExporter`` exporter to display trace information to the console.
 
 **Installing OpenTelemetry Modules**
 
@@ -432,8 +436,8 @@ The sample code is:
         oracledb,
         connect_method_name="connect",
         database_system="oracle",  # displayed as attribute "db.system"
-        capture_parameters=True,   # displayed as attribute "db.statement.parameters"
-                                   # WARNING: this shows bind variable values
+        capture_parameters=True,   # displays bind values as attribute "db.statement.parameters"
+                                   # SECURITY WARNING: this shows bind variable values
     )
 
     connection = oracledb.connect(user=user, password=password,
@@ -479,7 +483,7 @@ The sample output will be like::
         "links": [],
         "resource": {
             "attributes": {
-                "service.name": "orclpdb1"
+                "service.name": "orclpdb"
             },
             "schema_url": ""
         }
@@ -507,7 +511,7 @@ The sample output will be like::
         "links": [],
         "resource": {
             "attributes": {
-                "service.name": "orclpdb1"
+                "service.name": "orclpdb"
             },
             "schema_url": ""
         }
@@ -531,31 +535,76 @@ The sample output will be like::
         "links": [],
         "resource": {
             "attributes": {
-                "service.name": "orclpdb1"
+                "service.name": "orclpdb"
             },
             "schema_url": ""
         }
     }
 
-The two query results precede OpenTelemetry's tracing. The tracing then shows:
+The two query results precede OpenTelemetry's tracing. The console tracing then
+shows:
 
 - The start and end time of each operation.
 
 - Each "select" trace block's association to the span "HR-span-1" via their
-  ``parent_id`` values, which match the span's ``span_id`` value.
+  ``parent_id`` values, which match the span's ``span_id`` value. If you had
+  alternatively exported to a recording and tracing system like Zipkin, you
+  would be able to conveniently drill down into the spans.
 
 - The bind variable value *2200* in the attribute
   ``db.statement.parameters``. *Warning*: it is a security risk to monitor bind
   variable values this way. Keep the ``capture_parameters`` option set to
-  *False*.
+  *False* in production applications.
 
 - The system and service name as set in the application.
 
 The Python OpenTelemetry modules allow further customization for tracing. See
 their documentation for more information.
 
-When a graphical provider is used instead of ConsoleSpanExporter, the database
-query relationships and timings are easier to analyze.
+OpenTelemetry and extended python-oracledb functionality
+--------------------------------------------------------
+
+Python-oracledb calls that are part of the Python DB API standard are
+automatically instrumented by ``opentelemetry-instrumentation-dbapi``.  For
+python-oracledb's great functionality that extends the standard, you can add
+explicit instrumentation. For example, to monitor a call to
+:meth:`Connection.fetch_df_all()`, add a tracer like:
+
+.. code-block:: python
+
+    tracer = trace.get_tracer(__name__)
+    with tracer.start_as_current_span("myDFQuery"):
+        sql = "select city from locations where country_id = :1"
+        odf = connection.fetch_df_all(sql, ['UK'])
+        print(odf.num_rows())
+
+The new OpenTelemetry span will be like::
+
+    {
+        "name": "myDFQuery",
+        "context": {
+            "trace_id": "0x8512a9fac568c07fc16cd872f68d0346",
+            "span_id": "0x03f424111825540f",
+            "trace_state": "[]"
+        },
+        "kind": "SpanKind.INTERNAL",
+        "parent_id": null,
+        "start_time": "2025-10-06T01:20:34.200129Z",
+        "end_time":   "2025-10-06T01:20:39.212618Z",
+        "status": {
+            "status_code": "UNSET"
+        },
+        "attributes": {},
+        "events": [],
+        "links": [],
+        "resource": {
+            "attributes": {
+                "service.name": "orclepdb",
+                "db.name": ""
+            },
+            "schema_url": ""
+        }
+    }
 
 .. _vsessconinfo:
 

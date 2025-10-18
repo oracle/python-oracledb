@@ -3958,6 +3958,8 @@ its own directory.  For each connection use different connection string
 file.  It is recommended to use Oracle Client libraries 19.17 (or later) when
 using :ref:`multiple wallets <connmultiwallets>`.
 
+If you are behind a firewall, see :ref:`firewallproxy`.
+
 Using the Easy Connect Syntax with Oracle Autonomous Database
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

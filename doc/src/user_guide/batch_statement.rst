@@ -523,8 +523,12 @@ Depending on data sizes and business requirements, database changes such as
 temporarily disabling redo logging on the table, or disabling indexes may also
 be beneficial.
 
+The PyArrow package's CSV methods may be more efficient than the default CSV
+module.
+
 See `samples/load_csv.py <https://github.com/oracle/python-oracledb/tree/main/
-samples/load_csv.py>`__ for a runnable example.
+samples/load_csv.py>`__ for a runnable example showing both the CSV module and
+PyArrow's CSV functionality.
 
 You should also review whether Oracle's specialized data loading tools and
 features suit your environment. These can be faster than using Python. See

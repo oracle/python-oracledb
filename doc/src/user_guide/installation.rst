@@ -7,11 +7,7 @@ Installing python-oracledb
 ***************************
 
 The python-oracledb driver allows Python applications to connect to Oracle
-Database.
-
-The python-oracledb driver is the renamed, major version successor to cx_Oracle
-8.3.  For upgrade information, see :ref:`upgrading83`. The cx_Oracle driver is
-obsolete and should not be used for new development.
+Database with no extra libraries needed.
 
 .. figure:: /images/python-oracledb-thin-arch.png
    :alt: architecture of the python-oracledb driver
@@ -31,9 +27,10 @@ Specification.
 Quick Start python-oracledb Installation
 ========================================
 
-Python-oracledb is typically installed from Python's package repository
-`PyPI <https://pypi.org/project/oracledb/>`__ using `pip
-<https://pip.pypa.io/en/latest/installation/>`__.
+Python-oracledb is typically installed from Python's package repository `PyPI
+<https://pypi.org/project/oracledb/>`__ using `pip
+<https://pip.pypa.io/en/latest/installation/>`__ or `uv
+<https://pypi.org/project/uv/>`__.
 
 1. Install `Python 3 <https://www.python.org/downloads>`__ if it is not already
    available.
@@ -208,22 +205,14 @@ resulting binary installed.  Compiling python-oracledb requires the
 this file is in the ``python-devel`` package or equivalent.
 
 On some platforms the Python binary may be called ``python3`` instead of
-``python``.  For example, to use the default Python 3.6 installation on Oracle
-Linux 8, install with:
-
-.. code-block:: shell
-
-    python3 -m pip install oracledb --upgrade
-
-Note it is recommended to use a more recent version Python, see `Python for
-Oracle Linux <https://yum.oracle.com/oracle-linux-python.html>`__.
+``python``.
 
 The installation ``--user`` option is useful when you do not have permission to
 write to system directories:
 
 .. code-block:: shell
 
-    python3 -m pip install oracledb --upgrade --user
+    python -m pip install oracledb --upgrade --user
 
 If you are behind a proxy, use the ``--proxy`` option. For example:
 
