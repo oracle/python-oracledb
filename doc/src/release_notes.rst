@@ -19,6 +19,8 @@ oracledb `3.4.1 <https://github.com/oracle/python-oracledb/compare/v3.4.0...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when adding a call to a PL/SQL function which returns LOBs to a
+    :ref:`pipeline <pipelining>`.
 #)  Fixed bug when using bind variables with scrollable cursors.
 #)  Fixed bug when setting ``SOURCE_ROUTE`` on the ``DESCRIPTION`` section of a
     full connect descriptor instead of the ``ADDRESS_LIST`` section.

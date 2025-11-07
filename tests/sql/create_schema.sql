@@ -1559,6 +1559,11 @@ create or replace package &main_user..pkg_TestLOBs as
         a_ReplaceValue                  varchar2
     );
 
+    function GetLOB (
+        a_Num                           number,
+        a_Format                        varchar2
+    ) return clob;
+
 end;
 /
 
@@ -1589,6 +1594,14 @@ create or replace package body &main_user..pkg_TestLOBs as
         if a_SearchValue is not null then
             a_CLOB := replace(a_CLOB, a_SearchValue, a_ReplaceValue);
         end if;
+    end;
+
+    function GetLOB (
+        a_Num                           number,
+        a_Format                        varchar2
+    ) return clob is
+    begin
+        return to_clob(replace(a_Format, '{}', to_char(a_Num)));
     end;
 
 end;
