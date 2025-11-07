@@ -326,6 +326,9 @@ class DeqOptions(metaclass=BaseMetaClass):
         :data:`~oracledb.MSG_PERSISTENT` (default),
         :data:`~oracledb.MSG_BUFFERED`, or
         :data:`~oracledb.MSG_PERSISTENT_OR_BUFFERED`.
+
+        Note that :data:`~oracledb.MSG_BUFFERED` is not supported for JSON
+        payloads.
         """
         raise AttributeError("deliverymode can only be written")
 
@@ -435,6 +438,9 @@ class EnqOptions(metaclass=BaseMetaClass):
         enqueued. It should be one of the values
         :data:`~oracledb.MSG_PERSISTENT` (default) or
         :data:`~oracledb.MSG_BUFFERED`.
+
+        Note that :data:`~oracledb.MSG_BUFFERED` is not supported for JSON
+        payloads.
         """
         raise AttributeError("deliverymode can only be written")
 

@@ -43,9 +43,13 @@ types which are detailed below.
       - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and connected to Oracle Database 19c (or later).
     * - JSON
       - Supported when using Oracle Database 21c (or later). In python-oracle Thick mode, Oracle Client libraries 21c (or later) are also needed.
+
+        Buffered messaging using the :data:`~oracledb.MSG_BUFFERED` delivery mode is not supported for JSON payloads.
       - Supported for single message enqueuing and dequeuing when using Oracle Client libraries 21c (or later) and Oracle Database 21c (or later).
 
         Array enqueuing and dequeuing is not supported for JSON payloads.
+
+        Buffered messaging using the :data:`~oracledb.MSG_BUFFERED` delivery mode is not supported for JSON payloads.
     * - JMS
       - Supported
       - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19 (or later) and Oracle Database version 23 (or later).
