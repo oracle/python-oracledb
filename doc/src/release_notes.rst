@@ -22,6 +22,10 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed segfault on some platforms when trying to execute queries returning
+    vector columns
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
+
 Common Changes
 ++++++++++++++
 
