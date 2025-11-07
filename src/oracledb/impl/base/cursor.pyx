@@ -326,6 +326,13 @@ cdef class BaseCursorImpl:
         Initializes the fetch variable lists in preparation for creating the
         fetch variables used in fetching rows from the database.
         """
+        cdef ssize_t num_schema_columns
+        if self.schema_impl is not None:
+            num_schema_columns = len(self.schema_impl.child_schemas)
+            if num_schema_columns != num_columns:
+                errors._raise_err(errors.ERR_WRONG_REQUESTED_SCHEMA_LENGTH,
+                                  num_schema_columns=num_schema_columns,
+                                  num_fetched_columns=num_columns)
         self.fetch_metadata = [None] * num_columns
         self.fetch_vars = [None] * num_columns
         self.fetch_var_impls = [None] * num_columns

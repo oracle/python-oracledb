@@ -778,3 +778,26 @@ async def test_9427(value, async_conn, test_env):
         await async_conn.fetch_df_all(
             "select :1 from dual", [value], requested_schema=requested_schema
         )
+
+
+@pytest.mark.parametrize("num_elements", [1, 3])
+async def test_9428(num_elements, async_conn, test_env):
+    "9428 - fetch_df_all() with wrong requested_schema size"
+    elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
+    requested_schema = pyarrow.schema(elements)
+    with test_env.assert_raises_full_code("DPY-2069"):
+        await async_conn.fetch_df_all(
+            "select user, user from dual", requested_schema=requested_schema
+        )
+
+
+@pytest.mark.parametrize("num_elements", [1, 3])
+async def test_9429(num_elements, async_conn, test_env):
+    "9429 - fetch_df_batches() with wrong requested_schema size"
+    elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
+    requested_schema = pyarrow.schema(elements)
+    with test_env.assert_raises_full_code("DPY-2069"):
+        async for df in async_conn.fetch_df_batches(
+            "select user, user from dual", requested_schema=requested_schema
+        ):
+            pass

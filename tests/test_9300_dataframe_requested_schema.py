@@ -755,3 +755,28 @@ def test_9327(value, conn, test_env):
         conn.fetch_df_all(
             "select :1 from dual", [value], requested_schema=requested_schema
         )
+
+
+@pytest.mark.parametrize("num_elements", [1, 3])
+def test_9328(num_elements, conn, test_env):
+    "9328 - fetch_df_all() with wrong requested_schema size"
+    elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
+    requested_schema = pyarrow.schema(elements)
+    with test_env.assert_raises_full_code("DPY-2069"):
+        conn.fetch_df_all(
+            "select user, user from dual", requested_schema=requested_schema
+        )
+
+
+@pytest.mark.parametrize("num_elements", [1, 3])
+def test_9329(num_elements, conn, test_env):
+    "9329 - fetch_df_batches() with wrong requested_schema size"
+    elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
+    requested_schema = pyarrow.schema(elements)
+    with test_env.assert_raises_full_code("DPY-2069"):
+        list(
+            conn.fetch_df_batches(
+                "select user, user from dual",
+                requested_schema=requested_schema,
+            )
+        )
