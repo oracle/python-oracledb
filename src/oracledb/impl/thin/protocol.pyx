@@ -460,7 +460,7 @@ cdef class Protocol(BaseProtocol):
         except MarkerDetected:
             self._reset()
             message.process(self._read_buf)
-        except Exception as e:
+        except BaseException as e:
             if not self._in_connect \
                     and self._write_buf._packet_sent \
                     and self._read_buf._transport is not None \
