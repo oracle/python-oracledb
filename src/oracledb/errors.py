@@ -291,6 +291,7 @@ ERR_POOL_MAX_LESS_THAN_MIN = 2064
 ERR_ARROW_SPARSE_VECTOR_NOT_ALLOWED = 2065
 ERR_EMPTY_STATEMENT = 2066
 ERR_WRONG_DIRECT_PATH_DATA_TYPE = 2067
+ERR_SCROLL_NOT_SUPPORTED = 2068
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -893,6 +894,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_PYTHON_TYPE_NOT_SUPPORTED: "Python type {typ} is not supported",
     ERR_PYTHON_VALUE_NOT_SUPPORTED: (
         'Python value of type "{type_name}" is not supported'
+    ),
+    ERR_SCROLL_NOT_SUPPORTED: (
+        "scroll operation is not supported on a non-scrollable cursor"
     ),
     ERR_SCROLL_OUT_OF_RESULT_SET: (
         "scroll operation would go out of the result set"

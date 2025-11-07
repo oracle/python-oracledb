@@ -268,3 +268,11 @@ async def test_8616(async_conn):
     await cursor.scroll(mode="last")
     (fetched_value,) = await cursor.fetchone()
     assert fetched_value == base_value + 3
+
+
+async def test_8617(async_conn, test_env):
+    "8717 - test calling scroll() on a non-scrollable cursor"
+    cursor = async_conn.cursor()
+    await cursor.execute("select NumberCol from TestNumbers order by IntCol")
+    with test_env.assert_raises_full_code("DPY-2068"):
+        await cursor.scroll(mode="first")

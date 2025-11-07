@@ -34,6 +34,9 @@ Common Changes
 #)  Fixed bug that caused ``ORA-03137: malformed TTC packet from client
     rejected`` exception to be raised when attempting to call
     :meth:`Cursor.parse()` on a scrollable cursor.
+#)  Error ``DPY-2068: scroll operation is not supported on a non-scrollable
+    cursor`` is now raised when using :meth:`Cursor.scroll()` method on a
+    non-scrollable cursor.
 
 
 oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4.0>`__ (October 2025)
