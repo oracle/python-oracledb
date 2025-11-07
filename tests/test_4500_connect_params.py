@@ -588,8 +588,7 @@ def test_4531():
         params.parse_connect_string(connect_string)
         source_route_clause = "(SOURCE_ROUTE=ON)" if has_section else ""
         connect_string = (
-            f"(DESCRIPTION={source_route_clause}"
-            f"(ADDRESS_LIST={source_route_clause}"
+            f"(DESCRIPTION=(ADDRESS_LIST={source_route_clause}"
             "(ADDRESS=(PROTOCOL=tcp)(HOST=host1)(PORT=1521))"
             "(ADDRESS=(PROTOCOL=tcp)(HOST=host2)(PORT=1522)))"
             "(CONNECT_DATA=(SERVICE_NAME=my_service_35)))"
