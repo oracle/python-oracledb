@@ -385,9 +385,10 @@ class TestEnv:
         """
         Returns an administrative connection to the database.
         """
-        self._initialize()
         if not self.admin_user or not self.admin_password:
             pytest.skip("missing administrative credentials")
+        if self.use_thick_mode and oracledb.is_thin_mode():
+            oracledb.init_oracle_client(lib_dir=self.oracle_client_path)
         params = self.get_connect_params()
         if self.admin_user.upper() == "SYS":
             params = params.copy()

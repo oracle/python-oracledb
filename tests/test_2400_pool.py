@@ -434,7 +434,6 @@ def test_2411(skip_unless_thick_mode, test_env):
         min=2,
         max=8,
         increment=3,
-        getmode=oracledb.POOL_GETMODE_NOWAIT,
         session_callback=callback,
     )
     tags = [
@@ -1066,6 +1065,6 @@ def test_2457(skip_if_drcp, test_env):
 
 def test_2458(test_env):
     "2458 - connection to database with bad password"
-    pool = test_env.get_pool(password=test_env.main_password + "X")
     with test_env.assert_raises_full_code("ORA-01017"):
+        pool = test_env.get_pool(password=test_env.main_password + "X")
         pool.acquire()
