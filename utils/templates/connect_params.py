@@ -37,16 +37,16 @@ from typing import Union, Callable, Any, Optional
 
 import oracledb
 
+from .base import BaseMetaClass
 from . import base_impl, utils
 
 
-class ConnectParams:
+class ConnectParams(metaclass=BaseMetaClass):
     """
     Contains all parameters used for establishing a connection to the
     database.
     """
 
-    __module__ = oracledb.__name__
     __slots__ = ["_impl"]
     _impl_class = base_impl.ConnectParamsImpl
 
