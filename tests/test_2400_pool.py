@@ -434,7 +434,6 @@ def test_2411(skip_unless_thick_mode, test_env):
         min=2,
         max=8,
         increment=3,
-        getmode=oracledb.POOL_GETMODE_NOWAIT,
         session_callback=callback,
     )
     tags = [
