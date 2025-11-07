@@ -362,6 +362,7 @@ cdef class ConnectStringParser(BaseParser):
                 description.set_from_security_args(sub_args)
             address_lists = desc_args.get("address_list", desc_args)
             if not isinstance(address_lists, list):
+                description.source_route = False
                 address_lists = [address_lists]
             for list_args in address_lists:
                 address_list = AddressList()

@@ -20,6 +20,8 @@ Thin Mode Changes
 +++++++++++++++++
 
 #)  Fixed bug when using bind variables with scrollable cursors.
+#)  Fixed bug when setting ``SOURCE_ROUTE`` on the ``DESCRIPTION`` section of a
+    full connect descriptor instead of the ``ADDRESS_LIST`` section.
 
 Thick Mode Changes
 ++++++++++++++++++
