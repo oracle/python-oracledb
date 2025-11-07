@@ -186,10 +186,19 @@ cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl array_impl,
     cdef:
         cydatetime.timedelta td
         cydatetime.datetime dt
-        int64_t ts
+        int64_t ts, us
     dt = convert_date_to_python(buffer)
     td = dt - EPOCH_DATE
-    ts = int(cydatetime.total_seconds(td) * array_impl.schema_impl.time_factor)
+    ts = (<int64_t> cydatetime.timedelta_days(td)) * (24 * 60 * 60) + \
+            cydatetime.timedelta_seconds(td)
+    ts *= array_impl.schema_impl.time_factor
+    us = cydatetime.timedelta_microseconds(td)
+    if array_impl.schema_impl.time_factor == 1_000:
+        ts += us // 1_000
+    elif array_impl.schema_impl.time_factor == 1_000_000:
+        ts += us
+    elif array_impl.schema_impl.time_factor != 1:
+        ts += us * 1_000
     array_impl.append_int(ts)
 
 

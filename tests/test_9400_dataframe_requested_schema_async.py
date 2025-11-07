@@ -28,6 +28,7 @@ Module for testing user requested schema in fetch_df APIs using asyncio.
 
 import datetime
 
+import oracledb
 import pyarrow
 import pytest
 
@@ -298,28 +299,34 @@ async def test_9410(dtype, value_is_date, async_conn):
 
 
 @pytest.mark.parametrize(
-    "dtype,value_is_date",
+    "dtype",
     [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
+        pyarrow.date32(),
+        pyarrow.date64(),
+        pyarrow.timestamp("s"),
+        pyarrow.timestamp("us"),
+        pyarrow.timestamp("ms"),
+        pyarrow.timestamp("ns"),
     ],
 )
-async def test_9411(dtype, value_is_date, async_conn):
+async def test_9411(dtype, async_conn):
     "9411 - fetch_df_all() for TIMESTAMP"
     requested_schema = pyarrow.schema([("TIMESTAMP_COL", dtype)])
-    value = datetime.datetime(2025, 1, 15)
-    statement = "select cast(:1 as timestamp) from dual"
+    value = datetime.datetime(1974, 4, 4, 0, 57, 54, 15079)
+    var = async_conn.cursor().var(oracledb.DB_TYPE_TIMESTAMP)
+    var.setvalue(0, value)
+    statement = "select :1 from dual"
     ora_df = await async_conn.fetch_df_all(
-        statement, [value], requested_schema=requested_schema
+        statement, [var], requested_schema=requested_schema
     )
     tab = pyarrow.table(ora_df)
     assert tab.field("TIMESTAMP_COL").type == dtype
-    if value_is_date:
+    if not isinstance(dtype, pyarrow.TimestampType):
         value = value.date()
+    elif dtype.unit == "s":
+        value = value.replace(microsecond=0)
+    elif dtype.unit == "ms":
+        value = value.replace(microsecond=(value.microsecond // 1000) * 1000)
     assert tab["TIMESTAMP_COL"][0].as_py() == value
 
 
