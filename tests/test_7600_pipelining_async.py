@@ -1009,3 +1009,20 @@ async def test_7648(async_conn, test_env):
     res = await async_conn.run_pipeline(pipeline)
     assert [res[-1].rows] == [[(clob_1_value,), (clob_2_value,)]]
     assert [res[-2].rows] == [[(clob_1_value,), (clob_2_value,)]]
+
+
+async def test_7649(async_conn, test_env):
+    "7649 - test PL/SQL returning LOB data from a function"
+    clob_format = "Sample data for test 7649 - {}"
+    num_values = [5, 38, 1549]
+    pipeline = oracledb.create_pipeline()
+    for num in num_values:
+        pipeline.add_callfunc(
+            "pkg_TestLOBs.GetLOB",
+            return_type=oracledb.DB_TYPE_CLOB,
+            parameters=[num, clob_format],
+        )
+    res = await async_conn.run_pipeline(pipeline)
+    for result, num in zip(res, num_values):
+        expected_value = clob_format.replace("{}", str(num))
+        assert await result.return_value.read() == expected_value

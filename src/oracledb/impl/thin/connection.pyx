@@ -721,6 +721,7 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             PipelineOpImpl op_impl = result_impl.operation
             uint8_t op_type = op_impl.op_type
             AsyncThinCursorImpl cursor_impl
+            BindVar bind_var
 
         # all operations other than commit make use of a cursor
         if op_type == PIPELINE_OP_TYPE_COMMIT:
@@ -732,23 +733,27 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
 
         # resend the message if that is required (for operations that fetch
         # LOBS, for example)
-        cursor_impl = message_with_data.cursor_impl
+        cursor_impl = <AsyncThinCursorImpl> message_with_data.cursor_impl
         if message.resend:
             await protocol._process_message(message)
-            await message.postprocess_async()
-            if op_type in (
-                PIPELINE_OP_TYPE_FETCH_ONE,
-                PIPELINE_OP_TYPE_FETCH_MANY,
-                PIPELINE_OP_TYPE_FETCH_ALL,
-            ):
-                result_impl.rows = []
-                while cursor_impl._buffer_rowcount > 0:
-                    result_impl.rows.append(cursor_impl._create_row())
+        await message.postprocess_async()
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            bind_var = <BindVar> cursor_impl.bind_vars[0]
+            result_impl.return_value = bind_var.var_impl.get_value(0)
+        elif op_type in (
+            PIPELINE_OP_TYPE_FETCH_ONE,
+            PIPELINE_OP_TYPE_FETCH_MANY,
+            PIPELINE_OP_TYPE_FETCH_ALL,
+        ):
+            result_impl.rows = []
+            while cursor_impl._buffer_rowcount > 0:
+                result_impl.rows.append(cursor_impl._create_row())
         result_impl.fetch_metadata = cursor_impl.fetch_metadata
 
         # for fetchall(), perform as many round trips as are required to
         # complete the fetch
-        if op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+        if op_type == PIPELINE_OP_TYPE_FETCH_ALL \
+                and cursor_impl._more_rows_to_fetch:
             fetch_message = cursor_impl._create_message(
                 FetchMessage, message_with_data.cursor
             )
@@ -979,55 +984,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             token_num += 1
             messages.append(message)
         return messages
-
-    cdef int _populate_pipeline_op_result(self, Message message) except -1:
-        """
-        Populates the pipeline operation result object.
-        """
-        cdef:
-            MessageWithData message_with_data
-            AsyncThinCursorImpl cursor_impl
-            PipelineOpResultImpl result_impl
-            PipelineOpImpl op_impl
-            BindVar bind_var
-        result_impl = message.pipeline_result_impl
-        op_impl = result_impl.operation
-        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
-            return 0
-        message_with_data = <MessageWithData> message
-        cursor_impl = <AsyncThinCursorImpl> message_with_data.cursor_impl
-        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
-            bind_var = <BindVar> cursor_impl.bind_vars[0]
-            result_impl.return_value = bind_var.var_impl.get_value(0)
-        elif op_impl.op_type in (
-            PIPELINE_OP_TYPE_FETCH_ONE,
-            PIPELINE_OP_TYPE_FETCH_MANY,
-            PIPELINE_OP_TYPE_FETCH_ALL,
-        ):
-            result_impl.rows = []
-            while cursor_impl._buffer_rowcount > 0:
-                result_impl.rows.append(cursor_impl._create_row())
-
-    cdef int _populate_pipeline_op_results(
-        self, list messages, bint continue_on_error
-    ) except -1:
-        """
-        Populates the pipeline operation result objects associated with the
-        messages that were processed on the database.
-        """
-        cdef:
-            PipelineOpResultImpl result_impl
-            Message message
-        for message in messages:
-            result_impl = message.pipeline_result_impl
-            if result_impl.error is not None or message.resend:
-                continue
-            try:
-                self._populate_pipeline_op_result(message)
-            except Exception as e:
-                if not continue_on_error:
-                    raise
-                result_impl._capture_err(e)
 
     async def _run_pipeline_op_without_pipelining(
         self, object conn, PipelineOpResultImpl result_impl
@@ -1262,7 +1218,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
                 self.pipeline_mode = TNS_PIPELINE_MODE_ABORT_ON_ERROR
             self._send_messages_for_pipeline(messages, continue_on_error)
             await protocol.end_pipeline(self, messages, continue_on_error)
-            self._populate_pipeline_op_results(messages, continue_on_error)
             await self._complete_pipeline_ops(messages, continue_on_error)
 
     async def run_pipeline_without_pipelining(
