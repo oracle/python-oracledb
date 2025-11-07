@@ -665,6 +665,7 @@ class TestEnv:
                 prev_name = name
                 prev_obj_type = obj_type
             print("    %s/%s %s" % (line_num, position, text))
+        assert prev_name is None
 
     def skip_unless_client_version(self, major_version, minor_version=0):
         """
