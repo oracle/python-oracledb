@@ -40,6 +40,9 @@ Common Changes
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
+#)  Error ``DPY-2068: scroll operation is not supported on a non-scrollable
+    cursor`` is now raised when using :meth:`Cursor.scroll()` method on a
+    non-scrollable cursor.
 
 
 oracledb `3.4.0 <https://github.com/oracle/python-oracledb/compare/v3.3.0...v3.4.0>`__ (October 2025)

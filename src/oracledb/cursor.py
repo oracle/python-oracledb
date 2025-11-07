@@ -1034,6 +1034,8 @@ class Cursor(BaseCursor):
         scroll operation would position the cursor outside of the result set.
         """
         self._verify_open()
+        if not self._impl.scrollable:
+            errors._raise_err(errors.ERR_SCROLL_NOT_SUPPORTED)
         self._impl.scroll(self, value, mode)
 
 
@@ -1366,4 +1368,6 @@ class AsyncCursor(BaseCursor):
         scroll operation would position the cursor outside of the result set.
         """
         self._verify_open()
+        if not self._impl.scrollable:
+            errors._raise_err(errors.ERR_SCROLL_NOT_SUPPORTED)
         await self._impl.scroll(self, value, mode)

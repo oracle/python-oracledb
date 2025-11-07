@@ -265,3 +265,11 @@ def test_4216(conn):
     cursor.scroll(mode="last")
     (fetched_value,) = cursor.fetchone()
     assert fetched_value == base_value + 3
+
+
+def test_4217(conn, test_env):
+    "4217 - test calling scroll() on a non-scrollable cursor"
+    cursor = conn.cursor()
+    cursor.execute("select NumberCol from TestNumbers order by IntCol")
+    with test_env.assert_raises_full_code("DPY-2068"):
+        cursor.scroll(mode="first")
