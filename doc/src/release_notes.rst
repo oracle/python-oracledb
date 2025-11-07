@@ -42,6 +42,13 @@ Common Changes
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
+#)  Error ``DPY-2069: requested schema has {num_schema_columns} columns defined
+    but {num_fetched_columns} columns are being fetched`` is now raised when
+    the number of elements in the ``requested_schema`` parameter to
+    :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`
+    doesn't match the number of columns being fetched. Previously this scenario
+    would throw unhelpful execptions or cause a segfault under certain
+    circumstances.
 #)  Error ``DPY-2068: scroll operation is not supported on a non-scrollable
     cursor`` is now raised when using :meth:`Cursor.scroll()` method on a
     non-scrollable cursor.
