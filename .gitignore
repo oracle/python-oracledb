@@ -13,3 +13,4 @@ tests/ext/config.ini
 .idea
 samples/sample.csv
 samples/sample.parquet
+samples/notebooks/testwrite.csv
