@@ -27,6 +27,9 @@ Thin Mode Changes
 #)  Fixed bug when using bind variables with scrollable cursors.
 #)  Fixed bug when setting ``SOURCE_ROUTE`` on the ``DESCRIPTION`` section of a
     full connect descriptor instead of the ``ADDRESS_LIST`` section.
+#)  Fixed bug that failed to handle the KeyboardInterrupt exception correctly
+    when the application caught this exception and then tried to reuse the
+    connection.
 
 Thick Mode Changes
 ++++++++++++++++++
