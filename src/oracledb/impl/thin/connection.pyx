@@ -340,16 +340,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
                 get_dbobject_type_cache(self._dbobject_type_cache_num)
         return cache.get_type(conn, name)
 
-    def ping(self):
-        cdef Message message
-        message = self._create_message(PingMessage)
-        self._protocol._process_single_message(message)
-
-    def rollback(self):
-        cdef Message message
-        message = self._create_message(RollbackMessage)
-        self._protocol._process_single_message(message)
-
     def set_action(self, str value):
         self._action = value
         self._action_modified = True
