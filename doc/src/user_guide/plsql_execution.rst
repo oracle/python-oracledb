@@ -463,13 +463,13 @@ python-oracledb Thin mode. See :ref:`implicitresultsdiff`.
 Edition-Based Redefinition (EBR)
 --------------------------------
 
-Oracle Database's `Edition-Based Redefinition
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-58DE05A0-5DEF-4791-8FA8-F04D11964906>`__ feature enables upgrading of
-the database component of an application while it is in use, thereby minimizing
-or eliminating down time. This feature allows multiple versions of views,
-synonyms, PL/SQL objects and SQL Translation profiles to be used concurrently.
-Different versions of the database objects are associated with an "edition".
+Oracle Database's `Edition-Based Redefinition <https://www.oracle.com/pls/topic
+/lookup?ctx=dblatest&id=GUID-58DE05A0-5DEF-4791-8FA8-F04D11964906>`__ feature
+enables upgrading of the database component of an application while it is in
+use, thereby minimizing or eliminating down time. This feature allows multiple
+versions of views, synonyms, PL/SQL objects and SQL Translation profiles to be
+used concurrently. Different versions of the database objects are associated
+with an "edition".
 
 The simplest way to set the edition used by your applications is to pass the
 ``edition`` parameter to :meth:`oracledb.connect()` or

@@ -25,16 +25,16 @@ to python-oracledb:
   See :ref:`installation` for details.
 
 - By default, python-oracledb runs in a 'Thin' mode which connects directly to
-  Oracle Database.  This mode does not need Oracle Client libraries.  However,
-  some :ref:`additional functionality <featuresummary>` is available when
-  python-oracledb uses them.  Python-oracledb is said to be in 'Thick' mode
-  when Oracle Client libraries are used.  See :ref:`enablingthick`.  Both modes
-  have comprehensive functionality supporting the Python Database API v2.0
-  Specification. The Thick mode is equivalent to cx_Oracle.
+  Oracle Database.  This mode does not need Oracle Client libraries.
+  However, some :ref:`additional functionality <featuresummary>` is available
+  when python-oracledb uses them.  Python-oracledb is said to be in 'Thick'
+  mode when Oracle Client libraries are used.  See :ref:`enablingthick`.  Both
+  modes have comprehensive functionality supporting the Python Database API
+  v2.0 Specification. The Thick mode is equivalent to cx_Oracle.
 
   cx_Oracle always runs in a Thick mode using Oracle Client libraries.  The
-  features in python-oracledb Thick mode and cx_Oracle 8.3 are the same, subject
-  to the :ref:`new features <releasenotes>`, some :ref:`deprecations
+  features in python-oracledb Thick mode and cx_Oracle 8.3 are the same,
+  subject to the :ref:`new features <releasenotes>`, some :ref:`deprecations
   <deprecations>`, and to other changes noted in the documentation.
 
 - python-oracledb Thin and Thick modes have the same level of support for the
@@ -400,12 +400,12 @@ need to be made in addition to the common :ref:`commonupgrade`:
    ``network/admin/`` subdirectory may not be automatically loaded in Thin mode
    on some platforms. A ``tnsnames.ora`` file identified by the Windows
    registry, or in ``$ORACLE_BASE/homes/XYZ/network/admin/`` (in a read-only
-   Oracle Database home) will never be automatically located by python-oracledb
-   Thin mode.
+   Oracle Database home) will never be automatically located by
+   python-oracledb Thin mode.
 
-   Only python-oracledb Thick mode will read :ref:`sqlnet.ora <optnetfiles>` and
-   :ref:`oraaccess.xml <optclientfiles>` files.  The Thin mode lets equivalent
-   properties be set in the application when connecting.
+   Only python-oracledb Thick mode will read :ref:`sqlnet.ora <optnetfiles>`
+   and :ref:`oraaccess.xml <optclientfiles>` files.  The Thin mode lets
+   equivalent properties be set in the application when connecting.
 
 6. To use python-oracledb Thin mode in an ``ORACLE_HOME`` database installation
    environment, you must use an explicit connection string since the

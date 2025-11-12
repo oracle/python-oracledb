@@ -778,4 +778,5 @@ python-oracledb requirement or API needed to take advantage of the feature.
 
 To use the Memoptimized Rowstore see Oracle Database documentation `Enabling
 High Performance Data Streaming with the Memoptimized Rowstore
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9752E93D-55A7-4584-B09B-9623B33B5CCF>`__.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9752E93D-55A7-
+4584-B09B-9623B33B5CCF>`__.

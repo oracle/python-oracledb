@@ -33,8 +33,8 @@ hosted at `github.com/oracle/python-oracledb
 <https://github.com/oracle/python-oracledb>`__.
 
 This module is currently tested with Python 3.9, 3.10, 3.11, 3.12, 3.13, and
-3.14 against Oracle Database 23, 21, 19, 18, 12, and 11.2. Previous versions of
-python-oracledb supported older Python versions.
+3.14 against Oracle Database version 23, 21, 19, 18, 12, and 11.2. Previous
+versions of python-oracledb supported older Python versions.
 
 Changes in python-oracledb releases can be found in the :ref:`release notes
 <releasenotes>`.
@@ -112,8 +112,8 @@ installed separately, see :ref:`installation`.  The libraries can be from an
 installation of `Oracle Instant Client
 <https://www.oracle.com/database/technologies/instant-client.html>`__, from a
 full Oracle Client installation (such as installed by Oracle's GUI installer),
-or even from an Oracle Database installation (if Python is running on the same
-machine as the database). Oracle's standard client-server version
+or even from an Oracle Database installation (if Python is running on the
+same machine as the database). Oracle's standard client-server version
 interoperability allows connection to both older and newer databases from
 different Oracle Client library versions.
 

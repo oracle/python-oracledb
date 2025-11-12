@@ -6,9 +6,9 @@
 Concurrent Programming with asyncio and Pipelining
 **************************************************
 
-:ref:`concurrentprogramming` and :ref:`Oracle Database Pipelining <pipelining>`
-significantly enhances the overall performance and responsiveness of
-applications.
+:ref:`concurrentprogramming` and :ref:`Oracle Database Pipelining
+<pipelining>` significantly enhances the overall performance and responsiveness
+of applications.
 
 .. _concurrentprogramming:
 
@@ -169,10 +169,10 @@ Executing SQL Using Asynchronous Methods
 This section covers executing SQL using the asynchronous programming model.
 For discussion of synchronous programming, see :ref:`sqlexecution`.
 
-Your application communicates with Oracle Database by executing SQL
-statements. Statements such as queries (statements beginning with SELECT or
-WITH), Data Manipulation Language (DML), and Data Definition Language (DDL) are
-executed using the asynchronous methods :meth:`AsyncCursor.execute()` or
+Your application communicates with Oracle Database by executing SQL statements.
+Statements such as queries (statements beginning with SELECT or WITH), Data
+Manipulation Language (DML), and Data Definition Language (DDL) are executed
+using the asynchronous methods :meth:`AsyncCursor.execute()` or
 :meth:`AsyncCursor.executemany()`. Rows can be iterated over, or fetched using
 one of the methods :meth:`AsyncCursor.fetchone()`,
 :meth:`AsyncCursor.fetchone()`, :meth:`AsyncCursor.fetchmany()`, or
@@ -363,9 +363,9 @@ Pipelined operations are executed sequentially by the database. They do not
 execute concurrently. It is local tasks that can be executed at the same time
 the database is working.
 
-Effective use of Oracle Database Pipelining can increase the responsiveness of
-an application and improve overall system throughput. Pipelining is useful when
-many small operations are being performed in rapid succession. It is most
+Effective use of Oracle Database Pipelining can increase the responsiveness
+of an application and improve overall system throughput. Pipelining is useful
+when many small operations are being performed in rapid succession. It is most
 beneficial when the network to the database is slow. This is because of its
 reduction in :ref:`round-trips <roundtrips>` compared with those required if
 the equivalent SQL statements were individually executed with calls like
@@ -381,8 +381,8 @@ about Oracle Database Pipelining.
 
 .. note::
 
-    True pipelining only occurs when you are connected to Oracle Database
-    version 23, or later.
+    True pipelining only occurs when you are connected to Oracle AI Database
+    26ai, or later.
 
     When you connect to an older database, operations are sequentially
     executed by python-oracledb. Each operation concludes before the next is
@@ -438,7 +438,6 @@ list of :ref:`PipelineOpResult objects <pipelineopresultobjs>`, one entry per
 operation. The objects contain information about the execution of the relevant
 operation, such as any error number, PL/SQL function return value, or any query
 rows and column metadata.
-
 
 The :attr:`Connection.call_timeout` value has no effect on pipeline operations.
 To limit the time for a pipeline, use an `asyncio timeout

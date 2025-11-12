@@ -6,9 +6,9 @@
 Connecting to Oracle Database
 *****************************
 
-Connections between python-oracledb and Oracle Database are used for executing
-:ref:`SQL <sqlexecution>` and :ref:`PL/SQL <plsqlexecution>`, for calling
-:ref:`SODA <sodausermanual>` functions, for receiving database
+Connections between python-oracledb and Oracle Database are used for
+executing :ref:`SQL <sqlexecution>` and :ref:`PL/SQL <plsqlexecution>`, for
+calling :ref:`SODA <sodausermanual>` functions, for receiving database
 :ref:`notifications <cqn>` and :ref:`messages <aqusermanual>`, and for
 :ref:`starting and stopping <startup>` the database.
 
@@ -335,8 +335,8 @@ If the database is using a non-default port, it must be specified:
     connection = oracledb.connect(user="hr", password=userpwd,
                                   dsn="dbhost.example.com:1984/orclpdb")
 
-The Easy Connect syntax supports Oracle Database service names.  It cannot be
-used with the older System Identifiers (SID).
+The Easy Connect syntax supports Oracle Database service names.  It cannot
+be used with the older System Identifiers (SID).
 
 **Oracle Net Settings in Easy Connect Strings**
 
@@ -2021,7 +2021,7 @@ See :ref:`endtoendtracing` for more information.
 **Application Contexts**
 
 An application context stores user identification that can enable or prevent a
-user from accessing data in the database.  See the Oracle Database
+user from accessing data in the database.  See the Oracle AI Database
 documentation `About Application Contexts <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=GUID-6745DB10-F540-45D7-9761-9E8F342F1435>`__.
 
@@ -2078,7 +2078,7 @@ will display::
     ('1900', 'earth')
 
 You can use contexts to set up restrictive policies that are automatically
-applied to any query executed. See Oracle Database documentation `Oracle
+applied to any query executed. See Oracle AI Database documentation `Oracle
 Virtual Private Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=
 dblatest&id=GUID-06022729-9210-4895-BF04-6177713C65A7>`__.
 
@@ -2434,10 +2434,12 @@ Having a fixed size will also guarantee that the database can handle the upper
 pool size.  For example, if a dynamically sized pool needs to grow but the
 database resources are limited, then :meth:`ConnectionPool.acquire()` may
 return errors such as `ORA-28547 <https://docs.oracle.com/error-help/db/ora-
-28547/>`__.  With a fixed pool size, this class of error will occur when the
-pool is created, allowing you to change the pool size or reconfigure the
-database before users access the application.  With a dynamically growing pool,
-the error may occur much later while the application is in use.
+28547/>`__, or the database may simply drop connection attempts and
+python-oracledb will show :ref:`DPY-4011 <dpy4011>`. With a fixed pool size,
+this class of error will generally occur when the pool is created, allowing you
+to change the pool size or reconfigure the database before users access the
+application.  With a dynamically growing pool, the error may occur much later
+while the application is in use.
 
 The Real-World Performance Group also recommends keeping pool sizes small
 because they often can perform better than larger pools. The pool attributes
@@ -2919,10 +2921,10 @@ using DRCP connections for long-running operations.
 For more information about DRCP, see the technical brief `Extreme Oracle
 Database Connection Scalability with Database Resident Connection Pooling
 (DRCP) <https://www.oracle.com/docs/tech/drcp-technical-brief.pdf>`__, the user
-documentation `Oracle Database Concepts Guide
+documentation `Oracle AI Database Concepts Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-531EEE8A-B00A-4C03-A2ED-D45D92B3F797>`__, and for DRCP Configuration
-see `Oracle Database Administrator's Guide
+see `Oracle AI Database Administrator's Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-82FF6896-F57E-41CF-89F7-755F3BC9C924>`__.
 
@@ -3018,7 +3020,8 @@ Oracle Database version 23 allows a ``DRAINTIME`` argument to be passed to
 specified time.  This allows in-progress application work to continue. A
 draintime value of 0 can be used to immediately close the pool. See the
 database documentation on `DBMS_CONNECTION_POOL.STOP_POOL()
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-3FF5F327-7BE3-4EA8-844F-29554EE00B5F>`__.
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-3FF5F327-7BE3-
+4EA8-844F-29554EE00B5F>`__.
 
 In older database versions, the pool cannot be stopped while connections are
 open.
@@ -3612,9 +3615,8 @@ Native Network Encryption
 -------------------------
 
 The python-oracledb :ref:`Thick mode <enablingthick>` can additionally use
-Oracle Database's `native network encryption
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
-id=GUID-7F12066A-2BA1-476C-809B-BB95A3F727CF>`__.
+Oracle Database's `native network encryption <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-7F12066A-2BA1-476C-809B-BB95A3F727CF>`__.
 
 With native network encryption, the client and database server negotiate a key
 using Diffie-Hellman key exchange.  This provides protection against
@@ -3687,7 +3689,7 @@ available encryption and crypto-checksumming services in the output. For example
 
 For more information about Oracle Data Network Encryption and Integrity,
 and for information about configuring TLS network encryption, refer to
-the `Oracle Database Security Guide <https://www.oracle.com/pls/topic/
+the `Oracle AI Database Security Guide <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=DBSEG>`__.
 
 Resetting Passwords
@@ -4213,19 +4215,19 @@ across a pool of Oracle databases that share no hardware or software.  It was
 previously known as Oracle Sharding.  It allows a database table to be split so
 each database contains a table with the same columns but a different subset of
 rows.  These tables are known as sharded tables.  From the perspective of an
-application, a sharded table in Oracle Globally Distributed Database looks like
-a single table: the distribution of data across those shards is completely
+application, a sharded table in Oracle Globally Distributed AI Database looks
+like a single table: the distribution of data across those shards is completely
 transparent to the application.
 
-Sharding is configured in
-Oracle Database, see the `Oracle Globally Distributed Database
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__ manual.  It
-requires Oracle Database and Oracle Client libraries 12.2, or later.
+Sharding is configured in Oracle Database, see the `Oracle Globally Distributed
+AI Database <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__
+manual.  It requires Oracle Database and Oracle Client libraries 12.2, or
+later.
 
 .. note::
 
-    Oracle Globally Distributed Database is only supported in the
-    python-oracledb Thick mode.  See :ref:`enablingthick`.
+    Oracle Globally Distributed Database is only supported in python-oracledb
+    Thick mode.  See :ref:`enablingthick`.
 
 The :meth:`oracledb.connect()` and :meth:`ConnectionPool.acquire()` functions
 accept ``shardingkey`` and ``supershardingkey`` parameters that are a sequence

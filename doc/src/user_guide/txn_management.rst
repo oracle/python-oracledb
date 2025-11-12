@@ -112,11 +112,11 @@ during its lifecycle. It breaks the coupling between transactions and
 connections, that is, a transaction is no longer tied to a specific
 connection. This enables connections to be released for use by other users
 while a transaction remains open and can be resumed later. With Sessionless
-Transactions, you do not need to use a transaction manager since Oracle
+Transactions, you do not need to use a transaction manager since Oracle AI
 Database manages coordination of transactions.
 
 Sessionless Transactions are supported in both python-oracledb Thin and
-:ref:`Thick <enablingthick>` modes. Oracle Database 23.6 (or later) is
+:ref:`Thick <enablingthick>` modes. Oracle AI Database 26ai (or later) is
 required. For python-oracledb Thick mode, Oracle Client 23.6 (or later) is
 additionally required.
 

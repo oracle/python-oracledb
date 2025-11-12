@@ -58,7 +58,7 @@ example:
 
 The default CQN connection mode means the database must be able to connect back
 to the application using python-oracledb in order to receive notification events.
-Alternatively, when using Oracle Database and Oracle client libraries 19.4, or
+Alternatively, when using Oracle Database and Oracle Client libraries 19.4, or
 later, subscriptions can set the optional ``client_initiated`` parameter to
 True, see ``Connection.subscribe()`` below.
 
@@ -95,7 +95,7 @@ protocols that are supported.
 See :ref:`Subscription Objects <subscrobj>` for more details on the
 subscription object that is created.
 
-When using Oracle Database and Oracle client libraries 19.4, or later, the
+When using Oracle Database and Oracle Client libraries 19.4, or later, the
 optional subscription parameter ``client_initiated`` can be set:
 
 .. code-block:: python

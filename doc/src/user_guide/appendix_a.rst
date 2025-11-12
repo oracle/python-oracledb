@@ -258,7 +258,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
     * - Oracle Transactional Event Queues and Advanced Queuing (AQ) (see :ref:`aqusermanual`)
-      - Yes - only "Classic" queues are supported (RAW, named Oracle object, and JSON payloads)
+      - Yes
       - Yes
       - Yes
     * - Call timeouts (see :attr:`Connection.call_timeout`)
@@ -367,13 +367,13 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
 Supported Oracle Database Data Types
 ====================================
 
-The following table lists the Oracle Database types that are supported in the
-python-oracledb driver.  See `Oracle Database Types <https://www.oracle.com/
-pls/topic/lookup?ctx=dblatest&id=GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483>`__
-and `PL/SQL Types <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID
--391C58FD-16AF-486C-AF28-173E309CDBA5>`__.  The python-oracledb constant shown
-is the common one.  In some python-oracledb APIs you may use other types, for
-example when binding numeric values.
+The following table lists the Oracle Database types that are supported in
+the python-oracledb driver.  See `Oracle Database Types <https://www.oracle.
+com/pls/topic/lookup?ctx=dblatest&id=GUID-A3C0D836-BADB-44E5-A5D4-
+265BA5968483>`__ and `PL/SQL Types <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=GUID-391C58FD-16AF-486C-AF28-173E309CDBA5>`__.  The
+python-oracledb constant shown is the common one.  In some python-oracledb
+APIs you may use other types, for example when binding numeric values.
 
 .. list-table-with-summary::  Oracle Database Data Types Supported
     :header-rows: 1

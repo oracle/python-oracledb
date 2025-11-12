@@ -48,8 +48,8 @@ To change from the default python-oracledb Thin mode to Thick mode:
   - A full Oracle Client installation (installed by running the Oracle
     Universal installer ``runInstaller``)
 
-  - An Oracle Database installation, if Python is running on the same
-    machine as the database
+  - An Oracle Database installation, if Python is running on the same machine
+    as the database
 
   The Client library version does not always have to match the Oracle Database
   version.
@@ -672,8 +672,8 @@ setting the parameters is:
 
 The convention for ``driver_name`` is to separate the product name from the
 product version by a colon and single blank characters.  The value will be
-shown in Oracle Database views like V$SESSION_CONNECT_INFO.  If this
-parameter is not specified, then the value specified in the
+shown in Oracle Database views like V$SESSION_CONNECT_INFO.  If this parameter
+is not specified, then the value specified in the
 :attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute is used.
 If the value of this attribute is None, then a value like
 ``python-oracledb thk : 3.0.0`` is shown, see :ref:`vsessconinfo`.

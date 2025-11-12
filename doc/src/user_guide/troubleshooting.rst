@@ -171,8 +171,8 @@ DPI-1047
 
 **Message:** ``DPI-1047: Oracle Client library cannot be loaded``
 
-**Cause:**   The connection to Oracle Database failed because the Oracle
-Client library could not be loaded.
+**Cause:**   The connection to Oracle Database failed because the Oracle Client
+library could not be loaded.
 
 **Action:**  Perform the following steps:
 
@@ -273,8 +273,22 @@ Some common DPY error messages are discussed below.
 DPY-3001
 ++++++++
 
+**Message:** ``DPY-3001: <feature> is only supported in python-oracledb <mode>``
+
+This error is diplayed when you attempt to use a feature in a python-oracledb
+driver mode that does not support it.
+
+Some common examples are listed below.
+
+Native Network Encryption and Data Integrity Error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 **Message:** ``DPY-3001: Native Network Encryption and Data Integrity is only
 supported in python-oracledb thick mode``
+
+**Cause:** The connection to Oracle Database failed because NNE or checksumming
+may be enabled in your Oracle Database and python-oracledb Thin mode does not
+support NNE.
 
 **Action:** To verify if NNE or checksumming are enabled, you can use the
 following query::
@@ -311,10 +325,29 @@ If NNE or checksumming are enabled, you can resolve this error by either:
 
 .. seealso::
 
-    `Oracle Database Security Guide <https://www.oracle.com/pls/topic/lookup?
+    `Oracle AI Database Security Guide <https://www.oracle.com/pls/topic/lookup?
     ctx=dblatest&id=DBSEG>`__ for more information about Oracle Data Network
     Encryption and Integrity, and for information about configuring TLS
     network encryption.
+
+Bequeath Error
+^^^^^^^^^^^^^^
+
+**Message:** ``DPY-3001: Bequeath is only supported in python-oracledb thick
+mode``
+
+**Cause:** The connection to Oracle Database failed because python-oracledb
+Thin mode does not support bequeath connections or because the connection
+string was not specified in the  ``dsn`` parameter during connection creation.
+
+**Action:** You can either:
+
+- Specify a valid connection string in the ``dsn`` parameter during connection
+  creation to continue using python-oracledb Thin mode.
+
+- Or :ref:`enable python-oracledb Thick mode <enablingthick>` since this mode
+  can use bequeath connections. For Thick mode, you need to install Oracle
+  Client libraries and call :meth:`oracledb.init_oracle_client()` in your code.
 
 DPY-3010
 ++++++++
@@ -397,6 +430,8 @@ shown connection or configuration parameter or attribute.
 characters are ``'<>/,.:;-_$+*#&!%?@``. Values should not contain enclosing
 quotes. Also remove trailing commas and trailing backslashes.
 
+.. _dpy4011:
+
 DPY-4011
 ++++++++
 
@@ -406,12 +441,21 @@ DPY-4011
 messages may indicate a reason.
 
 If the error occurs when creating a connection or connection pool with
-python-oracledb 2 or earlier, the common cause is that Oracle Database has
-Native Network Encryption (NNE) enabled.  NNE and Oracle Net checksumming are
-only supported in python-oracledb Thick mode.
+python-oracledb 2 or earlier in Thin mode, the common cause is that Oracle
+Database has Native Network Encryption (NNE) enabled. Later versions of
+python-oracledb give the error :ref:`dpy3001` for this scenario. NNE and Oracle
+Net checksumming are only supported in python-oracledb Thick mode.
+
+The error has been seen to occur if the database cannot handle the number of
+connections being opened.
 
 **Action:** Review if NNE or checksumming are enabled. See
 :ref:`DPY-3001 <dpy3001>` for solutions.
+
+If connection load is an issue, then reconfigure the database or reduce
+connection load. Review the :ref:`connpoolsize` best practices and keep pool
+sizes small. When multiple python process need to open connection pools, then
+:ref:`drcp` may be a solution.
 
 If additional messages indicate a reason, follow their guidance.
 

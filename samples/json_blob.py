@@ -72,6 +72,7 @@ with connection.cursor() as cursor:
         cursor.execute(inssql, [1, data])
     else:
         # Insert the data as a JSON string
+        cursor.setinputsizes(None, oracledb.DB_TYPE_LONG_RAW)
         cursor.execute(inssql, [1, json.dumps(data)])
 
 # Select JSON data

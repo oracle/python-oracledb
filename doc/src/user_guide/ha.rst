@@ -90,9 +90,9 @@ Fast Application Notification (FAN)
 -----------------------------------
 
 Users of `Oracle Database FAN <https://www.oracle.com/pls/topic/lookup?ctx=
-dblatest&id=GUID-EB0E1525-D3B3-469C-BE22-A569C76864A6>`__
-must connect to a FAN-enabled database service.  The application should have
-``events`` set to `True` when connecting.  This value can also be changed via
+dblatest&id=GUID-EB0E1525-D3B3-469C-BE22-A569C76864A6>`__ must connect to a
+FAN-enabled database service.  The application should have ``events`` set to
+`True` when connecting.  This value can also be changed via
 :ref:`Oracle Client Configuration <optclientfiles>`.
 
 .. note::
@@ -134,8 +134,8 @@ Application Continuity (AC)
 
 Oracle Application Continuity (AC) and Transparent Application Continuity (TAC)
 are Oracle Database technologies that record application interaction with the
-database and, in the event of a database instance outage, attempt to replay
-the interaction on a surviving database instance. If successful, users will
+database and, in the event of a database instance outage, attempt to replay the
+interaction on a surviving database instance. If successful, users will
 be unaware of any database issue. AC and TAC are best suited for OLTP
 applications.
 
@@ -171,7 +171,7 @@ Using Transaction Guard helps to:
 *  Preserve the commit outcome
 *  Ensure a known outcome for every transaction
 
-See `Oracle Database Development Guide
+See `Oracle AI Database Development Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-6C5880E5-C45F-4858-A069-A28BB25FD1DB>`__ for more information about
 using Transaction Guard.

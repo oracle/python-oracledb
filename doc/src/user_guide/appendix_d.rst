@@ -110,7 +110,7 @@ Pooled Connections in SQLAlchemy
 
 Most multi-user applications should use a :ref:`connection pool <connpooling>`.
 The python-oracledb pool is preferred because of its high availability
-support. Some single-user applications may also benfit from these availability
+support. Some single-user applications may also benefit from these availability
 features.
 
 To use a python-oracledb connection pool in SQLAlchemy:

@@ -119,9 +119,9 @@ libraries to build data frames.
 
 When querying, the following default data type mapping occurs from Oracle
 Database types to the Arrow types used in python-oracledb DataFrame
-objects. Querying any other data types from Oracle Database will result in an
-exception. :ref:`Output type handlers <outputtypehandlers>` cannot be used to
-map data types.
+objects. Querying any other data types from Oracle Database will result in
+an exception. :ref:`Output type handlers <outputtypehandlers>` cannot be used
+to map data types.
 
 .. list-table-with-summary:: Mapping from Oracle Database to Apache Arrow data types
     :header-rows: 1

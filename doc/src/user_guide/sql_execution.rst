@@ -32,6 +32,10 @@ chapters contain information on specific data types and features:
 - :ref:`jsondatatype`
 -  :ref:`xmldatatype`
 
+To help you create SQL and PL/SQL statements, Oracle hosts `FreeSQL.com
+<https://freesql.com/>`__ which gives you an online editor immediately
+connected to a database. It also has tutorials and a library of statements.
+
 **Executing SQL Scripts**
 
 Python-oracledb can be used to execute individual statements, one at a time.
@@ -728,8 +732,8 @@ Fetching Oracle Database Objects and Collections
 
 Oracle Database named object types and user-defined types can be fetched
 directly in queries.  Each item is represented as a :ref:`Python object
-<dbobjecttype>` corresponding to the Oracle Database object.  This Python object
-can be traversed to access its elements.  Attributes including
+<dbobjecttype>` corresponding to the Oracle Database object.  This Python
+object can be traversed to access its elements.  Attributes including
 :attr:`DbObjectType.name` and :attr:`DbObjectType.iscollection`, and methods
 including :meth:`DbObject.aslist` and :meth:`DbObject.asdict` are available.
 
@@ -876,8 +880,8 @@ number of the last row to return.  For example::
 This always has an 'extra' column, here called RNUM.
 
 An alternative and preferred query syntax for Oracle Database 11g uses the
-analytic ``ROW_NUMBER()`` function. For example, to get the 1st to 20th names the
-query is::
+analytic ``ROW_NUMBER()`` function. For example, to get the 1st to 20th names
+the query is::
 
     SELECT last_name FROM
     (SELECT last_name,

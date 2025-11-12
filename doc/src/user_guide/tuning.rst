@@ -503,8 +503,8 @@ Statement Caching
 
 Python-oracledb's :meth:`Cursor.execute()` and :meth:`Cursor.executemany()`
 methods use statement caching to make re-execution of statements efficient.
-Statement caching lets Oracle Database cursors be used without re-parsing the
-statement.  Statement caching also reduces metadata transfer costs between
+Statement caching lets Oracle Database cursors be used without re-parsing
+the statement.  Statement caching also reduces metadata transfer costs between
 python-oracledb and the database. Performance and scalability are improved.
 
 The python-oracledb Thick mode uses `Oracle Call Interface statement caching

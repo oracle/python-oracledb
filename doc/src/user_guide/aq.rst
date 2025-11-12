@@ -19,8 +19,8 @@ Queuing. They were previously called AQ Sharded Queues.
 
 .. note::
 
-    Transactional Event Queues are only supported in python-oracledb
-    :ref:`Thick mode <enablingthick>`.
+    Transactional Event Queues with JMS payloads are only supported in
+    python-oracledb :ref:`Thick mode <enablingthick>`.
 
 Python-oracledb API calls are the same for Transactional Event Queues and
 Classic Queues, however there are differences in support for some payload
@@ -37,17 +37,15 @@ types which are detailed below.
       - Transactional Event Queues
     * - RAW
       - Supported
-      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and connected to Oracle Database 19c (or later).
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Database 19c (or later). In python-oracledb Thick mode, Oracle Client libraries 19c (or later) are needed.
     * - Named Oracle Objects
       - Supported
-      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19c (or later) and connected to Oracle Database 19c (or later).
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Database 19c (or later). In python-oracledb Thick mode, Oracle Client libraries 19c (or later) are needed.
     * - JSON
       - Supported when using Oracle Database 21c (or later). In python-oracle Thick mode, Oracle Client libraries 21c (or later) are also needed.
 
         Buffered messaging using the :data:`~oracledb.MSG_BUFFERED` delivery mode is not supported for JSON payloads.
-      - Supported for single message enqueuing and dequeuing when using Oracle Client libraries 21c (or later) and Oracle Database 21c (or later).
-
-        Array enqueuing and dequeuing is not supported for JSON payloads.
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Database 21c (or later). In python-oracledb Thick mode, Oracle Client libraries 21c (or later) are needed.
 
         Buffered messaging using the :data:`~oracledb.MSG_BUFFERED` delivery mode is not supported for JSON payloads.
     * - JMS
@@ -56,9 +54,13 @@ types which are detailed below.
 
 **Usage Notes**
 
-For classic queues, the use of :data:`oracledb.ENQ_IMMEDIATE` with bulk
-enqueuing, and JMS payloads are only supported in python-oracledb
-:ref:`Thick mode <enablingthick>`.
+For Classic Queues and Transactional Event Queues, the use of
+:data:`oracledb.ENQ_IMMEDIATE` with bulk enqueuing, and JMS payloads are only
+supported in python-oracledb :ref:`Thick mode <enablingthick>`.
+
+The ``payload_type`` parameter in :meth:`Connection.queue()` must be
+specified when the payload is JSON or Named Oracle Objects. This parameter need
+not be specified for RAW payloads.
 
 Transactional Event Queues do not support :attr:`EnqOptions.transformation`,
 :attr:`DeqOptions.transformation`, or :ref:`Recipient Lists <reciplists>`.

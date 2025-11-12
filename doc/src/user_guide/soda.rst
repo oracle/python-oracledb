@@ -24,31 +24,33 @@ how the documents are stored. However, access through SQL does allow use of
 advanced Oracle Database functionality such as analytics for reporting.
 
 Oracle SODA implementations are also available in `Node.js
-<https://oracle.github.io/node-oracledb/doc/api.html#sodaoverview>`__, `Java
-<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/java/adsda/index.html>`__,
-`PL/SQL <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDP>`__,
-`Oracle Call Interface
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-23206C89-891E-43D7-827C-5C6367AD62FD>`__
-and through `REST
-<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/rest/index.html>`__.
+<https://oracle.github.io/node-oracledb/doc/api.html#sodaoverview>`__,
+`Java <https://docs.oracle.com/en/database/oracle/simple-oracle-document-access
+/java/adsda/index.html>`__, `PL/SQL <https://www.oracle.com/pls/topic/lookup?
+ctx=dblatest&id=ADSDP>`__, `Oracle Call Interface <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-23206C89-891E-43D7-827C-5C6367AD62FD>`__, and
+through `REST <https://docs.oracle.com/en/database/oracle/simple-oracle-
+document-access/rest/index.html>`__.
 
 For general information on SODA, see the `SODA home page
-<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/index.html>`__
-and the Oracle Database `Introduction to Simple Oracle Document Access (SODA)
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADSDI>`__ manual.
+<https://docs.oracle.com/en/database/oracle/simple-oracle-document-access/
+index.html>`__ and the Oracle Database `Introduction to Simple Oracle Document
+Access (SODA) <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+ADSDI>`__ manual.
 
-For specific requirements, see the python-oracledb :ref:`SODA requirements <sodarequirements>`.
+For specific requirements, see the python-oracledb :ref:`SODA requirements
+<sodarequirements>`.
 
 Python-oracledb uses the following objects for SODA:
 
-* :ref:`SODA Database Object <sodadb>`: The top-level object for python-oracledb SODA
-  operations. This is acquired from an Oracle Database connection.  A 'SODA
-  database' is an abstraction, allowing access to SODA collections in that
-  'SODA database', which then allow access to documents in those collections.
-  A SODA database is analogous to an Oracle Database user or schema, a
-  collection is analogous to a table, and a document is analogous to a table
-  row with one column for a unique document key, a column for the document
-  content, and other columns for various document attributes.
+* :ref:`SODA Database Object <sodadb>`: The top-level object for
+  python-oracledb SODA operations. This is acquired from an Oracle Database
+  connection.  A 'SODA database' is an abstraction, allowing access to SODA
+  collections in that 'SODA database', which then allow access to documents in
+  those collections.  A SODA database is analogous to an Oracle Database
+  user or schema, a collection is analogous to a table, and a document is
+  analogous to a table row with one column for a unique document key, a column
+  for the document content, and other columns for various document attributes.
 
 * :ref:`SODA Collection Object <sodacoll>`: Represents a collection of SODA
   documents.  By default, collections allow JSON documents to be stored.  This

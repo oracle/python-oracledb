@@ -323,9 +323,9 @@ SodaOperation Methods
 
     .. seealso::
 
-        Oracle Database SQL Tuning Guide documentation `MONITOR and NO_MONITOR
-        Hints <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
-        19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and `Monitoring Database
+        Oracle AI Database SQL Tuning Guide documentation `MONITOR and
+        NO_MONITOR Hints <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
+        id=GUID-19E0F73C-A959-41E4-A168-91E436DEE1F1>`__ and `Monitoring Database
         Operations <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
         GUID-C941CE9D-97E1-42F8-91ED-4949B2B710BF>`__
 

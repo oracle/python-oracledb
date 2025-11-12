@@ -6,7 +6,7 @@
 Using VECTOR Data
 *****************
 
-Oracle Database 23.4 introduced a new data type `VECTOR <https://www.oracle.
+Oracle AI Database 26ai introduced a new data type `VECTOR <https://www.oracle.
 com/pls/topic/lookup?ctx=dblatest&id=GUID-746EAA47-9ADA-4A77-82BB-
 64E8EF5309BE>`__ for artificial intelligence and machine learning search
 operations. The VECTOR data type is a homogeneous array of 8-bit signed
@@ -139,9 +139,8 @@ samples/vector.py>`__ for a runnable example.
 Using BINARY Vectors
 ====================
 
-A Binary vector format is supported when you are using Oracle Database 23.5, or
-later. The binary format represents each dimension value as a binary value (0
-or 1). Binary vectors require less memory storage.  For example, a 16
+A Binary vector format represents each dimension value as a binary value (0 or
+1). Binary vectors require less memory storage.  For example, a 16
 dimensional vector with binary format requires only 2 bytes of storage while a
 16 dimensional vector with int8 format requires 16 bytes of storage.
 
@@ -228,8 +227,6 @@ on sparse vectors, see the `Oracle AI Vector search User's Guide <https://
 www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-6015566C-3277-4A3C-8DD0-
 08B346A05478>`__.
 
-Sparse vectors are supported when you are using Oracle Database 23.7 or later.
-
 Sparse vectors are represented by the total number of vector dimensions, an
 array of indices, and an array of values where each value's location in the
 vector is indicated by the corresponding indices array position. All other
@@ -245,7 +242,7 @@ In this example, the sparse vector has 25 dimensions. Only indices 5, 8, and 11
 have values which are 25.25, 6.125, and 8.25 respectively. All of the other
 values are zero.
 
-In Oracle Database, you can define a column for a sparse vector using the
+In Oracle AI Database, you can define a column for a sparse vector using the
 following format::
 
     VECTOR(number_of_dimensions, dimension_storage_format, sparse)
@@ -345,14 +342,27 @@ This prints::
 Values can also be explicitly passed to `str()
 <https://docs.python.org/3/library/stdtypes.html#str>`__, if needed.
 
-**SPARSE Vector Metadata**
+VECTOR Metadata
+===============
 
 The :ref:`FetchInfo <fetchinfoobj>` object that is returned as part of the
-fetched metadata contains attributes :attr:`FetchInfo.vector_dimensions`,
+query metadata contains attributes :attr:`FetchInfo.vector_dimensions`,
 :attr:`FetchInfo.vector_format`, and :attr:`FetchInfo.vector_is_sparse` which
 return the number of dimensions of the vector column, the format of each
 dimension value in the vector column, and a boolean which determines whether
 the vector is sparse or not.
+
+For example:
+
+.. code-block:: python
+
+    cursor.execute("select float64sparsecol from vector_sparse_table")
+    desc = cursor.description[0]
+    print(desc.vector_format, desc.vector_dimensions, desc.vector_is_sparse)
+
+might print::
+
+    VectorFormat.FLOAT64 30 True
 
 .. _vector_thick_mode_old_client:
 

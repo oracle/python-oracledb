@@ -6,9 +6,9 @@
 Using Bind Variables
 ********************
 
-SQL and PL/SQL statements that pass data to and from Oracle Database should use
-placeholders in SQL and PL/SQL statements that mark where data is supplied or
-returned.  A bind variable placeholder is a colon-prefixed identifier or
+SQL and PL/SQL statements that pass data to and from Oracle Database should
+use placeholders in SQL and PL/SQL statements that mark where data is supplied
+or returned.  A bind variable placeholder is a colon-prefixed identifier or
 numeral. For example, ``:dept_id`` and ``:dept_name`` are the two bind variable
 placeholders in this SQL statement:
 
@@ -796,9 +796,9 @@ unexpected values or the Python application segfaulting.
 Binding Spatial Data Types
 ==========================
 
-Oracle Spatial data types objects can be represented by Python objects and their
-attribute values can be read and updated. The objects can further be bound and
-committed to database. This is similar to the examples above.
+Oracle Spatial data types objects can be represented by Python objects and
+their attribute values can be read and updated. The objects can further be
+bound and committed to database. This is similar to the examples above.
 
 An example of fetching SDO_GEOMETRY is in :ref:`Oracle Database Objects and
 Collections <fetchobjects>`.
@@ -847,8 +847,8 @@ will accept them but there will be no processing benefit.
 It is not uncommon for SQL statements to have low hundreds of
 versions. Sometimes this is expected and not a result of any issue. To
 determine the reason, find the SQL identifier of the statement and then query
-the Oracle Database view `V$SQL_SHARED_CURSOR <https://www.oracle.com/pls/topic
-/lookup?ctx=dblatest&id=GUID-4993A6DE-5658-4745-B43E-F5AD9DB8DCCC>`__.
+the Oracle Database view `V$SQL_SHARED_CURSOR <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-4993A6DE-5658-4745-B43E-F5AD9DB8DCCC>`__.
 
 The SQL identifier of a statement can be found in Oracle Database views like
 `V$SQLAREA <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
@@ -1013,8 +1013,8 @@ This will produce the same output as the original example.
 
 Reusing the same SQL statement like this for a variable number of values,
 instead of constructing a unique statement per set of values, allows best reuse
-of Oracle Database resources. Additionally, if a statement with a large number
-of bind variable placeholders is executed many times with varying string
+of Oracle Database resources. Additionally, if a statement with a large
+number of bind variable placeholders is executed many times with varying string
 lengths for each execution, then consider using :func:`Cursor.setinputsizes()`
 to reduce Oracle Database's SQL ":ref:`version count <sqlversioncount>`" for
 the statement. For example, if the columns are VARCHAR2(25), then add this
@@ -1079,8 +1079,8 @@ The best way to do the '<something that returns a list of values>' depends on
 how the data is initially represented and the number of items. For example you
 might look at using a global temporary table.
 
-One method for large IN lists is to use an Oracle Database collection with the
-``TABLE()`` clause. For example, if the following type was created::
+One method for large IN lists is to use an Oracle Database collection with
+the ``TABLE()`` clause. For example, if the following type was created::
 
     SQL> CREATE OR REPLACE TYPE name_array AS TABLE OF VARCHAR2(25);
       2  /

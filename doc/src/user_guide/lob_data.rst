@@ -26,7 +26,7 @@ dblatest&id=GUID-0A692C1B-1C95-4121-8F95-25BE465B87F6>`__:
       type :attr:`oracledb.DB_TYPE_BFILE`.
 
 LOBs can be permanent or temporary. They can be inserted into, and fetched
-from, Oracle Database in chunks, as mecessary.
+from, Oracle Database in chunks, as necessary.
 
 LOBs up to 1 GB in length can be also be handled directly as strings or bytes
 in python-oracledb.  This makes LOBs easy to work with, and has significant
