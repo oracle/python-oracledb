@@ -291,7 +291,7 @@ cdef class ConnectParamsImpl:
         num_pad = len(header_seg) % 4
         if num_pad != 0:
             header_seg += '=' * num_pad
-        header = json.loads(base64.b64decode(header_seg))
+        header = json.loads(base64.urlsafe_b64decode(header_seg))
         return datetime.datetime.utcfromtimestamp(header["exp"])
 
     cdef bint _get_uses_drcp(self):
