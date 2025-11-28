@@ -25,6 +25,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug when getting the expiry time of the token
+    (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
 #)  Added Session Token-based authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`
     (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
