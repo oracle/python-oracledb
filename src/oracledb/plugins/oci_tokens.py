@@ -190,8 +190,7 @@ def generate_token(token_auth_config, refresh=False):
     """
     Generates an OCI access token based on provided credentials.
     """
-    user_auth_type = token_auth_config.get("auth_type") or ""
-    auth_type = user_auth_type.lower()
+    auth_type = token_auth_config["auth_type"].lower()
     if auth_type == AuthType.ConfigFileAuthentication:
         return _config_file_based_authentication(token_auth_config)
     elif auth_type == AuthType.InstancePrincipal:
@@ -202,17 +201,23 @@ def generate_token(token_auth_config, refresh=False):
         return _security_token_simple_authentication(token_auth_config)
     elif auth_type == AuthType.SimpleAuthentication:
         return _simple_authentication(token_auth_config)
-    else:
-        raise ValueError(
-            f"Unrecognized auth_type authentication method {user_auth_type}"
-        )
+
+
+def has_oci_auth_type(extra_auth_params):
+    """
+    Validates that extra_auth_params contains a valid 'auth_type'
+    """
+    if extra_auth_params is None:
+        return False
+    auth_type = extra_auth_params.get("auth_type")
+    return auth_type is not None and auth_type.lower() in AuthType
 
 
 def oci_token_hook(params: oracledb.ConnectParams):
     """
     OCI-specific hook for generating a token.
     """
-    if params.extra_auth_params is not None:
+    if has_oci_auth_type(params.extra_auth_params):
 
         def token_callback(refresh):
             return generate_token(params.extra_auth_params, refresh)

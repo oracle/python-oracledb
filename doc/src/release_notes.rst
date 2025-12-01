@@ -31,6 +31,10 @@ Common Changes
 #)  Added Session Token-based authentication support when using
     :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`
     (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
+#)  Fixed bug when using multiple
+    :ref:`cloud native authentication <tokenauth>` plugins for connections.
+    Note that an invalid ``auth_type`` parameter will no longer raise an
+    exception but will simply be ignored.
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.

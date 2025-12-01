@@ -28,22 +28,14 @@
 # Methods that generates an OAuth2 access token using the MSAL SDK
 # -----------------------------------------------------------------------------
 
+import enum
+
 import msal
 import oracledb
 
 
-def generate_token(token_auth_config, refresh=False):
-    """
-    Generates an Azure access token based on provided credentials.
-    """
-    user_auth_type = token_auth_config.get("auth_type") or ""
-    auth_type = user_auth_type.lower()
-    if auth_type == "azureserviceprincipal":
-        return _service_principal_credentials(token_auth_config)
-    else:
-        raise ValueError(
-            f"Unrecognized auth_type authentication method: {user_auth_type}"
-        )
+class AuthType(str, enum.Enum):
+    AzureServicePrincipal = "AzureServicePrincipal".lower()
 
 
 def _service_principal_credentials(token_auth_config):
@@ -65,11 +57,30 @@ def _service_principal_credentials(token_auth_config):
         return auth_response["access_token"]
 
 
+def generate_token(token_auth_config, refresh=False):
+    """
+    Generates an Azure access token based on provided credentials.
+    """
+    auth_type = token_auth_config["auth_type"].lower()
+    if auth_type == AuthType.AzureServicePrincipal:
+        return _service_principal_credentials(token_auth_config)
+
+
+def has_azure_auth_type(extra_auth_params):
+    """
+    Validates that extra_auth_params contains a valid 'auth_type'
+    """
+    if extra_auth_params is None:
+        return False
+    auth_type = extra_auth_params.get("auth_type")
+    return auth_type is not None and auth_type.lower() in AuthType
+
+
 def azure_token_hook(params: oracledb.ConnectParams):
     """
     Azure-specific hook for generating a token.
     """
-    if params.extra_auth_params is not None:
+    if has_azure_auth_type(params.extra_auth_params):
 
         def token_callback(refresh):
             return generate_token(params.extra_auth_params, refresh)
