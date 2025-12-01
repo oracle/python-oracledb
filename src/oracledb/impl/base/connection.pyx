@@ -223,6 +223,8 @@ cdef class BaseConnImpl:
         cursor_impl.scrollable = scrollable
         cursor_impl.arraysize = C_DEFAULTS.arraysize
         cursor_impl.prefetchrows = C_DEFAULTS.prefetchrows
+        cursor_impl.fetch_lobs = C_DEFAULTS.fetch_lobs
+        cursor_impl.fetch_decimals = C_DEFAULTS.fetch_decimals
         return cursor_impl
 
     def create_msg_props_impl(self):

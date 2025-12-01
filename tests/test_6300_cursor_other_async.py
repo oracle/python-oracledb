@@ -961,3 +961,10 @@ async def test_6355(async_cursor):
     )
     rows = await async_cursor.fetchall()
     assert isinstance(rows[0][0], decimal.Decimal)
+
+
+async def test_6356(async_cursor):
+    "6356 - test cursor.parse() uses oracledb.defaults.fetch_lobs"
+    await async_cursor.parse("select to_clob('some_value') from dual")
+    fetch_info = async_cursor.description[0]
+    assert fetch_info.type is oracledb.DB_TYPE_CLOB

@@ -35,6 +35,8 @@ Common Changes
     :ref:`cloud native authentication <tokenauth>` plugins for connections.
     Note that an invalid ``auth_type`` parameter will no longer raise an
     exception but will simply be ignored.
+#)  Fixed regression with contents of :data:`Cursor.description` when calling
+    :meth:`Cursor.parse()` with a query that returns LOBs.
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
