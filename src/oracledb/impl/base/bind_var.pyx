@@ -136,7 +136,7 @@ cdef class BindVar:
                 return self.var_impl._check_and_set_value(row_num, value, NULL)
             self.var_impl._check_and_set_value(row_num, value, &was_set)
             if was_set:
-                self.has_value = True
+                self.has_value = not defer_type_assignment
                 return 0
             self.var_impl = None
             self.var = None

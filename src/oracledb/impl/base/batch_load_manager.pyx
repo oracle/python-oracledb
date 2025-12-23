@@ -304,12 +304,13 @@ cdef class FullDataBatchLoadManager(BatchLoadManager):
         Goes to the next batch of data.
         """
         cdef:
-            bint defer_type_assignment = (self.offset == 0)
+            bint defer_type_assignment
             object row
             ssize_t i
         self._calculate_num_rows_in_batch(self.total_num_rows)
         if self.cursor_impl is not None:
             self.cursor_impl._reset_bind_vars(self.offset, self.num_rows)
+            defer_type_assignment = True
             for i in range(self.num_rows):
                 if i == self.num_rows - 1:
                     defer_type_assignment = False

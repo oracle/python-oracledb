@@ -41,6 +41,11 @@ Common Changes
 
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
+#)  Fixed bug when calling :meth:`Cursor.executemany()` with all of the values
+    in at least one column being null followed by a second call where at least
+    the first row also has a null value but some of the later values are not
+    null
+    (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
