@@ -127,7 +127,6 @@ def _load_oci_config(token_auth_config):
     )
     profile = token_auth_config.get("profile", oci.config.DEFAULT_PROFILE)
     config = oci.config.from_file(file_location, profile)
-    oci.config.validate_config(config)
     return config
 
 
@@ -180,7 +179,6 @@ def _simple_authentication(token_auth_config):
         "region": token_auth_config["region"],
         "profile": token_auth_config["profile"],
     }
-    oci.config.validate_config(config)
 
     client = oci.identity_data_plane.DataplaneClient(config)
     return _generate_access_token(client, token_auth_config)

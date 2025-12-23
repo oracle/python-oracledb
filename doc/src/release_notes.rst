@@ -25,16 +25,17 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Fixed bug when getting the expiry time of
-    :ref:`authentication tokens <tokenauth>`
-    (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
-#)  Added Session Token-based authentication support when using
-    :ref:`OCI Cloud Native Authentication <cloudnativeauthoci>`
-    (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
-#)  Fixed bug when using multiple
-    :ref:`cloud native authentication <tokenauth>` plugins for connections.
-    Note that an invalid ``auth_type`` parameter will no longer raise an
-    exception but will simply be ignored.
+#)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
+
+    - Added Session Token-based authentication support for OCI tokens plugin.
+      (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
+    - Fixed bug when getting the expiry time of authentication tokens
+      (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
+    - Fixed bug when using multiple token authentication plugins. Note that an
+      invalid ``auth_type`` parameter will no longer raise an exception but
+      will simply be ignored.
+    - Removed unnecessary validation calls in OCI tokens plugin.
+
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
