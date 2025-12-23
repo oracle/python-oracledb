@@ -19,6 +19,9 @@ oracledb `3.5.0 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.5
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
+    of type ``SYS.XMLTYPE``.
+
 Thick Mode Changes
 ++++++++++++++++++
 
