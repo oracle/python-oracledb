@@ -46,6 +46,7 @@ def test_7300(test_env):
         pool.max_sessions_per_shard
     with test_env.assert_raises_full_code("DPY-3001"):
         pool.max_sessions_per_shard = 2
+    pool.close()
 
 
 def test_7302(test_env):
@@ -70,3 +71,4 @@ def test_7304(test_env):
     pool = test_env.get_pool()
     with test_env.assert_raises_full_code("DPY-3001"):
         pool.acquire(tag="unimportant")
+    pool.close()

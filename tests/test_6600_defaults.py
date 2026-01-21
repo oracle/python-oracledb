@@ -26,6 +26,7 @@
 6600 - Module for testing oracledb.defaults
 """
 
+import contextlib
 import decimal
 import os
 import tempfile
@@ -62,9 +63,9 @@ def _verify_network_name_attr(test_env, name):
 def test_6600(test_env):
     "6600 - test setting defaults.arraysize"
     with test_env.defaults_context_manager("arraysize", 50):
-        conn = test_env.get_connection()
-        cursor = conn.cursor()
-        assert cursor.arraysize == oracledb.defaults.arraysize
+        with test_env.get_connection() as conn:
+            cursor = conn.cursor()
+            assert cursor.arraysize == oracledb.defaults.arraysize
 
 
 def test_6601(cursor, test_env):
@@ -86,9 +87,9 @@ def test_6602(cursor, test_env):
 def test_6603(test_env):
     "6603 - test setting defaults.prefetchrows"
     with test_env.defaults_context_manager("prefetchrows", 20):
-        conn = test_env.get_connection()
-        cursor = conn.cursor()
-        assert cursor.prefetchrows == oracledb.defaults.prefetchrows
+        with test_env.get_connection() as conn:
+            cursor = conn.cursor()
+            assert cursor.prefetchrows == oracledb.defaults.prefetchrows
 
 
 def test_6604(test_env):
@@ -97,22 +98,24 @@ def test_6604(test_env):
     with test_env.defaults_context_manager("stmtcachesize", 40):
         pool = test_env.get_pool()
         assert pool.stmtcachesize == oracledb.defaults.stmtcachesize
-        conn = pool.acquire()
-        assert conn.stmtcachesize == oracledb.defaults.stmtcachesize
+        with pool.acquire() as conn:
+            assert conn.stmtcachesize == oracledb.defaults.stmtcachesize
+        pool.close()
         pool = test_env.get_pool(stmtcachesize=new_stmtcachesize)
         assert pool.stmtcachesize == new_stmtcachesize
-        conn = pool.acquire()
-        assert conn.stmtcachesize == new_stmtcachesize
+        with pool.acquire() as conn:
+            assert conn.stmtcachesize == new_stmtcachesize
+        pool.close()
 
 
 def test_6605(test_env):
     "6605 - test setting defaults.stmtcachesize (standalone connection)"
     new_stmtcachesize = 25
     with test_env.defaults_context_manager("stmtcachesize", 50):
-        conn = test_env.get_connection()
-        assert conn.stmtcachesize == oracledb.defaults.stmtcachesize
-        conn = test_env.get_connection(stmtcachesize=new_stmtcachesize)
-        assert conn.stmtcachesize == new_stmtcachesize
+        with test_env.get_connection() as conn:
+            assert conn.stmtcachesize == oracledb.defaults.stmtcachesize
+        with test_env.get_connection(stmtcachesize=new_stmtcachesize) as conn:
+            assert conn.stmtcachesize == new_stmtcachesize
 
 
 def test_6606(cursor, test_env):
@@ -154,22 +157,28 @@ def test_6609(test_env):
     new_value = 29
     with test_env.defaults_context_manager("stmtcachesize", value):
         pool = test_env.get_pool()
-        pooled_conn = pool.acquire()
         params = oracledb.ConnectParams()
-        standalone_conn = test_env.get_connection()
-        with test_env.defaults_context_manager("stmtcachesize", new_value):
-            assert pool.stmtcachesize == value
-            assert pooled_conn.stmtcachesize == value
-            assert params.stmtcachesize == value
-            assert standalone_conn.stmtcachesize == value
-            pool = test_env.get_pool()
-            pooled_conn = pool.acquire()
-            params = oracledb.ConnectParams()
-            standalone_conn = test_env.get_connection()
-            assert pool.stmtcachesize == new_value
-            assert pooled_conn.stmtcachesize == new_value
-            assert params.stmtcachesize == new_value
-            assert standalone_conn.stmtcachesize == new_value
+        with contextlib.ExitStack() as stack:
+            pooled_conn = stack.enter_context(pool.acquire())
+            standalone_conn = stack.enter_context(test_env.get_connection())
+            with test_env.defaults_context_manager("stmtcachesize", new_value):
+                assert pool.stmtcachesize == value
+                assert pooled_conn.stmtcachesize == value
+                assert params.stmtcachesize == value
+                assert standalone_conn.stmtcachesize == value
+                pool.release(pooled_conn)
+                pool.close()
+                pool = test_env.get_pool()
+                params = oracledb.ConnectParams()
+                pooled_conn = stack.enter_context(pool.acquire())
+                standalone_conn = stack.enter_context(
+                    test_env.get_connection()
+                )
+                assert pool.stmtcachesize == new_value
+                assert pooled_conn.stmtcachesize == new_value
+                assert params.stmtcachesize == new_value
+                assert standalone_conn.stmtcachesize == new_value
+        pool.close()
 
 
 def test_6610(test_env):

@@ -863,11 +863,11 @@ def test_2340(conn, cursor):
 def test_2341(test_env):
     "2341 - test insufficient privileges for gettype()"
     main_user = test_env.main_user.upper()
-    conn = test_env.get_connection(
+    with test_env.get_connection(
         user=test_env.proxy_user, password=test_env.proxy_password
-    )
-    with test_env.assert_raises_full_code("DPY-2035"):
-        conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
+    ) as conn:
+        with test_env.assert_raises_full_code("DPY-2035"):
+            conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
 
 
 def test_2342(conn, cursor, test_env):

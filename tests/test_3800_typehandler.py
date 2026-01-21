@@ -153,31 +153,31 @@ def test_3804(cursor, test_env):
     building_one = Building(1, "The First Building", 5)
     building_two = Building(2, "The Second Building", 87)
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
-    conn = test_env.get_connection()
-    conn.inputtypehandler = input_type_handler
-    assert conn.inputtypehandler == input_type_handler
+    with test_env.get_connection() as conn:
+        conn.inputtypehandler = input_type_handler
+        assert conn.inputtypehandler == input_type_handler
 
-    cursor_one = conn.cursor()
-    cursor_two = conn.cursor()
-    cursor_one.execute(sql, [building_one.building_id, building_one])
-    cursor_two.execute(sql, [building_two.building_id, building_two])
-    conn.commit()
+        cursor_one = conn.cursor()
+        cursor_two = conn.cursor()
+        cursor_one.execute(sql, [building_one.building_id, building_one])
+        cursor_two.execute(sql, [building_two.building_id, building_two])
+        conn.commit()
 
-    expected_data = [
-        (building_one.building_id, building_one),
-        (building_two.building_id, building_two),
-    ]
-    conn.outputtypehandler = output_type_handler
-    assert conn.outputtypehandler == output_type_handler
-    cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
-    assert cursor_one.fetchvars[1].outconverter == Building.from_json
-    assert cursor_one.fetchall() == expected_data
+        expected_data = [
+            (building_one.building_id, building_one),
+            (building_two.building_id, building_two),
+        ]
+        conn.outputtypehandler = output_type_handler
+        assert conn.outputtypehandler == output_type_handler
+        cursor_one.execute("select IntCol, StringCol1 from TestTempTable")
+        assert cursor_one.fetchvars[1].outconverter == Building.from_json
+        assert cursor_one.fetchall() == expected_data
 
-    cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
-    assert cursor_two.fetchall() == expected_data
-    other_cursor = cursor.connection.cursor()
-    with test_env.assert_raises_full_code("DPY-3002"):
-        other_cursor.execute(sql, (building_one.building_id, building_one))
+        cursor_two.execute("select IntCol, StringCol1 from TestTempTable")
+        assert cursor_two.fetchall() == expected_data
+        other_cursor = cursor.connection.cursor()
+        with test_env.assert_raises_full_code("DPY-3002"):
+            other_cursor.execute(sql, (building_one.building_id, building_one))
 
 
 def test_3805(conn, cursor):

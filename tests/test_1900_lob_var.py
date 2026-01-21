@@ -411,7 +411,7 @@ def test_1917(cursor, test_env):
     _test_lob_operations(cursor, test_env, "NCLOB")
 
 
-def test_1918(skip_if_implicit_pooling, conn, cursor):
+def test_1918(skip_if_implicit_pooling, skip_unless_refcounting, conn, cursor):
     "1918 - test temporary LOBs"
     cursor.execute("select sys_context('USERENV', 'SID') from dual")
     (sid,) = cursor.fetchone()

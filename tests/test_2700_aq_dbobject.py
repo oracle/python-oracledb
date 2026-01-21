@@ -182,17 +182,17 @@ def test_2708(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props is None
-    conn.commit()
-    props = queue.deqone()
-    other_conn.commit()
-    assert props is not None
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props is None
+        conn.commit()
+        props = queue.deqone()
+        other_conn.commit()
+        assert props is not None
 
 
 def test_2709(conn, queue, book_data, test_env):
@@ -203,17 +203,17 @@ def test_2709(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    book = props.payload
-    results = (book.TITLE, book.AUTHORS, book.PRICE)
-    other_conn.commit()
-    assert results == book_data[0]
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        book = props.payload
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        other_conn.commit()
+        assert results == book_data[0]
 
 
 def test_2710(conn, queue, book_data, test_env):
@@ -225,19 +225,19 @@ def test_2710(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props.deliverymode == oracledb.MSG_BUFFERED
-    book = props.payload
-    results = (book.TITLE, book.AUTHORS, book.PRICE)
-    other_conn.commit()
-    assert results == book_data[0]
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props.deliverymode == oracledb.MSG_BUFFERED
+        book = props.payload
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        other_conn.commit()
+        assert results == book_data[0]
 
 
 def test_2711(conn, queue, book_data, test_env):
@@ -249,19 +249,19 @@ def test_2711(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props.deliverymode == oracledb.MSG_PERSISTENT
-    book = props.payload
-    results = (book.TITLE, book.AUTHORS, book.PRICE)
-    other_conn.commit()
-    assert results == book_data[0]
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props.deliverymode == oracledb.MSG_PERSISTENT
+        book = props.payload
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        other_conn.commit()
+        assert results == book_data[0]
 
 
 def test_2712(conn, queue, book_data, test_env):
@@ -273,19 +273,19 @@ def test_2712(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props.deliverymode == oracledb.MSG_PERSISTENT
-    book = props.payload
-    results = (book.TITLE, book.AUTHORS, book.PRICE)
-    other_conn.commit()
-    assert results == book_data[0]
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props.deliverymode == oracledb.MSG_PERSISTENT
+        book = props.payload
+        results = (book.TITLE, book.AUTHORS, book.PRICE)
+        other_conn.commit()
+        assert results == book_data[0]
 
 
 def test_2713(conn, queue, book_data, test_env):
@@ -297,15 +297,15 @@ def test_2713(conn, queue, book_data, test_env):
     props = conn.msgproperties(payload=book)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props is None
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props is None
 
 
 def test_2714(skip_unless_thick_mode, conn, queue, book_data, test_env):
@@ -317,17 +317,17 @@ def test_2714(skip_unless_thick_mode, conn, queue, book_data, test_env):
     queue.enqone(props)
     conn.commit()
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    transformation_str = f"{conn.username}.transform2"
-    queue.deqoptions.transformation = transformation_str
-    assert queue.deqoptions.transformation == transformation_str
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props.payload.PRICE == expected_price
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        transformation_str = f"{conn.username}.transform2"
+        queue.deqoptions.transformation = transformation_str
+        assert queue.deqoptions.transformation == transformation_str
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props.payload.PRICE == expected_price
 
 
 def test_2715(skip_unless_thick_mode, conn, queue, book_data, test_env):
@@ -345,14 +345,14 @@ def test_2715(skip_unless_thick_mode, conn, queue, book_data, test_env):
     queue.enqone(props)
     conn.commit()
 
-    other_conn = test_env.get_connection()
-    books_type = other_conn.gettype(queue.payload_type.name)
-    queue = other_conn.queue(queue.name, books_type)
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props.payload.PRICE == expected_price
+    with test_env.get_connection() as other_conn:
+        books_type = other_conn.gettype(queue.payload_type.name)
+        queue = other_conn.queue(queue.name, books_type)
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props.payload.PRICE == expected_price
 
 
 def test_2716(conn, queue, test_env):
@@ -440,6 +440,7 @@ def test_2720(skip_unless_thick_mode, conn, queue, book_data, test_env):
     with condition:
         assert condition.wait(5)
     other_conn.unsubscribe(sub)
+    other_conn.close()
 
 
 def test_2721(conn, cursor, queue):

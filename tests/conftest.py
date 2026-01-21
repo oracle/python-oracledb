@@ -75,6 +75,7 @@ import os
 import platform
 import secrets
 import string
+import sys
 
 import numpy
 import oracledb
@@ -259,19 +260,19 @@ class TestEnv:
 
         # establish a connection to determine the remaining information
         params = self.get_connect_params()
-        conn = oracledb.connect(dsn=self.connect_string, params=params)
-        version_parts = conn.version.split(".")[:2]
-        self.server_version = tuple(int(s) for s in version_parts)
-        self.is_drcp = self._is_drcp()
-        self.is_implicit_pooling = self._is_implicit_pooling()
-        self.is_on_oracle_cloud = self._is_on_oracle_cloud(conn)
-        self.charset = self._get_charset(conn)
-        self.charset_ratios = self._get_charset_ratios(conn)
-        self.sleep_proc_name = (
-            "dbms_session.sleep"
-            if self.server_version >= (18, 0)
-            else "dbms_lock.sleep"
-        )
+        with oracledb.connect(dsn=self.connect_string, params=params) as conn:
+            version_parts = conn.version.split(".")[:2]
+            self.server_version = tuple(int(s) for s in version_parts)
+            self.is_drcp = self._is_drcp()
+            self.is_implicit_pooling = self._is_implicit_pooling()
+            self.is_on_oracle_cloud = self._is_on_oracle_cloud(conn)
+            self.charset = self._get_charset(conn)
+            self.charset_ratios = self._get_charset_ratios(conn)
+            self.sleep_proc_name = (
+                "dbms_session.sleep"
+                if self.server_version >= (18, 0)
+                else "dbms_lock.sleep"
+            )
 
         # mark environment as fully initialized
         self.initialized = True
@@ -988,6 +989,12 @@ def skip_unless_vectors_supported(test_env):
     """
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("no vector support")
+
+
+@pytest.fixture
+def skip_unless_refcounting():
+    if sys.implementation.name in ("graalpy", "pypy"):
+        pytest.skip("needs interpreter with refcounting")
 
 
 @pytest.fixture
