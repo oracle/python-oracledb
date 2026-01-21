@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -326,8 +326,8 @@ cdef class Buffer:
     cdef int _write_raw_bytes_and_length(self, const char_type *ptr,
                                          ssize_t num_bytes) except -1
     cdef inline ssize_t bytes_left(self)
-    cdef object read_bytes(self)
-    cdef object read_bytes_with_length(self)
+    cdef bytes read_bytes(self)
+    cdef bytes read_bytes_with_length(self)
     cdef int read_int32be(self, int32_t *value) except -1
     cdef const char_type* read_raw_bytes(self, ssize_t num_bytes) except NULL
     cdef int read_raw_bytes_and_length(self, const char_type **ptr,
@@ -349,6 +349,8 @@ cdef class Buffer:
     cdef int read_uint16be(self, uint16_t *value) except -1
     cdef int read_uint16le(self, uint16_t *value) except -1
     cdef int read_uint32be(self, uint32_t *value) except -1
+    cdef int skip_bytes(self) except -1
+    cdef int skip_bytes_with_length(self) except -1
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1
     cdef inline int skip_sb4(self) except -1
     cdef inline void skip_to(self, ssize_t pos)

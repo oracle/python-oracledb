@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -221,7 +221,7 @@ cdef class Buffer:
                 errors._raise_err(errors.ERR_DB_TYPE_NOT_SUPPORTED,
                                   name=metadata.dbtype.name)
 
-    cdef object read_bytes(self):
+    cdef bytes read_bytes(self):
         """
         Read bytes from the buffer and return the corresponding Python object
         representing that value.
@@ -233,7 +233,7 @@ cdef class Buffer:
         if ptr != NULL:
             return ptr[:num_bytes]
 
-    cdef object read_bytes_with_length(self):
+    cdef bytes read_bytes_with_length(self):
         """
         Reads a length from the buffer and then, if the length is non-zero,
         reads bytes from the buffer and returns it.
@@ -431,6 +431,35 @@ cdef class Buffer:
         Read a 32-bit integer in big endian order from the buffer.
         """
         value[0] = decode_uint32be(self._get_raw(4))
+
+    cdef int skip_bytes(self) except -1:
+        """
+        Skip bytes in the buffer. This is the equivalent of read_bytes() but
+        without creating and returning the bytes object.
+        """
+        cdef:
+            uint32_t num_bytes
+            uint8_t length
+        self.read_ub1(&length)
+        if length != TNS_LONG_LENGTH_INDICATOR:
+            self.skip_raw_bytes(length)
+        else:
+            while True:
+                self.read_ub4(&num_bytes)
+                if num_bytes == 0:
+                    break
+                self.skip_raw_bytes(num_bytes)
+
+    cdef int skip_bytes_with_length(self) except -1:
+        """
+        Skip bytes in the buffer preceded by a length. This is the equivalent
+        of read_bytes_with_length() but without creating and returning the
+        bytes object.
+        """
+        cdef uint32_t num_bytes
+        self.read_ub4(&num_bytes)
+        if num_bytes > 0:
+            self.skip_bytes()
 
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1:
         """

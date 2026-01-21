@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -189,9 +189,7 @@ cdef class Message:
         buf.skip_ub1()                      # call number
         buf.skip_ub2()                      # padding
         buf.skip_ub4()                      # success iters
-        buf.read_ub4(&num_bytes)            # oerrdd (logical rowid)
-        if num_bytes > 0:
-            buf.skip_raw_bytes_chunked()
+        buf.skip_bytes_with_length()        # oerrdd (logical rowid)
 
         # batch error codes
         buf.read_ub2(&num_errors)           # batch error codes array
@@ -403,7 +401,7 @@ cdef class Message:
             pass
         elif opcode == TNS_SERVER_PIGGYBACK_OS_PID_MTS:
             buf.read_ub2(&temp16)
-            buf.skip_raw_bytes_chunked()
+            buf.skip_bytes()
         elif opcode == TNS_SERVER_PIGGYBACK_SYNC:
             buf.skip_ub2()                  # skip number of DTYs
             buf.skip_ub1()                  # skip length of DTYs
@@ -420,9 +418,7 @@ cdef class Message:
             buf.skip_ub4()                  # skip flags
             buf.skip_ub4()                  # skip error code
             buf.skip_ub1()                  # skip queue
-            buf.read_ub4(&num_bytes)        # skip replay context
-            if num_bytes > 0:
-                buf.skip_raw_bytes_chunked()
+            buf.skip_bytes_with_length()    # skip replay context
         elif opcode == TNS_SERVER_PIGGYBACK_SESS_RET:
             buf.skip_ub2()
             buf.skip_ub1()
@@ -432,10 +428,10 @@ cdef class Message:
                 for i in range(num_elements):
                     buf.read_ub2(&temp16)
                     if temp16 > 0:          # skip key
-                        buf.skip_raw_bytes_chunked()
+                        buf.skip_bytes()
                     buf.read_ub2(&temp16)
                     if temp16 > 0:          # skip value
-                        buf.skip_raw_bytes_chunked()
+                        buf.skip_bytes()
                     buf.skip_ub2()          # skip flags
             buf.read_ub4(&flags)            # session flags
             if flags & TNS_SESSGET_SESSION_CHANGED:
@@ -1113,9 +1109,9 @@ cdef class MessageWithData(Message):
             list prev_fetch_var_impls
             object type_handler, conn
             OracleMetadata metadata
-            uint32_t num_bytes, i
             bint uses_metadata
             str message
+            uint32_t i
         buf.skip_ub4()                      # max row size
         buf.read_ub4(&cursor_impl._num_columns)
         prev_fetch_var_impls = stmt._fetch_var_impls
@@ -1137,16 +1133,12 @@ cdef class MessageWithData(Message):
                 stmt._no_prefetch = True
             cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
                                           uses_metadata, i, metadata)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            buf.skip_raw_bytes_chunked()    # current date
+        buf.skip_bytes_with_length()        # current date
         buf.skip_ub4()                      # dcbflag
         buf.skip_ub4()                      # dcbmdbz
         buf.skip_ub4()                      # dcbmnpr
         buf.skip_ub4()                      # dcbmxpr
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            buf.skip_raw_bytes_chunked()    # dcbqcky
+        buf.skip_bytes_with_length()        # dcbqcky
         stmt._fetch_metadata = cursor_impl.fetch_metadata
         stmt._fetch_vars = cursor_impl.fetch_vars
         stmt._fetch_var_impls = cursor_impl.fetch_var_impls
@@ -1245,7 +1237,7 @@ cdef class MessageWithData(Message):
             self.flush_out_binds = True
             self.end_of_response = True
         elif message_type == TNS_MSG_TYPE_DESCRIBE_INFO:
-            buf.skip_raw_bytes_chunked()
+            buf.skip_bytes()
             self._process_describe_info(buf, self.cursor, self.cursor_impl)
             self.out_var_impls = self.cursor_impl.fetch_var_impls
         elif message_type == TNS_MSG_TYPE_ERROR:
@@ -1340,9 +1332,7 @@ cdef class MessageWithData(Message):
         if num_bytes > 0:
             buf.skip_ub1()                  # skip repeated length
             self._get_bit_vector(buf, num_bytes)
-        buf.read_ub4(&num_bytes)
-        if num_bytes > 0:
-            buf.skip_raw_bytes_chunked()    # rxhrid
+        buf.skip_bytes_with_length()        # rxhrid
 
     cdef int _write_column_metadata(self, WriteBuffer buf,
                                     list bind_var_impls) except -1:

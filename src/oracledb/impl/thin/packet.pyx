@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -433,18 +433,12 @@ cdef class ReadBuffer(Buffer):
         it.
         """
         cdef:
-            bytes oid = None, toid = None
             ThinDbObjectImpl obj_impl
             uint32_t num_bytes
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # type OID
-            toid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # OID
-            oid = self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # snapshot
-            self.read_bytes()
+            bytes oid, toid
+        toid = self.read_bytes_with_length()
+        oid = self.read_bytes_with_length()
+        self.skip_bytes_with_length()       # snapshot
         self.skip_ub2()                     # version
         self.read_ub4(&num_bytes)           # length of data
         self.skip_ub2()                     # flags
@@ -533,7 +527,6 @@ cdef class ReadBuffer(Buffer):
             int input_offset = 1, output_offset = 0
             const char_type *input_ptr
             bytearray output_value
-            uint32_t num_bytes
             uint8_t length
             Rowid rowid
 
@@ -630,15 +623,9 @@ cdef class ReadBuffer(Buffer):
         cdef:
             DbObjectPickleBuffer buf
             uint32_t num_bytes
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # type OID
-            self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # OID
-            self.read_bytes()
-        self.read_ub4(&num_bytes)
-        if num_bytes > 0:                   # snapshot
-            self.read_bytes()
+        self.skip_bytes_with_length()       # type OID
+        self.skip_bytes_with_length()       # OID
+        self.skip_bytes_with_length()       # snapshot
         self.skip_ub2()                     # version
         self.read_ub4(&num_bytes)           # length of data
         self.skip_ub2()                     # flags
@@ -708,25 +695,6 @@ cdef class ReadBuffer(Buffer):
         """
         self._saved_packet_pos = self._next_packet_pos - 1
         self._saved_pos = self._pos
-
-    cdef int skip_raw_bytes_chunked(self) except -1:
-        """
-        Skip a number of bytes that may or may not be chunked in the buffer.
-        The first byte gives the length. If the length is
-        TNS_LONG_LENGTH_INDICATOR, however, chunks are read and discarded.
-        """
-        cdef:
-            uint32_t temp_num_bytes
-            uint8_t length
-        self.read_ub1(&length)
-        if length != TNS_LONG_LENGTH_INDICATOR:
-            self.skip_raw_bytes(length)
-        else:
-            while True:
-                self.read_ub4(&temp_num_bytes)
-                if temp_num_bytes == 0:
-                    break
-                self.skip_raw_bytes(temp_num_bytes)
 
     async def wait_for_packets_async(self):
         """
