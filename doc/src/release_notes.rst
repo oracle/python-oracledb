@@ -49,6 +49,8 @@ Common Changes
     the first row also has a null value but some of the later values are not
     null
     (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
+#)  Eliminated race condition in background thread/coroutine management for
+    connection pools.
 #)  Adjusted code and tests to be capable of being run in environments other
     than CPython.
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
