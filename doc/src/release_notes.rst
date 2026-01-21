@@ -49,6 +49,9 @@ Common Changes
     the first row also has a null value but some of the later values are not
     null
     (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
+#)  Fixed bug causing hang when using :ref:`asyncio <concurrentprogramming>`
+    and the database closes the connection before the connection is returned to
+    the user.
 #)  Eliminated race condition in background thread/coroutine management for
     connection pools.
 #)  Adjusted code and tests to be capable of being run in environments other

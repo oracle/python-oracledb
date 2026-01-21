@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -976,10 +976,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             self._read_buf._transport = None
             self._write_buf._transport = None
             self._read_buf._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
-            if self._read_buf._waiter is not None \
-                    and not self._read_buf._waiter.done():
-                error = errors._create_err(errors.ERR_CONNECTION_CLOSED)
-                self._read_buf._waiter.set_exception(error.exc_type(error))
+        if self._read_buf._waiter is not None \
+                and not self._read_buf._waiter.done():
+            error = errors._create_err(errors.ERR_CONNECTION_CLOSED)
+            self._read_buf._waiter.set_exception(error.exc_type(error))
 
     def data_received(self, data):
         """
