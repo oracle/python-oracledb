@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1019,3 +1019,31 @@ async def test_9022(
         "select Id, FirstName from TestDataFrame order by Id"
     )
     assert await async_cursor.fetchall() == rows
+
+
+async def test_9023(async_conn, async_cursor, empty_tab):
+    "9023 - test ingestion with a column containing only null values"
+    names = ["Id", "DateOfBirth"]
+    values = [None] * 3
+    arrays = [
+        pyarrow.array([1, 2, 3], pyarrow.int8()),
+        pyarrow.array(values, pyarrow.null()),
+    ]
+    df = pyarrow.table(arrays, names)
+    await async_cursor.executemany(
+        """
+        insert into TestDataFrame (Id, DateOfBirth)
+        values (:1, :2)
+        """,
+        df,
+    )
+    await async_conn.commit()
+    await async_cursor.execute(
+        """
+        select DateOfBirth
+        from TestDataFrame
+        order by Id
+        """
+    )
+    fetched_values = [d async for d, in async_cursor]
+    assert fetched_values == values

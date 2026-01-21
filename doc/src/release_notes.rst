@@ -40,6 +40,8 @@ Common Changes
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
+#)  Added support for ingesting Arrow arrays which only consist of null values
+    (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
 #)  Fixed bug when calling :meth:`Cursor.executemany()` with all of the values

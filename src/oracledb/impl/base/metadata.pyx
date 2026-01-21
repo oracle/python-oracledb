@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -152,9 +152,11 @@ cdef class OracleMetadata:
             uint32_t db_type_num = self.dbtype.num
             bint ok = False
 
-        if arrow_type in (NANOARROW_TYPE_BINARY,
-                          NANOARROW_TYPE_FIXED_SIZE_BINARY,
-                          NANOARROW_TYPE_LARGE_BINARY):
+        if arrow_type == NANOARROW_TYPE_NA:
+            ok = True
+        elif arrow_type in (NANOARROW_TYPE_BINARY,
+                            NANOARROW_TYPE_FIXED_SIZE_BINARY,
+                            NANOARROW_TYPE_LARGE_BINARY):
             if db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
                 ok = True
         elif arrow_type == NANOARROW_TYPE_BOOL:
@@ -326,7 +328,7 @@ cdef class OracleMetadata:
             NANOARROW_TYPE_UINT64,
         ):
             metadata.dbtype = DB_TYPE_NUMBER
-        elif arrow_type == NANOARROW_TYPE_STRING:
+        elif arrow_type in (NANOARROW_TYPE_STRING, NANOARROW_TYPE_NA):
             metadata.dbtype = DB_TYPE_VARCHAR
         elif arrow_type in (NANOARROW_TYPE_BINARY,
                             NANOARROW_TYPE_FIXED_SIZE_BINARY):

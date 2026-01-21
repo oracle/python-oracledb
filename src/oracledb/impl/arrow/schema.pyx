@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -181,6 +181,7 @@ cdef class ArrowSchemaImpl:
             NANOARROW_TYPE_INT64,
             NANOARROW_TYPE_LARGE_BINARY,
             NANOARROW_TYPE_LARGE_STRING,
+            NANOARROW_TYPE_NA,
             NANOARROW_TYPE_STRING,
             NANOARROW_TYPE_UINT8,
             NANOARROW_TYPE_UINT16,
