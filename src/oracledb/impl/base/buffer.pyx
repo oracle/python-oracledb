@@ -183,7 +183,17 @@ cdef class Buffer:
             elif ora_type_num == ORA_TYPE_NUM_BINARY_FLOAT:
                 decode_binary_float(ptr, num_bytes, &data.buffer)
             elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
-                decode_bool(ptr, num_bytes, &data.buffer)
+                # inside a database object, the boolean is represented as a
+                # big endian 32-bit integer (either 0 or 1)
+                if from_dbobject:
+                    data.buffer.as_bool = ptr[num_bytes - 1] == 1
+                # outside a database object, the boolean is represented as an
+                # encoded integer (0x00 for false and 0x0101 for true); older
+                # versions like 12.1 also return 0x8101 (-1) for null values
+                # but this can safely be ignored as the null indicator is sent
+                # as a separate field afterwards anyways
+                else:
+                    data.buffer.as_bool = ptr[0] == 1
             elif ora_type_num in (
                 ORA_TYPE_NUM_CHAR,
                 ORA_TYPE_NUM_LONG,
