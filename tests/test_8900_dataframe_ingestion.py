@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1001,3 +1001,31 @@ def test_8922(batch_size, conn, cursor, empty_tab, round_trip_checker):
     conn.commit()
     cursor.execute("select Id, FirstName from TestDataFrame order by Id")
     assert cursor.fetchall() == rows
+
+
+def test_8923(conn, cursor, empty_tab):
+    "8923 - test ingestion with a column containing only null values"
+    names = ["Id", "DateOfBirth"]
+    values = [None] * 3
+    arrays = [
+        pyarrow.array([1, 2, 3], pyarrow.int8()),
+        pyarrow.array(values, pyarrow.null()),
+    ]
+    df = pyarrow.table(arrays, names)
+    cursor.executemany(
+        """
+        insert into TestDataFrame (Id, DateOfBirth)
+        values (:1, :2)
+        """,
+        df,
+    )
+    conn.commit()
+    cursor.execute(
+        """
+        select DateOfBirth
+        from TestDataFrame
+        order by Id
+        """
+    )
+    fetched_values = [d for d, in cursor]
+    assert fetched_values == values

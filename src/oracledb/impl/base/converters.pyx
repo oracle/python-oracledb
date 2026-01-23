@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -50,7 +50,9 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
 
     arrow_type = metadata._schema_impl.arrow_type
     db_type_num = metadata.dbtype.num
-    if arrow_type in (
+    if arrow_type == NANOARROW_TYPE_NA:
+        data.is_null = True
+    elif arrow_type in (
         NANOARROW_TYPE_INT8,
         NANOARROW_TYPE_INT16,
         NANOARROW_TYPE_INT32,

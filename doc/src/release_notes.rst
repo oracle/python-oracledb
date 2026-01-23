@@ -36,6 +36,8 @@ Common Changes
     the first row also has a null value but some of the later values are not
     null
     (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
+#)  Added support for ingesting Arrow arrays which only consist of null values
+    (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
 
