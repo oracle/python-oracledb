@@ -25,6 +25,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug when getting the expiry time of
+    :ref:`authentication tokens <tokenauth>`
+    (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
+
 
 oracledb `3.4.1 <https://github.com/oracle/python-oracledb/compare/v3.4.0...v3.4.1>`__ (November 2025)
 ------------------------------------------------------------------------------------------------------

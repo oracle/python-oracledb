@@ -284,15 +284,15 @@ cdef class ConnectParamsImpl:
         Gets the expiry date from the token.
         """
         cdef:
-            str header_seg
-            dict header
-            int num_pad
-        header_seg = token.split(".")[1]
-        num_pad = len(header_seg) % 4
-        if num_pad != 0:
-            header_seg += '=' * num_pad
-        header = json.loads(base64.b64decode(header_seg))
-        return datetime.datetime.utcfromtimestamp(header["exp"])
+            str payload_segment
+            dict payload
+            int pad_needed
+        payload_segment = token.split(".")[1]
+        pad_needed = len(payload_segment) % 4
+        if pad_needed != 0:
+            payload_segment += '=' * (4 - pad_needed)
+        payload = json.loads(base64.urlsafe_b64decode(payload_segment))
+        return datetime.datetime.utcfromtimestamp(payload["exp"])
 
     cdef bint _get_uses_drcp(self):
         """
