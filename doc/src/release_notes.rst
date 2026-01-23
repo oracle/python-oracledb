@@ -42,6 +42,9 @@ Common Changes
     (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
+#)  Eliminated memory leak when converting a third party data frame to one used
+    internally by the driver
+    (`issue 561 <https://github.com/oracle/python-oracledb/issues/561>`__).
 #)  Fixed bug causing hang when using :ref:`asyncio <concurrentprogramming>`
     and the database closes the connection before the connection is returned to
     the user.
