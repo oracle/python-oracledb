@@ -27,6 +27,7 @@
 """
 
 import decimal
+import itertools
 
 import oracledb
 import pytest
@@ -434,5 +435,39 @@ async def test_6127(
     await async_conn.commit()
     await async_cursor.execute(
         "select IntCol, StringCol1 from TestTempTable order by IntCol"
+    )
+    assert await async_cursor.fetchall() == rows
+
+
+async def test_6128(async_conn, async_cursor, empty_tab):
+    "6128 - test consecutive executemany() with all values null in first call"
+    rows = [(i + 1, None) for i in range(10)] + [
+        (i + 11, (i + 11) * 0.25) for i in range(10)
+    ]
+    for chunk in itertools.batched(rows, 4):
+        await async_cursor.executemany(
+            "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)",
+            list(chunk),
+        )
+    await async_conn.commit()
+    await async_cursor.execute(
+        "select IntCol, NumberCol from TestTempTable order by IntCol"
+    )
+    assert await async_cursor.fetchall() == rows
+
+
+async def test_6129(async_conn, async_cursor, empty_tab):
+    "6129 - test batched executemany() with all values null in first chunks"
+    rows = [(i + 1, None) for i in range(10)] + [
+        (i + 11, (i + 11) * 0.25) for i in range(10)
+    ]
+    await async_cursor.executemany(
+        "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)",
+        rows,
+        batch_size=4,
+    )
+    await async_conn.commit()
+    await async_cursor.execute(
+        "select IntCol, NumberCol from TestTempTable order by IntCol"
     )
     assert await async_cursor.fetchall() == rows

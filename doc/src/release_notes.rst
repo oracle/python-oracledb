@@ -31,6 +31,11 @@ Common Changes
 #)  Fixed bug when getting the expiry time of
     :ref:`authentication tokens <tokenauth>`
     (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
+#)  Fixed bug when calling :meth:`Cursor.executemany()` with all of the values
+    in at least one column being null followed by a second call where at least
+    the first row also has a null value but some of the later values are not
+    null
+    (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
 
