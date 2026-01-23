@@ -106,7 +106,7 @@ The larger file ``timezlrg_<n>.dat`` contains all time zone information. This
 is the file used by default.  The smaller ``timezone_<n>.dat`` file contains
 only the most commonly used time zones.
 
-The filenames shows the version of the time zone files, in this example it is
+The filenames show the version of the time zone files. In this example it is
 version 43.
 
 The Oracle Database documentation contains more information about time zone
