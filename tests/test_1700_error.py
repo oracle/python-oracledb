@@ -207,13 +207,13 @@ def test_1708(cursor):
 
 def test_1709(skip_if_drcp, conn, test_env):
     "1709 - error from killed connection is deemed recoverable"
-    admin_conn = test_env.get_admin_connection()
-    conn = test_env.get_connection()
-    sid, serial = test_env.get_sid_serial(conn)
-    with admin_conn.cursor() as admin_cursor:
-        sql = f"alter system kill session '{sid},{serial}'"
-        admin_cursor.execute(sql)
-    with test_env.assert_raises_full_code("DPY-4011") as excinfo:
-        with conn.cursor() as cursor:
-            cursor.execute("select user from dual")
-    assert excinfo.error_obj.isrecoverable
+    with test_env.get_admin_connection() as admin_conn:
+        conn = test_env.get_connection()
+        sid, serial = test_env.get_sid_serial(conn)
+        with admin_conn.cursor() as admin_cursor:
+            sql = f"alter system kill session '{sid},{serial}'"
+            admin_cursor.execute(sql)
+        with test_env.assert_raises_full_code("DPY-4011") as excinfo:
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+        assert excinfo.error_obj.isrecoverable

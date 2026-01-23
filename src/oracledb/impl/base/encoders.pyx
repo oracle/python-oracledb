@@ -121,9 +121,14 @@ cdef inline void encode_date(char_type *buf, object value):
     buf[1] = <uint8_t> ((year % 100) + 100)
     buf[2] = <uint8_t> cydatetime.PyDateTime_GET_MONTH(value)
     buf[3] = <uint8_t> cydatetime.PyDateTime_GET_DAY(value)
-    buf[4] = <uint8_t> cydatetime.PyDateTime_DATE_GET_HOUR(value) + 1
-    buf[5] = <uint8_t> cydatetime.PyDateTime_DATE_GET_MINUTE(value) + 1
-    buf[6] = <uint8_t> cydatetime.PyDateTime_DATE_GET_SECOND(value) + 1
+    if cydatetime.PyDateTime_Check(value):
+        buf[4] = <uint8_t> cydatetime.PyDateTime_DATE_GET_HOUR(value) + 1
+        buf[5] = <uint8_t> cydatetime.PyDateTime_DATE_GET_MINUTE(value) + 1
+        buf[6] = <uint8_t> cydatetime.PyDateTime_DATE_GET_SECOND(value) + 1
+    else:
+        buf[4] = 1
+        buf[5] = 1
+        buf[6] = 1
 
 
 cdef inline void encode_interval_ds(char_type *buf, object value):

@@ -42,11 +42,11 @@ def _verify_connect_arg(test_env, arg_name, arg_value, sql):
     """
     args = {}
     args[arg_name] = arg_value
-    conn = test_env.get_connection(**args)
-    cursor = conn.cursor()
-    cursor.execute(sql)
-    (fetched_value,) = cursor.fetchone()
-    assert fetched_value == arg_value
+    with test_env.get_connection(**args) as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        (fetched_value,) = cursor.fetchone()
+        assert fetched_value == arg_value
 
 
 def test_1100(test_env, conn):
@@ -64,14 +64,14 @@ def test_1101(skip_if_drcp, test_env):
         (namespace, "ATTR2", "VALUE2"),
         (namespace, "ATTR3", "VALUE3"),
     ]
-    conn = test_env.get_connection(appcontext=app_context_entries)
-    cursor = conn.cursor()
-    for namespace, name, value in app_context_entries:
-        cursor.execute(
-            "select sys_context(:1, :2) from dual", (namespace, name)
-        )
-        (actual_value,) = cursor.fetchone()
-        assert actual_value == value
+    with test_env.get_connection(appcontext=app_context_entries) as conn:
+        cursor = conn.cursor()
+        for namespace, name, value in app_context_entries:
+            cursor.execute(
+                "select sys_context(:1, :2) from dual", (namespace, name)
+            )
+            (actual_value,) = cursor.fetchone()
+            assert actual_value == value
 
 
 def test_1102(test_env):
@@ -120,18 +120,22 @@ def test_1103(conn, test_env):
 
 def test_1104(test_env):
     "1104 - test use of autocommit"
-    conn = test_env.get_connection()
-    cursor = conn.cursor()
-    other_conn = test_env.get_connection()
-    other_cursor = other_conn.cursor()
-    cursor.execute("truncate table TestTempTable")
-    cursor.execute("insert into TestTempTable (IntCol) values (1)")
-    other_cursor.execute("select IntCol from TestTempTable")
-    assert other_cursor.fetchall() == []
-    conn.autocommit = True
-    cursor.execute("insert into TestTempTable (IntCol) values (2)")
-    other_cursor.execute("select IntCol from TestTempTable order by IntCol")
-    assert other_cursor.fetchall() == [(1,), (2,)]
+    with (
+        test_env.get_connection() as conn,
+        test_env.get_connection() as other_conn,
+    ):
+        cursor = conn.cursor()
+        other_cursor = other_conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        other_cursor.execute("select IntCol from TestTempTable")
+        assert other_cursor.fetchall() == []
+        conn.autocommit = True
+        cursor.execute("insert into TestTempTable (IntCol) values (2)")
+        other_cursor.execute(
+            "select IntCol from TestTempTable order by IntCol"
+        )
+        assert other_cursor.fetchall() == [(1,), (2,)]
 
 
 def test_1105(test_env):
@@ -160,8 +164,8 @@ def test_1107(skip_if_drcp, conn, test_env):
         sys_random.choice(string.ascii_letters) for i in range(20)
     )
     conn.changepassword(test_env.main_password, new_password)
-    conn = test_env.get_connection(password=new_password)
-    conn.changepassword(new_password, test_env.main_password)
+    with test_env.get_connection(password=new_password) as conn:
+        conn.changepassword(new_password, test_env.main_password)
 
 
 def test_1108(skip_if_drcp, conn, test_env):
@@ -188,7 +192,8 @@ def test_1109(skip_if_drcp, conn, test_env):
     new_password = "".join(chars)
     conn.changepassword(test_env.main_password, new_password)
     try:
-        test_env.get_connection(password=new_password)
+        with test_env.get_connection(password=new_password):
+            pass
     finally:
         conn.changepassword(new_password, test_env.main_password)
 
@@ -231,32 +236,36 @@ def test_1112(conn):
 
 def test_1113(test_env):
     "1113 - connection rolls back before close"
-    conn = test_env.get_connection()
-    cursor = conn.cursor()
-    cursor.execute("truncate table TestTempTable")
-    other_conn = test_env.get_connection()
-    other_cursor = other_conn.cursor()
-    other_cursor.execute("insert into TestTempTable (IntCol) values (1)")
-    other_cursor.close()
-    other_conn.close()
-    cursor.execute("select count(*) from TestTempTable")
-    (count,) = cursor.fetchone()
-    assert count == 0
+    with (
+        test_env.get_connection() as conn,
+        test_env.get_connection() as other_conn,
+    ):
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        other_cursor = other_conn.cursor()
+        other_cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        other_cursor.close()
+        other_conn.close()
+        cursor.execute("select count(*) from TestTempTable")
+        (count,) = cursor.fetchone()
+        assert count == 0
 
 
 def test_1114(test_env):
     "1114 - connection rolls back before destruction"
-    conn = test_env.get_connection()
-    cursor = conn.cursor()
-    cursor.execute("truncate table TestTempTable")
-    other_conn = test_env.get_connection()
-    other_cursor = other_conn.cursor()
-    other_cursor.execute("insert into TestTempTable (IntCol) values (1)")
-    del other_cursor
-    del other_conn
-    cursor.execute("select count(*) from TestTempTable")
-    (count,) = cursor.fetchone()
-    assert count == 0
+    with (
+        test_env.get_connection() as conn,
+        test_env.get_connection() as other_conn,
+    ):
+        cursor = conn.cursor()
+        cursor.execute("truncate table TestTempTable")
+        other_cursor = other_conn.cursor()
+        other_cursor.execute("insert into TestTempTable (IntCol) values (1)")
+        del other_cursor
+        del other_conn
+        cursor.execute("select count(*) from TestTempTable")
+        (count,) = cursor.fetchone()
+        assert count == 0
 
 
 def test_1115(test_env):
@@ -298,11 +307,11 @@ def test_1117(test_env):
         cursor.execute("insert into TestTempTable (IntCol) values (2)")
     with test_env.assert_raises_full_code("DPY-1001"):
         conn.ping()
-    conn = test_env.get_connection()
-    cursor = conn.cursor()
-    cursor.execute("select count(*) from TestTempTable")
-    (count,) = cursor.fetchone()
-    assert count == 1
+    with test_env.get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("select count(*) from TestTempTable")
+        (count,) = cursor.fetchone()
+        assert count == 1
 
 
 def test_1118(conn, test_env):
@@ -536,27 +545,32 @@ def test_1127(skip_if_drcp, conn, test_env):
     new_password = "".join(
         sys_random.choice(string.ascii_letters) for i in range(20)
     )
-    conn = test_env.get_connection(newpassword=new_password)
-    conn = test_env.get_connection(password=new_password)
-    conn.changepassword(new_password, test_env.main_password)
+    with test_env.get_connection(newpassword=new_password):
+        pass
+    with test_env.get_connection(password=new_password) as conn:
+        conn.changepassword(new_password, test_env.main_password)
 
 
 def test_1128(test_env):
     "1128 - test use of autocommit during reexecute"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     data_to_insert = [(1, "Test String #1"), (2, "Test String #2")]
-    conn = test_env.get_connection()
-    cursor = conn.cursor()
-    other_conn = test_env.get_connection()
-    other_cursor = other_conn.cursor()
-    cursor.execute("truncate table TestTempTable")
-    cursor.execute(sql, data_to_insert[0])
-    other_cursor.execute("select IntCol, StringCol1 from TestTempTable")
-    assert other_cursor.fetchall() == []
-    conn.autocommit = True
-    cursor.execute(sql, data_to_insert[1])
-    other_cursor.execute("select IntCol, StringCol1 from TestTempTable")
-    assert other_cursor.fetchall() == data_to_insert
+    with test_env.get_connection() as conn:
+        cursor = conn.cursor()
+        with test_env.get_connection() as other_conn:
+            other_cursor = other_conn.cursor()
+            cursor.execute("truncate table TestTempTable")
+            cursor.execute(sql, data_to_insert[0])
+            other_cursor.execute(
+                "select IntCol, StringCol1 from TestTempTable"
+            )
+            assert other_cursor.fetchall() == []
+            conn.autocommit = True
+            cursor.execute(sql, data_to_insert[1])
+            other_cursor.execute(
+                "select IntCol, StringCol1 from TestTempTable"
+            )
+            assert other_cursor.fetchall() == data_to_insert
 
 
 def test_1129(conn, test_env):
@@ -602,12 +616,13 @@ def test_1132(test_env):
     class MyConnection(oracledb.Connection):
         pass
 
-    conn = test_env.get_connection(conn_class=MyConnection)
-    qual_name = conn.__class__.__qualname__
-    expected_value = f"<{__name__}.{qual_name} to {conn.username}@{conn.dsn}>"
-    assert repr(conn) == expected_value
+    with test_env.get_connection(conn_class=MyConnection) as conn:
+        qual_name = conn.__class__.__qualname__
+        expected_value = (
+            f"<{__name__}.{qual_name} to {conn.username}@{conn.dsn}>"
+        )
+        assert repr(conn) == expected_value
 
-    conn.close()
     expected_value = f"<{__name__}.{qual_name} disconnected>"
     assert repr(conn) == expected_value
 
@@ -664,20 +679,19 @@ def test_1137(skip_if_drcp, skip_unless_long_passwords_supported, test_env):
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
 
-    conn = test_env.get_connection()
-    original_password = test_env.main_password
-    new_password_32 = "a" * 32
-    conn.changepassword(original_password, new_password_32)
-    conn = test_env.get_connection(password=new_password_32)
+    with test_env.get_connection() as conn:
+        original_password = test_env.main_password
+        new_password_32 = "a" * 32
+        conn.changepassword(original_password, new_password_32)
+    with test_env.get_connection(password=new_password_32) as conn:
+        new_password_1024 = "a" * 1024
+        conn.changepassword(new_password_32, new_password_1024)
+    with test_env.get_connection(password=new_password_1024) as conn:
+        conn.changepassword(new_password_1024, original_password)
 
-    new_password_1024 = "a" * 1024
-    conn.changepassword(new_password_32, new_password_1024)
-    conn = test_env.get_connection(password=new_password_1024)
-    conn.changepassword(new_password_1024, original_password)
-
-    new_password_1025 = "a" * 1025
-    with test_env.assert_raises_full_code("ORA-28218", "ORA-00972"):
-        conn.changepassword(original_password, new_password_1025)
+        new_password_1025 = "a" * 1025
+        with test_env.assert_raises_full_code("ORA-28218", "ORA-00972"):
+            conn.changepassword(original_password, new_password_1025)
 
 
 def test_1138(conn):
@@ -729,16 +743,16 @@ def test_1142(conn):
 
 def test_1143(test_env):
     "1143 - test connecting with a proxy user"
-    conn = test_env.get_connection(proxy_user=test_env.proxy_user)
-    assert conn.username == test_env.main_user
-    assert conn.proxy_user == test_env.proxy_user
+    with test_env.get_connection(proxy_user=test_env.proxy_user) as conn:
+        assert conn.username == test_env.main_user
+        assert conn.proxy_user == test_env.proxy_user
 
 
 def test_1144(skip_unless_thin_mode, conn, test_env):
     "1144 - test connection.sdu"
     sdu = random.randint(512, conn.sdu)
-    conn = test_env.get_connection(sdu=sdu)
-    assert conn.sdu == sdu
+    with test_env.get_connection(sdu=sdu) as conn:
+        assert conn.sdu == sdu
 
 
 def test_1145(test_env):
@@ -824,8 +838,8 @@ def test_1153(skip_unless_thin_mode, test_env):
 
     try:
         oracledb.register_protocol(protocol, hook)
-        oracledb.connect(dsn=connect_string, params=params)
-        assert params.sdu == sdu
+        with oracledb.connect(dsn=connect_string, params=params):
+            assert params.sdu == sdu
     finally:
         oracledb.register_protocol(protocol, None)
 
@@ -847,13 +861,13 @@ def test_1154(conn, test_env):
 def test_1155(test_env):
     "1155 - test connect() with edition"
     edition = test_env.edition_name
-    conn = test_env.get_connection(edition=edition)
-    cursor = conn.cursor()
-    cursor.execute(
-        "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
-    )
-    assert cursor.fetchone()[0] == edition.upper()
-    assert conn.edition == edition
+    with test_env.get_connection(edition=edition) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "select sys_context('USERENV', 'CURRENT_EDITION_NAME') from dual"
+        )
+        assert cursor.fetchone()[0] == edition.upper()
+        assert conn.edition == edition
 
 
 def test_1156(conn, test_env):
@@ -866,13 +880,13 @@ def test_1156(conn, test_env):
 
     try:
         oracledb.register_params_hook(hook)
-        conn = test_env.get_connection()
-        assert conn.stmtcachesize == stmtcachesize
+        with test_env.get_connection() as conn:
+            assert conn.stmtcachesize == stmtcachesize
     finally:
         oracledb.unregister_params_hook(hook)
 
-    conn = test_env.get_connection()
-    assert conn.stmtcachesize == orig_stmtcachesize
+    with test_env.get_connection() as conn:
+        assert conn.stmtcachesize == orig_stmtcachesize
 
 
 def test_1157(test_env, conn):
@@ -887,18 +901,18 @@ def test_1157(test_env, conn):
     def hook3(params):
         order.append("third")
 
-    test_env.get_connection()
-    oracledb.register_params_hook(hook1)
-    oracledb.register_params_hook(hook2)
-    oracledb.register_params_hook(hook3)
-    try:
-        order = []
-        test_env.get_connection()
-        assert order == ["first", "second", "third"]
-    finally:
-        oracledb.unregister_params_hook(hook1)
-        oracledb.unregister_params_hook(hook2)
-        oracledb.unregister_params_hook(hook3)
+    with test_env.get_connection():
+        oracledb.register_params_hook(hook1)
+        oracledb.register_params_hook(hook2)
+        oracledb.register_params_hook(hook3)
+        try:
+            order = []
+            with test_env.get_connection():
+                assert order == ["first", "second", "third"]
+        finally:
+            oracledb.unregister_params_hook(hook1)
+            oracledb.unregister_params_hook(hook2)
+            oracledb.unregister_params_hook(hook3)
 
 
 def test_1158(conn, test_env):

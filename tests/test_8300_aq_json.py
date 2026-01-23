@@ -210,15 +210,15 @@ def test_8307(queue, conn, test_env):
     props = conn.msgproperties(payload=data)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props is None
-    conn.commit()
-    props = queue.deqone()
-    assert props is not None
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props is None
+        conn.commit()
+        props = queue.deqone()
+        assert props is not None
 
 
 def test_8308(queue, conn, test_env):
@@ -228,16 +228,16 @@ def test_8308(queue, conn, test_env):
     props = conn.msgproperties(payload=data)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    data = props.payload
-    results = data
-    other_conn.commit()
-    assert results == JSON_DATA[0]
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        data = props.payload
+        results = data
+        other_conn.commit()
+        assert results == JSON_DATA[0]
 
 
 def test_8309(queue, conn, test_env):
@@ -248,17 +248,17 @@ def test_8309(queue, conn, test_env):
     props = conn.msgproperties(payload=data)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    data = props.payload
-    results = data
-    other_conn.commit()
-    assert results == JSON_DATA[0]
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue(JSON_QUEUE_NAME, "JSON")
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        data = props.payload
+        results = data
+        other_conn.commit()
+        assert results == JSON_DATA[0]
 
 
 def test_8310(queue, conn, test_env):

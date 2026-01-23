@@ -159,15 +159,15 @@ def test_7807(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props is None
-    conn.commit()
-    props = queue.deqone()
-    assert props is not None
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props is None
+        conn.commit()
+        props = queue.deqone()
+        assert props is not None
 
 
 def test_7808(queue, conn, test_env):
@@ -177,16 +177,16 @@ def test_7808(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    value = props.payload
-    results = value
-    other_conn.commit()
-    assert results == RAW_DATA[0]
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        value = props.payload
+        results = value
+        other_conn.commit()
+        assert results == RAW_DATA[0]
 
 
 def test_7809(queue, conn, test_env):
@@ -197,18 +197,18 @@ def test_7809(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    value = props.payload
-    results = value
-    other_conn.commit()
-    assert results == RAW_DATA[0]
-    assert props.deliverymode == oracledb.MSG_BUFFERED
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.deliverymode = oracledb.MSG_BUFFERED
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        value = props.payload
+        results = value
+        other_conn.commit()
+        assert results == RAW_DATA[0]
+        assert props.deliverymode == oracledb.MSG_BUFFERED
 
 
 def test_7810(queue, conn, test_env):
@@ -219,18 +219,18 @@ def test_7810(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    value = props.payload
-    results = value
-    other_conn.commit()
-    assert results == RAW_DATA[0]
-    assert props.deliverymode == oracledb.MSG_PERSISTENT
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        value = props.payload
+        results = value
+        other_conn.commit()
+        assert results == RAW_DATA[0]
+        assert props.deliverymode == oracledb.MSG_PERSISTENT
 
 
 def test_7811(queue, conn, test_env):
@@ -241,17 +241,17 @@ def test_7811(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    value = props.payload
-    results = value
-    other_conn.commit()
-    assert results == RAW_DATA[0]
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        value = props.payload
+        results = value
+        other_conn.commit()
+        assert results == RAW_DATA[0]
 
 
 def test_7812(queue, conn, test_env):
@@ -262,14 +262,14 @@ def test_7812(queue, conn, test_env):
     props = conn.msgproperties(payload=value)
     queue.enqone(props)
 
-    other_conn = test_env.get_connection()
-    queue = other_conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
-    queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
-    queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    props = queue.deqone()
-    assert props is None
+    with test_env.get_connection() as other_conn:
+        queue = other_conn.queue("TEST_RAW_QUEUE")
+        queue.deqoptions.deliverymode = oracledb.MSG_PERSISTENT
+        queue.deqoptions.navigation = oracledb.DEQ_FIRST_MSG
+        queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        props = queue.deqone()
+        assert props is None
 
 
 def test_7813(queue, conn, test_env):

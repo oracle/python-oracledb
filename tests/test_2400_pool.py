@@ -26,6 +26,7 @@
 2400 - Module for testing pools
 """
 
+import contextlib
 import re
 import threading
 
@@ -141,6 +142,7 @@ def _perform_reconfigure_test(
     expected_args = creation_args.copy()
     expected_args.update(reconfigure_args)
     assert actual_args == expected_args
+    pool.close()
 
 
 def _verify_connection(conn, expected_user, expected_proxy_user=None):
@@ -200,6 +202,7 @@ def test_2400(test_env):
         assert pool.thin == (not test_env.use_thick_mode)
     assert pool.timeout == 0
     assert pool.username == test_env.main_user
+    pool.close()
 
 
 def test_2401(skip_unless_thick_mode, test_env):
@@ -210,6 +213,7 @@ def test_2401(skip_unless_thick_mode, test_env):
     assert pool.homogeneous, "homogeneous should be True by default"
     with test_env.assert_raises_full_code("DPI-1012"):
         pool.acquire(user="missing_proxyuser")
+    pool.close()
     pool = test_env.get_pool(
         min=2,
         max=8,
@@ -224,6 +228,7 @@ def test_2401(skip_unless_thick_mode, test_env):
     (user,) = cursor.fetchone()
     assert user == test_env.proxy_user.upper()
     conn.close()
+    pool.close()
 
 
 def test_2402(test_env):
@@ -252,6 +257,7 @@ def test_2402(test_env):
         pool.soda_metadata_cache = True
         assert pool.soda_metadata_cache
         pytest.raises(TypeError, setattr, pool, "soda_metadata_cache", 22)
+    pool.close()
 
 
 def test_2403(test_env):
@@ -263,6 +269,8 @@ def test_2403(test_env):
     cursor.execute("insert into TestTempTable (IntCol) values (1)")
     cursor.close()
     pool.release(conn)
+    pool.close()
+
     pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_WAIT)
     conn = pool.acquire()
     cursor = conn.cursor()
@@ -270,6 +278,7 @@ def test_2403(test_env):
     (count,) = cursor.fetchone()
     assert count == 0
     conn.close()
+    pool.close()
 
 
 def test_2404(test_env):
@@ -284,6 +293,7 @@ def test_2404(test_env):
         thread.start()
     for thread in threads:
         thread.join()
+    pool.close()
 
 
 def test_2405(test_env):
@@ -300,6 +310,7 @@ def test_2405(test_env):
         thread.start()
     for thread in threads:
         thread.join()
+    pool.close()
 
 
 def test_2406(skip_if_drcp, test_env):
@@ -336,6 +347,7 @@ def test_2406(skip_if_drcp, test_env):
     assert result is None
     cursor.close()
     pool.release(conn)
+    pool.close()
 
 
 def test_2407(skip_if_drcp, skip_unless_thick_mode, test_env):
@@ -349,7 +361,8 @@ def test_2407(skip_if_drcp, skip_unless_thick_mode, test_env):
     )
     assert pool.homogeneous == 0
     conn = pool.acquire()
-    _verify_connection(pool.acquire(), test_env.main_user)
+    with pool.acquire() as conn2:
+        _verify_connection(conn2, test_env.main_user)
     conn.close()
     conn = pool.acquire(test_env.main_user, test_env.main_password)
     _verify_connection(conn, test_env.main_user)
@@ -363,6 +376,7 @@ def test_2407(skip_if_drcp, skip_unless_thick_mode, test_env):
     assert conn.proxy_user == test_env.proxy_user
     _verify_connection(conn, test_env.proxy_user, test_env.main_user)
     conn.close()
+    pool.close()
 
 
 def test_2408(skip_if_drcp, skip_unless_thick_mode, test_env):
@@ -385,6 +399,8 @@ def test_2408(skip_if_drcp, skip_unless_thick_mode, test_env):
     user_str = f"{test_env.main_user}[{test_env.proxy_user}]"
     conn = pool.acquire(user_str, test_env.main_password)
     _verify_connection(conn, test_env.proxy_user, test_env.main_user)
+    conn.close()
+    pool.close()
 
 
 def test_2409(skip_unless_thick_mode, test_env):
@@ -398,6 +414,7 @@ def test_2409(skip_unless_thick_mode, test_env):
     )
     with test_env.assert_raises_full_code("ORA-01017"):
         pool.acquire(test_env.proxy_user, "this is the wrong password")
+    pool.close()
 
 
 def test_2410(skip_unless_thick_mode, test_env):
@@ -424,6 +441,7 @@ def test_2410(skip_unless_thick_mode, test_env):
     conn = pool.acquire(tag=tag_utc)
     assert conn.tag == tag_utc
     conn.close()
+    pool.close()
 
 
 def test_2411(skip_unless_thick_mode, test_env):
@@ -472,6 +490,7 @@ def test_2411(skip_unless_thick_mode, test_env):
     expected_results = list(zip(tags, actual_tags))
     assert results == expected_results
     conn.close()
+    pool.close()
 
 
 def test_2412(skip_unless_thick_mode, test_env):
@@ -482,6 +501,8 @@ def test_2412(skip_unless_thick_mode, test_env):
     if test_env.has_client_version(12, 2):
         with test_env.assert_raises_full_code("ORA-24488"):
             pool.release(conn, tag="INVALID_TAG")
+    pool.close(force=True)
+    conn.close()
 
 
 def test_2413(test_env):
@@ -501,6 +522,7 @@ def test_2413(test_env):
         conn.close()
     assert pool.busy == 0
     assert pool.opened == 3
+    pool.close()
 
 
 def test_2414(test_env):
@@ -516,6 +538,7 @@ def test_2414(test_env):
     conn3 = pool.acquire(purity=oracledb.ATTR_PURITY_NEW)
     assert pool.opened == 2, "opened (2)"
     pool.release(conn3)
+    pool.close()
 
 
 def test_2415(skip_unless_thick_mode, test_env):
@@ -594,6 +617,7 @@ def test_2417(skip_unless_thick_mode, test_env):
         cursor.execute("select to_char(current_date) from dual")
         (result,) = cursor.fetchone()
         assert callback_obj.session_called
+    pool.close()
 
 
 def test_2418(test_env):
@@ -612,6 +636,7 @@ def test_2419(test_env):
     with pool.acquire():
         with test_env.assert_raises_full_code("DPY-1005"):
             pool.close()
+    pool.close()
 
 
 def test_2420(test_env):
@@ -644,6 +669,7 @@ def test_2422(test_env):
         pool.getmode = oracledb.POOL_GETMODE_NOWAIT
         with test_env.assert_raises_full_code("DPY-4005"):
             pool.acquire()
+    pool.close()
 
 
 def test_2423(test_env):
@@ -667,6 +693,7 @@ def test_2423(test_env):
     with pool.acquire(), pool.acquire():
         pass
     assert Counter.num_calls == 2
+    pool.close()
 
 
 def test_2424(skip_if_drcp, admin_conn, test_env):
@@ -700,6 +727,7 @@ def test_2424(skip_if_drcp, admin_conn, test_env):
             assert user == test_env.main_user.upper()
         conn.close()
     assert pool.opened == 2
+    pool.close()
 
 
 def test_2425(test_env):
@@ -710,6 +738,7 @@ def test_2425(test_env):
             cursor.execute("select user from dual")
             (result,) = cursor.fetchone()
             assert result == test_env.main_user.upper()
+    pool.close()
 
 
 def test_2426(test_env):
@@ -721,13 +750,16 @@ def test_2426(test_env):
     with pool.acquire() as conn:
         typ = conn.gettype("UDT_OBJECTARRAY")
         assert typ.name == "UDT_OBJECTARRAY"
+    pool.close()
 
 
 def test_2427(test_env):
     "2427 - test creating a pool using a proxy user"
     user_str = f"{test_env.main_user}[{test_env.proxy_user}]"
     pool = test_env.get_pool(user=user_str)
-    _verify_connection(pool.acquire(), test_env.proxy_user, test_env.main_user)
+    with pool.acquire() as conn:
+        _verify_connection(conn, test_env.proxy_user, test_env.main_user)
+    pool.close()
 
 
 def test_2428(skip_if_drcp, test_env):
@@ -736,16 +768,14 @@ def test_2428(skip_if_drcp, test_env):
         min=5, max=10, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
     )
     sql = "select sys_context('userenv', 'sid') from dual"
-    conns = [pool.acquire() for i in range(3)]
-    sids = [conn.cursor().execute(sql).fetchone()[0] for conn in conns]
+    with contextlib.ExitStack() as stack:
+        conns = [stack.enter_context(pool.acquire()) for _ in range(3)]
+        sids = [conn.cursor().execute(sql).fetchone()[0] for conn in conns]
 
-    conns[1].close()
-    conns[2].close()
-    conns[0].close()
-
-    conn = pool.acquire()
-    sid = conn.cursor().execute(sql).fetchone()[0]
-    assert sid == sids[0], "not LIFO"
+    with pool.acquire() as conn:
+        sid = conn.cursor().execute(sql).fetchone()[0]
+        assert sid == sids[0], "not LIFO"
+    pool.close()
 
 
 def test_2429(test_env):
@@ -754,6 +784,7 @@ def test_2429(test_env):
     assert pool.increment == 1
     with pool.acquire(), pool.acquire():
         pass
+    pool.close()
 
 
 def test_2430(test_env):
@@ -762,6 +793,7 @@ def test_2430(test_env):
     assert pool.increment == 0
     with pool.acquire():
         pass
+    pool.close()
 
 
 def test_2431(test_env):
@@ -781,6 +813,7 @@ def test_2431(test_env):
         next_sid_serial = test_env.get_sid_serial(conn)
         assert next_sid_serial == sid_serial
     assert pool.opened == 1
+    pool.close()
 
 
 def test_2432(test_env):
@@ -794,6 +827,7 @@ def test_2433(test_env):
     pool = test_env.get_pool()
     pytest.raises(TypeError, pool.release, ["invalid connection"])
     pytest.raises(TypeError, pool.drop, ["invalid connection"])
+    pool.close()
 
 
 def test_2434(test_env):
@@ -811,6 +845,7 @@ def test_2435(test_env):
     pool = test_env.get_pool(connectiontype=MyConnection)
     with pool.acquire() as conn:
         assert isinstance(conn, MyConnection)
+    pool.close()
 
 
 def test_2436(test_env):
@@ -821,6 +856,7 @@ def test_2436(test_env):
 
     pool = test_env.get_pool(pool_class=MyPool)
     assert isinstance(pool, MyPool)
+    pool.close()
 
 
 def test_2437(test_env):
@@ -838,6 +874,7 @@ def test_2438(skip_unless_pool_timed_wait_supported, test_env):
     )
     with test_env.assert_raises_full_code("DPY-4005"):
         pool.acquire()
+    pool.close(force=True)
 
 
 def test_2439(skip_unless_call_timeout_supported, test_env):
@@ -847,6 +884,7 @@ def test_2439(skip_unless_call_timeout_supported, test_env):
         assert conn.call_timeout == 0
     with pool.acquire() as conn:
         assert conn.call_timeout == 0
+    pool.close()
 
 
 def test_2440(test_env):
@@ -862,12 +900,14 @@ def test_2441(test_env):
     )
     num_conns = 10
     active_sessions = set()
-    conns = [pool.acquire() for _ in range(num_conns)]
-    for conn in conns:
-        active_sessions.add(test_env.get_sid_serial(conn))
-    assert pool.opened == num_conns
-    assert pool.busy == num_conns
-    assert len(active_sessions) == num_conns
+    with contextlib.ExitStack() as stack:
+        conns = [stack.enter_context(pool.acquire()) for _ in range(num_conns)]
+        for conn in conns:
+            active_sessions.add(test_env.get_sid_serial(conn))
+        assert pool.opened == num_conns
+        assert pool.busy == num_conns
+        assert len(active_sessions) == num_conns
+    pool.close()
 
 
 def test_2442(skip_unless_thin_mode, test_env):
@@ -944,8 +984,9 @@ def test_2448(test_env):
     "2448 - test create_pool() with edition"
     edition = test_env.edition_name
     pool = test_env.get_pool(edition=edition)
-    conn = pool.acquire()
-    assert conn.edition == edition
+    with pool.acquire() as conn:
+        assert conn.edition == edition
+    pool.close()
 
 
 def test_2449(test_env):
@@ -1045,22 +1086,23 @@ def test_2456(test_env):
 def test_2457(skip_if_drcp, test_env):
     "2457 - ping pooled connection on receiving dead connection error"
     test_env.skip_unless_server_version(18)
-    admin_conn = test_env.get_admin_connection()
-    pool = test_env.get_pool(min=1, max=1, ping_interval=0)
+    with test_env.get_admin_connection() as admin_conn:
+        pool = test_env.get_pool(min=1, max=1, ping_interval=0)
 
-    # kill connection in pool
-    with admin_conn.cursor() as admin_cursor:
+        # kill connection in pool
+        with admin_conn.cursor() as admin_cursor:
+            with pool.acquire() as conn:
+                sid, serial = test_env.get_sid_serial(conn)
+                sql = f"alter system kill session '{sid},{serial}'"
+                admin_cursor.execute(sql)
+
+        # acquire connection which should succeed without failure
         with pool.acquire() as conn:
-            sid, serial = test_env.get_sid_serial(conn)
-            sql = f"alter system kill session '{sid},{serial}'"
-            admin_cursor.execute(sql)
-
-    # acquire connection which should succeed without failure
-    with pool.acquire() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("select user from dual")
-            (user,) = cursor.fetchone()
-            assert user == test_env.main_user.upper()
+            with conn.cursor() as cursor:
+                cursor.execute("select user from dual")
+                (user,) = cursor.fetchone()
+                assert user == test_env.main_user.upper()
+        pool.close()
 
 
 def test_2458(test_env):

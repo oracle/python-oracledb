@@ -386,7 +386,9 @@ async def test_5714(async_conn, test_env):
     await _test_lob_operations(async_conn, test_env, "NCLOB")
 
 
-async def test_5715(skip_if_implicit_pooling, async_conn, async_cursor):
+async def test_5715(
+    skip_if_implicit_pooling, skip_unless_refcounting, async_conn, async_cursor
+):
     "5715 - test temporary LOBs"
     await async_cursor.execute(
         "select sys_context('USERENV', 'SID') from dual"

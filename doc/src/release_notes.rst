@@ -40,6 +40,8 @@ Common Changes
     (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
 #)  Fixed regression with contents of :data:`Cursor.description` when calling
     :meth:`Cursor.parse()` with a query that returns LOBs.
+#)  Adjusted code and tests to be capable of being run in environments other
+    than CPython.
 
 
 oracledb `3.4.1 <https://github.com/oracle/python-oracledb/compare/v3.4.0...v3.4.1>`__ (November 2025)

@@ -154,26 +154,26 @@ def test_2804(skip_unless_thick_mode, conn, queue, test_env):
     props1 = conn.msgproperties(payload="A first message")
     props2 = conn.msgproperties(payload="A second message")
     queue.enqmany([props1, props2])
-    other_connection = test_env.get_connection()
-    other_queue = other_connection.queue(RAW_QUEUE_NAME)
-    other_queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    other_queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
-    messages = other_queue.deqmany(5)
-    assert len(messages) == 0
-    conn.commit()
-    messages = other_queue.deqmany(5)
-    assert len(messages) == 2
-    other_connection.rollback()
+    with test_env.get_connection() as other_connection:
+        other_queue = other_connection.queue(RAW_QUEUE_NAME)
+        other_queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
+        other_queue.deqoptions.visibility = oracledb.DEQ_ON_COMMIT
+        messages = other_queue.deqmany(5)
+        assert len(messages) == 0
+        conn.commit()
+        messages = other_queue.deqmany(5)
+        assert len(messages) == 2
+        other_connection.rollback()
 
-    # second test with ENQ_IMMEDIATE (no commit required)
-    queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
-    other_queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
-    queue.enqmany([props1, props2])
-    messages = other_queue.deqmany(5)
-    assert len(messages) == 4
-    other_connection.rollback()
-    messages = other_queue.deqmany(5)
-    assert len(messages) == 0
+        # second test with ENQ_IMMEDIATE (no commit required)
+        queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
+        other_queue.deqoptions.visibility = oracledb.DEQ_IMMEDIATE
+        queue.enqmany([props1, props2])
+        messages = other_queue.deqmany(5)
+        assert len(messages) == 4
+        other_connection.rollback()
+        messages = other_queue.deqmany(5)
+        assert len(messages) == 0
 
 
 def test_2805(conn, queue, test_env):

@@ -273,18 +273,18 @@ def test_1311(test_env):
             Counter.cursor_created()
             return super().cursor()
 
-    conn = test_env.get_connection(conn_class=MyConnection)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        select
-            cursor(select 1 from dual),
-            cursor(select 2 from dual)
-        from dual
-        """
-    )
-    cursor.fetchall()
-    assert Counter.num_cursors_created == 3
+    with test_env.get_connection(conn_class=MyConnection) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            select
+                cursor(select 1 from dual),
+                cursor(select 2 from dual)
+            from dual
+            """
+        )
+        cursor.fetchall()
+        assert Counter.num_cursors_created == 3
 
 
 def test_1312(conn):
@@ -461,9 +461,10 @@ def test_1319(cursor, test_env):
             :cursor := t_Cursor;
         end;
     """
-    ref_cursor = test_env.get_connection().cursor()
-    with test_env.assert_raises_full_code("DPY-3027"):
-        cursor.execute(sql, [ref_cursor])
+    with test_env.get_connection() as conn:
+        ref_cursor = conn.cursor()
+        with test_env.assert_raises_full_code("DPY-3027"):
+            cursor.execute(sql, [ref_cursor])
 
 
 def test_1320(conn):
