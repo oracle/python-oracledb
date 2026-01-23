@@ -1059,3 +1059,10 @@ def test_4371(cursor):
     cursor.execute("select :1 from dual", [value], fetch_decimals=True)
     rows = cursor.fetchall()
     assert isinstance(rows[0][0], decimal.Decimal)
+
+
+def test_4372(cursor):
+    "4372 - test cursor.parse() uses oracledb.defaults.fetch_lobs"
+    cursor.parse("select to_clob('some_value') from dual")
+    fetch_info = cursor.description[0]
+    assert fetch_info.type is oracledb.DB_TYPE_CLOB
