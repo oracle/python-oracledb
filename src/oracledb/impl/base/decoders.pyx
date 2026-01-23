@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -82,14 +82,6 @@ cdef int decode_binary_float(const uint8_t *ptr, ssize_t num_bytes,
         b3 = ~b3
     all_bits = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
     memcpy(&buffer.as_float, &all_bits, 4)
-
-
-cdef int decode_bool(const uint8_t* ptr, ssize_t num_bytes,
-                     OracleDataBuffer *buffer) except -1:
-    """
-    Decode a boolean value from raw bytes.
-    """
-    buffer.as_bool = (ptr[num_bytes - 1] == 1)
 
 
 cdef int decode_date(const uint8_t* ptr, ssize_t num_bytes,

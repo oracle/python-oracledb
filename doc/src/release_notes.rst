@@ -19,6 +19,8 @@ oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
+    (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
 #)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
     of type ``SYS.XMLTYPE``.
 
