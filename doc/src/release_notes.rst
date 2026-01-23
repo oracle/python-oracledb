@@ -19,6 +19,8 @@ oracledb `3.5.0 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.5
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
+    (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
 #)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
     of type ``SYS.XMLTYPE``.
 
@@ -73,8 +75,6 @@ Thin Mode Changes
 #)  Fixed bug when fetching a timestamp with nanosecond precision into a data
     frame
     (`issue 538 <https://github.com/oracle/python-oracledb/issues/538>`__).
-#)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
-    (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
 #)  Fixed bug when adding a call to a PL/SQL function which returns LOBs to a
     :ref:`pipeline <pipelining>`.
 #)  Fixed bug when using bind variables with scrollable cursors.
