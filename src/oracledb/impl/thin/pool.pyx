@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,7 +48,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         uint32_t _ping_timeout
         object _wait_timeout
         object _bg_task
-        object _bg_task_condition
+        object _bg_task_event
         object _condition
         object _timeout_task
         object _ssl_session
@@ -489,7 +489,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
     def __init__(self, str dsn, PoolParamsImpl params):
         super().__init__(dsn, params)
         self._condition = threading.Condition()
-        self._bg_task_condition = threading.Condition()
+        self._bg_task_event = threading.Event()
         self._bg_task = threading.Thread(target=self._bg_task_func)
         self._bg_task.start()
 
@@ -547,8 +547,8 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                     continue
 
             # otherwise, nothing to do yet, wait for notifications!
-            with self._bg_task_condition:
-                self._bg_task_condition.wait()
+            self._bg_task_event.wait()
+            self._bg_task_event.clear()
 
         # stop the timeout task, if one is active
         if self._timeout_task is not None:
@@ -573,8 +573,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         Notify the background task that work needs to be done.
         """
-        with self._bg_task_condition:
-            self._bg_task_condition.notify()
+        self._bg_task_event.set()
 
     cdef int _process_request(self, PooledConnRequest request) except -1:
         """
@@ -669,7 +668,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
     def __init__(self, str dsn, PoolParamsImpl params):
         super().__init__(dsn, params)
         self._condition = asyncio.Condition()
-        self._bg_task_condition = asyncio.Condition()
+        self._bg_task_event = asyncio.Event()
         self._bg_task = asyncio.create_task(self._bg_task_func())
 
     async def _acquire_helper(self, PooledConnRequest request):
@@ -741,8 +740,8 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                     continue
 
             # otherwise, nothing to do yet, wait for notifications!
-            async with self._bg_task_condition:
-                await self._bg_task_condition.wait()
+            await self._bg_task_event.wait()
+            self._bg_task_event.clear()
 
         # stop the timeout task, if one is active
         if self._timeout_task is not None:
@@ -766,8 +765,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         if self._bg_notify_task is None or self._bg_notify_task.done():
             async def helper():
-                async with self._bg_task_condition:
-                    self._bg_task_condition.notify()
+                self._bg_task_event.set()
             self._bg_notify_task = asyncio.create_task(helper())
 
     async def _process_request(self, PooledConnRequest request):
