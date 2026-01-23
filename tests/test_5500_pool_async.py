@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -684,3 +684,18 @@ async def test_5544(test_env):
     pool = test_env.get_pool_async(password=test_env.main_password + "X")
     with test_env.assert_raises_full_code("ORA-01017"):
         await pool.acquire()
+
+
+async def test_5545(test_env):
+    "5545 - verify call_timeout is unchanged after internal ping performed"
+    desired_value = 5000
+
+    async def callback(conn, tag):
+        conn.call_timeout = desired_value
+
+    pool = test_env.get_pool_async(session_callback=callback, ping_interval=0)
+    async with pool.acquire() as conn:
+        assert conn.call_timeout == desired_value
+    async with pool.acquire() as conn:
+        assert conn.call_timeout == desired_value
+    await pool.close()

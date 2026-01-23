@@ -579,13 +579,16 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         Processes a request.
         """
-        cdef BaseThinConnImpl conn_impl
+        cdef:
+            BaseThinConnImpl conn_impl
+            uint32_t orig_call_timeout
         try:
             if request.requires_ping:
                 try:
+                    orig_call_timeout = request.conn_impl._call_timeout
                     request.conn_impl.set_call_timeout(self._ping_timeout)
                     request.conn_impl.ping()
-                    request.conn_impl.set_call_timeout(0)
+                    request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
@@ -772,13 +775,16 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         Processes a request.
         """
-        cdef BaseThinConnImpl conn_impl
+        cdef:
+            BaseThinConnImpl conn_impl
+            uint32_t orig_call_timeout
         try:
             if request.requires_ping:
                 try:
+                    orig_call_timeout = request.conn_impl._call_timeout
                     request.conn_impl.set_call_timeout(self._ping_timeout)
                     await request.conn_impl.ping()
-                    request.conn_impl.set_call_timeout(0)
+                    request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None

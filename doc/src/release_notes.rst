@@ -19,6 +19,10 @@ oracledb `3.5.0 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.5
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug which caused :data:`Connection.call_timeout` to be reset to zero
+    when a ping is internally executed by the pool before the connection is
+    returned to the user
+    (`issue 558 <https://github.com/oracle/python-oracledb/issues/558>`__).
 #)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
     (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
 #)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
