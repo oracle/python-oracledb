@@ -994,3 +994,18 @@ def test_2348(conn, test_env):
         obj.size()
     with test_env.assert_raises_full_code("DPY-2036"):
         obj.trim(0)
+
+
+def test_2349(skip_unless_thin_mode, cursor):
+    "2349 - test fetching an object containing a null XmlType instance"
+    num_val = 2349
+    str_val = "A string for test 2349"
+    cursor.execute(
+        f"""
+        select udt_ObjectWithXmlType({num_val}, null, '{str_val}') from dual
+        """
+    )
+    (obj,) = cursor.fetchone()
+    assert obj.NUMBERVALUE == num_val
+    assert obj.XMLVALUE is None
+    assert obj.STRINGVALUE == str_val

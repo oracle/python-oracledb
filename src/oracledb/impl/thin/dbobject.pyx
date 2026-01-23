@@ -375,15 +375,18 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                     else PY_TYPE_LOB
             return cls._from_impl(lob_impl)
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
+            if metadata.objtype is None:
+                xml_bytes = buf.read_bytes()
+                if xml_bytes is None:
+                    return None
+                xml_buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
+                xml_buf._populate_from_bytes(xml_bytes)
+                return xml_buf.read_xmltype(self.type._conn_impl)
             is_collection = \
                     metadata.objtype.is_collection or self.type.is_collection
             buf.get_is_atomic_null(is_collection, &is_null)
             if is_null:
                 return None
-            if metadata.objtype is None:
-                xml_buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
-                xml_buf._populate_from_bytes(buf.read_bytes())
-                return xml_buf.read_xmltype(self.type._conn_impl)
             obj_impl = ThinDbObjectImpl.__new__(ThinDbObjectImpl)
             obj_impl.type = metadata.objtype
             if is_collection:
