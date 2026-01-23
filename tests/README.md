@@ -1,8 +1,8 @@
 This directory contains the test suite for python-oracledb.
 
-1.  Install pytest and tox:
+1.  Install packages needed for testing:
 
-        python -m pip install pytest tox --upgrade
+        python -m pip install --upgrade oracledb[test]
 
 2.  Set the required database credential and related environment variables
     documented in [conftest.py][2].
