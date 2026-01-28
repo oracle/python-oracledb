@@ -19,15 +19,6 @@ oracledb `3.5.0 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.5
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed bug which caused :data:`Connection.call_timeout` to be reset to zero
-    when a ping is internally executed by the pool before the connection is
-    returned to the user
-    (`issue 558 <https://github.com/oracle/python-oracledb/issues/558>`__).
-#)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
-    (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
-#)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
-    of type ``SYS.XMLTYPE``.
-
 Thick Mode Changes
 ++++++++++++++++++
 
@@ -39,22 +30,46 @@ Common Changes
     - Added Session Token-based authentication support to the OCI Tokens
       plugin.
       (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
-    - Fixed bug when getting the expiry time of authentication tokens
-      (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
     - Fixed bug when using multiple token authentication plugins. Note that an
       invalid ``auth_type`` parameter will no longer raise an exception but
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
-#)  Added support for ingesting Arrow arrays which only consist of null values
-    (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
-#)  Fixed regression with contents of :data:`Cursor.description` when calling
-    :meth:`Cursor.parse()` with a query that returns LOBs.
+#)  Updated the `Jupyter notebook samples <https://github.com/oracle/
+    python-oracledb/tree/main/samples/notebooks>`__ to cover recent
+    python-oracledb features.
+
+
+oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4.2>`__ (January 2026)
+-----------------------------------------------------------------------------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug which caused :data:`Connection.call_timeout` to be reset to zero
+    when a ping is internally executed by the pool before the connection is
+    returned to the user
+    (`issue 558 <https://github.com/oracle/python-oracledb/issues/558>`__).
+#)  Fixed bug when decoding PL/SQL booleans in Oracle Database 12.1
+    (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
+#)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
+    of type ``SYS.XMLTYPE``.
+
+Common Changes
+++++++++++++++
+
+#)  Fixed bug when getting the expiry time of
+    :ref:`authentication tokens <tokenauth>`
+    (`issue 548 <https://github.com/oracle/python-oracledb/issues/548>`__).
 #)  Fixed bug when calling :meth:`Cursor.executemany()` with all of the values
     in at least one column being null followed by a second call where at least
     the first row also has a null value but some of the later values are not
     null
     (`issue 291 <https://github.com/oracle/python-oracledb/issues/291>`__).
+#)  Added support for ingesting Arrow arrays which only consist of null values
+    (`issue 554 <https://github.com/oracle/python-oracledb/issues/554>`__).
+#)  Fixed regression with contents of :data:`Cursor.description` when calling
+    :meth:`Cursor.parse()` with a query that returns LOBs.
 #)  Eliminated memory leak when converting a third party data frame to one used
     internally by the driver
     (`issue 561 <https://github.com/oracle/python-oracledb/issues/561>`__).
@@ -65,9 +80,6 @@ Common Changes
     connection pools.
 #)  Adjusted code and tests to be capable of being run in environments other
     than CPython.
-#)  Updated the `Jupyter notebook samples <https://github.com/oracle/
-    python-oracledb/tree/main/samples/notebooks>`__ to cover recent
-    python-oracledb features.
 
 
 oracledb `3.4.1 <https://github.com/oracle/python-oracledb/compare/v3.4.0...v3.4.1>`__ (November 2025)
