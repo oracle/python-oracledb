@@ -13,8 +13,8 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4.2>`__ (TBD)
---------------------------------------------------------------------------------------------
+oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4.2>`__ (January 2026)
+-----------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
@@ -27,9 +27,6 @@ Thin Mode Changes
     (`issue 565 <https://github.com/oracle/python-oracledb/issues/565>`__).
 #)  Fixed bug when a :ref:`DbObject <dbobject>` instance contains an attribute
     of type ``SYS.XMLTYPE``.
-
-Thick Mode Changes
-++++++++++++++++++
 
 Common Changes
 ++++++++++++++
