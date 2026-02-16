@@ -306,6 +306,7 @@ ERR_DB_TYPE_NOT_SUPPORTED = 3007
 ERR_UNSUPPORTED_INBAND_NOTIFICATION = 3008
 ERR_SELF_BIND_NOT_SUPPORTED = 3009
 ERR_SERVER_VERSION_NOT_SUPPORTED = 3010
+ERR_DB_CS_NOT_SUPPORTED = 3011
 ERR_NCHAR_CS_NOT_SUPPORTED = 3012
 ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE = 3013
 ERR_LOB_OF_WRONG_TYPE = 3014
@@ -820,6 +821,10 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_NAMED_TIMEZONE_NOT_SUPPORTED: (
         "named time zones are not supported in thin mode"
+    ),
+    ERR_DB_CS_NOT_SUPPORTED: (
+        "database character set id {charset_id} is not supported by "
+        "python-oracledb for direct path loading in thin mode"
     ),
     ERR_NCHAR_CS_NOT_SUPPORTED: (
         "national character set id {charset_id} is not supported by "

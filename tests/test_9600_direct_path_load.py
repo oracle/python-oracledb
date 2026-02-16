@@ -612,3 +612,42 @@ def test_9621(empty_tab, conn, test_env):
             data=df,
         )
     _verify_data_frame(conn, df, column_names, test_env)
+
+def test_9622(empty_tab, disable_fetch_lobs, conn, test_env):
+    "9622 - test direct path load with non-ASCII characters"
+    column_names = ["Id", "FirstName", "City", "LongData"]
+    data = [
+        (1, "Café", "Zürich", "Ñoño résumé"),
+        (2, "naïve", "São Paulo", "El niño está aquí"),
+        (3, "Ärger", "Malmö", "Ça fait déjà vu"),
+    ]
+    conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=TABLE_NAME,
+        column_names=column_names,
+        data=data,
+    )
+    _verify_data(conn, data, column_names)
+
+
+def test_9623(empty_tab, disable_fetch_lobs, conn, test_env):
+    "9623 - test direct path load with non-ASCII characters using data frame"
+    column_names = ["Id", "FirstName", "City", "LongData"]
+    data = {
+        "Id": [1, 2, 3],
+        "FirstName": ["Café", "naïve", "Ärger"],
+        "City": ["Zürich", "São Paulo", "Malmö"],
+        "LongData": [
+            "Ñoño résumé",
+            "El niño está aquí",
+            "Ça fait déjà vu",
+        ],
+    }
+    df = pandas.DataFrame(data)
+    conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=TABLE_NAME,
+        column_names=column_names,
+        data=df,
+    )
+    _verify_data_frame(conn, df, column_names, test_env)
