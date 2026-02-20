@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -353,6 +353,9 @@ cdef enum:
 
 # TTC functions
 cdef enum:
+    TNS_FUNC_AQ_ENQ = 121
+    TNS_FUNC_AQ_DEQ = 122
+    TNS_FUNC_ARRAY_AQ = 145
     TNS_FUNC_AUTH_PHASE_ONE = 118
     TNS_FUNC_AUTH_PHASE_TWO = 115
     TNS_FUNC_CLOSE_CURSORS = 105
@@ -363,20 +366,17 @@ cdef enum:
     TNS_FUNC_EXECUTE = 94
     TNS_FUNC_FETCH = 5
     TNS_FUNC_LOB_OP = 96
-    TNS_FUNC_AQ_ENQ = 121
-    TNS_FUNC_AQ_DEQ = 122
-    TNS_FUNC_ARRAY_AQ = 145
     TNS_FUNC_LOGOFF = 9
     TNS_FUNC_PING = 147
     TNS_FUNC_PIPELINE_BEGIN = 199
     TNS_FUNC_PIPELINE_END = 200
-    TNS_FUNC_ROLLBACK = 15
-    TNS_FUNC_SET_END_TO_END_ATTR = 135
     TNS_FUNC_REEXECUTE = 4
     TNS_FUNC_REEXECUTE_AND_FETCH = 78
+    TNS_FUNC_ROLLBACK = 15
     TNS_FUNC_SESSION_GET = 162
     TNS_FUNC_SESSION_RELEASE = 163
     TNS_FUNC_SESSION_STATE = 176
+    TNS_FUNC_SET_END_TO_END_ATTR = 135
     TNS_FUNC_SET_SCHEMA = 152
     TNS_FUNC_TPC_TXN_SWITCH = 103
     TNS_FUNC_TPC_TXN_CHANGE_STATE = 104
