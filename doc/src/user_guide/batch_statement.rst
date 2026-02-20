@@ -634,20 +634,20 @@ Direct Path Loads
 =================
 
 Direct Path Loads allow data being inserted into Oracle Database to bypass
-code layers such as the database buffer cache. Also there are no INSERT
+code layers such as the database buffer cache. Also, there are no INSERT
 statements used. This can be very efficient for ingestion of huge amounts of
-data but, as a consequence of the architecture, there are restrictions on when
-Direct Path Loads can be used. For more information see Oracle Database
-documentation such as on SQL*Loader `Direct Path Loads
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
-GUID-0D576DEF-7918-4DD2-A184-754D217C021F>`__ and on the Oracle Call Interface
-`Direct Path Load Interface
-<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
-GUID-596F5F9B-47A1-48DB-8702-FEED7BE038B9>`__.
+data, and because Direct Path Loads generate minimal redo, they reduce pressure
+on redo logs and overall database load. As a consequence of the architecture,
+there are restrictions on when Direct Path Loads can be used. For more
+information see Oracle Database documentation such as on SQL*Loader `Direct
+Path Loads <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
+0D576DEF-7918-4DD2-A184-754D217C021F>`__ and on the Oracle Call Interface
+`Direct Path Load Interface <https://www.oracle.com/pls/topic/lookup?ctx=
+dblatest&id=GUID-596F5F9B-47A1-48DB-8702-FEED7BE038B9>`__.
 
 The end-to-end insertion time when using Direct Path Loads for smaller data
-sets may not be faster than using :meth:`Cursor.executemany()`, however there
-can still be reduced load on the database.
+sets may not be faster than using :meth:`Cursor.executemany()`, however
+database load and redo generation can still be reduced.
 
 .. note::
 
