@@ -19,6 +19,10 @@ oracledb `4.0.0 <https://github.com/oracle/python-oracledb/compare/v3.4.2...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug writing boolean values to PL/SQL stored procedures and functions
+    (`issue 568 <https://github.com/oracle/python-oracledb/issues/568>`__).
+
+
 Thick Mode Changes
 ++++++++++++++++++
 

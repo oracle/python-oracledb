@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -102,12 +102,12 @@ cdef inline void encode_boolean(char_type *buf, ssize_t *buflen, bint value):
     BOOLEAN.
     """
     if value:
-        buflen[0] = 3
-        buf[0] = 2
-        encode_uint16be(&buf[1], 0x0101)
-    else:
         buflen[0] = 2
-        encode_uint16be(buf, 0x0100)
+        buf[0] = 1
+        buf[1] = 1
+    else:
+        buflen[0] = 1
+        buf[0] = 0
 
 
 cdef inline void encode_date(char_type *buf, object value):

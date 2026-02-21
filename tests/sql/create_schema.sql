@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1102,6 +1102,15 @@ create or replace package &main_user..pkg_TestBooleans as
 
     type udt_BooleanList is table of boolean index by binary_integer;
 
+    function EchoValue (
+        a_Value                         boolean
+    ) return boolean;
+
+    procedure EchoValueOut (
+        a_Value                         boolean,
+        a_ValueOut                      out boolean
+    );
+
     function GetStringRep (
         a_Value                         boolean
     ) return varchar2;
@@ -1126,6 +1135,21 @@ end;
 /
 
 create or replace package body &main_user..pkg_TestBooleans as
+
+    function EchoValue (
+        a_Value                         boolean
+    ) return boolean is
+    begin
+        return a_Value;
+    end;
+
+    procedure EchoValueOut (
+        a_Value                         boolean,
+        a_ValueOut                      out boolean
+    ) is
+    begin
+        a_ValueOut := a_Value;
+    end;
 
     function GetStringRep (
         a_Value                         boolean

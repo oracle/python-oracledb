@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -134,3 +134,29 @@ def test_3111(skip_unless_native_boolean_supported, cursor):
     )
     expected_value = [(False, False) for _ in range(len(false_values))]
     assert cursor.fetchall() == expected_value
+
+
+def test_3112(skip_unless_plsql_boolean_supported, cursor):
+    "3112 - test binding in and returning a True value"
+    result = cursor.callfunc("pkg_TestBooleans.EchoValue", bool, [True])
+    assert result
+
+
+def test_3113(skip_unless_plsql_boolean_supported, cursor):
+    "3113 - test binding in and returning a False value"
+    result = cursor.callfunc("pkg_TestBooleans.EchoValue", bool, [False])
+    assert not result
+
+
+def test_3114(skip_unless_plsql_boolean_supported, cursor):
+    "3114 - test binding in and out a True value"
+    var = cursor.var(bool)
+    cursor.callproc("pkg_TestBooleans.EchoValueOut", [True, var])
+    assert var.getvalue()
+
+
+def test_3115(skip_unless_plsql_boolean_supported, cursor):
+    "3115 - test binding in and returning a False value"
+    var = cursor.var(bool)
+    cursor.callproc("pkg_TestBooleans.EchoValueOut", [False, var])
+    assert not var.getvalue()
