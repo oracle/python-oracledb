@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -293,6 +293,23 @@ cdef class ThickCursorImpl(BaseCursorImpl):
                         _raise_from_odpi()
                     var_impl.num_elements_in_array = num_elements
 
+    def attach_external_handle(self, external_handle_capsule):
+        """
+        Method to attach an external OCIStmt handle
+        """
+        cdef void *handle
+        handle = cpython.PyCapsule_GetPointer(
+            external_handle_capsule,
+            "oci_stmt_handle"
+        )
+        if handle == NULL:
+            errors._raise_err(errors.ERR_NO_STATEMENT_EXECUTED)
+        if dpiConn_stmtFromHandle(self._conn_impl._handle,
+                                  handle,
+                                  &self._handle) < 0:
+            _raise_from_odpi()
+        self._fixup_ref_cursor = True
+
     def execute(self, cursor):
         """
         Internal method for executing a statement.
@@ -443,6 +460,21 @@ cdef class ThickCursorImpl(BaseCursorImpl):
                 cpython.PyMem_Free(names)
             if name_lengths:
                 cpython.PyMem_Free(name_lengths)
+
+    def get_handle(self):
+        """
+        Returns a PyCapsule wrapping the OCIStmt handle
+        """
+        cdef void *handle
+        if self._handle == NULL:
+            errors._raise_err(errors.ERR_NO_STATEMENT_EXECUTED)
+        if dpiStmt_getHandle(self._handle, &handle) < 0:
+            _raise_from_odpi()
+        if handle == NULL:
+            errors._raise_err(errors.ERR_NO_STATEMENT_EXECUTED)
+        return cpython.PyCapsule_New(
+            handle, "oci_stmt_handle", NULL
+        )
 
     def get_implicit_results(self, connection):
         cdef:

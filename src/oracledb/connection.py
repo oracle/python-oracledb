@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -1057,12 +1057,22 @@ class Connection(BaseConnection):
             lob.write(data)
         return lob
 
-    def cursor(self, scrollable: bool = False) -> Cursor:
+    def cursor(
+        self, scrollable: bool = False, handle: Optional[object] = None
+    ) -> Cursor:
         """
         Returns a new :ref:`cursor object <cursorobj>` using the connection.
+
+        The ``scrollable`` parameter specifies whether the cursor should be
+        scrollable. The :meth:`~Cursor.scroll()` method is only available if
+        this value is true when the cursor is created.
+
+        The ``handle`` parameter specifies the Oracle Call Interface statement
+        handle wrapped in a PyCapsule named ``oci_stmt_handle``. It is only
+        supported in python-oracledb Thick mode.
         """
         self._verify_connected()
-        return Cursor(self, scrollable)
+        return Cursor(self, scrollable, handle=handle)
 
     def direct_path_load(
         self,
@@ -1092,12 +1102,13 @@ class Connection(BaseConnection):
 
     def fetch_df_all(
         self,
-        statement: str,
+        statement: Optional[str] = None,
         parameters: Optional[Union[list, tuple, dict]] = None,
         arraysize: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
         requested_schema: Optional[Any] = None,
+        handle: Optional[object] = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -1124,9 +1135,20 @@ class Connection(BaseConnection):
         the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
 
+        The ``handle`` parameter specifies a PyCapsule named
+        ``oci_stmt_handle`` containing an OCIStmt handle. This is useful when
+        needing to fetch data from an existing open cursor that was created
+        externally. Note that this is only supported in python-oracledb Thick
+        mode.
+
         Any LOB fetched must be less than 1 GB.
         """
-        cursor = self.cursor()
+        if not (statement is not None) ^ (handle is not None):
+            raise ValueError(
+                "One of the parameters 'statement' or 'handle' "
+                "is required but not both"
+            )
+        cursor = self.cursor(handle=handle)
         cursor._impl.fetching_arrow = True
         if requested_schema is not None:
             cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
@@ -1135,21 +1157,25 @@ class Connection(BaseConnection):
         if arraysize is not None:
             cursor.arraysize = arraysize
         cursor.prefetchrows = cursor.arraysize
-        cursor.execute(
-            statement,
-            parameters,
-            fetch_decimals=fetch_decimals,
-        )
+        if statement is not None:
+            cursor.execute(
+                statement,
+                parameters,
+                fetch_decimals=fetch_decimals,
+            )
+        else:
+            cursor._verify_fetch()
         return cursor._impl.fetch_df_all(cursor)
 
     def fetch_df_batches(
         self,
-        statement: str,
+        statement: Optional[str] = None,
         parameters: Optional[Union[list, tuple, dict]] = None,
         size: Optional[int] = None,
         *,
         fetch_decimals: Optional[bool] = None,
         requested_schema: Optional[Any] = None,
+        handle: Optional[object] = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -1178,9 +1204,20 @@ class Connection(BaseConnection):
         the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
 
+        The ``handle`` parameter specifies a PyCapsule named
+        ``oci_stmt_handle`` containing an OCIStmt handle. This is useful when
+        needing to fetch data from an existing open cursor that was created
+        externally. Note that this is only supported in python-oracledb Thick
+        mode.
+
         Any LOB fetched must be less than 1 GB.
         """
-        cursor = self.cursor()
+        if not (statement is not None) ^ (handle is not None):
+            raise ValueError(
+                "One of the parameters 'statement' or 'handle' "
+                "is required but not both"
+            )
+        cursor = self.cursor(handle=handle)
         cursor._impl.fetching_arrow = True
         if requested_schema is not None:
             cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
@@ -1189,11 +1226,14 @@ class Connection(BaseConnection):
         if size is not None:
             cursor.arraysize = size
         cursor.prefetchrows = cursor.arraysize
-        cursor.execute(
-            statement,
-            parameters,
-            fetch_decimals=fetch_decimals,
-        )
+        if statement is not None:
+            cursor.execute(
+                statement,
+                parameters,
+                fetch_decimals=fetch_decimals,
+            )
+        else:
+            cursor._verify_fetch()
         if size is None:
             yield cursor._impl.fetch_df_all(cursor)
         else:

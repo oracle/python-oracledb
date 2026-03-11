@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,9 +48,12 @@ class BaseCursor(metaclass=BaseMetaClass):
         self,
         connection: "connection_module.Connection",
         scrollable: bool = False,
+        handle: Optional[object] = None,
     ) -> None:
         self._connection = connection
         self._impl = connection._impl.create_cursor_impl(scrollable)
+        if handle is not None:
+            self._impl.attach_external_handle(external_handle_capsule=handle)
 
     def __del__(self):
         if self._impl is not None:
@@ -774,6 +777,18 @@ class Cursor(BaseCursor):
         on which the cursor was created.
         """
         return self._connection
+
+    @property
+    def handle(self) -> object:
+        """
+        This read-only attribute returns a PyCapsule named ``oci_stmt_handle``
+        wrapping the Oracle Call Interface (OCI) statement handle for the
+        connection. It is primarily provided to facilitate testing the creation
+        of a cursor using the OCI statement handle.
+
+        This attribute is only supported in python-oracledb Thick mode.
+        """
+        return self._impl.get_handle()
 
     def execute(
         self,

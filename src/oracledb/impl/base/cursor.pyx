@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -524,6 +524,9 @@ cdef class BaseCursorImpl:
             df_impl.arrays.append(array_impl)
         return PY_TYPE_DATAFRAME._from_impl(df_impl)
 
+    def attach_external_handle(self, external_handle_capsule):
+        errors._raise_not_supported("attaching an external OCIStmt handle")
+
     def close(self, bint in_del=False):
         """
         Closes the cursor and makes it unusable for further operations.
@@ -645,6 +648,9 @@ cdef class BaseCursorImpl:
                     var_impl = <BaseVarImpl> self.fetch_var_impls[i]
                     self.fetch_vars[i] = PY_TYPE_VAR._from_impl(var_impl)
         return self.fetch_vars
+
+    def get_handle(self):
+        errors._raise_not_supported("getting an OCIStmt handle")
 
     def get_implicit_results(self, connection):
         errors._raise_not_supported("getting implicit results from PL/SQL")

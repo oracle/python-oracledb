@@ -26,6 +26,15 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added support for creating a :ref:`cursor object <cursorobj>` from an
+    external OCIStmt handle. The external handle should be wrapped in a
+    PyCapsule named ``oci_stmt_handle``. A new property :attr:`Cursor.handle`
+    was also added to provide access to the internal OCIStmt handle in order to
+    facilitate testing and to support external use, if required.
+#)  Methods :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()` now support an optional ``handle``
+    argument to pass an external OCIStmt handle wrapped in a PyCapsule named
+    ``oci_stmt_handle``.
 #)  Dropped support for Oracle Client libraries before 19c.
 
 Common Changes

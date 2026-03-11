@@ -190,6 +190,10 @@ Cursor Attributes
 
     .. dbapiattributeextension::
 
+.. autoproperty:: Cursor.handle
+
+    .. versionadded:: 4.0.0
+
 .. autoproperty:: Cursor.inputtypehandler
 
     See :ref:`inputtypehandlers`.

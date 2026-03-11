@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -72,3 +72,29 @@ def test_7304(test_env):
     with test_env.assert_raises_full_code("DPY-3001"):
         pool.acquire(tag="unimportant")
     pool.close()
+
+
+def test_7305(conn, test_env):
+    "7305 - test error while passing OCIStmt handle in thin mode"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        conn.cursor(handle=1)
+
+
+def test_7306(conn, test_env):
+    "7306 - test error getting an OCIStmt handle in thin mode"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        cursor = conn.cursor()
+        cursor.handle
+
+
+def test_7307(conn, test_env):
+    "7307 - test passing OCIStmt handle in thin mode raises DPY-3001"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        conn.fetch_df_all(handle=1)
+
+
+def test_7308(conn, test_env):
+    "7308 - test passing OCIStmt handle in thin mode raises DPY-3001"
+    with test_env.assert_raises_full_code("DPY-3001"):
+        for _ in conn.fetch_df_batches(handle=1):
+            pass

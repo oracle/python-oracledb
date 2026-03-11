@@ -67,6 +67,10 @@ Connection Methods
 
 .. automethod:: Connection.cursor
 
+   .. versionchanged:: 4.0.0
+
+        The parameter ``handle`` was added.
+
 .. automethod:: Connection.decode_oson
 
     .. versionadded:: 2.1.0
@@ -93,6 +97,10 @@ Connection Methods
 
     .. dbapimethodextension::
 
+    .. versionchanged:: 4.0.0
+
+        The parameter ``handle`` was added.
+
     .. versionchanged:: 3.4.0
 
         The ``fetch_decimals`` and ``requested_schema`` parameters were added.
@@ -104,6 +112,10 @@ Connection Methods
     See :ref:`dataframeformat` for the supported data types and examples.
 
     .. dbapimethodextension::
+
+    .. versionchanged:: 4.0.0
+
+        The parameter ``handle`` was added.
 
     .. versionchanged:: 3.4.0
 
