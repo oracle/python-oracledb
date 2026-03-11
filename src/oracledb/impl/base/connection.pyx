@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -35,7 +35,6 @@ cdef class BaseConnImpl:
         self.dsn = dsn
         self.username = params.user
         self.proxy_user = params.proxy_user
-        self._oson_max_fname_size = 255
 
     cdef object _check_value(self, OracleMetadata metadata, object value,
                              bint* is_ok):
@@ -203,7 +202,7 @@ cdef class BaseConnImpl:
         Return OSON encoded bytes encoded from the supplied object.
         """
         cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
-        encoder.encode(value, self._oson_max_fname_size)
+        encoder.encode(value, self.supports_oson_long_field_names)
         return encoder._data[:encoder._pos]
 
     def get_is_healthy(self):

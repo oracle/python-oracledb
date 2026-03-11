@@ -1475,7 +1475,8 @@ cdef class MessageWithData(Message):
         elif ora_type_num == ORA_TYPE_NUM_OBJECT:
             buf.write_dbobject(value._impl)
         elif ora_type_num == ORA_TYPE_NUM_JSON:
-            buf.write_oson(value, self.conn_impl._oson_max_fname_size)
+            buf.write_oson(value,
+                           self.conn_impl.supports_oson_long_field_names)
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             buf.write_vector(value)
         else:

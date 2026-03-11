@@ -636,14 +636,14 @@ cdef class Buffer:
         encode_number(buf, &buflen, num_bytes)
         self._write_raw_bytes_and_length(buf, buflen)
 
-    cdef int write_oson(self, value, ssize_t max_fname_size,
+    cdef int write_oson(self, value, bint supports_long_fnames,
                         bint write_length=True) except -1:
         """
         Encodes the given value to OSON and then writes that to the buffer.
         it.
         """
         cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
-        encoder.encode(value, max_fname_size)
+        encoder.encode(value, supports_long_fnames)
         self._write_raw_bytes_and_length(encoder._data, encoder._pos)
 
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1:

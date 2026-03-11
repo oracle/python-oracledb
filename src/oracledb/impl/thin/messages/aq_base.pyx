@@ -204,7 +204,8 @@ cdef class AqBaseMessage(Message):
         """
         if self.queue_impl.is_json:
             buf.write_oson(props_impl.payload_obj,
-                           self.conn_impl._oson_max_fname_size, False)
+                           self.conn_impl.supports_oson_long_field_names,
+                           write_length=False)
         elif self.queue_impl.payload_type is not None:
             buf.write_dbobject(props_impl.payload_obj)
         else:

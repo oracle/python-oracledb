@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -543,7 +543,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if driver_info.client_version_info.versionNum >= 23 \
                 and version_info.versionNum >= 23:
             self.supports_bool = True
-            self._oson_max_fname_size = 65535
+            self.supports_oson_long_field_names = True
 
         # determine if session callback should be invoked; this takes place if
         # the connection is newly created by the pool or if the requested tag

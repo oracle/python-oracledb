@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -82,7 +82,7 @@ cdef class ProtocolMessage(Message):
             temp_array = bytearray(self.server_compile_caps)
             caps._adjust_for_server_compile_caps(temp_array)
             if caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1:
-                self.conn_impl._oson_max_fname_size = 65535
+                self.conn_impl.supports_oson_long_field_names = True
         self.server_runtime_caps = buf.read_bytes()
         if self.server_runtime_caps is not None:
             temp_array = bytearray(self.server_runtime_caps)

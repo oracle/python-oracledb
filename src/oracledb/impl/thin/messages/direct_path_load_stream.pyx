@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -226,7 +226,7 @@ cdef class PieceBuffer(Buffer):
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             self.write_bool(data.buffer.as_bool)
         elif ora_type_num == ORA_TYPE_NUM_JSON:
-            self.write_oson(value, conn_impl._oson_max_fname_size)
+            self.write_oson(value, conn_impl.supports_oson_long_field_names)
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:
             self.write_vector(value)
         else:

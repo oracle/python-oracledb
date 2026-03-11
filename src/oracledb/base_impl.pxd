@@ -368,7 +368,7 @@ cdef class Buffer:
     cdef int write_interval_ym(self, object value) except -1
     cdef int write_oracle_date(self, object value, uint8_t length) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
-    cdef int write_oson(self, value, ssize_t max_fname_size,
+    cdef int write_oson(self, value, bint supports_long_fnames,
                         bint write_length=*) except -1
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
     cdef int write_sb4(self, int32_t value) except -1
@@ -457,7 +457,7 @@ cdef class OsonEncoder(GrowableBuffer):
     cdef int _examine_node(self, object value) except -1
     cdef int _write_extended_header(self) except -1
     cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1
-    cdef int encode(self, object value, ssize_t max_fname_size) except -1
+    cdef int encode(self, object value, bint supports_long_fnames=*) except -1
 
 
 cdef class VectorDecoder(Buffer):
@@ -683,7 +683,7 @@ cdef class BaseConnImpl:
         public bint invoke_session_callback
         readonly tuple server_version
         readonly bint supports_bool
-        ssize_t _oson_max_fname_size
+        bint supports_oson_long_field_names
         bint _allow_bind_str_to_lob
         bint _in_request
 
