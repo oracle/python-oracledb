@@ -570,6 +570,26 @@ cdef class Buffer:
         cpython.PyBytes_AsStringAndSize(value, <char**> &ptr, &value_len)
         self._write_raw_bytes_and_length(ptr, value_len)
 
+    cdef int write_bytes_with_two_lengths(self, object value) except -1:
+        """
+        Writes the length first as an encoded 32-bit integer followed by an
+        encoded length followed by the bytes. The value may be None or bytes or
+        a string (which will be encoded to UTF-8 encoded bytes first).
+        """
+        cdef:
+            bytes value_bytes
+            ssize_t value_len
+            char_type *ptr
+        if value is None:
+            self.write_ub4(0)
+        else:
+            value_bytes = value if isinstance(value, bytes) else value.encode()
+            cpython.PyBytes_AsStringAndSize(value_bytes, <char**> &ptr,
+                                            &value_len)
+            self.write_ub4(<uint32_t> value_len)
+            if value_len > 0:
+                self._write_raw_bytes_and_length(ptr, value_len)
+
     cdef int write_interval_ds(self, object value) except -1:
         """
         Writes an interval to the buffer in Oracle Interval Day To Second

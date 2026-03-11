@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -239,5 +239,4 @@ cdef class AqBaseMessage(Message):
                 value_bytes = value.encode()
             else:
                 value_bytes = value
-            buf.write_ub4(len(value_bytes))
-            buf.write_bytes_with_length(value_bytes)
+            buf.write_bytes_with_two_lengths(value_bytes)

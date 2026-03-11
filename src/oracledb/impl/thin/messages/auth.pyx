@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -304,13 +304,8 @@ cdef class AuthMessage(Message):
         cdef:
             bytes key_bytes = key.encode()
             bytes value_bytes = value.encode()
-            uint32_t key_len = <uint32_t> len(key_bytes)
-            uint32_t value_len = <uint32_t> len(value_bytes)
-        buf.write_ub4(key_len)
-        buf.write_bytes_with_length(key_bytes)
-        buf.write_ub4(value_len)
-        if value_len > 0:
-            buf.write_bytes_with_length(value_bytes)
+        buf.write_bytes_with_two_lengths(key_bytes)
+        buf.write_bytes_with_two_lengths(value_bytes)
         buf.write_ub4(flags)
 
     cdef int _write_message(self, WriteBuffer buf) except -1:

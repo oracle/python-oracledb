@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -108,8 +108,7 @@ cdef class AqArrayMessage(AqBaseMessage):
 
         # write message
         for props_impl in self.props_impls:
-            buf.write_ub4(len(queue_name_bytes))
-            buf.write_bytes_with_length(queue_name_bytes)
+            buf.write_bytes_with_two_lengths(queue_name_bytes)
             self._write_msg_props(buf, props_impl)
             buf.write_ub4(0)                        # num recipients
             self._write_value_with_length(buf, consumer_name_bytes)
@@ -123,8 +122,7 @@ cdef class AqArrayMessage(AqBaseMessage):
             buf.write_ub4(0)                        # extensions
             buf.write_ub4(0)                        # rel msg id
             buf.write_sb4(0)                        # seq deviation
-            buf.write_ub4(16)                       # toid length
-            buf.write_bytes_with_length(self.queue_impl.payload_toid)
+            buf.write_bytes_with_two_lengths(self.queue_impl.payload_toid)
             buf.write_ub2(TNS_AQ_MESSAGE_VERSION)
             buf.write_ub4(0)                        # payload length
             buf.write_ub4(0)                        # raw pay length
@@ -150,8 +148,7 @@ cdef class AqArrayMessage(AqBaseMessage):
         # write message
         buf.write_ub4(0)                            # rel msgid len
         buf.write_uint8(TNS_MSG_TYPE_ROW_HEADER)
-        buf.write_ub4(len(queue_name_bytes))
-        buf.write_bytes_with_length(queue_name_bytes)
+        buf.write_bytes_with_two_lengths(queue_name_bytes)
         buf.write_bytes(self.queue_impl.payload_toid)
         buf.write_ub2(TNS_AQ_MESSAGE_VERSION)
         buf.write_ub4(flags)

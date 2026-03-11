@@ -491,8 +491,7 @@ cdef class Message:
         self._write_piggyback_code(buf, TNS_FUNC_SET_SCHEMA)
         buf.write_uint8(1)                  # pointer
         schema_bytes = self.conn_impl._current_schema.encode()
-        buf.write_ub4(len(schema_bytes))
-        buf.write_bytes_with_length(schema_bytes)
+        buf.write_bytes_with_two_lengths(schema_bytes)
 
     cdef int _write_close_temp_lobs_piggyback(self,
                                               WriteBuffer buf) except -1:
@@ -1377,8 +1376,7 @@ cdef class MessageWithData(Message):
             buf.write_ub8(cont_flag)
             if metadata.objtype is not None:
                 typ_impl = metadata.objtype
-                buf.write_ub4(len(typ_impl.oid))
-                buf.write_bytes_with_length(typ_impl.oid)
+                buf.write_bytes_with_two_lengths(typ_impl.oid)
                 buf.write_ub4(typ_impl.version)
             else:
                 buf.write_ub4(0)            # OID

@@ -846,13 +846,8 @@ cdef class WriteBuffer(Buffer):
             ThinDbObjectTypeImpl typ_impl = obj_impl.type
             uint32_t num_bytes
             bytes packed_data
-        self.write_ub4(len(obj_impl.toid))
-        self.write_bytes_with_length(obj_impl.toid)
-        if obj_impl.oid is None:
-            self.write_ub4(0)
-        else:
-            self.write_ub4(len(obj_impl.oid))
-            self.write_bytes_with_length(obj_impl.oid)
+        self.write_bytes_with_two_lengths(obj_impl.toid)
+        self.write_bytes_with_two_lengths(obj_impl.oid)
         self.write_ub4(0)                   # snapshot
         self.write_ub4(0)                   # version
         packed_data = obj_impl._get_packed_data()
@@ -865,26 +860,15 @@ cdef class WriteBuffer(Buffer):
         """
         Writes a keyword/value pair (text and binary values) to the buffer.
         """
-        cdef bytes text_value_bytes
-        if text_value is None:
-            self.write_ub4(0)
-        else:
-            text_value_bytes = text_value.encode()
-            self.write_ub4(len(text_value_bytes))
-            self.write_bytes_with_length(text_value_bytes)
-        if binary_value is None:
-            self.write_ub4(0)
-        else:
-            self.write_ub4(len(binary_value))
-            self.write_bytes_with_length(binary_value)
+        self.write_bytes_with_two_lengths(text_value)
+        self.write_bytes_with_two_lengths(binary_value)
         self.write_ub2(keyword)
 
     cdef int write_lob_with_length(self, BaseThinLobImpl lob_impl) except -1:
         """
         Writes a LOB locator to the buffer.
         """
-        self.write_ub4(len(lob_impl._locator))
-        self.write_bytes_with_length(lob_impl._locator)
+        self.write_bytes_with_two_lengths(lob_impl._locator)
 
     cdef int write_qlocator(self, uint64_t data_length,
                             bint write_length=True) except -1:
