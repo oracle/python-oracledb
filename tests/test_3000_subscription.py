@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,7 +34,7 @@ import pytest
 
 class SubscriptionData:
     def __init__(self, num_messages_expected):
-        self.condition = threading.Condition()
+        self.event = threading.Event()
         self.num_messages_expected = num_messages_expected
         self.num_messages_received = 0
 
@@ -49,13 +49,11 @@ class SubscriptionData:
             message.type == oracledb.EVENT_DEREG
             or self.num_messages_received == self.num_messages_expected
         ):
-            with self.condition:
-                self.condition.notify()
+            self.event.set()
 
     def wait_for_messages(self):
         if self.num_messages_received < self.num_messages_expected:
-            with self.condition:
-                self.condition.wait(10)
+            assert self.event.wait(5)
 
 
 class AQSubscriptionData(SubscriptionData):
@@ -191,16 +189,12 @@ def test_3002(skip_unless_has_client_23, conn, test_env):
     "3002 - test subscription for AQ"
 
     # create queue and clear it of all messages
-    queue = conn.queue("TEST_RAW_QUEUE")
-    queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    while queue.deqone():
-        pass
-    conn.commit()
+    queue = test_env.get_and_clear_queue(conn, "TEST_RAW_QUEUE")
 
     # set up subscription
     data = AQSubscriptionData(1)
-    with test_env.get_connection(events=True) as conn:
-        conn.subscribe(
+    with test_env.get_connection(events=True) as other_conn:
+        sub = other_conn.subscribe(
             namespace=oracledb.SUBSCR_NAMESPACE_AQ,
             name=queue.name,
             timeout=10,
@@ -213,6 +207,7 @@ def test_3002(skip_unless_has_client_23, conn, test_env):
 
         # wait for all messages to be sent
         data.wait_for_messages()
+        other_conn.unsubscribe(sub)
 
 
 @pytest.mark.skip("fails intermittently")
@@ -296,7 +291,7 @@ def test_3006(skip_unless_has_client_23, test_env):
 @pytest.mark.skip("fails intermittently")
 def test_3007(skip_unless_has_client_23, test_env):
     "3007 - test getting Message, MessageQuery, MessageTable attributes"
-    condition = threading.Condition()
+    event = threading.Event()
     conn = test_env.get_connection(events=True)
 
     def callback_handler(message):
@@ -316,8 +311,7 @@ def test_3007(skip_unless_has_client_23, test_env):
         assert tables.name == table_name
         assert isinstance(tables.operation, int)
         assert isinstance(tables.rows, list)
-        with condition:
-            condition.notify()
+        event.set()
 
     sub = conn.subscribe(
         callback=callback_handler, qos=oracledb.SUBSCR_QOS_QUERY
@@ -333,8 +327,7 @@ def test_3007(skip_unless_has_client_23, test_env):
     )
     conn.commit()
 
-    with condition:
-        assert condition.wait(5)
+    assert event.wait(5)
     conn.unsubscribe(sub)
 
 
@@ -382,10 +375,9 @@ def test_3013(skip_unless_has_client_23, cursor, test_env):
 
     def callback(message):
         assert not message.registered
-        with condition:
-            condition.notify()
+        event.set()
 
-    condition = threading.Condition()
+    event = threading.Event()
     cursor.execute("truncate table TestTempTable")
     conn = test_env.get_connection(events=True)
     cursor = conn.cursor()
@@ -400,8 +392,7 @@ def test_3013(skip_unless_has_client_23, cursor, test_env):
         """
     )
     conn.commit()
-    with condition:
-        assert condition.wait(5)
+    assert event.wait(5)
     conn.unsubscribe(sub)
 
 
