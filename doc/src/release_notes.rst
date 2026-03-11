@@ -50,6 +50,8 @@ Common Changes
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
+#)  Fixed bug when inserting data frames that are views of other data frames
+    (`issue 574 <https://github.com/oracle/python-oracledb/issues/574>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.

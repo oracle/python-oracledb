@@ -29,6 +29,7 @@ Module for testing DataFrame ingestion
 import datetime
 import decimal
 
+import pandas
 import pyarrow
 import pytest
 
@@ -1029,3 +1030,22 @@ def test_8923(conn, cursor, empty_tab):
     )
     fetched_values = [d for d, in cursor]
     assert fetched_values == values
+
+
+def test_8924(conn, cursor, empty_tab):
+    "8924 - test ingestion with data frame view"
+    input_df = pandas.DataFrame({"Id": [1, 2, 3]}).convert_dtypes(
+        dtype_backend="pyarrow"
+    )
+    df = input_df.iloc[1:2]
+    cursor.executemany("insert into TestDataFrame (Id) values (:1)", df)
+    conn.commit()
+    odf = conn.fetch_df_all(
+        """
+        select Id as "Id"
+        from TestDataFrame
+        order by Id
+        """
+    )
+    fetched_df = pyarrow.table(odf)
+    assert fetched_df.equals(pyarrow.table(df))

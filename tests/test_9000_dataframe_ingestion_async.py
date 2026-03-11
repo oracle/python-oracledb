@@ -26,6 +26,7 @@
 Module for testing DataFrame ingestion with asyncio
 """
 
+import pandas
 import pytest
 import datetime
 import decimal
@@ -1047,3 +1048,24 @@ async def test_9023(async_conn, async_cursor, empty_tab):
     )
     fetched_values = [d async for d, in async_cursor]
     assert fetched_values == values
+
+
+async def test_9024(async_conn, async_cursor, empty_tab):
+    "9024 - test ingestion with data frame view"
+    input_df = pandas.DataFrame({"Id": [1, 2, 3]}).convert_dtypes(
+        dtype_backend="pyarrow"
+    )
+    df = input_df.iloc[1:2]
+    await async_cursor.executemany(
+        "insert into TestDataFrame (Id) values (:1)", df
+    )
+    await async_conn.commit()
+    odf = await async_conn.fetch_df_all(
+        """
+        select Id as "Id"
+        from TestDataFrame
+        order by Id
+        """
+    )
+    fetched_df = pyarrow.table(odf)
+    assert fetched_df.equals(pyarrow.table(df))

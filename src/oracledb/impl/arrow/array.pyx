@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -440,6 +440,13 @@ cdef class ArrowArrayImpl:
         Return the number of rows in the array.
         """
         length[0] = self.arrow_array.length
+
+    cdef int get_offset(self, int64_t* offset) except -1:
+        """
+        Returns the offset associated with the array. This allows support for
+        array slices without copying data.
+        """
+        offset[0] = self.arrow_array.offset
 
     cdef object get_sparse_vector(self, int64_t index, bint* is_null):
         """

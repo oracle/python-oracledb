@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -155,6 +155,7 @@ cdef class ArrowArrayImpl:
     cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
                      int64_t* value) except -1
     cdef int get_length(self, int64_t* length) except -1
+    cdef int get_offset(self, int64_t* offset) except -1
     cdef object get_sparse_vector(self, int64_t index, bint* is_null)
     cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
                       uint64_t* value) except -1
