@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -728,6 +728,7 @@ def test_4539():
         ("thick_mode_dsn_passthrough", True),
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
+        ("on_connect_callback", lambda conn: None),
     ]
     params = oracledb.ConnectParams(**dict(values))
     parts = [f"{name}={value!r}" for name, value in values]
@@ -784,6 +785,7 @@ def test_4539():
         ("thick_mode_dsn_passthrough", False),
         ("extra_auth_params", dict(extra1="X", extra2="Y")),
         ("pool_name", "my_second_pool"),
+        ("on_connect_callback", lambda conn: None),
     ]
     params.set(**dict(new_values))
     parts = [f"{name}={value!r}" for name, value in new_values]

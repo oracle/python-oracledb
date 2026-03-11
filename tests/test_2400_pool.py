@@ -1125,3 +1125,18 @@ def test_2459(test_env):
     with pool.acquire() as conn:
         assert conn.call_timeout == desired_value
     pool.close()
+
+
+def test_2460(test_env):
+    "2460 - test on_connect_callback is triggered for each pool acquire()"
+    counter = 0
+
+    def callback(conn):
+        nonlocal counter
+        counter += 1
+
+    pool = test_env.get_pool(on_connect_callback=callback)
+    for i in range(10):
+        with pool.acquire():
+            assert counter == i + 1
+    pool.close()

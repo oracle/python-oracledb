@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -84,6 +84,7 @@ class BaseConnectionPool(metaclass=BaseMetaClass):
                     impl = thick_impl.ThickPoolImpl(dsn, params_impl)
                 self._impl = impl
                 self.session_callback = params_impl.session_callback
+                self.on_connect_callback = params_impl.on_connect_callback
             except:
                 if cache_name is not None:
                     del named_pools.pools[cache_name]
@@ -432,6 +433,7 @@ class ConnectionPool(BaseConnectionPool):
             matchanytag=matchanytag,
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
+            on_connect_callback=self.on_connect_callback,
             pool=self,
         )
 
@@ -724,6 +726,7 @@ class AsyncConnectionPool(BaseConnectionPool):
             matchanytag=matchanytag,
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
+            on_connect_callback=self.on_connect_callback,
             pool=self,
         )
 

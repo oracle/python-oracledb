@@ -895,7 +895,9 @@ class Connection(BaseConnection):
                 impl.connect(params_impl, pool_impl)
             self._impl = impl
 
-            # invoke callback, if applicable
+            # invoke callbacks, as applicable
+            if params_impl.on_connect_callback is not None:
+                params_impl.on_connect_callback(self)
             if (
                 impl.invoke_session_callback
                 and pool is not None
@@ -1800,6 +1802,7 @@ def connect(
     thick_mode_dsn_passthrough: Optional[bool] = None,
     extra_auth_params: Optional[dict] = None,
     pool_name: Optional[str] = None,
+    on_connect_callback: Optional[Callable] = None,
     handle: Optional[int] = None,
 ) -> Connection:
     """
@@ -2094,6 +2097,11 @@ def connect(
       Oracle Database 23.4, or higher
       (default: None)
 
+    - ``on_connect_callback``: a callable that is invoked immediately after a
+      standalone connection is created or a connection is acquired from a
+      connection pool, but before it is returned to the caller
+      (default: None)
+
     - ``handle``: an integer representing a pointer to a valid service context
       handle. This value is only used in python-oracledb Thick mode. It should
       be used with extreme caution
@@ -2197,7 +2205,9 @@ class AsyncConnection(BaseConnection):
             await impl.connect(params_impl)
         self._impl = impl
 
-        # invoke callback, if applicable
+        # invoke callbacks, as applicable
+        if params_impl.on_connect_callback is not None:
+            await params_impl.on_connect_callback(self)
         if (
             impl.invoke_session_callback
             and pool is not None
@@ -3058,6 +3068,7 @@ def connect_async(
     thick_mode_dsn_passthrough: Optional[bool] = None,
     extra_auth_params: Optional[dict] = None,
     pool_name: Optional[str] = None,
+    on_connect_callback: Optional[Callable] = None,
     handle: Optional[int] = None,
 ) -> AsyncConnection:
     """
@@ -3350,6 +3361,11 @@ def connect_async(
 
     - ``pool_name``: the name of the DRCP pool when using multi-pool DRCP with
       Oracle Database 23.4, or higher
+      (default: None)
+
+    - ``on_connect_callback``: a callable that is invoked immediately after a
+      standalone connection is created or a connection is acquired from a
+      connection pool, but before it is returned to the caller
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context

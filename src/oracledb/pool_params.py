@@ -121,6 +121,7 @@ class PoolParams(ConnectParams):
         thick_mode_dsn_passthrough: Optional[bool] = None,
         extra_auth_params: Optional[dict] = None,
         pool_name: Optional[str] = None,
+        on_connect_callback: Optional[Callable] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -465,6 +466,11 @@ class PoolParams(ConnectParams):
           with Oracle Database 23.4, or higher
           (default: None)
 
+        - ``on_connect_callback``: a callable that is invoked immediately after
+          a standalone connection is created or a connection is acquired from a
+          connection pool, but before it is returned to the caller
+          (default: None)
+
         - ``handle``: an integer representing a pointer to a valid service
           context handle. This value is only used in python-oracledb Thick
           mode. It should be used with extreme caution
@@ -536,7 +542,8 @@ class PoolParams(ConnectParams):
             f"use_sni={self.use_sni!r}, "
             f"thick_mode_dsn_passthrough={self.thick_mode_dsn_passthrough!r}, "
             f"extra_auth_params={self.extra_auth_params!r}, "
-            f"pool_name={self.pool_name!r}"
+            f"pool_name={self.pool_name!r}, "
+            f"on_connect_callback={self.on_connect_callback!r}"
             ")"
         )
 
@@ -740,6 +747,7 @@ class PoolParams(ConnectParams):
         thick_mode_dsn_passthrough: Optional[bool] = None,
         extra_auth_params: Optional[dict] = None,
         pool_name: Optional[str] = None,
+        on_connect_callback: Optional[Callable] = None,
         handle: Optional[int] = None,
     ):
         """
@@ -1009,6 +1017,10 @@ class PoolParams(ConnectParams):
 
         - ``pool_name``: the name of the DRCP pool when using multi-pool DRCP
           with Oracle Database 23.4, or higher
+
+        - ``on_connect_callback``: a callable that is invoked immediately after
+          a standalone connection is created or a connection is acquired from a
+          connection pool, but before it is returned to the caller
 
         - ``handle``: an integer representing a pointer to a valid service
           context handle. This value is only used in python-oracledb Thick

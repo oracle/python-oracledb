@@ -40,6 +40,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added attribute :attr:`ConnectParams.on_connect_callback` which is invoked
+    when a standalone connection is created or a connection is acquired from a
+    connection pool.
 #)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
 
     - Added Session Token-based authentication support to the OCI Tokens

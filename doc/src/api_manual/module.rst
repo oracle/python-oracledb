@@ -21,6 +21,10 @@ Oracledb Methods
 
 .. autofunction:: connect
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -58,6 +62,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: connect_async
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 
@@ -101,6 +109,10 @@ Oracledb Methods
 
 .. autofunction:: create_pool
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -137,6 +149,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: create_pool_async
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 

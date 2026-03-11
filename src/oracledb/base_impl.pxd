@@ -609,6 +609,7 @@ cdef class ConnectParamsImpl:
         public str debug_jdwp
         object access_token_callback
         object access_token_expires
+        public object on_connect_callback
         Description _default_description
         Address _default_address
         bytearray _password
@@ -645,6 +646,7 @@ cdef class ConnectParamsImpl:
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1
+    cdef int _set_on_connect_param(self, object val) except -1
     cdef int _set_new_password(self, object password) except -1
     cdef int _set_password(self, object password) except -1
     cdef int _set_wallet_password(self, object password) except -1

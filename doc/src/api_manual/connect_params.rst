@@ -15,6 +15,10 @@ ConnectParams Class
 
     .. dbapiobjectextension::
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -68,6 +72,10 @@ ConnectParams Methods
     .. versionadded:: 1.3.0
 
 .. automethod:: ConnectParams.set
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 
@@ -208,6 +216,12 @@ All properties are read only.
 .. autoproperty:: ConnectParams.mode
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. autoproperty:: ConnectParams.on_connect_callback
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. versionadded:: 4.0.0
 
 .. autoproperty:: ConnectParams.osuser
 

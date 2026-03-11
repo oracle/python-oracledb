@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -293,6 +293,7 @@ ERR_EMPTY_STATEMENT = 2066
 ERR_WRONG_DIRECT_PATH_DATA_TYPE = 2067
 ERR_SCROLL_NOT_SUPPORTED = 2068
 ERR_WRONG_REQUESTED_SCHEMA_LENGTH = 2069
+ERR_INVALID_CALLABLE_FUN = 2070
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -716,6 +717,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_INVALID_BIND_NAME: (
         'no bind placeholder named ":{name}" was found in the SQL text'
     ),
+    ERR_INVALID_CALLABLE_FUN: "Expected a callable function",
     ERR_INVALID_CONN_CLASS: "invalid connection class",
     ERR_INVALID_CONNECT_DESCRIPTOR: 'invalid connect descriptor "{data}"',
     ERR_INVALID_CONNECT_PARAMS: "invalid connection params",

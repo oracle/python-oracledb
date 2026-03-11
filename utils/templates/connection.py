@@ -893,7 +893,9 @@ class Connection(BaseConnection):
                 impl.connect(params_impl, pool_impl)
             self._impl = impl
 
-            # invoke callback, if applicable
+            # invoke callbacks, as applicable
+            if params_impl.on_connect_callback is not None:
+                params_impl.on_connect_callback(self)
             if (
                 impl.invoke_session_callback
                 and pool is not None
@@ -1880,7 +1882,9 @@ class AsyncConnection(BaseConnection):
             await impl.connect(params_impl)
         self._impl = impl
 
-        # invoke callback, if applicable
+        # invoke callbacks, as applicable
+        if params_impl.on_connect_callback is not None:
+            await params_impl.on_connect_callback(self)
         if (
             impl.invoke_session_callback
             and pool is not None

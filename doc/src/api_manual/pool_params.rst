@@ -18,6 +18,10 @@ PoolParams Class
 
     See :ref:`usingpoolparams` for more information.
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -65,6 +69,10 @@ PoolParams Methods
 .. automethod:: PoolParams.parse_connect_string
 
 .. automethod:: PoolParams.set
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 

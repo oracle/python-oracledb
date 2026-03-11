@@ -699,3 +699,18 @@ async def test_5545(test_env):
     async with pool.acquire() as conn:
         assert conn.call_timeout == desired_value
     await pool.close()
+
+
+async def test_5546(test_env):
+    "5546 - test on_connect_callback is triggered for each pool acquire()"
+    counter = 0
+
+    async def callback(conn):
+        nonlocal counter
+        counter += 1
+
+    pool = test_env.get_pool_async(on_connect_callback=callback)
+    for i in range(10):
+        async with pool.acquire():
+            assert counter == i + 1
+    await pool.close()

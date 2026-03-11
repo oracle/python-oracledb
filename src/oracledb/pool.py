@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -86,6 +86,7 @@ class BaseConnectionPool(metaclass=BaseMetaClass):
                     impl = thick_impl.ThickPoolImpl(dsn, params_impl)
                 self._impl = impl
                 self.session_callback = params_impl.session_callback
+                self.on_connect_callback = params_impl.on_connect_callback
             except:
                 if cache_name is not None:
                     del named_pools.pools[cache_name]
@@ -434,6 +435,7 @@ class ConnectionPool(BaseConnectionPool):
             matchanytag=matchanytag,
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
+            on_connect_callback=self.on_connect_callback,
             pool=self,
         )
 
@@ -697,6 +699,7 @@ def create_pool(
     thick_mode_dsn_passthrough: Optional[bool] = None,
     extra_auth_params: Optional[dict] = None,
     pool_name: Optional[str] = None,
+    on_connect_callback: Optional[Callable] = None,
     handle: Optional[int] = None,
 ) -> ConnectionPool:
     """
@@ -1059,6 +1062,11 @@ def create_pool(
       Oracle Database 23.4, or higher
       (default: None)
 
+    - ``on_connect_callback``: a callable that is invoked immediately after a
+      standalone connection is created or a connection is acquired from a
+      connection pool, but before it is returned to the caller
+      (default: None)
+
     - ``handle``: an integer representing a pointer to a valid service context
       handle. This value is only used in python-oracledb Thick mode. It should
       be used with extreme caution
@@ -1121,6 +1129,7 @@ class AsyncConnectionPool(BaseConnectionPool):
             matchanytag=matchanytag,
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
+            on_connect_callback=self.on_connect_callback,
             pool=self,
         )
 
@@ -1288,6 +1297,7 @@ def create_pool_async(
     thick_mode_dsn_passthrough: Optional[bool] = None,
     extra_auth_params: Optional[dict] = None,
     pool_name: Optional[str] = None,
+    on_connect_callback: Optional[Callable] = None,
     handle: Optional[int] = None,
 ) -> AsyncConnectionPool:
     """
@@ -1648,6 +1658,11 @@ def create_pool_async(
 
     - ``pool_name``: the name of the DRCP pool when using multi-pool DRCP with
       Oracle Database 23.4, or higher
+      (default: None)
+
+    - ``on_connect_callback``: a callable that is invoked immediately after a
+      standalone connection is created or a connection is acquired from a
+      connection pool, but before it is returned to the caller
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context
