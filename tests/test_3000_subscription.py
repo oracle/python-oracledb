@@ -256,7 +256,7 @@ def test_3005(skip_unless_has_client_23, test_env):
         )
         with test_env.assert_raises_full_code("ORA-00942"):
             sub.registerquery("select * from Nonexistent")
-        with test_env.assert_raises_full_code("DPI-1013"):
+        with test_env.assert_raises_full_code("DPI-1087"):
             sub.registerquery("insert into TestTempTable (IntCol) values (1)")
         conn.unsubscribe(sub)
 
