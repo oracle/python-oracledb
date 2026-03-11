@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,8 +27,10 @@
 """
 
 import datetime
+import threading
 
 import oracledb
+import pytest
 
 
 def test_1000():
@@ -238,3 +240,108 @@ def test_1009(test_env, conn):
         oracledb.enable_thin_mode()
         with test_env.assert_raises_full_code("DPY-2019"):
             oracledb.init_oracle_client()
+
+
+def test_1010():
+    "1010 - test creation and updating of secret values"
+    secret = "secret_1010"
+    value = oracledb.SecretValue(secret)
+    assert value.value == secret
+    another_secret = "secret_1010_modified"
+    value.value = another_secret
+    assert value.value == another_secret
+
+
+def test_1011():
+    "1011 - test secret values that expire are not returned"
+    secret = "secret_1011"
+    expires = datetime.datetime.now(
+        datetime.timezone.utc
+    ) - datetime.timedelta(1)
+    value = oracledb.SecretValue(secret, expires=expires)
+    assert value.value is None
+
+
+def test_1012():
+    "1012 - test secret values require a timezone-aware date"
+    secret = "secret_1012"
+    expires = datetime.datetime.now() - datetime.timedelta(1)
+    with pytest.raises(ValueError):
+        oracledb.SecretValue(secret, expires=expires)
+
+
+def test_1013():
+    "1013 - test secret values that have not expired are returned"
+    secret = "secret_1013"
+    expires = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(10)
+    value = oracledb.SecretValue(secret, expires=expires)
+    assert value.value == secret
+
+
+def test_1014():
+    "1014 - test storing secrets in the global cache"
+    key = (1014, "key")
+    secret = "secret_1014"
+    assert oracledb.get_secret(key) is None
+    oracledb.save_secret(key, secret)
+    assert oracledb.get_secret(key).value == secret
+
+
+def test_1015():
+    "1015 - test storing secrets in the thread local cache"
+    key = (1015, "key")
+    main_secret = "secret_1015"
+
+    def thread_fn():
+        assert oracledb.get_secret(key, thread_local=True) is None
+        thread_secret = "secret_1015_thread"
+        oracledb.save_secret(key, thread_secret, thread_local=True)
+        secret_value = oracledb.get_secret(key, thread_local=True)
+        assert secret_value.value == thread_secret
+
+    assert oracledb.get_secret(key, thread_local=True) is None
+    oracledb.save_secret(key, main_secret, thread_local=True)
+    secret_value = oracledb.get_secret(key, thread_local=True)
+    assert secret_value.value == main_secret
+
+    thread = threading.Thread(target=thread_fn)
+    thread.start()
+    thread.join()
+    secret_value = oracledb.get_secret(key, thread_local=True)
+    assert secret_value.value == main_secret
+
+
+def test_1016():
+    "1016 - test secrets that have expired are not returned"
+    key = (1016, "key")
+    secret = "secret_1016"
+    expires = datetime.datetime.now(
+        datetime.timezone.utc
+    ) - datetime.timedelta(1)
+    oracledb.save_secret(key, secret, expires=expires)
+    assert oracledb.get_secret(key) is None
+
+
+def test_1017():
+    "1017 - test secrets that have not expired are returned correctly"
+    key = (1017, "key")
+    secret = "secret_1017"
+    expires = datetime.datetime.now(
+        datetime.timezone.utc
+    ) + datetime.timedelta(10)
+    oracledb.save_secret(key, secret, expires=expires)
+    assert oracledb.get_secret(key).value == secret
+
+
+def test_1018():
+    "1018 - test storing a secret value of None"
+    key = (1018, "key")
+    assert oracledb.save_secret(key, None) is None
+    assert oracledb.get_secret(key) is None
+    secret = "secret_1018"
+    oracledb.save_secret(key, secret)
+    assert oracledb.get_secret(key).value == secret
+    oracledb.save_secret(key, None)
+    assert oracledb.get_secret(key) is None

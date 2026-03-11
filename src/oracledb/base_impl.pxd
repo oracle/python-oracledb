@@ -608,20 +608,14 @@ cdef class ConnectParamsImpl:
         uint64_t _external_handle
         public str debug_jdwp
         object access_token_callback
-        object access_token_expires
         public object on_connect_callback
         Description _default_description
         Address _default_address
-        bytearray _password
-        bytearray _password_obfuscator
-        bytearray _new_password
-        bytearray _new_password_obfuscator
-        bytearray _wallet_password
-        bytearray _wallet_password_obfuscator
-        bytearray _token
-        bytearray _token_obfuscator
-        bytearray _private_key
-        bytearray _private_key_obfuscator
+        SecretValueImpl _password
+        SecretValueImpl _new_password
+        SecretValueImpl _wallet_password
+        SecretValueImpl _token
+        SecretValueImpl _private_key
         public str program
         public str machine
         public str terminal
@@ -635,7 +629,6 @@ cdef class ConnectParamsImpl:
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
     cdef str _get_connect_string(self)
     cdef bytes _get_new_password(self)
-    cdef bytearray _get_obfuscator(self, str secret_value)
     cdef bytes _get_password(self)
     cdef str _get_private_key(self)
     cdef str _get_token(self)
@@ -651,7 +644,6 @@ cdef class ConnectParamsImpl:
     cdef int _set_password(self, object password) except -1
     cdef int _set_wallet_password(self, object password) except -1
     cdef str _transform_password(self, object password)
-    cdef bytearray _xor_bytes(self, bytearray a, bytearray b)
 
 
 cdef class PoolParamsImpl(ConnectParamsImpl):
@@ -973,6 +965,19 @@ cdef class PipelineOpResultImpl:
         readonly list fetch_metadata
 
     cdef int _capture_err(self, Exception exc) except -1
+
+
+cdef class SecretValueImpl:
+    cdef:
+        bytearray value
+        bytearray obfuscator
+        object expires
+
+    cdef bytearray _xor_bytes(self, bytearray value)
+    cpdef str get_value(self)
+    cdef bytes get_value_as_bytes(self)
+    cpdef bool has_expired(self)
+    cpdef int set_value(self, str secret_value, object expires=*) except -1
 
 
 cdef class SparseVectorImpl:

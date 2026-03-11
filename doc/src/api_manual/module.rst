@@ -209,6 +209,10 @@ Oracledb Methods
 
     .. versionadded:: 3.0.0
 
+.. autofunction:: get_secret
+
+    .. versionadded:: 4.0.0
+
 .. autofunction:: init_oracle_client
 
     .. dbapimethodextension::
@@ -269,6 +273,10 @@ Oracledb Methods
     .. dbapimethodextension::
 
     .. versionadded:: 2.5.0
+
+.. autofunction:: save_secret
+
+    .. versionadded:: 4.0.0
 
 .. autofunction:: Time
 
@@ -1269,3 +1277,14 @@ library/stdtypes.html#bytes>`__ class.
 .. versionadded:: 2.1.0
 
 .. dbapimethodextension::
+
+SecretValue Class
+=================
+
+.. autoclass:: SecretValue
+
+    Creates and returns a SecretValue object.
+
+.. versionadded:: 4.0.0
+
+.. autoproperty:: SecretValue.value

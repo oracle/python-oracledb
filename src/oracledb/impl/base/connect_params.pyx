@@ -175,22 +175,15 @@ cdef class ConnectParamsImpl:
         self.ssl_context = other_params.ssl_context
         self.description_list = other_params.description_list
         self.access_token_callback = other_params.access_token_callback
-        self.access_token_expires = other_params.access_token_expires
         self.on_connect_callback = other_params.on_connect_callback
         self._external_handle = other_params._external_handle
         self._default_description = other_params._default_description
         self._default_address = other_params._default_address
         self._password = other_params._password
-        self._password_obfuscator = other_params._password_obfuscator
         self._new_password = other_params._new_password
-        self._new_password_obfuscator = other_params._new_password_obfuscator
         self._wallet_password = other_params._wallet_password
-        self._wallet_password_obfuscator = \
-                other_params._wallet_password_obfuscator
         self._token = other_params._token
-        self._token_obfuscator = other_params._token_obfuscator
         self._private_key = other_params._private_key
-        self._private_key_obfuscator = other_params._private_key_obfuscator
         self.program = other_params.program
         self.terminal = other_params.terminal
         self.machine = other_params.machine
@@ -211,31 +204,21 @@ cdef class ConnectParamsImpl:
         Returns the new password, after removing the obfuscation.
         """
         if self._new_password is not None:
-            return bytes(self._xor_bytes(self._new_password,
-                                         self._new_password_obfuscator))
-
-    cdef bytearray _get_obfuscator(self, str secret_value):
-        """
-        Return a byte array suitable for obfuscating the specified secret
-        value.
-        """
-        return bytearray(secrets.token_bytes(len(secret_value.encode())))
+            return self._new_password.get_value_as_bytes()
 
     cdef bytes _get_password(self):
         """
         Returns the password, after removing the obfuscation.
         """
         if self._password is not None:
-            return bytes(self._xor_bytes(self._password,
-                                         self._password_obfuscator))
+            return self._password.get_value_as_bytes()
 
     cdef str _get_private_key(self):
         """
         Returns the private key, after removing the obfuscation.
         """
         if self._private_key is not None:
-            return self._xor_bytes(self._private_key,
-                                   self._private_key_obfuscator).decode()
+            return self._private_key.get_value()
 
     cdef str _get_token(self):
         """
@@ -252,21 +235,21 @@ cdef class ConnectParamsImpl:
         the refresh parameter set to True.
         """
         cdef:
-            object returned_val, current_date = datetime.datetime.utcnow()
-            bint expired
+            object returned_val
+            str token
         if self._token is None and self.access_token_callback is not None:
             returned_val = self.access_token_callback(False)
             self._set_access_token(returned_val,
                                    errors.ERR_INVALID_ACCESS_TOKEN_RETURNED)
-        expired = self.access_token_expires < current_date
-        if expired and self.access_token_callback is not None:
+        token = self._token.get_value()
+        if token is None and self.access_token_callback is not None:
             returned_val = self.access_token_callback(True)
             self._set_access_token(returned_val,
                                    errors.ERR_INVALID_ACCESS_TOKEN_RETURNED)
-            expired = self.access_token_expires < current_date
-        if expired:
+            token = self._token.get_value()
+        if token is None:
             errors._raise_err(errors.ERR_EXPIRED_ACCESS_TOKEN)
-        return self._xor_bytes(self._token, self._token_obfuscator).decode()
+        return token
 
     cdef object _get_public_instance(self):
         """
@@ -294,7 +277,8 @@ cdef class ConnectParamsImpl:
         if pad_needed != 0:
             payload_segment += '=' * (4 - pad_needed)
         payload = json.loads(base64.urlsafe_b64decode(payload_segment))
-        return datetime.datetime.utcfromtimestamp(payload["exp"])
+        return datetime.datetime.fromtimestamp(payload["exp"],
+                                               datetime.timezone.utc)
 
     cdef bint _get_uses_drcp(self):
         """
@@ -312,8 +296,7 @@ cdef class ConnectParamsImpl:
         Returns the wallet password, after removing the obfuscation.
         """
         if self._wallet_password is not None:
-            return self._xor_bytes(self._wallet_password,
-                                   self._wallet_password_obfuscator).decode()
+            return self._wallet_password.get_value()
 
     cdef int _parse_connect_string(self, str connect_string) except -1:
         """
@@ -369,14 +352,9 @@ cdef class ConnectParamsImpl:
             token_expires = self._get_token_expires(token)
         except Exception as e:
             errors._raise_err(error_num, cause=e)
-        self._token_obfuscator = self._get_obfuscator(token)
-        self._token = self._xor_bytes(bytearray(token.encode()),
-                                                self._token_obfuscator)
+        self._token = SecretValueImpl(token, token_expires)
         if private_key is not None:
-            self._private_key_obfuscator = self._get_obfuscator(private_key)
-            self._private_key = self._xor_bytes(bytearray(private_key.encode()),
-                                                self._private_key_obfuscator)
-        self.access_token_expires = token_expires
+            self._private_key = SecretValueImpl(private_key)
 
     cdef int _set_access_token_param(self, object val) except -1:
         """
@@ -396,9 +374,7 @@ cdef class ConnectParamsImpl:
         cdef str password
         if password_in is not None:
             password = self._transform_password(password_in)
-            self._new_password_obfuscator = self._get_obfuscator(password)
-            self._new_password = self._xor_bytes(bytearray(password.encode()),
-                                                 self._new_password_obfuscator)
+            self._new_password = SecretValueImpl(password)
 
     cdef int _set_on_connect_param(self, object val) except -1:
         """
@@ -416,9 +392,7 @@ cdef class ConnectParamsImpl:
         cdef str password
         if password_in is not None:
             password = self._transform_password(password_in)
-            self._password_obfuscator = self._get_obfuscator(password)
-            self._password = self._xor_bytes(bytearray(password.encode()),
-                                             self._password_obfuscator)
+            self._password = SecretValueImpl(password)
 
     cdef int _set_wallet_password(self, object password_in) except -1:
         """
@@ -427,10 +401,7 @@ cdef class ConnectParamsImpl:
         cdef str password
         if password_in is not None:
             password = self._transform_password(password_in)
-            self._wallet_password_obfuscator = self._get_obfuscator(password)
-            self._wallet_password = \
-                    self._xor_bytes(bytearray(password.encode()),
-                                    self._wallet_password_obfuscator)
+            self._wallet_password = SecretValueImpl(password)
 
     cdef str _transform_password(self, object password):
         """
@@ -450,21 +421,6 @@ cdef class ConnectParamsImpl:
                 errors._raise_err(errors.ERR_PASSWORD_TYPE_HANDLER_FAILED,
                                   password_type=password_type, cause=e)
         return password
-
-    cdef bytearray _xor_bytes(self, bytearray a, bytearray b):
-        """
-        Perform an XOR of two byte arrays as a means of obfuscating a password
-        that is stored on the class. It is assumed that the byte arrays are of
-        the same length.
-        """
-        cdef:
-            ssize_t length, i
-            bytearray result
-        length = len(a)
-        result = bytearray(length)
-        for i in range(length):
-            result[i] = a[i] ^ b[i]
-        return result
 
     def copy(self):
         """

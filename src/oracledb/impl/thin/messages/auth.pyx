@@ -411,9 +411,10 @@ cdef class AuthMessage(Message):
                                       str(self.purity), 1)
             if self.private_key is not None:
                 date_format = "%a, %d %b %Y %H:%M:%S GMT"
-                now = datetime.datetime.utcnow().strftime(date_format)
+                now = datetime.datetime.now(datetime.timezone.utc)
+                formatted_now = now.strftime(date_format)
                 host_info = "%s:%d" % buf._transport.get_host_info()
-                header = f"date: {now}\n" + \
+                header = f"date: {formatted_now}\n" + \
                          f"(request-target): {self.service_name}\n" + \
                          f"host: {host_info}"
                 signature = get_signature(self.private_key, header)
