@@ -142,10 +142,10 @@ def save_secret(
     expires: Optional[datetime.datetime] = None,
 ) -> SecretValue:
     """
-    Saves a secret in the cache for later retrieval. If the ``thread_local``
-    parameter is *True*, it will be specific to the particular thread that is
-    running; otherwise, the value will be available to all threads. If the
-    value supplied is *None*, the value will be removed from the cache if a
-    value is currently saved for the supplied key.
+    Saves a secret in an internal cache for later retrieval. If the
+    ``thread_local`` parameter is *True*, the cache will be specific to the
+    particular thread that is running; otherwise, the value will be available
+    to all threads. If the value supplied is *None*, the value will be removed
+    from the cache if a value is currently saved for the supplied key.
     """
     return secret_value_cache.store_value(key, value, thread_local, expires)

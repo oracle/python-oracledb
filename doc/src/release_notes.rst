@@ -43,9 +43,9 @@ Common Changes
 #)  Added support for storing and retrieving secrets (:func:`save_secret()` and
     :func:`get_secret()`), either globally or by using thread local storage,
     which prevents the secret from being revealed in memory dumps.
-#)  Added attribute :attr:`ConnectParams.on_connect_callback` which is invoked
-    when a standalone connection is created or a connection is acquired from a
-    connection pool.
+#)  Added attribute :attr:`ConnectParams.on_connect_callback` which can be set
+    to a callable that is invoked when a standalone connection is created or a
+    connection is acquired from a connection pool.
 #)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
 
     - Added Session Token-based authentication support to the OCI Tokens
