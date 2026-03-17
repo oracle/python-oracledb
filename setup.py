@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -89,6 +89,8 @@ thin_depends.append(base_pxd)
 #    LC_VERSION_MIN_MACOSX section)
 #  - add argument required for cross-compilation for both x86_64 and arm64
 #    architectures if the python interpreter is a universal2 version.
+# if the platform is HP-UX 11:
+#  - add argument to make compilation with HP aCC possible
 
 extra_compile_args = os.environ.get("PYO_COMPILE_ARGS", "").split()
 if sys.platform == "darwin":
@@ -99,6 +101,8 @@ if sys.platform == "darwin":
         else:
             target = "x86_64-apple-macos"
         extra_compile_args.extend(["-target", target])
+elif sys.platform == "hp-ux11":
+    extra_compile_args.extend(["+Onolimit"])
 
 setup(
     ext_modules=[
