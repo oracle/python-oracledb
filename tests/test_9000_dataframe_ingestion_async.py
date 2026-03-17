@@ -1069,3 +1069,39 @@ async def test_9024(async_conn, async_cursor, empty_tab):
     )
     fetched_df = pyarrow.table(odf)
     assert fetched_df.equals(pyarrow.table(df))
+
+
+async def test_9025(test_env, async_conn, async_cursor, empty_tab):
+    "9025 - test ingestion with string and binary views"
+    short_str = "Short"
+    short_raw = bytes.fromhex("1F3D527A9BC4")
+    long_str = "Long " * 200
+    long_raw = bytes.fromhex("9ACB413FD257") * 200
+    arrays = [
+        pyarrow.array([1, 2], pyarrow.int64()),
+        pyarrow.array([short_str, long_str], pyarrow.string_view()),
+        pyarrow.array([long_raw, short_raw], pyarrow.binary_view()),
+    ]
+    names = ["Id", "LongData", "LongRawData"]
+    df = pyarrow.table(arrays, names)
+    await async_cursor.executemany(
+        """
+        insert into TestDataFrame (Id, LongData, LongRawData)
+        values (:1, :2, :3)
+        """,
+        df,
+    )
+    await async_conn.commit()
+    odf = await async_conn.fetch_df_all(
+        """
+        select
+            Id as "Id",
+            LongData as "LongData",
+            LongRawData as "LongRawData"
+        from TestDataFrame
+        order by Id
+        """
+    )
+    expected_data = test_env.get_data_from_df(df.to_pandas())
+    fetched_data = test_env.get_data_from_df(pyarrow.table(odf).to_pandas())
+    assert fetched_data == expected_data

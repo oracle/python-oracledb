@@ -168,6 +168,7 @@ cdef class ArrowSchemaImpl:
             self._set_child_arrow_type(schema_view.type)
         elif schema_view.type not in (
             NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_BINARY_VIEW,
             NANOARROW_TYPE_BOOL,
             NANOARROW_TYPE_DATE32,
             NANOARROW_TYPE_DATE64,
@@ -183,6 +184,7 @@ cdef class ArrowSchemaImpl:
             NANOARROW_TYPE_LARGE_STRING,
             NANOARROW_TYPE_NA,
             NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_STRING_VIEW,
             NANOARROW_TYPE_UINT8,
             NANOARROW_TYPE_UINT16,
             NANOARROW_TYPE_UINT32,

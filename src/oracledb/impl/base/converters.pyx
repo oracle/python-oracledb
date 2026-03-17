@@ -97,7 +97,9 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         array_impl.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
     elif arrow_type in (
             NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_BINARY_VIEW,
             NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_STRING_VIEW,
             NANOARROW_TYPE_FIXED_SIZE_BINARY,
             NANOARROW_TYPE_LARGE_BINARY,
             NANOARROW_TYPE_LARGE_STRING

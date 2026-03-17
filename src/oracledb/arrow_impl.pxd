@@ -74,6 +74,7 @@ cdef extern from "nanoarrow.h":
     cpdef enum ArrowType:
         NANOARROW_TYPE_BOOL
         NANOARROW_TYPE_BINARY
+        NANOARROW_TYPE_BINARY_VIEW
         NANOARROW_TYPE_DATE32
         NANOARROW_TYPE_DATE64
         NANOARROW_TYPE_DECIMAL128
@@ -90,6 +91,7 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_LIST
         NANOARROW_TYPE_NA
         NANOARROW_TYPE_STRING
+        NANOARROW_TYPE_STRING_VIEW
         NANOARROW_TYPE_STRUCT
         NANOARROW_TYPE_TIMESTAMP
         NANOARROW_TYPE_UINT8

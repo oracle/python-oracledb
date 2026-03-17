@@ -155,6 +155,7 @@ cdef class OracleMetadata:
         if arrow_type == NANOARROW_TYPE_NA:
             ok = True
         elif arrow_type in (NANOARROW_TYPE_BINARY,
+                            NANOARROW_TYPE_BINARY_VIEW,
                             NANOARROW_TYPE_FIXED_SIZE_BINARY,
                             NANOARROW_TYPE_LARGE_BINARY):
             if db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
@@ -192,6 +193,7 @@ cdef class OracleMetadata:
                                DB_TYPE_NUM_NUMBER):
                 ok = True
         elif arrow_type in (NANOARROW_TYPE_STRING,
+                            NANOARROW_TYPE_STRING_VIEW,
                             NANOARROW_TYPE_LARGE_STRING):
             if db_type_num in (DB_TYPE_NUM_CHAR,
                                DB_TYPE_NUM_LONG_VARCHAR,
@@ -328,9 +330,12 @@ cdef class OracleMetadata:
             NANOARROW_TYPE_UINT64,
         ):
             metadata.dbtype = DB_TYPE_NUMBER
-        elif arrow_type in (NANOARROW_TYPE_STRING, NANOARROW_TYPE_NA):
+        elif arrow_type in (NANOARROW_TYPE_STRING,
+                            NANOARROW_TYPE_STRING_VIEW,
+                            NANOARROW_TYPE_NA):
             metadata.dbtype = DB_TYPE_VARCHAR
         elif arrow_type in (NANOARROW_TYPE_BINARY,
+                            NANOARROW_TYPE_BINARY_VIEW,
                             NANOARROW_TYPE_FIXED_SIZE_BINARY):
             metadata.dbtype = DB_TYPE_RAW
         elif arrow_type == NANOARROW_TYPE_FLOAT:

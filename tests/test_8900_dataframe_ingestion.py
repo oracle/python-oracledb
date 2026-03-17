@@ -1049,3 +1049,39 @@ def test_8924(conn, cursor, empty_tab):
     )
     fetched_df = pyarrow.table(odf)
     assert fetched_df.equals(pyarrow.table(df))
+
+
+def test_8925(test_env, conn, cursor, empty_tab):
+    "8925 - test ingestion with string and binary views"
+    short_str = "Short"
+    short_raw = bytes.fromhex("1F3D527A9BC4")
+    long_str = "Long " * 200
+    long_raw = bytes.fromhex("9ACB413FD257") * 200
+    arrays = [
+        pyarrow.array([1, 2], pyarrow.int64()),
+        pyarrow.array([short_str, long_str], pyarrow.string_view()),
+        pyarrow.array([long_raw, short_raw], pyarrow.binary_view()),
+    ]
+    names = ["Id", "LongData", "LongRawData"]
+    df = pyarrow.table(arrays, names)
+    cursor.executemany(
+        """
+        insert into TestDataFrame (Id, LongData, LongRawData)
+        values (:1, :2, :3)
+        """,
+        df,
+    )
+    conn.commit()
+    odf = conn.fetch_df_all(
+        """
+        select
+            Id as "Id",
+            LongData as "LongData",
+            LongRawData as "LongRawData"
+        from TestDataFrame
+        order by Id
+        """
+    )
+    expected_data = test_env.get_data_from_df(df.to_pandas())
+    fetched_data = test_env.get_data_from_df(pyarrow.table(odf).to_pandas())
+    assert fetched_data == expected_data

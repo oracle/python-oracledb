@@ -56,6 +56,9 @@ Common Changes
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
+#)  Added support for inserting data frames containing binary views (format
+    "vb") and string views (format "vu")
+    (`issue 573 <https://github.com/oracle/python-oracledb/issues/573>`__).
 #)  Fixed bug when inserting data frames that are views of other data frames
     (`issue 574 <https://github.com/oracle/python-oracledb/issues/574>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
