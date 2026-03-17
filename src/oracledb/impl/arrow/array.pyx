@@ -39,50 +39,7 @@ cdef class ArrowArrayImpl:
             if self.arrow_array.release != NULL:
                 ArrowArrayRelease(self.arrow_array)
             cpython.PyMem_Free(self.arrow_array)
-
-    cdef int _extract_int(self, const void* ptr, ArrowType arrow_type,
-                          int64_t index, int64_t* value) except -1:
-        """
-        Return an int64_t value at the specified index from the buffer for all
-        signed integer types.
-        """
-        if arrow_type == NANOARROW_TYPE_INT8:
-            value[0] = (<int8_t*> ptr)[index]
-        elif arrow_type == NANOARROW_TYPE_INT16:
-            value[0] = (<int16_t*> ptr)[index]
-        elif arrow_type in (NANOARROW_TYPE_INT32, NANOARROW_TYPE_DATE32):
-            value[0] = (<int32_t*> ptr)[index]
-        else:
-            value[0] = (<int64_t*> ptr)[index]
-
-    cdef int _extract_uint(self, const void* ptr, ArrowType arrow_type,
-                           int64_t index, uint64_t* value) except -1:
-        """
-        Return a uint64_t value at the specified index from the buffer for all
-        unsigned integer types.
-        """
-        if arrow_type == NANOARROW_TYPE_UINT8:
-            value[0] = (<uint8_t*> ptr)[index]
-        elif arrow_type == NANOARROW_TYPE_UINT16:
-            value[0] = (<uint16_t*> ptr)[index]
-        elif arrow_type == NANOARROW_TYPE_UINT32:
-            value[0] = (<uint32_t*> ptr)[index]
-        else:
-            value[0] = (<uint64_t*> ptr)[index]
-
-    cdef int _get_is_null(self, int64_t index, bint* is_null) except -1:
-        """
-        Returns whether or not the value at the specified index is null.
-        """
-        cdef:
-            ArrowBitmap *bitamp
-            int8_t as_bool
-        bitmap = ArrowArrayValidityBitmap(self.arrow_array)
-        if bitmap != NULL and bitmap.buffer.data != NULL:
-            as_bool = ArrowBitGet(bitmap.buffer.data, index)
-            is_null[0] = not as_bool
-        else:
-            is_null[0] = False
+            ArrowArrayViewReset(&self.arrow_array_view)
 
     cdef int _get_list_info(self, int64_t index, ArrowArray* arrow_array,
                             int64_t* offset, int64_t* num_elements) except -1:
@@ -100,6 +57,25 @@ cdef class ArrowArrayImpl:
         else:
             end_offset = offsets[index + 1]
         num_elements[0] = end_offset - offsets[index]
+
+    cdef int _populate_array_view(self) except -1:
+        """
+        Populates the array view structure used internally.
+        """
+        _check_nanoarrow(
+            ArrowArrayViewInitFromSchema(
+                &self.arrow_array_view,
+                self.schema_impl.arrow_schema,
+                NULL
+            )
+        )
+        _check_nanoarrow(
+            ArrowArrayViewSetArray(
+                &self.arrow_array_view,
+                self.arrow_array,
+                NULL
+            )
+        )
 
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1:
         """
@@ -165,99 +141,79 @@ cdef class ArrowArrayImpl:
         Appends the last value of the given array to this array.
         """
         cdef:
-            int32_t start_offset, end_offset
-            ArrowBuffer *offsets_buffer
             ArrowBuffer *data_buffer
+            ArrowBufferView buffer
             uint64_t uint64_value
             ArrowDecimal decimal
-            int64_t int64_value
-            int64_t *as_int64
-            int32_t *as_int32
-            double *as_double
-            float *as_float
-            int8_t as_bool
             int64_t index
-            bint is_null
-            uint8_t *ptr
             void* temp
+            int i
         if array is None:
             array = self
         index = array.arrow_array.length - 1
-        array._get_is_null(index, &is_null)
-        if is_null:
+        if array is self:
+            # when appending to an array that is currently being built, the
+            # view needs to be refreshed; unfortunately, the method for doing
+            # this (ArrowArrayViewSetArray()) doesn't handle arrays that are in
+            # the process of being built, so the view buffers are updated
+            # manually
+            self.arrow_array_view.length = self.arrow_array.length
+            for i in range(NANOARROW_MAX_FIXED_BUFFERS):
+                data_buffer = ArrowArrayBuffer(self.arrow_array, i)
+                self.arrow_array_view.buffer_views[i].data.data = \
+                        <void*> data_buffer.data
+                self.arrow_array_view.buffer_views[i].size_bytes = \
+                        data_buffer.size_bytes
+
+        if ArrowArrayViewIsNull(&array.arrow_array_view, index):
             self.append_null()
         elif array.schema_impl.arrow_type in (
+                NANOARROW_TYPE_BOOL,
                 NANOARROW_TYPE_INT8,
                 NANOARROW_TYPE_INT16,
                 NANOARROW_TYPE_INT32,
                 NANOARROW_TYPE_INT64,
                 NANOARROW_TYPE_TIMESTAMP
         ):
-            self._extract_int(ArrowArrayBuffer(array.arrow_array, 1).data,
-                              array.schema_impl.arrow_type, index,
-                              &int64_value)
-            self.append_int(int64_value)
+            self.append_int(
+                ArrowArrayViewGetIntUnsafe(&array.arrow_array_view, index)
+            )
         elif array.schema_impl.arrow_type in (
                 NANOARROW_TYPE_UINT8,
                 NANOARROW_TYPE_UINT16,
                 NANOARROW_TYPE_UINT32,
                 NANOARROW_TYPE_UINT64
         ):
-            self._extract_uint(ArrowArrayBuffer(array.arrow_array, 1).data,
-                               array.schema_impl.arrow_type, index,
-                               &uint64_value)
-            self.append_uint(uint64_value)
-        elif array.schema_impl.arrow_type == NANOARROW_TYPE_DOUBLE:
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            as_double = <double*> data_buffer.data
-            self.append_double(as_double[index])
-        elif array.schema_impl.arrow_type == NANOARROW_TYPE_FLOAT:
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            as_float = <float*> data_buffer.data
-            self.append_double(as_float[index])
-        elif array.schema_impl.arrow_type == NANOARROW_TYPE_BOOL:
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            as_bool = ArrowBitGet(data_buffer.data, index)
-            self.append_int(as_bool)
+            self.append_uint(
+                ArrowArrayViewGetUIntUnsafe(&array.arrow_array_view, index)
+            )
+        elif array.schema_impl.arrow_type in (
+            NANOARROW_TYPE_DOUBLE,
+            NANOARROW_TYPE_FLOAT
+        ):
+            self.append_double(
+                ArrowArrayViewGetDoubleUnsafe(&array.arrow_array_view, index)
+            )
         elif array.schema_impl.arrow_type == NANOARROW_TYPE_DECIMAL128:
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 1)
             ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
                              self.schema_impl.scale)
-            ptr = data_buffer.data + index * 16
-            ArrowDecimalSetBytes(&decimal, ptr)
-            _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array,
+            ArrowArrayViewGetDecimalUnsafe(&array.arrow_array_view, index,
+                                           &decimal)
+            _check_nanoarrow(ArrowArrayAppendDecimal(array.arrow_array,
                                                      &decimal))
         elif array.schema_impl.arrow_type in (
                 NANOARROW_TYPE_BINARY,
+                NANOARROW_TYPE_LARGE_BINARY,
+                NANOARROW_TYPE_LARGE_STRING,
                 NANOARROW_TYPE_STRING
         ):
-            offsets_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 2)
-            as_int32 = <int32_t*> offsets_buffer.data
-            start_offset = as_int32[index]
-            end_offset = as_int32[index + 1]
-            temp = cpython.PyMem_Malloc(end_offset - start_offset)
-            memcpy(temp, &data_buffer.data[start_offset],
-                   end_offset - start_offset)
+            buffer = ArrowArrayViewGetBytesUnsafe(
+                &array.arrow_array_view, index
+            )
+            temp = cpython.PyMem_Malloc(buffer.size_bytes)
+            memcpy(temp, buffer.data.data, buffer.size_bytes)
             try:
-                self.append_bytes(temp, end_offset - start_offset)
-            finally:
-                cpython.PyMem_Free(temp)
-
-        elif array.schema_impl.arrow_type in (
-                NANOARROW_TYPE_LARGE_BINARY,
-                NANOARROW_TYPE_LARGE_STRING
-        ):
-            offsets_buffer = ArrowArrayBuffer(array.arrow_array, 1)
-            data_buffer = ArrowArrayBuffer(array.arrow_array, 2)
-            as_int64 = <int64_t*> offsets_buffer.data
-            start_offset = as_int64[index]
-            end_offset = as_int64[index + 1]
-            temp = cpython.PyMem_Malloc(end_offset - start_offset)
-            memcpy(temp, &data_buffer.data[start_offset],
-                   end_offset - start_offset)
-            try:
-                self.append_bytes(temp, end_offset - start_offset)
+                self.append_bytes(temp, buffer.size_bytes)
             finally:
                 cpython.PyMem_Free(temp)
 
@@ -333,51 +289,34 @@ cdef class ArrowArrayImpl:
         """
         Finish building the array. No more data will be added to it.
         """
+        ArrowArrayViewReset(&self.arrow_array_view)
+        memset(&self.arrow_array_view, 0, sizeof(ArrowArrayView))
         _check_nanoarrow(ArrowArrayFinishBuildingDefault(self.arrow_array,
                                                          NULL))
+        self._populate_array_view()
 
     cdef int get_bool(self, int64_t index, bint* is_null,
                       bint* value) except -1:
         """
         Return boolean at the specified index from the Arrow array.
         """
-        cdef uint8_t *ptr
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            ptr = <uint8_t*> self.arrow_array.buffers[1]
-            value[0] = ArrowBitGet(ptr, index)
+            value[0] = \
+                    ArrowArrayViewGetIntUnsafe(&self.arrow_array_view, index)
 
     cdef int get_bytes(self, int64_t index, bint* is_null, char **ptr,
                        ssize_t *num_bytes) except -1:
         """
         Return bytes at the specified index from the Arrow array.
         """
-        cdef:
-            int64_t start_offset, end_offset
-            int64_t *as_in64
-            int32_t *as_int32
-            char *source_ptr
-        self._get_is_null(index, is_null)
+        cdef ArrowBufferView buffer
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            if self.schema_impl.arrow_type == NANOARROW_TYPE_FIXED_SIZE_BINARY:
-                source_ptr = <char*> self.arrow_array.buffers[1]
-                start_offset = index * self.schema_impl.fixed_size
-                end_offset = start_offset + self.schema_impl.fixed_size
-            elif self.schema_impl.arrow_type in (
-                NANOARROW_TYPE_BINARY,
-                NANOARROW_TYPE_STRING
-            ):
-                source_ptr = <char*> self.arrow_array.buffers[2]
-                as_int32 = <int32_t*> self.arrow_array.buffers[1]
-                start_offset = as_int32[index]
-                end_offset = as_int32[index + 1]
-            else:
-                source_ptr = <char*> self.arrow_array.buffers[2]
-                as_int64 = <int64_t*> self.arrow_array.buffers[1]
-                start_offset = as_int64[index]
-                end_offset = as_int64[index + 1]
-            ptr[0] = source_ptr + start_offset
-            num_bytes[0] = end_offset - start_offset
+            buffer = \
+                    ArrowArrayViewGetBytesUnsafe(&self.arrow_array_view, index)
+            ptr[0] = <char*> buffer.data.data
+            num_bytes[0] = buffer.size_bytes
 
     cdef bytes get_decimal(self, int64_t index, bint* is_null):
         """
@@ -386,13 +325,12 @@ cdef class ArrowArrayImpl:
         cdef:
             ArrowDecimal decimal
             ArrowBuffer buf
-            uint8_t *ptr
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            ptr = <uint8_t*> self.arrow_array.buffers[1]
             ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
-                             self.schema_impl.scale)
-            ArrowDecimalSetBytes(&decimal, ptr + index * 16)
+                    self.schema_impl.scale)
+            ArrowArrayViewGetDecimalUnsafe(&self.arrow_array_view, index,
+                                           &decimal)
             ArrowBufferInit(&buf)
             try:
                 _check_nanoarrow(ArrowDecimalAppendStringToBuffer(
@@ -407,22 +345,21 @@ cdef class ArrowArrayImpl:
         """
         Return a double value at the specified index from the Arrow array.
         """
-        cdef double* ptr
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            ptr = <double*> self.arrow_array.buffers[1]
-            value[0] = ptr[index]
+            value[0] = ArrowArrayViewGetDoubleUnsafe(&self.arrow_array_view,
+                                                     index)
 
     cdef int get_float(self, int64_t index, bint* is_null,
                        float* value) except -1:
         """
         Return a float value at the specified index from the Arrow array.
         """
-        cdef float* ptr
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            ptr = <float*> self.arrow_array.buffers[1]
-            value[0] = ptr[index]
+            value[0] = <float> \
+                    ArrowArrayViewGetDoubleUnsafe(&self.arrow_array_view,
+                                                  index)
 
     cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
                      int64_t* value) except -1:
@@ -430,23 +367,16 @@ cdef class ArrowArrayImpl:
         Return an int64_t value at the specified index from the Arrow array
         for all signed integer types.
         """
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            self._extract_int(self.arrow_array.buffers[1], arrow_type, index,
-                              value)
+            value[0] = \
+                    ArrowArrayViewGetIntUnsafe(&self.arrow_array_view, index)
 
     cdef int get_length(self, int64_t* length) except -1:
         """
         Return the number of rows in the array.
         """
         length[0] = self.arrow_array.length
-
-    cdef int get_offset(self, int64_t* offset) except -1:
-        """
-        Returns the offset associated with the array. This allows support for
-        array slices without copying data.
-        """
-        offset[0] = self.arrow_array.offset
 
     cdef object get_sparse_vector(self, int64_t index, bint* is_null):
         """
@@ -458,14 +388,14 @@ cdef class ArrowArrayImpl:
             array.array indices, values
             ArrowArray *arrow_array
             uint32_t* uint32_ptr
-            int64_t* int64_ptr
             char *source_buf
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
 
             # get the number of dimensions from the sparse vector
-            int64_ptr = <int64_t*> self.arrow_array.children[0].buffers[1]
-            num_dimensions = int64_ptr[index]
+            num_dimensions = ArrowArrayViewGetIntUnsafe(
+                self.arrow_array_view.children[0], index
+            )
 
             # get the indices from the sparse vector
             arrow_array = self.arrow_array.children[1]
@@ -501,10 +431,10 @@ cdef class ArrowArrayImpl:
         Return a uint64_t value at the specified index from the Arrow array
         for all unsigned integer types.
         """
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            self._extract_uint(self.arrow_array.buffers[1], arrow_type, index,
-                               value)
+            value[0] = ArrowArrayViewGetUIntUnsafe(&self.arrow_array_view,
+                                                   index)
 
     cdef object get_vector(self, int64_t index, bint* is_null):
         """
@@ -516,7 +446,7 @@ cdef class ArrowArrayImpl:
             array.array result
             int32_t *as_int32
             char *source_buf
-        self._get_is_null(index, is_null)
+        is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
             if self.schema_impl.arrow_type == NANOARROW_TYPE_FIXED_SIZE_LIST:
                 offset = index * self.schema_impl.fixed_size
@@ -576,6 +506,7 @@ cdef class ArrowArrayImpl:
         """
         self.schema_impl = schema_impl
         ArrowArrayMove(array, self.arrow_array)
+        self._populate_array_view()
 
     cdef int populate_from_schema(self, ArrowSchemaImpl schema_impl) except -1:
         """
@@ -589,6 +520,7 @@ cdef class ArrowArrayImpl:
                 NULL
             )
         )
+        self._populate_array_view()
         _check_nanoarrow(ArrowArrayStartAppending(self.arrow_array))
 
     def get_array_capsule(self):

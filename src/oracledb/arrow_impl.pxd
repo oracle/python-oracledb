@@ -48,6 +48,18 @@ cdef extern from "nanoarrow.h":
         void (*release)(ArrowArray*)
         void *private_data
 
+    cdef union ArrowBufferViewData:
+        const void* data
+
+    cdef struct ArrowBufferView:
+        ArrowBufferViewData data
+        int64_t size_bytes
+
+    cdef struct ArrowArrayView:
+        int64_t length
+        ArrowBufferView *buffer_views
+        ArrowArrayView **children
+
     cdef struct ArrowSchema:
         const char *format
         const char *name
@@ -122,14 +134,11 @@ cdef class ArrowArrayImpl:
     cdef:
         ArrowArray *arrow_array
         ArrowSchemaImpl schema_impl
+        ArrowArrayView arrow_array_view
 
-    cdef int _extract_int(self, const void* ptr, ArrowType arrow_type,
-                          int64_t index, int64_t* value) except -1
-    cdef int _extract_uint(self, const void* ptr, ArrowType arrow_type,
-                           int64_t index, uint64_t* value) except -1
-    cdef int _get_is_null(self, int64_t index, bint* is_null) except -1
     cdef int _get_list_info(self, int64_t index, ArrowArray* arrow_array,
                             int64_t* offset, int64_t* num_elements) except -1
+    cdef int _populate_array_view(self) except -1
     cdef int append_bytes(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_decimal(self, void* ptr, int64_t num_bytes) except -1
     cdef int append_double(self, double value) except -1
@@ -155,7 +164,6 @@ cdef class ArrowArrayImpl:
     cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
                      int64_t* value) except -1
     cdef int get_length(self, int64_t* length) except -1
-    cdef int get_offset(self, int64_t* offset) except -1
     cdef object get_sparse_vector(self, int64_t index, bint* is_null)
     cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
                       uint64_t* value) except -1

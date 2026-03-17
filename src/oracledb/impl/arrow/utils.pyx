@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,6 +34,9 @@ cdef extern from "nanoarrow.c":
 
     ctypedef void (*ArrowBufferDeallocatorCallback)
 
+    cdef enum:
+        NANOARROW_MAX_FIXED_BUFFERS
+
     cdef struct ArrowArrayStream:
         int (*get_schema)(ArrowArrayStream *, ArrowSchema * out)
         int (*get_next)(ArrowArrayStream * stream, ArrowArray * out)
@@ -47,18 +50,8 @@ cdef extern from "nanoarrow.c":
         int64_t size_bytes
         ArrowBufferAllocator allocator
 
-    cdef union ArrowBufferViewData:
-        const void* data
-
-    cdef struct ArrowBufferView:
-        ArrowBufferViewData data
-        int64_t size_bytes
-
     cdef struct ArrowBitmap:
         ArrowBuffer buffer
-
-    cdef struct ArrowArrayView:
-        ArrowBufferView *buffer_views
 
     cdef struct ArrowDecimal:
         pass
@@ -107,14 +100,29 @@ cdef extern from "nanoarrow.c":
     ArrowErrorCode ArrowArrayStartAppending(ArrowArray* arrow_array)
     void ArrowArrayStreamRelease(ArrowArrayStream *array_stream)
     ArrowBitmap* ArrowArrayValidityBitmap(ArrowArray* arrow_array)
-    ArrowErrorCode ArrowArrayViewInitFromArray(ArrowArrayView* array_view,
-                                               ArrowArray* arrow_array)
+    ArrowBufferView ArrowArrayViewGetBytesUnsafe(const ArrowArrayView* view,
+                                                 int64_t i)
+    void ArrowArrayViewGetDecimalUnsafe(const ArrowArrayView* array_view,
+                                        int64_t i, ArrowDecimal* out)
+    double ArrowArrayViewGetDoubleUnsafe(const ArrowArrayView* array_view,
+                                         int64_t i)
+    int64_t ArrowArrayViewGetIntUnsafe(const ArrowArrayView* array_view,
+                                       int64_t i)
+    uint64_t ArrowArrayViewGetUIntUnsafe(const ArrowArrayView* array_view,
+                                         int64_t i)
+    ArrowErrorCode ArrowArrayViewInitFromSchema(ArrowArrayView* array_view,
+                                                const ArrowSchema* schema,
+                                                ArrowError* error)
+    int8_t ArrowArrayViewIsNull(const ArrowArrayView* array_view, int64_t i)
+    void ArrowArrayViewReset(ArrowArrayView* array_view)
+    ArrowErrorCode ArrowArrayViewSetArray(ArrowArrayView* array_view,
+                                          const ArrowArray* arrow_array,
+                                          ArrowError* error)
     ArrowErrorCode ArrowBasicArrayStreamInit(ArrowArrayStream* array_stream,
                                              ArrowSchema* schema,
                                              int64_t n_arrays)
     void ArrowBasicArrayStreamSetArray(ArrowArrayStream* array_stream,
                                        int64_t i, ArrowArray* arrow_array)
-    int8_t ArrowBitGet(const uint8_t* bits, int64_t i)
     ArrowBufferAllocator ArrowBufferDeallocator(ArrowBufferDeallocatorCallback,
                                                 void *private_data)
     void ArrowBufferInit(ArrowBuffer* buffer)
