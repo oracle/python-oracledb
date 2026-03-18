@@ -66,7 +66,7 @@ cdef class DirectPathPrepareMessage(Message):
         metadata = Message._process_metadata(self, buf)
         if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB:
             metadata.dbtype = DbType._from_ora_type_and_csfrm(
-                ORA_TYPE_NUM_LONG, CS_FORM_NCHAR
+                ORA_TYPE_NUM_LONG, metadata.dbtype._csfrm
             )
         elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             metadata.dbtype = DbType._from_ora_type_and_csfrm(

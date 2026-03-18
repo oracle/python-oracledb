@@ -285,6 +285,9 @@ cdef class DirectPathLoadStreamMessage(Message):
             PieceBuffer buf
             OracleData data
             ssize_t col_num
+            uint8_t ora_type_num
+            str db_charset_encoding
+            bytes temp_bytes
 
         # create buffer used for writing column data
         buf = PieceBuffer.__new__(PieceBuffer)
@@ -293,6 +296,13 @@ cdef class DirectPathLoadStreamMessage(Message):
         # acquire information from the manager
         all_rows = manager._get_all_rows()
         arrays = manager._get_arrow_arrays()
+
+        # determine if character set conversion is needed; direct path load
+        # writes data directly to disk, bypassing the server's character set
+        # conversion, so data must be encoded in the database character set
+        db_charset_encoding = _get_db_charset_encoding(
+            self.conn_impl._protocol._caps.charset_id
+        )
 
         # calculate pieces
         for row_num in range(manager.num_rows):
@@ -311,6 +321,25 @@ cdef class DirectPathLoadStreamMessage(Message):
                     col = convert_arrow_to_oracle_data(
                         metadata, &data, array_impl, <int64_t> overall_row_num
                     )
+
+                # for character data with CS_FORM_IMPLICIT, re-encode from
+                # UTF-8 to the database character set if needed
+                if db_charset_encoding is not None and not data.is_null:
+                    ora_type_num = metadata.dbtype._ora_type_num
+                    if ora_type_num in (ORA_TYPE_NUM_VARCHAR,
+                                        ORA_TYPE_NUM_CHAR,
+                                        ORA_TYPE_NUM_LONG) \
+                            and metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
+                        temp_bytes = data.buffer.as_raw_bytes.ptr[
+                            :data.buffer.as_raw_bytes.num_bytes
+                        ].decode().encode(db_charset_encoding)
+                        cpython.PyBytes_AsStringAndSize(
+                            temp_bytes,
+                            <char**> &data.buffer.as_raw_bytes.ptr,
+                            &data.buffer.as_raw_bytes.num_bytes
+                        )
+                        col = temp_bytes
+
                 buf.add_column_value(self.conn_impl, metadata, &data, col,
                                      self.current_row_num)
             buf.finish_row()

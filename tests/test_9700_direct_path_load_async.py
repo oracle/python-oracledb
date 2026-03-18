@@ -616,3 +616,44 @@ async def test_9721(empty_tab, async_conn, test_env):
             data=df,
         )
     await _verify_data_frame(async_conn, df, column_names, test_env)
+
+async def test_9722(empty_tab, disable_fetch_lobs, async_conn, test_env):
+    "9722 - test direct path load with non-ASCII characters"
+    column_names = ["Id", "FirstName", "City", "LongData"]
+    data = [
+        (1, "Café", "Zürich", "Ñoño résumé"),
+        (2, "naïve", "São Paulo", "El niño está aquí"),
+        (3, "Ärger", "Malmö", "Ça fait déjà vu"),
+    ]
+    async with test_env.get_connection_async() as other_conn:
+        await other_conn.direct_path_load(
+            schema_name=test_env.main_user,
+            table_name=TABLE_NAME,
+            column_names=column_names,
+            data=data,
+        )
+    await _verify_data(async_conn, data, column_names)
+
+
+async def test_9723(empty_tab, disable_fetch_lobs, async_conn, test_env):
+    "9723 - test direct path load with non-ASCII characters using data frame"
+    column_names = ["Id", "FirstName", "City", "LongData"]
+    data = {
+        "Id": [1, 2, 3],
+        "FirstName": ["Café", "naïve", "Ärger"],
+        "City": ["Zürich", "São Paulo", "Malmö"],
+        "LongData": [
+            "Ñoño résumé",
+            "El niño está aquí",
+            "Ça fait déjà vu",
+        ],
+    }
+    df = pandas.DataFrame(data)
+    async with test_env.get_connection_async() as other_conn:
+        await other_conn.direct_path_load(
+            schema_name=test_env.main_user,
+            table_name=TABLE_NAME,
+            column_names=column_names,
+            data=df,
+        )
+    await _verify_data_frame(async_conn, df, column_names, test_env)
