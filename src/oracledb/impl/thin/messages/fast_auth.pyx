@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -51,6 +51,9 @@ cdef class FastAuthMessage(Message):
         else:
             AuthMessage._process_message(self.auth_message, buf, message_type)
             self.end_of_response = self.auth_message.end_of_response
+            if self.auth_message.error_occurred:
+                self.error_occurred = True
+                self.error_info = self.auth_message.error_info
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """
