@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -72,6 +72,15 @@ class SparseVector(metaclass=BaseMetaClass):
         self._impl = SparseVectorImpl.from_values(
             num_dimensions, indices, values
         )
+
+    def __eq__(self, other):
+        if isinstance(other, SparseVector):
+            return (
+                other.num_dimensions == self.num_dimensions
+                and other.indices == self.indices
+                and other.values == self.values
+            )
+        return NotImplemented
 
     def __repr__(self):
         cls_name = self.__class__._public_name

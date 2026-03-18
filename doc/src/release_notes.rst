@@ -62,6 +62,7 @@ Common Changes
 #)  Added support for inserting data frames containing binary views (format
     "vb") and string views (format "vu")
     (`issue 573 <https://github.com/oracle/python-oracledb/issues/573>`__).
+#)  Added support for comparing sparse vectors with other sparse vectors.
 #)  Added support for compiling with HP aCC
     (`issue 556 <https://github.com/oracle/python-oracledb/issues/556>`__).
 #)  Fixed bug when inserting data frames that are views of other data frames
