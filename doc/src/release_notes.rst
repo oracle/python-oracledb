@@ -54,6 +54,8 @@ Common Changes
     - Added Session Token-based authentication support to the OCI Tokens
       plugin.
       (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
+    - Added Resource Principal authentication support to the OCI Tokens
+      plugin.
     - Fixed bug when using multiple token authentication plugins. Note that an
       invalid ``auth_type`` parameter will no longer raise an exception but
       will simply be ignored.

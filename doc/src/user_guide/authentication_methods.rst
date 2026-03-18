@@ -690,11 +690,13 @@ the following table.
       - Description
       - Required or Optional
     * - ``auth_type``
-      - The authentication type. The value should be the string "ConfigFileAuthentication", "InstancePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
+      - The authentication type. The value should be the string "ConfigFileAuthentication", "InstancePrincipal", "ResourcePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
 
         With Configuration File Authentication, the location of a configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
 
         With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. See :ref:`instanceprincipalauth`.
+
+        With Resource Principal Authentication, a resource principal can be used to access services on Oracle Cloud such as Oracle AI Autonomous Database. A resource principal consists of a temporary session token and secure credentials. Using a resource principal to access services, the token stored with the credentials on Autonomous AI Database is only valid for the resources to which the dynamic group has been granted access.
 
         With Security Token authentication or Session Token-based authentication, the authentication happens using *security_token_file* parameter present in the configuration file. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup. You also need to specify the *profile* which contains the *security_token_file* parameter.
 

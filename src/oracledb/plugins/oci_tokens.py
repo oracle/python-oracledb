@@ -40,6 +40,7 @@ import oracledb
 class AuthType(str, enum.Enum):
     ConfigFileAuthentication = "ConfigFileAuthentication".lower()
     InstancePrincipal = "InstancePrincipal".lower()
+    ResourcePrincipal = "ResourcePrincipal".lower()
     SecurityToken = "SecurityToken".lower()
     SecurityTokenSimple = "SecurityTokenSimple".lower()
     SimpleAuthentication = "SimpleAuthentication".lower()
@@ -130,6 +131,16 @@ def _load_oci_config(token_auth_config):
     return config
 
 
+def _resource_principal_authentication(token_auth_config):
+    """
+    Resource principal authentication: allows to access OCI resources
+    with a resource principal.
+    """
+    signer = oci.auth.signers.get_resource_principals_signer()
+    client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
+    return _generate_access_token(client, token_auth_config)
+
+
 def _security_token_authentication(token_auth_config):
     """
     Session token-based authentication: uses the security token specified by
@@ -193,6 +204,8 @@ def generate_token(token_auth_config, refresh=False):
         return _config_file_based_authentication(token_auth_config)
     elif auth_type == AuthType.InstancePrincipal:
         return _instance_principal_authentication(token_auth_config)
+    elif auth_type == AuthType.ResourcePrincipal:
+        return _resource_principal_authentication(token_auth_config)
     elif auth_type == AuthType.SecurityToken:
         return _security_token_authentication(token_auth_config)
     elif auth_type == AuthType.SecurityTokenSimple:
