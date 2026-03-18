@@ -2242,13 +2242,6 @@ immediately.
                                 min=2, max=5, increment=1,
                                 getmode=oracledb.POOL_GETMODE_NOWAIT)
 
-Note that when using this option value in python-oracledb Thick mode with
-Oracle Client libraries 12.2 or earlier, the :meth:`~ConnectionPool.acquire()`
-call will still wait if the pool can grow.  However, you will get an error
-immediately if the pool is at its maximum size.  With newer Oracle Client
-libraries and with Thin mode, an error will be returned if the pool has to, or
-cannot, grow.
-
 Returning Connections to a Pool
 +++++++++++++++++++++++++++++++
 
@@ -2502,8 +2495,7 @@ be terminated if either the idle timeout happens or the maximum lifetime
 setting is exceeded. Note that when using python-oracledb in Thick mode with
 Oracle Client libraries prior to 21c, pool shrinkage is only initiated when the
 pool is accessed so pools in fully dormant applications will not shrink until
-the application is next used. In Thick mode, Oracle Client libraries 12.1, or
-later, are needed to use ``max_lifetime_session``.
+the application is next used.
 
 For pools created with :ref:`external authentication <extauth>`, with
 :ref:`homogeneous <connpooltypes>` set to False, or when using :ref:`drcp` (in
@@ -2721,10 +2713,9 @@ session states.  In order to retrieve a connection with a desired state, the
     Connection tagging is only supported in python-oracledb Thick mode. See
     :ref:`enablingthick` .
 
-When python-oracledb is using Oracle Client libraries 12.2 or later, then
-python-oracledb uses 'multi-property tags' and the tag string must be of the
-form of one or more "name=value" pairs separated by a semi-colon, for example
-``"loc=uk;lang=cy"``.
+Python-oracledb Thick mode uses 'multi-property tags' and the tag string must
+be of the form of one or more "name=value" pairs separated by a semi-colon, for
+example ``"loc=uk;lang=cy"``.
 
 When a connection is requested with a given tag, and a connection with that tag
 is not present in the pool, then a new connection, or an existing connection
@@ -2767,12 +2758,12 @@ PL/SQL Callback
     PL/SQL Callbacks are only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
-When python-oracledb uses Oracle Client 12.2 or later, the session callback can
-also be the name of a PL/SQL procedure.  A PL/SQL callback will be initiated
-only when the tag currently associated with a connection does not match the tag
-that is requested.  A PL/SQL callback is most useful when using :ref:`drcp`
-because DRCP does not require a :ref:`round-trip <roundtrips>` to invoke a
-PL/SQL session callback procedure.
+In python-oracledb Thick mode, the session callback can also be the name of a
+PL/SQL procedure.  A PL/SQL callback will be initiated only when the tag
+currently associated with a connection does not match the tag that is
+requested.  A PL/SQL callback is most useful when using :ref:`drcp` because
+DRCP does not require a :ref:`round-trip <roundtrips>` to invoke a PL/SQL
+session callback procedure.
 
 The PL/SQL session callback should accept two VARCHAR2 arguments:
 
@@ -3965,9 +3956,9 @@ If you are behind a firewall, see :ref:`firewallproxy`.
 Using the Easy Connect Syntax with Oracle Autonomous Database
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-When python-oracledb is using Oracle Client libraries 19c, or later, you can
-optionally use :ref:`Easy Connect <easyconnect>` syntax to connect to Oracle
-Autonomous Database.
+When using python-oracledb Thick mode, you can optionally use
+:ref:`Easy Connect <easyconnect>` syntax to connect to Oracle Autonomous
+Database.
 
 This section discuss the parameters for mTLS connection.
 
@@ -4221,8 +4212,7 @@ transparent to the application.
 
 Sharding is configured in Oracle Database, see the `Oracle Globally Distributed
 AI Database <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=SHARD>`__
-manual.  It requires Oracle Database and Oracle Client libraries 12.2, or
-later.
+manual.  It requires Oracle Database 12.2 or later.
 
 .. note::
 
@@ -4238,8 +4228,7 @@ range (the super sharding key), and then further partitioned by a sharding key.
 
 When creating a connection pool, the :meth:`oracledb.create_pool()` attribute
 ``max_sessions_per_shard`` can be set.  This is used to balance connections in
-the pool equally across shards.  It requires Oracle Client libraries 18.3 or
-later.
+the pool equally across shards.
 
 Shard key values may be of type string (mapping to VARCHAR2 shard keys), number
 (NUMBER), bytes (RAW), or date (DATE).  Multiple types may be used in each

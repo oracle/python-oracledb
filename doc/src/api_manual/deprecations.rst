@@ -15,6 +15,17 @@ python-oracledb. The relevant functionality may be removed in a future version
 of python-oracledb. The cx_Oracle driver itself is obsolete and should not be
 used for new development.
 
+.. list-table-with-summary:: Desupported in python-oracledb 4.0
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the desupported feature. The second column, Comments, includes information about the desupported feature and the replacement to use, if applicable.
+    :name: _desupported_4_0
+
+    * - Name
+      - Comments
+    * - Oracle Client libraries older than version 19 are desupported.
+      - Upgrade the client library version to 19c or later.
+
 .. list-table-with-summary:: Deprecated in python-oracledb 3.4
     :header-rows: 1
     :class: wy-table-responsive

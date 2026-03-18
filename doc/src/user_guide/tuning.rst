@@ -563,9 +563,9 @@ statements being executed by the application. :ref:`SODA <sodausermanual>`
 internally makes SQL calls, so tuning the cache is also beneficial for SODA
 applications.
 
-In python-oracledb Thick mode with Oracle Client Libraries 12c (or later), the
-statement cache size can be automatically tuned with the Oracle Client
-Configuration :ref:`oraaccess.xml <optclientfiles>` file.
+In python-oracledb Thick mode, the statement cache size can be automatically
+tuned with the Oracle Client Configuration
+:ref:`oraaccess.xml <optclientfiles>` file.
 
 For manual tuning use views like V$SYSSTAT:
 

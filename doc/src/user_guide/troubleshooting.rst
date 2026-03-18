@@ -249,7 +249,7 @@ DPI-1072
 
 **Cause:**  The connection to Oracle Database failed because the Oracle Client
 library version used is not supported by python-oracledb Thick mode. The Thick
-mode needs Oracle Client library 11.2 or later.
+mode needs Oracle Client library 19 or later.
 
 **Action:** Review the :ref:`instreq`. You can either:
 

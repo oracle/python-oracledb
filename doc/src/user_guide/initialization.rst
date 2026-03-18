@@ -38,6 +38,9 @@ To change from the default python-oracledb Thin mode to Thick mode:
 1. Oracle Client libraries must be available to handle communication to your
    database.  These need to be installed separately, see :ref:`installation`.
 
+   Python-oracledb supports Oracle Client libraries version 19 or later.
+   Previous versions of python-oracledb supported older Oracle Client versions.
+
    Oracle Client libraries from one of the following can be used:
 
   - An `Oracle Instant Client
@@ -410,11 +413,10 @@ files.
 Optional Oracle Client Configuration File
 -----------------------------------------
 
-When python-oracledb Thick mode uses Oracle Client libraries version 12.1 or
-later, an optional client parameter file called ``oraaccess.xml`` can be used
-to configure some behaviors of those libraries, such as statement caching and
-prefetching.  This can be useful to change application behavior if the
-application code cannot be altered.
+In python-oracledb Thick mode, an optional client parameter file called
+``oraaccess.xml`` can be used to configure some behaviors of those libraries,
+such as statement caching and prefetching.  This can be useful to change
+application behavior if the application code cannot be altered.
 
 A sample ``oraaccess.xml`` file that sets the Oracle client ':ref:`prefetch
 <tuningfetch>`' value to 1000 rows for every query in the application is::

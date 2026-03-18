@@ -134,9 +134,9 @@ All properties are read only.
     Connections become candidates for termination when they are acquired or
     released back to the pool, and have existed for longer than
     ``max_lifetime_session`` seconds. Connections that are in active use will
-    not be closed. In python-oracledb Thick mode, Oracle Client libraries 12.1
-    or later must be used and, prior to Oracle Client 21, cleanup only occurs
-    when the pool is accessed.
+    not be closed. When python-oracledb Thick mode is using Oracle Client
+    libraries older than version 21, cleanup only occurs when the pool is
+    accessed.
 
 .. autoproperty:: PoolParams.max_sessions_per_shard
 

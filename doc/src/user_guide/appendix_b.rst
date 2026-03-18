@@ -29,7 +29,8 @@ mode. However, only one of these modes can be used in each Python process:
 - If :func:`oracledb.init_oracle_client()` loads Oracle Client libraries before
   any standalone connection or pool is created, then the python-oracledb mode
   becomes Thick.  The client libraries handle communication with Oracle
-  Database. See :ref:`enablingthick`.
+  Database. Python-oracledb Thick mode requires Oracle Client library version
+  19 or later. See :ref:`enablingthick`.
 
 - If an application opens a connection or creates a pool and then calls
   :func:`oracledb.init_oracle_client()`, an error will occur.

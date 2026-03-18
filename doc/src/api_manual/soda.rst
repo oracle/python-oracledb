@@ -33,7 +33,7 @@ DBA:
 Advanced users who are using Oracle sequences for keys will also need the
 CREATE SEQUENCE privilege.
 
-SODA requires Oracle Client 18.3 or higher and Oracle Database 18.1 and higher.
+SODA requires Oracle Database 18.1 and later.
 
 .. note::
 

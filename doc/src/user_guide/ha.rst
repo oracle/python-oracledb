@@ -69,18 +69,15 @@ ctx=dblatest&id=GUID-6140611A-83FC-4C9C-B31F-A41FC2A5B12D>`__ can be used in
 :ref:`Connect Descriptors <conndescriptor>` to prevent firewalls from
 terminating idle connections and to adjust keepalive timeouts.  The general
 recommendation for ``EXPIRE_TIME`` is to use a value that is slightly less than
-half of the termination period.  In older versions of Oracle Client, a connect
-descriptor option `ENABLE=BROKEN <https://www.oracle.com/pls/topic/lookup?ctx=
-dblatest&id=GUID-7A18022A-E40D-4880-B3CE-7EE9864756CA>`_ can be used instead
-of ``EXPIRE_TIME``.  These settings can also aid detection of a terminated
-remote database server.
+half of the termination period.  These settings can also aid detection of a
+terminated remote database server.
 
-When python-oracledb uses :ref:`Oracle Client libraries 19c <thickarchfig>`, or
-later, then the :ref:`Easy Connect <easyconnect>` syntax enables some options
-to be used without needing a ``sqlnet.ora`` file.  For example, if your
-firewall times out every 4 minutes, and you cannot alter the firewall settings,
-then you may decide to use ``EXPIRE_TIME`` in your connect string to send a
-probe every 2 minutes to the database to keep connections 'alive'::
+When using python-oracledb Thick mode, the :ref:`Easy Connect <easyconnect>`
+syntax enables some options to be used without needing a ``sqlnet.ora`` file.
+For example, if your firewall times out every 4 minutes, and you cannot alter
+the firewall settings, then you may decide to use ``EXPIRE_TIME`` in your
+connect string to send a probe every 2 minutes to the database to keep
+connections 'alive'::
 
     connection = oracledb.connect("hr", userpwd, "dbhost.example.com/orclpdb?expire_time=2")
 
@@ -163,8 +160,7 @@ Python-oracledb supports `Transaction Guard <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=GUID-F7E968E4-EE8F-4563-91F3-CD44B5D2E747>`__ which
 enables Python application to verify the success or failure of the last
 transaction in the event of an unplanned outage. This feature requires Oracle
-Database 12.1 or higher. When using python-oracledb Thick mode, Oracle Client
-12.1 or higher is additionally required.
+Database 12.1 or higher.
 
 Using Transaction Guard helps to:
 
