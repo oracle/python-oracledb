@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -590,12 +590,14 @@ def test_7729(cursor):
     assert fetched_vector2.num_dimensions == vector.num_dimensions
 
 
-def test_7730(cursor, test_env):
-    "7730 - vector with zero dimensions"
-    cursor.setinputsizes(oracledb.DB_TYPE_VECTOR)
+def test_7730(skip_unless_thin_mode, cursor, test_env):
+    "7730 - sparse vector with zero dimensions"
+    if not test_env.has_client_and_server_version(23, 26):
+        pytest.skip("no zero dimension sparse vector support")
     vector = oracledb.SparseVector(4, [], [])
-    with test_env.assert_raises_full_code("ORA-51803", "ORA-21560"):
-        cursor.execute("select :1", [vector])
+    cursor.execute("select :1", [vector])
+    (fetched_vector,) = cursor.fetchone()
+    assert fetched_vector == vector
 
 
 def test_7731(cursor):

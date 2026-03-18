@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -202,6 +202,7 @@ cdef int _convert_from_python(object value, OracleMetadata metadata,
     elif oracle_type == DPI_ORACLE_TYPE_VECTOR:
         if isinstance(value, PY_TYPE_SPARSE_VECTOR):
             sparse_impl = <SparseVectorImpl> value._impl
+            vector_info.isSparse = 1
             vector_info.numDimensions = <uint32_t> sparse_impl.num_dimensions
             vector_info.numSparseValues = <uint32_t> len(sparse_impl.indices)
             vector_info.sparseIndices = \
@@ -210,6 +211,7 @@ cdef int _convert_from_python(object value, OracleMetadata metadata,
         else:
             vector_info.numDimensions = <uint32_t> len(value)
             vector_info.numSparseValues = 0
+            vector_info.isSparse = 0
             vector_info.sparseIndices = NULL
         if value.typecode == 'd':
             vector_info.format = DPI_VECTOR_FORMAT_FLOAT64
@@ -402,7 +404,7 @@ cdef object _convert_vector_to_python(dpiVector *vector):
         dpiVectorInfo vector_info
     if dpiVector_getValue(vector, &vector_info) < 0:
         _raise_from_odpi()
-    if vector_info.numSparseValues > 0:
+    if vector_info.isSparse:
         num_elements = vector_info.numSparseValues
     else:
         num_elements = vector_info.numDimensions
@@ -419,7 +421,7 @@ cdef object _convert_vector_to_python(dpiVector *vector):
         num_bytes = num_elements // 8
         result = array.clone(uint8_template, num_bytes, False)
     memcpy(result.data.as_voidptr, vector_info.dimensions.asPtr, num_bytes)
-    if vector_info.numSparseValues > 0:
+    if vector_info.isSparse:
         sparse_impl = SparseVectorImpl.__new__(SparseVectorImpl)
         sparse_impl.num_dimensions = vector_info.numDimensions
         indices_template = array.array(ARRAY_TYPE_CODE_UINT32)
