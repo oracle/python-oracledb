@@ -161,6 +161,27 @@ cdef dict ORACLE_CHARSET_TO_PYTHON_ENCODING = {
 }
 
 
+# Single-byte Oracle character set IDs. Oracle stores CLOB data as
+# AL16UTF16 for multi-byte database character sets but in the database
+# character set for single-byte character sets. This distinction matters
+# for direct path loading which writes data directly to disk.
+cdef set SINGLE_BYTE_CHARSET_IDS = {
+    1,                                              # US7ASCII
+    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41,    # ISO 8859 series
+    46, 47,                                         # ISO 8859 series (contd)
+    170, 171, 172, 173, 174, 175, 176, 177, 178,    # Windows code pages
+    351, 354, 368, 382,                             # DOS / PC code pages
+}
+
+
+cdef bint _is_single_byte_charset(uint16_t charset_id):
+    """
+    Returns True if the given Oracle character set ID is a single-byte
+    character set.
+    """
+    return charset_id in SINGLE_BYTE_CHARSET_IDS
+
+
 cdef str _get_db_charset_encoding(uint16_t charset_id):
     """
     Returns the Python encoding name for the given Oracle character set ID,

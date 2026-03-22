@@ -63,10 +63,19 @@ cdef class DirectPathPrepareMessage(Message):
         treated as strings and bytes when using direct path.
         """
         cdef OracleMetadata metadata
+        cdef uint8_t csfrm
         metadata = Message._process_metadata(self, buf)
         if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB:
+            if metadata.dbtype._csfrm == CS_FORM_NCHAR:
+                csfrm = CS_FORM_NCHAR
+            elif _is_single_byte_charset(
+                self.conn_impl._protocol._caps.charset_id
+            ):
+                csfrm = CS_FORM_IMPLICIT
+            else:
+                csfrm = CS_FORM_NCHAR
             metadata.dbtype = DbType._from_ora_type_and_csfrm(
-                ORA_TYPE_NUM_LONG, metadata.dbtype._csfrm
+                ORA_TYPE_NUM_LONG, csfrm
             )
         elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             metadata.dbtype = DbType._from_ora_type_and_csfrm(
