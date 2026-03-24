@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -126,8 +126,8 @@ cdef class LobOpMessage(Message):
             buf.write_bytes(self.source_lob_impl._locator)
         if self.operation == TNS_LOB_OP_CREATE_TEMP:
             if self.source_lob_impl.dbtype._csfrm == CS_FORM_NCHAR:
-                buf._caps._check_ncharset_id()
-                buf.write_ub4(TNS_CHARSET_UTF16)
+                buf._caps._get_nencoding()
+                buf.write_ub4(buf._caps.ncharset_id)
             else:
                 buf.write_ub4(TNS_CHARSET_UTF8)
         if self.data is not None:

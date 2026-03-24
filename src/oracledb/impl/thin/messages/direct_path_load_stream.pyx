@@ -281,6 +281,8 @@ cdef class DirectPathLoadStreamMessage(Message):
             uint64_t overall_row_num
             OracleMetadata metadata
             list all_rows, arrays
+            const char* encoding
+            Capabilities caps
             uint32_t row_num
             PieceBuffer buf
             OracleData data
@@ -305,7 +307,13 @@ cdef class DirectPathLoadStreamMessage(Message):
                 if all_rows is not None:
                     col = self.conn_impl._check_value(metadata, row[col_num],
                                                       NULL)
-                    col = convert_python_to_oracle_data(metadata, &data, col)
+                    caps = self.conn_impl._protocol._caps
+                    if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
+                        encoding = caps._get_encoding()
+                    else:
+                        encoding = caps._get_nencoding()
+                    col = convert_python_to_oracle_data(metadata, &data, col,
+                                                        encoding)
                 else:
                     array_impl = arrays[col_num]
                     col = convert_arrow_to_oracle_data(

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -59,14 +59,29 @@ cdef class DirectPathPrepareMessage(Message):
 
     cdef OracleMetadata _process_metadata(self, ReadBuffer buf):
         """
-        Process metadata returned by the database. CLOB and BLOB are always
-        treated as strings and bytes when using direct path.
+        Process metadata returned by the database. CLOB/NCLOB and BLOB are
+        always treated as strings and bytes when using direct path. Note that
+        CLOB values use the NCHAR encoding for multi-byte character sets but
+        use the CHAR encoding for single-byte character sets. Unlike the
+        regular code path, direct path loading writes directly to disk and the
+        server does not perform any validation or conversion.
         """
-        cdef OracleMetadata metadata
+        cdef:
+            OracleMetadata metadata
+            Capabilities caps
+            uint8_t csfrm
         metadata = Message._process_metadata(self, buf)
         if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB:
+            csfrm = metadata.dbtype._csfrm
+            if csfrm == CS_FORM_IMPLICIT:
+                caps = self.conn_impl._protocol._caps
+                # character set ids < 800 are all single-byte character sets
+                # while character set ids >= 800 are all multi-byte character
+                # sets
+                if caps.charset_id >= 800:
+                    csfrm = CS_FORM_NCHAR
             metadata.dbtype = DbType._from_ora_type_and_csfrm(
-                ORA_TYPE_NUM_LONG, CS_FORM_NCHAR
+                ORA_TYPE_NUM_LONG, csfrm
             )
         elif metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
             metadata.dbtype = DbType._from_ora_type_and_csfrm(

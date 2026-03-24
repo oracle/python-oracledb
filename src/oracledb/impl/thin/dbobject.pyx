@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -106,6 +106,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         cdef:
             uint8_t image_flags, image_version
             BaseThinLobImpl lob_impl
+            const char* encoding
             const char_type *ptr
             ssize_t bytes_left
             uint32_t xml_flag
@@ -118,7 +119,8 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         bytes_left = self.bytes_left()
         ptr = self.read_raw_bytes(bytes_left)
         if xml_flag & TNS_XML_TYPE_STRING:
-            return ptr[:bytes_left].decode()
+            encoding = conn_impl._protocol._caps._get_encoding()
+            return ptr[:bytes_left].decode(encoding)
         elif xml_flag & TNS_XML_TYPE_LOB:
             lob_impl = conn_impl._create_lob_impl(DB_TYPE_CLOB,
                                                   ptr[:bytes_left])
@@ -250,8 +252,10 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         cdef:
             uint8_t ora_type_num = metadata.dbtype._ora_type_num
+            BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
+            const char* encoding
             bytes temp_bytes
         if value is None:
             if metadata.objtype is not None \
@@ -260,10 +264,12 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             else:
                 buf.write_uint8(TNS_NULL_LENGTH_INDICATOR)
         elif ora_type_num in (ORA_TYPE_NUM_CHAR, ORA_TYPE_NUM_VARCHAR):
+            conn_impl = self.type._conn_impl
             if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
-                temp_bytes = (<str> value).encode()
+                encoding = conn_impl._protocol._caps._get_encoding()
             else:
-                temp_bytes = (<str> value).encode(ENCODING_UTF16)
+                encoding = conn_impl._protocol._caps._get_nencoding()
+            temp_bytes = (<str> value).encode(encoding)
             buf.write_bytes_with_length(temp_bytes)
         elif ora_type_num == ORA_TYPE_NUM_NUMBER:
             temp_bytes = (<str> cpython.PyObject_Str(value)).encode()
@@ -353,19 +359,19 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         cdef:
             uint8_t ora_type_num = metadata.dbtype._ora_type_num
+            BaseThinConnImpl conn_impl = self.type._conn_impl
             uint8_t csfrm = metadata.dbtype._csfrm
             DbObjectPickleBuffer xml_buf
             bint is_null, is_collection
-            BaseThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             BaseThinLobImpl lob_impl
+            const char* encoding
             OracleData data
             bytes locator
             type cls
         if ora_type_num in (ORA_TYPE_NUM_CLOB,
-                              ORA_TYPE_NUM_BLOB,
-                              ORA_TYPE_NUM_BFILE):
-            conn_impl = self.type._conn_impl
+                            ORA_TYPE_NUM_BLOB,
+                            ORA_TYPE_NUM_BFILE):
             locator = buf.read_bytes()
             if locator is None:
                 return None
@@ -381,7 +387,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
                     return None
                 xml_buf = DbObjectPickleBuffer.__new__(DbObjectPickleBuffer)
                 xml_buf._populate_from_bytes(xml_bytes)
-                return xml_buf.read_xmltype(self.type._conn_impl)
+                return xml_buf.read_xmltype(conn_impl)
             is_collection = \
                     metadata.objtype.is_collection or self.type.is_collection
             buf.get_is_atomic_null(is_collection, &is_null)
@@ -396,11 +402,12 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             return PY_TYPE_DB_OBJECT._from_impl(obj_impl)
         buf.read_oracle_data(metadata, &data, from_dbobject=True,
                              decode_str=False)
-        if metadata.dbtype._csfrm == CS_FORM_NCHAR:
-            conn_impl = self.type._conn_impl
-            conn_impl._protocol._caps._check_ncharset_id()
+        if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
+            encoding = conn_impl._protocol._caps._get_encoding()
+        else:
+            encoding = conn_impl._protocol._caps._get_nencoding()
         return convert_oracle_data_to_python(metadata, metadata, &data,
-                                             encoding_errors=NULL,
+                                             encoding, encoding_errors=NULL,
                                              from_dbobject=True)
 
     def append_checked(self, object value):

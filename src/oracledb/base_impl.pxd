@@ -1053,11 +1053,13 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleMetadata to_metadatda,
                                           OracleData* data,
+                                          const char* encoding,
                                           const char* encoding_errors,
                                           bint from_dbobject)
 cdef object convert_python_to_oracle_data(OracleMetadata metadata,
                                           OracleData* data,
-                                          object value)
+                                          object value,
+                                          const char* encoding)
 cdef int convert_vector_to_arrow(ArrowArrayImpl array_impl,
                                  object vector) except -1
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer)

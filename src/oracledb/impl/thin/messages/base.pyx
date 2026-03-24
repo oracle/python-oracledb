@@ -996,6 +996,7 @@ cdef class MessageWithData(Message):
             uint8_t num_bytes, ora_type_num, csfrm
             ThinDbObjectTypeImpl typ_impl
             BaseThinCursorImpl cursor_impl
+            const char *encoding = NULL
             object column_value = None
             ThinDbObjectImpl obj_impl
             int32_t actual_num_bytes
@@ -1074,14 +1075,14 @@ cdef class MessageWithData(Message):
                 decode_str=self.cursor_impl.fetching_arrow
             )
             if metadata.dbtype._csfrm == CS_FORM_NCHAR:
-                buf._caps._check_ncharset_id()
+                encoding = buf._caps._get_nencoding()
             if self.cursor_impl.fetching_arrow:
                 convert_oracle_data_to_arrow(
                     metadata, var_impl.metadata, &data, var_impl._arrow_array
                 )
             else:
                 column_value = convert_oracle_data_to_python(
-                    metadata, var_impl.metadata, &data,
+                    metadata, var_impl.metadata, &data, encoding,
                     var_impl._encoding_errors, from_dbobject=False
                 )
         if not self.in_fetch:
@@ -1396,6 +1397,7 @@ cdef class MessageWithData(Message):
         cdef:
             ThinDbObjectTypeImpl typ_impl
             BaseThinCursorImpl cursor_impl
+            const char* encoding = NULL
             BaseThinLobImpl lob_impl
             OracleMetadata metadata
             uint8_t ora_type_num
@@ -1409,8 +1411,11 @@ cdef class MessageWithData(Message):
             value = convert_arrow_to_oracle_data(metadata, &data,
                                                  var_impl._arrow_array, offset)
         else:
+            if metadata.dbtype._csfrm == CS_FORM_NCHAR:
+                encoding = ENCODING_UTF16
             value = convert_python_to_oracle_data(metadata, &data,
-                                                  var_impl._values[offset])
+                                                  var_impl._values[offset],
+                                                  encoding)
         ora_type_num = metadata.dbtype._ora_type_num
         if data.is_null:
             if ora_type_num == ORA_TYPE_NUM_BOOLEAN:

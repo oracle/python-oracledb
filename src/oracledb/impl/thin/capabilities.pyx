@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -30,12 +30,70 @@
 # thin_impl.pyx).
 #------------------------------------------------------------------------------
 
+# defines the mapping between Oracle Database character set and IANA encoding
+# names used by Python
+cdef dict ORACLE_CHARSET_TO_PYTHON_ENCODING = {
+    # ASCII
+    1: "ascii",                         # US7ASCII
+
+    # ISO 8859 series
+    31: "iso_8859_1",                   # WE8ISO8859P1
+    32: "iso_8859_2",                   # EE8ISO8859P2
+    33: "iso_8859_3",                   # SE8ISO8859P3
+    34: "iso_8859_4",                   # NEE8ISO8859P4
+    35: "iso_8859_5",                   # CL8ISO8859P5
+    36: "iso_8859_6",                   # AR8ISO8859P6
+    37: "iso_8859_7",                   # EL8ISO8859P7
+    38: "iso_8859_8",                   # IW8ISO8859P8
+    39: "iso_8859_9",                   # WE8ISO8859P9
+    40: "iso_8859_10",                  # NE8ISO8859P10
+    41: "tis_620",                      # TH8TISASCII
+    46: "iso_8859_15",                  # WE8ISO8859P15
+    47: "iso_8859_13",                  # BLT8ISO8859P13
+
+    # Windows code pages
+    170: "cp1250",                      # EE8MSWIN1250
+    171: "cp1251",                      # CL8MSWIN1251
+    172: "cp1253",                      # EL8MSWIN1253
+    173: "cp1254",                      # TR8MSWIN1254
+    174: "cp1255",                      # IW8MSWIN1255
+    175: "cp1256",                      # AR8MSWIN1256
+    176: "cp1257",                      # BLT8MSWIN1257
+    177: "cp1258",                      # VN8MSWIN1258
+    178: "cp1252",                      # WE8MSWIN1252
+
+    # DOS / PC code pages
+    351: "cp850",                       # WE8PC850
+    354: "cp437",                       # US8PC437
+    368: "cp866",                       # RU8PC866
+    382: "cp852",                       # EE8PC852
+
+    # East Asian multi-byte
+    829: "big5",                        # ZHT16BIG5
+    830: "euc_kr",                      # KO16KSC5601
+    831: "euc_jp",                      # JA16EUC
+    832: "cp932",                       # JA16SJIS
+    833: "cp932",                       # JA16SJISTILDE
+    834: "euc_jp",                      # JA16EUCTILDE
+    846: "gbk",                         # ZHS16GBK
+    850: "big5hkscs",                   # ZHT16HKSCS
+    852: "euc_kr",                      # KO16MSWIN949
+    854: "big5",                        # ZHT16MSWIN950
+    870: "gb18030",                     # ZHS32GB18030
+
+    # universal encodings
+    873: "utf_8",                       # AL32UTF8
+    2000: "utf_16_be",                  # AL16UTF16
+}
+
 cdef class Capabilities:
     cdef:
         uint16_t protocol_version
         uint8_t ttc_field_version
         uint16_t charset_id
+        const char* encoding
         uint16_t ncharset_id
+        const char* nencoding
         bytearray compile_caps
         bytearray runtime_caps
         uint32_t max_string_size
@@ -87,14 +145,36 @@ cdef class Capabilities:
         if not (server_caps[TNS_RCAP_TTC] & TNS_RCAP_TTC_SESSION_STATE_OPS):
             self.supports_request_boundaries = False
 
-    cdef int _check_ncharset_id(self) except -1:
+    cdef const char* _get_encoding(self) except NULL:
         """
-        Checks that the national character set id is AL16UTF16, which is the
-        only id that is currently supported.
+        Returns the encoding to use for encoding or decoding data that is
+        stored in the database character set. If no encoding is found, an
+        exception is raised. This is only required for direct path load and for
+        strings found within Oracle database objects.
         """
-        if self.ncharset_id != TNS_CHARSET_UTF16:
+        cdef str encoding
+        if self.encoding != NULL:
+            return self.encoding
+        encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.charset_id)
+        if encoding is None:
+            errors._raise_err(errors.ERR_DB_CS_NOT_SUPPORTED,
+                              charset_id=self.charset_id)
+        return encoding.encode()
+
+    cdef const char* _get_nencoding(self) except NULL:
+        """
+        Returns the encoding to use for encoding or decoding data that is
+        stored in the database national character set. If no encoding is found,
+        an exception is raised. This is required for handling NCHAR data.
+        """
+        cdef str encoding
+        if self.nencoding != NULL:
+            return self.nencoding
+        encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.ncharset_id)
+        if encoding is None:
             errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
                               charset_id=self.ncharset_id)
+        return encoding.encode()
 
     @cython.boundscheck(False)
     cdef void _init_compile_caps(self):

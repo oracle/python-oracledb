@@ -418,16 +418,15 @@ cdef int convert_str_to_arrow(ArrowArrayImpl array_impl,
     array_impl.append_bytes(<void*> rb.ptr, rb.num_bytes)
 
 
-cdef object convert_str_to_python(OracleDataBuffer *buffer, uint8_t csfrm,
+cdef object convert_str_to_python(OracleDataBuffer *buffer,
+                                  const char* encoding,
                                   const char* encoding_errors):
     """
     Converts a CHAR, NCHAR, LONG, VARCHAR, or NVARCHAR value stored in the
     buffer to Python string.
     """
     cdef OracleRawBytes *rb = &buffer.as_raw_bytes
-    if csfrm == CS_FORM_IMPLICIT:
-        return rb.ptr[:rb.num_bytes].decode(ENCODING_UTF8, encoding_errors)
-    return rb.ptr[:rb.num_bytes].decode(ENCODING_UTF16, encoding_errors)
+    return rb.ptr[:rb.num_bytes].decode(encoding, encoding_errors)
 
 
 cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
@@ -499,13 +498,13 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
                                           OracleMetadata to_metadata,
                                           OracleData* data,
+                                          const char* encoding,
                                           const char* encoding_errors,
                                           bint from_dbobject):
     """
     Converts the value stored in OracleData to a Python object.
     """
-    cdef:
-        uint8_t py_type_num, ora_type_num, csfrm
+    cdef uint8_t py_type_num, ora_type_num
 
     # NULL values
     if data.is_null:
@@ -513,7 +512,6 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
 
     # reduce typing
     ora_type_num = from_metadata.dbtype._ora_type_num
-    csfrm = from_metadata.dbtype._csfrm
     py_type_num = to_metadata._py_type_num
 
     # Python bytes
@@ -539,7 +537,8 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
             ORA_TYPE_NUM_LONG,
             ORA_TYPE_NUM_VARCHAR
         ):
-            return convert_str_to_python(&data.buffer, csfrm, encoding_errors)
+            return convert_str_to_python(&data.buffer, encoding,
+                                         encoding_errors)
 
         # Oracle NUMBER
         elif ora_type_num == ORA_TYPE_NUM_NUMBER:
@@ -591,7 +590,8 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
             ORA_TYPE_NUM_LONG,
             ORA_TYPE_NUM_VARCHAR
         ):
-            value = convert_str_to_python(&data.buffer, csfrm, encoding_errors)
+            value = convert_str_to_python(&data.buffer, encoding,
+                                          encoding_errors)
             return int(PY_TYPE_DECIMAL(value))
 
         # Oracle BINARY_DOUBLE
@@ -674,7 +674,8 @@ cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,
 
 cdef object convert_python_to_oracle_data(OracleMetadata metadata,
                                           OracleData* data,
-                                          object value):
+                                          object value,
+                                          const char* encoding):
     """
     Converts a Python value to the OracleData structure. The object returned is
     any temporary object that is required to be retained (if any).
@@ -688,10 +689,7 @@ cdef object convert_python_to_oracle_data(OracleMetadata metadata,
     elif ora_type_num in (ORA_TYPE_NUM_VARCHAR,
                           ORA_TYPE_NUM_CHAR,
                           ORA_TYPE_NUM_LONG):
-        if metadata.dbtype._csfrm == CS_FORM_IMPLICIT:
-            temp_bytes = (<str> value).encode()
-        else:
-            temp_bytes = (<str> value).encode(ENCODING_UTF16)
+        temp_bytes = (<str> value).encode(encoding)
         convert_bytes_to_oracle_data(&data.buffer, temp_bytes)
         if data.buffer.as_raw_bytes.num_bytes == 0:
             data.is_null = True

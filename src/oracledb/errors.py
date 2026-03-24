@@ -335,6 +335,7 @@ ERR_SESSIONLESS_INACTIVE = 3036
 ERR_UNSUPPORTED_ARROW_TYPE = 3037
 ERR_CANNOT_CONVERT_TO_ARROW_TYPE = 3038
 ERR_CANNOT_CONVERT_FROM_ARROW_TYPE = 3039
+ERR_DB_CS_NOT_SUPPORTED = 3040
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -641,6 +642,10 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_CURSOR_HAS_BEEN_CLOSED: "cursor has been closed by the database",
     ERR_CURSOR_NOT_OPEN: "cursor is not open",
+    ERR_DB_CS_NOT_SUPPORTED: (
+        "database character set id {charset_id} is not supported by "
+        "python-oracledb in thin mode"
+    ),
     ERR_DBOBJECT_ATTR_MAX_SIZE_VIOLATED: (
         "attribute {attr_name} of type {type_name} exceeds its maximum size "
         "(actual: {actual_size}, maximum: {max_size})"
