@@ -138,8 +138,9 @@ cdef const char* DRIVER_VERSION
 cdef const char* DRIVER_INSTALLATION_URL = \
         "https://python-oracledb.readthedocs.io/en/" \
         "latest/user_guide/initialization.html"
-cdef const char* ENCODING_UTF8 = "UTF-8"
-cdef const char* ENCODING_UTF16 = "UTF-16BE"
+cdef const char* ENCODING_UTF8 = "UTF_8"
+cdef const char* ENCODING_UTF16 = "UTF_16_BE"
+cdef const char* ENCODING_UTF16LE = "UTF_16_LE"
 
 # variables needed for dates when using pyarrow
 cdef cydatetime.datetime EPOCH_DATE = datetime.datetime(1970, 1, 1)

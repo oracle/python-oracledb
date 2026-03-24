@@ -217,6 +217,7 @@ cdef str ARRAY_TYPE_CODE_UINT32
 
 cdef const char* ENCODING_UTF8
 cdef const char* ENCODING_UTF16
+cdef const char* ENCODING_UTF16LE
 
 cdef class ApiType:
     cdef:

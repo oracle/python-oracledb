@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -198,11 +198,19 @@ cdef class BaseThinLobImpl(BaseLobImpl):
 
     cdef const char* _get_encoding(self):
         """
-        Return the encoding used by the LOB.
+        Return the encoding used by the LOB. NCLOB always uses UTF-16. CLOB
+        uses UTF-16 if the "variable length character set" flag is set, but
+        uses UTF-16LE if the "little endian" flag is set (this flag is only for
+        those CLOBs that were originally created in Oracle Database 9i). In all
+        other cases, the encoding UTF-8 is used.
         """
-        if self.dbtype._csfrm == CS_FORM_NCHAR \
-                or self._locator[TNS_LOB_LOC_OFFSET_FLAG_3] & \
+        if self.dbtype._csfrm == CS_FORM_NCHAR:
+            return ENCODING_UTF16
+        elif self._locator[TNS_LOB_LOC_OFFSET_FLAG_3] & \
                 TNS_LOB_LOC_FLAGS_VAR_LENGTH_CHARSET:
+            if self._locator[TNS_LOB_LOC_OFFSET_FLAG_4] & \
+                    TNS_LOB_LOC_FLAGS_LITTLE_ENDIAN:
+                return ENCODING_UTF16LE
             return ENCODING_UTF16
         return ENCODING_UTF8
 

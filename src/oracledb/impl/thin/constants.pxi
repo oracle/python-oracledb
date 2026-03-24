@@ -305,10 +305,14 @@ cdef enum:
 cdef enum:
     TNS_LOB_LOC_FLAGS_INIT = 0x08
 
+# LOB locator flags (byte 3)
+cdef enum:
+    TNS_LOB_LOC_FLAGS_VAR_LENGTH_CHARSET = 0x80
+
 # LOB locator flags (byte 4)
 cdef enum:
     TNS_LOB_LOC_FLAGS_TEMP = 0x01
-    TNS_LOB_LOC_FLAGS_VAR_LENGTH_CHARSET = 0x80
+    TNS_LOB_LOC_FLAGS_LITTLE_ENDIAN = 0x40
 
 # other LOB constants
 cdef enum:

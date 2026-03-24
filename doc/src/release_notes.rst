@@ -24,6 +24,7 @@ Thin Mode Changes
     (`issue 542 <https://github.com/oracle/python-oracledb/issues/542>`__).
 #)  Fixed bug writing boolean values to PL/SQL stored procedures and functions
     (`issue 568 <https://github.com/oracle/python-oracledb/issues/568>`__).
+#)  Added support for CLOBs that were originally created in Oracle Database 9i.
 
 
 Thick Mode Changes
