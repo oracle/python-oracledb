@@ -25,8 +25,9 @@
 #------------------------------------------------------------------------------
 # secret_values.pyx
 #
-# Cython file defining the classes and methods used for encoding and decoding
-# VECTOR data (embedded in base_impl.pyx).
+# Cython file defining the classes and methods used for storing values that are
+# sensitive and should not be visible in memory dumps (embedded in
+# base_impl.pyx).
 #------------------------------------------------------------------------------
 
 @cython.final
