@@ -528,7 +528,7 @@ def init_oracle_client(lib_dir=None, config_dir=None, error_url=None,
         encoding = locale.getencoding()
     with driver_mode.get_manager(requested_thin_mode=False) as mode_mgr:
         memset(&params, 0, sizeof(dpiContextCreateParams))
-        params.defaultEncoding = ENCODING_UTF8
+        params.defaultEncoding = "utf-8"
         params.sodaUseJsonDesc = driver_info.soda_use_json_desc
         params.useJsonId = True
         if config_dir is None:
