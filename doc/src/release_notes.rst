@@ -79,6 +79,7 @@ Common Changes
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
+#)  Upgraded nanoarrow to 0.8.0.
 
 
 oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4.2>`__ (January 2026)
