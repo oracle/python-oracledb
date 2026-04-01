@@ -80,8 +80,6 @@ def skip_unless_has_client_23(test_env):
     """
     Skips tests unless running with Oracle Client version 23.
     """
-    if not test_env.use_thick_mode:
-        pytest.skip("requires thick mode")
     if not test_env.has_client_version(23):
         pytest.skip("crashes in older clients")
 
@@ -121,6 +119,7 @@ def test_3000(skip_unless_has_client_23, cursor, test_env):
         callback=data.callback_handler,
         timeout=10,
         qos=oracledb.SUBSCR_QOS_ROWIDS,
+        client_initiated=True,
     )
     sub.registerquery("select * from TestTempTable")
     conn.autocommit = True
@@ -170,6 +169,9 @@ def test_3000(skip_unless_has_client_23, cursor, test_env):
     expected = fmt % (test_env.main_user, test_env.connect_string)
     assert str(sub) == expected
 
+    # unsubscribe so registration is removed from database
+    conn.unsubscribe(sub)
+
 
 def test_3001(conn, test_env):
     "3001 - test to verify deprecations"
@@ -189,7 +191,7 @@ def test_3002(skip_unless_has_client_23, conn, test_env):
     "3002 - test subscription for AQ"
 
     # create queue and clear it of all messages
-    queue = test_env.get_and_clear_queue(conn, "TEST_RAW_QUEUE")
+    queue = test_env.get_and_clear_queue(conn, "TEST_SHARDED_RAW_QUEUE")
 
     # set up subscription
     data = AQSubscriptionData(1)
@@ -199,6 +201,7 @@ def test_3002(skip_unless_has_client_23, conn, test_env):
             name=queue.name,
             timeout=10,
             callback=data.callback_handler,
+            client_initiated=True,
         )
 
         # enqueue a message
@@ -223,7 +226,11 @@ def test_3003(skip_unless_has_client_23, test_env):
     ]
     for qos_constant in qos_constants:
         conn = test_env.get_connection(events=True)
-        sub = conn.subscribe(qos=qos_constant, callback=data.callback_handler)
+        sub = conn.subscribe(
+            qos=qos_constant,
+            callback=data.callback_handler,
+            client_initiated=True,
+        )
         query_id = sub.registerquery("select * from TestTempTable")
         if qos_constant == oracledb.SUBSCR_QOS_QUERY:
             assert isinstance(query_id, int)
@@ -238,7 +245,9 @@ def test_3004(skip_unless_has_client_23, test_env):
     "3004 - test Subscription repr()"
     data = DMLSubscriptionData(5)
     with test_env.get_connection(events=True) as conn:
-        sub = conn.subscribe(callback=data.callback_handler)
+        sub = conn.subscribe(
+            callback=data.callback_handler, client_initiated=True
+        )
         assert repr(sub) == f"<oracledb.Subscription on {conn}>"
         conn.unsubscribe(sub)
 
@@ -247,7 +256,9 @@ def test_3005(skip_unless_has_client_23, test_env):
     "3005 - test registerquery with invalid parameters"
     data = DMLSubscriptionData(5)
     with test_env.get_connection(events=True) as conn:
-        sub = conn.subscribe(callback=data.callback_handler)
+        sub = conn.subscribe(
+            callback=data.callback_handler, client_initiated=True
+        )
         pytest.raises(
             TypeError,
             sub.registerquery,
@@ -256,7 +267,7 @@ def test_3005(skip_unless_has_client_23, test_env):
         )
         with test_env.assert_raises_full_code("ORA-00942"):
             sub.registerquery("select * from Nonexistent")
-        with test_env.assert_raises_full_code("DPI-1087"):
+        with test_env.assert_raises_full_code("DPY-1003"):
             sub.registerquery("insert into TestTempTable (IntCol) values (1)")
         conn.unsubscribe(sub)
 
@@ -277,7 +288,7 @@ def test_3006(skip_unless_has_client_23, test_env):
         qos=oracledb.SUBSCR_QOS_QUERY,
         operations=oracledb.OPCODE_INSERT,
     )
-    sub = conn.subscribe(**args)
+    sub = conn.subscribe(client_initiated=True, **args)
     for attr_name in args:
         assert getattr(sub, attr_name) == args[attr_name]
     assert sub.connection == conn
@@ -314,7 +325,9 @@ def test_3007(skip_unless_has_client_23, test_env):
         event.set()
 
     sub = conn.subscribe(
-        callback=callback_handler, qos=oracledb.SUBSCR_QOS_QUERY
+        callback=callback_handler,
+        qos=oracledb.SUBSCR_QOS_QUERY,
+        client_initiated=True,
     )
     cursor = conn.cursor()
     cursor.execute("truncate table TestTempTable")
@@ -335,9 +348,11 @@ def test_3008(skip_unless_has_client_23, test_env):
     "3008 - test unsubscribe with invalid parameter"
     with test_env.get_connection(events=True) as conn:
         pytest.raises(TypeError, conn.unsubscribe, "not a sub object")
-        sub = conn.subscribe(callback=lambda x: f"Message: {x}")
+        sub = conn.subscribe(
+            callback=lambda x: f"Message: {x}", client_initiated=True
+        )
         conn.unsubscribe(sub)
-        with test_env.assert_raises_full_code("DPI-1002"):
+        with test_env.assert_raises_full_code("DPY-1007"):
             conn.unsubscribe(sub)
 
 
@@ -349,7 +364,9 @@ def test_3010(skip_unless_has_client_23, test_env):
         cursor.execute(
             "insert into TestTempTable (IntCol, StringCol1) values (1, 'test')"
         )
-        sub = connection.subscribe(callback=lambda x: f"Msg: {x}")
+        sub = connection.subscribe(
+            callback=lambda x: f"Msg: {x}", client_initiated=True
+        )
         with test_env.assert_raises_full_code("ORA-29975"):
             sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
@@ -361,9 +378,10 @@ def test_3011(skip_unless_has_client_23, test_env):
         sub = connection.subscribe(
             callback=lambda x: None,
             namespace=oracledb.SUBSCR_NAMESPACE_AQ,
-            name="TEST_RAW_QUEUE",
+            name="TEST_SHARDED_RAW_QUEUE",
+            client_initiated=True,
         )
-        with test_env.assert_raises_full_code("ORA-24315"):
+        with test_env.assert_raises_full_code("DPY-2071"):
             sub.registerquery("select * from TestTempTable")
         connection.unsubscribe(sub)
 
@@ -382,7 +400,10 @@ def test_3013(skip_unless_has_client_23, cursor, test_env):
     conn = test_env.get_connection(events=True)
     cursor = conn.cursor()
     sub = conn.subscribe(
-        callback=callback, qos=oracledb.SUBSCR_QOS_DEREG_NFY, timeout=2
+        callback=callback,
+        qos=oracledb.SUBSCR_QOS_DEREG_NFY,
+        timeout=2,
+        client_initiated=True,
     )
     sub.registerquery("select * from TestTempTable")
     cursor.execute(
@@ -393,16 +414,16 @@ def test_3013(skip_unless_has_client_23, cursor, test_env):
     )
     conn.commit()
     assert event.wait(5)
-    conn.unsubscribe(sub)
 
 
 def test_3014(skip_unless_has_client_23, test_env):
     "3014 - test adding a consumer to a single consumer queue (negative)"
     with test_env.get_connection(events=True) as conn:
-        single_consumer_queue = "TEST_RAW_QUEUE"
+        single_consumer_queue = "TEST_SHARDED_RAW_QUEUE"
         with test_env.assert_raises_full_code("ORA-25256"):
             conn.subscribe(
                 callback=lambda x: None,
                 namespace=oracledb.SUBSCR_NAMESPACE_AQ,
                 name=f"{single_consumer_queue}:SUBSCRIBER",
+                client_initiated=True,
             )

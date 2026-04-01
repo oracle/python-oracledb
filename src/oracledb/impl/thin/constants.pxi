@@ -114,6 +114,53 @@ cdef enum:
     TNS_KPD_AQ_BUFMSG = 0x02
     TNS_KPD_AQ_EITHER = 0x10
 
+# subscription opcodes
+cdef enum:
+    TNS_SUBSCR_OP_REGISTER = 1
+    TNS_SUBSCR_OP_UNREGISTER = 2
+
+# notification stuff
+cdef enum:
+    TNS_INIT_KPNDRREQ = 1
+
+# subscription modes
+cdef enum:
+    TNS_SUBSCR_MODE_CLIENT_INITIATED = 4
+
+# miscellaneous subscription constants
+cdef enum:
+    TNS_SUBSCR_CLIENT_ID_LEN = 29
+    TNS_SUBSCR_STOP_NOTIF = 0x04
+
+# quality of service flags for subscriptions
+cdef enum:
+    TNS_SUBSCR_QOS_RELIABLE = 0x01
+    TNS_SUBSCR_QOS_PAYLOAD = 0x02
+    TNS_SUBSCR_QOS_REPLICATE = 0x04
+    TNS_SUBSCR_QOS_SECURE = 0x08
+    TNS_SUBSCR_QOS_PURGE_ON_NTFN = 0x10
+    TNS_SUBSCR_QOS_MULTICBK = 0x20
+    TNS_SUBSCR_QOS_ASYNC_DEQ = 0x200
+    TNS_SUBSCR_QOS_TX_ACK = 0x800
+    TNS_SUBSCR_QOS_AUTO_ACK = 0x400
+    TNS_SUBSCR_QOS_DEREG_NFY = 0x02
+
+cdef enum:
+    TNS_SUBSCR_FLAGS_INCLUDE_ROWIDS = 0x10
+    TNS_SUBSCR_FLAGS_QUERY = 0x20
+
+# supported namespaces
+cdef enum:
+    TNS_SUBSCR_NAMESPACE_AQ = 1
+    TNS_SUBSCR_NAMESPACE_DBCHANGE = 2
+
+# payload type
+cdef enum:
+    TNS_KKCN_CTX_RAW = 0
+    TNS_KPDNRPAYRAW = 1
+    TNS_KPDNRPAYADT = 2
+    TNS_KPDNRPAYJSON = 3
+
 # errors
 cdef enum:
     TNS_ERR_INCONSISTENT_DATA_TYPES = 932
@@ -138,6 +185,7 @@ cdef enum:
     TNS_MSG_TYPE_PARAMETER = 8
     TNS_MSG_TYPE_STATUS = 9
     TNS_MSG_TYPE_IO_VECTOR = 11
+    TNS_MSG_TYPE_OAC = 13
     TNS_MSG_TYPE_LOB_DATA = 14
     TNS_MSG_TYPE_WARNING = 15
     TNS_MSG_TYPE_DESCRIBE_INFO = 16
@@ -371,6 +419,7 @@ cdef enum:
     TNS_FUNC_FETCH = 5
     TNS_FUNC_LOB_OP = 96
     TNS_FUNC_LOGOFF = 9
+    TNS_FUNC_NOTIFY = 187
     TNS_FUNC_PING = 147
     TNS_FUNC_PIPELINE_BEGIN = 199
     TNS_FUNC_PIPELINE_END = 200
@@ -382,6 +431,7 @@ cdef enum:
     TNS_FUNC_SESSION_STATE = 176
     TNS_FUNC_SET_END_TO_END_ATTR = 135
     TNS_FUNC_SET_SCHEMA = 152
+    TNS_FUNC_SUBSCRIBE = 125
     TNS_FUNC_TPC_TXN_SWITCH = 103
     TNS_FUNC_TPC_TXN_CHANGE_STATE = 104
 

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -68,6 +68,7 @@ cdef class ExecuteMessage(MessageWithData):
             uint32_t options, exec_flags = 0, num_params = 0, num_iters = 1
             Statement stmt = self.cursor_impl._statement
             BaseThinCursorImpl cursor_impl = self.cursor_impl
+            uint32_t registration_id_msb, registration_id_lsb
             list params = stmt._bind_info_list
 
         # determine the options to use for the execute
@@ -112,6 +113,11 @@ cdef class ExecuteMessage(MessageWithData):
         if self.cursor_impl.suspend_on_success:
             self._handle_sessionless_suspend()
 
+        # split registration id into two parts as required by the protocol
+        registration_id_msb = \
+                (self.cursor_impl._registration_id >> 32) & 0xffffffff
+        registration_id_lsb = self.cursor_impl._registration_id & 0xffffffff
+
         # write body of message
         self._write_function_code(buf)
         buf.write_ub4(options)              # execute options
@@ -147,14 +153,14 @@ cdef class ExecuteMessage(MessageWithData):
         else:
             buf.write_uint8(0)
             buf.write_ub4(0)
-        buf.write_ub4(0)                    # registration id
+        buf.write_ub4(registration_id_lsb)
         buf.write_uint8(0)                  # pointer (al8objlist)
         buf.write_uint8(1)                  # pointer (al8objlen)
         buf.write_uint8(0)                  # pointer (al8blv)
         buf.write_ub4(0)                    # al8blvl
         buf.write_uint8(0)                  # pointer (al8dnam)
         buf.write_ub4(0)                    # al8dnaml
-        buf.write_ub4(0)                    # al8regid_msb
+        buf.write_ub4(registration_id_msb)
         if self.arraydmlrowcounts:
             buf.write_uint8(1)              # pointer (al8pidmlrc)
             buf.write_ub4(self.num_execs)   # al8pidmlrcbl
@@ -266,7 +272,8 @@ cdef class ExecuteMessage(MessageWithData):
                 or stmt._requires_define \
                 or stmt._is_ddl \
                 or self.batcherrors \
-                or self.cursor_impl.scrollable:
+                or self.cursor_impl.scrollable \
+                or self.cursor_impl._registration_id != 0:
             self.function_code = TNS_FUNC_EXECUTE
             self._write_execute_message(buf)
         elif stmt._is_query and self.cursor_impl.prefetchrows > 0:

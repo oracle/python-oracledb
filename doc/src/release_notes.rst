@@ -19,6 +19,8 @@ oracledb `4.0.0 <https://github.com/oracle/python-oracledb/compare/v3.4.2...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for Continuous Query Notification (CQN) and Advanced Queuing
+    (AQ) notification.
 #)  Fixed bug when using direct path load with a single byte database character
     set
     (`issue 567 <https://github.com/oracle/python-oracledb/issues/567>`__).

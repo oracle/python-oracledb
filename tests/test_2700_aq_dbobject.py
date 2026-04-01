@@ -407,16 +407,25 @@ def test_2719(conn, queue, book_data):
     assert props1 is None
 
 
-def test_2720(skip_unless_thick_mode, conn, queue, book_data, test_env):
+def test_2720(conn, book_data, test_env):
     "2720 - verify attributes of AQ message which spawned notification"
     if test_env.is_on_oracle_cloud:
         pytest.skip("AQ notification not supported on the cloud")
+    queue = test_env.get_and_clear_queue(
+        conn, "TEST_SHARDED_BOOK_QUEUE", "UDT_BOOK"
+    )
     event = threading.Event()
     other_conn = test_env.get_connection(events=True)
 
     def notification_callback(message=None, *args, **kwargs):
         cursor = conn.cursor()
-        cursor.execute("select msgid from book_queue_tab")
+        cursor.execute(
+            """
+            select msg_id
+            from aq$test_sharded_book_queue
+            where msg_state = 'READY'
+            """
+        )
         (actual_msgid,) = cursor.fetchone()
         assert message.msgid == actual_msgid
         assert message.consumer_name is None
@@ -430,6 +439,7 @@ def test_2720(skip_unless_thick_mode, conn, queue, book_data, test_env):
         name=queue.name,
         timeout=300,
         callback=notification_callback,
+        client_initiated=True,
     )
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]

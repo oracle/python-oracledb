@@ -16,11 +16,6 @@ applications, or for such purposes as mid-tier cache invalidation.  A cache
 might hold some values that depend on data in a table.  If the data in the
 table changes, the cached values must then be updated with the new information.
 
-.. note::
-
-    Continuous Query Notification (CQN) is only supported in python-oracledb
-    Thick mode.  See :ref:`enablingthick`.
-
 CQN notification behavior is widely configurable.  Choices include specifying
 what types of SQL should trigger a notification, whether notifications should
 survive database loss, and control over unsubscription.  You can also choose
@@ -57,10 +52,11 @@ example:
                                    events=True)
 
 The default CQN connection mode means the database must be able to connect back
-to the application using python-oracledb in order to receive notification events.
-Alternatively, when using Oracle Database and Oracle Client libraries 19.4, or
-later, subscriptions can set the optional ``client_initiated`` parameter to
-True, see ``Connection.subscribe()`` below.
+to the application using python-oracledb in order to receive notification
+events. When using Oracle Database 19.4 (or later), subscriptions can set the
+``client_initiated`` parameter to *True*. For python-oracledb Thick mode,
+Oracle Client libraries 19.4 (or later) are additionally required for client
+initiated connections. See :ref:`create_subscription`.
 
 The default CQN connection mode typically means that the machine running
 python-oracledb needs a fixed IP address.  Note :meth:`Connection.subscribe()`
@@ -70,6 +66,7 @@ Configuration options can include an IP address and port on which
 python-oracledb will listen for notifications; otherwise, the database chooses
 values.
 
+.. _create_subscription:
 
 Creating a Subscription
 =======================
@@ -95,18 +92,26 @@ protocols that are supported.
 See :ref:`Subscription Objects <subscrobj>` for more details on the
 subscription object that is created.
 
-When using Oracle Database and Oracle Client libraries 19.4, or later, the
-optional subscription parameter ``client_initiated`` can be set:
+When using Oracle Database 19.4 (or later), the subscription parameter
+``client_initiated`` can be set to *True*:
 
 .. code-block:: python
 
     connection.subscribe(callback=my_callback, client_initiated=True)
 
-This enables CQN "client initiated" connections which internally use the same
-approach as normal python-oracledb connections to the database, and do not
-require the database to be able to connect back to the application.  Since
-client initiated connections do not need special network configuration they
-have ease-of-use and security advantages.
+For python-oracledb Thick mode, Oracle Client libraries 19.4 (or later)
+are additionally required.
+
+Setting ``client_initiated`` to *True* enables CQN "client initiated"
+connections which internally use the same approach as normal python-oracledb
+connections to the database, and do not require the database to be able to
+connect back to the application.  Since client initiated connections do not
+need special network configuration they have ease-of-use and security
+advantages.
+
+When using Transactional Event Queues, the ``client_initiated`` parameter of
+:meth:`Connection.subscribe()` must be set to *True*. See
+:ref:`Advanced Queuing <aqusagenotes>` for more information.
 
 
 Registering Queries

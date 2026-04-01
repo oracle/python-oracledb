@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -32,7 +32,9 @@
 
 from typing import Callable, Optional, Union
 from .base import BaseMetaClass
-from . import connection
+from . import connection, errors
+
+import oracledb
 
 
 class Subscription(metaclass=BaseMetaClass):
@@ -152,6 +154,8 @@ class Subscription(metaclass=BaseMetaClass):
         """
         if args is not None and not isinstance(args, (list, dict)):
             raise TypeError("expecting args to be a dictionary or list")
+        if self._impl.namespace == oracledb.SUBSCR_NAMESPACE_AQ:
+            errors._raise_err(errors.ERR_REGISTER_QUERY_ON_AQ_SUBSCR)
         return self._impl.register_query(statement, args)
 
     @property

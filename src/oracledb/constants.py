@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -81,42 +81,11 @@ SUBSCR_GROUPING_CLASS_TIME = 1
 SUBSCR_GROUPING_TYPE_SUMMARY = 1
 SUBSCR_GROUPING_TYPE_LAST = 2
 
-# subscription namespaces
-SUBSCR_NAMESPACE_AQ = 1
-SUBSCR_NAMESPACE_DBCHANGE = 2
-
 # subscription protocols
 SUBSCR_PROTO_HTTP = 3
 SUBSCR_PROTO_MAIL = 1
 SUBSCR_PROTO_CALLBACK = 0
 SUBSCR_PROTO_SERVER = 2
-
-# subscription quality of service
-SUBSCR_QOS_BEST_EFFORT = 0x10
-SUBSCR_QOS_DEFAULT = 0
-SUBSCR_QOS_DEREG_NFY = 0x02
-SUBSCR_QOS_QUERY = 0x08
-SUBSCR_QOS_RELIABLE = 0x01
-SUBSCR_QOS_ROWIDS = 0x04
-
-# event types
-EVENT_AQ = 100
-EVENT_DEREG = 5
-EVENT_NONE = 0
-EVENT_OBJCHANGE = 6
-EVENT_QUERYCHANGE = 7
-EVENT_SHUTDOWN = 2
-EVENT_SHUTDOWN_ANY = 3
-EVENT_STARTUP = 1
-
-# operation codes
-OPCODE_ALLOPS = 0
-OPCODE_ALLROWS = 0x01
-OPCODE_ALTER = 0x10
-OPCODE_DELETE = 0x08
-OPCODE_DROP = 0x20
-OPCODE_INSERT = 0x02
-OPCODE_UPDATE = 0x04
 
 # flags for tpc_end()
 TPC_END_NORMAL = 0

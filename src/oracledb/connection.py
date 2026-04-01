@@ -1425,10 +1425,12 @@ class Connection(BaseConnection):
         identifies the queue that will be monitored for messages. The queue
         name may include the schema, if needed.
 
-        The ``client_initiated`` parameter is used to determine if client
-        initiated connections or server initiated connections (the default)
-        will be established. Client initiated connections are only available in
-        Oracle Client 19.4 and Oracle Database 19.4 and higher.
+        The ``client_initiated`` parameter is a boolean that determines if
+        client initiated connections (the value *True*) or server initiated
+        connections (the default value *False*) will be established. Client
+        initiated connections are only available in Oracle Database 19.4 (or
+        later). For python-oracledb Thick mode, Oracle Client 19.4 (or later)
+        is additionally required.
 
         For consistency and compliance with the PEP 8 naming style, the
         parameter ``ipAddress`` was renamed to ``ip_address``, the parameter
@@ -1686,7 +1688,10 @@ class Connection(BaseConnection):
         self._verify_connected()
         if not isinstance(subscr, Subscription):
             raise TypeError("expecting subscription")
-        subscr._impl.unsubscribe(self._impl)
+        if subscr._impl is None:
+            errors._raise_err(errors.ERR_NOT_SUBSCRIBED)
+        subscr._impl.unsubscribe(self, self._impl)
+        subscr._impl = None
 
 
 def _connection_factory(

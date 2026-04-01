@@ -1253,8 +1253,9 @@ cdef class MessageWithData(Message):
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
         cdef:
+            uint32_t num_rows, i, query_id_lsb, query_id_msb
             uint16_t num_params, num_bytes
-            uint32_t num_rows, i
+            const char_type* ptr
             uint64_t rowcount
             bytes key_value
             list rowcounts
@@ -1266,9 +1267,15 @@ cdef class MessageWithData(Message):
             buf.skip_raw_bytes(num_bytes)
         buf.read_ub2(&num_params)           # num key/value pairs
         self._process_keyword_value_pairs(buf, num_params)
-        buf.read_ub2(&num_bytes)            # registration
+        buf.read_ub2(&num_bytes)            # registration info
         if num_bytes > 0:
-            buf.skip_raw_bytes(num_bytes)
+            # the last 8 bytes refer to the query id so extract that
+            # information and ignore the rest
+            ptr = buf.read_raw_bytes(num_bytes)
+            query_id_msb = decode_uint32be(&ptr[num_bytes - 4])
+            query_id_lsb = decode_uint32be(&ptr[num_bytes - 8])
+            self.cursor_impl._query_id = \
+                    (<uint64_t> query_id_msb) << 32 | query_id_lsb
         if self.arraydmlrowcounts:
             buf.read_ub4(&num_rows)
             rowcounts = self.cursor_impl._dmlrowcounts = []

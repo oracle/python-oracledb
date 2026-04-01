@@ -439,10 +439,18 @@ begin
             '&main_user..BOOK_QUEUE_TAB');
     dbms_aqadm.start_queue('&main_user..TEST_BOOK_QUEUE');
 
+    dbms_aqadm.create_sharded_queue('&main_user..TEST_SHARDED_BOOK_QUEUE',
+            queue_payload_type => '&main_user..UDT_BOOK');
+    dbms_aqadm.start_queue('&main_user..TEST_SHARDED_BOOK_QUEUE');
+
     dbms_aqadm.create_queue_table('&main_user..RAW_QUEUE_TAB', 'RAW');
     dbms_aqadm.create_queue('&main_user..TEST_RAW_QUEUE',
             '&main_user..RAW_QUEUE_TAB');
     dbms_aqadm.start_queue('&main_user..TEST_RAW_QUEUE');
+
+    dbms_aqadm.create_sharded_queue('&main_user..TEST_SHARDED_RAW_QUEUE',
+            queue_payload_type => 'RAW');
+    dbms_aqadm.start_queue('&main_user..TEST_SHARDED_RAW_QUEUE');
 
     dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_MULTI_TAB',
             '&main_user..UDT_BOOK', multiple_consumers => TRUE);

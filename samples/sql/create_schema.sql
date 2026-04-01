@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- * Copyright 2017, 2023, Oracle and/or its affiliates.
+ * Copyright 2017, 2026, Oracle and/or its affiliates.
  *
  * This software is dual-licensed to you under the Universal Permissive License
  * (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -255,21 +255,16 @@ create table &main_user..TestGeometry (
 -- create queue table, queues and subscribers for demonstrating Advanced Queuing
 begin
 
-    dbms_aqadm.create_queue_table('&main_user..BOOK_QUEUE_TAB',
-            '&main_user..UDT_BOOK');
-    dbms_aqadm.create_queue('&main_user..DEMO_BOOK_QUEUE',
-            '&main_user..BOOK_QUEUE_TAB');
+    dbms_aqadm.create_sharded_queue('&main_user..DEMO_BOOK_QUEUE',
+        queue_payload_type => '&main_user..UDT_BOOK');
     dbms_aqadm.start_queue('&main_user..DEMO_BOOK_QUEUE');
 
-    dbms_aqadm.create_queue_table('&main_user..RAW_QUEUE_TAB', 'RAW');
-    dbms_aqadm.create_queue('&main_user..DEMO_RAW_QUEUE',
-            '&main_user..RAW_QUEUE_TAB');
+    dbms_aqadm.create_sharded_queue('&main_user..DEMO_RAW_QUEUE',
+        queue_payload_type => 'RAW');
     dbms_aqadm.start_queue('&main_user..DEMO_RAW_QUEUE');
 
-    dbms_aqadm.create_queue_table('&main_user..RAW_QUEUE_MULTI_TAB', 'RAW',
-            multiple_consumers => true);
-    dbms_aqadm.create_queue('&main_user..DEMO_RAW_QUEUE_MULTI',
-            '&main_user..RAW_QUEUE_MULTI_TAB');
+    dbms_aqadm.create_sharded_queue('&main_user..DEMO_RAW_QUEUE_MULTI',
+        queue_payload_type => 'RAW',  multiple_consumers => true);
     dbms_aqadm.start_queue('&main_user..DEMO_RAW_QUEUE_MULTI');
 
     dbms_aqadm.add_subscriber('&main_user..DEMO_RAW_QUEUE_MULTI',

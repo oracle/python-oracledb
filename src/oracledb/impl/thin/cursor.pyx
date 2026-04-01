@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,8 +37,10 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         list _batcherrors
         list _dmlrowcounts
         list _implicit_resultsets
+        uint64_t _registration_id
         uint64_t _buffer_min_row
         uint64_t _buffer_max_row
+        uint64_t _query_id
         uint32_t _num_columns
         uint32_t _last_row_index
         Rowid _lastrowid

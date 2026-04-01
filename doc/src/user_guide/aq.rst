@@ -52,6 +52,8 @@ types which are detailed below.
       - Supported
       - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19 (or later) and Oracle Database version 23 (or later).
 
+.. _aqusagenotes:
+
 **Usage Notes**
 
 For Classic Queues and Transactional Event Queues, the use of
@@ -67,6 +69,11 @@ Transactional Event Queues do not support :attr:`EnqOptions.transformation`,
 
 The delivery mode :data:`oracledb.MSG_BUFFERED` is not supported for bulk array
 operations in python-oracledb Thick mode.
+
+For Transactional Event Queues, the ``client_initiated`` parameter of
+:meth:`Connection.subscribe()` must be set to *True*. Python-oracledb Thin mode
+only supports AQ notifications with TxEventQ. Thick mode supports AQ
+notifications with both classic Queues and TxEventQ.
 
 There are examples of AQ Classic Queues in the `GitHub samples
 <https://github.com/oracle/python-oracledb/tree/main/samples>`__ directory.

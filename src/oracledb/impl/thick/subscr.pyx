@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -172,7 +172,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
             _raise_from_odpi()
         self.id = params.outRegId
 
-    def unsubscribe(self, ThickConnImpl conn_impl):
+    def unsubscribe(self, object subscr, ThickConnImpl conn_impl):
         """
         Internal method for destroying the subscription.
         """

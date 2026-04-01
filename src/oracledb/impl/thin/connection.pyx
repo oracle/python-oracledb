@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -102,10 +102,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         uint8_t pipeline_mode
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
+        ConnectParamsImpl _connect_params
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         _check_cryptography()
         BaseConnImpl.__init__(self, dsn, params)
+        self._connect_params = params
         self.thin = True
 
     cdef int _check_tpc_commit_state(self, uint32_t state,
@@ -128,6 +130,20 @@ cdef class BaseThinConnImpl(BaseConnImpl):
             cache_num = self._dbobject_type_cache_num
             self._dbobject_type_cache_num = 0
             remove_dbobject_type_cache(cache_num)
+
+    cdef int _close_socket(self) except -1:
+        """
+        Forces the socket closed for the connection. This is only used when a
+        subscription is destroyed and the connection established for that
+        subscription must be closed. Since the subscription is always waiting
+        for more messages and the server never informs the client that no
+        further messages will be coming, this approach must be used.
+        """
+        cdef object sock
+        if self._protocol._transport is not None:
+            sock = self._protocol._transport._transport
+            if sock is not None:
+                sock.shutdown(socket.SHUT_RDWR)
 
     cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
                                           bytes locator=None):
@@ -530,6 +546,31 @@ cdef class ThinConnImpl(BaseThinConnImpl):
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
+
+    def create_subscr_impl(self, object conn, object callback,
+                           uint32_t namespace, str name, uint32_t protocol,
+                           str ip_address, uint32_t port, uint32_t timeout,
+                           uint32_t operations, uint32_t qos,
+                           uint8_t grouping_class, uint32_t grouping_value,
+                           uint8_t grouping_type, bint client_initiated):
+        cdef ThinSubscrImpl impl = ThinSubscrImpl.__new__(ThinSubscrImpl)
+        impl.connection = conn
+        impl.callback = callback
+        impl.namespace = namespace
+        impl.name = name
+        impl.protocol = protocol
+        impl.ip_address = ip_address
+        impl.port = port
+        impl.timeout = timeout
+        impl.operations = operations
+        impl.qos = qos
+        impl.grouping_class = grouping_class
+        impl.grouping_value = grouping_value
+        impl.grouping_type = grouping_type
+        if not client_initiated:
+            errors._raise_not_supported("server initiated subscription")
+        impl.client_initiated = client_initiated
+        return impl
 
     def create_temp_lob_impl(self, DbType dbtype):
         cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)

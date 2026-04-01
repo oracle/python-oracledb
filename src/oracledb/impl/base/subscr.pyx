@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,7 +37,7 @@ cdef class BaseSubscrImpl:
     def subscribe(self, object subscr, BaseConnImpl conn_impl):
         errors._raise_not_supported("creating a subscription")
 
-    def unsubscribe(self, BaseConnImpl conn_impl):
+    def unsubscribe(self, object subscr, BaseConnImpl conn_impl):
         errors._raise_not_supported("destroying a subscription")
 
 

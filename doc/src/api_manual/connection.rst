@@ -185,6 +185,8 @@ Connection Methods
         closed using the function :meth:`close()`, the subscription will not be
         deregistered in the database.
 
+    See :ref:`cqn` for more information.
+
 .. automethod:: Connection.suspend_sessionless_transaction
 
     See :ref:`sessionlesstxns`.

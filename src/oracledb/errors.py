@@ -222,6 +222,7 @@ ERR_NOT_A_QUERY = 1003
 ERR_NO_STATEMENT_EXECUTED = 1004
 ERR_POOL_HAS_BUSY_CONNECTIONS = 1005
 ERR_CURSOR_NOT_OPEN = 1006
+ERR_NOT_SUBSCRIBED = 1007
 
 # error numbers that result in ProgrammingError
 ERR_MESSAGE_HAS_NO_PAYLOAD = 2000
@@ -294,6 +295,7 @@ ERR_WRONG_DIRECT_PATH_DATA_TYPE = 2067
 ERR_SCROLL_NOT_SUPPORTED = 2068
 ERR_WRONG_REQUESTED_SCHEMA_LENGTH = 2069
 ERR_INVALID_CALLABLE_FUN = 2070
+ERR_REGISTER_QUERY_ON_AQ_SUBSCR = 2071
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -403,6 +405,7 @@ ERR_INVALID_SID = 6003
 ERR_PROXY_FAILURE = 6004
 ERR_CONNECTION_FAILED = 6005
 ERR_INVALID_SERVER_NAME = 6006
+ERR_SUBSCR_FAILED = 6007
 
 # error numbers that result in Warning
 WRN_COMPILATION_ERROR = 7000
@@ -459,6 +462,7 @@ ERR_ORACLE_ERROR_XREF = {
     26216: ERR_SESSIONLESS_ALREADY_ACTIVE,
     27146: ERR_CONNECTION_CLOSED,
     28511: ERR_CONNECTION_CLOSED,
+    29970: ERR_NOT_SUBSCRIBED,
     38902: ERR_TOO_MANY_BATCH_ERRORS,
     56600: ERR_CONNECTION_CLOSED,
 }
@@ -473,6 +477,7 @@ ERR_DPI_ERROR_XREF = {
     1063: ERR_EXECUTE_MODE_ONLY_FOR_DML,
     1067: (ERR_CALL_TIMEOUT_EXCEEDED, r"call timeout of (?P<timeout>\d+) ms"),
     1080: ERR_CONNECTION_CLOSED,
+    1087: ERR_NOT_A_QUERY,
 }
 
 # Oracle error codes that result in IntegrityError exceptions
@@ -844,6 +849,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_NOT_A_QUERY: "the executed statement does not return rows",
     ERR_NOT_CONNECTED: "not connected to database",
     ERR_NOT_IMPLEMENTED: "not implemented",
+    ERR_NOT_SUBSCRIBED: "subscription is not active",
     ERR_NULLS_NOT_ALLOWED: (
         'value for column "{column_name}" may not be null on row {row_num}'
     ),
@@ -903,6 +909,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_PYTHON_VALUE_NOT_SUPPORTED: (
         'Python value of type "{type_name}" is not supported'
     ),
+    ERR_REGISTER_QUERY_ON_AQ_SUBSCR: (
+        "cannot register a query on an AQ subscription"
+    ),
     ERR_SCROLL_NOT_SUPPORTED: (
         "scroll operation is not supported on a non-scrollable cursor"
     ),
@@ -923,6 +932,7 @@ ERR_MESSAGE_FORMATS = {
         "DBMS_TRANSACTION or with python-oracledb, but not both"
     ),
     ERR_SESSIONLESS_INACTIVE: ("no Sessionless Transaction is active"),
+    ERR_SUBSCR_FAILED: "subscription could not be created",
     ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
     ERR_THICK_MODE_ENABLED: (
         "python-oracledb thin mode cannot be used because thick mode has "

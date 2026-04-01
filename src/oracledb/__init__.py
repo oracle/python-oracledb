@@ -682,48 +682,48 @@ transaction. This is the default value.
 
 
 # event types
-EVENT_AQ: int = constants.EVENT_AQ
+EVENT_AQ: int = base_impl.EVENT_AQ
 """
 This constant is used to specify that one or more messages are available for
 dequeuing on the queue specified when the subscription was created.
 """
 
-EVENT_DEREG: int = constants.EVENT_DEREG
+EVENT_DEREG: int = base_impl.EVENT_DEREG
 """
 This constant is used to specify that the subscription has been deregistered
 and no further notifications will be sent.
 """
 
-EVENT_NONE: int = constants.EVENT_NONE
+EVENT_NONE: int = base_impl.EVENT_NONE
 """
 This constant is used to specify no information is available about the event.
 """
 
-EVENT_OBJCHANGE: int = constants.EVENT_OBJCHANGE
+EVENT_OBJCHANGE: int = base_impl.EVENT_OBJCHANGE
 """
 This constant is used to specify that a database change has taken place on a
 table registered with the :meth:`Subscription.registerquery()` method.
 """
 
-EVENT_QUERYCHANGE: int = constants.EVENT_QUERYCHANGE
+EVENT_QUERYCHANGE: int = base_impl.EVENT_QUERYCHANGE
 """
 This constant is used to specify that the result set of a query registered with
 the :meth:`Subscription.registerquery()` method has been changed.
 """
 
-EVENT_SHUTDOWN: int = constants.EVENT_SHUTDOWN
+EVENT_SHUTDOWN: int = base_impl.EVENT_SHUTDOWN
 """
 This constant is used to specify that the instance is in the process of being
 shut down.
 """
 
-EVENT_SHUTDOWN_ANY: int = constants.EVENT_SHUTDOWN_ANY
+EVENT_SHUTDOWN_ANY: int = base_impl.EVENT_SHUTDOWN_ANY
 """
 This constant is used to specify that any instance (when running RAC) is in the
 process of being shut down.
 """
 
-EVENT_STARTUP: int = constants.EVENT_STARTUP
+EVENT_STARTUP: int = base_impl.EVENT_STARTUP
 """
 This constant is used to specify that the instance is in the process of being
 started up.
@@ -803,45 +803,45 @@ the message never expires. This is also the default value.
 
 
 # operation codes (CQN)
-OPCODE_ALLOPS: int = constants.OPCODE_ALLOPS
+OPCODE_ALLOPS: int = base_impl.OPCODE_ALLOPS
 """
 This constant is used to specify that messages should be sent for all
 operations.
 """
 
-OPCODE_ALLROWS: int = constants.OPCODE_ALLROWS
+OPCODE_ALLROWS: int = base_impl.OPCODE_ALLROWS
 """
 This constant is used to specify that the table or query has been completely
 invalidated.
 """
 
-OPCODE_ALTER: int = constants.OPCODE_ALTER
+OPCODE_ALTER: int = base_impl.OPCODE_ALTER
 """
 This constant is used to specify that messages should be sent when a registered
 table has been altered in some fashion by DDL, or that the message identifies a
 table that has been altered.
 """
 
-OPCODE_DELETE: int = constants.OPCODE_DELETE
+OPCODE_DELETE: int = base_impl.OPCODE_DELETE
 """
 This constant is used to specify that messages should be sent when data is
 deleted, or that the message identifies a row that has been deleted.
 """
 
-OPCODE_DROP: int = constants.OPCODE_DROP
+OPCODE_DROP: int = base_impl.OPCODE_DROP
 """
 This constant is used to specify that messages should be sent when a registered
 table has been dropped, or that the message identifies a table that has been
 dropped.
 """
 
-OPCODE_INSERT: int = constants.OPCODE_INSERT
+OPCODE_INSERT: int = base_impl.OPCODE_INSERT
 """
 This constant is used to specify that messages should be sent when data is
 inserted, or that the message identifies a row that has been inserted.
 """
 
-OPCODE_UPDATE: int = constants.OPCODE_UPDATE
+OPCODE_UPDATE: int = base_impl.OPCODE_UPDATE
 """
 This constant is used to specify that messages should be sent when data is
 updated, or that the message identifies a row that has been updated.
@@ -1003,13 +1003,13 @@ that makes up the group should be sent instead of the individual events.
 
 
 # subscription namespaces
-SUBSCR_NAMESPACE_AQ: int = constants.SUBSCR_NAMESPACE_AQ
+SUBSCR_NAMESPACE_AQ: int = base_impl.SUBSCR_NAMESPACE_AQ
 """
 This constant is used to specify that notifications should be sent when a queue
 has messages available to dequeue.
 """
 
-SUBSCR_NAMESPACE_DBCHANGE: int = constants.SUBSCR_NAMESPACE_DBCHANGE
+SUBSCR_NAMESPACE_DBCHANGE: int = base_impl.SUBSCR_NAMESPACE_DBCHANGE
 """
 This constant is used to specify that database change notification or query
 change notification messages are to be sent. This is the default value.
@@ -1044,39 +1044,39 @@ procedure when a message is generated. This value is currently not supported.
 
 
 # subscription quality of service
-SUBSCR_QOS_BEST_EFFORT: int = constants.SUBSCR_QOS_BEST_EFFORT
+SUBSCR_QOS_BEST_EFFORT: int = base_impl.SUBSCR_QOS_BEST_EFFORT
 """
 This constant is used to specify that best effort filtering for query result
 set changes is acceptable. False positive notifications may be received. This
 behaviour may be suitable for caching applications.
 """
 
-SUBSCR_QOS_DEFAULT: int = constants.SUBSCR_QOS_DEFAULT
+SUBSCR_QOS_DEFAULT: int = base_impl.SUBSCR_QOS_DEFAULT
 """
 This constant is used to specify that the default behavior for subscriptions
 should be used.
 """
 
-SUBSCR_QOS_DEREG_NFY: int = constants.SUBSCR_QOS_DEREG_NFY
+SUBSCR_QOS_DEREG_NFY: int = base_impl.SUBSCR_QOS_DEREG_NFY
 """
 This constant is used to specify that the subscription should be automatically
 unregistered after the first notification is received.
 """
 
-SUBSCR_QOS_QUERY: int = constants.SUBSCR_QOS_QUERY
+SUBSCR_QOS_QUERY: int = base_impl.SUBSCR_QOS_QUERY
 """
 This constant is used to specify that notifications should be sent if the
 result set of the registered query changes. By default, no false positive
 notifications will be generated.
 """
 
-SUBSCR_QOS_RELIABLE: int = constants.SUBSCR_QOS_RELIABLE
+SUBSCR_QOS_RELIABLE: int = base_impl.SUBSCR_QOS_RELIABLE
 """
 This constant is used to specify that notifications should not be lost in the
 event of database failure.
 """
 
-SUBSCR_QOS_ROWIDS: int = constants.SUBSCR_QOS_ROWIDS
+SUBSCR_QOS_ROWIDS: int = base_impl.SUBSCR_QOS_ROWIDS
 """
 This constant is used to specify that the rowids of the inserted, updated or
 deleted rows should be included in the message objects that are sent.

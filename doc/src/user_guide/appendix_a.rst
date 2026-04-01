@@ -254,7 +254,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - No
     * - Continuous Query Notification (CQN) (see :ref:`cqn`)
-      - No
+      - Yes
       - Yes
       - Yes
     * - Oracle Transactional Event Queues and Advanced Queuing (AQ) (see :ref:`aqusermanual`)

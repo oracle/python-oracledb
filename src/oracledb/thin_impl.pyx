@@ -95,6 +95,7 @@ from .base_impl cimport (
     BaseLobImpl,
     BaseParser,
     BasePoolImpl,
+    BaseSubscrImpl,
     BaseVarImpl,
     BatchLoadManager,
     PipelineOpImpl,
@@ -126,11 +127,16 @@ from .base_impl cimport (
     ENCODING_UTF8,
     ENCODING_UTF16,
     ENCODING_UTF16LE,
+    EVENT_AQ,
+    EVENT_DEREG,
+    EVENT_OBJCHANGE,
+    EVENT_QUERYCHANGE,
     GrowableBuffer,
     PY_TYPE_NUM_FLOAT,
     PY_TYPE_NUM_INT,
     PY_TYPE_NUM_DECIMAL,
     PY_TYPE_NUM_STR,
+    OPCODE_ALLROWS,
     ORA_TYPE_NUM_BFILE,
     ORA_TYPE_NUM_BINARY_DOUBLE,
     ORA_TYPE_NUM_BINARY_FLOAT,
@@ -175,7 +181,16 @@ from .base_impl cimport (
     PY_TYPE_DECIMAL,
     PY_TYPE_INTERVAL_YM,
     PY_TYPE_LOB,
+    PY_TYPE_MESSAGE,
+    PY_TYPE_MESSAGE_QUERY,
+    PY_TYPE_MESSAGE_ROW,
+    PY_TYPE_MESSAGE_TABLE,
     PY_TYPE_TIMEDELTA,
+    SUBSCR_NAMESPACE_AQ,
+    SUBSCR_QOS_DEREG_NFY,
+    SUBSCR_QOS_QUERY,
+    SUBSCR_QOS_RELIABLE,
+    SUBSCR_QOS_ROWIDS,
     TNS_LONG_LENGTH_INDICATOR,
     TNS_NULL_LENGTH_INDICATOR,
     TPC_TXN_FLAGS_NEW,
@@ -230,11 +245,13 @@ include "impl/thin/messages/execute.pyx"
 include "impl/thin/messages/fetch.pyx"
 include "impl/thin/messages/lob_op.pyx"
 include "impl/thin/messages/logoff.pyx"
+include "impl/thin/messages/notification.pyx"
 include "impl/thin/messages/ping.pyx"
 include "impl/thin/messages/protocol.pyx"
 include "impl/thin/messages/fast_auth.pyx"
 include "impl/thin/messages/rollback.pyx"
 include "impl/thin/messages/session_release.pyx"
+include "impl/thin/messages/subscribe.pyx"
 include "impl/thin/messages/tpc_change_state.pyx"
 include "impl/thin/messages/tpc_switch.pyx"
 include "impl/thin/protocol.pyx"
@@ -242,6 +259,7 @@ include "impl/thin/queue.pyx"
 include "impl/thin/connection.pyx"
 include "impl/thin/statement.pyx"
 include "impl/thin/statement_cache.pyx"
+include "impl/thin/subscr.pyx"
 include "impl/thin/cursor.pyx"
 include "impl/thin/var.pyx"
 include "impl/thin/dbobject.pyx"
