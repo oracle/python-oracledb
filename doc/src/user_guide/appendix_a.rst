@@ -31,11 +31,11 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - cx_Oracle 8.3
     * - Oracle Client version
       - Not applicable
-      - Release 19c and later. Older python-oracledb versions supported older Client versions.
-      - Release 11.2 to 21c
+      - Release 19 and later. Older python-oracledb versions supported older Client versions.
+      - Release 11.2 to 21
     * - Oracle Database version
       - Release 12.1 and later
-      - Release 9.2 and later depending on Oracle Client library version
+      - Release 11.2 and later depending on Oracle Client library version
       - Release 9.2 to 21 depending on Oracle Client library version
     * - Standalone connections (see :ref:`standaloneconnection`)
       - Yes - must use keyword arguments

@@ -89,8 +89,8 @@ python-oracledb Thick Mode Architecture
 Python-oracledb is said to be in 'Thick' mode when it links with Oracle Client
 libraries.  An application script runtime option enables this mode by loading
 the libraries, see :ref:`enablingthick`.  This gives you some :ref:`additional
-functionality <featuresummary>`. Depending on the version of the Oracle Client
-libraries, this mode of python-oracledb can connect to Oracle Database 9.2 or
+functionality <featuresummary>`.  Depending on the version of the Oracle Client
+libraries, this mode of python-oracledb can connect to Oracle Database 11.2 or
 later.
 
 .. _thickarchfig:
@@ -113,9 +113,10 @@ installation of `Oracle Instant Client
 <https://www.oracle.com/database/technologies/instant-client.html>`__, from a
 full Oracle Client installation (such as installed by Oracle's GUI installer),
 or even from an Oracle Database installation (if Python is running on the
-same machine as the database). Oracle's standard client-server version
-interoperability allows connection to both older and newer databases from
-different Oracle Client library versions.
+same machine as the database). Python-oracledb supports Oracle Client libraries
+version 19 or later.  Oracle's standard client-server version interoperability
+allows connection to both older and newer databases from different Oracle
+Client library versions.
 
 Some behaviors of the Oracle Client libraries can optionally be configured with
 an ``oraaccess.xml`` file, for example to enable auto-tuning of a statement
