@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -49,13 +49,11 @@ async def test_6800(async_cursor):
 async def test_6801(async_cursor):
     "6801 - test picking/unpickling an error object"
     with pytest.raises(oracledb.Error) as excinfo:
-        await async_cursor.execute(
-            """
+        await async_cursor.execute("""
             begin
                 raise_application_error(-20101, 'Test!');
             end;
-            """
-        )
+            """)
     (error_obj,) = excinfo.value.args
     assert isinstance(error_obj, oracledb._Error)
     assert "Test!" in error_obj.message
@@ -93,23 +91,19 @@ async def test_6804(async_cursor):
     "6804 - verify warning is generated when creating a procedure"
     proc_name = "bad_proc_1704"
     assert async_cursor.warning is None
-    await async_cursor.execute(
-        f"""
+    await async_cursor.execute(f"""
         create or replace procedure {proc_name} as
         begin
             null
         end;
-        """
-    )
+        """)
     assert async_cursor.warning.full_code == "DPY-7000"
-    await async_cursor.execute(
-        f"""
+    await async_cursor.execute(f"""
         create or replace procedure {proc_name} as
         begin
             null;
         end;
-        """
-    )
+        """)
     assert async_cursor.warning is None
     await async_cursor.execute(f"drop procedure {proc_name}")
 
@@ -117,15 +111,13 @@ async def test_6804(async_cursor):
 async def test_6805(async_cursor):
     "6805 - verify warning is generated when creating a function"
     func_name = "bad_func_1705"
-    await async_cursor.execute(
-        f"""
+    await async_cursor.execute(f"""
         create or replace function {func_name}
         return number as
         begin
             return null
         end;
-        """
-    )
+        """)
     assert async_cursor.warning.full_code == "DPY-7000"
     await async_cursor.execute(f"drop function {func_name}")
     assert async_cursor.warning is None
@@ -134,13 +126,11 @@ async def test_6805(async_cursor):
 async def test_6806(async_cursor):
     "6806 - verify warning is generated when creating a type"
     type_name = "bad_type_1706"
-    await async_cursor.execute(
-        f"""
+    await async_cursor.execute(f"""
         create or replace type {type_name} as object (
             x bad_type
         );
-        """
-    )
+        """)
     assert async_cursor.warning.full_code == "DPY-7000"
     await async_cursor.execute(f"drop type {type_name}")
     assert async_cursor.warning is None
@@ -152,40 +142,32 @@ async def test_6807(async_conn):
     func_name = "bad_func_1705"
     type_name = "bad_type_1706"
     pipeline = oracledb.create_pipeline()
-    pipeline.add_execute(
-        f"""
+    pipeline.add_execute(f"""
         create or replace procedure {proc_name} as
         begin
             null
         end;
-        """
-    )
-    pipeline.add_execute(
-        f"""
+        """)
+    pipeline.add_execute(f"""
         create or replace procedure {proc_name} as
         begin
             null;
         end;
-        """
-    )
+        """)
     pipeline.add_execute(f"drop procedure {proc_name}")
-    pipeline.add_execute(
-        f"""
+    pipeline.add_execute(f"""
         create or replace function {func_name}
         return number as
         begin
             return null
         end;
-        """
-    )
+        """)
     pipeline.add_execute(f"drop function {func_name}")
-    pipeline.add_execute(
-        f"""
+    pipeline.add_execute(f"""
         create or replace type {type_name} as object (
             x bad_type
         );
-        """
-    )
+        """)
     pipeline.add_execute(f"drop type {type_name}")
     results = await async_conn.run_pipeline(pipeline)
     assert results[0].warning.full_code == "DPY-7000"
@@ -201,14 +183,12 @@ async def test_6808(async_conn, async_cursor):
     "6808 - verify warning is saved in a pipeline with a single operation"
     proc_name = "bad_proc_6808"
     pipeline = oracledb.create_pipeline()
-    pipeline.add_execute(
-        f"""
+    pipeline.add_execute(f"""
         create or replace procedure {proc_name} as
         begin
             null
         end;
-        """
-    )
+        """)
     (result,) = await async_conn.run_pipeline(pipeline)
     assert result.warning.full_code == "DPY-7000"
     await async_cursor.execute(f"drop procedure {proc_name}")

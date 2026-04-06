@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025 Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,13 +64,11 @@ stmts = [
 # that each connection should have.
 def init_session(connection, requestedTag_ignored):
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             alter session set
                 time_zone = 'UTC'
                  nls_date_format = 'DD-MON-YYYY'
-            """
-        )
+            """)
 
 
 def create_pool():

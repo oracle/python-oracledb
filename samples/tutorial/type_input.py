@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -36,8 +36,7 @@ con = oracledb.connect(
 cur = con.cursor()
 
 # Create table
-cur.execute(
-    """
+cur.execute("""
     begin
         execute immediate 'drop table BuildingTable';
     exception when others then
@@ -45,17 +44,14 @@ cur.execute(
             raise;
         end if;
     end;
-    """
-)
-cur.execute(
-    """
+    """)
+cur.execute("""
     create table BuildingTable (
         ID number(9) not null,
         BuildingDetails varchar2(400),
         constraint TestTempTable_pk primary key (ID)
     )
-    """
-)
+    """)
 
 # Create a Python class for a Building
 

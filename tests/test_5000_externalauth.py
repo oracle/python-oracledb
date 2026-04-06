@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -38,14 +38,12 @@ def skip_if_no_external_auth(test_env):
 
 def _verify_connection(conn, expected_user, expected_proxy_user=None):
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             select
                 sys_context('userenv', 'session_user'),
                 sys_context('userenv', 'proxy_user')
             from dual
-            """
-        )
+            """)
         actual_user, actual_proxy_user = cursor.fetchone()
         assert actual_user == expected_user.upper()
         assert (

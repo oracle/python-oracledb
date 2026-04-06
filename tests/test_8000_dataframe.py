@@ -543,8 +543,7 @@ def test_8021(conn, test_env):
 def test_8022(skip_unless_native_boolean_supported, conn, test_env):
     "8022 - fetch boolean"
     data = [(True,), (False,), (False,), (True,), (True,)]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select true
         union all
         select false
@@ -554,8 +553,7 @@ def test_8022(skip_unless_native_boolean_supported, conn, test_env):
         select true
         union all
         select true
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     fetched_data = test_env.get_data_from_df(fetched_df)
     assert fetched_data == data
@@ -563,8 +561,7 @@ def test_8022(skip_unless_native_boolean_supported, conn, test_env):
 
 def test_8023(conn, test_env):
     "8023 - fetch data with multiple rows containing null values"
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
         union all
         select to_date(null) as data from dual
@@ -582,8 +579,7 @@ def test_8023(conn, test_env):
         select to_date(null) as data from dual
         union all
         select to_date(null) as data from dual
-        """
-    )
+        """)
     data = [
         (datetime.datetime(2025, 6, 12),),
         (None,),
@@ -613,13 +609,11 @@ def test_8024(skip_unless_vectors_supported, conn, test_env):
         (array.array("f", [34.6, 77.8]).tolist(),),
         (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
         union all
         SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -632,13 +626,11 @@ def test_8025(skip_unless_vectors_supported, conn, test_env):
         ([34.6, 77.8],),
         ([34.6, 77.8, 55.9],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
         union all
         SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT64)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -651,13 +643,11 @@ def test_8026(skip_unless_vectors_supported, conn, test_env):
         ([34, -77],),
         ([34, 77, 55],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[34, -77]', 2, INT8)
         union all
         SELECT TO_VECTOR('[34, 77, 55]', 3, INT8)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -670,13 +660,11 @@ def test_8027(skip_unless_vectors_supported, conn, test_env):
         ([3, 2, 3],),
         ([3, 2],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[3, 2, 3]', 24, BINARY)
         union all
         SELECT TO_VECTOR('[3, 2]', 16, BINARY)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -690,15 +678,13 @@ def test_8028(skip_unless_vectors_supported, conn, test_env):
         (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
         (None,),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
         union all
         SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
         union all
         select NULL
-        """
-    )
+        """)
     assert ora_df.num_rows() == 3
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -721,8 +707,7 @@ def test_8029(skip_unless_vectors_supported, conn, test_env):
         ([34.6, 77.8],),
         ([34.6, 77.8],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
         union all
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
@@ -746,8 +731,7 @@ def test_8029(skip_unless_vectors_supported, conn, test_env):
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
         union all
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT64)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 12
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -772,8 +756,7 @@ def test_8030(skip_unless_sparse_vectors_supported, conn, test_env):
             },
         ),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR(
             TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT32),
             8,
@@ -787,8 +770,7 @@ def test_8030(skip_unless_sparse_vectors_supported, conn, test_env):
             FLOAT32,
             SPARSE
             )
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -813,8 +795,7 @@ def test_8031(skip_unless_sparse_vectors_supported, conn, test_env):
             },
         ),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         SELECT TO_VECTOR(
             TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT64),
             8,
@@ -828,8 +809,7 @@ def test_8031(skip_unless_sparse_vectors_supported, conn, test_env):
             FLOAT64,
             SPARSE
             )
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -839,20 +819,17 @@ def test_8031(skip_unless_sparse_vectors_supported, conn, test_env):
 def test_8032(skip_unless_vectors_supported, conn, test_env):
     "8032 - DPY-3031 - Unsupported flexible vector formats"
     with test_env.assert_raises_full_code("DPY-3031"):
-        conn.fetch_df_all(
-            """
+        conn.fetch_df_all("""
             SELECT TO_VECTOR('[44, 55, 89]', 3, INT8) as flex_col
             union all
             SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32) as flex_col
-            """
-        )
+            """)
 
 
 def test_8033(skip_unless_sparse_vectors_supported, conn, test_env):
     "8033 - DPY-4007 -fetch sparse vectors with flexible dimensions"
     with test_env.assert_raises_full_code("DPY-2065"):
-        conn.fetch_df_all(
-            """
+        conn.fetch_df_all("""
             SELECT TO_VECTOR(
                 TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 77.8]', 7, FLOAT64),
                 7,
@@ -866,8 +843,7 @@ def test_8033(skip_unless_sparse_vectors_supported, conn, test_env):
                 FLOAT64,
                 SPARSE
                 )
-            """
-        )
+            """)
 
 
 def test_8034(conn, cursor, test_env):
@@ -1088,16 +1064,14 @@ def test_8042(cursor, test_env):
 def test_8043(conn, cursor):
     "8043 - test with date functions"
     _populate_table(cursor, DATASET_1)
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select
             Id,
             extract(year from DateOfBirth) as birth_year,
             to_char(DateOfBirth, 'YYYY-MM') as birth_month
         from TestDataFrame
         order by Id
-        """
-    )
+        """)
     assert ora_df.num_rows() == len(DATASET_1)
     year_col = ora_df.get_column_by_name("BIRTH_YEAR")
     array = pyarrow.array(year_col)
@@ -1221,13 +1195,11 @@ def test_8052(conn, cursor, test_env):
     )
     conn.commit()
 
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select Id, LongData, LongRawData
         from TestDataFrame
         order by Id
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     fetched_data = test_env.get_data_from_df(fetched_df)
     assert fetched_data == data
@@ -1927,14 +1899,12 @@ def test_8078(conn, test_env):
     "8078 - test fetching NCHAR and NVARCHAR data"
     value = "test_8078"
     value_len = len(value)
-    ora_df = conn.fetch_df_all(
-        f"""
+    ora_df = conn.fetch_df_all(f"""
         select
             cast('{value}' as nchar({value_len})),
             cast('{value}' as nvarchar2({value_len}))
         from dual
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == [(value, value)]
 

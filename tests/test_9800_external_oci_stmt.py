@@ -38,8 +38,7 @@ def module_checks(skip_unless_thick_mode):
 @pytest.fixture
 def external_cursor(conn):
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             select 1 from dual
             union all
             select 2 from dual
@@ -59,8 +58,7 @@ def external_cursor(conn):
             select 9 from dual
             union all
             select 10 from dual
-            """
-        )
+            """)
         yield cursor
 
 

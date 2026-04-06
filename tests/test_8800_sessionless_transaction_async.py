@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -357,13 +357,11 @@ async def test_8805(async_cursor, test_env):
     # verify data from both transactions is present
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select IntCol, StringCol1
             from TestTempTable
             order by IntCol
-            """
-        )
+            """)
         expected_data = [(1, "concurrent_1"), (2, "concurrent_2")]
         assert await cursor.fetchall() == expected_data
 
@@ -448,13 +446,11 @@ async def test_8807(async_conn, async_cursor, test_env):
         await conn.commit()
 
     # verify all data is present
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert await async_cursor.fetchall() == data
 
 
@@ -545,13 +541,11 @@ async def test_8811(async_cursor, test_env):
     # verify data
     async with pool.acquire() as conn:
         cursor = conn.cursor()
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select IntCol, StringCol1
             from TestTempTable
             order by IntCol
-            """
-        )
+            """)
         assert await cursor.fetchall() == data
 
     await pool.close()
@@ -599,13 +593,11 @@ async def test_8812(async_conn, async_cursor, test_env):
         await conn.commit()
 
     # verify both transactions committed
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert await async_cursor.fetchall() == data
 
 
@@ -640,13 +632,11 @@ async def test_8815(async_conn, async_cursor, test_env):
     # create temp table
     temp_table_name = "temp_test_8815"
     await async_cursor.execute(f"drop table if exists {temp_table_name}")
-    await async_cursor.execute(
-        f"""
+    await async_cursor.execute(f"""
         create table {temp_table_name} (
             id number,
             data varchar2(50)
-        )"""
-    )
+        )""")
 
     # beging sessionless transaction and perform DDL which performs an
     # implicit commit

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -123,13 +123,11 @@ def test_2303(conn):
 
 def test_2304(cursor, test_env):
     "2304 - test fetching objects"
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         order by IntCol
-        """
-    )
+        """)
     expected_value = [
         ("INTCOL", oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
         (
@@ -277,14 +275,12 @@ def test_2305(conn):
 
 def test_2306(conn, cursor):
     "2306 - test object type data"
-    cursor.execute(
-        """
+    cursor.execute("""
         select ObjectCol
         from TestObjects
         where ObjectCol is not null
           and rownum <= 1
-        """
-    )
+        """)
     (obj,) = cursor.fetchone()
     assert obj.type.schema == conn.username.upper()
     assert obj.type.name == "UDT_OBJECT"
@@ -297,24 +293,18 @@ def test_2307(conn, cursor, test_env):
     cursor.execute("delete from TestNClobs")
     cursor.execute("delete from TestBlobs")
     cursor.execute("delete from TestObjects where IntCol > 3")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestClobs (IntCol, ClobCol)
         values (1, 'A short CLOB')
-        """
-    )
-    cursor.execute(
-        """
+        """)
+    cursor.execute("""
         insert into TestNClobs (IntCol, NClobCol)
         values (1, 'A short NCLOB')
-        """
-    )
-    cursor.execute(
-        """
+        """)
+    cursor.execute("""
         insert into TestBlobs (IntCol, BlobCol)
         values (1, utl_raw.cast_to_raw('A short BLOB'))
-        """
-    )
+        """)
     conn.commit()
     cursor.execute("select CLOBCol from TestClobs")
     (clob,) = cursor.fetchone()
@@ -356,13 +346,11 @@ def test_2307(conn, cursor, test_env):
         """,
         obj=obj,
     )
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         where IntCol = 4
-        """
-    )
+        """)
     expected_value = (
         5,
         "A string",
@@ -398,13 +386,11 @@ def test_2307(conn, cursor, test_env):
         """,
         obj=obj,
     )
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         where IntCol = 5
-        """
-    )
+        """)
     expected_value = (
         5,
         "A string",
@@ -839,12 +825,10 @@ def test_2339(skip_unless_thin_mode, cursor):
     num_val = 2339
     xml_val = "<item>test_2339</item>"
     str_val = "A string for test 2339"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         select udt_ObjectWithXmlType({num_val}, sys.xmltype('{xml_val}'),
                 '{str_val}') from dual
-        """
-    )
+        """)
     (obj,) = cursor.fetchone()
     assert obj.NUMBERVALUE == num_val
     assert obj.XMLVALUE == xml_val
@@ -1000,11 +984,9 @@ def test_2349(skip_unless_thin_mode, cursor):
     "2349 - test fetching an object containing a null XmlType instance"
     num_val = 2349
     str_val = "A string for test 2349"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         select udt_ObjectWithXmlType({num_val}, null, '{str_val}') from dual
-        """
-    )
+        """)
     (obj,) = cursor.fetchone()
     assert obj.NUMBERVALUE == num_val
     assert obj.XMLVALUE is None

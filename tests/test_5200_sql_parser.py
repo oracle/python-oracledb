@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -60,12 +60,10 @@ def test_5202(cursor):
 
 def test_5203(cursor):
     "5203 - multiple division operators"
-    cursor.prepare(
-        """
+    cursor.prepare("""
         select :a / :b, :c / :d
         from dual
-        """
-    )
+        """)
     assert cursor.bindnames() == ["A", "B", "C", "D"]
 
 
@@ -130,8 +128,7 @@ def test_5209(cursor):
 
 def test_5210(cursor):
     "5210 - bind variables between comment blocks"
-    cursor.prepare(
-        """
+    cursor.prepare("""
         select
             /* comment 1 with /* */
             :a,
@@ -140,15 +137,13 @@ def test_5210(cursor):
             /* comment 3 * * * / */,
             :c
         from dual
-        """
-    )
+        """)
     assert cursor.bindnames() == ["A", "B", "C"]
 
 
 def test_5211(cursor):
     "5211 - bind variables between q-strings"
-    cursor.prepare(
-        """
+    cursor.prepare("""
         select
             :a,
             q'{This contains ' and " and : just fine}',
@@ -162,8 +157,7 @@ def test_5211(cursor):
             q'$This contains ' and " and : just fine$',
             :f
         from dual
-        """
-    )
+        """)
     assert cursor.bindnames() == ["A", "B", "C", "D", "E", "F"]
 
 
@@ -171,8 +165,7 @@ def test_5212(cursor, test_env):
     "5212 - bind variables between JSON constants"
     if not test_env.has_client_version(19):
         pytest.skip("unsupported client")
-    cursor.prepare(
-        """
+    cursor.prepare("""
         select
             json_object('foo':dummy),
             :bv1,
@@ -181,8 +174,7 @@ def test_5212(cursor, test_env):
             json { 'key1': 57, 'key2' : 58 },
             :bv4
         from dual
-        """
-    )
+        """)
     assert cursor.bindnames() == ["BV1", "BV2", "BV3", "BV4"]
 
 
@@ -204,22 +196,19 @@ def test_5214(cursor, test_env):
 
 def test_5215(cursor):
     "5215 - different space combinations with :="
-    cursor.prepare(
-        """
+    cursor.prepare("""
         begin :value2 :=
                            :a  + :b  +   :c +:a +3; end;
                            begin :value2
                            :=
                            :a + :c +3; end;
-        """
-    )
+        """)
     assert cursor.bindnames() == ["VALUE2", "A", "B", "C"]
 
 
 def test_5216(cursor):
     "5216 - bind variables between multiple comment blocks with quotes"
-    cursor.prepare(
-        """
+    cursor.prepare("""
         select
             /* ' comment 1 */
             :a,
@@ -228,8 +217,7 @@ def test_5216(cursor):
             :c
             /* comment 4 ""*/
         from dual
-        """
-    )
+        """)
     assert cursor.bindnames() == ["A", "B", "C"]
 
 

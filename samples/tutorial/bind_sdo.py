@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -34,8 +34,7 @@ con = oracledb.connect(
 )
 cur = con.cursor()
 # Create table
-cur.execute(
-    """
+cur.execute("""
     begin
         execute immediate 'drop table testgeometry';
     exception when others then
@@ -43,16 +42,13 @@ cur.execute(
           raise;
         end if;
     end;
-    """
-)
-cur.execute(
-    """
+    """)
+cur.execute("""
     create table testgeometry (
         id number(9) not null,
         geometry MDSYS.SDO_GEOMETRY not null
     )
-    """
-)
+    """)
 
 # Create and populate Oracle objects
 type_obj = con.gettype("MDSYS.SDO_GEOMETRY")

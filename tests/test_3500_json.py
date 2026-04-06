@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -299,13 +299,11 @@ def test_3512(cursor, json_data):
     )
     cases = [(1, "$.employees.employee1.name"), (2, "$.employees")]
     for num_rows, json_query in cases:
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             select json_query(JsonCol, '{json_query}')
             from TestJson
             order by IntCol
-            """
-        )
+            """)
         result = [r for r, in cursor if r is not None]
         assert len(result) == num_rows
 
@@ -320,13 +318,11 @@ def test_3513(cursor, json_data):
     )
     cases = [(1, "$.Permanent"), (2, "$.employees")]
     for num_rows, json_query in cases:
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             select count(*)
             from TestJson
             where json_exists(JsonCol, '{json_query}')
-            """
-        )
+            """)
         (count,) = cursor.fetchone()
         assert count == num_rows
 
@@ -339,14 +335,12 @@ def test_3514(cursor, json_data):
         "insert into TestJSON values (:1, :2)",
         list(enumerate(json_data)),
     )
-    cursor.execute(
-        """
+    cursor.execute("""
         select t.JsonCol.employees
         from TestJson t
         where t.JsonCol.employees is not null
         order by t.IntCol
-        """
-    )
+        """)
     expected_data = [
         json_data[-2]["employees"],
         json_data[-1]["employees"],
@@ -364,12 +358,10 @@ def test_3515(cursor):
     cursor.executemany(
         "insert into TestJSON values (:1, :2)", list(enumerate(data))
     )
-    cursor.execute(
-        """
+    cursor.execute("""
         select json_serialize(JsonCol)
         from TestJson
         order by IntCol
-        """
-    )
+        """)
     fetched_data = [r for r, in cursor]
     assert fetched_data == expected_data

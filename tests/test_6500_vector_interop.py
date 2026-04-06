@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -79,8 +79,7 @@ def test_6501(conn, cursor):
          values ({frag})"""
     cursor.execute(sql)
     conn.commit()
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             IntCol,
             VectorFlexAllCol,
@@ -90,8 +89,7 @@ def test_6501(conn, cursor):
             Vector64Col,
             Vector8Col
         from TestVectors
-        """
-    )
+        """)
     fetched_data = cursor.fetchone()
     assert fetched_data == expected_data
 
@@ -128,8 +126,7 @@ def test_6502(conn, cursor):
             )
 
     cursor.outputtypehandler = type_handler
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             IntCol,
             VectorFlexAllCol,
@@ -139,8 +136,7 @@ def test_6502(conn, cursor):
             Vector64Col,
             Vector8Col
         from TestVectors
-        """
-    )
+        """)
     fetched_data = cursor.fetchone()
     assert fetched_data == expected_data
     assert executions[0] == 7
@@ -178,8 +174,7 @@ def test_6503(conn, cursor):
             )
 
     cursor.outputtypehandler = type_handler
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             IntCol,
             VectorFlexAllCol,
@@ -189,8 +184,7 @@ def test_6503(conn, cursor):
             Vector64Col,
             Vector8Col
         from TestVectors
-        """
-    )
+        """)
     fetched_data = cursor.fetchone()
     assert fetched_data == expected_data
     assert executions[0] == 7
@@ -231,15 +225,13 @@ def test_6504(conn, cursor):
             )
 
     cursor.outputtypehandler = type_handler
-    cursor.execute(
-        """"
+    cursor.execute(""""
         select
             IntCol,
             VectorFlex8Col,
             VectorFlex32Col,
             VectorFlex64Col
-        from TestVectors"""
-    )
+        from TestVectors""")
     fetched_data = cursor.fetchone()
     assert fetched_data == expected_data
     assert executions[0] == 7

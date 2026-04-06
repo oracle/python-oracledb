@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -73,13 +73,11 @@ def _perform_test(cursor, lob_type, input_type):
             long_string=bind_value,
         )
     cursor.connection.commit()
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         select IntCol, {lob_type}Col
         from Test{lob_type}s
         order by IntCol
-        """
-    )
+        """)
     _validate_query(cursor, lob_type)
 
 
@@ -128,13 +126,11 @@ def _test_fetch_lobs_direct(cursor, lob_type):
         """,
         data,
     )
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         select IntCol, {lob_type}Col
         from Test{lob_type}s
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == data
 
 
@@ -155,13 +151,11 @@ def _test_lob_operations(cursor, test_env, lob_type):
         integer_value=1,
         long_string=long_string,
     )
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         select {lob_type}Col
         from Test{lob_type}s
         where IntCol = 1
-        """
-    )
+        """)
     (lob,) = cursor.fetchone()
     assert not lob.isopen()
     lob.open()
@@ -271,13 +265,11 @@ def _validate_query(rows, lob_type):
 def test_1900(conn, cursor):
     "1900 - test binding a LOB value directly"
     cursor.execute("delete from TestCLOBs")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestCLOBs
         (IntCol, ClobCol)
         values (1, 'Short value')
-        """
-    )
+        """)
     conn.commit()
     cursor.execute("select ClobCol from TestCLOBs")
     (lob,) = cursor.fetchone()

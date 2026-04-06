@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -45,7 +45,7 @@ def _test_type_handler(
     var.setvalue(0, in_value)
     cursor.execute("select :1 from dual", [var])
     (fetched_value,) = cursor.fetchone()
-    assert type(fetched_value) == type(expected_out_value)
+    assert type(fetched_value) is type(expected_out_value)
     assert fetched_value == expected_out_value
 
 
@@ -77,14 +77,12 @@ def _test_type_handler_lob(cursor, lob_type, output_type):
 
 @pytest.fixture(autouse=True)
 def setup(cursor):
-    cursor.execute(
-        """
+    cursor.execute("""
         ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS'
         NLS_TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'
         NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SS.FF6'
         time_zone='Europe/London'
-        """
-    )
+        """)
 
 
 def test_3600(cursor):

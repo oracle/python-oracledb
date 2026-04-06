@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -100,12 +100,10 @@ async def test_7603(async_conn):
     "7603 - test fetchall() with rowfactory"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
-    pipeline.add_execute(
-        """
+    pipeline.add_execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test_7003')
-        """
-    )
+        """)
     pipeline.add_commit()
 
     def rowfactory(*row):
@@ -812,18 +810,14 @@ async def test_7640(async_conn, async_cursor):
     out_value = async_cursor.var(str, arraysize=2)
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
-    pipeline.add_execute(
-        """
+    pipeline.add_execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'Value for first row')
-        """
-    )
-    pipeline.add_execute(
-        """
+        """)
+    pipeline.add_execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'Value for second row')
-        """
-    )
+        """)
     pipeline.add_execute(
         """
         update TestTempTable set
@@ -850,12 +844,10 @@ async def test_7641(async_conn):
     "7641 - test the columns attribute on results"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
-    pipeline.add_execute(
-        """
+    pipeline.add_execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'Value for first row')
-        """
-    )
+        """)
     pipeline.add_commit()
     pipeline.add_fetchone("select IntCol, StringCol1 from TestTempTable")
     results = await async_conn.run_pipeline(pipeline)

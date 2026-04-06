@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -540,8 +540,7 @@ async def test_8120(
 ):
     "8120 - fetch boolean"
     data = [(True,), (False,), (False,), (True,), (True,)]
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         select true
         union all
         select false
@@ -551,8 +550,7 @@ async def test_8120(
         select true
         union all
         select true
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     fetched_data = test_env.get_data_from_df(fetched_df)
     assert fetched_data == data
@@ -564,13 +562,11 @@ async def test_8121(skip_unless_vectors_supported, async_conn, test_env):
         (array.array("f", [34.6, 77.8]).tolist(),),
         (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
     ]
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         SELECT TO_VECTOR('[34.6, 77.8]', 2, FLOAT32)
         union all
         SELECT TO_VECTOR('[34.6, 77.8, 55.9]', 3, FLOAT32)
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -597,8 +593,7 @@ async def test_8122(
             },
         ),
     ]
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         SELECT TO_VECTOR(
             TO_VECTOR('[34.6, 0, 0, 0, 0, 0, 0, 77.8]', 8, FLOAT64),
             8,
@@ -612,8 +607,7 @@ async def test_8122(
             FLOAT64,
             SPARSE
             )
-        """
-    )
+        """)
     assert ora_df.num_rows() == 2
     assert ora_df.num_columns() == 1
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -622,8 +616,7 @@ async def test_8122(
 
 async def test_8123(async_conn, test_env):
     "8123 - fetch data with multiple rows containing null values"
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
         union all
         select to_date(null) as data from dual
@@ -641,8 +634,7 @@ async def test_8123(async_conn, test_env):
         select to_date(null) as data from dual
         union all
         select to_date(null) as data from dual
-        """
-    )
+        """)
     data = [
         (datetime.datetime(2025, 6, 12),),
         (None,),
@@ -860,16 +852,14 @@ async def test_8131(async_cursor, test_env):
 async def test_8132(async_conn, async_cursor):
     "8132 - test with date functions"
     await _populate_table(async_cursor, DATASET_1)
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         select
             Id,
             extract(year from DateOfBirth) as birth_year,
             to_char(DateOfBirth, 'YYYY-MM') as birth_month
         from TestDataFrame
         order by Id
-        """
-    )
+        """)
     assert ora_df.num_rows() == len(DATASET_1)
     year_col = ora_df.get_column_by_name("BIRTH_YEAR")
     array = pyarrow.array(year_col)
@@ -994,13 +984,11 @@ async def test_8141(async_conn, async_cursor, test_env):
     )
     await async_conn.commit()
 
-    ora_df = await async_conn.fetch_df_all(
-        """
+    ora_df = await async_conn.fetch_df_all("""
         select Id, LongData, LongRawData
         from TestDataFrame
         order by Id
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     fetched_data = test_env.get_data_from_df(fetched_df)
     assert fetched_data == data
@@ -1702,13 +1690,11 @@ async def test_8167(conn, test_env):
     "8167 - test fetching NCHAR and NVARCHAR data"
     value = "test_8167"
     value_len = len(value)
-    ora_df = conn.fetch_df_all(
-        f"""
+    ora_df = conn.fetch_df_all(f"""
         select
             cast('{value}' as nchar({value_len})),
             cast('{value}' as nvarchar2({value_len}))
         from dual
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == [(value, value)]

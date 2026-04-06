@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2019, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -81,12 +81,10 @@ def init_session(connection, requested_tag):
     # queries the session id to show that the callback is invoked once per
     # session.
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             select current_timestamp, sid || '-' || serial#
             from v$session
-            where sid = sys_context('userenv','sid')"""
-        )
+            where sid = sys_context('userenv','sid')""")
         t, s = cursor.fetchone()
         print(f"init_session() at time {t} was invoked for session {s}")
 
@@ -116,12 +114,10 @@ app = Flask(__name__)
 def index():
     with pool.acquire() as connection:
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
+            cursor.execute("""
                 select current_timestamp, sid || '-' || serial#
                 from v$session
-                where sid = sys_context('userenv','sid')"""
-            )
+                where sid = sys_context('userenv','sid')""")
             t, s = cursor.fetchone()
             r = f"Query at time {t} used session {s}"
             print(r)

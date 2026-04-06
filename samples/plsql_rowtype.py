@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -44,8 +44,7 @@ connection = oracledb.connect(
 
 with connection.cursor() as cursor:
 
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             begin
                 execute immediate 'drop table RTSampleTable';
@@ -65,29 +64,24 @@ with connection.cursor() as cursor:
             commit;
 
         end;
-        """
-    )
+        """)
 
-    cursor.execute(
-        """
+    cursor.execute("""
         create or replace function TestFuncOUT return RTSampleTable%rowtype as
             r RTSampleTable%rowtype;
         begin
             select * into r from RTSampleTable where rownum < 2 order by 1;
             return r;
-        end;"""
-    )
+        end;""")
     if cursor.warning:
         print(cursor.warning)
 
-    cursor.execute(
-        """
+    cursor.execute("""
         create or replace procedure TestProcIN(
             r in RTSampleTable%rowtype, city out varchar2) as
         begin
             city := r.city;
-        end;"""
-    )
+        end;""")
     if cursor.warning:
         print(cursor.warning)
 

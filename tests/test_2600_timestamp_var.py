@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -103,13 +103,11 @@ def test_2601(cursor):
 def test_2602(cursor):
     "2602 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             :value := to_timestamp('20021209', 'YYYYMMDD');
         end;
-        """
-    )
+        """)
     assert bind_vars["value"].getvalue() == datetime.datetime(2002, 12, 9)
 
 
@@ -205,14 +203,12 @@ def test_2608(cursor, module_data):
 
 def test_2609(cursor, module_data_by_key):
     "2609 - test that fetching a single row returns the correct results"
-    cursor.execute(
-        """
+    cursor.execute("""
         select *
         from TestTimestamps
         where IntCol in (3, 4)
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchone() == module_data_by_key[3]
     assert cursor.fetchone() == module_data_by_key[4]
     assert cursor.fetchone() is None

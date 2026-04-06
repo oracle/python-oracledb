@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -287,14 +287,12 @@ async def test_5909(async_conn, async_cursor):
     await async_cursor.execute("truncate table TestTempTable")
     var = async_cursor.var(oracledb.ROWID)
     in_cursor = async_conn.cursor()
-    await in_cursor.execute(
-        """
+    await in_cursor.execute("""
         select StringCol
         from TestStrings
         where IntCol >= 5
         order by IntCol
-        """
-    )
+        """)
     await async_cursor.execute(
         """
         insert into TestTempTable (IntCol, StringCol1)

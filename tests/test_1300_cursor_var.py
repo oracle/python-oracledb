@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -116,13 +116,11 @@ def test_1303(conn):
 def test_1304(conn):
     "1304 - test fetching a cursor"
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, cursor(select IntCol + 1 from dual) CursorValue
         from TestNumbers
         order by IntCol
-        """
-    )
+        """)
     expected_value = [
         ("INTCOL", oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
         (
@@ -275,14 +273,12 @@ def test_1311(test_env):
 
     with test_env.get_connection(conn_class=MyConnection) as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select
                 cursor(select 1 from dual),
                 cursor(select 2 from dual)
             from dual
-            """
-        )
+            """)
         cursor.fetchall()
         assert Counter.num_cursors_created == 3
 

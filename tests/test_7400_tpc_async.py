@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -42,12 +42,10 @@ async def test_7400(async_conn, async_cursor):
     await async_conn.tpc_begin(xid)
     assert not await async_conn.tpc_prepare()
     await async_conn.tpc_begin(xid)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     assert await async_conn.tpc_prepare()
     await async_conn.tpc_rollback()
     await async_cursor.execute("select count(*) from TestTempTable")
@@ -60,12 +58,10 @@ async def test_7401(async_conn, async_cursor):
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(3901, "txn3901", "branchId")
     await async_conn.tpc_begin(xid)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     assert await async_conn.tpc_prepare()
     await async_conn.tpc_commit()
     await async_cursor.execute("select IntCol, StringCol1 from TestTempTable")
@@ -78,20 +74,16 @@ async def test_7402(async_conn, async_cursor):
     xid1 = async_conn.xid(3902, "txn3902", "branch1")
     xid2 = async_conn.xid(3902, b"txn3902", b"branch2")
     await async_conn.tpc_begin(xid1)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     await async_conn.tpc_end()
     await async_conn.tpc_begin(xid2)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'tesName')
-        """
-    )
+        """)
     await async_conn.tpc_end()
     needs_commit1 = await async_conn.tpc_prepare(xid1)
     needs_commit2 = await async_conn.tpc_prepare(xid2)
@@ -184,21 +176,17 @@ async def test_7406(async_conn, async_cursor, test_env):
     xid1 = async_conn.xid(7406, "txn7406a", "branch3")
     xid2 = async_conn.xid(7406, b"txn7406b", b"branch4")
     await async_conn.tpc_begin(xid1)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test7406a')
-        """
-    )
+        """)
     await async_conn.tpc_begin(xid2)
     with test_env.assert_raises_full_code("ORA-24758"):
         await async_conn.tpc_end(xid1)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'test7406b')
-        """
-    )
+        """)
     await async_conn.tpc_end(xid2)
     with test_env.assert_raises_full_code("ORA-25352"):
         await async_conn.tpc_end(xid1)
@@ -274,12 +262,10 @@ async def test_7410(async_conn, async_cursor, test_env):
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7410, "txn7410", "branch1")
     await async_conn.tpc_begin(xid)
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test7410')
-        """
-    )
+        """)
     with pytest.raises(TypeError):
         await async_conn.tpc_commit("invalid xid")
     await async_conn.tpc_prepare(xid)

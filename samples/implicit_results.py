@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2026, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -51,8 +51,7 @@ connection = oracledb.connect(
 
 with connection.cursor() as cursor:
     # A PL/SQL block that returns two cursors
-    cursor.execute(
-        """
+    cursor.execute("""
         declare
             c1 sys_refcursor;
             c2 sys_refcursor;
@@ -69,8 +68,7 @@ with connection.cursor() as cursor:
             dbms_sql.return_result(c2);
 
         end;
-        """
-    )
+        """)
 
     # display results
     for ix, result_set in enumerate(cursor.getimplicitresults()):

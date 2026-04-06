@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -350,13 +350,11 @@ def test_8705(cursor, test_env):
     # verify data from both transactions is present
     with test_env.get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select IntCol, StringCol1
             from TestTempTable
             order by IntCol
-            """
-        )
+            """)
         expected_data = [(1, "concurrent_1"), (2, "concurrent_2")]
         assert cursor.fetchall() == expected_data
 
@@ -440,13 +438,11 @@ def test_8707(conn, test_env):
         conn.commit()
 
     # verify all data is present
-    base_cursor.execute(
-        """
+    base_cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert base_cursor.fetchall() == data
 
 
@@ -539,13 +535,11 @@ def test_8711(cursor, test_env):
     # verify data
     with pool.acquire() as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select IntCol, StringCol1
             from TestTempTable
             order by IntCol
-            """
-        )
+            """)
         assert cursor.fetchall() == data
 
     pool.close()
@@ -593,13 +587,11 @@ def test_8712(conn, cursor, test_env):
         other_conn.commit()
 
     # verify both transactions committed
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == data
 
 
@@ -634,13 +626,11 @@ def test_8715(conn, cursor, test_env):
     # create temp table
     temp_table_name = "temp_test_8715"
     cursor.execute(f"drop table if exists {temp_table_name}")
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create table {temp_table_name} (
             id number,
             data varchar2(50)
-        )"""
-    )
+        )""")
 
     # beging sessionless transaction and perform DDL which performs an
     # implicit commit

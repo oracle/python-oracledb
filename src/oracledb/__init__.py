@@ -163,7 +163,6 @@ from .var import (
     Var as Var,
 )
 
-
 # module attributes
 apilevel: str = "2.0"
 """

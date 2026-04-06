@@ -88,7 +88,7 @@ version = {attr = "oracledb.version.__version__"}
 
 [tool.black]
 line-length = 79
-required-version = 25
+required-version = 26
 
 [tool.ruff]
 line-length = 79

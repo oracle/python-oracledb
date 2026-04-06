@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -50,14 +50,12 @@ async def main():
     with connection.cursor() as cursor:
         # show the number of rows for each parent ID as a means of verifying
         # the output from the delete statement
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select ParentId, count(*)
             from ChildTable
             group by ParentId
             order by ParentId
-            """
-        )
+            """)
         async for parent_id, count in cursor:
             print("Parent ID:", parent_id, "has", int(count), "rows.")
         print()

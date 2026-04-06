@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -203,13 +203,11 @@ def test_3805(conn, cursor):
             )
 
     cursor.outputtypehandler = output_type_handler
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
     assert cursor.fetchall() == expected_data
 

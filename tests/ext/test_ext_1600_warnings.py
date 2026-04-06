@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -41,8 +41,7 @@ def setup_user(test_env):
     password = test_env.main_password
     with test_env.get_admin_connection() as admin_conn:
         cursor = admin_conn.cursor()
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             declare
                 e_user_missing exception;
                 pragma exception_init(e_user_missing, -1918);
@@ -52,10 +51,8 @@ def setup_user(test_env):
             when e_user_missing then
                 null;
             end;
-            """
-        )
-        cursor.execute(
-            f"""
+            """)
+        cursor.execute(f"""
             declare
                 e_user_missing exception;
                 pragma exception_init(e_user_missing, -2380);
@@ -65,17 +62,14 @@ def setup_user(test_env):
             when e_user_missing then
                 null;
             end;
-            """
-        )
+            """)
         cursor.execute(f"create user {USER_NAME} identified by {password}")
         cursor.execute(f"grant create session to {USER_NAME}")
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             create profile {PROFILE_NAME} limit
             password_life_time 1 / 24 / 60 / 60
             password_grace_time 7
-            """
-        )
+            """)
         cursor.execute(f"alter user {USER_NAME} profile {PROFILE_NAME}")
         time.sleep(2)
         yield

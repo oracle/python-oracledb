@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,12 +37,10 @@ def test_4400(conn, cursor):
     conn.tpc_begin(xid)
     assert not conn.tpc_prepare()
     conn.tpc_begin(xid)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     assert conn.tpc_prepare()
     conn.tpc_rollback()
     cursor.execute("select count(*) from TestTempTable")
@@ -55,12 +53,10 @@ def test_4401(conn, cursor):
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(3901, "txn3901", "branchId")
     conn.tpc_begin(xid)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     assert conn.tpc_prepare()
     conn.tpc_commit()
     cursor.execute("select IntCol, StringCol1 from TestTempTable")
@@ -73,20 +69,16 @@ def test_4402(conn, cursor):
     xid1 = conn.xid(3902, "txn3902", "branch1")
     xid2 = conn.xid(3902, b"txn3902", b"branch2")
     conn.tpc_begin(xid1)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     conn.tpc_end()
     conn.tpc_begin(xid2)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'tesName')
-        """
-    )
+        """)
     conn.tpc_end()
     needs_commit1 = conn.tpc_prepare(xid1)
     needs_commit2 = conn.tpc_prepare(xid2)
@@ -177,21 +169,17 @@ def test_4406(conn, cursor, test_env):
     xid1 = conn.xid(4406, "txn4406a", "branch3")
     xid2 = conn.xid(4406, b"txn4406b", b"branch4")
     conn.tpc_begin(xid1)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test4406a')
-        """
-    )
+        """)
     conn.tpc_begin(xid2)
     with test_env.assert_raises_full_code("ORA-24758"):
         conn.tpc_end(xid1)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'test4406b')
-        """
-    )
+        """)
     conn.tpc_end(xid2)
     with test_env.assert_raises_full_code("ORA-25352"):
         conn.tpc_end(xid1)
@@ -267,12 +255,10 @@ def test_4410(conn, cursor, test_env):
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4410, "txn4410", "branch1")
     conn.tpc_begin(xid)
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test4410')
-        """
-    )
+        """)
     pytest.raises(TypeError, conn.tpc_commit, "invalid xid")
     conn.tpc_prepare(xid)
     with test_env.assert_raises_full_code("ORA-02053"):

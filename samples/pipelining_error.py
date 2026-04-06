@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -64,12 +64,10 @@ async def main():
     print("\nContinuing after first error:\n")
 
     pipeline = oracledb.create_pipeline()
-    pipeline.add_execute(
-        """create or replace procedure myproc as
+    pipeline.add_execute("""create or replace procedure myproc as
            begin
               bogus;
-           end;"""
-    )
+           end;""")
     pipeline.add_fetchall("select 1 from does_not_exist_3")
     pipeline.add_fetchall("select 2 from does_not_exist_4")
     pipeline.add_fetchall("select dummy from dual")

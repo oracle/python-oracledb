@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -109,13 +109,11 @@ async def main():
             )
 
         print("NO OUTPUT TYPE HANDLER:")
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select *
             from BuildingsAsObjects
             order by BuildingId
-            """
-        )
+            """)
         async for row in cursor:
             print(row)
         print()
@@ -123,13 +121,11 @@ async def main():
     with connection.cursor() as cursor:
         cursor.outputtypehandler = output_type_handler
         print("WITH OUTPUT TYPE HANDLER:")
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select *
             from BuildingsAsObjects
             order by BuildingId
-            """
-        )
+            """)
         async for row in cursor:
             print(row)
         print()

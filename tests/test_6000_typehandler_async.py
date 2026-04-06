@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -211,13 +211,11 @@ async def test_6005(async_conn, async_cursor):
             )
 
     async_cursor.outputtypehandler = output_type_handler
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     expected_data = [(1, "CONVERTED"), (2, None), (3, "CONVERTED")]
     assert await async_cursor.fetchall() == expected_data
 

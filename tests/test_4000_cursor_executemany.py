@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -335,13 +335,11 @@ def test_4021(conn, cursor, empty_tab):
         data,
     )
     conn.commit()
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, NumberCol
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == data
 
 

@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -40,8 +40,7 @@ QUEUE_NAME = "BOOKS"
 QUEUE_TABLE_NAME = "BOOK_QUEUE_TABLE"
 
 # Cleanup
-cur.execute(
-    f"""
+cur.execute(f"""
     begin
         dbms_aqadm.stop_queue('{QUEUE_NAME}');
         dbms_aqadm.drop_queue('{QUEUE_NAME}');
@@ -53,20 +52,17 @@ cur.execute(
                 raise;
             end if;
     end;
-    """
-)
+    """)
 
 # Create a type
 print("Creating books type UDT_BOOK...")
-cur.execute(
-    f"""
+cur.execute(f"""
     create type {BOOK_TYPE_NAME} as object (
         title varchar2(100),
         authors varchar2(100),
         price number(5,2)
     );
-    """
-)
+    """)
 
 
 # Create queue table and queue and start the queue

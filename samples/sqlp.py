@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -312,7 +312,7 @@ if __name__ == "__main__":
 
     # Loop to read statements and execute them
     while True:
-        (statement, statement_type) = read_statement()
+        statement, statement_type = read_statement()
         if len(statement) == 0:
             continue
         elif statement_type == STMT_TYPE_UNKNOWN:

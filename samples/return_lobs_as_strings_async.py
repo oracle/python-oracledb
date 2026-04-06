@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -74,28 +74,24 @@ async def main():
 
         # fetch the data and show the results
         print("CLOBS returned as strings")
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select
                 IntCol,
                 ClobCol
             from TestClobs
             order by IntCol
-            """
-        )
+            """)
         async for int_col, value in cursor:
             print("Row:", int_col, "string of length", len(value))
         print()
         print("BLOBS returned as bytes")
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select
                 IntCol,
                 BlobCol
             from TestBlobs
             order by IntCol
-            """
-        )
+            """)
         async for int_col, value in cursor:
             print(
                 "Row:", int_col, "string of length", value and len(value) or 0

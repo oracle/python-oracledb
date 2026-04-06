@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -39,8 +39,7 @@ def setup_service(test_env):
     user = test_env.main_user
     with test_env.get_admin_connection() as admin_conn:
         with admin_conn.cursor() as cursor:
-            cursor.execute(
-                f"""
+            cursor.execute(f"""
                 declare
                     params          dbms_service.svc_parameter_array;
                 begin
@@ -50,8 +49,7 @@ def setup_service(test_env):
                                                 '{SERVICE_NAME}', params);
                     dbms_service.start_service('{SERVICE_NAME}');
                 end;
-                """
-            )
+                """)
             cursor.execute(f"grant execute on dbms_tg_dbg to {user}")
             cursor.execute(f"grant execute on dbms_app_cont to {user}")
         yield
@@ -79,13 +77,11 @@ def test_ext_2300(test_env):
             [2300, "String for test 2300"],
         )
         full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             begin
                 dbms_tg_dbg.set_failpoint({full_arg_name});
             end;
-            """
-        )
+            """)
         ltxid = conn.ltxid
         with test_env.assert_raises_full_code("DPY-4011"):
             conn.commit()
@@ -120,13 +116,11 @@ def test_ext_2301(test_env):
             [2300, "String for test 2300"],
         )
         full_arg_name = f"dbms_tg_dbg.tg_failpoint_{arg_name}"
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             begin
                 dbms_tg_dbg.set_failpoint({full_arg_name});
             end;
-            """
-        )
+            """)
         ltxid = conn.ltxid
         with test_env.assert_raises_full_code("DPY-4011"):
             conn.commit()

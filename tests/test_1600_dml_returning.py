@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -282,14 +282,12 @@ def test_1609(conn, cursor):
     cursor.execute("truncate table TestTempTable")
     var = cursor.var(oracledb.ROWID)
     in_cursor = conn.cursor()
-    in_cursor.execute(
-        """
+    in_cursor.execute("""
         select StringCol
         from TestStrings
         where IntCol >= 5
         order by IntCol
-        """
-    )
+        """)
     cursor.execute(
         """
         insert into TestTempTable (IntCol, StringCol1)

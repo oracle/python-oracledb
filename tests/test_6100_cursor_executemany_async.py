@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -342,13 +342,11 @@ async def test_6121(async_conn, async_cursor, empty_tab):
         data,
     )
     await async_conn.commit()
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, NumberCol
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert await async_cursor.fetchall() == data
 
 

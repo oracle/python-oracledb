@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -75,13 +75,11 @@ def test_2902(cursor, test_env):
 def test_2903(conn, cursor):
     "2903 - test selecting regular rowids stored in a urowid column"
     cursor.execute("truncate table TestRowids")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestRowids (IntCol, UrowidCol)
         select IntCol, rowid
         from TestNumbers
-        """
-    )
+        """)
     conn.commit()
     cursor.execute("select IntCol, UrowidCol from TestRowids")
     for int_val, rowid in cursor.fetchall():
@@ -95,13 +93,11 @@ def test_2903(conn, cursor):
 def test_2904(conn, cursor):
     "2904 - test selecting regular rowids stored in a rowid column"
     cursor.execute("truncate table TestRowids")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestRowids (IntCol, RowidCol)
         select IntCol, rowid
         from TestNumbers
-        """
-    )
+        """)
     conn.commit()
     cursor.execute("select IntCol, RowidCol from TestRowids")
     for int_val, rowid in cursor.fetchall():

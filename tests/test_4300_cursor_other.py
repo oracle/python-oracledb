@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -57,14 +57,12 @@ def test_4301(conn, test_env):
 
 def test_4302(cursor):
     "4302 - test iterators"
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol
         from TestNumbers
         where IntCol between 1 and 3
         order by IntCol
-        """
-    )
+        """)
     rows = [v for v, in cursor]
     assert rows == [1, 2, 3]
 
@@ -72,14 +70,12 @@ def test_4302(cursor):
 def test_4303(cursor, test_env):
     "4303 - test iterators (with intermediate execute)"
     cursor.execute("truncate table TestTempTable")
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol
         from TestNumbers
         where IntCol between 1 and 3
         order by IntCol
-        """
-    )
+        """)
     test_iter = iter(cursor)
     (value,) = next(test_iter)
     cursor.execute("insert into TestTempTable (IntCol) values (1)")
@@ -97,13 +93,11 @@ def test_4304(cursor, test_env):
     assert cursor.bindnames() == ["RETVAL", "INVAL"]
     cursor.prepare("begin :retval := :a * :a + :b * :b; end;")
     assert cursor.bindnames() == ["RETVAL", "A", "B"]
-    cursor.prepare(
-        """
+    cursor.prepare("""
         begin
             :a := :b + :c + :d + :e + :f + :g + :h + :i + :j + :k + :l;
         end;
-        """
-    )
+        """)
     names = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]
     assert cursor.bindnames() == names
     cursor.prepare("select :a * :a + :b * :b from dual")
@@ -585,26 +579,22 @@ def test_4341(cursor, test_env):
 def test_4342(conn):
     "4342 - test executing a statement that raises ORA-01007"
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             create or replace view ora_1007 as
                 select 1 as SampleNumber, 'String' as SampleString,
                     'Another String' as AnotherString
                 from dual
-            """
-        )
+            """)
     with conn.cursor() as cursor:
         cursor.execute("select * from ora_1007")
         assert cursor.fetchone() == (1, "String", "Another String")
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             create or replace view ora_1007 as
                 select 1 as SampleNumber,
                     'Another String' as AnotherString
                 from dual
-            """
-        )
+            """)
     with conn.cursor() as cursor:
         cursor.execute("select * from ora_1007")
         assert cursor.fetchone() == (1, "Another String")
@@ -660,15 +650,13 @@ def test_4345(cursor):
             )
 
     cursor.outputtypehandler = type_handler
-    cursor.execute(
-        """
+    cursor.execute("""
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
             union all
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
             union all
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
-        """
-    )
+        """)
     expected_data = [("A", 2, 3)] * 3
     assert cursor.fetchall() == expected_data
 
@@ -846,13 +834,11 @@ def test_4357(disable_fetch_lobs, conn, cursor, test_env):
     plsql = f"begin {sql}; end;"
     cursor.execute(plsql, rows[1])
     conn.commit()
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, CLOBCol, ExtraNumCol1
         from TestCLOBs
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == rows
 
 

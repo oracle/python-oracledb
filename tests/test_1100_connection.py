@@ -369,12 +369,10 @@ def test_1121(skip_unless_thick_mode, conn):
     conn.begin(10, "trxnId", "branchId")
     assert not conn.prepare()
     conn.begin(10, "trxnId", "branchId")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'tesName')
-        """
-    )
+        """)
     assert conn.prepare()
     conn.cancel()
     conn.rollback()
@@ -392,12 +390,10 @@ def test_1122(skip_unless_thick_mode, conn):
     xid = (0x1234, "%032x" % id_, "%032x" % 9)
     conn.begin(*xid)
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             insert into TestTempTable (IntCol, StringCol1)
             values (1, 'tesName')
-            """
-        )
+            """)
         assert conn.prepare()
         conn.commit()
 
@@ -431,12 +427,10 @@ def test_1123(skip_unless_thick_mode, conn):
     xid = (0x1234, "%032x" % id_, "%032x" % 9)
     conn.begin(*xid)
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             insert into TestTempTable (IntCol, StringCol1)
             values (1, 'tesName')
-            """
-        )
+            """)
         assert conn.prepare()
         conn.commit()
 
@@ -459,12 +453,10 @@ def test_1123(skip_unless_thick_mode, conn):
     xid2 = (0x1234, "%032x" % id2_, "%032x" % 9)
     conn.begin(*xid2)
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             insert into TestTempTable (IntCol, StringCol1)
             values (4, 'tesName')
-            """
-        )
+            """)
         assert conn.prepare()
         conn.commit()
 
@@ -485,12 +477,10 @@ def test_1124(skip_unless_thick_mode, conn, test_env):
         cursor.execute("truncate table TestTempTable")
 
     with conn.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             insert into TestTempTable (IntCol, StringCol1)
             values (2, 'tesName')
-            """
-        )
+            """)
 
     id_ = random.randint(0, 2**128)
     xid = (0x1234, "%032x" % id_, "%032x" % 9)
@@ -658,12 +648,10 @@ def test_1134(test_env):
 def test_1135(conn):
     "1135 - test connection instance name"
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         select upper(sys_context('userenv', 'instance_name'))
         from dual
-        """
-    )
+        """)
     (instance_name,) = cursor.fetchone()
     assert conn.instance_name.upper() == instance_name
 
@@ -927,8 +915,7 @@ def test_1158(conn, test_env):
     conn.commit()
     cursor.arraysize = 1500
     with test_env.assert_raises_full_code("ORA-01476"):
-        cursor.execute(
-            """
+        cursor.execute("""
             select IntCol, 1 / NumberCol
             from TestTempTable
             where IntCol < 1500
@@ -936,8 +923,7 @@ def test_1158(conn, test_env):
             select IntCol, 1 / NumberCol
             from TestTempTable
             where IntCol = 1500
-            """
-        )
+            """)
         cursor.fetchall()
 
 

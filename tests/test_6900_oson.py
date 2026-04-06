@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -46,11 +46,9 @@ def test_6900(cursor):
 def test_6901(conn, cursor):
     "6901 - test simple query of OSON encoded bytes"
     cursor.execute("delete from TestOsonCols")
-    cursor.execute(
-        """
+    cursor.execute("""
             insert into TestOsonCols (IntCol, OsonCol)
-            values (1, '{"id": 6901, "value" : "string 6901"}')"""
-    )
+            values (1, '{"id": 6901, "value" : "string 6901"}')""")
     conn.commit()
     cursor.execute("select OsonCol from TestOsonCols")
     (oson_val,) = cursor.fetchone()

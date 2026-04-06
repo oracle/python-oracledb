@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -63,14 +63,12 @@ async def test_6301(async_conn, test_env):
 
 async def test_6302(async_cursor):
     "6302 - test iterators"
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol
         from TestNumbers
         where IntCol between 1 and 3
         order by IntCol
-        """
-    )
+        """)
     rows = [v async for v, in async_cursor]
     assert rows == [1, 2, 3]
 
@@ -78,14 +76,12 @@ async def test_6302(async_cursor):
 async def test_6303(async_cursor, test_env):
     "6303 - test iterators (with intermediate execute)"
     await async_cursor.execute("truncate table TestTempTable")
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol
         from TestNumbers
         where IntCol between 1 and 3
         order by IntCol
-        """
-    )
+        """)
     test_iter = async_cursor.__aiter__()
     (value,) = await test_iter.__anext__()
     await async_cursor.execute("insert into TestTempTable (IntCol) values (1)")
@@ -505,26 +501,22 @@ async def test_6330(async_cursor, test_env):
 async def test_6331(async_conn):
     "6331 - test executing a statement that raises ORA-01007"
     with async_conn.cursor() as cursor:
-        await cursor.execute(
-            """
+        await cursor.execute("""
             create or replace view ora_1007 as
                 select 1 as SampleNumber, 'String' as SampleString,
                     'Another String' as AnotherString
                 from dual
-            """
-        )
+            """)
     with async_conn.cursor() as cursor:
         await cursor.execute("select * from ora_1007")
         assert await cursor.fetchone() == (1, "String", "Another String")
     with async_conn.cursor() as cursor:
-        await cursor.execute(
-            """
+        await cursor.execute("""
             create or replace view ora_1007 as
                 select 1 as SampleNumber,
                     'Another String' as AnotherString
                 from dual
-            """
-        )
+            """)
     with async_conn.cursor() as cursor:
         await cursor.execute("select * from ora_1007")
         assert await cursor.fetchone() == (1, "Another String")
@@ -580,15 +572,13 @@ async def test_6334(async_cursor):
             )
 
     async_cursor.outputtypehandler = type_handler
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
             union all
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
             union all
         select 'A' as col_1, 2 as col_2, 3 as col_3 from dual
-        """
-    )
+        """)
     expected_data = [("A", 2, 3)] * 3
     assert await async_cursor.fetchall() == expected_data
 
@@ -758,13 +748,11 @@ async def test_6344(disable_fetch_lobs, async_conn, async_cursor):
     plsql = f"begin {sql}; end;"
     await async_cursor.execute(plsql, rows[1])
     await async_conn.commit()
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, CLOBCol, ExtraNumCol1
         from TestCLOBs
         order by IntCol
-        """
-    )
+        """)
     assert await async_cursor.fetchall() == rows
 
 

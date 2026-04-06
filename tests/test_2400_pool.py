@@ -147,14 +147,12 @@ def _perform_reconfigure_test(
 
 def _verify_connection(conn, expected_user, expected_proxy_user=None):
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             sys_context('userenv', 'session_user'),
             sys_context('userenv', 'proxy_user')
         from dual
-        """
-    )
+        """)
     actual_user, actual_proxy_user = cursor.fetchone()
     assert actual_user == expected_user.upper()
     if expected_proxy_user is not None:
@@ -479,13 +477,11 @@ def test_2411(skip_unless_thick_mode, test_env):
     # verify the PL/SQL session callback log is accurate
     conn = pool.acquire()
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         select RequestedTag, ActualTag
         from PLSQLSessionCallbacks
         order by FixupTimestamp
-        """
-    )
+        """)
     results = cursor.fetchall()
     expected_results = list(zip(tags, actual_tags))
     assert results == expected_results

@@ -450,12 +450,10 @@ async def test_5335(test_env):
     "5335 - test connection instance name"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select upper(sys_context('userenv', 'instance_name'))
             from dual
-            """
-        )
+            """)
         (instance_name,) = await cursor.fetchone()
         assert conn.instance_name.upper() == instance_name
 
@@ -682,8 +680,7 @@ async def test_5356(test_env):
     await conn.commit()
     cursor.arraysize = 1500
     with test_env.assert_raises_full_code("ORA-01476"):
-        await cursor.execute(
-            """
+        await cursor.execute("""
             select IntCol, 1 / NumberCol
             from TestTempTable
             where IntCol < 1500
@@ -691,8 +688,7 @@ async def test_5356(test_env):
             select IntCol, 1 / NumberCol
             from TestTempTable
             where IntCol = 1500
-            """
-        )
+            """)
         await cursor.fetchall()
 
 

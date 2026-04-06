@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -210,13 +210,11 @@ def test_2109(cursor):
 def test_2110(cursor):
     "2110 - test binding out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
-    cursor.execute(
-        r"""
+    cursor.execute(r"""
         begin
             :value := unistr('TSI \3042');
         end;
-        """
-    )
+        """)
     assert bind_vars["value"].getvalue() == "TSI \u3042"
 
 
@@ -319,14 +317,12 @@ def test_2116(cursor, module_data):
 
 def test_2117(cursor, module_data_by_key):
     "2117 - test that fetching a single row returns the correct results"
-    cursor.execute(
-        """
+    cursor.execute("""
         select *
         from TestUnicodes
         where IntCol in (3, 4)
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchone() == module_data_by_key[3]
     assert cursor.fetchone() == module_data_by_key[4]
     assert cursor.fetchone() is None

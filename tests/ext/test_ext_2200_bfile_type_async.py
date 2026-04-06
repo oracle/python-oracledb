@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -49,12 +49,10 @@ def temp_dir(test_env):
         user = test_env.main_user
         with test_env.get_admin_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+                cursor.execute(f"""
                     create or replace directory {DIR_NAME}
                     as '{temp_dir}'
-                    """
-                )
+                    """)
                 cursor.execute(f"grant read on directory {DIR_NAME} to {user}")
         yield temp_dir
 

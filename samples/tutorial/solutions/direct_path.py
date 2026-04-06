@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,8 +37,7 @@ con = oracledb.connect(
 cur = con.cursor()
 
 # Create table
-cur.execute(
-    """
+cur.execute("""
     begin
         execute immediate 'drop table testdpl';
     exception when others then
@@ -46,16 +45,13 @@ cur.execute(
             raise;
         end if;
     end;
-    """
-)
-cur.execute(
-    """
+    """)
+cur.execute("""
     create table testdpl (
         id   number(9),
         name varchar2(100)
     )
-    """
-)
+    """)
 
 d = {"A": [202, 412, 487], "B": ["Anna", "Bidisha", "Charlie"]}
 DATA = pandas.DataFrame(data=d)

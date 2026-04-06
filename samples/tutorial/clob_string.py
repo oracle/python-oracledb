@@ -3,7 +3,7 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2017, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2017, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -50,6 +50,6 @@ con.commit()
 
 print("Querying data...")
 cur.execute("select * from testclobs where id = :id", {"id": 1})
-(id, clobdata) = cur.fetchone()
+id, clobdata = cur.fetchone()
 print("CLOB length:", len(clobdata))
 print("CLOB data:", clobdata)

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -161,13 +161,11 @@ def start_pool():
 #
 def init_session(connection, requestedTag_ignored):
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
+        cursor.execute("""
             alter session set
                 time_zone = 'UTC'
                 nls_date_format = 'YYYY-MM-DD HH24:MI'
-            """
-        )
+            """)
 
 
 # -----------------------------------------------------------------------------
@@ -177,8 +175,7 @@ def init_session(connection, requestedTag_ignored):
 def create_schema():
     with pool.acquire() as connection:
         with connection.cursor() as cursor:
-            cursor.execute(
-                """
+            cursor.execute("""
                 begin
                     begin
                         execute immediate 'drop table demo';
@@ -198,8 +195,7 @@ def create_schema():
 
                     commit;
                 end;
-                """
-            )
+                """)
 
 
 # -----------------------------------------------------------------------------

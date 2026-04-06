@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -119,13 +119,11 @@ async def test_5803(async_conn, async_cursor):
 
 async def test_5804(async_cursor):
     "5804 - test fetching a cursor"
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, cursor(select IntCol + 1 from dual) CursorValue
         from TestNumbers
         order by IntCol
-        """
-    )
+        """)
     expected_value = [
         ("INTCOL", oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
         (
@@ -284,14 +282,12 @@ async def test_5811(test_env):
 
     conn = await test_env.get_connection_async(conn_class=MyConnection)
     cursor = conn.cursor()
-    await cursor.execute(
-        """
+    await cursor.execute("""
         select
             cursor(select 1 from dual),
             cursor(select 2 from dual)
         from dual
-        """
-    )
+        """)
     await cursor.fetchall()
     assert Counter.num_cursors_created == 3
 

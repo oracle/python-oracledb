@@ -419,13 +419,11 @@ def test_2720(conn, book_data, test_env):
 
     def notification_callback(message=None, *args, **kwargs):
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select msg_id
             from aq$test_sharded_book_queue
             where msg_state = 'READY'
-            """
-        )
+            """)
         (actual_msgid,) = cursor.fetchone()
         assert message.msgid == actual_msgid
         assert message.consumer_name is None

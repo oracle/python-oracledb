@@ -56,14 +56,12 @@ async def _verify_connection(
     connection, expected_user, expected_proxy_user=None
 ):
     cursor = connection.cursor()
-    await cursor.execute(
-        """
+    await cursor.execute("""
         select
             sys_context('userenv', 'session_user'),
             sys_context('userenv', 'proxy_user')
         from dual
-        """
-    )
+        """)
     actual_user, actual_proxy_user = await cursor.fetchone()
     assert actual_user == expected_user.upper()
     if expected_proxy_user is not None:

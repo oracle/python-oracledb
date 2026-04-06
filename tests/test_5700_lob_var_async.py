@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -78,13 +78,11 @@ async def _perform_test(conn, lob_type, input_type, arraysize=None):
             long_string=bind_value,
         )
     await conn.commit()
-    await cursor.execute(
-        f"""
+    await cursor.execute(f"""
         select IntCol, {lob_type}Col
         from Test{lob_type}s
         order by IntCol
-        """
-    )
+        """)
     await _validate_query(await cursor.fetchall(), lob_type)
 
 
@@ -135,13 +133,11 @@ async def _test_fetch_lobs_direct(conn, lob_type):
         """,
         data,
     )
-    await cursor.execute(
-        f"""
+    await cursor.execute(f"""
         select IntCol, {lob_type}Col
         from Test{lob_type}s
         order by IntCol
-        """
-    )
+        """)
     assert await cursor.fetchall() == data
 
 
@@ -163,13 +159,11 @@ async def _test_lob_operations(conn, test_env, lob_type):
         integer_value=1,
         long_string=long_string,
     )
-    await cursor.execute(
-        f"""
+    await cursor.execute(f"""
         select {lob_type}Col
         from Test{lob_type}s
         where IntCol = 1
-        """
-    )
+        """)
     (lob,) = await cursor.fetchone()
     assert not await lob.isopen()
     await lob.open()
@@ -261,13 +255,11 @@ async def _validate_query(rows, lob_type):
 async def test_5700(async_conn, async_cursor):
     "5700 - test binding a LOB value directly"
     await async_cursor.execute("delete from TestCLOBs")
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestCLOBs
         (IntCol, ClobCol)
         values (1, 'Short value')
-        """
-    )
+        """)
     await async_cursor.execute("select ClobCol from TestCLOBs")
     (lob,) = await async_cursor.fetchone()
     await async_cursor.execute(

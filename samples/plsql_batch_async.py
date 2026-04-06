@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -54,18 +54,14 @@ async def main():
 
     pipeline = oracledb.create_pipeline()
 
-    pipeline.add_execute(
-        """create or replace type my_varchar_list
-               as table of varchar2(100)"""
-    )
+    pipeline.add_execute("""create or replace type my_varchar_list
+               as table of varchar2(100)""")
 
-    pipeline.add_execute(
-        """create or replace procedure myproc
+    pipeline.add_execute("""create or replace procedure myproc
                (p in number, names in my_varchar_list, count out number) as
            begin
                count := p + names.count;
-           end;"""
-    )
+           end;""")
 
     await connection.run_pipeline(pipeline)
 
@@ -128,13 +124,11 @@ async def main():
 
     pipeline = oracledb.create_pipeline()
 
-    pipeline.add_execute(
-        """create or replace procedure myproc2
+    pipeline.add_execute("""create or replace procedure myproc2
               (p1 in number, p2 in out varchar2) as
            begin
                p2 := p2 || ' ' || p1;
-           end;"""
-    )
+           end;""")
 
     await connection.run_pipeline(pipeline)
 

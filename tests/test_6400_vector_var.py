@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -594,15 +594,13 @@ def test_6431(cursor):
 
 def test_6432(cursor):
     "6432 - fetch JSON value with an embedded vector"
-    cursor.execute(
-        """
+    cursor.execute("""
         select json_object(
             'id' : 6432,
             'vector' : to_vector('[1, 2, 3]')
             returning json
         ) from dual
-        """
-    )
+        """)
     (result,) = cursor.fetchone()
     expected_val = dict(id=6432, vector=array.array("f", [1, 2, 3]))
     assert result == expected_val

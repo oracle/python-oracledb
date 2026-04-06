@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2026, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -59,8 +59,7 @@ connection = oracledb.connect(
 
 with connection.cursor() as cursor:
     # create sample data
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             begin
                 execute immediate 'drop table TestInstances';
@@ -85,8 +84,7 @@ with connection.cursor() as cursor:
 
             commit;
         end;
-        """
-    )
+        """)
 
     # retrieve the data and display it
     cursor.execute("select * from TestInstances")

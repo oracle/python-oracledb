@@ -1649,14 +1649,12 @@ class Connection(BaseConnection):
         "SELECT" privilege on that view.
         """
         with self.cursor() as cursor:
-            cursor.execute(
-                """
+            cursor.execute("""
                     select
                         formatid,
                         globalid,
                         branchid
-                    from dba_pending_transactions"""
-            )
+                    from dba_pending_transactions""")
             cursor.rowfactory = Xid
             return cursor.fetchall()
 
@@ -2599,14 +2597,12 @@ class AsyncConnection(BaseConnection):
         requires ``SELECT`` privilege on that view.
         """
         with self.cursor() as cursor:
-            await cursor.execute(
-                """
+            await cursor.execute("""
                     select
                         formatid,
                         globalid,
                         branchid
-                    from dba_pending_transactions"""
-            )
+                    from dba_pending_transactions""")
             cursor.rowfactory = Xid
             return await cursor.fetchall()
 

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -319,12 +319,10 @@ async def test_5422(async_cursor):
 async def test_5423(async_conn, async_cursor):
     "5423 - test using rowfactory"
     await async_cursor.execute("truncate table TestTempTable")
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'Test 1')
-        """
-    )
+        """)
     await async_conn.commit()
     await async_cursor.execute("select IntCol, StringCol1 from TestTempTable")
     column_names = [col[0] for col in async_cursor.description]
@@ -375,13 +373,11 @@ async def test_5425(async_conn, async_cursor):
     await async_cursor.execute("select IntCol, StringCol1 from TestTempTable")
     column_names = [col[0] for col in async_cursor.description]
     async_cursor.rowfactory = lambda *row: dict(zip(column_names, row))
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, StringCol
         from TestSTrings
         where IntCol between 1 and 3 order by IntCol
-        """
-    )
+        """)
     expected_data = [(1, "String 1"), (2, "String 2"), (3, "String 3")]
     assert await async_cursor.fetchall() == expected_data
 
@@ -449,13 +445,11 @@ async def test_5428(async_cursor):
         """,
         values_to_insert,
     )
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert await async_cursor.fetchall() == expected_data
 
 

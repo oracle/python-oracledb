@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2026, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -77,27 +77,23 @@ with connection.cursor() as cursor:
 
     # fetch the data and show the results
     print("CLOBS returned as strings")
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             IntCol,
             ClobCol
         from TestClobs
         order by IntCol
-        """
-    )
+        """)
     for int_col, value in cursor:
         print("Row:", int_col, "string of length", len(value))
     print()
     print("BLOBS returned as bytes")
-    cursor.execute(
-        """
+    cursor.execute("""
         select
             IntCol,
             BlobCol
         from TestBlobs
         order by IntCol
-        """
-    )
+        """)
     for int_col, value in cursor:
         print("Row:", int_col, "string of length", value and len(value) or 0)

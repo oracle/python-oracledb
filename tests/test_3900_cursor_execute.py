@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -302,12 +302,10 @@ def test_3922(cursor):
 def test_3923(conn, cursor):
     "3923 - test using rowfactory"
     cursor.execute("truncate table TestTempTable")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'Test 1')
-        """
-    )
+        """)
     conn.commit()
     cursor.execute("select IntCol, StringCol1 from TestTempTable")
     column_names = [col[0] for col in cursor.description]
@@ -356,13 +354,11 @@ def test_3925(conn, cursor):
     cursor.execute("select IntCol, StringCol1 from TestTempTable")
     column_names = [col[0] for col in cursor.description]
     cursor.rowfactory = lambda *row: dict(zip(column_names, row))
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, StringCol
         from TestSTrings
         where IntCol between 1 and 3 order by IntCol
-        """
-    )
+        """)
     expected_data = [(1, "String 1"), (2, "String 2"), (3, "String 3")]
     assert cursor.fetchall() == expected_data
 
@@ -430,13 +426,11 @@ def test_3928(cursor):
         """,
         values_to_insert,
     )
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == expected_data
 
 

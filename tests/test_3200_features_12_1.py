@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -404,8 +404,7 @@ def test_3219(cursor):
 
 def test_3220(cursor):
     "3220 - test getimplicitresults() returns the correct data"
-    cursor.execute(
-        """
+    cursor.execute("""
         declare
             c1 sys_refcursor;
             c2 sys_refcursor;
@@ -424,8 +423,7 @@ def test_3220(cursor):
 
             dbms_sql.return_result(c2);
         end;
-        """
-    )
+        """)
     results = cursor.getimplicitresults()
     assert len(results) == 2
     assert [n for n, in results[0]] == [2924207, None, 59797108943]
@@ -527,8 +525,7 @@ def test_3224(cursor):
 
 def test_3225(cursor):
     "3225 - test using implicit cursors to execute new statements"
-    cursor.execute(
-        """
+    cursor.execute("""
         declare
             c1 sys_refcursor;
         begin
@@ -539,8 +536,7 @@ def test_3225(cursor):
 
             dbms_sql.return_result(c1);
         end;
-        """
-    )
+        """)
     results = cursor.getimplicitresults()
     assert len(results) == 1
     assert [n for n, in results[0]] == [3.75, 5, 6.25]
@@ -621,8 +617,7 @@ def test_3232(test_env):
     "3232 - fetch implicit cursors after closing connection"
     conn = test_env.get_connection()
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         declare
             c1 sys_refcursor;
             c2 sys_refcursor;
@@ -639,8 +634,7 @@ def test_3232(test_env):
 
             dbms_sql.return_result(c2);
         end;
-        """
-    )
+        """)
     cursor1, cursor2 = cursor.getimplicitresults()
     conn.close()
     with test_env.assert_raises_full_code("DPY-1001"):
@@ -652,8 +646,7 @@ def test_3232(test_env):
 def test_3233(conn, test_env):
     "3233 - fetch implicit cursors after closing parent cursor"
     cursor = conn.cursor()
-    cursor.execute(
-        """
+    cursor.execute("""
         declare
             c1 sys_refcursor;
             c2 sys_refcursor;
@@ -672,8 +665,7 @@ def test_3233(conn, test_env):
 
             dbms_sql.return_result(c2);
         end;
-        """
-    )
+        """)
     cursor1, cursor2 = cursor.getimplicitresults()
     cursor.close()
     if conn.thin:

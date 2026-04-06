@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -51,15 +51,13 @@ def test_9100(conn, test_env):
         (None,),
         (array.array("f", [34.6, 77.8, 55.9]).tolist(),),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[34.6, 77.8]', 2, float32)
         union all
         select null
         union all
         select to_vector('[34.6, 77.8, 55.9]', 3, float32)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -71,15 +69,13 @@ def test_9101(conn, test_env):
         (None,),
         ([34.6, 77.8, 55.9],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[34.6, 77.8]', 2, float64)
         union all
         select null
         union all
         select to_vector('[34.6, 77.8, 55.9]', 3, float64)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -91,15 +87,13 @@ def test_9102(conn, test_env):
         (None,),
         ([34, 77, 55],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[34, -77]', 2, int8)
         union all
         select null
         union all
         select to_vector('[34, 77, 55]', 3, int8)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -111,15 +105,13 @@ def test_9103(skip_unless_binary_vectors_supported, conn, test_env):
         (None,),
         ([3, 2],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[3, 2, 3]', 24, binary)
         union all
         select null
         union all
         select to_vector('[3, 2]', 16, binary)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -140,8 +132,7 @@ def test_9104(conn, test_env):
         ([34.6, 77.8],),
         ([34.6, 77.8],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[34.6, 77.8]', 2, float64)
         union all
         select to_vector('[34.6, 77.8]', 2, float64)
@@ -165,8 +156,7 @@ def test_9104(conn, test_env):
         select to_vector('[34.6, 77.8]', 2, float64)
         union all
         select to_vector('[34.6, 77.8]', 2, float64)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -189,13 +179,11 @@ def test_9105(skip_unless_sparse_vectors_supported, conn, test_env):
             },
         ),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[8, [0, 7], [34.6, 77.8]]', 8, float32, sparse)
         union all
         select to_vector('[8, [0, 7], [34.6, 9.1]]', 8, float32, sparse)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -219,15 +207,13 @@ def test_9106(skip_unless_sparse_vectors_supported, conn, test_env):
             },
         ),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[8, [0, 7], [34.6, 77.8]]', 8, float64, sparse)
         union all
         select null
         union all
         select to_vector('[8, [0, 7], [34.6, 9.1]]', 8, float64, sparse)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -235,28 +221,24 @@ def test_9106(skip_unless_sparse_vectors_supported, conn, test_env):
 def test_9107(conn, test_env):
     "9107 - DPY-3031 - Unsupported flexible vector formats"
     with test_env.assert_raises_full_code("DPY-3031"):
-        conn.fetch_df_all(
-            """
+        conn.fetch_df_all("""
             select to_vector('[44, 55, 89]', 3, int8) as flex_col
             union all
             select to_vector('[34.6, 77.8, 55.9]', 3, float32)
-            """
-        )
+            """)
 
 
 def test_9108(conn, test_env):
     "9108 - test vector operations with different dimensions"
     data = [([1, 0, 3],), ([0, 5, -12.25, 0],), ([5.5, -6.25, 7, 8, 9],)]
 
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[1, 0, 3]', 3, float64) from dual
         union all
         select to_vector('[0, 5, -12.25, 0]', 4, float64) from dual
         union all
         select to_vector('[5.5, -6.25, 7, 8, 9]', 5, float64) from dual
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -266,13 +248,11 @@ def test_9109(conn, test_env):
     large_array = list(range(1, 1001))
     data = [(large_array,), (large_array,)]
     str_value = ",".join(str(i) for i in large_array)
-    ora_df = conn.fetch_df_all(
-        f"""
+    ora_df = conn.fetch_df_all(f"""
         select to_vector('[{str_value}]', {len(large_array)}, float64)
         union all
         select to_vector('[{str_value}]', {len(large_array)}, float64)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -280,13 +260,11 @@ def test_9109(conn, test_env):
 def test_9110(skip_unless_sparse_vectors_supported, conn, test_env):
     "9110 - test sparse vector operations with different dimensions"
     with test_env.assert_raises_full_code("DPY-2065"):
-        conn.fetch_df_all(
-            """
+        conn.fetch_df_all("""
             select to_vector('[10, [1, 3], [2, 4]]', 10, float64, sparse)
             union all
             select to_vector('[5, [1, 3], [2, 4]]', 5, float64, sparse)
-            """
-        )
+            """)
 
 
 def test_9111(conn, test_env):
@@ -295,8 +273,7 @@ def test_9111(conn, test_env):
         ([1.5, 2.5, 3.5], [1, 2, 3]),
         ([4.25, 5.25, 6.25], [4, 5, 6]),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select
             to_vector('[1.5, 2.5, 3.5]', 3, float64) as float_vec,
             to_vector('[1, 2, 3]', 3, int8) as int_vec
@@ -304,8 +281,7 @@ def test_9111(conn, test_env):
         select
             to_vector('[4.25, 5.25, 6.25]', 3, float64),
             to_vector('[4, 5, 6]', 3, int8)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -318,11 +294,9 @@ def test_9112(conn, test_env):
     large_vector[-25] = 8.5
     data = [(large_vector,)]
     vector_str = ",".join(str(i) for i in large_vector)
-    ora_df = conn.fetch_df_all(
-        f"""
+    ora_df = conn.fetch_df_all(f"""
         select to_vector('[{vector_str}]', {large_dim}, float64)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)
 
@@ -333,12 +307,10 @@ def test_9113(skip_unless_binary_vectors_supported, conn, test_env):
         ([255, 255, 255],),
         ([255, 0, 255],),
     ]
-    ora_df = conn.fetch_df_all(
-        """
+    ora_df = conn.fetch_df_all("""
         select to_vector('[255, 255, 255]', 24, binary)
         union all
         select to_vector('[255, 0, 255]', 24, binary)
-        """
-    )
+        """)
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert data == test_env.get_data_from_df(fetched_df)

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -117,13 +117,11 @@ async def test_5601(async_conn):
 
 async def test_5602(async_cursor, test_env):
     "5602 - test fetching objects"
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         order by IntCol
-        """
-    )
+        """)
     expected_value = [
         ("INTCOL", oracledb.DB_TYPE_NUMBER, 10, None, 9, 0, False),
         (
@@ -273,14 +271,12 @@ async def test_5603(async_conn):
 
 async def test_5604(async_conn, async_cursor):
     "5604 - test object type data"
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select ObjectCol
         from TestObjects
         where ObjectCol is not null
           and rownum <= 1
-        """
-    )
+        """)
     (obj,) = await async_cursor.fetchone()
     assert obj.type.schema == async_conn.username.upper()
     assert obj.type.name == "UDT_OBJECT"
@@ -293,24 +289,18 @@ async def test_5605(async_conn, async_cursor, test_env):
     await async_cursor.execute("delete from TestNClobs")
     await async_cursor.execute("delete from TestBlobs")
     await async_cursor.execute("delete from TestObjects where IntCol > 3")
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         insert into TestClobs (IntCol, ClobCol)
         values (1, 'A short CLOB')
-        """
-    )
-    await async_cursor.execute(
-        """
+        """)
+    await async_cursor.execute("""
         insert into TestNClobs (IntCol, NClobCol)
         values (1, 'A short NCLOB')
-        """
-    )
-    await async_cursor.execute(
-        """
+        """)
+    await async_cursor.execute("""
         insert into TestBlobs (IntCol, BlobCol)
         values (1, utl_raw.cast_to_raw('A short BLOB'))
-        """
-    )
+        """)
     await async_conn.commit()
     await async_cursor.execute("select CLOBCol from TestClobs")
     (clob,) = await async_cursor.fetchone()
@@ -352,13 +342,11 @@ async def test_5605(async_conn, async_cursor, test_env):
         """,
         obj=obj,
     )
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         where IntCol = 4
-        """
-    )
+        """)
     expected_value = (
         5,
         "A string",
@@ -398,13 +386,11 @@ async def test_5605(async_conn, async_cursor, test_env):
         """,
         obj=obj,
     )
-    await async_cursor.execute(
-        """
+    await async_cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
         from TestObjects
         where IntCol = 5
-        """
-    )
+        """)
     expected_value = (
         5,
         "A string",

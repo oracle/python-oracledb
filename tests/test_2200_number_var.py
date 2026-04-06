@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -314,13 +314,11 @@ def test_2215(cursor):
 def test_2216(cursor):
     "2216 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.NUMBER)
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             :value := 5;
         end;
-        """
-    )
+        """)
     assert bind_vars["value"].getvalue() == 5
 
 
@@ -408,14 +406,12 @@ def test_2222(cursor, module_data):
 
 def test_2223(cursor, module_data_by_key):
     "2223 - test that fetching a single row returns the correct results"
-    cursor.execute(
-        """
+    cursor.execute("""
         select *
         from TestNumbers
         where IntCol in (3, 4)
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchone() == module_data_by_key[3]
     assert cursor.fetchone() == module_data_by_key[4]
     assert cursor.fetchone() is None
@@ -423,13 +419,11 @@ def test_2223(cursor, module_data_by_key):
 
 def test_2224(cursor):
     "2224 - test that fetching a long integer returns such in Python"
-    cursor.execute(
-        """
+    cursor.execute("""
         select NullableCol
         from TestNumbers
         where IntCol = 9
-        """
-    )
+        """)
     (col,) = cursor.fetchone()
     assert col == 25004854810776297743
 
@@ -492,13 +486,11 @@ def test_2228(cursor, test_env):
 
 def test_2229(cursor):
     "2229 - test that fetching the result of division returns a float"
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol / 7
         from TestNumbers
         where IntCol = 1
-        """
-    )
+        """)
     (result,) = cursor.fetchone()
     assert result == 1.0 / 7.0
     assert isinstance(result, float)

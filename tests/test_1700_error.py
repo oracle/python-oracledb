@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -44,13 +44,11 @@ def test_1700(cursor):
 def test_1701(cursor):
     "1701 - test picking/unpickling an error object"
     with pytest.raises(oracledb.Error) as excinfo:
-        cursor.execute(
-            """
+        cursor.execute("""
             begin
                 raise_application_error(-20101, 'Test!');
             end;
-            """
-        )
+            """)
     (error_obj,) = excinfo.value.args
     assert isinstance(error_obj, oracledb._Error)
     assert "Test!" in error_obj.message
@@ -109,23 +107,19 @@ def test_1704(cursor):
     "1704 - verify warning is generated when creating a procedure"
     proc_name = "bad_proc_1704"
     assert cursor.warning is None
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create or replace procedure {proc_name} as
         begin
             null
         end;
-        """
-    )
+        """)
     assert cursor.warning.full_code == "DPY-7000"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create or replace procedure {proc_name} as
         begin
             null;
         end;
-        """
-    )
+        """)
     assert cursor.warning is None
     cursor.execute(f"drop procedure {proc_name}")
 
@@ -133,15 +127,13 @@ def test_1704(cursor):
 def test_1705(cursor):
     "1705 - verify warning is generated when creating a function"
     func_name = "bad_func_1705"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create or replace function {func_name}
         return number as
         begin
             return null
         end;
-        """
-    )
+        """)
     assert cursor.warning.full_code == "DPY-7000"
     cursor.execute(f"drop function {func_name}")
     assert cursor.warning is None
@@ -150,13 +142,11 @@ def test_1705(cursor):
 def test_1706(cursor):
     "1706 - verify warning is generated when creating a type"
     type_name = "bad_type_1706"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create or replace type {type_name} as object (
             x bad_type
         );
-        """
-    )
+        """)
     assert cursor.warning.full_code == "DPY-7000"
     cursor.execute(f"drop type {type_name}")
     assert cursor.warning is None
@@ -176,14 +166,12 @@ def test_1707(cursor):
         1,
     )
     assert cursor.warning.full_code == "DPY-7000"
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         create or replace procedure {proc_name} as
         begin
             null;
         end;
-        """
-    )
+        """)
     assert cursor.warning is None
     cursor.execute(f"drop procedure {proc_name}")
 
@@ -192,13 +180,11 @@ def test_1708(cursor):
     "1708 - user defined errors do not generate error help portal URL"
     for code in (20000, 20500, 20999):
         with pytest.raises(oracledb.Error) as excinfo:
-            cursor.execute(
-                f"""
+            cursor.execute(f"""
                 begin
                     raise_application_error(-{code}, 'User defined error');
                 end;
-                """
-            )
+                """)
         error_obj = excinfo.value.args[0]
         assert error_obj.code == code
         assert error_obj.full_code == f"ORA-{code}"

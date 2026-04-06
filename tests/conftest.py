@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -207,13 +207,11 @@ class TestEnv:
         Determines the character set in use by the database.
         """
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
+            cursor.execute("""
                 select value
                 from nls_database_parameters
                 where parameter = 'NLS_CHARACTERSET'
-                """
-            )
+                """)
             (value,) = cursor.fetchone()
             return value
 
@@ -222,14 +220,12 @@ class TestEnv:
         Calculates the character set ratios used by the database.
         """
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select
                 cast('X' as varchar2(1)),
                 cast('Y' as nvarchar2(1))
             from dual
-            """
-        )
+            """)
         varchar_info, nvarchar_info = cursor.description
         return (varchar_info.internal_size, nvarchar_info.internal_size)
 
@@ -312,12 +308,10 @@ class TestEnv:
         if self.server_version < (18, 0):
             return False
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             select sys_context('userenv', 'cloud_service')
             from dual
-            """
-        )
+            """)
         (service_name,) = cursor.fetchone()
         return service_name is not None
 
@@ -584,14 +578,12 @@ class TestEnv:
         if not self.use_thick_mode:
             return (conn.session_id, conn.serial_num)
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
+            cursor.execute("""
                 select
                     dbms_debug_jdwp.current_session_id,
                     dbms_debug_jdwp.current_session_serial
                 from dual
-                """
-            )
+                """)
             return cursor.fetchone()
 
     def has_client_and_server_version(self, major_version, minor_version=0):

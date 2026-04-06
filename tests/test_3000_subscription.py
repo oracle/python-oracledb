@@ -140,12 +140,10 @@ def test_3000(skip_unless_has_client_23, cursor, test_env):
     rowids.extend(r for r, in cursor)
 
     # second insert statement
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (2, 'test2')
-        """
-    )
+        """)
     cursor.execute("select rowid from TestTempTable where IntCol = 2")
     rowids.extend(r for r, in cursor)
 
@@ -332,12 +330,10 @@ def test_3007(skip_unless_has_client_23, test_env):
     cursor = conn.cursor()
     cursor.execute("truncate table TestTempTable")
     sub_id = sub.registerquery("select * from TestTempTable")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test')
-        """
-    )
+        """)
     conn.commit()
 
     assert event.wait(5)
@@ -406,12 +402,10 @@ def test_3013(skip_unless_has_client_23, cursor, test_env):
         client_initiated=True,
     )
     sub.registerquery("select * from TestTempTable")
-    cursor.execute(
-        """
+    cursor.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test')
-        """
-    )
+        """)
     conn.commit()
     assert event.wait(5)
 

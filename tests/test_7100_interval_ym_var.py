@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -76,13 +76,11 @@ def test_7101(cursor):
 def test_7102(cursor):
     "7102 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_YM)
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             :value := to_yminterval('-25-7');
         end;
-        """
-    )
+        """)
     expected_value = oracledb.IntervalYM(years=-25, months=-7)
     assert bind_vars["value"].getvalue() == expected_value
 
@@ -188,14 +186,12 @@ def test_7108(cursor, module_data):
 
 def test_7109(cursor, module_data_by_key):
     "7109 - test that fetching a single row returns the correct results"
-    cursor.execute(
-        """
+    cursor.execute("""
         select *
         from TestIntervalYMs
         where IntCol in (3, 4)
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchone() == module_data_by_key[3]
     assert cursor.fetchone() == module_data_by_key[4]
     assert cursor.fetchone() is None

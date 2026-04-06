@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -232,26 +232,22 @@ def test_2513(cursor):
 def test_2514(cursor):
     "2514 - test binding out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.STRING)
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             :value := 'TSI';
         end;
-        """
-    )
+        """)
     assert bind_vars["value"].getvalue() == "TSI"
 
 
 def test_2515(cursor):
     "2515 - test binding out with set input sizes defined (by integer)"
     bind_vars = cursor.setinputsizes(value=30)
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             :value := 'TSI (I)';
         end;
-        """
-    )
+        """)
     assert bind_vars["value"].getvalue() == "TSI (I)"
 
 
@@ -397,14 +393,12 @@ def test_2524(cursor, module_data):
 
 def test_2525(cursor, module_data_by_key):
     "2525 - test that fetching a single row returns the correct results"
-    cursor.execute(
-        """
+    cursor.execute("""
         select *
         from TestStrings
         where IntCol in (3, 4)
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchone() == module_data_by_key[3]
     assert cursor.fetchone() == module_data_by_key[4]
     assert cursor.fetchone() is None
@@ -444,13 +438,11 @@ def test_2527(conn, cursor):
     cursor.execute(sql, (1, short_string))
     cursor.execute(sql, (2, long_string))
     conn.commit()
-    cursor.execute(
-        """
+    cursor.execute("""
         select IntCol, StringCol1
         from TestTempTable
         order by IntCol
-        """
-    )
+        """)
     assert cursor.fetchall() == [(1, short_string), (2, long_string)]
 
 
@@ -464,8 +456,7 @@ def test_2528(conn, test_env):
         cursor.execute("drop table issue_50 purge")
     except oracledb.DatabaseError:
         pass
-    cursor.execute(
-        """
+    cursor.execute("""
         create table issue_50 (
             Id          number(11) primary key,
             Str1        nvarchar2(256),
@@ -474,8 +465,7 @@ def test_2528(conn, test_env):
             NClob1      nclob,
             NClob2      nclob
         )
-        """
-    )
+        """)
     id_var = cursor.var(oracledb.NUMBER)
     cursor.execute(
         """
@@ -506,13 +496,11 @@ def test_2529(cursor, test_env):
 
 def test_2530(cursor):
     "2530 - test fetching XMLType (< 1K) as a string"
-    cursor.execute(
-        """
+    cursor.execute("""
         select XMLElement("string", stringCol) as xml
         from TestStrings
         where intCol = 1
-        """
-    )
+        """)
     (actual_value,) = cursor.fetchone()
     assert actual_value == "<string>String 1</string>"
     assert cursor.description == [

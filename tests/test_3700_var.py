@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,7 +48,7 @@ def _test_positive_set_and_get(
     ):
         if isinstance(result, datetime.datetime):
             result = result.date()
-    assert type(result) == type(expected_value)
+    assert type(result) is type(expected_value)
     assert result == expected_value
 
 
@@ -523,13 +523,11 @@ def test_3723(cursor, test_env):
 
 def test_3724(cursor):
     "3724 - test fetching columns containing all null values"
-    cursor.execute(
-        """
+    cursor.execute("""
         select null, to_char(null), to_number(null), to_date(null),
             to_timestamp(null), to_clob(null), to_blob(null)
         from dual
-        """
-    )
+        """)
     assert cursor.fetchall() == [(None, None, None, None, None, None, None)]
 
 
@@ -590,8 +588,7 @@ def test_3730(cursor):
         )
 
     cursor.outputtypehandler = type_handler
-    cursor.execute(
-        """
+    cursor.execute("""
         select 'First - A', 'First - B'
         from dual
             union all
@@ -600,8 +597,7 @@ def test_3730(cursor):
             union all
         select null, 'Third - B'
         from dual
-        """
-    )
+        """)
     rows = cursor.fetchall()
     expected_rows = [
         ("|First - A|", "|First - B|"),

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,8 +48,7 @@ async def main():
 
     with connection.cursor() as cursor:
         # A PL/SQL block that returns two cursors
-        await cursor.execute(
-            """
+        await cursor.execute("""
             declare
                 c1 sys_refcursor;
                 c2 sys_refcursor;
@@ -66,8 +65,7 @@ async def main():
                 dbms_sql.return_result(c2);
 
             end;
-            """
-        )
+            """)
 
         # display results
         for ix, result_set in enumerate(cursor.getimplicitresults()):

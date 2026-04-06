@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,22 +48,18 @@ def _test_type_change(
     conn.outputtypehandler = type_handler
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             create or replace view TestTypesChanged as
             select {query_frag_1} as value
             from {table_name}
-            """
-        )
+            """)
         cursor.execute("select * from TestTypesChanged")
         assert cursor.fetchall() == [(query_value_1,)]
-        cursor.execute(
-            f"""
+        cursor.execute(f"""
             create or replace view TestTypesChanged as
                 select {query_frag_2} as value
                 from dual
-            """
-        )
+            """)
         cursor.execute("select * from TestTypesChanged")
         assert cursor.fetchall() == [(query_value_2,)]
     finally:

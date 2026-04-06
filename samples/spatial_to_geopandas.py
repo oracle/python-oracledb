@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2018, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2018, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -70,8 +70,7 @@ connection.autocommit = True
 
 # drop and create table
 print("Dropping and creating table...")
-cursor.execute(
-    """
+cursor.execute("""
     begin
         execute immediate 'drop table TestStates';
     exception when others then
@@ -79,16 +78,13 @@ cursor.execute(
             raise;
         end if;
     end;
-    """
-)
-cursor.execute(
-    """
+    """)
+cursor.execute("""
     create table TestStates (
         state varchar2(30) not null,
         geometry sdo_geometry not null
     )
-    """
-)
+    """)
 
 # acquire types used for creating SDO_GEOMETRY objects
 type_obj = connection.gettype("MDSYS.SDO_GEOMETRY")

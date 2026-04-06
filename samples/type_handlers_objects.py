@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2026, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -112,25 +112,21 @@ with connection.cursor() as cursor:
         )
 
     print("NO OUTPUT TYPE HANDLER:")
-    for row in cursor.execute(
-        """
+    for row in cursor.execute("""
         select *
         from BuildingsAsObjects
         order by BuildingId
-        """
-    ):
+        """):
         print(row)
     print()
 
 with connection.cursor() as cursor:
     cursor.outputtypehandler = output_type_handler
     print("WITH OUTPUT TYPE HANDLER:")
-    for row in cursor.execute(
-        """
+    for row in cursor.execute("""
         select *
         from BuildingsAsObjects
         order by BuildingId
-        """
-    ):
+        """):
         print(row)
     print()

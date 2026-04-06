@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -99,12 +99,10 @@ async def test_7002(async_conn, round_trip_checker_async):
 async def test_7003(async_conn):
     "7003 - test fetchall() with rowfactory"
     await async_conn.execute("truncate table TestTempTable")
-    await async_conn.execute(
-        """
+    await async_conn.execute("""
         insert into TestTempTable (IntCol, StringCol1)
         values (1, 'test_7003')
-        """
-    )
+        """)
     await async_conn.commit()
 
     column_names = ["INTCOL", "STRINGCOL1"]

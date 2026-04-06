@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2016, 2026, Oracle and/or its affiliates.
 #
 # Portions Copyright 2007-2015, Anthony Tuininga. All rights reserved.
 #
@@ -51,14 +51,12 @@ edition_name = sample_env.get_edition_name()
 connection = oracledb.connect(edition_connect_string)
 print("Edition should be None, actual value is:", repr(connection.edition))
 cursor = connection.cursor()
-cursor.execute(
-    """
+cursor.execute("""
     create or replace function TestEditions return varchar2 as
     begin
         return 'Base Procedure';
     end;
-    """
-)
+    """)
 result = cursor.callfunc("TestEditions", str)
 print(
     "Function should return 'Base Procedure', actually returns:", repr(result)
@@ -72,14 +70,12 @@ print(
     "actual value is:",
     repr(connection.edition),
 )
-cursor.execute(
-    """
+cursor.execute("""
     create or replace function TestEditions return varchar2 as
     begin
         return 'Edition 1 Procedure';
     end;
-    """
-)
+    """)
 result = cursor.callfunc("TestEditions", str)
 print(
     "Function should return 'Edition 1 Procedure', actually returns:",

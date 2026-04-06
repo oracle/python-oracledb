@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -48,15 +48,13 @@ with connection.cursor() as cursor:
     cursor.callproc("dbms_output.enable")
 
     # execute some PL/SQL that generates output with DBMS_OUTPUT.PUT_LINE
-    cursor.execute(
-        """
+    cursor.execute("""
         begin
             dbms_output.put_line('This is some text');
             dbms_output.put_line('');
             dbms_output.put_line('Demonstrating use of DBMS_OUTPUT');
         end;
-        """
-    )
+        """)
 
     # tune this size for your application
     chunk_size = 10
