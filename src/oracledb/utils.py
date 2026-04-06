@@ -41,6 +41,16 @@ from . import errors
 from . import thick_impl
 
 
+def check_parameter_length(name: str, value: str, max_length: int) -> None:
+    """
+    Checks the maximum parameter length and raises an error if it exceeds it.
+    """
+    if value is not None and len(value) > max_length:
+        errors._raise_err(
+            errors.ERR_PARAM_SIZE_TOO_LARGE, name=name, max_length=max_length
+        )
+
+
 def clientversion() -> tuple:
     """
     This function can only be called when python-oracledb is in Thick mode.

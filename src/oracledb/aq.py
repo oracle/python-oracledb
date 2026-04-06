@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -33,7 +33,7 @@ import datetime
 
 from . import connection as connection_module
 from typing import Any, Union
-from . import errors
+from . import errors, utils
 from .base import BaseMetaClass
 from .dbobject import DbObject, DbObjectType
 
@@ -301,6 +301,7 @@ class DeqOptions(metaclass=BaseMetaClass):
 
     @consumername.setter
     def consumername(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_consumer_name(value)
 
     @property
@@ -316,6 +317,7 @@ class DeqOptions(metaclass=BaseMetaClass):
 
     @correlation.setter
     def correlation(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_correlation(value)
 
     @property
@@ -390,6 +392,7 @@ class DeqOptions(metaclass=BaseMetaClass):
 
     @transformation.setter
     def transformation(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_transformation(value)
 
     @property
@@ -460,6 +463,7 @@ class EnqOptions(metaclass=BaseMetaClass):
 
     @transformation.setter
     def transformation(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_transformation(value)
 
     @property
@@ -505,6 +509,7 @@ class MessageProperties(metaclass=BaseMetaClass):
 
     @correlation.setter
     def correlation(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_correlation(value)
 
     @property
@@ -554,6 +559,7 @@ class MessageProperties(metaclass=BaseMetaClass):
 
     @exceptionq.setter
     def exceptionq(self, value: str) -> None:
+        utils.check_parameter_length("value", value, 128)
         self._impl.set_exception_queue(value)
 
     @property
@@ -645,6 +651,9 @@ class MessageProperties(metaclass=BaseMetaClass):
 
     @recipients.setter
     def recipients(self, value: list) -> None:
+        if value is not None:
+            for recipient in value:
+                utils.check_parameter_length("value", recipient, 120)
         self._impl.set_recipients(value)
         self._recipients = value
 

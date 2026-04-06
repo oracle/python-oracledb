@@ -297,6 +297,7 @@ ERR_WRONG_REQUESTED_SCHEMA_LENGTH = 2069
 ERR_INVALID_CALLABLE_FUN = 2070
 ERR_REGISTER_QUERY_ON_AQ_SUBSCR = 2071
 ERR_NAME_HAS_EMBEDDED_QUOTES = 2074
+ERR_PARAM_SIZE_TOO_LARGE = 2075
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -880,6 +881,10 @@ ERR_MESSAGE_FORMATS = {
         "OSON node type 0x{node_type:x} is not supported"
     ),
     ERR_OSON_VERSION_NOT_SUPPORTED: "OSON version {version} is not supported",
+    ERR_PARAM_SIZE_TOO_LARGE: (
+        'the length of the "{name}" parameter exceeds the maximum allowed '
+        "length of {max_length} UTF-8 encoded bytes"
+    ),
     ERR_PARAMS_HOOK_HANDLER_FAILED: (
         "registered handler for params hook failed"
     ),
