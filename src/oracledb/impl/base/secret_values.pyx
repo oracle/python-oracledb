@@ -62,7 +62,7 @@ cdef class SecretValueImpl:
         if not self.has_expired():
             return self._xor_bytes(self.value).decode()
 
-    cdef bytes get_value_as_bytes(self):
+    cpdef bytes get_value_as_bytes(self):
         """
         Returns the original value that was stored, unless the value has
         expired, in which case None is returned.
@@ -78,12 +78,17 @@ cdef class SecretValueImpl:
             return self.expires < datetime.datetime.now(datetime.timezone.utc)
         return False
 
-    cpdef int set_value(self, str secret_value, object expires=None) except -1:
+    cpdef int set_value(self, object value, object expires=None) except -1:
         """
         Creates and stores a byte array suitable for obfuscating the specified
         secret value, then uses it to store the secret value securely.
         """
-        cdef bytearray secret_value_bytes = bytearray(secret_value.encode())
+        cdef:
+            bytearray secret_value_bytes
+            bytes secret_value
+        secret_value = (<str> value).encode() \
+                if isinstance(value, str) else value
+        secret_value_bytes = bytearray(secret_value)
         self.obfuscator = bytearray(
             secrets.token_bytes(len(secret_value_bytes))
         )

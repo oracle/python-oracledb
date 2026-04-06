@@ -345,3 +345,11 @@ def test_1018():
     assert oracledb.get_secret(key).value == secret
     oracledb.save_secret(key, None)
     assert oracledb.get_secret(key) is None
+
+
+def test_1019():
+    "1019 - test storing a secret value containing bytes"
+    key = (1019, "key")
+    secret = b"secret_1019"
+    oracledb.save_secret(key, secret)
+    assert oracledb.get_secret(key).value_bytes == secret

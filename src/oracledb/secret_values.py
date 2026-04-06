@@ -31,7 +31,7 @@
 
 import datetime
 import threading
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from .base_impl import SecretValueImpl
 
@@ -49,8 +49,8 @@ class SecretValue:
     @property
     def value(self) -> Optional[str]:
         """
-        Returns the secret value. If the value has expired, *None* will be
-        returned instead.
+        Returns the secret value as a string. If the value has expired, *None*
+        will be returned instead.
         """
         return self._impl.get_value()
 
@@ -59,7 +59,24 @@ class SecretValue:
         self, value: str, expires: Optional[datetime.datetime] = None
     ) -> None:
         """
-        Sets the value of the secret
+        Sets the value of the secret from a string.
+        """
+        self._impl.set_value(value, expires)
+
+    @property
+    def value_bytes(self) -> Optional[bytes]:
+        """
+        Returns the secret value as bytes. If the value has expired, *None*
+        will be returned instead.
+        """
+        return self._impl.get_value_as_bytes()
+
+    @value_bytes.setter
+    def value_bytes(
+        self, value: bytes, expires: Optional[datetime.datetime] = None
+    ) -> None:
+        """
+        Sets the value of the secret from bytes.
         """
         self._impl.set_value(value, expires)
 
@@ -94,7 +111,7 @@ class SecretValueCache:
     def store_value(
         self,
         key: Any,
-        value: str,
+        value: Union[str, bytes],
         thread_local: bool = False,
         expires: Optional[datetime.datetime] = None,
     ) -> SecretValue:
@@ -136,16 +153,18 @@ def get_secret(
 
 def save_secret(
     key: Any,
-    value: Optional[str],
+    value: Optional[Union[str, bytes]],
     *,
     thread_local: bool = False,
     expires: Optional[datetime.datetime] = None,
 ) -> SecretValue:
     """
-    Saves a secret in an internal cache for later retrieval. If the
+    Saves a secret in an internal cache for later retrieval. This can help
+    protect a secret from being exposed in memory dumps. If the
     ``thread_local`` parameter is *True*, the cache will be specific to the
     particular thread that is running; otherwise, the value will be available
-    to all threads. If the value supplied is *None*, the value will be removed
-    from the cache if a value is currently saved for the supplied key.
+    to all threads. If the value supplied is *None* and a value already exists
+    in the cache for the supplied key, then the stored value will be removed
+    from the cache.
     """
     return secret_value_cache.store_value(key, value, thread_local, expires)

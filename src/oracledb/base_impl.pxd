@@ -1007,9 +1007,9 @@ cdef class SecretValueImpl:
 
     cdef bytearray _xor_bytes(self, bytearray value)
     cpdef str get_value(self)
-    cdef bytes get_value_as_bytes(self)
+    cpdef bytes get_value_as_bytes(self)
     cpdef bool has_expired(self)
-    cpdef int set_value(self, str secret_value, object expires=*) except -1
+    cpdef int set_value(self, object secret_value, object expires=*) except -1
 
 
 cdef class SparseVectorImpl:

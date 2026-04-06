@@ -1287,3 +1287,5 @@ SecretValue Class
 .. versionadded:: 4.0.0
 
 .. autoproperty:: SecretValue.value
+
+.. autoproperty:: SecretValue.value_bytes
