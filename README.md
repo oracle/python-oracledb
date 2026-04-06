@@ -75,17 +75,18 @@ with oracledb.connect(user=un, password=pw, dsn=cs) as connection:
   available when optional Oracle Client libraries are loaded by
   python-oracledb.  Libraries are available in the free [Oracle Instant
   Client][instantclient] packages. Python-oracledb can use Oracle Client
-  libraries versions 11.2 through 23, inclusive.
+  Release 19 or later. Older python-oracledb versions supported older Client
+  versions.
 
 - Oracle Database
 
-  **Thin mode**: Oracle Database 12.1 (or later) is required.
+  **Thin mode**: Oracle Database 12.1 or later is required.
 
-  **Thick mode**: Oracle Database 9.2 (or later) is required, depending on the
-  Oracle Client library version.  Oracle Database's standard client-server
-  version interoperability allows connection to both older and newer
-  databases. For example when python-oracledb uses Oracle Client 19 libraries,
-  then it can connect to Oracle Database 11.2 or later.
+  **Thick mode**: Oracle Database 11.2 or later is required, depending on the
+  Oracle Client release.  Oracle Database's standard client-server version
+  interoperability allows connection to both older and newer databases. For
+  example when python-oracledb uses Oracle Client 19 libraries, then it can
+  connect to Oracle Database 11.2 or later.
 
 ## Documentation
 

@@ -25,8 +25,8 @@
 # -----------------------------------------------------------------------------
 # secret_values.py
 #
-# Contains classes that allow storage of secret values without exposing them
-# in memory dumps.
+# Contains classes that allow storage of secret values that should not be
+# exposed in memory dumps.
 # -----------------------------------------------------------------------------
 
 import datetime

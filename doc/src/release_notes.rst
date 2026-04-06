@@ -19,29 +19,32 @@ oracledb `4.0.0 <https://github.com/oracle/python-oracledb/compare/v3.4.2...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Added support for Continuous Query Notification (CQN) and Advanced Queuing
-    (AQ) notification.
-#)  Fixed bug when using direct path load with a single byte database character
-    set
+#)  Added support for :ref:`Continuous Query Notification (CQN) <cqn>` and
+    :ref:`Oracle Advanced Queuing (AQ) <aqusermanual>` notifications.
+#)  Fixed bug when using :ref:`Direct Path Load <directpathloads>` with a
+    single byte database character set
     (`issue 567 <https://github.com/oracle/python-oracledb/issues/567>`__).
 #)  Fixed bug when decoding/encoding strings found within database objects
     (`issue 371 <https://github.com/oracle/python-oracledb/issues/371>`__).
-#)  Fixed bug when unexpected error is thrown during authentication when using
-    tokens
+#)  Fixed bug when an unexpected error is thrown during authentication when
+    using :ref:`authentication tokens <tokenauth>`
     (`issue 542 <https://github.com/oracle/python-oracledb/issues/542>`__).
 #)  Fixed bug writing boolean values to PL/SQL stored procedures and functions
     (`issue 568 <https://github.com/oracle/python-oracledb/issues/568>`__).
-#)  Added support for CLOBs that were originally created in Oracle Database 9i.
+#)  Added support for :ref:`CLOBs <lobdata>` that were originally created in
+    Oracle Database 9i.
 
 
 Thick Mode Changes
 ++++++++++++++++++
 
 #)  Added support for creating a :ref:`cursor object <cursorobj>` from an
-    external OCIStmt handle. The external handle should be wrapped in a
-    PyCapsule named ``oci_stmt_handle``. A new property :attr:`Cursor.handle`
-    was also added to provide access to the internal OCIStmt handle in order to
-    facilitate testing and to support external use, if required.
+    external `Oracle Call Interface
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest& id=LNOCI>`__ OCIStmt
+    handle. The external handle should be wrapped in a PyCapsule named
+    ``oci_stmt_handle``. A new property :attr:`Cursor.handle` was also added to
+    provide access to the internal OCIStmt handle in order to facilitate
+    testing and to support external use, if required.
 #)  Methods :meth:`Connection.fetch_df_all()` and
     :meth:`Connection.fetch_df_batches()` now support an optional ``handle``
     argument to pass an external OCIStmt handle wrapped in a PyCapsule named
@@ -51,37 +54,40 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Added support for storing and retrieving secrets (:func:`save_secret()` and
-    :func:`get_secret()`), either globally or by using thread local storage,
-    which prevents the secret from being revealed in memory dumps.
+#)  Added :func:`save_secret()` and :func:`get_secret()` to store and retrieve
+    secrets either globally or by using thread local storage.
 #)  Added attribute :attr:`ConnectParams.on_connect_callback` which can be set
     to a callable that is invoked when a standalone connection is created or a
     connection is acquired from a connection pool.
-#)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
+#)  Improved :ref:`cloud native authentication <tokenauth>` plugins:
 
-    - Added Session Token-based authentication support to the OCI Tokens
-      plugin.
+    - Added Session Token-based authentication support to the :ref:`OCI Tokens
+      plugin <cloudnativeauthoci>`.
       (`issue 527 <https://github.com/oracle/python-oracledb/issues/527>`__).
-    - Added Resource Principal authentication support to the OCI Tokens
-      plugin.
+    - Added Resource Principal authentication support to the :ref:`OCI Tokens
+      plugin <cloudnativeauthoci>`.
     - Fixed bug when using multiple token authentication plugins. Note that an
       invalid ``auth_type`` parameter will no longer raise an exception but
       will simply be ignored.
-    - Removed unnecessary validation calls in the OCI Tokens plugin.
+    - Removed unnecessary validation calls in the
+      :ref:`OCI Tokens plugin <cloudnativeauthoci>`.
 
-#)  Added support for inserting data frames containing binary views (format
-    "vb") and string views (format "vu")
+#)  Added support for inserting :ref:`data frames <dataframeformat>` containing
+    binary views (format "vb") and string views (format "vu")
     (`issue 573 <https://github.com/oracle/python-oracledb/issues/573>`__).
-#)  Added support for comparing sparse vectors with other sparse vectors.
-#)  Added support for sparse vectors with no non-zero values.
-#)  Added support for compiling with HP aCC
+#)  Added support for comparing :ref:`sparse vectors <sparsevectors>` with
+    other sparse vectors.
+#)  Added support for :ref:`sparse vectors <sparsevectors>` with no non-zero
+    values.
+#)  Added support for compiling with the HP aCC compiler
     (`issue 556 <https://github.com/oracle/python-oracledb/issues/556>`__).
-#)  Fixed bug when inserting data frames that are views of other data frames
+#)  Fixed bug when inserting :ref:`data frames <dataframeformat>` that are
+    views of other data frames
     (`issue 574 <https://github.com/oracle/python-oracledb/issues/574>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.
-#)  Upgraded nanoarrow to 0.8.0.
+#)  Upgraded Arrow C Data (nanoarrow) API version to 0.8.0.
 
 
 oracledb `3.4.2 <https://github.com/oracle/python-oracledb/compare/v3.4.1...v3.4.2>`__ (January 2026)
