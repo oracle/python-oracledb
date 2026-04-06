@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -963,3 +963,74 @@ cdef class TnsnamesFileParser(BaseParser):
             value = self._parse_value()
             if key and value:
                 on_add_entry(key.upper(), value.strip())
+
+
+cdef class NameParser(BaseParser):
+
+    cdef bint parse_simple_sql_name(self) except *:
+        """
+        Parses a simple SQL name from the string and returns it. If no simple
+        SQL name can be parsed, None is returned. A simple SQL name consists of
+        a quoted value or an alphabetic character followed by any number of
+        alphanumeric characters or one of the characters '_', '$' and '#'.
+        """
+        cdef:
+            ssize_t start_pos
+            Py_UCS4 ch
+        if self.temp_pos < self.num_chars:
+            ch = self.get_current_char()
+            self.temp_pos += 1
+            if ch == '"':
+                start_pos = self.temp_pos
+                self.parse_quoted_string(ch)
+                if self.temp_pos > start_pos + 1:
+                    return True
+            if cpython.Py_UNICODE_ISALPHA(ch):
+                start_pos = self.temp_pos - 1
+                while self.temp_pos < self.num_chars:
+                    ch = self.get_current_char()
+                    if not cpython.Py_UNICODE_ISALPHA(ch) \
+                            and not cpython.Py_UNICODE_ISDIGIT(ch) \
+                            and ch != '_' \
+                            and ch != '$' \
+                            and ch != '#':
+                        break
+                    self.temp_pos += 1
+                return True
+        return False
+
+
+def is_qualified_sql_name(str name):
+    """
+    Internal method for determining if a name is a qualified SQL name.
+    """
+    cdef:
+        NameParser parser = NameParser.__new__(NameParser)
+        bint found_db_link = False
+        ssize_t num_parts = 0
+        Py_UCS4 ch
+    parser.initialize(name.strip())
+    while parser.parse_simple_sql_name():
+        num_parts += 1
+        parser.skip_spaces()
+        if parser.temp_pos == parser.num_chars:
+            break
+        ch = parser.get_current_char()
+        parser.temp_pos += 1
+        parser.skip_spaces()
+        if not found_db_link and ch == '@':
+            found_db_link = True
+            num_parts = 0
+        elif ch != '.':
+            return False
+    return num_parts > 0 and parser.temp_pos == parser.num_chars
+
+
+def is_simple_sql_name(str name):
+    """
+    Internal method for determining if a name is a simple SQL name.
+    """
+    cdef NameParser parser = NameParser.__new__(NameParser)
+    parser.initialize(name.strip())
+    return parser.parse_simple_sql_name() \
+            and parser.temp_pos == parser.num_chars

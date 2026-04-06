@@ -199,6 +199,14 @@ Oracledb Methods
 
     .. versionadded:: 2.5.0
 
+.. autofunction:: enquote_literal
+
+    .. versionadded:: 4.0.0
+
+.. autofunction:: enquote_name
+
+    .. versionadded:: 4.0.0
+
 .. autofunction:: from_arrow
 
     .. versionadded:: 3.3.0
@@ -231,6 +239,14 @@ Oracledb Methods
         for Python 3.11 and higher; for all other versions, the encoding
         "utf-8" is used.  These values may also be supplied as a ``bytes``
         object, in which case they will be used as is.
+
+.. autofunction:: is_qualified_sql_name
+
+    .. versionadded:: 4.0.0
+
+.. autofunction:: is_simple_sql_name
+
+    .. versionadded:: 4.0.0
 
 .. autofunction:: is_thin_mode
 

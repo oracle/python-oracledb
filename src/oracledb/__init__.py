@@ -151,8 +151,12 @@ from .sparse_vector import (
 from .utils import (
     clientversion as clientversion,
     enable_thin_mode as enable_thin_mode,
+    enquote_literal as enquote_literal,
+    enquote_name as enquote_name,
     from_arrow as from_arrow,
     init_oracle_client as init_oracle_client,
+    is_qualified_sql_name as is_qualified_sql_name,
+    is_simple_sql_name as is_simple_sql_name,
     register_params_hook as register_params_hook,
     register_password_type as register_password_type,
     register_protocol as register_protocol,

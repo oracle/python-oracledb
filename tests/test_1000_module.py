@@ -353,3 +353,76 @@ def test_1019():
     secret = b"secret_1019"
     oracledb.save_secret(key, secret)
     assert oracledb.get_secret(key).value_bytes == secret
+
+
+def test_1020():
+    "1020 - test enquote_literal()"
+    options = [
+        ("test_1020", "'test_1020'"),
+        ("a'b'c'd", "'a''b''c''d'"),
+        ("'abc'", "'''abc'''"),
+        ("", "''"),
+    ]
+    for in_value, out_value in options:
+        assert oracledb.enquote_literal(in_value) == out_value
+
+
+def test_1021(test_env):
+    "1021 - test enquote_name()"
+    options = [
+        ("test_1021a", True, '"TEST_1021A"'),
+        ("test_1021b", False, '"test_1021b"'),
+        ("", False, '""'),
+        ("", True, '""'),
+    ]
+    for in_value, capitalize, out_value in options:
+        assert oracledb.enquote_name(in_value, capitalize) == out_value
+    with test_env.assert_raises_full_code("DPY-2074"):
+        oracledb.enquote_name('test_"1021c')
+
+
+def test_1022():
+    "1022 - test is_simple_sql_name()"
+    options = [
+        ("test_1022a#$", True),
+        ("    test_1022b    ", True),
+        ('"test_1022c"', True),
+        ('    "test_1022c"    ', True),
+        ("    ", False),
+        ('""', False),
+        ('    ""    ', False),
+        ("test_1022d.", False),
+        ('"test_1022d".', False),
+        ('"test_1022e" after', False),
+        ("test_1022f embedded spaces", False),
+        ('"test_1022g" extraneous', False),
+        ("12345", False),
+    ]
+    for value, expected_result in options:
+        assert oracledb.is_simple_sql_name(value) == expected_result
+
+
+def test_1023():
+    "1023 - test is_qualified_sql_name()"
+    options = [
+        ("test_1023a", True),
+        ("test_1023b.secondary", True),
+        ("test_1023c.secondary.tertiary", True),
+        ("     test_1023d    ", True),
+        ("     test_1023e  .   secondary  ", True),
+        ('     "test_1023f"  .   secondary  ', True),
+        ('     "test_1023g"  .   "secondary"  ', True),
+        ("test_1023h@dblink", True),
+        ("test_1023i   @    dblink", True),
+        ('test_1023j   @    "dblink"', True),
+        ("test_1023k   @    dblink.part2", True),
+        ("    ", False),
+        ('""', False),
+        ("test_1023k   @    ", False),
+        ('     "test_1023l"  .   "secondary"  extraneous', False),
+        ('     "test_1023m"  -   "secondary"', False),
+        ("test_1023n.1not_an_identifier", False),
+        ("test_1023o@1not_a_dblink", False),
+    ]
+    for value, expected_result in options:
+        assert oracledb.is_qualified_sql_name(value) == expected_result

@@ -34,7 +34,6 @@ Thin Mode Changes
 #)  Added support for :ref:`CLOBs <lobdata>` that were originally created in
     Oracle Database 9i.
 
-
 Thick Mode Changes
 ++++++++++++++++++
 
@@ -56,6 +55,9 @@ Common Changes
 
 #)  Added :func:`save_secret()` and :func:`get_secret()` to store and retrieve
     secrets either globally or by using thread local storage.
+#)  Added :func:`enquote_literal()`, :func:`enquote_name()`,
+    :func:`is_qualified_sql_name()` and :func:`is_simple_sql_name()` to assist
+    developers in avoiding SQL injection when processing user input.
 #)  Added attribute :attr:`ConnectParams.on_connect_callback` which can be set
     to a callable that is invoked when a standalone connection is created or a
     connection is acquired from a connection pool.

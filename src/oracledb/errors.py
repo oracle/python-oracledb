@@ -296,6 +296,7 @@ ERR_SCROLL_NOT_SUPPORTED = 2068
 ERR_WRONG_REQUESTED_SCHEMA_LENGTH = 2069
 ERR_INVALID_CALLABLE_FUN = 2070
 ERR_REGISTER_QUERY_ON_AQ_SUBSCR = 2071
+ERR_NAME_HAS_EMBEDDED_QUOTES = 2074
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -824,6 +825,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_MIXED_POSITIONAL_AND_NAMED_BINDS: (
         "positional and named binds cannot be intermixed"
     ),
+    ERR_NAME_HAS_EMBEDDED_QUOTES: "name has embedded quotes",
     ERR_NAMED_POOL_EXISTS: (
         'connection pool with alias "{alias}" already exists'
     ),

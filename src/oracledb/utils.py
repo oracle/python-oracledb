@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -65,6 +65,28 @@ def enable_thin_mode():
     """
     with driver_mode.get_manager(requested_thin_mode=True):
         pass
+
+
+def enquote_literal(value: str) -> str:
+    """
+    Returns the supplied string as a new string that is safe to include as a
+    literal in a SQL statement.
+    """
+    return "'" + value.replace("'", "''") + "'"
+
+
+def enquote_name(value: str, capitalize: bool = True) -> str:
+    """
+    Returns the supplied string as a new string that is safe to include as a
+    quoted name in a SQL statement. Since embedded quotes are not allowed in
+    quoted identifiers, an error is returned if embedded quotes are detected.
+    If the capitalize parameter is true, the string is converted to uppercase.
+    """
+    if '"' in value:
+        errors._raise_err(errors.ERR_NAME_HAS_EMBEDDED_QUOTES)
+    if capitalize:
+        value = value.upper()
+    return f'"{value}"'
 
 
 def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
@@ -180,6 +202,29 @@ def init_oracle_client(
       :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` unchanged).
     """
     thick_impl.init_oracle_client(lib_dir, config_dir, error_url, driver_name)
+
+
+def is_qualified_sql_name(value: str) -> bool:
+    """
+    Returns a boolean indicating if the supplied string contains a valid
+    qualified SQL name. Leading and trailing spaces are ignored. The name must
+    be one or more simple SQL names separated by periods (and any amount of
+    whitespace), optionally followed by the '@' symbol and one or more simple
+    SQL names referring to a database link name.
+    """
+    return base_impl.is_qualified_sql_name(value)
+
+
+def is_simple_sql_name(value: str) -> bool:
+    """
+    Returns a boolean indicating if the supplied string contains a valid simple
+    SQL name. Leading and trailing spaces are ignored. If the value is not
+    quoted, the first character must be alphabetic and the remaining characters
+    must be alphanumeric or contain the characters '_', '$' or '#'. A quoted
+    name may not contain embedded quotes and no characters other than
+    whitespace are allowed outside the quotes.
+    """
+    return base_impl.is_simple_sql_name(value)
 
 
 def normalize_sessionless_transaction_id(
