@@ -50,7 +50,7 @@ types which are detailed below.
         Buffered messaging using the :data:`~oracledb.MSG_BUFFERED` delivery mode is not supported for JSON payloads.
     * - JMS
       - Supported
-      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19 (or later) and Oracle Database version 23 (or later).
+      - Supported for single and array message enqueuing and dequeuing when using Oracle Client 19 (or later) and Oracle Database 26ai (or later).
 
 .. _aqusagenotes:
 

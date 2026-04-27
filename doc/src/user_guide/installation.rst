@@ -116,6 +116,79 @@ You can learn more about python-oracledb from the `python-oracledb
 documentation <https://python-oracledb.readthedocs.io/en/latest/index.html>`__
 and `samples <https://github.com/oracle/python-oracledb/tree/main/samples>`__.
 
+.. _instreq:
+
+Installation Requirements
+=========================
+
+To use python-oracledb, you need:
+
+- Python 3.9, 3.10, 3.11, 3.12, 3.13, or 3.14. See :ref:`pythonversion`.
+
+- The Python cryptography package. This package is automatically installed as a
+  dependency of python-oracledb.  It is strongly recommended that you keep the
+  cryptography package up to date whenever new versions are released.  If the
+  cryptography package is not available, you can still install python-oracledb
+  but can only use it in Thick mode, see :ref:`nocrypto`.
+
+- An Oracle Database either local or remote, on-premises or in the Cloud.
+
+- Optionally, Oracle Client libraries can be installed to enable some
+  additional advanced functionality. These can be from the free `Oracle Instant
+  Client <https://www.oracle.com/database/technologies/instant-client.html>`__
+  Basic or Basic Light packages, from a full Oracle Client installation (such
+  as installed by Oracle's GUI installer), or from those included in Oracle
+  Database if Python is on the same machine as the database.  Oracle Client
+  libraries versions 23, 21, and 19 can be used where available on Linux,
+  Windows, and macOS.  Oracle's standard client-server version interoperability
+  allows connection to both older and newer databases.
+
+.. _pythonversion:
+
+Pre-built python-oracledb Packages Released on PyPI
+---------------------------------------------------
+
+The following table lists the compatible python-oracledb version for your
+Python environment.
+
+.. list-table-with-summary:: Python and python-oracledb Version Compatibility
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :width: 100%
+    :name:  _python_version
+    :summary: The first column displays the Python version. The second column displays python-oracledb version.
+
+    * - Python Version
+      - python-oracledb Package Versions
+    * - 3.14
+      - 3.3.0 - current
+    * - 3.13
+      - 2.4.0 - current
+    * - 3.12
+      - 1.4.2 - current
+    * - 3.11
+      - 1.2.0 - current
+    * - 3.10
+      - 1.0.0 - current
+    * - 3.9
+      - 1.0.0 - current
+    * - 3.8
+      - 1.0.0 - 3.3.0
+    * - 3.7
+      - 1.0.0 - 2.3.0
+    * - 3.6
+      - 1.0.0 - 1.4.2
+
+Package availability may vary by platform.
+
+If it is necessary to install a specific python-oracledb version, use the pip
+"==" operator.  For example, to install version 3.2.0 use:
+
+.. code-block:: shell
+
+    python -m pip install oracledb==3.2.0
+
 Supported Oracle Database Versions
 ==================================
 
@@ -153,33 +226,6 @@ Note Oracle maintains a list of database versions that problem resolution and
 error correction can be obtained for, see `Release Schedule of Current Database
 Releases <https://support.oracle.com/epmos/faces/DocumentDisplay?
 id=742060.1>`__.
-
-.. _instreq:
-
-Installation Requirements
-=========================
-
-To use python-oracledb, you need:
-
-- Python 3.9, 3.10, 3.11, 3.12, 3.13, or 3.14
-
-- The Python cryptography package. This package is automatically installed as a
-  dependency of python-oracledb.  It is strongly recommended that you keep the
-  cryptography package up to date whenever new versions are released.  If the
-  cryptography package is not available, you can still install python-oracledb
-  but can only use it in Thick mode, see :ref:`nocrypto`.
-
-- Optionally, Oracle Client libraries can be installed to enable some
-  additional advanced functionality. These can be from the free `Oracle Instant
-  Client <https://www.oracle.com/database/technologies/instant-client.html>`__
-  Basic or Basic Light packages, from a full Oracle Client installation (such
-  as installed by Oracle's GUI installer), or from those included in Oracle
-  Database if Python is on the same machine as the database.  Oracle Client
-  libraries versions 23, 21, and 19 can be used where available on Linux,
-  Windows, and macOS.  Oracle's standard client-server version interoperability
-  allows connection to both older and newer databases.
-
-- An Oracle Database either local or remote, on-premises or in the Cloud.
 
 Installing python-oracledb on Linux
 ===================================
@@ -273,10 +319,9 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
   Oracle Instant Client version 19 will connect to Oracle Database 11.2 or
   later.
 
-  Oracle Database versions 23 and 19 are Long Term Support Releases. Note
-  32-bit clients are not available on any platform for Oracle Database version
-  23, however you can use older 32-bit clients to connect to this version of
-  the database.
+  Oracle Database 26ai and 19c are Long Term Support Releases. Note 32-bit
+  clients are not available on any platform for Oracle Database 26ai, however
+  you can use older 32-bit clients to connect to this version of the database.
 
   It is recommended to keep up to date with the latest Oracle Instant Client
   release updates of your desired major version.
@@ -385,13 +430,13 @@ To use python-oracledb with Oracle Instant Client RPMs:
     It is recommended to keep up to date with the latest Oracle Instant Client
     release updates of your desired major version.
 
-    Oracle Database versions 23 and 19 are Long Term Support Releases. Oracle
-    Instant Client version 23 will connect to Oracle Database 19 or
-    later. Oracle Instant Client version 19 will connect to Oracle Database
-    version 11.2 or later.
+    Oracle Database 26ai and 19c are Long Term Support Releases. Oracle Instant
+    Client version 23 will connect to Oracle Database 19 or later. Oracle
+    Instant Client version 19 will connect to Oracle Database version 11.2 or
+    later.
 
     Note 32-bit clients are not available on any platform for Oracle Database
-    version 23, however you can use older 32-bit clients to connect to this
+    26ai, however you can use older 32-bit clients to connect to this
     version of the database.
 
 1b. Alternatively, install Instant Client from Oracle's yum server
@@ -504,8 +549,8 @@ by Oracle's GUI installer).
 
 The libraries must be either 32-bit or 64-bit, matching your Python
 architecture. Note 32-bit clients are not available on any platform for Oracle
-Database version 23, however you can use older 32-bit clients to connect to
-this version of the database.
+Database 26ai, however you can use older 32-bit clients to connect to this
+version of the database.
 
 1. Set required Oracle environment variables, such as ``ORACLE_HOME``, by
    running the Oracle environment script. For example:
@@ -600,7 +645,7 @@ To use python-oracledb in Thick mode with Oracle Instant Client zip files:
    downloads.html>`__ or `32-bit <https://www.oracle.com/database/technologies
    /instant-client/microsoft-windows-32-downloads.html>`__, matching your
    Python architecture.  Note 32-bit clients are not available on any platform
-   for Oracle Database version 23, however you can use older 32-bit clients to
+   for Oracle Database 26ai, however you can use older 32-bit clients to
    connect to this version of the database.
 
    The latest version is recommended.  Oracle Instant Client 19 will connect to
@@ -703,8 +748,8 @@ by Oracle's GUI installer).
 
 The Oracle libraries must be either 32-bit or 64-bit, matching your Python
 architecture. Note 32-bit clients are not available on any platform for Oracle
-Database version 23, however you can use older 32-bit clients to connect to
-this version of the database.
+Database 26ai, however you can use older 32-bit clients to connect to this
+version of the database.
 
 1. Set the environment variable ``PATH`` to include the path that contains
    ``OCI.DLL``, if it is not already set.

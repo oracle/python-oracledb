@@ -3006,7 +3006,7 @@ instance restarts, unless explicitly stopped with the
 
     EXECUTE DBMS_CONNECTION_POOL.STOP_POOL()
 
-Oracle Database version 23 allows a ``DRAINTIME`` argument to be passed to
+Oracle Database 26ai allows a ``DRAINTIME`` argument to be passed to
 ``STOP_POOL()``, indicating that the pool will only be closed after the
 specified time.  This allows in-progress application work to continue. A
 draintime value of 0 can be used to immediately close the pool. See the
@@ -3391,9 +3391,9 @@ feature is enabled by adding a ``pool_boundary`` parameter to the application's
 acquire, or release, connections to be able use a DRCP or PRCP pool.
 
 Implicit connection pooling is available in python-oracledb Thin and
-:ref:`Thick <enablingthick>` modes. It requires Oracle Database
-version 23. Python-oracledb Thick mode additionally requires Oracle Client
-version 23 libraries.
+:ref:`Thick <enablingthick>` modes. It requires Oracle Database 26ai.
+Python-oracledb Thick mode additionally requires Oracle Client version 23
+libraries.
 
 With implicit connection pooling, connections are internally acquired from the
 DRCP or PRCP pool when they are actually used by the application to do database
