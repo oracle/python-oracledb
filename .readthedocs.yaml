@@ -15,6 +15,12 @@ submodules:
 sphinx:
    configuration: doc/src/conf.py
 
+# Build optional documentation formats
+formats:
+  - pdf
+  - epub
+  - htmlzip
+
 # declare Python requirements required to build docs
 python:
    install:
