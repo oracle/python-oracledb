@@ -30,10 +30,10 @@
 # -----------------------------------------------------------------------------
 # cqn.py
 #
-# Demonstrates using continuous query notification in Python, a feature that is
-# available in Oracle 11g and later. Once this script is running, use another
-# session to insert, update or delete rows from the table TestTempTable and you
-# will see the notification of that change.
+# Demonstrates using Oracle Database Continuous Query Notification. Once this
+# script is running, use another session to insert, update or delete rows from
+# the table TestTempTable and you will see the notification of changes when
+# they are committed.
 # -----------------------------------------------------------------------------
 
 import time
