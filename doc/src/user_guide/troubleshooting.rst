@@ -199,7 +199,7 @@ library could not be loaded.
 
 - If you are using Oracle Instant Client libraries (and not using a full
   Oracle Database installation or a full Oracle Instant Client installation
-  (such as installed by Oracle's GUI installer)), check whether the
+  such as installed by Oracle's GUI installer), check whether the
   ``ORACLE_HOME`` environment variable is set. If it is, unset this variable.
 
 - Set the environment variable ``DPI_DEBUG_LEVEL`` to 64 and restart

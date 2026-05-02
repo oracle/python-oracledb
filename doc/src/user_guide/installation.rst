@@ -189,6 +189,9 @@ If it is necessary to install a specific python-oracledb version, use the pip
 
     python -m pip install oracledb==3.2.0
 
+The status of Python versions can be found `here <https://devguide.python.org/
+versions/>`__.
+
 Supported Oracle Database Versions
 ==================================
 
@@ -221,6 +224,34 @@ see what mode a connection is in.  In the Thick mode, the function
 version is in use. The attribute :attr:`Connection.version` can be used to
 determine which Oracle Database version a connection is accessing. These
 attributes can then be used to adjust the application behavior accordingly.
+
+The following table lists the Oracle Database and Oracle Client library
+versions tested with python-oracledb at the time of driver releases.
+
+.. list-table-with-summary:: python-oracledb, Oracle Database and Oracle Client Version Compatibility
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :width: 100%
+    :name:  _python_database_client_version
+    :summary: The first column displays the python-oracledb version. The second column displays the Oracle Databases tested in Thin mode. The third column displays the Oracle Client libraries tested in Thick mode. The fourth column displays the Oracle Databases tested in Thick mode.
+
+    * - python-oracledb Versions
+      - Thin Mode Oracle Databases Tested
+      - Thick Mode Oracle Client Libraries Tested
+      - Thick Mode Oracle Databases Tested
+    * - 4.0.0 - current
+      - 19 - 26
+      - 19 - 26
+      - 19 - 26
+    * - 1.4.0 - 3.4.2
+      - 12.1 - 26
+      - 11.2 - 26
+      - 11.2 - 26
+    * - 1.0.0 - 1.3.0
+      - 12.1 - 19
+      - 11.2 - 19
+      - 11.2 - 19
 
 Note Oracle maintains a list of database versions that problem resolution and
 error correction can be obtained for, see `Release Schedule of Current Database

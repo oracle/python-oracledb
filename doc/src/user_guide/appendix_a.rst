@@ -19,7 +19,7 @@ The following table summarizes the Oracle Database features supported by
 python-oracledb Thin and Thick modes, and by the obsolete cx_Oracle driver.
 For more details see :ref:`driverdiff` and :ref:`upgrading83`.
 
-.. list-table-with-summary::  Features Supported by python-oracledb and cx_Oracle 8.3
+.. list-table-with-summary::  Oracle Database Features Supported by python-oracledb and cx_Oracle 8.3
     :header-rows: 1
     :class: wy-table-responsive
     :align: center

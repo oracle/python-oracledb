@@ -33,8 +33,8 @@ hosted at `github.com/oracle/python-oracledb
 <https://github.com/oracle/python-oracledb>`__.
 
 This module is currently tested with Python 3.9, 3.10, 3.11, 3.12, 3.13, and
-3.14 against Oracle Database version 26, 21, 19, 18, 12, and 11.2. Previous
-versions of python-oracledb supported older Python versions.
+3.14 against Oracle Database version 26, 21, and 19. Previous versions of
+python-oracledb supported older Python versions.
 
 Changes in python-oracledb releases can be found in the :ref:`release notes
 <releasenotes>`.
@@ -136,17 +136,24 @@ Feature Highlights of python-oracledb
 
 The python-oracledb feature highlights are:
 
-    *   Easy installation from PyPI and other repositories
-    *   Support for multiple Oracle Database versions
+    *   Easily installed from `PyPI <https://pypi.org/project/oracledb/>`__ or
+        other repositories
+    *   Connects to multiple Oracle Database versions
     *   Supports the `Python Database API v2.0 Specification <https://www.
         python.org/dev/peps/pep-0249/>`__ with a considerable number of
         additions and a couple of exclusions
-    *   Works with common frameworks and ORMs
-    *   Execution of SQL and PL/SQL statements
+    *   Used by common frameworks and ORMs
+    *   Execution of SQL and PL/SQL statements with significant optimizations
+        including compressed fetch, pre-fetching, client and server result set
+        caching, and statement caching with auto-tuning
     *   Extensive Oracle data type support, including JSON, VECTOR, large
-        objects (``CLOB`` and ``BLOB``) and binding of SQL objects
+        objects (CLOB and BLOB) and binding of SQL objects
+    *   Support for fetching and inserting data frames for efficient use with
+        Python DataFrame libraries and formats such as PyArrow, NumPy, Pandas,
+        Polars, PyTorch, and Apache Parquet
     *   Connection management, including connection pooling
-    *   Oracle Database High Availability features
+    *   Oracle Database Direct Path Loads
+    *   Oracle Database Deep Data Security and High Availability support
     *   Full use of Oracle Network Service infrastructure, including encrypted
         network traffic
 
