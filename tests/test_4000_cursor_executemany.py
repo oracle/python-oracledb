@@ -27,7 +27,6 @@
 """
 
 import decimal
-import itertools
 
 import oracledb
 import pytest
@@ -497,11 +496,13 @@ def test_4032(conn, cursor, empty_tab):
     rows = [(i + 1, None) for i in range(10)] + [
         (i + 11, (i + 11) * 0.25) for i in range(10)
     ]
-    for chunk in itertools.batched(rows, 4):
+    pos = 0
+    while pos < len(rows):
         cursor.executemany(
             "insert into TestTempTable (IntCol, NumberCol) values (:1, :2)",
-            list(chunk),
+            rows[pos : pos + 4],
         )
+        pos += 4
     conn.commit()
     cursor.execute(
         "select IntCol, NumberCol from TestTempTable order by IntCol"
