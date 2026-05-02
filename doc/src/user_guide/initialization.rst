@@ -508,7 +508,8 @@ one wins):
       connection = oracledb.connect(user="hr", password=userpwd, dsn="orclpdb")
 
 This order also applies to python-oracledb Thick mode when
-:attr:`oracledb.defaults.thick_mode_dsn_passthrough` is *False*.
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *False*.
 
 **Locating tnsnames.ora, sqlnet.ora or oraaccess.xml in python-oracledb Thick mode**
 
@@ -517,8 +518,9 @@ Client configuration files such as ``tnsnames.ora``, ``sqlnet.ora``, and
 ``oraaccess.xml`` can be explicitly specified, otherwise the Oracle Client
 libraries will use a heuristic to locate the directory.
 
-If :attr:`oracledb.defaults.thick_mode_dsn_passthrough` is *False*, then the
-following applies to all files except ``tnsnames.ora``.
+If :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *False*, then the following applies
+to all files except ``tnsnames.ora``.
 
 The configuration file directory is determined as follows:
 
@@ -571,25 +573,26 @@ applications.
 
 **Setting thick_mode_dsn_passthrough**
 
-When :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` is *True*,
-it is the Oracle Client libraries that locate and read any optional
-``tnsnames.ora`` configuration. This was always the behavior of python-oracledb
-Thick mode in versions prior to 3.0, and is the default in python-oracledb 3.0
-and later.
+When :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` is *True*, it is the Oracle Client
+libraries that locate and read any optional ``tnsnames.ora`` configuration.
+This was always the behavior of python-oracledb Thick mode in versions prior
+to 3.0, and is the default in python-oracledb 3.0 and later.
 
-Setting :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` to
-*False* makes Thick mode use the same heuristics as Thin mode regarding
-connection string parameter handling and reading any optional ``tnsnames.ora``
-configuration file.
+Setting :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False* makes Thick mode use the same
+heuristics as Thin mode regarding connection string parameter handling and
+reading any optional ``tnsnames.ora`` configuration file.
 
 Files such as ``sqlnet.ora`` and ``oraaccess.xml`` are only used by Thick
 mode. They are always located and read by Oracle Client libraries regardless of
-the :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` value. The
-directory search heuristic is determined by the Oracle Client libraries at the
-time :meth:`oracledb.init_oracle_client()` is called, as shown above.
+the :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` value. The directory search heuristic is
+determined by the Oracle Client libraries at the time
+:meth:`oracledb.init_oracle_client()` is called, as shown above.
 
-The :ref:`oracledb.defaults.thick_mode_dsn_passthrough <defaults>` value is
-ignored in Thin mode.
+The :attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` value is ignored in Thin mode.
 
 .. _envset:
 
@@ -676,7 +679,7 @@ The convention for ``driver_name`` is to separate the product name from the
 product version by a colon and single blank characters.  The value will be
 shown in Oracle Database views like V$SESSION_CONNECT_INFO.  If this parameter
 is not specified, then the value specified in the
-:attr:`oracledb.defaults.driver_name <defaults.driver_name>` attribute is used.
+:attr:`oracledb.defaults.driver_name <Defaults.driver_name>` attribute is used.
 If the value of this attribute is None, then a value like
 ``python-oracledb thk : 3.0.0`` is shown, see :ref:`vsessconinfo`.
 

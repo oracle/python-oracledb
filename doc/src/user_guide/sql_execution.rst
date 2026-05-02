@@ -72,6 +72,8 @@ This is correct:
     instead, for example ``cursor.execute("SELECT * FROM mytab WHERE mycol =
     :mybv", mybv=myvar)``.
 
+For information on validating SQL table names, column names, or identifiers
+that are provided dynamically, see :ref:`validatingsql`.
 
 SQL Queries
 ===========
@@ -1157,3 +1159,163 @@ desired type, you can explicitly set it.  For example, to insert a null
     cursor = connection.cursor()
     cursor.setinputsizes(type_obj)
     cursor.execute("insert into sometable values (:1)", [None])
+
+.. _validatingsql:
+
+Dynamic SQL Construction and Validation
+=======================================
+
+When dynamically building SQL statements, you can use the methods
+:func:`enquote_name()`, :func:`enquote_literal()`,
+:func:`is_qualified_sql_name()`, and :func:`is_simple_sql_name()` to help
+prevent SQL injection when processing user input.
+
+.. _quotenames:
+
+Quoting SQL Identifiers
+-----------------------
+
+:func:`enquote_name()` is used to safely quote SQL identifiers such as table
+names or column names. This can be used when you need to dynamically include
+identifiers in your SQL statement. For example, if your application allows
+users to provide an arbitrary column name to filter query results, you could
+ensure that the column name supplied by the user is validated with
+:func:`enquote_name()`. For the data value itself, you would continue to use
+bind variable syntax:
+
+.. code-block:: python
+
+    # User input
+    col = "DEPARTMENT_NAME"
+    val = "SALES"
+
+    col = oracledb.enquote_name(col)
+
+    sql = f"select * from departments where {col} = :1"
+    cursor.execute(sql, [val])
+
+The following example shows how a user input that is not validated alters the
+intended query from the EMPLOYEES table, and instead returns rows from the
+table DEPARTMENT:
+
+.. code-block:: python
+
+    col = "* from departments --"  # SQL Injection
+
+    sql = f"select {col} from employees"
+    print(sql)
+
+    with connection.cursor() as cursor:
+        for r in cursor.execute(sql):
+            print(r)
+
+This shows the SQL statement has been altered unexpectedly::
+
+    select * from departments -- from employees
+
+Records are shown from a table that the user should not be accessing::
+
+    (10, 'ADMINISTRATION', 200, 1700)
+    (20, 'MARKETING', 201, 1800)
+    (30, 'PURCHASING', 114, 1700)
+    (40, 'HUMAN RESOURCES', 203, 2400)
+
+Using :func:`enquote_name()` can prevent the SQL Injection:
+
+.. code-block:: python
+
+    col = "* from departments --"  # SQL Injection
+    col = oracledb.enquote_name(col)
+
+    sql = f"select {col} from employees"
+    print(sql)
+
+    with connection.cursor() as cursor:
+        for r in cursor.execute(sql):
+            print(r)
+
+This shows the SQL statement is now::
+
+    select "* FROM departments --" from employees
+
+which throws an error::
+
+    oracledb.exceptions.DatabaseError: ORA-00904: "* FROM DEPARTMENTS --": invalid identifier
+
+Note that :func:`enquote_name()` does not allow embedded quotes in quoted
+identifiers and if used, it will return the error ``DPY-2074: name has embedded
+quotes``.
+
+.. _quoteliterals:
+
+Quoting Literals
+----------------
+
+When including literal values dynamically in SQL statements, it is important
+to quote them properly so that SQL interprets them correctly. This can be done
+by using :func:`enquote_literal()`. For example:
+
+.. code-block:: python
+
+    val = oracledb.enquote_literal("O'Reilly")
+
+    # Build SQL using the quoted literal
+    sql = f"select * from employees where last_name = {val}"
+    print(sql)
+
+This prints::
+
+    select * from employees where last_name = 'O''Reilly'
+
+Note how the single quote in "O'Reilly" is automatically escaped (''), so the
+SQL remains valid.
+
+.. _validatesimplesqlnames:
+
+Validating Simple SQL Names
+---------------------------
+
+:func:`is_simple_sql_name()` checks whether the input value contains a valid
+SQL name. If the value is not quoted, the first character must be alphabetic
+and the remaining characters must be alphanumeric or contain the characters
+'_', '$', or '#'. A quoted name may not contain embedded quotes and no
+characters other than whitespace are allowed outside the quotes. Some valid and
+invalid SQL names are shown in the following example:
+
+.. code-block:: python
+
+    # Valid Simple SQL Names
+    print(oracledb.is_simple_sql_name("employee_id")) # True
+    print(oracledb.is_simple_sql_name("Salary"))      # True
+    print(oracledb.is_simple_sql_name("dept2"))       # True
+    print(oracledb.is_simple_sql_name(' "EMP" '))     # True (contains whitespace outside the quotes)
+
+    # Invalid Simple SQL Names
+    print(oracledb.is_simple_sql_name("123column"))  # False (starts with a number)
+    print(oracledb.is_simple_sql_name("first-name")) # False (contains hyphen)
+    print(oracledb.is_simple_sql_name("first name")) # False (contains space)
+    print(oracledb.is_simple_sql_name(""))           # False (empty string)
+    print(oracledb.is_simple_sql_name(' "EMP"X '))   # False (extra characters outside quotes)
+
+.. _validatequalifiedsqlnames:
+
+Validating Qualified SQL Names
+------------------------------
+
+:func:`is_qualified_sql_name()` checks whether the input value contains a valid
+qualified SQL name. The name must be one or more simple SQL names separated by
+periods (and any amount of whitespace), optionally followed by the '@' symbol
+and one or more simple SQL names referring to a database link name. Some valid
+and invalid SQL names are shown in the following example:
+
+.. code-block:: python
+
+    # Valid Qualified SQL Names
+    print(oracledb.is_qualified_sql_name("HR.employees"))     # True
+    print(oracledb.is_qualified_sql_name("SALES.Order"))      # True
+    print(oracledb.is_qualified_sql_name("MYSCHEMA.MyTable")) # True
+
+    # Invalid Qualified SQL Names
+    print(oracledb.is_qualified_sql_name("HR..Employees")) # False (contains double dot)
+    print(oracledb.is_qualified_sql_name("HR.123Orders")) # False (object name starts with number)
+    print(oracledb.is_qualified_sql_name("HR.Orders-2026")) # False (contains hyphen)

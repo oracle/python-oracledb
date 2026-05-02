@@ -51,7 +51,8 @@ Bind variables can be used to substitute data, but cannot be used to substitute
 the text of the statement.  You cannot, for example, use a bind variable
 placeholder where a column name or a table name is required.  Bind variable
 placeholders also cannot be used in Data Definition Language (DDL) statements,
-such as CREATE TABLE or ALTER statements.
+such as CREATE TABLE or ALTER statements. To build secure SQL statements when
+bind variables cannot be used, see :ref:`validatingsql`.
 
 Binding by Name or Position
 ===========================

@@ -97,17 +97,23 @@ FAN-enabled database service.  The application should have ``events`` set to
     FAN is only supported in python-oracledb Thick mode. See
     :ref:`enablingthick`.
 
+FAN can be enabled for on-premises databases and `Oracle Autonomous AI
+Database on Dedicated Exadata Infrastructure (ADB-D) <https://docs.oracle.com/
+en/cloud/paas/autonomous-database/dedicated/adbaa/>`__. FAN is not supported in
+`Oracle Autonomous AI Database Serverless (ADB-S) <https://docs.oracle.com/en/
+cloud/paas/autonomous-database/serverless/adbsb/index.html>`__.
+
 FAN support is useful for planned and unplanned outages. It provides immediate
 notification to python-oracledb following outages related to the database,
-computers, and networks. Without FAN, python-oracledb can hang until a TCP
-timeout occurs and an error is returned, which might be several minutes.
+database servers, and networks. Without FAN, python-oracledb can hang until a
+TCP timeout occurs and an error is returned, which might be several minutes.
 
 FAN allows python-oracledb to provide high availability features without the
-application being aware of an outage.  Unused, idle connections in a
-:ref:`connection pool <connpooling>` will be automatically cleaned up.  A
-future :meth:`ConnectionPool.acquire()` call will establish a fresh connection
-to a surviving database instance without the application being aware of any
-service disruption.
+application being aware of an outage or upcoming planned maintenance.  Unused,
+idle connections in a :ref:`connection pool <connpooling>` will be
+automatically cleaned up.  A future :meth:`ConnectionPool.acquire()` call will
+establish a fresh connection to a surviving database instance without the
+application being aware of any service disruption.
 
 To handle errors that affect active connections, you can add application logic
 to re-connect (this will connect to a surviving database instance) and replay
@@ -115,19 +121,20 @@ application logic without having to return an error to the application user.
 
 FAN benefits users of Oracle Database's clustering technology `Oracle RAC
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D04AA2A7-2E68-
-4C5C-BD6E-36C62427B98E>`__ because connections to surviving database instances
-can be immediately made.  Users of Oracle's Data Guard with a broker will get
-FAN events generated when the standby database goes online.  Standalone
-databases will send FAN events when the database restarts.
+4C5C-BD6E-36C62427B98E>`__ because notifications are sent when a surviving
+database instance is up and ready to accept new connections.  Users of Oracle's
+Data Guard with a broker will get FAN events generated when the standby
+database goes online.  Standalone databases will send FAN events when the
+database restarts.
 
-For more information on FAN, see the `white paper on Fast Application
+For more information on FAN, see the `technical brief on Fast Application
 Notification <https://www.oracle.com/technetwork/database/options/clustering/
-applicationcontinuity/learnmore/fastapplicationnotification12c-2538999.pdf>`__.
+overview/fastapplicationnotification12c-2980342.pdf>`__.
 
 .. _appcont:
 
-Application Continuity (AC)
----------------------------
+Application Continuity (AC) and Transparent Application Continuity (TAC)
+------------------------------------------------------------------------
 
 Oracle Application Continuity (AC) and Transparent Application Continuity (TAC)
 are Oracle Database technologies that record application interaction with the
@@ -141,11 +148,13 @@ applications.
     Oracle AC and TAC functionality is only supported in python-oracledb Thick
     mode.  See :ref:`enablingthick`.
 
-When AC or TAC are configured on the database service, they are transparently
-available to python-oracledb applications.
+When AC or TAC is configured on the database service, python-oracledb
+applications can rely on Application Continuity to orchestrate recovery
+following an unplanned outage.
 
 You must thoroughly test your application because not all lower level calls in
-the python-oracledb implementation can be replayed.
+the python-oracledb implementation can be replayed. Applications get maximum
+protection when using connection pools.
 
 See `OCI and Application Continuity <https://www.oracle.com/pls/topic/lookup?
 ctx=dblatest&id=GUID-A8DD9422-2F82-42A9-9555-134296416E8F>`__ for more
@@ -172,10 +181,18 @@ See `Oracle AI Database Development Guide
 id=GUID-6C5880E5-C45F-4858-A069-A28BB25FD1DB>`__ for more information about
 using Transaction Guard.
 
+.. important::
+
+    If your application connects to an AC or TAC-enabled service, then do not
+    use Transaction Guard explicitly. AC, TAC, or TAF already handles the
+    commit outcome and replay. Use TG only when you cannot enable AC, TAC, or
+    TAF but still need commit outcome certainty after failures.
+
 When an error occurs during commit, the Python application can acquire the
-logical transaction id (``ltxid``) from the connection and then call a
-procedure to determine the outcome of the commit for this logical transaction
-id.
+logical transaction id (``ltxid``) from the terminated connection and then call
+a procedure to determine the outcome of the commit for this logical transaction
+id. Ensure that you retrieve ``ltxid`` before the transaction fails and before
+a new connection is acquired.
 
 The steps below show how to use Transaction Guard in python-oracledb in a
 single-instance database. Refer to Oracle documentation if you are using `RAC
@@ -235,13 +252,14 @@ In the Python application code:
 * Check :attr:`oracledb._Error.isrecoverable` to confirm the error is
   recoverable. If not, do not proceed with TG.
 * Use the connection attribute :attr:`Connection.ltxid` to find the
-  logical transaction id.
+  logical transaction id from the failed connection. The ``ltxid`` attribute
+  must be retrieved before the transaction fails.
 * Call the `DBMS_APP_CONT.GET_LTXID_OUTCOME
   <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-03CEB530-D3A5-40B1-87C8-5BF1BB5D5D54>`__
   PL/SQL procedure with the logical transaction id.  This returns a boolean
   value indicating if the last transaction was committed and whether the last
   call was completed successfully or not.
-* Take any necessary action to re-do uncommitted work.
+* Take any necessary action to redo uncommitted work.
 
 See the `Transaction Guard Sample
 <https://github.com/oracle/python-oracledb/blob/main/

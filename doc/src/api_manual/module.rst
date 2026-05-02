@@ -210,9 +210,13 @@ Oracledb Methods
 
 .. autofunction:: enquote_literal
 
+    See :ref:`validatingsql`.
+
     .. versionadded:: 4.0.0
 
 .. autofunction:: enquote_name
+
+    See :ref:`validatingsql`.
 
     .. versionadded:: 4.0.0
 
@@ -251,9 +255,13 @@ Oracledb Methods
 
 .. autofunction:: is_qualified_sql_name
 
+    See :ref:`validatingsql`.
+
     .. versionadded:: 4.0.0
 
 .. autofunction:: is_simple_sql_name
+
+    See :ref:`validatingsql`.
 
     .. versionadded:: 4.0.0
 

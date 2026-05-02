@@ -662,14 +662,14 @@ id=GUID-9F0DCAEA-A67E-4183-89E7-B1555DC591CE>`__:
 
 In python-oracledb Thin mode, the output will be like::
 
-    python-oracledb thn : 3.4.0
+    python-oracledb thn : 4.0.0
 
 In python-oracledb Thick mode, the output will be like::
 
-    python-oracledb thk : 3.4.0
+    python-oracledb thk : 4.0.0
 
-Note that you may not see these values if you have set
-:attr:`oracledb.defaults.driver_name <defaults.driver_name>` or the
+Note that you may see different values if you have set
+:attr:`oracledb.defaults.driver_name <Defaults.driver_name>` or the
 ``driver_name`` parameter in :meth:`oracledb.init_oracle_client()`.
 
 The python-oracledb version can also be shown with

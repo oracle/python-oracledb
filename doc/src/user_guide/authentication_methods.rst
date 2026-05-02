@@ -1376,11 +1376,11 @@ is pre-installed with the ``oracledb`` module.
 
 **Step 1: Create an OCI Compute Instance**
 
-An `OCI compute instance <https://docs.oracle.com/en-us/iaas/compute-cloud-at-
-customer/topics/compute/compute-instances.htm>`__ is a virtual machine running
-within OCI that provides compute resources for your application. This compute
-instance will be used to authenticate access to Oracle Cloud services when
-using Instance Principal Authentication.
+An `OCI compute instance <https://docs.oracle.com/en-us/iaas/Content/Compute/
+home.htm>`__ is a bare metal or virtual machine running within OCI that
+provides compute resources for your application. This compute instance will be
+used to authenticate access to Oracle Cloud services when using Instance
+Principal Authentication.
 
 To create an OCI compute instance, see the steps in `Creating an Instance
 <https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/

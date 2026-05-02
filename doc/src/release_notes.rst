@@ -19,6 +19,7 @@ oracledb `4.0.0 <https://github.com/oracle/python-oracledb/compare/v3.4.2...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>`.
 #)  Added support for :ref:`Continuous Query Notification (CQN) <cqn>` and
     :ref:`Oracle Advanced Queuing (AQ) <aqusermanual>` notifications.
 #)  Fixed bug when using :ref:`Direct Path Load <directpathloads>` with a
@@ -33,14 +34,13 @@ Thin Mode Changes
     (`issue 568 <https://github.com/oracle/python-oracledb/issues/568>`__).
 #)  Added support for :ref:`CLOBs <lobdata>` that were originally created in
     Oracle Database 9i.
-#)  Added support for Oracle Deep Data Security feature (see :ref:`deepdatasecurity`).
 
 Thick Mode Changes
 ++++++++++++++++++
 
 #)  Added support for creating a :ref:`cursor object <cursorobj>` from an
     external `Oracle Call Interface
-    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest& id=LNOCI>`__ OCIStmt
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=LNOCI>`__ OCIStmt
     handle. The external handle should be wrapped in a PyCapsule named
     ``oci_stmt_handle``. A new property :attr:`Cursor.handle` was also added to
     provide access to the internal OCIStmt handle in order to facilitate

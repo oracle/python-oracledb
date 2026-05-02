@@ -33,7 +33,9 @@ Defaults Attributes
 
 .. autoproperty:: Defaults.driver_name
 
-    See :ref:`otherinit` and :ref:`dbviews`.
+    See :ref:`otherinit`, :ref:`dbviews`, and `V$SESSION_CONNECT_INFO
+    <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-9F0DCAEA-
+    A67E-4183-89E7-B1555DC591CE>`__.
 
     .. versionadded:: 2.5.0
 
@@ -48,13 +50,15 @@ Defaults Attributes
 
 .. autoproperty:: Defaults.machine
 
-    See :ref:`dbviews`.
+    See :ref:`dbviews` and `V$SESSION <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__.
 
     .. versionadded:: 2.5.0
 
 .. autoproperty:: Defaults.osuser
 
-    See :ref:`dbviews`.
+    See :ref:`dbviews` `V$SESSION <https://www.oracle.com/pls/topic/lookup?ctx=
+    dblatest&id=GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__.
 
     .. versionadded:: 2.5.0
 
@@ -64,7 +68,8 @@ Defaults Attributes
 
 .. autoproperty:: Defaults.program
 
-    See :ref:`dbviews`.
+    See :ref:`dbviews` and `V$SESSION <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__.
 
     .. versionadded:: 2.5.0
 
@@ -74,7 +79,8 @@ Defaults Attributes
 
 .. autoproperty:: Defaults.terminal
 
-    See :ref:`dbviews`.
+    See :ref:`dbviews` and `V$SESSION <https://www.oracle.com/pls/topic/lookup?
+    ctx=dblatest&id=GUID-28E2DC75-E157-4C0A-94AB-117C205789B9>`__.
 
     .. versionadded:: 2.5.0
 

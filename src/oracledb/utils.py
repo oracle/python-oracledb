@@ -90,7 +90,8 @@ def enquote_name(value: str, capitalize: bool = True) -> str:
     Returns the supplied string as a new string that is safe to include as a
     quoted name in a SQL statement. Since embedded quotes are not allowed in
     quoted identifiers, an error is returned if embedded quotes are detected.
-    If the capitalize parameter is true, the string is converted to uppercase.
+    If the ``capitalize`` parameter is *true*, the string is converted to
+    uppercase.
     """
     if '"' in value:
         errors._raise_err(errors.ERR_NAME_HAS_EMBEDDED_QUOTES)
@@ -230,7 +231,7 @@ def is_simple_sql_name(value: str) -> bool:
     Returns a boolean indicating if the supplied string contains a valid simple
     SQL name. Leading and trailing spaces are ignored. If the value is not
     quoted, the first character must be alphabetic and the remaining characters
-    must be alphanumeric or contain the characters '_', '$' or '#'. A quoted
+    must be alphanumeric or contain the characters '_', '$', or '#'. A quoted
     name may not contain embedded quotes and no characters other than
     whitespace are allowed outside the quotes.
     """
