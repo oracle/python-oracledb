@@ -236,7 +236,9 @@ cdef class OsonDecoder(Buffer):
                 offset = temp16
             else:
                 self.read_uint32be(&offset)
+            check_min_length(field_names_seg_size, offset + 1)
             temp16 = decode_uint16be(&ptr[offset])
+            check_min_length(field_names_seg_size, offset + temp16 + 2)
             field_names[i] = ptr[offset + 2:offset + temp16 + 2].decode()
         self.skip_to(final_pos)
         return field_names
@@ -313,7 +315,9 @@ cdef class OsonDecoder(Buffer):
                 offset = temp16
             else:
                 self.read_uint32be(&offset)
+            check_min_length(field_names_seg_size, offset + 1)
             temp8 = ptr[offset]
+            check_min_length(field_names_seg_size, offset + temp8 + 1)
             field_names[i] = ptr[offset + 1:offset + temp8 + 1].decode()
         self.skip_to(final_pos)
         return field_names

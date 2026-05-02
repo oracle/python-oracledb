@@ -365,3 +365,13 @@ def test_3515(cursor):
         """)
     fetched_data = [r for r, in cursor]
     assert fetched_data == expected_data
+
+
+def test_3516(conn, test_env):
+    "3516 - test decoding invalid OSON"
+    value_to_encode = dict(key_1="test_3516a", key_2="test_3516b")
+    encoded_bytes = conn.encode_oson(value_to_encode)
+    modified_bytes = bytearray(encoded_bytes)
+    modified_bytes[15] = 0xFF
+    with test_env.assert_raises_full_code("DPY-5006"):
+        conn.decode_oson(bytes(modified_bytes))

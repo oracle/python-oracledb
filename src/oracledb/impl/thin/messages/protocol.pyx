@@ -75,7 +75,9 @@ cdef class ProtocolMessage(Message):
             buf.skip_raw_bytes(num_elem * 5)
         buf.read_uint16be(&fdo_length)
         fdo = buf.read_raw_bytes(fdo_length)
+        check_min_length(fdo_length, 7)
         ix = 6 + fdo[5] + fdo[6]
+        check_min_length(fdo_length, ix + 5)
         caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
         self.server_compile_caps = buf.read_bytes()
         if self.server_compile_caps is not None:

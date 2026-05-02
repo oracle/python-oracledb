@@ -189,6 +189,25 @@ cdef int _set_str_param(dict args, str name, object target, bint check_network_c
         setattr(target, name, in_val)
 
 
+cdef int check_min_length(ssize_t actual_len, ssize_t min_len) except -1:
+    """
+    Checks that the actual length meets or exceeds the minimum length required.
+    """
+    if actual_len < min_len:
+        errors._raise_err(errors.ERR_UNEXPECTED_END_OF_DATA,
+                          num_bytes_wanted=min_len,
+                          num_bytes_available=actual_len)
+
+
+cdef int check_min_data_length(bytes data, ssize_t min_len) except -1:
+    """
+    Checks the data is present (not None) and the length of the data exeeds the
+    supplied minimum value.
+    """
+    cdef ssize_t actual_len = 0 if data is None else len(data)
+    check_min_length(actual_len, min_len)
+
+
 def get_array_type_code_uint32():
     """
     Returns the type code to use for array.array that will store uint32_t.

@@ -167,6 +167,11 @@ cdef int decode_number(const uint8_t* ptr, ssize_t num_bytes,
         bint is_positive
         int8_t exponent
 
+    # the maximum length of an encoded number is 21 bytes (1 byte for the
+    # exponent and 20 bytes for the mantissa)
+    if num_bytes > 21:
+        errors._raise_err(errors.ERR_NUMBER_TOO_LARGE, num_bytes=num_bytes)
+
     # the first byte is the exponent; positive numbers have the highest
     # order bit set, whereas negative numbers have the highest order bit
     # cleared and the bits inverted

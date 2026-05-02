@@ -1073,6 +1073,8 @@ cdef struct OracleData:
     OracleDataBuffer buffer
 
 
+cdef int check_min_data_length(bytes data, ssize_t min_len) except -1
+cdef int check_min_length(ssize_t actual_len, ssize_t min_len) except -1
 cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
                                          OracleData* data,
                                          ArrowArrayImpl array_impl,

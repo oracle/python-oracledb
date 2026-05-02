@@ -401,6 +401,7 @@ ERR_UNEXPECTED_PIPELINE_FAILURE = 5011
 ERR_NOT_IMPLEMENTED = 5012
 ERR_INTERNAL_CREATION_REQUIRED = 5013
 ERR_UNKNOWN_TRANSACTION_SYNC_VERSION = 5014
+ERR_NUMBER_TOO_LARGE = 5015
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -868,6 +869,7 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_NUMBER_STRING_OF_ZERO_LENGTH: "invalid number: zero length string",
     ERR_NUMBER_STRING_TOO_LONG: "invalid number: string too long",
+    ERR_NUMBER_TOO_LARGE: "encoded number data too long ({num_bytes} bytes)",
     ERR_NUMBER_WITH_EMPTY_EXPONENT: "invalid number: empty exponent",
     ERR_NUMBER_WITH_INVALID_EXPONENT: "invalid number: invalid exponent",
     ERR_OBJECT_IS_NOT_A_COLLECTION: "object {name} is not a collection",

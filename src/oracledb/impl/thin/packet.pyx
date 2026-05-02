@@ -535,6 +535,7 @@ cdef class ReadBuffer(Buffer):
         if input_ptr == NULL:
             return None
         self.read_raw_bytes_and_length(&input_ptr, &input_len)
+        check_min_length(input_len, 13)
 
         # handle physical rowid
         if input_ptr[0] == 1:

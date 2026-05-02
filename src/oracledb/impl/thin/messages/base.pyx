@@ -136,6 +136,7 @@ cdef class Message:
 
         # extract the parts of the data
         buf = <uint8_t*> data
+        check_min_data_length(data, 2)
         buf_len = len(data)
         transaction_id = data[:buf_len - 2]
         sessionless_state = <uint8_t> buf[buf_len - 2]
@@ -863,7 +864,7 @@ cdef class MessageWithData(Message):
         cdef const char_type *ptr = buf.read_raw_bytes(num_bytes)
         if self.bit_vector_buf is None:
             self.bit_vector_buf = array.array('B')
-            array.resize(self.bit_vector_buf, num_bytes)
+        array.resize(self.bit_vector_buf, num_bytes)
         self.bit_vector = <const char_type*> self.bit_vector_buf.data.as_chars
         memcpy(<void*> self.bit_vector, ptr, num_bytes)
 

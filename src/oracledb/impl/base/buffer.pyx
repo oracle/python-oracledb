@@ -61,14 +61,8 @@ cdef class Buffer:
         """
         Returns a pointer to a buffer containing the requested number of bytes.
         """
-        cdef:
-            ssize_t num_bytes_left
-            const char_type *ptr
-        num_bytes_left = self._size - self._pos
-        if num_bytes > num_bytes_left:
-            errors._raise_err(errors.ERR_UNEXPECTED_END_OF_DATA,
-                              num_bytes_wanted=num_bytes,
-                              num_bytes_available=num_bytes_left)
+        cdef const char_type *ptr
+        check_min_length(self._size - self._pos, num_bytes)
         ptr = &self._data[self._pos]
         self._pos += num_bytes
         return ptr
@@ -346,7 +340,7 @@ cdef class Buffer:
         it does not, the remainder of the buffer is returned instead.
         """
         cdef ssize_t start_pos = self._pos, end_pos = self._pos
-        while self._data[end_pos] != 0 and end_pos < self._size:
+        while end_pos < self._size and self._data[end_pos] != 0:
             end_pos += 1
         self._pos = end_pos + 1
         return self._data[start_pos:self._pos]

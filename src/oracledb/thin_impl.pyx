@@ -110,6 +110,8 @@ from .base_impl cimport (
     PIPELINE_OP_TYPE_FETCH_ONE,
     BindVar,
     Buffer,
+    check_min_data_length,
+    check_min_length,
     ConnectParamsImpl,
     convert_arrow_to_oracle_data,
     convert_oracle_data_to_python,
