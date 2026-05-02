@@ -268,12 +268,20 @@ cdef class Message:
             if num_bytes > 0:
                 binary_value = buf.read_bytes()
             buf.read_ub2(&keyword_num)      # keyword num
+            # `text_value` and `binary_value` start as None and are assigned
+            # only when the corresponding length is non-zero. Some servers
+            # send keyword pairs with zero-length payloads (observed on
+            # ALTER PLUGGABLE DATABASE OPEN / CLOSE in 19c — #587), so guard
+            # the decode/use of each value before applying it.
             if keyword_num == TNS_KEYWORD_NUM_CURRENT_SCHEMA:
-                self.conn_impl._current_schema = text_value.decode()
+                if text_value is not None:
+                    self.conn_impl._current_schema = text_value.decode()
             elif keyword_num == TNS_KEYWORD_NUM_EDITION:
-                self.conn_impl._edition = text_value.decode()
+                if text_value is not None:
+                    self.conn_impl._edition = text_value.decode()
             elif keyword_num == TNS_KEYWORD_NUM_TRANSACTION_ID:
-                self._update_sessionless_txn_state(binary_value)
+                if binary_value is not None:
+                    self._update_sessionless_txn_state(binary_value)
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
