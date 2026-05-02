@@ -33,6 +33,7 @@ Thin Mode Changes
     (`issue 568 <https://github.com/oracle/python-oracledb/issues/568>`__).
 #)  Added support for :ref:`CLOBs <lobdata>` that were originally created in
     Oracle Database 9i.
+#)  Added support for Oracle Deep Data Security feature (see :ref:`deepdatasecurity`).
 
 Thick Mode Changes
 ++++++++++++++++++

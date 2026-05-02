@@ -324,6 +324,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     self._drop_conn_impl(conn_impl)
                     is_open = False
         if is_open:
+            conn_impl.security_context = None
             for request in self._requests:
                 if request.in_progress or request.wants_new \
                         or request.conn_impl is not None \

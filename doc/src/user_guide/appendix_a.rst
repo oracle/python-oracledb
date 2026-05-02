@@ -93,6 +93,10 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes - via a user function enabled with :meth:`oracledb.register_protocol()`
       - Yes
       - Yes
+    * - Oracle Deep Data Security (DeepSec) (see :ref:`deepdatasecurity`)
+      - Yes
+      - No
+      - No
     * - Proxy connections (see :ref:`proxyauth`)
       - Yes
       - Yes

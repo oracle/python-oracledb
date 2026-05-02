@@ -937,3 +937,24 @@ def test_1159(test_env):
 
     with test_env.get_connection(on_connect_callback=callback):
         assert counter == 1
+
+
+def test_1160(skip_unless_thin_mode, test_env):
+    "1160 - test invalid end user security context length"
+    with test_env.assert_raises_full_code("DPY-2072"):
+        oracledb.create_end_user_security_context(
+            end_user_identity="x" * 70000, database_access_token="y" * 70000
+        )
+
+
+def test_1161(skip_unless_thin_mode, conn, test_env):
+    "1161 - end user security context requires tcps protocol"
+    params = test_env.get_connect_params()
+    if params.protocol == "tcps":
+        pytest.skip("test requires the TCP protocol")
+    context = oracledb.create_end_user_security_context(
+        end_user_identity="end-user-token",
+        database_access_token="mid_tier_token",
+    )
+    with test_env.assert_raises_full_code("DPY-2073"):
+        conn.set_end_user_security_context(context)

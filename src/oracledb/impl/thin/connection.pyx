@@ -103,6 +103,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
         ConnectParamsImpl _connect_params
+        EndUserSecurityContextImpl security_context
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         _check_cryptography()
@@ -519,6 +520,7 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         Internal method for closing the connection to the database.
         """
         cdef Protocol protocol = <Protocol> self._protocol
+        self.security_context = None
         try:
             protocol.close(self, in_del)
         except (ssl.SSLError, exceptions.DatabaseError):
@@ -543,6 +545,13 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         # specify that binding a string to a LOB value is possible in thin
         # mode without the use of asyncio (will be removed in a future release)
         self._allow_bind_str_to_lob = True
+
+    def clear_end_user_security_context(self):
+        """
+        Internal method for clearing the EndUserSecurityContext on the
+        connection object.
+        """
+        self.security_context = None
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
@@ -656,6 +665,23 @@ cdef class ThinConnImpl(BaseThinConnImpl):
     def set_call_timeout(self, uint32_t value):
         self._protocol._transport.set_timeout(value / 1000)
         self._call_timeout = value
+
+    def set_end_user_security_context(self, context):
+        """
+        Internal method that sets the EndUserSecurityContext on
+        the connection object which helps in determining whether
+        the security context should be sent as a piggyback.
+        """
+        if self._protocol._transport is not None \
+                and self._protocol._transport._ssl_context is None:
+            errors._raise_err(
+                errors.ERR_END_USER_SECURITY_CONTEXT_REQUIRES_TCPS
+            )
+        if not self._protocol._caps.supports_end_user_security_context:
+            errors._raise_err(
+                errors.ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE
+            )
+        self.security_context = context
 
     def suspend_sessionless_transaction(self):
         cdef:

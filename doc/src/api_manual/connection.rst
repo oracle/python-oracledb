@@ -53,6 +53,15 @@ Connection Methods
 
     .. dbapimethodextension::
 
+.. automethod:: Connection.clear_end_user_security_context
+
+    In this release, this method is only relevant to python-oracledb's Thin
+    mode.
+
+    See :ref:`endusersecuritycontextcreation`.
+
+    .. versionadded:: 4.0.0
+
 .. automethod:: Connection.close
 
 .. automethod:: Connection.commit
@@ -160,6 +169,15 @@ Connection Methods
     .. versionadded:: 3.3.0
 
 .. automethod:: Connection.rollback
+
+.. automethod:: Connection.set_end_user_security_context
+
+    In this release, this method is only relevant to python-oracledb's Thin
+    mode.
+
+    See :ref:`endusersecuritycontextcreation`.
+
+    .. versionadded:: 4.0.0
 
 .. automethod:: Connection.shutdown
 

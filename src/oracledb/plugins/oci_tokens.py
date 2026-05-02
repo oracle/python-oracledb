@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,6 +28,8 @@
 # Methods that generates an OCI access token using the OCI SDK
 # -----------------------------------------------------------------------------
 
+import base64
+import datetime
 import enum
 import pathlib
 
@@ -35,6 +37,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 import oci
 import oracledb
+import requests
 
 
 class AuthType(str, enum.Enum):
@@ -193,6 +196,55 @@ def _simple_authentication(token_auth_config):
 
     client = oci.identity_data_plane.DataplaneClient(config)
     return _generate_access_token(client, token_auth_config)
+
+
+def get_database_access_token(deepsec_params, user_token):
+    auth_flow = deepsec_params.get("auth_flow")
+    if auth_flow == "client_credentials":
+        return get_database_access_token_client_cred_flow(deepsec_params)
+    else:
+        raise ValueError(f"Incorrect value for auth_flow: {auth_flow}.")
+
+
+# Function to get mid-tier app access token (OCI-IAM)
+def get_database_access_token_client_cred_flow(end_user_sec_params):
+    key = (
+        end_user_sec_params["authority"],
+        end_user_sec_params["client_id"],
+        end_user_sec_params["client_credential"],
+        end_user_sec_params["scopes"],
+    )
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    # fetch fresh token, if not present in cache
+    auth_str = f"{end_user_sec_params.get('client_id')}:{end_user_sec_params.get('client_credential')}"
+    b64_auth = base64.b64encode(auth_str.encode()).decode()
+    headers = {
+        "Authorization": f"Basic {b64_auth}",
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+    payload = {
+        "grant_type": "client_credentials",
+        "scope": end_user_sec_params.get("scopes"),
+    }
+    response = requests.post(
+        end_user_sec_params.get("authority"), headers=headers, data=payload
+    )
+    if response.status_code == 200:
+        result = response.json()
+        token = result.get("access_token")
+        expires_in = result.get("expires_in")
+    else:
+        raise RuntimeError(f"Token request failed: {response.status_code}")
+
+    # save token in the cache
+    expires = datetime.datetime.fromtimestamp(
+        expires_in - 60, datetime.timezone.utc
+    )
+    oracledb.save_secret(key, token, expires=expires)
+    return token
 
 
 def generate_token(token_auth_config, refresh=False):

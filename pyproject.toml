@@ -63,7 +63,10 @@ test = [
     "tox",
 ]
 oci_config = ["oci"]
-oci_auth = ["oci"]
+oci_auth = [
+    "oci",
+    "requests>=2.33",
+]
 azure_config = [
     "azure-appconfiguration",
     "azure-identity",

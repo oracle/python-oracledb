@@ -1064,7 +1064,9 @@ def create_pool(
 
     - ``on_connect_callback``: a callable that is invoked immediately after a
       standalone connection is created or a connection is acquired from a
-      connection pool, but before it is returned to the caller
+      connection pool, but before it is returned to the caller. A common use of
+      this callback is for creating and setting an end user security context
+      object for DeepSec support
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context
@@ -1662,7 +1664,9 @@ def create_pool_async(
 
     - ``on_connect_callback``: a callable that is invoked immediately after a
       standalone connection is created or a connection is acquired from a
-      connection pool, but before it is returned to the caller
+      connection pool, but before it is returned to the caller. A common use of
+      this callback is for creating and setting an end user security context
+      object for DeepSec support
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context

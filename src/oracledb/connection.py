@@ -1008,6 +1008,17 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._impl.change_password(old_password, new_password)
 
+    def clear_end_user_security_context(self) -> None:
+        """
+        Clears the end user security context specified on a connection.
+
+        This reverts the connection to its original state in which subsequent
+        database operations are executed on the connection without any end user
+        security context.
+        """
+        self._verify_connected()
+        self._impl.clear_end_user_security_context()
+
     def close(self) -> None:
         """
         Closes the connection now and makes it unusable for further operations.
@@ -1314,6 +1325,20 @@ class Connection(BaseConnection):
         """
         self._verify_connected()
         self._impl.rollback()
+
+    def set_end_user_security_context(
+        self,
+        context,
+    ) -> None:
+        """
+        Sets the end user security context on a connection using the specified
+        context.
+
+        Once this method is called, the specified end user security context is
+        applicable to all database operations performed in the connection.
+        """
+        self._verify_connected()
+        self._impl.set_end_user_security_context(context)
 
     def shutdown(self, mode: int = 0) -> None:
         """
@@ -2102,7 +2127,9 @@ def connect(
 
     - ``on_connect_callback``: a callable that is invoked immediately after a
       standalone connection is created or a connection is acquired from a
-      connection pool, but before it is returned to the caller
+      connection pool, but before it is returned to the caller. A common use of
+      this callback is for creating and setting an end user security context
+      object for DeepSec support
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context
@@ -3366,7 +3393,9 @@ def connect_async(
 
     - ``on_connect_callback``: a callable that is invoked immediately after a
       standalone connection is created or a connection is acquired from a
-      connection pool, but before it is returned to the caller
+      connection pool, but before it is returned to the caller. A common use of
+      this callback is for creating and setting an end user security context
+      object for DeepSec support
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context

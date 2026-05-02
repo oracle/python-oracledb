@@ -186,6 +186,7 @@ from .base_impl cimport (
     PY_TYPE_MESSAGE_ROW,
     PY_TYPE_MESSAGE_TABLE,
     PY_TYPE_TIMEDELTA,
+    SecretValueImpl,
     SUBSCR_NAMESPACE_AQ,
     SUBSCR_QOS_DEREG_NFY,
     SUBSCR_QOS_QUERY,
@@ -266,3 +267,4 @@ include "impl/thin/dbobject.pyx"
 include "impl/thin/dbobject_cache.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
+include "impl/thin/end_user_security_context.pyx"

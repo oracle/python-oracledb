@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -468,7 +468,9 @@ class PoolParams(ConnectParams):
 
         - ``on_connect_callback``: a callable that is invoked immediately after
           a standalone connection is created or a connection is acquired from a
-          connection pool, but before it is returned to the caller
+          connection pool, but before it is returned to the caller. A common
+          use of this callback is for creating and setting an end user security
+          context object for DeepSec support
           (default: None)
 
         - ``handle``: an integer representing a pointer to a valid service
@@ -1020,7 +1022,9 @@ class PoolParams(ConnectParams):
 
         - ``on_connect_callback``: a callable that is invoked immediately after
           a standalone connection is created or a connection is acquired from a
-          connection pool, but before it is returned to the caller
+          connection pool, but before it is returned to the caller. A common
+          use of this callback is for creating and setting an end user security
+          context object for DeepSec support
 
         - ``handle``: an integer representing a pointer to a valid service
           context handle. This value is only used in python-oracledb Thick

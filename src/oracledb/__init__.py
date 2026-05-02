@@ -93,6 +93,10 @@ from .dsn import (
     makedsn as makedsn,
 )
 
+from .end_user_security_context import (
+    create_end_user_security_context as create_end_user_security_context,
+)
+
 from .errors import (
     _Error as _Error,
 )

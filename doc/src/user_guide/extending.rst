@@ -118,6 +118,10 @@ All python-oracledb installations bundle the following plugins:
   latest>`__ to generate access tokens when authenticating with OAuth 2.0
   token-based authentication. See :ref:`cloudnativeauthoauth`.
 
+- ``end_user_sec_provider`` which automates the acquisition of an end user
+  identity, and creates and sets an end user security context to connect to
+  Oracle Database. See :ref:`endusersecurityproviderplugin`.
+
 To import these python-oracledb plugins in your application, use
 ``import oracledb.plugins.<name of plugin>``, for example::
 
@@ -125,6 +129,41 @@ To import these python-oracledb plugins in your application, use
 
 Note that the namespace ``oracledb.plugins.ldap_support`` is reserved for
 future use by the python-oracledb project.
+
+.. _storesecretvalues:
+
+Storing Secret Values
+---------------------
+
+Pre-supplied plugins such as
+:ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>`,
+:ref:`oci_tokens <ocicloudnativeauthplugin>`, and
+:ref:`azure_tokens <azurecloudnativeauthplugin>`, use python-oracledb's
+:class:`SecretValue class <SecretValue>` to store and retrieve secret values
+such as tokens that are used to configure an end user security context. The
+:func:`save_secret()` function is used to store a secret value with an expiry
+in python-oracledb's internal cache, and :func:`get_secret()` is used to
+retrieve this secret from the cache. The secret value can be stored in global
+storage which is shared across all threads, or in thread local storage where
+each thread has its own secret value.
+
+The :ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>` plugin
+stores an end user's identity value in python-oracledb's internal cache under a
+fixed key using thread local storage. Using this same key, the identity value
+can be retrieved from the cache. This identity can be provided by an external
+Identity and Access Management (IAM) system such as OCI IAM and Microsoft Entra
+ID, or by Oracle Database. This pluginFor more information on using this
+plugin, see
+:ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>`.
+
+The :ref:`oci_tokens <ocicloudnativeauthplugin>` and
+:ref:`azure_tokens <azurecloudnativeauthplugin>` plugins store the database
+access token in python-oracledb's internal cache as a key which is configured
+from the parameter values in ``end_user_sec_params`` key such as ``auth_flow``,
+``authority``, ``client_id``, ``client_credentials``, and ``scopes``. Using
+this same key, the database access token is retrieved from the cache. For more
+information on using these plugins with end user security context, see
+:ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>`.
 
 .. _customplugins:
 

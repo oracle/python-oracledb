@@ -462,6 +462,16 @@ cdef class Message:
             self.warning = errors._Error(message, code=error_num,
                                          iswarning=True)
 
+    cdef int _write_str_keyword_value_pair(self, WriteBuffer buf, str key,
+                                           bytes value_bytes, uint32_t flags=0,
+                                           str text=None) except -1:
+        cdef:
+            uint32_t value_len = <uint32_t> len(value_bytes)
+        buf.write_ub4(flags)
+        buf.write_bytes_with_two_lengths(key)
+        buf.write_bytes_with_two_lengths(text)
+        buf.write_bytes_with_two_lengths(value_bytes)
+
     cdef int _write_begin_pipeline_piggyback(self, WriteBuffer buf) except -1:
         """
         Writes the piggyback to the server that informs the server that a
@@ -535,6 +545,21 @@ cdef class Message:
         # reset values
         self.conn_impl._temp_lobs_to_close = None
         self.conn_impl._temp_lobs_total_size = 0
+
+    cdef int _write_end_user_sec_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of the
+        EndUserSecurityContext required for Deep Data Security.
+        """
+        self._write_piggyback_code(buf, TNS_FUNC_END_USER_SECURITY_CTX)
+        buf.write_ub4(TNS_SECURITY_CONTEXT_ATTACH_FLAG)
+        buf.write_uint8(1)                  # pointer(kpdkve)
+        buf.write_ub4(1)                    # num of key value
+        self._write_str_keyword_value_pair(
+            buf,
+            "ORCL_XS_AUTHZ_CONTEXT",
+            self.conn_impl.security_context.oson_bytes.get_value_as_bytes()
+        )
 
     cdef int _write_end_to_end_piggyback(self, WriteBuffer buf) except -1:
         """
@@ -689,6 +714,8 @@ cdef class Message:
         """
         Writes all of the piggybacks to the server.
         """
+        if self.conn_impl.security_context is not None:
+            self._write_end_user_sec_piggyback(buf)
         if self.conn_impl.pipeline_mode != 0:
             self._write_begin_pipeline_piggyback(buf)
             self.conn_impl.pipeline_mode = 0

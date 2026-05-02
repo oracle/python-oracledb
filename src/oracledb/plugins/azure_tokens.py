@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,6 +28,7 @@
 # Methods that generates an OAuth2 access token using the MSAL SDK
 # -----------------------------------------------------------------------------
 
+import datetime
 import enum
 
 import msal
@@ -38,23 +39,92 @@ class AuthType(str, enum.Enum):
     AzureServicePrincipal = "AzureServicePrincipal".lower()
 
 
+def _build_msal_app(params):
+    return msal.ConfidentialClientApplication(
+        client_id=params["client_id"],
+        client_credential=params["client_credential"],
+        authority=params["authority"],
+    )
+
+
 def _service_principal_credentials(token_auth_config):
     """
     Returns the access token for authentication as a service principal.
     """
-    msal_config = {
-        "authority": token_auth_config["authority"],
-        "client_id": token_auth_config["client_id"],
-        "client_credential": token_auth_config["client_credential"],
-    }
     # Initialize the Confidential Client Application
-    cca = msal.ConfidentialClientApplication(**msal_config)
+    cca = _build_msal_app(token_auth_config)
     auth_response = cca.acquire_token_for_client(
         scopes=[token_auth_config["scopes"]]
     )
 
     if "access_token" in auth_response:
         return auth_response["access_token"]
+
+
+def get_database_access_token(deepsec_params, user_token):
+    auth_flow = deepsec_params.get("auth_flow")
+    if auth_flow == "client_credentials":
+        return get_database_access_token_client_cred_flow(deepsec_params)
+    elif auth_flow == "on_behalf_of":
+        return get_database_access_token_obo_flow(deepsec_params, user_token)
+    else:
+        raise ValueError(f"Incorrect value for auth_flow: {auth_flow}.")
+
+
+def get_database_access_token_client_cred_flow(deepsec_params):
+    key = (
+        deepsec_params["authority"],
+        deepsec_params["client_id"],
+        deepsec_params["client_credential"],
+        deepsec_params["scopes"],
+    )
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    # fetch fresh token, if not present in cache
+    app = _build_msal_app(deepsec_params)
+    result = app.acquire_token_for_client(scopes=[deepsec_params["scopes"]])
+    if "access_token" not in result:
+        raise Exception(f"Token acquisition failed: {result}")
+
+    token = result.get("access_token")
+    expires_in = result.get("expires_in")
+    expires = datetime.datetime.fromtimestamp(
+        expires_in - 60, datetime.timezone.utc
+    )
+    oracledb.save_secret(key, token, expires=expires)
+    return token
+
+
+def get_database_access_token_obo_flow(deepsec_params, user_token):
+    key = (
+        user_token,
+        deepsec_params["authority"],
+        deepsec_params["client_id"],
+        deepsec_params["client_credential"],
+        deepsec_params["scopes"],
+    )
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    # fetch fresh token, if not present in cache
+    app = _build_msal_app(deepsec_params)
+    result = app.acquire_token_on_behalf_of(
+        user_assertion=user_token,
+        scopes=[deepsec_params["scopes"]],
+    )
+    if "access_token" not in result:
+        raise Exception(f"OBO token acquisition failed: {result}")
+
+    token = result.get("access_token")
+    expires_in = result.get("expires_in")
+    expires = datetime.datetime.fromtimestamp(
+        expires_in - 60, datetime.timezeon.utc
+    )
+    oracledb.save_secret(key, token, expires=expires)
+    return token
 
 
 def generate_token(token_auth_config, refresh=False):
