@@ -664,3 +664,11 @@ def test_1940(cursor):
         "pkg_TestLOBs.TestInOut", [var, search_value, replace_value]
     )
     assert var.getvalue().read() == final_value
+
+
+def test_1941(cursor):
+    "1941 - repeated query with LOB that is transformed to a different type"
+    for i in range(3):
+        cursor.execute("select JsonClob from TestJsonCols where IntCol = 1")
+        (fetched_value,) = cursor.fetchone()
+        assert fetched_value == [4, 5, 6]

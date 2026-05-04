@@ -22,6 +22,10 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug when a query containing a LOB column is repeated and the LOB
+    column is transformed to a different value during the first query
+    (`issue 584 <https://github.com/oracle/python-oracledb/issues/584>`__).
+
 Common Changes
 ++++++++++++++
 
