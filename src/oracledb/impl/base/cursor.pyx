@@ -212,12 +212,14 @@ cdef class BaseCursorImpl:
         if db_type_num == DB_TYPE_NUM_NUMBER:
             if self.fetch_decimals:
                 var_impl.metadata._py_type_num = PY_TYPE_NUM_DECIMAL
-        elif metadata.is_oson and db_type_num != DB_TYPE_NUM_JSON:
+        elif metadata.is_oson and db_type_num != DB_TYPE_NUM_JSON \
+                and not self.fetching_arrow:
             conn_impl = self._get_conn_impl()
             var_impl.metadata.dbtype = DB_TYPE_LONG_RAW
             var_impl._fetch_metadata.dbtype = DB_TYPE_LONG_RAW
             var_impl.outconverter = conn_impl.decode_oson
-        elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON:
+        elif metadata.is_json and db_type_num != DB_TYPE_NUM_JSON \
+                and not self.fetching_arrow:
             var_impl.outconverter = self._build_json_converter_fn()
         elif not self.fetch_lobs or self.fetching_arrow:
             if db_type_num == DB_TYPE_NUM_BLOB:

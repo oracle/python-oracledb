@@ -25,6 +25,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug fetching CLOB or BLOB columns with a check constraint mandating
+    the storage of JSON data into a :ref:`data frame <dataframeformat>`
+    (`issue 586 <https://github.com/oracle/python-oracledb/issues/586>`__).
+
 
 oracledb `4.0.0 <https://github.com/oracle/python-oracledb/compare/v3.4.2...v4.0.0>`__ (May 2026)
 -------------------------------------------------------------------------------------------------

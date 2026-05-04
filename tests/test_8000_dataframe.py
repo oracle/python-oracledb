@@ -1927,3 +1927,17 @@ def test_8080(conn, test_env):
             handle=1, statement="select user from dual"
         ):
             pass
+
+
+def test_8081(conn, test_env):
+    "8081 - test fetching JSON constrained data via Arrow backed data frame"
+    expected_data = [("[1, 2, 3]", "[4, 5, 6]", b"[7, 8, 9]")]
+    ora_df = conn.fetch_df_all("""
+        select
+            JsonVarchar,
+            JsonClob,
+            JsonBlob
+        from TestJsonCols
+        where IntCol = 1""")
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == expected_data
