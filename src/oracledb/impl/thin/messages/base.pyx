@@ -258,22 +258,25 @@ cdef class Message:
         """
         cdef:
             uint16_t i, num_bytes, keyword_num
-            bytes text_value, binary_value
+            bytes binary_value
+            str text_value
         for i in range(num_pairs):
-            text_value = binary_value = None
+            text_value = None
+            binary_value = None
             buf.read_ub2(&num_bytes)        # text value
             if num_bytes > 0:
-                text_value = buf.read_bytes()
+                text_value = buf.read_str(CS_FORM_IMPLICIT)
             buf.read_ub2(&num_bytes)        # binary value
             if num_bytes > 0:
                 binary_value = buf.read_bytes()
             buf.read_ub2(&keyword_num)      # keyword num
             if keyword_num == TNS_KEYWORD_NUM_CURRENT_SCHEMA:
-                self.conn_impl._current_schema = text_value.decode()
+                self.conn_impl._current_schema = text_value
             elif keyword_num == TNS_KEYWORD_NUM_EDITION:
-                self.conn_impl._edition = text_value.decode()
+                self.conn_impl._edition = text_value
             elif keyword_num == TNS_KEYWORD_NUM_TRANSACTION_ID:
-                self._update_sessionless_txn_state(binary_value)
+                if binary_value is not None:
+                    self._update_sessionless_txn_state(binary_value)
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:

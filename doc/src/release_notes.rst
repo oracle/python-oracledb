@@ -19,6 +19,10 @@ oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when executing certain ALTER PLUGGABLE DATABASE commands
+    repeatedly
+    (`issue 587 <https://github.com/oracle/python-oracledb/issues/587>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
