@@ -57,6 +57,12 @@ jobs:
           - os: ubuntu-24.04-arm
             platform: arm64
             container: quay.io/pypa/manylinux_2_28_aarch64
+          - os: alpine-3.22
+            platform: amd64
+            container: quay.io/pypa/musllinux_1_2_x86_64
+          - os: alpine-3.22-arm
+            platform: arm64
+            container: quay.io/pypa/musllinux_1_2_aarch64
 
     steps:
 
@@ -137,7 +143,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, windows-11-arm]
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13.5', '3.14']
         arch: ['x86', '']
 
