@@ -22,6 +22,9 @@ Thin Mode Changes
 #)  Fixed bug when executing certain ALTER PLUGGABLE DATABASE commands
     repeatedly
     (`issue 587 <https://github.com/oracle/python-oracledb/issues/587>`__).
+#)  Fixed bug when parsing a :ref:`tnsnames.ora <optnetfiles>` file containing
+    an ``IFILE`` directive enclosed in quotes
+    (`issue 589 <https://github.com/oracle/python-oracledb/issues/589>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

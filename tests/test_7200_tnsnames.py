@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -549,4 +549,42 @@ def test_7222():
         assert params.get_network_service_names() == [
             network_service_name1.upper(),
             network_service_name2.upper(),
+        ]
+
+
+def test_7223():
+    "7223 - parse IFILE enclosed in double quotes"
+    host_a = "host_7223a"
+    host_b = "host_7223b"
+    port_a = 72231
+    port_b = 72232
+    service_name_a = "service_7223a"
+    service_name_b = "service_7223b"
+    connect_string_a = f"{host_a}:{port_a}/{service_name_a}"
+    connect_string_b = f"{host_b}:{port_b}/{service_name_b}"
+    network_service_name_a = "nsn_7223a"
+    network_service_name_b = "nsn_7223b"
+    include_file_name = "inc_7223.ora"
+    dir_1 = tempfile.TemporaryDirectory()
+    dir_2 = tempfile.TemporaryDirectory()
+    with dir_1 as primary_temp_dir, dir_2 as included_temp_dir:
+        file_name = os.path.join(included_temp_dir, include_file_name)
+        with open(file_name, "w") as f:
+            f.write(f"{network_service_name_b} = {connect_string_b}")
+        primary_file_name = os.path.join(primary_temp_dir, "tnsnames.ora")
+        with open(primary_file_name, "w") as f:
+            f.write(f"{network_service_name_a} = {connect_string_a}\n")
+            f.write(f'ifile = "{file_name}"')
+        params = oracledb.ConnectParams(config_dir=primary_temp_dir)
+        params.parse_connect_string(network_service_name_a)
+        assert params.host == host_a
+        assert params.port == port_a
+        assert params.service_name == service_name_a
+        params.parse_connect_string(network_service_name_b)
+        assert params.host == host_b
+        assert params.port == port_b
+        assert params.service_name == service_name_b
+        assert params.get_network_service_names() == [
+            network_service_name_a.upper(),
+            network_service_name_b.upper(),
         ]

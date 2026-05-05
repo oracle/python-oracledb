@@ -1165,6 +1165,8 @@ cdef class TnsnamesFileReader:
             int line_no = 0
         def add_entry(key, value):
             if key == "IFILE":
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
                 if not os.path.isabs(value):
                     dir_name = os.path.dirname(tnsnames_file.file_name)
                     value = os.path.join(dir_name, value)
