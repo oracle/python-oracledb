@@ -57,10 +57,10 @@ jobs:
           - os: ubuntu-24.04-arm
             platform: arm64
             container: quay.io/pypa/manylinux_2_28_aarch64
-          - os: alpine-3.22
+          - os: ubuntu-24.04
             platform: amd64
             container: quay.io/pypa/musllinux_1_2_x86_64
-          - os: alpine-3.22-arm
+          - os: ubuntu-24.04-arm
             platform: arm64
             container: quay.io/pypa/musllinux_1_2_aarch64
 
@@ -102,7 +102,7 @@ jobs:
           path: dist/*.whl
 
   build_macos_wheels:
-    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
+    name: Build wheels for macOS
     if: contains(inputs.tgt, 'macOS') || inputs.tgt == ''
     runs-on: ${{ matrix.os }}
     strategy:
@@ -138,7 +138,7 @@ jobs:
           path: dist/*.whl
 
   build_windows_wheels:
-    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
+    name: Build wheels for Windows
     if: contains(inputs.tgt, 'Windows') || inputs.tgt == ''
     runs-on: ${{ matrix.os }}
     strategy:
@@ -187,7 +187,7 @@ jobs:
           path: dist/*.whl
 
   combine_artifacts:
-    name: Combine artifacts into single artifact
+    name: Combine artifacts
     if: ${{ always() }}
     needs: [build_source_package, build_linux_wheels, build_macos_wheels, build_windows_wheels]
     runs-on: ubuntu-latest
