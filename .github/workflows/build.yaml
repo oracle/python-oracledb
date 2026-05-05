@@ -144,7 +144,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13.5', '3.14']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
         arch: ['x86', '']
         include:
           - os: windows-11-arm
@@ -155,7 +155,7 @@ jobs:
             python-version: '3.12'
           - os: windows-11-arm
             platform: amd64
-            python-version: '3.13.5'
+            python-version: '3.13'
           - os: windows-11-arm
             platform: amd64
             python-version: '3.14'
