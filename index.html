@@ -3,7 +3,7 @@
 
 <!--
 
-Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 
 This software is dual-licensed to you under the Universal Permissive License
 (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -213,7 +213,7 @@ limitations under the License.
               Oracle Client libraries using the free <a
               href="https://www.oracle.com/database/technologies/instant-client.html"
               >Oracle Instant Client</a> packages. Python-oracledb works with
-              Oracle Client libraries 11.2 through 23.  See <a
+              Oracle Client libraries 19 through 26.  See <a
               href="https://python-oracledb.readthedocs.io/en/latest/user_guide/initialization.html#enablingthick"
               >Enabling python-oracledb Thick mode</a>.</p>
 
@@ -224,10 +224,10 @@ limitations under the License.
               <p><strong>Oracle Database</strong></p>
 
               <p><strong>Thin mode</strong>: Python-oracledb Thin mode connects
-              to Oracle Database 12, 18, 19, 21 and 23.</p>
+              to Oracle Database 12, 18, 19, 21 and 26.</p>
 
               <p><strong>Thick mode</strong>: Python-oracledb Thick mode
-              connects to Oracle Database 9.2, 10, 11.2, 12, 18, 21 and 23,
+              connects to Oracle Database 11.2, 12, 18, 21 and 26,
               depending on the Oracle Client library version.  Oracle
               Database's standard client-server version interoperability allows
               connection to both older and newer databases. For example, when
@@ -313,13 +313,13 @@ limitations under the License.
       href="https://docs.python.org/3/library/asyncio.html" >asyncio</a> coding
       styles.</p></li>
 
-      <li><p>Connects to Oracle Database 9.2, 10, 11.2, 12, 18, 19, 21 and 23
+      <li><p>Connects to Oracle Database 11.2, 12, 18, 19, 21 and 26
       on-premises or in the Cloud.</p></li>
 
-      <li><p>Optional use of Oracle Client 11.2, 12, 18, 19, 21 or 23 libraries
-      for advanced Oracle Database functionality.  Oracle's standard
-      cross-version interoperability allows easy upgrades and connectivity to
-      different Oracle Database versions.</p></li>
+      <li><p>Optional use of Oracle Client 19, 21 or 26 libraries for advanced
+      Oracle Database functionality.  Oracle's standard cross-version
+      interoperability allows easy upgrades and connectivity to different
+      Oracle Database versions.</p></li>
 
       <li><p>SQL and PL/SQL Execution with significant optimizations including
       compressed fetch, pre-fetching, client and server result set caching, and
@@ -354,7 +354,7 @@ limitations under the License.
       <li><p>Scrollable cursors. Go back and forth through your query
       results.</p></li>
 
-      <li><p>Oracle Database 23ai statement pipelining. Keep the database busy
+      <li><p>Oracle Database 26ai statement pipelining. Keep the database busy
       processing statements.</p></li>
 
       <li><p>Fetch PL/SQL Implicit Results. Easily return query results from
@@ -396,12 +396,14 @@ limitations under the License.
 
       <li><p>Token Authentication.</p></li>
 
-      <li><p>Centralized Configuration Provider support.</p></li>
+      <li><p>Support for Centralized Configuration Providers.</p></li>
 
       <li><p>Oracle Database startup and shutdown.</p></li>
 
       <li><p>Oracle Globally Distributed Database (formerly called Oracle
       Sharding) connectivity.</p></li>
+
+      <li><p>Support for Oracle AI Database 26ai Deep Data Security.</p></li>
 
       <li><p>Oracle Database High Availability Features, such as in-band and
       FAN notifications, Application Continuity, Transparent Application
