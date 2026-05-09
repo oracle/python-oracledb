@@ -593,7 +593,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
-            else:
+            elif request.needs_processing():
                 conn_impl = self._create_conn_impl(request.params)
                 if request.conn_impl is not None:
                     self._drop_conn_impl(request.conn_impl)
@@ -789,7 +789,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
-            else:
+            elif request.needs_processing():
                 conn_impl = await self._create_conn_impl(request.params)
                 if request.conn_impl is not None:
                     self._drop_conn_impl(request.conn_impl)
@@ -1010,6 +1010,16 @@ cdef class PooledConnRequest:
         # wait for the pool to grow or a connection to be returned to the pool
         pool._add_request(self)
         return False
+
+    cdef bint needs_processing(self):
+        """
+        Returns a boolean indicating if the request must be processed. This is
+        true if a ping is required (since the connection is still in the pool),
+        if a connection is being replaced (since it must replace a connection
+        that has been removed from the pool) or if a waiter is still waiting
+        for the request to be processed.
+        """
+        return self.requires_ping or self.is_replacing or self.waiting
 
     cdef int reject(self) except -1:
         """

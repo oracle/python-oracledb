@@ -19,6 +19,9 @@ oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug causing a connection pool to grow beyond its maximum allowed
+    connections after requests time out
+    (`issue 581 <https://github.com/oracle/python-oracledb/issues/581>`__).
 #)  Fixed bug when executing certain ALTER PLUGGABLE DATABASE commands
     repeatedly
     (`issue 587 <https://github.com/oracle/python-oracledb/issues/587>`__).
