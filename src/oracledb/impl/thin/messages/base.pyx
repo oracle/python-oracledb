@@ -271,7 +271,7 @@ cdef class Message:
             # `text_value` and `binary_value` start as None and are assigned
             # only when the corresponding length is non-zero. Some servers
             # send keyword pairs with zero-length payloads (observed on
-            # ALTER PLUGGABLE DATABASE OPEN / CLOSE in 19c — #587), so guard
+            # ALTER PLUGGABLE DATABASE OPEN / CLOSE in 19c, #587), so guard
             # the decode/use of each value before applying it.
             if keyword_num == TNS_KEYWORD_NUM_CURRENT_SCHEMA:
                 if text_value is not None:
