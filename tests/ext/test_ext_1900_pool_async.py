@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -23,13 +23,14 @@
 # -----------------------------------------------------------------------------
 
 """
-E1900 - Module for testing pool strinking with asyncio. No special setup is
-required but the tests here will only be run if the run_long_tests value is
-enabled.
+E1900 - Module for testing various aspects of pool growth, shrinking, etc. with
+asyncio. No special setup is required but the tests here will only be run if
+the run_long_tests value is enabled.
 """
 
 import asyncio
 
+import oracledb
 import pytest
 
 
@@ -121,3 +122,43 @@ async def test_ext_1905(test_env):
         pass
     await asyncio.sleep(2)
     assert pool.opened == 4
+
+
+async def test_ext_1906(test_env):
+    "E1906 - test static pool grows back to the min after sessions killed"
+    pool = test_env.get_pool_async(min=5, max=5, increment=1, ping_interval=0)
+    conns = [await pool.acquire() for i in range(5)]
+    admin_conn = await test_env.get_admin_connection_async()
+    with admin_conn.cursor() as admin_cursor:
+        for conn in conns:
+            sid, serial = (conn.session_id, conn.serial_num)
+            kill_sql = f"alter system kill session '{sid},{serial}'"
+            await admin_cursor.execute(kill_sql)
+    await admin_conn.close()
+    for conn in conns:
+        await conn.close()
+    conns.clear()
+    conn = await pool.acquire()
+    await asyncio.sleep(2)
+    assert pool.opened == pool.min
+
+
+async def test_ext_1907(skip_unless_run_long_tests, test_env):
+    "E1907 - test timed out requests dont allow pool max to be exceeded"
+    pool = test_env.get_pool_async(
+        min=2,
+        max=5,
+        increment=1,
+        getmode=oracledb.POOL_GETMODE_TIMEDWAIT,
+        wait_timeout=1_000,
+    )
+    conns = [await pool.acquire() for i in range(5)]
+    coroutines = [pool.acquire() for i in range(20)]
+    await asyncio.gather(*coroutines, return_exceptions=True)
+    coroutines = [pool.acquire() for i in range(3)]
+    await asyncio.gather(*coroutines, return_exceptions=True)
+    await asyncio.sleep(10)
+    for conn in conns:
+        await conn.close()
+    assert pool.opened <= pool.max
+    await pool.close()

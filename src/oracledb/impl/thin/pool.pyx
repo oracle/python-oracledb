@@ -127,11 +127,16 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         """
         Helper function that closes all of the connections in the pool.
         """
+        cdef PooledConnRequest request
 
         # if force parameter is not True and busy connections exist in the
-        # pool or there are outstanding requests, raise an exception
-        if not force and (self.get_busy_count() > 0 or self._requests):
-            errors._raise_err(errors.ERR_POOL_HAS_BUSY_CONNECTIONS)
+        # pool or there are outstanding busy requests, raise an exception
+        if not force:
+            if len(self._busy_conn_impls) > 0:
+                errors._raise_err(errors.ERR_POOL_HAS_BUSY_CONNECTIONS)
+            for request in self._requests:
+                if request.waiting:
+                    errors._raise_err(errors.ERR_POOL_HAS_BUSY_CONNECTIONS)
 
         # close all connections in the pool
         self._close_all_connections()
