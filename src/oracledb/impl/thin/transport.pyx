@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -155,8 +155,11 @@ cdef class Transport:
             self._ssl_context.load_verify_locations(cadata=macos_certs)
 
         # if a wallet is specified, either mTLS is being used or a set of
-        # certificates is being loaded to validate the server
-        if description.wallet_location is not None:
+        # certificates is being loaded to validate the server; note that a
+        # special value of SYSTEM is also treated as equivalent to having no
+        # wallet location specified (keyword added in 23)
+        if description.wallet_location is not None \
+                and description.wallet_location.upper() != "SYSTEM":
             pem_file_name = os.path.join(description.wallet_location,
                                          PEM_WALLET_FILE_NAME)
             if not os.path.exists(pem_file_name):

@@ -30,6 +30,9 @@ Thin Mode Changes
     (`issue 589 <https://github.com/oracle/python-oracledb/issues/589>`__).
 #)  Fixed bug when specifying a value for the ``ORA_SDTZ`` environment variable
     as one of the keywords ``LOCAL`` or ``DBTIMEZONE``.
+#)  Fixed bug when specifying ``wallet_location`` as the keyword ``SYSTEM``
+    (which is equivalent to not specifying a wallet location but using the
+    system trust store instead).
 
 Thick Mode Changes
 ++++++++++++++++++
