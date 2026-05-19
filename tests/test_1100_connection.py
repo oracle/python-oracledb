@@ -85,12 +85,11 @@ def test_1103(conn, test_env):
 
     # determine the list of attributes to check
     attributes_to_check = []
-    if test_env.has_client_version(12, 1):
-        if not test_env.is_on_oracle_cloud:
-            sql = """select dbop_name from v$sql_monitor
-                     where sid = sys_context('userenv', 'sid')
-                     and status = 'EXECUTING'"""
-            attributes_to_check.append(("dbop", "oracledb_dbop", sql))
+    if not test_env.is_on_oracle_cloud:
+        sql = """select dbop_name from v$sql_monitor
+                 where sid = sys_context('userenv', 'sid')
+                 and status = 'EXECUTING'"""
+        attributes_to_check.append(("dbop", "oracledb_dbop", sql))
     sql = "select sys_context('userenv', 'action') from dual"
     attributes_to_check.append(("action", "oracledb_Action", sql))
     attributes_to_check.append(("action", None, sql))
@@ -316,8 +315,7 @@ def test_1117(test_env):
 
 def test_1118(conn, test_env):
     "1118 - test connection attribute values"
-    if test_env.has_client_version(12, 1):
-        assert conn.ltxid == b""
+    assert conn.ltxid == b""
     assert not conn.autocommit
     conn.autocommit = True
     assert conn.autocommit
@@ -346,11 +344,10 @@ def test_1119(conn, test_env):
         "edition",
         "external_name",
         "internal_name",
+        "ltxid",
         "stmtcachesize",
         "warning",
     ]
-    if test_env.has_client_version(12, 1):
-        attr_names.append("ltxid")
     for name in attr_names:
         with test_env.assert_raises_full_code("DPY-1001"):
             getattr(conn, name)
@@ -592,7 +589,7 @@ def test_1130(conn):
     assert string_var.getvalue() == test_string
 
 
-def test_1131(skip_unless_call_timeout_supported, conn, test_env):
+def test_1131(conn, test_env):
     "1131 - test connection call_timeout"
     conn.call_timeout = 500  # milliseconds
     assert conn.call_timeout == 500
@@ -656,7 +653,7 @@ def test_1135(conn):
     assert conn.instance_name.upper() == instance_name
 
 
-def test_1136(skip_unless_call_timeout_supported, conn):
+def test_1136(conn):
     "1136 - test deprecated attributes"
     conn.callTimeout = 500
     assert conn.callTimeout == 500

@@ -114,17 +114,14 @@ def _perform_reconfigure_test(
         min=min,
         max=max,
         increment=increment,
+        max_lifetime_session=max_lifetime_session,
+        max_sessions_per_shard=max_sessions_per_shard,
         timeout=timeout,
         stmtcachesize=stmtcachesize,
         ping_interval=ping_interval,
         getmode=getmode,
+        wait_timeout=wait_timeout,
     )
-    if test_env.has_client_version(12, 1):
-        creation_args["max_lifetime_session"] = max_lifetime_session
-    if test_env.has_client_version(12, 2):
-        creation_args["wait_timeout"] = wait_timeout
-    if test_env.has_client_version(18, 3):
-        creation_args["max_sessions_per_shard"] = max_sessions_per_shard
     if test_env.has_client_version(19, 11):
         creation_args["soda_metadata_cache"] = soda_metadata_cache
 
@@ -178,15 +175,13 @@ def test_2400(test_env):
     assert pool.busy == 0
     assert pool.dsn == test_env.connect_string
     assert pool.tnsentry == pool.dsn
-    if test_env.has_client_version(12, 2):
-        assert pool.getmode == oracledb.POOL_GETMODE_WAIT
-        assert pool.getmode is oracledb.PoolGetMode.WAIT
+    assert pool.getmode == oracledb.POOL_GETMODE_WAIT
+    assert pool.getmode is oracledb.PoolGetMode.WAIT
     assert pool.homogeneous
     assert pool.increment == 1
     assert pool.max == 2
-    if test_env.has_client_version(12, 1):
-        assert pool.max_lifetime_session == 0
-    if not pool.thin and test_env.has_client_version(18, 3):
+    assert pool.max_lifetime_session == 0
+    if not pool.thin:
         assert pool.max_sessions_per_shard == 0
     assert pool.min == 1
     if pool.thin:
@@ -233,19 +228,18 @@ def test_2402(test_env):
     "2402 - test setting pool attributes"
     pool = test_env.get_pool()
     test_values = [
-        ((11, 2), "ping_interval", 30),
-        ((11, 2), "stmtcachesize", 100),
-        ((11, 2), "timeout", 10),
-        ((12, 2), "getmode", oracledb.POOL_GETMODE_TIMEDWAIT),
-        ((12, 1), "max_lifetime_session", 3),
+        ("ping_interval", 30),
+        ("stmtcachesize", 100),
+        ("timeout", 10),
+        ("getmode", oracledb.POOL_GETMODE_TIMEDWAIT),
+        ("max_lifetime_session", 3),
     ]
-    for version, attr_name, value in test_values:
-        if test_env.has_client_version(*version):
-            setattr(pool, attr_name, value)
-            assert getattr(pool, attr_name) == value
-            pytest.raises(TypeError, setattr, pool, attr_name, "invalid value")
+    for attr_name, value in test_values:
+        setattr(pool, attr_name, value)
+        assert getattr(pool, attr_name) == value
+        pytest.raises(TypeError, setattr, pool, attr_name, "invalid value")
 
-    if not pool.thin and test_env.has_client_version(18, 3):
+    if not pool.thin:
         assert pool.max_sessions_per_shard == 0
         pytest.raises(
             TypeError, setattr, pool, "max_sessions_per_shard", "bad_val"
@@ -494,9 +488,8 @@ def test_2412(skip_unless_thick_mode, test_env):
     pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
     conn = pool.acquire()
     pytest.raises(TypeError, pool.release, conn, tag=12345)
-    if test_env.has_client_version(12, 2):
-        with test_env.assert_raises_full_code("ORA-24488"):
-            pool.release(conn, tag="INVALID_TAG")
+    with test_env.assert_raises_full_code("ORA-24488"):
+        pool.release(conn, tag="INVALID_TAG")
     pool.close(force=True)
     conn.close()
 
@@ -548,12 +541,9 @@ def test_2415(skip_unless_thick_mode, test_env):
     _perform_reconfigure_test(
         test_env, "getmode", oracledb.POOL_GETMODE_NOWAIT
     )
-    if test_env.has_client_version(12, 1):
-        _perform_reconfigure_test(test_env, "max_lifetime_session", 2000)
-    if test_env.has_client_version(12, 2):
-        _perform_reconfigure_test(test_env, "wait_timeout", 8000)
-    if test_env.has_client_version(18, 3):
-        _perform_reconfigure_test(test_env, "max_sessions_per_shard", 5)
+    _perform_reconfigure_test(test_env, "max_lifetime_session", 2000)
+    _perform_reconfigure_test(test_env, "wait_timeout", 8000)
+    _perform_reconfigure_test(test_env, "max_sessions_per_shard", 5)
     if test_env.has_client_version(19, 11):
         _perform_reconfigure_test(test_env, "soda_metadata_cache", True)
 
@@ -873,7 +863,7 @@ def test_2438(skip_unless_pool_timed_wait_supported, test_env):
     pool.close(force=True)
 
 
-def test_2439(skip_unless_call_timeout_supported, test_env):
+def test_2439(test_env):
     "2439 - ensure call timeout is reset on connections returned by pool"
     pool = test_env.get_pool(ping_timeout=1000, ping_interval=0)
     with pool.acquire() as conn:

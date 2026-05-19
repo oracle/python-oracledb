@@ -29,17 +29,6 @@
 import datetime
 
 import oracledb
-import pytest
-
-
-@pytest.fixture(autouse=True)
-def skip_unless_has_client_12_1(test_env):
-    """
-    All tests in the file are skipped unless the client version is at least
-    12.1.
-    """
-    if not test_env.has_client_version(12, 1):
-        pytest.skip("unsupported client")
 
 
 def test_3200(cursor, test_env):

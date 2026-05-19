@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -432,8 +432,6 @@ def test_3416(soda_db):
 
 def test_3417(soda_db, conn, test_env):
     "3417 - test insertMany"
-    if not test_env.has_client_version(18, 5):
-        pytest.skip("unsupported client")
     coll = soda_db.createCollection("TestInsertMany")
     values_to_insert = [
         dict(name="George", age=25),
@@ -517,8 +515,6 @@ def test_3420(skip_if_save_not_supported, soda_db, conn):
 
 def test_3421(soda_db, conn, test_env):
     "3421 - test insert many and get"
-    if not test_env.has_client_version(18, 5):
-        pytest.skip("unsupported client")
     for name in soda_db.getCollectionNames():
         soda_db.openCollection(name).drop()
     coll = soda_db.createCollection("TestInsertManyAndGet")

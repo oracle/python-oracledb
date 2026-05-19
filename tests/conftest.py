@@ -867,15 +867,6 @@ def skip_unless_binary_vectors_supported(test_env):
 
 
 @pytest.fixture(scope="session")
-def skip_unless_call_timeout_supported(test_env):
-    """
-    Skips the test if not running in thin mode.
-    """
-    if not test_env.has_client_version(18):
-        pytest.skip("no call timeout support")
-
-
-@pytest.fixture(scope="session")
 def skip_unless_domains_supported(test_env):
     """
     Skips the test if domains are not supported.
@@ -995,8 +986,6 @@ def soda_db(conn, test_env, skip_unless_thick_mode):
     Return the SODA database object.
     """
     message = "not supported with this client/server combination"
-    if not test_env.has_client_version(18, 3):
-        pytest.skip(message)
     if not test_env.has_server_version(18):
         pytest.skip(message)
     if test_env.has_server_version(20, 1):
