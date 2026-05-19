@@ -1170,6 +1170,12 @@ When dynamically building SQL statements, you can use the methods
 :func:`is_qualified_sql_name()`, and :func:`is_simple_sql_name()` to help
 prevent SQL injection when processing user input.
 
+.. IMPORTANT::
+
+    When constructing SQL statements dynamically, do not concatenate or
+    interpolate data values into SQL text. Instead, use bind variables for all
+    data values. See :ref:`bind`.
+
 .. _quotenames:
 
 Quoting SQL Identifiers
@@ -1181,7 +1187,7 @@ identifiers in your SQL statement. For example, if your application allows
 users to provide an arbitrary column name to filter query results, you could
 ensure that the column name supplied by the user is validated with
 :func:`enquote_name()`. For the data value itself, you would continue to use
-bind variable syntax:
+:ref:`bind variable <bind>` syntax:
 
 .. code-block:: python
 
@@ -1253,7 +1259,10 @@ Quoting Literals
 
 When including literal values dynamically in SQL statements, it is important
 to quote them properly so that SQL interprets them correctly. This can be done
-by using :func:`enquote_literal()`. For example:
+by using :func:`enquote_literal()`. Note that quoting literals should only be
+done when :ref:`bind variables <bind>` cannot be used.
+
+An example of quoting literals is shown below:
 
 .. code-block:: python
 
