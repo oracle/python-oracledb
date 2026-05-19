@@ -28,6 +28,8 @@ Thin Mode Changes
 #)  Fixed bug when parsing a :ref:`tnsnames.ora <optnetfiles>` file containing
     an ``IFILE`` directive enclosed in quotes
     (`issue 589 <https://github.com/oracle/python-oracledb/issues/589>`__).
+#)  Fixed bug when specifying a value for the ``ORA_SDTZ`` environment variable
+    as one of the keywords ``LOCAL`` or ``DBTIMEZONE``.
 
 Thick Mode Changes
 ++++++++++++++++++

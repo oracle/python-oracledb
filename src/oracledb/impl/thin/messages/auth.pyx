@@ -161,7 +161,10 @@ cdef class AuthMessage(Message):
             int tz_hour, tz_minute, timezone
             str sign, tz_repr
         tz_repr = os.environ.get("ORA_SDTZ")
-        if tz_repr is None:
+        if tz_repr is not None:
+            if tz_repr.upper() not in ("LOCAL", "DBTIMEZONE"):
+                tz_repr = "'" + tz_repr.replace("'", "''") + "'"
+        else:
             timezone = time.localtime().tm_gmtoff
             tz_hour = timezone // 3600
             tz_minute = (timezone - (tz_hour * 3600)) // 60
@@ -170,8 +173,8 @@ cdef class AuthMessage(Message):
                 tz_hour = -tz_hour
             else:
                 sign = "+"
-            tz_repr = f"{sign}{tz_hour:02}:{tz_minute:02}"
-        return f"ALTER SESSION SET TIME_ZONE='{tz_repr}'\x00"
+            tz_repr = f"'{sign}{tz_hour:02}:{tz_minute:02}'"
+        return f"ALTER SESSION SET TIME_ZONE={tz_repr}\x00"
 
     cdef tuple _get_version_tuple(self, ReadBuffer buf):
         """
