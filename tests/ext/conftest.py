@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -39,19 +39,19 @@ def extended_config(test_env):
     return ExtendedConfig(test_env)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_has_orapki(extended_config):
     if not extended_config.get_bool_value("has_orapki"):
         pytest.skip("extended configuration has_orapki is disabled")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_local_database(extended_config):
     if not extended_config.get_bool_value("local_database"):
         pytest.skip("extended configuration local_database is disabled")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_run_long_tests(extended_config):
     if not extended_config.get_bool_value("run_long_tests"):
         pytest.skip("extended configuration run_long_tests is disabled")

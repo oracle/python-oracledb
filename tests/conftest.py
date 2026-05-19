@@ -837,7 +837,7 @@ async def round_trip_checker_async(async_conn, async_admin_conn, test_env):
     return checker
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_if_drcp(test_env):
     """
     Skips the test if running with DRCP.
@@ -847,7 +847,7 @@ def skip_if_drcp(test_env):
         pytest.skip("not supported with DRCP")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_if_implicit_pooling(test_env):
     """
     Skips the test if running with implicit pooling.
@@ -857,7 +857,7 @@ def skip_if_implicit_pooling(test_env):
         pytest.skip("not supported with implicit pooling")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_binary_vectors_supported(test_env):
     """
     Skips the test if binary vectors are not supported.
@@ -866,7 +866,7 @@ def skip_unless_binary_vectors_supported(test_env):
         pytest.skip("no binary vector support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_call_timeout_supported(test_env):
     """
     Skips the test if not running in thin mode.
@@ -875,7 +875,7 @@ def skip_unless_call_timeout_supported(test_env):
         pytest.skip("no call timeout support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_domains_supported(test_env):
     """
     Skips the test if domains are not supported.
@@ -884,7 +884,7 @@ def skip_unless_domains_supported(test_env):
         pytest.skip("no domain support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_json_supported(test_env):
     """
     Skips the test if JSON values are not supported.
@@ -893,7 +893,7 @@ def skip_unless_json_supported(test_env):
         pytest.skip("no JSON support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_long_passwords_supported(test_env):
     """
     Skips the test if not running in thin mode.
@@ -902,7 +902,7 @@ def skip_unless_long_passwords_supported(test_env):
         pytest.skip("no long password support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_native_boolean_supported(test_env):
     """
     Skips the test if native booleans are not supported.
@@ -911,7 +911,7 @@ def skip_unless_native_boolean_supported(test_env):
         pytest.skip("no native boolean support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_native_json_supported(test_env):
     """
     Skips the test if native JSON data is not supported.
@@ -920,7 +920,7 @@ def skip_unless_native_json_supported(test_env):
         pytest.skip("no native JSON support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_plsql_boolean_supported(test_env):
     """
     Skips the test if PL/SQL booleans are not supported.
@@ -929,7 +929,7 @@ def skip_unless_plsql_boolean_supported(test_env):
         pytest.skip("no PL/SQL boolean support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_pool_timed_wait_supported(test_env):
     """
     Skips the test if pooled timed wait is not supported.
@@ -938,7 +938,13 @@ def skip_unless_pool_timed_wait_supported(test_env):
         pytest.skip("no pool timed wait support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
+def skip_unless_refcounting():
+    if sys.implementation.name in ("graalpy", "pypy"):
+        pytest.skip("needs interpreter with refcounting")
+
+
+@pytest.fixture(scope="session")
 def skip_unless_sessionless_transactions_supported(test_env):
     """
     Skips the test if sessionless transactions are not supported.
@@ -947,7 +953,7 @@ def skip_unless_sessionless_transactions_supported(test_env):
         pytest.skip("no sessionless transactions support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_sparse_vectors_supported(test_env):
     """
     Skips the test if sparse vectors are not supported.
@@ -956,7 +962,7 @@ def skip_unless_sparse_vectors_supported(test_env):
         pytest.skip("no sparse vector support")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_thick_mode(test_env):
     """
     Skips the test if not running in thick mode.
@@ -965,7 +971,7 @@ def skip_unless_thick_mode(test_env):
         pytest.skip("requires thick mode")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_thin_mode(test_env):
     """
     Skips the test if not running in thin mode.
@@ -974,7 +980,7 @@ def skip_unless_thin_mode(test_env):
         pytest.skip("requires thin mode")
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def skip_unless_vectors_supported(test_env):
     """
     Skips the test if vectors are not supported.
@@ -984,19 +990,11 @@ def skip_unless_vectors_supported(test_env):
 
 
 @pytest.fixture
-def skip_unless_refcounting():
-    if sys.implementation.name in ("graalpy", "pypy"):
-        pytest.skip("needs interpreter with refcounting")
-
-
-@pytest.fixture
-def soda_db(conn, test_env):
+def soda_db(conn, test_env, skip_unless_thick_mode):
     """
     Return the SODA database object.
     """
     message = "not supported with this client/server combination"
-    if not test_env.use_thick_mode:
-        pytest.skip(message)
     if not test_env.has_client_version(18, 3):
         pytest.skip(message)
     if not test_env.has_server_version(18):
