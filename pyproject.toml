@@ -73,6 +73,12 @@ azure_config = [
     "azure-keyvault-secrets"
 ]
 azure_auth = ["msal"]
+gcp_config = [
+    "google-cloud-storage",
+    "google-cloud-secret-manager",
+    "google-crc32c",
+]
+
 
 [tool.setuptools]
 zip-safe = false

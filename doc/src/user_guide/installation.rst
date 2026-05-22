@@ -1223,6 +1223,27 @@ optional ``[azure_config]`` dependency:
 See :ref:`azureappstorageprovider` for information on using this configuration
 provider with python-oracledb.
 
+.. _gcpccpmodules:
+
+Install Modules for the Google Cloud Platform Centralized Configuration Providers
+---------------------------------------------------------------------------------
+
+For python-oracledb to use an
+:ref:`Google Cloud Storage <googlecloudstorageprovider>` and
+:ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`, you must
+install the `Google Cloud Storage API client library <https://pypi.org/project/
+google-cloud-storage/>`__, `Google Cloud Secret Manager <https://pypi.org/
+project/google-cloud-secret-manager/>`__, and `Google CRC32C <https://pypi.org/
+project/google-crc32c/>`__ packages by using the optional ``[gcp_config]``
+dependency:
+
+.. code-block:: shell
+
+    python -m pip install oracledb[gcp_config]
+
+See :ref:`gcpprovider` for information on using this configuration provider
+with python-oracledb.
+
 .. _cloudnativemodules:
 
 Installing Cloud Native Authentication Modules for python-oracledb

@@ -1522,6 +1522,387 @@ The configuration can also be used to create a :ref:`connection pool
 
     oracledb.create_pool(dsn=configazureurl)
 
+.. _gcpprovider:
+
+Using Google Cloud Platform Centralized Configuration Providers
+---------------------------------------------------------------
+
+`Google Cloud Platform (GCP) <https://docs.cloud.google.com/docs/overview>`__
+is a cloud-based service offered by Google that provides two centralized
+configuration providers -
+:ref:`Google Cloud Storage <googlecloudstorageprovider>` and
+:ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`. These
+providers can be used for storage and management of Oracle Database connection
+information.
+
+.. _googlecloudstorageprovider:
+
+Google Cloud Storage Centralized Configuration Provider
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+`Google Cloud Storage <https://docs.cloud.google.com/storage/docs>`__ stores
+and manages Oracle Database connection information as JSON.
+
+To use python-oracledb with Google Cloud Storage, you must:
+
+1. Upload a JSON file that contains the connection information into a `Google
+   Cloud Storage Bucket <https://docs.cloud.google.com/storage/docs/
+   buckets>`__. See `Upload an object into the bucket <https://docs.cloud.
+   google.com/storage/docs/discover-object-storage-console#upload_an_object_
+   into_the_bucket>`__ for the steps. See Google Cloud Storage Centralized
+   Configuration Provider Parameters for the configuration information that can
+   be added.
+
+2. Install the Google Cloud Platform modules, see :ref:`gcpccpmodules`.
+
+3. Import the :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>`
+   plugin in your application.
+
+4. :ref:`Use a Google Cloud Storage connection string URL <connstringgcs>` in
+   the ``dsn`` parameter of connection and pool creation methods.
+
+.. _gcsconfigparams:
+
+**Google Cloud Storage Centralized Configuration Provider JSON File Syntax**
+
+The stored JSON configuration file must contain a ``connect_descriptor`` key.
+Optionally, you can specify the database user name, password, a cache time, and
+python-oracledb attributes. The database password can also be stored securely
+using `Google Cloud Secret Manager <https://docs.cloud.google.com/secret-
+manager/docs>`__. The keys that can be in the JSON file are listed below.
+
+.. list-table-with-summary:: JSON Keys for Google Cloud Storage Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _google_cloud_storage_sub-objects
+    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
+
+    * - Key
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Google Cloud Secret Manager, see :ref:`Using Passwords in Google Cloud Secret Manager <passwordgsm>` for more information.
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``config_time_to_live``
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - Optional
+    * - ``config_time_to_live_grace_period``
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
+
+.. _connstringgcs:
+
+**Google Cloud Storage Centralized Configuration Provider DSN Syntax**
+
+The ``dsn`` parameter for :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` calls should use a connection string URL
+in the format::
+
+    config-gcpstorage://project=<project-id>;bucket=<bucket-name>;object=<object-name>?key=<config-key>
+
+The elements of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for Google Cloud Storage
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _connection_string_for_google_cloud_storage
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``config-gcpstorage``
+      - Indicates that the configuration provider is Google Cloud Storage.
+      - Required
+    * - project=<project-id>
+      - The unique identifier of your Google Cloud project.
+      - Required
+    * - bucket=<bucket-name>
+      - The Google Cloud Storage bucket name where the JSON file is stored.
+      - Required
+    * - object=<object-name>
+      - The object name containing the JSON file.
+      - Required
+    * - key=<config-key>
+      - The top-level connection key used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key value. If not specified, the file is assumed to contain a single configuration. See the example below.
+      - Optional
+
+**Google Cloud Storage Centralized Configuration Provider Examples**
+
+An example of Google Cloud Storage Centralized Configuration Provider JSON file
+syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "base64",
+            "value": "dGlnZXI="
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+This encodes the password as base64. Passwords can optionally be stored using
+the :ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`. See
+:ref:`Storing Passwords in Google Cloud Secret Manager <passwordgsm>` for more
+information.
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+.. _multipleconfigurations:
+
+Multiple configurations can be defined by specifying user-chosen top-level
+keys::
+
+    {
+        "sales_app": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "sales_user",
+            "password": {
+              "type": "gcpsecretmanager",
+              "value": "projects/my-project/secrets/sales-password/versions/latest"
+            },
+            "pyo": {
+              "stmtcachesize": 20
+            }
+        },
+        "hr_app": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "hr_user",
+            "password": {
+                "type": "base64",
+                "value": "dGlnZXI="
+            }
+        }
+    }
+
+An example of a connection string for the Google Cloud Storage Centralized
+configuration provider is:
+
+.. code-block:: python
+
+    configgcsurl = "config-gcpstorage://project=my-project;bucket=my-config-bucket;object=db-configs/apps.json?key=sales_app"
+
+To create a :ref:`standalone connection <standaloneconnection>` you could use
+this like:
+
+.. code-block:: python
+
+    import oracledb.plugins.gcp_config_provider
+
+    configgcsurl = "config-gcpstorage://project=my-project;bucket=my-config-bucket;object=db-configs/apps.json?key=sales_app"
+
+    connection = oracledb.connect(dsn=configgcsurl)
+
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(dsn=configgcsurl)
+
+.. _googlesecretmanagerprovider:
+
+Google Cloud Secret Manager Centralized Configuration Provider
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+`Google Cloud Secret Manager <https://docs.cloud.google.com/secret-manager/docs
+/overview>`__ stores and manages Oracle Database connection information as
+JSON. Also, this configuration provider can be used to store the database
+password securely.
+
+To use python-oracledb with Google Cloud Secret Manager, you must:
+
+1. Create a secret in Google Cloud Secret Manager containing the JSON
+   connection information. See `Create a secret <https://docs.cloud.google.com
+   /secret-manager/docs/creating-and-accessing-secrets#create-secret-console>`__
+   for the steps. See :ref:`Google Cloud Secret Manager Centralized
+   Configuration Provider JSON Secret Syntax <gsmconfigparams>` for the
+   configuration information that can be added.
+
+2. Install the Google Cloud platform modules, see :ref:`gcpccpmodules`.
+
+3. Import the :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>`
+   plugin in your application.
+
+4. :ref:`Use a Google Cloud Secret Manager connection string URL
+   <connstringgsm>` in the ``dsn`` parameter of connection and pool creation
+   methods.
+
+.. _gsmconfigparams:
+
+**Google Cloud Secret Manager Centralized Configuration Provider JSON Secret Syntax**
+
+The stored JSON secret value must contain a ``connect_descriptor`` key.
+Optionally, you can specify the database user name, password, a cache time, and
+python-oracledb attributes. The database password can also be stored securely
+using `Google Cloud Secret Manager <https://docs.cloud.google.com/secret-
+manager/docs>`__. The keys that can be in the JSON secret value are listed
+below.
+
+.. list-table-with-summary:: JSON Keys for Google Cloud Secret Manager Configuration Provider
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _google_secret_manager_sub-objects
+    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
+
+    * - Key
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Google Cloud Secret Manager, see :ref:`Using Passwords in Google Cloud Secret Manager <passwordgsm>` for more information.
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``config_time_to_live``
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - Optional
+    * - ``config_time_to_live_grace_period``
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
+
+.. _connstringgsm:
+
+**Google Cloud Secret Manager Centralized Configuration Provider DSN Syntax**
+
+The ``dsn`` parameter for :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` calls should use a connection string URL
+in the format::
+
+    config-gcpsecretmanager://projects/<project-id>/secrets/<secret-name>/versions/<version-or-latest>?key=<config-key>
+
+The elements of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for Google Cloud Secret Manager
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _connection_string_for_google_secret_manager
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``config-gcpsecretmanager``
+      - Indicates that the configuration provider is Google Cloud Secret Manager.
+      - Required
+    * - projects/<project-id>
+      - The unique identifier of your project containing the Secret Manager secret.
+      - Required
+    * - secrets/<secret-name>
+      - The secret name containing the JSON configuration value.
+      - Required
+    * - versions/<version-or-latest>
+      - The secret version number or latest.
+      - Required
+    * - key=<config-key>
+      - The top-level connection key used to identify a specific configuration. If this parameter is specified, the JSON secret value is assumed to contain multiple configurations that are indexed by the key value. See this :ref:`example <multipleconfigurations>`. If not specified, the JSON secret value is assumed to contain a single configuration. See the example below.
+      - Optional
+
+**Google Cloud Secret Manager Centralized Configuration Provider Examples**
+
+An example of Google Cloud Secret Manager Centralized Configuration Provider
+JSON secret syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "gcpsecretmanager",
+            "value": "projects/my-project/secrets/db-password/versions/latest"
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+The above example uses a password stored in Google Cloud Secret Manager. See
+:ref:`Storing Passwords in Google Cloud Secret Manager <passwordgsm>` for more
+information.
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+Multiple configurations can be defined by specifying user-chosen top-level
+keys. See this :ref:`example <multipleconfigurations>`.
+
+An example of a connection string for the Google Cloud Secret Manager
+Centralized configuration provider is:
+
+.. code-block:: python
+
+    configgsmurl = "config-gcpsecretmanager://projects/my-project/secrets/app-configs/versions/latest?key=sales_app"
+
+To create a :ref:`standalone connection <standaloneconnection>` you could use
+this like:
+
+.. code-block:: python
+
+    import oracledb.plugins.gcp_config_provider
+
+    configgsmurl = "config-gcpsecretmanager://projects/my-project/secrets/app-configs/versions/latest?key=sales_app"
+
+    connection = oracledb.connect(dsn=configgsmurl)
+
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(dsn=configgsmurl)
+
+.. _passwordgsm:
+
+**Storing Passwords in Google Cloud Secret Manager**
+
+Passwords can optionally be stored using Google Cloud Secret Manager. To do
+this, you must import the
+:ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` python-oracledb
+plugin in your application and define the password in the ``password`` key. The
+``type`` key must be set to *gcpsecretmanager* and the ``value`` key must be
+set to the Google Cloud Secret Manager resource name for the password secret as
+shown below::
+
+    "password": {
+        "type": "gcpsecretmanager",
+        "value": "projects/<project-id>/secrets/<secret-name>/versions/<version-or-latest>"
+    }
+
+For example::
+
+    "password": {
+       "type": "gcpsecretmanager",
+       "value": "projects/my-project/secrets/db-password/versions/latest"
+    }
+
 .. _conncaching:
 
 Caching Configuration Information

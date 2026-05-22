@@ -25,6 +25,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added :ref:`Centralized Configuration Provider <configurationproviders>`
+    support for Google Cloud Storage and Google Cloud Secret Manager with the
+    :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin.
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.

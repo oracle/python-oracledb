@@ -1474,6 +1474,9 @@ centralized configuration providers are detailed in this section:
 
 - :ref:`Azure App Centralized Configuration Provider <azureappauthmethods>`
 
+- :ref:`Google Cloud Platform Centralized Configuration Provider
+  <gcpauthmethods>`
+
 .. _ociobjectstorageauthmethods:
 
 OCI Object Storage Configuration Provider Authentication Methods
@@ -1583,3 +1586,27 @@ parameter *AZURE_MANAGED_IDENTITY_CLIENT_ID*. For more information on these
 parameters, see `Authentication Parameters for Azure App Configuration Store
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1EECAD82-6CE5-
 4F4F-A844-C75C7AA1F907>`__.
+
+.. _gcpauthmethods:
+
+Google Cloud Platform Configuration Provider Authentication Methods
+-------------------------------------------------------------------
+
+The Google Cloud Platform configuration provider only uses Application Default
+Credentials (ADC) to authenticate to Google Cloud Storage and Google Cloud
+Secret Manager. No authentication parameters need to be provided in the
+connection string URL for :ref:`Google Cloud Storage <connstringgcs>` and
+:ref:`Google Cloud Secret Manager <connstringgsm>`. Instead, the Google Cloud
+client libraries discover credentials from the application environment and use
+them to authenticate requests to these configuration providers.
+
+The Google Cloud identity used by ADC must have permission to read the required
+Google Cloud Storage object or Google Cloud Secret Manager secret. For more
+information, see the Google Cloud documentation on `Cloud Storage IAM roles
+<https://cloud.google.com/storage/docs/access-control/iam-roles>`__ and
+`Secret Manager access control <https://cloud.google.com/secret-manager/docs/
+access-control>`__.
+
+For details about how Google Cloud client libraries locate and use ADC, see
+`How Application Default Credentials work <https://docs.cloud.google.com/docs/
+authentication/application-default-credentials>`__ for more information.
