@@ -25,6 +25,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for comparing instances of classes
+    :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
+    :class:`oracledb.SecretValue`.
+
 
 oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0.1>`__ (May 2026)
 -------------------------------------------------------------------------------------------------

@@ -66,6 +66,44 @@ cdef class ConnectParamsImpl:
         self.driver_name = C_DEFAULTS.driver_name
         self.thick_mode_dsn_passthrough = C_DEFAULTS.thick_mode_dsn_passthrough
 
+    def __eq__(self, ConnectParamsImpl other_impl):
+        return other_impl.config_dir == self.config_dir \
+                and other_impl.user == self.user \
+                and other_impl.proxy_user == self.proxy_user \
+                and other_impl.events == self.events \
+                and other_impl.externalauth == self.externalauth \
+                and other_impl.mode == self.mode \
+                and other_impl.edition == self.edition \
+                and other_impl.appcontext == self.appcontext \
+                and other_impl.tag == self.tag \
+                and other_impl.matchanytag == self.matchanytag \
+                and other_impl.shardingkey == self.shardingkey \
+                and other_impl.supershardingkey == self.supershardingkey \
+                and other_impl.stmtcachesize == self.stmtcachesize \
+                and other_impl.disable_oob == self.disable_oob \
+                and other_impl.ssl_context is self.ssl_context \
+                and other_impl.description_list == self.description_list \
+                and other_impl._external_handle == self._external_handle \
+                and other_impl.debug_jdwp == self.debug_jdwp \
+                and other_impl.access_token_callback is \
+                        self.access_token_callback \
+                and other_impl.on_connect_callback is \
+                        self.on_connect_callback \
+                and other_impl._password == self._password \
+                and other_impl._new_password == self._new_password \
+                and other_impl._wallet_password == self._wallet_password \
+                and other_impl._token == self._token \
+                and other_impl._private_key == self._private_key \
+                and other_impl.program == self.program \
+                and other_impl.machine == self.machine \
+                and other_impl.terminal == self.terminal \
+                and other_impl.osuser == self.osuser \
+                and other_impl.driver_name == self.driver_name \
+                and other_impl.extra_auth_params == \
+                        self.extra_auth_params \
+                and other_impl.thick_mode_dsn_passthrough == \
+                        self.thick_mode_dsn_passthrough
+
     def set(self, dict args):
         """
         Sets the property values based on the supplied arguments. All values
@@ -558,6 +596,14 @@ cdef class ConnectParamsNode:
         if must_have_children:
             self.children = []
 
+    def __eq__(self, ConnectParamsNode other):
+        if other is not None:
+            return other.source_route == self.source_route \
+                    and other.load_balance == self.load_balance \
+                    and other.failover == self.failover \
+                    and other.children == self.children
+        return NotImplemented
+
     cdef int _copy(self, ConnectParamsNode source) except -1:
         """
         Copies data from the source to this node.
@@ -633,6 +679,13 @@ cdef class Address(ConnectParamsNode):
         ConnectParamsNode.__init__(self, False)
         self.protocol = DEFAULT_PROTOCOL
         self.port = DEFAULT_PORT
+
+    def __eq__(self, Address other):
+        return other.host == self.host \
+                and other.port == self.port \
+                and other.protocol == self.protocol \
+                and other.https_proxy == self.https_proxy \
+                and other.https_proxy_port == self.https_proxy_port
 
     cdef str build_connect_string(self):
         """
@@ -790,6 +843,33 @@ cdef class Description(ConnectParamsNode):
         self.retry_delay = DEFAULT_RETRY_DELAY
         self.ssl_server_dn_match = True
         self.sdu = DEFAULT_SDU
+
+    def __eq__(self, Description other):
+        return other.expire_time == self.expire_time \
+                and other.retry_count == self.retry_count \
+                and other.retry_delay == self.retry_delay \
+                and other.sdu == self.sdu \
+                and other.tcp_connect_timeout == self.tcp_connect_timeout \
+                and other.service_name == self.service_name \
+                and other.instance_name == self.instance_name \
+                and other.server_type == self.server_type \
+                and other.sid == self.sid \
+                and other.cclass == self.cclass \
+                and other.connection_id_prefix == self.connection_id_prefix \
+                and other.pool_boundary == self.pool_boundary \
+                and other.pool_name == self.pool_name \
+                and other.purity == self.purity \
+                and other.ssl_server_dn_match == self.ssl_server_dn_match \
+                and other.use_tcp_fast_open == self.use_tcp_fast_open \
+                and other.use_sni == self.use_sni \
+                and other.ssl_server_cert_dn == self.ssl_server_cert_dn \
+                and other.ssl_version is self.ssl_version \
+                and other.wallet_location == self.wallet_location \
+                and other.extra_connect_data_args == \
+                        self.extra_connect_data_args \
+                and other.extra_security_args == self.extra_security_args \
+                and other.extra_args == self.extra_args \
+                and other.children == self.children
 
     cdef str _build_duration_str(self, double value):
         """

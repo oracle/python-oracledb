@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -61,6 +61,11 @@ class ConnectParams(metaclass=BaseMetaClass):
         # {{ args_help_with_defaults }}
         """
         pass
+
+    def __eq__(self, other):
+        if isinstance(other, ConnectParams):
+            return other._impl == self._impl
+        return NotImplemented
 
     # {{ params_repr }}
 

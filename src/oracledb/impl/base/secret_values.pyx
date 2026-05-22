@@ -36,6 +36,13 @@ cdef class SecretValueImpl:
     def __init__(self, object value, expires=None):
         self.set_value(value, expires)
 
+    def __eq__(self, SecretValueImpl other_impl):
+        if other_impl is not None:
+            return other_impl.expires == self.expires \
+                    and other_impl._xor_bytes(other_impl.value) == \
+                    self._xor_bytes(self.value)
+        return NotImplemented
+
     def __hash__(self):
         return hash(self.get_value_as_bytes())
 

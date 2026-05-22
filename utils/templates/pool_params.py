@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -60,6 +60,11 @@ class PoolParams(ConnectParams):
         # {{ args_help_with_defaults }}
         """
         pass
+
+    def __eq__(self, other):
+        if isinstance(other, PoolParams):
+            return other._impl == self._impl
+        return NotImplemented
 
     # {{ params_repr }}
 

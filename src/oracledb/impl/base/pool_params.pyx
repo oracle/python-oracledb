@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -40,6 +40,26 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
         self.homogeneous = True
         self.ping_interval = 60
         self.ping_timeout = 5000
+
+    def __eq__(self, PoolParamsImpl other_impl):
+        return other_impl.min == self.min \
+                and other_impl.max == self.max \
+                and other_impl.increment == self.increment \
+                and other_impl.connectiontype is self.connectiontype \
+                and other_impl.getmode == self.getmode \
+                and other_impl.homogeneous == self.homogeneous \
+                and other_impl.timeout == self.timeout \
+                and other_impl.wait_timeout == self.wait_timeout \
+                and other_impl.max_lifetime_session == \
+                        self.max_lifetime_session \
+                and other_impl.session_callback is self.session_callback \
+                and other_impl.max_sessions_per_shard == \
+                        self.max_sessions_per_shard \
+                and other_impl.soda_metadata_cache == \
+                        self.soda_metadata_cache \
+                and other_impl.ping_interval == self.ping_interval \
+                and other_impl.ping_timeout == self.ping_timeout \
+                and ConnectParamsImpl.__eq__(self, other_impl)
 
     cdef int _copy(self, ConnectParamsImpl other_params) except -1:
         """

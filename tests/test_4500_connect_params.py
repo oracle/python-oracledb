@@ -1753,3 +1753,74 @@ def test_4583():
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
     assert params.get_connect_string() == connect_string
+
+
+@pytest.mark.parametrize(
+    "attr_name,value",
+    [
+        ("user", "USER_1"),
+        ("proxy_user", "PROXY_USER_1"),
+        ("password", "dummy_password"),
+        ("newpassword", "dummy_new_password"),
+        ("wallet_password", "dummy_wallet_password"),
+        ("access_token", lambda: "dummy_token"),
+        ("host", "my_host_1"),
+        ("port", 1584),
+        ("protocol", "tcps"),
+        ("https_proxy", "proxy_a"),
+        ("https_proxy_port", 4528),
+        ("service_name", "my_service_name1"),
+        ("instance_name", "my_instance_name"),
+        ("sid", "my_sid1"),
+        ("server_type", "dedicated"),
+        ("cclass", "cclass_1"),
+        ("purity", oracledb.PURITY_SELF),
+        ("expire_time", 60),
+        ("retry_count", 6),
+        ("retry_delay", 10),
+        ("tcp_connect_timeout", 40.0),
+        ("ssl_server_dn_match", False),
+        ("ssl_server_cert_dn", "CN=unknown19a"),
+        ("wallet_location", "/tmp/wallet_loc1a"),
+        ("events", True),
+        ("externalauth", True),
+        ("mode", oracledb.AUTH_MODE_SYSDBA),
+        ("disable_oob", True),
+        ("stmtcachesize", 25),
+        ("edition", "edition_4"),
+        ("tag", "tag4"),
+        ("matchanytag", True),
+        ("config_dir", "config_dir_4"),
+        ("appcontext", [("a", "b", "c")]),
+        ("shardingkey", [1, 2, 3]),
+        ("supershardingkey", [4]),
+        ("debug_jdwp", "host=host;port=4538"),
+        ("connection_id_prefix", "prefix4564"),
+        ("ssl_context", ssl.create_default_context()),
+        ("sdu", 16384),
+        ("pool_boundary", "statement"),
+        ("use_tcp_fast_open", True),
+        ("ssl_version", ssl.TLSVersion.TLSv1_2),
+        ("program", "my_program"),
+        ("machine", "my_machine"),
+        ("terminal", "my_terminal"),
+        ("osuser", "me"),
+        ("driver_name", "custom_driver"),
+        ("use_sni", True),
+        ("thick_mode_dsn_passthrough", False),
+        ("extra_auth_params", dict(extra1="A", extra2="B")),
+        ("pool_name", "my_pool"),
+        ("on_connect_callback", lambda conn: None),
+    ],
+)
+def test_4584(attr_name, value):
+    "4584 - test ConnectParams __eq__()"
+    params = oracledb.ConnectParams()
+    other_params = oracledb.ConnectParams()
+    assert other_params == params
+    dict_args = {}
+    dict_args[attr_name] = value
+    other_params.set(**dict_args)
+    assert other_params != params
+    params.set(**dict_args)
+    assert other_params == params
