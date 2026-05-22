@@ -2206,7 +2206,7 @@ shown below:
         }
     )
 
-The parameters of :meth:`oracledb.create_end_user_security_context()` are:
+The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
 
 .. list-table-with-summary:: End User Security Context Parameters
     :header-rows: 1
@@ -2287,7 +2287,7 @@ context.
 If the context has not been cleared with this method, then at the time of
 closing the connection with :meth:`Connection.close()` or releasing a
 connection back to the pool with :meth:`Pool.release()`,
-:meth:`Connection.clear_end_user_security_context()` will be implicitly
+:meth:`~Connection.clear_end_user_security_context()` will be implicitly
 invoked.
 
 Example of Using End User Security Context

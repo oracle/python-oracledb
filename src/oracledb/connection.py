@@ -1971,9 +1971,11 @@ def connect(
       (default: None)
 
     - ``wallet_location``: the directory where the wallet can be found. In
-      python-oracledb Thin mode this must be the directory containing the PEM-
-      encoded wallet file ewallet.pem. In python-oracledb Thick mode this must
-      be the directory containing the file cwallet.sso
+      python-oracledb Thin mode, a directory must contain the PEM-encoded
+      wallet file ewallet.pem. In python-oracledb Thick mode, a directory must
+      contain the file cwallet.sso. If the value specified is the keyword
+      ``SYSTEM``, it is handled the same way as an empty string or as not
+      specifying ``wallet_location``, and the system trust store is used
       (default: None)
 
     - ``events``: a boolean specifying whether events mode should be enabled.
@@ -3237,9 +3239,11 @@ def connect_async(
       (default: None)
 
     - ``wallet_location``: the directory where the wallet can be found. In
-      python-oracledb Thin mode this must be the directory containing the PEM-
-      encoded wallet file ewallet.pem. In python-oracledb Thick mode this must
-      be the directory containing the file cwallet.sso
+      python-oracledb Thin mode, a directory must contain the PEM-encoded
+      wallet file ewallet.pem. In python-oracledb Thick mode, a directory must
+      contain the file cwallet.sso. If the value specified is the keyword
+      ``SYSTEM``, it is handled the same way as an empty string or as not
+      specifying ``wallet_location``, and the system trust store is used
       (default: None)
 
     - ``events``: a boolean specifying whether events mode should be enabled.
