@@ -99,32 +99,55 @@ class DefaultsContextManager:
 
 class FullCodeErrorContextManager:
 
-    def __init__(self, full_codes):
+    def __init__(self, full_codes, cause_full_codes=[]):
         self.full_codes = full_codes
-        if len(full_codes) == 1:
-            self.message_fragment = f'Error "{full_codes[0]}"'
-        else:
-            message_fragment = ", ".join(f'"{s}"' for s in full_codes[:-1])
-            message_fragment += f' or "{full_codes[-1]}"'
-            self.message_fragment = f"One of the errors {message_fragment}"
+        self.message_fragment = self._get_message_fragment(full_codes)
+        self.cause_full_codes = cause_full_codes
+        self.cause_message_fragment = self._get_message_fragment(
+            cause_full_codes
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, tb):
-        if exc_type is None:
-            raise AssertionError(f"{self.message_fragment} was not raised.")
-        if not issubclass(exc_type, oracledb.Error):
-            return False
-        if issubclass(exc_type, oracledb.Error):
-            self.error_obj = exc_value.args[0]
-            if self.error_obj.full_code not in self.full_codes:
-                message = (
-                    f"{self.message_fragment} should have been raised but "
-                    f'"{self.error_obj.full_code}" was raised instead.'
-                )
-                raise AssertionError(message)
+        self.error_obj = self._check_exception(
+            exc_value, self.full_codes, self.message_fragment
+        )
+        if self.cause_full_codes:
+            self._check_exception(
+                exc_value.__cause__,
+                self.cause_full_codes,
+                self.cause_message_fragment,
+            )
         return True
+
+    def _check_exception(self, exc_value, full_codes, message_fragment):
+        """
+        Checks that the exception matches the requested criteria.
+        """
+        if exc_value is None:
+            raise AssertionError(f"{message_fragment} was not raised.")
+        if isinstance(exc_value, oracledb.Error):
+            error_obj = exc_value.args[0]
+            if error_obj.full_code in full_codes:
+                return error_obj
+        message = (
+            f"{message_fragment} should have been raised but "
+            f'"{exc_value}" was raised instead.'
+        )
+        raise AssertionError(message)
+
+    def _get_message_fragment(self, full_codes):
+        """
+        Returns a message fragement for the specified full codes.
+        """
+        if len(full_codes) == 1:
+            return f'Error "{full_codes[0]}"'
+        elif full_codes:
+            message_fragment = ", ".join(f'"{s}"' for s in full_codes[:-1])
+            message_fragment += f' or "{full_codes[-1]}"'
+            return f"One of the errors {message_fragment}"
 
 
 class SystemStatInfo:
@@ -321,6 +344,15 @@ class TestEnv:
         full codes.
         """
         return FullCodeErrorContextManager(full_codes)
+
+    def assert_raises_from_cause(self, primary_full_code, cause_full_code):
+        """
+        Verifies that the block of code raises an exception with the specified
+        primary full code with a cause corresponding to the cause full code.
+        """
+        return FullCodeErrorContextManager(
+            [primary_full_code], [cause_full_code]
+        )
 
     def create_schema(self, conn):
         """

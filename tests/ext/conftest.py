@@ -84,3 +84,18 @@ class ExtendedConfig:
         return self.parser.getboolean(
             self.section_name, name, fallback=fallback
         )
+
+    def get_file_value(self, name, fallback=""):
+        """
+        Returns the contents of a file for a specifically named value.
+        """
+        file_name = self.get_str_value(name, fallback)
+        if file_name:
+            with open(file_name, encoding="utf-8") as f:
+                return f.read()
+
+    def get_str_value(self, name, fallback=""):
+        """
+        Returns a string for a specifically named value.
+        """
+        return self.parser.get(self.section_name, name, fallback=fallback)
