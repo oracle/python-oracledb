@@ -291,6 +291,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def cancel(self):
         self._protocol._break_external()
 
+    def clear_end_user_security_context(self):
+        """
+        Internal method for clearing the end user security context.
+        """
+        self.security_context = None
+
     def create_msg_props_impl(self):
         cdef ThinMsgPropsImpl impl
         impl = ThinMsgPropsImpl()
@@ -376,6 +382,21 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def set_dbop(self, str value):
         self._dbop = value
         self._dbop_modified = True
+
+    def set_end_user_security_context(self, context):
+        """
+        Internal method that sets the end user security context.
+        """
+        if self._protocol._transport is not None \
+                and self._protocol._transport._ssl_context is None:
+            errors._raise_err(
+                errors.ERR_END_USER_SECURITY_CONTEXT_REQUIRES_TCPS
+            )
+        if not self._protocol._caps.supports_end_user_security_context:
+            errors._raise_err(
+                errors.ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE
+            )
+        self.security_context = context
 
     def set_external_name(self, value):
         self._external_name = value
@@ -546,13 +567,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         # mode without the use of asyncio (will be removed in a future release)
         self._allow_bind_str_to_lob = True
 
-    def clear_end_user_security_context(self):
-        """
-        Internal method for clearing the EndUserSecurityContext on the
-        connection object.
-        """
-        self.security_context = None
-
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
 
@@ -665,23 +679,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
     def set_call_timeout(self, uint32_t value):
         self._protocol._transport.set_timeout(value / 1000)
         self._call_timeout = value
-
-    def set_end_user_security_context(self, context):
-        """
-        Internal method that sets the EndUserSecurityContext on
-        the connection object which helps in determining whether
-        the security context should be sent as a piggyback.
-        """
-        if self._protocol._transport is not None \
-                and self._protocol._transport._ssl_context is None:
-            errors._raise_err(
-                errors.ERR_END_USER_SECURITY_CONTEXT_REQUIRES_TCPS
-            )
-        if not self._protocol._caps.supports_end_user_security_context:
-            errors._raise_err(
-                errors.ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE
-            )
-        self.security_context = context
 
     def suspend_sessionless_transaction(self):
         cdef:

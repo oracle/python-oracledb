@@ -56,6 +56,12 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.changepassword
 
+.. automethod:: AsyncConnection.clear_end_user_security_context
+
+    See :ref:`endusersecuritycontextcreation`.
+
+    .. versionadded:: 4.1.0
+
 .. automethod:: AsyncConnection.close
 
     .. note::
@@ -168,6 +174,12 @@ AsyncConnection Methods
         portability such as when preparing for a database upgrade.
 
     .. versionadded:: 2.4.0
+
+.. automethod:: AsyncConnection.set_end_user_security_context
+
+    See :ref:`endusersecuritycontextcreation`.
+
+    .. versionadded:: 4.1.0
 
 .. automethod:: AsyncConnection.suspend_sessionless_transaction
 

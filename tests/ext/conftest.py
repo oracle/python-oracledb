@@ -57,6 +57,20 @@ def skip_unless_run_long_tests(extended_config):
         pytest.skip("extended configuration run_long_tests is disabled")
 
 
+@pytest.fixture(scope="session")
+def skip_unless_deep_data_security(
+    extended_config, test_env, skip_unless_thin_mode
+):
+    if not test_env.has_server_version(23, 26):
+        pytest.skip("no Deep Data Security support")
+    if (
+        not extended_config.get_str_value("deep_data_security_db_token")
+        or not extended_config.get_str_value("deep_data_security_user_token")
+        or not extended_config.get_str_value("deep_data_security_xs_user")
+    ):
+        pytest.skip("missing Deep Data Security configuration")
+
+
 class ExtendedConfig:
 
     def __init__(self, test_env):

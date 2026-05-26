@@ -19,6 +19,9 @@ oracledb `4.1.0 <https://github.com/oracle/python-oracledb/compare/v4.0.1...v4.1
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>` using
+    aysncio.
+
 Thick Mode Changes
 ++++++++++++++++++
 
