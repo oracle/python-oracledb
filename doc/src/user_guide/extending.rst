@@ -107,6 +107,10 @@ All python-oracledb installations bundle the following plugins:
   access connection configuration information stored using Azure App
   Configuration. See :ref:`azureappstorageprovider`.
 
+- ``gcp_config_provider`` which allows connection and pool creation calls to
+  access connection configuration information stored using Google Cloud Storage
+  and Google Cloud Secret Manager. See :ref:`gcpprovider`.
+
 - ``oci_tokens`` which uses the `Oracle Cloud Infrastructure (OCI) Software
   Development Kit (SDK) <https://docs.oracle.com/en-us/iaas/Content/API/
   Concepts/sdkconfig.htm>`__ to generate access tokens when authenticating with

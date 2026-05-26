@@ -1260,8 +1260,8 @@ This plugin is implemented as a :ref:`connection protocol hook function
 :ref:`Google Cloud Storage connection strings <connstringgcs>` and
 :ref:`Google Cloud Secret Manager connection strings <connstringgsm>`. The
 plugin parses these connection strings and gets the stored configuration
-information.
-Python-oracledb then uses this information to connect to Oracle Database.
+information. Python-oracledb then uses this information to connect to Oracle
+Database.
 
 To use this plugin in python-oracledb Thick mode, you must set
 :attr:`oracledb.defaults.thick_mode_dsn_passthrough
