@@ -35,6 +35,9 @@ Common Changes
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.
+#)  Fixed bug causing an exception to be raised when calling
+    :func:`oracledb.is_simple_sql_name()` or
+    :func:`oracledb.is_qualified_sql_name()` with an incorrectly quoted string.
 
 
 oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0.1>`__ (May 2026)

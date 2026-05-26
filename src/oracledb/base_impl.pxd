@@ -961,7 +961,8 @@ cdef class BaseParser:
     cdef Py_UCS4 get_current_char(self)
     cdef int initialize(self, str data_to_parse) except -1
     cdef int parse_keyword(self) except -1
-    cdef int parse_quoted_string(self, Py_UCS4 quote_type) except -1
+    cdef int parse_quoted_string(self, Py_UCS4 quote_type,
+                                 bint raise_exception=*) except -1
     cdef int skip_spaces(self) except -1
 
 
