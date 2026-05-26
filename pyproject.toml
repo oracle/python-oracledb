@@ -23,17 +23,17 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Cython",
     "Topic :: Database",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "cryptography>=3.2.1",
     "typing_extensions>=4.14.0",

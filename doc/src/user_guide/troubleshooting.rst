@@ -123,14 +123,14 @@ Deprecated Python Version Warning
 **Warning:** ``Python 3.6 is no longer supported by the Python core team.
 Therefore, support for it is deprecated in python-oracledb and will be removed
 in a future release.`` (A similar warning will also be displayed for Python
-versions 3.7 and 3.8.)
+versions 3.7 through 3.9.)
 
 **Cause:** ``import oracledb`` gives this warning because you are using a
 version of Python that is longer maintained by the Python core team.
 
 **Action:**  You can either:
 
-- Upgrade your Python version to 3.9 or later.
+- Upgrade your Python version to 3.10 or later.
 
 - Or you can temporarily suppress the warning by importing the
   `warnings <https://docs.python.org/3/library/warnings.html>`__ module and

@@ -28,6 +28,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Dropped support for Python 3.9 and added initial support for Python 3.15.
 #)  Added :ref:`Centralized Configuration Provider <configurationproviders>`
     support for Google Cloud Storage and Google Cloud Secret Manager with the
     :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin.

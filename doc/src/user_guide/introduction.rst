@@ -32,8 +32,8 @@ The module is available from standard package repositories including `PyPI
 hosted at `github.com/oracle/python-oracledb
 <https://github.com/oracle/python-oracledb>`__.
 
-This module is currently tested with Python 3.9, 3.10, 3.11, 3.12, 3.13, and
-3.14 against Oracle Database version 26, 21, and 19. Previous versions of
+This module is currently tested with Python 3.10, 3.11, 3.12, 3.13, 3.14 and
+3.15 against Oracle Database version 26, 21, and 19. Previous versions of
 python-oracledb supported older Python versions.
 
 Changes in python-oracledb releases can be found in the :ref:`release notes

@@ -223,14 +223,14 @@ On macOS, the alternative ways to enable Thick mode are:
   the python CLI without specifying a Python script, executing ``import
   oracledb``, and then typing ``oracledb`` at the prompt.  For example this
   might show
-  ``/Users/yourname/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb/__init__.py``.
+  ``/Users/yourname/.pyenv/versions/3.14.4/lib/python3.14/site-packages/oracledb/__init__.py``.
   After checking that
-  ``/Users/yourname/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb``
+  ``/Users/yourname/.pyenv/versions/3.14.4/lib/python3.14/site-packages/oracledb``
   contains the binary module ``thick_impl.cpython-39-darwin.so`` you could then
   run these commands in a terminal window::
 
       CLIENT_DIR=~/Downloads/instantclient_23_3
-      DPY_DIR=~/.pyenv/versions/3.9.6/lib/python3.9/site-packages/oracledb
+      DPY_DIR=~/.pyenv/versions/3.14.4/lib/python3.14/site-packages/oracledb
       ln -s $CLIENT_DIR/libclntsh.dylib $DPY_DIR
 
   This can be automated in Python with:
