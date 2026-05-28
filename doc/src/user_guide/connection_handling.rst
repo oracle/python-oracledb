@@ -1549,9 +1549,9 @@ To use python-oracledb with Google Cloud Storage, you must:
    Cloud Storage Bucket <https://docs.cloud.google.com/storage/docs/
    buckets>`__. See `Upload an object into the bucket <https://docs.cloud.
    google.com/storage/docs/discover-object-storage-console#upload_an_object_
-   into_the_bucket>`__ for the steps. See Google Cloud Storage Centralized
-   Configuration Provider Parameters for the configuration information that can
-   be added.
+   into_the_bucket>`__ for the steps. See :ref:`Google Cloud Storage Centralized
+   Configuration Provider Parameters <gcsconfigparams>` for the configuration
+   information that can be added.
 
 2. Install the Google Cloud Platform modules, see :ref:`gcpccpmodules`.
 

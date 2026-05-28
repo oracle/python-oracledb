@@ -20,7 +20,7 @@ Thin Mode Changes
 +++++++++++++++++
 
 #)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>` using
-    aysncio.
+    :ref:`asyncio <concurrentprogramming>`.
 
 Thick Mode Changes
 ++++++++++++++++++
