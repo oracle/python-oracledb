@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,9 @@
 # SodaDatabase, SodaCollection, SodaDocument, SodaDocCursor and SodaOperation.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 from typing_extensions import Self
 import json
 
@@ -51,7 +53,7 @@ class SodaDatabase(metaclass=BaseMetaClass):
 
     def _create_doc_impl(
         self, content: Any, key: str = None, media_type: str = None
-    ) -> "SodaDocument":
+    ) -> SodaDocument:
         """
         Internal method used for creating a document implementation object with
         the given content, key and media type.
@@ -69,9 +71,9 @@ class SodaDatabase(metaclass=BaseMetaClass):
     def createCollection(
         self,
         name: str,
-        metadata: Optional[Union[str, dict]] = None,
+        metadata: str | dict | None = None,
         mapMode: bool = False,
-    ) -> "SodaCollection":
+    ) -> SodaCollection:
         """
         Creates a SODA collection with the given name and returns a new SODA
         collection object. If you try to create a collection, and a collection
@@ -100,9 +102,9 @@ class SodaDatabase(metaclass=BaseMetaClass):
     def createDocument(
         self,
         content: Any,
-        key: Optional[str] = None,
+        key: str | None = None,
         mediaType: str = "application/json",
-    ) -> "SodaDocument":
+    ) -> SodaDocument:
         """
         Creates a SODA document usable for SODA write operations. You only need
         to use this method if your collection requires client-assigned keys or
@@ -130,7 +132,7 @@ class SodaDatabase(metaclass=BaseMetaClass):
         return SodaDocument._from_impl(doc_impl)
 
     def getCollectionNames(
-        self, startName: Optional[str] = None, limit: int = 0
+        self, startName: str | None = None, limit: int = 0
     ) -> list[str]:
         """
         Returns a list of the names of collections in the database that match
@@ -145,7 +147,7 @@ class SodaDatabase(metaclass=BaseMetaClass):
         """
         return self._impl.get_collection_names(startName, limit)
 
-    def openCollection(self, name: str) -> "SodaCollection":
+    def openCollection(self, name: str) -> SodaCollection:
         """
         Opens an existing collection with the given name and returns a new SODA
         collection object. If a collection with that name does not exist,
@@ -169,7 +171,7 @@ class SodaCollection(metaclass=BaseMetaClass):
             return arg._impl
         return self._db._create_doc_impl(arg)
 
-    def createIndex(self, spec: Union[dict, str]) -> None:
+    def createIndex(self, spec: dict | str) -> None:
         """
         Creates an index on a SODA collection.
 
@@ -210,7 +212,7 @@ class SodaCollection(metaclass=BaseMetaClass):
         """
         return self._impl.drop_index(name, force)
 
-    def find(self) -> "SodaOperation":
+    def find(self) -> SodaOperation:
         """
         Begins an operation that will act upon documents in the collection. It
         creates and returns a SodaOperation object which is used to specify the
@@ -219,7 +221,7 @@ class SodaCollection(metaclass=BaseMetaClass):
         """
         return SodaOperation(self)
 
-    def getDataGuide(self) -> "SodaDocument":
+    def getDataGuide(self) -> SodaDocument:
         """
         Returns a SODA document object containing property names, data types,
         and lengths inferred from the JSON documents in the collection. It can
@@ -245,8 +247,8 @@ class SodaCollection(metaclass=BaseMetaClass):
         self._impl.insert_many(doc_impls, hint=None, return_docs=False)
 
     def insertManyAndGet(
-        self, docs: list, hint: Optional[str] = None
-    ) -> list["SodaDocument"]:
+        self, docs: list, hint: str | None = None
+    ) -> list[SodaDocument]:
         """
         Similar to :meth:`SodaCollection.insertMany()`, this method inserts a
         list of documents into the collection at one time. The only difference
@@ -280,8 +282,8 @@ class SodaCollection(metaclass=BaseMetaClass):
         self._impl.insert_one(doc_impl, hint=None, return_doc=False)
 
     def insertOneAndGet(
-        self, doc: Any, hint: Optional[str] = None
-    ) -> "SodaDocument":
+        self, doc: Any, hint: str | None = None
+    ) -> SodaDocument:
         """
         Similar to :meth:`~SodaCollection.insertOne()`, this method inserts a
         given document into the collection. The only difference is that it
@@ -342,9 +344,7 @@ class SodaCollection(metaclass=BaseMetaClass):
         doc_impl = self._process_doc_arg(doc)
         self._impl.save(doc_impl, hint=None, return_doc=False)
 
-    def saveAndGet(
-        self, doc: Any, hint: Optional[str] = None
-    ) -> "SodaDocument":
+    def saveAndGet(self, doc: Any, hint: str | None = None) -> SodaDocument:
         """
         Saves a document into the collection. This method is equivalent to
         :meth:`~SodaCollection.insertOneAndGet()` except that if
@@ -394,7 +394,7 @@ class SodaDocument(metaclass=BaseMetaClass):
         """
         return self._impl.get_created_on()
 
-    def getContent(self) -> Union[dict, list]:
+    def getContent(self) -> dict | list:
         """
         Returns the content of the document as a dictionary or list. This
         method assumes that the content is application/json and will raise an
@@ -546,7 +546,7 @@ class SodaOperation(metaclass=BaseMetaClass):
             self._fetch_array_size = value
         return self
 
-    def filter(self, value: Union[dict, str]) -> Self:
+    def filter(self, value: dict | str) -> Self:
         """
         Sets a filter specification for complex document queries and ordering
         of JSON documents. Filter specifications must be provided as a
@@ -564,7 +564,7 @@ class SodaOperation(metaclass=BaseMetaClass):
             raise TypeError("expecting string or dictionary")
         return self
 
-    def getCursor(self) -> "SodaDocCursor":
+    def getCursor(self) -> SodaDocCursor:
         """
         Returns a SodaDocCursor object that can be used to iterate over the
         documents that match the criteria.
@@ -572,13 +572,13 @@ class SodaOperation(metaclass=BaseMetaClass):
         impl = self._collection._impl.get_cursor(self)
         return SodaDocCursor._from_impl(impl)
 
-    def getDocuments(self) -> list["SodaDocument"]:
+    def getDocuments(self) -> list[SodaDocument]:
         """
         Returns a list of SodaDocument objects that match the criteria.
         """
         return [d for d in self.getCursor()]
 
-    def getOne(self) -> Union["SodaDocument", None]:
+    def getOne(self) -> SodaDocument | None:
         """
         Returns a single SodaDocument object that matches the criteria. Note
         that if multiple documents match the criteria only the first one is
@@ -701,7 +701,7 @@ class SodaOperation(metaclass=BaseMetaClass):
             self, doc_impl, return_doc=False
         )
 
-    def replaceOneAndGet(self, doc: Any) -> "SodaDocument":
+    def replaceOneAndGet(self, doc: Any) -> SodaDocument:
         """
         Similar to :meth:`~SodaOperation.replaceOne()`, this method replaces a
         single document in the collection with the specified document. The only

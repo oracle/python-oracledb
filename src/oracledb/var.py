@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,10 +29,11 @@
 # fetch. These hold the metadata as well as any necessary buffers.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Optional, Union
-from .dbobject import DbObjectType
+from typing import Any, Callable
+
 from .base import BaseMetaClass
 from .base_impl import DbType
+from .dbobject import DbObjectType
 
 
 class Var(metaclass=BaseMetaClass):
@@ -110,7 +111,7 @@ class Var(metaclass=BaseMetaClass):
         return self._impl.get_value(pos)
 
     @property
-    def inconverter(self) -> Optional[Callable]:
+    def inconverter(self) -> Callable | None:
         """
         This read-only attribute specifies the method used to convert data from
         Python to the Oracle database. The method signature is converter(value)
@@ -137,7 +138,7 @@ class Var(metaclass=BaseMetaClass):
         return self.num_elements
 
     @property
-    def outconverter(self) -> Optional[Callable]:
+    def outconverter(self) -> Callable | None:
         """
         This read-only attribute specifies the method used to convert data from
         the Oracle database to Python. The method signature is converter(value)
@@ -163,7 +164,7 @@ class Var(metaclass=BaseMetaClass):
         return self._impl.metadata.max_size
 
     @property
-    def type(self) -> Union[DbType, DbObjectType]:
+    def type(self) -> DbType | DbObjectType:
         """
         This read-only attribute returns the type of the variable. This will be
         an :ref:`Oracle Object Type <dbobjecttype>` if the variable binds

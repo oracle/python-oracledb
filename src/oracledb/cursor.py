@@ -29,7 +29,7 @@
 # fetching results from queries.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Union, Callable, Optional
+from typing import Any, Callable
 
 from . import connection as connection_module
 from . import errors
@@ -48,7 +48,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         self,
         connection: "connection_module.Connection",
         scrollable: bool = False,
-        handle: Optional[object] = None,
+        handle: Any = None,
     ) -> None:
         self._connection = connection
         self._impl = connection._impl.create_cursor_impl(scrollable)
@@ -82,7 +82,7 @@ class BaseCursor(metaclass=BaseMetaClass):
     def _call(
         self,
         name: str,
-        parameters: Union[list, tuple],
+        parameters: list | tuple,
         keyword_parameters: dict,
         return_value: Any = None,
     ) -> None:
@@ -100,7 +100,7 @@ class BaseCursor(metaclass=BaseMetaClass):
     def _call_get_execute_args(
         self,
         name: str,
-        parameters: Union[list, tuple],
+        parameters: list | tuple,
         keyword_parameters: dict,
         return_value: str = None,
     ) -> None:
@@ -128,7 +128,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         statement = "".join(statement_parts)
         return (statement, bind_values)
 
-    def _normalize_statement(self, statement: Optional[str]) -> Optional[str]:
+    def _normalize_statement(self, statement: str | None) -> str | None:
         """
         Normalizes a statement by stripping leading and trailing spaces. If the
         result is an empty string, an error is raised immediately.
@@ -210,8 +210,8 @@ class BaseCursor(metaclass=BaseMetaClass):
 
     def arrayvar(
         self,
-        typ: Union[DbType, DbObjectType, type],
-        value: Union[list, int],
+        typ: DbType | DbObjectType | type,
+        value: list | int,
         size: int = 0,
     ) -> Var:
         """
@@ -276,7 +276,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         self._impl = None
 
     @property
-    def description(self) -> Union[list[FetchInfo], None]:
+    def description(self) -> list[FetchInfo] | None:
         """
         This read-only attribute contains information about the columns used in
         a query. It is a list of FetchInfo objects, one per column. This
@@ -486,7 +486,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         self._verify_open()
         self._impl.scrollable = value
 
-    def setinputsizes(self, *args: Any, **kwargs: Any) -> Union[list, dict]:
+    def setinputsizes(self, *args: Any, **kwargs: Any) -> list | dict:
         """
         This can be used before calls to :meth:`execute()` or
         :meth:`executemany()` to predefine memory areas used for
@@ -528,7 +528,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         pass
 
     @property
-    def statement(self) -> Union[str, None]:
+    def statement(self) -> str | None:
         """
         This read-only attribute provides the string object that was previously
         prepared with :meth:`prepare()` or executed with :meth:`execute()`.
@@ -538,7 +538,7 @@ class BaseCursor(metaclass=BaseMetaClass):
 
     def var(
         self,
-        typ: Union[DbType, DbObjectType, type],
+        typ: DbType | DbObjectType | type,
         size: int = 0,
         arraysize: int = 1,
         inconverter: Callable = None,
@@ -642,7 +642,7 @@ class BaseCursor(metaclass=BaseMetaClass):
         )
 
     @property
-    def warning(self) -> Union[errors._Error, None]:
+    def warning(self) -> errors._Error | None:
         """
         This read-only attribute provides an
         :ref:`oracledb._Error<exchandling>` object giving information about any
@@ -693,10 +693,10 @@ class Cursor(BaseCursor):
         self,
         name: str,
         return_type: Any,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
         *,
-        keywordParameters: Optional[dict] = None,
+        keywordParameters: dict | None = None,
     ) -> Any:
         """
         Calls a PL/SQL function with the given name and returns its value.
@@ -730,10 +730,10 @@ class Cursor(BaseCursor):
     def callproc(
         self,
         name: str,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
         *,
-        keywordParameters: Optional[dict] = None,
+        keywordParameters: dict | None = None,
     ) -> list:
         """
         Calls a PL/SQL procedure with the given name.
@@ -792,12 +792,12 @@ class Cursor(BaseCursor):
 
     def execute(
         self,
-        statement: Optional[str],
-        parameters: Optional[Union[list, tuple, dict]] = None,
+        statement: str | None,
+        parameters: list | tuple | dict | None = None,
         *,
         suspend_on_success: bool = False,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
         **keyword_parameters: Any,
     ) -> Any:
         """
@@ -862,7 +862,7 @@ class Cursor(BaseCursor):
 
     def executemany(
         self,
-        statement: Optional[str],
+        statement: str | None,
         parameters: Any,
         *,
         batcherrors: bool = False,
@@ -972,7 +972,7 @@ class Cursor(BaseCursor):
         return result
 
     def fetchmany(
-        self, size: Optional[int] = None, numRows: Optional[int] = None
+        self, size: int | None = None, numRows: int | None = None
     ) -> list:
         """
         Fetches the next set of rows of a SELECT query result, returning a list
@@ -1089,8 +1089,8 @@ class AsyncCursor(BaseCursor):
         self,
         name: str,
         return_type: Any,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> Any:
         """
         Calls a PL/SQL function with the given name and returns its value.
@@ -1112,8 +1112,8 @@ class AsyncCursor(BaseCursor):
     async def callproc(
         self,
         name: str,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> list:
         """
         Calls a PL/SQL procedure with the given name.
@@ -1148,12 +1148,12 @@ class AsyncCursor(BaseCursor):
 
     async def execute(
         self,
-        statement: Optional[str],
-        parameters: Optional[Union[list, tuple, dict]] = None,
+        statement: str | None,
+        parameters: list | tuple | dict | None = None,
         *,
         suspend_on_success: bool = False,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
         **keyword_parameters: Any,
     ) -> None:
         """
@@ -1216,7 +1216,7 @@ class AsyncCursor(BaseCursor):
 
     async def executemany(
         self,
-        statement: Optional[str],
+        statement: str | None,
         parameters: Any,
         *,
         batcherrors: bool = False,
@@ -1317,7 +1317,7 @@ class AsyncCursor(BaseCursor):
             result.append(row)
         return result
 
-    async def fetchmany(self, size: Optional[int] = None) -> list:
+    async def fetchmany(self, size: int | None = None) -> list:
         """
         Fetches the next set of rows of a SELECT query result, returning a list
         of tuples.  An empty list is returned if no more rows are available.

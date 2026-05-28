@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,8 +28,6 @@
 # Contains the FetchInfo class which stores metadata about columns that are
 # being fetched.
 # -----------------------------------------------------------------------------
-
-from typing import Union
 
 import oracledb
 
@@ -100,7 +98,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return info
 
     @property
-    def annotations(self) -> Union[dict, None]:
+    def annotations(self) -> dict | None:
         """
         This read-only attribute returns a dictionary containing the
         `annotations <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
@@ -113,7 +111,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return self._impl.annotations
 
     @property
-    def display_size(self) -> Union[int, None]:
+    def display_size(self) -> int | None:
         """
         This read-only attribute returns the display size of the column.
         """
@@ -142,7 +140,7 @@ class FetchInfo(metaclass=BaseMetaClass):
             return display_size
 
     @property
-    def domain_name(self) -> Union[str, None]:
+    def domain_name(self) -> str | None:
         """
         This read-only attribute returns the name of the `data use case
         domain
@@ -157,7 +155,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return self._impl.domain_name
 
     @property
-    def domain_schema(self) -> Union[str, None]:
+    def domain_schema(self) -> str | None:
         """
         This read-only attribute returns the schema of the `data use case
         domain <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
@@ -171,7 +169,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return self._impl.domain_schema
 
     @property
-    def internal_size(self) -> Union[int, None]:
+    def internal_size(self) -> int | None:
         """
         This read-only attribute returns the internal size of the column as
         mandated by the Python Database API.
@@ -217,7 +215,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return self._impl.nulls_allowed
 
     @property
-    def precision(self) -> Union[int, None]:
+    def precision(self) -> int | None:
         """
         This read-only attribute returns the precision of the column as
         mandated by the Python Database API.
@@ -226,7 +224,7 @@ class FetchInfo(metaclass=BaseMetaClass):
             return self._impl.precision
 
     @property
-    def scale(self) -> Union[int, None]:
+    def scale(self) -> int | None:
         """
         This read-only attribute returns the scale of the column as mandated by
         the Python Database API.
@@ -235,7 +233,7 @@ class FetchInfo(metaclass=BaseMetaClass):
             return self._impl.scale
 
     @property
-    def type(self) -> Union[DbType, DbObjectType]:
+    def type(self) -> DbType | DbObjectType:
         """
         This read-only attribute returns the type of the column. This will be
         an :ref:`Oracle Object Type <dbobjecttype>` if the column contains
@@ -259,7 +257,7 @@ class FetchInfo(metaclass=BaseMetaClass):
         return self._impl.dbtype
 
     @property
-    def vector_dimensions(self) -> Union[int, None]:
+    def vector_dimensions(self) -> int | None:
         """
         This read-only attribute returns the number of dimensions required by
         VECTOR columns. If the column is not a VECTOR column or allows for any
@@ -271,7 +269,7 @@ class FetchInfo(metaclass=BaseMetaClass):
                 return self._impl.vector_dimensions
 
     @property
-    def vector_format(self) -> Union[oracledb.VectorFormat, None]:
+    def vector_format(self) -> oracledb.VectorFormat | None:
         """
         This read-only attribute returns the storage type used by VECTOR
         columns. The value of this attribute can be:
@@ -295,7 +293,7 @@ class FetchInfo(metaclass=BaseMetaClass):
             return oracledb.VectorFormat(self._impl.vector_format)
 
     @property
-    def vector_is_sparse(self) -> Union[bool, None]:
+    def vector_is_sparse(self) -> bool | None:
         """
         This read-only attribute returns a boolean indicating if the vector is
         sparse or not.

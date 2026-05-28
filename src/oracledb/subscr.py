@@ -30,11 +30,10 @@
 # events are detected.
 # -----------------------------------------------------------------------------
 
-from typing import Callable, Optional, Union
-from .base import BaseMetaClass
-from . import connection, errors
+from typing import Callable
 
-import oracledb
+from .base import BaseMetaClass
+from . import base_impl, connection, errors
 
 
 class Subscription(metaclass=BaseMetaClass):
@@ -140,7 +139,7 @@ class Subscription(metaclass=BaseMetaClass):
         return self._impl.qos
 
     def registerquery(
-        self, statement: str, args: Optional[Union[list, dict]] = None
+        self, statement: str, args: list | dict | None = None
     ) -> int:
         """
         Registers the query for subsequent notification when tables referenced
@@ -154,7 +153,7 @@ class Subscription(metaclass=BaseMetaClass):
         """
         if args is not None and not isinstance(args, (list, dict)):
             raise TypeError("expecting args to be a dictionary or list")
-        if self._impl.namespace == oracledb.SUBSCR_NAMESPACE_AQ:
+        if self._impl.namespace == base_impl.SUBSCR_NAMESPACE_AQ:
             errors._raise_err(errors.ERR_REGISTER_QUERY_ON_AQ_SUBSCR)
         return self._impl.register_query(statement, args)
 
@@ -182,7 +181,7 @@ class Message(metaclass=BaseMetaClass):
         self._msgid = None
 
     @property
-    def consumer_name(self) -> Union[str, None]:
+    def consumer_name(self) -> str | None:
         """
         This read-only attribute returns the name of the consumer which
         generated the notification. It will be populated if the
@@ -193,14 +192,14 @@ class Message(metaclass=BaseMetaClass):
         return self._consumer_name
 
     @property
-    def consumerName(self) -> Union[str, None]:
+    def consumerName(self) -> str | None:
         """
         Deprecated. Use property consumer_name instead.
         """
         return self.consumer_name
 
     @property
-    def dbname(self) -> Union[str, None]:
+    def dbname(self) -> str | None:
         """
         This read-only attribute returns the name of the database that
         generated the notification.
@@ -208,7 +207,7 @@ class Message(metaclass=BaseMetaClass):
         return self._dbname
 
     @property
-    def msgid(self) -> Union[bytes, None]:
+    def msgid(self) -> bytes | None:
         """
         This read-only attribute returns the message id of the AQ message that
         generated the notification. It will only be populated if the
@@ -229,7 +228,7 @@ class Message(metaclass=BaseMetaClass):
         return self._queries
 
     @property
-    def queue_name(self) -> Union[str, None]:
+    def queue_name(self) -> str | None:
         """
         This read-only attribute returns the name of the queue which generated
         the notification. It will only be populated if the subscription was
@@ -238,7 +237,7 @@ class Message(metaclass=BaseMetaClass):
         return self._queue_name
 
     @property
-    def queueName(self) -> Union[str, None]:
+    def queueName(self) -> str | None:
         """
         Deprecated. Use property queue_name instead.
         """
@@ -276,7 +275,7 @@ class Message(metaclass=BaseMetaClass):
         return self._tables
 
     @property
-    def txid(self) -> Union[bytes, None]:
+    def txid(self) -> bytes | None:
         """
         This read-only attribute returns the id of the transaction that
         generated the notification.
@@ -341,7 +340,7 @@ class MessageRow(metaclass=BaseMetaClass):
         return self._operation
 
     @property
-    def rowid(self) -> Union[str, None]:
+    def rowid(self) -> str | None:
         """
         This read-only attribute returns the rowid of the row that was changed.
         """
@@ -355,7 +354,7 @@ class MessageTable(metaclass=BaseMetaClass):
         self._rows = []
 
     @property
-    def name(self) -> Union[str, None]:
+    def name(self) -> str | None:
         """
         This read-only attribute returns the name of the table that was
         changed.

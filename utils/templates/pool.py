@@ -34,7 +34,7 @@
 import functools
 import ssl
 import threading
-from typing import Callable, Type, Union, Any, Optional
+from typing import Callable, Type, Any
 
 import oracledb
 
@@ -51,10 +51,10 @@ class BaseConnectionPool(metaclass=BaseMetaClass):
 
     def __init__(
         self,
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
-        params: Optional[PoolParams] = None,
-        cache_name: Optional[str] = None,
+        params: PoolParams | None = None,
+        cache_name: str | None = None,
         **kwargs,
     ) -> None:
         """
@@ -377,14 +377,14 @@ class ConnectionPool(BaseConnectionPool):
 
     def acquire(
         self,
-        user: Optional[str] = None,
-        password: Optional[str] = None,
-        cclass: Optional[str] = None,
+        user: str | None = None,
+        password: str | None = None,
+        cclass: str | None = None,
         purity: int = oracledb.PURITY_DEFAULT,
-        tag: Optional[str] = None,
+        tag: str | None = None,
         matchanytag: bool = False,
-        shardingkey: Optional[list] = None,
-        supershardingkey: Optional[list] = None,
+        shardingkey: list | None = None,
+        supershardingkey: list | None = None,
     ) -> "connection_module.Connection":
         """
         Acquires a connection from the session pool and returns a
@@ -467,17 +467,17 @@ class ConnectionPool(BaseConnectionPool):
 
     def reconfigure(
         self,
-        min: Optional[int] = None,
-        max: Optional[int] = None,
-        increment: Optional[int] = None,
-        getmode: Optional[int] = None,
-        timeout: Optional[int] = None,
-        wait_timeout: Optional[int] = None,
-        max_lifetime_session: Optional[int] = None,
-        max_sessions_per_shard: Optional[int] = None,
-        soda_metadata_cache: Optional[bool] = None,
-        stmtcachesize: Optional[int] = None,
-        ping_interval: Optional[int] = None,
+        min: int | None = None,
+        max: int | None = None,
+        increment: int | None = None,
+        getmode: int | None = None,
+        timeout: int | None = None,
+        wait_timeout: int | None = None,
+        max_lifetime_session: int | None = None,
+        max_sessions_per_shard: int | None = None,
+        soda_metadata_cache: bool | None = None,
+        stmtcachesize: int | None = None,
+        ping_interval: int | None = None,
     ) -> None:
         """
         Reconfigures various parameters of a connection pool. The pool size can
@@ -556,7 +556,7 @@ class ConnectionPool(BaseConnectionPool):
     def release(
         self,
         connection: "connection_module.Connection",
-        tag: Optional[str] = None,
+        tag: str | None = None,
     ) -> None:
         """
         Releases the connection back to the pool now, rather than whenever
@@ -603,11 +603,11 @@ def _pool_factory(
 
     @functools.wraps(f)
     def create_pool(
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
         pool_class: Type[ConnectionPool] = ConnectionPool,
-        pool_alias: Optional[str] = None,
-        params: Optional[PoolParams] = None,
+        pool_alias: str | None = None,
+        params: PoolParams | None = None,
         **kwargs,
     ) -> ConnectionPool:
         f(
@@ -626,11 +626,11 @@ def _pool_factory(
 
 @_pool_factory
 def create_pool(
-    dsn: Optional[str] = None,
+    dsn: str | None = None,
     *,
     pool_class: Type[ConnectionPool] = ConnectionPool,
-    pool_alias: Optional[str] = None,
-    params: Optional[PoolParams] = None,
+    pool_alias: str | None = None,
+    params: PoolParams | None = None,
     # {{ args_with_defaults }}
 ) -> ConnectionPool:
     """
@@ -687,14 +687,14 @@ class AsyncConnectionPool(BaseConnectionPool):
 
     def acquire(
         self,
-        user: Optional[str] = None,
-        password: Optional[str] = None,
-        cclass: Optional[str] = None,
+        user: str | None = None,
+        password: str | None = None,
+        cclass: str | None = None,
         purity: int = oracledb.PURITY_DEFAULT,
-        tag: Optional[str] = None,
+        tag: str | None = None,
         matchanytag: bool = False,
-        shardingkey: Optional[list] = None,
-        supershardingkey: Optional[list] = None,
+        shardingkey: list | None = None,
+        supershardingkey: list | None = None,
     ) -> "connection_module.AsyncConnection":
         """
         Acquires a connection from the pool and returns an :ref:`asynchronous
@@ -763,7 +763,7 @@ class AsyncConnectionPool(BaseConnectionPool):
     async def release(
         self,
         connection: "connection_module.AsyncConnection",
-        tag: Optional[str] = None,
+        tag: str | None = None,
     ) -> None:
         """
         Releases the connection back to the pool now. The connection will be
@@ -799,11 +799,11 @@ def _async_pool_factory(
 
     @functools.wraps(f)
     def create_pool_async(
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
         pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-        pool_alias: Optional[str] = None,
-        params: Optional[PoolParams] = None,
+        pool_alias: str | None = None,
+        params: PoolParams | None = None,
         **kwargs,
     ) -> AsyncConnectionPool:
         f(
@@ -823,11 +823,11 @@ def _async_pool_factory(
 
 @_async_pool_factory
 def create_pool_async(
-    dsn: Optional[str] = None,
+    dsn: str | None = None,
     *,
     pool_class: Type[ConnectionPool] = AsyncConnectionPool,
-    pool_alias: Optional[str] = None,
-    params: Optional[PoolParams] = None,
+    pool_alias: str | None = None,
+    params: PoolParams | None = None,
     # {{ async_args_with_defaults }}
 ) -> AsyncConnectionPool:
     """
@@ -903,7 +903,7 @@ named_pools = NamedPools()
 
 def get_pool(
     pool_alias: str,
-) -> Union[ConnectionPool, AsyncConnectionPool, None]:
+) -> ConnectionPool | AsyncConnectionPool | None:
     """
     Returns a :ref:`ConnectionPool object <connpool>` from the python-oracledb
     pool cache. The pool must have been previously created by passing the same

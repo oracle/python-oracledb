@@ -32,7 +32,7 @@
 # -----------------------------------------------------------------------------
 
 import ssl
-from typing import Callable, Type, Union, Any, Optional
+from typing import Callable, Type, Any
 
 import oracledb
 

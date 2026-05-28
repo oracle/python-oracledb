@@ -29,7 +29,7 @@
 # -----------------------------------------------------------------------------
 
 import functools
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 import uuid
 
 from .arrow_array import ArrowArray
@@ -100,7 +100,7 @@ def enquote_name(value: str, capitalize: bool = True) -> str:
     return f'"{value}"'
 
 
-def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
+def from_arrow(obj: Any) -> DataFrame | ArrowArray:
     """
     This method converts a data frame to a
     :ref:`DataFrame <oracledataframeobj>` or
@@ -121,10 +121,10 @@ def from_arrow(obj: Any) -> Union[DataFrame, ArrowArray]:
 
 
 def init_oracle_client(
-    lib_dir: Optional[Union[str, bytes]] = None,
-    config_dir: Optional[Union[str, bytes]] = None,
-    error_url: Optional[str] = None,
-    driver_name: Optional[str] = None,
+    lib_dir: str | bytes | None = None,
+    config_dir: str | bytes | None = None,
+    error_url: str | None = None,
+    driver_name: str | None = None,
 ):
     """
     Enables python-oracledb Thick mode by initializing the Oracle Client
@@ -239,7 +239,7 @@ def is_simple_sql_name(value: str) -> bool:
 
 
 def normalize_sessionless_transaction_id(
-    value: Optional[Union[bytes, str]] = None,
+    value: bytes | str | None = None,
 ) -> bytes:
     """
     Normalize and validate the transaction_id.
@@ -434,7 +434,7 @@ def unregister_params_hook(hook_function: Callable) -> None:
 
 
 def verify_stored_proc_args(
-    parameters: Union[list, tuple], keyword_parameters: dict
+    parameters: list | tuple, keyword_parameters: dict
 ) -> None:
     """
     Verifies that the arguments to a call to a stored procedure or function

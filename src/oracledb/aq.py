@@ -29,10 +29,12 @@
 # DeqOptions, EnqOptions and MessageProperties.
 # -----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import datetime
+from typing import Any
 
 from . import connection as connection_module
-from typing import Any, Union
 from . import errors, utils
 from .base import BaseMetaClass
 from .dbobject import DbObject, DbObjectType
@@ -116,7 +118,7 @@ class BaseQueue(metaclass=BaseMetaClass):
         return self._impl.name
 
     @property
-    def payload_type(self) -> Union[DbObjectType, None]:
+    def payload_type(self) -> DbObjectType | None:
         """
         This read-only attribute returns the object type for payloads that can
         be enqueued and dequeued. If using a JSON queue, this returns the value
@@ -132,7 +134,7 @@ class BaseQueue(metaclass=BaseMetaClass):
         return self._payload_type
 
     @property
-    def payloadType(self) -> Union[DbObjectType, None]:
+    def payloadType(self) -> DbObjectType | None:
         """
         Deprecated: use payload_type instead.
         """
@@ -163,7 +165,7 @@ class Queue(BaseQueue):
         """
         return self.deqmany(max_num_messages)
 
-    def deqone(self) -> Union["MessageProperties", None]:
+    def deqone(self) -> MessageProperties | None:
         """
         Dequeues at most one message from the queue and returns it. If no
         message is dequeued, None is returned.
@@ -172,7 +174,7 @@ class Queue(BaseQueue):
         if message_impl is not None:
             return MessageProperties._from_impl(message_impl)
 
-    def deqOne(self) -> Union["MessageProperties", None]:
+    def deqOne(self) -> MessageProperties | None:
         """
         Deprecated: use deqone() instead.
         """
@@ -232,7 +234,7 @@ class AsyncQueue(BaseQueue):
         message_impls = await self._impl.deq_many(max_num_messages)
         return [MessageProperties._from_impl(impl) for impl in message_impls]
 
-    async def deqone(self) -> Union["MessageProperties", None]:
+    async def deqone(self) -> MessageProperties | None:
         """
         Dequeues at most one message from the queue and returns it. If no
         message is dequeued, None is returned.
@@ -588,7 +590,7 @@ class MessageProperties(metaclass=BaseMetaClass):
         return self._impl.get_message_id()
 
     @property
-    def payload(self) -> Union[bytes, DbObject]:
+    def payload(self) -> bytes | DbObject:
         """
         This read-write attribute specifies the payload that will be enqueued
         or the payload that was dequeued when using a queue. When enqueuing,

@@ -31,10 +31,12 @@
 # # {{ generated_notice }}
 # -----------------------------------------------------------------------------
 
+from __future__ import annotations
+
 import collections
 import functools
 import ssl
-from typing import Any, Callable, Iterator, Type, Optional, Union
+from typing import Any, Callable, Iterator, Type
 
 import oracledb
 
@@ -442,13 +444,13 @@ class BaseConnection(metaclass=BaseMetaClass):
 
     def msgproperties(
         self,
-        payload: Optional[Union[bytes, str, DbObject]] = None,
-        correlation: Optional[str] = None,
-        delay: Optional[int] = None,
-        exceptionq: Optional[str] = None,
-        expiration: Optional[int] = None,
-        priority: Optional[int] = None,
-        recipients: Optional[list] = None,
+        payload: bytes | str | DbObject | None = None,
+        correlation: str | None = None,
+        delay: int | None = None,
+        exceptionq: str | None = None,
+        expiration: int | None = None,
+        priority: int | None = None,
+        recipients: list | None = None,
     ) -> MessageProperties:
         """
         Returns an object specifying the properties of messages used in
@@ -478,10 +480,10 @@ class BaseConnection(metaclass=BaseMetaClass):
     def queue(
         self,
         name: str,
-        payload_type: Optional[Union[DbObjectType, str]] = None,
+        payload_type: DbObjectType | str | None = None,
         *,
-        payloadType: Optional[DbObjectType] = None,
-    ) -> Union[Queue, AsyncQueue]:
+        payloadType: DbObjectType | None = None,
+    ) -> Queue | AsyncQueue:
         """
         Creates a queue which is used to enqueue and dequeue messages in
         Advanced Queuing.
@@ -541,7 +543,7 @@ class BaseConnection(metaclass=BaseMetaClass):
         self._impl.outputtypehandler = value
 
     @property
-    def proxy_user(self) -> Union[str, None]:
+    def proxy_user(self) -> str | None:
         """
         This read-only attribute returns the name of the user which was used as
         a proxy when creating the connection to the database.
@@ -700,7 +702,7 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._version
 
     @property
-    def warning(self) -> Union[errors._Error, None]:
+    def warning(self) -> errors._Error | None:
         """
         This read-only attribute provides an
         :ref:`oracledb._Error<exchandling>` object giving information about any
@@ -733,8 +735,8 @@ class BaseConnection(metaclass=BaseMetaClass):
     def xid(
         self,
         format_id: int,
-        global_transaction_id: Union[bytes, str],
-        branch_qualifier: Union[bytes, str],
+        global_transaction_id: bytes | str,
+        branch_qualifier: bytes | str,
     ) -> Xid:
         """
         Returns a global transaction identifier (xid) that can be used with the
@@ -764,10 +766,10 @@ class Connection(BaseConnection):
 
     def __init__(
         self,
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
-        pool: Optional["pool_module.ConnectionPool"] = None,
-        params: Optional[ConnectParams] = None,
+        pool: pool_module.ConnectionPool | None = None,
+        params: ConnectParams | None = None,
         **kwargs,
     ) -> None:
         """
@@ -914,7 +916,7 @@ class Connection(BaseConnection):
 
     def begin_sessionless_transaction(
         self,
-        transaction_id: Optional[Union[str, bytes]] = None,
+        transaction_id: str | bytes | None = None,
         timeout: int = 60,
         defer_round_trip: bool = False,
     ) -> bytes:
@@ -1004,7 +1006,7 @@ class Connection(BaseConnection):
         self._impl.commit()
 
     def createlob(
-        self, lob_type: DbType, data: Optional[Union[str, bytes]] = None
+        self, lob_type: DbType, data: str | bytes | None = None
     ) -> LOB:
         """
         Creates and returns a new temporary LOB object of the specified type.
@@ -1028,9 +1030,7 @@ class Connection(BaseConnection):
             lob.write(data)
         return lob
 
-    def cursor(
-        self, scrollable: bool = False, handle: Optional[object] = None
-    ) -> Cursor:
+    def cursor(self, scrollable: bool = False, handle: Any = None) -> Cursor:
         """
         Returns a new :ref:`cursor object <cursorobj>` using the connection.
 
@@ -1073,13 +1073,13 @@ class Connection(BaseConnection):
 
     def fetch_df_all(
         self,
-        statement: Optional[str] = None,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        arraysize: Optional[int] = None,
+        statement: str | None = None,
+        parameters: list | tuple | dict | None = None,
+        arraysize: int | None = None,
         *,
-        fetch_decimals: Optional[bool] = None,
-        requested_schema: Optional[Any] = None,
-        handle: Optional[object] = None,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
+        handle: Any = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -1140,13 +1140,13 @@ class Connection(BaseConnection):
 
     def fetch_df_batches(
         self,
-        statement: Optional[str] = None,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        size: Optional[int] = None,
+        statement: str | None = None,
+        parameters: list | tuple | dict | None = None,
+        size: int | None = None,
         *,
-        fetch_decimals: Optional[bool] = None,
-        requested_schema: Optional[Any] = None,
-        handle: Optional[object] = None,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
+        handle: Any = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -1279,7 +1279,7 @@ class Connection(BaseConnection):
 
     def resume_sessionless_transaction(
         self,
-        transaction_id: Union[str, bytes],
+        transaction_id: str | bytes,
         timeout: int = 60,
         defer_round_trip: bool = False,
     ) -> bytes:
@@ -1352,7 +1352,7 @@ class Connection(BaseConnection):
         self,
         force: bool = False,
         restrict: bool = False,
-        pfile: Optional[str] = None,
+        pfile: str | None = None,
     ) -> None:
         """
         Starts up the database. This is equivalent to the SQL*Plus command
@@ -1371,19 +1371,19 @@ class Connection(BaseConnection):
         self,
         namespace: int = oracledb.SUBSCR_NAMESPACE_DBCHANGE,
         protocol: int = oracledb.SUBSCR_PROTO_CALLBACK,
-        callback: Optional[Callable] = None,
+        callback: Callable | None = None,
         timeout: int = 0,
         operations: int = oracledb.OPCODE_ALLOPS,
         port: int = 0,
         qos: int = oracledb.SUBSCR_QOS_DEFAULT,
-        ip_address: Optional[str] = None,
+        ip_address: str | None = None,
         grouping_class: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
         grouping_value: int = 0,
         grouping_type: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
-        name: Optional[str] = None,
+        name: str | None = None,
         client_initiated: bool = False,
         *,
-        ipAddress: Optional[str] = None,
+        ipAddress: str | None = None,
         groupingClass: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
         groupingValue: int = 0,
         groupingType: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
@@ -1576,7 +1576,7 @@ class Connection(BaseConnection):
         self._impl.tpc_begin(xid, flags, timeout)
 
     def tpc_commit(
-        self, xid: Optional[Xid] = None, one_phase: bool = False
+        self, xid: Xid | None = None, one_phase: bool = False
     ) -> None:
         """
         Commits a global transaction. When called with no arguments, this
@@ -1604,7 +1604,7 @@ class Connection(BaseConnection):
         self._impl.tpc_commit(xid, one_phase)
 
     def tpc_end(
-        self, xid: Optional[Xid] = None, flags: int = oracledb.TPC_END_NORMAL
+        self, xid: Xid | None = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
         """
         Ends or suspends work on a global transaction. This function is only
@@ -1643,7 +1643,7 @@ class Connection(BaseConnection):
         self._verify_xid(xid)
         self._impl.tpc_forget(xid)
 
-    def tpc_prepare(self, xid: Optional[Xid] = None) -> bool:
+    def tpc_prepare(self, xid: Xid | None = None) -> bool:
         """
         Prepares a two-phase transaction for commit. After this function is
         called, no further activity should take place on this connection until
@@ -1683,7 +1683,7 @@ class Connection(BaseConnection):
             cursor.rowfactory = Xid
             return cursor.fetchall()
 
-    def tpc_rollback(self, xid: Optional[Xid] = None) -> None:
+    def tpc_rollback(self, xid: Xid | None = None) -> None:
         """
         If an ``xid`` parameter is not passed, then it rolls back the
         transaction that was previously started with
@@ -1728,12 +1728,12 @@ def _connection_factory(
 
     @functools.wraps(f)
     def connect(
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
-        pool: Optional["pool_module.ConnectionPool"] = None,
-        pool_alias: Optional[str] = None,
+        pool: pool_module.ConnectionPool | None = None,
+        pool_alias: str | None = None,
         conn_class: Type[Connection] = Connection,
-        params: Optional[ConnectParams] = None,
+        params: ConnectParams | None = None,
         **kwargs,
     ) -> Connection:
         f(
@@ -1770,12 +1770,12 @@ def _connection_factory(
 
 @_connection_factory
 def connect(
-    dsn: Optional[str] = None,
+    dsn: str | None = None,
     *,
-    pool: Optional["pool_module.ConnectionPool"] = None,
-    pool_alias: Optional[str] = None,
+    pool: pool_module.ConnectionPool | None = None,
+    pool_alias: str | None = None,
     conn_class: Type[Connection] = Connection,
-    params: Optional[ConnectParams] = None,
+    params: ConnectParams | None = None,
     # {{ args_with_defaults }}
 ) -> Connection:
     """
@@ -1952,7 +1952,7 @@ class AsyncConnection(BaseConnection):
 
     async def begin_sessionless_transaction(
         self,
-        transaction_id: Optional[Union[str, bytes]] = None,
+        transaction_id: str | bytes | None = None,
         timeout: int = 60,
         defer_round_trip: bool = False,
     ) -> bytes:
@@ -2000,8 +2000,8 @@ class AsyncConnection(BaseConnection):
         self,
         name: str,
         return_type: Any,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> Any:
         """
         Calls a PL/SQL function with the given name.
@@ -2017,8 +2017,8 @@ class AsyncConnection(BaseConnection):
     async def callproc(
         self,
         name: str,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> list:
         """
         Calls a PL/SQL procedure with the given name.
@@ -2053,7 +2053,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.commit()
 
     async def createlob(
-        self, lob_type: DbType, data: Optional[Union[str, bytes]] = None
+        self, lob_type: DbType, data: str | bytes | None = None
     ) -> AsyncLOB:
         """
         Creates and returns a new temporary LOB of the specified type.
@@ -2082,7 +2082,7 @@ class AsyncConnection(BaseConnection):
     async def execute(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
+        parameters: list | tuple | dict | None = None,
     ) -> None:
         """
         Executes a statement against the database.
@@ -2094,7 +2094,7 @@ class AsyncConnection(BaseConnection):
             await cursor.execute(statement, parameters)
 
     async def executemany(
-        self, statement: Union[str, None], parameters: Any
+        self, statement: str | None, parameters: Any
     ) -> None:
         """
         Executes a SQL statement once using all bind value mappings or
@@ -2120,12 +2120,12 @@ class AsyncConnection(BaseConnection):
     async def fetchall(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        arraysize: Optional[int] = None,
-        rowfactory: Optional[Callable] = None,
+        parameters: list | tuple | dict | None = None,
+        arraysize: int | None = None,
+        rowfactory: Callable | None = None,
         *,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> list:
         """
         Executes a query and returns all of the rows.
@@ -2181,11 +2181,11 @@ class AsyncConnection(BaseConnection):
     async def fetch_df_all(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        arraysize: Optional[int] = None,
+        parameters: list | tuple | dict | None = None,
+        arraysize: int | None = None,
         *,
-        fetch_decimals: Optional[bool] = None,
-        requested_schema: Optional[Any] = None,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
     ) -> DataFrame:
         """
         Fetches all rows of the SQL query ``statement``, returning them in a
@@ -2231,11 +2231,11 @@ class AsyncConnection(BaseConnection):
     async def fetch_df_batches(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        size: Optional[int] = None,
+        parameters: list | tuple | dict | None = None,
+        size: int | None = None,
         *,
-        fetch_decimals: Optional[bool] = None,
-        requested_schema: Optional[Any] = None,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
     ) -> Iterator[DataFrame]:
         """
         This returns an iterator yielding the next ``size`` rows of the SQL
@@ -2288,12 +2288,12 @@ class AsyncConnection(BaseConnection):
     async def fetchmany(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        num_rows: Optional[int] = None,
-        rowfactory: Optional[Callable] = None,
+        parameters: list | tuple | dict | None = None,
+        num_rows: int | None = None,
+        rowfactory: Callable | None = None,
         *,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> list:
         """
         Executes a query and returns up to the specified number of rows.
@@ -2330,11 +2330,11 @@ class AsyncConnection(BaseConnection):
     async def fetchone(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        rowfactory: Optional[Callable] = None,
+        parameters: list | tuple | dict | None = None,
+        rowfactory: Callable | None = None,
         *,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> Any:
         """
         Executes a query and returns the first row of the result set if one
@@ -2380,7 +2380,7 @@ class AsyncConnection(BaseConnection):
 
     async def resume_sessionless_transaction(
         self,
-        transaction_id: Union[str, bytes],
+        transaction_id: str | bytes,
         timeout: int = 60,
         defer_round_trip: bool = False,
     ) -> bytes:
@@ -2523,7 +2523,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_begin(xid, flags, timeout)
 
     async def tpc_commit(
-        self, xid: Optional[Xid] = None, one_phase: bool = False
+        self, xid: Xid | None = None, one_phase: bool = False
     ) -> None:
         """
         Commits a global transaction. When called with no arguments, this
@@ -2552,7 +2552,7 @@ class AsyncConnection(BaseConnection):
         await self._impl.tpc_commit(xid, one_phase)
 
     async def tpc_end(
-        self, xid: Optional[Xid] = None, flags: int = oracledb.TPC_END_NORMAL
+        self, xid: Xid | None = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
         """
         Ends or suspends work on a global transaction. This function is only
@@ -2591,7 +2591,7 @@ class AsyncConnection(BaseConnection):
         self._verify_xid(xid)
         await self._impl.tpc_forget(xid)
 
-    async def tpc_prepare(self, xid: Optional[Xid] = None) -> bool:
+    async def tpc_prepare(self, xid: Xid | None = None) -> bool:
         """
         Prepares a two-phase transaction for commit. After this function is
         called, no further activity should take place on this connection until
@@ -2631,7 +2631,7 @@ class AsyncConnection(BaseConnection):
             cursor.rowfactory = Xid
             return await cursor.fetchall()
 
-    async def tpc_rollback(self, xid: Optional[Xid] = None) -> None:
+    async def tpc_rollback(self, xid: Xid | None = None) -> None:
         """
         Rolls back a global transaction.
 
@@ -2661,12 +2661,12 @@ def _async_connection_factory(
 
     @functools.wraps(f)
     def connect_async(
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         *,
-        pool: Optional["pool_module.AsyncConnectionPool"] = None,
-        pool_alias: Optional[str] = None,
+        pool: pool_module.AsyncConnectionPool | None = None,
+        pool_alias: str | None = None,
         conn_class: Type[AsyncConnection] = AsyncConnection,
-        params: Optional[ConnectParams] = None,
+        params: ConnectParams | None = None,
         **kwargs,
     ) -> AsyncConnection:
         # check arguments
@@ -2713,12 +2713,12 @@ def _async_connection_factory(
 
 @_async_connection_factory
 def connect_async(
-    dsn: Optional[str] = None,
+    dsn: str | None = None,
     *,
-    pool: Optional["pool_module.AsyncConnectionPool"] = None,
-    pool_alias: Optional[str] = None,
+    pool: pool_module.AsyncConnectionPool | None = None,
+    pool_alias: str | None = None,
     conn_class: Type[AsyncConnection] = AsyncConnection,
-    params: Optional[ConnectParams] = None,
+    params: ConnectParams | None = None,
     # {{ args_with_defaults }}
 ) -> AsyncConnection:
     """

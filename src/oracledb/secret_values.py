@@ -31,7 +31,7 @@
 
 import datetime
 import threading
-from typing import Any, Optional, Union
+from typing import Any
 
 from .base_impl import SecretValueImpl
 
@@ -39,7 +39,7 @@ from .base_impl import SecretValueImpl
 class SecretValue:
 
     def __init__(
-        self, value: str, *, expires: Optional[datetime.datetime] = None
+        self, value: str, *, expires: datetime.datetime | None = None
     ):
         self._impl = SecretValueImpl(value, expires)
 
@@ -47,7 +47,7 @@ class SecretValue:
         return self._impl.__hash__()
 
     @property
-    def value(self) -> Optional[str]:
+    def value(self) -> str | None:
         """
         Returns the secret value as a string. If the value has expired, *None*
         will be returned instead.
@@ -56,7 +56,7 @@ class SecretValue:
 
     @value.setter
     def value(
-        self, value: str, expires: Optional[datetime.datetime] = None
+        self, value: str, expires: datetime.datetime | None = None
     ) -> None:
         """
         Sets the value of the secret from a string.
@@ -64,7 +64,7 @@ class SecretValue:
         self._impl.set_value(value, expires)
 
     @property
-    def value_bytes(self) -> Optional[bytes]:
+    def value_bytes(self) -> bytes | None:
         """
         Returns the secret value as bytes. If the value has expired, *None*
         will be returned instead.
@@ -73,7 +73,7 @@ class SecretValue:
 
     @value_bytes.setter
     def value_bytes(
-        self, value: bytes, expires: Optional[datetime.datetime] = None
+        self, value: bytes, expires: datetime.datetime | None = None
     ) -> None:
         """
         Sets the value of the secret from bytes.
@@ -90,7 +90,7 @@ class SecretValueCache:
 
     def get_value(
         self, key: Any, thread_local: bool = False
-    ) -> Optional[SecretValue]:
+    ) -> SecretValue | None:
         """
         Returns a value in the cache, or *None* if the key is not found. If the
         value has expired, *None* is also returned and the value is removed
@@ -111,9 +111,9 @@ class SecretValueCache:
     def store_value(
         self,
         key: Any,
-        value: Union[str, bytes],
+        value: str | bytes,
         thread_local: bool = False,
-        expires: Optional[datetime.datetime] = None,
+        expires: datetime.datetime | None = None,
     ) -> SecretValue:
         """
         Stores a value in the cache.
@@ -137,9 +137,7 @@ class SecretValueCache:
 secret_value_cache = SecretValueCache()
 
 
-def get_secret(
-    key: Any, *, thread_local: bool = False
-) -> Optional[SecretValue]:
+def get_secret(key: Any, *, thread_local: bool = False) -> SecretValue | None:
     """
     Returns a secret stored in the cache. If the ``thread_local`` parameter is
     *True*, it will be specific to the particular thread that is running;
@@ -153,10 +151,10 @@ def get_secret(
 
 def save_secret(
     key: Any,
-    value: Optional[Union[str, bytes]],
+    value: str | bytes | None,
     *,
     thread_local: bool = False,
-    expires: Optional[datetime.datetime] = None,
+    expires: datetime.datetime | None = None,
 ) -> SecretValue:
     """
     Saves a secret in an internal cache for later retrieval. This can help

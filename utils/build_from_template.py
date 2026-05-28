@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -87,7 +87,7 @@ class Field:
             typ = typ.replace(
                 "oracledb.Connection", "oracledb.AsyncConnection"
             )
-        return f"{self.name}: Optional[{typ}] = None,"
+        return f"{self.name}: {typ} | None = None,"
 
     def get_help_string(
         self, indent: str, with_default: bool = False, with_async: bool = False
@@ -242,7 +242,7 @@ def params_constructor_args_content(indent):
     """
     args_joiner = f"\n{indent}"
     args = ["self,", "*,"] + [
-        f"{f.name}: Optional[{f.typ}] = None," for f in fields
+        f"{f.name}: {f.typ} | None = None," for f in fields
     ]
     return args_joiner.join(args)
 
@@ -264,9 +264,7 @@ def params_properties_content(indent):
             subsequent_indent="    ",
             width=TEXT_WIDTH - len(indent),
         )
-        return_type = (
-            f"Union[list, {field.typ}]" if field.source else field.typ
-        )
+        return_type = f"list | {field.typ}" if field.source else field.typ
 
         if field.source is None:
             source = "self._impl"
@@ -334,7 +332,7 @@ def params_setter_args_content(indent):
     """
     args_joiner = f"\n{indent}"
     args = ["self,", "*,"] + [
-        f"{f.name}: Optional[{f.typ}] = None," for f in fields
+        f"{f.name}: {f.typ} | None = None," for f in fields
     ]
     return args_joiner.join(args)
 

@@ -28,15 +28,14 @@
 # Contains the methods required to create the end user security context.
 # -----------------------------------------------------------------------------
 
-from typing import Dict, List, Optional, Tuple, Union
 from . import thin_impl
 
 
 def create_end_user_security_context(
-    end_user_identity: Union[str, Tuple[str, str], List[str]],
+    end_user_identity: str | tuple[str, str] | list[str],
     database_access_token: str,
-    data_roles: Optional[List[str]] = None,
-    attributes: Optional[Dict] = None,
+    data_roles: list[str] | None = None,
+    attributes: dict | None = None,
 ) -> thin_impl.EndUserSecurityContextImpl:
     """
     Creates a new end user security context that contains the identity and

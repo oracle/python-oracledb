@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,7 +28,7 @@
 # Contains the Pipeline class used for executing multiple operations.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 from . import utils
 from .base import BaseMetaClass
@@ -89,7 +89,7 @@ class PipelineOp(metaclass=BaseMetaClass):
         return self._impl.keyword_parameters
 
     @property
-    def name(self) -> Union[str, None]:
+    def name(self) -> str | None:
         """
         This read-only attribute returns the name of the stored procedure or
         function being called by the operation, if applicable.
@@ -131,7 +131,7 @@ class PipelineOp(metaclass=BaseMetaClass):
         return self._impl.return_type
 
     @property
-    def rowfactory(self) -> Union[Callable, None]:
+    def rowfactory(self) -> Callable | None:
         """
         This read-only attribute returns the row factory callable function to
         be used in a query executed by the operation, if applicable.
@@ -139,7 +139,7 @@ class PipelineOp(metaclass=BaseMetaClass):
         return self._impl.rowfactory
 
     @property
-    def statement(self) -> Union[str, None]:
+    def statement(self) -> str | None:
         """
         This read-only attribute returns the statement being executed by the
         operation, if applicable.
@@ -156,7 +156,7 @@ class PipelineOpResult(metaclass=BaseMetaClass):
         )
 
     @property
-    def columns(self) -> Union[list[FetchInfo], None]:
+    def columns(self) -> list[FetchInfo] | None:
         """
         This read-only attribute is a list of FetchInfo objects. This
         attribute will be *None* for operations that do not return rows.
@@ -165,7 +165,7 @@ class PipelineOpResult(metaclass=BaseMetaClass):
             return [FetchInfo._from_impl(i) for i in self._impl.fetch_metadata]
 
     @property
-    def error(self) -> Union[_Error, None]:
+    def error(self) -> _Error | None:
         """
         This read-only attribute returns the error that occurred when running
         this operation. If no error occurred, then the value *None* is
@@ -190,7 +190,7 @@ class PipelineOpResult(metaclass=BaseMetaClass):
         return self._impl.return_value
 
     @property
-    def rows(self) -> Union[list, None]:
+    def rows(self) -> list | None:
         """
         This read-only attribute returns the rows that were fetched by the
         operation, if a query was executed.
@@ -198,7 +198,7 @@ class PipelineOpResult(metaclass=BaseMetaClass):
         return self._impl.rows
 
     @property
-    def warning(self) -> Union[_Error, None]:
+    def warning(self) -> _Error | None:
         """
         This read-only attribute returns any warning that was encountered when
         running this operation. If no warning was encountered, then the value
@@ -229,8 +229,8 @@ class Pipeline(metaclass=BaseMetaClass):
         self,
         name: str,
         return_type: Any,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> PipelineOp:
         """
         Adds an operation to the pipeline that calls a stored PL/SQL function
@@ -256,8 +256,8 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_callproc(
         self,
         name: str,
-        parameters: Optional[Union[list, tuple]] = None,
-        keyword_parameters: Optional[dict] = None,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
     ) -> PipelineOp:
         """
         Adds an operation that calls a stored procedure with the given
@@ -283,7 +283,7 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_execute(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
+        parameters: list | tuple | dict | None = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a statement with the given parameters.
@@ -303,7 +303,7 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_executemany(
         self,
         statement: str,
-        parameters: Union[list, int],
+        parameters: list | int,
     ) -> PipelineOp:
         """
         Adds an operation that executes a SQL statement once using all bind
@@ -330,11 +330,11 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_fetchall(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        arraysize: Optional[int] = None,
-        rowfactory: Optional[Callable] = None,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        parameters: list | tuple | dict | None = None,
+        arraysize: int | None = None,
+        rowfactory: Callable | None = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns all of the rows
@@ -377,11 +377,11 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_fetchmany(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        num_rows: Optional[int] = None,
-        rowfactory: Optional[Callable] = None,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        parameters: list | tuple | dict | None = None,
+        num_rows: int | None = None,
+        rowfactory: Callable | None = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns up to the specified
@@ -429,10 +429,10 @@ class Pipeline(metaclass=BaseMetaClass):
     def add_fetchone(
         self,
         statement: str,
-        parameters: Optional[Union[list, tuple, dict]] = None,
-        rowfactory: Optional[Callable] = None,
-        fetch_lobs: Optional[bool] = None,
-        fetch_decimals: Optional[bool] = None,
+        parameters: list | tuple | dict | None = None,
+        rowfactory: Callable | None = None,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
     ) -> PipelineOp:
         """
         Adds an operation that executes a query and returns the first row of

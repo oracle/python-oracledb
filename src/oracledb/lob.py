@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -27,8 +27,6 @@
 #
 # Contains the LOB class for managing BLOB, CLOB, NCLOB and BFILE data.
 # -----------------------------------------------------------------------------
-
-from typing import Optional, Union
 
 from .base import BaseMetaClass
 from .base_impl import DbType, DB_TYPE_BFILE, DB_TYPE_BLOB
@@ -149,9 +147,7 @@ class LOB(BaseLOB):
         """
         self._impl.open()
 
-    def read(
-        self, offset: int = 1, amount: Optional[int] = None
-    ) -> Union[str, bytes]:
+    def read(self, offset: int = 1, amount: int | None = None) -> str | bytes:
         """
         Returns a portion (or all) of the data in the LOB. Note that the amount
         and offset are in bytes for BLOB and BFILE type LOBs and in UCS-2 code
@@ -181,9 +177,7 @@ class LOB(BaseLOB):
         """
         return self._impl.get_size()
 
-    def trim(
-        self, new_size: int = 0, *, newSize: Optional[int] = None
-    ) -> None:
+    def trim(self, new_size: int = 0, *, newSize: int | None = None) -> None:
         """
         Trims the LOB to the new size (the second parameter is deprecated and
         should not be used).
@@ -199,7 +193,7 @@ class LOB(BaseLOB):
             new_size = newSize
         self._impl.trim(new_size)
 
-    def write(self, data: Union[str, bytes], offset: int = 1) -> None:
+    def write(self, data: str | bytes, offset: int = 1) -> None:
         """
         Writes the data to the LOB at the given offset. The offset is in bytes
         for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type
@@ -257,8 +251,8 @@ class AsyncLOB(BaseLOB):
         await self._impl.open()
 
     async def read(
-        self, offset: int = 1, amount: Optional[int] = None
-    ) -> Union[str, bytes]:
+        self, offset: int = 1, amount: int | None = None
+    ) -> str | bytes:
         """
         Returns a portion (or all) of the data in the LOB. Note that the amount
         and offset are in bytes for BLOB and BFILE type LOBs and in UCS-2 code
@@ -287,7 +281,7 @@ class AsyncLOB(BaseLOB):
         return await self._impl.get_size()
 
     async def trim(
-        self, new_size: int = 0, *, newSize: Optional[int] = None
+        self, new_size: int = 0, *, newSize: int | None = None
     ) -> None:
         """
         Trims the LOB to the new size (the second parameter is deprecated and
@@ -304,7 +298,7 @@ class AsyncLOB(BaseLOB):
             new_size = newSize
         await self._impl.trim(new_size)
 
-    async def write(self, data: Union[str, bytes], offset: int = 1) -> None:
+    async def write(self, data: str | bytes, offset: int = 1) -> None:
         """
         Writes the data to the LOB at the given offset. The offset is in bytes
         for BLOB type LOBs and in UCS-2 code points for CLOB and NCLOB type

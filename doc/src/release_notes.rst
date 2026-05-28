@@ -38,6 +38,7 @@ Common Changes
 #)  Fixed bug causing an exception to be raised when calling
     :func:`oracledb.is_simple_sql_name()` or
     :func:`oracledb.is_qualified_sql_name()` with an incorrectly quoted string.
+#)  Modernized typing hints.
 
 
 oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0.1>`__ (May 2026)

@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -29,7 +29,10 @@
 # object type metadata: DbObject, DbObjectType and DbObjectAttr.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Sequence, Union
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any
 
 from . import errors
 from .base import BaseMetaClass
@@ -235,7 +238,7 @@ class DbObjectAttr(metaclass=BaseMetaClass):
         return attr
 
     @property
-    def max_size(self) -> Union[int, None]:
+    def max_size(self) -> int | None:
         """
         This read-only attribute returns the maximum size (in bytes) of the
         attribute when the attribute's type is one of
@@ -253,7 +256,7 @@ class DbObjectAttr(metaclass=BaseMetaClass):
         return self._impl.name
 
     @property
-    def precision(self) -> Union[int, None]:
+    def precision(self) -> int | None:
         """
         This read-only attribute returns the precision of the attribute when
         the attribute's type is DB_TYPE_NUMBER. For all other types, the value
@@ -263,7 +266,7 @@ class DbObjectAttr(metaclass=BaseMetaClass):
             return self._impl.precision
 
     @property
-    def scale(self) -> Union[int, None]:
+    def scale(self) -> int | None:
         """
         This read-only attribute returns the scale of the attribute when the
         attribute's type is DB_TYPE_NUMBER. For all other types, the value
@@ -273,7 +276,7 @@ class DbObjectAttr(metaclass=BaseMetaClass):
             return self._impl.scale
 
     @property
-    def type(self) -> Union["DbObjectType", DbType]:
+    def type(self) -> DbObjectType | DbType:
         """
         This read-only attribute returns the type of the attribute. This will
         be an Oracle Object Type if the variable binds Oracle objects;
@@ -346,7 +349,7 @@ class DbObjectType(metaclass=BaseMetaClass):
         return self._impl.name
 
     @property
-    def element_type(self) -> Union["DbObjectType", DbType]:
+    def element_type(self) -> DbObjectType | DbType:
         """
         This read-only attribute returns the type of elements found in
         collections of this type, if iscollection is True; otherwise, it
