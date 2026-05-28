@@ -28,7 +28,14 @@
 # Contains the methods required to create the end user security context.
 # -----------------------------------------------------------------------------
 
-from . import thin_impl
+from . import errors, thin_impl
+from .base import BaseMetaClass
+
+
+class EndUserSecurityContext(metaclass=BaseMetaClass):
+
+    def __init__(self):
+        errors._raise_err(errors.ERR_INTERNAL_CREATION_REQUIRED)
 
 
 def create_end_user_security_context(
@@ -36,7 +43,7 @@ def create_end_user_security_context(
     database_access_token: str,
     data_roles: list[str] | None = None,
     attributes: dict | None = None,
-) -> thin_impl.EndUserSecurityContextImpl:
+) -> EndUserSecurityContext:
     """
     Creates a new end user security context that contains the identity and
     authorization details.
@@ -80,8 +87,7 @@ def create_end_user_security_context(
     if not isinstance(database_access_token, str) or not database_access_token:
         raise ValueError("database_access_token must be a non-empty string.")
 
-    cls = thin_impl.EndUserSecurityContextImpl
-    return cls.create_end_user_security_context(
+    impl = thin_impl.EndUserSecurityContextImpl.create(
         end_user_token,
         end_user_name,
         key,
@@ -89,3 +95,6 @@ def create_end_user_security_context(
         data_roles,
         attributes,
     )
+    context = EndUserSecurityContext.__new__(EndUserSecurityContext)
+    context._impl = impl
+    return context

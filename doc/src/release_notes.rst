@@ -38,6 +38,9 @@ Common Changes
 #)  Fixed bug causing an exception to be raised when calling
     :func:`oracledb.is_simple_sql_name()` or
     :func:`oracledb.is_qualified_sql_name()` with an incorrectly quoted string.
+#)  The class :class:`oracledb.EndUserSecurityContext` was added for
+    completeness in typing hints. Objects of this class should be created
+    using :func:`oracledb.create_end_user_security_context()`.
 #)  Modernized typing hints.
 
 

@@ -33,7 +33,7 @@ cdef class EndUserSecurityContextImpl:
         SecretValueImpl oson_bytes
 
     @classmethod
-    def create_end_user_security_context(
+    def create(
         cls,
         str end_user_token,
         str end_user_name,

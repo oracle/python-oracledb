@@ -95,6 +95,7 @@ from .dsn import (
 
 from .end_user_security_context import (
     create_end_user_security_context as create_end_user_security_context,
+    EndUserSecurityContext as EndUserSecurityContext,
 )
 
 from .errors import (

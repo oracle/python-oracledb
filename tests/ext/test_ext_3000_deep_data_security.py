@@ -238,22 +238,8 @@ def test_ext_3006(conn, deep_data_security_config):
         assert _get_xs_username(cur) is None
 
 
-def test_ext_3007(conn, deep_data_security_config):
-    "E3007 - setting None clears the current security context"
-    conn.set_end_user_security_context(
-        oracledb.create_end_user_security_context(
-            end_user_identity=deep_data_security_config.user_token,
-            database_access_token=deep_data_security_config.db_token,
-        )
-    )
-    with conn.cursor() as cur:
-        assert _get_xs_username(cur) == deep_data_security_config.xs_user
-        conn.set_end_user_security_context(None)
-        assert _get_xs_username(cur) is None
-
-
-def test_ext_3008(conn, test_env, deep_data_security_config):
-    "E3008 - a connection can recover after an invalid context"
+def test_ext_3007(conn, test_env, deep_data_security_config):
+    "E3007 - a connection can recover after an invalid context"
     conn.set_end_user_security_context(
         oracledb.create_end_user_security_context(
             end_user_identity="invalid_token",
@@ -274,8 +260,8 @@ def test_ext_3008(conn, test_env, deep_data_security_config):
         assert _get_xs_username(cur) == deep_data_security_config.xs_user
 
 
-def test_ext_3009(conn, deep_data_security_config):
-    "E3009 - clear_end_user_security_context restores the base session"
+def test_ext_3008(conn, deep_data_security_config):
+    "E3008 - clear_end_user_security_context restores the base session"
     with conn.cursor() as cur:
         cur.execute("select user")
         (schema_user,) = cur.fetchone()
@@ -291,8 +277,8 @@ def test_ext_3009(conn, deep_data_security_config):
         _assert_base_session_context(cur, schema_user)
 
 
-def test_ext_3010(test_env, deep_data_security_config):
-    "E3010 - pooled connection reuse starts without the prior security context"
+def test_ext_3009(test_env, deep_data_security_config):
+    "E3009 - pooled connection reuse starts without the prior security context"
     pool = test_env.get_pool()
     with pool.acquire() as conn:
         with conn.cursor() as cur:
@@ -313,8 +299,8 @@ def test_ext_3010(test_env, deep_data_security_config):
     pool.close()
 
 
-def test_ext_3011(conn, deep_data_security_config):
-    "E3011 - clearing before the first round-trip drops the pending context"
+def test_ext_3010(conn, deep_data_security_config):
+    "E3010 - clearing before the first round-trip drops the pending context"
     with conn.cursor() as cur:
         cur.execute("select user from dual")
         (schema_user,) = cur.fetchone()
@@ -328,15 +314,15 @@ def test_ext_3011(conn, deep_data_security_config):
         _assert_base_session_context(cur, schema_user)
 
 
-def test_ext_3012(conn):
-    "E3012 - clear_end_user_security_context can be called before set"
+def test_ext_3011(conn):
+    "E3011 - clear_end_user_security_context can be called before set"
     conn.clear_end_user_security_context()
     with conn.cursor() as cur:
         assert _get_xs_username(cur) is None
 
 
-def test_ext_3013(conn, deep_data_security_config):
-    "E3013 - set_end_user_security_context validates its arguments"
+def test_ext_3012(conn, deep_data_security_config):
+    "E3012 - set_end_user_security_context validates its arguments"
     context = oracledb.create_end_user_security_context(
         end_user_identity=deep_data_security_config.user_token,
         database_access_token=deep_data_security_config.db_token,
@@ -347,16 +333,18 @@ def test_ext_3013(conn, deep_data_security_config):
         conn.set_end_user_security_context(context, "extra")
     with pytest.raises(TypeError):
         conn.set_end_user_security_context("invalid")
+    with pytest.raises(TypeError):
+        conn.set_end_user_security_context(None)
 
 
-def test_ext_3014(conn):
-    "E3014 - clear_end_user_security_context validates its arguments"
+def test_ext_3013(conn):
+    "E3013 - clear_end_user_security_context validates its arguments"
     with pytest.raises(TypeError):
         conn.clear_end_user_security_context("extra")
 
 
-def test_ext_3015(conn, test_env, deep_data_security_config):
-    "E3015 - security context APIs fail on closed connections"
+def test_ext_3014(conn, test_env, deep_data_security_config):
+    "E3014 - security context APIs fail on closed connections"
     conn.close()
     context = oracledb.create_end_user_security_context(
         end_user_identity=deep_data_security_config.user_token,
@@ -368,8 +356,8 @@ def test_ext_3015(conn, test_env, deep_data_security_config):
         conn.clear_end_user_security_context()
 
 
-def test_ext_3016(test_env, deep_data_security_config):
-    "E3016 - the same configured user can be used concurrently"
+def test_ext_3015(test_env, deep_data_security_config):
+    "E3015 - the same configured user can be used concurrently"
     threads = []
     errors = queue.Queue()
 
@@ -391,11 +379,8 @@ def test_ext_3016(test_env, deep_data_security_config):
         raise errors.get()
 
 
-def test_ext_3017(
-    test_env,
-    deep_data_security_config,
-):
-    "E3017 - a security context can be used with a sessionless transaction"
+def test_ext_3016(test_env, deep_data_security_config):
+    "E3016 - a security context can be used with a sessionless transaction"
     context = oracledb.create_end_user_security_context(
         end_user_identity=deep_data_security_config.user_token,
         database_access_token=deep_data_security_config.db_token,

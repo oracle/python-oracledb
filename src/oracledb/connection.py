@@ -52,6 +52,7 @@ from .connect_params import ConnectParams
 from .cursor import AsyncCursor, Cursor
 from .dataframe import DataFrame
 from .dbobject import DbObjectType, DbObject
+from .end_user_security_context import EndUserSecurityContext
 from .lob import AsyncLOB, LOB
 from .pipeline import Pipeline, PipelineOpResult
 from .soda import SodaDatabase
@@ -613,7 +614,7 @@ class BaseConnection(metaclass=BaseMetaClass):
 
     def set_end_user_security_context(
         self,
-        context,
+        context: EndUserSecurityContext,
     ) -> None:
         """
         Sets the end user security context on a connection using the specified
@@ -623,7 +624,10 @@ class BaseConnection(metaclass=BaseMetaClass):
         applicable to all database operations performed using the connection.
         """
         self._verify_connected()
-        self._impl.set_end_user_security_context(context)
+        if not isinstance(context, EndUserSecurityContext):
+            msg = "expecting instance of class EndUserSecurityContext"
+            raise TypeError(msg)
+        self._impl.set_end_user_security_context(context._impl)
 
     @property
     def stmtcachesize(self) -> int:

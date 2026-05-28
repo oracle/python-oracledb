@@ -1373,3 +1373,14 @@ SecretValue Class
 .. autoproperty:: SecretValue.value
 
 .. autoproperty:: SecretValue.value_bytes
+
+EndUserSecurityContext Class
+============================
+
+.. autoclass:: EndUserSecurityContext
+
+    Represents an end user security context object. This object must be created
+    by calling the factory function
+    :func:`oracledb.create_end_user_security_context()`.
+
+.. versionadded:: 4.1.0
