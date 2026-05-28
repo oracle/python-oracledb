@@ -82,6 +82,10 @@ import oracledb
 import pandas
 import pytest
 
+# All of the tests depend on thick mode DSN passthrough being False for
+# consistency in behaviour
+oracledb.defaults.thick_mode_dsn_passthrough = False
+
 
 class DefaultsContextManager:
     def __init__(self, attribute, desired_value):
@@ -268,7 +272,6 @@ class TestEnv:
         if self.use_thick_mode:
             if oracledb.is_thin_mode():
                 oracledb.init_oracle_client(lib_dir=self.oracle_client_path)
-            oracledb.defaults.thick_mode_dsn_passthrough = False
             self.client_version = oracledb.clientversion()[:2]
 
         # import any requested plugins
