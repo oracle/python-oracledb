@@ -37,10 +37,10 @@ alter session set nls_numeric_characters='.,'
 alter session set time_zone='+00:00'
 /
 
-create user &main_user identified by &main_password
+create user &main_user identified by "&main_password"
 /
 
-create user &proxy_user identified by &proxy_password
+create user &proxy_user identified by "&proxy_password"
 /
 alter user &proxy_user grant connect through &main_user
 /
