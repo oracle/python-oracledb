@@ -5,12 +5,17 @@ Use this flow in:
 ```bash
 cd python-oracledb/samples/deep_data_security/
 ```
+This demo uses Microsoft Entra ID OAUTH tokens for overall authentication.
 
 ## Prerequisites
 
 - The database version must support Deep Data Security.
 - Install the third-party Python library `msal` (used for Microsoft Entra token
   flows).
+```bash
+python -m pip install msal
+```
+- Requires Microsoft Entra ID account
 
 ## 1) Run required SQL setup scripts
 
@@ -39,7 +44,7 @@ export AZURE_DB_CLIENT_CREDENTIAL="client secret"
 export AZURE_DB_AUTHORITY="azure db authority"
 export AZURE_DB_SCOPES="azure db scope"
 
-# ROPC username
+# Microsoft Azure user credentials
 export AZURE_USERNAME="your azure username"
 ```
 
