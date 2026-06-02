@@ -1314,21 +1314,21 @@ See :ref:`cloudnativeauthoauth` for more information.
 
 .. _endusersecurityproviderplugin:
 
-End User Security Provider Plugin
+End-User Security Provider Plugin
 ---------------------------------
 
 ``end_user_sec_provider`` is a plugin that can be imported to retrieve the
-identity of a user, and then create and set up an end user security context
-during connection creation to establish a secure connection to Oracle Database.
-The user identity may be provided by an external identity and access management
-(IAM) system or by Oracle Database.
+identity of a user, and then create and set up an end-user security context
+payload during connection creation to establish a secure connection to Oracle
+Database. The user identity may be provided by an external identity and access
+management (IAM) system or by Oracle Database.
 
 This plugin is implemented as a :ref:`parameter hook function
-<registerparamshook>` which uses an end user identity stored in the secret
+<registerparamshook>` which uses an end-user identity stored in the secret
 cache and the parameter values in the ``end_user_sec_params`` key of
 the ``extra_auth_params`` parameter of your connection and pool creation calls
-to automatically set up the end user security context. Python-oracledb then
-uses this end user security context to connect to Oracle Database.
+to automatically set up the end-user security context payload. Python-oracledb
+then uses this end-user security context payload to connect to Oracle Database.
 
 See :ref:`endusersecuritycontextcreationplugin`.
 

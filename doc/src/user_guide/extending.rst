@@ -122,9 +122,9 @@ All python-oracledb installations bundle the following plugins:
   latest>`__ to generate access tokens when authenticating with OAuth 2.0
   token-based authentication. See :ref:`cloudnativeauthoauth`.
 
-- ``end_user_sec_provider`` which automates the acquisition of an end user
-  identity, and creates and sets an end user security context to connect to
-  Oracle Database. See :ref:`endusersecurityproviderplugin`.
+- ``end_user_sec_provider`` which automates the acquisition of an end-user
+  identity, and creates and sets an end-user security context payload to
+  connect to Oracle Database. See :ref:`endusersecurityproviderplugin`.
 
 To import these python-oracledb plugins in your application, use
 ``import oracledb.plugins.<name of plugin>``, for example::

@@ -2296,19 +2296,19 @@ Your code might then try to connect like:
 
 .. _endusersecurityhook:
 
-End User Security Context Parameter Hook
+End-User Security Context Parameter Hook
 ++++++++++++++++++++++++++++++++++++++++
 
 The :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin uses
 the information found in the ``end_user_sec_params`` key of the
 ``extra_auth_params`` parameter in a connection method and modifies the
 ``on_connect_callback`` parameter with a function that will create and set an
-end user security context on a connection. The specified security context is
-then applicable to all subsequent database operations performed on that
-connection for the end user. Refer to the complete plugin implementation in
-`end_user_sec_provider.py <https://github.com/oracle/python-oracledb/blob/main/
-src/oracledb/plugins/end_user_sec_provider.py>`__. The key code section showing
-registering of a parameter hook function is:
+end-user security context payload on a connection. The specified security
+context is then applicable to all subsequent database operations performed on
+that connection for the end user. Refer to the complete plugin implementation
+in `end_user_sec_provider.py <https://github.com/oracle/python-oracledb/blob/
+main/src/oracledb/plugins/end_user_sec_provider.py>`__. The key code section
+showing registering of a parameter hook function is:
 
 .. code-block:: python
 
@@ -2541,38 +2541,39 @@ requires Oracle Database 26ai.
     Oracle Deep Data Security is only supported in python-oracledb Thin mode.
 
 With Deep Data Security, an application sends a specific set of identity and
-authorization details called end user security context to the database. The
-details that can be defined in an end user security context are an end user
-identity, a database access token, data roles, and end user context attributes.
-These parameters are described in the
-:ref:`_end_user_security_context_parameters` table. The end user security
-context can be defined on a connection. Once defined, the database uses these
-end user details to authorize and grant access to the data. See `Oracle Deep
-Data Security <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-
-E239A5C4-0C0D-4FF0-98DD-2E374F79C63C>`__ in the Oracle Deep Data Security
+authorization details to the database called end-user security context payload.
+The details that can be defined in an end-user security context payload are an
+end-user identity, a database-access token, data roles, and end-user context
+attributes. These parameters are described in the
+:ref:`_end_user_security_context_payload_parameters` table. The end-user security
+context payload can be defined on a connection. Once defined, the database uses
+these end user details to authorize and grant access to the data. See `Oracle
+Deep Data Security <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-E239A5C4-0C0D-4FF0-98DD-2E374F79C63C>`__ in the Oracle Deep Data Security
 Configuration Guide for more information.
 
-An end user security context can be created with
+An end-user security context payload can be created with
 :ref:`python-oracledb methods <endusersecuritycontextcreation>` or by using the
 pre-supplied python-oracledb
 :ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>` plugin.
 
 .. _endusersecuritycontextcreation:
 
-End User Security Context Creation Using python-oracledb Methods
-----------------------------------------------------------------
+End-User Security Context Payload Creation Using python-oracledb Methods
+------------------------------------------------------------------------
 
-To create and set the end user security context directly in your code, use the
-python-oracledb methods detailed below.
+To create and set the end-user security context payload directly in your code,
+use the python-oracledb methods detailed below.
 
-Creating an End User Security Context
-+++++++++++++++++++++++++++++++++++++
+Creating an End-User Security Context Payload
++++++++++++++++++++++++++++++++++++++++++++++
 
-An End User Security Context can be created for a user managed by an external
-Identity and Access Management (IAM) system such as Oracle Cloud Infrastructure
-(OCI) IAM or Microsoft Entra ID, or a user locally created in Oracle Database.
+An End-User Security Context Payload can be created for a user managed by an
+external Identity and Access Management (IAM) system such as Oracle Cloud
+Infrastructure (OCI) IAM or Microsoft Entra ID, or a user locally created in
+Oracle Database.
 
-To create an end user security context for a user, use
+To create an end-user security context payload for a user, use
 :meth:`oracledb.create_end_user_security_context()` and set the parameters
 shown below:
 
@@ -2589,11 +2590,11 @@ shown below:
 
 The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
 
-.. list-table-with-summary:: End User Security Context Parameters
+.. list-table-with-summary:: End-User Security Context Payload Parameters
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 15 10 25 15
-    :name: _end_user_security_context_parameters
+    :name: _end_user_security_context_payload_parameters
     :summary: The first column displays the name of the parameter. The second column displays the data type of the parameter. The third column displays the description of the parameter. The fourth column displays whether the parameter is required or optional.
 
     * - Parameter
@@ -2604,9 +2605,9 @@ The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
       - String or Two-tuple
       - The unique identification of an end user.
 
-        For users managed by an external IAM system, set this parameter to a string value that contains the end user token issued by these IAM systems after user authentication.
+        For users managed by an external IAM system, set this parameter to a string value that contains the end-user token issued by these IAM systems after user authentication.
 
-        For users managed by Oracle Database, set this parameter to a two-tuple value that contains the local database user name and a key. The local database user name is the name of a local database user created in Oracle Database that has the ``CREATE END USER SECURITY CONTEXT`` database privilege set. The key specifies a unique string provided by the application user which is associated with an end user name.
+        For users managed by Oracle Database, set this parameter to a two-tuple value that contains the local database user name and a key. The local database user name is the name of a local database user created in Oracle Database that has the ``CREATE END USER SECURITY CONTEXT`` database privilege set. The key specifies a unique string provided by the application user which is associated with an end-user name.
       - Required
     * - ``database_access_token``
       - String
@@ -2618,25 +2619,27 @@ The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
       - Required
     * - ``data_roles``
       - List
-      - The names of data roles granted to the application or local database user. These data roles are created with a ``CREATE DATA ROLE`` statement in the database.
+      - The names of data roles granted to the application. These data roles are created with a ``CREATE DATA ROLE`` statement in the database and granted to application identity created with ``CREATE APPLICATION IDENTITY`` statement in the database. During end-user security context creation, the database determines the application identity based on the database-access token provided by the client in the end-user security context payload.
 
-        For external IAM systems, these data roles are mapped to roles managed in your IAM system.
+        For external IAM systems, the data roles created in the database are mapped to the corresponding roles managed in your IAM system.
 
         If ``end_user_identity`` is a two-tuple value with user name and key, then only the default enabled data roles associated with the application identity are used. Any data roles explicitly provided by the application are not accepted and will raise an error.
       - Optional
     * - ``attributes``
       - Dictionary
-      - The attribute-value pairs provided by the application that can be referenced at runtime by authorization policies (for example, in data grant predicates) and application logic.
+      - Attribute name-value pairs provided by the application for an END USER CONTEXT declared in the database. The name-value pairs for each context must conform to the JSON schema of that END USER CONTEXT. These pairs are associated with fully qualified END USER CONTEXT names, using the format ``{schema}.{name}``, where ``schema`` is the database schema in which the context is declared and ``name`` is the name of the END USER CONTEXT. The database does not recognize unqualified END USER CONTEXT names. The attribute values can be referenced at runtime by authorization policies, for example in data grant predicates, and application logic.
       - Optional
 
-Setting an End User Security Context
-++++++++++++++++++++++++++++++++++++
+Setting an End-User Security Context Payload
+++++++++++++++++++++++++++++++++++++++++++++
 
-To set an end user security context on a connection, use
-:meth:`Connection.set_end_user_security_context()`. This method must be called
-after creating a standalone connection using :meth:`oracledb.connect()`, or
-after acquiring a connection from a pool using
-:meth:`ConnectionPool.acquire()`. For example:
+To set an end-user security context payload on a connection, use
+:meth:`Connection.set_end_user_security_context()` or
+:meth:`AsyncConnection.set_end_user_security_context()`. These methods must be
+called after creating a standalone connection using :meth:`oracledb.connect()`
+or :meth:`oracledb.connect_async()`, or after acquiring a connection from a
+pool using :meth:`ConnectionPool.acquire()` or
+:meth:`AsyncConnectionPool.acquire()`. For example:
 
 .. code-block:: python
 
@@ -2650,31 +2653,35 @@ Once :meth:`~Connection.set_end_user_security_context()` is called, the
 specified security context applies to all the subsequent database operations
 executed on that connection for that end user.
 
-Clearing an End User Security Context
-+++++++++++++++++++++++++++++++++++++
+Clearing an End-User Security Context Payload
++++++++++++++++++++++++++++++++++++++++++++++
 
-To clear an end user security context set by a previous call to
-:meth:`Connection.set_end_user_security_context()`, use
-:meth:`Connection.clear_end_user_security_context()`. For example:
+To clear an end-user security context payload set by a previous call to
+:meth:`Connection.set_end_user_security_context()` or
+:meth:`AsyncConnection.set_end_user_security_context()`, use
+:meth:`Connection.clear_end_user_security_context()` or
+:meth:`AsyncConnection.clear_end_user_security_context()`. For example:
 
 .. code-block:: python
 
     connection.clear_end_user_security_context()
 
 This reverts the connection to its original state in which subsequent database
-operations are executed on the connection without any end user security
+operations are executed on the connection without any end-user security
 context.
 
-If the context has not been cleared with this method, then at the time of
-closing the connection with :meth:`Connection.close()` or releasing a
-connection back to the pool with :meth:`Pool.release()`,
-:meth:`~Connection.clear_end_user_security_context()` will be implicitly
-invoked.
+If the security context has not been cleared with these methods, then
+:meth:`Connection.clear_end_user_security_context()` or
+:meth:`AsyncConnection.clear_end_user_security_context()` will be implicitly
+invoked, when the connection is closed with :meth:`Connection.close()` or
+:meth:`AsyncConnection.close()`, or when the connection is released back to
+the pool with :meth:`ConnectionPool.release()` or
+:meth:`AsyncConnectionPool.release()`.
 
-Example of Using End User Security Context
+Example of Using End-User Security Context
 ++++++++++++++++++++++++++++++++++++++++++
 
-An example of using an end user security context is:
+An example of using an end-user security context is:
 
 .. code-block:: python
 
@@ -2691,7 +2698,7 @@ An example of using an end user security context is:
     db_token = get_token(sys.argv[2])
 
     # Define the name of the data roles
-    data_roles = ["HR_DYNAMIC_ROLE", "FINANCE_DYNAMIC_ROLE"]
+    data_roles = ["HCM_ROLE"]
 
     # Define the context attributes
     attrs = {
@@ -2699,10 +2706,10 @@ An example of using an end user security context is:
         "p2": "test2"
     }
     ctx_attrs = {
-        "EUC.HCM": attrs
+        "HR.HCM": attrs
     }
 
-    # Create an end user security context
+    # Create an end-user security context payload
     context = oracledb.create_end_user_security_context(
         end_user_identity = user_token,
         database_access_token = db_token,
@@ -2715,7 +2722,7 @@ An example of using an end user security context is:
         dsn="orclpdb", config_dir="/opt/oracle/config",
         wallet_location="location_of_pem_file", wallet_password=walletpw)
 
-    # Set the end user security context on a connection
+    # Set the end-user security context payload on a connection
     connection.set_end_user_security_context(context)
 
     # Execute a database operation within the end user security context
@@ -2724,7 +2731,7 @@ An example of using an end user security context is:
         row = cursor.fetchone()
         print(row)
 
-    # Clear the end user security context
+    # Clear the end-user security context payload
     # Subsequent database operations run without the end user security context
     connection.clear_end_user_security_context()
 
@@ -2739,16 +2746,16 @@ An example of using an end user security context is:
 
 .. _endusersecuritycontextcreationplugin:
 
-End User Security Context Creation with end_user_sec_provider Plugin
---------------------------------------------------------------------
+End-User Security Context Payload Creation with end_user_sec_provider Plugin
+----------------------------------------------------------------------------
 
 With Oracle Deep Data Security, the python-oracledb
 :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin
-automatically creates an end user security context and sets it on a connection,
-which is used to connect to Oracle Database. This plugin configures the end
-user security context by retrieving the end user's identity, and using it along
-with the extracted information such as a database access token, data roles, and
-attributes.
+automatically creates an end-user security context payload and sets it on a
+connection, which is used to connect to Oracle Database. This plugin configures
+the end-user security context by retrieving the end-user's identity, and using
+it along with the extracted information such as a database-access token, data
+roles, and attributes.
 
 .. note::
 
@@ -2765,9 +2772,9 @@ imported using:
 This plugin can automatically retrieve the identity of end users managed by
 external IAMs or Oracle Database. For users managed by external IAMs such as
 OCI IAM or Microsoft Entra ID, the value of a user's identity is a string
-consisting of an end user token issued by these IAMs. For users managed by
-Oracle Database, the value of an end user's identity is a two-tuple consisting
-of a local database user name and a key. The retrieved end user identity is
+consisting of an end-user token issued by these IAMs. For users managed by
+Oracle Database, the value of an end-user's identity is a two-tuple consisting
+of a local database user name and a key. The retrieved end-user identity is
 stored in python-oracledb's internal cache for the duration of the current
 execution context and is only available within the current thread, see
 :ref:`storesecretvalues`.
@@ -2777,7 +2784,7 @@ For connection and pool creation using Deep Data Security, you must define the
 ``end_user_sec_params`` key should be a dictionary which contains the
 parameters listed in the following table.
 
-.. list-table-with-summary:: End User Security Provider Parameters
+.. list-table-with-summary:: End-User Security Provider Parameters
     :header-rows: 1
     :class: wy-table-responsive
     :widths: 10 30 10
@@ -2797,7 +2804,7 @@ parameters listed in the following table.
     * - ``auth_flow``
       - The authentication flow to use for database access token acquisition such as "client_credentials" or "on_behalf_of".
 
-        If the user's identity is a string containing the end user token, the value can be the string "client_credentials" or "on_behalf_of". For "client_credentials", the token is obtained using the application's token. For "on_behalf_of", the token is obtained using the user token as an assertion.
+        If the user's identity is a string containing the end user token, the value can be the string "client_credentials" or "on_behalf_of". For "client_credentials", the token is obtained using the application's client ID and secret. For "on_behalf_of", the token is obtained using the application's client ID and secret along with the user token as an assertion.
 
         If the user's identity is a two-tuple containing a local database user name and a key, the value can be the string "client_credentials".
       - Required
@@ -2817,11 +2824,11 @@ parameters listed in the following table.
       - The names of the data roles granted to the application.
       - Optional
     * - ``attributes``
-      - The names of the end user context attributes. These can be used in predicates when defining data grants.
+      - Attribute name-value pairs provided by the application for an END USER CONTEXT declared in the database. The name-value pairs for each context must conform to the JSON schema of that END USER CONTEXT. These pairs are associated with fully qualified END USER CONTEXT names, using the format ``{schema}.{name}``, where ``schema`` is the database schema in which the context is declared and ``name`` is the name of the END USER CONTEXT. The database does not recognize unqualified END USER CONTEXT names. The attribute values can be referenced at runtime by authorization policies, for example in data grant predicates, and application logic.
       - Optional
 
-All parameters and values listed above are used by the plugin to create an end
-user security context. The plugin implementation can be seen in
+All parameters and values listed above are used by the plugin to create an
+end-user security context payload. The plugin implementation can be seen in
 `plugins/end_user_sec_provider.py <https://github.com/oracle/python-oracledb/
 blob/main/src/oracledb/plugins/end_user_sec_provider.py>`__.
 
@@ -2847,8 +2854,8 @@ reuse. The oci_tokens and azure_tokens plugin implementations can be found in
 azure_tokens.py>`__ respectively.
 
 The ``end_user_sec_provider`` plugin defines and registers a
-:ref:`parameter hook <registerparamshook>` function which configures an end
-user security context on a connection. This hook checks if the
+:ref:`parameter hook <registerparamshook>` function which configures an
+end-user security context payload on a connection. This hook checks if the
 ``end_user_sec_params`` key is defined for the ``extra_auth_params`` parameter
 passed to :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()`. If it
 is defined, the hook function sets the ``on_connect_callback`` parameter of a
@@ -2859,28 +2866,29 @@ performs the following:
 
 - Checks which authentication flow to use (On-Behalf-Of or Client Credentials).
 
-- Retrieves the end user identity from python-oracledb's internal cache for the
+- Retrieves the end-user identity from python-oracledb's internal cache for the
   current thread.
 
 - Validates the format of the identity for the specified authentication flow.
 
-- Creates an end user security context using the identity and the values set in
-  the ``end_user_sec_params`` key, if the identity exists.
+- Creates an end-user security context payload using the identity and the
+  values set in the ``end_user_sec_params`` key, if the identity exists.
 
-- Sets the end user security context on the connection which applies to all
-  subsequent database operations performed on this connection for this end user.
+- Sets the end-user security context payload on the connection which applies to
+  all subsequent database operations performed on this connection for this end
+  user.
 
 The examples in the subsequent sections use the
 :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin to
-automate the acquisition of tokens from the IAM and set the end user security
-context to connect to :ref:`Oracle Autonomous Database <autonomousdb>`.
+automate the acquisition of tokens from the IAM and set the end-user security
+context payload to connect to :ref:`Oracle Autonomous Database <autonomousdb>`.
 
 **Standalone Connections Using end_user_sec_provider Plugin**
 
 When using the :ref:`end_user_sec_provider <endusersecurityproviderplugin>`
-plugin to set an end user security context to connect to Oracle Autonomous
-Database, you need to explicitly set the ``end_user_sec_params`` key of the
-``extra_auth_params`` parameter with the IAM or Oracle Database specific
+plugin to set an end-user security context payload to connect to Oracle
+Autonomous Database, you need to explicitly set the ``end_user_sec_params`` key
+of the ``extra_auth_params`` parameter with the IAM or Oracle Database specific
 parameters, and also any other desired parameters of
 :func:`~oracledb.connect()` such as ``config_dir``, ``wallet_location``, and
 ``wallet_password``. For example:
@@ -2902,18 +2910,18 @@ parameters, and also any other desired parameters of
             "client_credential": <client_credential>, # be set when using the
             "authority": <authority>,                 # end_user_sec_provider
             "scopes": <scopes>,                       # plugin
-            "data_roles" : ["HR_DYNAMIC_ROLE"],
+            "data_roles" : ["HCM_ROLE"],
           }
         })
 
 **Connection Pools in Thin Mode Using end_user_sec_provider Plugin**
 
 When using the :ref:`end_user_sec_provider <endusersecurityproviderplugin>`
-plugin to set the end user security context to connect to Oracle Autonomous
-Database, you need to explicitly set the ``end_user_sec_params`` key of the
-``extra_auth_params`` parameter , and also any other desired parameters of
-:func:`~oracledb.create_pool` such as ``config_dir``, ``wallet_location``, and
-``wallet_password``. For example:
+plugin to set the end-user security context payload to connect to Oracle
+Autonomous Database, you need to explicitly set the ``end_user_sec_params`` key
+of the ``extra_auth_params`` parameter , and also any other desired parameters
+of :func:`~oracledb.create_pool` such as ``config_dir``, ``wallet_location``,
+and ``wallet_password``. For example:
 
 .. code:: python
 
@@ -2932,7 +2940,7 @@ Database, you need to explicitly set the ``end_user_sec_params`` key of the
             "client_credential": <client_credential>, # be set when using the
             "authority": <authority>,                 # end_user_sec_provider
             "scopes": <scopes>,                       # plugin
-            "data_roles" : ["HR_DYNAMIC_ROLE"],
+            "data_roles" : ["HCM_ROLE"],
           }
         })
 
