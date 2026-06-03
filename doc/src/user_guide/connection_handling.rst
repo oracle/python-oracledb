@@ -943,6 +943,8 @@ The following configuration providers are supported by python-oracledb:
   Configuration Provider <ociobjstorageprovider>`
 - :ref:`Microsoft Azure App Centralized Configuration Provider
   <azureappstorageprovider>`
+- :ref:`Google Clould Platform (GCP) Centralized Confguration Providers
+  <gcpprovider>`
 
 To use :ref:`Centralized Configuration Provider <configurationproviders>`
 functionality in python-oracledb Thick mode, you should set
