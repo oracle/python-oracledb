@@ -1272,6 +1272,35 @@ See :ref:`gcpprovider` for more information.
 
 .. versionadded:: 4.1.0
 
+.. _configawsplugin:
+
+Amazon Web Services (AWS) Configuration Provider Plugin
+-------------------------------------------------------
+
+``aws_config_provider`` is a plugin that can be imported to provide access to
+database connection credentials and application configuration information
+stored in the :ref:`AWS Simple Storage Service (S3) Configuration provider
+<awss3provider>` and :ref:`AWS Secrets Manager Configuration provider
+<awssecretsmanagerprovider>`.
+
+This plugin is implemented as a :ref:`connection protocol hook function
+<registerprotocolhook>` to handle connection strings which have the prefix
+``config-awss3`` and ``config-awssecretsmanager``, see
+:ref:`AWS S3 connection strings <connstringawss3>` and
+:ref:`AWS Secrets Manager connection strings <connstringawssecretsmanager>`.
+The plugin parses these connection strings and gets the stored configuration
+information. Python-oracledb then uses this information to connect to Oracle
+Database.
+
+To use this plugin in python-oracledb Thick mode, you must set
+:attr:`oracledb.defaults.thick_mode_dsn_passthrough
+<Defaults.thick_mode_dsn_passthrough>` to *False*. Alternatively use
+:meth:`ConnectParams.parse_connect_string()`, see :ref:`usingconnparams`.
+
+See :ref:`awsprovider` for more information.
+
+.. versionadded:: 4.1.0
+
 .. _ocicloudnativeauthplugin:
 
 Oracle Cloud Infrastructure (OCI) Cloud Native Authentication Plugin

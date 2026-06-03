@@ -1247,6 +1247,23 @@ dependency:
 See :ref:`gcpprovider` for information on using this configuration provider
 with python-oracledb.
 
+.. _awsmodules:
+
+Install Modules for the Amazon Web Services Centralized Configuration Providers
+-------------------------------------------------------------------------------
+
+For python-oracledb to use :ref:`AWS S3 <awss3provider>` and
+:ref:`AWS Secrets Manager <awssecretsmanagerprovider>`, you must install the
+`Boto3 <https://pypi.org/project/boto3/>`__ package by using the optional
+``[aws_config]`` dependency:
+
+.. code-block:: shell
+
+    python -m pip install oracledb[aws_config]
+
+See :ref:`awsprovider` for information on using this configuration provider
+with python-oracledb.
+
 .. _cloudnativemodules:
 
 Installing Cloud Native Authentication Modules for python-oracledb

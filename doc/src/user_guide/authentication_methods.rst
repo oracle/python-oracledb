@@ -1477,6 +1477,9 @@ centralized configuration providers are detailed in this section:
 - :ref:`Google Cloud Platform Centralized Configuration Provider
   <gcpauthmethods>`
 
+- :ref:`Amazon Web Services (AWS) Centralized Configuration Provider
+  <awsauthmethods>`
+
 .. _ociobjectstorageauthmethods:
 
 OCI Object Storage Configuration Provider Authentication Methods
@@ -1484,7 +1487,7 @@ OCI Object Storage Configuration Provider Authentication Methods
 
 An Oracle Cloud Infrastructure (OCI) authentication method can be used to
 access the OCI Object Storage centralized configuration provider. The
-authentication methood can be set in the ``<option>=<value>`` parameter of
+authentication method can be set in the ``<option>=<value>`` parameter of
 an :ref:`OCI Object Storage connection string <connstringoci>`. Depending on
 the specified authentication method, you must also set the corresponding
 authentication parameters in the connection string.
@@ -1530,7 +1533,7 @@ Azure App Configuration Provider Authentication Methods
 -------------------------------------------------------
 
 A Microsoft Azure authentication method can be used to access the Azure App
-centralized configuration provider. The authentication methood can be set in
+centralized configuration provider. The authentication method can be set in
 the ``<option>=<value>`` parameter of an :ref:`Azure App connection string
 <connstringazure>`. Depending on the specified authentication method, you must
 also set the corresponding authentication parameters in the connection string.
@@ -1610,3 +1613,79 @@ access-control>`__.
 For details about how Google Cloud client libraries locate and use ADC, see
 `How Application Default Credentials work <https://docs.cloud.google.com/docs/
 authentication/application-default-credentials>`__ for more information.
+
+.. _awsauthmethods:
+
+Amazon Web Services (AWS) Configuration Provider Authentication Methods
+-----------------------------------------------------------------------
+
+An AWS authentication method can be used to access the AWS S3 or AWS Secrets
+Manager centralized configuration provider. The authentication method can be
+set in the ``authentication`` query parameter of an :ref:`AWS S3 connection
+string <connstringawss3>` or :ref:`AWS Secrets Manager connection string
+<connstringawssecretsmanager>`. Depending on the specified authentication
+method, you must also set the corresponding authentication parameters in the
+connection string, see :ref:`AWS authentication parameters <awsauthparams>`.
+
+**Default Credential Chain**
+
+The authentication to AWS S3 or AWS Secrets Manager is done using the standard
+Boto3 default credential provider chain to locate AWS credentials. To use this
+method, set the ``authentication`` parameter to *aws_default*. Note that this
+method is also used when no authentication method is specified. See
+:ref:`AWS Authentication Parameters <awsauthparams>`.
+
+**Named Profile**
+
+The authentication to AWS S3 or AWS Secrets Manager is done using a named AWS
+profile from the local AWS shared credentials or configuration files. To use
+this method, you must set the ``authentication`` parameter to *aws_profile*,
+and set the ``aws_profile`` parameter to use a named AWS profile. See
+:ref:`AWS Authentication Parameters <awsauthparams>`.
+
+**Static Credentials**
+
+The authentication to AWS S3 or AWS Secrets Manager is done using explicitly
+supplied AWS access key credentials. To use this method, you must set the
+``authentication`` parameter to *aws_static*, and set the *aws_access_key_id*
+and *aws_secret_access_key* parameters. For temporary credentials, an AWS
+session token may also be specified by setting ``aws_session_token``. See
+:ref:`AWS Authentication Parameters <awsauthparams>`.
+
+.. _awsauthparams:
+
+**AWS Authentication Parameters**
+
+The authentication method is set with the ``authentication`` query parameter.
+If not specified, ``aws_default`` is used.
+
+.. list-table-with-summary:: AWS Configuration Provider Authentication Parameters
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 20 35 25
+    :summary: The first row displays the name of the parameter. The second row displays the values of the parameter. The third row displays whether the parameter is required or optional.
+
+    * - Parameter
+      - Values
+      - Required
+    * - ``authentication``
+      - *aws_default*, *aws_profile*, or *aws_static*
+      - Optional. If not specified, *aws_default* is used.
+    * - ``aws_region``
+      - AWS Region, for example eu-north-1 or us-east-1.
+      - Optional, but recommended.
+    * - ``aws_profile``
+      - Named profile from the AWS shared credentials or configuration files.
+      - Required when the ``authentication`` parameter is set to *aws_profile*.
+    * - ``aws_access_key_id``
+      - IAM access key ID.
+      - Required when the ``authentication`` parameter is set to *aws_static*.
+    * - ``aws_secret_access_key``
+      - IAM secret access key.
+      - Required when the ``authentication`` parameter is set to *aws_static*.
+    * - ``aws_session_token``
+      - Temporary session token.
+      - Optional when the ``authentication`` parameter is set to *aws_static* for temporary credentials.
+    * - ``aws_endpoint_url``
+      - Custom AWS endpoint URL, for example for LocalStack.
+      - Optional

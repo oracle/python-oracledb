@@ -111,6 +111,10 @@ All python-oracledb installations bundle the following plugins:
   access connection configuration information stored using Google Cloud Storage
   and Google Cloud Secret Manager. See :ref:`gcpprovider`.
 
+- ``aws_config_provider`` which allows connection and pool creation calls to
+  access connection configuration information stored using AWS Simple Storage
+  Service (S3) and AWS Secrets Manager. See :ref:`awsprovider`.
+
 - ``oci_tokens`` which uses the `Oracle Cloud Infrastructure (OCI) Software
   Development Kit (SDK) <https://docs.oracle.com/en-us/iaas/Content/API/
   Concepts/sdkconfig.htm>`__ to generate access tokens when authenticating with

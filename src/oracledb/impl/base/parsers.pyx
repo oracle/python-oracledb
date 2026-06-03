@@ -661,12 +661,12 @@ cdef class ConnectStringParser(BaseParser):
     cdef str _parse_easy_connect_protocol(self):
         """
         Parses the protocol from an easy connect string. This should be a
-        series of alphabetic characters or dashes, followed by a colon and two
-        slashes. If such a string is found, it is saved on the template address
-        associated with the parser; otherwise, the default protocol of "tcp" is
-        saved on the template address associated with the parser. If no
-        protocol is found, the separator (two slashes) may still be found and
-        will be disarded.
+        series of alphanumeric characters, underscores or dashes, followed by a
+        colon and two slashes. If such a string is found, it is saved on the
+        template address associated with the parser; otherwise, the default
+        protocol of "tcp" is saved on the template address associated with the
+        parser. If no protocol is found, the separator (two slashes) may still
+        be found and will be discarded.
         """
         cdef:
             ssize_t start_sep_pos = self.pos
@@ -685,7 +685,9 @@ cdef class ConnectStringParser(BaseParser):
                     self.temp_pos += 1
                     self.pos = self.temp_pos
                     break
-            elif not cpython.Py_UNICODE_ISALPHA(ch) and ch not in ('-', '_'):
+            elif not cpython.Py_UNICODE_ISALPHA(ch) \
+                    and not cpython.Py_UNICODE_ISDIGIT(ch) \
+                    and ch not in ('-', '_'):
                 break
             self.temp_pos += 1
         if protocol is not None and num_sep_chars == 2:

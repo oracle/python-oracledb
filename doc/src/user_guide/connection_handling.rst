@@ -943,8 +943,10 @@ The following configuration providers are supported by python-oracledb:
   Configuration Provider <ociobjstorageprovider>`
 - :ref:`Microsoft Azure App Centralized Configuration Provider
   <azureappstorageprovider>`
-- :ref:`Google Clould Platform (GCP) Centralized Confguration Providers
+- :ref:`Google Cloud Platform (GCP) Centralized Configuration Providers
   <gcpprovider>`
+- :ref:`Amazon Web Services (AWS) Centralized Configuration Providers
+  <awsprovider>`
 
 To use :ref:`Centralized Configuration Provider <configurationproviders>`
 functionality in python-oracledb Thick mode, you should set
@@ -959,6 +961,45 @@ connection or pool creation methods are invoked. Any python-oracledb parameter
 section will be ignored. Any Oracle Client Interface parameter section should
 be *removed* from the configuration because its values may be different to
 those that python-oracledb assumes, and will cause undefined behavior.
+
+.. _configurationinformation:
+
+**Configuration Information Stored in Centralized Configuration Providers**
+
+The configuration information can be stored in the above-mentioned
+configuration providers by using specific keys which are listed in the table
+below.
+
+.. list-table-with-summary:: Configuration Information Stored in Configuration Providers
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _configuration_information
+    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
+
+    * - Key
+      - Description
+      - Required or Optional
+    * - ``user``
+      - The database user name.
+      - Optional
+    * - ``password``
+      - The password of the database user.
+
+        For :ref:`AWS S3 <awss3provider>` and :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` configuration providers, the value is a dictionary which contains the required keys, ``type`` and ``value``. The possible values of the ``type`` key are *base64* and *awssecretsmanager*. The ``value`` key is dependent on the ``type`` key. For more information on setting the ``type`` key to *awssecretsmanager*, see :ref:`Using Passwords in AWS Secrets Manager <passwordawssecretsmanager>`.
+      - Optional
+    * - ``connect_descriptor``
+      - The database :ref:`connection string <connstr>`.
+      - Required
+    * - ``config_time_to_live``
+      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
+      - Optional
+    * - ``config_time_to_live_grace_period``
+      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
+      - Optional
+    * - ``pyo``
+      - See :ref:`pyoparams`.
+      - Optional
 
 **Precedence of Attributes**
 
@@ -1903,6 +1944,415 @@ For example::
     "password": {
        "type": "gcpsecretmanager",
        "value": "projects/my-project/secrets/db-password/versions/latest"
+    }
+
+.. _awsprovider:
+
+Using Amazon Web Services Centralized Configuration Providers
+-------------------------------------------------------------
+
+`Amazon Web Services (AWS) <https://docs.aws.amazon.com/>`__ is a cloud-based
+service offered by Amazon that provides two centralized configuration providers
+- :ref:`AWS Simple Storage Service (S3) <awss3provider>` and
+:ref:`AWS Secrets Manager <awssecretsmanagerprovider>`. These providers can be
+used for storage and management of Oracle Database connection information.
+
+.. _awss3provider:
+
+AWS Simple Storage Service (S3) Centralized Configuration Provider
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+`AWS Simple Storage Service (S3) <https://docs.aws.amazon.com/AmazonS3/latest/
+userguide/Welcome.html>`__ stores and manages Oracle Database connection
+information as JSON.
+
+To use python-oracledb with AWS S3, you must:
+
+1. Upload a JSON file that contains the connection information into an S3
+   Bucket. See `Upload objects <https://docs.aws.amazon.com/AmazonS3/latest/
+   userguide/upload-objects.html>`__ for the steps. See :ref:`AWS S3
+   Centralized Configuration Provider Parameters <awss3configparams>` for the
+   configuration information that can be added.
+
+2. Install the AWS S3 modules, see :ref:`awsmodules`.
+
+3. Import the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>`
+   plugin in your application.
+
+4. :ref:`Use an AWS S3 connection string URL <connstringawss3>` in the ``dsn``
+   parameter of connection and pool creation methods.
+
+.. _awss3configparams:
+
+**AWS S3 Centralized Configuration Provider JSON File Syntax**
+
+The stored JSON configuration file must contain a ``connect_descriptor`` key.
+Optionally, you can specify the database user name, password, a cache time, and
+python-oracledb attributes. The database password can also be stored securely
+using `AWS Secrets Manager <https://docs.aws.amazon.com/secretsmanager/latest/
+userguide/intro.html>`__, see :ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>`. For details on the keys that can be stored in the
+JSON file, see :ref:`Configuration Information Stored in Configuration
+Providers <configurationinformation>`.
+
+.. _connstringawss3:
+
+**AWS S3 Centralized Configuration Provider DSN Syntax**
+
+The ``dsn`` parameter for :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` calls should use a connection string URL
+in the format::
+
+     config-awss3://<s3-resource>[?option1=value1&option2=value2...]
+
+The elements of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for AWS S3
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _connection_string_for_aws_s3
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``config-awss3``
+      - Indicates that the configuration provider is AWS S3.
+      - Required
+    * - <s3-resource>
+      - The S3 object locator that identifies a single object by bucket and object key. It can be expressed as a bucket-key value pair, S3 URI, Amazon Resource Name (ARN), HTTPS virtual-hosted URL, and HTTPS path-style URL. For more information, see :ref:`S3 Address Formats <s3addressformat>`.
+      - Required
+    * - <option=value>
+      - An AWS query parameter containing key-value pairs that determine how the S3 is accessed and how the JSON configuration is selected. The query parameters that can be specified are listed below.
+
+        For the AWS authentication method, set the ``authentication`` parameter. See :ref:`awsauthmethods` for more information.
+
+        For configuring access to AWS S3, set the ``aws_region``, ``aws_profile``, ``aws_access_key_id``, ``aws_secret_access_key``, ``aws_session_token``, and ``aws_endpoint_url`` parameters. See :ref:`AWS Authentication Parameters <awsauthparams>` for more information.
+
+        For selecting a top-level configuration in the JSON file, set the ``key`` parameter.
+
+        For selecting a specific S3 object version, set the ``versionid`` parameter.
+      - Optional
+
+.. _s3addressformat:
+
+**S3 Address Formats**
+
+The S3 object locator can be expressed in any one of the following supported
+S3 address formats:
+
+- Bucket/key value pair: <bucket>/<object-key>
+- S3 URI: config-awss3://s3://<bucket>/<object-key>
+- Amazon Resource Name (ARN): config-awss3://arn:aws:s3:::<bucket>/<object-key>
+- HTTPS virtual-hosted URL: config-awss3://https://<bucket>.s3.<region>.amazonaws.com/<object-key>
+- HTTPS path-style URL: config-awss3://https://s3.<region>.amazonaws.com/<bucket>/<object-key>
+
+where, <bucket> is a valid AWS S3 bucket name, <object-key> is an S3 object
+key, and <region> is an AWS region identifier.
+
+**AWS S3 Centralized Configuration Provider Examples**
+
+An example of AWS S3 Centralized Configuration Provider JSON file syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "base64",
+            "value": "dGlnZXI="
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+This encodes the password as base64. Passwords can optionally be stored using
+the :ref:`AWS Secrets Manager <awssecretsmanagerprovider>`. See
+:ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>` for
+more information.
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+.. _multipleconfigurationsaws:
+
+Multiple configurations can be defined by specifying user-chosen top-level
+keys::
+
+    {
+        "sales_app": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "sales_user",
+            "password": {
+              "type": "awssecretsmanager",
+              "value": "arn:aws:secretsmanager:us-east-1:123456789:secret:db-password-AbCdEf"
+            },
+            "pyo": {
+              "stmtcachesize": 20
+            }
+        },
+        "hr_app": {
+            "connect_descriptor": "localhost/orclpdb",
+            "user": "hr_user",
+            "password": {
+                "type": "base64",
+                "value": "dGlnZXI="
+            }
+        }
+    }
+
+An example of a connection string for the AWS S3 Centralized configuration
+provider is:
+
+.. code-block:: python
+
+    configawss3url = "config-awss3://my-bucket/app-config.json?key=sales_app&aws_region=eu-north-1"
+
+To create a :ref:`standalone connection <standaloneconnection>` you could use
+this like:
+
+.. code-block:: python
+
+    import oracledb.plugins.aws_config_provider
+
+    configawss3url = "config-awss3://my-bucket/app-config.json?key=sales_app&aws_region=eu-north-1"
+
+    connection = oracledb.connect(dsn=configawss3url)
+
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(dsn=configawss3url)
+
+.. _awssecretsmanagerprovider:
+
+AWS Secrets Manager Centralized Configuration Provider
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+`AWS Secrets Manager <https://docs.aws.amazon.com/secretsmanager/latest/
+userguide/intro.html>`__ stores and manages Oracle Database connection
+information as JSON. Also, this configuration provider can be used to store
+the database password securely.
+
+To use python-oracledb with AWS Secrets Manager, you must:
+
+1. Create a secret in AWS Secrets Manager containing the JSON connection
+   information. See `Create a secret <https://docs.aws.amazon.com/
+   secretsmanager/latest/userguide/create_secret.html>`__ for the steps. See
+   :ref:`AWS Secrets Manager Centralized Configuration Provider JSON Secret
+   Syntax <awssecretsmanagerconfigparams>` for the configuration information
+   that can be added.
+
+2. Install the AWS Secrets Manager modules, see :ref:`awsmodules`.
+
+3. Import the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>`
+   plugin in your application.
+
+4. :ref:`Use an AWS Secrets Manager connection string URL
+   <connstringawssecretsmanager>` in the ``dsn`` parameter of connection and
+   pool creation methods.
+
+.. _awssecretsmanagerconfigparams:
+
+**AWS Secrets Manager Centralized Configuration Provider JSON Secret Syntax**
+
+The stored JSON secret value must contain a ``connect_descriptor`` key.
+Optionally, you can specify the database user name, password, a cache time, and
+python-oracledb attributes. The database password can also be stored securely
+using AWS Secrets Manager, see :ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>`. For details on the keys that can be stored in the
+JSON secret value, see :ref:`Configuration Information Stored in Configuration
+Providers <configurationinformation>`.
+
+.. _connstringawssecretsmanager:
+
+**AWS Secrets Manager Centralized Configuration Provider DSN Syntax**
+
+The ``dsn`` parameter for :meth:`oracledb.connect()`,
+:meth:`oracledb.create_pool()`, :meth:`oracledb.connect_async()`, or
+:meth:`oracledb.create_pool_async()` calls should use a connection string URL
+in the format::
+
+    config-awssecretsmanager://<secret-name>[?option1=value1&option2=value2...]
+
+The elements of the connection string are detailed in the table below.
+
+.. list-table-with-summary:: Connection String Parameters for AWS Secrets Manager
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 15 25 15
+    :name: _connection_string_for_aws_secrets_manager
+    :summary: The first row displays the name of the connection string parameter. The second row displays the description of the connection string parameter. The third row displays whether the connection string parameter is required or optional.
+
+    * - Parameter
+      - Description
+      - Required or Optional
+    * - ``config-awssecretsmanager``
+      - Indicates that the configuration provider is AWS Secrets Manager.
+      - Required
+    * - <secret-name>
+      - The secret name containing the JSON configuration value.
+      - Required
+    * - <option=value>
+      - An AWS query parameter containing key-value pairs that determine how the secret is accessed and how the JSON configuration is selected. The query parameters that can be specified are listed below.
+
+        For the AWS authentication method, set the ``authentication`` parameter. See :ref:`awsauthmethods` for more information.
+
+        For configuring access to AWS Secrets Manager, set the ``aws_region``, ``aws_profile``, ``aws_access_key_id``, ``aws_secret_access_key``, ``aws_session_token``, and ``aws_endpoint_url`` parameters. See :ref:`AWS Authentication Parameters <awsauthparams>` for more information.
+
+        For selecting a top-level configuration in the JSON secret value, set the ``key`` parameter.
+
+        For selecting a specific secret version, set the ``versionid`` or ``versionstage`` parameter, or both.
+      - Optional
+
+**AWS Secrets Manager Centralized Configuration Provider Examples**
+
+An example of AWS Secrets Manager Centralized Configuration Provider
+JSON secret syntax is::
+
+    {
+        "user": "scott",
+        "password": {
+            "type": "awssecretsmanager",
+            "value": "arn:aws:secretsmanager:us-east-1:123456789:secret:db-password-AbCdEf"
+        },
+        "connect_descriptor": "dbhost.example.com:1522/orclpdb",
+        "pyo": {
+            "stmtcachesize": 30,
+            "min": 2,
+            "max": 10
+        }
+    }
+
+The above example uses a password stored in AWS Secrets Manager. See
+:ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>` for
+more information.
+
+Note that python-oracledb caches configurations by default, see
+:ref:`conncaching`.
+
+Multiple configurations can be defined by specifying user-chosen top-level
+keys. See this :ref:`example <multipleconfigurationsaws>`.
+
+An example of a connection string for the AWS Secrets Manager Centralized
+configuration provider is:
+
+.. code-block:: python
+
+    configawssecretsurl = "config-awssecretsmanager://app-config?key=sales_app&aws_region=us-east-1"
+
+To create a :ref:`standalone connection <standaloneconnection>` you could use
+this like:
+
+.. code-block:: python
+
+    import oracledb.plugins.aws_config_provider
+
+    configawssecretsurl = "config-awssecretsmanager://app-config?key=sales_app&aws_region=us-east-1"
+
+    connection = oracledb.connect(dsn=configawssecretsurl)
+
+The configuration can also be used to create a :ref:`connection pool
+<connpooling>`, for example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(dsn=configawssecretsurl)
+
+.. _passwordawssecretsmanager:
+
+**Storing Passwords in AWS Secrets Manager**
+
+Passwords can optionally be stored using AWS Secrets Manager. To do
+this, you must import the
+:ref:`oracledb.plugins.aws_config_provider <configawsplugin>` python-oracledb
+plugin in your application and define the password in the ``password`` key.
+The AWS Secrets Manager password configuration has the following format::
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "<secret-name-or-secret-arn>",
+        "field_name": "<field-name-if-secret-value-is-json>",
+        "authentication": {
+            "<aws-parameter>": "<value>"
+        }
+    }
+
+The ``type`` and ``value`` keys are required. The ``type`` key must be set to
+*awssecretsmanager*. The ``value`` key must be set to the name or ARN of the
+AWS Secrets Manager secret. The ``field_name`` key is optional and is used when
+the secret value is a JSON object; it identifies the field to extract as the
+password. The ``authentication`` key is optional and contains AWS parameters
+for the AWS Secrets Manager call, such as authentication parameters and, if
+needed, the ``versionid`` or ``versionstage`` parameter. If ``authentication``
+is not specified, DSN-level AWS authentication parameters are used.
+
+The following example gets the password from an AWS Secrets Manager secret
+named *password-secret-name*. In this example, the secret's SecretString
+value is stored as a single string containing only the database password:
+
+.. code-block:: json
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "password-secret-name"
+    }
+
+If the AWS Secrets Manager SecretString value is a JSON object, use
+``field_name`` to identify which field contains the database password. The
+following example gets the value of the ``password`` field from a secret
+named *credentials-secret-name*:
+
+.. code-block:: json
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "credentials-secret-name",
+        "field_name": "password"
+    }
+
+The password can also be retrieved from an AWS Secrets Manager secret whose
+value is stored in SecretBinary. The binary value must contain UTF-8 encoded
+text for the database password. The following example gets the password from a
+secret named *binary-secret-name*:
+
+.. code-block:: json
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "binary-secret-name"
+    }
+
+An example where the AWS Secrets Manager SecretBinary value is returned by
+`Boto3 (AWS SDK for Python) <https://docs.aws.amazon.com/boto3/latest/>`__ as a
+base64-encoded value. Python-oracledb decodes this value and uses the resulting
+UTF-8 text as the database password. The following example gets the password
+from a secret named *binary-base64-secret-name*:
+
+.. code-block:: json
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "binary-base64-secret-name"
+    }
+
+You can also set the authentication parameters in the ``password`` key as shown
+below:
+
+.. code-block:: json
+
+    "password": {
+        "type": "awssecretsmanager",
+        "value": "password-secret-name",
+        "authentication": {
+            "authentication": "AWS_PROFILE",
+            "aws_profile": "dev",
+            "aws_region": "us-east-1"
+        }
     }
 
 .. _conncaching:

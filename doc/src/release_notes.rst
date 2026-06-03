@@ -32,6 +32,10 @@ Common Changes
 #)  Added :ref:`Centralized Configuration Provider <configurationproviders>`
     support for Google Cloud Storage and Google Cloud Secret Manager with the
     :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin.
+#)  Added Centralized Configuration Provider support for
+    :ref:`AWS Simple Storage Service (S3) <awss3provider>` and
+    :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` with
+    the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin.
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.

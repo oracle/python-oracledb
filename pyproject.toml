@@ -73,6 +73,7 @@ azure_config = [
     "azure-keyvault-secrets"
 ]
 azure_auth = ["msal"]
+aws_config = ["boto3"]
 gcp_config = [
     "google-cloud-storage",
     "google-cloud-secret-manager",
