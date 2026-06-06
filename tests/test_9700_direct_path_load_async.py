@@ -616,3 +616,30 @@ async def test_9721(empty_tab, async_conn, test_env):
             data=df,
         )
     await _verify_data_frame(async_conn, df, column_names, test_env)
+
+
+async def test_9722(
+    skip_unless_native_boolean_supported, test_env, async_conn, async_cursor
+):
+    "9722 - test data with boolean values"
+    arrays = [
+        pyarrow.array([1, 2, 3], pyarrow.int64()),
+        pyarrow.array([True, False, True], pyarrow.bool_()),
+        pyarrow.array([False, True, None], pyarrow.bool_()),
+        pyarrow.array([True, None, False], pyarrow.bool_()),
+    ]
+    table_name = "TestBooleans"
+    column_names = ["IntCol", "BooleanCol1", "BooleanCol2", "BooleanCol3"]
+    df = pyarrow.table(arrays, column_names).to_pandas()
+    await async_cursor.execute(f"truncate table {table_name}")
+    await async_conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=table_name,
+        column_names=column_names,
+        data=df,
+    )
+    data = test_env.get_data_from_df(df)
+    select_items = ",".join(column_names)
+    sql = f"select {select_items} from {table_name} order by IntCol"
+    await async_cursor.execute(sql)
+    assert await async_cursor.fetchall() == data

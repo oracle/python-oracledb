@@ -612,3 +612,28 @@ def test_9621(empty_tab, conn, test_env):
             data=df,
         )
     _verify_data_frame(conn, df, column_names, test_env)
+
+
+def test_9622(skip_unless_native_boolean_supported, test_env, conn, cursor):
+    "9622 - test data with boolean values"
+    arrays = [
+        pyarrow.array([1, 2, 3], pyarrow.int64()),
+        pyarrow.array([True, False, True], pyarrow.bool_()),
+        pyarrow.array([False, True, None], pyarrow.bool_()),
+        pyarrow.array([True, None, False], pyarrow.bool_()),
+    ]
+    table_name = "TestBooleans"
+    column_names = ["IntCol", "BooleanCol1", "BooleanCol2", "BooleanCol3"]
+    df = pyarrow.table(arrays, column_names).to_pandas()
+    cursor.execute(f"truncate table {table_name}")
+    conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=table_name,
+        column_names=column_names,
+        data=df,
+    )
+    data = test_env.get_data_from_df(df)
+    select_items = ",".join(column_names)
+    sql = f"select {select_items} from {table_name} order by IntCol"
+    cursor.execute(sql)
+    assert cursor.fetchall() == data
