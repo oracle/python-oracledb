@@ -150,11 +150,6 @@ since numeric data is already stored efficiently.  Since python-oracledb
 allocates memory for each row based on the supplied values, do not oversize
 them.
 
-If the size of the buffers allocated for any of the bind values exceeds 2 GB,
-you will receive the error ``DPI-1015: array size of <n> is too large``, where
-<n> varies with the size of each element being allocated in the buffer. If you
-receive this error, decrease the number of rows being inserted.
-
 With named bind variables, use named parameters when calling
 :meth:`~Cursor.setinputsizes()`:
 
@@ -176,10 +171,15 @@ With named bind variables, use named parameters when calling
 Batching of Large Datasets
 --------------------------
 
-For very large data sets, there may be a buffer or network limit on how many
-rows can be processed. The limit is based on both the number of records as
-well as the size of each record that is being processed. In other cases, it may
-be faster to process smaller sets of records.
+Upper limits on memory or network buffers may affect the maximum number of rows
+that can be passed to :meth:`~Cursor.executemany()`. Also, in some
+environments, it may be more efficient to process smaller batches of records.
+
+If the size of the buffers allocated for any of the bind values exceeds 2 GB,
+you will receive the error ``DPI-1015: array size of <n> is too large``, where
+<n> varies with the size of each element being allocated in the buffer. The
+limit is based on both the number of records as well as the size of each record
+that is being processed.
 
 To reduce the data sizes involved, you can either make repeated calls to
 :meth:`~Cursor.executemany()` as shown later in the CSV examples, or you can

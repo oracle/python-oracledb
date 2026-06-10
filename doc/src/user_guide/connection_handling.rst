@@ -986,7 +986,25 @@ below.
     * - ``password``
       - The password of the database user.
 
-        For :ref:`AWS S3 <awss3provider>` and :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` configuration providers, the value is a dictionary which contains the required keys, ``type`` and ``value``. The possible values of the ``type`` key are *base64* and *awssecretsmanager*. The ``value`` key is dependent on the ``type`` key. For more information on setting the ``type`` key to *awssecretsmanager*, see :ref:`Using Passwords in AWS Secrets Manager <passwordawssecretsmanager>`.
+        For :ref:`File <fileconfigprovider>`, :ref:`OCI Object Storage <ociobjstorageprovider>`, :ref:`Azure App Configuration <azureappstorageprovider>`, :ref:`Google Cloud Storage <googlecloudstorageprovider>`, :ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`, :ref:`AWS S3 <awss3provider>`, and :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` configuration providers, the value is a dictionary which contains the keys listed below:
+
+        - ``type``: The possible values of this required key are *ocivault*, *azurevault*, *base64*, *gcpsecretmanager*, and *awssecretsmanager*.
+        - ``value``: The values of this required key are dependent on the ``type`` key.
+
+          - For *ocivault*, the value must be an OCID of the secret.
+
+          - For *azurevault*, the value must be an Azure Key Vault URI.
+
+          - For *base64*, the value must be a base64 encoded password.
+
+          - For *gcpsecretmanager*, the value must be a Google Cloud Secret Manager resource name, see :ref:`Storing Passwords in Google Cloud Secrets Manager <passwordgsm>`.
+
+          - For *awssecretsmanager*, multiple formats can be defined in the ``value`` key and is detailed in the :ref:`Using Passwords in AWS Secrets Manager <passwordawssecretsmanager>` section.
+        - ``authentication``: The possible values of this optional parameter are dependent on the configuration provider and include the authentication method and optional authentication parameters.
+
+        .. warning::
+
+          Storing passwords in the configuration file should only ever be used in development or test environments.
       - Optional
     * - ``connect_descriptor``
       - The database :ref:`connection string <connstr>`.
@@ -1031,50 +1049,23 @@ of Oracle Database connection information using local files.
 To use a File Centralized Configuration Provider, you must:
 
 1. Store the connection information in a JSON file on your local file system.
+   See :ref:`File Centralized Configuration Provider Parameters
+   <fileconfigparams>` for the configuration information that can be added.
 
 2. Set the path to the file in the ``dsn`` parameter of connection and pool
-   creation methods.
+   creation methods, see :ref:`File Centralized Configuration Provider DSN
+   syntax <connstringfile>`.
+
+.. _fileconfigparams:
 
 **File Centralized Configuration Provider JSON File Syntax**
 
 The configuration file must contain at least a ``connect_descriptor`` key to
 specify the database connection string. Optionally, you can store the database
 user name, password, a cache time, and :ref:`python-oracledb settings
-<pyoparams>`. The keys that can be stored in the file are:
-
-.. list-table-with-summary:: JSON keys for the File Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _file_configuration_provider
-    :summary: The first column displays the name of the key. The second column displays its description. The third column displays whether the key is required or optional.
-
-    * - Key
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user as a dictionary containing the key "type" and password type-specific keys.
-
-        .. warning::
-
-            Storing passwords in the configuration file should only ever be used in development or test environments.
-
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``config_time_to_live``
-      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
-      - Optional
-    * - ``config_time_to_live_grace_period``
-      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
-      - Optional
-    * - ``pyo``
-      - See :ref:`pyoparams`.
-      - Optional
+<pyoparams>`. For details on the keys that can be stored in the file, see
+:ref:`Configuration Information Stored in Configuration Providers
+<configurationinformation>`.
 
 See the `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/
 topic/lookup?ctx=dblatest&id=GUID-B43EA22D-5593-40B3-87FC-C70D6DAF780E>`__ for
@@ -1082,6 +1073,8 @@ more information on the generic provider sub-objects usable in JSON files.
 
 Multiple configurations can be defined by specifying the above keys under
 user-chosen, top-level keys, see the example further below.
+
+.. _connstringfile:
 
 **File Centralized Configuration Provider DSN Syntax**
 
@@ -1216,37 +1209,9 @@ Optionally, you can specify the database user name, password, a cache time, and
 python-oracledb attributes. The database password can also be stored securely
 using `OCI Vault <https://docs.oracle.com/en-us/iaas/Content/
 KeyManagement/Tasks/managingsecrets.htm>`__ or `Azure Key Vault
-<https://learn.microsoft.com/en-us /azure/key-vault/general/overview>`__. The
-keys that can be in the JSON file are listed below.
-
-.. list-table-with-summary:: JSON Keys for OCI Object Storage Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _oci_object_storage_sub-objects
-    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
-
-    * - Key
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user as a dictionary containing the key "type" and password type-specific keys.
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``config_time_to_live``
-      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
-      - Optional
-    * - ``config_time_to_live_grace_period``
-      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
-      - Optional
-    * - ``pyo``
-      - See :ref:`pyoparams`.
-      - Optional
+<https://learn.microsoft.com/en-us /azure/key-vault/general/overview>`__. For
+details on the keys that can be in the JSON file, see :ref:`Configuration
+Information Stored in Configuration Providers <configurationinformation>`.
 
 .. _connstringoci:
 
@@ -1439,36 +1404,9 @@ id=LNOCI>`__ settings use keys like "<prefix>/oci/<key name>" as shown in
 `Oracle Net Service Administrator’s Guide <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=GUID-97E22A68-6FE3-4FE9-98A9-90E5BF83E9EC>`__.
 
-The keys that can be added in Azure App Configuration are listed below:
-
-.. list-table-with-summary:: Keys for Azure App Configuration
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _azure_app_configuration_keys
-    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
-
-    * - Key
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Azure Key Vault, this can be the URI to the vault containing the secret key, specified using the key "uri"
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``config_time_to_live``
-      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
-      - Optional
-    * - ``config_time_to_live_grace_period``
-      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
-      - Optional
-    * - ``pyo``
-      - See :ref:`pyoparams`.
-      - Optional
+For details on the keys that can be added in Azure App Configuration, see
+:ref:`Configuration Information Stored in Configuration Providers
+<configurationinformation>`.
 
 .. _connstringazure:
 
@@ -1612,36 +1550,10 @@ The stored JSON configuration file must contain a ``connect_descriptor`` key.
 Optionally, you can specify the database user name, password, a cache time, and
 python-oracledb attributes. The database password can also be stored securely
 using `Google Cloud Secret Manager <https://docs.cloud.google.com/secret-
-manager/docs>`__. The keys that can be in the JSON file are listed below.
-
-.. list-table-with-summary:: JSON Keys for Google Cloud Storage Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _google_cloud_storage_sub-objects
-    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
-
-    * - Key
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Google Cloud Secret Manager, see :ref:`Using Passwords in Google Cloud Secret Manager <passwordgsm>` for more information.
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``config_time_to_live``
-      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
-      - Optional
-    * - ``config_time_to_live_grace_period``
-      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
-      - Optional
-    * - ``pyo``
-      - See :ref:`pyoparams`.
-      - Optional
+manager/docs>`__, see :ref:`Using Passwords in Google Cloud Secret Manager
+<passwordgsm>`. For details on the keys that can be stored in the JSON file,
+see :ref:`Configuration Information Stored in Configuration Providers
+<configurationinformation>`.
 
 .. _connstringgcs:
 
@@ -1797,37 +1709,10 @@ The stored JSON secret value must contain a ``connect_descriptor`` key.
 Optionally, you can specify the database user name, password, a cache time, and
 python-oracledb attributes. The database password can also be stored securely
 using `Google Cloud Secret Manager <https://docs.cloud.google.com/secret-
-manager/docs>`__. The keys that can be in the JSON secret value are listed
-below.
-
-.. list-table-with-summary:: JSON Keys for Google Cloud Secret Manager Configuration Provider
-    :header-rows: 1
-    :class: wy-table-responsive
-    :widths: 15 25 15
-    :name: _google_secret_manager_sub-objects
-    :summary: The first column displays the name of the key. The second column displays the description of the key. The third column displays whether the key is required or optional.
-
-    * - Key
-      - Description
-      - Required or Optional
-    * - ``user``
-      - The database user name.
-      - Optional
-    * - ``password``
-      - The password of the database user as a dictionary containing the key "type" and password type-specific keys. If using Google Cloud Secret Manager, see :ref:`Using Passwords in Google Cloud Secret Manager <passwordgsm>` for more information.
-      - Optional
-    * - ``connect_descriptor``
-      - The database :ref:`connection string <connstr>`.
-      - Required
-    * - ``config_time_to_live``
-      - The number of seconds the configuration is cached for. Defaults to 86,400 seconds (24 hours).
-      - Optional
-    * - ``config_time_to_live_grace_period``
-      - The number of seconds an expired configuration can still be used if a new configuration cannot be obtained. Defaults to 1,800 seconds (30 minutes).
-      - Optional
-    * - ``pyo``
-      - See :ref:`pyoparams`.
-      - Optional
+manager/docs>`__, see :ref:`Using Passwords in Google Cloud Secret Manager
+<passwordgsm>`. For details on the keys that can be in the JSON secret value,
+see :ref:`Configuration Information Stored in Configuration Providers
+<configurationinformation>`.
 
 .. _connstringgsm:
 
@@ -1990,7 +1875,8 @@ The stored JSON configuration file must contain a ``connect_descriptor`` key.
 Optionally, you can specify the database user name, password, a cache time, and
 python-oracledb attributes. The database password can also be stored securely
 using `AWS Secrets Manager <https://docs.aws.amazon.com/secretsmanager/latest/
-userguide/intro.html>`__, see :ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>`. For details on the keys that can be stored in the
+userguide/intro.html>`__, see :ref:`Storing Passwords in AWS Secrets Manager
+<passwordawssecretsmanager>`. For details on the keys that can be stored in the
 JSON file, see :ref:`Configuration Information Stored in Configuration
 Providers <configurationinformation>`.
 
@@ -2164,7 +2050,8 @@ To use python-oracledb with AWS Secrets Manager, you must:
 The stored JSON secret value must contain a ``connect_descriptor`` key.
 Optionally, you can specify the database user name, password, a cache time, and
 python-oracledb attributes. The database password can also be stored securely
-using AWS Secrets Manager, see :ref:`Storing Passwords in AWS Secrets Manager <passwordawssecretsmanager>`. For details on the keys that can be stored in the
+using AWS Secrets Manager, see :ref:`Storing Passwords in AWS Secrets Manager
+<passwordawssecretsmanager>`. For details on the keys that can be stored in the
 JSON secret value, see :ref:`Configuration Information Stored in Configuration
 Providers <configurationinformation>`.
 

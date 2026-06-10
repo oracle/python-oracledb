@@ -5,3 +5,15 @@ spacing in tables */
     white-space: pre-wrap;
     line-height: 10pt;
 }
+
+/*Added code to remove the line spacing between bullet lists in a table */
+.wy-table-responsive table td ul {
+    line-height: 0pt;
+    margin-bottom: 0pt;
+}
+
+/* Added code to remove the extra lines displayed in a warning block in a table */
+.wy-table-responsive table td div.warning {
+    line-height: 0pt;
+    margin-bottom: 0pt;
+}
