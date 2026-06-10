@@ -220,9 +220,9 @@ cdef class PieceBuffer(Buffer):
                               ORA_TYPE_NUM_TIMESTAMP_LTZ):
             self.write_oracle_date(value, metadata.dbtype._buffer_size_factor)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
-            self.write_interval_ds(value)
+            self.write_interval_ds(&data.buffer.as_interval_ds)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
-            self.write_interval_ym(value)
+            self.write_interval_ym(&data.buffer.as_interval_ym)
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             # boolean values are written differently to the buffer when using
             # Direct Path

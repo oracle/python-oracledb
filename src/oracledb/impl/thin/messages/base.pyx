@@ -1503,9 +1503,9 @@ cdef class MessageWithData(Message):
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
             buf.write_bool(data.buffer.as_bool)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
-            buf.write_interval_ds(value)
+            buf.write_interval_ds(&data.buffer.as_interval_ds)
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
-            buf.write_interval_ym(value)
+            buf.write_interval_ym(&data.buffer.as_interval_ym)
         elif ora_type_num in (
                 ORA_TYPE_NUM_BLOB,
                 ORA_TYPE_NUM_CLOB,

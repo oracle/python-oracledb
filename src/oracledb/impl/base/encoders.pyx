@@ -131,33 +131,25 @@ cdef inline void encode_date(char_type *buf, object value):
         buf[6] = 1
 
 
-cdef inline void encode_interval_ds(char_type *buf, object value):
+cdef inline void encode_interval_ds(char_type *buf, OracleIntervalDS* value):
     """
-    Encodes a datetime.timedelta object in the format exepcted by the Oracle
+    Encodes an OracleIntervalDS structure in the format expected by the Oracle
     Database for INTERVAL DAY TO SECOND.
     """
-    cdef int32_t days, seconds, fseconds
-    days = cydatetime.timedelta_days(value)
-    encode_uint32be(buf, days + TNS_DURATION_MID)
-    seconds = cydatetime.timedelta_seconds(value)
-    buf[4] = (seconds // 3600) + TNS_DURATION_OFFSET
-    seconds = seconds % 3600
-    buf[5] = (seconds // 60) + TNS_DURATION_OFFSET
-    buf[6] = (seconds % 60) + TNS_DURATION_OFFSET
-    fseconds = cydatetime.timedelta_microseconds(value) * 1000
-    encode_uint32be(&buf[7], fseconds + TNS_DURATION_MID)
+    encode_uint32be(buf, value.days + TNS_DURATION_MID)
+    buf[4] = value.hours + TNS_DURATION_OFFSET
+    buf[5] = value.minutes + TNS_DURATION_OFFSET
+    buf[6] = value.seconds + TNS_DURATION_OFFSET
+    encode_uint32be(&buf[7], value.fseconds + TNS_DURATION_MID)
 
 
-cdef int encode_interval_ym(char_type *buf, object value) except -1:
+cdef inline void encode_interval_ym(char_type *buf, OracleIntervalYM* value):
     """
-    Encodes a IntervalYM object in the format exepcted by the Oracle Database
-    for INTERVAL YEAR TO MONTH.
+    Encodes an OracleIntervalYM structure in the format expected by the Oracle
+    Database for INTERVAL YEAR TO MONTH.
     """
-    cdef int32_t years, months
-    years = (<tuple> value)[0]
-    months = (<tuple> value)[1]
-    encode_uint32be(buf, years + TNS_DURATION_MID)
-    buf[4] = months + TNS_DURATION_OFFSET
+    encode_uint32be(buf, value.years + TNS_DURATION_MID)
+    buf[4] = value.months + TNS_DURATION_OFFSET
 
 
 cdef int encode_number(char_type *buf, ssize_t *buflen, bytes value) except -1:

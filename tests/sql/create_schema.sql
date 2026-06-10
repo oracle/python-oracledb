@@ -383,6 +383,8 @@ create table &main_user..TestAllTypes (
     TimestampValue                      timestamp,
     TimestampTZValue                    timestamp with time zone,
     TimestampLTZValue                   timestamp with local time zone,
+    IntervalDSValue                     interval day to second,
+    IntervalYMValue                     interval year to month,
     CLOBValue                           clob,
     NCLOBValue                          nclob,
     BLOBValue                           blob,

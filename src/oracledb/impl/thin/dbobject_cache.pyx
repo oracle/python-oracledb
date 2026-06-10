@@ -418,6 +418,8 @@ cdef class BaseThinDbObjectTypeCache:
                 else:
                     attr_impl.precision = 126
                 attr_impl.scale = -127
+            elif type_name.startswith("INTERVAL DAY TO SECOND"):
+                attr_impl.dbtype = DB_TYPE_INTERVAL_DS
             else:
                 attr_impl.dbtype = DbType._from_ora_name(type_name)
                 attr_impl.max_size = max_size

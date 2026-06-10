@@ -584,7 +584,7 @@ cdef class Buffer:
             if value_len > 0:
                 self._write_raw_bytes_and_length(ptr, value_len)
 
-    cdef int write_interval_ds(self, object value) except -1:
+    cdef int write_interval_ds(self, OracleIntervalDS* value) except -1:
         """
         Writes an interval to the buffer in Oracle Interval Day To Second
         format.
@@ -593,7 +593,7 @@ cdef class Buffer:
         encode_interval_ds(buf, value)
         self._write_raw_bytes_and_length(buf, sizeof(buf))
 
-    cdef int write_interval_ym(self, object value) except -1:
+    cdef int write_interval_ym(self, OracleIntervalYM* value) except -1:
         """
         Writes an interval to the buffer in Oracle Interval Year To Month
         format.

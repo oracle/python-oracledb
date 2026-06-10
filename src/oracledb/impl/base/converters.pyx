@@ -408,6 +408,30 @@ cdef int convert_bytes_to_oracle_data(OracleDataBuffer *buffer,
     cpython.PyBytes_AsStringAndSize(value, <char**> &rb.ptr, &rb.num_bytes)
 
 
+cdef int convert_interval_ds_to_struct(object value,
+                                       OracleIntervalDS* output) except -1:
+    """
+    Converts Python interval (timedelta) to the output structure.
+    """
+    cdef int32_t seconds
+    output.days = cydatetime.timedelta_days(value)
+    seconds = cydatetime.timedelta_seconds(value)
+    output.hours = seconds // 3600
+    seconds = seconds % 3600
+    output.minutes = seconds // 60
+    output.seconds = seconds % 60
+    output.fseconds = cydatetime.timedelta_microseconds(value) * 1000
+
+
+cdef int convert_interval_ym_to_struct(object value,
+                                       OracleIntervalYM *output) except -1:
+    """
+    Converts Python interval (oracledb.IntervalYM) to the output structure.
+    """
+    output.years = (<tuple> value)[0]
+    output.months = (<tuple> value)[1]
+
+
 cdef int convert_str_to_arrow(ArrowArrayImpl array_impl,
                               OracleDataBuffer *buffer) except -1:
     """
@@ -706,6 +730,10 @@ cdef object convert_python_to_oracle_data(OracleMetadata metadata,
         data.buffer.as_double = value
     elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
         data.buffer.as_bool = value
+    elif ora_type_num == ORA_TYPE_NUM_INTERVAL_DS:
+        convert_interval_ds_to_struct(value, &data.buffer.as_interval_ds)
+    elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
+        convert_interval_ym_to_struct(value, &data.buffer.as_interval_ym)
     return value
 
 

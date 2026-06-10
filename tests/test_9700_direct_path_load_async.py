@@ -29,6 +29,7 @@ Module for testing the Direct Path Load interface with asyncio.
 import datetime
 import decimal
 
+import oracledb
 import pandas
 import pyarrow
 import pytest
@@ -641,5 +642,35 @@ async def test_9722(
     data = test_env.get_data_from_df(df)
     select_items = ",".join(column_names)
     sql = f"select {select_items} from {table_name} order by IntCol"
+    await async_cursor.execute(sql)
+    assert await async_cursor.fetchall() == data
+
+
+async def test_9723(test_env, async_conn, async_cursor):
+    "7623 - test data with interval types"
+    table_name = "TestAllTypes"
+    await async_cursor.execute(f"delete from {table_name}")
+    await async_conn.commit()
+    data = [
+        (
+            1,
+            datetime.timedelta(days=5, hours=9, minutes=36, seconds=1),
+            oracledb.IntervalYM(years=2, months=3),
+        ),
+        (
+            2,
+            datetime.timedelta(days=-8, hours=-2, minutes=-8, seconds=-5),
+            oracledb.IntervalYM(years=-3, months=-4),
+        ),
+    ]
+    column_names = ["NumberValue", "IntervalDSValue", "IntervalYMValue"]
+    await async_conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=table_name,
+        column_names=column_names,
+        data=data,
+    )
+    select_items = ",".join(column_names)
+    sql = f"select {select_items} from {table_name} order by NumberValue"
     await async_cursor.execute(sql)
     assert await async_cursor.fetchall() == data

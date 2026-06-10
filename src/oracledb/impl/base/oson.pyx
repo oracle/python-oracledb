@@ -592,6 +592,7 @@ cdef class OsonTreeSegment(GrowableBuffer):
         """
         cdef:
             char_type buf[ORA_TYPE_SIZE_MAX]
+            OracleIntervalDS interval_ds
             VectorEncoder vector_encoder
             uint32_t value_len
             bytes value_bytes
@@ -647,7 +648,8 @@ cdef class OsonTreeSegment(GrowableBuffer):
         # handle timedeltas
         elif isinstance(value, PY_TYPE_TIMEDELTA):
             self.write_uint8(TNS_JSON_TYPE_INTERVAL_DS)
-            encode_interval_ds(buf, value)
+            convert_interval_ds_to_struct(value, &interval_ds)
+            encode_interval_ds(buf, &interval_ds)
             self.write_raw(buf, ORA_TYPE_SIZE_INTERVAL_DS)
 
         # handle strings

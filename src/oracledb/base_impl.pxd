@@ -396,8 +396,8 @@ cdef class Buffer:
     cdef int write_bytes(self, bytes value) except -1
     cdef int write_bytes_with_length(self, bytes value) except -1
     cdef int write_bytes_with_two_lengths(self, object value) except -1
-    cdef int write_interval_ds(self, object value) except -1
-    cdef int write_interval_ym(self, object value) except -1
+    cdef int write_interval_ds(self, OracleIntervalDS* value) except -1
+    cdef int write_interval_ym(self, OracleIntervalYM* value) except -1
     cdef int write_oracle_date(self, object value, uint8_t length) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
     cdef int write_oson(self, value, bint supports_long_fnames,

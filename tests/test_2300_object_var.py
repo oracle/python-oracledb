@@ -798,6 +798,8 @@ def test_2337(conn):
             None,
             None,
         ),
+        ("INTERVALDSVALUE", oracledb.DB_TYPE_INTERVAL_DS, None, None, None),
+        ("INTERVALYMVALUE", oracledb.DB_TYPE_INTERVAL_YM, None, None, None),
         ("CLOBVALUE", oracledb.DB_TYPE_CLOB, None, None, None),
         ("NCLOBVALUE", oracledb.DB_TYPE_NCLOB, None, None, None),
         ("BLOBVALUE", oracledb.DB_TYPE_BLOB, None, None, None),

@@ -29,6 +29,7 @@ Module for testing the Direct Path Load interface.
 import datetime
 import decimal
 
+import oracledb
 import pandas
 import pyarrow
 import pytest
@@ -635,5 +636,35 @@ def test_9622(skip_unless_native_boolean_supported, test_env, conn, cursor):
     data = test_env.get_data_from_df(df)
     select_items = ",".join(column_names)
     sql = f"select {select_items} from {table_name} order by IntCol"
+    cursor.execute(sql)
+    assert cursor.fetchall() == data
+
+
+def test_9623(test_env, conn, cursor):
+    "9623 - test data with interval types"
+    table_name = "TestAllTypes"
+    cursor.execute(f"delete from {table_name}")
+    conn.commit()
+    data = [
+        (
+            1,
+            datetime.timedelta(days=5, hours=9, minutes=36, seconds=1),
+            oracledb.IntervalYM(years=2, months=3),
+        ),
+        (
+            2,
+            datetime.timedelta(days=-8, hours=-2, minutes=-8, seconds=-5),
+            oracledb.IntervalYM(years=-3, months=-4),
+        ),
+    ]
+    column_names = ["NumberValue", "IntervalDSValue", "IntervalYMValue"]
+    conn.direct_path_load(
+        schema_name=test_env.main_user,
+        table_name=table_name,
+        column_names=column_names,
+        data=data,
+    )
+    select_items = ",".join(column_names)
+    sql = f"select {select_items} from {table_name} order by NumberValue"
     cursor.execute(sql)
     assert cursor.fetchall() == data

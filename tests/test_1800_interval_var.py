@@ -254,9 +254,15 @@ def test_1810(cursor, module_data_by_key):
     assert cursor.fetchone() is None
 
 
-def test_1811(cursor):
-    "1811 - test binding and fetching a negative interval"
-    value = datetime.timedelta(days=-1, seconds=86314, microseconds=431152)
+@pytest.mark.parametrize(
+    "value",
+    [
+        datetime.timedelta(days=-1, seconds=86314, microseconds=431152),
+        datetime.timedelta(days=-8, seconds=-126, microseconds=-1811),
+    ],
+)
+def test_1811(cursor, value):
+    "1811 - test binding and fetching negative intervals"
     cursor.execute("select :1 from dual", [value])
     (result,) = cursor.fetchone()
     assert result == value
