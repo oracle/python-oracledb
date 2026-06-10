@@ -59,6 +59,13 @@ cdef extern from "nanoarrow.c":
     cdef struct ArrowError:
         pass
 
+    cdef struct ArrowInterval:
+        ArrowType type
+        int32_t months
+        int32_t days
+        int32_t ms
+        int64_t ns
+
     cdef struct ArrowSchemaView:
         ArrowType type
         ArrowType storage_type
@@ -82,6 +89,8 @@ cdef extern from "nanoarrow.c":
     ArrowErrorCode ArrowArrayAppendDouble(ArrowArray* arrow_array,
                                           double value)
     ArrowErrorCode ArrowArrayAppendInt(ArrowArray* arrow_array, int64_t value)
+    ArrowErrorCode ArrowArrayAppendInterval(ArrowArray* arrow_array,
+                                            const ArrowInterval* value)
     ArrowErrorCode ArrowArrayAppendNull(ArrowArray* arrow_array, int64_t n)
     ArrowErrorCode ArrowArrayAppendUInt(ArrowArray * arrow_array, uint64_t n)
     ArrowBuffer* ArrowArrayBuffer(ArrowArray* arrow_array, int64_t i)
@@ -108,6 +117,8 @@ cdef extern from "nanoarrow.c":
                                          int64_t i)
     int64_t ArrowArrayViewGetIntUnsafe(const ArrowArrayView* array_view,
                                        int64_t i)
+    void ArrowArrayViewGetIntervalUnsafe(const ArrowArrayView* array_view,
+                                         int64_t i, ArrowInterval* out)
     uint64_t ArrowArrayViewGetUIntUnsafe(const ArrowArrayView* array_view,
                                          int64_t i)
     ArrowErrorCode ArrowArrayViewInitFromSchema(ArrowArrayView* array_view,
@@ -134,6 +145,7 @@ cdef extern from "nanoarrow.c":
     void ArrowDecimalSetBytes(ArrowDecimal *decimal, const uint8_t* value)
     ArrowErrorCode ArrowDecimalSetDigits(ArrowDecimal* decimal,
                                          ArrowStringView value)
+    void ArrowIntervalInit(ArrowInterval* interval, ArrowType type)
     ArrowErrorCode ArrowSchemaAllocateChildren(ArrowSchema* schema,
                                                int64_t n_children)
     ArrowErrorCode ArrowSchemaDeepCopy(const ArrowSchema *schema,

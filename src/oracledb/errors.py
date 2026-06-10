@@ -343,6 +343,7 @@ ERR_CANNOT_CONVERT_TO_ARROW_TYPE = 3038
 ERR_CANNOT_CONVERT_FROM_ARROW_TYPE = 3039
 ERR_DB_CS_NOT_SUPPORTED = 3040
 ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE = 3041
+ERR_ARROW_UNSUPPORTED_INTERVAL = 3042
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -611,6 +612,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_ARROW_UNSUPPORTED_DATA_TYPE: (
         "conversion from Oracle Database type {db_type_name} to Apache "
         "Arrow format is not supported"
+    ),
+    ERR_ARROW_UNSUPPORTED_INTERVAL: (
+        "conversion from Arrow interval containing months to Oracle Database "
+        "interval days to seconds data type is not supported"
     ),
     ERR_ARROW_UNSUPPORTED_VECTOR_FORMAT: (
         "flexible vector formats are not supported. Only fixed 'FLOAT32', "

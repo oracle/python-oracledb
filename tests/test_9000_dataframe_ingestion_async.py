@@ -1067,3 +1067,39 @@ async def test_9025(test_env, async_conn, async_cursor, empty_tab):
     expected_data = test_env.get_data_from_df(df.to_pandas())
     fetched_data = test_env.get_data_from_df(pyarrow.table(odf).to_pandas())
     assert fetched_data == expected_data
+
+
+async def test_9026(test_env, async_conn, async_cursor):
+    "9026 - test ingestion with interval day to second type"
+    interval_type = pyarrow.month_day_nano_interval()
+    arrays = [
+        pyarrow.array([1, 2], pyarrow.int64()),
+        pyarrow.array(
+            [
+                pyarrow.scalar((0, 8, 32528123456000), type=interval_type),
+                pyarrow.scalar((0, -5, -10935987654000), type=interval_type),
+            ],
+            interval_type,
+        ),
+    ]
+    names = ["NumberValue", "IntervalDSValue"]
+    df = pyarrow.table(arrays, names)
+    await async_cursor.execute("delete from TestAllTypes")
+    await async_cursor.executemany(
+        """
+        insert into TestAllTypes (NumberValue, IntervalDSValue)
+        values (:1, :2)
+        """,
+        df,
+    )
+    await async_conn.commit()
+    odf = await async_conn.fetch_df_all("""
+        select
+            NumberValue as "NumberValue",
+            IntervalDSValue as "IntervalDSValue"
+        from TestAllTypes
+        order by NumberValue
+        """)
+    expected_data = test_env.get_data_from_df(df.to_pandas())
+    fetched_data = test_env.get_data_from_df(pyarrow.table(odf).to_pandas())
+    assert fetched_data == expected_data

@@ -1712,3 +1712,40 @@ async def test_8168(async_conn, test_env):
         where IntCol = 1""")
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == expected_data
+
+
+async def test_8169(test_env, async_conn, async_cursor):
+    "8169 - test fetching interval types"
+    await async_cursor.execute("delete from TestAllTypes")
+    data = [
+        (
+            1,
+            datetime.timedelta(
+                days=2, hours=3, minutes=48, seconds=12, microseconds=25
+            ),
+            oracledb.IntervalYM(years=3, months=4),
+        ),
+        (
+            2,
+            datetime.timedelta(
+                days=-3, hours=-8, minutes=-3, seconds=-5, microseconds=-2500
+            ),
+            oracledb.IntervalYM(years=-8, months=-2),
+        ),
+    ]
+    await async_cursor.executemany(
+        """
+        insert into TestAllTypes (
+            NumberValue, IntervalDSValue, IntervalYMValue
+        ) values (
+            :1, :2, :3
+        )""",
+        data,
+    )
+    await async_conn.commit()
+    ora_df = await async_conn.fetch_df_all("""
+        select NumberValue, IntervalDSValue, IntervalYMValue
+        from TestAllTypes
+        order by NumberValue""")
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == data

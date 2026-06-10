@@ -70,6 +70,7 @@
 # user for on premises databases is SYSTEM.
 # -----------------------------------------------------------------------------
 
+import datetime
 import importlib
 import os
 import platform
@@ -222,6 +223,16 @@ class TestEnv:
         """
         if isinstance(df_val, numpy.ndarray):
             return df_val.tolist()
+        elif isinstance(df_val, pandas.DateOffset):
+            if df_val.months != 0:
+                sign = -1 if df_val.months < 0 else 1
+                years, months = divmod(df_val.months * sign, 12)
+                return oracledb.IntervalYM(
+                    years=years * sign, months=months * sign
+                )
+            return datetime.timedelta(
+                days=df_val.days, microseconds=df_val.microseconds
+            )
         elif pandas.isna(df_val):
             return None
         elif isinstance(df_val, dict):

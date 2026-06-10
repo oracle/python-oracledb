@@ -180,6 +180,7 @@ cdef class ArrowSchemaImpl:
             NANOARROW_TYPE_INT16,
             NANOARROW_TYPE_INT32,
             NANOARROW_TYPE_INT64,
+            NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO,
             NANOARROW_TYPE_LARGE_BINARY,
             NANOARROW_TYPE_LARGE_STRING,
             NANOARROW_TYPE_NA,

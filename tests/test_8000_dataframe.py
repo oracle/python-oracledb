@@ -889,6 +889,16 @@ def test_8035(conn, cursor):
         ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
         ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
         ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+        (
+            "INTERVALDSVALUE",
+            datetime.timedelta(days=5),
+            pyarrow.month_day_nano_interval(),
+        ),
+        (
+            "INTERVALYMVALUE",
+            oracledb.IntervalYM(years=2, months=3),
+            pyarrow.month_day_nano_interval(),
+        ),
         ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
         ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
         ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
@@ -934,6 +944,16 @@ def test_8036(conn, cursor, test_env):
         ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
         ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
         ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+        (
+            "INTERVALDSVALUE",
+            datetime.timedelta(days=5),
+            pyarrow.month_day_nano_interval(),
+        ),
+        (
+            "INTERVALYMVALUE",
+            oracledb.IntervalYM(years=2, months=3),
+            pyarrow.month_day_nano_interval(),
+        ),
         ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
         ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
         ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
@@ -1941,3 +1961,40 @@ def test_8081(conn, test_env):
         where IntCol = 1""")
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == expected_data
+
+
+def test_8082(test_env, conn, cursor):
+    "8082 - test fetching interval types"
+    cursor.execute("delete from TestAllTypes")
+    data = [
+        (
+            1,
+            datetime.timedelta(
+                days=2, hours=3, minutes=48, seconds=12, microseconds=25
+            ),
+            oracledb.IntervalYM(years=3, months=4),
+        ),
+        (
+            2,
+            datetime.timedelta(
+                days=-3, hours=-8, minutes=-3, seconds=-5, microseconds=-2500
+            ),
+            oracledb.IntervalYM(years=-8, months=-2),
+        ),
+    ]
+    cursor.executemany(
+        """
+        insert into TestAllTypes (
+            NumberValue, IntervalDSValue, IntervalYMValue
+        ) values (
+            :1, :2, :3
+        )""",
+        data,
+    )
+    conn.commit()
+    ora_df = conn.fetch_df_all("""
+        select NumberValue, IntervalDSValue, IntervalYMValue
+        from TestAllTypes
+        order by NumberValue""")
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == data

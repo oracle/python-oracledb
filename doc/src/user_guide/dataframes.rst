@@ -147,6 +147,14 @@ to map data types.
       - LARGE_STRING
     * - :attr:`DB_TYPE_DATE`
       - TIMESTAMP
+    * - :attr:`DB_TYPE_INTERVAL_DS`
+
+        .. versionadded:: 4.1.0
+      - INTERVAL_MONTH_DAY_NANO
+    * - :attr:`DB_TYPE_INTERVAL_YM`
+
+        .. versionadded:: 4.1.0
+      - INTERVAL_MONTH_DAY_NANO
     * - :attr:`DB_TYPE_LONG`
       - LARGE_STRING
     * - :attr:`DB_TYPE_LONG_RAW`
@@ -291,6 +299,25 @@ When converting Oracle Database DATEs and TIMESTAMPs:
       * - 7 - 9
         - nanoseconds
 
+**Intervals**
+
+When converting Oracle Database INTERVALs:
+
+- INTERVAL DAY TO SECOND and INTERVAL YEAR TO MONTH columns are fetched as
+  Apache Arrow INTERVAL_MONTH_DAY_NANO values.
+
+- INTERVAL DAY TO SECOND values are represented in the Arrow day and nanosecond
+  fields, with hours, minutes, seconds, and fractional seconds converted to
+  nanoseconds.
+
+- INTERVAL YEAR TO MONTH values are represented in the Arrow months field, with
+  years converted to months.
+
+- Only fetching is supported for INTERVAL YEAR TO MONTH. When ingesting Arrow
+  data frames, python-oracledb cannot distinguish whether an
+  INTERVAL_MONTH_DAY_NANO column should be bound as INTERVAL DAY TO SECOND or
+  INTERVAL YEAR TO MONTH.
+
 .. _explicitmapping:
 
 Explicit Data Frame Type Mapping
@@ -414,6 +441,11 @@ cannot be represented in the requested schema type.
           :attr:`DB_TYPE_VARCHAR`
         - LARGE_STRING
           STRING
+      * - :attr:`DB_TYPE_INTERVAL_DS`
+          :attr:`DB_TYPE_INTERVAL_YM`
+
+          .. versionadded:: 4.1.0
+        - INTERVAL_MONTH_DAY_NANO
 
 .. _convertingodf:
 

@@ -37,8 +37,10 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     Converts the value stored in Arrow format to an OracleData structure.
     """
     cdef:
-        int64_t int_value, days, seconds, useconds
+        int64_t int_value, days, seconds, useconds, nanoseconds
         SparseVectorImpl sparse_impl
+        OracleIntervalDS* ids
+        OracleIntervalYM* iym
         uint32_t db_type_num
         ArrowType arrow_type
         uint64_t uint_value
@@ -46,7 +48,9 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         tuple sparse_info
         bytes temp_bytes
         ssize_t buf_len
+        int32_t months
         char buf[21]
+        int8_t sign
 
     arrow_type = metadata._schema_impl.arrow_type
     db_type_num = metadata.dbtype.num
@@ -145,6 +149,18 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
             sparse_impl.indices = sparse_info[1]
             sparse_impl.values = sparse_info[2]
             return PY_TYPE_SPARSE_VECTOR._from_impl(sparse_impl)
+    elif arrow_type == NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO:
+        ids = &data.buffer.as_interval_ds
+        array_impl.get_interval_ds(array_index, &data.is_null, &ids.days,
+                                   &nanoseconds)
+        if not data.is_null:
+            sign = -1 if nanoseconds < 0 else 1
+            ids.fseconds = <int32_t> (nanoseconds % (sign * 1_000_000_000))
+            seconds = (nanoseconds - <int64_t> ids.fseconds) // 1_000_000_000
+            ids.hours = (seconds // (60 * 60 * sign)) * sign
+            seconds -= ids.hours * 60 * 60
+            ids.minutes = (seconds // (60 * sign)) * sign
+            ids.seconds = seconds - (ids.minutes * 60)
 
 
 cdef cydatetime.datetime convert_date_to_python(OracleDataBuffer *buffer):
@@ -206,6 +222,21 @@ cdef int convert_date_to_arrow_timestamp(ArrowArrayImpl array_impl,
     array_impl.append_int(ts)
 
 
+cdef int convert_interval_ds_to_arrow(ArrowArrayImpl array_impl,
+                                      OracleDataBuffer *buffer) except -1:
+    """
+    Converts an INTERVAL DAYS TO SECONDS value stored in the buffer to Arrow.
+    """
+    cdef:
+        OracleIntervalDS *value = &buffer.as_interval_ds
+        int64_t total_seconds
+    total_seconds = value.hours * 60 * 60 + value.minutes * 60 + value.seconds
+    array_impl.append_interval_ds(
+        value.days,
+        total_seconds * 1_000_000_000 + value.fseconds
+    )
+
+
 cdef object convert_interval_ds_to_python(OracleDataBuffer *buffer):
     """
     Converts an INTERVAL DAYS TO SECONDS value stored in the buffer to Python
@@ -217,6 +248,15 @@ cdef object convert_interval_ds_to_python(OracleDataBuffer *buffer):
     total_seconds = value.hours * 60 * 60 + value.minutes * 60 + value.seconds
     return cydatetime.timedelta_new(value.days, total_seconds,
                                     value.fseconds // 1000)
+
+
+cdef int convert_interval_ym_to_arrow(ArrowArrayImpl array_impl,
+                                      OracleDataBuffer *buffer) except -1:
+    """
+    Converts an INTERVAL YEARS TO MONTHS value stored in the buffer to Arrow.
+    """
+    cdef OracleIntervalYM *value = &buffer.as_interval_ym
+    array_impl.append_interval_ym(value.years * 12 + value.months)
 
 
 cdef object convert_interval_ym_to_python(OracleDataBuffer *buffer):
@@ -517,6 +557,11 @@ cdef int convert_oracle_data_to_arrow(OracleMetadata from_metadata,
         convert_date_to_arrow_date32(array_impl, &data.buffer)
     elif arrow_type == NANOARROW_TYPE_DECIMAL128:
         convert_number_to_arrow_decimal(array_impl, &data.buffer)
+    elif arrow_type == NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO:
+        if db_type_num == DB_TYPE_NUM_INTERVAL_DS:
+            convert_interval_ds_to_arrow(array_impl, &data.buffer)
+        else:
+            convert_interval_ym_to_arrow(array_impl, &data.buffer)
 
 
 cdef object convert_oracle_data_to_python(OracleMetadata from_metadata,

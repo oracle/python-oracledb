@@ -82,6 +82,7 @@ cdef extern from "nanoarrow.h":
         NANOARROW_TYPE_FIXED_SIZE_BINARY
         NANOARROW_TYPE_FIXED_SIZE_LIST
         NANOARROW_TYPE_FLOAT
+        NANOARROW_TYPE_INTERVAL_MONTH_DAY_NANO
         NANOARROW_TYPE_INT8
         NANOARROW_TYPE_INT16
         NANOARROW_TYPE_INT32
@@ -146,6 +147,8 @@ cdef class ArrowArrayImpl:
     cdef int append_double(self, double value) except -1
     cdef int append_float(self, float value) except -1
     cdef int append_int(self, int64_t value) except -1
+    cdef int append_interval_ds(self, int32_t days, int64_t ns) except -1
+    cdef int append_interval_ym(self, int32_t months) except -1
     cdef int append_last_value(self, ArrowArrayImpl array) except -1
     cdef int append_null(self) except -1
     cdef int append_sparse_vector(self, int64_t num_dimensions,
@@ -165,6 +168,8 @@ cdef class ArrowArrayImpl:
                        float* value) except -1
     cdef int get_int(self, ArrowType arrow_type, int64_t index, bint* is_null,
                      int64_t* value) except -1
+    cdef int get_interval_ds(self, int64_t index, bint* is_null, int32_t* days,
+                             int64_t* ns) except -1
     cdef int get_length(self, int64_t* length) except -1
     cdef object get_sparse_vector(self, int64_t index, bint* is_null)
     cdef int get_uint(self, ArrowType arrow_type, int64_t index, bint* is_null,
