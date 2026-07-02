@@ -39,8 +39,9 @@ Common Changes
     :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` with
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin.
 #)  Added support for fetching INTERVAL DAY TO SECOND and INTERVAL YEAR TO
-    MONTH in Arrow data frames and added support for ingestion of INTERVAL DAY
-    TO SECOND values from Arrow data frames.
+    MONTH in :ref:`Arrow data frames <dataframeformat>` and added support for
+    ingestion of INTERVAL DAY TO SECOND values from
+    :ref:`Arrow data frames <dataframeformat>`.
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.
