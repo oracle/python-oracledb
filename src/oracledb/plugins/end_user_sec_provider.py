@@ -98,13 +98,23 @@ def end_user_sec_context_hook(params: oracledb.ConnectParams):
     if has_security_params(params.extra_auth_params):
         end_user_sec_params = params.extra_auth_params["end_user_sec_params"]
 
-        def on_connect_callback(connection: oracledb.Connection):
+        def set_end_user_sec_context(connection):
             identity = get_end_user_identity()
             if identity is not None:
                 context = get_end_user_sec_context(
                     end_user_sec_params, identity
                 )
                 connection.set_end_user_security_context(context)
+
+        async def async_on_connect_callback(
+            connection: oracledb.AsyncConnection,
+        ):
+            set_end_user_sec_context(connection)
+
+        def on_connect_callback(connection: oracledb.Connection):
+            if isinstance(connection, oracledb.AsyncConnection):
+                return async_on_connect_callback(connection)
+            set_end_user_sec_context(connection)
 
         params.set(on_connect_callback=on_connect_callback)
 
